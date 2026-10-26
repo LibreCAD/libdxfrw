@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5et original BLOCKS TABLE source pairs (2026-10-26; verified before local commit):** the existing optional TABLE source facet now reaches BLOCKS through one moved original model/const raw pair, preserving actual parser and linked-child state until ENDBLK. Converter observations distinguish the raw parent boundary from the full ATTRIB/SEQEND dispatch and keep the established 2D INSERT projection out of original provenance accounting. The new authored selector covers72 profiles,4,848 independently walked BLOCKS scalar spans,32 allocation faults and corrected retries. Exact affected cohorts pass88/88 normally and88/88 under ASan. [Implementation and next work](#implementation-progress-rpp-5et-original-blocks-table-source-pairs-2026-10-26) · [receipt](docs/research/rpp5et-original-blocks-table-source-pairs-2026-10-26.json). Full TABLE body/state/profile/common-target/dependency/live/output and native/external work stays open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5eu actual TABLE producer inputs and original states (2026-10-26; verified before local commit):** a callback-only reader-owned TABLE publication view attests real source/typed model/raw identities in ENTITIES and BLOCKS. Bounded immutable inputs separately retain original source/typed models, raw/context/enclosing owners and pre-copy private/common/linked states; copied values or the 2D INSERT projection cannot stand in for the producer. The new selector covers72 profiles,56 private-state mutations,32 producer refusals,80 reached allocation faults and callback/view lifetime recovery. Exact affected cohorts pass89/89 normally and89/89 under ASan. [Implementation and next work](#implementation-progress-rpp-5eu-actual-table-producer-inputs-and-original-states-2026-10-26) · [receipt](docs/research/rpp5eu-actual-table-producer-inputs-and-original-states-2026-10-26.json). These are selected original observations, not modeled equality, full TABLE scalar/reference/dependency/live/output or native/external qualification; support gates stay closed.
+
+**Previous implementation checkpoint — RPP-5et original BLOCKS TABLE source pairs (2026-10-26; committed as `00d3f6a4`):** the existing optional TABLE source facet now reaches BLOCKS through one moved original model/const raw pair, preserving actual parser and linked-child state until ENDBLK. Converter observations distinguish the raw parent boundary from the full ATTRIB/SEQEND dispatch and keep the established 2D INSERT projection out of original provenance accounting. The new authored selector covers72 profiles,4,848 independently walked BLOCKS scalar spans,32 allocation faults and corrected retries. Exact affected cohorts pass88/88 normally and88/88 under ASan. [Implementation and next work](#implementation-progress-rpp-5et-original-blocks-table-source-pairs-2026-10-26) · [receipt](docs/research/rpp5et-original-blocks-table-source-pairs-2026-10-26.json). Full TABLE body/state/profile/common-target/dependency/live/output and native/external work stays open; no support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5es original ATTDEF body/pair/role joins (2026-10-26; committed as `388e5a5d`):** immutable original ATTDEF model/raw/parser-state/origin/read-context owners now join selected BLOCKS and ENTITIES body/role audits. Shared replay preserves actual text interpretation and ATTDEF's pre-copy subclass state; explicit410 is qualified only through the original target graph, not older partial resource gates. The new authored selector covers72 profiles,3,264 independently walked scalar spans,40 actual field mutations,94 allocation faults and12 destination guards. Exact affected cohorts pass87/87 normally and87/87 under ASan. [Implementation and next work](#implementation-progress-rpp-5es-original-attdef-bodypairrole-joins-2026-10-26) · [receipt](docs/research/rpp5es-original-attdef-body-pair-role-joins-2026-10-26.json). TABLE/other primary,dependency,live/output,consumer and external work stays open; no support gate is promoted.
 
@@ -130440,3 +130442,154 @@ J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 No DWG byte-layout parser/encoder or remote mutation is included. The full goal
 remains active; this slice does not complete the objective.
+
+## Implementation progress — RPP-5eu actual TABLE producer inputs and original states (2026-10-26)
+
+State: **VERIFIED before local slice commit**. Exact affected cohorts pass
+normal89/ASan89. RPP-5et is committed as `00d3f6a4`. This implements its original
+producer/input/state prerequisite, not full modeled TABLE body replay, independent
+scalar/reference profiles, actual common targets, dependencies, live/output or
+native consumer/semantic completion.
+
+- [x] Add `dxfRW::getDxfTableSourceView`, backed only by internal reader state.
+  Source/typed publication frames identify the real model and same original
+  raw carrier in ENTITIES and BLOCKS; the getter allocates nothing and clears
+  outside the pair, on throw and after reader reuse. Move the ENTITIES carrier
+  into a const object as already done by the BLOCKS pair. No additional callback,
+  facade/model-layout field or `DRW_Interface` virtual is added.
+- [x] Add shared internal `dxfTable::Decoder` production entry/finalization and
+  nonallocating state observation. Capture every private TABLE subclass/count/
+  cell/value/attribute parser field, plus original parent and linked ATTRIB/
+  SEQEND common/nested states, before model copies sanitize them. Keep model
+  values, parser observations and semantic-completeness flags distinct. No
+  source grammar, parser acceptance or DWG byte-layout change is introduced.
+- [x] Add bounded immutable source and typed TABLE input owners independently
+  of the editable TABLE collection, adapter INSERT projection and older value
+  map. Pin source/raw/context/control owners and actual container/non-copying
+  identity/generation. Preserve available enclosing BLOCKS publication/member/
+  endpoint owners and original ENTITIES scope/event/context anchors. A copied
+  callback value cannot become original producer evidence merely by matching
+  fields; the source/typed views must identify the actual publication arguments.
+- [x] Keep the borrowed live model/raw pointers only across their actual pair
+  and clear pending pointers at read finalization, including failures. Bound
+  added records, model/raw/copy temporaries, linked-state vectors, contexts,
+  controls/maps and work before ownership allocation using existing estimation
+  helpers and separate100,000-record/64-MiB byte/work ceilings. Two input records
+  are consumed per complete TABLE pair. These are logical limits, not process
+  RSS, allocator-capacity or timing guarantees.
+- [x] Add allocation-free `tableInputReport`. `OriginalPairsReady` describes
+  selected actual producer identities and parser-state agreement only; it is
+  not a whole-import physical census or modeled equality. `cleanStates` means
+  original parent/linked XDATA cursors only. Real pending observations can be
+  retained with this flag false; source/typed modeled values can differ while
+  their producer identities/states remain real. `modeledMatched`,
+  `profilesMatched`, `ownerTargetsResolved` and `outputEligible` stay false.
+- [x] Distinguish missing optional enclosing observations from a replaced
+  context owner. Missing delivery evidence stays unqualified; changed owners
+  are context mismatches. Legacy duplicate source storage still fails its own
+  capture gate. Neither a smaller selected subset nor an original observation
+  is promoted to complete TABLE/body/target/output support. Existing body/role
+  reports continue to list TABLE explicitly unsupported.
+
+New authored selector `libdxfrw_table_original_inputs`:
+
+- **72** four-version x LF/CRLF/Binary x ENTITIES/BLOCKS x parent-only/two-ATTRIB/
+  empty-footer profiles verify actual source/typed publication identities,
+  independent immutable original/typed models and shared original raw/context
+  owners, all original private counts and original linked attribute states.
+  The stored model copy has reset private/parser state; its separate original
+  observation retains the real values. No independent TABLE field profile is
+  claimed by this positive transport/state matrix.
+- **56** changes cover all14 original private TABLE state fields on both scopes
+  and encodings; original and typed state disagreement refuses readiness.
+  **32** copied/missing/duplicate source/typed or attempted INSERT substitutions
+  refuse actual producer certification with corrected same-adapter imports.
+- **45** source/observer opt-out, equal-copy/alias input/context owners, live
+  edits, copied containers, cross-import transplants, allocation-free reporting
+  and non-vacuous no-input controls keep provenance/ownership axes separate.
+- **12** field/pending-state boundary controls retain distinct source/typed
+  modeled field values without claiming modeled equality, and preserve original
+  pending XDATA in both TABLE and linked ATTRIB while the copies are sanitized.
+- **24** exact/one-under record/byte/work cases exercise snapshot limits.
+  **80** reached actual source-snapshot allocation faults retain capture failure,
+  clear pending live pointers and recover. These finite first20 schedules per
+  scope/encoding are not every allocation site or possible failure schedule.
+- **12** callback-exception/failed-tail cases retain import failure, balanced
+  scopes and corrected fresh-destination imports on the same adapter.
+  **16** direct public source/typed/opt-out/throw routes verify getter lifetime,
+  no-allocation querying, cleared views outside the pair and same-reader reuse
+  without requiring converter or physical/delivery observers.
+- **Eight** long-declaration context controls separately verify allocation-free
+  borrowed `DxfReadContext` views and reached failure/recovery in precharged
+  owned-context fallback copies. Main new Binary recipes contain no group999;
+  all drawings are runtime-authored and no external payload is committed.
+
+Development evidence is retained: strict builds caught test indentation; fix
+the statements, not warning policy. The first refusal test expected duplicate
+source storage to be merely unqualified, but the legacy gate correctly marks
+capture failure. A reached duplicate typed callback produces no enclosing
+ENTITIES delivery report, exposing an overly broad new context-mismatch label;
+the report now treats missing evidence as unqualified while retaining original
+observations and still rejecting replaced owners. An allocation-review hypothesis
+that `getDxfReadContext` copies strings was disproved by its `string_view` fields
+and an actual zero-allocation call. That getter is unchanged; the added test
+targets owned snapshot copies instead. No fictitious getter defect/fix or stale
+executable acceptance is claimed. Historical silent first CELLSTYLEMAP/TABLESTYLE
+launches remain unclassified.
+
+Final strict affected builds pass. Exact cohorts pass **89/89 normally in27.17s**
+and **89/89 under ASan in60.48s**, zero failed/skipped/disabled tests, identical
+registered selection/order and exact executed-name sets. Normal runtime finishes
+before ASan (`halt_on_error=1:detect_leaks=0`); only independent compilation
+overlaps. Final compiled-source hashes are unchanged. Existing library/owning
+adapter/resource/compatibility targets retain C++17 and `-Wall -Wextra -pedantic
+-Werror`; the broad fixture runner is not claimed globally warning-clean.
+These are affected cohorts, not the full suite, performance benchmarks, formal
+ABI, native consumer execution or independent geometry/kernel qualification.
+Fast owning selectors are used per edit; no repeated full suite per edit.
+The [receipt](docs/research/rpp5eu-actual-table-producer-inputs-and-original-states-2026-10-26.json)
+records exact selection, source/log hashes, controls, development findings and
+limits. No support promotion or remote mutation is included.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Original TABLE modeled replay.** Reuse the pinned source/typed inputs,
+   original private/common/linked observations, actual text/options context and
+   shared production wrapper. Replay the exact parent and ATTRIB/SEQEND shapes,
+   comparing every modeled common/INSERT/TABLE/cell/content/attribute/value/color/
+   semantic-completeness field against both real original observations. Do not
+   infer equality from pointer identity, sanitized copies, state agreement or
+   2D projection. Preserve raw parent stubs as such and refuse original pending
+   cursors/unknown concrete subclasses as body prerequisites. Add exact bounds,
+   field faults, source/typed divergence, allocation/tail/exception/retry controls.
+2. [ ] **Independent TABLE scalar/reference profile and common-role closure.**
+   Account for every original physical scalar/subclass span and owner/handle/name
+   role independently of modeled replay. Join original namespace/dispatch/member/
+   publisher owners and actual67/410 targets; explicitly enumerate omitted,
+   dropped/unsupported/ambiguous bodies so selected observations cannot stand for
+   a whole-document claim. Keep ACAD_TABLE parent, standalone TABLECONTENT/
+   TABLEGEOMETRY and actual round-trip wrappers as separate schemas/prerequisites.
+   Preserve semantic-incompleteness flags and native non-ASCII collation limits.
+3. [ ] **Remaining primaries and common dependencies.** Resolve actual original
+   STYLE/APPID/LAYER/object/application/proxy/codepage and bounded nested INSERT
+   references to correct typed targets, including missing/ambiguous/wrong-kind,
+   copied/cross-import, limits/allocation and corrected-reuse cases. Producer
+   identity, state, matched modeled body and enclosing owner are not this closure.
+4. [ ] **Full B2b/B3/C live/output/consumer/native parity.** Complete source/live/
+   edited/emitted fields/names/references, remap/readback, rollback/retry/destination
+   safety, IMAGE/document/native-bit/decimal/carrier/schema/owner and memory/
+   performance. Preserve LibreCAD/LibreCAD_3 2D/3D and dwg2dxf/FreeCAD. Compile or
+   same-stack checks do not replace native Linux/Windows FreeCAD or independent
+   ACIS/ACDS semantic/kernel evidence.
+5. [ ] **Self-update/unblock and continue.** Commit/report the verified slice,
+   retain failures/limits/receipts and take the next safe local prerequisite.
+   Use fast owning tests per edit and exact affected cohorts at integration
+   boundaries. Commit no external drawing payloads or derivatives and do not
+   wait for external qualification while local work remains available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+No DWG byte-layout parser/encoder change or formal/native/geometry/output support
+promotion is included. The full goal remains active and incomplete.

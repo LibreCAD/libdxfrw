@@ -20349,6 +20349,135 @@ bool dx_iface::wantsDxfTableSource() const {
     return tableSourceCaptureOpen();
 }
 
+void dx_iface::captureTableInput(const DRW_Table& value,const DRW_RawDxfObject* raw,bool typed) noexcept {
+    if(!cData||m_tableSourceReadData!=cData||cData->sourceFormat!=dx_source_format::DXF)return;
+    auto& s=cData->m_tableDxfSource;using Input=dx_data::TableDxfSourceCapture::TableInput;
+    if(s.tableInputCaptureFailed)return;
+    const auto incomplete=[&](){s.tableInputIncomplete=true;};
+    const auto failed=[&](){s.tableInputCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()){incomplete();return;}
+    try {
+        dxfRW::DxfTableSourceView view;
+        const bool published=s.entitiesReadInput&&s.entitiesReadInput->getDxfTableSourceView(view);
+        if(typed&&!published) {
+            if(s.tableInputUnavailable>=s.maxTableInputRecords)failed();else ++s.tableInputUnavailable;
+            return;
+        }
+        if(!published||view.phase!=(typed?dxfRW::DxfTableSourceView::Phase::Typed:dxfRW::DxfTableSourceView::Phase::Source)
+            ||view.model!=&value||!view.source||(!typed&&view.source!=raw)||!value.handle||value.eType!=DRW::TABLE
+            ||typeid(value)!=typeid(DRW_Table)||!concreteEntitiesBodyChildren(value)||!currentBlock
+            ||view.inBlock!=(currentBlock!=cData->mBlock)||view.source->handle!=value.handle||view.source->parentHandle!=value.parentHandle
+            ||!asciiIdentifierEquals(view.source->name,"ACAD_TABLE")){incomplete();return;}
+        std::shared_ptr<const Input> original;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesReadContext> context;
+        if(typed) {
+            const auto at=s.tableInputs.find(value.handle);const auto pending=s.tablePendingInputs.find(value.handle);
+            if(at==s.tableInputs.end()||pending==s.tablePendingInputs.end()||pending->second.model!=&value||pending->second.raw!=view.source
+                ||s.tableTypedInputs.count(value.handle)){incomplete();return;}
+            original=at->second;context=original->context;
+        } else {
+            if(s.tableInputs.count(value.handle)||s.tablePendingInputs.count(value.handle)){incomplete();return;}
+            const auto at=s.blockSources.find(s.blockSourceActive);
+            if(view.inBlock&&at!=s.blockSources.end())context=at->second.context;
+            else if(!view.inBlock)context=s.entitiesPending.context;
+        }
+        dxfRW::DxfReadContext live;
+        if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion!=view.source->m_version
+            ||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032||live.binary==view.source->hasRawValues
+            ||live.codecCodePage.size()>128u){incomplete();return;}
+        const auto matches=[&](const auto& c){return c&&c->captured&&std::tie(c->sourceVersion,c->codecVersion,c->codecCodePage,c->declaration,c->hasDeclaration,c->compatibilityProfile,c->textEncoding,c->codePagePolicy,c->applyExtrusion,c->binary)
+            ==std::tie(live.sourceVersion,live.codecVersion,live.codecCodePage,live.declaration,live.hasDeclaration,live.compatibilityProfile,live.textEncoding,live.codePagePolicy,live.applyExtrusion,live.binary);};
+        if(context&&!matches(context)){incomplete();return;}
+        std::size_t modelBytes=0u,rawBytes=0u,bytes=sizeof(Input)+64u*sizeof(void*),work=0u;
+        std::size_t linked=value.attlist.size();
+        if(!addAssociativeRetainedBytes(value.seqEndEntity?1u:0u,linked)
+            ||!estimateTypedEntityRetainedBytes(value,sizeof(DRW_Table),modelBytes)
+            ||(!typed&&!estimateRawDxfObjectBytes(*view.source,rawBytes))
+            ||!addAssociativeSlotBytes(modelBytes,3u,bytes)||!addAssociativeSlotBytes(rawBytes,3u,bytes)
+            ||!addAssociativeSlotBytes(linked,sizeof(dxfCompound::SourceState),bytes)){failed();return;}
+        using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+        if(!context&&(!addAssociativeRetainedBytes(sizeof(Context)+8u*sizeof(void*),bytes)
+            ||!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes))){failed();return;}
+        work=bytes;
+        if(!addAssociativeSlotBytes(linked,64u,work)||s.tableInputRecords>=s.maxTableInputRecords
+            ||s.tableInputBytes>s.maxTableInputBytes||bytes>s.maxTableInputBytes-s.tableInputBytes
+            ||s.tableInputWork>s.maxTableInputWork||work>s.maxTableInputWork-s.tableInputWork){failed();return;}
+        ++s.tableInputRecords;s.tableInputBytes+=bytes;s.tableInputWork+=work;
+        if(!context){Context c;c.sourceVersion=live.sourceVersion;c.codecVersion=live.codecVersion;c.codecCodePage=live.codecCodePage;c.declaration=live.declaration;
+            c.hasDeclaration=live.hasDeclaration;c.compatibilityProfile=live.compatibilityProfile;c.textEncoding=live.textEncoding;c.codePagePolicy=live.codePagePolicy;
+            c.applyExtrusion=live.applyExtrusion;c.binary=live.binary;c.captured=true;context=std::make_shared<const Context>(std::move(c));}
+        Input input;input.container=cData;input.generation=s.generation;input.containerId=cData->m_entitiesContainerIdentity.value;
+        input.inBlock=view.inBlock;input.block=view.inBlock?currentBlock->handle:0u;input.typed=typed;input.context=std::move(context);input.source=original;
+        if(view.inBlock) {
+            const auto at=s.blockSources.find(input.block);
+            if(at!=s.blockSources.end()){const auto& b=at->second;input.blockPhysical=b.children;input.blockDelivery=b.delivery;input.membership=b.membership;
+                input.blockBegin=b.original;input.blockEffective=b.effective;input.blockEnd=b.footer;
+                input.scope=b.delivery?b.delivery->scopeId:0u;input.event=b.deliveryNext;}
+        } else {input.scope=s.entitiesPending.scope;input.event=s.entitiesPending.next;input.section=s.entitiesPending.section;}
+        input.state=dxfTable::Decoder::observe(value);input.linked.reserve(linked);
+        for(const auto& child:value.attlist){if(!child){incomplete();return;}input.linked.push_back(dxfCompound::Decoder::observe(*child));}
+        if(value.seqEndEntity)input.linked.push_back(dxfCompound::Decoder::observe(*value.seqEndEntity));
+        input.model=std::make_shared<const DRW_Table>(value);
+        input.raw=typed?original->raw:std::make_shared<const DRW_RawDxfObject>(*view.source);
+        auto owner=std::make_shared<const Input>(std::move(input));
+        if(typed) {
+            s.tableTypedOwners.emplace(value.handle,owner);s.tableTypedInputs.emplace(value.handle,std::move(owner));s.tablePendingInputs.erase(value.handle);
+        } else {
+            s.tableInputOwners.emplace(value.handle,owner);s.tableInputs.emplace(value.handle,std::move(owner));
+            s.tablePendingInputs.emplace(value.handle,dx_data::TableDxfSourceCapture::TablePendingInput{&value,view.source});
+        }
+    }catch(...){failed();}
+}
+
+dx_iface::TableInputReport dx_iface::tableInputReport(const dx_data& data) noexcept {
+    using S=TableInputState;TableInputReport r;const auto& s=data.m_tableDxfSource;
+    r.sources=s.tableInputs.size();r.typed=s.tableTypedInputs.size();r.unavailable=s.tableInputUnavailable;
+    r.records=s.tableInputRecords;r.bytes=s.tableInputBytes;r.work=s.tableInputWork;
+    if(!s.generation)return r;
+    if(!s.closed){r.state=S::Reading;return r;}
+    if(!s.successful){r.state=S::ImportFailed;return r;}
+    if(s.reader||s.generation!=1u||s.generation!=data.importGeneration||data.sourceFormat!=dx_source_format::DXF||s.version!=data.sourceVersion
+        ||s.version!=data.dxfReadOutcome.sourceVersion||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.readThrew
+        ||!data.dxfReadOutcome.readReturned||data.dxfReadOutcome.error!=DRW::BAD_NONE||s.contextFailed){r.state=S::ContextMismatch;return r;}
+    if(s.tableInputCaptureFailed||s.failed){r.state=S::CaptureFailed;return r;}
+    if(s.tableInputOwners.size()!=s.tableInputs.size()||s.tableTypedOwners.size()!=s.tableTypedInputs.size()){r.state=S::ContextMismatch;return r;}
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    bool clean=true,matched=!s.tableInputIncomplete&&s.tablePendingInputs.empty()&&!r.unavailable;
+    const auto valid=[&](const auto& p,std::uint32_t id,bool typed){return p&&p->container==&data&&p->generation==s.generation&&p->containerId==data.m_entitiesContainerIdentity.value
+        &&p->typed==typed&&p->model&&p->raw&&p->context&&p->context->captured&&p->model->handle==id&&p->raw->handle==id
+        &&p->model->parentHandle==p->raw->parentHandle&&p->raw->m_version==s.version&&p->context->sourceVersion==s.version
+        &&p->context->binary!=p->raw->hasRawValues&&p->linked.size()==p->model->attlist.size()+(p->model->seqEndEntity?1u:0u);};
+    for(const auto& item:s.tableInputs) {
+        const auto& p=item.second;const auto own=s.tableInputOwners.find(item.first);
+        if(own==s.tableInputOwners.end()||!same(p,own->second)||!valid(p,item.first,false)||p->source){r.state=S::ContextMismatch;return r;}
+        if(p->inBlock&&p->blockPhysical) {
+            const auto at=s.blockSources.find(p->block);
+            if(at==s.blockSources.end()||!same(p->blockPhysical,at->second.children)||!same(p->blockDelivery,at->second.delivery)||!same(p->membership,at->second.membership)
+                ||!same(p->blockBegin,at->second.original)||!same(p->blockEffective,at->second.effective)||!same(p->blockEnd,at->second.footer)
+                ||!same(p->context,at->second.context)) {r.state=S::ContextMismatch;return r;}
+        } else if(!p->inBlock&&p->scope) {
+            // A failed optional delivery capture is missing enclosure evidence,
+            // not a substituted owner. Keep the original observations but do
+            // not qualify the incomplete scope or invent a context mismatch.
+            if(p->section>=s.entitiesDeliveries.size())matched=false;
+            else if(!same(p->context,s.entitiesDeliveries[p->section].context)) {r.state=S::ContextMismatch;return r;}
+        }
+        clean=clean&&p->state.hasNoPendingXdata();for(const auto& state:p->linked)clean=clean&&state.hasNoPendingXdata();
+        const auto typed=s.tableTypedInputs.find(item.first);
+        if(typed==s.tableTypedInputs.end()){matched=false;continue;}
+        const auto& t=typed->second;const auto o=s.tableTypedOwners.find(item.first);
+        if(o==s.tableTypedOwners.end()||!same(t,o->second)||!valid(t,item.first,true)||!same(t->source,p)||!same(t->raw,p->raw)||!same(t->context,p->context)
+            ||t->inBlock!=p->inBlock||t->block!=p->block||!same(t->blockPhysical,p->blockPhysical)||!same(t->blockDelivery,p->blockDelivery)||!same(t->membership,p->membership)
+            ||!same(t->blockBegin,p->blockBegin)||!same(t->blockEffective,p->blockEffective)||!same(t->blockEnd,p->blockEnd)
+            ||t->scope!=p->scope||t->section!=p->section||(p->scope&&t->event!=p->event+1u)){r.state=S::ContextMismatch;return r;}
+        if(!(t->state==p->state)||t->linked!=p->linked)matched=false;else ++r.paired;
+    }
+    if(s.tableTypedInputs.size()!=r.paired)matched=false;
+    if(s.tableInputs.empty()){r.state=matched?S::NoInputs:S::Unqualified;return r;}
+    r.cleanStates=clean;r.originalPairsMatched=matched&&r.paired==r.sources;
+    r.state=r.originalPairsMatched?S::OriginalPairsReady:S::Unqualified;return r;
+}
+
 bool dx_iface::chargeTableSource(
         std::size_t bytes, std::size_t groups, std::size_t records) noexcept {
     if (!cData) return false;
@@ -20373,6 +20502,7 @@ bool dx_iface::chargeTableSource(
 
 void dx_iface::addDxfTableSource(const DRW_Table& table,
                                 const DRW_RawDxfObject& raw) {
+    captureTableInput(table,&raw,false);
     observeDxfBlockDeliveryValue(static_cast<std::int32_t>(table.eType),table.handle,table.parentHandle,
                                 DRW_DxfBlockCallback::TableSource,&raw,&table);
     observeDxfEntitiesTyped<DRW_Table>(table,DRW_DxfEntitiesCallback::TableSource);
@@ -20539,6 +20669,8 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if (!m_tableSourceReadData) return;
     auto& data = *m_tableSourceReadData;
     auto& source = data.m_tableDxfSource;
+    if(!source.tablePendingInputs.empty())source.tableInputIncomplete=true;
+    source.tablePendingInputs.clear();
     if(source.attdefPending)source.resourceProofCaptureFailed=true;
     if(source.blockSourcePending||source.blockSourceActive)source.blockSourceCaptureFailed=true;
     if(source.entitiesPending.scope)source.entitiesDeliveryCaptureFailed=true;

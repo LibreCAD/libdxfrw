@@ -37,6 +37,7 @@ class DRW_MText;
 namespace dxfAttdef { class Decoder; }
 namespace dxfCompound { class Decoder; }
 namespace dxfBlock { class Decoder; }
+namespace dxfTable { class Decoder; }
 
 struct DRW_MeshPropertyOverride {
     std::int32_t subEntityMarker = 0;
@@ -1929,6 +1930,7 @@ struct DRW_TableContent {
 //! Class to handle ACAD_TABLE (AcDbTable).
 class DRW_Table : public DRW_Insert {
     SETENTFRIENDS
+    friend class dxfTable::Decoder;
 public:
     DRW_Table() {
         eType = DRW::TABLE;

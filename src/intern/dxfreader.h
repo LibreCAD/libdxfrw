@@ -30,6 +30,7 @@ class DRW_Layout;
 class DRW_TableEntry;
 class DRW_Block;
 class DRW_Entity;
+class DRW_Table;
 struct DRW_RawDxfObject;
 struct DRW_DxfIdentitySource;
 struct DRW_DxfBlockChildrenSource;
@@ -58,6 +59,18 @@ struct DxfLayoutPublication {
     std::uint8_t phase{0};
     const DRW_Layout* model{nullptr};
     const DRW_RawDxfObject* source{nullptr};
+};
+struct DxfTablePublication {
+    std::uint8_t phase{0};const DRW_Table* model{nullptr};const DRW_RawDxfObject* source{nullptr};bool inBlock{false};
+};
+class DxfTablePublicationScope {
+    DxfTablePublication* slot;DxfTablePublication previous;
+public:
+    DxfTablePublicationScope(DxfTablePublication* target,const DxfTablePublication& value) noexcept
+        :slot(target),previous(target?*target:DxfTablePublication{}){if(slot)*slot=value;}
+    ~DxfTablePublicationScope(){if(slot)*slot=previous;}
+    DxfTablePublicationScope(const DxfTablePublicationScope&)=delete;
+    DxfTablePublicationScope& operator=(const DxfTablePublicationScope&)=delete;
 };
 struct DxfStructuralPublication {
     // Kind 1 BLOCK_RECORD, 2 first OBJECTS DICTIONARY, 3 non-root DICTIONARY;
@@ -321,11 +334,13 @@ private:
 class dxfReader {
     friend class dxfRW;
     DxfLayoutPublication m_layoutPublication{};
+    DxfTablePublication m_tablePublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
     DxfStructuralPublication m_structuralPublication{};
     DxfBlockPublication m_blockPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
+    DxfTablePublication& tablePublication() noexcept{return m_tablePublication;}
     enum TYPE {
         STRING,
         INT32,

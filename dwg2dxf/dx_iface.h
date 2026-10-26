@@ -41,6 +41,15 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
 public:
+    enum class TableInputState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NoInputs,OriginalPairsReady,Unqualified};
+    struct TableInputReport {
+        TableInputState state{TableInputState::NotCaptured};
+        std::size_t sources{0},typed{0},paired{0},unavailable{0},records{0},bytes{0},work{0};
+        // cleanStates means only original parent/linked XDATA cursors, not
+        // complete TABLE cells,scalar semantics,dependencies or output.
+        bool originalPairsMatched{false},cleanStates{false},modeledMatched{false},profilesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static TableInputReport tableInputReport(const dx_data&) noexcept;
     using BlockRoleState=dx_data::TableDxfSourceCapture::BlockRoleAudit::State;
     struct BlockRoleReport {
         BlockRoleState state{BlockRoleState::NotCaptured};
@@ -543,6 +552,7 @@ public:
             retainTypedEntity<DRW_MLeader>(*data);
     }
     void addTable(const DRW_Table& data) override {
+        captureTableInput(data,nullptr,true);
         observeDxfBlockDeliveryValue(static_cast<std::int32_t>(data.eType),data.handle,data.parentHandle,
                                     DRW_DxfBlockCallback::addTable,nullptr,&data);
         observeDxfEntitiesTyped<DRW_Table>(data,DRW_DxfEntitiesCallback::addTable);
@@ -1662,6 +1672,7 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     dx_data* m_tableSourceReadData{nullptr};
     bool m_entitiesTableProjection{false};
     bool chargeEntitiesDelivery(std::size_t,std::size_t) noexcept;

@@ -1019,6 +1019,15 @@ public:
      * historical evidence, target qualification or an additional callback.
      * Publication state lives in the internal reader, not the public facade. */
     bool getDxfLayoutSourceView(DxfLayoutSourceView&) const noexcept;
+    struct DxfTableSourceView {
+        enum class Phase : std::uint8_t {None,Source,Typed};
+        Phase phase{Phase::None};const DRW_Table* model{nullptr};const DRW_RawDxfObject* source{nullptr};bool inBlock{false};
+    };
+    /** Exact actual opted-in TABLE source/typed publication in ENTITIES/BLOCKS.
+     * Borrowed model/const-raw pointers expire at pair return/throw; false clears
+     * the view elsewhere. No new callback, writable history or output proof.
+     * State lives in the internal reader, not the public facade/model layout. */
+    bool getDxfTableSourceView(DxfTableSourceView&) const noexcept;
     struct DxfStructuralSourceView {
         enum class Kind : std::uint8_t {None,BlockRecord,RootDictionary,Dictionary};
         enum class Phase : std::uint8_t {None,Source,Typed,Raw};

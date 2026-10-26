@@ -58,6 +58,12 @@ public:
 
 class DrwEntityEncodeTestAccess {
 public:
+    static void tableState(DRW_Table& t,const dxfTable::SourceState& s) noexcept {
+        t.m_dxfSubclass=static_cast<DRW_Table::DxfSubclass>(s.subclass);t.m_dxfRowsExpected=s.rows;t.m_dxfColumnsExpected=s.columns;
+        t.m_dxfCurrentCell=s.currentCell;t.m_dxfRowHeightsRead=s.rowHeights;t.m_dxfColumnWidthsRead=s.columnWidths;t.m_dxfNextCell=s.nextCell;
+        t.m_dxfInCellValue=s.inValue;t.m_dxfDataVersionRead=s.dataVersion;t.m_dxfTablePropertiesStarted=s.properties;t.m_dxfUnsupportedData=s.unsupported;
+        t.m_dxfAttributesExpected=s.attributesExpected;t.m_dxfAttributesRead=s.attributesRead;t.m_dxfAttributesContentIndex=s.attributesContent;
+    }
     static auto tableCursor(const DRW_Table& t) noexcept {
         return std::make_tuple(static_cast<unsigned>(t.m_dxfSubclass),t.m_dxfRowsExpected,t.m_dxfColumnsExpected,
             t.m_dxfRowHeightsRead,t.m_dxfColumnWidthsRead,t.m_dxfNextCell,t.m_dxfCurrentCell,t.m_dxfInCellValue,
@@ -128,6 +134,23 @@ public:
     static const auto& layoutRole(const dx_data& data) {return data.m_tableDxfSource.layoutRoleAudit;}
     static const auto& entitiesRole(const dx_data& data) {return data.m_tableDxfSource.entitiesRoleAudit;}
     static const auto& blockRole(const dx_data& data){return data.m_tableDxfSource.blockRoleAudit;}
+    static const auto& tableInputs(const dx_data& data){return data.m_tableDxfSource.tableInputs;}
+    static const auto& tableTypedInputs(const dx_data& data){return data.m_tableDxfSource.tableTypedInputs;}
+    static bool tablePendingEmpty(const dx_data& data){return data.m_tableDxfSource.tablePendingInputs.empty();}
+    static void tableInputLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;if(which==0u)s.maxTableInputRecords=n;else if(which==1u)s.maxTableInputBytes=n;else s.maxTableInputWork=n;
+    }
+    static void substituteTableInput(dx_data& data,bool typed,bool alias) {
+        auto& s=data.m_tableDxfSource;auto& p=(typed?s.tableTypedInputs:s.tableInputs).at(0x501u);
+        if(alias)p=decltype(s.tableInputs)::mapped_type(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::TableInput>(*p);
+    }
+    static void transplantTableInput(dx_data& to,const dx_data& from){to.m_tableDxfSource.tableInputs=from.m_tableDxfSource.tableInputs;to.m_tableDxfSource.tableInputOwners=from.m_tableDxfSource.tableInputOwners;}
+    static void substituteTableContext(dx_data& data,bool blocks,bool alias) {
+        auto& s=data.m_tableDxfSource;auto& p=blocks?s.blockSources.at(0xF6u).context:s.entitiesDeliveries.front().context;
+        using T=typename std::decay_t<decltype(p)>::element_type;
+        if(alias)p=std::shared_ptr<T>(p.get(),[](const auto*){});else p=std::make_shared<T>(*p);
+    }
     static std::array<std::size_t,3> attdefBodyUsage(const dx_data& data,bool blocks) {
         const auto& s=data.m_tableDxfSource;return blocks?std::array<std::size_t,3>{s.compoundBodyRecords,s.compoundBodyBytes,s.compoundBodyWork}
             :std::array<std::size_t,3>{s.entitiesCompoundRecords,s.entitiesCompoundBytes,s.entitiesCompoundWork};
@@ -1493,6 +1516,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "block_role_controls.h"
 #include "attdef_role_controls.h"
 #include "table_block_source_controls.h"
+#include "table_input_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3014,6 +3038,7 @@ int main(int argc,char** argv) {
     const bool blockRoles=argc==2 && std::string(argv[1])=="--block-roles";
     const bool attdefRoles=argc==2 && std::string(argv[1])=="--attdef-roles";
     const bool tableBlockSource=argc==2 && std::string(argv[1])=="--table-block-source";
+    const bool tableInputs=argc==2 && std::string(argv[1])=="--table-inputs";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -3022,12 +3047,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

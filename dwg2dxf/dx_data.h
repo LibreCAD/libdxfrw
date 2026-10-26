@@ -19,6 +19,7 @@
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfcompound.h"
+#include "intern/dxftable.h"
 #include "intern/dxflayout.h"
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
@@ -1220,6 +1221,28 @@ private:
             DRW::DxfCodePagePolicy codePagePolicy{DRW::DxfCodePagePolicy::Compatible};
             bool hasDeclaration{false},applyExtrusion{false},binary{false},captured{false};
         };
+        struct TableInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::uint32_t block{0};std::uint64_t scope{0};std::size_t event{0},section{0};bool inBlock{false},typed{false};
+            std::shared_ptr<const DRW_Table> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const EntitiesReadContext> context;
+            std::shared_ptr<const TableInput> source;
+            std::shared_ptr<const DRW_DxfBlockChildrenSource> blockPhysical;
+            std::shared_ptr<const DRW_DxfBlockDeliverySource> blockDelivery;
+            std::shared_ptr<const dx_block_membership::Audit> membership;
+            std::shared_ptr<const DRW_Block> blockBegin,blockEffective,blockEnd;
+            dxfTable::SourceState state;
+            std::vector<dxfCompound::SourceState> linked;
+        };
+        struct TablePendingInput {
+            const DRW_Table* model{nullptr};const DRW_RawDxfObject* raw{nullptr};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const TableInput>> tableInputs,tableInputOwners,tableTypedInputs,tableTypedOwners;
+        std::map<std::uint32_t,TablePendingInput> tablePendingInputs;
+        std::size_t tableInputRecords{0},tableInputBytes{0},tableInputWork{0},tableInputUnavailable{0};
+        std::size_t maxTableInputRecords{100000u},maxTableInputBytes{64u*1024u*1024u},maxTableInputWork{64u*1024u*1024u};
+        bool tableInputCaptureFailed{false},tableInputIncomplete{false};
         struct EntitiesCompoundProof {
             enum class State : std::uint8_t {OtherPrimary,Raw,NoCallback,ModelUnavailable,Identity,Sequence,Owner,DuplicateIdentity,
                 Callback,FollowFlag,DecodeFailed,SourceStateMismatch,ModelMismatch,ProfileMismatch,SpaceMismatch,LayoutUnresolved,Matched};

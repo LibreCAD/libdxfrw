@@ -44,6 +44,7 @@
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfcompound.h"
+#include "intern/dxftable.h"
 #include "intern/dxflayout.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
@@ -1985,9 +1986,9 @@ class DxfBlockEventSink final : public DRW_Interface {
 public:
     explicit DxfBlockEventSink(DRW_Interface& target,dxfBlockDelivery::Capture* delivery=nullptr,
                               DRW_DxfBlockDeliveryHandler* handler=nullptr,DxfBlockPublication* publication=nullptr,
-                              dxfBlockChildren::Capture* children=nullptr)
+                              dxfBlockChildren::Capture* children=nullptr,DxfTablePublication* tablePublication=nullptr)
         :m_target(target),m_delivery(delivery),m_handler(handler),
-         m_publication(publication),m_children(children),
+         m_publication(publication),m_children(children),m_tablePublication(tablePublication),
          m_blockHandle(delivery?delivery->source().blockHandle:0u),m_scopeId(delivery?delivery->source().scopeId:0u){}
 
     void beginDispatch(dxfReader& input) noexcept {
@@ -2022,12 +2023,16 @@ public:
             const auto sourcePlan=plan(DRW_DxfBlockCallback::TableSource,&pair->value);
             const auto typedPlan=plan(DRW_DxfBlockCallback::addTable,&pair->value);
             if(sourcePlan.index==dxfBlockDelivery::Capture::NoEvent||typedPlan.index==dxfBlockDelivery::Capture::NoEvent) {
-                m_events.emplace_back([pair=std::move(pair),&handler](DRW_Interface& target) {
-                    handler.addDxfTableSource(pair->value,pair->source);target.addTable(pair->value);
+                m_events.emplace_back([this,pair=std::move(pair),&handler](DRW_Interface& target) {
+                    DxfTablePublicationScope publication(m_tablePublication,{1u,&pair->value,&pair->source,true});
+                    handler.addDxfTableSource(pair->value,pair->source);
+                    if(m_tablePublication)m_tablePublication->phase=2u;target.addTable(pair->value);
                 });
             } else {
                 m_events.emplace_back([this,pair=std::move(pair),&handler,sourcePlan,typedPlan](DRW_Interface& target) {
+                    DxfTablePublicationScope publication(m_tablePublication,{1u,&pair->value,&pair->source,true});
                     invoke(sourcePlan,&pair->value,&pair->source,[&](){handler.addDxfTableSource(pair->value,pair->source);});
+                    if(m_tablePublication)m_tablePublication->phase=2u;
                     invoke(typedPlan,&pair->value,nullptr,[&](){target.addTable(pair->value);});
                 });
             }
@@ -2317,6 +2322,7 @@ private:
     DRW_DxfBlockDeliveryHandler* m_handler;
     DxfBlockPublication* m_publication;
     dxfBlockChildren::Capture* m_children;
+    DxfTablePublication* m_tablePublication;
     const std::uint32_t m_blockHandle;
     const std::uint64_t m_scopeId;
 };
@@ -16342,7 +16348,7 @@ bool dxfRW::processBlock() {
                     DRW_Interface *const previousInterface = iface;
                     DxfBlockEventSink blockEvents(*previousInterface,
                         captureDelivery&&!dropBlock?&deliverySource:nullptr,captureDelivery&&!dropBlock?deliveryHandler:nullptr,
-                        captureDelivery&&!dropBlock?&reader->m_blockPublication:nullptr,captureDelivery&&!dropBlock?&childSource:nullptr);
+                        captureDelivery&&!dropBlock?&reader->m_blockPublication:nullptr,captureDelivery&&!dropBlock?&childSource:nullptr,&reader->tablePublication());
                     m_readingBlockEntities = true;
                     iface = &blockEvents;
                     bool entitiesProcessed = false;
@@ -17296,6 +17302,7 @@ bool dxfRW::processTable() {
     DRW_DBG("dxfRW::processTable");
     int code;
     DRW_Table table;
+    dxfTable::Decoder decoder(table);
     auto* blockEvents=dynamic_cast<DxfBlockEventSink*>(iface);
     auto* sourceHandler = blockEvents?blockEvents->tableSourceHandler():dynamic_cast<DRW_DxfTableSourceHandler*>(iface);
     const bool captureSource = sourceHandler != nullptr
@@ -17325,7 +17332,7 @@ bool dxfRW::processTable() {
             } else if (!acceptEntityCallbackBoundary()) {
                 return setError(DRW::BAD_READ_ENTITIES);
             }
-            table.finalizeDxfParse();
+            decoder.finish();
             if (captureSource) {
                 if (!validateCapturedRawDxfObject(
                         raw, binFile, reader->classifierProfile()))
@@ -17335,14 +17342,19 @@ bool dxfRW::processTable() {
                         return setError(DRW::BAD_READ_ENTITIES);
                     return true;
                 }
-                sourceHandler->addDxfTableSource(table, raw);
+                const DRW_RawDxfObject original(std::move(raw));
+                DxfTablePublicationScope publication(&reader->tablePublication(),{1u,&table,&original,false});
+                sourceHandler->addDxfTableSource(table, original);
+                reader->tablePublication().phase=2u;
+                iface->addTable(table);
+                return true;
             }
             iface->addTable(table);
             return true;
         }
 
         if (captureSource ? !captureAndParseRawDxfGroup(raw, code, table)
-                          : !table.parseCode(code, reader)) {
+                          : !decoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -26890,6 +26902,12 @@ bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {
     if(!m_readTextObservationsActive||!reader)return false;
     const auto& view=reader->layoutPublication();if(!view.phase||view.phase>2u)return false;
     out={static_cast<DxfLayoutSourceView::Phase>(view.phase),view.model,view.source};return true;
+}
+
+bool dxfRW::getDxfTableSourceView(DxfTableSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& v=reader->tablePublication();if(!v.phase||v.phase>2u||!v.model||!v.source)return false;
+    out={static_cast<DxfTableSourceView::Phase>(v.phase),v.model,v.source,v.inBlock};return true;
 }
 
 bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexcept {

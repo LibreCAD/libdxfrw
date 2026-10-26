@@ -97,6 +97,28 @@ membership, not full TABLE body/state/profile, dependency, common-target or
 live/output qualification. TABLE remains an explicit unsupported body in the
 current role reports, including when its original producer origins are bound.
 
+`dxfRW::getDxfTableSourceView` identifies the actual opted-in TABLE source/typed
+publication in both ENTITIES and BLOCKS, including the same original raw carrier
+in its typed phase. Borrowed pointers expire at pair return/throw. The getter
+allocates nothing, clears outside the publication and after failure/reuse, and
+adds no callback or facade/model layout field. Internal `dxfTable::Decoder`
+shares production field entry/finalization and observes private TABLE parser
+state without allocation; it does not supply a new scalar grammar/profile.
+
+The converter's bounded immutable TABLE inputs retain source and typed models,
+raw/context owners and pre-copy private/common/linked state independently of
+editable TABLEs and its older value map. Enclosing owners are pinned when
+captured; equal-copy/alias inputs, changed context owners, copied containers and
+cross-import transplants cannot reuse their certificates. Borrowed live pair
+pointers are cleared at read finalization, including exceptional exits.
+`tableInputReport` describes these selected observations only, not a whole-import
+physical census or complete TABLE semantics. `OriginalPairsReady` checks actual
+publisher identities and parser-state agreement, not modeled-field equality.
+Its `cleanStates` means only original parent/linked XDATA cursors: genuine
+observations may retain unfinished XDATA with this flag false. Modeled/profile,
+target and output qualification stay false. Whole TABLE body/schema/reference
+and dependency closure remain required before support or export claims.
+
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
 native consumers and independent semantics remain separate. `wholeDocumentMatched`,
