@@ -166,7 +166,9 @@ inline Audit audit(const void* container,std::uint64_t generation,std::shared_pt
             } else if(member.reason==Reason::Matched)member.reason=Reason::Sequence;
             if(member.reason==Reason::Matched&&member.ownerRole==Owner::Unresolved)member.reason=Reason::Owner;
         }
-        if(compound&&(at-first<(polyline?3u:2u)||!equal(records[at-1u].name,"SEQEND")))range.reason=Reason::Sequence;
+        // The reader preserves completed empty chains as parent+SEQEND.
+        // Structural membership must not invent a required vertex/attribute.
+        if(compound&&(at-first<2u||!equal(records[at-1u].name,"SEQEND")))range.reason=Reason::Sequence;
         if(!compound&&at-first!=1u)range.reason=Reason::Sequence;
         if(insert&&((compound&&primary.follow!=1)||(!compound&&primary.follow==1)))range.reason=Reason::FollowFlag;
         const bool attdef=equal(records[first].name,"ATTDEF");
@@ -207,7 +209,7 @@ inline bool compoundValue(const Audit& audit,std::size_t dispatch,const DRW_Enti
     if((expectPolyline&&!polyline)||(expectInsert&&!insert))return false;
     if(!expectPolyline&&!expectInsert)return n==1u;
     if(expectPolyline) {
-        if(n<3u||polyline->vertlist.size()!=n-2u||!sameIdentity(audit.members[range.next-1u],polyline->seqEndEntity.get()))return false;
+        if(n<2u||polyline->vertlist.size()!=n-2u||!sameIdentity(audit.members[range.next-1u],polyline->seqEndEntity.get()))return false;
         for(std::size_t i=0;i<polyline->vertlist.size();++i)
             if(!sameIdentity(audit.members[range.first+1u+i],polyline->vertlist[i].get()))return false;
     } else {

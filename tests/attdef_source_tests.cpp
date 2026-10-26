@@ -750,6 +750,7 @@ public:
 #include "application_handle_width_controls.h"
 #include "block_primary_controls.h"
 #include "block_origin_controls.h"
+#include "block_empty_polyline_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1161,14 +1162,16 @@ int main(int argc,char** argv) {
     const bool applicationWidth=argc==2&&std::string(argv[1])=="--application-width";
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins)return 2;
+    const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
     if(scratch.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
     struct Cleanup {std::filesystem::path path;bool success=false;~Cleanup(){if(!success){std::cerr<<"Evidence: "<<path<<'\n';return;}std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     unsigned polymorphicProfiles=0u;
-    try {const bool ok=(blockOrigins?blockOriginTests(scratch/"generated.dxf"):
+    try {const bool ok=(emptyBlockPolyline?emptyBlockPolylineTests(scratch/"generated.dxf"):
+        blockOrigins?blockOriginTests(scratch/"generated.dxf"):
         blockPrimary?blockPrimaryTests(scratch/"generated.dxf"):
         polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
         attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):

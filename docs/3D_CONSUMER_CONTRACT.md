@@ -35,6 +35,15 @@ body/dependency semantics, enclosing owner/layout targets, native name collation
 live edits or output. `ownerTargetsResolved` and `outputEligible` remain false;
 existing source-body reports and fail-closed export guards are not promoted.
 
+For a completed empty POLYLINE already accepted by the reader, converter
+structural membership now counts its real parent and SEQEND without requiring
+an invented VERTEX. The staged footer must retain the original identity and
+observed wire owner; compound body replay still compares its common fields.
+Both existing footer-owner forms remain distinct from logical sequence parentage.
+This fixes converter evidence consistency for the tested 2D/3D profiles, not
+parser admission, useful empty geometry, native producer acceptance, enclosing
+layout/target qualification or output eligibility.
+
 The existing optional `addTableGeometry` callback receives a complete bounded
 DXF cache projection for AC1021/AC1024/AC1027/AC1032 in ASCII/binary form when
 the plain self/owner/subclass header and every count, cell and content field
