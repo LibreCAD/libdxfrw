@@ -20370,6 +20370,9 @@ bool dxfRW::processDictionary() {
     auto* rootSourceHandler=dynamic_cast<DRW_DxfRootDictionarySourceHandler*>(iface);
     const bool captureRootSource=!m_objectsRootPositionPassed && rootSourceHandler
         && rootSourceHandler->wantsDxfRootDictionarySource();
+    auto* dictionarySourceHandler=dynamic_cast<DRW_DxfDictionarySourceHandler*>(iface);
+    const bool captureDictionarySource=m_objectsRootPositionPassed&&dictionarySourceHandler
+        &&dictionarySourceHandler->wantsDxfDictionarySource();
     // Route non-root named dictionaries through the raw net so they round-trip
     // DXF->DXF (re-attached to the regenerated root via setRootDictEntries).
     // The source root is not routed: fixed handles C/D are regenerated, while
@@ -20404,12 +20407,19 @@ bool dxfRW::processDictionary() {
                     iface->addNamedObjectDictionary(dict);view.phase=1u;
                     rootSourceHandler->addDxfRootDictionarySource(dict,original);
                 } else iface->addNamedObjectDictionary(dict);
-            } else
-                iface->addDictionary(dict);
+            } else if(captureDictionarySource) {
+                const DRW_RawDxfObject original=std::move(raw);
+                auto& view=reader->m_structuralPublication;
+                view={3u,2u,dict.currCoordMask,dict.curr!=nullptr,&dict,&original};
+                struct Clear {DxfStructuralPublication& view;~Clear(){view={};}} clear{view};
+                iface->addDictionary(dict);m_objectsRootPositionPassed=true;
+                if(!suppressRaw) {view.phase=3u;view.rawCallbackDelivered=true;iface->addRawDxfObject(original);}
+                view.phase=1u;dictionarySourceHandler->addDxfDictionarySource(dict,original);
+            } else iface->addDictionary(dict);
             //Skip only the root — the codec regenerates it, and routing it
             //would duplicate the NamedObjectsDictionary / ACAD_GROUP dict.
             m_objectsRootPositionPassed = true;
-            if (!suppressRaw)
+            if (!suppressRaw&&!captureDictionarySource)
                 iface->addRawDxfObject(raw);
             if (first) {
                 observeDxfViewStyleRoot(dict);
@@ -26792,9 +26802,17 @@ bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {
 bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexcept {
     out={};if(!m_readTextObservationsActive||!reader)return false;
     const auto& view=reader->m_structuralPublication;
-    if(!view.kind||view.kind>2u||!view.phase||view.phase>2u||!view.model||!view.source)return false;
+    if(!view.kind||view.kind>3u||!view.phase||view.phase>3u||!view.model||!view.source)return false;
     out={static_cast<DxfStructuralSourceView::Kind>(view.kind),static_cast<DxfStructuralSourceView::Phase>(view.phase),
         view.model,view.source,view.pendingXdata,view.coordinateMask};return true;
+}
+
+bool dxfRW::getDxfDictionaryRawDelivery(bool& delivered) const noexcept {
+    delivered=false;
+    if(!m_readTextObservationsActive||!reader)return false;
+    const auto& view=reader->m_structuralPublication;
+    if(view.kind!=3u||view.phase!=1u||!view.model||!view.source)return false;
+    delivered=view.rawCallbackDelivered;return true;
 }
 
 const DRW_DxfIdentitySource* dxfRW::getDxfIdentitySourceView() const noexcept {

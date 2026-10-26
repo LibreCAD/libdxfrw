@@ -387,6 +387,27 @@ bool retainedRawDxfObjectsEqual(const DRW_RawDxfObject& lhs,
 }
 
 std::string layoutSymbolKey(std::string value);
+// Shared source/live reciprocal association algorithm. Inputs are typed views,
+// not reparsed payloads or an editable-container copy. Other graph/space/UCS/
+// viewport/name/consumer gates remain with each caller.
+template<class Layouts,class Records>
+bool reciprocalLayoutAssociations(const Layouts& layouts,const Records& records,std::string& failure) {
+    std::set<std::uint32_t> associated;
+    for(const auto& item:layouts) {
+        const auto& layout=*item.second;const auto handle=layout.paperSpaceBlockRecordHandle.ref;
+        const auto record=records.find(handle);
+        if(!handle||record==records.end()) {failure="LAYOUT associated BLOCK_RECORD is null or missing";return false;}
+        if(record->second->layoutHandle!=layout.handle) {failure="LAYOUT and BLOCK_RECORD backlinks disagree";return false;}
+        if(!associated.insert(handle).second) {failure="multiple LAYOUT records share one BLOCK_RECORD";return false;}
+    }
+    for(const auto& item:records)if(item.second->layoutHandle) {
+        const auto layout=layouts.find(item.second->layoutHandle);
+        if(layout==layouts.end()||layout->second->paperSpaceBlockRecordHandle.ref!=item.first) {
+            failure="BLOCK_RECORD has a missing or nonreciprocal LAYOUT target";return false;
+        }
+    }
+    return true;
+}
 bool validateNamedObjectRootForExport(const dx_data& data,
                                       const char* rootName,
                                       bool requireRoot = false);
@@ -17554,6 +17575,38 @@ dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) n
     r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::LayoutRoleReport dx_iface::layoutRoleReport(const dx_data& data) noexcept {
+    using S=LayoutRoleState;LayoutRoleReport r;const auto& s=data.m_tableDxfSource;
+    r.bytes=s.layoutRoleBytes;r.work=s.layoutRoleWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed) {r.state=S::Reading;return r;}
+    if(!s.successful) {r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput) {r.state=S::ContextMismatch;return r;}
+    if(s.layoutRoleCaptureFailed) {r.state=S::CaptureFailed;return r;}
+    const auto& a=s.layoutRoleAudit;if(!a)return r;
+    const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
+    if(!same(a,s.layoutRoleOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
+        ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)
+        ||identitySourceReport(data).state==IdentitySourceState::ContextMismatch
+        ||structuralSourceReport(data).state==StructuralSourceState::ContextMismatch
+        ||layoutSourceReport(data).state==LayoutSourceState::ContextMismatch) {r.state=S::ContextMismatch;return r;}
+    for(const auto& p:a->structural) {
+        if(!p||!p->input||!p->input->model) {r.state=S::ContextMismatch;return r;}
+        const auto found=s.structuralAudits.find(p->input->model->handle);
+        if(found==s.structuralAudits.end()||!same(p,found->second)) {r.state=S::ContextMismatch;return r;}
+    }
+    for(const auto& p:a->layouts) {
+        if(!p||!p->input||!p->input->model) {r.state=S::ContextMismatch;return r;}
+        const auto found=s.layoutAudits.find(p->input->model->handle);
+        if(found==s.layoutAudits.end()||!same(p,found->second)) {r.state=S::ContextMismatch;return r;}
+    }
+    if(a->state==S::Matched&&(identitySourceReport(data).state!=IdentitySourceState::NamespaceReady
+        ||layoutSourceReport(data).state!=LayoutSourceState::ProofsReady
+        ||structuralSourceReport(data).state==StructuralSourceState::CaptureFailed)) {r.state=S::SourceNotReady;return r;}
+    r.state=a->state;r.layouts=a->layouts.size();r.blocks=a->blocks;r.dictionaryEntries=a->dictionaryEntries;r.associations=a->associations;
+    r.root=a->root;r.layoutDictionary=a->layoutDictionary;r.firstHandle=a->firstHandle;r.rolesMatched=a->state==S::Matched;return r;
+}
+
 dx_iface::StructuralSourceReport dx_iface::structuralSourceReport(const dx_data& data) noexcept {
     using S=StructuralSourceState;StructuralSourceReport r;const auto& s=data.m_tableDxfSource;
     r.records=s.structuralRecords;r.bytes=s.structuralBytes;r.work=s.structuralWork;
@@ -17562,7 +17615,8 @@ dx_iface::StructuralSourceReport dx_iface::structuralSourceReport(const dx_data&
     if(!s.successful) {r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
         ||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded) {r.state=S::ContextMismatch;return r;}
-    if(s.structuralCaptureFailed||!s.structuralPending.empty()) {r.state=S::CaptureFailed;return r;}
+    if(s.structuralCaptureFailed||!s.structuralPending.empty()
+        ||(s.structuralRecords&&(s.resourceCaptureFailed||s.resourceProofCaptureFailed))) {r.state=S::CaptureFailed;return r;}
     if(s.structuralInputs.empty())return r;
     if(s.structuralAudits.size()!=s.structuralInputs.size()||s.structuralInputOwners.size()!=s.structuralInputs.size()
         ||s.structuralAuditOwners.size()!=s.structuralInputs.size()) {r.state=S::CaptureFailed;return r;}
@@ -18189,6 +18243,7 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
 bool dx_iface::wantsDxfSymbolSource() const {return tableSourceCaptureOpen();}
 
 bool dx_iface::wantsDxfRootDictionarySource() const {return tableSourceCaptureOpen();}
+bool dx_iface::wantsDxfDictionarySource() const {return tableSourceCaptureOpen();}
 
 bool dx_iface::wantsDxfBlockRecordSource() const {return tableSourceCaptureOpen();}
 
@@ -19646,6 +19701,22 @@ void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_Ra
     observeStructuralSource(row,true,&raw);
 }
 
+void dx_iface::addDxfDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) {
+    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;
+    dxfRW::DxfStructuralSourceView view;
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfStructuralSourceView(view)
+        ||view.kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary||view.phase!=dxfRW::DxfStructuralSourceView::Phase::Source
+        ||view.model!=&row||view.source!=&raw) {s.structuralCaptureFailed=true;return;}
+    bool rawDelivered=false;
+    if(!s.entitiesReadInput->getDxfDictionaryRawDelivery(rawDelivered)) {s.structuralCaptureFailed=true;return;}
+    const auto resource=s.resources.find(row.handle);
+    // Reuse the existing raw callback's owner. Only actual fixed-handle raw
+    // suppression may need an extra bounded evidence owner; do not repair
+    // missing retention of a delivered callback or invent raw output.
+    if(!rawDelivered&&resource!=s.resources.end()&&!resource->second.raw)retainTableResourceSource(raw);
+    observeStructuralSource(row,true,&raw);
+}
+
 void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& raw) {
     if(!cData)return;
     if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
@@ -20163,6 +20234,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if(!source.structuralPending.empty())source.structuralCaptureFailed=true;
     source.structuralPending.clear();
     if(source.successful)finishStructuralSourceAudits(data);
+    if(source.successful)finishLayoutRoleAudit(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -20607,6 +20679,7 @@ void dx_iface::addDataLink(const DRW_DataLink& data) {
 
 void dx_iface::addDictionary(const DRW_Dictionary& data) {
     retainTableResource(dx_tableResourceFamily::Dictionary,data);
+    observeStructuralSource(data,false);
     retainTableSourceDictionary(data);
     retainDictionaryTyped(cData, data, 2u * sizeof(void*), [this, &data]() {
         cData->dictionaries.push_back(data);
@@ -21037,7 +21110,7 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
         ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u
         ||(block?(typeid(value)!=typeid(DRW_Block_Record)||value.tType!=DRW::BLOCK_RECORD):
-                   (view.kind!=V::Kind::RootDictionary||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
+                   ((view.kind!=V::Kind::RootDictionary&&view.kind!=V::Kind::Dictionary)||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
     const bool first=block?source:!source;
     const auto resource=s.resources.find(value.handle);
     if(resource==s.resources.end()||resource->second.family!=(block?dx_tableResourceFamily::BlockRecord:dx_tableResourceFamily::Dictionary)) {fail();return;}
@@ -21069,11 +21142,12 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         if(pending.model!=&value||pending.raw!=view.source||in.kind!=view.kind||in.originalState!=state||!row.model||!row.raw
             ||(in.model&&(in.model.get()!=row.model.get()||in.model.owner_before(row.model)||row.model.owner_before(in.model)))
             ||(in.raw&&(in.raw.get()!=row.raw.get()||in.raw.owner_before(row.raw)||row.raw.owner_before(in.raw)))) {fail();return;}
-        std::size_t modelBytes=0u,items=0u;
-        if(!estimateTableResourceBytes(row.family,value,modelBytes,items)||s.structuralWork>s.maxStructuralWork
+        std::size_t modelBytes=0u,items=0u,rawBytes=0u;
+        if(!estimateTableResourceBytes(row.family,value,modelBytes,items)||!estimateRawDxfObjectBytes(*view.source,rawBytes)
+            ||!addAssociativeRetainedBytes(rawBytes,modelBytes)||s.structuralWork>s.maxStructuralWork
             ||modelBytes>s.maxStructuralWork-s.structuralWork) {fail();return;}
         s.structuralWork+=modelBytes;in.model=row.model;in.raw=row.raw;
-        in.paired=dxfBlockRecord::Decoder::observeCommonState(value)==state
+        in.paired=retainedRawDxfObjectsEqual(*row.raw,*view.source)&&dxfBlockRecord::Decoder::observeCommonState(value)==state
             &&(block?blockRecordSourceEqual(static_cast<const DRW_Block_Record&>(value),static_cast<const DRW_Block_Record&>(*row.model),live.sourceVersion):
                 standardDwgModelsEqual(value,*row.model,live.sourceVersion,dwgObjType::DICTIONARY));
         in.index=s.structuralInputOwners.size();
@@ -21102,13 +21176,127 @@ void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {
                         &&physical.table<source.records.size()&&asciiIdentifierEquals(source.records[physical.table].tableName,"BLOCK_RECORD")
                         &&asciiIdentifierEquals(physical.name,"BLOCK_RECORD")):
                         (physical.kind==DRW_DxfIdentitySource::Kind::Object&&section.kind==DRW_DxfIdentitySource::Section::Objects
-                         &&asciiIdentifierEquals(physical.name,"DICTIONARY")&&(!id->second||source.records[id->second-1u].section!=physical.section));
+                         &&asciiIdentifierEquals(physical.name,"DICTIONARY")
+                         &&((!id->second||source.records[id->second-1u].section!=physical.section)
+                            ==(row.second->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary)));
                     if(scope&&audit.bodyMatched&&audit.stateComplete&&row.second->paired) {audit.originBound=true;audit.physical=id->second;}
                 }
             }
             auto saved=std::make_shared<const A>(std::move(audit));s.structuralAudits.emplace(row.first,saved);s.structuralAuditOwners.push_back(std::move(saved));
         }
     }catch(...) {s.structuralCaptureFailed=true;}
+}
+
+void dx_iface::finishLayoutRoleAudit(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;if(s.layoutRoleCaptureFailed)return;
+    using A=dx_data::TableDxfSourceCapture::LayoutRoleAudit;using S=LayoutRoleState;
+    try {
+        const auto base=sizeof(A)+16u*sizeof(void*);
+        if(base>s.maxLayoutRoleBytes||base>s.maxLayoutRoleWork) {s.layoutRoleCaptureFailed=true;return;}
+        s.layoutRoleBytes=base;s.layoutRoleWork=base;
+        A audit;audit.container=&data;audit.generation=s.generation;audit.containerId=data.m_entitiesContainerIdentity.value;
+        audit.identity=s.identityInput;audit.identities=s.identityAudit;
+        const auto save=[&](S state,std::uint32_t handle=0u) {
+            audit.state=state;audit.firstHandle=handle;
+            s.layoutRoleAudit=std::make_shared<const A>(std::move(audit));s.layoutRoleOwner=s.layoutRoleAudit;
+        };
+        const auto structural=structuralSourceReport(data);const auto layout=layoutSourceReport(data);
+        if(identitySourceReport(data).state!=IdentitySourceState::NamespaceReady
+            ||structural.state==StructuralSourceState::CaptureFailed||structural.state==StructuralSourceState::ContextMismatch
+            ||layout.state==LayoutSourceState::CaptureFailed||layout.state==LayoutSourceState::ContextMismatch) {save(S::SourceNotReady);return;}
+        const auto& source=*s.identityInput->source;
+        std::size_t bytes=sizeof(A)+64u*sizeof(void*),work=4096u;
+        if(!addAssociativeSlotBytes(source.records.size(),192u,bytes)
+            ||!addAssociativeSlotBytes(s.structuralAudits.size()+s.layoutAudits.size(),128u,bytes)) {s.layoutRoleCaptureFailed=true;return;}
+        for(const auto& row:s.structuralInputs)if(row.second->model) {
+            if(!addAssociativeSlotBytes(row.second->model->name.size(),2u,bytes)) {s.layoutRoleCaptureFailed=true;return;}
+            if(const auto* dict=dynamic_cast<const DRW_Dictionary*>(row.second->model.get())) {
+                if(!addAssociativeSlotBytes(dict->m_entries.size(),128u,bytes)) {s.layoutRoleCaptureFailed=true;return;}
+                for(const auto& entry:dict->m_entries)if(!addAssociativeSlotBytes(entry.m_name.size(),2u,bytes)) {s.layoutRoleCaptureFailed=true;return;}
+            }
+        }
+        for(const auto& row:s.layoutInputs)if(!addAssociativeSlotBytes(row.second.input->model->name.size(),2u,bytes)) {s.layoutRoleCaptureFailed=true;return;}
+        if(!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(source.records.size(),128u,work)
+            ||bytes>s.maxLayoutRoleBytes||work>s.maxLayoutRoleWork) {s.layoutRoleCaptureFailed=true;return;}
+        s.layoutRoleBytes=bytes;s.layoutRoleWork=work;
+        const auto context=[&](const auto& c) {
+            const auto& original=*s.identityInput->context;
+            return c&&c->captured&&std::tie(c->sourceVersion,c->codecVersion,c->codecCodePage,c->declaration,c->hasDeclaration,
+                c->compatibilityProfile,c->textEncoding,c->codePagePolicy,c->applyExtrusion,c->binary)
+                ==std::tie(original.sourceVersion,original.codecVersion,original.codecCodePage,original.declaration,original.hasDeclaration,
+                original.compatibilityProfile,original.textEncoding,original.codePagePolicy,original.applyExtrusion,original.binary);
+        };
+        std::map<std::uint32_t,const DRW_Block_Record*> blocks;
+        std::map<std::uint32_t,const DRW_Layout*> layouts;
+        std::map<std::uint32_t,const DRW_Dictionary*> dictionaries;
+        std::vector<std::uint32_t> roots;
+        for(const auto& id:s.identityAudit->identities) {
+            const auto& physical=source.records.at(id.second);const auto section=source.sections.at(physical.section).kind;
+            const bool isBlock=physical.kind==DRW_DxfIdentitySource::Kind::TableRecord&&asciiIdentifierEquals(physical.name,"BLOCK_RECORD");
+            const bool isLayout=section==DRW_DxfIdentitySource::Section::Objects&&asciiIdentifierEquals(physical.name,"LAYOUT");
+            const bool isRoot=section==DRW_DxfIdentitySource::Section::Objects&&asciiIdentifierEquals(physical.name,"DICTIONARY")
+                &&(!id.second||source.records[id.second-1u].section!=physical.section);
+            if(!isBlock&&!isLayout&&!isRoot)continue;
+            if(id.first>UINT32_MAX) {save(S::MissingBody);return;}const auto handle=static_cast<std::uint32_t>(id.first);
+            if(isLayout) {
+                const auto found=s.layoutAudits.find(handle);
+                if(found==s.layoutAudits.end()||found->second->state!=dx_data::TableDxfSourceCapture::LayoutAudit::State::Matched
+                    ||!context(found->second->input->context)) {save(S::MissingBody,handle);return;}
+                audit.layouts.push_back(found->second);layouts.emplace(handle,found->second->input->model.get());
+            } else {
+                const auto found=s.structuralAudits.find(handle);
+                if(found==s.structuralAudits.end()||!found->second->originBound||!context(found->second->input->context)) {save(S::MissingBody,handle);return;}
+                audit.structural.push_back(found->second);
+                if(isBlock) {
+                    const auto* block=static_cast<const DRW_Block_Record*>(found->second->input->model.get());
+                    const auto owner=s.identityAudit->identities.find(block->parentHandle);
+                    if(!block->parentHandle||owner==s.identityAudit->identities.end()||owner->second!=physical.table) {save(S::WrongOwner,handle);return;}
+                    blocks.emplace(handle,block);
+                }
+                else {roots.push_back(handle);dictionaries.emplace(handle,static_cast<const DRW_Dictionary*>(found->second->input->model.get()));}
+            }
+        }
+        audit.blocks=blocks.size();
+        if(roots.empty()) {
+            const bool needsRoot=!layouts.empty()||std::any_of(blocks.begin(),blocks.end(),[](const auto& b){return b.second->layoutHandle!=0u;});
+            save(needsRoot?S::MissingRoot:S::NoLayouts);return;
+        }
+        if(roots.size()!=1u) {save(S::AmbiguousRoot);return;}audit.root=roots.front();
+        const auto& root=*dictionaries.at(audit.root);
+        if(root.parentHandle) {save(S::WrongOwner,audit.root);return;}
+        std::set<std::string> rootNames;std::uint32_t target=0u;std::size_t layoutEntries=0u;
+        for(const auto& entry:root.m_entries) {
+            const auto key=layoutSymbolKey(entry.m_name);
+            if(key.empty()||!rootNames.insert(key).second) {save(S::InvalidNames,audit.root);return;}
+            if(key=="ACAD_LAYOUT") {target=entry.m_handle;++layoutEntries;}
+        }
+        if(layouts.empty()&&!layoutEntries) {
+            if(std::any_of(blocks.begin(),blocks.end(),[](const auto& b){return b.second->layoutHandle!=0u;})) {save(S::MissingBody);return;}
+            save(S::NoLayouts);return;
+        }
+        if(layoutEntries!=1u||!target) {save(S::MissingLayoutDictionary);return;}
+        if(std::count_if(root.m_entries.begin(),root.m_entries.end(),[&](const auto& e){return e.m_handle==target;})!=1) {save(S::InvalidNames,target);return;}
+        const auto dictionary=s.structuralAudits.find(target);
+        if(dictionary==s.structuralAudits.end()||!dictionary->second->originBound
+            ||dictionary->second->input->kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary
+            ||!context(dictionary->second->input->context)) {save(S::MissingLayoutDictionary,target);return;}
+        audit.structural.push_back(dictionary->second);audit.layoutDictionary=target;
+        const auto& dict=static_cast<const DRW_Dictionary&>(*dictionary->second->input->model);
+        if(dict.parentHandle!=audit.root) {save(S::WrongOwner,target);return;}
+        audit.dictionaryEntries=dict.m_entries.size();
+        if(dict.m_entries.size()!=layouts.size()) {save(S::ReferenceMismatch,target);return;}
+        std::set<std::string> names,blockNames;std::set<std::uint32_t> targets;
+        for(const auto& block:blocks)if(block.second->name.empty()||!blockNames.insert(layoutSymbolKey(block.second->name)).second) {save(S::InvalidNames,block.first);return;}
+        for(const auto& entry:dict.m_entries) {
+            const auto found=layouts.find(entry.m_handle);const auto key=layoutSymbolKey(entry.m_name);
+            if(key.empty()||!names.insert(key).second||!targets.insert(entry.m_handle).second||found==layouts.end()
+                ||layoutSymbolKey(found->second->name)!=key) {save(S::InvalidNames,entry.m_handle);return;}
+            if(found->second->parentHandle!=target) {save(S::WrongOwner,entry.m_handle);return;}
+        }
+        std::string failure;
+        if(!reciprocalLayoutAssociations(layouts,blocks,failure)) {save(S::ReferenceMismatch);return;}
+        audit.associations=layouts.size();save(S::Matched);
+    }catch(...) {s.layoutRoleCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfLayoutSource() const {
@@ -25283,22 +25471,7 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
             || !structuralHandles.insert(vport.handle).second)
             return reject("VPORT handle is invalid, duplicated, or collides with a structural layout record");
     }
-    std::unordered_set<std::uint32_t> associatedRecords;
-    for (const DRW_Layout& layout : data.layouts) {
-        const std::uint32_t blockRecordHandle =
-            layout.paperSpaceBlockRecordHandle.ref;
-        const auto record = recordsByHandle.find(blockRecordHandle);
-        if (blockRecordHandle == 0)
-            return reject("LAYOUT has a null paper-space BLOCK_RECORD handle");
-        if (record == recordsByHandle.end())
-            return reject("LAYOUT '" + layout.name
-                + "' paper-space BLOCK_RECORD handle "
-                + std::to_string(blockRecordHandle) + " does not resolve");
-        if (record->second->layoutHandle != layout.handle)
-            return reject("LAYOUT and paper-space BLOCK_RECORD backlinks disagree");
-        if (!associatedRecords.insert(blockRecordHandle).second)
-            return reject("multiple LAYOUT records share one paper-space BLOCK_RECORD");
-    }
+    if(!reciprocalLayoutAssociations(layoutsByHandle,recordsByHandle,failure))return false;
 
     // Model LAYOUT 331 identifies a VPORT table configuration; paper-layout
     // LAYOUT 331 identifies its last-active paperspace VIEWPORT entity. Resolve
@@ -25442,7 +25615,7 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
             }
         }
     }
-    return associatedRecords.size() == data.layouts.size()
+    return layoutsByHandle.size() == data.layouts.size()
         || reject("not every LAYOUT has a unique paper-space BLOCK_RECORD");
 }
 

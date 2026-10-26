@@ -759,6 +759,20 @@ public:
                                       const DRW_RawDxfObject& source) = 0;
 };
 
+/** Optional original non-root DICTIONARY source. Selected once before the
+ * record; default false adds no publication/copy or established vtable slot.
+ * Delivered after accepted boundary and the existing typed/raw callbacks.
+ * Historical fixed C/D raw-callback suppression is unchanged; source delivery
+ * does not invent such a callback or authorize raw output. The structural view
+ * exposes actual typed/[raw]/source phases and original pre-callback state.
+ */
+class DRW_DxfDictionarySourceHandler {
+public:
+  virtual ~DRW_DxfDictionarySourceHandler()=default;
+  virtual bool wantsDxfDictionarySource() const {return false;}
+  virtual void addDxfDictionarySource(const DRW_Dictionary&,const DRW_RawDxfObject&)=0;
+};
+
 /** Optional original LAYOUT body, separate from DRW_Interface's vtable.
  * Selection is latched before each record. Default false adds no source copy
  * or charging. Delivered after the accepted object boundary immediately before

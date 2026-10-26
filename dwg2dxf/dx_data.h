@@ -1305,6 +1305,22 @@ private:
         std::size_t structuralRecords{0},structuralBytes{0},structuralWork{0};
         std::size_t maxStructuralRecords{100000u},maxStructuralBytes{64u*1024u*1024u},maxStructuralWork{64u*1024u*1024u};
         bool structuralCaptureFailed{false};
+        struct LayoutRoleAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,SourceNotReady,CaptureFailed,NoLayouts,
+                MissingRoot,AmbiguousRoot,MissingBody,MissingLayoutDictionary,WrongOwner,InvalidNames,ReferenceMismatch,Matched};
+            State state{State::SourceNotReady};
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;
+            std::shared_ptr<const IdentityAudit> identities;
+            std::vector<std::shared_ptr<const StructuralAudit>> structural;
+            std::vector<std::shared_ptr<const LayoutAudit>> layouts;
+            std::size_t blocks{0},dictionaryEntries{0},associations{0};
+            std::uint32_t root{0},layoutDictionary{0},firstHandle{0};
+        };
+        std::shared_ptr<const LayoutRoleAudit> layoutRoleAudit,layoutRoleOwner;
+        std::size_t layoutRoleBytes{0},layoutRoleWork{0};
+        std::size_t maxLayoutRoleBytes{64u*1024u*1024u},maxLayoutRoleWork{64u*1024u*1024u};
+        bool layoutRoleCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

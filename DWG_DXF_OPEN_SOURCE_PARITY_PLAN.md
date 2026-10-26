@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5el original structural producer pairs and namespace origins (2026-10-26; verified before local commit):** reader-owned exact-pointer publications attest actual opted-in BLOCK_RECORD and first-OBJECTS-DICTIONARY callback pairs in their established opposite orders. Original pre-staging/pre-callback XDATA state, actual context and retained model/raw owners are frozen separately. Bounded audits bind qualifying pairs to original namespace records of the expected section/table/type without treating identity existence as ownership. Final exact affected cohorts pass 76/76 normally and 76/76 under ASan. Non-root dictionary provenance, reciprocal owner/layout resolution, remaining bodies/dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26) · [receipt](docs/research/rpp5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5em original dictionary provenance and reciprocal layout roles (2026-10-26; verified before local commit):** non-root source publications preserve actual typed/raw/source delivery and fixed-handle suppression. A bounded original-body graph checks the unique NOD, ACAD_LAYOUT dictionary, BLOCK_RECORD table owners and reciprocal LAYOUT associations. Shared source/live association checks reject extra reverse aliases before output; scoped opaque BLOCK_RECORD handle admission fixes a reproduced compatible-import gap without qualifying unknown payload semantics. Final exact cohorts pass 78/78 normally and 78/78 under ASan. The initial 77/78 ASan run's silent CELLSTYLEMAP failure is preserved; direct and same-source cohort confirmation pass, but its cause is not established or claimed fixed. [Implementation and next work](#implementation-progress-rpp-5em-original-dictionary-provenance-and-reciprocal-layout-roles-2026-10-26) · [receipt](docs/research/rpp5em-original-dictionary-provenance-and-reciprocal-layout-roles-2026-10-26.json). Full entity/body/dependency/live/output/consumer and external work remains open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5el original structural producer pairs and namespace origins (2026-10-26; committed as `dfe2ba18`):** reader-owned exact-pointer publications attest actual opted-in BLOCK_RECORD and first-OBJECTS-DICTIONARY callback pairs in their established opposite orders. Original pre-staging/pre-callback XDATA state, actual context and retained model/raw owners are frozen separately. Bounded audits bind qualifying pairs to original namespace records of the expected section/table/type without treating identity existence as ownership. Final exact affected cohorts pass 76/76 normally and 76/76 under ASan. RPP-5em extends selected original dictionary/layout graph evidence, not complete entity/body/dependency/live/output or external qualification. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Historical implementation](#implementation-progress-rpp-5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26) · [receipt](docs/research/rpp5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ek whole-read physical identity namespace (2026-10-26; committed as `0da6709b`):** its bounded whole-read observer, original physical identity envelopes and separate 64-bit source index remain valid, with 73/73 normal and 73/73 ASan affected results. RPP-5el adds selected original producer/body-to-namespace bindings, not whole-document owner/layout/dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ek-whole-read-physical-identity-namespace-2026-10-26) · [receipt](docs/research/rpp5ek-whole-read-physical-identity-namespace-2026-10-26.json).
 
@@ -129309,3 +129311,167 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
 no remote mutation is included.
+
+## Implementation progress — RPP-5em original dictionary provenance and reciprocal layout roles (2026-10-26)
+
+This completes the selected original dictionary/layout structural prerequisite,
+not entity owner/space/default resolution, complete dependency closure, live/output
+qualification, native name collation, consumer/platform or independent kernel
+support. Final integration validation passes; the local commit is pending.
+
+Implemented:
+
+1. [x] Add a separate default-opt-out non-root DICTIONARY source facet, selected
+   before each record. Preserve existing typed, existing raw, then new source
+   order, including C/D raw suppression. Move the existing raw owner into const
+   pair-local storage and expose exact borrowed model/raw pointers, phases and
+   original parser state; clear publication on return/throw. A separate read-only
+   query reports actual legacy raw delivery only during the new source callback.
+   No existing DRW_Interface/source-facet vtable or public facade/model layout
+   change; internal reader/private converter layouts change. No formal ABI claim.
+2. [x] Reuse existing bounded retained raw/model owners and original shared
+   body/profile proof. Retain an evidence-only raw owner for actual fixed-handle
+   suppression, never repair a dropped delivered raw callback. Compare retained
+   raw against the actual immutable published original as well as model/state;
+   consistently forged typed/raw arguments cannot borrow genuine producer proof.
+   Include raw comparison in logical work. Fail the source report closed after
+   resource capture/proof failure rather than trust an earlier cached match.
+3. [x] Bind qualifying non-root dictionary publications to their actual non-first
+   OBJECTS namespace origins under the pinned successful-import context. Build a
+   separate original role audit from all physical BLOCK_RECORD and LAYOUT
+   identities and every first-OBJECTS dictionary, not an editable cData copy or
+   generic handle existence. Require genuine body/provenance owners, BLOCK_RECORD
+   ownership by its actual TABLE control, one document NOD, NOD owner zero, unique
+   ACAD_LAYOUT key/target, attested owned dictionary, complete unique layout entry
+   names/targets, matching original LAYOUT names/owners and reciprocal associated
+   BLOCK_RECORD links. Refuse repeated roots, missing/wrong-kind bodies, aliased
+   targets, substituted owners/control blocks and native-width narrowing.
+4. [x] Reuse one bidirectional association validator for original source views
+   and existing live export preflight. Fix its forward-only gap: every nonzero
+   BLOCK_RECORD backlink must name a LAYOUT that links back to that same record.
+   An extra block alias cannot hide behind a valid forward layout map. Prove the
+   specific new diagnostic, unchanged destination on refusal, same-exporter retry
+   after repair and successful ASCII/Binary export/readback. Do not treat mutable
+   edits as changes to the frozen original role graph or as full output parity.
+5. [x] Precharge a separate 64 MiB logical byte/work budget for graph/map/owner
+   metadata and simultaneous folded-name storage; retain existing payload owners
+   under their original budgets. Pin graph/input/identity/structural/layout shared
+   owners and actual container identity/generation. Quota/allocation failure
+   softens evidence while compatible import remains available. These are logical
+   limits, not RSS, every allocator, strict CPU/leak proof or benchmarks.
+6. [x] Reproduce and fix BLOCK_RECORD's premature rejection of wide handles in
+   opaque 102 application groups. Its shared production/replay decoder enables
+   raw-width lexemes only inside that opaque scope and restores the previous
+   mode at the outer close, reset and destructor/failure/unwind. Preserve existing
+   typed-width admission for native owner/layout, BLKREFS, extension dictionary
+   and known reactor groups. Unknown opaque semantics still fail source field
+   qualification: successful ordinary import must not become `rolesMatched`.
+   No DWG byte-layout parser/encoder changes or external fixture additions.
+
+Primary research: [LAYOUT fields](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm)
+separate object owner from associated block; [BLOCK_RECORD fields](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm)
+define its LAYOUT pointer. [DICTIONARY fields](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm)
+and [ownership](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm)
+describe keys, targets and first-OBJECTS NOD placement. [Common symbol-table fields](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5926A569-3E40-4ED2-AE06-6ACCE0EFC813.htm)
+distinguish application-defined payloads from native owner/extension fields.
+Reciprocal checks are a consistency inference from those roles, not native CAD
+execution, complete document semantics or native collation evidence. Exact/ASCII
+case-folded source keys retain non-ASCII bytes; `nativeNamesQualified=false`.
+
+Owning controls per configuration:
+
+- [x] Non-root dictionary: **12** four-version x LF/CRLF/Binary profiles,
+  **four** fixed C/D suppression cases, **18** missing/copied/duplicate/forged
+  refusal/corrected-import pairs, **10** opt-out/equal-raw-copy/public-lifetime/
+  latched-selection contexts, **57** observed callback allocation faults and
+  **eight** callback-exception/failed-tail/retry cases. An equal retained raw copy
+  is allowed as payload; substituting copied source-publication arguments is not.
+- [x] Original layout roles: **12** version/encoding profiles, **28** reciprocal/
+  owner/name/root/missing-body refusal/corrected-import pairs, **eight** exact and
+  one-under graph quota controls, **10** substituted owner/control-block/container
+  contexts and **42** observed isolated-audit allocation faults with same-audit
+  and fresh-import recovery. **Eight** literal-name/fixed-dictionary/opaque-import
+  variants distinguish ordinary compatibility from source qualification.
+- [x] Opaque scope: **16** ASCII/Binary x prior-mode x close/reset/invalid-control/
+  exception restoration controls and **12** strict native-reference/unclosed-
+  group refusal/corrected-import pairs. **Four** export/readback and repaired
+  retry outputs plus two destination-preserving reverse-alias refusals cover the
+  shared live association path. All drawings are authored locally at runtime.
+
+Development evidence retained: initial strict compiler findings were fixed without
+suppression. Dictionary phase controls exposed the cached-proof/capture-failure
+hazard; the report now refuses that state. A Binary forged-input recipe initially
+invented an ASCII raw spelling despite `hasRawValues=false`; the recipe now edits
+that auxiliary spelling only for ASCII, retaining the original production-proof
+assertion. The preserved opaque-wide red has ordinary import error 9. After its
+admission fix, import succeeds but the original test's demand for semantic graph
+qualification still fails; that expectation is corrected to explicitly require
+unqualified source evidence. Unknown payload support is not added to make it pass.
+
+Final affected builds pass. Exact cohorts pass **78/78 normally in 25.03 s** and
+**78/78 under ASan in 52.64 s**, both with `ctest -j 4`, zero failed/skipped/
+disabled tests, and identical registered selected names/order. Actual parallel
+completion order need not match. Normal runtime completed before ASan runtime
+(`halt_on_error=1:detect_leaks=0`); only independent ASan compilation overlapped
+normal runtime. Tested source hashes remain unchanged. Strict library, owning
+resource/adapter and compatibility targets retain C++17
+`-Wall -Wextra -pedantic -Werror`; the existing broad fixture runner is not claimed
+globally warning-clean. Times are not performance benchmarks. No full-suite-per-
+edit, warning suppression, native consumer, independent semantic/kernel, formal
+ABI or support-promotion claim is made. The
+[RPP-5em receipt](docs/research/rpp5em-original-dictionary-provenance-and-reciprocal-layout-roles-2026-10-26.json)
+records final sources/logs, exact controls/selection and evidence limits.
+
+The first ASan affected run passed **77/78** in **46.44 s**, with a silent
+`libdxfrw_cellstylemap_source_proof` failure at 0.71 s and no sanitizer diagnostic.
+Its output and LastTest log are preserved. The unchanged direct selector then
+passes all **387** mutation kinds and **3,096** mismatch/recovery pairs; the
+unchanged exact cohort confirmation passes 78/78. No assertion, source or test
+selection was changed between these runs. The initial cause remains unclassified,
+not a claimed production fix or proof of deterministic reliability. If reproduced,
+capture the actual exit/temporary-directory outcome before inferring a cause.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [x] **Validate this checkpoint.** Complete the fresh exact 78-test ASan cohort
+   after normal runtime, compare registered selection/order and final source
+   hashes, retain actual failures/limits/commands/log receipts and update this
+   checkpoint. The local commit/report follows; initial silent ASan failure
+   remains unclassified and must not be described as fixed.
+2. [ ] **Original entity owner/space/layout joins.** Consume this pinned original
+   role graph plus actual ENTITIES/BLOCKS delivery/body/physical audits, not live
+   cData. First index original graph BLOCK_RECORD names/IDs and LAYOUT names/IDs
+   through their pinned owners. Join each admitted POINT/LINE and INSERT/POLYLINE
+   primary and linked child to the unique same-import namespace origin and its
+   actual block/compound owner. Keep source presence distinct from defaulted
+   model values for 330/67/410. Resolve explicit owners, exact/ASCII names and
+   model versus multiple-paper roles; refuse conflicts, absent/default ambiguity,
+   unknown primary families, wide IDs and unqualified native collation. Extend
+   BLOCK member joins through their real enclosing source owners, not fabricated
+   ENTITIES block contexts. Preserve selected-subset versus complete-scope reports.
+   Use locally authored model/two-paper/mixed-scope/default/conflict recipes,
+   copied/substituted origins, late failure, quota/allocation and corrected import
+   retries. Keep native name, complete owner, output and support gates closed.
+3. [ ] **Remaining primary bodies and dependencies.** Complete original TABLE/
+   ATTDEF and other required primary state/field/profile families; common STYLE/
+   APPID/LAYER/object/application/proxy/codepage and bounded nested INSERT targets.
+   Reuse actual shared decoders and profiles, separate original/present/default/
+   unknown fields, and require typed target roles rather than handle existence.
+4. [ ] **Full live/output and consumer/native parity.** Complete original B2b/B3/C
+   fields/names/roles and source/live/edited/emitted identity/remapping/readback;
+   verify atomic rollback/retry/destination safety, IMAGE/document/native-bit/
+   decimal/carrier/schema/owner and memory/performance. Preserve LibreCAD and
+   LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD routes. Native platform and independent
+   ACIS/ACDS semantic/kernel qualification remain separate mandatory gates.
+5. [ ] **Self-update/unblock and continue.** After every implemented item record
+   actual results and next safe prerequisites; after every verified slice commit
+   and report progress. Fast owning tests during edits, exact affected cohorts at
+   integration boundaries, not repeated full suites. Preserve unrelated samples
+   and commit no external drawing fixtures. Continue available local body/target/
+   dependency work without waiting for external qualification.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The full goal stays active; no remote mutation is included.

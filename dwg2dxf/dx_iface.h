@@ -39,8 +39,16 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
-                 public DRW_DxfIdentitySourceHandler {
+                 public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
 public:
+    using LayoutRoleState=dx_data::TableDxfSourceCapture::LayoutRoleAudit::State;
+    struct LayoutRoleReport {
+        LayoutRoleState state{LayoutRoleState::NotCaptured};
+        std::size_t layouts{0},blocks{0},dictionaryEntries{0},associations{0},bytes{0},work{0};
+        std::uint32_t root{0},layoutDictionary{0},firstHandle{0};
+        bool rolesMatched{false},nativeNamesQualified{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static LayoutRoleReport layoutRoleReport(const dx_data&) noexcept;
     enum class StructuralSourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,ProducerPairsReady,OriginsBound,Unqualified};
     struct StructuralSourceReport {
         StructuralSourceState state{StructuralSourceState::NotCaptured};
@@ -48,6 +56,8 @@ public:
         bool namespaceReady{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static StructuralSourceReport structuralSourceReport(const dx_data&) noexcept;
+    bool wantsDxfDictionarySource() const override;
+    void addDxfDictionarySource(const DRW_Dictionary&,const DRW_RawDxfObject&) override;
     enum class IdentitySourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NamespaceReady,Unqualified};
     struct IdentitySourceReport {
         IdentitySourceState state{IdentitySourceState::NotCaptured};
@@ -1695,6 +1705,7 @@ private:
     void finishIdentitySourceAudit(dx_data&) noexcept;
     void observeStructuralSource(const DRW_TableEntry&,bool source,const DRW_RawDxfObject* raw=nullptr) noexcept;
     void finishStructuralSourceAudits(dx_data&) noexcept;
+    void finishLayoutRoleAudit(dx_data&) noexcept;
     void retainTableSourceDictionary(const DRW_Dictionary& data);
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);

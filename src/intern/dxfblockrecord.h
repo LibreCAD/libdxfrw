@@ -21,9 +21,16 @@ class Decoder {
     std::size_t indexBytes=0u,insertBytes=0u,previewBytes=0u;
     bool blockReferences=false,extensionDictionary=false,dictionarySeen=false;
     int ignoredDepth=0;
+    dxfReader* opaqueReader=nullptr;
+    bool previousWideHandles=false;
+
+    void restoreOpaqueHandles() noexcept {
+        if(opaqueReader)opaqueReader->setAllowWideHandleLexemes(previousWideHandles);
+        opaqueReader=nullptr;
+    }
 
     bool context(const std::unique_ptr<dxfReader>& reader) const {
-        if(!reader)return false;
+        if(!reader||(opaqueReader&&opaqueReader!=reader.get()))return false;
         if(reader->retainedByteBudget()!=budget) {
             if(reader->retainedByteBudget())reader->retainedByteBudget()->reject();
             return false;
@@ -35,6 +42,7 @@ public:
         :record(target),budget(reader?reader->retainedByteBudget():nullptr),indexReservation(budget,0u){}
     Decoder(const Decoder&)=delete;
     Decoder& operator=(const Decoder&)=delete;
+    ~Decoder(){restoreOpaqueHandles();}
 
     bool inApplication() const noexcept {return blockReferences||extensionDictionary||ignoredDepth!=0;}
     static std::pair<bool,std::uint8_t> observeCommonState(const DRW_TableEntry& value) noexcept {
@@ -49,6 +57,7 @@ public:
             &&(version==DRW::UNKNOWNV||version<=DRW::AC1009||record.handle!=DRW::NoHandle);
     }
     bool reset() {
+        restoreOpaqueHandles();
         if(!indexReservation.resize(0u))return false;
         indexBytes=insertBytes=previewBytes=0u;
         insertHandles.clear();blockReferences=extensionDictionary=dictionarySeen=false;ignoredDepth=0;
@@ -73,7 +82,9 @@ public:
                 if(control!="}"||!dictionarySeen)return false;
                 extensionDictionary=false;
             } else if(ignoredDepth) {
-                if(control=="}")--ignoredDepth;
+                if(control=="}") {
+                    if(!--ignoredDepth)restoreOpaqueHandles();
+                }
                 else if(!control.empty()&&control.front()=='{') {
                     if(ignoredDepth==DRW::kMaxDxfApplicationGroupNesting)return false;
                     ++ignoredDepth;
@@ -83,7 +94,17 @@ public:
                 blockReferences=true;
             } else if(control=="{ACAD_XDICTIONARY") {
                 extensionDictionary=true;dictionarySeen=false;
-            } else if(!control.empty()&&control.front()=='{')ignoredDepth=1;
+            } else if(control=="{ACAD_REACTORS") {
+                // Retain the historical ignored reactor payload and its
+                // native-width admission, not an opaque wide-handle scope.
+                ignoredDepth=1;
+            } else if(!control.empty()&&control.front()=='{') {
+                // Only opaque application payloads may carry raw-width handles.
+                // Restore before reading the next native field, on reset, and
+                // on failure/unwind; known groups retain typed-width checks.
+                opaqueReader=reader.get();previousWideHandles=reader->allowsWideHandleLexemes();
+                reader->setAllowWideHandleLexemes(true);ignoredDepth=1;
+            }
             else if(control=="}")return false;
             break;
         }

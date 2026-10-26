@@ -38,9 +38,11 @@ struct DxfLayoutPublication {
     const DRW_RawDxfObject* source{nullptr};
 };
 struct DxfStructuralPublication {
-    // Kind 1 BLOCK_RECORD, 2 first OBJECTS DICTIONARY; phase 1 source, 2 typed.
+    // Kind 1 BLOCK_RECORD, 2 first OBJECTS DICTIONARY, 3 non-root DICTIONARY;
+    // phase 1 source, 2 typed, 3 existing raw callback.
     std::uint8_t kind{0},phase{0},coordinateMask{0};bool pendingXdata{false};
     const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+    bool rawCallbackDelivered{false};
 };
 
 // Shared by one public DXF read operation so independently retained buffers
