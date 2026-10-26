@@ -35,8 +35,18 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
-                 public DRW_DxfBlockDeliveryHandler {
+                 public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler {
 public:
+    enum class EntitiesSourceState {NotCaptured,Reading,ImportFailed,CaptureFailed,ContextMismatch,TransportComplete};
+    struct EntitiesSourceReport {
+        // Retained opted-in scopes only, not every section or its semantics.
+        EntitiesSourceState state{EntitiesSourceState::NotCaptured};
+        std::size_t sections{0},chargedRecords{0},groups{0},bytes{0},work{0};
+        bool outputEligible{false};
+    };
+    static EntitiesSourceReport entitiesSourceReport(const dx_data&) noexcept;
+    bool wantsDxfEntitiesSource() const override;
+    void addDxfEntitiesSource(const DRW_DxfEntitiesSource&) override;
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
         InvalidGraph, UnsupportedProfile, WorkLimit, StructurallyComplete,
@@ -64,7 +74,8 @@ public:
         ResourceProofMissing, ResourceRawTypedMismatch, WrongSymbolKind,
         BlockSourceMissing, AmbiguousBlockDefinition, BlockSourceIncomplete,
         BlockMemberUnsupported, BlockMemberMismatch, BlockSpaceMismatch,
-        BlockNameCollationUnqualified, BlockReferenceCycle
+        BlockNameCollationUnqualified, BlockReferenceCycle,
+        EntitiesSourceMissing,EntitiesSourceIncomplete,EntitiesSourceMismatch
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
@@ -85,6 +96,7 @@ public:
         std::uint32_t firstSourceBlock{0};
         std::size_t firstSourceMember{(std::numeric_limits<std::size_t>::max)()};
         bool directRolesBound{false}; // not full block/dependency/live/output proof
+        std::size_t entitiesPhysicalTablesMatched{0}; // literal source origin, not space/body semantics
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates. Geometry-block/ATTDEF-owner

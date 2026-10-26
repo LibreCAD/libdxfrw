@@ -583,6 +583,10 @@ add_test(NAME libdxfrw_table_block_name_bindings
     COMMAND libdxfrw_table_content_dxf_tests --block-name-bindings)
 set_tests_properties(libdxfrw_table_block_name_bindings PROPERTIES
     LABELS "fast;dxf;adapter;table;block;source;graph;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_entities_source_transport
+    COMMAND libdxfrw_table_content_dxf_tests --entities-source)
+set_tests_properties(libdxfrw_entities_source_transport PROPERTIES
+    LABELS "fast;dxf;adapter;source;entities;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_cellstylemap_source_profiles
     COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-source)
 set_tests_properties(libdxfrw_cellstylemap_source_profiles PROPERTIES

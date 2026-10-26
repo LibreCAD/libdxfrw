@@ -1139,6 +1139,20 @@ private:
         std::size_t maxCompoundBodyRecords{100000u},maxCompoundBodyBytes{64u*1024u*1024u},maxCompoundBodyWork{64u*1024u*1024u};
         bool compoundBodyCaptureFailed{false};
         std::size_t maxBlockBindingBytes{64u*1024u*1024u};
+        struct EntitiesSource {
+            const void* container{nullptr};std::uint64_t generation{0};
+            std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+        };
+        struct EntitiesTableOrigin {
+            std::size_t section{0},record{0};
+            std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+        };
+        std::vector<EntitiesSource> entitiesSources;
+        std::map<std::uint32_t,EntitiesTableOrigin> entitiesTables;
+        std::size_t entitiesRecords{0},entitiesGroups{0},entitiesBytes{0},entitiesWork{0};
+        std::size_t maxEntitiesSections{1024u},maxEntitiesRecords{100000u},maxEntitiesGroups{4000000u};
+        std::size_t maxEntitiesBytes{64u*1024u*1024u},maxEntitiesWork{64u*1024u*1024u};
+        bool entitiesCaptureFailed{false},entitiesTableIdentityFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

@@ -46,6 +46,7 @@
 #include "intern/dxfcompound.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
+#include "intern/dxfentitiessource.h"
 #include "intern/dxfblockdelivery.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
@@ -16315,12 +16316,24 @@ bool dxfRW::processEntities(bool isblock) {
         }
     }
 
+    auto* entitiesHandler=isblock?nullptr:dynamic_cast<DRW_DxfEntitiesSourceHandler*>(iface);
+    const bool captureEntities=entitiesHandler&&entitiesHandler->wantsDxfEntitiesSource();
+    dxfEntitiesSource::Capture entitiesSource(*reader);
+    if(captureEntities)entitiesSource.start(entitiesHandler->dxfEntitiesSourceLimits());
+    const auto completeEntities=[&]() {
+        if(captureEntities) {
+            entitiesSource.detach();
+            entitiesHandler->addDxfEntitiesSource(entitiesSource.source());
+        }
+        return true;
+    };
+
     while (true) {
         const DxfEntityBoundary boundary = classifyEntityBoundary();
         if (boundary == DxfEntityBoundary::Error)
             return setError(DRW::BAD_READ_ENTITIES);
         if (boundary == DxfEntityBoundary::EndSection)
-            return true;
+            return completeEntities();
         if (boundary == DxfEntityBoundary::EndBlock) {
             if (isblock)
                 return true;
@@ -16475,7 +16488,7 @@ bool dxfRW::processEntities(bool isblock) {
         if (nextBoundary == DxfEntityBoundary::Error)
             return setError(DRW::BAD_READ_ENTITIES);
         if (nextBoundary == DxfEntityBoundary::EndSection)
-            return true;
+            return completeEntities();
         if (nextBoundary == DxfEntityBoundary::EndBlock) {
             if (isblock)
                 return true;
@@ -22505,6 +22518,7 @@ bool dxfRW::processRawEntity() {
     // delivered verbatim for round-trip.
     DRW_Point proxyHost;
     int applicationDepth = 0;
+    bool commonProxyScope = true; // retains legacy streams without subclass markers
     std::size_t pairCount = 0;
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
@@ -22531,6 +22545,12 @@ bool dxfRW::processRawEntity() {
         // child records, so the raw stream would lose nested groups. Only
         // parse the common fields needed by the proxy decoder's draw state.
         if (applicationDepth == 0) {
+            // Class-specific counts/chunks are opaque, not another common
+            // proxy cache. A later repeated AcDbEntity marker cannot reopen
+            // the closed common scope; application markers never reach here.
+            if (code == 101
+                || (code == 100 && reader->getStringView() != "AcDbEntity"))
+                commonProxyScope = false;
             switch (code) {
             case DRW::dxfCode::HANDLE:
                 // Code 5 is identity metadata for the raw carrier. Do not route
@@ -22543,9 +22563,14 @@ bool dxfRW::processRawEntity() {
             case DRW::dxfCode::COLOR:
             case DRW::dxfCode::LINEWEIGHT:
             case 67:
+                if (!proxyHost.parseCode(code, reader))
+                    return setError(DRW::BAD_CODE_PARSED);
+                break;
             case 92:
             case 160:
             case 310:
+                if (!commonProxyScope)
+                    break;
                 if (!proxyHost.parseCode(code, reader))
                     return setError(DRW::BAD_CODE_PARSED);
                 break;

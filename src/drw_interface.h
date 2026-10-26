@@ -823,6 +823,42 @@ public:
   virtual void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) = 0;
 };
 
+/** Original ENTITIES stream, independent of BLOCKS and modeled callbacks.
+ * Interval starts at the actual first entity (or ENDSEC when empty), excluding
+ * the SECTION header and preceding comments. Includes compound subrecords and
+ * ignored comments within the interval. No identity/space roles are inferred.
+ * Complete means accepted ENDSEC, not successful whole import, callback/body,
+ * space, graph, editable-state, semantic or output qualification.
+ */
+struct DRW_DxfEntitiesSourceLimits {
+  std::size_t records{65536u},groups{262144u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+struct DRW_DxfEntitiesSource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // process-local interval identity, not an owner
+  DRW_DxfPhysicalRecordSpan beginMarker,endMarker;
+  std::vector<DRW_DxfPhysicalEntitySource> records;
+  std::size_t groups{0},bytes{0},work{0},ignoredComments{0};
+};
+/** Separate opt-in facet, latched once per ENTITIES section. Callback follows
+ * accepted ENDSEC and ordinary entity callbacks, whose timing is unchanged.
+ * No report on an aborted/truncated section or throwing entity callback. Own
+ * quota/allocation failure is reported, not a format rejection; extra owners
+ * also share reader byte/node limits, which may fail the read. Existing
+ * DRW_Interface and observer-facet vtables/layouts remain unchanged.
+ */
+class DRW_DxfEntitiesSourceHandler {
+public:
+  virtual ~DRW_DxfEntitiesSourceHandler() = default;
+  virtual bool wantsDxfEntitiesSource() const {return false;}
+  virtual DRW_DxfEntitiesSourceLimits dxfEntitiesSourceLimits() const {return {};}
+  virtual void addDxfEntitiesSource(const DRW_DxfEntitiesSource&) = 0;
+};
+
 // Planned staged delivery is separate from the unprojected physical stream.
 // Origins are original scalar ordinals/byte intervals, never inferred from a
 // callback count, effective block name or convenience handle. Consumers still

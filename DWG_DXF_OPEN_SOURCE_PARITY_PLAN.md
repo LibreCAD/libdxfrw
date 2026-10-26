@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ed nested BLOCK names and canonical MINSERT profile (2026-10-26):** selected admitted definitions now expand their original INSERT name targets through the bounded worklist and reject unresolved/ambiguous targets or cycles. Exact UTF-8/ASCII-case matches remain distinct from unqualified wider Unicode fold-only aliases. Canonical `AcDbMInsertBlock` source profiles with real array dimensions are admitted alongside the existing compatibility shape. The affected cohorts pass 53/53 normally and 53/53 under ASan, including target/failure/retry/long-chain controls. ENTITIES/common dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26) · [receipt](docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ee original ENTITIES intervals and selected TABLE origins (2026-10-26):** a separate opt-in facet now publishes original ENTITIES scalar intervals at accepted ENDSEC, without buffering or delaying ordinary callbacks. The CLI freezes bounded container-bound observations and binds selected TABLE raw bodies to their exact retained physical owners. The generic raw reader also stops interpreting proxy count/chunk fields after foreign subclass or embedded-object boundaries. Final exact affected cohorts pass 58/58 normally and 58/58 under ASan, including 144 raw proxy class profiles and 16 actual common-count refusal/retries per configuration. Observed dispatch/body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ee-original-entities-intervals-and-selected-table-origins-2026-10-26) · [receipt](docs/research/rpp5ee-original-entities-intervals-and-selected-table-origins-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ed nested BLOCK names and canonical MINSERT profile (2026-10-26; committed as `52eb6f4f`):** selected admitted definitions now expand their original INSERT name targets through the bounded worklist and reject unresolved/ambiguous targets or cycles. Exact UTF-8/ASCII-case matches remain distinct from unqualified wider Unicode fold-only aliases. Canonical `AcDbMInsertBlock` source profiles with real array dimensions are admitted alongside the existing compatibility shape. The affected cohorts pass 53/53 normally and 53/53 under ASan, including target/failure/retry/long-chain controls. ENTITIES/common dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26) · [receipt](docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ec selected BLOCK source binding (2026-10-26):** committed as `a668cb2`. Its unique selected-definition, pinned reconciliation-owner, original member and linked-host space prerequisites remain valid, with 52/52 normal and 52/52 ASan affected results. RPP-5ed additionally follows admitted nested INSERT names, not full primary-family, ENTITIES/common dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ec-selected-block-source-binding-2026-10-26) · [receipt](docs/research/rpp5ec-selected-block-source-binding-2026-10-26.json).
 
@@ -128020,6 +128022,184 @@ Next implementation-ready sequence (complete original objective retained):
    not full suites per item. Record limits and actual failures, update this plan
    and its receipt, commit/report verified slices and continue safely. Preserve
    unrelated samples and do not commit external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
+completion is included in this checkpoint.
+
+## Implementation progress — RPP-5ee original ENTITIES intervals and selected TABLE origins (2026-10-26)
+
+This implements the original physical-interval prerequisite of RPP-5ed's
+ENTITIES item, including an integrated selected TABLE origin gate. It does not
+claim complete ENTITIES dispatch/body/space or whole-drawing semantics. A raw
+interval can contain unresolved references and no-callback records while still
+being a complete physical observation. Such records do not acquire model,
+graph, output or support qualification from that transport fact.
+
+Implemented:
+
+1. [x] Add a separate optional `DRW_DxfEntitiesSourceHandler` and source/limits
+   types, not a BLOCK manifest with owner zero. Selection is latched per section.
+   Capture begins at the actual pending first code-0 marker after
+   `readEntityBoundary` and terminates at real ENDSEC, including an empty
+   interval whose begin/end marker is the same ENDSEC. Section headers and
+   comments before the first marker are explicitly outside this interval.
+   Preserve original record names, scalar kinds/values, ASCII spellings,
+   ordinals, byte intervals, compound subrecords and observer-identified ignored
+   comments, not reconstructed callback values. The
+   [Autodesk ENTITIES structure](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm)
+   supplies the section/record boundary distinction. New public transport types
+   are additive; existing drawing-model layouts, DRW_Interface and existing
+   facet vtables are unchanged, not formally ABI-certified.
+2. [x] Factor neutral physical scalar capture from the existing BLOCK collector
+   and retain separate ENDBLK/ENDSEC wrappers. Preserve shared-reader observer
+   chaining, the already-observed pending marker, logical byte/node/work leases
+   and exception-safe detach. Publish ENTITIES source only after accepted ENDSEC
+   and ordinary callbacks; do not stage an entire ENTITIES section or change
+   legacy callback ordering. Aborted/truncated/throwing sections publish no
+   completed report; a later whole-file failure cannot qualify an earlier
+   completed interval. Own collection quotas/allocation failures report failed
+   evidence without rejecting otherwise compatible import. Shared reader limits
+   remain authoritative and can still fail the read.
+3. [x] Bound per-section collection at 65,536 physical records, 262,144 groups,
+   32 MiB logical bytes and 67,108,864 logical work units by default. The CLI
+   additionally bounds aggregate immutable copies at 1,024 retained scopes,
+   100,000 charged records (including one scope sentinel each), 4,000,000 groups,
+   64 MiB logical bytes and 67,108,864 work units. Share physical-carrier copy
+   validation/accounting with BLOCKs, including dormant variant payloads and
+   rejection of forged native/assembled carriers before copying. No unbounded
+   per-record map is added for every entity; only actual ACAD_TABLE origins
+   receive a bounded identity index. Accounting is logical allowance, not RSS,
+   every allocator, strict CPU or leak-detector evidence.
+4. [x] Freeze source owners with actual container/generation/version/scope
+   context. A transport report requires successful actual first-generation
+   import and retained owner/context matches. It describes retained opted-in
+   scopes only, not proof that every section opted in or is semantically valid.
+   Duplicate/stale/out-of-phase, copied/appended or failed-import contexts cannot
+   borrow completion. Reader-source mutations after capture cannot edit the
+   immutable snapshot, and its owners tear down without an owning context cycle.
+5. [x] Integrate selected TABLE physical origins into the existing binding
+   report after direct roles. Join actual scoped outer identities, exact pinned
+   interval owners and literal raw scalar/type/spelling equality, ignoring only
+   original observer-identified comments. Missing observations or replaced/
+   mismatched owners, identities, raw values and equivalent-but-different handle
+   spellings refuse the gate while `directRolesBound` stays distinct. This proves
+   original TABLE presence/body transport, NOT all TABLE field semantics,
+   observed primary callbacks or model/paper/BLOCK_RECORD associations. In
+   particular, [common owner/space fields](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+   and [model/paper block distinctions](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm)
+   require separate role/target qualification, not one owner for the whole
+   section or a TABLE owner's metadata row alone.
+6. [x] List the new private headers in CMake and Autotools. Use locally authored
+   runtime inputs only; do not commit external drawings. Register the existing
+   focused proxy graphic/loss-policy selector as its own fast CTest rather than
+   repeatedly running the entire DXF fixture suite.
+7. [x] Fix a reproduced generic raw-entity reader scope defect, not an invalid
+   vendor fixture. An original vendor-subclass group 160 with value 4 GiB was
+   incorrectly interpreted as a common proxy-byte count. Autodesk's
+   [subclass rules](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC5ACB1B-BBA3-463B-84A5-6CCD320C66E7.htm)
+   segregate class fields, and its
+   [custom group ranges](https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm)
+   allow groups 160..169 as class-specific 64-bit integers and 310..319 as
+   binary. Stop feeding proxy-only 92/160/310 fields to the common proxy host
+   after the first foreign subclass or embedded boundary. Repeated AcDbEntity
+   cannot reopen that scope; fake subclass markers inside application groups
+   cannot close it. Preserve legacy no-subclass caches, actual common count
+   limits and raw fields verbatim. The positive vendor input retains group 160;
+   the oversized-proxy negative now uses the actual common scope. This changes
+   DXF proxy field routing, not DWG bytes, proxy decoder math/opcodes or complete
+   specialized/application/XDATA grammar qualification.
+
+Owning evidence per configuration:
+
+- [x] **12** four-version x ASCII LF/CRLF/Binary actual-import routes with
+  compound, opaque, no-callback, mixed model/paper metadata and empty/repeated
+  ENTITIES intervals. A separate original-file walker checks **1,344** exact
+  scalar/value/bit/spelling/ordinal/byte spans and excludes BLOCKS/custom-section
+  lookalikes and pre-interval comments. Exact ordinary callback order is checked
+  against the opt-out legacy path; no raw-record/callback-count equivalence is
+  invented. Inputs intentionally include unresolved semantic dependencies and
+  are not independent native CAD-validity or kernel witnesses.
+- [x] **26** malformed-carrier/corrected-import retries; **20** exact/one-under
+  aggregate scope/record/group/byte/work boundaries and **16** collector
+  record/group/byte/work boundaries. **78** observed immutable-copy allocation
+  faults recover with fresh actual imports. **Ten** isolated collector allocation
+  faults verify previous-observer restoration and logical lease teardown;
+  actual-reader chaining includes ignored comments and no duplicate first marker.
+  Allocation counts are environment observations, not portable STL thresholds
+  or every-allocator/leak certification.
+- [x] **12** copied/alias/latched/appended/stale/teardown contexts, **six** source/
+  ordinary-callback exception and corrected-import retries, and **ten** aborted
+  section/whole-import retries. Missing/truncated boundaries, invalid proxy
+  length and missing compound footer cannot publish completed section evidence;
+  a later custom-section failure leaves an earlier interval unqualified.
+- [x] **14** selected TABLE origin controls cover positives, absent transport,
+  body/identity/owner/string mismatch and exact immutable owner substitution/
+  restoration, while retaining direct-role distinctions. **Two** legacy ASCII
+  file routes exercise the explicitly opted-in generic transport. **14** public
+  readAscii/file-reuse routes cover six source revisions x LF/CRLF, then Binary
+  file read followed by ASCII memory reuse; these are local API controls, not
+  native consumer/platform or semantic support qualification.
+- [x] **144** raw proxy class profiles cover four modern versions x two
+  encodings x BLOCKS/ENTITIES x nine shapes: opaque vendor I64/length/chunks,
+  genuine common caches before vendor data, application-isolated fake markers,
+  repeated subclass refusal to reopen, legacy no-subclass caches, cross-scope
+  partial chunks, vendor-only caches and embedded-object boundaries. Exact raw
+  scalar/spelling preservation and following POINT callbacks are checked;
+  genuine common circles retain their original geometry/layer. **16** actual
+  oversized common counts still refuse and recover on the same reader with a
+  corrected vendor-opaque input. These authored controls verify routing and
+  existing primitive behavior, not independent CAD/kernel semantics.
+
+Final validation: strict normal/ASan affected library/CLI, resource, polyface/
+MTEXT and local consumer targets plus `lc3_compat_check` builds pass on macOS
+ARM64 Apple Clang 21.0.0, C++17 with warnings as errors. Exact affected cohorts
+pass **58/58 normally in 80.34 s** and **58/58 under ASan in 171.69 s**, with no
+failures/skips/disabled cases. ASan uses `halt_on_error=1:detect_leaks=0`,
+sequential to normal runtime. Normal runtime
+overlapped ASan compilation, not ASan runtime; elapsed times are not a paired
+speed benchmark. The shortlist adds the new ENTITIES test and four focused
+proxy controls to the previous 53 affected tests, not a full project/distribution
+suite. Earlier 54/54 normal/ASan results predate the raw proxy class-scope fix
+and are superseded, not its final evidence. No native LibreCAD/LibreCAD_3/
+FreeCAD execution or formal binary ABI certification is claimed. The
+[RPP-5ee receipt](docs/research/rpp5ee-original-entities-intervals-and-selected-table-origins-2026-10-26.json)
+records scope, counts, exact test membership, source/log hashes and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Observed ENTITIES dispatch/callback and space/body closure.** Add a
+   separate opt-in dispatch/delivery facet tied to these real scope IDs and
+   physical boundaries; do not reuse a BLOCK event manifest with fabricated
+   ownership. Observe actual parser dispatches and callback origins without
+   delaying legacy callbacks or losing optional TABLE/ATTDEF source facets.
+   Distinguish original producer callbacks from adapter-internal TABLE-to-INSERT
+   projections and proxy-render callbacks. Join immutable physical spans to
+   actual primary/compound/no-callback dispositions before body or space claims.
+   Then qualify per-primary and linked host 330/67/410 roles, absent defaults
+   and actual model/paper/BLOCK_RECORD owners, including multiple paper layouts,
+   with unsupported/raw/secondary/header arrangements explicit. Reuse existing
+   compound replay/profile and container-owner guards; do not infer closure
+   solely from code-0 names or the new transport report.
+2. [ ] **Common and specialized dependency targets.** Finish common/style/
+   APPID/LAYER/object references, inherited/explicit/absent defaults, pinned
+   original target owners and specialized application/proxy/codepage contexts.
+   Reuse the bounded name/graph worklist but do not remap arbitrary 320..329
+   values or turn invariant Unicode ambiguity keys into native collation proof.
+3. [ ] **Live/output and complete original parity.** Finish B2b/B3/C source/live/
+   editable/output and compound identities, complete fields, exact emitted
+   references/names, remapping and atomic rollback/retry/destination preservation.
+   Retain original IMAGE/document/native-bit/decimal/carrier/schema/owner,
+   speed/memory, LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD requirements.
+   Native consumer/platform and independent ACIS/ACDS semantic/kernel evidence
+   remain separate requirements, not consequences of local source transport.
+4. [ ] **Self-update, unblock safely and continue.** Use fast owning checks while
+   editing and exact freshly built affected normal/ASan cohorts at integration
+   boundaries, not full suites per item. Record actual errors/limits, update the
+   plan and receipt, commit/report each verified slice and continue available
+   local work. Preserve unrelated samples and commit no external drawing fixtures.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

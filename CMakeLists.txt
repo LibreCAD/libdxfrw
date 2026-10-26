@@ -1835,6 +1835,10 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dxf_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dxf_fixtures
         COMMAND libdxfrw_dxf_fixture_tests)
+    add_test(NAME libdxfrw_dxf_proxy_graphic_loss_policy
+        COMMAND libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy)
+    set_tests_properties(libdxfrw_dxf_proxy_graphic_loss_policy PROPERTIES
+        LABELS "fast;dxf;reader;writer;proxy;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_material_root_output_compatibility
         COMMAND libdxfrw_dxf_fixture_tests --material-object-order)
     set_tests_properties(libdxfrw_material_root_output_compatibility PROPERTIES

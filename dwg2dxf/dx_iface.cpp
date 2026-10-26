@@ -17409,6 +17409,30 @@ dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noe
     return report;
 }
 
+namespace {
+bool blockDeliveryRawMatches(const DRW_DxfPhysicalEntitySource&,const DRW_RawDxfObject&,bool) noexcept;
+}
+
+dx_iface::EntitiesSourceReport dx_iface::entitiesSourceReport(const dx_data& data) noexcept {
+    EntitiesSourceReport report;const auto& s=data.m_tableDxfSource;using S=EntitiesSourceState;
+    report.sections=s.entitiesSources.size();report.chargedRecords=s.entitiesRecords;
+    report.groups=s.entitiesGroups;report.bytes=s.entitiesBytes;report.work=s.entitiesWork;
+    if(s.contextFailed) {report.state=S::ContextMismatch;return report;}
+    if(!s.generation)return report;
+    if(!s.closed) {report.state=S::Reading;return report;}
+    if(data.sourceFormat!=dx_source_format::DXF)return report;
+    if(!s.successful) {report.state=S::ImportFailed;return report;}
+    if(s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.version!=data.sourceVersion
+        ||s.version!=data.dxfReadOutcome.sourceVersion||!data.dxfReadOutcome.readReturned||data.dxfReadOutcome.readThrew
+        ||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.error!=DRW::BAD_NONE) {report.state=S::ContextMismatch;return report;}
+    if(s.entitiesCaptureFailed) {report.state=S::CaptureFailed;return report;}
+    if(s.entitiesSources.empty())return report;
+    for(const auto& scope:s.entitiesSources)if(scope.container!=&data||scope.generation!=s.generation||!scope.physical
+        ||!scope.physical->scopeId||scope.physical->version!=s.version
+        ||scope.physical->status!=DRW_DxfEntitiesSource::Status::Complete) {report.state=S::ContextMismatch;return report;}
+    report.state=S::TransportComplete;return report;
+}
+
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
     using F=dx_tableResourceFamily;
     using S=TableBindingState;
@@ -17663,7 +17687,27 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         }
     }
     report.directRolesBound=report.state==S::Bound;
-    if(report.state!=S::Bound||pendingBlocks.empty())return report;
+    if(report.state!=S::Bound)return report;
+    if(!work(source.entitiesSources.size()+1u))return report;
+    const auto transport=entitiesSourceReport(data).state;
+    if(transport!=EntitiesSourceState::TransportComplete) {
+        report.state=transport==EntitiesSourceState::NotCaptured?S::EntitiesSourceMissing:
+            transport==EntitiesSourceState::ContextMismatch?S::EntitiesSourceMismatch:S::EntitiesSourceIncomplete;
+        return report;
+    }
+    if(source.entitiesTableIdentityFailed) {report.state=S::EntitiesSourceMismatch;return report;}
+    for(const auto& table:source.tables) {
+        const auto origin=source.entitiesTables.find(table.first);
+        if(!work(table.second.raw.groups.size()+1u))return report;
+        if(origin==source.entitiesTables.end()||origin->second.section>=source.entitiesSources.size()
+            ||!origin->second.physical||origin->second.physical!=source.entitiesSources[origin->second.section].physical
+            ||origin->second.record>=origin->second.physical->records.size()
+            ||!blockDeliveryRawMatches(origin->second.physical->records[origin->second.record],table.second.raw,origin->second.physical->binary)) {
+            fail(S::EntitiesSourceMismatch,table.first);return report;
+        }
+        ++report.entitiesPhysicalTablesMatched;
+    }
+    if(pendingBlocks.empty())return report;
     // One bounded reverse index per report, not a full scan for each selected
     // ATTDEF/block-content use. Duplicate definitions cannot borrow a first hit.
     using BlockIndex=std::pair<std::uint32_t,std::uint32_t>;
@@ -18159,6 +18203,62 @@ bool dx_iface::wantsDxfBlockChildrenSource() const {
     return version>=DRW::AC1021&&version<=DRW::AC1032;
 }
 
+namespace {
+struct PhysicalCopyBudget {
+    std::size_t &records,&groups,&bytes,&work;
+    std::size_t maxRecords,maxGroups,maxBytes,maxWork;
+};
+// Validate/charge original physical carriers before cloning, independently of
+// their BLOCK or ENTITIES scope. Scope/owner/phase checks remain with callers.
+template<class Source> bool chargePhysicalSourceCopy(const Source& value,PhysicalCopyBudget budget) {
+    const auto count=value.records.size();
+    if(count>=budget.maxRecords||budget.records>budget.maxRecords-count-1u
+        ||budget.work>budget.maxWork
+        ||count+1u>(budget.maxWork-budget.work)/64u) return false;
+    budget.records+=count+1u;budget.work+=(count+1u)*64u;
+    std::size_t bytes=sizeof(value)+8u*sizeof(void*),groups=0u,comments=0u;
+    for(std::size_t i=0;i<count;++i) {
+        const auto& record=value.records[i];const auto n=record.groups.size();
+        const auto next=i+1u<count?value.records[i+1u].marker:value.endMarker;
+        if(record.name.empty()||record.marker.ignoredComment||record.marker.ordinal==0u
+            ||record.marker.beginOffset>=record.marker.endOffset||record.endOrdinal!=next.ordinal||record.endOffset!=next.beginOffset
+            ||n!=record.rawValues.size()||n!=record.spans.size()
+            ||record.marker.ordinal>=record.endOrdinal||record.marker.endOffset>record.endOffset
+            ||budget.groups>budget.maxGroups||n>budget.maxGroups-budget.groups
+            ||budget.work>budget.maxWork||n>(budget.maxWork-budget.work)/64u
+            ||!addAssociativeRetainedBytes(sizeof(record),bytes)||!addAssociativeRetainedBytes(record.name.size(),bytes)
+            ||!addAssociativeSlotBytes(n,sizeof(DRW_Variant)+sizeof(UTF8STRING)+sizeof(DRW_DxfPhysicalRecordSpan),bytes)) return false;
+        budget.groups+=n;budget.work+=n*64u;groups+=n;
+        auto ordinal=record.marker.ordinal;auto offset=record.marker.endOffset;
+        for(std::size_t j=0;j<n;++j) {
+            const auto& field=record.groups[j];const auto& span=record.spans[j];
+            if(ordinal==(std::numeric_limits<std::size_t>::max)()||span.ordinal!=ordinal+1u
+                ||span.beginOffset<offset||span.beginOffset>=span.endOffset
+                ||(span.ignoredComment&&field.code()!=999)||field.code()==0
+                ||(value.binary&&!record.rawValues[j].empty())
+                ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) return false;
+            ordinal=span.ordinal;offset=span.endOffset;if(span.ignoredComment)++comments;
+            if(field.type()==DRW_Variant::STRING) {
+                if(!field.content.s)return false;
+            } else if(field.type()!=DRW_Variant::INTEGER&&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE) return false;
+            // The variant copy also owns dormant string/binary buffers
+            // and private source spelling, not just its active scalar.
+            std::size_t payload=0u;
+            if(!field.estimateRetainedPayloadBytes(budget.maxBytes,payload)
+                ||!addAssociativeRetainedBytes(payload,bytes)
+                ||!addAssociativeRetainedBytes(record.rawValues[j].size(),bytes)) return false;
+        }
+        if(ordinal==(std::numeric_limits<std::size_t>::max)()||ordinal+1u!=record.endOrdinal||offset>record.endOffset) return false;
+    }
+    std::size_t allowance=0u;
+    if(groups!=value.groups||comments!=value.ignoredComments||!addAssociativeSlotBytes(bytes,2u,allowance)
+        ||budget.bytes>budget.maxBytes||allowance>budget.maxBytes-budget.bytes
+        ||budget.work>budget.maxWork||allowance>budget.maxWork-budget.work) return false;
+    budget.bytes+=allowance;budget.work+=allowance;
+    return true;
+}
+}
+
 void dx_iface::addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& value) {
     if(!cData)return;
     auto& source=cData->m_tableDxfSource;
@@ -18173,56 +18273,13 @@ void dx_iface::addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& value
         ||value.binary==found->second.beginRaw->hasRawValues||value.blockRecord!=found->second.original->parentHandle
         ||value.version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
         ||!value.endMarker.ordinal||value.endMarker.ignoredComment||value.endMarker.beginOffset>=value.endMarker.endOffset) {fail();return;}
-    const auto count=value.records.size();
-    if(count>=source.maxBlockChildrenRecords||source.blockChildrenRecords>source.maxBlockChildrenRecords-count-1u
-        ||source.blockChildrenWork>source.maxBlockChildrenWork
-        ||count+1u>(source.maxBlockChildrenWork-source.blockChildrenWork)/64u) {fail();return;}
-    source.blockChildrenRecords+=count+1u;source.blockChildrenWork+=(count+1u)*64u;
-    std::size_t bytes=sizeof(value)+8u*sizeof(void*),groups=0u,comments=0u;
     try {
-        for(std::size_t i=0;i<count;++i) {
-            const auto& record=value.records[i];const auto n=record.groups.size();
-            const auto next=i+1u<count?value.records[i+1u].marker:value.endMarker;
-            if(record.name.empty()||record.marker.ignoredComment||record.marker.ordinal==0u
-                ||record.marker.beginOffset>=record.marker.endOffset||record.endOrdinal!=next.ordinal||record.endOffset!=next.beginOffset
-                ||n!=record.rawValues.size()||n!=record.spans.size()
-                ||record.marker.ordinal>=record.endOrdinal||record.marker.endOffset>record.endOffset
-                ||source.blockChildrenGroups>source.maxBlockChildrenGroups||n>source.maxBlockChildrenGroups-source.blockChildrenGroups
-                ||source.blockChildrenWork>source.maxBlockChildrenWork||n>(source.maxBlockChildrenWork-source.blockChildrenWork)/64u
-                ||!addAssociativeRetainedBytes(sizeof(record),bytes)||!addAssociativeRetainedBytes(record.name.size(),bytes)
-                ||!addAssociativeSlotBytes(n,sizeof(DRW_Variant)+sizeof(UTF8STRING)+sizeof(DRW_DxfPhysicalRecordSpan),bytes)) {fail();return;}
-            source.blockChildrenGroups+=n;source.blockChildrenWork+=n*64u;groups+=n;
-            auto ordinal=record.marker.ordinal;auto offset=record.marker.endOffset;
-            for(std::size_t j=0;j<n;++j) {
-                const auto& field=record.groups[j];const auto& span=record.spans[j];
-                if(ordinal==(std::numeric_limits<std::size_t>::max)()||span.ordinal!=ordinal+1u
-                    ||span.beginOffset<offset||span.beginOffset>=span.endOffset
-                    ||(span.ignoredComment&&field.code()!=999)||field.code()==0
-                    ||(value.binary&&!record.rawValues[j].empty())
-                    ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) {fail();return;}
-                ordinal=span.ordinal;offset=span.endOffset;if(span.ignoredComment)++comments;
-                if(field.type()==DRW_Variant::STRING) {
-                    if(!field.content.s){fail();return;}
-                } else if(field.type()!=DRW_Variant::INTEGER&&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE) {fail();return;}
-                // The variant copy also owns dormant string/binary buffers
-                // and private source spelling, not just its active scalar.
-                std::size_t payload=0u;
-                if(!field.estimateRetainedPayloadBytes(source.maxBlockChildrenBytes,payload)
-                    ||!addAssociativeRetainedBytes(payload,bytes)
-                    ||!addAssociativeRetainedBytes(record.rawValues[j].size(),bytes)) {fail();return;}
-            }
-            if(ordinal==(std::numeric_limits<std::size_t>::max)()||ordinal+1u!=record.endOrdinal||offset>record.endOffset) {fail();return;}
-        }
-        std::size_t allowance=0u;
-        if(groups!=value.groups||comments!=value.ignoredComments||!addAssociativeSlotBytes(bytes,2u,allowance)
-            ||source.blockChildrenBytes>source.maxBlockChildrenBytes||allowance>source.maxBlockChildrenBytes-source.blockChildrenBytes
-            ||source.blockChildrenWork>source.maxBlockChildrenWork||allowance>source.maxBlockChildrenWork-source.blockChildrenWork) {fail();return;}
-        // Allow the immutable owner and copy temporaries before cloning.
-        source.blockChildrenBytes+=allowance;source.blockChildrenWork+=allowance;
+        PhysicalCopyBudget budget{source.blockChildrenRecords,source.blockChildrenGroups,source.blockChildrenBytes,source.blockChildrenWork,
+            source.maxBlockChildrenRecords,source.maxBlockChildrenGroups,source.maxBlockChildrenBytes,source.maxBlockChildrenWork};
+        if(!chargePhysicalSourceCopy(value,budget)) {fail();return;}
         found->second.children=std::make_shared<const DRW_DxfBlockChildrenSource>(value);
-        // Physical source transport only. Staged callback/compound roles,
-        // ATTDEF membership and common/dependency/output proof remain separate.
-    } catch(...) {fail();}
+        // Transport only; callback/member/body/target/output proof is separate.
+    }catch(...){fail();}
 }
 
 namespace {
@@ -18252,6 +18309,51 @@ bool blockDeliveryRawMatches(const DRW_DxfPhysicalEntitySource& physical,const D
     }
     return at==raw.groups.size();
 }
+}
+
+bool dx_iface::wantsDxfEntitiesSource() const {
+    if(!tableSourceCaptureOpen())return false;
+    const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
+    return version>=DRW::AC1021&&version<=DRW::AC1032;
+}
+
+void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;
+    const auto fail=[&](){s.entitiesCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()) {fail();return;}
+    if(s.entitiesCaptureFailed)return;
+    if(value.status!=DRW_DxfEntitiesSource::Status::Complete||!value.scopeId
+        ||s.entitiesSources.size()>=s.maxEntitiesSections||currentBlock!=cData->mBlock
+        ||value.version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        ||!value.beginMarker.ordinal||value.beginMarker.ignoredComment||value.endMarker.ignoredComment
+        ||value.beginMarker.beginOffset>=value.beginMarker.endOffset||value.endMarker.beginOffset>=value.endMarker.endOffset) {fail();return;}
+    const auto first=value.records.empty()?value.endMarker:value.records.front().marker;
+    if(!blockDeliverySpanEqual(first,value.beginMarker)) {fail();return;}
+    if(!s.entitiesSources.empty()) {
+        const auto& last=*s.entitiesSources.back().physical;
+        if(value.scopeId<=last.scopeId||value.binary!=last.binary||value.beginMarker.ordinal<=last.endMarker.ordinal
+            ||value.beginMarker.beginOffset<last.endMarker.endOffset) {fail();return;}
+    }
+    try {
+        PhysicalCopyBudget budget{s.entitiesRecords,s.entitiesGroups,s.entitiesBytes,s.entitiesWork,
+            s.maxEntitiesRecords,s.maxEntitiesGroups,s.maxEntitiesBytes,s.maxEntitiesWork};
+        if(!chargePhysicalSourceCopy(value,budget)) {fail();return;}
+        std::size_t extra=sizeof(dx_data::TableDxfSourceCapture::EntitiesSource)+16u*sizeof(void*),names=0u;
+        for(const auto& record:value.records)if(dx_block_membership::equal(record.name,"ACAD_TABLE"))++names;
+        if(!addAssociativeSlotBytes(names,sizeof(dx_data::TableDxfSourceCapture::EntitiesTableOrigin)+8u*sizeof(void*),extra)
+            ||s.entitiesBytes>s.maxEntitiesBytes||extra>s.maxEntitiesBytes-s.entitiesBytes
+            ||s.entitiesWork>s.maxEntitiesWork||extra>s.maxEntitiesWork-s.entitiesWork) {fail();return;}
+        s.entitiesBytes+=extra;s.entitiesWork+=extra;
+        auto physical=std::make_shared<const DRW_DxfEntitiesSource>(value);const auto section=s.entitiesSources.size();
+        s.entitiesSources.push_back({cData,s.generation,physical});
+        for(std::size_t i=0;i<physical->records.size();++i) {
+            const auto& record=physical->records[i];if(!dx_block_membership::equal(record.name,"ACAD_TABLE"))continue;
+            const auto id=dx_block_membership::identity(record);
+            if(id.reason!=dx_block_membership::Reason::Matched
+                ||!s.entitiesTables.emplace(id.self,dx_data::TableDxfSourceCapture::EntitiesTableOrigin{section,i,physical}).second)
+                s.entitiesTableIdentityFailed=true;
+        }
+    }catch(...){fail();}
 }
 
 bool dx_iface::wantsDxfBlockDeliverySource() const {return wantsDxfBlockChildrenSource();}
