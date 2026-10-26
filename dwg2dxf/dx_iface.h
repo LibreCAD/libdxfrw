@@ -1686,6 +1686,7 @@ private:
     void finishTableBodies(dx_data&) noexcept;
     bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
     static bool sameTableBodyModel(const DRW_Table&,const DRW_Table&,DRW::Version) noexcept;
+    static bool hasMatchedTableSource(const dx_data&,const std::shared_ptr<const TableBody>&) noexcept;
     static bool chargeTableBody(dx_data&,std::size_t,std::size_t,std::size_t=0u) noexcept;
     dx_data* m_tableSourceReadData{nullptr};
     bool m_entitiesTableProjection{false};

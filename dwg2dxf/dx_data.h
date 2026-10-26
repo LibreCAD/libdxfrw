@@ -25,6 +25,7 @@
 #include "dx_block_source_profile.h"
 #include "dx_block_membership.h"
 #include "dx_compound_source_profile.h"
+#include "dx_table_source_profile.h"
 #include "dx_layout_source_profile.h"
 
 #include <array>
@@ -1252,7 +1253,8 @@ private:
             std::size_t dispatch{0},first{0},next{0},failedRecord{0};
             dxfTable::SourceState replay;
             std::vector<dxfCompound::SourceState> linked;
-            bool sourceMatched{false},typedMatched{false},semanticComplete{false};
+            std::vector<dx_attdef_source::Audit> profiles;
+            bool sourceMatched{false},typedMatched{false},semanticComplete{false},profilesMatched{false};
         };
         std::map<std::uint32_t,std::shared_ptr<const TableBody>> tableBodies,tableBodyOwners;
         std::size_t tableBodyRecords{0},tableBodyBytes{0},tableBodyWork{0};
@@ -1266,8 +1268,9 @@ private:
             std::vector<dx_attdef_source::Audit> profiles;
             std::vector<dxfCompound::SourceState> replayStates;
             AttdefSourcePins attdef;
+            std::shared_ptr<const TableBody> table;
             bool attributeDefinition{false};
-            bool compound{false},primary{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
+            bool tablePrimary{false},compound{false},primary{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
         };
         struct EntitiesCompoundAudit {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0};
@@ -1424,6 +1427,7 @@ private:
                 std::shared_ptr<const dx_block_membership::Audit> membership;
                 std::shared_ptr<const StructuralAudit> record;
                 std::vector<std::pair<std::size_t,std::shared_ptr<const CompoundBody>>> bodies;
+                std::vector<std::pair<std::size_t,std::shared_ptr<const TableBody>>> tableBodies;
             };
             struct Row {
                 std::size_t scope{0},physical{0},parent{0},layoutGroup{0};std::uint32_t self{0},wireOwner{0},block{0},layout{0};

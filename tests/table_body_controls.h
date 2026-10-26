@@ -127,11 +127,11 @@ bool tableBodyTests(const std::filesystem::path& dir) {
     struct Stage{const char* name="profiles";bool done=false;~Stage(){if(!done)std::cerr<<"TABLE body stage="<<name<<'\n';}}stage;
     const auto path=dir/"table-bodies.dxf";unsigned profiles=0u,rich=0u,mutated=0u,ownerForms=0u,quotas=0u,allocations=0u,contexts=0u,failures=0u,stubs=0u,comparators=0u,multiple=0u;
     const auto matched=[](const dx_data& d){const auto r=dx_iface::tableBodyReport(d);return r.state==S::ModeledMatched&&r.selected==1u&&r.matched==1u
-        &&r.modeledMatched&&!r.profilesMatched&&!r.ownerTargetsResolved&&!r.outputEligible;};
+        &&r.modeledMatched&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned form=0u;form<3u;++form) {
         if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;dx_iface reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::tableBodyReport(data);
-        if(r.state!=S::ModeledMatched||r.selected!=1u||r.matched!=1u||!r.modeledMatched||r.profilesMatched||r.ownerTargetsResolved||r.outputEligible) {
+        if(r.state!=S::ModeledMatched||r.selected!=1u||r.matched!=1u||!r.modeledMatched||r.ownerTargetsResolved||r.outputEligible) {
             std::cerr<<"TABLE body "<<version<<'/'<<encoding<<" blocks="<<blocks<<" form="<<form<<" state="<<static_cast<int>(r.state);
             if(!A::tableBodies(data).empty())std::cerr<<" reason="<<static_cast<int>(A::tableBodies(data).begin()->second->state)
                 <<" failedRecord="<<A::tableBodies(data).begin()->second->failedRecord;

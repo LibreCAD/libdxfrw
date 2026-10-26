@@ -17509,6 +17509,12 @@ dx_iface::EntitiesCompoundReport dx_iface::entitiesCompoundReport(const dx_data&
         ++r.sections;r.dispatches+=audit->proofs.size();
         for(const auto& proof:audit->proofs) {
             if(proof.attributeDefinition&&!attdefPinsCurrent(data,proof.attdef)){r.state=S::ContextMismatch;return r;}
+            if(proof.table) {
+                if(!proof.table->source||!proof.table->source->model){r.state=S::ContextMismatch;return r;}
+                const auto table=source.tableBodies.find(proof.table->source->model->handle);
+                if(table==source.tableBodies.end()||!same(proof.table,table->second)
+                    ||(proof.state==P::Matched&&!hasMatchedTableSource(data,proof.table))){r.state=S::ContextMismatch;return r;}
+            }
             if(!proof.compound) {
                 if(proof.state==P::Raw)++r.raw;else if(proof.state==P::NoCallback)++r.noCallback;else ++r.otherPrimaries;
                 continue;
@@ -17600,6 +17606,11 @@ dx_iface::BlockRoleReport dx_iface::blockRoleReport(const dx_data& data) noexcep
                 if(!attdefPinsCurrent(data,body.second->attdef)){r.state=S::ContextMismatch;return r;}
                 if(a->state==S::RolesReady&&!attdefPairReady(data,body.second->attdef,scope.handle)){r.state=S::SourceNotReady;return r;}
             }
+        }
+        for(const auto& body:scope.tableBodies) {
+            const auto at=s.tableBodies.find(body.second->source->model->handle);
+            if(at==s.tableBodies.end()||!same(body.second,at->second)||body.second->dispatch!=body.first
+                ||!hasMatchedTableSource(data,body.second)){r.state=S::ContextMismatch;return r;}
         }
     }
     r.scopes=a->scopes.size();r.records=a->records;r.published=a->published;r.physicalCensusComplete=a->censusComplete;
@@ -19506,8 +19517,37 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
                 const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
                 const bool attdef=dx_block_membership::equal(name,"ATTDEF");proof.attributeDefinition=attdef;
+                proof.tablePrimary=dx_block_membership::equal(name,"ACAD_TABLE");
                 proof.compound=polyline||insert;
                 proof.primary=point||line;
+                if(proof.tablePrimary) {
+                    const auto body=s.tableBodies.find(audit->members[proof.first].self);
+                    proof.state=State::ModelUnavailable;
+                    if(body!=s.tableBodies.end()) {
+                        proof.table=body->second;const auto& b=*proof.table;
+                        proof.modeledMatched=b.state==TableBody::State::Matched&&b.sourceMatched&&b.typedMatched;
+                        proof.profilesMatched=b.profilesMatched;
+                        const bool bound=!b.source->inBlock&&b.source->section==section&&b.dispatch==d&&b.first==proof.first&&b.next==proof.next
+                            &&b.entitiesPhysical==row.physical&&b.entitiesDelivery==row.delivery&&b.source->event==proof.event;
+                        proof.state=!bound?State::Callback:!proof.modeledMatched?State::ModelMismatch:
+                            !hasMatchedTableSource(data,proof.table)?State::ProfileMismatch:State::Matched;
+                    }
+                    // Matching each retained field does not prove that the
+                    // original linked owners form this compound. Preserve the
+                    // wire owner separately from the logical sequence parent.
+                    if(proof.state==State::Matched)for(auto i=proof.first;i<proof.next;++i) {
+                        auto& member=audit->members[i];const auto& root=audit->members[proof.first];
+                        member.dispatch=d;member.parent=proof.first;
+                        if(member.reason!=dx_block_membership::Reason::Matched){proof.state=State::Identity;proof.failedRecord=i;break;}
+                        if(i==proof.first){if(member.owner==member.self)proof.state=State::Owner;continue;}
+                        const bool footer=i+1u==proof.next&&dx_block_membership::equal(records[i].name,"SEQEND");
+                        if(!footer&&!dx_block_membership::equal(records[i].name,"ATTRIB")){proof.state=State::Sequence;proof.failedRecord=i;break;}
+                        member.role=footer?dx_block_membership::Role::SequenceEnd:dx_block_membership::Role::Attribute;
+                        if(member.owner!=root.self&&(!footer||member.owner!=root.owner)){proof.state=State::Owner;proof.failedRecord=i;break;}
+                        member.ownerRole=member.owner==root.self?dx_block_membership::Owner::CompoundParent:dx_block_membership::Owner::BlockRecord;
+                    }
+                    audit->proofs.push_back(std::move(proof));continue;
+                }
                 if(!proof.compound&&!proof.primary&&!attdef) {
                     if(!dispatch.events)proof.state=State::NoCallback;
                     else {
@@ -20573,16 +20613,21 @@ bool dx_iface::replayTableBody(dx_data& data,TableBody& body,bool entitiesReady)
     }
     if(!addAssociativeSlotBytes(groups,sizeof(DRW_TableCellContent)+sizeof(DRW_TableCellAttribute)+sizeof(DRW_Variant)+128u,replayBytes)
         ||!addAssociativeRetainedBytes(modelBytes,replayBytes)){s.tableBodyCaptureFailed=true;return false;}
-    if(!addAssociativeSlotBytes(n,sizeof(dxfCompound::SourceState),bytes)||!addAssociativeSlotBytes(rawBytes,6u,bytes)
+    if(!addAssociativeSlotBytes(n,sizeof(dxfCompound::SourceState)+sizeof(dx_attdef_source::Audit),bytes)
+        ||!addAssociativeSlotBytes(groups,2u*sizeof(dx_attdef_source::Span),bytes)||!addAssociativeSlotBytes(rawBytes,6u,bytes)
         ||!addAssociativeSlotBytes(replayBytes,3u,bytes)||!addAssociativeRetainedBytes(typedBytes,bytes)
         ||!addAssociativeSlotBytes(groups,128u,work)||!addAssociativeRetainedBytes(bytes,work)) {s.tableBodyCaptureFailed=true;return false;}
     if(!chargeTableBody(data,bytes,work,n))return false;
-    body.linked.reserve(n-1u);body.state=State::DecodeFailed;
+    body.linked.reserve(n-1u);body.profiles.reserve(n);body.state=State::DecodeFailed;
     const auto decode=[&](std::size_t index,auto& decoder) {
         body.failedRecord=index;const auto& physical=(*records)[index];DRW_RawDxfObject raw;raw.name=physical.name;
         raw.m_version=context.sourceVersion;raw.hasRawValues=!context.binary;
         raw.groups.reserve(physical.groups.size());raw.rawValues.reserve(physical.groups.size());
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment){raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);}
+        const auto member=dx_block_membership::identity(physical);raw.handle=member.self;raw.parentHandle=member.owner;
+        auto profile=index==body.first?dx_table_source::audit(raw):dx_compound_source::audit(raw,nullptr,true);
+        if(!dx_compound_source::restorePhysicalIndices(profile,physical)){s.tableBodyCaptureFailed=true;return false;}
+        body.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,s.maxTableBodyBytes,wire))return false;
         dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=context.sourceVersion;view.binary=context.binary;
         view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
@@ -20614,6 +20659,7 @@ bool dx_iface::replayTableBody(dx_data& data,TableBody& body,bool entitiesReady)
     }
     body.sourceMatched=sameTableBodyModel(parsed,*p.model,context.sourceVersion);body.typedMatched=sameTableBodyModel(parsed,*t.model,context.sourceVersion);
     body.semanticComplete=parsed.m_hasSemanticContent&&parsed.m_semanticContentComplete;
+    body.profilesMatched=body.profiles.size()==n&&std::all_of(body.profiles.begin(),body.profiles.end(),[](const auto& a){return a.complete();});
     body.state=body.sourceMatched&&body.typedMatched?State::Matched:State::ModelMismatch;return body.state==State::Matched;
 }
 
@@ -20650,7 +20696,32 @@ dx_iface::TableBodyReport dx_iface::tableBodyReport(const dx_data& data) noexcep
         }
     }
     r.modeledMatched=inputs.cleanStates&&r.selected&&r.matched==r.selected;
+    r.profilesMatched=r.modeledMatched&&std::all_of(s.tableBodies.begin(),s.tableBodies.end(),[](const auto& p){return p.second->profilesMatched;});
     r.state=r.modeledMatched?S::ModeledMatched:S::Unqualified;return r;
+}
+
+bool dx_iface::hasMatchedTableSource(const dx_data& data,const std::shared_ptr<const TableBody>& body) noexcept {
+    const auto& s=data.m_tableDxfSource;
+    if(!body||!body->source||!body->typed||body->state!=TableBody::State::Matched||!body->sourceMatched||!body->typedMatched||!body->profilesMatched
+        ||!s.closed||!s.successful||s.tableBodyCaptureFailed||s.tableInputCaptureFailed||s.tableInputIncomplete||s.failed||s.contextFailed
+        ||s.reader||s.entitiesReadInput||data.sourceFormat!=dx_source_format::DXF||s.generation!=1u||s.generation!=data.importGeneration
+        ||s.version!=data.sourceVersion||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.readReturned
+        ||data.dxfReadOutcome.error!=DRW::BAD_NONE)return false;
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    const auto& p=*body->source;if(p.container!=&data||p.containerId!=data.m_entitiesContainerIdentity.value||p.generation!=s.generation||!p.model)return false;
+    const auto id=p.model->handle;const auto b=s.tableBodies.find(id),o=s.tableBodyOwners.find(id);
+    const auto input=s.tableInputs.find(id),inputOwner=s.tableInputOwners.find(id),typed=s.tableTypedInputs.find(id),typedOwner=s.tableTypedOwners.find(id);
+    if(b==s.tableBodies.end()||o==s.tableBodyOwners.end()||input==s.tableInputs.end()||inputOwner==s.tableInputOwners.end()||typed==s.tableTypedInputs.end()||typedOwner==s.tableTypedOwners.end()
+        ||!same(body,b->second)||!same(body,o->second)||!same(body->source,input->second)||!same(body->source,inputOwner->second)
+        ||!same(body->typed,typed->second)||!same(body->typed,typedOwner->second)||!same(body->typed->source,body->source))return false;
+    if(p.inBlock) {
+        const auto block=s.blockSources.find(p.block);
+        return block!=s.blockSources.end()&&hasMatchedBlockMembership(data,p.block)&&same(p.blockPhysical,block->second.children)
+            &&same(p.blockDelivery,block->second.delivery)&&same(p.membership,block->second.membership)&&same(p.context,block->second.context)
+            &&same(p.blockBegin,block->second.original)&&same(p.blockEffective,block->second.effective)&&same(p.blockEnd,block->second.footer);
+    }
+    return p.section<s.entitiesDeliveries.size()&&same(body->entitiesPhysical,s.entitiesDeliveries[p.section].physical)
+        &&same(body->entitiesDelivery,s.entitiesDeliveries[p.section].delivery)&&same(p.context,s.entitiesDeliveries[p.section].context);
 }
 
 bool dx_iface::chargeTableSource(
@@ -20857,6 +20928,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.reader = nullptr;
     source.entitiesReadInput = nullptr;
     m_tableSourceReadData = nullptr;
+    if(source.successful)finishTableBodies(data);
     if(source.successful)finishEntitiesCompoundAudits(data);
     if(source.layoutPendingHandle||source.layoutPendingModel)source.layoutCaptureFailed=true;
     source.layoutPendingHandle=0u;source.layoutPendingModel=nullptr;
@@ -20874,7 +20946,6 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     }
     if(source.successful)finishDxfBlockOriginAudits(data);
     if(source.successful)finishBlockRoleAudit(data);
-    if(source.successful)finishTableBodies(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -22090,16 +22161,22 @@ void dx_iface::finishBlockRoleAudit(dx_data& data) noexcept {
             for(std::size_t d=0u;d<b.membership->ranges.size();++d) {
                 const auto range=b.membership->ranges[d];const auto& p=b.children->records[range.first];
                 const bool attdef=dx_block_membership::equal(p.name,"ATTDEF");
-                const bool selected=attdef||dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
-                const auto body=b.compoundBodies.find(d);const bool modeled=selected&&hasMatchedCompoundBody(data,target.handle,d)&&body!=b.compoundBodies.end()&&body->second->profilesComplete
+                const bool table=dx_block_membership::equal(p.name,"ACAD_TABLE");
+                const bool selected=table||attdef||dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
+                const auto body=b.compoundBodies.find(d);const auto tableBody=s.tableBodies.find(b.membership->members[range.first].self);
+                const bool tableReady=table&&tableBody!=s.tableBodies.end()&&tableBody->second->source->inBlock&&tableBody->second->source->block==target.handle
+                    &&tableBody->second->dispatch==d&&tableBody->second->first==range.first&&tableBody->second->next==range.next
+                    &&hasMatchedTableSource(data,tableBody->second);
+                const bool modeled=table?tableReady:selected&&hasMatchedCompoundBody(data,target.handle,d)&&body!=b.compoundBodies.end()&&body->second->profilesComplete
                     &&(!attdef||attdefPairReady(data,body->second->attdef,target.handle));
                 if(body!=b.compoundBodies.end())target.bodies.emplace_back(d,body->second);
+                if(tableReady)target.tableBodies.emplace_back(d,tableBody->second);
                 for(auto i=range.first;i<range.next;++i) {
                     const auto& member=b.membership->members[i];const auto physical=target.first+1u+i;
                     const auto reason=!selected?R::UnsupportedPrimary:!modeled?R::BodyNotReady:placement?R::WrongPlacement:
                         physical>=target.last||ids[physical]!=member.self?R::OriginMismatch:R::Matched;
                     const dx_attdef_source::Audit empty;
-                    emit(b.children->records[i].groups,modeled?body->second->profiles[i-range.first]:empty,physical,member.self,member.owner,
+                    emit(b.children->records[i].groups,!modeled?empty:table?tableBody->second->profiles[i-range.first]:body->second->profiles[i-range.first],physical,member.self,member.owner,
                         target.first+1u+member.parent,false,i==range.first,reason);
                 }
             }
@@ -22162,7 +22239,7 @@ void dx_iface::finishEntitiesRoleAudit(dx_data& data) noexcept {
             codec.setVersion(version,true);codec.setDxfTextEncoding(c.textEncoding);codec.setDxfCodePagePolicy(c.codePagePolicy);
             codec.setCodePage(c.hasDeclaration?c.declaration:c.codecCodePage,true);
             for(const auto& proof:scope.proofs) {
-                const bool selected=proof.primary||proof.compound||proof.attributeDefinition;
+                const bool selected=proof.tablePrimary||proof.primary||proof.compound||proof.attributeDefinition;
                 const auto& root=scope.members[proof.first];const auto block=blocks.find(root.owner);
                 R target=R::Matched;std::uint32_t layout=0u;bool paper=false;
                 if(!selected)target=R::UnsupportedPrimary;
@@ -22200,7 +22277,8 @@ void dx_iface::finishEntitiesRoleAudit(dx_data& data) noexcept {
                     }
                     if(row.reason==R::Matched) {
                         int space=0;
-                        for(const auto& span:proof.profiles[i-proof.first].spans)if(span.scope==dx_attdef_source::Scope::Host&&span.field==dx_attdef_source::Field::Common) {
+                        const auto& profile=proof.tablePrimary?proof.table->profiles[i-proof.first]:proof.profiles[i-proof.first];
+                        for(const auto& span:profile.spans)if(span.scope==dx_attdef_source::Scope::Host&&span.field==dx_attdef_source::Field::Common) {
                             if(span.code==67){space=record.groups[span.groupIndex].i_val();row.spacePresent=true;}
                             if(span.role==dx_attdef_source::Role::LayoutName){row.layoutPresent=true;row.layoutGroup=span.groupIndex;}
                         }

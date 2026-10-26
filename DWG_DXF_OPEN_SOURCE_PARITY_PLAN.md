@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ev original TABLE modeled replay (2026-10-26; normal90/ASan90 verified):** bounded replay compares exact original parent/ATTRIB/SEQEND values and pre-copy parser observations against both real source/typed snapshots. The owning selector passes72 transport profiles,24 rich grids,48 footer-owner forms,24 raw stubs,1,216 actual field faults,128 reached allocation faults and recovery controls. Exact affected cohorts pass90/90 normally and90/90 under ASan. Independent physical field/reference profiles, actual targets, dependencies/live/output/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ev-original-table-modeled-replay-2026-10-26) · [receipt](docs/research/rpp5ev-original-table-modeled-replay-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5ew independent TABLE profiles and original common-role joins (2026-10-26; verified):** a separate physical scalar/subclass/reference inventory distinguishes structural owner330 from TABLESTYLE342, geometry343, cell block340, FIELD344 and cell ATTDEF331. Admitted TABLE source bodies join original ENTITIES/BLOCKS owner/space/layout targets and census; unknown payloads and missing/substituted evidence remain unqualified. The original-byte matrix covers96 profiles and8,208 scalar spans, with scope/target/ownership/failure controls. Final affected cohorts pass91/91 normally and91/91 under ASan `-O1`; earlier Debug-ASan timeouts are retained, not reported green. Full payload/dependency/live/output/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26) · [receipt](docs/research/rpp5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5ev original TABLE modeled replay (2026-10-26; committed as `35036400`):** bounded replay compares exact original parent/ATTRIB/SEQEND values and pre-copy parser observations against both real source/typed snapshots. The owning selector passes72 transport profiles,24 rich grids,48 footer-owner forms,24 raw stubs,1,216 actual field faults,128 reached allocation faults and recovery controls. Exact affected cohorts pass90/90 normally and90/90 under ASan. Independent physical field/reference profiles, actual targets, dependencies/live/output/native and external qualification remain open at that checkpoint. [Implementation and then-next work](#implementation-progress-rpp-5ev-original-table-modeled-replay-2026-10-26) · [receipt](docs/research/rpp5ev-original-table-modeled-replay-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5eu actual TABLE producer inputs and original states (2026-10-26; committed as `f6401418`):** a callback-only reader-owned TABLE publication view attests real source/typed model/raw identities in ENTITIES and BLOCKS. Bounded immutable inputs separately retain original source/typed models, raw/context/enclosing owners and pre-copy private/common/linked states; copied values or the 2D INSERT projection cannot stand in for the producer. The new selector covers72 profiles,56 private-state mutations,32 producer refusals,80 reached allocation faults and callback/view lifetime recovery. Exact affected cohorts pass89/89 normally and89/89 under ASan. [Implementation and next work](#implementation-progress-rpp-5eu-actual-table-producer-inputs-and-original-states-2026-10-26) · [receipt](docs/research/rpp5eu-actual-table-producer-inputs-and-original-states-2026-10-26.json). These are selected original observations, not modeled equality, full TABLE scalar/reference/dependency/live/output or native/external qualification; support gates stay closed.
 
@@ -130598,7 +130600,7 @@ promotion is included. The full goal remains active and incomplete.
 
 ## Implementation progress — RPP-5ev original TABLE modeled replay (2026-10-26)
 
-State: **VERIFIED — local slice `RPP-5ev`**. Exact affected cohorts pass90/90
+State: **COMMITTED as `35036400`**. Exact affected cohorts pass90/90
 normally and90/90 under ASan. RPP-5eu is committed as `f6401418`. This completes the next selected
 modeled-replay prerequisite, not independent TABLE scalar/reference profiles,
 whole-document or common-target/dependency/live/output/native qualification.
@@ -130706,4 +130708,160 @@ Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full goal remains active and incomplete; no formal/native/geometry/output
+support promotion or remote mutation is included.
+
+## Implementation progress — RPP-5ew independent TABLE profiles and original common-role joins (2026-10-26)
+
+State: **verified; included in the RPP-5ew implementation commit**. RPP-5ev is
+committed as `35036400`. This adds admitted TABLE
+physical profiles and original common-role joins, not full TABLE payload,
+dependency/live/output, native name/consumer or independent CAD qualification.
+
+- [x] Independently inventory original ACAD_TABLE parent scalars and subclass,
+  cell/value/property/application/XDATA scopes. Preserve exact physical indexes
+  and comments; keep standalone TABLECONTENT/TABLEGEOMETRY/wrapper schemas out
+  of this entity profile. Retain separate342/343/340/344/331 reference roles and
+  original block-name/text-style/common/EED roles. Opaque lookalikes do not become
+  owners or layout targets. A complete inventory is not semantic CAD evaluation.
+- [x] Pin the profiles to existing bounded original modeled-body certificates.
+  Require both original callback models and their pre-copy states separately;
+  restore every admitted span to its original physical index. Account for added
+  profile/vector/control retention and work before allocation, under existing
+  separate100,000-record/64-MiB byte/work limits. Reports remain allocation-free.
+- [x] Join admitted TABLE bodies and linked ATTRIB/SEQEND to original ENTITIES
+  and BLOCKS namespaces, dispatch/member/publisher owners and actual67/410 targets.
+  Preserve physical identity, wire owner and logical parent separately. Validate
+  linked owners even when all individual modeled fields replay identically.
+  Pin TABLE certificates in the existing role audits and reject equal-copy,
+  aliased, missing or cross-context evidence. Continue the full original census:
+  unsupported/omitted records cannot hide behind a matching selected subset.
+- [x] Keep body/profile/common-role evidence distinct from unresolved dependencies.
+  Structural330 is not geometry343, and a missing geometry target does not change
+  the structural owner. Definition blocks without an associated LAYOUT cannot
+  qualify explicit410 by name alone. Raw parent stubs retain their semantic flag
+  false even when their original common source roles can be joined.
+- [x] Refuse unknown subclass/cell schemas, dropped table-global formats and
+  unmodeled CadValue flags/units/coordinates/object/binary forms. Refuse nonstring
+  CELL_VALUE datatype declarations that current text parsing would overwrite.
+  Do not use tolerant parser acceptance or same-parser equality as their proof.
+  No production parser acceptance, DWG byte layout, public callback/vtable or
+  adapter-owned 2D TABLE-to-INSERT projection change is introduced.
+
+The new runtime-authored `libdxfrw_table_original_profiles` selector covers:
+
+- **96** four-version x LF/CRLF/Binary x ENTITIES/BLOCKS x model/paper x simple/
+  rich profiles, with **8,208** scalar spans checked by a separate original-file
+  walker that calls neither dxfReader, the TABLE decoder nor the profile audit.
+  Add **14** application/XDATA/comment/proxy profiles (**1,572** walked spans),
+  **12** parent-only/empty-footer/raw-stub shapes (**308** walked spans), and
+  **four** original127/128-byte proxy boundary controls.
+- **328** scalar-type/standalone-schema refusal controls and **96** actual-source
+  grammar/scope refusals with corrected same-adapter imports. The latter include
+  **32** nonstring datatype declarations. A malformed BLOCKS identity header can
+  fail its earlier membership gate; a replay match is not fabricated for it.
+- **40** original owner/space/layout/linked-owner/geometry-role controls;
+  **12** census controls retain unsupported CIRCLE/TABLECONTENT/unknown primaries;
+  **36** body/input/context/container/opt-out/query/live-edit guards.
+- **16** exact/one-under role byte/work limits. First16 role-finalizer allocation
+  schedules per scope/encoding produce **52** reached failures and **12** offsets
+  beyond the finalizer's allocation count; only reached failures count as fault
+  evidence. Corrected finalization and fresh-destination imports recover. This
+  finite schedule is not exhaustive allocation-site/failure-order coverage.
+
+Research and development corrections are explicit:
+
+- The [Autodesk TABLE reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm)
+  distinguishes parent, cell and table-property roles. The new positive fixture
+  uses block-cell attributes, removes a repeated merge flag and uses the proper
+  value terminator; the older modeled-only fixture remains a useful refusal case.
+- [ezdxf's pinned implementation](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/acad_table.py)
+  retains table tags and documents text-form differences; it is not a complete
+  independent table semantic decoder. [LibreDWG's pinned schema](https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg2.spec)
+  also keeps legacy TABLE and later TABLECONTENT paths distinct. Neither replaces
+  the original publication/physical/body/target joins or native qualification.
+- The TABLE page's256-character proxy wording conflicts with the
+  [numerical DXF reference's127-byte limit](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm).
+  Keep existing parser acceptance and127-byte admission; preserve the actual
+  128-byte refusal/transport result rather than claiming a confirmed parser bug
+  or widening support from the conflicting page alone.
+- Review reproduced an omission in the newly introduced ENTITIES TABLE join:
+  a wrong ATTRIB owner could otherwise qualify after matching individual fields.
+  New linked-owner controls fail that candidate; the final join checks the exact
+  original chain. This is not presented as a pre-existing reader defect.
+- A test incorrectly expected an ordinary definition's410=Model to resolve
+  without a LAYOUT; the real graph correctly refused it. Allocation offset10
+  did not reach an ENTITIES role allocation; keep the full schedule but distinguish
+  unreached offsets instead of claiming fictitious failures. Strict compilation
+  caught misleading test indentation; warning policy is unchanged.
+- Late review found that text parsing overwrites a nonstring datatype; the new
+  profile guard and32 controls prevent that loss from qualifying. The preliminary
+  normal91 cohort predates this guard and is historical only. Both configurations
+  are rebuilt after source freeze before final accepted validation.
+- The unoptimized Debug-ASan cohort passed89/91 but timed out in the two large
+  unchanged source-proof matrices. Isolated TABLESTYLE passes in69.77s; direct
+  CELLSTYLEMAP passes in67.95s, beyond its60s CTest cap. A fresh archived parent
+  build runs the latter in52.07s with matching Debug/ASan flags. These single runs
+  are not a controlled regression benchmark; do not infer a performance fix or
+  native qualification. A small isolated6,500-audit probe takes about0.04s and
+  does not establish whole-import throughput. Preserve all failed/diagnostic logs.
+- Keep every assertion, warning policy and existing CTest time limit. Following
+  [Clang's ASan guidance](https://clang.llvm.org/docs/AddressSanitizer.html#usage),
+  use a separate Debug+`-O1 -fsanitize=address -fno-omit-frame-pointer` validation
+  build for practical repeated runs, preserving the existing Debug-ASan build
+  and its settings. Reuse that build across future slices; use fast owning tests
+  per edit and reserve the full affected selection for integration. This changes
+  validation scheduling/configuration, not parser acceptance or support gates.
+  The new profile explicitly includes its parser-limit dependency and also
+  compiles in an isolated strict ASan probe without relying on include order.
+
+Final current-source builds of all13 affected targets pass, including the normal
+and ASan LibreCAD_3 compile checks. The exact affected cohort passes **91/91
+normally in117.64s** (two CTest workers), then **91/91 under ASan `-O1` in47.33s**
+(four workers), with no failed/skipped/disabled tests. Registered names/order
+match across configurations and preserve the prior90 registrations when the new
+selector is removed; executed name sets exactly match the selection. The new
+selector passes all stated counters, including52 reached and12 unreached role
+allocation offsets, in both configurations. Source hashes are unchanged from
+freeze through both runtimes. No normal/ASan runtimes overlap. Different flags,
+scheduling and uncontrolled host conditions mean these times are not a paired
+performance benchmark or evidence that any performance regression was fixed.
+Existing strict warnings, all assertions and CTest time caps remain intact.
+The [receipt](docs/research/rpp5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26.json)
+records exact names, file/log hashes, controls, earlier failures and limitations.
+These are affected cohorts, not full-project, formal ABI, native-consumer or
+independent semantic/kernel qualification. No external drawing fixtures are added.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Finish remaining TABLE payload profiles and typed retention.** Independently
+   establish full CELL_VALUE and table-global row-type override boundaries before
+   adding owned fields. Prevent value flags/units from overwriting table-header
+   flags and prevent coordinate/object/binary values from being silently dropped.
+   Inspect `dxfTableContent::Decoder::value` and `dxfField::Decoder` for reusable
+   bounded primitive/state mechanics, not whole-schema substitution. Keep their
+   distinct envelopes, text-cache/format roles and actual producer/version evidence.
+   Add source/model/state mutations, exact limits, allocation/exception/tail and
+   corrected-reuse controls; retain unknown forms explicitly unqualified.
+2. [ ] **Remaining primaries and dependency closure.** Resolve actual TABLESTYLE,
+   geometry/cell BLOCK_RECORD, FIELD, cell ATTDEF and STYLE/APPID/LAYER/object/
+   application/proxy/codepage/nested INSERT targets to the correct original typed
+   bodies. Preserve missing/wrong-kind/ambiguity, source names/output IDs, cycles,
+   native collation and cross-import ownership boundaries. Current common-role
+   joins are not complete dependency proof or support-ledger admission.
+3. [ ] **Full B2b/B3/C live/output/consumer/native parity.** Complete source/live/
+   edited/emitted fields/names/references, remapping/readback, atomic rollback/
+   retry/destination safety, IMAGE/document/native-bit/decimal/carrier/schema/
+   owner and memory/performance. Preserve LibreCAD/LibreCAD_3 2D/3D and dwg2dxf/
+   FreeCAD. Native consumers and independent semantics remain required.
+4. [ ] **Self-update/unblock and continue.** Commit/report each verified slice and
+   its limits/receipts, then take the next safe local prerequisite. Use fast owning
+   tests per edit and exact affected cohorts at integration boundaries. Commit
+   no external drawing payloads or derivatives; do not wait on external platform
+   or kernel evidence while safe local work remains available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The full objective remains active and incomplete; no native/geometry/output
 support promotion or remote mutation is included.

@@ -659,6 +659,10 @@ add_test(NAME libdxfrw_table_original_bodies
     COMMAND libdxfrw_table_content_dxf_tests --table-bodies)
 set_tests_properties(libdxfrw_table_original_bodies PROPERTIES
     LABELS "fast;dxf;adapter;source;identity;table;block;entities;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_table_original_profiles
+    COMMAND libdxfrw_table_content_dxf_tests --table-profiles)
+set_tests_properties(libdxfrw_table_original_profiles PROPERTIES
+    LABELS "fast;dxf;adapter;source;identity;table;block;entities;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_layout_graph_read_contract
     COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
 set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES

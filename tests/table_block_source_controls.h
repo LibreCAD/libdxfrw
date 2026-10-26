@@ -82,7 +82,7 @@ bool tableBlockSourceTests(const std::filesystem::path& dir) {
             const auto& d=row.delivery->dispatches.back();if(d.events!=2u||row.delivery->events[d.firstEvent].callback!=DRW_DxfBlockCallback::TableSource
                 ||row.delivery->events[d.firstEvent+1u].callback!=DRW_DxfBlockCallback::addTable)return false;
             if(!blockBindingOriginalWire(path,encoding==2u,tableBlockSourceDocument(version,blocks,form),data,spans))return false;
-            const auto report=dx_iface::blockRoleReport(data);if(report.state!=dx_iface::BlockRoleState::Unqualified||report.wholeDocumentMatched||report.outputEligible)return false;
+            const auto report=dx_iface::blockRoleReport(data);if(report.state!=dx_iface::BlockRoleState::RolesReady||report.wholeDocumentMatched||report.outputEligible)return false;
         }else if(dx_iface::entitiesDeliveryReport(data).state!=dx_iface::EntitiesDeliveryState::ObservedTransportComplete)return false;
         moves+=reader.moveChecks;++profiles;
     }

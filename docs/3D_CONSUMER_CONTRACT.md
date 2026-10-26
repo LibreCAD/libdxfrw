@@ -46,7 +46,7 @@ layout/target qualification or output eligibility.
 
 The converter's separate `blockRoleReport` now enumerates the original physical
 BLOCKS namespace, including dropped/unpublished scopes and unsupported members.
-Its selected POINT/LINE/POLYLINE/INSERT/MINSERT/ATTDEF source-body joins pin actual
+Its selected POINT/LINE/POLYLINE/INSERT/MINSERT/ATTDEF/TABLE source-body joins pin actual
 publication, endpoint, membership, body, context and reciprocal BLOCK_RECORD/
 LAYOUT graph owners. Ordinary definitions and inactive paper layouts are distinct
 from the empty model/active-paper definitions whose members belong in ENTITIES.
@@ -93,9 +93,9 @@ The delivery enum appends `TableSource` without renumbering existing callbacks
 The converter observes the actual TABLE source/typed publications once; its
 established internal 2D INSERT projection remains present but is not another
 original producer event. This repairs missing source transport and structural
-membership, not full TABLE body/state/profile, dependency, common-target or
-live/output qualification. TABLE remains an explicit unsupported body in the
-current role reports, including when its original producer origins are bound.
+membership, not full TABLE payload/dependency/live/output qualification. The
+newer replay and independent profile below can join admitted TABLE fields to
+original common targets; unknown/omitted payloads remain explicitly unqualified.
 
 `dxfRW::getDxfTableSourceView` identifies the actual opted-in TABLE source/typed
 publication in both ENTITIES and BLOCKS, including the same original raw carrier
@@ -130,13 +130,30 @@ qualify a body. Raw parent stubs can match their modeled stub without acquiring
 table content; `semanticComplete` counts the existing parser flag, not external
 semantic or geometric qualification.
 
-`ModeledMatched` describes only the selected original modeled bodies. The
-independent physical scalar/subclass/reference profile, original namespace and
-target joins, whole-document census, dependencies, editable/live/output proof
-and native/independent semantics remain separate prerequisites. The existing
-role reports still list TABLE as unsupported; `tableInputReport.modeledMatched`
-also remains false because it is an input/state report, not the body report.
-No existing resource/support/output gate is opened by this additional evidence.
+`ModeledMatched` still describes only the selected original modeled bodies.
+`tableBodyReport.profilesMatched` additionally requires the separate physical
+scalar/subclass/reference inventory for every selected parent and linked record.
+Opaque application lookalikes remain opaque, while TABLESTYLE342, geometry
+BLOCK_RECORD343, cell BLOCK_RECORD340, FIELD344 and cell ATTDEF331 retain distinct
+roles. In particular343 is not substituted for structural owner330. Full CadValue
+flags/units/object/binary/coordinate forms and table-global formats not retained
+by the current TABLE model are refused rather than treated as header/common data.
+Declared nonstring CELL_VALUE datatypes cannot qualify after text parsing rewrites
+their modeled datatype. This is a refusal of unsupported evidence, not new parser
+acceptance or a claim that those payload semantics are implemented.
+
+Admitted original TABLE profiles now participate in the existing ENTITIES and
+BLOCKS owner/space/layout joins and their original namespace census. ATTRIB and
+SEQEND wire owners must form the exact compound; a footer can use either already
+observed owner form without changing its logical sequence parent. An ordinary
+definition has no associated LAYOUT to qualify an explicit410 by name alone.
+Unknown, omitted or unsupported records still prevent whole-scope qualification;
+matching only selected bodies does not certify the whole document. Shared input,
+body, physical, delivery, membership, origin and graph owners remain pinned.
+`tableInputReport.modeledMatched` stays false because it is an input/state report.
+Actual TABLESTYLE/FIELD/block/ATTDEF and common dependencies, editable/live/output,
+native name collation and independent CAD semantics remain separate gates. The
+nine-family resource ledger and existing support/output guards remain closed.
 
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
