@@ -17575,6 +17575,30 @@ dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) n
     r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::EntitiesRoleReport dx_iface::entitiesRoleReport(const dx_data& data) noexcept {
+    using S=EntitiesRoleState;EntitiesRoleReport r;const auto& s=data.m_tableDxfSource;
+    r.bytes=s.entitiesRoleBytes;r.work=s.entitiesRoleWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
+    if(s.entitiesRoleCaptureFailed){r.state=S::CaptureFailed;return r;}
+    const auto& a=s.entitiesRoleAudit;if(!a)return r;
+    const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
+    const auto graph=layoutRoleReport(data);const auto bodies=entitiesCompoundReport(data);
+    if(!same(a,s.entitiesRoleOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
+        ||!same(a->graph,s.layoutRoleAudit)||graph.state==LayoutRoleState::ContextMismatch||bodies.state==EntitiesCompoundState::ContextMismatch
+        ||a->scopes.size()>s.entitiesCompoundAudits.size()){r.state=S::ContextMismatch;return r;}
+    for(std::size_t i=0;i<a->scopes.size();++i)if(!same(a->scopes[i],s.entitiesCompoundAudits[i])){r.state=S::ContextMismatch;return r;}
+    if(a->state!=S::SourceNotReady&&(!graph.rolesMatched||bodies.state==EntitiesCompoundState::CaptureFailed
+        ||bodies.state==EntitiesCompoundState::SourceNotReady)){r.state=S::SourceNotReady;return r;}
+    r.state=a->state;r.selected=a->selected;r.matched=a->matched;r.unsupported=a->unsupported;
+    for(const auto& row:a->rows)if(row.reason==dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason::Matched) {
+        if(row.primary)++r.primaries;else ++r.children;if(row.paper)++r.paper;else ++r.model;
+        if(row.spacePresent)++r.spacePresent;if(row.layoutPresent)++r.layoutPresent;
+    }
+    r.selectedRolesMatched=r.selected&&r.selected==r.matched;return r;
+}
+
 dx_iface::LayoutRoleReport dx_iface::layoutRoleReport(const dx_data& data) noexcept {
     using S=LayoutRoleState;LayoutRoleReport r;const auto& s=data.m_tableDxfSource;
     r.bytes=s.layoutRoleBytes;r.work=s.layoutRoleWork;
@@ -20235,6 +20259,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.structuralPending.clear();
     if(source.successful)finishStructuralSourceAudits(data);
     if(source.successful)finishLayoutRoleAudit(data);
+    if(source.successful)finishEntitiesRoleAudit(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -21297,6 +21322,112 @@ void dx_iface::finishLayoutRoleAudit(dx_data& data) noexcept {
         if(!reciprocalLayoutAssociations(layouts,blocks,failure)) {save(S::ReferenceMismatch);return;}
         audit.associations=layouts.size();save(S::Matched);
     }catch(...) {s.layoutRoleCaptureFailed=true;}
+}
+
+void dx_iface::finishEntitiesRoleAudit(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;if(s.entitiesRoleCaptureFailed)return;
+    using A=dx_data::TableDxfSourceCapture::EntitiesRoleAudit;using S=A::State;using R=A::Reason;
+    try {
+        const auto base=sizeof(A)+16u*sizeof(void*);
+        if(base>s.maxEntitiesRoleBytes||base>s.maxEntitiesRoleWork){s.entitiesRoleCaptureFailed=true;return;}
+        s.entitiesRoleBytes=s.entitiesRoleWork=base;
+        A result;result.container=&data;result.generation=s.generation;result.containerId=data.m_entitiesContainerIdentity.value;result.graph=s.layoutRoleAudit;
+        const auto save=[&](S state){result.state=state;s.entitiesRoleAudit=std::make_shared<const A>(std::move(result));s.entitiesRoleOwner=s.entitiesRoleAudit;};
+        const auto bodies=entitiesCompoundReport(data);
+        if(!layoutRoleReport(data).rolesMatched||bodies.state==EntitiesCompoundState::ContextMismatch||bodies.state==EntitiesCompoundState::CaptureFailed
+            ||bodies.state==EntitiesCompoundState::SourceNotReady||bodies.state==EntitiesCompoundState::NotCaptured){save(S::SourceNotReady);return;}
+        std::size_t records=0u,groups=0u,bytes=base,work=4096u;
+        for(const auto& scope:s.entitiesCompoundAudits) {
+            // Reuse the already attested physical source's retained bound;
+            // precharge decoding/folding temporaries before scanning tags.
+            if(!addAssociativeRetainedBytes(scope->members.size(),records)||!addAssociativeRetainedBytes(scope->physical->groups,groups)
+                ||!addAssociativeSlotBytes(scope->physical->bytes,8u,bytes)){s.entitiesRoleCaptureFailed=true;return;}
+        }
+        if(!addAssociativeSlotBytes(records,sizeof(A::Row)+128u,bytes)
+            ||!addAssociativeSlotBytes(s.entitiesCompoundAudits.size(),sizeof(DRW_TextCodec)+512u,bytes)
+            ||!addAssociativeSlotBytes(result.graph->structural.size()+result.graph->layouts.size(),192u,bytes)
+            ||!addAssociativeSlotBytes(groups,128u,work)){s.entitiesRoleCaptureFailed=true;return;}
+        for(const auto& p:result.graph->structural)if(!addAssociativeSlotBytes(p->input->model->name.size(),2u,bytes)){s.entitiesRoleCaptureFailed=true;return;}
+        for(const auto& p:result.graph->layouts)if(!addAssociativeSlotBytes(p->input->model->name.size(),2u,bytes)){s.entitiesRoleCaptureFailed=true;return;}
+        if(!addAssociativeRetainedBytes(bytes,work)
+            ||bytes>s.maxEntitiesRoleBytes||work>s.maxEntitiesRoleWork){s.entitiesRoleCaptureFailed=true;return;}
+        s.entitiesRoleBytes=bytes;s.entitiesRoleWork=work;result.scopes=s.entitiesCompoundAudits;result.rows.reserve(records);
+        std::map<std::uint32_t,const DRW_Block_Record*> blocks;std::map<std::uint32_t,const DRW_Layout*> layouts;
+        for(const auto& p:result.graph->structural)if(p->input->kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord)
+            blocks.emplace(p->input->model->handle,static_cast<const DRW_Block_Record*>(p->input->model.get()));
+        for(const auto& p:result.graph->layouts)layouts.emplace(p->input->model->handle,p->input->model.get());
+        unsigned modelSpaces=0u;
+        for(const auto& block:blocks)if(layoutSymbolKey(block.second->name)=="*MODEL_SPACE")++modelSpaces;
+        if(modelSpaces!=1u){save(S::SourceNotReady);return;}
+        const auto& identity=*result.graph->identity->source;const auto& context=*result.graph->identity->context;
+        for(std::size_t section=0;section<result.scopes.size();++section) {
+            const auto& scope=*result.scopes[section];const auto& c=*scope.context;
+            if(!c.captured||std::tie(c.sourceVersion,c.codecVersion,c.codecCodePage,c.declaration,c.hasDeclaration,c.compatibilityProfile,c.textEncoding,c.codePagePolicy,c.applyExtrusion,c.binary)
+                !=std::tie(context.sourceVersion,context.codecVersion,context.codecCodePage,context.declaration,context.hasDeclaration,context.compatibilityProfile,context.textEncoding,context.codePagePolicy,context.applyExtrusion,context.binary)) {
+                save(S::SourceNotReady);return;
+            }
+            DRW_TextCodec codec;const char* version=nullptr;
+            for(const auto& v:DRW::dwgVersionStrings)if(v.second==c.sourceVersion)version=v.first;
+            if(!version){save(S::SourceNotReady);return;}
+            codec.setVersion(version,true);codec.setDxfTextEncoding(c.textEncoding);codec.setDxfCodePagePolicy(c.codePagePolicy);
+            codec.setCodePage(c.hasDeclaration?c.declaration:c.codecCodePage,true);
+            for(const auto& proof:scope.proofs) {
+                const bool selected=proof.primary||proof.compound;
+                const auto& root=scope.members[proof.first];const auto block=blocks.find(root.owner);
+                R target=R::Matched;std::uint32_t layout=0u;bool paper=false;
+                if(!selected)target=R::UnsupportedPrimary;
+                // The old body pass cannot resolve an absent child410 against
+                // an original target. This pinned graph can, without inventing
+                // a source field or relaxing a real space/name conflict.
+                else if(proof.state!=EntitiesCompoundProof::State::Matched&&proof.state!=EntitiesCompoundProof::State::LayoutUnresolved)target=R::BodyNotReady;
+                else if(block==blocks.end())target=R::OwnerMissing;
+                else {
+                    const auto key=layoutSymbolKey(block->second->name);const auto found=layouts.find(block->second->layoutHandle);
+                    if(key!="*MODEL_SPACE"&&key!="*PAPER_SPACE") {
+                        constexpr std::string_view prefix="*PAPER_SPACE";
+                        const bool inactive=key.size()>prefix.size()&&key.compare(0u,prefix.size(),prefix)==0
+                            &&std::all_of(key.begin()+static_cast<std::ptrdiff_t>(prefix.size()),key.end(),[](char ch){return ch>='0'&&ch<='9';});
+                        target=inactive?R::InactivePaper:R::NotLayoutBlock;
+                    } else if(found==layouts.end())target=R::OwnerMissing;
+                    else {paper=key=="*PAPER_SPACE";layout=found->first;}
+                }
+                for(std::size_t i=proof.first;i<proof.next;++i) {
+                    const auto& member=scope.members[i];const auto& record=scope.physical->records[i];
+                    A::Row row;row.section=section;row.record=i;row.self=member.self;row.wireOwner=member.owner;
+                    row.primary=i==proof.first;row.reason=target;row.paper=paper;row.block=root.owner;row.layout=layout;
+                    if(selected)++result.selected;else ++result.unsupported;
+                    if(row.reason==R::Matched) {
+                        const auto original=result.graph->identities->identities.find(member.self);
+                        if(original==result.graph->identities->identities.end())row.reason=R::OriginMismatch;
+                        else {
+                            row.physical=original->second;const auto& p=identity.records.at(original->second);const auto& ownerSection=identity.sections.at(p.section);
+                            if(p.kind!=DRW_DxfIdentitySource::Kind::Entity||ownerSection.kind!=DRW_DxfIdentitySource::Section::Entities
+                                ||!dx_block_membership::equal(p.name,record.name)||!blockDeliverySpanEqual(p.marker,record.marker)
+                                ||p.endMarker.ordinal!=record.endOrdinal||p.endMarker.beginOffset!=record.endOffset
+                                ||ownerSection.endMarker.ordinal!=scope.physical->endMarker.ordinal)row.reason=R::OriginMismatch;
+                        }
+                    }
+                    if(row.reason==R::Matched) {
+                        int space=0;
+                        for(const auto& span:proof.profiles[i-proof.first].spans)if(span.scope==dx_attdef_source::Scope::Host&&span.field==dx_attdef_source::Field::Common) {
+                            if(span.code==67){space=record.groups[span.groupIndex].i_val();row.spacePresent=true;}
+                            if(span.role==dx_attdef_source::Role::LayoutName){row.layoutPresent=true;row.layoutGroup=span.groupIndex;}
+                        }
+                        // An absent67 is the documented model-space default,
+                        // not permission to infer paper space from an owner.
+                        if(space!=(paper?1:0))row.reason=R::SpaceConflict;
+                        if(row.layoutPresent) {
+                            const auto decoded=codec.toUtf8(dx_attdef_source::text(record.groups[row.layoutGroup]),!c.binary);
+                            if(codec.lastDecodeObservation().issues)row.reason=R::TextUnqualified;
+                            else if(layoutSymbolKey(decoded)!=layoutSymbolKey(layouts.at(layout)->name))row.reason=R::LayoutConflict;
+                        }
+                    }
+                    if(row.reason==R::Matched)++result.matched;result.rows.push_back(row);
+                }
+            }
+        }
+        save(!result.selected&&!result.unsupported?S::NoSelected:result.selected==result.matched&&!result.unsupported?S::SelectedRolesReady:S::Unqualified);
+    }catch(...){s.entitiesRoleCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfLayoutSource() const {

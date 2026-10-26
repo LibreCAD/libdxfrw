@@ -114,6 +114,25 @@ public:
     static const auto& structuralInputs(const dx_data& data) {return data.m_tableDxfSource.structuralInputs;}
     static const auto& structuralAudits(const dx_data& data) {return data.m_tableDxfSource.structuralAudits;}
     static const auto& layoutRole(const dx_data& data) {return data.m_tableDxfSource.layoutRoleAudit;}
+    static const auto& entitiesRole(const dx_data& data) {return data.m_tableDxfSource.entitiesRoleAudit;}
+    using EntitiesRoleReason=dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason;
+    static void entitiesRoleLimit(dx_data& data,bool work,std::size_t n) {
+        if(work)data.m_tableDxfSource.maxEntitiesRoleWork=n;else data.m_tableDxfSource.maxEntitiesRoleBytes=n;
+    }
+    static void repeatEntitiesRole(dx_iface& reader,dx_data& data) {
+        auto& s=data.m_tableDxfSource;s.entitiesRoleAudit.reset();s.entitiesRoleOwner.reset();s.entitiesRoleBytes=s.entitiesRoleWork=0u;s.entitiesRoleCaptureFailed=false;
+        reader.finishEntitiesRoleAudit(data);
+    }
+    static void substituteEntitiesRole(dx_data& data,bool alias) {
+        auto& p=data.m_tableDxfSource.entitiesRoleAudit;
+        if(alias)p=std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesRoleAudit>(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::EntitiesRoleAudit>(*p);
+    }
+    static void substituteEntitiesRoleBody(dx_data& data,bool alias) {
+        auto& p=data.m_tableDxfSource.entitiesCompoundAudits.front();
+        if(alias)p=std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesCompoundAudit>(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::EntitiesCompoundAudit>(*p);
+    }
     static void layoutRoleLimit(dx_data& data,bool work,std::size_t n) {
         if(work)data.m_tableDxfSource.maxLayoutRoleWork=n;else data.m_tableDxfSource.maxLayoutRoleBytes=n;
     }
@@ -211,6 +230,17 @@ public:
 namespace {
 struct Tag {int code; std::string value;};
 using Tags=std::vector<Tag>;
+// Clock values need not be unique across concurrent test processes. Claim a
+// directory atomically, retry collisions only, and never reuse another test's
+// drawing owners or silently lose the filesystem diagnostic.
+std::filesystem::path reserveTestScratch(const std::filesystem::path& parent,const std::string& stem,std::error_code& error) {
+    for(unsigned attempt=0u;attempt<64u;++attempt) {
+        auto candidate=parent/(stem+"-"+std::to_string(attempt));error.clear();
+        if(std::filesystem::create_directory(candidate,error)&&!error)return candidate;
+        if(error&&error!=std::errc::file_exists)return {};
+    }
+    error=std::make_error_code(std::errc::file_exists);return {};
+}
 struct Probe final : dx_iface {
     std::vector<DRW_TableContentObject> content;
     std::vector<DRW_RawDxfObject> raw;
@@ -1433,6 +1463,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "identity_source_controls.h"
 #include "structural_source_controls.h"
 #include "dictionary_role_controls.h"
+#include "entities_role_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2950,6 +2981,7 @@ int main(int argc,char** argv) {
     const bool structuralSource=argc==2 && std::string(argv[1])=="--structural-source";
     const bool dictionarySource=argc==2 && std::string(argv[1])=="--dictionary-source";
     const bool layoutRoles=argc==2 && std::string(argv[1])=="--layout-roles";
+    const bool entitiesRoles=argc==2 && std::string(argv[1])=="--entities-roles";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2958,10 +2990,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
-    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    const auto parent=std::filesystem::temp_directory_path();
+    const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
+    if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

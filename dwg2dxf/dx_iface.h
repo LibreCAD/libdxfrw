@@ -41,6 +41,13 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
 public:
+    using EntitiesRoleState=dx_data::TableDxfSourceCapture::EntitiesRoleAudit::State;
+    struct EntitiesRoleReport {
+        EntitiesRoleState state{EntitiesRoleState::NotCaptured};
+        std::size_t selected{0},matched{0},unsupported{0},primaries{0},children{0},model{0},paper{0},spacePresent{0},layoutPresent{0},bytes{0},work{0};
+        bool selectedRolesMatched{false},wholeDocumentMatched{false},nativeNamesQualified{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static EntitiesRoleReport entitiesRoleReport(const dx_data&) noexcept;
     using LayoutRoleState=dx_data::TableDxfSourceCapture::LayoutRoleAudit::State;
     struct LayoutRoleReport {
         LayoutRoleState state{LayoutRoleState::NotCaptured};
@@ -1706,6 +1713,7 @@ private:
     void observeStructuralSource(const DRW_TableEntry&,bool source,const DRW_RawDxfObject* raw=nullptr) noexcept;
     void finishStructuralSourceAudits(dx_data&) noexcept;
     void finishLayoutRoleAudit(dx_data&) noexcept;
+    void finishEntitiesRoleAudit(dx_data&) noexcept;
     void retainTableSourceDictionary(const DRW_Dictionary& data);
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);

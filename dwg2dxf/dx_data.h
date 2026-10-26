@@ -1321,6 +1321,25 @@ private:
         std::size_t layoutRoleBytes{0},layoutRoleWork{0};
         std::size_t maxLayoutRoleBytes{64u*1024u*1024u},maxLayoutRoleWork{64u*1024u*1024u};
         bool layoutRoleCaptureFailed{false};
+        struct EntitiesRoleAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSelected,SelectedRolesReady,Unqualified};
+            enum class Reason {Matched,UnsupportedPrimary,BodyNotReady,OriginMismatch,OwnerMissing,NotLayoutBlock,InactivePaper,SpaceConflict,LayoutConflict,TextUnqualified};
+            struct Row {
+                std::size_t section{0},record{0},physical{0},layoutGroup{0};
+                std::uint32_t self{0},wireOwner{0},block{0},layout{0};
+                Reason reason{Reason::BodyNotReady};bool primary{false},paper{false},spacePresent{false},layoutPresent{false};
+            };
+            State state{State::SourceNotReady};
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const LayoutRoleAudit> graph;
+            std::vector<std::shared_ptr<const EntitiesCompoundAudit>> scopes;
+            std::vector<Row> rows;
+            std::size_t selected{0},matched{0},unsupported{0};
+        };
+        std::shared_ptr<const EntitiesRoleAudit> entitiesRoleAudit,entitiesRoleOwner;
+        std::size_t entitiesRoleBytes{0},entitiesRoleWork{0};
+        std::size_t maxEntitiesRoleBytes{64u*1024u*1024u},maxEntitiesRoleWork{64u*1024u*1024u};
+        bool entitiesRoleCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

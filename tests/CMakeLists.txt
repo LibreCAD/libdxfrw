@@ -623,6 +623,10 @@ add_test(NAME libdxfrw_original_layout_roles
     COMMAND libdxfrw_table_content_dxf_tests --layout-roles)
 set_tests_properties(libdxfrw_original_layout_roles PROPERTIES
     LABELS "fast;dxf;adapter;source;identity;dictionary;layout;graph;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_original_entities_roles
+    COMMAND libdxfrw_table_content_dxf_tests --entities-roles)
+set_tests_properties(libdxfrw_original_entities_roles PROPERTIES
+    LABELS "fast;dxf;adapter;source;identity;entities;layout;graph;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_layout_graph_read_contract
     COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
 set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES
