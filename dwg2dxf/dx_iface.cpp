@@ -27860,7 +27860,10 @@ void dx_iface::writeEntityOrTableFallback(DRW_Entity* entity) {
         (void)dxfW->writeTable(nullptr);
         return;
     }
-    (void)dxfW->writeTable(table->second);
+    // The codec mints output identities on borrowed models. TABLE must use
+    // the same source/linked-identity restoration as ordinary entities, or
+    // the next export cannot join it to its unchanged 2D INSERT projection.
+    writeEntity(table->second);
 }
 
 bool dx_iface::preallocateBlockRecordXdataEntityHandles() {
@@ -31384,6 +31387,9 @@ void dx_iface::writeEntity(DRW_Entity* e){
 //        break;
     case DRW::INSERT:
         written = dxfW->writeInsert(static_cast<DRW_Insert*>(e));
+        break;
+    case DRW::TABLE:
+        written = dxfW->writeTable(dynamic_cast<DRW_Table*>(e));
         break;
     case DRW::ATTDEF:
         written = dxfW->writeAttdef(static_cast<DRW_Attdef*>(e));

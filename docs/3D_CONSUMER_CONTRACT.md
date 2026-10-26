@@ -165,6 +165,16 @@ Ordinary plain-text/block-cell output retains its existing path; unsupported
 metadata is not silently flattened into that path. Full value emission, scope
 grammar, dependencies and native/semantic qualification remain separate work.
 
+The adapter's semantic TABLE fallback now uses the ordinary borrowed-entity
+identity guard. A successful codec write may mint output handles, but the
+adapter restores the TABLE and linked ATTRIB source IDs before returning;
+the explicit SEQEND writer already emits a separate copy. The retained 2D
+INSERT projection therefore remains joined to its TABLE across repeated exports,
+version/encoding changes, refusals and corrected retries. This does not change
+the lower-level codec's minted-handle API, and mismatched source/projection
+identities still refuse output rather than being reconciled automatically.
+Same-stack authored readbacks are not native rendering or kernel qualification.
+
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
 native consumers and independent semantics remain separate. `wholeDocumentMatched`,
