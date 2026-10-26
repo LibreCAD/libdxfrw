@@ -5,11 +5,14 @@ public:
     std::vector<DRW_RawDxfSection> sections;
     std::vector<DRW_ProxyEntity> proxyEntities;
     std::vector<DRW_ProxyObject> proxyObjects;
+    std::vector<DRW_DynamicBlockObject> dynamicObjects;
+    std::vector<DRW_AcShHistoryObject> historyObjects;
     std::vector<std::uint32_t> points;
     DRW_DxfBlockChildrenSource children;
     dxfRW* output=nullptr;
     bool written=true,inventoryMatched=false;
     unsigned depth=0u,reports=0u;
+    unsigned throwShell=0u;
     void addHeader(const DRW_Header*) override {}
     void addBlock(const DRW_Block&) override {++depth;}
     void addBlockEnd(const DRW_Block&) override {}
@@ -17,10 +20,21 @@ public:
     bool wantsDxfBlockChildrenSource() const override {return true;}
     void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& s) override {children=s;++reports;}
     void addRawDxfEntity(const DRW_RawDxfObject& s) override {entities.push_back(s);}
-    void addRawDxfObject(const DRW_RawDxfObject& s) override {objects.push_back(s);}
+    void addRawDxfObject(const DRW_RawDxfObject& s) override {
+        if(throwShell==2u)throw std::runtime_error("raw shell callback fault");
+        objects.push_back(s);
+    }
     void addRawDxfSection(const DRW_RawDxfSection& s) override {sections.push_back(s);}
     void addProxyEntity(const DRW_ProxyEntity& s) override {proxyEntities.push_back(s);}
     void addProxyObject(const DRW_ProxyObject& s) override {proxyObjects.push_back(s);}
+    void addDynamicBlockObject(const DRW_DynamicBlockObject& s) override {
+        if(throwShell==1u)throw std::runtime_error("dynamic shell callback fault");
+        dynamicObjects.push_back(s);
+    }
+    void addAcShHistoryObject(const DRW_AcShHistoryObject& s) override {
+        if(throwShell==1u)throw std::runtime_error("history shell callback fault");
+        historyObjects.push_back(s);
+    }
     void addPoint(const DRW_Point& s) override {points.push_back(s.handle);}
     void writeHeader(DRW_Header&) override {}
     void writeBlocks() override {}

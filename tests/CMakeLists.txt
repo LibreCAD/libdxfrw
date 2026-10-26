@@ -525,6 +525,10 @@ add_test(NAME libdxfrw_raw_proxy_application_scope COMMAND libdxfrw_attdef_sourc
 add_test(NAME libdxfrw_raw_application_writer COMMAND libdxfrw_attdef_source_tests --raw-writer)
 set_tests_properties(libdxfrw_raw_application_identity libdxfrw_raw_proxy_application_scope libdxfrw_raw_application_writer PROPERTIES
     LABELS "fast;dxf;raw;proxy;application;source;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_raw_shell_application_scope COMMAND libdxfrw_attdef_source_tests --raw-shell)
+add_test(NAME libdxfrw_acsh_projection_application_scope COMMAND libdxfrw_attdef_source_tests --acsh-scope)
+set_tests_properties(libdxfrw_raw_shell_application_scope libdxfrw_acsh_projection_application_scope PROPERTIES
+    LABELS "fast;dxf;raw;acsh;application;source;generated" TIMEOUT 60)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dv raw application identity and proxy scope isolation (2026-10-25):** generic raw/application capture no longer registers opaque application group 5 as an outer identity; proxy application data cannot overwrite common metadata or payload grammar. Common proxy owner/reactor/extension-dictionary fields preceding the proxy subclass are retained, with null/wide owners kept distinct from body references. Writer validation, literal group-5 replay and inventory/rollback share the scoped distinction. Authored read, output/readback and corrected-retry controls verify this prerequisite; complete child/callback/compound/dependency/live/output qualification remains open. [Implementation and next work](#implementation-progress-rpp-5dv-raw-application-identity-and-proxy-scope-isolation-2026-10-25).
+**Newest implementation checkpoint — RPP-5dw specialized raw shell and ACSH projection scope (2026-10-25):** the remaining dynamic-block/ACSH shell capture loops now exclude opaque application group 5 from identity registration. ACSH extrusion projection reads only outer subclass/scalar fields; application-only or app-completed partial transforms cannot become complete evidence. Bounded nesting, exact/below byte/node limits, compatibility and exceptional retries are verified. This closes the audited naked-loop prerequisite, not profile-specific body roles, original child matching, native/semantic or support qualification. [Implementation and next work](#implementation-progress-rpp-5dw-specialized-raw-shell-and-acsh-projection-scope-2026-10-25).
+
+**Previous implementation checkpoint — RPP-5dv raw application identity and proxy scope isolation (2026-10-25):** committed as `eac1f623`. Its generic raw/proxy scope, pre-subclass common references and scoped writer validation/literal replay/inventory/rollback remain valid. RPP-5dw extends the scoping audit to the two remaining shell loops and their diagnostic ACSH projection, not complete child/compound/dependency/live/output qualification. [Historical implementation](#implementation-progress-rpp-5dv-raw-application-identity-and-proxy-scope-isolation-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5du bounded original physical child inventory (2026-10-25):** committed as `a1b4c108`. Its original scalar/ordinal/span capture, bounded immutable CLI inventory, frozen root identities and pending first-marker fix remain valid. RPP-5dv fixes a reproduced raw identity/proxy prerequisite, not complete child-to-callback/compound-role, space, dependency or live/output proof. [Historical implementation](#implementation-progress-rpp-5du-bounded-original-physical-child-inventory-2026-10-25).
 
@@ -126873,6 +126875,9 @@ Next implementation-ready sequence (full objective retained):
    namespace/remapping and proxy common text/codepage semantics. Do not infer
    self or owner from arbitrary application/body code 5/330, relabel wide raw
    values as supported typed targets or widen conservative export gates.
+   RPP-5dw below closes the two remaining naked shell loops and projection
+   scoping found by the central call-site audit; the other role/provenance and
+   selected-target requirements in this item remain open.
 2. [ ] **Pair physical source with staged delivery.** Use original ordinals to
    match all `DxfBlockEventSink` typed/raw/no-callback dispositions and immutable
    ATTDEF pairs. Explicitly filter ignored comments only where a carrier omits
@@ -126900,5 +126905,135 @@ Next implementation-ready sequence (full objective retained):
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
 **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
+mutation or full-goal completion is included.
+
+## Implementation progress RPP-5dw specialized raw shell and ACSH projection scope (2026-10-25)
+
+Parent is `eac1f623`. RPP-5dv was verified progress; this is the next original
+raw-role prerequisite, not a narrower replacement objective or completion of
+the full plan. The original graph, 2D/3D consumer, DWG/DXF, output and independent
+semantic/platform requirements remain intact.
+
+Implemented and audited:
+
+1. [x] Audit current central `captureRawGroup` call sites. Existing recursive
+   application capture covers BLOCK/ENDBLK, ATTDEF, GEOPOSITIONMARKER, FIELD/
+   FIELDLIST, TVDEVICEPROPERTIES/CSACDOCUMENTOPTIONS and the shared typed/raw
+   helpers; SORTENTSTABLE body keys and XRECORD body-102 payload already have
+   separate routes. RPP-5dv covers generic raw/unknown-section/proxy and opted-in
+   BLOCK_RECORD depth. The two remaining naked application streams were
+   `processDynamicBlockObject` and `processAcShHistoryObject`; both are now scoped.
+   This is a call-site/application-scope audit, not proof of every body schema,
+   owner role or independent selected target.
+2. [x] Reuse existing bounded application-depth validation for both shell loops.
+   Opaque group 5 is literal source data, not a lexical self handle or global
+   registration. Preserve raw values, original outer convenience self/owner and
+   record-name ownership without adding typed application payload copies or new
+   installed fields/virtuals. Actual malformed/duplicate outer handles still
+   refuse. Existing absent/null-shell-self tolerance is retained with zero
+   convenience identity, not transformed into support eligibility or a fatal
+   generic-raw policy. A following real POINT keeps its own handle.
+3. [x] Scope diagnostic ACSH extrusion projection independently. Opaque markers
+   cannot enter/leave `AcDbShSweepBase`, increase its marker count, contribute
+   transform/option/flag/point fields or complete a missing outer scalar. Keep
+   all previous count/value/finite guards. Only publish the temporary projection
+   after complete outer fields; incomplete projection remains nonfatal raw-shell
+   preservation, not a partially filled or semantically qualified projection.
+4. [x] Keep new state stack-only and bounded by the existing 64-level nesting
+   and raw-record/reader ceilings. Verify maximum/one-over depth, calibrated
+   exact/one-under retained-byte and typed-node limits, whole-operation state
+   recovery and typed/raw callback exception unwinding. Preserve existing read
+   exception propagation rather than adding a broad swallowing policy. These
+   logical counters are not RSS, every allocator or whole-model memory proof.
+
+Format basis and limits: Autodesk's
+[common object codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm)
+separate outer object metadata from application-defined group-102 payload.
+Do not generalize that to every body: the
+[XRECORD DXF specification](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm)
+excludes groups 5/105 from its arbitrary body data, while its
+[ObjectARX group table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm)
+permits body-102 control strings. Profile-aware role interpretation must retain
+such distinctions rather than guessing one global post-subclass rule. No DWG
+byte layout, native encoding or external ACIS/ACDS kernel claim changes here.
+
+Owning evidence per configuration:
+
+- [x] **336** actual shell profiles: eight versions × ASCII/Binary × three
+  representative dynamic/history/extrusion record names × seven opaque/self/
+  field-order shapes. Verify exact raw carrier, record names, outer self/owner,
+  nested/echo/nonhex/wide application data and the following POINT identity.
+- [x] **96** malformed/duplicate-outer/unclosed/extra-close refusals before typed
+  or raw publication, with corrected same-codec retries; **48** absent/null-self
+  compatibility controls. **Six** maximum/one-over nesting boundaries and
+  corrected retries, **12** calibrated byte/node exact/one-under/retry controls
+  and **12** typed/raw callback exception/recovery routes. Byte/node failures
+  may leave already-published consumer prefixes; failed operation state is not
+  evidence of complete import or support.
+- [x] **56** ACSH projection profiles: four modern versions × both encodings ×
+  seven clean/foreign-marker/colliding-scalar/nested-marker/wholly-opaque/partial/
+  nonhex-application shapes. **40** have complete unchanged outer transforms,
+  options, flags and point; **16** correctly stay incomplete with no partial
+  transform/option payload. Independently read **4,088** original scalar
+  observations (codes, values, primitive widths and nonempty consumed intervals).
+  This is not a source-to-staged-role span proof, native readback or kernel test.
+
+Pre-fix normal controls against the unchanged RPP-5dv production library
+reproduce a later POINT softened to zero, an opaque unrelated subclass marker
+disarming a complete real projection and a wholly application-contained sweep
+body incorrectly marked complete. Keep those red logs and the pre-fix library/
+source hashes in the receipt. Two test-authoring findings are recorded separately:
+the scratch Binary DXF encoder lacked one-byte group-290..299 emission, and the
+first callback test expected a false return instead of existing propagated
+exceptions. The fixture encoder and assertion boundary were corrected; no
+production boolean admission or callback policy was widened.
+
+Final affected cohorts pass **27/27 normally in 12.37 s** and **27/27 under ASan
+in 24.83 s**, sequentially, without failures/skips/disabled cases. The direct
+typed OBJECTS record-name retained-budget selector also passes both configurations.
+Strict library/CLI/owning/affected builds and `lc3_compat_check` pass on macOS
+ARM64 Apple Clang 21.0.0, C++17, warnings as errors. ASan uses
+`halt_on_error=1:detect_leaks=0`. Use these owning/affected fast checks, not a
+repeated full project suite. Local mirrored API/source compilation and CLI
+compatibility are not actual native CAD execution or formal binary ABI proof.
+The [RPP-5dw receipt](docs/research/rpp5dw-specialized-shell-and-acsh-projection-scope-2026-10-25.json)
+records exact test membership, hashes, red history, limits and next dependencies.
+Only runtime locally authored scratch drawings are used; no external drawing
+fixture is committed. No output/native writer was changed by this slice.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Profile-aware original self/owner/body and emitted-source agreement.**
+   The audited naked application loops are fixed. Now audit actual non-SORT body
+   roles, duplicate fields, raw-spelling/typed-marker agreement and opaque pointer
+   namespaces/remapping. Retain XRECORD/SORT/embedded record distinctions and
+   proxy text/codepage semantics. Require profiles backed by original source and
+   explicit target closure; preserve compatible admission separately from proof.
+2. [ ] **Original ordinal to staged-child pairing.** Match the physical BLOCK
+   inventory to all `DxfBlockEventSink` typed/raw/no-callback dispositions plus
+   immutable ATTDEF pairs; explicitly filter comments only where carriers omit
+   them. Prove complete membership, actual owner/order and compound boundaries
+   alongside endpoints/BLOCK_RECORD. Test omitted/reordered/mutated/duplicate/
+   dropped/later-failed/stale/quota/allocation/exception cases with recovery.
+   Neither physical `Complete`, callback counts nor a shell convenience handle
+   qualifies ATTDEF or replaces the original child graph.
+3. [ ] **Space/dependencies, full live/output and original parity.** Keep all
+   ENTITIES model/paper/BLOCK_RECORD associations, common/style/APPID/LAYER/object/
+   absent-default/opaque targets, ATTRIB/SEQEND, B2b/B3/C, immutable/editable/compound
+   identity, exact emitted fields/references, atomic rollback/retry/destination,
+   IMAGE/document/native bit/decimal/carrier/schema/owner, speed/ownership/
+   allocation, LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD plus independent
+   semantic/platform qualification in scope.
+4. [ ] **Self-updating execution.** Record each item's actual results/limits and
+   next ready dependency, safely unblock local prerequisites, commit/report
+   coherent slices and continue within authority. Prefer fast owning/affected
+   checks; broader sequential cohorts are integration gates. Never commit
+   downloaded external drawing fixtures or infer external authority from green
+   local tests. Unchanged external gates do not stop available local work.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
 mutation or full-goal completion is included.

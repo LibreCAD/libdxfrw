@@ -279,6 +279,7 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary,bool c
                 ||(tag.code>=440&&tag.code<=459)||tag.code==1071)
                 word(static_cast<std::uint32_t>(std::stoll(tag.value)),4u);
             else if(tag.code>=160&&tag.code<=169)word(std::stoull(tag.value),8u);
+            else if(tag.code>=290&&tag.code<=299)word(static_cast<unsigned>(std::stoi(tag.value)),1u);
             else if((tag.code>=310&&tag.code<=319)||tag.code==1004) {
                 if(tag.value.size()%2u||tag.value.size()/2u>255u)return false;
                 word(tag.value.size()/2u,1u);
@@ -602,6 +603,7 @@ public:
 #include "block_source_proof_controls.h"
 #include "block_children_source_controls.h"
 #include "raw_application_scope_controls.h"
+#include "raw_shell_scope_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1002,12 +1004,16 @@ int main(int argc,char** argv) {
     const bool rawMissing=argc==2&&std::string(argv[1])=="--raw-identity-missing";
     const bool proxyScope=argc==2&&std::string(argv[1])=="--proxy-scope";
     const bool rawWriter=argc==2&&std::string(argv[1])=="--raw-writer";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter)return 2;
+    const bool rawShell=argc==2&&std::string(argv[1])=="--raw-shell";
+    const bool acshScope=argc==2&&std::string(argv[1])=="--acsh-scope";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     try {return ((rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
+        rawShell?rawShellScopeTests(scratch/"generated.dxf"):
+        acshScope?acshProjectionScopeTests(scratch/"generated.dxf"):
         rawWriter?rawApplicationWriterTests(scratch/"generated.dxf"):
         proxyScope?rawProxyScopeTests(scratch/"generated.dxf"):
         blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):

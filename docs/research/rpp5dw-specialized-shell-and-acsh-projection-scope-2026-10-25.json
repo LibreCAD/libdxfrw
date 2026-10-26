@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dw specialized raw shell and ACSH projection scope",
+  "date": "2026-10-25",
+  "parentCommit": "eac1f623",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "AUDITED_NAKED_SHELL_APPLICATION_CAPTURE_AND_ACSH_PROJECTION_SCOPE_FIXED_PROFILE_BODY_ROLES_CHILD_PAIRING_DEPENDENCY_LIVE_OUTPUT_OPEN",
+  "scope": {
+    "currentCentralCaptureCallSiteAudit": true,
+    "previouslyScoped": "Generic raw entity/object/unknown section/proxy and opted-in BLOCK_RECORD via existing caller depth; recursive common application helper for BLOCK/ENDBLK/ATTDEF/GEOPOSITIONMARKER/FIELD/FIELDLIST/TVDEVICEPROPERTIES/CSACDOCUMENTOPTIONS and shared typed/raw helpers",
+    "bodyExceptionsRetained": "SORTENTSTABLE body group-5 sort keys have selfHandle=false; XRECORD body group-102 uses its payload route rather than the common application consumer",
+    "remainingNakedLoopsFixed": [
+      "dxfRW::processDynamicBlockObject",
+      "dxfRW::processAcShHistoryObject"
+    ],
+    "rawShell": "Reuse bounded application-depth validation; opaque group 5 cannot register global self or satisfy typed convenience self; literal source remains intact",
+    "commonMetadata": "Original outer self/owner and record name retained; no new typed application payload copies",
+    "compatibility": "Actual invalid/duplicate outer handles and malformed scopes remain refused; existing absent/null-shell-self tolerance retained without phantom identity",
+    "projection": "Only outer AcDbShSweepBase marker and transform/option/flag/point fields contribute; application markers cannot switch or duplicate host subclass; app-only or app-completed partial body cannot qualify",
+    "projectionPublication": "Temporary projection assigned only when complete; incomplete remains nonfatal raw-shell preservation without partial payload",
+    "depth": "Existing maximum 64; new state stack-only and raw/reader ceilings unchanged",
+    "exceptionPolicy": "Read callback runtime exceptions continue to propagate; same facade can read a clean corrected session",
+    "nativeDwgParsingOrEncodingChanged": false,
+    "outputWriterChanged": false,
+    "installedModelLayoutChanged": false,
+    "publicInterfaceVirtualContractChanged": false,
+    "originalChildCallbackRoleProofQualified": false,
+    "wholeModelMemoryQualified": false,
+    "acisSemanticSupportQualified": false,
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "Only locally authored runtime scratch DXF/scalar streams"
+  },
+  "references": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "role": "Outer metadata versus application-defined group-102 data"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "role": "Readiness distinction: XRECORD arbitrary body data excludes groups 5/105"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+      "role": "Readiness distinction: XRECORD body group-102 control strings; do not apply a generic post-subclass application rule"
+    }
+  ],
+  "baseline": {
+    "method": "Updated controls built normally while production sources/library still matched parent eac1f623; no newly rebuilt pristine worktree claim",
+    "productionSourceSha256": "37170d0ec44165d970bd25247eb5ea3b7a659bfdcfb2c433e161041ee87d91bb",
+    "normalLibrarySha256": "f9181ce4c90645d228328915910534babbe3d06ed8eed874997cf4ee2c1483b8",
+    "findings": [
+      {
+        "selector": "--raw-shell",
+        "log": "/tmp/rpp5dw-shell-exact-baseline.log",
+        "result": "AC1012 ASCII BLOCKVISIBILITYPARAMETER opaque all-hex C2 consumed following typed POINT C2 identity; resulting POINT handle zero"
+      },
+      {
+        "selector": "--acsh-scope",
+        "log": "/tmp/rpp5dw-projection-baseline.log",
+        "result": "Initial matrix order: AC1021 ASCII shape 1 opaque AcDbUnrelated marker disarmed complete real outer projection"
+      },
+      {
+        "selector": "--acsh-scope",
+        "log": "/tmp/rpp5dw-projection-opaque-baseline.log",
+        "result": "Reordered same shape set to observe shape 4 first: wholly application-contained sweep body incorrectly marked complete"
+      }
+    ]
+  },
+  "owningControlsPerConfiguration": {
+    "ctests": [
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope"
+    ],
+    "shellProfiles": 336,
+    "shellAxes": "Eight versions x ASCII/Binary x three representative record names x seven opaque/self/order shapes",
+    "versions": [
+      "AC1012",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "names": [
+      "BLOCKVISIBILITYPARAMETER",
+      "ACSH_HISTORY_NODE",
+      "ACSH_EXTRUSION_CLASS"
+    ],
+    "shellChecks": "Exact raw codes/scalars/ASCII spellings or Binary empty placeholders; outer self/owner, record name, nested/echo/nonhex/wide application data and real following POINT C2",
+    "malformedRefusalsAndSameCodecRetries": 96,
+    "malformedAxes": "Four modern versions x ASCII/Binary x three names x repeated outer C1/invalid outer self/unclosed scope/extra close",
+    "absentNullSelfCompatibilityControls": 48,
+    "maximumOneOverDepthAndCorrectedRetries": 6,
+    "calibratedRetainedByteTypedNodeExactOneUnderSameCodecRetries": 12,
+    "budgetLimit": "Observed instrumented logical read owners only, not capacities/RSS/every allocator; a failed read may leave previously published consumer prefixes",
+    "typedRawCallbackExceptionAndSameCodecRetries": 12,
+    "callbackLimit": "Exception propagation and fresh sink recovery, not rollback of arbitrary consumer side effects",
+    "projectionProfiles": 56,
+    "projectionAxes": "Four modern versions x ASCII/Binary x clean/foreign subclass/colliding fields/nested marker/wholly opaque/partial outer/nonhex application shapes",
+    "completeOuterProjections": 40,
+    "incompleteOpaquePartialProjections": 16,
+    "completeChecks": "Both 16-element transforms, align/miter options, six flags and point exact; complete flag true",
+    "incompleteChecks": "Complete flag false, no partially published transforms/options/flags",
+    "independentOriginalScalarObservations": 4088,
+    "observer": "Independent file walker, not production dxfReader or projection decoder; check original code/value, primitive widths and nonempty consumed intervals",
+    "observerLimit": "No source-to-staged-role span proof, native output readback or independent kernel semantics"
+  },
+  "testAuthoringFindings": [
+    {
+      "status": "SCRATCH_BINARY_ENCODER_CORRECTED",
+      "log": "/tmp/rpp5dw-projection-diagnostic.log",
+      "before": "Owning tag encoder wrote group 290..299 as NUL-terminated strings; AC1021 Binary shape 4 read failed before callbacks",
+      "after": "Emit one-byte integer boolean carrier; independent walker already uses one byte; no production bool parsing policy changed"
+    },
+    {
+      "status": "EXCEPTION_ASSERTION_BOUNDARY_CORRECTED",
+      "log": "/tmp/rpp5dw-shell-boundaries.log",
+      "before": "Test expected callback fault to return false; main instead observed propagated dynamic shell runtime_error",
+      "after": "Catch at test boundary, assert propagation then corrected same-codec session; production read exception contract unchanged"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 12.37
+    },
+    "asan": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 24.83
+    },
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sequentialRuntimeCohorts": true,
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_block_owners",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "directSelector": "libdxfrw_hardening_tests --dxf-typed-object-name-retained-budget",
+    "directSelectorPassBothConfigurations": true,
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check"
+    ],
+    "compatibilityLimit": "Mirrored API/source compile and CLI compatibility checks, not native LibreCAD/LibreCAD_3/FreeCAD execution or formal binary ABI certification",
+    "fullProjectSuiteRun": false,
+    "fullAutotoolsDistributionBuildRun": false,
+    "nativeLinuxWindowsFreecadRun": false,
+    "independentAcisAcdsSemanticKernelRun": false
+  },
+  "qualification": {
+    "provedResourceFamilyCount": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportPromotion": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false
+  },
+  "next": [
+    "Audit actual non-SORT self/owner/body roles, duplicate fields, raw-spelling/typed-marker agreement, opaque pointer namespace/remapping and proxy text/codepage, retaining XRECORD/SORT/embedded distinctions and existing admission separately from proof",
+    "Pair original BLOCK physical ordinals with all DxfBlockEventSink typed/raw/no-callback dispositions and immutable ATTDEF pairs; complete original membership/owner/order/compound and endpoint/BLOCK_RECORD gates with failure/retry controls",
+    "Keep ENTITIES model/paper/BLOCK_RECORD association, selected common/style/APPID/LAYER/object/default/opaque targets, ATTRIB/SEQEND, B2b/B3/C graph/live/output, exact emitted fields/references/atomic rollback and original IMAGE/document/native bit/decimal/carrier/schema/owner scope",
+    "Retain performance/ownership/allocation, LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD and independent semantic/platform qualification; self-update, safely unblock, commit/report coherent slices and continue within authority",
+    "Use fast owning/affected checks and integration cohorts; no downloaded external drawing fixtures, support promotion or remote mutation from local green results"
+  ],
+  "sourceSha256": {
+    "src/libdxfrw.cpp": "1d903085b78ee3136cdbde0dd7be2d159a0ba07cae0a6d2ea2ab4925fc4af237",
+    "tests/CMakeLists.txt": "96e50bf47e9891fac06c31f91e0392ef5dba116ad45d60b10eec6afd358add01",
+    "tests/attdef_source_tests.cpp": "58275a02b44def7074d9ed5478f09198cb24a6d07dd584d2273b6c27576669b6",
+    "tests/raw_application_scope_controls.h": "4a6345b3594ccea53c86ea7835d0b2b3a89327754debeb0bc41744162065e20b",
+    "tests/raw_shell_scope_controls.h": "1b5d9dd893354aa57a1ae64c9b9895c68d8f9994a7d73924b1e9750b72a52a68"
+  },
+  "logSha256": {
+    "/tmp/rpp5dw-baseline-controls-build.log": "3aee31be2554d10305e6e9fca7808f831b2e14e93ba069703ec89df412056fd7",
+    "/tmp/rpp5dw-baseline-opaque-controls-build.log": "5e386b1924c55115935b865c50d20cd8582023efc94d5811b842823821b6ba0b",
+    "/tmp/rpp5dw-shell-exact-baseline.log": "72d285e02994647490fa102815123999e7b45d8ba43d1c343763a679bef748aa",
+    "/tmp/rpp5dw-projection-baseline.log": "3941a842c5bdc78e966595f8b8891f3d98df485c68c29b6e1bc10502ffa87c89",
+    "/tmp/rpp5dw-projection-opaque-baseline.log": "57d9e0134ef134660df59205f675f0ef6e497b0b7c73ee9a8cdd05d808efd9a5",
+    "/tmp/rpp5dw-projection-diagnostic.log": "e4b9ce14612cb0d96ffc1c9db914d29a3246567aa63c9bed557bd27ec68bb2a2",
+    "/tmp/rpp5dw-shell-boundaries.log": "5018dba6bf11ce5004d66d4d5d19f1dd2b8913d92c9b845bfa22e90ce7e3c3e8",
+    "/tmp/rpp5dw-final-normal-build.log": "9ab85a68d6176ddd959d64ca79a76687f9101e82b07c976a9c61717b338689f9",
+    "/tmp/rpp5dw-final-asan-build.log": "a76be39b1dd9edf9dadc8ad91b72bb70121c09ae11d5e193aa58c122a0b164de",
+    "/tmp/rpp5dw-final-normal-ctest.log": "d437381bca8209766af5c4fb57c08b780e9f77f36343a92151e3b18e934be8a0",
+    "/tmp/rpp5dw-final-asan-ctest.log": "8a59a9e5bc22fb490589c4f7acbf1de7d06648a790dedf28b43ef50ac77db4e5",
+    "/tmp/rpp5dw-normal-object-name-budget.log": "bf3d26002fd6e3929ce6c7fe1161f2f27440b83997d188d2d5222d91906c711b",
+    "/tmp/rpp5dw-asan-object-name-budget.log": "bf3d26002fd6e3929ce6c7fe1161f2f27440b83997d188d2d5222d91906c711b",
+    "/tmp/rpp5dw-shell-final-counts.log": "6051d7c866829e34b4b6b892ac29c4efc3c75fba4c4717fcd5654b1fca4a350b",
+    "/tmp/rpp5dw-projection-final-counts.log": "b659494b58a83d55ed6bff6b460c1831497bafb47c50c18df48ab0c5a3638ae0"
+  }
+}

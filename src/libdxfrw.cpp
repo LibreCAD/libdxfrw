@@ -386,8 +386,18 @@ bool captureAcShExtrusionDxfProjection(
     double point[3] = {};
     bool inSweepBase = false;
     std::size_t sweepBaseMarkerCount = 0;
+    int applicationDepth = 0;
 
     for (const DRW_Variant& group : raw.groups) {
+        if (group.code() == 102) {
+            if (!updateRawDxfApplicationDepth(group, applicationDepth))
+                return false;
+            continue;
+        }
+        // A foreign application's marker or scalar cannot enter/leave the
+        // host subclass or contribute a missing transform/option field.
+        if (applicationDepth != 0)
+            continue;
         if (group.code() == 100) {
             if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
                 return false;
@@ -479,7 +489,7 @@ bool captureAcShExtrusionDxfProjection(
         }
     }
 
-    if (sweepBaseMarkerCount != 1u
+    if (applicationDepth != 0 || sweepBaseMarkerCount != 1u
         || transformCounts[0] != 16u || transformCounts[1] != 16u
         || optionCounts[0] != 1u || optionCounts[1] != 1u
         || std::any_of(flagCounts.begin(), flagCounts.end(),
@@ -19230,6 +19240,7 @@ bool dxfRW::processDynamicBlockObject() {
     DRW_RawDxfObject raw;
     if (!copyRawDxfCarrierName(raw, nextentity))
         return setError(DRW::BAD_CODE_PARSED);
+    int applicationDepth = 0;
     while (reader->readRec(&code)) {
         if (code == 0) {
             const DxfEntityBoundary boundary = setEntityBoundary(code);
@@ -19245,7 +19256,11 @@ bool dxfRW::processDynamicBlockObject() {
             iface->addRawDxfObject(raw);
             return true;
         }
-        if (!captureRawGroup(raw, code, /*validateHandles=*/true))
+        if (!captureRawGroup(raw, code,
+                             /*validateHandles=*/applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/applicationDepth == 0)
+            || raw.groups.empty()
+            || !updateRawDxfApplicationDepth(raw.groups.back(), applicationDepth))
             return setError(DRW::BAD_CODE_PARSED);
     }
     return setError(DRW::BAD_READ_OBJECTS);
@@ -19273,6 +19288,7 @@ bool dxfRW::processAcShHistoryObject() {
     DRW_RawDxfObject raw;
     if (!copyRawDxfCarrierName(raw, nextentity))
         return setError(DRW::BAD_CODE_PARSED);
+    int applicationDepth = 0;
     while (reader->readRec(&code)) {
         if (code == 0) {
             const DxfEntityBoundary boundary = setEntityBoundary(code);
@@ -19294,7 +19310,11 @@ bool dxfRW::processAcShHistoryObject() {
             iface->addRawDxfObject(raw);
             return true;
         }
-        if (!captureRawGroup(raw, code, /*validateHandles=*/true))
+        if (!captureRawGroup(raw, code,
+                             /*validateHandles=*/applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/applicationDepth == 0)
+            || raw.groups.empty()
+            || !updateRawDxfApplicationDepth(raw.groups.back(), applicationDepth))
             return setError(DRW::BAD_CODE_PARSED);
     }
     return setError(DRW::BAD_READ_OBJECTS);
