@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ea immutable compound bodies and original modeled replay (2026-10-25):** actual POLYLINE/INSERT trees now have bounded immutable snapshots and original-scalar replay through shared production decoders, with separate delivered/reconstructed parser-state observations. The 84-profile owning matrix and final 38/38 normal / 38/38 ASan affected checks pass. This is modeled agreement, not complete physical scalar profiles, dependency/live/output or external semantic qualification. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5eb compound physical profiles and opaque handle scopes (2026-10-26):** admitted compound records now have original scalar/scope/field/reference-role profiles, separately gated from modeled replay. A reproduced opaque application-handle width refusal is fixed without widening typed owner/reactor/dictionary fields; literal source reconstruction stays distinct from output remapping. The 51-test normal / 51-test ASan affected cohorts and 18 final normal owning rechecks pass. Complete block/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26) · [receipt](docs/research/rpp5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ea immutable compound bodies and original modeled replay (2026-10-25):** committed as `db4bdbef`. Its immutable snapshots, shared decoder, original replay and delivered/pre-copy state distinctions remain valid. RPP-5eb adds admitted physical field profiles and fixes an opaque-handle prerequisite, not complete dependency/live/output or external semantic qualification. [Historical implementation](#implementation-progress-rpp-5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dz original common identities and compound structural roles (2026-10-25):** committed as `0d751175`. Its scoped identities, structural roles and immutable context guards remain valid. RPP-5ea adds modeled compound bodies, not complete physical-field, dependency/live/output or kernel proof. [Historical implementation](#implementation-progress-rpp-5dz-original-common-identities-and-compound-structural-roles-2026-10-25) · [receipt](docs/research/rpp5dz-original-common-identities-and-compound-structural-roles-2026-10-25.json).
 
@@ -127590,6 +127592,151 @@ Next implementation-ready sequence (full objective retained):
    update this plan and its receipt, commit/report each coherent verified slice
    and continue available local work. Keep external drawing fixtures out of
    commits and do not turn local green tests into external support claims.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
+completion is included in this checkpoint.
+
+## Implementation progress — RPP-5eb compound physical profiles and opaque handle scopes (2026-10-26)
+
+This implements the admitted physical-profile portion of RPP-5ea's next item,
+while preserving the full original objective. A complete profile accounts for
+every original scalar in that admitted record shape; it is not universal DXF
+validity, geometry semantics, target closure, a complete enclosing BLOCK or an
+output/support certificate. Unknown/secondary/unsupported shapes remain explicit
+refusals, not newly implemented semantics.
+
+Implemented:
+
+1. [x] Audit original POLYLINE, VERTEX, INSERT/MINSERT, ATTRIB and SEQEND scalar
+   roles, order/occurrences, subclass/flag relationships, application/XDATA/proxy
+   scopes and known reference roles. Reuse the existing ATTDEF audit for ATTRIB
+   with its real subclass/tag/type rules and no invented ATTDEF prompt. Require
+   actual scalar variant kinds before reading values; nonfinite or forged
+   coordinate/native sidecars cannot be treated as original scalar evidence.
+   Unknown/duplicate/conflicting fields retain distinct refusal reasons without
+   changing ordinary compatible import admission.
+2. [x] Distinguish obsolete POLYLINE 66 and dummy XY, geometry/transform fields,
+   signed polyface indices and ignored face locations, INSERT follow/default
+   state, and ATTRIB host/embedded fields. The [Autodesk POLYLINE reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm),
+   [VERTEX reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm),
+   [INSERT reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm),
+   [SEQEND reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm)
+   and [ATTRIB reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm)
+   inform field classification; [ezdxf's authored subtype tests](https://github.com/mozman/ezdxf/blob/master/tests/test_02_dxf_graphics/test_210_polyline_2.py)
+   corroborate the mesh/polyface marker distinctions. No peer drawing is copied
+   and these sources are not an independently executed geometry witness.
+3. [x] Restore original physical indices in a linear, backward in-place merge,
+   including adjacent ignored comments inside application/embedded/XDATA scopes
+   and record tails. Reject corrupt span/cardinality pairs before indexing.
+   Freeze per-member profiles with the original structural audit/body owner.
+   The separate private source query additionally requires successful modeled
+   replay and complete profiles for the entire selected compound. Its cached
+   completeness fact does not rescan/normalize mutable drawing data.
+4. [x] Precharge per-member audit owners and conservative profile-span peak
+   storage under the existing 100,000-member and 64 MiB logical byte/work limits.
+   Retain original raw values, spans and scalar spellings even when a profile
+   refuses completeness. Aggregate budget/allocation failure refuses evidence,
+   not compatible import. This is logical accounting, not all allocators/RSS,
+   a strict CPU bound or leak-detector evidence.
+5. [x] Resolve the reproduced typed application-group prerequisite instead of
+   narrowing the authored control. The previous CLI rejects a 16-digit arbitrary
+   handle string inside a custom group at group 320. The common entity and
+   table-entry application decoders now use the shared scoped wide-lexeme guard,
+   restoring the caller's prior mode on success, refusal and exceptional unwind.
+   Known outer reactor/dictionary fields explicitly require typed 32-bit values,
+   including a later duplicate dictionary field; ordinary surrounding typed
+   handles remain constrained. Diagnostic group codes are retained. This fixes
+   these common decoders, not every specialized record's custom application
+   grammar or the whole library's typed handle width. The stored red trace is
+   local pre-fix CLI evidence, not a separately rebuilt pristine-parent result.
+6. [x] Keep exact literal source reconstruction distinct from default output
+   handle remapping. Source-body comparisons opt into wide, exact handle-string
+   equality without invoking a 32-bit mapper. Output comparisons retain their
+   existing default mapped contract; this option is not output/remapping proof.
+   This also refuses a forged source pair whose handle lexemes differ despite
+   numeric equivalence. No installed model layout/vtable or DWG byte parser/
+   encoder changes, new qualified resource family, or output-gate relaxation.
+7. [x] Distribute the new private profile header through CLI CMake/Autotools
+   lists. Use only locally authored runtime scratch drawings and retain unrelated
+   untracked samples. No external drawing fixture is added or committed.
+
+Owning evidence per configuration:
+
+- [x] **84** four-version × ASCII LF/CRLF/Binary × seven-body imports, covering
+  **150** complete selected compound bodies and **18** earlier-version embedded
+  ATTRIB revision refusals while all modeled bodies still agree. **Twenty**
+  positive variants cover comments, common owner interleaving, opaque fake
+  identities/subclasses/names and wide references, obsolete follow data,
+  standalone/empty/MINSERT chains, omitted ignored face coordinates and original
+  numeric/text spellings. The independent local original-file walker checks
+  **23,592** scalar spans; the completed *member* profiles account for **12,216**
+  scalars, including **416** explicitly ignored comments. Member facts inside
+  an unqualified compound do not qualify that whole compound. Exact original
+  reference roles/values and ignored-field distinctions are asserted separately
+  from production classification; this is not external semantic/kernel proof.
+- [x] **46** physical wire fault/corrected-import retries retain modeled import
+  while refusing incomplete source profiles and preserving the unrelated body's
+  source fact. Cases include unknown/repeated fields, incompatible subclasses,
+  invalid metadata, ATTRIB prompt/type/version ambiguity and secondary XRECORD.
+  **Four** stale/copied context refusals, **ten** forged scalar kinds and **ten**
+  corrupt physical span/cardinality controls pass.
+- [x] Wide-handle controls pass **eight** entity/table × ASCII/Binary × prior-mode
+  positives, **64** typed/malformed component refusals, **32** whole entity/table
+  read refusals with corrected same-facade imports, **eight** direct group-parser
+  I/O-mask exception/unwind controls, **88** observed allocation failures and
+  **170** successful actual DXF imports across the controls. The ordinary common
+  parseCode wrappers retain their existing exception-to-false behavior; direct
+  group tests exercise exceptional unwind. **Two** literal-source/default-output
+  boundary controls keep those contracts distinct. These allocation observations
+  are environment-specific, not a portable STL count or all-allocator proof.
+- [x] Existing modeled controls still pass with **492** observed isolated
+  capture/replay allocation faults (83/152/94/163 thresholds on this build),
+  versus 474 in the immutable RPP-5ea receipt. The new profile owners explain
+  this change; the earlier receipt is not rewritten.
+
+Final validation: strict normal/ASan library/CLI, selected resource tests,
+polyface/MTEXT, `lc3_compat_check` and local 3D probe builds pass on macOS ARM64
+Apple Clang 21.0.0, C++17 with warnings as errors. The affected normal cohort
+passes **51/51 in 77.35 s**. After an include-scope-only test-harness cleanup,
+all **18/18** tests in that rebuilt owning executable pass in **8.42 s**; other
+normal executables/library sources are unchanged. The final ASan affected cohort
+passes **51/51 in 164.37 s**, after the final owning rebuild, with
+`halt_on_error=1:detect_leaks=0`. Runtime cohorts run sequentially, with no
+failures/skips/disabled cases. The normal integration run overlapped sanitizer
+compilation, not sanitizer runtime; these elapsed times are not a paired speed
+benchmark. No full project/distribution suite or native GUI/FreeCAD platform
+execution or formal binary ABI certification is claimed. The
+[RPP-5eb receipt](docs/research/rpp5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26.json)
+records exact scope, membership, source/log hashes, counts and limitations.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Complete enclosing-block/space source closure.** Bind admitted member
+   profiles and modeled bodies to selected original ATTDEF/block resources;
+   retain ENTITIES model/paper/BLOCK_RECORD associations. Account for other
+   primary/raw/no-callback member families, absent defaults, unsupported header/
+   subclass arrangements and secondary attribute forms explicitly. A positive
+   POLYLINE/INSERT profile cannot qualify an unrelated record or whole BLOCK.
+2. [ ] **Transitive targets and namespaces.** Close selected common/style/
+   APPID/LAYER/object/opaque dependencies with pinned original owners and exact
+   name/handle/local-ID roles, remapping and proxy text/codepage contexts. Never
+   narrow an opaque wide value to a low-word target or remap arbitrary 320..329
+   application values. Qualify specialized application grammars separately;
+   common-group lexical preservation does not establish their target semantics.
+3. [ ] **Live/output and original parity.** Finish all B2b/B3/C graph/live/output/
+   immutable/editable/compound identities, complete common/body fields, exact
+   emitted references and atomic rollback/retry/destination preservation. Retain
+   original IMAGE/document/native bit/decimal/carrier/schema/owner, speed/memory,
+   LibreCAD/LibreCAD_3 2D, 3D consumers and dwg2dxf/FreeCAD requirements. Native
+   consumer and independent semantic/platform qualifications remain separate.
+4. [ ] **Self-update, unblock safely and continue.** Use fast owning checks while
+   editing and freshly built affected normal/ASan checks at integration boundaries,
+   not full suites per item. Record actual failures and limitations, update the
+   plan/receipt, commit/report verified slices and continue local work. Do not
+   commit external drawing fixtures or promote support from local green tests.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

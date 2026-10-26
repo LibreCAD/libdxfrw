@@ -18,10 +18,10 @@
 // computed/default values). OpaqueHandle is NOT a qualified target role; block,
 // resource, output and independent semantic qualification remain separate.
 namespace dx_attdef_source {
-enum class Scope : std::uint8_t { Host, Nested };
+enum class Scope : std::uint8_t { Host, Nested, Ignored };
 enum class Field : std::uint8_t {
     Identity, Subclass, Common, Text, Attribute, EmbeddedMarker, MText,
-    ComputedIgnored, Application, Xdata, ReservedDefault, Block
+    ComputedIgnored, Application, Xdata, ReservedDefault, Block, Compound, IgnoredComment
 };
 enum class Role : std::uint8_t {
     None, Self, Owner, LayerName, LineTypeName, TextStyleName, Material,
@@ -72,13 +72,13 @@ inline bool hexBytes(std::string_view s) noexcept {
     return true;
 }
 
-inline Audit audit(const DRW_RawDxfObject& raw) {
+inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true) {
     Audit out;
     const auto reject=[&](Reason reason,std::size_t at) {
         out.reason=reason;out.rejectedGroup=at;out.spans.clear();return std::move(out);
     };
     if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
-    if(raw.name!="ATTDEF"||!raw.handle)return reject(Reason::Identity,0u);
+    if(raw.name!=(definition?"ATTDEF":"ATTRIB")||!raw.handle)return reject(Reason::Identity,0u);
     out.spans.reserve(raw.groups.size()); // caller precharges the complete bound
     enum Stage { Header, Common, Text, Attribute, Embedded } stage=Header;
     bool entity=false,hostText=false,attribute=false,nested=false,xdata=false;
@@ -171,7 +171,7 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                 } else if(code!=100)return reject(Reason::Subclass,i);
                 else if(string=="AcDbEntity"&&!entity&&stage==Header) {entity=true;stage=Common;scope=Scope::Host;}
                 else if(string=="AcDbText"&&entity&&!hostText&&stage==Common) {hostText=true;stage=Text;scope=Scope::Host;}
-                else if(string=="AcDbAttributeDefinition"&&hostText&&!attribute&&(stage==Text||stage==Embedded)) {
+                else if(string==(definition?"AcDbAttributeDefinition":"AcDbAttribute")&&hostText&&!attribute&&(stage==Text||stage==Embedded)) {
                     attribute=true;stage=Attribute;scope=Scope::Host;
                 } else return reject(Reason::Subclass,i);
             } else if(stage==Header) {
@@ -189,14 +189,14 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                     scope=Scope::Host;field=Field::Attribute;
                     switch(code) {
                     case 2:if(!name(value)||string.find_first_of(" \t\r\n")!=std::string_view::npos)return reject(Reason::InvalidValue,i);break;
-                    case 3:break;
+                    case 3:if(!definition)return reject(Reason::UnknownField,i);break;
                     case 70:if(!integer(value,0,15))return reject(Reason::InvalidValue,i);break;
                     case 73:if(!integer(value,0,65535))return reject(Reason::InvalidValue,i);break;
                     case 74:if(!integer(value,0,3))return reject(Reason::InvalidValue,i);break;
                     case 280:if(!integer(value,0,1))return reject(Reason::InvalidValue,i);break;
                     case 71:
                         if(raw.m_version!=DRW::AC1032)return reject(Reason::Revision,i);
-                        if(nested||(!integer(value,1,1)&&!integer(value,4,4)))return reject(Reason::UnknownField,i);
+                        if(nested||(!integer(value,1,1)&&!integer(value,definition?4:2,definition?4:2)))return reject(Reason::UnknownField,i);
                         attributeType=value.i_val();
                         break;
                     case 72:
@@ -282,7 +282,7 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
     if(pointCode)return reject(Reason::IncompletePoint,end);
     if(!entity||!hostText||!attribute||!seen[4][5]||!seen[4][330])return reject(Reason::Identity,end);
     if(attributeType!=1&&!nested)return reject(Reason::InvalidValue,end);
-    if(!seen[0][8]||!seen[2][1]||!seen[2][40]||!seen[3][2]||!seen[3][3])return reject(Reason::UnknownField,end);
+    if(!seen[0][8]||!seen[2][1]||!seen[2][40]||!seen[3][2]||(definition&&!seen[3][3]))return reject(Reason::UnknownField,end);
     if(!pointComplete(seen[2],10,true)||!pointComplete(seen[2],11,false)
         ||!pointComplete(seen[2],210,false)||!pointComplete(seen[3],11,false))return reject(Reason::IncompletePoint,end);
     if(nested&&(!nestedText||!seen[1][40]||!pointComplete(seen[1],10,true)

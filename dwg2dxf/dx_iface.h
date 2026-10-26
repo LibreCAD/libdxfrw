@@ -1547,6 +1547,7 @@ private:
     void captureDxfCompoundBody(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     bool replayDxfCompoundBody(CompoundBody&);
     static bool hasMatchedCompoundBody(const dx_data&,std::uint32_t,std::size_t) noexcept;
+    static bool hasMatchedCompoundSource(const dx_data&,std::uint32_t,std::size_t) noexcept;
     bool chargeAttdefOrigin(std::size_t,std::size_t,bool) noexcept;
     void captureAttdefOrigin(AttdefOriginResource&) noexcept;
     void pairAttdefOrigin(AttdefOriginResource&,const DRW_Attdef&) noexcept;

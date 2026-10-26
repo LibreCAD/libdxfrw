@@ -495,6 +495,13 @@ public:
     // expose the group code so a façade can retain the legacy stage result
     // while adding structured context to its operation diagnostic.
     int lastInvalidHandleCode() const { return m_lastInvalidHandleCode; }
+    // A raw application group can retain wide handle strings, but its known
+    // reactor/dictionary fields still enter the typed 32-bit model.
+    bool requireTypedHandleString() {
+        if(isValidHandleString())return true;
+        m_lastInvalidHandleCode=m_currentCode;
+        return false;
+    }
     void setAllowWideHandleLexemes(bool allow) {
         m_allowWideHandleLexemes = allow;
     }
@@ -667,6 +674,22 @@ private:
     void releaseCurrentRecordRetainedBytes() noexcept {
         releaseCurrentRecordBytes(m_currentRecordRetainedBytes);
     }
+};
+
+// Restore the caller's lexical policy on success, refusal and exceptions.
+// This admits raw lexemes only; typed consumers must explicitly validate any
+// known handle they convert, rather than silently narrowing a preserved string.
+class DxfRawHandleLexemeScope final {
+public:
+    explicit DxfRawHandleLexemeScope(dxfReader& reader)
+        : m_reader(reader),m_previous(reader.allowsWideHandleLexemes()) {
+        m_reader.setAllowWideHandleLexemes(true);
+    }
+    ~DxfRawHandleLexemeScope(){m_reader.setAllowWideHandleLexemes(m_previous);}
+    DxfRawHandleLexemeScope(const DxfRawHandleLexemeScope&)=delete;
+    DxfRawHandleLexemeScope& operator=(const DxfRawHandleLexemeScope&)=delete;
+private:
+    dxfReader& m_reader;bool m_previous;
 };
 
 // Replace one parsed string field while charging its current logical value.

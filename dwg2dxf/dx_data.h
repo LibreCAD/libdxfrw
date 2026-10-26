@@ -22,6 +22,7 @@
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
 #include "dx_block_membership.h"
+#include "dx_compound_source_profile.h"
 
 #include <array>
 #include <cstddef>
@@ -1086,6 +1087,8 @@ private:
             const char* codePage{"UTF-8"}; // static compatibility selection, not raw declaration identity
             std::vector<dxfCompound::SourceState> sourceStates;
             std::vector<dxfCompound::SourceState> replayStates;
+            std::vector<dx_attdef_source::Audit> profiles;
+            bool profilesComplete{false};
             State state{State::Captured};
         };
         // Original BLOCK versus reconciled callback and distinct ENDBLK.

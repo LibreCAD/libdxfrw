@@ -541,6 +541,12 @@ set_tests_properties(libdxfrw_block_original_membership PROPERTIES
 add_test(NAME libdxfrw_compound_body_replay COMMAND libdxfrw_attdef_source_tests --compound-body)
 set_tests_properties(libdxfrw_compound_body_replay PROPERTIES
     LABELS "fast;dxf;block;compound;source;independent;generated" TIMEOUT 120)
+add_test(NAME libdxfrw_compound_source_profile COMMAND libdxfrw_attdef_source_tests --compound-profile)
+set_tests_properties(libdxfrw_compound_source_profile PROPERTIES
+    LABELS "fast;dxf;block;compound;source;profile;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_application_handle_width COMMAND libdxfrw_attdef_source_tests --application-width)
+set_tests_properties(libdxfrw_application_handle_width PROPERTIES
+    LABELS "fast;dxf;application;handles;source;generated" TIMEOUT 60)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

@@ -1056,25 +1056,6 @@ const DxfDimstyleVariableSpec* findDxfDimstyleVariableSpec(int code) {
     return nullptr;
 }
 
-class DxfRawHandleLexemeScope final {
-public:
-    explicit DxfRawHandleLexemeScope(dxfReader& reader)
-        : m_reader(reader), m_previous(reader.allowsWideHandleLexemes()) {
-        m_reader.setAllowWideHandleLexemes(true);
-    }
-
-    ~DxfRawHandleLexemeScope() {
-        m_reader.setAllowWideHandleLexemes(m_previous);
-    }
-
-    DxfRawHandleLexemeScope(const DxfRawHandleLexemeScope&) = delete;
-    DxfRawHandleLexemeScope& operator=(const DxfRawHandleLexemeScope&) = delete;
-
-private:
-    dxfReader& m_reader;
-    bool m_previous;
-};
-
 bool dxfKeywordEquals(std::string_view value, const char* keyword) {
     if (keyword == nullptr || value.size() != std::strlen(keyword))
         return false;

@@ -2871,6 +2871,7 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     const std::string_view appName = reader->getStringView();
     if (appName.size() <= 1 || appName.front() != '{')
         return false;
+    DxfRawHandleLexemeScope rawHandles(*reader);
 
     const bool isReactors = appName == "{ACAD_REACTORS";
     const bool isXDictionary = appName == "{ACAD_XDICTIONARY";
@@ -2920,6 +2921,8 @@ bool DRW_TableEntry::parseDxfGroups(int code,
                 && nextCode == 330;
             const bool isXDictionaryHandle = depth == 1 && isXDictionary
                 && nextCode == 360 && parsedXDictionary == 0;
+            if(depth==1&&((isReactors&&nextCode==330)||(isXDictionary&&nextCode==360))
+                &&!reader->requireTypedHandleString())return false;
             const std::uint32_t parsedHandle =
                 isReactorHandle || isXDictionaryHandle
                     ? reader->getHandleString() : 0u;

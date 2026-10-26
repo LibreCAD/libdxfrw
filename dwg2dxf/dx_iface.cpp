@@ -16738,7 +16738,7 @@ bool tableSourceRawSpellingsEqual(const DRW_RawDxfObject& raw, std::size_t byteC
     dxfRW::DxfObjectsWriteView view{};
     view.bytes=body; view.version=raw.m_version; view.binary=false; view.codePage="UTF-8";
     const bool equal=dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
-        [](std::uint32_t source,std::uint32_t& target) {target=source; return true;},false,byteCap);
+        [](std::uint32_t source,std::uint32_t& target) {target=source; return true;},false,byteCap,true);
     if (equal && validatedBody) *validatedBody=std::move(body);
     return equal;
 }
@@ -16808,7 +16808,7 @@ bool tableResourceSourceBody(const DRW_RawDxfObject& raw,std::size_t cap,std::st
     if(body.size()>bytes)return false;
     dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;view.binary=true;view.codePage="UTF-8";
     return dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
-        [](std::uint32_t source,std::uint32_t& target){target=source;return true;},false,cap);
+        [](std::uint32_t source,std::uint32_t& target){target=source;return true;},false,cap,true);
 }
 
 bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::Version version) {
@@ -18369,6 +18369,8 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
     // temporaries. Logical attempt allowance, not allocator capacity or RSS.
     std::size_t bytes=sizeof(CompoundBody)+16u*sizeof(void*),work=0u;
     if(!addAssociativeSlotBytes(count,2u*sizeof(dxfCompound::SourceState),bytes)
+        ||!addAssociativeSlotBytes(count,sizeof(dx_attdef_source::Audit),bytes)
+        ||!addAssociativeSlotBytes(groups,2u*sizeof(dx_attdef_source::Span),bytes)
         ||!addAssociativeSlotBytes(modelBytes,3u,bytes)||!addAssociativeSlotBytes(rawBytes,6u,bytes)
         ||!addAssociativeSlotBytes(groups,128u,work)||!addAssociativeRetainedBytes(bytes,work)
         ||source.compoundBodyRecords>source.maxCompoundBodyRecords||count>source.maxCompoundBodyRecords-source.compoundBodyRecords
@@ -18376,7 +18378,7 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         ||source.compoundBodyWork>source.maxCompoundBodyWork||work>source.maxCompoundBodyWork-source.compoundBodyWork){fail();return;}
     source.compoundBodyRecords+=count;source.compoundBodyBytes+=bytes;source.compoundBodyWork+=work;
     try {
-        CompoundBody body;body.membership=row.membership;body.dispatch=event.dispatch;body.sourceStates.reserve(count);body.replayStates.reserve(count);
+        CompoundBody body;body.membership=row.membership;body.dispatch=event.dispatch;body.sourceStates.reserve(count);body.replayStates.reserve(count);body.profiles.reserve(count);
         if(cData->headerC.hasDxfCodePageDeclaration()) {
             const auto selection=DRW_TextCodec::classifyCodePage(cData->headerC.dxfCodePageDeclaration());
             if(selection.selectedName)body.codePage=selection.selectedName;
@@ -18393,6 +18395,7 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         }
         if(body.sourceStates.size()!=count){fail();return;}
         (void)replayDxfCompoundBody(body);
+        body.profilesComplete=body.profiles.size()==count&&std::all_of(body.profiles.begin(),body.profiles.end(),[](const auto& p){return p.complete();});
         auto frozen=std::make_shared<const CompoundBody>(std::move(body));
         if(!row.compoundBodies.emplace(event.dispatch,std::move(frozen)).second)fail();
     }catch(...){fail();}
@@ -18410,6 +18413,9 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment) {
             raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);
         }
+        auto profile=dx_compound_source::audit(raw,parent);
+        if(!dx_compound_source::restorePhysicalIndices(profile,physical)){source.compoundBodyCaptureFailed=true;return false;}
+        body.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,source.maxCompoundBodyBytes,wire))return false;
         dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=raw.m_version;view.binary=audit.delivery->binary;view.codePage=body.codePage;
         dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);
@@ -18476,6 +18482,12 @@ bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,st
     const auto range=row.membership->ranges[dispatch];const auto& member=row.membership->members[range.first];
     return body.sourceStates.size()==range.next-range.first&&body.replayStates.size()==body.sourceStates.size()
         &&body.model->handle==member.self&&body.model->parentHandle==member.owner;
+}
+
+bool dx_iface::hasMatchedCompoundSource(const dx_data& data,std::uint32_t block,std::size_t dispatch) noexcept {
+    if(!hasMatchedCompoundBody(data,block,dispatch))return false;
+    const auto& body=*data.m_tableDxfSource.blockSources.at(block).compoundBodies.at(dispatch);
+    return body.profilesComplete&&body.profiles.size()==body.replayStates.size();
 }
 
 bool dx_iface::chargeAttdefOrigin(std::size_t bytes,std::size_t work,bool record) noexcept {

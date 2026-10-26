@@ -89,17 +89,25 @@ template<class Mapper> bool rawScalarTransportEqual(
         const std::vector<DRW_Variant>& source, std::string_view body,
         const dxfRW::DxfObjectsWriteView& view, Mapper&& map,
         bool materialColors = false,
-        std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes) {
+        std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes,
+        bool literalSourceHandles = false) {
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
         std::make_shared<DxfReadRetainedBudget>(retainedByteBudget));
     if (!reader) return false;
     reader->setMaterialUnsignedColorValues(materialColors);
+    if(literalSourceHandles)reader->setAllowWideHandleLexemes(true);
     for (const auto& value : source) {
         int code = 0;
         if (!reader->readRec(&code) || code != value.code()) return false;
         if (isDxfHandleCode(code)) {
             if (value.type() != DRW_Variant::STRING || !value.content.s) return false;
+            // Source reconstruction must retain exact lexical values, including
+            // opaque/arbitrary wide IDs. This opt-in is NOT output remap proof.
+            if(literalSourceHandles) {
+                if(reader->getStringView()!=*value.content.s)return false;
+                continue;
+            }
             std::uint32_t key = 0u, expected = 0u;
             const auto& token = *value.content.s;
             const auto parsed = std::from_chars(token.data(), token.data() + token.size(), key, 16);
