@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ez structured DXF TABLE Value retention (2026-10-26; normal validation open):** bounded typed payload/format/display retention preserves legacy block/attribute association. Owning checks pass6/6 and affected ASan `-O1` checks pass97/97; the normal cohort passes95/97, followed by a passing export-reuse retry but repeated unresolved CELLSTYLEMAP proof timeouts. Both13-target builds pass; there is no all-green normal claim. Independent full Value/output profiles, row overrides, dependencies and consumer/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ez-structured-dxf-table-value-retention-2026-10-26) · [checkpoint receipt](docs/research/rpp5ez-structured-table-value-retention-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fa observed DXF TABLE Value forms and focused proof recovery (2026-10-26; verified selected scope):** pinned ASCII inventories identify164 envelopes in eight TABLE records and14 metadata forms per revision. The reader now retains witnessed flag bits, absent point counts,16-byte date carriers and suppressed empty Unknown0 without inferring native/calendar semantics.264 new authored controls and final43/43 normal plus43/43 ASan checks pass; the previously failing normal proof also passes a matched-flags focused retry with unchanged coverage/caps. Historical timeout cause, independent Value/output profiles, row overrides and broader/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fa-observed-dxf-table-value-forms-and-focused-proof-recovery-2026-10-26) · [receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5ez structured DXF TABLE Value retention (2026-10-26; normal validation open):** bounded typed payload/format/display retention preserves legacy block/attribute association. Owning checks pass6/6 and affected ASan `-O1` checks pass97/97; the normal cohort passes95/97, followed by a passing export-reuse retry but repeated unresolved CELLSTYLEMAP proof timeouts. Both13-target builds pass; there is no all-green normal claim. Independent full Value/output profiles, row overrides, dependencies and consumer/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ez-structured-dxf-table-value-retention-2026-10-26) · [checkpoint receipt](docs/research/rpp5ez-structured-table-value-retention-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5ey TABLE export reuse and borrowed source identities (2026-10-26; verified):** a positive-only reproduction isolates a TABLE handle changing from0x500 to0x33 while its 2D INSERT projection remains0x500. Semantic TABLE output now uses the existing ordinary borrowed-entity identity guard, preserving root/linked source IDs across successful output and failed/corrected attempts. The owning matrix passes120 authored/imported profiles and360 repeated/cross-format readbacks,120 post-success refusal/corrections and finite late/allocation failures. Final affected cohorts pass96/96 normally and96/96 under ASan `-O1`. Full TABLE value/override/dependency/output/native work remains open. [Implementation and next work](#implementation-progress-rpp-5ey-table-export-reuse-and-borrowed-source-identities-2026-10-26). No support gate is promoted.
 
@@ -131086,6 +131088,13 @@ mutation is included.
 State: **implemented; owning and affected ASan checks verified; normal
 CELLSTYLEMAP proof timeout remains open**. This is an implementation checkpoint,
 not completed normal integration or full TABLE/format qualification.
+
+**Later status:** RPP-5fa below supplies passing focused parent/current checks
+and a current-source43/43 affected normal cohort without changing coverage/caps.
+This paragraph and its receipt retain the historical `fcdb3d05` checkpoint state;
+the normal timeout is no longer an active failing validation gate. Its original
+cause is not established by the later passing results and stays in performance
+follow-up work. There is no retrospective97/97 normal-cohort claim.
 RPP-5ey is committed as `d5fa40f6`. This slice addresses the next reader
 prerequisite, not the full TABLE value/row-override/output objective.
 
@@ -131221,3 +131230,125 @@ matches. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linu
 Windows FreeCAD and independent ACIS/ACDS semantic/kernel checks are **NOT_RUN**.
 The full objective remains active and incomplete. No support promotion or remote
 mutation is included.
+
+## Implementation progress — RPP-5fa observed DXF TABLE Value forms and focused proof recovery (2026-10-26)
+
+State: **verified for the selected reader/transport scope**. RPP-5ez is committed
+as `fcdb3d05`. This slice restores a passing normal proof result and fixes
+producer-shaped Value field-completeness gaps; it does not complete independent
+Value/output profiles, TABLE row overrides or the full plan.
+
+- [x] Materialize exact parent `d5fa40f6` in an isolated source archive and build
+  the existing proof target with the same compiler/test flags. Preserve the
+  original `fcdb3d05` executable before rebuilding the working source. Both
+  `mapSourceProofTests` bodies hash to the same value. Serial existing60s-cap
+  checks pass: **parent50.71s, fcdb3d05 41.86s**. Both report all **eight** routes,
+  **387** typed mutation kinds, **3,096** mismatch/recovery pairs, **88** raw
+  refusal/recoveries, **64** boundaries and **24** callback controls. No test
+  coverage/cap/flags are weakened. This supplies the missing passing focused
+  result; one ordered pair under changing external load does not establish the
+  historical timeout's cause or a controlled performance comparison.
+- [x] Add bounded, mandatory-hash/revision-pinned ASCII source inventory in
+  `tools/audit_dxf_table_values.py`. It reports metadata/code sequences/counts,
+  never drawing text, coordinates, IDs or binary bytes. Four exact public
+  ACadSharp corpus files at commit `3a52a52047e84670759c1f9ad3916ec3ce85ff56`
+  contain **164** envelopes in **eight** TABLE records, with **14** metadata
+  shapes per revision (AC1021/AC1024/AC1027/AC1032). Actual original producer
+  identity is not independently qualified. These are structural observations,
+  not native CAD/kernel, DWG counterpart, binary-source or general format proof.
+- [x] Reproduce the old local-completeness refusal with an authored flags6
+  string envelope. Source inventory additionally proves flags4/5/6/7, a
+  nonempty3D point with no size tag, a16-byte date carrier and suppressed empty
+  Unknown0 forms. Retain witnessed flag bits0..2 without inventing their meaning;
+  only bit0 controls the payload of these DXF envelopes. An absent point count
+  stays absent/model0; an explicit zero/wrong count remains incomplete. Retain
+  8/16-byte date carriers exactly without guessing calendar encoding/epoch.
+  Suppressed empty Unknown0 is not an unknown payload; unsuppressed Unknown0,
+  General512, unproved flags/units/widths and malformed fields stay unqualified.
+  No native DWG parser/layout, public type layout or callback change.
+- [x] Add **264** runtime-authored producer-shaped and isolated primitive cases
+  beside the existing216 Value cases. The2D no-size point is explicitly a reader
+  extension, not an original producer witness. Extend exact/one-under owned-byte
+  boundaries to **28**, with a112-offset finite schedule: **14 reached failures,
+  98 unreached offsets** in both configurations. Add explicit-zero coordinate
+  size refusal/correction, bringing malformed-envelope retries to **68**. Keep
+  **24** node boundaries, **eight** marker corrections, **four** block-content
+  associations and **four** cell/3D-LINE alignment retries. Legacy associations
+  and closed independent-profile/output assertions remain intact.
+- [x] Independently inventory scope, not every numeric tag globally. The corpus
+  caught an initial tool error: XRECORD uses102 as ordinary payload. Restrict
+  application-delimiter interpretation to TABLE, preserving opaque/nested
+  application lookalikes and outside-family markers. The final fast self-test
+  passes **nine positives/18 refusals**, including hash/version/budget/binary/
+  truncation/marker/metadata/hex/scope controls. Final pinned inventories all pass.
+- [x] Preserve failure evidence and self-unblock. The interrupted temporary
+  parent checkout/logs were confirmed absent, so no result was inferred; regenerate
+  evidence under the ignored build directory instead. Retain the producer red
+  run, scope-refusal log and premature-before-configure Ninja dispatch; the latter
+  retries only after the same configure operation finishes. A pure-Python scope
+  correction refreshes the final source manifest; its saved predecessor differs
+  only on that script, not compiled C++ sources. No other job/worktree is reset.
+
+Final builds of all **eight** affected targets pass normally and with fresh
+Debug/`-O1`/ASan, including the LibreCAD_3 compile-only consumer guard. Owning
+checks pass **9/9 in10.30s** before final Python scope controls; final direct and
+cohort runs verify the nine/18 self-test. Exact affected cohorts pass **43/43
+normally in70.86s**, then **43/43 under ASan in40.79s**, both with two workers and
+zero failures/skips/disabled tests. The cohort covers all34 selectors of the
+owning TABLE executable plus nine inventory/legacy/consumer/CLI/graph checks;
+unaffected prior97-cohort selectors are not repeatedly rerun. Registered selected
+names/order match across configurations, executed sets match the selection, and
+owning Value/inventory/CELLSTYLEMAP counters match. The final source manifest is
+unchanged through both runtimes. Existing assertions, warnings and limits remain;
+normal runtime finishes before ASan. These are affected checks, not a full suite,
+formal ABI, native application or performance qualification. Historical RPP-5ez
+timeouts remain recorded; no retrospective97/97 normal-cohort claim is made.
+
+The [receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json)
+records source hashes, metadata-only inventories, exact names/counters, paired
+observations, retained failures and limits. No external drawing payload,
+conversion or fixture derivative is committed. Native/reference implementations
+remain separate evidence: an inconsistent peer Value macro is not used to infer
+the DXF payload-suppression or point-size rules.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Independent complete original Value profiles and roles.** Extend
+   `dwg2dxf/dx_table_source_profile.h` with a bounded original-scalar state machine
+   derived from pinned source forms, not tolerant parser success. Keep legacy
+   text, structured payload, format/cache, explicit presence/order/chunking,
+   suppressed-null and absent-vs-explicit-zero counts separate. Require complete
+   tuples/counts/metadata and canonical closure. Account for actual block-cell
+   empty Values without inventing text/ATTDEF slots. Assign a distinct value330
+   soft-object role, not structural owner330/FIELD344; bind real original targets
+   and both callback snapshots. Unknown source kinds/producer mappings stay
+   unqualified. Add original scalar/type/order/reference/missing/duplicate/
+   cross-import/budget/fault/corrected-retry controls across scopes and encodings.
+2. [ ] **Exact Value emission and TABLE row/border overrides.** Only extend
+   writing after physical/profile/reference proof. Verify independent emitted
+   fields, remapping/readback, refusal/rollback/retry/destination safety and
+   edited-model behavior. Establish producer/version scope/order for repeated
+   title/header/data row formats, datatypes/units and border overrides before
+   modeling them. Do not transplant native DWG byte counts into DXF or infer date
+   calendar/epoch or General512 semantics from a bounded byte carrier.
+3. [ ] **Dependencies and complete B2b/B3/C parity.** Close TABLESTYLE, geometry/
+   cell BLOCK_RECORD, FIELD, cell ATTDEF, STYLE/APPID/LAYER/object/application/
+   proxy/codepage/nested INSERT targets and all original/live/edited/emitted
+   fields/names/references, remap/readback/rollback/retry/destination, IMAGE/
+   document/native bit/decimal/carrier/schema/owner and memory/performance work.
+   The historical proof-timeout cause remains unestablished performance work,
+   not an active failing normal gate or a demonstrated code regression.
+4. [ ] **Consumers/external qualification and continued self-update.** Preserve
+   LibreCAD/LibreCAD_3 2D/3D and dwg2dxf/FreeCAD behavior. Obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence. Keep fast
+   owning validation per edit and exact risk-based affected cohorts at integration;
+   keep builds separate from final runtimes, preserve failures, self-update/
+   unblock/commit/report each verified slice, and commit no external fixtures or
+   derivatives. Do not substitute source inventories or local flags for support.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false`, `outputEligible=false`, and extended
+structured Value `profilesMatched=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full objective stays active
+and incomplete; no support promotion or remote mutation is included.

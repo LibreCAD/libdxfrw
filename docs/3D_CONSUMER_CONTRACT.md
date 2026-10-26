@@ -165,10 +165,23 @@ Value stays attached to its existing block content, without fabricating a text
 or ATTDEF slot. Legacy string-only and multi-content block/attribute associations
 remain distinct. Exact `ACVALUE_END`, required metadata, size/tuple consistency
 and bounded resynchronization govern local completeness; that parser flag is
-not independent semantic qualification. Unknown0 and General512 remain locally
-incomplete; bounded General raw-byte retention does not establish its producer
+not independent semantic qualification. Suppressed empty Unknown0 envelopes have
+no unknown payload to decode; unsuppressed Unknown0 and General512 remain locally
+incomplete. Bounded General raw-byte retention does not establish its producer
 mapping. Byte/node admission and finite reached allocation-failure controls cover
 selected operations; binary mirror/display construction commits together.
+
+Hash-pinned original ASCII samples additionally witness flags4/5/6/7, a3D point
+without a size tag, and a16-byte date carrier. The DXF reader preserves these
+flag bits without interpreting them; only bit0 controls payload suppression in
+these envelopes. Points retain an absent count as zero rather than inventing a
+native byte count; an explicitly supplied zero/wrong count remains incomplete.
+The analogous2D no-size point is a tested reader extension, not an original
+producer witness. Date8/16-byte values remain exact raw/BINARY carriers: neither
+calendar encoding nor epoch, native DWG parity or other widths are qualified.
+The bounded hash-pinned `tools/audit_dxf_table_values.py` reports schema metadata
+and counts only, with application-scope isolation and no drawing payload output.
+This source inventory and local completeness do not promote a support claim.
 
 The independent profile still refuses these extended envelopes. Complete original
 scalar/reference profiles, actual producer/version evidence, row/border overrides,

@@ -10881,8 +10881,11 @@ bool DRW_Table::finishDxfCellValue(const std::unique_ptr<dxfReader>& reader) {
     auto* content=dxfValueContent();if(!content||!reader)return false;
     auto& value=content->m_value;const auto budget=reader->retainedByteBudget();
     const auto required=ValueFlags|ValueType|ValueUnits|ValueFormat|ValueCache;
+    // Pinned DXF producer envelopes use4/5/6/7 as well as the older0..3.
+    // Only bit0 suppresses their payload; preserve the other witnessed bits
+    // without interpreting them or inferring a native DWG flag profile.
     bool complete=(m_dxfValueFields&required)==required
-        &&(value.m_formatFlags&~3)==0&&hasDocumentedTableCadValueUnits(value);
+        &&(value.m_formatFlags&~7)==0&&hasDocumentedTableCadValueUnits(value);
     const bool binary=!(value.m_formatFlags&1)&&(value.m_dataType==8||value.m_dataType==512)
         &&(m_dxfValueFields&ValueSize);
     if(value.m_formatFlags&1) {
@@ -10893,20 +10896,24 @@ bool DRW_Table::finishDxfCellValue(const std::unique_ptr<dxfReader>& reader) {
     case 4:complete=complete&&value.m_value.type()==DRW_Variant::STRING;break;
     case 8:case 512:
         complete=complete&&binary&&value.m_dataSize==value.m_rawData.size()
-            &&value.m_dataType==8&&value.m_dataSize==8u;
+            &&value.m_dataType==8&&(value.m_dataSize==8u||value.m_dataSize==16u);
         break;
     case 16:case 32: {
         const auto coordinates=ValueX|ValueY|(value.m_dataType==32?ValueZ:0u);
-        complete=complete&&(m_dxfValueFields&coordinates)==coordinates&&(m_dxfValueFields&ValueSize)
-            &&value.m_value.type()==DRW_Variant::COORD&&value.m_dataSize==(value.m_dataType==16?16u:24u);
+        // Observed DXF points omit the native byte-count field. Do not invent a
+        // count; validate an explicitly supplied count separately from absence.
+        complete=complete&&(m_dxfValueFields&coordinates)==coordinates
+            &&value.m_value.type()==DRW_Variant::COORD&&(!(m_dxfValueFields&ValueSize)
+                ||value.m_dataSize==(value.m_dataType==16?16u:24u));
         break;
     }
     case 64:complete=complete&&(m_dxfValueFields&ValuePayload)&&value.m_value.type()==DRW_Variant::INTEGER;break;
     default:complete=false;break;
     }
-    // Unknown and General DXF values do not acquire semantics from a bounded
-    // byte carrier. The full producer mapping remains independent evidence.
-    if(value.m_dataType==0||value.m_dataType==512)complete=false;
+    // A suppressed Unknown is an observed empty envelope, not an unknown
+    // payload. Unsuppressed Unknown/General still lack qualified semantics.
+    // Date bytes remain opaque:8/16-byte carriers do not establish an epoch.
+    if((value.m_dataType==0&&!(value.m_formatFlags&1))||value.m_dataType==512)complete=false;
     const auto display=!binary&&value.m_value.type()==DRW_Variant::STRING
         ?std::string_view(*value.m_value.content.s):std::string_view(value.m_valueString);
     if(display.size()>kMaxTableStringBytes)return false;

@@ -1,0 +1,372 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5fa",
+  "date": "2026-10-26",
+  "state": "VERIFIED_SELECTED_READER_TRANSPORT_SCOPE",
+  "title": "Observed DXF TABLE Value forms and focused proof recovery",
+  "parentCommit": "fcdb3d05b61233656855c6784185e065fcfc7970",
+  "scope": "Local DXF Value completeness/retention for observed flag/point/date/null forms, independent metadata inventory and focused normal-proof recovery. Not full independent Value/output profiles, row overrides, dependency closure, native DWG parity or semantic/kernel qualification.",
+  "sourceEvidence": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "origin": "Pinned public sample corpus; actual original producer identity is not independently verified.",
+    "files": [
+      {
+        "repositoryPath": "samples/sample_AC1021_ascii.dxf",
+        "sha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+        "bytes": 2633018,
+        "declaredVersion": "AC1021",
+        "tableRecords": 2,
+        "valueEnvelopes": 41,
+        "metadataForms": 14,
+        "inventory": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1021.json"
+      },
+      {
+        "repositoryPath": "samples/sample_AC1024_ascii.dxf",
+        "sha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+        "bytes": 2591600,
+        "declaredVersion": "AC1024",
+        "tableRecords": 2,
+        "valueEnvelopes": 41,
+        "metadataForms": 14,
+        "inventory": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1024.json"
+      },
+      {
+        "repositoryPath": "samples/sample_AC1027_ascii.dxf",
+        "sha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+        "bytes": 2572072,
+        "declaredVersion": "AC1027",
+        "tableRecords": 2,
+        "valueEnvelopes": 41,
+        "metadataForms": 14,
+        "inventory": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1027.json"
+      },
+      {
+        "repositoryPath": "samples/sample_AC1032_ascii.dxf",
+        "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+        "bytes": 2566547,
+        "declaredVersion": "AC1032",
+        "tableRecords": 2,
+        "valueEnvelopes": 41,
+        "metadataForms": 14,
+        "inventory": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1032.json"
+      }
+    ],
+    "totalTableRecords": 8,
+    "totalValueEnvelopes": 164,
+    "metadataFormsPerRevision": 14,
+    "findings": [
+      "Flags4/5/6/7 appear in actual structured DXF envelopes; raw bits are retained, not semantically interpreted.",
+      "Nonempty3D point type32 has11/21/31 and no92 size tag.",
+      "Date type8 has92 count16 and16 raw310 bytes; no calendar/epoch interpretation is inferred.",
+      "Suppressed empty Unknown0 has flags7 and no payload."
+    ],
+    "limits": "ASCII source shape observations only. No drawing text, coordinates, handles, date/binary bytes, converted drawings or fixture derivatives are committed. Not independent native geometry, DWG counterpart, original producer qualification or binary-source corroboration.",
+    "payloadsEmittedByInventory": false,
+    "supportClaimPromotion": false
+  },
+  "references": [
+    {
+      "kind": "authoritative native DWG layout; not a complete DXF schema",
+      "version": "ODA Open Design Specification v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "physicalPages": [
+        229,
+        230,
+        231,
+        232,
+        233,
+        241
+      ],
+      "effect": "Keep native layout/counts separate from actual DXF evidence and keep date bytes opaque; no DWG parse-body or layout edit."
+    },
+    {
+      "kind": "official older TABLE DXF roles",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "limits": "Legacy/common field roles, not a complete structured Value specification."
+    },
+    {
+      "kind": "independent implementation advisory, not a qualified layout oracle",
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "path": "src/dwg_spec_shared.h",
+      "sha256": "fce80dd4c234293ef9a5bf3acc3ffeb13efce67bd60bb127a961bba0b06ef91c",
+      "observation": "Active macro uses format_flags&3 and point size92; this disagrees with the observed DXF flags6 payload/no-size point. Do not transplant this whole macro into TABLE DXF or treat it as independent semantic qualification."
+    }
+  ],
+  "timingFollowup": {
+    "priorReceipt": "docs/research/rpp5ez-structured-table-value-retention-2026-10-26.json",
+    "result": "PASSING_FOCUSED_NORMAL_RETRY_AND_CURRENT_AFFECTED_NORMAL_COHORT_OBTAINED",
+    "parentCommit": "d5fa40f6bf4e02aaae7f6240293333c841587bff",
+    "currentFrozenCommit": "fcdb3d05b61233656855c6784185e065fcfc7970",
+    "compiler": "/usr/bin/clang++",
+    "testFlags": "-std=c++17 -Wall -Wextra -pedantic -Werror; no optimization flag",
+    "matchedTestFunctionSha256": "b413aa958962d5042e2e5f860ecc4297ab1a9bb144b8c8e8d6ab2a32b069c099",
+    "frozenCurrentExecutableSha256": "bfffb106dc4fe6d189efcdc81ad7894f3995c573b2bfb363e4724b31834f055a",
+    "parentExecutableSha256": "792be75e53a5dafb29a282f69ffbcf70e56325a8704ecab5ffb467b850be9bb8",
+    "order": [
+      "parent",
+      "frozen fcdb3d05"
+    ],
+    "parentSeconds": 50.71,
+    "currentSeconds": 41.86,
+    "unchangedLimitSeconds": 60,
+    "counters": {
+      "revisionEncodingRoutes": 8,
+      "typedMutationKinds": 387,
+      "mismatchRecoveryPairs": 3096,
+      "rawRefusalRecoveryPairs": 88,
+      "boundaries": 64,
+      "callbackRecoveryControls": 24
+    },
+    "limits": "One ordered pair with the same compiler/test flags and identical test function, but external load/thermal/host conditions are not controlled. No historical cause, statistical performance/no-regression or retrospective97/97 normal-cohort claim. Historical cause remains performance follow-up, not an active failing normal gate."
+  },
+  "implementation": [
+    "Accept witnessed0..7 DXF flag scalars for local field completeness, preserving bits1/2 uninterpreted and using only bit0 to suppress payload. Unproved flag/units still withhold completeness.",
+    "Accept complete no-size point tuples without inventing m_dataSize. Explicit zero/wrong count still fails local completeness. The2D no-size point is a tested reader extension, not an original producer witness.",
+    "Retain8/16-byte date raw/BINARY carriers exactly, without interpreting time/calendar/epoch or qualifying other widths.",
+    "Accept a fully suppressed empty Unknown0 envelope while retaining unsuppressed Unknown0/General512 incompleteness.",
+    "Keep independent physical profiles/output guards closed; legacy writer rejects nondefault flags/metadata and nonstring typed values. No public header/type layout, callback, native DWG parser or native flag-profile change."
+  ],
+  "controls": {
+    "existingTypedValueProfiles": 216,
+    "newProducerShapedAndIsolatedPrimitiveControls": 264,
+    "revisions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "legacy Binary",
+      "modern Binary"
+    ],
+    "scopes": [
+      "main ENTITIES",
+      "ordinary named BLOCKS"
+    ],
+    "exactOneUnderByteBoundaries": 28,
+    "nodeBoundaries": 24,
+    "canonicalMarkerCorrections": 8,
+    "malformedEnvelopeCorrectedRetries": 68,
+    "emptyBlockAssociations": 4,
+    "nextCellFollowing3DLineRetries": 4,
+    "allocationSchedule": {
+      "totalOffsets": 112,
+      "normalReachedFailures": 14,
+      "normalUnreachedOffsets": 98,
+      "asanO1ReachedFailures": 14,
+      "asanO1UnreachedOffsets": 98,
+      "limits": "Finite selected operation schedule including16-byte date close; not all allocation sites/orderings. Unreached offsets are not fault evidence."
+    },
+    "inventorySelfTest": {
+      "positive": 9,
+      "refused": 18,
+      "dependencies": "Python standard library only",
+      "boundedBytes": 16777216,
+      "boundedRecords": 1000000,
+      "applicationNesting": 32,
+      "scope": "TABLE only; XRECORD102 stays ordinary data, opaque/nested applications and outside-family markers cannot forge selected Value counts."
+    },
+    "externalDrawingPayloadsOrDerivativesCommitted": false,
+    "authoredRuntimeTestDataOnly": true,
+    "limits": "Local field/transport/replay evidence, not full semantic or original independent Value/output/dependency/native/kernel support."
+  },
+  "development": [
+    {
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/producer-red-ctest.log",
+      "passed": 1,
+      "failed": 1,
+      "seconds": 2.11,
+      "observation": "New producer form0 (flags6 string) fails local completeness before the reader change; inventory self-test passes. Red run stops at first producer form; other shape gaps are independently observed and covered by final positives."
+    },
+    {
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/owning-green-ctest.log",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 10.3,
+      "observation": "Reader owning matrix passes before final Python application-scope refinements; final43 cohorts verify the final9-positive/18-negative self-test."
+    },
+    {
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-scope-first-failure.log",
+      "exitCode": 2,
+      "observation": "Overbroad inventory treats every102 as an application delimiter and rejects XRECORD payload. Restrict interpretation to TABLE and add explicit outside-family102 control; final four source inventories pass."
+    },
+    {
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-before-configure-terminal.log",
+      "exitCode": 1,
+      "observation": "Build dispatched before configure produced build.ninja; not a compiler/source failure. Wait for that same configure operation to finish, preserve failure, then build successfully."
+    },
+    {
+      "observation": "After deliberate interruption, old temporary parent/peer directories and session handle were authoritatively absent. No parent result inferred; regenerate exact pinned sources and comparison in ignored workspace build evidence. No other job or user worktree reset."
+    }
+  ],
+  "validation": {
+    "scope": "Risk-based affected integration, not full-project or a repeated unaffected97-selector cohort. All34 selectors of owning TABLE executable plus nine inventory/legacy/graph/2D/3D/CLI checks.",
+    "targets": [
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_field_retained_budget_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dxf_fixture_tests"
+    ],
+    "normalBuildPassed": true,
+    "asanO1BuildPassed": true,
+    "normal": {
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 70.86,
+      "parallelism": 2,
+      "exitCode": 0,
+      "exactExecutedNameSetMatches": true,
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-normal-ctest.log"
+    },
+    "asan": {
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 40.79,
+      "parallelism": 2,
+      "exitCode": 0,
+      "optimization": "-O1",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "exactExecutedNameSetMatches": true,
+      "log": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-asan-ctest.log"
+    },
+    "registeredSelectedNamesAndOrder": [
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_layout_source_proof",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_original_layout_roles",
+      "libdxfrw_original_entities_roles",
+      "libdxfrw_original_block_roles",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_table_block_source_transport",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_table_original_bodies",
+      "libdxfrw_table_original_profiles",
+      "libdxfrw_table_value_metadata_scopes",
+      "libdxfrw_table_export_reuse",
+      "libdxfrw_table_value_payload",
+      "libdxfrw_table_value_inventory_selftest",
+      "libdxfrw_layout_graph_read_contract",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "identicalRegisteredNamesAndOrderAcrossConfigurations": true,
+    "exactExecutedNameSetsMatchSelection": true,
+    "owningCountersMatchAcrossConfigurations": true,
+    "owningCounterLines": [
+      "CELLSTYLEMAP proof: 8 routes; 387 typed mutation kinds; 3096 mismatch/recovery pairs; 88 raw refusals/recoveries; 64 boundaries; 24 callback/recovery controls; exact roles and immutable cache",
+      "TABLE Value inventory: 9 positives; 18 refusals; no payload/support promotion",
+      "TABLE structured value profiles=216; canonical marker refusals/corrections=8; exact/one-under value byte limits=28; reached value allocation faults=14; unreached offsets=98; node limits=24; malformed envelope retries=68; associated empty block values=4; cell/LINE alignment retries=4; producer-shaped Value controls=264"
+    ],
+    "sourceManifest": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/sources-before.sha256",
+    "sourceManifestUnchangedThroughBothRuntimes": true,
+    "sourceCheck": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-source-check.log",
+    "preScopeFixManifest": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/sources-before-inventory-scope-fix.sha256",
+    "manifestRefresh": "Only pure-Python inventory source hash changes after corpus scope correction; compiled C++ sources unchanged, final freeze before both runtimes.",
+    "normalRuntimeCompletedBeforeAsanRuntime": true,
+    "buildsCompletedBeforeFinalRuntimes": true,
+    "configurations": "Existing normal build; fresh separate Debug/-O1/-fsanitize=address/-fno-omit-frame-pointer. No new passing original Debug/O0 ASan claim.",
+    "asanBuildDirectory": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build",
+    "warningPolicy": "Existing owning warnings/-Werror, assertions and time caps retained; no suppression.",
+    "compatibility": "Both configurations build the LibreCAD_3 compile-only guard and pass selected legacy TABLE,2D/3D and dwg2dxf/FreeCAD CLI checks. Not formal ABI/native application qualification.",
+    "notAControlledPerformanceComparison": true
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "outputEligible": false,
+    "extendedStructuredValueProfilesMatched": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportClaimPromotion": false,
+    "remoteMutation": false
+  },
+  "next": [
+    "Finish independent original Value scalar/presence/order/chunk/reference profiles and role joins; distinguish payload330 from owner330/FIELD344 and validate real original targets and both callbacks.",
+    "Add exact independent Value emission/remapping/readback/rollback/retry/destination/edit proof, and establish table-global row/border override scopes. Unknown/native/calendar/General mappings remain unqualified.",
+    "Close TABLESTYLE/BLOCK_RECORD/FIELD/ATTDEF/common/application/proxy/codepage/nested INSERT targets and complete B2b/B3/C source/live/edited/emitted/IMAGE/document/native/carrier/schema/owner/memory/performance work, retaining historical timing-cause follow-up.",
+    "Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD2D/3D consumers; obtain native Linux/Windows and independent ACIS/ACDS semantics/kernel evidence. Keep full goal active, self-update/unblock/commit/report safe verified slices and commit no external fixtures/derivatives."
+  ],
+  "fileSha256": {
+    "src/drw_entities.cpp": "d03339863d569ff5e02e44d66e72d8d939e3c8904aa2d693de92b983c9908bcb",
+    "tests/CMakeLists.txt": "566c2882f92bf62dd5c33f09f4e4cc7caafcb1dea5442f763c68c5690a592b77",
+    "tests/table_value_payload_controls.h": "d98a83fc23e3c90a8b81db358514cdd12267706639099faa540ad388583eef3b",
+    "tools/audit_dxf_table_values.py": "43c144b1db939f1cf857a815da3b98caea56a828fe4ed2de19a9e6f5a2aa4419",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/parent-configure.log": "d972dbc38a489e88756ef626b7d1df3bfccd08faf79db45325aa878e4f7f3d42",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/parent-build.log": "9bfc629abd1c863edbe54e4014a7d8ef50ed86ba0b08198a16bc8e2bb570a316",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/parent-A.log": "3226dc9e7797c5b009b184ead669f0f27d138b3d969f21c5ee89988ad34ab736",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/parent-A-lasttest.log": "5cd6487cf49500762cb0401dbb3fbd9c7174938b9255ec48816b2982444d6a4d",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/current-B.log": "3aec06522f085cd02f3527bf46ffc27667491ef5c8f6ea1b8db412a8118d9523",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/current-B-lasttest.log": "bacff8c7c10e32de9cbe51c982674626e7ae5a0de9056034845050bf7d897da5",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/producer-red-build.log": "7e8c22da0f2ff759341dfda1826956b03e24b7e91285a6c90743729c392237a0",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/producer-red-ctest.log": "7170d53ec18e26325066b9b09b12b7d8738c30f945e90207d0d76698a4671de3",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/producer-red-lasttest.log": "06f96677feec189e1a135c2a9bfe8f4f1005f1e73e9f0499bf1c2d42923c98c6",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/owning-final-build.log": "0f18d590d6811aaae22b829fe178276f44097dd4ac86e538ede79c4abc3b46b7",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/owning-green-ctest.log": "13745711da4f0ec1e90d5ee620a1a9539a1b64d6be8b90f9e38beb3e46529b85",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/owning-green-lasttest.log": "85d8913473e66cbb04fdcec8a5d7013e494528385606ef6c1bcc66cac670736d",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-scope-first-failure.log": "0ec60e2190ce1e4a42288a1b43460026be038a93b3e7f9756d4ec77b8049b9a4",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-final-selftest.log": "64126d3211baac00f5414354da58da94a9cc303145390029b101ad49b44d5dd5",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/sources-before-inventory-scope-fix.sha256": "a2660ff6f1601c2db07d4bd967f4d1d3f8aeef76c6cc062c3d2e9ed65c98ceda",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/sources-before.sha256": "8851794b4d6f333432f40767bad36b8823f34fe455dae5ba5bde4509e7c7e9ac",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-normal-build.log": "acb15d1a471790aaf118965436b6e8f5972aa2d9472ff890376f5fefc17107c9",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-configure.log": "06b4854d354c76dd9f7d6b9d03294884383434ebaaa63f28abb7c3b81968b81e",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-before-configure-terminal.log": "2e7b73e6475d9deac6edae4dd8cd63bf2e3228fd26d8e75a90cff7c4e29aec21",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-asan-build.log": "4c2162368b38b935f41cd40186f4e83eabf1c94c2ff992e31a8b1f57513fe39b",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-normal-ctest.log": "1b15e07261405ab11cae3675f5e779bf864ab63296866f1b07f8d5b115c38cc1",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-normal-lasttest.log": "5d0b48285c484bbbeb5e7b61bf13caa313593dc4d494afd38b78a232065f11c5",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-asan-ctest.log": "568d9213370f02bb7b301f8d48b4ff4ff565c030f48546484da5ef15ca24f4ae",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-asan-lasttest.log": "6df72116e0ff41d725605ff9633a634cac5c3a70d6096b98aa20b67bf3b83178",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/final-source-check.log": "2cef5421098735fdd6d76a657ea40c191dca14183edf01c8d0fae41906e25fd6",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1021.json": "8c33054a6d549bf372faecee974c44572770e8e0e417161ec5e1cc7dfc21277e",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1024.json": "2f67eaac0e54d9520ad7c782af815c45d0a935ab39561e51716c56c90a401fb0",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1027.json": "79d2dc81cd20e477fb1458af63ef929391c583a7c46bb637d8bf5359d2ce20ea",
+    "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/inventory-AC1032.json": "4cc304cb8f4b7ac2b57c5e07eb26ab46dae089f0e5af68a3cf7f996de627cdf7"
+  }
+}

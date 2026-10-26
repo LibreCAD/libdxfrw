@@ -32,11 +32,13 @@ std::vector<TableValueOperation> tableValueOperations() {
     auto close=cache;close.push_back({302,"cache"});
     auto raw=prefix(8);raw.insert(raw.end(),{{92,"8"},{310,"00112233"}});
     auto binary=prefix(8);binary.insert(binary.end(),{{92,"8"},{310,"00112233AABBCCDD"},{94,"0"},{300,"F"},{302,"cache"}});
+    auto date16=prefix(8);date16.insert(date16.end(),{{92,"16"},{310,"00112233445566778899AABBCCDDEEFF"},{94,"0"},{300,"F"},{302,"cache"}});
     return {{"payload append",text,{2,std::string(512u,'x')},512u},
         {"format",format,{300,std::string(512u,'f')},512u},
         {"cache",cache,{302,std::string(512u,'c')},512u},
         {"raw bytes",raw,{310,"AABBCCDD"},4u},
         {"string close",close,{304,"ACVALUE_END"},3u},
+        {"16-byte date close",date16,{304,"ACVALUE_END"},21u},
         {"binary close",binary,{304,"ACVALUE_END"},13u}};
 }
 std::size_t tableValueOwned(const DRW_Table& model) {
@@ -105,7 +107,7 @@ bool tableValueBoundaryImports(const std::filesystem::path& path,unsigned& refus
         const auto good=tableValuePayloadDocument("AC1032",block,1);
         const auto retry=[&](dx_iface& reader) {dx_data fixed;return write(path,good,binary)&&reader.fileImport(path.string(),&fixed,false)
             &&fixed.tables.size()==1u&&fixed.tables.front().m_semanticContentComplete;};
-        for(unsigned fault=0u;fault<16u;++fault) {
+        for(unsigned fault=0u;fault<17u;++fault) {
             auto tags=tableValuePayloadDocument("AC1032",block,fault>=4u&&fault<=7u?8:1);
             bool accepted=true;const auto marker=blockField(tags,"501",301);
             switch(fault) {
@@ -119,12 +121,13 @@ bool tableValueBoundaryImports(const std::filesystem::path& path,unsigned& refus
             case 7:tags[after(tags,92)].value=std::to_string(DRW::kMaxDxfBinaryPayloadBytes+1u);accepted=false;break;
             case 8:tags=tableValuePayloadDocument("AC1032",block,64);tags[after(tags,330)].value="100000000";accepted=false;break;
             case 9:tags[after(tags,94)].value="32";break;
-            case 10:tags[after(tags,93)].value="4";break;
+            case 10:tags[after(tags,93)].value="8";break;
             case 11:tags[after(tags,93)].value="1";break;
             case 12:{const auto units=after(tags,94),cache=after(tags,302);const auto value=tags[cache];tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(cache));tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(units),value);break;}
             case 13:tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(after(tags,90)));break;
             case 14:tags[after(tags,90)].value="128";break;
-            default:tags=tableValuePayloadDocument("AC1032",block,32);tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(after(tags,21)));break;
+            case 15:tags=tableValuePayloadDocument("AC1032",block,32);tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(after(tags,21)));break;
+            default:tags=tableValuePayloadDocument("AC1032",block,32);tags[after(tags,92)].value="0";break;
             }
             dx_iface reader;dx_data data;if(!write(path,tags,binary)||reader.fileImport(path.string(),&data,false)!=accepted
                 ||(accepted&&(data.tables.size()!=1u||data.tables.front().m_semanticContentComplete
@@ -165,8 +168,51 @@ bool tableValueBoundaryImports(const std::filesystem::path& path,unsigned& refus
     }
     return true;
 }
+// New values are authored from scratch: producer-shaped envelopes plus isolated
+// primitive controls, never copied drawing text/coordinates/date data. The2D
+// no-size point is a reader extension, not an inventoried producer witness.
+bool tableValueProducerForms(const std::filesystem::path& path,unsigned& count) {
+    constexpr int types[]={4,2,1,0,32,8,1,32,8,0,16};
+    constexpr int flags[]={6,4,5,7,6,6,6,0,0,1,0};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+        for(unsigned encoding=0u;encoding<3u;++encoding)for(bool block:{false,true})for(unsigned form=0u;form<11u;++form) {
+            auto tags=tableValuePayloadDocument(version,block,types[form],flags[form]);
+            const auto field=[&](int code) {auto at=blockField(tags,"501",301)+1u;while(at<tags.size()&&tags[at].code!=code)++at;return at;};
+            if(form==4u||form==7u||form==10u)tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(field(92)));
+            if(form==5u||form==8u) {
+                const auto at=field(92);tags[at].value="16";tags[at+1u].value="00112233445566778899AABBCCDDEEFF";
+                tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at+2u));
+            }
+            if(flags[form]&1){tags[field(94)].value="0";tags[field(300)].value="";tags[field(302)].value="";}
+            dx_iface reader;dx_data data;
+            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||data.tables.size()!=1u
+                ||!data.tables.front().m_semanticContentComplete) {
+                std::cerr<<"TABLE producer Value form="<<form<<" revision="<<version<<" encoding="<<encoding<<" block="<<block<<'\n';return false;
+            }
+            const auto& table=data.tables.front();const auto& content=table.m_content.m_rows[0].m_cells[0].m_contents[0];const auto& v=content.m_value;
+            if(v.m_dataType!=types[form]||v.m_formatFlags!=flags[form]||table.m_tableOverrideFlags!=17u
+                ||table.m_borderColorOverrideFlags!=33u||table.parentHandle!=(block?0xB3u:0xB0u))return false;
+            if(flags[form]&1) {
+                if(v.m_value.type()!=DRW_Variant::INVALID||!v.m_rawData.empty()||v.m_dataSize
+                    ||v.m_unitType||!v.m_formatString.empty()||!v.m_valueString.empty()||!content.m_text.empty())return false;
+            } else {
+                if(v.m_unitType!=8||v.m_formatString!="value-format-é"||v.m_valueString!="display-cache-é"
+                    ||content.m_text!=(types[form]==4?"payload-é":"display-cache-é"))return false;
+                if((types[form]==16||types[form]==32)&&(v.m_dataSize||v.m_value.type()!=DRW_Variant::COORD||!v.m_value.coord()
+                    ||v.m_value.coord()->x!=1.5||v.m_value.coord()->y!=-2.5||v.m_value.coord()->z!=(types[form]==32?3.5:0.0)))return false;
+                if(types[form]==8) {
+                    const std::vector<std::uint8_t> bytes{0,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
+                    if(v.m_dataSize!=16u||v.m_rawData!=bytes||v.m_value.type()!=DRW_Variant::BINARY||!v.m_value.binary()||*v.m_value.binary()!=bytes)return false;
+                }
+            }
+            const auto report=dx_iface::tableBodyReport(data);
+            if(!report.modeledMatched||report.profilesMatched||report.ownerTargetsResolved||report.outputEligible)return false;
+            ++count;
+        }
+    return count==264u;
+}
 bool tableValuePayloadTests(const std::filesystem::path& dir) {
-    const auto path=dir/"table-value-payload.dxf";unsigned profiles=0u,markers=0u,bounds=0u,reached=0u,unreached=0u,nodes=0u,refusals=0u,associated=0u,aligned=0u;
+    const auto path=dir/"table-value-payload.dxf";unsigned profiles=0u,markers=0u,bounds=0u,reached=0u,unreached=0u,nodes=0u,refusals=0u,associated=0u,aligned=0u,producerForms=0u;
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool block:{false,true})
         for(int type:{0,1,2,4,8,16,32,64,512}) {
             dx_iface reader;dx_data data;
@@ -210,9 +256,11 @@ bool tableValuePayloadTests(const std::filesystem::path& dir) {
         for(bool under:{false,true}){if(!tableValueOperation(path,operation,binary,under,-1,reached,unreached))return false;++bounds;}
         for(long offset=0;offset<8;++offset)if(!tableValueOperation(path,operation,binary,false,offset,reached,unreached))return false;
     }
-    if(!tableValueNodeBoundaries(path,nodes)||!tableValueBoundaryImports(path,refusals,associated,aligned))return false;
+    if(!tableValueNodeBoundaries(path,nodes)||!tableValueBoundaryImports(path,refusals,associated,aligned)
+        ||!tableValueProducerForms(path,producerForms))return false;
     std::cout<<"TABLE structured value profiles="<<profiles<<"; canonical marker refusals/corrections="<<markers
         <<"; exact/one-under value byte limits="<<bounds<<"; reached value allocation faults="<<reached<<"; unreached offsets="<<unreached
-        <<"; node limits="<<nodes<<"; malformed envelope retries="<<refusals<<"; associated empty block values="<<associated<<"; cell/LINE alignment retries="<<aligned<<'\n';
-    return profiles==216u&&markers==8u&&bounds==24u&&reached>0u&&reached+unreached==96u&&nodes==24u&&refusals==64u&&associated==4u&&aligned==4u;
+        <<"; node limits="<<nodes<<"; malformed envelope retries="<<refusals<<"; associated empty block values="<<associated<<"; cell/LINE alignment retries="<<aligned
+        <<"; producer-shaped Value controls="<<producerForms<<'\n';
+    return profiles==216u&&markers==8u&&bounds==28u&&reached>0u&&reached+unreached==112u&&nodes==24u&&refusals==68u&&associated==4u&&aligned==4u&&producerForms==264u;
 }
