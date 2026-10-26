@@ -219,7 +219,8 @@ bool dxfWriter::observeRecordString(int code, std::string_view text) {
         m_sectionNamePending = false;
         return true;
     }
-    if (m_recordHandlePending && (code == 5 || code == 105)) {
+    if (m_recordHandlePending && m_recordApplicationDepth == 0
+        && (code == 5 || code == 105)) {
         std::uint32_t handle = 0;
         if (!parseDxfRecordHandle(text, handle)
             || m_emittedRecords.size() >= m_recordInventoryLimit) {
@@ -234,7 +235,7 @@ bool dxfWriter::observeRecordString(int code, std::string_view text) {
         m_recordOwnerPending = true;
         return true;
     }
-    if (m_recordOwnerPending && code == 102) {
+    if ((m_recordHandlePending || m_recordOwnerPending) && code == 102) {
         if (!text.empty() && text.front() == '{') {
             if (m_recordApplicationDepth == (std::numeric_limits<std::uint32_t>::max)()) {
                 m_recordInventoryFailure = true;

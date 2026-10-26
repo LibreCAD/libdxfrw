@@ -520,6 +520,11 @@ set_tests_properties(libdxfrw_block_source_proof PROPERTIES
 add_test(NAME libdxfrw_block_children_source COMMAND libdxfrw_attdef_source_tests --block-children)
 set_tests_properties(libdxfrw_block_children_source PROPERTIES
     LABELS "fast;dxf;block;source;independent;resource-budget;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_raw_application_identity COMMAND libdxfrw_attdef_source_tests --raw-identity)
+add_test(NAME libdxfrw_raw_proxy_application_scope COMMAND libdxfrw_attdef_source_tests --proxy-scope)
+add_test(NAME libdxfrw_raw_application_writer COMMAND libdxfrw_attdef_source_tests --raw-writer)
+set_tests_properties(libdxfrw_raw_application_identity libdxfrw_raw_proxy_application_scope libdxfrw_raw_application_writer PROPERTIES
+    LABELS "fast;dxf;raw;proxy;application;source;generated" TIMEOUT 60)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

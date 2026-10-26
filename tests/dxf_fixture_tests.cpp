@@ -14902,14 +14902,18 @@ void testSortEntsKeyRoles(TestContext& t) {
                              "an explicit actual-entity binding is accepted during source identity remapping");
                 } else {
                     const bool boundedBody =
-                        keys == std::vector<std::string>{"701", "601", "701", "601", "701"}
+                        // Only the first value is self; the second/fourth are
+                        // sort keys and the third is opaque application data.
+                        // The later foreign subclass retains its existing
+                        // structural transport policy, not a new self claim.
+                        keys == std::vector<std::string>{"701", "601", "601", "601", "701"}
                         && owners == std::vector<std::string>{"600", "1F", "500", "500"}
                         && references.size() == 4 && references[1] == "DEAD"
                         && references[3] == "DEAD"
                         && hex(references[0]) == writer.remapEntityHandle(0xA000u)
                         && hex(references[2]) == writer.remapEntityHandle(0xA001u);
                     t.expect(boundedBody,
-                             "102 payloads and later100 subclasses leave body keys/owner roles narrowly bounded");
+                             "102 group-5 payload stays literal while later100/body keys/owner roles remain narrowly bounded");
                 }
             }
             adapter.dxfW = nullptr;

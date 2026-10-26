@@ -2,6 +2,7 @@
 #include "dx_iface.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfblockchildren.h"
+#include "intern/dxfwriter.h"
 #include "attdef_source_field_faults.h"
 #include <algorithm>
 #include <array>
@@ -600,6 +601,7 @@ public:
 #include "block_source_controls.h"
 #include "block_source_proof_controls.h"
 #include "block_children_source_controls.h"
+#include "raw_application_scope_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -996,12 +998,19 @@ int main(int argc,char** argv) {
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
     const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren)return 2;
+    const bool rawIdentity=argc==2&&std::string(argv[1])=="--raw-identity";
+    const bool rawMissing=argc==2&&std::string(argv[1])=="--raw-identity-missing";
+    const bool proxyScope=argc==2&&std::string(argv[1])=="--proxy-scope";
+    const bool rawWriter=argc==2&&std::string(argv[1])=="--raw-writer";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
+    try {return ((rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
+        rawWriter?rawApplicationWriterTests(scratch/"generated.dxf"):
+        proxyScope?rawProxyScopeTests(scratch/"generated.dxf"):
+        blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):

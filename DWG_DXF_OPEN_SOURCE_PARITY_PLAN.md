@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5du bounded original physical child inventory (2026-10-25):** real BLOCK imports now capture original scalar values, physical ordinals and byte spans before semantic decoding, including unknown records, compound subrecords and ignored comments. The CLI freezes a bounded independent inventory after accepted ENDBLK and before staged children. Original root identity is frozen before callbacks; the pending first marker survives `takeString`. Transport is not yet child-to-callback/compound-role, space, dependency or live/output proof. [Implementation and next work](#implementation-progress-rpp-5du-bounded-original-physical-child-inventory-2026-10-25).
+**Newest implementation checkpoint — RPP-5dv raw application identity and proxy scope isolation (2026-10-25):** generic raw/application capture no longer registers opaque application group 5 as an outer identity; proxy application data cannot overwrite common metadata or payload grammar. Common proxy owner/reactor/extension-dictionary fields preceding the proxy subclass are retained, with null/wide owners kept distinct from body references. Writer validation, literal group-5 replay and inventory/rollback share the scoped distinction. Authored read, output/readback and corrected-retry controls verify this prerequisite; complete child/callback/compound/dependency/live/output qualification remains open. [Implementation and next work](#implementation-progress-rpp-5dv-raw-application-identity-and-proxy-scope-isolation-2026-10-25).
+
+**Previous implementation checkpoint — RPP-5du bounded original physical child inventory (2026-10-25):** committed as `a1b4c108`. Its original scalar/ordinal/span capture, bounded immutable CLI inventory, frozen root identities and pending first-marker fix remain valid. RPP-5dv fixes a reproduced raw identity/proxy prerequisite, not complete child-to-callback/compound-role, space, dependency or live/output proof. [Historical implementation](#implementation-progress-rpp-5du-bounded-original-physical-child-inventory-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5dt rich endpoint evidence and child-inventory readiness (2026-10-25):** committed as `6ddc5daa`. Its eight rich endpoint profiles, 408 field-fault/retry cases, 96 rich refusals and five-test normal/ASan evidence remain valid. RPP-5du adds physical child transport, not full child/space/dependency or live/output closure. [Historical implementation](#implementation-progress-rpp-5dt-rich-endpoint-evidence-and-child-inventory-readiness-2026-10-25).
 
@@ -126727,9 +126729,11 @@ Next implementation-ready sequence (full objective retained):
    can substitute for complete original membership. Before relying on generic
    raw identities, reproduce/audit `processRawEntity`'s code-5 registration inside
    application groups and `hasRawDxfSelfHandle`'s special-case scope handling;
-   source inspection indicates a possible opaque/outer identity gap, not yet a
-   regression-backed fix. Keep raw scope registration/admission separate from
-   this unprojected inventory so no implicit identity claim is introduced.
+   source inspection indicated a possible opaque/outer identity gap. RPP-5dv
+   below now reproduces and fixes the generic capture/admission and proxy scope
+   prerequisite; profile-specific body roles and complete child pairing remain
+   open. Keep raw scope registration/admission separate from this unprojected
+   inventory so no implicit identity claim is introduced.
 2. [ ] **Qualify membership and failure semantics.** Require admitted endpoint/
    BLOCK_RECORD facts plus original complete membership, actual owner/order and
    matching staged delivery for selected ATTDEF. Test omitted/reordered/duplicate/
@@ -126761,4 +126765,140 @@ The resource-family count stays **nine**, ATTDEF `rawTypedMatched=false`, the
 ledger stays **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295
 stay **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification stay **NOT_RUN**. No support promotion, remote
+mutation or full-goal completion is included.
+
+## Implementation progress RPP-5dv raw application identity and proxy scope isolation (2026-10-25)
+
+Parent is `a1b4c108`. This completes the reproduced generic raw-identity/proxy
+scope prerequisite identified by RPP-5du; it is not full child graph or support
+qualification. No native DWG byte parser/encoder, installed model layout or
+`DRW_Interface` virtual contract changes.
+
+Source rules: Autodesk distinguishes outer self handles and common ownership
+from application-defined data inside group-102 scopes in its
+[common object codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm)
+and [common entity codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm).
+Do not make table order a general admission requirement. Preserve the separate
+[SORTENTSTABLE body group-5 sort-key role](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm),
+which is not another record identity. These references do not qualify arbitrary
+application schemas, source namespaces or consumer semantics.
+
+Implemented:
+
+1. [x] Use existing bounded application-depth state in generic raw entity,
+   object, unknown-section, proxy and opted-in BLOCK_RECORD capture. Application
+   group 5 remains literal source data, including repeated, nonhex and wide
+   values; it cannot reserve a global self handle or supply a missing outer
+   identity. Common application capture and raw write validation use the same
+   distinction. Actual outer handles retain established lexical/duplicate rules.
+2. [x] Ignore application-contained group 5 in raw self admission for all raw
+   records, not just SORTENTSTABLE. Retain SORTENTSTABLE header/body separation
+   and ordinary non-SORT field-order tolerance. R12 absent-self tolerance and
+   typed duplicate-handle softening are explicitly retained rather than replaced
+   by fatal raw admission policy. Schema-specific non-SORT body roles still need
+   their own audit; this helper is not complete identity proof.
+3. [x] Keep generic raw proxy-host common fields and proxy metadata/payload
+   grammar outside opaque application groups. Capture root common owner and
+   reserved reactor/extension-dictionary fields even before the proxy subclass.
+   Nested reserved names inside a foreign application remain opaque. Explicit
+   root null/wide owner presence cannot be overwritten by body object IDs. Wide
+   common references retain original raw lexemes without narrowing to unrelated
+   32-bit convenience handles; their target support is not qualified.
+4. [x] Replay literal application group 5 without structural/source remapping.
+   Track application depth in emitted inventory even before the real self handle;
+   opaque values cannot invent an emitted identity. Preserve the existing
+   XRECORD body group-102 payload exception and strict SORT/unknown-entity export
+   policies. Record-scope abort restores pending identity, owner/depth and bytes;
+   whole-operation failures retain atomic destination preservation and retry.
+
+Owning evidence per configuration:
+
+- [x] **448** actual raw import profiles: eight versions, both encodings,
+  BLOCK children/ENTITIES/OBJECTS/unknown sections, seven opaque/self/order shapes.
+  Real following POINT handle remains `C2`; original BLOCK inventory is checked
+  independently for **2,096** scalar spans. Source values stay exact while outer
+  convenience fields retain only their own self/owner.
+- [x] **96** missing/null/repeated-outer raw identity refusals with corrected
+  same-codec retries, including missing-self controls without a following entity
+  that could mask phantom-self admission. **Two** R12 absent-self tolerances,
+  **two** typed duplicate-softening controls and **eight** opted-in BLOCK/
+  ENDBLK/ATTDEF/BLOCK_RECORD application-capture parity checks preserve existing
+  consumer admission. Source transport success is not strict profile approval.
+- [x] **112** proxy entity/object imports across four modern versions and both
+  encodings: foreign common/scalar/payload fields, nested reserved names, clean
+  baseline, explicit null/wide owner and wide material/plot references. Check
+  exact raw carrier, real common owner/reserved references, one body reference,
+  class/format/origin, graphics and opaque payload independently of foreign data.
+- [x] **Four** ASCII/Binary low-level inventory abort/retry controls and **16**
+  actual raw-object source/output encoding/payload profiles. Query tentative
+  inventory only during `finalizeDxfWrite`; independently walk exact output
+  scalar fields and reread them. **16** application-only-self write refusals
+  preserve a sentinel destination and allow corrected same-codec write retries.
+  This is authored `VENDOR_OBJECT` transport, not whole-document opaque replay,
+  native DWG, independent kernel or selected-target semantic qualification.
+
+The pre-fix control executable, linked against retained pre-fix ASan artifacts
+from the verified RPP-5du checkpoint, reproduces the all-hex false collision
+(following POINT handle becomes zero), missing-self phantom admission and lost
+pre-subclass proxy owner/reserved references. This is artifact-linked baseline
+evidence, not a newly rebuilt pristine-parent checkout. Keep hashes/logs in the
+receipt. Earlier red test authoring exposed two test assumptions, not additional
+production defects: repeated typed handles deliberately soften to zero, and
+writer inventory expires after finalization. Both tests now assert the documented
+behavior at the proper boundary; those policies were not weakened.
+
+Initial affected cohorts passed **34/35 normally in 28.39 s** and **34/35 under
+ASan in 61.41 s**. The only failing test was the fixture suite's two encoding
+assertions expecting a SORTENTSTABLE application-contained group-5 value to be
+remapped. Its oracle now expects that single value literally; all outer self,
+body key, owner and actual-reference assertions remain intact. This is an
+intentional application-role policy correction, not a reason to remove the test.
+
+Final affected cohorts pass **35/35 normally in 26.34 s** and **35/35 under ASan
+in 52.82 s**, sequentially, without failures/skips/disabled cases. The direct
+fast raw-section writer and SORTENTSTABLE role selectors also pass in both
+configurations. Strict library/CLI/owning/affected builds and `lc3_compat_check`
+pass on macOS ARM64 Apple Clang 21.0.0, C++17, warnings as errors; ASan uses
+`halt_on_error=1:detect_leaks=0`. No full project or Autotools distribution suite
+is repeated. Local API/source compile and CLI compatibility checks are not
+native LibreCAD/LibreCAD_3/FreeCAD execution or binary ABI certification. The
+[RPP-5dv receipt](docs/research/rpp5dv-raw-application-identity-and-proxy-scope-2026-10-25.json)
+records exact membership, source/log hashes, reproduced baselines and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Finish profile-aware raw/physical role interpretation.** Audit remaining
+   specialized naked capture loops and actual non-SORT body self/owner roles,
+   duplicate outer fields, source-spelling/typed-marker agreement, opaque pointer
+   namespace/remapping and proxy common text/codepage semantics. Do not infer
+   self or owner from arbitrary application/body code 5/330, relabel wide raw
+   values as supported typed targets or widen conservative export gates.
+2. [ ] **Pair physical source with staged delivery.** Use original ordinals to
+   match all `DxfBlockEventSink` typed/raw/no-callback dispositions and immutable
+   ATTDEF pairs. Explicitly filter ignored comments only where a carrier omits
+   them. Prove complete child membership, original owners/order, compound
+   boundaries and endpoint/BLOCK_RECORD facts; physical `Complete` or callback
+   counts cannot replace this. Include omission/reordering/mutation/duplicate/
+   dropped/later-failed/stale/quota/allocation/exception controls and retries.
+3. [ ] **Close space and selected dependencies.** Separate ENTITIES model/paper/
+   BLOCK_RECORD association; qualify common/style/APPID/LAYER/object targets,
+   absent defaults and opaque references or refuse them. Finish ATTRIB/SEQEND
+   models, original spans and selected consumer semantics before changing ATTDEF
+   `rawTypedMatched` or advisory `Bound`.
+4. [ ] **Retain full live/output and parity work.** All B2b/B3/C graph/live/output,
+   immutable/editable/compound identities, exact emitted fields/references, atomic
+   failure/retry/destination, IMAGE/document/native bit/decimal/carrier/schema/
+   owner, speed/ownership/allocation and LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/
+   FreeCAD and independent semantic/platform requirements remain in scope.
+5. [ ] **Self-update and safely unblock each item.** Prefer fast owning/affected
+   tests; run broader sequential normal/ASan cohorts only at integration gates.
+   Record actual results and next dependency, commit/report coherent slices and
+   continue within authority. Commit only existing repository or locally authored
+   drawing controls; no downloaded external drawing fixtures. External authority
+   and semantic/platform qualification cannot be inferred from local success.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
 mutation or full-goal completion is included.

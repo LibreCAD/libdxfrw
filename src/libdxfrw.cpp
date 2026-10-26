@@ -14790,7 +14790,9 @@ bool dxfRW::processRawDxfSection(std::string_view sectionName) {
 
         DRW_RawDxfObject group;
         group.m_retainedTextLease = section.m_retainedTextLease;
-        if (!captureRawGroup(group, code, /*validateHandles=*/true)) {
+        if (!captureRawGroup(group, code,
+                             /*validateHandles=*/applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/applicationDepth == 0)) {
             recordInvalidRawHandleDiagnostic();
             return setError(DRW::BAD_CODE_PARSED);
         }
@@ -15383,7 +15385,9 @@ bool dxfRW::processBlockRecord() {
                 return true;
             } else return setError(DRW::BAD_READ_TABLES);
         } else if (reading) {
-            if(captureSource&&!captureRawGroup(raw,code,true,!decoder.inApplication()))return setError(DRW::BAD_CODE_PARSED);
+            if (captureSource && !captureRawGroup(raw, code,
+                    !decoder.inApplication() || code != 5, !decoder.inApplication()))
+                return setError(DRW::BAD_CODE_PARSED);
             if(!decoder.parseCode(code,reader)) {
                 if (reader->retainedByteBudget() && reader->retainedByteBudget()->exceeded())
                     return failDxfReadRetainedBudget();
@@ -21203,21 +21207,19 @@ bool hasRawDxfSelfHandle(const DRW_RawDxfObject& object) {
     const bool sortRecord = dxfKeywordEquals(object.name, "SORTENTSTABLE");
     std::size_t appDepth = 0;
     for (const DRW_Variant& group : object.groups) {
-        if (sortRecord) {
-            if (group.code() == 102 && group.type() == DRW_Variant::STRING
-                && group.c_str() != nullptr) {
-                const std::string_view text(group.c_str());
-                if (!text.empty() && text.front() == '{')
-                    ++appDepth;
-                else if (text == "}" && appDepth != 0)
-                    --appDepth;
-                continue;
-            }
-            if (appDepth != 0)
-                continue;
-            if (group.code() == 100)
-                break; // A body sort key cannot supply the record's identity.
+        if (group.code() == 102 && group.type() == DRW_Variant::STRING
+            && group.c_str() != nullptr) {
+            const std::string_view text(group.c_str());
+            if (!text.empty() && text.front() == '{')
+                ++appDepth;
+            else if (text == "}" && appDepth != 0)
+                --appDepth;
+            continue;
         }
+        if (appDepth != 0)
+            continue;
+        if (sortRecord && group.code() == 100)
+            break; // A body sort key cannot supply the record's identity.
         if (group.code() != 5 || group.type() != DRW_Variant::STRING
             || group.c_str() == nullptr) {
             continue;
@@ -21333,12 +21335,13 @@ bool isValidRawDxfMaterialColorLexeme(const std::string& text) {
 }
 
 bool isValidRawDxfLexeme(int code, RawValType type,
-                         const std::string& text) {
+                         const std::string& text,
+                         bool opaqueApplicationSelf = false) {
     if (!isSafeAsciiDxfLexeme(text))
         return false;
     if (isDxfBinaryChunkCode(code))
         return isDxfHexString(text);
-    if (isDxfHandleReferenceCode(code))
+    if (isDxfHandleReferenceCode(code) && !opaqueApplicationSelf)
         return isValidDxfHandleString(text);
     return type == RawValType::Str || isValidRawDxfNumericString(type, text);
 }
@@ -21368,6 +21371,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
         }
 
         const RawValType type = classifyDxfCode(code, profile);
+        const bool opaqueApplicationSelf = code == 5 && applicationDepth != 0;
         const bool materialUnsignedColor =
             allowMaterialUnsignedColorValues
             && (code == 90 || code == 91 || code == 92)
@@ -21376,7 +21380,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
             && !(materialUnsignedColor
                      ? isValidRawDxfMaterialColorLexeme(rawValues[groupIndex])
                      : isValidRawDxfLexeme(code, type,
-                                           rawValues[groupIndex]))) {
+                                           rawValues[groupIndex], opaqueApplicationSelf))) {
             return false;
         }
 
@@ -21386,7 +21390,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
                 return false;
             const std::string_view value(group.c_str());
             if ((isDxfBinaryChunkCode(code) && !isDxfHexString(value))
-                || (isDxfHandleReferenceCode(code)
+                || (isDxfHandleReferenceCode(code) && !opaqueApplicationSelf
                     && !isValidDxfHandleString(value))) {
                 return false;
             }
@@ -21685,13 +21689,6 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
         return true;
     }
 
-    // Outside the proxy subclass every code below is somebody else's field.
-    // Accept it without interpreting it; captureRawGroup has already kept it.
-    // 102 and 100 have already returned above, so this cannot swallow a
-    // group marker.
-    if (!capture.inProxySubclass)
-        return true;
-
     if (code == 330 || code == 340 || code == 350 || code == 360) {
         std::uint64_t handle = 0;
         if (!proxyDxfHandle(value, handle))
@@ -21708,7 +21705,7 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
                 }
             } else if (capture.applicationDepth == 1
                        && dxfKeywordEquals(group, "ACAD_XDICTIONARY")
-                       && (code == 360 || code == 361 || code == 362)
+                       && code == 360
                        && capture.xDictHandle == 0
                        && handle != 0
                        && handle <= std::numeric_limits<std::uint32_t>::max()) {
@@ -21716,6 +21713,16 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
             }
             return true;
         }
+        // Common ownership and reserved groups can precede the proxy
+        // subclass. Presence, including explicit null/wide ownership, closes
+        // the owner slot; body object IDs must never replace it.
+        if (code == 330 && !capture.inProxyRecord && !capture.hasOwner) {
+            capture.hasOwner = true;
+            capture.ownerHandle = handle <= std::numeric_limits<std::uint32_t>::max()
+                ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
+        }
+        if (!capture.inProxySubclass)
+            return true;
         if (capture.inProxyRecord) {
             // Group 94 terminates the proxy object-ID list.  A later handle
             // group in this same proxy subclass is not part of that list and
@@ -21729,14 +21736,14 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
             ref.m_handle = handle;
             ref.m_rawHandle = handle;
             capture.objectIdRefs.push_back(ref);
-        } else if (code == 330 && !capture.hasOwner) {
-            if (handle > std::numeric_limits<std::uint32_t>::max())
-                return false;
-            capture.hasOwner = true;
-            capture.ownerHandle = static_cast<std::uint32_t>(handle);
         }
         return true;
     }
+
+    // Opaque application scalars cannot change proxy class/length/payload
+    // state, even when their codes match the surrounding proxy grammar.
+    if (capture.applicationDepth != 0 || !capture.inProxySubclass)
+        return true;
 
     std::int64_t integer = 0;
     std::int32_t integer32 = 0;
@@ -21868,7 +21875,8 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
         if (value.type() == DRW_Variant::STRING) {
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
-                entity.handle = static_cast<std::uint32_t>(handle);
+                entity.handle = handle <= std::numeric_limits<std::uint32_t>::max()
+                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
         }
         break;
     case 8:
@@ -21903,14 +21911,16 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
         if (value.type() == DRW_Variant::STRING) {
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
-                entity.material = static_cast<std::uint32_t>(handle);
+                entity.material = handle <= std::numeric_limits<std::uint32_t>::max()
+                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
         }
         break;
     case 390:
         if (value.type() == DRW_Variant::STRING) {
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
-                entity.plotStyle = static_cast<std::uint32_t>(handle);
+                entity.plotStyle = handle <= std::numeric_limits<std::uint32_t>::max()
+                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
         }
         break;
     case 420:
@@ -22241,7 +22251,7 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                 // Application payload code 5 is not the enclosing object's
                 // identity. Repeated opaque values across records must not
                 // reserve global self handles or trigger duplicate admission.
-                || !captureRawGroup(obj, code, /*validateHandles=*/true,
+                || !captureRawGroup(obj, code, /*validateHandles=*/code != 5,
                                     /*selfHandle=*/false)
                 || obj.groups.empty()) {
                 return false;
@@ -22404,7 +22414,9 @@ bool dxfRW::processRawObject(bool reportUnmodeled) {
         }
         if (++pairCount > DRW::kMaxDxfApplicationGroupPairs)
             return setError(DRW::BAD_CODE_PARSED);
-        if (!captureRawGroup(obj, code, /*validateHandles=*/true))
+        if (!captureRawGroup(obj, code,
+                             /*validateHandles=*/applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/applicationDepth == 0))
             return setError(DRW::BAD_CODE_PARSED);
         if (obj.groups.empty()
             || !updateRawDxfApplicationDepth(obj.groups.back(),
@@ -22457,28 +22469,32 @@ bool dxfRW::processRawEntity() {
         // entity parser is unsafe here: code 102 recursively consumes its
         // child records, so the raw stream would lose nested groups. Only
         // parse the common fields needed by the proxy decoder's draw state.
-        switch (code) {
-        case DRW::dxfCode::HANDLE:
-            // Code 5 is identity metadata for the raw carrier. Do not route
-            // it through the proxy host: DRW_Entity::parseCode registers the
-            // handle and would reject a later raw entity before captureRawGroup
-            // can provide the duplicate-handle diagnostic.
-            break;
-        case DRW::dxfCode::LAYER:
-        case 6:
-        case DRW::dxfCode::COLOR:
-        case DRW::dxfCode::LINEWEIGHT:
-        case 67:
-        case 92:
-        case 160:
-        case 310:
-            if (!proxyHost.parseCode(code, reader))
-                return setError(DRW::BAD_CODE_PARSED);
-            break;
-        default:
-            break;
+        if (applicationDepth == 0) {
+            switch (code) {
+            case DRW::dxfCode::HANDLE:
+                // Code 5 is identity metadata for the raw carrier. Do not route
+                // it through the proxy host: DRW_Entity::parseCode registers the
+                // handle and would reject a later raw entity before captureRawGroup
+                // can provide the duplicate-handle diagnostic.
+                break;
+            case DRW::dxfCode::LAYER:
+            case 6:
+            case DRW::dxfCode::COLOR:
+            case DRW::dxfCode::LINEWEIGHT:
+            case 67:
+            case 92:
+            case 160:
+            case 310:
+                if (!proxyHost.parseCode(code, reader))
+                    return setError(DRW::BAD_CODE_PARSED);
+                break;
+            default:
+                break;
+            }
         }
-        if (!captureRawGroup(ent, code, /*validateHandles=*/true))
+        if (!captureRawGroup(ent, code,
+                             /*validateHandles=*/applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/applicationDepth == 0))
             return setError(DRW::BAD_CODE_PARSED);
         if (ent.groups.empty()
             || !updateRawDxfApplicationDepth(ent.groups.back(),
@@ -22538,7 +22554,9 @@ bool dxfRW::processProxyEntity() {
         if (++pairCount > DRW::kMaxDxfApplicationGroupPairs)
             return setError(DRW::BAD_CODE_PARSED);
 
-        if (!captureRawGroup(raw, code, /*validateHandles=*/true))
+        if (!captureRawGroup(raw, code,
+                             /*validateHandles=*/capture.applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/capture.applicationDepth == 0))
             return setError(DRW::BAD_CODE_PARSED);
         if (raw.groups.empty()
             || !collectProxyDxfGroup(
@@ -22546,7 +22564,8 @@ bool dxfRW::processProxyEntity() {
                 reader->retainedByteBudget())) {
             return setError(DRW::BAD_CODE_PARSED);
         }
-        applyProxyDxfCommon(entity, raw.groups.back());
+        if (capture.applicationDepth == 0)
+            applyProxyDxfCommon(entity, raw.groups.back());
     }
     return setError(DRW::BAD_READ_ENTITIES);
 }
@@ -22592,7 +22611,9 @@ bool dxfRW::processProxyObject() {
         if (++pairCount > DRW::kMaxDxfApplicationGroupPairs)
             return setError(DRW::BAD_CODE_PARSED);
 
-        if (!captureRawGroup(raw, code, /*validateHandles=*/true))
+        if (!captureRawGroup(raw, code,
+                             /*validateHandles=*/capture.applicationDepth == 0 || code != 5,
+                             /*selfHandle=*/capture.applicationDepth == 0))
             return setError(DRW::BAD_CODE_PARSED);
         if (raw.groups.empty()
             || !collectProxyDxfGroup(
@@ -22778,6 +22799,8 @@ bool dxfRW::writeRawDxfEntityGroups(
     };
 
     RawSortEntsScope groupScope(sortEntsTableRecord);
+    int rawApplicationDepth = 0;
+    bool rawXrecordData = false;
     int entityApplicationDepth = 0;
     bool entityXdata = false;
     std::size_t stringOverrideIndex = 0u;
@@ -22786,6 +22809,12 @@ bool dxfRW::writeRawDxfEntityGroups(
          ++groupIndex) {
         const DRW_Variant &v = groups[groupIndex];
         if (!groupScope.accept(v))
+            return failDxfWrite();
+        if ((v.code() == 0 || v.code() == 100) && rawApplicationDepth == 0)
+            rawXrecordData = v.code() == 100 && v.type() == DRW_Variant::STRING
+                && std::string_view(v.c_str()) == "AcDbXrecord";
+        if (v.code() == 102 && !rawXrecordData
+            && !updateRawDxfApplicationDepth(v, rawApplicationDepth))
             return failDxfWrite();
         if (remapEntityXdataHandleReferences) {
             if (v.code() == 102) {
@@ -22897,7 +22926,7 @@ bool dxfRW::writeRawDxfEntityGroups(
             && !groupScope.isEntityReference();
         if (v.type() == DRW_Variant::STRING
             && isDxfTranslatedHandleCode(v.code()) && !groupScope.isSortKey()
-            && !opaqueSortReference) {
+            && !opaqueSortReference && !(v.code() == 5 && rawApplicationDepth != 0)) {
             const std::string_view s(v.c_str());
             std::uint32_t parsed = 0;
             const char* begin = s.data();
