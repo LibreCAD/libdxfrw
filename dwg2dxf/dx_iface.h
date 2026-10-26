@@ -33,7 +33,8 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
-                 public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler {
+                 public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
+                 public DRW_DxfBlockDeliveryHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -255,6 +256,11 @@ public:
     void addDxfBlockEndSource(const DRW_Block&,const DRW_RawDxfObject&) override;
     bool wantsDxfBlockChildrenSource() const override;
     void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) override;
+    bool wantsDxfBlockDeliverySource() const override;
+    void addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource&) override;
+    void beginDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) override;
+    void endDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) override;
+    void finishDxfBlockDelivery(std::uint64_t,std::uint32_t) override;
     void addLayout(const DRW_Layout& data) override;
     void addDictionary(const DRW_Dictionary& data) override;
     void addSortEntsTable(const DRW_SortEntsTable& data) override;
@@ -1529,6 +1535,8 @@ public:
 
 private:
     dx_data* m_tableSourceReadData{nullptr};
+    void observeDxfBlockDeliveryValue(std::int32_t,std::uint32_t,std::uint32_t,
+                                    DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr) noexcept;
     bool tableSourceCaptureOpen() const noexcept;
     bool chargeTableSource(std::size_t bytes, std::size_t groups,
                            std::size_t records = 1u) noexcept;
@@ -1692,6 +1700,8 @@ private:
     EntityT* retainTypedEntity(SourceT&& source) noexcept {
         if (cData == nullptr)
             return nullptr;
+        observeDxfBlockDeliveryValue(static_cast<std::int32_t>(source.eType),source.handle,source.parentHandle,
+                                    DRW_DxfBlockCallback::Count);
         retainTableEntityIdentity(static_cast<const DRW_Entity&>(source));
         if (currentBlock == nullptr
             || cData->typedEntityRetainedRecords

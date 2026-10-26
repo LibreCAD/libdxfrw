@@ -1071,6 +1071,9 @@ private:
             enum class Reconciliation : std::uint8_t { NotChecked, MissingBlockRecord, SourceMismatch, WrongOwner, Matched };
             Reconciliation reconciliation{Reconciliation::NotChecked};
             std::shared_ptr<const DRW_DxfBlockChildrenSource> children;
+            std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
+            std::size_t deliveryNext{0};
+            bool deliveryExpected{false},deliveryPending{false},deliveryObserved{false},deliveryFinished{false};
         };
         std::map<std::uint32_t,BlockSource> blockSources;
         std::uint32_t blockSourceActive{0};
@@ -1082,6 +1085,10 @@ private:
         std::size_t maxBlockChildrenRecords{100000u},maxBlockChildrenGroups{4000000u};
         std::size_t maxBlockChildrenBytes{64u*1024u*1024u},maxBlockChildrenWork{4000000u};
         bool blockChildrenCaptureFailed{false};
+        std::size_t blockDeliveryDispatches{0},blockDeliveryEvents{0},blockDeliveryBytes{0},blockDeliveryWork{0};
+        std::size_t maxBlockDeliveryDispatches{100000u},maxBlockDeliveryEvents{400000u};
+        std::size_t maxBlockDeliveryBytes{64u*1024u*1024u},maxBlockDeliveryWork{64u*1024u*1024u};
+        bool blockDeliveryCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

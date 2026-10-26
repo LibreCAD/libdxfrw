@@ -2,6 +2,7 @@
 #include "dx_iface.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfblockchildren.h"
+#include "intern/dxfblockdelivery.h"
 #include "intern/dxfwriter.h"
 #include "attdef_source_field_faults.h"
 #include <algorithm>
@@ -62,6 +63,20 @@ public:
     }
     static bool blockFailed(const dx_data& data) {return data.m_tableDxfSource.blockSourceCaptureFailed;}
     static bool childrenFailed(const dx_data& data) {return data.m_tableDxfSource.blockChildrenCaptureFailed;}
+    static bool deliveryFailed(const dx_data& data) {return data.m_tableDxfSource.blockDeliveryCaptureFailed;}
+    static bool deliveryTransport(const dx_data& data) {
+        const auto* row=block(data);return childrenTransport(data)&&row->delivery&&row->deliveryExpected
+            &&row->deliveryFinished&&!row->deliveryPending&&!deliveryFailed(data)
+            &&row->deliveryNext==row->delivery->events.size();
+    }
+    static std::array<std::size_t,4> deliveryUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.blockDeliveryDispatches,s.blockDeliveryEvents,s.blockDeliveryBytes,s.blockDeliveryWork};
+    }
+    static void deliveryLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;
+        switch(which){case 0:s.maxBlockDeliveryDispatches=n;break;case 1:s.maxBlockDeliveryEvents=n;break;
+        case 2:s.maxBlockDeliveryBytes=n;break;case 3:s.maxBlockDeliveryWork=n;break;default:throw std::runtime_error("bad delivery quota");}
+    }
     static bool childrenTransport(const dx_data& data) {
         const auto* row=block(data);return blockTransport(data)&&row->children&&!childrenFailed(data)
             &&row->children->status==DRW_DxfBlockChildrenSource::Status::Complete;
@@ -604,6 +619,7 @@ public:
 #include "block_children_source_controls.h"
 #include "raw_application_scope_controls.h"
 #include "raw_shell_scope_controls.h"
+#include "block_delivery_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1006,12 +1022,17 @@ int main(int argc,char** argv) {
     const bool rawWriter=argc==2&&std::string(argv[1])=="--raw-writer";
     const bool rawShell=argc==2&&std::string(argv[1])=="--raw-shell";
     const bool acshScope=argc==2&&std::string(argv[1])=="--acsh-scope";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope)return 2;
+    const bool blockDelivery=argc==2&&std::string(argv[1])=="--block-delivery";
+    const bool polymorphic=argc==2&&std::string(argv[1])=="--block-polymorphic";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return ((rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
+    unsigned polymorphicProfiles=0u;
+    try {return (polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
+        (rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
+        blockDelivery?blockDeliveryTests(scratch/"generated.dxf"):
         rawShell?rawShellScopeTests(scratch/"generated.dxf"):
         acshScope?acshProjectionScopeTests(scratch/"generated.dxf"):
         rawWriter?rawApplicationWriterTests(scratch/"generated.dxf"):

@@ -823,6 +823,68 @@ public:
   virtual void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) = 0;
 };
 
+// Planned staged delivery is separate from the unprojected physical stream.
+// Origins are original scalar ordinals/byte intervals, never inferred from a
+// callback count, effective block name or convenience handle. Consumers still
+// need profile/field/compound/target proof and successful whole-import context.
+enum class DRW_DxfBlockCallback : std::uint8_t {
+  addPoint,addLine,add3DLine,addRay,addXline,addArc,addCircle,addEllipse,
+  addLWPolyline,addMLine,addUnderlay,addShape,addOle2Frame,addOleFrame,
+  addProxyEntity,addPolyline,addSpline,addHelix,addMesh,addInsert,addTable,
+  addTrace,add3dFace,addSolid,addMText,addText,addAttDef,addTolerance,addCamera,
+  addGeoPositionMarker,addSectionObject,addDimAlign,addDimLinear,addDimRadial,
+  addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
+  addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
+  addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
+  addRawDxfEntity,AttdefSource,Count
+};
+struct DRW_DxfBlockDispatch {
+  DRW_DxfPhysicalRecordSpan begin,end;
+  std::size_t firstEvent{0},events{0};
+};
+struct DRW_DxfBlockDeliveryEvent {
+  std::size_t dispatch{0};
+  DRW_DxfBlockCallback callback{DRW_DxfBlockCallback::Count};
+  std::int32_t entityType{0};
+  std::uint32_t handle{0},owner{0};
+  bool hasValue{false};
+};
+struct DRW_DxfBlockDeliveryLimits {
+  std::size_t dispatches{65536u},events{262144u};
+  std::size_t bytes{16u*1024u*1024u},work{32u*1024u*1024u};
+};
+struct DRW_DxfBlockDeliverySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // process-local capture identity, not a file handle
+  std::uint32_t blockHandle{0},blockRecord{0};
+  DRW_DxfPhysicalRecordSpan endMarker;
+  std::vector<DRW_DxfBlockDispatch> dispatches;
+  std::vector<DRW_DxfBlockDeliveryEvent> events;
+  std::size_t bytes{0},work{0};
+};
+/** Separate opt-in facet; requires physical child capture for the same BLOCK.
+ * Report after accepted ENDBLK/physical inventory, before staged replay. Each
+ * planned callback is bracketed with its immutable staged origin; finish follows
+ * all callbacks, including an empty stream. An exception leaves an unfinished
+ * prefix. Own quota/allocation failure reports evidence failure, not a format
+ * error; shared reader limits may still fail the read. Complete describes the
+ * planned manifest, not successful replay or semantic/support qualification.
+ * Existing DRW_Interface and source-facet vtables are unchanged.
+ */
+class DRW_DxfBlockDeliveryHandler {
+public:
+  virtual ~DRW_DxfBlockDeliveryHandler() = default;
+  virtual bool wantsDxfBlockDeliverySource() const {return false;}
+  virtual DRW_DxfBlockDeliveryLimits dxfBlockDeliveryLimits() const {return {};}
+  virtual void addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource&) = 0;
+  virtual void beginDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) = 0;
+  virtual void endDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) = 0;
+  virtual void finishDxfBlockDelivery(std::uint64_t,std::uint32_t) = 0;
+};
+
 /** Source interpretation context, not a geometry/support certificate.
  * applyExtrusion records the read option used for final callback preparation;
  * its actual effect is defined by the entity's implementation (TEXT is currently

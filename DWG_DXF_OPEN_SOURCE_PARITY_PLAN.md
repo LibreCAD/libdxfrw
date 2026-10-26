@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dw specialized raw shell and ACSH projection scope (2026-10-25):** the remaining dynamic-block/ACSH shell capture loops now exclude opaque application group 5 from identity registration. ACSH extrusion projection reads only outer subclass/scalar fields; application-only or app-completed partial transforms cannot become complete evidence. Bounded nesting, exact/below byte/node limits, compatibility and exceptional retries are verified. This closes the audited naked-loop prerequisite, not profile-specific body roles, original child matching, native/semantic or support qualification. [Implementation and next work](#implementation-progress-rpp-5dw-specialized-raw-shell-and-acsh-projection-scope-2026-10-25).
+**Newest implementation checkpoint — RPP-5dx original BLOCK dispatch origins and observed replay (2026-10-25):** optional staged-delivery manifests now retain original dispatch ordinals/byte intervals, callback roles and frozen convenience identities. The CLI partitions the physical inventory, observes actual callbacks, checks raw/ATTDEF source bodies against original scalars and rejects omitted/duplicate/misrouted/stale-scope delivery. RTEXT, arc-aligned text and large radial subtype slicing is fixed without changing legacy public callbacks. This is original-origin/observed-replay evidence, not complete body/compound/target/live/output qualification. [Implementation and next work](#implementation-progress-rpp-5dx-original-block-dispatch-origins-and-observed-replay-2026-10-25).
+
+**Previous implementation checkpoint — RPP-5dw specialized raw shell and ACSH projection scope (2026-10-25):** committed as `9a693b76`. Its shell/projection scope, bounded depth, calibrated byte/node ceilings and exceptional recovery remain valid. RPP-5dx adds actual original dispatch/replay joins and repairs subtype copies, not full membership semantics, native/independent or support qualification. [Historical implementation](#implementation-progress-rpp-5dw-specialized-raw-shell-and-acsh-projection-scope-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5dv raw application identity and proxy scope isolation (2026-10-25):** committed as `eac1f623`. Its generic raw/proxy scope, pre-subclass common references and scoped writer validation/literal replay/inventory/rollback remain valid. RPP-5dw extends the scoping audit to the two remaining shell loops and their diagnostic ACSH projection, not complete child/compound/dependency/live/output qualification. [Historical implementation](#implementation-progress-rpp-5dv-raw-application-identity-and-proxy-scope-isolation-2026-10-25).
 
@@ -127018,6 +127020,10 @@ Next implementation-ready sequence (full objective retained):
    dropped/later-failed/stale/quota/allocation/exception cases with recovery.
    Neither physical `Complete`, callback counts nor a shell convenience handle
    qualifies ATTDEF or replaces the original child graph.
+   RPP-5dx below implements immutable dispatch origins and observed replay,
+   including exact raw/ATTDEF original-body joins and scope tokens. Resource-to-
+   origin binding, complete modeled/compound roles, target and live/output gates
+   in this item remain open; origin transport must not replace them.
 3. [ ] **Space/dependencies, full live/output and original parity.** Keep all
    ENTITIES model/paper/BLOCK_RECORD associations, common/style/APPID/LAYER/object/
    absent-default/opaque targets, ATTRIB/SEQEND, B2b/B3/C, immutable/editable/compound
@@ -127031,6 +127037,170 @@ Next implementation-ready sequence (full objective retained):
    checks; broader sequential cohorts are integration gates. Never commit
    downloaded external drawing fixtures or infer external authority from green
    local tests. Unchanged external gates do not stop available local work.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
+mutation or full-goal completion is included.
+
+## Implementation progress RPP-5dx original BLOCK dispatch origins and observed replay (2026-10-25)
+
+Parent is `9a693b76`, a verified progress turn. This advances original physical
+membership through staged replay rather than reclassifying callback counts as
+source evidence. The original full DWG/DXF, 2D/3D consumer, source/graph/live/
+output and independent semantic/platform objective is unchanged.
+
+Implemented:
+
+1. [x] Add separate optional `DRW_DxfBlockDeliveryHandler` and POD manifest/event/
+   limit types, leaving established `DRW_Interface`, existing source-facet
+   vtables and installed entity layouts unchanged. Require physical child
+   selection for the same BLOCK. Record every top-level parser dispatch's
+   original first/next marker ordinals and byte intervals before/after parsing,
+   including ranges containing internally consumed compound subrecords. Preserve
+   zero-callback dispatches explicitly; do not invent logical child roles.
+2. [x] Queue immutable callback role, dispatch index, public entity-type enum,
+   value presence and convenience self/owner **before** exposing reports. ATTDEF
+   raw/typed pairs remain one moved payload owner but have two distinct planned
+   callback events. Public `eType` can alias several concrete classes and is not
+   a schema/geometry certificate. Neither effective block names nor arbitrary
+   code-5/330 fields are used to reconstruct original dispatch identity.
+3. [x] Deliver the planned manifest after accepted ENDBLK and physical inventory,
+   before replay; bracket each staged callback and signal finish only after all
+   callbacks (including empty streams). Use a process-local monotonic per-BLOCK
+   capture token, frozen separately in queued replay, to reject an old manifest
+   even for identical file bytes and an empty block. Counter exhaustion stays
+   closed instead of wrapping. Tokens are not file handles, cryptographic source
+   authentication or independent semantic evidence.
+4. [x] The actual CLI validates version/encoding/root/footer context and exact
+   contiguous partitioning of the independently frozen physical inventory.
+   Bound record/event counts, bytes and logical inspection work before cloning
+   into `shared_ptr<const ...>`. Begin/end/index/role/token/presence checks and
+   actual typed/raw/source callback observation reject omitted, duplicated,
+   misrouted or identity-mutated delivery. Finalization also refuses known typed/
+   raw retention failures. An explicit selected report or finish cannot be
+   omitted without leaving evidence failed.
+5. [x] Join raw callbacks and ATTDEF source callbacks to the original physical
+   dispatch body, not a later mutable carrier. Compare complete codes/scalars,
+   ASCII spelling or binary placeholders and signed zero; skip only source spans
+   explicitly marked as ignored comments. Require a single physical raw/ATTDEF
+   record for that join. This binds these carriers to original membership;
+   selected resource-to-origin storage, modeled-body and full compound/target
+   interpretation remain separate. Ordinary compatible admission is unchanged.
+6. [x] Add bounded producer dispatch/event/logical-byte/work capture, including
+   allowances for newly queued origin metadata and shared reader retained-byte
+   ownership before allocation. Own quota/allocation failure refuses evidence,
+   not ordinary format admission; shared reader failures can still fail a read.
+   Opt-out retains the original small queued closures, with no origin payload
+   copies or snapshot charges. CLI counters independently bound immutable copies
+   and inspection. These are logical allowances, not allocator capacity, every
+   process allocation, the whole existing event queue, RSS or a CPU theorem.
+7. [x] Repair reproduced polymorphic staging loss. `addText` now copies concrete
+   `DRW_RText`/`DRW_ArcAlignedText`; `addDimRadial` copies `DRW_DimLargeRadial`
+   when present. The public base callbacks and their 2D-compatible `eType`
+   aliases remain unchanged; subtype fields are not sliced. Existing surface
+   dynamic-type handling remains intact. No DWG parser/body or writer changes
+   are included. Distribute the new private helper through `src/Makefile.am`.
+
+Owning evidence per configuration:
+
+- [x] **36** actual imports: four modern versions × empty/single/mixed child
+  streams × ASCII LF/CRLF/Binary. The independent original-file walker verifies
+  **2,712** scalar spans and physical markers before checking dispatch endpoints.
+  Mixed input has ten physical records, five parser dispatches and seven staged
+  callbacks: two ATTDEF source/typed pairs plus raw, POLYLINE and INSERT. Original
+  VERTEX/ATTRIB/SEQEND ranges are preserved without asserting their logical roles.
+  Immutable manifest aliases remain independent of consumer mutations.
+- [x] **44** malformed/mutated manifest refusals/retries, **26** missing/duplicate/
+  wrong-index/root/token replay-protocol refusals/retries, **20** omitted/duplicate/
+  identity-mutated/misrouted/raw-body-mutated/retention-failed callback cases and
+  **eight** report/begin/end/finish exceptions with balanced scope and recovery.
+- [x] **Eight** exact/one-under CLI snapshot/replay ceilings and **eight** producer
+  ceiling/recovery cases. **Six** calibrated immutable snapshot allocation faults
+  and **six** isolated producer allocation faults with corrected recovery and
+  logical lease teardown. **16** malformed producer lifecycle controls keep
+  invalid origins from completing. Allocation intervals are observed C++ sites,
+  not every allocator; ASan leak checking is disabled.
+- [x] **Two** isolated shared-header quota controls prove the reservation is
+  admitted before the lease/control allocation is attempted. The initial new
+  path used the generic lease helper, which could attempt that allocation first;
+  an armed allocation fault with a zero shared header ceiling reproduced
+  `Allocation` instead of `Quota`. Initialization now reserves first and adopts
+  the reservation, releasing it on exceptions. These isolate the new capture
+  header after a pending marker, not a complete input-budget profile or a claim
+  that every pre-existing lease helper has been audited.
+- [x] **Four** old-manifest replays against new identical-input sessions (mixed
+  and empty, both encodings) are rejected by frozen scope tokens. **Four** later
+  input/cleanup failures show completed block replay cannot certify a failed
+  whole import. These later-failure fixtures intentionally print read errors.
+- [x] **Two** actual no-callback dispositions retain a physical dispatch for an
+  unhandled DIMENSION subtype. This is an existing parser-behavior observation,
+  not a supported DIMENSION profile or permission to drop geometry. **Two**
+  independent ATTDEF-source opt-outs do not manufacture source callbacks from
+  typed delivery. **Two** same-ID geometry edits preserve origin/identity
+  transport but fail the existing frozen ATTDEF field proof, demonstrating that
+  transport cannot substitute for full model qualification.
+- [x] **12** subtype-preservation profiles: RTEXT/ARCALIGNEDTEXT/large radial ×
+  both encodings × origin opt-in/opt-out. Check actual dynamic types and selected
+  flags/text/arc/font/chord/override-center/jog fields, not just aliased `eType`.
+  Every pre-fix profile read successfully but lost its concrete subtype/fields.
+  The pre-fix copy region retained the parent's base-copy behavior; the executable
+  already contained the new origin feature, not a rebuilt pristine-parent checkout.
+
+Keep the evidence boundaries explicit. Manifest `Complete` is planned parser
+coverage after an accepted footer, not replay success. CLI observed replay plus
+whole-import/context success is stronger, but still not complete modeled fields,
+original self/owner/body semantics, logical compound relationships, transitive
+dependencies, current editable state, output or kernel support. Known callbacks
+not observed/retained by a consumer fail this candidate instead of being treated
+as supported. The separate same-ID field-edit control specifically prevents
+origin metadata from being promoted into a general semantic proof.
+
+Final affected cohorts pass **30/30 normally in 12.80 s** and **30/30 under ASan
+in 25.91 s**, sequentially, with no failures/skips/disabled cases. The earlier
+30/30 results (12.38 s normal, 25.04 s ASan) preceded the final shared-header
+precharge control/fix and remain intermediate evidence, not final-source
+validation. Strict library,
+CLI, owning/affected and `lc3_compat_check` builds pass on macOS ARM64 Apple Clang
+21.0.0, C++17, warnings as errors. ASan uses
+`halt_on_error=1:detect_leaks=0`. No full project or Autotools distribution suite
+is repeated. Local source/API compilation and CLI compatibility checks are not
+native LibreCAD/LibreCAD_3/FreeCAD execution or formal binary ABI certification.
+The [RPP-5dx receipt](docs/research/rpp5dx-original-block-dispatch-origins-and-observed-replay-2026-10-25.json)
+records exact test membership, hashes, subtype red evidence, quotas and limits.
+Only runtime locally authored controls are used; no external drawing is committed.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Bind selected immutable resources to original origins.** Store and
+   validate selected ATTDEF resource → scope/dispatch/event/physical ordinal
+   associations at the already-verified source callback, not a handle-only
+   lookup after replay. Combine original body, frozen typed/source pairs,
+   endpoint/BLOCK_RECORD facts and successful observed delivery. Preserve
+   preliminary/failed/stale states; do not change `rawTypedMatched` yet.
+2. [ ] **Interpret complete membership and body/compound roles.** Qualify actual
+   original self/owner fields, aliases, defaults, non-SORT/XRECORD/embedded body
+   roles and raw-spelling/typed-marker agreement. Interpret POLYLINE/VERTEX and
+   INSERT/ATTRIB/SEQEND membership/order/owners rather than equating a consumed
+   dispatch range with a logical child graph. Treat unsupported/no-callback
+   dispositions as explicit gaps, not semantic preservation. Finish exact
+   modeled and raw source profiles, opaque pointer namespaces/remapping and
+   proxy text/codepage handling with corruption/refusal/recovery controls.
+3. [ ] **Space, dependencies, live/output and original parity.** Retain ENTITIES
+   model/paper/BLOCK_RECORD association, selected common/style/APPID/LAYER/object/
+   absent-default/opaque targets, ATTRIB/SEQEND, all B2b/B3/C graph/live/output,
+   immutable/editable/compound identities, exact emitted fields/references,
+   atomic rollback/retry/destination, IMAGE/document/native bit/decimal/carrier/
+   schema/owner, speed/ownership/allocation, LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/
+   FreeCAD and independent semantic/platform requirements.
+4. [ ] **Self-update and safely unblock each item.** Record actual results/limits
+   and next ready dependency, commit/report coherent slices and continue within
+   authority. Prefer fast owning/affected tests; broader sequential cohorts are
+   integration gates. Never commit downloaded external drawing fixtures or infer
+   external coordination, native qualification or support promotion from local
+   success. Available local binding/role work remains ready; external-only gates
+   do not stop it.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

@@ -17917,6 +17917,7 @@ void dx_iface::retainDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObjec
         } else {
             dx_data::TableDxfSourceCapture::BlockSource row;
             row.originalCursor=cursor;row.original=std::move(model);row.beginRaw=std::move(body);
+            row.deliveryExpected=wantsDxfBlockDeliverySource();
             if(!source.blockSources.emplace(value.handle,std::move(row)).second){fail();return;}
             source.blockSourceActive=value.handle;++source.blockSourcePending;
         }
@@ -17952,6 +17953,7 @@ void dx_iface::closeDxfBlockSource() noexcept {
     if(found!=source.blockSources.end()) {
         auto& row=found->second;
         if(row.closed||!row.beginPaired||!row.footerPaired)source.blockSourceCaptureFailed=true;
+        if(row.deliveryExpected&&!row.deliveryFinished)source.blockDeliveryCaptureFailed=true;
         row.closed=true;
         if(source.blockSourcePending)--source.blockSourcePending;else source.blockSourceCaptureFailed=true;
         if(row.beginPaired&&row.footerPaired&&!source.blockSourceCaptureFailed)proveDxfBlockSource(found->first);
@@ -18112,6 +18114,153 @@ void dx_iface::addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& value
     } catch(...) {fail();}
 }
 
+namespace {
+bool blockDeliverySpanEqual(const DRW_DxfPhysicalRecordSpan& a,const DRW_DxfPhysicalRecordSpan& b) noexcept {
+    return a.ordinal==b.ordinal&&a.beginOffset==b.beginOffset&&a.endOffset==b.endOffset&&a.ignoredComment==b.ignoredComment;
+}
+bool blockDeliveryEventEqual(const DRW_DxfBlockDeliveryEvent& a,const DRW_DxfBlockDeliveryEvent& b) noexcept {
+    return a.dispatch==b.dispatch&&a.callback==b.callback&&a.entityType==b.entityType
+        &&a.handle==b.handle&&a.owner==b.owner&&a.hasValue==b.hasValue;
+}
+bool blockDeliveryRawMatches(const DRW_DxfPhysicalEntitySource& physical,const DRW_RawDxfObject& raw,bool binary) noexcept {
+    if(raw.name!=physical.name||raw.hasRawValues==binary||raw.groups.size()!=raw.rawValues.size())return false;
+    std::size_t at=0;
+    for(std::size_t i=0;i<physical.groups.size();++i) {
+        if(physical.spans[i].ignoredComment)continue;
+        if(at>=raw.groups.size())return false;
+        const auto& a=physical.groups[i];const auto& b=raw.groups[at];
+        if(a.code()!=b.code()||a.type()!=b.type()||raw.rawValues[at]!=physical.rawValues[i])return false;
+        switch(a.type()) {
+        case DRW_Variant::STRING:if(!a.content.s||!b.content.s||*a.content.s!=*b.content.s)return false;break;
+        case DRW_Variant::INTEGER:if(a.i_val()!=b.i_val())return false;break;
+        case DRW_Variant::INTEGER64:if(a.i64_val()!=b.i64_val())return false;break;
+        case DRW_Variant::DOUBLE:if(a.d_val()!=b.d_val()||std::signbit(a.d_val())!=std::signbit(b.d_val()))return false;break;
+        default:return false;
+        }
+        ++at;
+    }
+    return at==raw.groups.size();
+}
+}
+
+bool dx_iface::wantsDxfBlockDeliverySource() const {return wantsDxfBlockChildrenSource();}
+
+void dx_iface::addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource& value) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto fail=[&](){source.blockDeliveryCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()){fail();return;}
+    if(source.blockDeliveryCaptureFailed)return;
+    const auto found=source.blockSources.find(value.blockHandle);
+    if(found==source.blockSources.end()||source.blockSourceActive!=value.blockHandle
+        ||!currentBlock||currentBlock==cData->mBlock||currentBlock->handle!=value.blockHandle){fail();return;}
+    auto& row=found->second;
+    if(!row.deliveryExpected||row.delivery||row.closed||!row.footerPaired||!row.children||source.blockChildrenCaptureFailed
+        ||value.status!=DRW_DxfBlockDeliverySource::Status::Complete||!value.scopeId||value.version!=row.children->version
+        ||value.binary!=row.children->binary||value.blockRecord!=row.children->blockRecord
+        ||!blockDeliverySpanEqual(value.endMarker,row.children->endMarker)){fail();return;}
+    const auto dispatches=value.dispatches.size(),events=value.events.size(),physical=row.children->records.size();
+    std::size_t bytes=sizeof(value)+8u*sizeof(void*),work=0u,allowance=0u;
+    if(source.blockDeliveryDispatches>source.maxBlockDeliveryDispatches||dispatches>source.maxBlockDeliveryDispatches-source.blockDeliveryDispatches
+        ||source.blockDeliveryEvents>source.maxBlockDeliveryEvents||events>source.maxBlockDeliveryEvents-source.blockDeliveryEvents
+        ||!addAssociativeSlotBytes(dispatches,sizeof(DRW_DxfBlockDispatch),bytes)
+        ||!addAssociativeSlotBytes(events,sizeof(DRW_DxfBlockDeliveryEvent),bytes)
+        ||!addAssociativeSlotBytes(bytes,2u,allowance)||!addAssociativeSlotBytes(dispatches,64u,work)
+        ||!addAssociativeSlotBytes(events,64u,work)||!addAssociativeSlotBytes(physical,64u,work)
+        ||!addAssociativeRetainedBytes(allowance,work)||source.blockDeliveryBytes>source.maxBlockDeliveryBytes
+        ||allowance>source.maxBlockDeliveryBytes-source.blockDeliveryBytes||source.blockDeliveryWork>source.maxBlockDeliveryWork
+        ||work>source.maxBlockDeliveryWork-source.blockDeliveryWork){fail();return;}
+    source.blockDeliveryDispatches+=dispatches;source.blockDeliveryEvents+=events;
+    source.blockDeliveryBytes+=allowance;source.blockDeliveryWork+=work;
+    std::size_t record=0u,event=0u;
+    for(std::size_t i=0;i<dispatches;++i) {
+        const auto& dispatch=value.dispatches[i];
+        if(record>=physical||!blockDeliverySpanEqual(dispatch.begin,row.children->records[record].marker)
+            ||dispatch.firstEvent!=event||dispatch.events>events-event){fail();return;}
+        do {++record;}while(record<physical&&row.children->records[record].marker.ordinal<dispatch.end.ordinal);
+        const auto& next=record<physical?row.children->records[record].marker:row.children->endMarker;
+        if(!blockDeliverySpanEqual(dispatch.end,next)){fail();return;}
+        for(std::size_t j=0;j<dispatch.events;++j,++event) {
+            const auto& item=value.events[event];
+            if(item.dispatch!=i||item.callback>=DRW_DxfBlockCallback::Count
+                ||(!item.hasValue&&(item.handle||item.owner||item.entityType))
+                ||(item.callback==DRW_DxfBlockCallback::addRawDxfEntity&&item.entityType!=0)
+                ||(item.callback==DRW_DxfBlockCallback::AttdefSource&&item.entityType!=static_cast<std::int32_t>(DRW::ATTDEF))){fail();return;}
+        }
+    }
+    if(record!=physical||event!=events){fail();return;}
+    try {row.delivery=std::make_shared<const DRW_DxfBlockDeliverySource>(value);}
+    catch(...){fail();}
+}
+
+void dx_iface::beginDxfBlockDelivery(std::uint64_t scope,std::uint32_t block,std::size_t index,const DRW_DxfBlockDeliveryEvent& value) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.blockSources.find(block);
+    if(!tableSourceCaptureOpen()||source.blockDeliveryCaptureFailed||found==source.blockSources.end()
+        ||source.blockSourceActive!=block){source.blockDeliveryCaptureFailed=true;return;}
+    auto& row=found->second;
+    if(row.closed||!row.delivery||row.delivery->scopeId!=scope||row.deliveryFinished||row.deliveryPending||index!=row.deliveryNext
+        ||index>=row.delivery->events.size()||!blockDeliveryEventEqual(value,row.delivery->events[index])){source.blockDeliveryCaptureFailed=true;return;}
+    row.deliveryPending=true;row.deliveryObserved=false;
+}
+
+void dx_iface::endDxfBlockDelivery(std::uint64_t scope,std::uint32_t block,std::size_t index,const DRW_DxfBlockDeliveryEvent& value) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.blockSources.find(block);
+    if(!tableSourceCaptureOpen()||source.blockDeliveryCaptureFailed||found==source.blockSources.end()
+        ||source.blockSourceActive!=block){source.blockDeliveryCaptureFailed=true;return;}
+    auto& row=found->second;
+    if(!row.delivery||row.delivery->scopeId!=scope||row.closed||row.deliveryFinished||!row.deliveryPending||!row.deliveryObserved||index!=row.deliveryNext
+        ||index>=row.delivery->events.size()||!blockDeliveryEventEqual(value,row.delivery->events[index])){source.blockDeliveryCaptureFailed=true;return;}
+    ++row.deliveryNext;row.deliveryPending=false;row.deliveryObserved=false;
+}
+
+void dx_iface::finishDxfBlockDelivery(std::uint64_t scope,std::uint32_t block) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.blockSources.find(block);
+    if(!tableSourceCaptureOpen()||source.blockDeliveryCaptureFailed||found==source.blockSources.end()
+        ||source.blockSourceActive!=block){source.blockDeliveryCaptureFailed=true;return;}
+    auto& row=found->second;
+    if(!row.delivery||row.delivery->scopeId!=scope||row.closed||row.deliveryFinished||row.deliveryPending
+        ||row.deliveryNext!=row.delivery->events.size()||cData->typedEntityCaptureFailed||cData->rawDxfEntityCaptureFailed) {
+        source.blockDeliveryCaptureFailed=true;return;
+    }
+    row.deliveryFinished=true;
+}
+
+void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t handle,std::uint32_t owner,
+                                          DRW_DxfBlockCallback route,const DRW_RawDxfObject* raw) noexcept {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    if(!source.blockSourceActive||source.blockDeliveryCaptureFailed)return;
+    const auto found=source.blockSources.find(source.blockSourceActive);
+    if(found==source.blockSources.end()||!found->second.delivery)return;
+    auto& row=found->second;
+    const auto fail=[&](){source.blockDeliveryCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()||row.closed||row.deliveryFinished||!row.deliveryPending||row.deliveryObserved
+        ||row.deliveryNext>=row.delivery->events.size()){fail();return;}
+    const auto& event=row.delivery->events[row.deliveryNext];
+    if(!event.hasValue||event.entityType!=type||event.handle!=handle||event.owner!=owner
+        ||(route!=DRW_DxfBlockCallback::Count&&event.callback!=route)
+        ||(route==DRW_DxfBlockCallback::Count&&(event.callback==DRW_DxfBlockCallback::AttdefSource
+            ||event.callback==DRW_DxfBlockCallback::addRawDxfEntity))){fail();return;}
+    if(raw) {
+        const auto& dispatch=row.delivery->dispatches[event.dispatch];
+        const auto& records=row.children->records;
+        const auto at=std::lower_bound(records.begin(),records.end(),dispatch.begin.ordinal,
+            [](const DRW_DxfPhysicalEntitySource& item,std::size_t ordinal){return item.marker.ordinal<ordinal;});
+        const auto count=raw->groups.size();
+        if(count>source.maxBlockDeliveryWork/64u||source.blockDeliveryWork>source.maxBlockDeliveryWork-count*64u){fail();return;}
+        source.blockDeliveryWork+=count*64u;
+        if(at==records.end()||at->marker.ordinal!=dispatch.begin.ordinal||at->endOrdinal!=dispatch.end.ordinal
+            ||!blockDeliveryRawMatches(*at,*raw,row.delivery->binary)){fail();return;}
+    }
+    row.deliveryObserved=true;
+}
+
 bool dx_iface::wantsDxfAttdefSource() const {
     if(!tableSourceCaptureOpen())return false;
     const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
@@ -18120,6 +18269,8 @@ bool dx_iface::wantsDxfAttdefSource() const {
 
 void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
                                  const DRW_DxfAttdefSourceContext& context) {
+    observeDxfBlockDeliveryValue(static_cast<std::int32_t>(value.eType),value.handle,value.parentHandle,
+                                DRW_DxfBlockCallback::AttdefSource,&raw);
     if(!cData)return;
     auto& source=cData->m_tableDxfSource;
     if(!tableSourceCaptureOpen()){source.contextFailed=true;return;}
@@ -20503,6 +20654,7 @@ void dx_iface::addUnmodeledDxfObject(const DRW_RawDxfObject& data) {
 }
 
 void dx_iface::addRawDxfEntity(const DRW_RawDxfObject& data) {
+    observeDxfBlockDeliveryValue(0,data.handle,data.parentHandle,DRW_DxfBlockCallback::addRawDxfEntity,&data);
     if (cData == nullptr)
         return;
     if (cData->rawDxfEntityCaptureFailed)

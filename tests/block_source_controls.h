@@ -31,7 +31,7 @@ BlockFixture blockFixture(const std::string& version,unsigned children,bool reco
     f.document.insert(f.document.end(),{{0,"ENDSEC"},{0,"EOF"}});return f;
 }
 
-class BlockSourceProbe final:public dx_iface {
+class BlockSourceProbe:public dx_iface {
 public:
     bool selected=true,forceTransport=false,disableOnBegin=false,skipBegin=false,skipEnd=false,duplicateBegin=false,duplicateEnd=false;
     bool throwCleanupAlso=false;

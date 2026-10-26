@@ -45,6 +45,7 @@
 #include "intern/dxfattdef.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
+#include "intern/dxfblockdelivery.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -1996,7 +1997,21 @@ bool appendDxfHexChunk(std::string_view text,
 // because most entity processors use stack-local objects and child pointers.
 class DxfBlockEventSink final : public DRW_Interface {
 public:
-    explicit DxfBlockEventSink(DRW_Interface& target) : m_target(target) {}
+    explicit DxfBlockEventSink(DRW_Interface& target,dxfBlockDelivery::Capture* delivery=nullptr,
+                              DRW_DxfBlockDeliveryHandler* handler=nullptr)
+        :m_target(target),m_delivery(delivery),m_handler(handler),
+         m_blockHandle(delivery?delivery->source().blockHandle:0u),m_scopeId(delivery?delivery->source().scopeId:0u){}
+
+    void beginDispatch(dxfReader& input) noexcept {
+        if(!m_delivery)return;
+        DxfReadRecordView view;if(!input.currentRecordView(view))view.code=-1;
+        m_delivery->begin(view);
+    }
+    void endDispatch(dxfReader& input) noexcept {
+        if(!m_delivery)return;
+        DxfReadRecordView view;if(!input.currentRecordView(view))view.code=-1;
+        m_delivery->end(view);
+    }
 
     DRW_DxfAttdefSourceHandler* attdefSourceHandler() const noexcept {
         return dynamic_cast<DRW_DxfAttdefSourceHandler*>(&m_target);
@@ -2020,10 +2035,18 @@ public:
             // Transfer both payload owners to one event. Do not clone raw
             // strings or retain a second independently queued typed value.
             auto pair=std::make_shared<Pair>(std::move(value),std::move(source));
-            m_events.emplace_back([pair=std::move(pair),context,&handler](DRW_Interface& target) {
-                handler.addDxfAttdefSource(pair->value,pair->source,context);
-                target.addAttDef(pair->value);
-            });
+            const auto sourcePlan=plan(DRW_DxfBlockCallback::AttdefSource,&pair->value);
+            const auto typedPlan=plan(DRW_DxfBlockCallback::addAttDef,&pair->value);
+            if(sourcePlan.index==dxfBlockDelivery::Capture::NoEvent||typedPlan.index==dxfBlockDelivery::Capture::NoEvent) {
+                m_events.emplace_back([pair=std::move(pair),context,&handler](DRW_Interface& target) {
+                    handler.addDxfAttdefSource(pair->value,pair->source,context);target.addAttDef(pair->value);
+                });
+            } else {
+                m_events.emplace_back([this,pair=std::move(pair),context,&handler,sourcePlan,typedPlan](DRW_Interface& target) {
+                    invoke(sourcePlan,[&](){handler.addDxfAttdefSource(pair->value,pair->source,context);});
+                    invoke(typedPlan,[&](){target.addAttDef(pair->value);});
+                });
+            }
         } catch (...) {m_failed=true;}
         return !m_failed;
     }
@@ -2035,6 +2058,7 @@ public:
             return false;
         for (auto& event : m_events)
             event(m_target);
+        if(m_delivery&&m_handler&&m_delivery->completeManifest())m_handler->finishDxfBlockDelivery(m_scopeId,m_blockHandle);
         return !m_failed;
     }
 
@@ -2051,14 +2075,14 @@ public:
 
 #define DRW_BLOCK_EVENT_VALUE(method, type) \
     void method(const type& data) override { \
-        recordValue(data, [](DRW_Interface& target, const type& value) { \
+        recordValue(data, DRW_DxfBlockCallback::method, [](DRW_Interface& target, const type& value) { \
             target.method(value); \
         }); \
     }
 
 #define DRW_BLOCK_EVENT_POINTER(method, type) \
     void method(const type* data) override { \
-        recordPointer(data, [](DRW_Interface& target, const type* value) { \
+        recordPointer(data, DRW_DxfBlockCallback::method, [](DRW_Interface& target, const type* value) { \
             target.method(value); \
         }); \
     }
@@ -2089,7 +2113,14 @@ public:
     DRW_BLOCK_EVENT_VALUE(add3dFace, DRW_3Dface)
     DRW_BLOCK_EVENT_VALUE(addSolid, DRW_Solid)
     DRW_BLOCK_EVENT_VALUE(addMText, DRW_MText)
-    DRW_BLOCK_EVENT_VALUE(addText, DRW_Text)
+    void addText(const DRW_Text& data) override {
+        // These public 2D-compatible callbacks also carry richer concrete
+        // models. Their eType intentionally aliases TEXT, so inspect RTTI
+        // before copying instead of preserving an enum on a sliced base.
+        if(const auto* rtext=dynamic_cast<const DRW_RText*>(&data))recordText(*rtext);
+        else if(const auto* arc=dynamic_cast<const DRW_ArcAlignedText*>(&data))recordText(*arc);
+        else recordText(data);
+    }
     DRW_BLOCK_EVENT_VALUE(addAttDef, DRW_Attdef)
     DRW_BLOCK_EVENT_VALUE(addTolerance, DRW_Tolerance)
     DRW_BLOCK_EVENT_VALUE(addCamera, DRW_Camera)
@@ -2097,7 +2128,10 @@ public:
     DRW_BLOCK_EVENT_VALUE(addSectionObject, DRW_SectionObject)
     DRW_BLOCK_EVENT_POINTER(addDimAlign, DRW_DimAligned)
     DRW_BLOCK_EVENT_POINTER(addDimLinear, DRW_DimLinear)
-    DRW_BLOCK_EVENT_POINTER(addDimRadial, DRW_DimRadial)
+    void addDimRadial(const DRW_DimRadial* data) override {
+        if(const auto* large=dynamic_cast<const DRW_DimLargeRadial*>(data))recordRadial(large);
+        else recordRadial(data);
+    }
     DRW_BLOCK_EVENT_POINTER(addDimDiametric, DRW_DimDiametric)
     DRW_BLOCK_EVENT_POINTER(addDimAngular, DRW_DimAngular)
     DRW_BLOCK_EVENT_POINTER(addDimAngular3P, DRW_DimAngular3p)
@@ -2153,7 +2187,41 @@ public:
 
 private:
     using Event = std::function<void(DRW_Interface&)>;
+    struct Planned {
+        std::size_t index{dxfBlockDelivery::Capture::NoEvent};
+        DRW_DxfBlockDeliveryEvent value;
+    };
+    Planned planValue(DRW_DxfBlockCallback callback,std::int32_t type,std::uint32_t handle,std::uint32_t owner,bool present) noexcept {
+        if(!m_delivery)return {};
+        const auto index=m_delivery->event(callback,type,handle,owner,present);
+        if(index==dxfBlockDelivery::Capture::NoEvent)return {};
+        return {index,m_delivery->source().events[index]};
+    }
+    Planned plan(DRW_DxfBlockCallback callback,const DRW_Entity* value) noexcept {
+        return planValue(callback,value?static_cast<std::int32_t>(value->eType):0,
+                         value?value->handle:0u,value?value->parentHandle:0u,value!=nullptr);
+    }
+    Planned plan(DRW_DxfBlockCallback callback,const DRW_RawDxfObject* value) noexcept {
+        return planValue(callback,0,value?value->handle:0u,value?value->parentHandle:0u,value!=nullptr);
+    }
+    template<class Callback>void invoke(const Planned& planned,Callback callback) {
+        const bool notify=m_delivery&&m_handler&&m_delivery->completeManifest()
+            &&planned.index!=dxfBlockDelivery::Capture::NoEvent;
+        // Copy origin metadata into the queued event before exposing the
+        // report; it is not reconstructed from mutable callback/model state.
+        if(notify)m_handler->beginDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,planned.value);
+        callback();
+        if(notify)m_handler->endDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,planned.value);
+    }
 
+    template <typename T>
+    void recordText(const T& data) {
+        recordValue(data,DRW_DxfBlockCallback::addText,[](DRW_Interface& target,const T& value){target.addText(value);});
+    }
+    template <typename T>
+    void recordRadial(const T* data) {
+        recordPointer(data,DRW_DxfBlockCallback::addDimRadial,[](DRW_Interface& target,const T* value){target.addDimRadial(value);});
+    }
     template <typename T>
     void recordSurface(const DRW_Surface* data) {
         const auto* typed = dynamic_cast<const T*>(data);
@@ -2161,38 +2229,46 @@ private:
             m_failed = true;
             return;
         }
-        recordPointer(typed, [](DRW_Interface& target, const T* value) {
+        recordPointer(typed, DRW_DxfBlockCallback::addSurface, [](DRW_Interface& target, const T* value) {
             target.addSurface(value);
         });
     }
 
     template <typename T, typename Callback>
-    void recordValue(const T& data, Callback callback) {
+    void recordValue(const T& data, DRW_DxfBlockCallback kind, Callback callback) {
         if (m_failed)
             return;
         try {
             auto copy = std::make_shared<T>(data);
-            m_events.emplace_back(
-                [copy = std::move(copy), callback](DRW_Interface& target) {
-                    callback(target, *copy);
+            const auto planned=plan(kind,copy.get());
+            if(planned.index==dxfBlockDelivery::Capture::NoEvent) {
+                m_events.emplace_back([copy=std::move(copy),callback](DRW_Interface& target){callback(target,*copy);});
+            } else {
+                m_events.emplace_back([this,copy=std::move(copy),callback,planned](DRW_Interface& target) {
+                    invoke(planned,[&](){callback(target,*copy);});
                 });
+            }
         } catch (...) {
             m_failed = true;
         }
     }
 
     template <typename T, typename Callback>
-    void recordPointer(const T* data, Callback callback) {
+    void recordPointer(const T* data, DRW_DxfBlockCallback kind, Callback callback) {
         if (m_failed)
             return;
         try {
             std::shared_ptr<T> copy;
             if (data != nullptr)
                 copy = std::make_shared<T>(*data);
-            m_events.emplace_back(
-                [copy = std::move(copy), callback](DRW_Interface& target) {
-                    callback(target, copy.get());
+            const auto planned=plan(kind,copy.get());
+            if(planned.index==dxfBlockDelivery::Capture::NoEvent) {
+                m_events.emplace_back([copy=std::move(copy),callback](DRW_Interface& target){callback(target,copy.get());});
+            } else {
+                m_events.emplace_back([this,copy=std::move(copy),callback,planned](DRW_Interface& target) {
+                    invoke(planned,[&](){callback(target,copy.get());});
                 });
+            }
         } catch (...) {
             m_failed = true;
         }
@@ -2201,6 +2277,10 @@ private:
     DRW_Interface& m_target;
     std::vector<Event> m_events;
     bool m_failed {false};
+    dxfBlockDelivery::Capture* m_delivery;
+    DRW_DxfBlockDeliveryHandler* m_handler;
+    const std::uint32_t m_blockHandle;
+    const std::uint64_t m_scopeId;
 };
 
 }
@@ -16026,12 +16106,15 @@ bool dxfRW::processBlock() {
     DRW_Block block;
     dxfBlock::Decoder beginDecoder(block,false);
     dxfBlockChildren::Capture childSource(*reader);
+    dxfBlockDelivery::Capture deliverySource;
     bool blockPublished = false;
     bool hasStagedBlockRecord = false;
     DRW_ParsingContext::BlockRecordInfo stagedBlockRecord;
     auto* sourceHandler=dynamic_cast<DRW_DxfBlockSourceHandler*>(iface);
     auto* childrenHandler=dynamic_cast<DRW_DxfBlockChildrenSourceHandler*>(iface);
     const bool captureChildren=childrenHandler&&childrenHandler->wantsDxfBlockChildrenSource();
+    auto* deliveryHandler=dynamic_cast<DRW_DxfBlockDeliveryHandler*>(iface);
+    const bool captureDelivery=captureChildren&&deliveryHandler&&deliveryHandler->wantsDxfBlockDeliverySource();
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockSource();
     bool beginSourceDelivered=false;
     DRW_RawDxfObject beginSource;
@@ -16159,6 +16242,8 @@ bool dxfRW::processBlock() {
                 }
                 if(captureChildren&&!dropBlock)
                     childSource.start(originalBlockHandle,originalBlockRecord,childrenHandler->dxfBlockChildrenSourceLimits());
+                if(captureDelivery&&!dropBlock)
+                    deliverySource.start(*reader,originalBlockHandle,originalBlockRecord,deliveryHandler->dxfBlockDeliveryLimits());
                 if (boundary == DxfEntityBoundary::EndBlock) {
                     if (!consumeEndBlock()) {
                         closePublishedBlock();
@@ -16166,13 +16251,19 @@ bool dxfRW::processBlock() {
                     }
                     childSource.detach();
                     if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
+                    if(captureDelivery&&!dropBlock) {
+                        deliverySource.complete();const auto scope=deliverySource.source().scopeId;
+                        deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());
+                        if(deliverySource.completeManifest())deliveryHandler->finishDxfBlockDelivery(scope,originalBlockHandle);
+                    }
                     publishBlockRecord();
                     closePublishedBlock();
                     return true;  //found ENDBLK, terminate
                 } else {
                     const bool previousBlockContext = m_readingBlockEntities;
                     DRW_Interface *const previousInterface = iface;
-                    DxfBlockEventSink blockEvents(*previousInterface);
+                    DxfBlockEventSink blockEvents(*previousInterface,
+                        captureDelivery&&!dropBlock?&deliverySource:nullptr,captureDelivery&&!dropBlock?deliveryHandler:nullptr);
                     m_readingBlockEntities = true;
                     iface = &blockEvents;
                     bool entitiesProcessed = false;
@@ -16199,6 +16290,9 @@ bool dxfRW::processBlock() {
                     }
                     childSource.detach();
                     if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
+                    if(captureDelivery&&!dropBlock) {
+                        deliverySource.complete();deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());
+                    }
                     if (!dropBlock && !blockEvents.flush()) {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);
@@ -16268,6 +16362,8 @@ bool dxfRW::processEntities(bool isblock) {
             dxfReader* reader;
         } semanticStrings(reader.get());
 
+        auto* blockEvents=isblock?dynamic_cast<DxfBlockEventSink*>(iface):nullptr;
+        if(blockEvents)blockEvents->beginDispatch(*reader);
         bool processed {false};
         if (dxfKeywordEquals(nextentity, "POINT")) {
             processed = processPoint();
@@ -16391,6 +16487,7 @@ bool dxfRW::processEntities(bool isblock) {
                 ? setError(DRW::BAD_READ_ENTITIES)
                 : false;
         }
+        if(blockEvents)blockEvents->endDispatch(*reader);
 
         const DxfEntityBoundary nextBoundary = classifyEntityBoundary();
         if (nextBoundary == DxfEntityBoundary::Error)
