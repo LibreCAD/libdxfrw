@@ -21,7 +21,7 @@ namespace dx_attdef_source {
 enum class Scope : std::uint8_t { Host, Nested, Ignored };
 enum class Field : std::uint8_t {
     Identity, Subclass, Common, Text, Attribute, EmbeddedMarker, MText,
-    ComputedIgnored, Application, Xdata, ReservedDefault, Block, Compound, IgnoredComment
+    ComputedIgnored, Application, Xdata, ReservedDefault, Block, Compound, IgnoredComment, Primary
 };
 enum class Role : std::uint8_t {
     None, Self, Owner, LayerName, LineTypeName, TextStyleName, Material,

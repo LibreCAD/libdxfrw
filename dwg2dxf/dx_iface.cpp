@@ -17500,6 +17500,35 @@ dx_iface::EntitiesCompoundReport dx_iface::entitiesCompoundReport(const dx_data&
     r.state=!r.compounds?S::NoCompounds:r.compounds==r.matched?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::EntitiesPrimaryReport dx_iface::entitiesPrimaryReport(const dx_data& data) noexcept {
+    using S=EntitiesPrimaryState;using C=EntitiesCompoundState;using P=EntitiesCompoundProof::State;
+    EntitiesPrimaryReport r;const auto transport=entitiesCompoundReport(data);
+    r.sections=transport.sections;r.dispatches=transport.dispatches;r.records=transport.records;r.bytes=transport.bytes;r.work=transport.work;
+    // The compound query validates the same immutable audit/context owners.
+    // A compound's body refusal is not a POINT/LINE body refusal, or vice versa.
+    switch(transport.state) {
+    case C::NotCaptured:return r;
+    case C::Reading:r.state=S::Reading;return r;
+    case C::ImportFailed:r.state=S::ImportFailed;return r;
+    case C::SourceNotReady:r.state=S::SourceNotReady;return r;
+    case C::CaptureFailed:r.state=S::CaptureFailed;return r;
+    case C::ContextMismatch:r.state=S::ContextMismatch;return r;
+    case C::NoCompounds:case C::ProofsReady:case C::Unqualified:break;
+    }
+    for(std::size_t section=0;section<data.m_tableDxfSource.entitiesCompoundAudits.size();++section) {
+        const auto& audit=*data.m_tableDxfSource.entitiesCompoundAudits[section];
+        for(const auto& proof:audit.proofs)if(proof.primary) {
+            ++r.primaries;if(proof.modeledMatched)++r.modeledMatched;if(proof.profilesMatched)++r.profilesMatched;
+            if(proof.state==P::Matched)++r.matched;
+            else {
+                if(r.primaries-r.matched==1u){r.firstSection=section;r.firstDispatch=proof.dispatch;r.firstRecord=proof.failedRecord;}
+                if(proof.state==P::ModelUnavailable)++r.unavailable;
+            }
+        }
+    }
+    r.state=!r.primaries?S::NoPrimaries:r.primaries==r.matched?S::ProofsReady:S::Unqualified;return r;
+}
+
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
     using F=dx_tableResourceFamily;
     using S=TableBindingState;
@@ -18535,10 +18564,11 @@ bool dx_iface::captureEntitiesReadContext() noexcept {
 void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,const DRW_Entity& value) noexcept {
     const auto* pl=value.eType==DRW::POLYLINE?dynamic_cast<const DRW_Polyline*>(&value):nullptr;
     const auto* in=value.eType==DRW::INSERT?dynamic_cast<const DRW_Insert*>(&value):nullptr;
-    if(!pl&&!in)return;
+    const bool primary=value.eType==DRW::POINT||value.eType==DRW::LINE;
+    if(!pl&&!in&&!primary)return;
     std::size_t count=1u;
     if(pl) {if(!addAssociativeRetainedBytes(pl->vertlist.size(),count)||!addAssociativeRetainedBytes(pl->seqEndEntity?1u:0u,count))return;}
-    else if(!addAssociativeRetainedBytes(in->attlist.size(),count)||!addAssociativeRetainedBytes(in->seqEndEntity?1u:0u,count))return;
+    else if(in&&(!addAssociativeRetainedBytes(in->attlist.size(),count)||!addAssociativeRetainedBytes(in->seqEndEntity?1u:0u,count)))return;
     std::size_t bytes=0u,work=0u;
     if(!addAssociativeSlotBytes(count,sizeof(dxfCompound::SourceState),bytes)||!addAssociativeSlotBytes(count,64u,work)
         ||!chargeEntitiesDelivery(bytes,work))return;
@@ -18547,7 +18577,7 @@ void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,con
         if(pl) {
             for(const auto& child:pl->vertlist){if(!child)return;observed.compoundStates.push_back(dxfCompound::Decoder::observe(*child));}
             if(pl->seqEndEntity)observed.compoundStates.push_back(dxfCompound::Decoder::observe(*pl->seqEndEntity));
-        }else {
+        }else if(in) {
             for(const auto& child:in->attlist){if(!child)return;observed.compoundStates.push_back(dxfCompound::Decoder::observe(*child));}
             if(in->seqEndEntity)observed.compoundStates.push_back(dxfCompound::Decoder::observe(*in->seqEndEntity));
         }
@@ -19066,8 +19096,10 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 proof.next=at;proof.failedRecord=proof.first;
                 const auto& name=records[proof.first].name;const bool polyline=dx_block_membership::equal(name,"POLYLINE");
                 const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
+                const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
                 proof.compound=polyline||insert;
-                if(!proof.compound) {
+                proof.primary=point||line;
+                if(!proof.compound&&!proof.primary) {
                     if(!dispatch.events)proof.state=State::NoCallback;
                     else {
                         bool raw=false,typed=false;
@@ -19084,10 +19116,13 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 if(dispatch.events!=1u||proof.event>=row.observed->size())proof.state=State::Callback;
                 else {
                     const auto& event=row.delivery->events[proof.event];
-                    if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=(polyline?DRW_DxfEntitiesCallback::addPolyline:DRW_DxfEntitiesCallback::addInsert)
+                    const auto callback=polyline?DRW_DxfEntitiesCallback::addPolyline:insert?DRW_DxfEntitiesCallback::addInsert
+                        :point?DRW_DxfEntitiesCallback::addPoint:DRW_DxfEntitiesCallback::addLine;
+                    if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=callback
                         ||event.handle!=root.self||event.owner!=root.owner)proof.state=State::Callback;
                 }
-                if((polyline&&n<2u)||((polyline||n>1u)&&!dx_block_membership::equal(records[at-1u].name,"SEQEND")))proof.state=State::Sequence;
+                if((polyline&&n<2u)||(proof.primary&&n!=1u)
+                    ||((polyline||(insert&&n>1u))&&!dx_block_membership::equal(records[at-1u].name,"SEQEND")))proof.state=State::Sequence;
                 for(std::size_t i=proof.first;i<at;++i) {
                     auto& member=audit->members[i];member.dispatch=d;member.parent=proof.first;
                     if(member.reason!=dx_block_membership::Reason::Matched) {
@@ -19122,7 +19157,10 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
     if(!context.captured||context.applyExtrusion||context.sourceVersion!=audit.physical->version||context.binary!=audit.physical->binary)return false;
     std::size_t bytes=0u,work=0u,groups=0u,rawBytes=0u,modelBytes=0u;
     const bool polyline=dx_block_membership::equal(audit.physical->records[proof.first].name,"POLYLINE");
-    if(!estimateTypedEntityRetainedBytes(*observed.model,polyline?sizeof(DRW_Polyline):sizeof(DRW_Insert),modelBytes))return false;
+    const bool point=dx_block_membership::equal(audit.physical->records[proof.first].name,"POINT");
+    const bool line=dx_block_membership::equal(audit.physical->records[proof.first].name,"LINE");
+    const auto modelSize=polyline?sizeof(DRW_Polyline):point?sizeof(DRW_Point):line?sizeof(DRW_Line):sizeof(DRW_Insert);
+    if(!estimateTypedEntityRetainedBytes(*observed.model,modelSize,modelBytes))return false;
     for(std::size_t i=proof.first;i<proof.next;++i) {
         const auto& record=audit.physical->records[i];
         if(!addAssociativeRetainedBytes(record.groups.size(),groups)||!addAssociativeRetainedBytes(sizeof(DRW_RawDxfObject)+record.name.size(),rawBytes)
@@ -19144,7 +19182,7 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         raw.m_version=context.sourceVersion;raw.hasRawValues=!context.binary;
         raw.groups.reserve(physical.groups.size());raw.rawValues.reserve(physical.groups.size());
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment){raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);}
-        auto profile=dx_compound_source::audit(raw,parent,true);
+        auto profile=dx_compound_source::audit(raw,parent,true,proof.primary);
         if(!dx_compound_source::restorePhysicalIndices(profile,physical)){s.entitiesCompoundCaptureFailed=true;return false;}
         proof.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,s.maxEntitiesCompoundBytes,wire))return false;
@@ -19166,7 +19204,13 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         return true;
     };
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b){return standardDwgVariantEqual(a,b,context.sourceVersion);};
-    if(polyline) {
+    if(point) {
+        DRW_Point parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }else if(line) {
+        DRW_Line parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }else if(polyline) {
         DRW_Polyline parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,false,nullptr))return false;
         parsed.vertlist.reserve(n-2u);
         for(auto i=proof.first+1u;i+1u<proof.next;++i) {auto vertex=std::make_shared<DRW_Vertex>();dxfCompound::Decoder child(*vertex);

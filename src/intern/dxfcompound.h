@@ -3,26 +3,30 @@
 #define DXFCOMPOUND_H
 #include "dxfattdef.h"
 
-// Shared production/replay field admission and exact modeled equality. This
+// Shared production/replay field admission and exact modeled equality, including
+// the selected POINT/LINE primary roots used beside compound chains. This
 // does not inventory unknown physical scalars or qualify dependency/output roles.
 namespace dxfCompound {
 using SourceState=dxfAttdef::SourceState;
 class Decoder {
-    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd};
+    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line};
     DRW_Entity* value;Kind kind;unsigned fields{0u};
-    enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u};
+    enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u,EndX=32u,EndY=64u};
 public:
     explicit Decoder(DRW_Polyline& v):value(&v),kind(Kind::Polyline){}
     explicit Decoder(DRW_Vertex& v):value(&v),kind(Kind::Vertex){}
     explicit Decoder(DRW_Insert& v):value(&v),kind(Kind::Insert){}
     explicit Decoder(DRW_Attrib& v):value(&v),kind(Kind::Attribute){}
     explicit Decoder(DRW_SeqEnd& v):value(&v),kind(Kind::SequenceEnd){}
+    explicit Decoder(DRW_Point& v):value(&v),kind(Kind::Point){}
+    explicit Decoder(DRW_Line& v):value(&v),kind(Kind::Line){}
     void reset(DRW_Vertex& v) noexcept {value=&v;kind=Kind::Vertex;fields=0u;}
     void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;}
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
         if(code==1)fields|=Text;if(code==2)fields|=Tag;if(code==10)fields|=X;
         if(code==20)fields|=Y;if(code==40)fields|=Height;
+        if(code==11)fields|=EndX;if(code==21)fields|=EndY;
         return parseEntity(*value,code,reader);
     }
     bool finish(const DRW_Polyline* parent=nullptr) {
@@ -41,6 +45,8 @@ public:
                 &&dxfAttdef::Decoder::finishAttribute(attribute);
         }
         case Kind::SequenceEnd:return true;
+        case Kind::Point:return (fields&(X|Y))==(X|Y);
+        case Kind::Line:return (fields&(X|Y|EndX|EndY))==(X|Y|EndX|EndY);
         }
         return false;
     }
@@ -52,6 +58,14 @@ public:
     static bool sameModel(const DRW_Entity& a,const DRW_Entity& b,Equal equal) noexcept {
         if(a.eType!=b.eType)return false;
         switch(a.eType) {
+        case DRW::POINT: {
+            const auto* x=dynamic_cast<const DRW_Point*>(&a);const auto* y=dynamic_cast<const DRW_Point*>(&b);
+            return x&&y&&samePoint(*x,*y,equal);
+        }
+        case DRW::LINE: {
+            const auto* x=dynamic_cast<const DRW_Line*>(&a);const auto* y=dynamic_cast<const DRW_Line*>(&b);
+            return x&&y&&samePoint(*x,*y,equal)&&point(x->secPoint,y->secPoint);
+        }
         case DRW::POLYLINE: {
             const auto* x=dynamic_cast<const DRW_Polyline*>(&a);const auto* y=dynamic_cast<const DRW_Polyline*>(&b);
             if(!x||!y||!samePoint(*x,*y,equal)||x->hadlesList!=y->hadlesList||x->firstEH!=y->firstEH||x->lastEH!=y->lastEH

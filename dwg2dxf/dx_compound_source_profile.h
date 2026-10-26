@@ -24,7 +24,7 @@ inline bool scalarType(const DRW_Variant& value) noexcept {
     }
     return false;
 }
-inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullptr,bool allowLayoutName=false) {
+inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullptr,bool allowLayoutName=false,bool allowPrimary=false) {
     Audit out;
     const auto reject=[&](Reason why,std::size_t at){out.reason=why;out.rejectedGroup=at;out.spans.clear();return std::move(out);};
     for(std::size_t i=0;i<raw.groups.size();++i)if(!scalarType(raw.groups[i]))return reject(Reason::InvalidValue,i);
@@ -33,7 +33,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     const bool polyline=dx_block_membership::equal(raw.name,"POLYLINE"),vertex=dx_block_membership::equal(raw.name,"VERTEX");
     const bool insert=dx_block_membership::equal(raw.name,"INSERT")||dx_block_membership::equal(raw.name,"MINSERT");
     const bool footer=dx_block_membership::equal(raw.name,"SEQEND");
-    if((!polyline&&!vertex&&!insert&&!footer)||!raw.handle||(vertex&&!parent))return reject(Reason::Identity,0u);
+    const bool pointRoot=allowPrimary&&dx_block_membership::equal(raw.name,"POINT");
+    const bool lineRoot=allowPrimary&&dx_block_membership::equal(raw.name,"LINE");
+    if((!polyline&&!vertex&&!insert&&!footer&&!pointRoot&&!lineRoot)||!raw.handle||(vertex&&!parent))return reject(Reason::Identity,0u);
     out.spans.reserve(raw.groups.size()); // entire bound precharged by caller
     std::array<bool,1072> seen{};
     std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
@@ -93,6 +95,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                     bool known=false;
                     if(polyline)known=s=="AcDb2dPolyline"||s=="AcDb3dPolyline"||s=="AcDbPolygonMesh"||s=="AcDbPolyFaceMesh";
                     if(insert)known=s=="AcDbBlockReference"||s=="AcDbMInsertBlock";
+                    if(pointRoot)known=s=="AcDbPoint";
+                    if(lineRoot)known=s=="AcDbLine";
                     if(vertex)known=vertexMarker?(s=="AcDb2dVertex"||s=="AcDb3dPolylineVertex"||s=="AcDbPolygonMeshVertex"||s=="AcDbPolyFaceMeshVertex"):s=="AcDbFaceRecord";
                     if(!known)return reject(Reason::Subclass,i);subtype=s;stage=2;
                 }else return reject(Reason::Subclass,i);
@@ -106,7 +110,15 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                 bool body=false;
                 if(stage==2&&!subtype.empty()) {
                     field=Field::Compound;body=true;
-                    if(polyline) {
+                    if(pointRoot||lineRoot) {
+                        field=Field::Primary;
+                        switch(code) {
+                        case 10:case 20:case 30:case 39:case 210:case 220:case 230:break;
+                        case 50:if(!pointRoot)body=false;break;
+                        case 11:case 21:case 31:if(!lineRoot)body=false;break;
+                        default:body=false;break;
+                        }
+                    }else if(polyline) {
                         switch(code) {
                         case 66:field=Field::ComputedIgnored;break; // obsolete, not INSERT follow semantics
                         case 10:case 20:
@@ -174,7 +186,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     if(depth)return reject(Reason::Application,end);if(xdepth)return reject(Reason::Xdata,end);if(point)return reject(Reason::IncompletePoint,end);
     if(stage!=(footer?1:2)||!seen[5]||!seen[330]||!seen[8]||(!footer&&subtype.empty()))return reject(Reason::Identity,end);
     if(proxy>=0&&proxyBytes!=static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,end);
-    if(polyline) {
+    if(pointRoot||lineRoot) {
+        if(!pair(10,true)||(lineRoot&&!pair(11,true)))return reject(Reason::IncompletePoint,end);
+    }else if(polyline) {
         const auto expected=(flags&64)?"AcDbPolyFaceMesh":(flags&16)?"AcDbPolygonMesh":(flags&8)?"AcDb3dPolyline":"AcDb2dPolyline";
         if(subtype!=expected||((flags&64)&&((flags&24)!=0))||((flags&16)&&((flags&8)!=0)))return reject(Reason::Subclass,end);
         if(!pair(10,true)||!pair(210,false))return reject(Reason::IncompletePoint,end);

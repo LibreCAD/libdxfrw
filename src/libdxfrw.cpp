@@ -16870,8 +16870,7 @@ bool dxfRW::processPoint() {
     DRW_DBG("dxfRW::processPoint\n");
     int code;
     DRW_Point point;
-    bool hasX = false;
-    bool hasY = false;
+    dxfCompound::Decoder decoder(point);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -16880,16 +16879,13 @@ bool dxfRW::processPoint() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!hasX || !hasY)
+            if (!decoder.finish())
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addPoint(point);
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        hasX = hasX || code == 10;
-        hasY = hasY || code == 20;
-
-        if (!point.parseCode(code, reader)) {
+        if (!decoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -16901,10 +16897,7 @@ bool dxfRW::processLine() {
     DRW_DBG("dxfRW::processLine\n");
     int code;
     DRW_Line line;
-    bool hasStartX = false;
-    bool hasStartY = false;
-    bool hasEndX = false;
-    bool hasEndY = false;
+    dxfCompound::Decoder decoder(line);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -16913,20 +16906,15 @@ bool dxfRW::processLine() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!hasStartX || !hasStartY || !hasEndX || !hasEndY)
+            if (!decoder.finish())
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addLine(line);
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        hasStartX = hasStartX || code == 10;
-        hasStartY = hasStartY || code == 20;
-        hasEndX = hasEndX || code == 11;
-        hasEndY = hasEndY || code == 21;
-
-        if (!line.parseCode(code, reader)) {
+        if (!decoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
-}
+        }
     }
 
     return setError(DRW::BAD_READ_ENTITIES);

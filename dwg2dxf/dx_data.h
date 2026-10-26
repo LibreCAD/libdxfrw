@@ -1192,7 +1192,7 @@ private:
             std::size_t dispatch{0},first{0},next{0},event{0},failedRecord{0};
             std::vector<dx_attdef_source::Audit> profiles;
             std::vector<dxfCompound::SourceState> replayStates;
-            bool compound{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
+            bool compound{false},primary{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
         };
         struct EntitiesCompoundAudit {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0};

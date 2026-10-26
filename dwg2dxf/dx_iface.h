@@ -42,8 +42,8 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
 public:
     enum class EntitiesCompoundState {NotCaptured,Reading,ImportFailed,SourceNotReady,CaptureFailed,ContextMismatch,NoCompounds,ProofsReady,Unqualified};
     struct EntitiesCompoundReport {
-        // ProofsReady covers only the selected compound subset. Other primary,
-        // raw and no-callback records and actual owner/layout targets stay open.
+        // ProofsReady covers only the selected compound subset. Other bodies
+        // have separate reports; raw/no-callback and actual targets stay open.
         EntitiesCompoundState state{EntitiesCompoundState::NotCaptured};
         std::size_t sections{0},dispatches{0},compounds{0},matched{0},modeledMatched{0},profilesMatched{0};
         std::size_t otherPrimaries{0},raw{0},noCallback{0},unavailable{0},records{0},bytes{0},work{0};
@@ -51,6 +51,15 @@ public:
         bool outputEligible{false},ownerTargetsResolved{false};
     };
     static EntitiesCompoundReport entitiesCompoundReport(const dx_data&) noexcept;
+    enum class EntitiesPrimaryState {NotCaptured,Reading,ImportFailed,SourceNotReady,CaptureFailed,ContextMismatch,NoPrimaries,ProofsReady,Unqualified};
+    struct EntitiesPrimaryReport {
+        // Selected POINT/LINE bodies only, not all primaries or resolved targets.
+        EntitiesPrimaryState state{EntitiesPrimaryState::NotCaptured};
+        std::size_t sections{0},dispatches{0},primaries{0},matched{0},modeledMatched{0},profilesMatched{0},unavailable{0};
+        std::size_t records{0},bytes{0},work{0},firstSection{0},firstDispatch{0},firstRecord{0};
+        bool outputEligible{false},ownerTargetsResolved{false};
+    };
+    static EntitiesPrimaryReport entitiesPrimaryReport(const dx_data&) noexcept;
     enum class EntitiesDeliveryState {NotCaptured,Reading,ImportFailed,CaptureFailed,ContextMismatch,ReportMissing,ObservedTransportComplete};
     struct EntitiesDeliveryReport {
         // Actual callback/original-interval transport, NOT field/space/output proof.
