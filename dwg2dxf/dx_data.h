@@ -20,6 +20,7 @@
 #include "intern/dxfattdef.h"
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
+#include "dx_block_membership.h"
 
 #include <array>
 #include <cstddef>
@@ -1026,6 +1027,7 @@ private:
             DRW_DxfPhysicalRecordSpan begin,end;
             std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
             std::shared_ptr<const DRW_DxfBlockChildrenSource> children;
+            std::shared_ptr<const dx_block_membership::Audit> membership;
             std::shared_ptr<const DRW_Attdef> model;
             std::shared_ptr<const DRW_RawDxfObject> raw,blockBegin,blockEnd;
             std::shared_ptr<const DRW_Block> original,effective,footer;
@@ -1090,6 +1092,8 @@ private:
             std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
             std::size_t deliveryNext{0};
             bool deliveryExpected{false},deliveryPending{false},deliveryObserved{false},deliveryFinished{false};
+            std::shared_ptr<const dx_block_membership::Audit> membership;
+            std::size_t membershipObserved{0};
             std::vector<std::uint32_t> attdefOrigins;
         };
         std::map<std::uint32_t,BlockSource> blockSources;
@@ -1109,6 +1113,9 @@ private:
         std::size_t attdefOriginRecords{0},attdefOriginBytes{0},attdefOriginWork{0};
         std::size_t maxAttdefOriginRecords{100000u},maxAttdefOriginBytes{64u*1024u*1024u},maxAttdefOriginWork{64u*1024u*1024u};
         bool attdefOriginCaptureFailed{false};
+        std::size_t blockMembershipRecords{0},blockMembershipBytes{0},blockMembershipWork{0};
+        std::size_t maxBlockMembershipRecords{100000u},maxBlockMembershipBytes{64u*1024u*1024u},maxBlockMembershipWork{64u*1024u*1024u};
+        bool blockMembershipCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

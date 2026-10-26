@@ -18197,7 +18197,7 @@ void dx_iface::addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource& value
         }
     }
     if(record!=physical||event!=events){fail();return;}
-    try {row.delivery=std::make_shared<const DRW_DxfBlockDeliverySource>(value);}
+    try {row.delivery=std::make_shared<const DRW_DxfBlockDeliverySource>(value);captureDxfBlockMembership(row);}
     catch(...){fail();}
 }
 
@@ -18240,7 +18240,7 @@ void dx_iface::finishDxfBlockDelivery(std::uint64_t scope,std::uint32_t block) {
 }
 
 void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t handle,std::uint32_t owner,
-                                          DRW_DxfBlockCallback route,const DRW_RawDxfObject* raw) noexcept {
+                                          DRW_DxfBlockCallback route,const DRW_RawDxfObject* raw,const DRW_Entity* entity) noexcept {
     if(!cData)return;
     auto& source=cData->m_tableDxfSource;
     if(!source.blockSourceActive||source.blockDeliveryCaptureFailed)return;
@@ -18266,7 +18266,58 @@ void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t hand
         if(at==records.end()||at->marker.ordinal!=dispatch.begin.ordinal||at->endOrdinal!=dispatch.end.ordinal
             ||!blockDeliveryRawMatches(*at,*raw,row.delivery->binary)){fail();return;}
     }
+    observeDxfBlockMembership(row,event,entity);
     row.deliveryObserved=true;
+}
+
+void dx_iface::captureDxfBlockMembership(AttdefOriginBlock& row) noexcept {
+    auto& source=cData->m_tableDxfSource;const auto fail=[&](){source.blockMembershipCaptureFailed=true;};
+    if(source.blockMembershipCaptureFailed||!row.children||!row.delivery||!row.original||!row.footer){fail();return;}
+    const auto n=row.children->records.size();std::size_t bytes=sizeof(dx_block_membership::Audit)+8u*sizeof(void*),work=0u;
+    std::size_t levels=0u;for(auto count=n;count;count>>=1u)++levels;
+    if(!addAssociativeSlotBytes(n,sizeof(dx_block_membership::Member)+sizeof(std::size_t),bytes)
+        ||!addAssociativeSlotBytes(row.delivery->dispatches.size(),sizeof(dx_block_membership::Range),bytes)
+        ||!addAssociativeSlotBytes(row.children->groups,128u,work)||!addAssociativeSlotBytes(n,128u+levels*8u,work)
+        ||!addAssociativeSlotBytes(bytes,2u,work)||source.blockMembershipRecords>source.maxBlockMembershipRecords
+        ||n>source.maxBlockMembershipRecords-source.blockMembershipRecords||source.blockMembershipBytes>source.maxBlockMembershipBytes
+        ||bytes>source.maxBlockMembershipBytes-source.blockMembershipBytes||source.blockMembershipWork>source.maxBlockMembershipWork
+        ||work>source.maxBlockMembershipWork-source.blockMembershipWork){fail();return;}
+    source.blockMembershipRecords+=n;source.blockMembershipBytes+=bytes;source.blockMembershipWork+=work;
+    try {row.membership=std::make_shared<const dx_block_membership::Audit>(
+        dx_block_membership::audit(cData,source.generation,row.children,row.delivery,row.original,row.footer));}
+    catch(...){fail();}
+}
+
+void dx_iface::observeDxfBlockMembership(AttdefOriginBlock& row,const DRW_DxfBlockDeliveryEvent& event,const DRW_Entity* entity) noexcept {
+    auto& source=cData->m_tableDxfSource;
+    if(source.blockMembershipCaptureFailed||!row.membership||!row.membership->complete)return;
+    const auto& audit=*row.membership;
+    if(event.dispatch>=audit.ranges.size()){source.blockMembershipCaptureFailed=true;return;}
+    const auto range=audit.ranges[event.dispatch];const auto n=range.next-range.first;
+    if(source.blockMembershipWork>source.maxBlockMembershipWork||n>(source.maxBlockMembershipWork-source.blockMembershipWork)/64u) {
+        source.blockMembershipCaptureFailed=true;return;
+    }
+    source.blockMembershipWork+=n*64u;
+    if(audit.container!=cData||audit.children!=row.children||audit.delivery!=row.delivery||audit.generation!=source.generation
+        ||!dx_block_membership::compoundValue(audit,event.dispatch,entity)) {source.blockMembershipCaptureFailed=true;return;}
+    ++row.membershipObserved;
+}
+
+bool dx_iface::hasMatchedBlockMembership(const dx_data& data,std::uint32_t handle) noexcept {
+    const auto& source=data.m_tableDxfSource;
+    if(!source.closed||!source.successful||source.failed||source.contextFailed||source.reader||source.generation!=1u
+        ||source.generation!=data.importGeneration||data.sourceFormat!=dx_source_format::DXF||source.version!=data.sourceVersion
+        ||source.version!=data.dxfReadOutcome.sourceVersion||!data.dxfReadOutcome.readReturned||data.dxfReadOutcome.readThrew
+        ||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.error!=DRW::BAD_NONE
+        ||source.blockSourceCaptureFailed||source.blockChildrenCaptureFailed||source.blockDeliveryCaptureFailed||source.blockMembershipCaptureFailed
+        ||data.typedEntityCaptureFailed||data.rawDxfEntityCaptureFailed)return false;
+    const auto found=source.blockSources.find(handle);if(found==source.blockSources.end())return false;
+    const auto& row=found->second;
+    return row.membership&&row.membership->complete&&row.membership->container==&data&&row.membership->generation==source.generation
+        &&row.membership->children==row.children&&row.membership->delivery==row.delivery
+        &&row.membership->begin==row.original&&row.membership->end==row.footer
+        &&row.closed&&row.beginPaired&&row.footerPaired&&row.delivery&&row.deliveryFinished&&!row.deliveryPending
+        &&row.deliveryNext==row.delivery->events.size()&&row.membershipObserved==row.delivery->events.size();
 }
 
 bool dx_iface::chargeAttdefOrigin(std::size_t bytes,std::size_t work,bool record) noexcept {
@@ -18295,7 +18346,11 @@ bool dx_iface::consistentAttdefOrigin(const dx_data::TableDxfSourceCapture& sour
         ||block.beginRaw!=origin.blockBegin||block.endRaw!=origin.blockEnd
         ||block.original->handle!=origin.block||block.original->parentHandle!=origin.blockRecord
         ||row.attdefBlockName!=block.effective->name||block.delivery!=origin.delivery||block.children!=origin.children
-        ||!origin.delivery||!origin.children||origin.delivery->scopeId!=origin.scopeId
+        ||!origin.delivery||!origin.children||!origin.membership||block.membership!=origin.membership
+        ||origin.membership->children!=origin.children||origin.membership->delivery!=origin.delivery
+        ||origin.membership->begin!=origin.original||origin.membership->end!=origin.footer
+        ||origin.membership->generation!=origin.generation||origin.physical>=origin.membership->members.size()
+        ||origin.delivery->scopeId!=origin.scopeId
         ||origin.delivery->blockHandle!=origin.block||origin.children->blockHandle!=origin.block
         ||origin.delivery->blockRecord!=origin.blockRecord||origin.children->blockRecord!=origin.blockRecord
         ||origin.delivery->version!=row.raw->m_version||origin.children->version!=row.raw->m_version
@@ -18306,8 +18361,12 @@ bool dx_iface::consistentAttdefOrigin(const dx_data::TableDxfSourceCapture& sour
         ||origin.typedEvent!=origin.sourceEvent+1u)return false;
     const auto& dispatch=origin.delivery->dispatches[origin.dispatch];
     const auto& physical=origin.children->records[origin.physical];
+    const auto& member=origin.membership->members[origin.physical];
     const auto& first=origin.delivery->events[origin.sourceEvent];const auto& second=origin.delivery->events[origin.typedEvent];
-    return dispatch.firstEvent==origin.sourceEvent&&dispatch.events==2u
+    return member.reason==dx_block_membership::Reason::Matched&&member.role==dx_block_membership::Role::Primary
+        &&member.dispatch==origin.dispatch&&member.parent==origin.physical&&member.self==origin.handle&&member.owner==origin.owner
+        &&member.ownerRole==dx_block_membership::Owner::BlockRecord
+        &&dispatch.firstEvent==origin.sourceEvent&&dispatch.events==2u
         &&asciiIdentifierEquals(physical.name,"ATTDEF")&&physical.endOrdinal==origin.end.ordinal
         &&physical.endOffset==origin.end.beginOffset&&blockDeliverySpanEqual(physical.marker,origin.begin)
         &&blockDeliverySpanEqual(dispatch.begin,origin.begin)&&blockDeliverySpanEqual(dispatch.end,origin.end)
@@ -18325,6 +18384,7 @@ void dx_iface::captureAttdefOrigin(AttdefOriginResource& row) noexcept {
     if(found==source.blockSources.end()||!found->second.deliveryExpected)return;
     auto& block=found->second;
     const auto fail=[&](){row.attdefOriginState=State::Failed;source.attdefOriginCaptureFailed=true;};
+    if(source.blockMembershipCaptureFailed||!block.membership)return;
     if(source.attdefOriginCaptureFailed||source.blockDeliveryCaptureFailed||source.blockChildrenCaptureFailed
         ||!block.delivery||!block.children||block.closed||!block.deliveryPending||!block.deliveryObserved
         ||block.deliveryNext>=block.delivery->events.size()){fail();return;}
@@ -18346,6 +18406,7 @@ void dx_iface::captureAttdefOrigin(AttdefOriginResource& row) noexcept {
     origin.physical=static_cast<std::size_t>(physical-records.begin());origin.begin=dispatch.begin;origin.end=dispatch.end;
     origin.index=block.attdefOrigins.size();
     origin.delivery=block.delivery;origin.children=block.children;origin.model=row.attdefModel;origin.raw=row.raw;
+    origin.membership=block.membership;
     origin.original=block.original;origin.effective=block.effective;origin.footer=block.footer;
     origin.blockBegin=block.beginRaw;origin.blockEnd=block.endRaw;
     if(!consistentAttdefOrigin(source,row,block,origin)){fail();return;}
@@ -18384,6 +18445,8 @@ void dx_iface::closeAttdefOrigins(std::uint32_t handle) noexcept {
             row.attdefOriginState=State::Failed;source.attdefOriginCaptureFailed=true;return;
         }
         if(source.blockSourceCaptureFailed||source.blockChildrenCaptureFailed||source.blockDeliveryCaptureFailed
+            ||source.blockMembershipCaptureFailed||!block.membership||!block.membership->complete
+            ||block.membershipObserved!=block.delivery->events.size()
             ||!block.closed||!block.beginPaired||!block.footerPaired||!block.deliveryFinished||block.deliveryPending
             ||!block.beginFieldsMatched||!block.footerFieldsMatched||!block.beginProfile.complete()||!block.endProfile.complete()
             ||block.reconciliation!=AttdefOriginBlock::Reconciliation::Matched||!row.attdefProfile.complete()
@@ -18407,7 +18470,8 @@ bool dx_iface::hasMatchedAttdefOrigin(const dx_data& data,std::uint32_t handle) 
         ||row.awaitingAttdef||!row.attdefPairMatched||!row.attdefFieldsMatched||row.attdefFieldMismatch||!row.attdefProfile.complete())return false;
     const auto block=source.blockSources.find(row.attdefOrigin->block);
     if(block==source.blockSources.end())return false;const auto& owner=block->second;
-    return consistentAttdefOrigin(source,row,owner,*row.attdefOrigin)&&owner.closed&&owner.beginPaired&&owner.footerPaired
+    return hasMatchedBlockMembership(data,row.attdefOrigin->block)&&consistentAttdefOrigin(source,row,owner,*row.attdefOrigin)
+        &&owner.closed&&owner.beginPaired&&owner.footerPaired
         &&owner.beginFieldsMatched&&owner.footerFieldsMatched&&owner.beginProfile.complete()&&owner.endProfile.complete()
         &&owner.reconciliation==AttdefOriginBlock::Reconciliation::Matched&&owner.deliveryFinished&&!owner.deliveryPending
         &&row.owner==row.attdefOrigin->blockRecord;

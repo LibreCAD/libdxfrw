@@ -1537,9 +1537,12 @@ public:
 private:
     dx_data* m_tableSourceReadData{nullptr};
     void observeDxfBlockDeliveryValue(std::int32_t,std::uint32_t,std::uint32_t,
-                                    DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr) noexcept;
+                                    DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr,const DRW_Entity* = nullptr) noexcept;
     using AttdefOriginResource=dx_data::TableDxfSourceCapture::Resource;
     using AttdefOriginBlock=dx_data::TableDxfSourceCapture::BlockSource;
+    void captureDxfBlockMembership(AttdefOriginBlock&) noexcept;
+    void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
+    static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;
     bool chargeAttdefOrigin(std::size_t,std::size_t,bool) noexcept;
     void captureAttdefOrigin(AttdefOriginResource&) noexcept;
     void pairAttdefOrigin(AttdefOriginResource&,const DRW_Attdef&) noexcept;
@@ -1712,7 +1715,7 @@ private:
         if (cData == nullptr)
             return nullptr;
         observeDxfBlockDeliveryValue(static_cast<std::int32_t>(source.eType),source.handle,source.parentHandle,
-                                    DRW_DxfBlockCallback::Count);
+                                    DRW_DxfBlockCallback::Count,nullptr,&source);
         retainTableEntityIdentity(static_cast<const DRW_Entity&>(source));
         if (currentBlock == nullptr
             || cData->typedEntityRetainedRecords

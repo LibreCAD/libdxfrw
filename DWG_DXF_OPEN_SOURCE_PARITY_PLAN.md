@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dy immutable ATTDEF resource-to-origin binding (2026-10-25):** selected resources now pin their original BLOCK scope, dispatch, source/typed events, physical record and immutable resource/endpoint owners at the verified source callback. Pair/enclosing phases and successful whole-import context are checked separately; advisory TABLECONTENT lookup requires the resulting origin fact. This does not qualify complete membership, dependencies, editable state or output. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5dy-immutable-attdef-resource-to-origin-binding-2026-10-25) · [receipt](docs/research/rpp5dy-immutable-attdef-resource-origin-binding-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dz original common identities and compound structural roles (2026-10-25):** the CLI now audits original scoped self/owner fields, distinct logical/physical ownership, parser routes, compound membership/order/termination and actual delivered child identities. Immutable physical/delivery/endpoint owners and the actual data container are pinned; selected ATTDEF origins require successful structural membership. These are structural facts, not complete body/target/live/output or kernel proof. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5dz-original-common-identities-and-compound-structural-roles-2026-10-25) · [receipt](docs/research/rpp5dz-original-common-identities-and-compound-structural-roles-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dy immutable ATTDEF resource-to-origin binding (2026-10-25):** committed as `3edcba12`. Its scope/dispatch/event/physical and immutable owner bindings remain valid. RPP-5dz additionally requires original structural membership and pins actual container context; modeled child bodies, dependency/live/output and external qualification remain open. [Historical implementation](#implementation-progress-rpp-5dy-immutable-attdef-resource-to-origin-binding-2026-10-25) · [receipt](docs/research/rpp5dy-immutable-attdef-resource-origin-binding-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dx original BLOCK dispatch origins and observed replay (2026-10-25):** committed as `039a6704`. Its original dispatch/physical partitions, observed replay, source-body joins and subtype-preserving staging remain valid. RPP-5dy binds selected immutable ATTDEF resources to those origins, not full body/compound/target/live/output qualification. [Historical implementation](#implementation-progress-rpp-5dx-original-block-dispatch-origins-and-observed-replay-2026-10-25).
 
@@ -127316,6 +127318,151 @@ Next implementation-ready sequence (full objective retained):
    selector. Record actual failures/limits and next ready dependency, commit/
    report progress and continue within authority. External-only qualifications
    do not prevent available local work and cannot be replaced by local tests.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
+mutation or full-goal completion is included in this checkpoint.
+
+## Implementation progress RPP-5dz: original common identities and compound structural roles (2026-10-25)
+
+Parent is `3edcba12`. This advances the original common-identity and logical
+compound-membership dependencies, not the complete model/body, target, live-state,
+output or external semantic/platform requirements.
+
+Source rules: Autodesk distinguishes common outer identity/ownership from
+application groups and warns that common field order can vary
+([common entity codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)).
+INSERT's declared attribute-follow flag defaults to zero and a declared sequence
+terminates with SEQEND
+([INSERT](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm));
+POLYLINE's obsolete group 66 is ignored, not treated as that INSERT flag
+([POLYLINE](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm)).
+The [ezdxf linked-entity implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/subentity.py)
+assigns child entities to the compound parent, but its SEQEND linking and later
+ownership-taking paths differ. Accordingly, retain a terminator's observed
+BLOCK_RECORD/compound-parent owner separately from its logical sequence parent.
+Do not normalize that distinction or treat these sources as independent kernel
+qualification. No external drawing is copied into the repository.
+
+1. [x] Add a converter-private, bounded immutable structural audit over the
+   existing original physical inventory and validated dispatch partition.
+   Record exact original outer self/owner group indices, dispatch and logical
+   parent indices, member roles and observed owner roles. Allow base/common
+   field interleaving; ignore application-scoped and entity-body/embedded 5/330
+   fields as outer aliases. Original body handles that overwrite a delivered
+   child's convenience identity cannot borrow its original membership.
+2. [x] Distinguish primary records, POLYLINE/VERTEX/SEQEND and
+   INSERT-or-MINSERT/ATTRIB/SEQEND chains. Check parser routes/known aliases,
+   expected sequence names/order/termination, declared/default INSERT follow
+   state, owner roles and duplicate self IDs, including collisions with BLOCK,
+   BLOCK_RECORD and ENDBLK. Preserve supported physical footer-owner forms,
+   not a rewritten owner. Unflagged attribute chains remain compatibility
+   reads, not a qualified declared sequence. Raw orphan VERTEX/ATTRIB/SEQEND and
+   zero-callback dispositions remain explicit gaps.
+3. [x] Compare actual delivered compound child counts/order/self/owner and
+   retained SEQEND identities against original physical members, including null,
+   dropped, reordered or identity-mutated children. Pin exact immutable physical,
+   delivery and endpoint owners, generation and actual data-container identity.
+   Require successful whole import and complete observed replay when querying.
+   Stale or copied successful evidence cannot qualify a new container.
+4. [x] Pin the structural audit in each selected ATTDEF origin. Require its
+   exact original primary/self/owner role and successful enclosing structural
+   membership before returning the existing advisory origin fact. A structural
+   gap or later quota/callback/context failure cannot borrow an earlier ATTDEF
+   pair. Keep resource-family count, `rawTypedMatched` and output gates unchanged.
+5. [x] Precharge aggregate records/logical bytes/work before vector/control
+   allocation and inspection; include transient sorted identity indices and
+   observed-child visits. Defaults are 100,000 physical members and 64 MiB each
+   for logical byte/work allowances. Sorting indices avoids per-record map
+   allocation and quadratic duplicate checks. Own quota/allocation failure
+   refuses evidence, not ordinary format admission. These are logical limits,
+   not process RSS, every allocator or a strict CPU theorem. Distribute the
+   helper through CMake and Autotools header lists. No installed library model,
+   callback vtable, DWG byte parser/encoder or output writer changes are made.
+
+Owning evidence per configuration:
+
+- [x] **36** actual four-version × empty/single/mixed × ASCII LF/CRLF/Binary
+  profiles, with **2,712** independently checked original scalar spans. Assert
+  every canonical mixed member's exact self, owner, dispatch, logical parent,
+  identity group indices and role, not just callback counts.
+- [x] **16** positive variants cover both observed footer-owner forms, common
+  owner interleaving, nested opaque application IDs/subclasses, ignored
+  POLYLINE group 66, standalone INSERT defaults, explicit empty attribute
+  chains, MINSERT routing and multiple attributes.
+- [x] **32** original-wire fault/retry cases cover wrong/missing/duplicate IDs,
+  root/footer collisions, body aliases and conflicting/implicit INSERT follow
+  state. **30** retain ordinary compatible import; **two** duplicate ENDBLK
+  identity cases are refused by the existing reader path. No pristine-parent
+  rerun is claimed; the new audit never sets format-read errors. All corrected
+  same-facade imports qualify. **20** actual delivered-child fault/retry cases
+  refuse missing/reordered/null/changed members or footer identities.
+- [x] **Six** exact/one-under quota/restored-import controls, **eight** isolated
+  observed vector/control allocation faults with fresh-import retry and weak
+  teardown, **two** stale-audit refusals/restorations, **two** copied-context
+  refusals, **eight** report/replay exception/retry cases, **eight** opt-out/
+  later-input/cleanup boundaries, **two** no-callback dispositions and **six**
+  raw orphan refusals. Allocation recapture uses actual immutable snapshots but
+  a deliberately unqualified synthetic phase; it is not all-allocator/leak proof.
+- [x] **Two** attribute-free INSERT wrong-class/route refusals with restored
+  retries. The initial new structural check let a substituted POINT carrying
+  INSERT's public type value/self/owner match a one-record range. An actual
+  failing regression reproduced this new-path gap; the check now requires a
+  real INSERT/POLYLINE parent even for an empty child list. This is not a
+  pristine-parent or released-support defect claim.
+- [x] **Two** same-ID vertex-coordinate edits still match structural membership.
+  This is an intentional boundary control: coordinates/full modeled child
+  bodies are not certified here. The ATTDEF owning test now has **54** tuple
+  corruption/restoration cases, including replacement of its audit owner;
+  historical receipts retain their original counts.
+
+Final affected cohorts pass **34/34 normally in 15.40 s** and **34/34 under ASan
+in 30.27 s**, sequentially, with no failures/skips/disabled cases. Strict owning/
+affected library/CLI, table geometry and `lc3_compat_check` builds pass on macOS
+ARM64 Apple Clang 21.0.0, C++17 with warnings as errors. ASan uses
+`halt_on_error=1:detect_leaks=0`. The earlier 34/34 normal result (14.78 s)
+preceded the container pin/copied-context control; the subsequent 34/34 normal/
+ASan results (15.19/33.46 s) preceded the empty-parent class/route fix. These are
+intermediate, not final source evidence. No full project or Autotools
+distribution suite is repeated.
+Local API/CLI checks are not native consumer execution or formal binary ABI
+certification. The
+[RPP-5dz receipt](docs/research/rpp5dz-original-common-identities-and-compound-structural-roles-2026-10-25.json)
+records exact scope, counts, membership, hashes, source references and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Immutable compound child bodies and replay.** Freeze selected actual
+   POLYLINE/INSERT and child/footer models under existing nested-owner estimates,
+   reuse decoder/state machinery, and compare complete original/typed fields:
+   points, widths, bulges, flags, mesh/face indices, attribute/embedded text and
+   common payloads. Structural `complete` is not a body certificate. Preserve
+   aliases/defaults/implicit sequence distinctions, original scalar spellings,
+   non-SORT/XRECORD/embedded roles and explicit unsupported/no-callback gaps.
+   Add same-ID field corruption and full source/pair/profile/failure/retry tests
+   before changing any resource or support qualification.
+2. [ ] **Space and transitive target closure.** Retain ENTITIES model/paper/
+   BLOCK_RECORD associations, selected common/style/APPID/LAYER/object/absent-
+   default/opaque targets, pointer namespaces/remapping and proxy text/codepage
+   roles. Extend actual-container/context guards to any further source proof
+   that can be borrowed; this checkpoint qualifies only the new structural and
+   selected ATTDEF origin paths, not all advisory source reports.
+3. [ ] **Live/output and original parity.** Finish all B2b/B3/C graph/live/output/
+   immutable/editable/compound identities, complete common/body models, exact
+   emitted fields/references and atomic rollback/retry/destination preservation.
+   Retain original IMAGE/document/native bit/decimal/carrier/schema/owner,
+   speed/ownership/allocation, LibreCAD/LibreCAD_3 2D and 3D, dwg2dxf/FreeCAD
+   and independent semantic/platform requirements.
+4. [ ] **Self-update, safely unblock and commit/report each slice.** Reuse the
+   immutable source owners, scoped scanners, generated mixed fixtures and
+   independent physical walker. Use fast owning checks during edits and the
+   exact built affected normal/ASan shortlist at integration boundaries; do not
+   repeat full suites per item. Record actual failures and limitations, update
+   this plan, commit/report progress and continue within authority. Never commit
+   downloaded external drawing fixtures or replace external qualifications with
+   local green tests. Available local body/dependency work remains ready.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

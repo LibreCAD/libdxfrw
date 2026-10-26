@@ -54,7 +54,8 @@ bool attdefOriginTests(const std::filesystem::path& path) {
             &&origin.scopeId==block->delivery->scopeId&&origin.block==0xB1u&&origin.blockRecord==0xB0u&&origin.handle==0xA1u&&origin.owner==0xB0u
             &&origin.dispatch==0u&&origin.sourceEvent==0u&&origin.typedEvent==1u&&origin.physical==0u&&origin.index==0u
             &&origin.begin.ordinal==reader.childrenAlias.records.front().marker.ordinal&&origin.end.ordinal==reader.childrenAlias.endMarker.ordinal
-            &&origin.children==block->children&&origin.delivery==block->delivery&&origin.model==row->attdefModel&&origin.raw==row->raw
+            &&origin.children==block->children&&origin.delivery==block->delivery&&origin.membership==block->membership
+            &&origin.model==row->attdefModel&&origin.raw==row->raw
             &&origin.original==block->original&&origin.effective==block->effective&&origin.footer==block->footer
             &&origin.blockBegin==block->beginRaw&&origin.blockEnd==block->endRaw&&block->attdefOrigins==std::vector<std::uint32_t>{0xA1u},
             "binding pins the original physical range, exact staged pair, immutable endpoint and resource owners"))return false;
@@ -84,7 +85,7 @@ bool attdefOriginTests(const std::filesystem::path& path) {
         const auto f=originFixture("AC1032",0u);if(!write(path,f.document,binary))return false;
         AttdefOriginProbe reader;dx_data baseline;if(!reader.fileImport(path.string(),&baseline,false)||!A::originMatched(reader,baseline))return false;
         const auto usage=A::originUsage(baseline);const auto saved=A::originResource(baseline)->attdefOrigin;
-        for(unsigned fault=0u;fault<26u;++fault) {
+        for(unsigned fault=0u;fault<27u;++fault) {
             auto changed=std::make_shared<A::Origin>(*saved);
             switch(fault) {
             case 0:++changed->generation;break;case 1:++changed->scopeId;break;case 2:++changed->block;break;case 3:++changed->blockRecord;break;
@@ -102,6 +103,7 @@ bool attdefOriginTests(const std::filesystem::path& path) {
             case 22:changed->blockEnd=std::make_shared<const DRW_RawDxfObject>(*saved->blockEnd);break;
             case 23:changed->model.reset();break;case 24:changed->physical=(std::numeric_limits<std::size_t>::max)();break;
             case 25:changed->dispatch=(std::numeric_limits<std::size_t>::max)();break;
+            case 26:changed->membership=std::make_shared<const dx_block_membership::Audit>(*saved->membership);break;
             }
             A::mutableOriginResource(baseline).attdefOrigin=changed;
             if(!check(!A::originMatched(reader,baseline),"corrupted/stale/replaced origin tuple cannot borrow cached proof or a matching handle"))return false;
@@ -158,6 +160,6 @@ bool attdefOriginTests(const std::filesystem::path& path) {
         <<"; original scalar spans="<<spans<<"; tuple corruption/restoration="<<mutations<<"; exact/under/retries="<<quotas
         <<"; isolated allocation faults/retries="<<allocations<<"; context boundaries="<<contexts<<"; stale tuple refusals="<<replays
         <<"; mixed-stream member ordering/restoration="<<mixed<<'\n';
-    return profiles==36u&&matched==18u&&pending==18u&&spans==1968u&&mutations==52u&&quotas==6u&&allocations==4
+    return profiles==36u&&matched==18u&&pending==18u&&spans==1968u&&mutations==54u&&quotas==6u&&allocations==4
         &&contexts==10u&&replays==2u&&mixed==2u;
 }

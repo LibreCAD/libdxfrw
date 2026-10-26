@@ -64,6 +64,30 @@ public:
     static bool blockFailed(const dx_data& data) {return data.m_tableDxfSource.blockSourceCaptureFailed;}
     static bool childrenFailed(const dx_data& data) {return data.m_tableDxfSource.blockChildrenCaptureFailed;}
     static bool deliveryFailed(const dx_data& data) {return data.m_tableDxfSource.blockDeliveryCaptureFailed;}
+    static bool membershipMatched(const dx_data& data) {return dx_iface::hasMatchedBlockMembership(data,0xB1u);}
+    static bool membershipFailed(const dx_data& data) {return data.m_tableDxfSource.blockMembershipCaptureFailed;}
+    static void copyMembershipContext(dx_data& target,const dx_data& source) {
+        // Copy only evidence/public outcome, not dx_data's owning raw block
+        // pointers: this safely isolates a borrowed successful-source context.
+        target.m_tableDxfSource=source.m_tableDxfSource;target.importGeneration=source.importGeneration;
+        target.sourceVersion=source.sourceVersion;target.sourceFormat=source.sourceFormat;target.dxfReadOutcome=source.dxfReadOutcome;
+    }
+    static std::array<std::size_t,3> membershipUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.blockMembershipRecords,s.blockMembershipBytes,s.blockMembershipWork};
+    }
+    static void membershipLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;if(which==0u)s.maxBlockMembershipRecords=n;
+        else if(which==1u)s.maxBlockMembershipBytes=n;else s.maxBlockMembershipWork=n;
+    }
+    static bool recaptureMembership(dx_iface& iface,dx_data& data,long fault,long& allocations) {
+        auto& source=data.m_tableDxfSource;auto& owner=source.blockSources.at(0xB1u);
+        auto* previousData=iface.m_tableSourceReadData;iface.m_tableSourceReadData=&data;
+        source.closed=false;source.successful=false;source.reader=&iface;owner.membership.reset();
+        source.blockMembershipRecords=source.blockMembershipBytes=source.blockMembershipWork=0u;source.blockMembershipCaptureFailed=false;
+        allocationRemaining=fault;iface.captureDxfBlockMembership(owner);allocations=fault-allocationRemaining;allocationRemaining=-1;
+        iface.m_tableSourceReadData=previousData;
+        return owner.membership&&owner.membership->complete&&!source.blockMembershipCaptureFailed;
+    }
     using OriginState=dx_data::TableDxfSourceCapture::Resource::OriginState;
     using Origin=dx_data::TableDxfSourceCapture::AttdefOrigin;
     static bool originMatched(const dx_iface& iface,const dx_data& data,std::uint32_t handle=0xA1u) {
@@ -652,6 +676,7 @@ public:
 #include "raw_shell_scope_controls.h"
 #include "block_delivery_controls.h"
 #include "attdef_origin_controls.h"
+#include "block_membership_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1057,7 +1082,8 @@ int main(int argc,char** argv) {
     const bool blockDelivery=argc==2&&std::string(argv[1])=="--block-delivery";
     const bool polymorphic=argc==2&&std::string(argv[1])=="--block-polymorphic";
     const bool attdefOrigin=argc==2&&std::string(argv[1])=="--attdef-origin";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin)return 2;
+    const bool blockMembership=argc==2&&std::string(argv[1])=="--block-membership";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
@@ -1065,6 +1091,7 @@ int main(int argc,char** argv) {
     unsigned polymorphicProfiles=0u;
     try {return (polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
         attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):
+        blockMembership?blockMembershipTests(scratch/"generated.dxf"):
         (rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
         blockDelivery?blockDeliveryTests(scratch/"generated.dxf"):
         rawShell?rawShellScopeTests(scratch/"generated.dxf"):
