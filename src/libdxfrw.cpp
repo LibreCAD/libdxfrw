@@ -15357,6 +15357,8 @@ bool dxfRW::processBlockRecord() {
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockRecordSource();
     DRW_RawDxfObject raw;
     std::vector<DRW_RawDxfObject> pendingSources;
+    std::vector<std::pair<bool,std::uint8_t>> pendingSourceStates;
+    DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
 
     const auto finishRecord = [&]() -> bool {
         if (!reading)
@@ -15367,6 +15369,9 @@ bool dxfRW::processBlockRecord() {
             // Application payloads can carry code 5/330 without defining the
             // enclosing row. Its decoder, not those opaque tags, owns metadata.
             raw.handle=publicRecord.handle;raw.parentHandle=publicRecord.parentHandle;
+            if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(pendingSourceStates.front())
+                ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(pendingSourceStates.front())))return false;
+            pendingSourceStates.emplace_back(publicRecord.curr!=nullptr,publicRecord.currCoordMask);
             pendingSources.push_back(std::move(raw));
         }
         // One staged public owner; context copies are admitted at publication.
@@ -15375,7 +15380,7 @@ bool dxfRW::processBlockRecord() {
     };
     const auto publishBlockRecords = [&]() -> bool {
         if(captureSource) {
-            if(pendingSources.size()!=pendingPublicBlockRecords.size())return false;
+            if(pendingSources.size()!=pendingPublicBlockRecords.size()||pendingSourceStates.size()!=pendingPublicBlockRecords.size())return false;
             for(const auto& source:pendingSources)
                 if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return false;
         }
@@ -15446,8 +15451,14 @@ bool dxfRW::processBlockRecord() {
         contextCopyReservation.transfer();
 
         for (std::size_t i=0;i<pendingPublicBlockRecords.size();++i) {
-            if(captureSource)sourceHandler->addDxfBlockRecordSource(pendingPublicBlockRecords[i],pendingSources[i]);
-            iface->addBlockRecord(pendingPublicBlockRecords[i]);
+            if(captureSource) {
+                const DRW_RawDxfObject original=std::move(pendingSources[i]);
+                auto& view=reader->m_structuralPublication;
+                view={1u,1u,pendingSourceStates[i].second,pendingSourceStates[i].first,&pendingPublicBlockRecords[i],&original};
+                struct Clear {DxfStructuralPublication& view;~Clear(){view={};}} clear{view};
+                sourceHandler->addDxfBlockRecordSource(pendingPublicBlockRecords[i],original);
+                view.phase=2u;iface->addBlockRecord(pendingPublicBlockRecords[i]);
+            } else iface->addBlockRecord(pendingPublicBlockRecords[i]);
         }
         return true;
     };
@@ -20383,15 +20394,22 @@ bool dxfRW::processDictionary() {
             // publishing callbacks rather than guessing a later root.
             if (first && raw.parentHandle != 0)
                 return setError(DRW::BAD_READ_OBJECTS);
+            const bool suppressRaw=isRootDictionary(raw,first);
             if (first) {
-                iface->addNamedObjectDictionary(dict);
-                if(captureRootSource)rootSourceHandler->addDxfRootDictionarySource(dict,raw);
+                if(captureRootSource) {
+                    const DRW_RawDxfObject original=std::move(raw);
+                    auto& view=reader->m_structuralPublication;
+                    view={2u,2u,dict.currCoordMask,dict.curr!=nullptr,&dict,&original};
+                    struct Clear {DxfStructuralPublication& view;~Clear(){view={};}} clear{view};
+                    iface->addNamedObjectDictionary(dict);view.phase=1u;
+                    rootSourceHandler->addDxfRootDictionarySource(dict,original);
+                } else iface->addNamedObjectDictionary(dict);
             } else
                 iface->addDictionary(dict);
             //Skip only the root — the codec regenerates it, and routing it
             //would duplicate the NamedObjectsDictionary / ACAD_GROUP dict.
             m_objectsRootPositionPassed = true;
-            if (!isRootDictionary(raw, first))
+            if (!suppressRaw)
                 iface->addRawDxfObject(raw);
             if (first) {
                 observeDxfViewStyleRoot(dict);
@@ -26769,6 +26787,14 @@ bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {
     if(!m_readTextObservationsActive||!reader)return false;
     const auto& view=reader->layoutPublication();if(!view.phase||view.phase>2u)return false;
     out={static_cast<DxfLayoutSourceView::Phase>(view.phase),view.model,view.source};return true;
+}
+
+bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& view=reader->m_structuralPublication;
+    if(!view.kind||view.kind>2u||!view.phase||view.phase>2u||!view.model||!view.source)return false;
+    out={static_cast<DxfStructuralSourceView::Kind>(view.kind),static_cast<DxfStructuralSourceView::Phase>(view.phase),
+        view.model,view.source,view.pendingXdata,view.coordinateMask};return true;
 }
 
 const DRW_DxfIdentitySource* dxfRW::getDxfIdentitySourceView() const noexcept {

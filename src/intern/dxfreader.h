@@ -27,6 +27,7 @@
 #include "drw_textcodec.h"
 
 class DRW_Layout;
+class DRW_TableEntry;
 struct DRW_RawDxfObject;
 struct DRW_DxfIdentitySource;
 struct DxfLayoutPublication {
@@ -35,6 +36,11 @@ struct DxfLayoutPublication {
     std::uint8_t phase{0};
     const DRW_Layout* model{nullptr};
     const DRW_RawDxfObject* source{nullptr};
+};
+struct DxfStructuralPublication {
+    // Kind 1 BLOCK_RECORD, 2 first OBJECTS DICTIONARY; phase 1 source, 2 typed.
+    std::uint8_t kind{0},phase{0},coordinateMask{0};bool pendingXdata{false};
+    const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
 };
 
 // Shared by one public DXF read operation so independently retained buffers
@@ -292,6 +298,7 @@ class dxfReader {
     friend class dxfRW;
     DxfLayoutPublication m_layoutPublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
+    DxfStructuralPublication m_structuralPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     enum TYPE {

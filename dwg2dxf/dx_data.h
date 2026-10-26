@@ -1277,6 +1277,34 @@ private:
         std::size_t identityBytes{0},identityWork{0};
         std::size_t maxIdentityBytes{64u*1024u*1024u},maxIdentityWork{64u*1024u*1024u};
         bool identityCaptureFailed{false};
+        struct StructuralInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::size_t index{0};
+            dxfRW::DxfStructuralSourceView::Kind kind{dxfRW::DxfStructuralSourceView::Kind::None};
+            std::pair<bool,std::uint8_t> originalState;
+            std::shared_ptr<const DRW_TableEntry> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const EntitiesReadContext> context;
+            bool paired{false};
+        };
+        struct StructuralPending {
+            StructuralInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};
+        };
+        struct StructuralAudit {
+            std::shared_ptr<const StructuralInput> input;
+            std::shared_ptr<const IdentityAudit> identities;
+            std::size_t physical{DRW_DxfIdentitySource::None};
+            std::size_t index{0};
+            bool bodyMatched{false},stateComplete{false},originBound{false};
+        };
+        std::map<std::uint32_t,StructuralPending> structuralPending;
+        std::map<std::uint32_t,std::shared_ptr<const StructuralInput>> structuralInputs;
+        std::vector<std::shared_ptr<const StructuralInput>> structuralInputOwners;
+        std::map<std::uint32_t,std::shared_ptr<const StructuralAudit>> structuralAudits;
+        std::vector<std::shared_ptr<const StructuralAudit>> structuralAuditOwners;
+        std::size_t structuralRecords{0},structuralBytes{0},structuralWork{0};
+        std::size_t maxStructuralRecords{100000u},maxStructuralBytes{64u*1024u*1024u},maxStructuralWork{64u*1024u*1024u};
+        bool structuralCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

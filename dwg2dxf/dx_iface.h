@@ -41,6 +41,13 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler {
 public:
+    enum class StructuralSourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,ProducerPairsReady,OriginsBound,Unqualified};
+    struct StructuralSourceReport {
+        StructuralSourceState state{StructuralSourceState::NotCaptured};
+        std::size_t records{0},paired{0},bodyMatched{0},stateComplete{0},originsBound{0},bytes{0},work{0};
+        bool namespaceReady{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static StructuralSourceReport structuralSourceReport(const dx_data&) noexcept;
     enum class IdentitySourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NamespaceReady,Unqualified};
     struct IdentitySourceReport {
         IdentitySourceState state{IdentitySourceState::NotCaptured};
@@ -1686,6 +1693,8 @@ private:
                            std::size_t records = 1u) noexcept;
     void finishTableSourceRead(bool success) noexcept;
     void finishIdentitySourceAudit(dx_data&) noexcept;
+    void observeStructuralSource(const DRW_TableEntry&,bool source,const DRW_RawDxfObject* raw=nullptr) noexcept;
+    void finishStructuralSourceAudits(dx_data&) noexcept;
     void retainTableSourceDictionary(const DRW_Dictionary& data);
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);

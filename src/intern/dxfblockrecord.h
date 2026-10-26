@@ -37,6 +37,9 @@ public:
     Decoder& operator=(const Decoder&)=delete;
 
     bool inApplication() const noexcept {return blockReferences||extensionDictionary||ignoredDepth!=0;}
+    static std::pair<bool,std::uint8_t> observeCommonState(const DRW_TableEntry& value) noexcept {
+        return {value.curr!=nullptr,value.currCoordMask};
+    }
     static bool hasNoNativeLinks(const DRW_Block_Record& value) noexcept {
         return !value.block&&!value.endBlock&&value.firstEH==DRW::NoHandle
             &&value.lastEH==DRW::NoHandle&&value.entMap.empty();

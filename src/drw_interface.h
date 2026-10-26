@@ -732,7 +732,9 @@ public:
  * addRawDxfObject suppression is preserved. Selection is latched before reading
  * that record; default false adds no callback or source copy. Delivered after
  * addNamedObjectDictionary, only after the complete record boundary is accepted.
- * The source excludes its code-0 marker. Transport is not graph/output proof.
+ * The source excludes its code-0 marker. The live dxfRW structural-source view
+ * identifies both real callback phases and the original pre-callback XDATA
+ * state; source storage is immutable through the pair. Transport is not graph/output proof.
  * Kept separate so DRW_Interface's established vtable does not change. */
 class DRW_DxfRootDictionarySourceHandler {
 public:
@@ -746,7 +748,9 @@ public:
  * default false adds no source copy/charging. Complete rows are delivered after
  * valid ENDTAB, immediately before their typed callbacks. The source excludes
  * its code-0 marker and table control. No DRW_Interface vtable change, block
- * entity/child/source projection, target-closure or output claim is implied. */
+ * entity/child/source projection, target-closure or output claim is implied.
+ * The live dxfRW structural-source view identifies the actual pair and original
+ * pre-staging XDATA state; source storage is immutable through the pair. */
 class DRW_DxfBlockRecordSourceHandler {
 public:
   virtual ~DRW_DxfBlockRecordSourceHandler() = default;

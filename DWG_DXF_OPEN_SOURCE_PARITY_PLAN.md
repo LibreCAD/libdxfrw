@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ek whole-read physical identity namespace (2026-10-26; verified before local commit):** a bounded opt-in whole-read observer preserves original section/table/record/candidate spans and actual registry decisions without displacing BLOCK/ENTITIES observers or changing import admission. The converter freezes actual publication/context owners and builds a separate 64-bit original identity index, including table-control/DIMSTYLE/skipped-table/raw/no-callback IDs. Ambiguous/missing/null identities, cross-scope collisions and unknown scopes refuse namespace evidence. Final exact affected cohorts pass 73/73 normally and 73/73 under ASan. Actual owner/layout/body/dependency/live/output and external qualification remain open, resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ek-whole-read-physical-identity-namespace-2026-10-26) · [receipt](docs/research/rpp5ek-whole-read-physical-identity-namespace-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5el original structural producer pairs and namespace origins (2026-10-26; verified before local commit):** reader-owned exact-pointer publications attest actual opted-in BLOCK_RECORD and first-OBJECTS-DICTIONARY callback pairs in their established opposite orders. Original pre-staging/pre-callback XDATA state, actual context and retained model/raw owners are frozen separately. Bounded audits bind qualifying pairs to original namespace records of the expected section/table/type without treating identity existence as ownership. Final exact affected cohorts pass 76/76 normally and 76/76 under ASan. Non-root dictionary provenance, reciprocal owner/layout resolution, remaining bodies/dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26) · [receipt](docs/research/rpp5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ek whole-read physical identity namespace (2026-10-26; committed as `0da6709b`):** its bounded whole-read observer, original physical identity envelopes and separate 64-bit source index remain valid, with 73/73 normal and 73/73 ASan affected results. RPP-5el adds selected original producer/body-to-namespace bindings, not whole-document owner/layout/dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ek-whole-read-physical-identity-namespace-2026-10-26) · [receipt](docs/research/rpp5ek-whole-read-physical-identity-namespace-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ej original LAYOUT source proof and render-preset reservation (2026-10-26; committed as `e4362fe`):** a separate opt-in source facet and actual reader-owned publication view bind original LAYOUT model/raw/context inputs to their real typed callback. Shared replay and an independent scalar/subclass/reference-role audit distinguish the PlotSettings prefix, structural owner and associated block record. A reproduced opaque-handle capture incompatibility and a parent-confirmed render-preset ID reservation gap are fixed. Final exact affected cohorts pass 68/68 normally and 68/68 under ASan. RPP-5ek adds original identity-envelope evidence, not whole-import owner/layout/dependency/live/output or native/kernel qualification. [Historical implementation](#implementation-progress-rpp-5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26) · [receipt](docs/research/rpp5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26.json).
 
@@ -129148,6 +129150,159 @@ Next implementation-ready sequence (full objective retained):
    Preserve real failures/limits/receipts and unrelated samples; commit no external
    drawing fixtures. Available local target/body/dependency work does not wait
    for native external qualification.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
+no remote mutation is included.
+
+## Implementation progress — RPP-5el original structural producer pairs and namespace origins (2026-10-26)
+
+This implements RPP-5ek's first selected original-producer and target-body/origin
+prerequisites. It does not resolve reciprocal owners/layouts, qualify non-root
+dictionary origins, or finish entity/common/dependency/live/output or native
+semantic/platform support. A producer origin is not a valid reference target.
+
+Implemented:
+
+1. [x] Add a read-only borrowed `getDxfStructuralSourceView`, backed only by the
+   internal reader. Opted-in BLOCK_RECORD source precedes its typed callback;
+   first-OBJECTS-DICTIONARY typed precedes its existing root-source callback.
+   Preserve both established orders and default opt-out behavior. Move the
+   existing captured raw owner into immutable pair-local storage, rather than
+   adding a payload decoder or another full raw/model copy. Exact model/raw
+   addresses and source/typed phases are available only during the pair, with
+   scope guards clearing state on return/exception. No existing public facade/
+   drawing-model layout or DRW_Interface/source-facet vtable change; internal
+   reader/private converter layouts change. No formal ABI certification claimed.
+2. [x] Observe original common XDATA cursor/mask before BLOCK_RECORD staging and
+   before dictionary callbacks. A small precharged state vector parallels the
+   existing BLOCK_RECORD batch; source controls still finish before publication.
+   The dictionary's established complete-entry boundary check remains unchanged.
+   Capture evidence does not harden tolerant XDATA import or infer original state
+   from a later copy. Current DRW_TableEntry copies already preserve the common
+   XDATA cursor/mask; dictionary copies separately clear pending entry keys.
+3. [x] Independently observe the converter's real callback phases using actual
+   read/publication/context and concrete-model identities. Pin existing bounded
+   immutable resource raw/model owners rather than duplicate their payloads.
+   Freeze interpretation metadata, original state, container instance/generation
+   and distinct input/audit owners. Reject missing/copied/repeated/late phases,
+   mismatched actual pointers and substituted equal owners/control blocks.
+   Compare the second phase's full retained model and parser state; existing
+   shared replay/equality and original field/role profiles prove the typed/raw
+   body independently of pointer pairing. Failed reads publish no finished audit.
+4. [x] Bind a qualifying original pair/body to its unique original 64-bit
+   namespace index record of the expected actual section/table/type. BLOCK_RECORD
+   must belong to the physical BLOCK_RECORD table in TABLES; a root-dictionary
+   publication must be the first physical OBJECTS record in its actual section.
+   Independent byte walking verifies these marker origins; declaration of a
+   source role alone cannot substitute another scope's object. Do not narrow a
+   wide raw identity, use editable cData as an origin, infer owner validity from
+   a shared handle, or call each section's first dictionary a proven unique
+   document NOD. Repeated OBJECTS/NOD uniqueness remains a separate graph gate.
+5. [x] Keep `ProducerPairsReady` distinct from `OriginsBound`: unavailable or
+   unqualified whole-import identity evidence cannot bind physical origins or
+   promote targets, even when selected callback/body pairs are valid. Original
+   incomplete XDATA, body mismatch or unmatched phases refuse selected readiness.
+   Both reports retain `ownerTargetsResolved=false` and `outputEligible=false`.
+6. [x] Precharge 100,000 selected records and 64 MiB logical byte/work allowances
+   for context/input/audit/map/shared-owner metadata and full model comparisons.
+   Existing resource budgets still own the reused raw/model/profile payloads;
+   source-state staging also shares the reader retained-byte budget. Own metadata
+   quota/allocation failure softens evidence, not compatible import. These are
+   logical allowances, not vector capacity, every allocator, RSS, strict CPU,
+   leak proof or a benchmark. Publication-order input-owner indices and sorted
+   audit-order indices are deliberately separate; the lower root ID arrives
+   after higher BLOCK_RECORD IDs in the owning recipe.
+
+The official [BLOCK_RECORD reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm)
+defines its associated-LAYOUT pointer and modeled fields. The
+[DICTIONARY reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm)
+distinguishes common owner/reactor fields, entry names and cloning/ownership
+metadata. The [object ownership reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm)
+places the named dictionary first in OBJECTS. These role references are not
+native execution or proof that a handle names a valid reciprocal typed target.
+
+Owning controls per configuration:
+
+- [x] **12** actual-import profiles: four modern versions x ASCII LF/CRLF/Binary.
+  Main Binary profiles omit comments; separate tolerated Binary comment probes
+  are compatibility controls, not native conformance. Two rich BLOCK_RECORD rows
+  and one first-OBJECTS dictionary follow their actual six-event callback order.
+  Reuse existing bounded raw/model owners and body/role proofs, then independently
+  walk **36** physical marker origins and compare exact source index and owners.
+  These are repeated provenance observations, not 36 qualified semantic targets.
+- [x] **34** refusal/corrected-import pairs: all four callback phases exercise
+  missing/copied/duplicate deliveries, actual typed/root-source field changes,
+  and incomplete original BLOCK_RECORD/dictionary XDATA. Parser-state controls
+  assert that current table-entry copies preserve the original cursor; source
+  incompleteness still cannot acquire a complete certificate. Ordinary compatible
+  import and editable data remain available when evidence refuses.
+- [x] **12** exact/one-under record/byte/work controls, **25** owner/control-block/
+  container/opt-out/unqualified-namespace/public-lifetime/latched-selection
+  contexts, **152** observed four-phase capture/isolated-audit allocation faults
+  and **10** callback-exception/failed-tail/actual-import retry cases pass. The
+  public lifetime contexts also exercise exceptions in each callback phase.
+  Isolated audit replay uses genuine successful-import owners and recovers the
+  same audit and a fresh actual import. Allocation schedules are local observed
+  converter/callback sites, not every library/parser allocation or portable
+  thresholds. Failed imports retain no completed selected audit.
+
+Development evidence retained: strict builds initially found a missing explicit
+test include and misleading indentation; both were fixed without suppression.
+The first pending-state control incorrectly expected table-entry copies to reset
+XDATA cursors. Source inspection of `installExtData` and actual copied-model
+observations proved preservation; the corrected assertion requires that behavior
+and retains the original-incomplete refusal. No production copy/parser behavior
+was changed to satisfy the mistaken assertion. Owner-slot review also separated
+publication order from map order before final validation.
+
+Final affected builds pass. Exact cohorts pass **76/76 normally in 95.54 s** and
+**76/76 under ASan in 200.30 s**, with no failed/skipped/disabled cases and matching
+membership/order. These are the prior 73 plus the new structural-origin selector
+and existing dictionary-default/rooted-image dictionary compatibility controls.
+Normal runtime completed before ASan runtime
+(`halt_on_error=1:detect_leaks=0`); only independent ASan compilation overlapped
+normal runtime. Tested source hashes remain unchanged. Strict library, owning
+resource/adapter and compatibility targets retain C++17
+`-Wall -Wextra -pedantic -Werror`; the existing broad fixture runner uses its
+configured C++17 flags and is not claimed globally warning-clean. Times are not
+paired benchmarks. No warning suppression, full suite per item, native consumer
+execution, formal ABI, independent kernel or support promotion is claimed; no
+external drawing fixtures are added. The
+[RPP-5el receipt](docs/research/rpp5el-original-structural-producer-pairs-and-namespace-origins-2026-10-26.json)
+records exact controls/membership and final source/log hashes, including actual
+development failures and their evidence limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Complete original structural graph origins and reciprocal roles.**
+   Attest non-root DICTIONARY source/publication origins without inventing legacy
+   raw callbacks or losing fixed-handle suppression behavior. Bind original
+   LAYOUT inputs to the actual namespace owners/physical records, then require
+   one document NOD and unique ACAD_LAYOUT/BLOCK_RECORD/LAYOUT reciprocal typed
+   roles. Reuse existing graph algorithms through a pinned original-body view,
+   never copied editable cData or generic handle existence. Test multiple OBJECTS
+   sections, substituted body/origin/namespace owners, missing/duplicate targets,
+   native-width refusals, quota/allocation, failed tails and corrected imports.
+2. [ ] **Resolve original entity ownership and remaining bodies/dependencies.**
+   Join actual ENTITIES/BLOCKS producer/body/physical facts to original 330/67/410
+   owner/space/layout/default/conflict/multiple-paper-layout roles. Complete
+   TABLE/ATTDEF/other required primary source/state/profile families and common
+   STYLE/APPID/LAYER/object/application/proxy/codepage/nested INSERT dependencies.
+   Keep absent/default ambiguity, unsupported bodies and native collation explicit.
+3. [ ] **Full live/output and consumer/native parity.** Finish B2b/B3/C original/
+   live/edited/emitted fields/names/roles, remapping/readback and atomic rollback/
+   retry/destination preservation; retain IMAGE/document/native-bit/decimal/
+   carrier/schema/owner, memory/performance, LibreCAD/LibreCAD_3 2D, 3D,
+   dwg2dxf/FreeCAD and independent native platform/ACIS/ACDS semantic/kernel gates.
+4. [ ] **Self-update and continue safe available work.** Use fast owning tests
+   during edits and exact freshly built affected cohorts only at integration
+   boundaries. Preserve real refusals/limits/receipts, commit/report each verified
+   slice, continue available local work, and preserve unrelated samples. Commit
+   no external drawing fixtures; native external qualification is not a reason
+   to stop available original target/body/dependency implementation.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

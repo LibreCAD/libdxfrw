@@ -17554,6 +17554,40 @@ dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) n
     r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::StructuralSourceReport dx_iface::structuralSourceReport(const dx_data& data) noexcept {
+    using S=StructuralSourceState;StructuralSourceReport r;const auto& s=data.m_tableDxfSource;
+    r.records=s.structuralRecords;r.bytes=s.structuralBytes;r.work=s.structuralWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed) {r.state=S::Reading;return r;}
+    if(!s.successful) {r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
+        ||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded) {r.state=S::ContextMismatch;return r;}
+    if(s.structuralCaptureFailed||!s.structuralPending.empty()) {r.state=S::CaptureFailed;return r;}
+    if(s.structuralInputs.empty())return r;
+    if(s.structuralAudits.size()!=s.structuralInputs.size()||s.structuralInputOwners.size()!=s.structuralInputs.size()
+        ||s.structuralAuditOwners.size()!=s.structuralInputs.size()) {r.state=S::CaptureFailed;return r;}
+    const auto identity=identitySourceReport(data);
+    if(identity.state==IdentitySourceState::ContextMismatch) {r.state=S::ContextMismatch;return r;}
+    r.namespaceReady=identity.state==IdentitySourceState::NamespaceReady;
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    for(const auto& row:s.structuralAudits) {
+        const auto input=s.structuralInputs.find(row.first);const auto resource=s.resources.find(row.first);const auto& a=row.second;
+        if(!a||input==s.structuralInputs.end()||resource==s.resources.end()||!a->input
+            ||a->input->index>=s.structuralInputOwners.size()||!same(input->second,s.structuralInputOwners[a->input->index])
+            ||a->index>=s.structuralAuditOwners.size()||!same(a,s.structuralAuditOwners[a->index])||!same(a->input,input->second)
+            ||a->input->container!=&data||a->input->generation!=s.generation||!a->input->containerId
+            ||a->input->containerId!=data.m_entitiesContainerIdentity.value||!a->input->context||a->input->context->sourceVersion!=s.version
+            ||!same(a->input->model,resource->second.model)||!same(a->input->raw,resource->second.raw)
+            ||!same(a->identities,s.identityAudit)||(a->bodyMatched&&!resource->second.rawTypedMatched)
+            ||resource->second.family!=(a->input->kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord?
+                dx_tableResourceFamily::BlockRecord:dx_tableResourceFamily::Dictionary)) {r.state=S::ContextMismatch;return r;}
+        if(a->input->paired)++r.paired;if(a->bodyMatched)++r.bodyMatched;if(a->stateComplete)++r.stateComplete;
+        if(a->originBound&&r.namespaceReady)++r.originsBound;
+    }
+    r.state=r.paired!=r.records||r.bodyMatched!=r.records||r.stateComplete!=r.records?S::Unqualified:
+        r.namespaceReady?(r.originsBound==r.records?S::OriginsBound:S::Unqualified):S::ProducerPairsReady;return r;
+}
+
 dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& data) noexcept {
     using S=IdentitySourceState;IdentitySourceReport r;const auto& s=data.m_tableDxfSource;
     r.bytes=s.identityBytes;r.work=s.identityWork;
@@ -19598,6 +19632,7 @@ void dx_iface::addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_Raw
     if(!cData)return;
     if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
     retainTableResourceSource(raw,&row);
+    observeStructuralSource(row,true,&raw);
 }
 
 void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) {
@@ -19608,6 +19643,7 @@ void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_Ra
         cData->m_tableDxfSource.resourceProofCaptureFailed=true;return;
     }
     retainTableResourceSource(raw);
+    observeStructuralSource(row,true,&raw);
 }
 
 void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& raw) {
@@ -20124,6 +20160,9 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.layoutPendingHandle=0u;source.layoutPendingModel=nullptr;
     if(source.successful)finishLayoutSourceAudits(data);
     if(source.successful)finishIdentitySourceAudit(data);
+    if(!source.structuralPending.empty())source.structuralCaptureFailed=true;
+    source.structuralPending.clear();
+    if(source.successful)finishStructuralSourceAudits(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -20983,6 +21022,95 @@ void dx_iface::finishIdentitySourceAudit(dx_data& data) noexcept {
     }catch(...) {s.identityCaptureFailed=true;}
 }
 
+void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,const DRW_RawDxfObject* raw) noexcept {
+    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;
+    if(s.structuralCaptureFailed)return;
+    const auto fail=[&](){s.structuralCaptureFailed=true;};
+    dxfRW::DxfStructuralSourceView view;dxfRW::DxfReadContext live;using V=dxfRW::DxfStructuralSourceView;
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfStructuralSourceView(view)) {
+        if(source||s.structuralPending.count(value.handle))fail();return;
+    }
+    if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
+    const bool block=view.kind==V::Kind::BlockRecord;
+    if(view.model!=&value||view.phase!=(source?V::Phase::Source:V::Phase::Typed)||(source&&view.source!=raw)
+        ||!value.handle||!view.source||view.source->handle!=value.handle||view.source->parentHandle!=value.parentHandle
+        ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
+        ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u
+        ||(block?(typeid(value)!=typeid(DRW_Block_Record)||value.tType!=DRW::BLOCK_RECORD):
+                   (view.kind!=V::Kind::RootDictionary||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
+    const bool first=block?source:!source;
+    const auto resource=s.resources.find(value.handle);
+    if(resource==s.resources.end()||resource->second.family!=(block?dx_tableResourceFamily::BlockRecord:dx_tableResourceFamily::Dictionary)) {fail();return;}
+    const auto& row=resource->second;
+    const auto state=std::make_pair(view.originalPendingXdata,view.originalCoordinateMask);
+    try {
+        if(first) {
+            if(s.structuralInputs.count(value.handle)||s.structuralPending.count(value.handle)||s.structuralRecords>=s.maxStructuralRecords
+                ||!cData->m_entitiesContainerIdentity.value) {fail();return;}
+            using Input=dx_data::TableDxfSourceCapture::StructuralInput;using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+            std::size_t bytes=sizeof(Input)+sizeof(dx_data::TableDxfSourceCapture::StructuralPending)+sizeof(dx_data::TableDxfSourceCapture::StructuralAudit)
+                +sizeof(Context)+64u*sizeof(void*);
+            if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
+                ||s.structuralBytes>s.maxStructuralBytes||bytes>s.maxStructuralBytes-s.structuralBytes
+                ||s.structuralWork>s.maxStructuralWork||bytes>s.maxStructuralWork-s.structuralWork) {fail();return;}
+            s.structuralBytes+=bytes;s.structuralWork+=bytes;++s.structuralRecords;
+            auto context=std::make_shared<Context>();context->sourceVersion=live.sourceVersion;context->codecVersion=live.codecVersion;
+            context->codecCodePage=live.codecCodePage;context->declaration=live.declaration;context->hasDeclaration=live.hasDeclaration;
+            context->compatibilityProfile=live.compatibilityProfile;context->textEncoding=live.textEncoding;context->codePagePolicy=live.codePagePolicy;
+            context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
+            dx_data::TableDxfSourceCapture::StructuralPending pending;
+            auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
+            in.kind=view.kind;in.originalState=state;in.context=std::move(context);in.model=row.model;in.raw=row.raw;
+            pending.model=&value;pending.raw=view.source;s.structuralPending.emplace(value.handle,std::move(pending));return;
+        }
+        const auto found=s.structuralPending.find(value.handle);
+        if(found==s.structuralPending.end()) {fail();return;}
+        auto& pending=found->second;auto& in=pending.input;
+        if(pending.model!=&value||pending.raw!=view.source||in.kind!=view.kind||in.originalState!=state||!row.model||!row.raw
+            ||(in.model&&(in.model.get()!=row.model.get()||in.model.owner_before(row.model)||row.model.owner_before(in.model)))
+            ||(in.raw&&(in.raw.get()!=row.raw.get()||in.raw.owner_before(row.raw)||row.raw.owner_before(in.raw)))) {fail();return;}
+        std::size_t modelBytes=0u,items=0u;
+        if(!estimateTableResourceBytes(row.family,value,modelBytes,items)||s.structuralWork>s.maxStructuralWork
+            ||modelBytes>s.maxStructuralWork-s.structuralWork) {fail();return;}
+        s.structuralWork+=modelBytes;in.model=row.model;in.raw=row.raw;
+        in.paired=dxfBlockRecord::Decoder::observeCommonState(value)==state
+            &&(block?blockRecordSourceEqual(static_cast<const DRW_Block_Record&>(value),static_cast<const DRW_Block_Record&>(*row.model),live.sourceVersion):
+                standardDwgModelsEqual(value,*row.model,live.sourceVersion,dwgObjType::DICTIONARY));
+        in.index=s.structuralInputOwners.size();
+        auto input=std::make_shared<const dx_data::TableDxfSourceCapture::StructuralInput>(std::move(in));
+        s.structuralInputs.emplace(value.handle,input);s.structuralInputOwners.push_back(std::move(input));s.structuralPending.erase(found);
+    }catch(...) {fail();}
+}
+
+void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;if(s.structuralCaptureFailed)return;
+    const auto identities=identitySourceReport(data);
+    const bool ready=identities.state==IdentitySourceState::NamespaceReady;
+    try {
+        for(const auto& row:s.structuralInputs) {
+            using A=dx_data::TableDxfSourceCapture::StructuralAudit;
+            A audit;audit.input=row.second;audit.identities=s.identityAudit;audit.index=s.structuralAuditOwners.size();
+            audit.stateComplete=!row.second->originalState.first&&!row.second->originalState.second;
+            const auto resource=s.resources.find(row.first);
+            audit.bodyMatched=resource!=s.resources.end()&&resource->second.rawTypedMatched;
+            if(ready) {
+                const auto& source=*s.identityInput->source;const auto id=s.identityAudit->identities.find(row.first);
+                if(id!=s.identityAudit->identities.end()&&id->second<source.records.size()) {
+                    const auto& physical=source.records[id->second];const auto& section=source.sections[physical.section];
+                    const bool block=row.second->kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord;
+                    const bool scope=block?(physical.kind==DRW_DxfIdentitySource::Kind::TableRecord&&section.kind==DRW_DxfIdentitySource::Section::Tables
+                        &&physical.table<source.records.size()&&asciiIdentifierEquals(source.records[physical.table].tableName,"BLOCK_RECORD")
+                        &&asciiIdentifierEquals(physical.name,"BLOCK_RECORD")):
+                        (physical.kind==DRW_DxfIdentitySource::Kind::Object&&section.kind==DRW_DxfIdentitySource::Section::Objects
+                         &&asciiIdentifierEquals(physical.name,"DICTIONARY")&&(!id->second||source.records[id->second-1u].section!=physical.section));
+                    if(scope&&audit.bodyMatched&&audit.stateComplete&&row.second->paired) {audit.originBound=true;audit.physical=id->second;}
+                }
+            }
+            auto saved=std::make_shared<const A>(std::move(audit));s.structuralAudits.emplace(row.first,saved);s.structuralAuditOwners.push_back(std::move(saved));
+        }
+    }catch(...) {s.structuralCaptureFailed=true;}
+}
+
 bool dx_iface::wantsDxfLayoutSource() const {
     if(!tableSourceCaptureOpen())return false;
     const auto* input=cData->m_tableDxfSource.entitiesReadInput;dxfRW::DxfReadContext context;
@@ -21178,6 +21306,7 @@ void dx_iface::addDataStorage(DRW_DataStorageSection&& data) {
 
 void dx_iface::addBlockRecord(const DRW_Block_Record& data) {
     retainTableResource(dx_tableResourceFamily::BlockRecord,data);
+    observeStructuralSource(data,false);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->blockRecords, data,
@@ -21201,6 +21330,7 @@ void dx_iface::addTextStyle(const DRW_Textstyle& data) {
 
 void dx_iface::addNamedObjectDictionary(const DRW_Dictionary& data) {
     retainTableResource(dx_tableResourceFamily::Dictionary,data);
+    observeStructuralSource(data,false);
     if (cData == nullptr)
         return;
     dx_associativeDxfImportReceipt& receipt =

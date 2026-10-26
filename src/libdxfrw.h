@@ -1004,6 +1004,20 @@ public:
      * historical evidence, target qualification or an additional callback.
      * Publication state lives in the internal reader, not the public facade. */
     bool getDxfLayoutSourceView(DxfLayoutSourceView&) const noexcept;
+    struct DxfStructuralSourceView {
+        enum class Kind : std::uint8_t {None,BlockRecord,RootDictionary};
+        enum class Phase : std::uint8_t {None,Source,Typed};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+    };
+    /** Exact opted-in BLOCK_RECORD/first-OBJECTS-DICTIONARY publication.
+     * Source-before-typed for BLOCK_RECORD, typed-before-source for dictionary;
+     * established callbacks/order unchanged. Parser state is observed before
+     * staging/copy/callbacks. Borrowed pointers expire at pair return/throw;
+     * false clears the view elsewhere. Not target/graph/output qualification.
+     * All publication state lives in the internal reader, not this facade. */
+    bool getDxfStructuralSourceView(DxfStructuralSourceView&) const noexcept;
     /** Exact borrowed identity-source publication, only inside its final
      * callback. Null elsewhere, including after completion or exception. The
      * reader owns publication state; no public facade layout fields added. */
