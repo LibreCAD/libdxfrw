@@ -26,13 +26,14 @@
 // reader, callback or assertion is built while allocation failure is armed.
 namespace {
 long symbolAllocationsBeforeFailure=-1;
+std::size_t symbolFailedAllocations=0u;
 struct SymbolAllocationFailure {
     explicit SymbolAllocationFailure(long count){symbolAllocationsBeforeFailure=count;}
     ~SymbolAllocationFailure(){symbolAllocationsBeforeFailure=-1;}
 };
 }
 void* operator new(std::size_t size) {
-    if(symbolAllocationsBeforeFailure==0)throw std::bad_alloc();
+    if(symbolAllocationsBeforeFailure==0){++symbolFailedAllocations;throw std::bad_alloc();}
     if(symbolAllocationsBeforeFailure>0)--symbolAllocationsBeforeFailure;
     if(void* value=std::malloc(size?size:1u))return value;
     throw std::bad_alloc();
@@ -117,6 +118,20 @@ public:
     static const auto& layoutRole(const dx_data& data) {return data.m_tableDxfSource.layoutRoleAudit;}
     static const auto& entitiesRole(const dx_data& data) {return data.m_tableDxfSource.entitiesRoleAudit;}
     static const auto& blockRole(const dx_data& data){return data.m_tableDxfSource.blockRoleAudit;}
+    static std::array<std::size_t,3> attdefBodyUsage(const dx_data& data,bool blocks) {
+        const auto& s=data.m_tableDxfSource;return blocks?std::array<std::size_t,3>{s.compoundBodyRecords,s.compoundBodyBytes,s.compoundBodyWork}
+            :std::array<std::size_t,3>{s.entitiesCompoundRecords,s.entitiesCompoundBytes,s.entitiesCompoundWork};
+    }
+    static void attdefBodyLimit(dx_data& data,bool blocks,unsigned which,std::size_t n) {
+        if(!blocks){entitiesCompoundLimit(data,which,n);return;}auto& s=data.m_tableDxfSource;
+        if(which==0u)s.maxCompoundBodyRecords=n;else if(which==1u)s.maxCompoundBodyBytes=n;else s.maxCompoundBodyWork=n;
+    }
+    static void substituteAttdef(dx_data& data,std::uint32_t id,unsigned which,bool alias) {
+        auto& r=data.m_tableDxfSource.resources.at(id);
+        const auto change=[&](auto& p){using T=typename std::decay_t<decltype(p)>::element_type;
+            if(alias)p=std::shared_ptr<T>(p.get(),[](const auto*){});else p=std::make_shared<T>(*p);};
+        if(which==0u)change(r.attdefModel);if(which==1u)change(r.raw);if(which==2u)change(r.attdefReadContext);if(which==3u)change(r.attdefOrigin);
+    }
     using BlockRoleReason=dx_data::TableDxfSourceCapture::BlockRoleAudit::Reason;
     static void blockRoleLimit(dx_data& data,bool work,std::size_t n){if(work)data.m_tableDxfSource.maxBlockRoleWork=n;else data.m_tableDxfSource.maxBlockRoleBytes=n;}
     static void repeatBlockRole(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.blockRoleAudit.reset();s.blockRoleOwner.reset();s.blockRoleBytes=s.blockRoleWork=0u;s.blockRoleCaptureFailed=false;reader.finishBlockRoleAudit(data);}
@@ -1466,6 +1481,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "dictionary_role_controls.h"
 #include "entities_role_controls.h"
 #include "block_role_controls.h"
+#include "attdef_role_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2985,6 +3001,7 @@ int main(int argc,char** argv) {
     const bool layoutRoles=argc==2 && std::string(argv[1])=="--layout-roles";
     const bool entitiesRoles=argc==2 && std::string(argv[1])=="--entities-roles";
     const bool blockRoles=argc==2 && std::string(argv[1])=="--block-roles";
+    const bool attdefRoles=argc==2 && std::string(argv[1])=="--attdef-roles";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2993,12 +3010,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

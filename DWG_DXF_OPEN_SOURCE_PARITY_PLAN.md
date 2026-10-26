@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5er original BLOCKS role joins and sibling-boundary refusal (2026-10-26; verified before local commit):** a bounded immutable audit enumerates every original physical BLOCKS scope and joins selected POINT/LINE/POLYLINE/INSERT/MINSERT bodies to actual original definition/layout targets. Dropped or unsupported records cannot hide behind a selected subset. Endpoint definition metadata stays separate from member placement; actual67 defaults and absent/explicit410 remain distinct. A reproduced missing-ENDBLK reader bug is fixed independently of observer selection. Exact affected cohorts pass86/86 normally and86/86 under ASan. [Implementation and next work](#implementation-progress-rpp-5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26) · [receipt](docs/research/rpp5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26.json). Remaining primary/dependency/live/output/consumer/external work stays open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5es original ATTDEF body/pair/role joins (2026-10-26; verified before local commit):** immutable original ATTDEF model/raw/parser-state/origin/read-context owners now join selected BLOCKS and ENTITIES body/role audits. Shared replay preserves actual text interpretation and ATTDEF's pre-copy subclass state; explicit410 is qualified only through the original target graph, not older partial resource gates. The new authored selector covers72 profiles,3,264 independently walked scalar spans,40 actual field mutations,94 allocation faults and12 destination guards. Exact affected cohorts pass87/87 normally and87/87 under ASan. [Implementation and next work](#implementation-progress-rpp-5es-original-attdef-bodypairrole-joins-2026-10-26) · [receipt](docs/research/rpp5es-original-attdef-body-pair-role-joins-2026-10-26.json). TABLE/other primary,dependency,live/output,consumer and external work stays open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5er original BLOCKS role joins and sibling-boundary refusal (2026-10-26; committed as `96995a8d`):** a bounded immutable audit enumerates every original physical BLOCKS scope and joins selected POINT/LINE/POLYLINE/INSERT/MINSERT bodies to actual original definition/layout targets. Dropped or unsupported records cannot hide behind a selected subset. Endpoint definition metadata stays separate from member placement; actual67 defaults and absent/explicit410 remain distinct. A reproduced missing-ENDBLK reader bug is fixed independently of observer selection. Exact affected cohorts pass86/86 normally and86/86 under ASan. [Implementation and next work](#implementation-progress-rpp-5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26) · [receipt](docs/research/rpp5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26.json). Remaining primary/dependency/live/output/consumer/external work stays open; no support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5eq completed empty BLOCKS POLYLINE membership (2026-10-26; committed as `e5355122`):** the converter now admits the already-accepted parent+SEQEND structural/body shape without inventing a vertex. Its144-profile owning test and exact82/82 normal /82/82 ASan cohorts remain historical; RPP-5er adds selected original BLOCKS scope/owner/member-space/layout joins, not complete primary/dependency/live/output or native semantics. [Implementation](#implementation-progress-rpp-5eq-completed-empty-blocks-polyline-membership-2026-10-26) · [receipt](docs/research/rpp5eq-completed-empty-blocks-polyline-membership-2026-10-26.json).
 
@@ -130164,3 +130166,138 @@ J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 This is not whole-document dependency/live/output or native geometry completion.
 The full goal remains active; no remote mutation is included.
+
+## Implementation progress — RPP-5es original ATTDEF body/pair/role joins (2026-10-26)
+
+State: **VERIFIED before local slice commit**. Exact affected cohorts pass
+normal87/ASan87. RPP-5er is committed as `96995a8d`; this slice implements its
+ATTDEF original-body/pair/role prerequisite, not required TABLE/other primary,
+dependency, edited/output, native consumer or independent semantic completion.
+
+- [x] Extend the shared compound replay wrapper to the actual production
+  ATTDEF decoder and exact modeled equality. Preserve classic modern and the
+  existing two R2018 embedded-MTEXT profiles. Earlier-version multiline
+  compatibility parsing stays accepted but explicitly source-unqualified.
+- [x] Freeze and independently pin ATTDEF resource model/raw/original parser
+  state/context/origin owners in BLOCKS bodies and ENTITIES proofs. Require the
+  actual original source/typed pair, matching physical record and common roles;
+  source-only replay, equal copied callback values, missing/duplicate phases or
+  a substituted shared ownership control block cannot create role proof.
+- [x] Keep ENTITIES ATTDEF accounting separate from the older POINT/LINE
+  primary report. BLOCKS uses its actual staged typed callback and origin;
+  original source and typed states must agree before any pair qualification.
+  Pin the same actual enclosing read-context owner, not a reconstructed equal
+  value. Extended concrete/nested subclasses remain explicitly unavailable.
+- [x] Retain the real source codec/declaration/version/options at source delivery
+  and use its codepage/compatibility/text policy for older ATTDEF field replay
+  as well as the new body replay. Precharge the added retained/temporary owners
+  and work. These are logical bounds, not allocator/RSS or runtime guarantees.
+- [x] Preserve the actual ATTDEF state boundary: staged ATTDEF moves retain the
+  original attribute-subclass observation, while a model copy resets it. Unlike
+  other copied BLOCKS primaries, fresh ATTDEF replay compares its original
+  pre-copy observation directly. No invented clean-state projection is used.
+- [x] Bind source67/410 to actual original BLOCK_RECORD/layout graph targets
+  with original presence/default distinctions. The older ATTDEF profile/binding
+  gates do not gain410 qualification. `rawTypedMatched` stays false even when
+  the separate role audit can qualify an explicit410 against the real graph.
+  Common dependencies and native non-ASCII name collation remain unqualified.
+- [x] Update the consumer contract without new public facade/model fields,
+  `DRW_Interface` virtuals or DWG byte-layout parser/encoder changes. Internal
+  converter layouts change; no formal ABI or native consumer claim is made.
+
+New runtime-authored owning selector `libdxfrw_original_attdef_roles`:
+
+- **72** four-version x LF/CRLF/Binary x BLOCKS/ENTITIES x classic/canonical101/
+  legacy100 embedded profiles; **36** qualify and **36** retain explicit earlier
+  multiline revision refusal. Every profile preserves two original source/typed
+  resources with `rawTypedMatched=false`. Independent file walking checks
+  **3,264** original scalar spans, values, host/nested/application scope and
+  self/owner/layer/style/layout/APPID/XDATA/opaque-handle roles, not merely hashes.
+- **30** positive variants cover absent410, explicit model0, ASCII case and
+  Unicode escape names, exact negative zero, original codepage declaration,
+  actual `ExactNamed` input policy and ignored ASCII comments. Main Binary
+  recipes contain no group999 comments. No external drawing bytes are committed.
+- **40** actual callback-field mutations cover host text/prompt/tag, insertion X/height,
+  style/flags and nested MTEXT text/width/direction. **28** source/typed phase
+  refusals cover opt-out, copied/missing/duplicate source or typed values. Every
+  refusal has a corrected fresh-destination import on the same adapter.
+- **52** context controls include equal-copy/alias model/raw/read-context/origin
+  substitutions, changed pair/field/pending/state prerequisites, copied
+  containers, independent live edits and allocation-free report queries.
+- **40** exact/one-under record/byte/work cases cover body and enclosing role
+  allowances. **94** reached actual typed-callback allocation faults sample the
+  first16 and eight spread/tail positions after successful calibration, with
+  deduplication. They are a finite observed schedule, not all allocation sites.
+- **Six** late ENTITIES editable-copy failures preserve real already-captured
+  original evidence while setting sticky typed-capture failure. **12** compatible/
+  strict export guards refuse and preserve destination bytes; corrected imports
+  recover. Original proof is not live/output permission. BLOCKS membership keeps
+  its existing complete-staged-capture prerequisite.
+- **44** malformed field/owner/space/layout, source/typed callback exception and
+  failed-tail cases retain refusal and corrected import; callback scopes balance.
+
+Development evidence is retained rather than hidden: strict builds caught a
+smart-pointer `typeid` expression, a duplicate nested forward declaration,
+misleading test indentation and an invented policy spelling (`Strict`; the
+existing enum is `ExactNamed`). A local copy-state projection introduced four
+ATTDEF/table-binding regressions; direct original ATTDEF-state comparison repairs
+all four. The first expanded cohort passes86/87 and exposes an incorrect test
+assumption that an editable-copy failure must erase valid original ENTITIES
+evidence. A reached allocation diagnostic shows original proof complete and
+`typedEntityCaptureFailed=true`; source inspection and actual destination guards
+establish the distinct boundary above. Two diagnostic runs used older binaries
+after failed builds and are explicitly excluded from acceptance. No compiler
+warning suppression or reduced field/profile requirement is used. Historical
+silent first CELLSTYLEMAP/TABLESTYLE launches remain unclassified.
+
+Final current-source strict target checks pass. Exact affected cohorts pass
+**87/87 normally in25.29s** and **87/87 under ASan in60.27s**, zero failed/skipped/
+disabled tests, identical registered selection/order and exact executed-name
+sets. Normal runtime finishes before ASan (`halt_on_error=1:detect_leaks=0`);
+independent compilation, not runtimes, overlaps. Final compiled-source hashes
+are unchanged. Existing library/owning adapter/resource/compatibility targets
+retain C++17 and `-Wall -Wextra -pedantic -Werror`; the broad fixture runner is
+not claimed globally warning-clean. These are affected cohorts, not the full
+suite, formal ABI/native geometry qualification or performance benchmarks.
+Fast owning selectors are used per edit; no repeated full suite per edit.
+The [receipt](docs/research/rpp5es-original-attdef-body-pair-role-joins-2026-10-26.json)
+records selection, source/log hashes, exact controls, development findings and
+limits. No fixture payload, remote mutation or support promotion is included.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **TABLE and other required primary source closure.** Reuse actual TABLE
+   source/typed delivery owners, physical intervals, original parser states and
+   retained raw parent plus linked ATTRIB/SEQEND. Do not treat the adapter's
+   internal INSERT projection as the original TABLE or use geometry/cache
+   callbacks as complete TABLE semantics. Add a separately pinned bounded body/
+   profile/role packet with actual pair, common67/410, concrete subtype, omitted/
+   dropped/unsupported, copied/cross-import, exact/under quota, allocation,
+   exception/tail and corrected-import controls. Reuse existing shared grammar
+   where available; keep unsupported families explicit rather than shrinking
+   whole-scope accounting or weakening source requirements.
+2. [ ] **Common dependency closure.** Resolve actual original STYLE/APPID/LAYER,
+   object/application/proxy/codepage and bounded nested INSERT dependencies from
+   classified field/reference roles to the correct typed original targets.
+   Preserve missing/ambiguous/wrong-kind and source-name-versus-output-ID cases;
+   exercise owner substitution, quota/allocation and corrected retry. Enclosing
+   owner proof, original modeled equality and ATTDEF role success are not this
+   dependency closure and cannot open the nine-family resource ledger.
+3. [ ] **Full B2b/B3/C source/live/edited/emitted and consumer parity.** Complete
+   fields/names/references, handle remapping and exact readback, atomic rollback/
+   retry/destination safety, IMAGE/document/native-bit/decimal/carrier/schema/
+   owner and memory/performance. Distinguish valid original evidence from later
+   live-copy/capture failure without permitting export loss. Preserve LibreCAD/
+   LibreCAD_3 2D/3D plus dwg2dxf/FreeCAD; compile or same-stack checks do not
+   replace native platform or independent ACIS/ACDS semantic/kernel evidence.
+4. [ ] **Self-update/unblock and continue.** Commit/report the verified slice,
+   retain failures/limits/receipts, and take the next safe local prerequisite.
+   Use fast owning tests per edit and exact affected cohorts at integration
+   boundaries. Commit no external drawing payloads or derivatives; do not wait
+   on external qualification while local work remains available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The full goal remains active; this slice does not complete the objective.

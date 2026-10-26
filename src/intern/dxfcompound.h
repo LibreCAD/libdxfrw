@@ -2,15 +2,17 @@
 #ifndef DXFCOMPOUND_H
 #define DXFCOMPOUND_H
 #include "dxfattdef.h"
+#include <optional>
 
 // Shared production/replay field admission and exact modeled equality, including
-// the selected POINT/LINE primary roots used beside compound chains. This
+// selected POINT/LINE/ATTDEF primary roots used beside compound chains. This
 // does not inventory unknown physical scalars or qualify dependency/output roles.
 namespace dxfCompound {
 using SourceState=dxfAttdef::SourceState;
 class Decoder {
-    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line};
+    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line,Definition};
     DRW_Entity* value;Kind kind;unsigned fields{0u};
+    std::optional<dxfAttdef::Decoder> definition;
     enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u,EndX=32u,EndY=64u};
 public:
     explicit Decoder(DRW_Polyline& v):value(&v),kind(Kind::Polyline){}
@@ -20,10 +22,12 @@ public:
     explicit Decoder(DRW_SeqEnd& v):value(&v),kind(Kind::SequenceEnd){}
     explicit Decoder(DRW_Point& v):value(&v),kind(Kind::Point){}
     explicit Decoder(DRW_Line& v):value(&v),kind(Kind::Line){}
-    void reset(DRW_Vertex& v) noexcept {value=&v;kind=Kind::Vertex;fields=0u;}
-    void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;}
+    explicit Decoder(DRW_Attdef& v):value(&v),kind(Kind::Definition),definition(std::in_place,v){}
+    void reset(DRW_Vertex& v) noexcept {value=&v;kind=Kind::Vertex;fields=0u;definition.reset();}
+    void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;definition.reset();}
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
+        if(kind==Kind::Definition)return code==102?definition->parseApplication(reader):definition->parseCode(code,reader);
         if(code==1)fields|=Text;if(code==2)fields|=Tag;if(code==10)fields|=X;
         if(code==20)fields|=Y;if(code==40)fields|=Height;
         if(code==11)fields|=EndX;if(code==21)fields|=EndY;
@@ -47,6 +51,7 @@ public:
         case Kind::SequenceEnd:return true;
         case Kind::Point:return (fields&(X|Y))==(X|Y);
         case Kind::Line:return (fields&(X|Y|EndX|EndY))==(X|Y|EndX|EndY);
+        case Kind::Definition:return definition->finish(false);
         }
         return false;
     }
@@ -58,6 +63,10 @@ public:
     static bool sameModel(const DRW_Entity& a,const DRW_Entity& b,Equal equal) noexcept {
         if(a.eType!=b.eType)return false;
         switch(a.eType) {
+        case DRW::ATTDEF: {
+            const auto* x=dynamic_cast<const DRW_Attdef*>(&a);const auto* y=dynamic_cast<const DRW_Attdef*>(&b);
+            return x&&y&&dxfAttdef::Decoder::sameModel(*x,*y,equal);
+        }
         case DRW::POINT: {
             const auto* x=dynamic_cast<const DRW_Point*>(&a);const auto* y=dynamic_cast<const DRW_Point*>(&b);
             return x&&y&&samePoint(*x,*y,equal);

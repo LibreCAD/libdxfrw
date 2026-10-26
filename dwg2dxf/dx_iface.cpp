@@ -17508,6 +17508,7 @@ dx_iface::EntitiesCompoundReport dx_iface::entitiesCompoundReport(const dx_data&
             ||!same(audit->observed,row.observed)||!same(audit->context,row.context)){r.state=S::ContextMismatch;return r;}
         ++r.sections;r.dispatches+=audit->proofs.size();
         for(const auto& proof:audit->proofs) {
+            if(proof.attributeDefinition&&!attdefPinsCurrent(data,proof.attdef)){r.state=S::ContextMismatch;return r;}
             if(!proof.compound) {
                 if(proof.state==P::Raw)++r.raw;else if(proof.state==P::NoCallback)++r.noCallback;else ++r.otherPrimaries;
                 continue;
@@ -17595,6 +17596,10 @@ dx_iface::BlockRoleReport dx_iface::blockRoleReport(const dx_data& data) noexcep
         for(const auto& body:scope.bodies) {
             const auto p=found->second.compoundBodies.find(body.first),owner=found->second.compoundBodyOwners.find(body.first);
             if(p==found->second.compoundBodies.end()||owner==found->second.compoundBodyOwners.end()||!same(body.second,p->second)||!same(body.second,owner->second)){r.state=S::ContextMismatch;return r;}
+            if(body.second->model&&body.second->model->eType==DRW::ATTDEF) {
+                if(!attdefPinsCurrent(data,body.second->attdef)){r.state=S::ContextMismatch;return r;}
+                if(a->state==S::RolesReady&&!attdefPairReady(data,body.second->attdef,scope.handle)){r.state=S::SourceNotReady;return r;}
+            }
         }
     }
     r.scopes=a->scopes.size();r.records=a->records;r.published=a->published;r.physicalCensusComplete=a->censusComplete;
@@ -17652,6 +17657,10 @@ dx_iface::EntitiesRoleReport dx_iface::entitiesRoleReport(const dx_data& data) n
         ||!same(a->graph,s.layoutRoleAudit)||graph.state==LayoutRoleState::ContextMismatch||bodies.state==EntitiesCompoundState::ContextMismatch
         ||a->scopes.size()>s.entitiesCompoundAudits.size()){r.state=S::ContextMismatch;return r;}
     for(std::size_t i=0;i<a->scopes.size();++i)if(!same(a->scopes[i],s.entitiesCompoundAudits[i])){r.state=S::ContextMismatch;return r;}
+    for(const auto& scope:a->scopes)for(const auto& proof:scope->proofs)if(proof.attributeDefinition) {
+        if(!attdefPinsCurrent(data,proof.attdef)){r.state=S::ContextMismatch;return r;}
+        if(a->state==S::SelectedRolesReady&&!attdefPairReady(data,proof.attdef,0u)){r.state=S::SourceNotReady;return r;}
+    }
     if(a->state!=S::SourceNotReady&&(!graph.rolesMatched||bodies.state==EntitiesCompoundState::CaptureFailed
         ||bodies.state==EntitiesCompoundState::SourceNotReady)){r.state=S::SourceNotReady;return r;}
     r.state=a->state;r.selected=a->selected;r.matched=a->matched;r.unsupported=a->unsupported;
@@ -18833,6 +18842,7 @@ bool dx_iface::concreteEntitiesBodyChildren(const DRW_Entity& value) noexcept {
             const auto* nested=a->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText))return false;
         }
     }
+    if(const auto* definition=dynamic_cast<const DRW_Attdef*>(&value)) {const auto* nested=definition->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText))return false;}
     return true;
 }
 
@@ -18883,7 +18893,7 @@ bool dx_iface::captureEntitiesReadContext() noexcept {
 void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,const DRW_Entity& value) noexcept {
     const auto* pl=value.eType==DRW::POLYLINE?dynamic_cast<const DRW_Polyline*>(&value):nullptr;
     const auto* in=value.eType==DRW::INSERT?dynamic_cast<const DRW_Insert*>(&value):nullptr;
-    const bool primary=value.eType==DRW::POINT||value.eType==DRW::LINE;
+    const bool primary=value.eType==DRW::POINT||value.eType==DRW::LINE||value.eType==DRW::ATTDEF;
     if(!pl&&!in&&!primary)return;
     std::size_t count=1u;
     if(pl) {if(!addAssociativeRetainedBytes(pl->vertlist.size(),count)||!addAssociativeRetainedBytes(pl->seqEndEntity?1u:0u,count))return;}
@@ -19226,11 +19236,13 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
     const bool polyline=dx_block_membership::equal(name,"POLYLINE");
     const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
     const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
-    if(!polyline&&!insert&&!point&&!line)return;
+    const bool attdef=dx_block_membership::equal(name,"ATTDEF");
+    if(attdef&&event.callback!=DRW_DxfBlockCallback::addAttDef)return;
+    if(!polyline&&!insert&&!point&&!line&&!attdef)return;
     const auto* pl=dynamic_cast<const DRW_Polyline*>(entity);const auto* in=dynamic_cast<const DRW_Insert*>(entity);
     const auto fail=[&](){source.compoundBodyCaptureFailed=true;};
     if((polyline&&(!pl||typeid(*entity)!=typeid(DRW_Polyline)))||(insert&&(!in||typeid(*entity)!=typeid(DRW_Insert)))
-        ||(point&&typeid(*entity)!=typeid(DRW_Point))||(line&&typeid(*entity)!=typeid(DRW_Line))
+        ||(point&&typeid(*entity)!=typeid(DRW_Point))||(line&&typeid(*entity)!=typeid(DRW_Line))||(attdef&&typeid(*entity)!=typeid(DRW_Attdef))
         ||row.compoundBodies.count(event.dispatch)||row.compoundBodyOwners.count(event.dispatch)){fail();return;}
     // Known concrete copies must not silently slice additional subclass state.
     if(polyline) {
@@ -19247,9 +19259,11 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
             if(!pointer||typeid(*pointer)!=typeid(DRW_Attrib)){fail();return;}
             const auto* nested=pointer->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText)){fail();return;}
         }
+    } else if(attdef) {
+        const auto* nested=static_cast<const DRW_Attdef*>(entity)->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText)){fail();return;}
     }
     const auto count=range.next-range.first;std::size_t modelBytes=0u,rawBytes=0u,groups=0u;
-    const auto modelSize=polyline?sizeof(DRW_Polyline):insert?sizeof(DRW_Insert):point?sizeof(DRW_Point):sizeof(DRW_Line);
+    const auto modelSize=polyline?sizeof(DRW_Polyline):insert?sizeof(DRW_Insert):point?sizeof(DRW_Point):attdef?sizeof(DRW_Attdef):sizeof(DRW_Line);
     if(!estimateTypedEntityRetainedBytes(*entity,modelSize,modelBytes)){fail();return;}
     for(std::size_t i=range.first;i<range.next;++i) {
         const auto& physical=audit.children->records[i];const auto n=physical.groups.size();
@@ -19286,6 +19300,10 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
             for(const auto& child:in->attlist)body.sourceStates.push_back(dxfCompound::Decoder::observe(*child));
             if(in->seqEndEntity)body.sourceStates.push_back(dxfCompound::Decoder::observe(*in->seqEndEntity));
             body.model=std::make_shared<const DRW_Insert>(*in);
+        } else if(attdef) {
+            body.model=std::make_shared<const DRW_Attdef>(*static_cast<const DRW_Attdef*>(entity));
+            const auto resource=source.resources.find(entity->handle);
+            if(resource!=source.resources.end()){const auto& r=resource->second;body.attdef={r.attdefModel,r.raw,r.attdefOrigin,r.attdefReadContext,r.attdefState,r.attdefContext};}
         } else if(point)body.model=std::make_shared<const DRW_Point>(*static_cast<const DRW_Point*>(entity));
         else body.model=std::make_shared<const DRW_Line>(*static_cast<const DRW_Line*>(entity));
         if(body.sourceStates.size()!=count){fail();return;}
@@ -19304,7 +19322,7 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
     if(!body.context||!body.context->captured||body.context->applyExtrusion||body.context->sourceVersion!=audit.delivery->version
         ||body.context->binary!=audit.delivery->binary){body.state=State::ContextMismatch;return false;}
     const auto& context=*body.context;
-    const bool point=body.model->eType==DRW::POINT,line=body.model->eType==DRW::LINE;
+    const bool point=body.model->eType==DRW::POINT,line=body.model->eType==DRW::LINE,attdef=body.model->eType==DRW::ATTDEF;
     const auto decode=[&](std::size_t index,dxfCompound::Decoder& decoder,auto& model,bool finalize,const DRW_Polyline* parent) {
         const auto& physical=audit.children->records[index];DRW_RawDxfObject raw;
         raw.name=physical.name;raw.handle=audit.members[index].self;raw.parentHandle=audit.members[index].owner;
@@ -19313,7 +19331,7 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment) {
             raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);
         }
-        auto profile=dx_compound_source::audit(raw,parent,true,point||line);
+        auto profile=dx_compound_source::audit(raw,parent,true,point||line||attdef);
         if(!dx_compound_source::restorePhysicalIndices(profile,physical)){source.compoundBodyCaptureFailed=true;return false;}
         body.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,source.maxCompoundBodyBytes,wire))return false;
@@ -19338,16 +19356,23 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         if(!parsed||reader->recordCount()!=raw.groups.size()||(finalize&&!decoder.finish(parent)))return false;
         const auto& original=body.sourceStates[index-range.first];
         const auto replayState=dxfCompound::Decoder::observe(model);body.replayStates.push_back(replayState);
-        // Actual staged callbacks carry copies. Keep the replay's pre-copy
-        // grammar observation separate; use the real copy operation for the
-        // delivered-state projection instead of inventing a clean source state.
-        const std::decay_t<decltype(model)> projected(model);
+        // Most staged callbacks carry copies. ATTDEF source/typed callbacks
+        // share a moved value instead, preserving its original grammar state.
+        // Do not project that observation through a state-resetting copy.
+        const auto projectedState=[&]() {
+            if constexpr(std::is_same<std::decay_t<decltype(model)>,DRW_Attdef>::value)return replayState;
+            else {const std::decay_t<decltype(model)> projected(model);return dxfCompound::Decoder::observe(projected);}
+        }();
         if(!replayState.hasNoPendingXdata()||!original.hasNoPendingXdata()
-            ||!(dxfCompound::Decoder::observe(projected)==original)) {body.state=State::SourceStateMismatch;return false;}
+            ||!(projectedState==original)) {body.state=State::SourceStateMismatch;return false;}
         return true;
     };
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {return standardDwgVariantEqual(a,b,audit.delivery->version);};
-    if(point) {
+    if(attdef) {
+        DRW_Attdef parsed;dxfCompound::Decoder decoder(parsed);
+        if(!decode(range.first,decoder,parsed,true,nullptr))return false;
+        body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
+    } else if(point) {
         DRW_Point parsed;dxfCompound::Decoder decoder(parsed);
         if(!decode(range.first,decoder,parsed,true,nullptr))return false;
         body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
@@ -19383,6 +19408,30 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
     return body.state==State::ModeledReplayMatched;
 }
 
+bool dx_iface::attdefPinsCurrent(const dx_data& data,const AttdefSourcePins& pins) noexcept {
+    if(!pins.model&&!pins.raw&&!pins.origin&&!pins.readContext)return true;
+    if(!pins.model||!pins.raw)return false;const auto& s=data.m_tableDxfSource;
+    const auto found=s.resources.find(pins.model->handle);if(found==s.resources.end())return false;const auto& row=found->second;
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    return row.family==dx_tableResourceFamily::AttributeDefinition&&same(pins.model,row.attdefModel)&&same(pins.raw,row.raw)&&same(pins.origin,row.attdefOrigin)&&same(pins.readContext,row.attdefReadContext)
+        &&pins.state==row.attdefState&&pins.context.inBlock==row.attdefContext.inBlock&&pins.context.applyExtrusion==row.attdefContext.applyExtrusion
+        &&row.owner==pins.model->parentHandle&&row.owner==pins.raw->parentHandle;
+}
+
+bool dx_iface::attdefPairReady(const dx_data& data,const AttdefSourcePins& pins,std::uint32_t block) noexcept {
+    if(!pins.model||!pins.raw||!pins.readContext||!pins.readContext->captured||!attdefPinsCurrent(data,pins)||!pins.state.hasNoPendingXdata()||pins.context.applyExtrusion
+        ||pins.readContext->applyExtrusion||pins.readContext->sourceVersion!=pins.raw->m_version||pins.readContext->binary==pins.raw->hasRawValues)return false;
+    const auto& s=data.m_tableDxfSource;const auto& row=s.resources.at(pins.model->handle);
+    if(s.resourceCaptureFailed||s.resourceProofCaptureFailed||row.awaitingAttdef||!row.attdefPairMatched||!row.attdefFieldsMatched||row.attdefFieldMismatch)return false;
+    if(!block)return !pins.context.inBlock&&!pins.origin&&row.attdefOriginState==AttdefOriginResource::OriginState::Standalone;
+    const auto found=s.blockSources.find(block);
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    return pins.context.inBlock&&pins.origin&&pins.origin->block==block&&found!=s.blockSources.end()
+        &&same(pins.readContext,found->second.context)
+        &&(row.attdefOriginState==AttdefOriginResource::OriginState::PairBound||row.attdefOriginState==AttdefOriginResource::OriginState::EnclosingMatched)
+        &&hasMatchedBlockMembership(data,block)&&consistentAttdefOrigin(s,row,found->second,*pins.origin);
+}
+
 bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,std::size_t dispatch) noexcept {
     if(!hasMatchedBlockMembership(data,block)||data.m_tableDxfSource.compoundBodyCaptureFailed)return false;
     const auto& row=data.m_tableDxfSource.blockSources.at(block);const auto at=row.compoundBodies.find(dispatch);
@@ -19390,7 +19439,7 @@ bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,st
     const auto owner=row.compoundBodyOwners.find(dispatch);const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
     if(owner==row.compoundBodyOwners.end()||!same(at->second,owner->second)||!row.contextMatched||!same(row.context,row.contextOwner)||!same(body.context,row.context)
         ||body.membership!=row.membership||body.dispatch!=dispatch||!body.model||dispatch>=row.membership->ranges.size()
-        ||body.state!=CompoundBody::State::ModeledReplayMatched)return false;
+        ||body.state!=CompoundBody::State::ModeledReplayMatched||(body.model->eType==DRW::ATTDEF&&!attdefPinsCurrent(data,body.attdef)))return false;
     const auto range=row.membership->ranges[dispatch];const auto& member=row.membership->members[range.first];
     return body.sourceStates.size()==range.next-range.first&&body.replayStates.size()==body.sourceStates.size()
         &&body.model->handle==member.self&&body.model->parentHandle==member.owner;
@@ -19446,9 +19495,10 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 const auto& name=records[proof.first].name;const bool polyline=dx_block_membership::equal(name,"POLYLINE");
                 const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
                 const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
+                const bool attdef=dx_block_membership::equal(name,"ATTDEF");proof.attributeDefinition=attdef;
                 proof.compound=polyline||insert;
                 proof.primary=point||line;
-                if(!proof.compound&&!proof.primary) {
+                if(!proof.compound&&!proof.primary&&!attdef) {
                     if(!dispatch.events)proof.state=State::NoCallback;
                     else {
                         bool raw=false,typed=false;
@@ -19462,7 +19512,29 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                     audit->proofs.push_back(std::move(proof));continue;
                 }
                 const auto n=at-proof.first;auto& root=audit->members[proof.first];proof.state=State::Matched;
-                if(dispatch.events!=1u||proof.event>=row.observed->size())proof.state=State::Callback;
+                if(attdef) {
+                    if(dispatch.events!=2u||proof.event>=row.observed->size()||row.observed->size()-proof.event<2u)proof.state=State::Callback;
+                    else {
+                        const auto& sourceEvent=row.delivery->events[proof.event];const auto& typedEvent=row.delivery->events[proof.event+1u];
+                        const auto& original=(*row.observed)[proof.event];const auto& typed=(*row.observed)[proof.event+1u];
+                        const auto resource=s.resources.find(root.self);
+                        if(resource!=s.resources.end()){const auto& r=resource->second;proof.attdef={r.attdefModel,r.raw,r.attdefOrigin,r.attdefReadContext,r.attdefState,r.attdefContext};}
+                        if(sourceEvent.callback!=DRW_DxfEntitiesCallback::AttdefSource||sourceEvent.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::SourceObserver
+                            ||typedEvent.callback!=DRW_DxfEntitiesCallback::addAttDef||typedEvent.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser
+                            ||sourceEvent.entityType!=static_cast<std::int32_t>(DRW::ATTDEF)||typedEvent.entityType!=sourceEvent.entityType
+                            ||sourceEvent.handle!=root.self||typedEvent.handle!=root.self||sourceEvent.owner!=root.owner||typedEvent.owner!=root.owner
+                            ||!original.valueObserved||!original.model||!original.raw||!typed.model||original.modelUnavailable||typed.modelUnavailable
+                            ||!original.compoundStatesCaptured||original.compoundStates.size()!=1u||!typed.compoundStatesCaptured||typed.compoundStates.size()!=1u
+                            ||!(original.compoundStates.front()==typed.compoundStates.front())||!(original.compoundStates.front()==proof.attdef.state)
+                            ||!proof.attdef.model||!proof.attdef.raw||proof.attdef.readContext.get()!=row.context.get()
+                            ||proof.attdef.readContext.owner_before(row.context)||row.context.owner_before(proof.attdef.readContext)
+                            ||!retainedRawDxfObjectsEqual(*original.raw,*proof.attdef.raw)
+                            ||!blockDeliveryRawMatches(records[proof.first],*proof.attdef.raw,row.physical->binary))proof.state=State::Callback;
+                        else {const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b){return standardDwgVariantEqual(a,b,row.physical->version);};
+                            if(!dxfCompound::Decoder::sameModel(*original.model,*proof.attdef.model,equal)||!dxfCompound::Decoder::sameModel(*typed.model,*proof.attdef.model,equal))proof.state=State::ModelMismatch;}
+                        ++proof.event;
+                    }
+                } else if(dispatch.events!=1u||proof.event>=row.observed->size())proof.state=State::Callback;
                 else {
                     const auto& event=row.delivery->events[proof.event];
                     const auto callback=polyline?DRW_DxfEntitiesCallback::addPolyline:insert?DRW_DxfEntitiesCallback::addInsert
@@ -19470,7 +19542,7 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                     if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=callback
                         ||event.handle!=root.self||event.owner!=root.owner)proof.state=State::Callback;
                 }
-                if((polyline&&n<2u)||(proof.primary&&n!=1u)
+                if((polyline&&n<2u)||((proof.primary||attdef)&&n!=1u)
                     ||((polyline||(insert&&n>1u))&&!dx_block_membership::equal(records[at-1u].name,"SEQEND")))proof.state=State::Sequence;
                 for(std::size_t i=proof.first;i<at;++i) {
                     auto& member=audit->members[i];member.dispatch=d;member.parent=proof.first;
@@ -19508,7 +19580,8 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
     const bool polyline=dx_block_membership::equal(audit.physical->records[proof.first].name,"POLYLINE");
     const bool point=dx_block_membership::equal(audit.physical->records[proof.first].name,"POINT");
     const bool line=dx_block_membership::equal(audit.physical->records[proof.first].name,"LINE");
-    const auto modelSize=polyline?sizeof(DRW_Polyline):point?sizeof(DRW_Point):line?sizeof(DRW_Line):sizeof(DRW_Insert);
+    const bool attdef=proof.attributeDefinition;
+    const auto modelSize=polyline?sizeof(DRW_Polyline):point?sizeof(DRW_Point):line?sizeof(DRW_Line):attdef?sizeof(DRW_Attdef):sizeof(DRW_Insert);
     if(!estimateTypedEntityRetainedBytes(*observed.model,modelSize,modelBytes))return false;
     for(std::size_t i=proof.first;i<proof.next;++i) {
         const auto& record=audit.physical->records[i];
@@ -19531,7 +19604,7 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         raw.m_version=context.sourceVersion;raw.hasRawValues=!context.binary;
         raw.groups.reserve(physical.groups.size());raw.rawValues.reserve(physical.groups.size());
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment){raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);}
-        auto profile=dx_compound_source::audit(raw,parent,true,proof.primary);
+        auto profile=dx_compound_source::audit(raw,parent,true,proof.primary||attdef);
         if(!dx_compound_source::restorePhysicalIndices(profile,physical)){s.entitiesCompoundCaptureFailed=true;return false;}
         proof.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,s.maxEntitiesCompoundBytes,wire))return false;
@@ -19553,7 +19626,10 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         return true;
     };
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b){return standardDwgVariantEqual(a,b,context.sourceVersion);};
-    if(point) {
+    if(attdef) {
+        DRW_Attdef parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }else if(point) {
         DRW_Point parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
         proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
     }else if(line) {
@@ -19863,7 +19939,20 @@ void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject
                 &&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE)
             ||(field.type()==DRW_Variant::STRING&&!field.content.s)
             ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) {fail();return;}
+    dxfRW::DxfReadContext live;
+    if(!source.entitiesReadInput||!source.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion!=raw.m_version
+        ||live.binary==raw.hasRawValues||live.codecCodePage.size()>128u){fail();return;}
+    using ReadContext=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+    std::shared_ptr<const ReadContext> readContext;
+    const auto block=source.blockSources.find(source.blockSourceActive);
+    if(context.inBlock&&block!=source.blockSources.end())readContext=block->second.context;
+    else if(!context.inBlock)readContext=source.entitiesPending.context;
+    const auto matches=[&](const auto& c){return c&&c->captured&&std::tie(c->sourceVersion,c->codecVersion,c->codecCodePage,c->declaration,c->hasDeclaration,c->compatibilityProfile,c->textEncoding,c->codePagePolicy,c->applyExtrusion,c->binary)
+        ==std::tie(live.sourceVersion,live.codecVersion,live.codecCodePage,live.declaration,live.hasDeclaration,live.compatibilityProfile,live.textEncoding,live.codePagePolicy,live.applyExtrusion,live.binary);};
+    if(readContext&&!matches(readContext)){fail();return;}
     std::size_t modelBytes=0u,rawBytes=0u,proofBytes=0u;
+    if(!readContext&&(!addAssociativeRetainedBytes(sizeof(ReadContext)+8u*sizeof(void*),proofBytes)
+        ||!addAssociativeRetainedBytes(live.codecCodePage.size(),proofBytes)||!addAssociativeRetainedBytes(live.declaration.size(),proofBytes))){fail();return;}
     const UTF8STRING& blockName=currentBlock->name;
     if(!estimateTypedEntityRetainedBytes(value,sizeof(DRW_Attdef),modelBytes)
         ||!estimateRawDxfObjectBytes(raw,rawBytes)
@@ -19885,9 +19974,12 @@ void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject
     ++source.resourceProofRecords;source.resourceProofGroups+=groups;source.resourceProofBytes+=proofBytes;
     try {
         dx_data::TableDxfSourceCapture::Resource row;
+        if(!readContext){ReadContext c;c.sourceVersion=live.sourceVersion;c.codecVersion=live.codecVersion;c.codecCodePage=live.codecCodePage;c.declaration=live.declaration;c.hasDeclaration=live.hasDeclaration;
+            c.compatibilityProfile=live.compatibilityProfile;c.textEncoding=live.textEncoding;c.codePagePolicy=live.codePagePolicy;c.applyExtrusion=live.applyExtrusion;c.binary=live.binary;c.captured=true;
+            readContext=std::make_shared<const ReadContext>(std::move(c));}
         row.family=dx_tableResourceFamily::AttributeDefinition;row.owner=value.parentHandle;
         row.attdefState=dxfAttdef::Decoder::observe(value); // BEFORE the copy resets state.
-        row.attdefContext=context;row.attdefBlockHandle=currentBlock->handle;
+        row.attdefContext=context;row.attdefReadContext=std::move(readContext);row.attdefBlockHandle=currentBlock->handle;
         row.attdefBlockRecord=currentBlock->parentHandle;row.attdefBlockName=blockName;
         row.attdefModel=std::make_shared<const DRW_Attdef>(value);
         row.raw=std::make_shared<const DRW_RawDxfObject>(raw);row.awaitingAttdef=true;
@@ -20040,6 +20132,7 @@ void dx_iface::proveAttdefSourceFields(std::uint32_t handle) noexcept {
         for(unsigned i=0;i<3u;++i)if(!addAssociativeRetainedBytes(rawBytes,temporary)) {
             source.resourceProofCaptureFailed=true;return;
         }
+        if(!addAssociativeSlotBytes(modelBytes,3u,temporary)){source.resourceProofCaptureFailed=true;return;}
         std::size_t work=temporary;
         if(!addAssociativeRetainedBytes(modelBytes,work)
             ||source.resourceProofBytes>source.maxResourceProofBytes
@@ -20053,12 +20146,16 @@ void dx_iface::proveAttdefSourceFields(std::uint32_t handle) noexcept {
         if(!tableResourceSourceBody(*row.raw,source.maxResourceProofBytes,body)) {
             source.resourceProofCaptureFailed=true;return;
         }
+        if(!row.attdefReadContext||!row.attdefReadContext->captured||row.attdefReadContext->applyExtrusion
+            ||row.attdefReadContext->sourceVersion!=row.raw->m_version||row.attdefReadContext->binary==row.raw->hasRawValues)return;
+        const auto& context=*row.attdefReadContext;
         dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=row.raw->m_version;
-        view.binary=!row.raw->hasRawValues;view.codePage="UTF-8";
+        view.binary=!row.raw->hasRawValues;view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
         dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
         auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxResourceProofBytes);
         auto reader=dx_standard_output::readerFor(input,view,budget);
         if(!reader){source.resourceProofCaptureFailed=true;return;}
+        reader->setDxfTextEncoding(context.textEncoding);reader->setDxfCodePagePolicy(context.codePagePolicy);reader->setSemanticStringMode(true);
         reader->setRecordBudget(row.raw->groups.size());
         reader->setTypedVariantNodeBudget(source.maxResourceProofWork-source.resourceProofWork);
         reader->setDecodeWorkBudget(source.maxResourceProofWork-source.resourceProofWork);
@@ -20073,7 +20170,8 @@ void dx_iface::proveAttdefSourceFields(std::uint32_t handle) noexcept {
             ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()
             ||reader->typedVariantNodeBudgetExceeded()) {source.resourceProofCaptureFailed=true;return;}
         if(!decoded||reader->recordCount()!=row.raw->groups.size()||!decoder.finish(row.attdefContext.applyExtrusion)
-            ||!row.attdefState.hasNoPendingXdata()||!(dxfAttdef::Decoder::observe(parsed)==row.attdefState))return;
+            ||!row.attdefState.hasNoPendingXdata()||!dxfAttdef::Decoder::observe(parsed).hasNoPendingXdata())return;
+        if(!(dxfAttdef::Decoder::observe(parsed)==row.attdefState))return;
         const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
             return standardDwgVariantEqual(a,b,row.raw->m_version);
         };
@@ -21671,8 +21769,10 @@ void dx_iface::finishBlockRoleAudit(dx_data& data) noexcept {
             if(!b.membership||!hasMatchedBlockMembership(data,target.handle)){target.reason=R::BodyNotReady;continue;}
             for(std::size_t d=0u;d<b.membership->ranges.size();++d) {
                 const auto range=b.membership->ranges[d];const auto& p=b.children->records[range.first];
-                const bool selected=dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
-                const auto body=b.compoundBodies.find(d);const bool modeled=selected&&hasMatchedCompoundBody(data,target.handle,d)&&body!=b.compoundBodies.end()&&body->second->profilesComplete;
+                const bool attdef=dx_block_membership::equal(p.name,"ATTDEF");
+                const bool selected=attdef||dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
+                const auto body=b.compoundBodies.find(d);const bool modeled=selected&&hasMatchedCompoundBody(data,target.handle,d)&&body!=b.compoundBodies.end()&&body->second->profilesComplete
+                    &&(!attdef||attdefPairReady(data,body->second->attdef,target.handle));
                 if(body!=b.compoundBodies.end())target.bodies.emplace_back(d,body->second);
                 for(auto i=range.first;i<range.next;++i) {
                     const auto& member=b.membership->members[i];const auto physical=target.first+1u+i;
@@ -21742,14 +21842,15 @@ void dx_iface::finishEntitiesRoleAudit(dx_data& data) noexcept {
             codec.setVersion(version,true);codec.setDxfTextEncoding(c.textEncoding);codec.setDxfCodePagePolicy(c.codePagePolicy);
             codec.setCodePage(c.hasDeclaration?c.declaration:c.codecCodePage,true);
             for(const auto& proof:scope.proofs) {
-                const bool selected=proof.primary||proof.compound;
+                const bool selected=proof.primary||proof.compound||proof.attributeDefinition;
                 const auto& root=scope.members[proof.first];const auto block=blocks.find(root.owner);
                 R target=R::Matched;std::uint32_t layout=0u;bool paper=false;
                 if(!selected)target=R::UnsupportedPrimary;
                 // The old body pass cannot resolve an absent child410 against
                 // an original target. This pinned graph can, without inventing
                 // a source field or relaxing a real space/name conflict.
-                else if(proof.state!=EntitiesCompoundProof::State::Matched&&proof.state!=EntitiesCompoundProof::State::LayoutUnresolved)target=R::BodyNotReady;
+                else if((proof.state!=EntitiesCompoundProof::State::Matched&&proof.state!=EntitiesCompoundProof::State::LayoutUnresolved)
+                    ||(proof.attributeDefinition&&!attdefPairReady(data,proof.attdef,0u)))target=R::BodyNotReady;
                 else if(block==blocks.end())target=R::OwnerMissing;
                 else {
                     const auto key=layoutSymbolKey(block->second->name);const auto found=layouts.find(block->second->layoutHandle);

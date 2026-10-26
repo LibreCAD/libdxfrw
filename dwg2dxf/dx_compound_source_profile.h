@@ -29,6 +29,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     const auto reject=[&](Reason why,std::size_t at){out.reason=why;out.rejectedGroup=at;out.spans.clear();return std::move(out);};
     for(std::size_t i=0;i<raw.groups.size();++i)if(!scalarType(raw.groups[i]))return reject(Reason::InvalidValue,i);
     if(raw.name=="ATTRIB")return dx_attdef_source::audit(raw,false,allowLayoutName);
+    if(allowPrimary&&raw.name=="ATTDEF")return dx_attdef_source::audit(raw,true,allowLayoutName);
     if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
     const bool polyline=dx_block_membership::equal(raw.name,"POLYLINE"),vertex=dx_block_membership::equal(raw.name,"VERTEX");
     const bool insert=dx_block_membership::equal(raw.name,"INSERT")||dx_block_membership::equal(raw.name,"MINSERT");

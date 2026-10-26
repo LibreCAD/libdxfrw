@@ -1052,6 +1052,7 @@ private:
             std::shared_ptr<const DRW_RawDxfObject> raw,blockBegin,blockEnd;
             std::shared_ptr<const DRW_Block> original,effective,footer;
         };
+        struct EntitiesReadContext;
         struct Resource {
             dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
             std::uint32_t owner{0};
@@ -1061,6 +1062,7 @@ private:
             std::shared_ptr<const DRW_Attdef> attdefModel;
             dxfAttdef::SourceState attdefState;
             DRW_DxfAttdefSourceContext attdefContext;
+            std::shared_ptr<const EntitiesReadContext> attdefReadContext;
             std::uint32_t attdefBlockHandle{0},attdefBlockRecord{0};
             UTF8STRING attdefBlockName;
             bool awaitingAttdef{false},attdefPairMatched{false};
@@ -1097,9 +1099,15 @@ private:
         std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
         bool resourceProofCaptureFailed{false};
         std::size_t attdefPending{0};
-        struct EntitiesReadContext;
         struct IdentityInput;
         struct IdentityAudit;
+        struct AttdefSourcePins {
+            std::shared_ptr<const DRW_Attdef> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const AttdefOrigin> origin;
+            std::shared_ptr<const EntitiesReadContext> readContext;
+            dxfAttdef::SourceState state;DRW_DxfAttdefSourceContext context;
+        };
         struct CompoundBody {
             enum class State : std::uint8_t { Captured, ModeledReplayMatched, ModelMismatch, SourceStateMismatch, DecodeFailed, ContextMismatch };
             std::shared_ptr<const DRW_Entity> model;
@@ -1109,6 +1117,7 @@ private:
             std::vector<dxfCompound::SourceState> sourceStates;
             std::vector<dxfCompound::SourceState> replayStates;
             std::vector<dx_attdef_source::Audit> profiles;
+            AttdefSourcePins attdef;
             bool profilesComplete{false};
             State state{State::Captured};
         };
@@ -1218,6 +1227,8 @@ private:
             std::size_t dispatch{0},first{0},next{0},event{0},failedRecord{0};
             std::vector<dx_attdef_source::Audit> profiles;
             std::vector<dxfCompound::SourceState> replayStates;
+            AttdefSourcePins attdef;
+            bool attributeDefinition{false};
             bool compound{false},primary{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
         };
         struct EntitiesCompoundAudit {

@@ -46,7 +46,7 @@ layout/target qualification or output eligibility.
 
 The converter's separate `blockRoleReport` now enumerates the original physical
 BLOCKS namespace, including dropped/unpublished scopes and unsupported members.
-Its selected POINT/LINE/POLYLINE/INSERT/MINSERT source-body joins pin actual
+Its selected POINT/LINE/POLYLINE/INSERT/MINSERT/ATTDEF source-body joins pin actual
 publication, endpoint, membership, body, context and reciprocal BLOCK_RECORD/
 LAYOUT graph owners. Ordinary definitions and inactive paper layouts are distinct
 from the empty model/active-paper definitions whose members belong in ENTITIES.
@@ -65,7 +65,21 @@ layout property. A BLOCK encountered before the current definition's ENDBLK now
 fails import rather than being absorbed as an unknown raw child, regardless of
 source-observer selection. Published block scopes remain balanced on failure.
 
-These are original selected source roles only. TABLE/ATTDEF/other bodies,
+Selected ATTDEF bodies in BLOCKS and ENTITIES additionally require their actual
+original source/typed pair, immutable model/raw/context owners, and original
+parser-state observation. BLOCKS also requires its original ATTDEF origin and
+membership. Shared replay uses the reader's frozen text/codepage interpretation,
+not a hard-coded UTF-8 assumption. ATTDEF's original subclass state survives its
+staged move but is reset by a model copy; these observations are not interchangeable.
+The existing scalar profile admits classic modern definitions and the two tested
+R2018 embedded-MTEXT forms. Earlier multiline compatibility imports remain
+accepted but unqualified by that profile. Original 67/410 roles must match real
+enclosing targets; source classification alone does not resolve dependencies.
+These joins do not open the older partial ATTDEF/resource/binding gates:
+ATTDEF `rawTypedMatched` remains false, including when the separate role pass
+can qualify an explicit410 against the original layout graph.
+
+These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
 native consumers and independent semantics remain separate. `wholeDocumentMatched`,
 `ownerTargetsResolved`, `nativeNamesQualified` and `outputEligible` stay false;

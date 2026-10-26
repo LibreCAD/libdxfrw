@@ -1714,6 +1714,9 @@ private:
     void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;
     using CompoundBody=dx_data::TableDxfSourceCapture::CompoundBody;
+    using AttdefSourcePins=dx_data::TableDxfSourceCapture::AttdefSourcePins;
+    static bool attdefPinsCurrent(const dx_data&,const AttdefSourcePins&) noexcept;
+    static bool attdefPairReady(const dx_data&,const AttdefSourcePins&,std::uint32_t block) noexcept;
     void captureDxfCompoundBody(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     bool replayDxfCompoundBody(CompoundBody&);
     static bool hasMatchedCompoundBody(const dx_data&,std::uint32_t,std::size_t) noexcept;
