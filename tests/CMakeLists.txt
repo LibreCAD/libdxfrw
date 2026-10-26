@@ -591,6 +591,10 @@ add_test(NAME libdxfrw_entities_delivery_transport
     COMMAND libdxfrw_table_content_dxf_tests --entities-delivery)
 set_tests_properties(libdxfrw_entities_delivery_transport PROPERTIES
     LABELS "fast;dxf;adapter;source;entities;dispatch;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_entities_immutable_origins
+    COMMAND libdxfrw_table_content_dxf_tests --entities-origins)
+set_tests_properties(libdxfrw_entities_immutable_origins PROPERTIES
+    LABELS "fast;dxf;adapter;source;entities;dispatch;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_cellstylemap_source_profiles
     COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-source)
 set_tests_properties(libdxfrw_cellstylemap_source_profiles PROPERTIES

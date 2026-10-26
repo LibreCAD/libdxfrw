@@ -25,9 +25,11 @@
 #include "dx_compound_source_profile.h"
 
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <list>
+#include <limits>
 #include <map>
 #include <set>
 #include <utility>
@@ -996,6 +998,20 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    // Proof identity is not an address (which can be reused) and is not copied
+    // or assigned with another container's retained import evidence.
+    struct EntitiesContainerIdentity {
+        static std::uint64_t next() noexcept {
+            static std::atomic<std::uint64_t> counter{1u};auto id=counter.load(std::memory_order_relaxed);
+            while(id!=(std::numeric_limits<std::uint64_t>::max)())
+                if(counter.compare_exchange_weak(id,id+1u,std::memory_order_relaxed))return id;
+            return 0u;
+        }
+        std::uint64_t value{next()};
+        EntitiesContainerIdentity()=default;
+        EntitiesContainerIdentity(const EntitiesContainerIdentity&) noexcept:value(next()){}
+        EntitiesContainerIdentity& operator=(const EntitiesContainerIdentity&) noexcept {return *this;}
+    } m_entitiesContainerIdentity;
     // Immutable-by-API import baselines, not editable drawing state or an
     // output certificate. Never reset these to launder an appended import.
     struct TableDxfSourceCapture {
@@ -1140,7 +1156,7 @@ private:
         bool compoundBodyCaptureFailed{false};
         std::size_t maxBlockBindingBytes{64u*1024u*1024u};
         struct EntitiesSource {
-            const void* container{nullptr};std::uint64_t generation{0};
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::shared_ptr<const DRW_DxfEntitiesSource> physical;
         };
         struct EntitiesTableOrigin {
@@ -1153,6 +1169,35 @@ private:
         std::size_t maxEntitiesSections{1024u},maxEntitiesRecords{100000u},maxEntitiesGroups{4000000u};
         std::size_t maxEntitiesBytes{64u*1024u*1024u},maxEntitiesWork{64u*1024u*1024u};
         bool entitiesCaptureFailed{false},entitiesTableIdentityFailed{false};
+        struct EntitiesObservedValue {
+            DRW_DxfEntitiesDeliveryEvent event;
+            bool valueObserved{false},modelUnavailable{false};
+            std::shared_ptr<const DRW_Entity> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+        };
+        struct EntitiesDelivery {
+            struct Certificate {
+                const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0},values{0},models{0},raw{0};
+                std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+                std::shared_ptr<const DRW_DxfEntitiesDeliverySource> delivery;
+                std::shared_ptr<const std::vector<EntitiesObservedValue>> observed;
+            };
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0};
+            std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+            std::shared_ptr<const DRW_DxfEntitiesDeliverySource> delivery;
+            std::shared_ptr<const std::vector<EntitiesObservedValue>> observed;
+            std::shared_ptr<const Certificate> certificate;
+        };
+        struct EntitiesPending {
+            const void* container{nullptr};std::uint64_t generation{0},scope{0},containerId{0};std::size_t section{0},next{0};
+            bool pending{false};std::vector<EntitiesObservedValue> observed;
+        } entitiesPending;
+        std::vector<EntitiesDelivery> entitiesDeliveries;
+        std::size_t entitiesDeliveryScopes{0},entitiesDeliveryDispatches{0},entitiesDeliveryEvents{0};
+        std::size_t entitiesDeliveryBytes{0},entitiesDeliveryWork{0},entitiesDeliveryModels{0},entitiesDeliveryRaw{0};
+        std::size_t maxEntitiesDeliveryScopes{1024u},maxEntitiesDeliveryDispatches{100000u},maxEntitiesDeliveryEvents{4000000u};
+        std::size_t maxEntitiesDeliveryBytes{64u*1024u*1024u},maxEntitiesDeliveryWork{64u*1024u*1024u};
+        bool entitiesDeliveryCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

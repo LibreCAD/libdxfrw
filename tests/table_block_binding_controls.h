@@ -149,7 +149,9 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
             if(r.state!=c.state||!r.directRolesBound||r.outputEligible||(r.state!=S::Bound&&r.firstSourceMember!=c.member)) {
                 std::cerr<<"block wire="<<c.name<<" state="<<static_cast<int>(r.state)<<" direct="<<r.directRolesBound<<" member="<<r.firstSourceMember<<'\n';return false;
             }
-            if(c.state==S::Bound&&(r.blockSourceDefinitions!=c.definitions||r.blockSourceMembers!=c.members))return false;
+            if(c.state==S::Bound&&(r.blockSourceDefinitions!=c.definitions||r.blockSourceMembers!=c.members)) {
+                std::cerr<<"block wire counts="<<c.name<<" definitions="<<r.blockSourceDefinitions<<" members="<<r.blockSourceMembers<<'\n';return false;
+            }
             if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!valid(retry,9u))return false;++wireCases;
         }
         for(unsigned fault=0u;fault<6u;++fault) {
@@ -158,7 +160,9 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
             // Mutate only this actual source compound, never that projection.
             reader.alterInsert=fault>=3u?std::function<void(DRW_Insert&)>([&](auto& v){if(v.handle!=0xE100u)return;if(fault==3u)v.xscale+=1;if(fault==4u)v.attlist[0]->text="changed";if(fault==5u)v.seqEndEntity->color=3;}):nullptr;
             dx_data bad;if(!reader.fileImport(path.string(),&bad,false))return false;const auto r=dx_iface::tableContentBindingReport(bad);
-            if(r.state!=S::BlockMemberMismatch||!r.directRolesBound||r.outputEligible)return false;
+            if(r.state!=S::BlockMemberMismatch||!r.directRolesBound||r.outputEligible) {
+                std::cerr<<"block callback fault="<<fault<<" state="<<static_cast<int>(r.state)<<'\n';return false;
+            }
             reader.alterPolyline={};reader.alterInsert={};dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!valid(retry,9u))return false;++callbacks;
         }
         dx_data baseline;if(!reader.fileImport(path.string(),&baseline,false)||!valid(baseline,9u))return false;
@@ -166,7 +170,10 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
         for(unsigned dimension=0;dimension<2u;++dimension)for(bool exact:{false,true}) {
             dx_data limited;if(dimension)A::blockBindingLimit(limited,measured.blockSourceWorkspaceBytes-(exact?0u:1u));
             else A::resourceLimits(limited,100000u,4000000u,64u*1024u*1024u,measured.examinedSlots-(exact?0u:1u));
-            if(!reader.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(exact?S::Bound:S::WorkLimit))return false;++quotas;
+            if(!reader.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(exact?S::Bound:S::WorkLimit)) {
+                const auto r=dx_iface::tableContentBindingReport(limited);
+                std::cerr<<"block query budget="<<dimension<<'/'<<exact<<" state="<<static_cast<int>(r.state)<<" work="<<r.examinedSlots<<" measured="<<measured.examinedSlots<<'\n';return false;
+            }++quotas;
         }
         bool calibrated=false;
         for(long fault=0;fault<40&&!calibrated;++fault) {

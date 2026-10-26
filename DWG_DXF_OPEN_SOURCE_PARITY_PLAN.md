@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ef immediate ENTITIES dispatch and callback observations (2026-10-26):** a separate opt-in facet ties actual parser dispatch intervals and immediately bracketed producer callbacks to the original ENTITIES scope. TABLE/ATTDEF source facets, dynamic types, pointer identity, callback timing and adapter-internal TABLE projections remain intact; explicit proxy-render callbacks are not physical primaries. Final exact affected cohorts pass 59/59 normally and 59/59 under ASan. Converter immutable origin joins, body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26) · [receipt](docs/research/rpp5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5eg immutable ENTITIES callback/source origins (2026-10-26):** the converter now freezes actual begin/returned/end observations, matching final dispatch reports and available typed/raw inputs against original physical scopes. Non-copying container identities and exact shared-owner checks reject address reuse and substituted provenance. Selected TABLE binding additionally requires its real source-observer/producer events, while explicit adapter projection context preserves the 2D INSERT path. Final exact affected cohorts pass 60/60 normally and 60/60 under ASan. Complete modeled field/profile/space/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5eg-immutable-entities-callbacksource-origins-2026-10-26) · [receipt](docs/research/rpp5eg-immutable-entities-callback-source-origins-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ef immediate ENTITIES dispatch and callback observations (2026-10-26; committed as `8ce09954`):** a separate opt-in facet ties actual parser dispatch intervals and immediately bracketed producer callbacks to the original ENTITIES scope. TABLE/ATTDEF source facets, dynamic types, pointer identity, callback timing and adapter-internal TABLE projections remain intact; explicit proxy-render callbacks are not physical primaries. Final exact affected cohorts pass 59/59 normally and 59/59 under ASan. Converter immutable origin joins, body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26) · [receipt](docs/research/rpp5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ee original ENTITIES intervals and selected TABLE origins (2026-10-26; committed as `82438ca`):** a separate opt-in facet publishes original ENTITIES scalar intervals at accepted ENDSEC, without buffering or delaying ordinary callbacks. The CLI freezes bounded container-bound observations and binds selected TABLE raw bodies to their exact retained physical owners. The generic raw reader stops interpreting proxy count/chunk fields after foreign subclass or embedded-object boundaries. Its exact affected cohorts pass 58/58 normally and 58/58 under ASan, including 144 raw proxy class profiles and 16 actual common-count refusal/retries per configuration. RPP-5ef adds public immediate observations, not converter body/space/common-target/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ee-original-entities-intervals-and-selected-table-origins-2026-10-26) · [receipt](docs/research/rpp5ee-original-entities-intervals-and-selected-table-origins-2026-10-26.json).
 
@@ -128337,3 +128339,158 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. Full goal completion and
 remote mutation are not included.
+
+## Implementation progress — RPP-5eg immutable ENTITIES callback/source origins (2026-10-26)
+
+This implements the converter observation/owner prerequisite from RPP-5ef and
+starts immutable modeled-input retention. It does not complete per-family raw/
+modeled field/profile replay, model/paper/layout associations, dependencies,
+editable/live/output or native/kernel qualification. Invocation transport may
+be complete while a callback is ignored or its richer model is unqualified.
+
+Implemented:
+
+1. [x] Opt the converter into immediate ENTITIES delivery during actual DXF
+   import. Maintain one bounded active scope/prefix; validate exact begin/end
+   sequence, original scope ID, callback metadata and returned prefix. Require
+   final report events to equal those observations and its dispatch partition
+   to cover the immutable physical records exactly, including compounds,
+   no-callback dispatches and empty scopes without invented callbacks.
+2. [x] Freeze original callback-model inputs at existing typed retention entry
+   points, plus explicit TABLE and TABLE/ATTDEF source observers. Retain raw
+   callback/source bodies immutably, matching their original scalar/type/value/
+   spelling stream and ignoring only reader-identified comments. Preserve native
+   subtype identity and the original IMAGE class rather than the converter's
+   private wrapper. Unknown root or compound child/embedded subtypes remain
+   modelUnavailable, not silently sliced into qualified source bodies. Typed
+   copies preserve modeled state, not all original parser cursors/native state
+   or a completed per-family field/profile proof. Default ignored callbacks can
+   remain explicitly unobserved; transport alone does not promote their models.
+3. [x] Use conservative byte/work allowances before new payload clones; count
+   dormant Variant strings/binary/private spellings as well as active scalars.
+   Refuse forged coordinate/native sidecars, code-0 members, version or parallel
+   carrier mismatches before raw cloning. Default aggregate limits: 1,024 scopes,
+   100,000 dispatches, 4,000,000 events, 64 MiB logical bytes and 64 Mi logical
+   work units. Limits/failed allocations soften converter evidence, not compatible
+   ordinary import. These are separate converter attempt/retention allowances,
+   not RSS, every allocation/capacity, strict CPU or library read-budget counts.
+   Original parser byte/work telemetry is not an admission authority.
+4. [x] Pin physical/delivery/observed owners in an immutable certificate and
+   require successful actual first-generation import. Add a non-copying,
+   non-assigned instance identity, separate from addresses/generation. A red
+   placement-new test reproduced the prior physical report accepting copied
+   evidence at a reused address; physical and delivery reports now both reject
+   that lookalike. Exact shared control-block ownership is checked, not only
+   pointer addresses. Identity exhaustion stays closed without wrap/reuse.
+   Later file failure, stale/out-of-phase calls, appended/copied contexts,
+   unfinished hooks and owner replacements cannot borrow completed evidence.
+5. [x] Add selected TABLE delivery-origin gates after direct/physical roles.
+   Use a precharged binary search of ordered dispatch boundaries and require
+   exactly its real TABLE source-observer and producer callbacks with retained
+   typed/raw inputs. Keep directRolesBound and the physical/delivery counters
+   distinct on refusal. These are original presence/invocation/input facts,
+   not all TABLE semantics or model/paper/BLOCK_RECORD associations.
+6. [x] Preserve the established TABLE-to-INSERT 2D path using explicit,
+   exception-safe adapter projection context. The initial candidate inferred
+   projection from eType; the older BLOCK mutation test exposed rejection when
+   a normal DRW_Insert base copy changed that type. The context fix restores
+   the existing test without weakening its expected BLOCK body mismatch or
+   counting the projection as another original producer event. Existing public
+   library model/interface layouts and vtables, DWG byte parsers/encoders and
+   DXF geometry decoders are unchanged; these are converter-private additions.
+
+Owning evidence per configuration:
+
+- [x] **12** actual-import routes across four modern revisions x LF/CRLF/Binary,
+  with **84** independent original-file dispatch joins. Main scope: seven
+  dispatches/six callbacks, five typed snapshots and one raw snapshot; all
+  original compounds and empty repeated scope remain distinct. No whole-CAD
+  semantic validity is inferred from these authored inputs.
+- [x] **44** malformed-final-report/corrected-import retries and **20** exact/
+  one-under aggregate scope/dispatch/event/byte/work boundaries. **12** observed
+  final-copy allocation faults and **two** hook-prefix allocation faults recover
+  with fresh actual imports. Counts are local allocator schedules, not portable
+  thresholds or every allocator site.
+- [x] **30** copied/appended/late/context/owner/restoration controls, including
+  same-pointer different-control-block aliases and same-address destruction/
+  placement-new reuse. Identity copy construction gets a fresh identity;
+  assignment preserves the destination identity. **Eight** callback exception/
+  actual-import retries and **eight** missing/unfinished/mutated hook controls
+  retain failed-import and failed-capture distinctions.
+- [x] **Two** immutable edit contexts cover mutable POINT, nested POLYLINE
+  vertices, INSERT attributes, raw carrier and caller final-report mutations.
+  **Two** teardown contexts release model/raw/delivery owners without a cycle.
+  **Ten** forged raw-carrier/retry controls and **four** exact/one-under dormant
+  string/binary owner boundaries verify added-copy charging. The initial native
+  layer-ref test used a setter on the wrong code (a no-op); the corrected control
+  uses real group 1003 and changes only its native sidecar, with a clean retry.
+- [x] **Four** abort/later-section-failure retries, **12** selected TABLE gates
+  (positive, missing, unfinished, replaced/restored owner and normal base-copy
+  INSERT projection), **eight** explicit unqualified body dispositions (unknown
+  root/compound subtypes and the existing ignored CAMERA callback) and **four**
+  empty/no-callback-only scopes. No unsupported model is qualified from counts.
+- [x] The six owning/source/dispatch/TABLE/BLOCK/name CTests pass in **4.93 s**
+  on the final candidate; final exact affected normal/ASan cohorts must cover
+  that same code. Strict compilation findings were fixed,
+  not suppressed. No full suite per item or external drawing fixture is added.
+
+Final strict affected library/CLI, resource/polyface/MTEXT/consumer targets and
+`lc3_compat_check` builds pass on macOS ARM64 Apple Clang 21.0.0, C++17 with
+`-Wall -Wextra -pedantic -Werror`. Exact affected cohorts pass **60/60 normally
+in 80.55 s** and **60/60 under ASan in 173.25 s**, with no failed/skipped/disabled
+cases and exact matching membership. Runtime cohorts are sequential with
+`halt_on_error=1:detect_leaks=0`; normal runtime overlapped ASan compilation,
+not ASan runtime. Times are not a paired performance benchmark. The shortlist
+adds the new immutable-origins test to the previous 59 affected tests, not a
+full project/distribution suite. The
+[RPP-5eg receipt](docs/research/rpp5eg-immutable-entities-callback-source-origins-2026-10-26.json)
+records exact scope, counts, test membership, source/log hashes and limits.
+No native LibreCAD/LibreCAD_3/FreeCAD execution, formal ABI, independent kernel,
+speed/memory benchmark or support promotion is claimed.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Original primary/compound body, profile and space proof.** Build a
+   separate ENTITIES audit over these real physical/delivery/observed owners;
+   do not fabricate BLOCK ownership or reconstruct callbacks from editable
+   cData. Retain exact dispatch-to-record ranges, actual primary/raw/secondary/
+   no-callback dispositions and available modeled snapshots. Reuse neutral
+   original identity/scalar helpers and shared production/replay decoders for
+   POLYLINE/INSERT first, then the remaining selected primary families; compare
+   all modeled fields and original source-state/profile decisions, not only
+   callback handles/counts. Add exact field-fault and corrected-import controls.
+   At actual callback entry, capture `dxfCompound::Decoder::observe` states for
+   the root and owned children/footer before copying: modeled copies reset
+   grammar cursors and are not a substitute for those observations. Freeze the
+   original codepage/codec/declaration and read-option context per real scope;
+   do not replay earlier records using a later mutable header or infer source
+   state from the new cached model. Reuse decoder/profile/equality helpers,
+   not a cast or zero-owner conversion of the BLOCK membership manifest.
+   Resolve per-primary/linked compound 330/67/410 owner/space/layout roles to
+   actual model/paper/BLOCK_RECORD/LAYOUT targets, including absence/defaults,
+   conflicts and multiple paper layouts. ModelUnavailable/default-ignored/raw/
+   no-callback/header arrangements remain explicit until their own evidence is
+   sufficient. Complete transport is not this audit's completion.
+2. [ ] **Common/specialized dependencies and collation.** Finish pinned original
+   common/style/APPID/LAYER/object targets, inherited/explicit/absent defaults,
+   application/proxy/codepage semantics and adequate native collation evidence.
+   Do not remap arbitrary 320..329 identities or treat Unicode candidate keys
+   as native collation. Bound all graph/audit work before expanding new owners.
+3. [ ] **Live/output and full original parity.** Finish B2b/B3/C source/live/
+   editable/output and compound identities, complete emitted fields/name/reference
+   roles, remapping, readback, atomic rollback/retry/destination preservation.
+   Retain IMAGE/document/native-bit/decimal/carrier/schema/owner, performance/
+   memory, LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD requirements. Native
+   platform/consumer and independent ACIS/ACDS semantic/kernel qualification are
+   separate requirements, not consequences of local immutable input capture.
+4. [ ] **Self-update and continue available work.** Use fast owning checks while
+   editing and exact freshly built affected cohorts at integration boundaries.
+   Record real failures/limits/hashes, update plan/receipt, commit/report each
+   verified slice and continue safely. Preserve unrelated samples and commit no
+   external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal stays open;
+no remote mutation is included.

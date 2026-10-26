@@ -17427,10 +17427,42 @@ dx_iface::EntitiesSourceReport dx_iface::entitiesSourceReport(const dx_data& dat
         ||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.error!=DRW::BAD_NONE) {report.state=S::ContextMismatch;return report;}
     if(s.entitiesCaptureFailed) {report.state=S::CaptureFailed;return report;}
     if(s.entitiesSources.empty())return report;
-    for(const auto& scope:s.entitiesSources)if(scope.container!=&data||scope.generation!=s.generation||!scope.physical
+    for(const auto& scope:s.entitiesSources)if(scope.container!=&data||scope.generation!=s.generation||!scope.containerId
+        ||scope.containerId!=data.m_entitiesContainerIdentity.value||!scope.physical
         ||!scope.physical->scopeId||scope.physical->version!=s.version
         ||scope.physical->status!=DRW_DxfEntitiesSource::Status::Complete) {report.state=S::ContextMismatch;return report;}
     report.state=S::TransportComplete;return report;
+}
+
+dx_iface::EntitiesDeliveryReport dx_iface::entitiesDeliveryReport(const dx_data& data) noexcept {
+    using S=EntitiesDeliveryState;EntitiesDeliveryReport r;const auto& s=data.m_tableDxfSource;
+    r.sections=s.entitiesDeliveries.size();r.bytes=s.entitiesDeliveryBytes;r.work=s.entitiesDeliveryWork;
+    r.models=s.entitiesDeliveryModels;r.rawBodies=s.entitiesDeliveryRaw;
+    const auto physical=entitiesSourceReport(data).state;
+    if(physical==EntitiesSourceState::Reading){r.state=S::Reading;return r;}
+    if(physical==EntitiesSourceState::ImportFailed){r.state=S::ImportFailed;return r;}
+    if(physical==EntitiesSourceState::ContextMismatch){r.state=S::ContextMismatch;return r;}
+    if(physical==EntitiesSourceState::CaptureFailed||s.entitiesDeliveryCaptureFailed){r.state=S::CaptureFailed;return r;}
+    if(s.entitiesDeliveries.empty())return r;
+    if(physical!=EntitiesSourceState::TransportComplete||s.entitiesPending.scope
+        ||s.entitiesDeliveries.size()!=s.entitiesSources.size()){r.state=S::ReportMissing;return r;}
+    const auto sameOwner=[](const auto& a,const auto& b) noexcept {
+        return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+    };
+    for(std::size_t i=0;i<s.entitiesDeliveries.size();++i) {
+        const auto& row=s.entitiesDeliveries[i];const auto& c=row.certificate;
+        if(!c||row.container!=&data||row.generation!=s.generation||row.section!=i||!row.containerId
+            ||row.containerId!=data.m_entitiesContainerIdentity.value||c->containerId!=row.containerId
+            ||c->container!=&data||c->generation!=s.generation||c->section!=i
+            ||!row.physical||!sameOwner(row.physical,s.entitiesSources[i].physical)||!sameOwner(row.physical,c->physical)
+            ||!row.delivery||!sameOwner(row.delivery,c->delivery)||!row.observed||!sameOwner(row.observed,c->observed)
+            ||row.delivery->status!=DRW_DxfEntitiesDeliverySource::Status::Complete
+            ||row.delivery->scopeId!=row.physical->scopeId||row.delivery->version!=s.version
+            ||row.delivery->binary!=row.physical->binary||row.delivery->events.size()!=row.observed->size()
+            ||row.delivery->completedEvents!=row.observed->size()){r.state=S::ContextMismatch;return r;}
+        r.dispatches+=row.delivery->dispatches.size();r.events+=row.delivery->events.size();r.valuesObserved+=c->values;
+    }
+    r.state=S::ObservedTransportComplete;return r;
 }
 
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
@@ -17706,6 +17738,37 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             fail(S::EntitiesSourceMismatch,table.first);return report;
         }
         ++report.entitiesPhysicalTablesMatched;
+    }
+    if(!work(source.entitiesSources.size()+source.entitiesDeliveries.size()+1u))return report;
+    const auto delivered=entitiesDeliveryReport(data).state;
+    if(delivered!=EntitiesDeliveryState::ObservedTransportComplete) {
+        report.state=delivered==EntitiesDeliveryState::NotCaptured||delivered==EntitiesDeliveryState::ReportMissing?S::EntitiesDeliveryMissing:
+            delivered==EntitiesDeliveryState::ContextMismatch?S::EntitiesDeliveryMismatch:S::EntitiesDeliveryIncomplete;
+        return report;
+    }
+    for(const auto& table:source.tables) {
+        const auto& origin=source.entitiesTables.at(table.first);const auto& row=source.entitiesDeliveries[origin.section];
+        const auto ordinal=origin.physical->records[origin.record].marker.ordinal;
+        const auto& dispatches=row.delivery->dispatches;
+        std::size_t levels=0u;for(auto n=dispatches.size();n;n>>=1u)++levels;
+        if(!work(levels+3u))return report;
+        const auto at=std::lower_bound(dispatches.begin(),dispatches.end(),ordinal,
+            [](const DRW_DxfEntitiesDispatch& d,std::size_t n){return d.begin.ordinal<n;});
+        if(at==dispatches.end()||at->begin.ordinal!=ordinal||at->events!=2u
+            ||at->firstEvent>=row.observed->size()||row.observed->size()-at->firstEvent<2u) {
+            fail(S::EntitiesDeliveryMismatch,table.first);return report;
+        }
+        for(std::size_t i=0;i<2u;++i) {
+            const auto& observed=(*row.observed)[at->firstEvent+i];const auto& event=observed.event;
+            const auto* model=dynamic_cast<const DRW_Table*>(observed.model.get());
+            if(!work(1u))return report;
+            if(!observed.valueObserved||!model||event.handle!=table.first||model->handle!=table.first
+                ||event.owner!=table.second.raw.parentHandle||model->parentHandle!=table.second.raw.parentHandle
+                ||event.callback!=(i?DRW_DxfEntitiesCallback::addTable:DRW_DxfEntitiesCallback::TableSource)
+                ||event.origin!=(i?DRW_DxfEntitiesDeliveryEvent::Origin::Parser:DRW_DxfEntitiesDeliveryEvent::Origin::SourceObserver)
+                ||(!i&&!observed.raw)) {fail(S::EntitiesDeliveryMismatch,table.first);return report;}
+        }
+        ++report.entitiesDeliveredTablesMatched;
     }
     if(pendingBlocks.empty())return report;
     // One bounded reverse index per report, not a full scan for each selected
@@ -18322,7 +18385,7 @@ void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
     const auto fail=[&](){s.entitiesCaptureFailed=true;};
     if(!tableSourceCaptureOpen()) {fail();return;}
     if(s.entitiesCaptureFailed)return;
-    if(value.status!=DRW_DxfEntitiesSource::Status::Complete||!value.scopeId
+    if(value.status!=DRW_DxfEntitiesSource::Status::Complete||!value.scopeId||!cData->m_entitiesContainerIdentity.value
         ||s.entitiesSources.size()>=s.maxEntitiesSections||currentBlock!=cData->mBlock
         ||value.version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
         ||!value.beginMarker.ordinal||value.beginMarker.ignoredComment||value.endMarker.ignoredComment
@@ -18345,7 +18408,7 @@ void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
             ||s.entitiesWork>s.maxEntitiesWork||extra>s.maxEntitiesWork-s.entitiesWork) {fail();return;}
         s.entitiesBytes+=extra;s.entitiesWork+=extra;
         auto physical=std::make_shared<const DRW_DxfEntitiesSource>(value);const auto section=s.entitiesSources.size();
-        s.entitiesSources.push_back({cData,s.generation,physical});
+        s.entitiesSources.push_back({cData,s.generation,cData->m_entitiesContainerIdentity.value,physical});
         for(std::size_t i=0;i<physical->records.size();++i) {
             const auto& record=physical->records[i];if(!dx_block_membership::equal(record.name,"ACAD_TABLE"))continue;
             const auto id=dx_block_membership::identity(record);
@@ -18357,6 +18420,196 @@ void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
 }
 
 bool dx_iface::wantsDxfBlockDeliverySource() const {return wantsDxfBlockChildrenSource();}
+
+namespace {
+bool entitiesEventEqual(const DRW_DxfEntitiesDeliveryEvent& a,const DRW_DxfEntitiesDeliveryEvent& b) noexcept {
+    return a.dispatch==b.dispatch&&a.callback==b.callback&&a.origin==b.origin&&a.entityType==b.entityType
+        &&a.handle==b.handle&&a.owner==b.owner&&a.hasValue==b.hasValue;
+}
+bool entitiesEventValid(const DRW_DxfEntitiesDeliveryEvent& e) noexcept {
+    using C=DRW_DxfEntitiesCallback;using O=DRW_DxfEntitiesDeliveryEvent::Origin;
+    const bool source=e.callback==C::TableSource||e.callback==C::AttdefSource;
+    return e.callback<C::Count&&e.origin<=O::ProxyRendering
+        &&(e.hasValue||(!e.entityType&&!e.handle&&!e.owner))
+        &&(source?(e.origin==O::SourceObserver):(e.origin!=O::SourceObserver))
+        &&(e.callback!=C::addRawDxfEntity||(e.entityType==0&&e.origin==O::Parser));
+}
+}
+
+bool dx_iface::wantsDxfEntitiesDeliverySource() const {return wantsDxfEntitiesSource();}
+
+bool dx_iface::concreteEntitiesBodyChildren(const DRW_Entity& value) noexcept {
+    if(const auto* pl=dynamic_cast<const DRW_Polyline*>(&value)) {
+        const auto* footer=pl->seqEndEntity.get();if(footer&&typeid(*footer)!=typeid(DRW_SeqEnd))return false;
+        for(const auto& vertex:pl->vertlist) {const auto* v=vertex.get();if(v&&typeid(*v)!=typeid(DRW_Vertex))return false;}
+    }
+    if(const auto* insert=dynamic_cast<const DRW_Insert*>(&value)) {
+        const auto* footer=insert->seqEndEntity.get();if(footer&&typeid(*footer)!=typeid(DRW_SeqEnd))return false;
+        for(const auto& attribute:insert->attlist)if(attribute) {
+            const auto* a=attribute.get();if(typeid(*a)!=typeid(DRW_Attrib))return false;
+            const auto* nested=a->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText))return false;
+        }
+    }
+    return true;
+}
+
+bool dx_iface::chargeEntitiesDelivery(std::size_t bytes,std::size_t work) noexcept {
+    auto& s=cData->m_tableDxfSource;
+    if(s.entitiesDeliveryBytes>s.maxEntitiesDeliveryBytes||bytes>s.maxEntitiesDeliveryBytes-s.entitiesDeliveryBytes
+        ||s.entitiesDeliveryWork>s.maxEntitiesDeliveryWork||work>s.maxEntitiesDeliveryWork-s.entitiesDeliveryWork) {
+        s.entitiesDeliveryCaptureFailed=true;return false;
+    }
+    s.entitiesDeliveryBytes+=bytes;s.entitiesDeliveryWork+=work;return true;
+}
+
+bool dx_iface::startEntitiesDeliveryScope(std::uint64_t scope) noexcept {
+    auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(p.scope)return p.scope==scope;
+    if(!scope||!cData->m_entitiesContainerIdentity.value||s.entitiesDeliveryScopes>=s.maxEntitiesDeliveryScopes
+        ||s.entitiesDeliveries.size()!=s.entitiesSources.size()
+        ||(!s.entitiesDeliveries.empty()&&scope<=s.entitiesDeliveries.back().physical->scopeId)) {
+        s.entitiesDeliveryCaptureFailed=true;return false;
+    }
+    constexpr auto bytes=sizeof(p)+sizeof(dx_data::TableDxfSourceCapture::EntitiesDelivery)
+        +sizeof(dx_data::TableDxfSourceCapture::EntitiesDelivery::Certificate)+32u*sizeof(void*);
+    if(!chargeEntitiesDelivery(bytes,bytes+64u))return false;
+    ++s.entitiesDeliveryScopes;p.container=cData;p.generation=s.generation;p.scope=scope;p.containerId=cData->m_entitiesContainerIdentity.value;p.section=s.entitiesSources.size();return true;
+}
+
+void dx_iface::beginDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& event) {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(s.entitiesDeliveryCaptureFailed)return;
+    const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||!entitiesEventValid(event)
+        ||!startEntitiesDeliveryScope(scope)||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
+        ||p.section!=s.entitiesSources.size()||p.pending||index!=p.next||index!=p.observed.size()
+        ||s.entitiesDeliveryEvents>=s.maxEntitiesDeliveryEvents){fail();return;}
+    constexpr auto bytes=2u*sizeof(EntitiesObservedValue)+8u*sizeof(void*);
+    if(!chargeEntitiesDelivery(bytes,bytes+64u))return;
+    ++s.entitiesDeliveryEvents;
+    try {p.observed.push_back({event,false,false,{},{}});p.pending=true;}
+    catch(...){fail();}
+}
+
+dx_iface::EntitiesObservedValue* dx_iface::observeDxfEntitiesValue(std::int32_t type,std::uint32_t handle,std::uint32_t owner,
+                                                                   DRW_DxfEntitiesCallback route) noexcept {
+    using C=DRW_DxfEntitiesCallback;
+    if(!cData)return nullptr;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(s.entitiesDeliveryCaptureFailed||!p.scope)return nullptr;
+    const auto fail=[&]()->EntitiesObservedValue*{s.entitiesDeliveryCaptureFailed=true;return nullptr;};
+    if(!tableSourceCaptureOpen()||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value||currentBlock!=cData->mBlock
+        ||!p.pending||p.next>=p.observed.size())return fail();
+    auto& observed=p.observed[p.next];const auto& e=observed.event;
+    // TABLE's established adapter-internal INSERT projection is not a second
+    // producer callback or historical source-model owner.
+    if(route==C::Count&&e.callback==C::addTable&&observed.valueObserved&&m_entitiesTableProjection)return nullptr;
+    if(observed.valueObserved||!e.hasValue||e.entityType!=type||e.handle!=handle||e.owner!=owner
+        ||(route!=C::Count&&route!=e.callback)
+        ||(route==C::Count&&(e.callback==C::TableSource||e.callback==C::AttdefSource||e.callback==C::addRawDxfEntity||e.callback==C::addTable)))return fail();
+    observed.valueObserved=true;return &observed;
+}
+
+void dx_iface::observeDxfEntitiesRaw(const DRW_RawDxfObject& raw,DRW_DxfEntitiesCallback route) noexcept {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(s.entitiesDeliveryCaptureFailed||!p.scope)return;
+    EntitiesObservedValue* observed=nullptr;
+    if(route==DRW_DxfEntitiesCallback::addRawDxfEntity)observed=observeDxfEntitiesValue(0,raw.handle,raw.parentHandle,route);
+    else if(p.pending&&p.next<p.observed.size()&&p.observed[p.next].valueObserved&&p.observed[p.next].event.callback==route)
+        observed=&p.observed[p.next];
+    if(!observed)return;
+    const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
+    std::size_t bytes=sizeof(raw);
+    if(raw.name.empty()||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        ||raw.groups.size()!=raw.rawValues.size()||!addAssociativeRetainedBytes(raw.name.size()+1u,bytes)
+        ||!addAssociativeSlotBytes(raw.groups.size(),sizeof(DRW_Variant)+sizeof(UTF8STRING),bytes)||bytes>s.maxEntitiesDeliveryBytes
+        ||raw.groups.size()>(std::numeric_limits<std::size_t>::max)()/64u
+        ||!chargeEntitiesDelivery(0u,raw.groups.size()*64u)){fail();return;}
+    for(std::size_t i=0;i<raw.groups.size();++i) {
+        const auto& field=raw.groups[i];std::size_t payload=0u;
+        if(field.code()==0||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()
+            ||(field.type()!=DRW_Variant::STRING&&field.type()!=DRW_Variant::INTEGER&&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE)
+            ||(field.type()==DRW_Variant::STRING&&!field.content.s)
+            ||!field.estimateRetainedPayloadBytes(s.maxEntitiesDeliveryBytes,payload)
+            ||!addAssociativeRetainedBytes(payload,bytes)||!addAssociativeRetainedBytes(raw.rawValues[i].size()+1u,bytes)
+            ||bytes>s.maxEntitiesDeliveryBytes){fail();return;}
+    }
+    // Active scalar kind alone does not describe the owners copied by Variant:
+    // include dormant strings/binary/private spelling before cloning.
+    if(bytes>((std::numeric_limits<std::size_t>::max)()-64u-8u*sizeof(void*))/2u
+        ||!chargeEntitiesDelivery(bytes*2u+8u*sizeof(void*),bytes*2u+64u)) {s.entitiesDeliveryCaptureFailed=true;return;}
+    try {observed->raw=std::make_shared<const DRW_RawDxfObject>(raw);++s.entitiesDeliveryRaw;}
+    catch(...){s.entitiesDeliveryCaptureFailed=true;}
+}
+
+void dx_iface::endDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& event) {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(s.entitiesDeliveryCaptureFailed)return;
+    if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
+        ||p.scope!=scope||p.section!=s.entitiesSources.size()||!p.pending||index!=p.next||index>=p.observed.size()
+        ||!entitiesEventEqual(event,p.observed[index].event)) {s.entitiesDeliveryCaptureFailed=true;return;}
+    ++p.next;p.pending=false;
+}
+
+void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& value) {
+    using D=dx_data::TableDxfSourceCapture::EntitiesDelivery;
+    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(s.entitiesDeliveryCaptureFailed)return;
+    const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||s.entitiesCaptureFailed
+        ||value.status!=DRW_DxfEntitiesDeliverySource::Status::Complete||!value.scopeId
+        ||s.entitiesSources.size()!=s.entitiesDeliveries.size()+1u){fail();return;}
+    const auto section=s.entitiesDeliveries.size();const auto physical=s.entitiesSources[section].physical;
+    if(!physical||physical->scopeId!=value.scopeId||value.version!=physical->version||value.binary!=physical->binary
+        ||!blockDeliverySpanEqual(value.beginMarker,physical->beginMarker)||!blockDeliverySpanEqual(value.endMarker,physical->endMarker)
+        ||value.completedEvents!=value.events.size()){fail();return;}
+    if(!p.scope) {
+        if(!value.events.empty()){fail();return;}
+        // Physical publication precedes the final report for empty/no-callback
+        // scopes; initialize their pending owner without inventing hook events.
+        if(!cData->m_entitiesContainerIdentity.value||s.entitiesDeliveryScopes>=s.maxEntitiesDeliveryScopes){fail();return;}
+        const auto bytes=sizeof(p)+sizeof(D)+sizeof(D::Certificate)+32u*sizeof(void*);
+        if(!chargeEntitiesDelivery(bytes,bytes+64u))return;
+        ++s.entitiesDeliveryScopes;p.container=cData;p.generation=s.generation;p.scope=value.scopeId;p.containerId=cData->m_entitiesContainerIdentity.value;p.section=section;
+    }
+    if(p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value||p.scope!=value.scopeId||p.section!=section||p.pending
+        ||p.next!=p.observed.size()||p.next!=value.events.size()){fail();return;}
+    const auto dispatches=value.dispatches.size(),events=value.events.size();
+    std::size_t bytes=sizeof(value)+16u*sizeof(void*),allowance=0u,work=0u;
+    if(s.entitiesDeliveryDispatches>s.maxEntitiesDeliveryDispatches||dispatches>s.maxEntitiesDeliveryDispatches-s.entitiesDeliveryDispatches
+        ||!addAssociativeSlotBytes(dispatches,sizeof(DRW_DxfEntitiesDispatch),bytes)
+        ||!addAssociativeSlotBytes(events,sizeof(DRW_DxfEntitiesDeliveryEvent),bytes)||!addAssociativeSlotBytes(bytes,2u,allowance)
+        ||!addAssociativeSlotBytes(dispatches,64u,work)||!addAssociativeSlotBytes(events,64u,work)
+        ||!addAssociativeSlotBytes(physical->records.size(),64u,work)||!addAssociativeRetainedBytes(allowance,work)
+        ||!chargeEntitiesDelivery(allowance,work)){fail();return;}
+    s.entitiesDeliveryDispatches+=dispatches;
+    std::size_t record=0u,event=0u,values=0u,models=0u,raws=0u;
+    for(std::size_t i=0;i<dispatches;++i) {
+        const auto& dispatch=value.dispatches[i];const auto first=record;
+        if(record>=physical->records.size()||!blockDeliverySpanEqual(dispatch.begin,physical->records[record].marker)
+            ||dispatch.firstEvent!=event||dispatch.events>events-event){fail();return;}
+        do{++record;}while(record<physical->records.size()&&physical->records[record].marker.ordinal<dispatch.end.ordinal);
+        const auto& next=record<physical->records.size()?physical->records[record].marker:physical->endMarker;
+        if(!blockDeliverySpanEqual(dispatch.end,next)){fail();return;}
+        for(std::size_t j=0;j<dispatch.events;++j,++event) {
+            const auto& item=value.events[event];const auto& observed=p.observed[event];
+            if(item.dispatch!=i||!entitiesEventValid(item)||!entitiesEventEqual(item,observed.event)){fail();return;}
+            if(observed.valueObserved)++values;if(observed.model)++models;
+            if(observed.raw) {
+                const auto count=observed.raw->groups.size();
+                if(count>(std::numeric_limits<std::size_t>::max)()/64u||!chargeEntitiesDelivery(0u,count*64u)
+                    ||!blockDeliveryRawMatches(physical->records[first],*observed.raw,value.binary)){fail();return;}
+                ++raws;
+            }
+        }
+    }
+    if(record!=physical->records.size()||event!=events){fail();return;}
+    try {
+        auto delivery=std::make_shared<const DRW_DxfEntitiesDeliverySource>(value);
+        auto observed=std::make_shared<const std::vector<EntitiesObservedValue>>(std::move(p.observed));
+        auto certificate=std::make_shared<const D::Certificate>(D::Certificate{cData,s.generation,p.containerId,section,values,models,raws,physical,delivery,observed});
+        s.entitiesDeliveries.push_back({cData,s.generation,p.containerId,section,physical,delivery,observed,std::move(certificate)});p={};
+    }catch(...){fail();}
+}
 
 void dx_iface::addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource& value) {
     if(!cData)return;
@@ -18925,6 +19178,8 @@ bool dx_iface::wantsDxfAttdefSource() const {
 
 void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
                                  const DRW_DxfAttdefSourceContext& context) {
+    observeDxfEntitiesTyped<DRW_Attdef>(value,DRW_DxfEntitiesCallback::AttdefSource);
+    observeDxfEntitiesRaw(raw,DRW_DxfEntitiesCallback::AttdefSource);
     observeDxfBlockDeliveryValue(static_cast<std::int32_t>(value.eType),value.handle,value.parentHandle,
                                 DRW_DxfBlockCallback::AttdefSource,&raw);
     if(!cData)return;
@@ -19337,6 +19592,8 @@ bool dx_iface::chargeTableSource(
 
 void dx_iface::addDxfTableSource(const DRW_Table& table,
                                 const DRW_RawDxfObject& raw) {
+    observeDxfEntitiesTyped<DRW_Table>(table,DRW_DxfEntitiesCallback::TableSource);
+    observeDxfEntitiesRaw(raw,DRW_DxfEntitiesCallback::TableSource);
     if (!cData) return;
     auto& source = cData->m_tableDxfSource;
     if (!tableSourceCaptureOpen()) { source.contextFailed = true; return; }
@@ -19501,6 +19758,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     auto& source = data.m_tableDxfSource;
     if(source.attdefPending)source.resourceProofCaptureFailed=true;
     if(source.blockSourcePending||source.blockSourceActive)source.blockSourceCaptureFailed=true;
+    if(source.entitiesPending.scope)source.entitiesDeliveryCaptureFailed=true;
     source.closed = true;
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew
@@ -21311,6 +21569,7 @@ void dx_iface::addUnmodeledDxfObject(const DRW_RawDxfObject& data) {
 }
 
 void dx_iface::addRawDxfEntity(const DRW_RawDxfObject& data) {
+    observeDxfEntitiesRaw(data,DRW_DxfEntitiesCallback::addRawDxfEntity);
     observeDxfBlockDeliveryValue(0,data.handle,data.parentHandle,DRW_DxfBlockCallback::addRawDxfEntity,&data);
     if (cData == nullptr)
         return;

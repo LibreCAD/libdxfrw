@@ -153,7 +153,7 @@ bool entitiesPublicMemoryControls(const std::filesystem::path& path,unsigned& ro
     return routes==14u;
 }
 bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& profiles,unsigned& retries) {
-    struct Consumer final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
+    struct Consumer final:dx_iface {
         unsigned depth=0u,points=0u;std::vector<DRW_RawDxfObject> raw;std::vector<DRW_Circle> circles;
         std::vector<DRW_DxfEntitiesDeliverySource> delivered;
         bool wantsDxfEntitiesSource() const override {return true;}

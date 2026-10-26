@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-struct EntitiesDeliveryProbe final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
+struct EntitiesDeliveryProbe final:dx_iface {
     using C=DRW_DxfEntitiesCallback;using E=DRW_DxfEntitiesDeliveryEvent;
     bool enabled=true,physical=true,disableDuringPoint=false,bad=false,tableOpt=true,attdefOpt=true;
     int throwPhase=0;unsigned begins=0u,ends=0u,physicalCalls=0u,projections=0u;
@@ -16,10 +16,12 @@ struct EntitiesDeliveryProbe final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
         if(active||!scope||index!=scopeBegins)bad=true;
         active=true;activeScope=scope;activeIndex=index;current=event;++begins;++scopeBegins;
         if(throwPhase==1)throw std::runtime_error("ENTITIES delivery begin");
+        dx_iface::beginDxfEntitiesDelivery(scope,index,event);
     }
     void endDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const E& event) override {
         if(!active||scope!=activeScope||index!=activeIndex||event.callback!=current.callback||event.origin!=current.origin)bad=true;
         if(throwPhase==3)throw std::runtime_error("ENTITIES delivery end");
+        dx_iface::endDxfEntitiesDelivery(scope,index,event);
         active=false;++ends;
     }
     void addDxfEntitiesSource(const DRW_DxfEntitiesSource& source) override {
@@ -29,6 +31,7 @@ struct EntitiesDeliveryProbe final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
     void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& source) override {
         if(active||source.completedEvents!=source.events.size()||!physicalCalls)bad=true;
         reports.push_back(source);scopeBegins=0u;
+        dx_iface::addDxfEntitiesDeliverySource(source);
         if(throwPhase==5)throw std::runtime_error("ENTITIES final callback");
     }
     void resetObservation() {
@@ -120,7 +123,7 @@ bool entitiesDeliveryAllocationControls(long& faults) {
     return calibrated&&faults>0;
 }
 bool entitiesDeliveryPublicControls(const std::filesystem::path& path,unsigned& routes,unsigned& retries) {
-    struct Consumer final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
+    struct Consumer final:dx_iface {
         int phase=0;unsigned points=0u,begins=0u,ends=0u,sources=0u,finals=0u;
         DRW_DxfEntitiesDeliverySource last;
         void addHeader(const DRW_Header*) override {}

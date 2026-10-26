@@ -22,6 +22,8 @@
 #include <array>
 #include <iosfwd>
 #include <limits>
+#include <type_traits>
+#include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -35,8 +37,21 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
-                 public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler {
+                 public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
+                 public DRW_DxfEntitiesDeliveryHandler {
 public:
+    enum class EntitiesDeliveryState {NotCaptured,Reading,ImportFailed,CaptureFailed,ContextMismatch,ReportMissing,ObservedTransportComplete};
+    struct EntitiesDeliveryReport {
+        // Actual callback/original-interval transport, NOT field/space/output proof.
+        EntitiesDeliveryState state{EntitiesDeliveryState::NotCaptured};
+        std::size_t sections{0},dispatches{0},events{0},valuesObserved{0},models{0},rawBodies{0},bytes{0},work{0};
+        bool outputEligible{false};
+    };
+    static EntitiesDeliveryReport entitiesDeliveryReport(const dx_data&) noexcept;
+    bool wantsDxfEntitiesDeliverySource() const override;
+    void beginDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) override;
+    void endDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) override;
+    void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&) override;
     enum class EntitiesSourceState {NotCaptured,Reading,ImportFailed,CaptureFailed,ContextMismatch,TransportComplete};
     struct EntitiesSourceReport {
         // Retained opted-in scopes only, not every section or its semantics.
@@ -75,7 +90,8 @@ public:
         BlockSourceMissing, AmbiguousBlockDefinition, BlockSourceIncomplete,
         BlockMemberUnsupported, BlockMemberMismatch, BlockSpaceMismatch,
         BlockNameCollationUnqualified, BlockReferenceCycle,
-        EntitiesSourceMissing,EntitiesSourceIncomplete,EntitiesSourceMismatch
+        EntitiesSourceMissing,EntitiesSourceIncomplete,EntitiesSourceMismatch,
+        EntitiesDeliveryMissing,EntitiesDeliveryIncomplete,EntitiesDeliveryMismatch
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
@@ -96,7 +112,7 @@ public:
         std::uint32_t firstSourceBlock{0};
         std::size_t firstSourceMember{(std::numeric_limits<std::size_t>::max)()};
         bool directRolesBound{false}; // not full block/dependency/live/output proof
-        std::size_t entitiesPhysicalTablesMatched{0}; // literal source origin, not space/body semantics
+        std::size_t entitiesPhysicalTablesMatched{0},entitiesDeliveredTablesMatched{0}; // origins, not complete body/space semantics
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates. Geometry-block/ATTDEF-owner
@@ -448,6 +464,7 @@ public:
             retainTypedEntity<DRW_MLeader>(*data);
     }
     void addTable(const DRW_Table& data) override {
+        observeDxfEntitiesTyped<DRW_Table>(data,DRW_DxfEntitiesCallback::addTable);
         constexpr std::size_t tableListNodeLinkBytes = 2u * sizeof(void*);
         if (cData == nullptr)
             return;
@@ -482,6 +499,11 @@ public:
         }
         // Keep the pre-existing 2D consumer path unchanged while retaining
         // cells, merged-range metadata and style links in the typed snapshot.
+        struct ProjectionRestore final {
+            bool& active;bool previous;
+            ~ProjectionRestore(){active=previous;}
+        } restore{m_entitiesTableProjection,m_entitiesTableProjection};
+        m_entitiesTableProjection=true;
         addInsert(data);
     }
     virtual void addTrace(const DRW_Trace& data) override{
@@ -1560,6 +1582,31 @@ public:
 
 private:
     dx_data* m_tableSourceReadData{nullptr};
+    bool m_entitiesTableProjection{false};
+    bool chargeEntitiesDelivery(std::size_t,std::size_t) noexcept;
+    bool startEntitiesDeliveryScope(std::uint64_t) noexcept;
+    using EntitiesObservedValue=dx_data::TableDxfSourceCapture::EntitiesObservedValue;
+    EntitiesObservedValue* observeDxfEntitiesValue(std::int32_t,std::uint32_t,std::uint32_t,DRW_DxfEntitiesCallback) noexcept;
+    void observeDxfEntitiesRaw(const DRW_RawDxfObject&,DRW_DxfEntitiesCallback) noexcept;
+    static bool concreteEntitiesBodyChildren(const DRW_Entity&) noexcept;
+    template<class Model,class Value>void observeDxfEntitiesTyped(const Value& value,
+                            DRW_DxfEntitiesCallback route=DRW_DxfEntitiesCallback::Count) noexcept {
+        auto* observed=observeDxfEntitiesValue(static_cast<std::int32_t>(value.eType),value.handle,value.parentHandle,route);
+        if(!observed)return;
+        // Do not slice a richer unknown subtype or freeze a converter-only
+        // IMAGE wrapper as if it were the actual reader's model.
+        const auto* typed=dynamic_cast<const Model*>(&value);
+        if(!typed||typeid(value)!=typeid(Model)){observed->modelUnavailable=true;return;}
+        std::size_t bytes=0u;
+        if(!estimateTypedEntityRetainedBytes(*typed,sizeof(Model),bytes)
+            ||bytes>((std::numeric_limits<std::size_t>::max)()-64u-8u*sizeof(void*))/2u
+            ||!chargeEntitiesDelivery(bytes*2u+8u*sizeof(void*),bytes*2u+64u)) {
+            cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;return;
+        }
+        if(!concreteEntitiesBodyChildren(value)){observed->modelUnavailable=true;return;}
+        try {observed->model=std::make_shared<const Model>(*typed);++cData->m_tableDxfSource.entitiesDeliveryModels;}
+        catch(...){cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;}
+    }
     void observeDxfBlockDeliveryValue(std::int32_t,std::uint32_t,std::uint32_t,
                                     DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr,const DRW_Entity* = nullptr) noexcept;
     using AttdefOriginResource=dx_data::TableDxfSourceCapture::Resource;
@@ -1746,6 +1793,8 @@ private:
             return nullptr;
         observeDxfBlockDeliveryValue(static_cast<std::int32_t>(source.eType),source.handle,source.parentHandle,
                                     DRW_DxfBlockCallback::Count,nullptr,&source);
+        using OriginalModel=typename std::conditional<std::is_same<EntityT,dx_ifaceImg>::value,DRW_Image,EntityT>::type;
+        observeDxfEntitiesTyped<OriginalModel>(source);
         retainTableEntityIdentity(static_cast<const DRW_Entity&>(source));
         if (currentBlock == nullptr
             || cData->typedEntityRetainedRecords

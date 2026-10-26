@@ -87,6 +87,20 @@ public:
     static const auto& blockSources(const dx_data& data) {return data.m_tableDxfSource.blockSources;}
     static const auto& entitiesSources(const dx_data& data) {return data.m_tableDxfSource.entitiesSources;}
     static auto& mutableEntitiesSources(dx_data& data) {return data.m_tableDxfSource.entitiesSources;}
+    static const auto& entitiesDeliveries(const dx_data& data) {return data.m_tableDxfSource.entitiesDeliveries;}
+    static auto& mutableEntitiesDeliveries(dx_data& data) {return data.m_tableDxfSource.entitiesDeliveries;}
+    static const auto& entitiesPending(const dx_data& data) {return data.m_tableDxfSource.entitiesPending;}
+    static bool entitiesDeliveryFailed(const dx_data& data) {return data.m_tableDxfSource.entitiesDeliveryCaptureFailed;}
+    static std::uint64_t entitiesContainerId(const dx_data& data) {return data.m_entitiesContainerIdentity.value;}
+    static bool entitiesIdentityCopyIsIndependent(const dx_data& data) {
+        auto copy=data.m_entitiesContainerIdentity;const auto before=copy.value;copy=data.m_entitiesContainerIdentity;
+        return before!=data.m_entitiesContainerIdentity.value&&copy.value==before;
+    }
+    static void entitiesDeliveryLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;
+        if(which==0u)s.maxEntitiesDeliveryScopes=n;else if(which==1u)s.maxEntitiesDeliveryDispatches=n;
+        else if(which==2u)s.maxEntitiesDeliveryEvents=n;else if(which==3u)s.maxEntitiesDeliveryBytes=n;else s.maxEntitiesDeliveryWork=n;
+    }
     static void entitiesLimit(dx_data& data,unsigned which,std::size_t n) {
         auto& s=data.m_tableDxfSource;
         if(which==0u)s.maxEntitiesSections=n;else if(which==1u)s.maxEntitiesRecords=n;
@@ -1336,6 +1350,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "table_block_name_controls.h"
 #include "entities_source_controls.h"
 #include "entities_delivery_controls.h"
+#include "entities_origin_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2845,6 +2860,7 @@ int main(int argc,char** argv) {
     const bool blockNames=argc==2 && std::string(argv[1])=="--block-name-bindings";
     const bool entitiesSource=argc==2 && std::string(argv[1])=="--entities-source";
     const bool entitiesDelivery=argc==2 && std::string(argv[1])=="--entities-delivery";
+    const bool entitiesOrigins=argc==2 && std::string(argv[1])=="--entities-origins";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2853,10 +2869,10 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }
