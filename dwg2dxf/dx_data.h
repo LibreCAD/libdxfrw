@@ -1261,6 +1261,22 @@ private:
         std::size_t layoutRecords{0},layoutGroups{0},layoutBytes{0},layoutWork{0};
         std::size_t maxLayoutRecords{100000u},maxLayoutGroups{4000000u},maxLayoutBytes{64u*1024u*1024u},maxLayoutWork{64u*1024u*1024u};
         bool layoutCaptureFailed{false};
+        struct IdentityInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const DRW_DxfIdentitySource> source;
+            std::shared_ptr<const EntitiesReadContext> context;
+        };
+        struct IdentityAudit {
+            std::shared_ptr<const IdentityInput> input;
+            std::map<std::uint64_t,std::size_t> identities;
+            std::size_t missing{0},duplicates{0},unknown{0},admitted{0},unobserved{0},duplicateAdmissions{0},opaque{0},dimstyleNames{0};
+            bool namespaceReady{false};
+        };
+        std::shared_ptr<const IdentityInput> identityInput,identityInputOwner;
+        std::shared_ptr<const IdentityAudit> identityAudit,identityAuditOwner;
+        std::size_t identityBytes{0},identityWork{0};
+        std::size_t maxIdentityBytes{64u*1024u*1024u},maxIdentityWork{64u*1024u*1024u};
+        bool identityCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

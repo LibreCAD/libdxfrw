@@ -28,6 +28,7 @@
 
 class DRW_Layout;
 struct DRW_RawDxfObject;
+struct DRW_DxfIdentitySource;
 struct DxfLayoutPublication {
     // 0 none, 1 source callback, 2 typed callback. Internal reader-owned state,
     // so the public dxfRW facade gains no object-layout fields.
@@ -57,6 +58,9 @@ public:
     virtual ~DxfReadRecordObserver() = default;
     // Evidence collection must latch its own failure, not alter typed import.
     virtual void observe(const DxfReadRecordView&) noexcept = 0;
+    // Internal observation only; does not change registry admission policy.
+    enum class Admission : std::uint8_t {Accepted,Null,Duplicate,Invalid,Repeated};
+    virtual void selfHandle(std::size_t,Admission) noexcept {}
 };
 
 class DxfReadRetainedBudget final {
@@ -288,6 +292,7 @@ class dxfReader {
     friend class dxfRW;
     DxfLayoutPublication m_layoutPublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
+    const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     enum TYPE {
         STRING,
@@ -308,6 +313,9 @@ public:
     bool readRec(int *code);
     DxfReadRecordObserver* exchangeRecordObserver(DxfReadRecordObserver* value) noexcept {
         auto* previous=m_recordObserver;m_recordObserver=value;return previous;
+    }
+    DxfReadRecordObserver* exchangeIdentityObserver(DxfReadRecordObserver* value) noexcept {
+        auto* previous=m_identityObserver;m_identityObserver=value;return previous;
     }
     bool currentRecordView(DxfReadRecordView& value) const noexcept {
         if(!m_hasCurrentRecord)return false;
@@ -669,6 +677,7 @@ private:
     int m_currentCode {0};
     int m_previousCode {0};
     DxfReadRecordObserver* m_recordObserver{nullptr};
+    DxfReadRecordObserver* m_identityObserver{nullptr};
     std::size_t m_recordBeginOffset{0};
     bool m_hasCurrentRecord{false};
     DxfReadRecordView recordView(int code,bool comment) const noexcept {

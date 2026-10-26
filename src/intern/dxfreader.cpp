@@ -357,6 +357,7 @@ bool dxfReader::readRec(int *codeData) {
             invalidateRecord();
             return false;
         }
+        if(m_identityObserver)m_identityObserver->observe(recordView(code,true));
         if(m_recordObserver)m_recordObserver->observe(recordView(code,true));
     } while (true);
 
@@ -409,6 +410,7 @@ bool dxfReader::readRec(int *codeData) {
         return false;
     }
     m_hasCurrentRecord=true;
+    if(m_identityObserver)m_identityObserver->observe(recordView(code,false));
     if(m_recordObserver)m_recordObserver->observe(recordView(code,false));
     return true;
 }
@@ -430,22 +432,27 @@ bool dxfReader::isValidHandleLexeme() const {
 }
 
 bool dxfReader::registerSelfHandle() {
+    const auto observed=[this](DxfReadRecordObserver::Admission result,bool accepted) {
+        if(m_identityObserver)m_identityObserver->selfHandle(m_recordCount,result);
+        return accepted;
+    };
+    using A=DxfReadRecordObserver::Admission;
     std::uint64_t value = 0;
     if (!parseDxfHandleLexeme(strData, value))
-        return false;
+        return observed(A::Invalid,false);
     // Zero is the null handle, not a drawing object identity.
     if (value == 0)
-        return true;
+        return observed(A::Null,true);
     // Raw proxy entities admit code 5 once through their proxy host and once
     // through the lossless carrier. Treat those two admissions of the same
     // record as one registration, while still rejecting a later record.
     if (m_currentSelfHandleRegistered && m_currentSelfHandle == value)
-        return true;
+        return observed(A::Repeated,true);
     if (!m_selfHandles.insert(value).second)
-        return false;
+        return observed(A::Duplicate,false);
     m_currentSelfHandle = value;
     m_currentSelfHandleRegistered = true;
-    return true;
+    return observed(A::Accepted,true);
 }
 
 bool dxfReaderBinary::readCode(int *code) {

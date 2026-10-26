@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ej original LAYOUT source proof and render-preset reservation (2026-10-26; verified before local commit):** a separate opt-in source facet and actual reader-owned publication view bind original LAYOUT model/raw/context inputs to their real typed callback. Shared replay and an independent scalar/subclass/reference-role audit distinguish the PlotSettings prefix, structural owner and associated block record. A reproduced opaque-handle capture incompatibility and a parent-confirmed render-preset ID reservation gap are fixed. Final exact affected cohorts pass 68/68 normally and 68/68 under ASan. Whole-import owner/layout/dependency/live/output and native/kernel qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26) · [receipt](docs/research/rpp5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ek whole-read physical identity namespace (2026-10-26; verified before local commit):** a bounded opt-in whole-read observer preserves original section/table/record/candidate spans and actual registry decisions without displacing BLOCK/ENTITIES observers or changing import admission. The converter freezes actual publication/context owners and builds a separate 64-bit original identity index, including table-control/DIMSTYLE/skipped-table/raw/no-callback IDs. Ambiguous/missing/null identities, cross-scope collisions and unknown scopes refuse namespace evidence. Final exact affected cohorts pass 73/73 normally and 73/73 under ASan. Actual owner/layout/body/dependency/live/output and external qualification remain open, resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ek-whole-read-physical-identity-namespace-2026-10-26) · [receipt](docs/research/rpp5ek-whole-read-physical-identity-namespace-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ej original LAYOUT source proof and render-preset reservation (2026-10-26; committed as `e4362fe`):** a separate opt-in source facet and actual reader-owned publication view bind original LAYOUT model/raw/context inputs to their real typed callback. Shared replay and an independent scalar/subclass/reference-role audit distinguish the PlotSettings prefix, structural owner and associated block record. A reproduced opaque-handle capture incompatibility and a parent-confirmed render-preset ID reservation gap are fixed. Final exact affected cohorts pass 68/68 normally and 68/68 under ASan. RPP-5ek adds original identity-envelope evidence, not whole-import owner/layout/dependency/live/output or native/kernel qualification. [Historical implementation](#implementation-progress-rpp-5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26) · [receipt](docs/research/rpp5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ei original POINT/LINE source-body proof (2026-10-26; committed as `e0178bfe`):** shared production/replay admission covers POINT/LINE without changing required-coordinate or ordinary callback rules. The ENTITIES audit captures original parser states and compares modeled fields with opt-in original scalar/reference-role profiles. Its separate primary-subset report does not promote other bodies, actual targets or output. Final exact affected cohorts pass 62/62 normally and 62/62 under ASan. RPP-5ej adds original LAYOUT body evidence, not whole-import owner/layout/dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ei-original-pointline-source-body-proof-2026-10-26) · [receipt](docs/research/rpp5ei-original-point-line-source-body-proof-2026-10-26.json).
 
@@ -128966,6 +128968,186 @@ Next implementation-ready sequence (full objective retained):
    verified slices. Continue safe local owner/body/dependency work while external
    qualifications remain deferred. Preserve unrelated samples; commit no external
    drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
+no remote mutation is included.
+
+## Implementation progress — RPP-5ek whole-read physical identity namespace (2026-10-26)
+
+This implements the bounded original identity-index prerequisite identified by
+RPP-5ej. It is an index of observable original DXF identity envelopes, not body
+support, actual typed target/owner/layout resolution, hidden application/kernel
+identities, editable/live/output parity, native collation or external support.
+There is no DWG byte-layout/parser/encoder change and no new drawing fixture.
+
+Implemented:
+
+1. [x] Add a separate default-false `DRW_DxfIdentitySourceHandler`, selected once
+   before the first scalar. A reader-owned observer sees the actual whole-read
+   stream, including ignored comments, unknown/raw/no-callback records, compound
+   subrecords, repeated sections, TABLE controls and skipped nested tables. It
+   coexists with existing per-scope observers; their callback timing and spans
+   are unchanged. No established DRW_Interface/source-facet vtable or public
+   dxfRW/drawing-model object layout changes; internal observer/reader and private
+   converter layouts change. This is not formal ABI certification.
+2. [x] Preserve original section/table/record framing and code-5/105 candidate
+   lexemes, ASCII spellings and exact physical ordinal/byte spans. Application,
+   XDATA, embedded and unframed scopes stay distinct. HEADER HANDSEED and CLASSES
+   metadata are not database-object identities. Do not parse arbitrary bodies
+   with another payload decoder. Unknown sections/unframed candidates, opaque
+   identity-like fields outside a known application scope and malformed framing
+   remain explicit, rather than disappearing from coverage.
+3. [x] Observe actual registerSelfHandle decisions without changing admission:
+   accepted/null/duplicate/invalid and repeated admission of the same scalar are
+   distinct. Source inspection and actual imports prove TABLE control handles,
+   DIMSTYLE group 105 and skipped unknown-table entries bypass this registry;
+   typed entities can tolerate duplicate IDs. None means unobserved, not absent
+   or accepted. The independent source index detects collisions even when the
+   registry cannot, without hardening tolerant ordinary import.
+4. [x] Publish the exact borrowed source view only inside its accepted-EOF
+   callback, clearing it on return/exception. Earlier read/typed callback failure
+   or a missing EOF publishes no whole-read inventory. Complete describes the
+   consumed physical stream through accepted EOF, not arbitrary trailing file
+   bytes or successful whole import. Only actual successful modern converter
+   imports finish immutable audits. Copied/repeated/late source publications,
+   equal replacement owners, different shared control blocks and copied
+   containers cannot reuse the real source certificate.
+5. [x] Build the converter's separate 64-bit original source identity map.
+   TABLE controls use group 5; only actual DIMSTYLE table entries use 105 and
+   retain obsolete group-5 block names as names. Compare both original table/type
+   spellings with ASCII case folding, not a helper requiring an uppercase second
+   argument. Unknown/raw/no-callback bodies do not acquire body support from
+   their visible identity envelope. Wide raw identities remain 64-bit, not
+   narrowed aliases. Multiple/missing/null/invalid fields, cross-scope duplicate
+   IDs and unclassified/embedded/XDATA/unframed candidates refuse namespace
+   readiness. Actual registry duplicate observations remain separate from source
+   duplicate findings to avoid double-counting the same collision.
+6. [x] Precharge source limits of 1,024 sections, 100,000 physical object records,
+   400,000 candidates, 32 MiB logical retained bytes and 64 Mi logical work units.
+   Source owners also share read retained-byte limits. Converter immutable input,
+   context, audit and worst-case map workspace use separate 64 MiB logical byte/
+   work ceilings. Own limit/allocation refusal softens evidence; shared read
+   limits can still fail import. These are logical allowances, not capacities,
+   every allocator, strict CPU, RSS, leak proof or a performance benchmark.
+
+The official [symbol-table framing](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm)
+and [entry common fields](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5926A569-3E40-4ED2-AE06-6ACCE0EFC813.htm)
+distinguish table controls, DIMSTYLE 105 and application-defined groups. The
+[DIMSTYLE field reference](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm)
+defines its obsolete group-5 DIMBLK name. Official
+[entity common fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+and [object common fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm)
+define visible identity/application envelopes. They are field references, not
+independent execution, target-type, hidden-payload or native collation evidence.
+
+Owning controls per configuration:
+
+- [x] **12** actual-import profiles: four modern revisions x ASCII LF/CRLF/Binary.
+  Seven sections include TABLES/BLOCKS/OBJECTS/repeated ENTITIES, 15 physical
+  identities, an unknown skipped table and a raw unknown entity. An independent
+  byte walker checks **396** original record/candidate spans, all framing markers,
+  full scalar/comment counts, original lexemes and literal index entries. Ten
+  identities have actual accepted registry observations and five bypass it;
+  opaque application values and the DIMSTYLE block name do not register as IDs.
+  Main Binary profiles contain no group-999 comments. Separate Binary controls
+  containing comments exercise tolerated compatibility, not native conformance.
+- [x] **12** positive wide/padded/raw/no-callback/XDATA/mixed-case/nested-application
+  variants and **16** source refusal/corrected-import pairs cover cross-scope
+  collisions with DIMSTYLE, a table control and BLOCKS geometry; missing/null/
+  repeated IDs, unknown sections and unexpected 105. Ordinary compatible import
+  remains available on namespace refusal. No 64-to-32-bit alias is introduced.
+- [x] **28** exact/one-under section/record/candidate/source-byte/source-work/
+  converter-byte/converter-work controls, **21** opt-out/copied/repeated owner/
+  container/public-lifetime/latched-selection contexts, **44** observed immutable
+  source-copy/isolated-audit allocation faults and **six** exception/failed-tail/
+  actual-import retry cases pass. Fault schedules cover observed converter copy
+  and isolated audit allocations, not every library/parser allocation. Audit
+  replay uses genuine successful-import snapshots and tests both same-audit and
+  fresh actual-import recovery; failed imports publish no completed audit.
+
+Development corrections retained: the initial shared Binary test recipe began
+with a comment, violating the existing detector's first-SECTION assumption.
+The official [Binary DXF reference](https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm)
+excludes group-999 comments. Main Binary profiles therefore omit comments;
+separate compatibility controls retain tolerated in-stream Binary comments.
+Leading ASCII comments and EOF without a trailing newline are also exercised.
+The original leading-Binary-comment input is retained locally and its rejection
+is reproduced in `/tmp/rpp5ek-leading-binary-repro.log`; it is not a production
+detector fix or a native acceptance claim.
+The mixed-case control found and fixed the new two-source-name join's use of an
+uppercase-expected helper; the assertion was retained, not relaxed. Review also
+removed one redundant include. The earlier 73/73 normal (91.21 s) and 73/73 ASan
+(192.99 s) cohorts precede that include-only cleanup and the canonical Binary
+test adjustment; their logs remain historical, not final-source evidence.
+
+Final affected builds pass. Exact cohorts pass **73/73 normally in 90.49 s** and
+**73/73 under ASan in 190.86 s**, with no failed/skipped/disabled tests and matching
+membership/order. These are the prior 68 plus the new identity selector and four
+existing DIMSTYLE compatibility/ASCII/Binary CLI checks. Normal runtime completed
+before ASan runtime (`halt_on_error=1:detect_leaks=0`); only independent ASan
+compilation overlapped normal runtime. Times are not paired benchmarks. Tested
+source hashes remain unchanged after these final builds/runs. Strict library,
+owning resource/adapter and compatibility targets retain their C++17
+`-Wall -Wextra -pedantic -Werror` policy; the existing broad fixture runner uses
+its configured C++17 flags and is not claimed globally warning-clean. No warning
+suppression, full suite per item, native consumer execution, formal ABI,
+independent kernel or support promotion is claimed. The source/header
+distribution list is updated, not an Autotools/dist build result. The
+[RPP-5ek receipt](docs/research/rpp5ek-whole-read-physical-identity-namespace-2026-10-26.json)
+records final/historical candidates, exact controls/membership and source/log
+hashes, with the actual evidence limits retained.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Bind actual original target bodies and owner/layout roles.** Require the
+   new namespace's actual successful-import owners and unique physical record
+   identities, then bind original BLOCK_RECORD/LAYOUT/DICTIONARY body/publication
+   evidence to those exact origins. Handle existence or matching editable cData
+   is insufficient. Verify reciprocal NOD/ACAD_LAYOUT/BLOCK_RECORD/LAYOUT roles,
+   actual original 330/67/410 defaults/conflicts, model/paper ownership and multiple
+   paper layouts. Retain wide/unclassified/unsupported-body refusals, substituted
+   publication/owner/cross-scope collisions, quota/allocation and tail/retry cases.
+   Implementation slices, without opening output/support gates:
+
+   - First attest actual batched `processBlockRecord` source publications and
+     `processDictionary` root-source publications. They currently call existing
+     source facets without RPP-5ej's reader-owned exact-pointer view. Reuse its
+     separate borrowed publication pattern and immutable raw owners; do not
+     mistake an equal copied raw/model callback for the original producer.
+   - Bind original target snapshots to namespace records of the expected actual
+     section/table/record type under the same pinned import/context. Reuse shared
+     decoders and existing resource field/role profiles; check original pending
+     parser states before copies reset them. A 64-bit source identity is not a
+     license to narrow it into a 32-bit typed target.
+   - Reuse the reciprocal checks in `validateLayoutGraphForExport` through a view
+     of pinned original bodies, not a copied editable dx_data container. Its
+     current live-data checks alone cannot certify original source provenance.
+     Keep NOD/root/key/name/typed-target roles distinct from generic existence,
+     and actual native collation distinct from exact/ASCII source keys.
+   - Add original ENTITIES/BLOCKS compound-owner and 330/67/410 joins only after
+     the original structural graph is proven. Require matched producer/body/
+     physical origins; retain explicit unsupported-family/default ambiguity
+     outcomes. Then verify failure/refusal, substituted origins, late failures,
+     same-owner retry and independent output/consumer stages separately.
+2. [ ] **Remaining bodies and dependencies.** Complete original TABLE/ATTDEF and
+   other required primary body/state/profile proofs, common STYLE/APPID/LAYER/
+   object/default/application/proxy/codepage dependencies and bounded nested
+   INSERT-name traversal. Native name collation and unknown/embedded payload
+   semantics remain separate from the visible source identity namespace.
+3. [ ] **Full live/output and consumer/native parity.** Complete original B2b/B3/C
+   fields/names/roles and source/live/edited/emitted identities, remapping/readback,
+   atomic rollback/retry/destination preservation, IMAGE/document/native-bit/
+   decimal/carrier/schema/owner and performance/memory requirements. Preserve
+   LibreCAD/LibreCAD_3 2D, 3D, dwg2dxf/FreeCAD and independent native platform/
+   ACIS/ACDS semantic/kernel qualification; source namespace facts imply none.
+4. [ ] **Self-update, commit/report and continue available work.** Fast owning
+   tests during edits, exact fresh affected cohorts only at integration boundaries.
+   Preserve real failures/limits/receipts and unrelated samples; commit no external
+   drawing fixtures. Available local target/body/dependency work does not wait
+   for native external qualification.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

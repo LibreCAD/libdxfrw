@@ -48,6 +48,7 @@
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
+#include "intern/dxfidentitysource.h"
 #include "intern/dxfentitiesdelivery.h"
 #include "intern/dxfblockdelivery.h"
 #include "intern/drw_dbg.h"
@@ -14720,6 +14721,16 @@ bool dxfRW::processDxf() {
     DRW_DBG("dxfRW::processDxf() start processing dxf\n");
     int code {-1};
     bool inSection {false};
+    auto* identityHandler=dynamic_cast<DRW_DxfIdentitySourceHandler*>(iface);
+    const bool identitySelected=identityHandler&&identityHandler->wantsDxfIdentitySource();
+    dxfIdentitySource::Capture identitySource(*reader);
+    if(identitySelected)identitySource.start(identityHandler->dxfIdentitySourceLimits());
+    const auto publishIdentity=[&]() {
+        if(!identitySelected)return;
+        identitySource.finish();reader->m_identityPublication=&identitySource.source();
+        struct Clear {const DRW_DxfIdentitySource*& value;~Clear(){value=nullptr;}} clear{reader->m_identityPublication};
+        identityHandler->addDxfIdentitySource(identitySource.source());
+    };
 
     reader->setIgnoreComments( false);
     while (reader->readRec(&code)) {
@@ -14753,6 +14764,7 @@ bool dxfRW::processDxf() {
                         continue;
                     }
                     if (dxfKeywordEquals(sectionstr, "EOF")) {
+                        publishIdentity();
                         return true; //found EOF terminate
                     }
                 }
@@ -14827,7 +14839,7 @@ bool dxfRW::processDxf() {
     if (0 == code && reader->getStringView() == "EOF") {
         // in case the final EOF has no newline we end up here!
         // this is caused by filestr->good() which is false for missing newline on EOF
-        return true;
+        publishIdentity();return true;
     }
 
     return setError(DRW::BAD_UNKNOWN);
@@ -26757,6 +26769,10 @@ bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {
     if(!m_readTextObservationsActive||!reader)return false;
     const auto& view=reader->layoutPublication();if(!view.phase||view.phase>2u)return false;
     out={static_cast<DxfLayoutSourceView::Phase>(view.phase),view.model,view.source};return true;
+}
+
+const DRW_DxfIdentitySource* dxfRW::getDxfIdentitySourceView() const noexcept {
+    return m_readTextObservationsActive&&reader?reader->m_identityPublication:nullptr;
 }
 
 DRW::error dxfRW::getError() const{

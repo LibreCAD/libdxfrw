@@ -1004,6 +1004,10 @@ public:
      * historical evidence, target qualification or an additional callback.
      * Publication state lives in the internal reader, not the public facade. */
     bool getDxfLayoutSourceView(DxfLayoutSourceView&) const noexcept;
+    /** Exact borrowed identity-source publication, only inside its final
+     * callback. Null elsewhere, including after completion or exception. The
+     * reader owns publication state; no public facade layout fields added. */
+    const DRW_DxfIdentitySource* getDxfIdentitySourceView() const noexcept;
     DRW::error getError() const;
     /// Snapshot the first failure and bounded cleanup evidence from the most
     /// recent read/write operation.  The legacy getError() value remains the

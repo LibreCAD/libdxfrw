@@ -17554,6 +17554,27 @@ dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) n
     r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& data) noexcept {
+    using S=IdentitySourceState;IdentitySourceReport r;const auto& s=data.m_tableDxfSource;
+    r.bytes=s.identityBytes;r.work=s.identityWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed) {r.state=S::Reading;return r;}
+    if(!s.successful) {r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
+        ||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded) {r.state=S::ContextMismatch;return r;}
+    if(s.identityCaptureFailed) {r.state=S::CaptureFailed;return r;}
+    if(!s.identityInput)return r;
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    const auto& input=s.identityInput;const auto& audit=s.identityAudit;
+    if(!same(input,s.identityInputOwner)||!audit||!same(audit,s.identityAuditOwner)||!same(audit->input,input)
+        ||input->container!=&data||input->generation!=s.generation||!input->containerId||input->containerId!=data.m_entitiesContainerIdentity.value
+        ||!input->context||!input->source||input->context->sourceVersion!=s.version||input->source->version!=s.version) {r.state=S::ContextMismatch;return r;}
+    r.sections=input->source->sections.size();r.records=input->source->records.size();r.candidates=input->source->candidates.size();
+    r.identities=audit->identities.size();r.missing=audit->missing;r.duplicates=audit->duplicates;r.unknown=audit->unknown;
+    r.admitted=audit->admitted;r.unobserved=audit->unobserved;r.duplicateAdmissions=audit->duplicateAdmissions;r.opaque=audit->opaque;r.dimstyleNames=audit->dimstyleNames;
+    r.state=audit->namespaceReady?S::NamespaceReady:S::Unqualified;return r;
+}
+
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
     using F=dx_tableResourceFamily;
     using S=TableBindingState;
@@ -20102,6 +20123,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if(source.layoutPendingHandle||source.layoutPendingModel)source.layoutCaptureFailed=true;
     source.layoutPendingHandle=0u;source.layoutPendingModel=nullptr;
     if(source.successful)finishLayoutSourceAudits(data);
+    if(source.successful)finishIdentitySourceAudit(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -20871,6 +20893,94 @@ void dx_iface::addLayout(const DRW_Layout& data) {
         return;
     pairLayoutSource(data);
     retainBasicTableTyped(cData, cData->layouts, data, estimateLayoutTypedBytes);
+}
+
+bool dx_iface::wantsDxfIdentitySource() const {
+    return tableSourceCaptureOpen()&&cData->m_tableDxfSource.entitiesReadInput;
+}
+
+void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){s.identityCaptureFailed=true;};
+    dxfRW::DxfReadContext live;
+    if(!tableSourceCaptureOpen()||!s.entitiesReadInput||s.entitiesReadInput->getDxfIdentitySourceView()!=&value
+        ||!s.entitiesReadInput->getDxfReadContext(live)||s.identityInput) {fail();return;}
+    if(live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
+    if(value.status!=DRW_DxfIdentitySource::Status::Complete||value.version!=live.sourceVersion||value.binary!=live.binary
+        ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u||!cData->m_entitiesContainerIdentity.value) {fail();return;}
+    using Input=dx_data::TableDxfSourceCapture::IdentityInput;using Audit=dx_data::TableDxfSourceCapture::IdentityAudit;
+    using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+    std::size_t bytes=sizeof(Input)+sizeof(Audit)+sizeof(value)+sizeof(Context)+32u*sizeof(void*),work=0u;
+    const auto text=[&](std::string_view v){return addAssociativeRetainedBytes(v.size(),bytes);};
+    if(!addAssociativeSlotBytes(value.sections.size(),sizeof(DRW_DxfIdentitySource::SectionSource),bytes)
+        ||!addAssociativeSlotBytes(value.records.size(),sizeof(DRW_DxfIdentitySource::Record)+sizeof(std::pair<const std::uint64_t,std::size_t>)+8u*sizeof(void*),bytes)
+        ||!addAssociativeSlotBytes(value.candidates.size(),sizeof(DRW_DxfIdentitySource::Candidate),bytes)
+        ||!addAssociativeSlotBytes(value.sections.size()+value.records.size()+value.candidates.size(),128u,work)
+        ||!text(live.codecCodePage)||!text(live.declaration)) {fail();return;}
+    for(const auto& row:value.sections)if(!text(row.name)) {fail();return;}
+    for(const auto& row:value.records)if(!text(row.name)||!text(row.tableName)) {fail();return;}
+    for(const auto& row:value.candidates)if(!text(row.lexeme)||!text(row.rawValue)) {fail();return;}
+    if(!addAssociativeRetainedBytes(bytes,work)||bytes>s.maxIdentityBytes||work>s.maxIdentityWork) {fail();return;}
+    s.identityBytes=bytes;s.identityWork=work;
+    try {
+        auto context=std::make_shared<Context>();context->sourceVersion=live.sourceVersion;context->codecVersion=live.codecVersion;
+        context->codecCodePage=live.codecCodePage;context->declaration=live.declaration;context->hasDeclaration=live.hasDeclaration;
+        context->compatibilityProfile=live.compatibilityProfile;context->textEncoding=live.textEncoding;context->codePagePolicy=live.codePagePolicy;
+        context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
+        auto input=std::make_shared<Input>();input->container=cData;input->generation=s.generation;input->containerId=cData->m_entitiesContainerIdentity.value;
+        input->context=std::move(context);input->source=std::make_shared<const DRW_DxfIdentitySource>(value);
+        s.identityInput=std::move(input);s.identityInputOwner=s.identityInput;
+    }catch(...) {fail();}
+}
+
+void dx_iface::finishIdentitySourceAudit(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;if(s.identityCaptureFailed||!s.identityInput)return;
+    using Source=DRW_DxfIdentitySource;using Audit=dx_data::TableDxfSourceCapture::IdentityAudit;
+    try {
+        const auto& source=*s.identityInput->source;auto audit=std::make_shared<Audit>();audit->input=s.identityInput;
+        audit->unknown=source.unmatchedAdmissions;
+        for(const auto& section:source.sections)if(section.kind==Source::Section::Other)++audit->unknown;
+        std::size_t cursor=0u;
+        for(std::size_t index=0u;index<source.records.size();++index) {
+            const auto& record=source.records[index];
+            if(record.section>=source.sections.size()||record.firstCandidate<cursor||record.firstCandidate>source.candidates.size()
+                ||record.candidates>source.candidates.size()-record.firstCandidate) {++audit->unknown;continue;}
+            // A section's unframed candidates cannot disappear between records.
+            while(cursor<record.firstCandidate) {++audit->unknown;++cursor;}
+            bool dimstyle=false;
+            if(record.kind==Source::Kind::TableRecord) {
+                if(record.table>=source.records.size()||source.records[record.table].kind!=Source::Kind::TableControl
+                    ||source.records[record.table].section!=record.section
+                    ||!dx_block_membership::equal(record.name,source.records[record.table].tableName))++audit->unknown;
+                else dimstyle=asciiIdentifierEquals(record.name,"DIMSTYLE");
+            }
+            if(record.kind==Source::Kind::Unclassified)++audit->unknown;
+            std::size_t self=0u;std::uint64_t identity=0u;
+            const auto end=record.firstCandidate+record.candidates;
+            for(;cursor<end;++cursor) {
+                const auto& candidate=source.candidates[cursor];
+                if(candidate.record!=index||candidate.section!=record.section) {++audit->unknown;continue;}
+                if(candidate.scope==Source::Scope::Application) {++audit->opaque;continue;}
+                if(candidate.scope!=Source::Scope::Outer) {++audit->unknown;continue;}
+                if(dimstyle&&candidate.code==5) {++audit->dimstyleNames;continue;}
+                if(candidate.code!=(dimstyle?105:5)) {++audit->unknown;continue;}
+                ++self;std::uint64_t value=0u;
+                const auto& text=candidate.lexeme;
+                if(text.empty()||text.size()>16u) {++audit->unknown;continue;}
+                const auto parsed=std::from_chars(text.data(),text.data()+text.size(),value,16);
+                if(parsed.ec!=std::errc{}||parsed.ptr!=text.data()+text.size()) {++audit->unknown;continue;}
+                identity=value;
+                if(candidate.admission==Source::Admission::Accepted)++audit->admitted;
+                else if(candidate.admission==Source::Admission::None)++audit->unobserved;
+                else if(candidate.admission==Source::Admission::Duplicate)++audit->duplicateAdmissions;
+                else ++audit->unknown;
+            }
+            if(self!=1u||!identity) {++audit->missing;continue;}
+            if(!audit->identities.emplace(identity,index).second)++audit->duplicates;
+        }
+        while(cursor<source.candidates.size()) {++audit->unknown;++cursor;}
+        audit->namespaceReady=source.status==Source::Status::Complete&&source.eofMarker.ordinal&&!audit->missing&&!audit->duplicates&&!audit->duplicateAdmissions&&!audit->unknown;
+        s.identityAudit=std::move(audit);s.identityAuditOwner=s.identityAudit;
+    }catch(...) {s.identityCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfLayoutSource() const {

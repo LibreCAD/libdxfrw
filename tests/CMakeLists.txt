@@ -607,6 +607,10 @@ add_test(NAME libdxfrw_layout_source_proof
     COMMAND libdxfrw_table_content_dxf_tests --layout-source)
 set_tests_properties(libdxfrw_layout_source_proof PROPERTIES
     LABELS "fast;dxf;adapter;source;layout;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_identity_source_namespace
+    COMMAND libdxfrw_table_content_dxf_tests --identity-source)
+set_tests_properties(libdxfrw_identity_source_namespace PROPERTIES
+    LABELS "fast;dxf;adapter;source;identity;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_layout_graph_read_contract
     COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
 set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES

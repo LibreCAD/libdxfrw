@@ -108,6 +108,22 @@ public:
     static const auto& layoutAudits(const dx_data& data) {return data.m_tableDxfSource.layoutAudits;}
     static auto& mutableLayoutAudits(dx_data& data) {return data.m_tableDxfSource.layoutAudits;}
     static const dxfRW* readInput(const dx_data& data) {return data.m_tableDxfSource.entitiesReadInput;}
+    static const auto& identityInput(const dx_data& data) {return data.m_tableDxfSource.identityInput;}
+    static const auto& identityAudit(const dx_data& data) {return data.m_tableDxfSource.identityAudit;}
+    static void identityLimit(dx_data& data,bool work,std::size_t n) {
+        if(work)data.m_tableDxfSource.maxIdentityWork=n;else data.m_tableDxfSource.maxIdentityBytes=n;
+    }
+    static void repeatIdentityAudit(dx_iface& reader,dx_data& data) {
+        auto& s=data.m_tableDxfSource;s.identityAudit.reset();s.identityAuditOwner.reset();s.identityCaptureFailed=false;
+        reader.finishIdentitySourceAudit(data);
+    }
+    static void substituteIdentity(dx_data& data,unsigned which) {
+        auto& s=data.m_tableDxfSource;
+        if(which==0u)s.identityInput=std::make_shared<const dx_data::TableDxfSourceCapture::IdentityInput>(*s.identityInput);
+        else if(which==1u)s.identityAudit=std::make_shared<const dx_data::TableDxfSourceCapture::IdentityAudit>(*s.identityAudit);
+        else if(which==2u)s.identityInput=decltype(s.identityInput)(s.identityInput.get(),[](const auto*){});
+        else s.identityAudit=decltype(s.identityAudit)(s.identityAudit.get(),[](const auto*){});
+    }
     static void layoutLimits(dx_data& data,unsigned which,std::size_t n) {
         auto& s=data.m_tableDxfSource;
         if(which==0u)s.maxLayoutRecords=n;else if(which==1u)s.maxLayoutGroups=n;else if(which==2u)s.maxLayoutBytes=n;else s.maxLayoutWork=n;
@@ -1384,6 +1400,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "entities_compound_controls.h"
 #include "entities_primary_controls.h"
 #include "layout_source_controls.h"
+#include "identity_source_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2897,6 +2914,7 @@ int main(int argc,char** argv) {
     const bool entitiesCompounds=argc==2 && std::string(argv[1])=="--entities-compounds";
     const bool entitiesPrimaries=argc==2 && std::string(argv[1])=="--entities-primaries";
     const bool layoutSource=argc==2 && std::string(argv[1])=="--layout-source";
+    const bool identitySource=argc==2 && std::string(argv[1])=="--identity-source";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2905,10 +2923,10 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

@@ -38,8 +38,20 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
-                 public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler {
+                 public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
+                 public DRW_DxfIdentitySourceHandler {
 public:
+    enum class IdentitySourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NamespaceReady,Unqualified};
+    struct IdentitySourceReport {
+        IdentitySourceState state{IdentitySourceState::NotCaptured};
+        std::size_t sections{0},records{0},candidates{0},identities{0},missing{0},duplicates{0},unknown{0};
+        std::size_t admitted{0},unobserved{0},duplicateAdmissions{0},opaque{0},dimstyleNames{0},bytes{0},work{0};
+        // Source namespace only; no body, actual typed target or output proof.
+        bool ownerTargetsResolved{false},outputEligible{false};
+    };
+    static IdentitySourceReport identitySourceReport(const dx_data&) noexcept;
+    bool wantsDxfIdentitySource() const override;
+    void addDxfIdentitySource(const DRW_DxfIdentitySource&) override;
     enum class LayoutSourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,ProofsReady,Unqualified};
     struct LayoutSourceReport {
         LayoutSourceState state{LayoutSourceState::NotCaptured};
@@ -1673,6 +1685,7 @@ private:
     bool chargeTableSource(std::size_t bytes, std::size_t groups,
                            std::size_t records = 1u) noexcept;
     void finishTableSourceRead(bool success) noexcept;
+    void finishIdentitySourceAudit(dx_data&) noexcept;
     void retainTableSourceDictionary(const DRW_Dictionary& data);
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);

@@ -14,6 +14,7 @@
 #define DRW_INTERFACE_H
 
 #include <cstring>
+#include <limits>
 
 #include "drw_datastorage.h"
 #include "drw_entities.h"
@@ -799,6 +800,57 @@ public:
 struct DRW_DxfPhysicalRecordSpan {
   std::size_t ordinal{0},beginOffset{0},endOffset{0};
   bool ignoredComment{false};
+};
+/** Whole-read physical identity evidence, not object/body/target qualification.
+ * Candidates preserve code 5/105 even in opaque scopes. HEADER/CLASSES are
+ * framing/metadata, not object namespaces. Admission records the real parser's
+ * registry decision; None is NOT proof that a physical identity is absent.
+ */
+struct DRW_DxfIdentitySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  enum class Section : std::uint8_t {Header,Classes,Tables,Blocks,Entities,Objects,Other};
+  enum class Kind : std::uint8_t {TableControl,TableRecord,Entity,Object,Unclassified};
+  enum class Scope : std::uint8_t {Outer,Application,Xdata,Embedded,Unframed};
+  enum class Admission : std::uint8_t {None,Accepted,Null,Duplicate,Invalid};
+  static constexpr std::size_t None=(std::numeric_limits<std::size_t>::max)();
+  struct SectionSource {
+    Section kind{Section::Other};UTF8STRING name;
+    DRW_DxfPhysicalRecordSpan marker,endMarker;
+  };
+  struct Record {
+    Kind kind{Kind::Unclassified};UTF8STRING name,tableName;
+    std::size_t section{None},table{None},firstCandidate{0},candidates{0};
+    DRW_DxfPhysicalRecordSpan marker,endMarker;
+  };
+  struct Candidate {
+    std::size_t record{None},section{None};int code{0};
+    Scope scope{Scope::Unframed};Admission admission{Admission::None};
+    std::size_t repeatedAdmissions{0};UTF8STRING lexeme,rawValue;
+    DRW_DxfPhysicalRecordSpan span;
+  };
+  Status status{Status::NotStarted};DRW::Version version{DRW::UNKNOWNV};bool binary{false};
+  std::vector<SectionSource> sections;std::vector<Record> records;std::vector<Candidate> candidates;
+  DRW_DxfPhysicalRecordSpan eofMarker;
+  std::size_t bytes{0},work{0},scalars{0},ignoredComments{0},unmatchedAdmissions{0};
+};
+struct DRW_DxfIdentitySourceLimits {
+  std::size_t sections{1024u},records{100000u},candidates{400000u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+/** Separate optional facet, latched once before the first scalar. Default
+ * false adds no collection/copy/charging and no DRW_Interface slot. Delivery
+ * follows accepted EOF; a truncated read or earlier throwing callback delivers
+ * nothing. Complete is physical transport, not successful whole import (later
+ * read-budget checks/callbacks can fail), namespace completeness or support.
+ * Own limits/allocation failures report unavailable evidence without rejecting
+ * compatible import; shared read limits still bound extra retained owners.
+ */
+class DRW_DxfIdentitySourceHandler {
+public:
+  virtual ~DRW_DxfIdentitySourceHandler()=default;
+  virtual bool wantsDxfIdentitySource() const {return false;}
+  virtual DRW_DxfIdentitySourceLimits dxfIdentitySourceLimits() const {return {};}
+  virtual void addDxfIdentitySource(const DRW_DxfIdentitySource&)=0;
 };
 struct DRW_DxfPhysicalEntitySource {
   UTF8STRING name;
