@@ -1180,7 +1180,8 @@ bool bindingTests(const std::filesystem::path& dir) {
         {[mapId](auto& t){mapId(t,101,102);},State::InvalidNamespace},
         {[mapId,newStyle](auto& t){mapId(t,101,102);newStyle(t,"65","object-not-local-id");},State::InvalidNamespace},
         {[newStyle](auto& t){newStyle(t,"C103","tablefont-é");},State::AmbiguousIdentity},
-        {[](auto& t){const auto i=slot(t,5,"D002");t[i+1u].value="B200";},State::WrongOwner},
+        // Original ATTDEF/enclosing-owner proof now fails before role lookup.
+        {[](auto& t){const auto i=slot(t,5,"D002");t[i+1u].value="B200";},State::ResourceProofMissing},
         {[](auto& t){t[slot(t,5,"C101")].value="C102";},State::SourceNotReady}, // duplicate physical self identity
         {[](auto& t){const auto begin=slot(t,1,"TABLECELL_BEGIN");t[begin+7u].value="C101";},State::UnknownRole},
         {[](auto& t){t[slot(t,340,"F100")].value="0";},State::MissingTarget},

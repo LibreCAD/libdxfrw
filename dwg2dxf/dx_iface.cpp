@@ -17494,6 +17494,12 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             else if(found->second.family==F::Dictionary)++report.dictionaryProofUses;
             else ++report.xRecordProofUses;
         }
+        if(found->second.family==F::AttributeDefinition) {
+            if(!work(32u))return nullptr;
+            if(!hasMatchedAttdefOrigin(data,handle)){fail(S::ResourceProofMissing,handle);return nullptr;}
+            // This advisory binding still does not set rawTypedMatched or
+            // qualify full compound/dependency/live/output semantics.
+        }
         return &found->second;
     };
     const auto resourceSource=[&](const dx_data::TableDxfSourceCapture::Resource& resource,std::uint32_t handle,bool style) {
@@ -17814,6 +17820,7 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
             &&dxfAttdef::Decoder::sameModel(*definition,*row.attdefModel,equal);
         if(!row.attdefPairMatched)source.resourceProofCaptureFailed=true;
         else proveAttdefSourceFields(data.handle);
+        pairAttdefOrigin(row,*definition);
         return;
     }
     if (!chargeTableResource(0u,0u)) return;
@@ -17957,6 +17964,7 @@ void dx_iface::closeDxfBlockSource() noexcept {
         row.closed=true;
         if(source.blockSourcePending)--source.blockSourcePending;else source.blockSourceCaptureFailed=true;
         if(row.beginPaired&&row.footerPaired&&!source.blockSourceCaptureFailed)proveDxfBlockSource(found->first);
+        closeAttdefOrigins(found->first);
     }
     source.blockSourceActive=0u;
 }
@@ -18261,6 +18269,150 @@ void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t hand
     row.deliveryObserved=true;
 }
 
+bool dx_iface::chargeAttdefOrigin(std::size_t bytes,std::size_t work,bool record) noexcept {
+    auto& source=cData->m_tableDxfSource;
+    if(source.attdefOriginCaptureFailed)return false;
+    if((record&&source.attdefOriginRecords>=source.maxAttdefOriginRecords)
+        ||source.attdefOriginBytes>source.maxAttdefOriginBytes||bytes>source.maxAttdefOriginBytes-source.attdefOriginBytes
+        ||source.attdefOriginWork>source.maxAttdefOriginWork||work>source.maxAttdefOriginWork-source.attdefOriginWork) {
+        source.attdefOriginCaptureFailed=true;return false;
+    }
+    if(record)++source.attdefOriginRecords;
+    source.attdefOriginBytes+=bytes;source.attdefOriginWork+=work;return true;
+}
+
+bool dx_iface::consistentAttdefOrigin(const dx_data::TableDxfSourceCapture& source,const AttdefOriginResource& row,
+                                    const AttdefOriginBlock& block,const dx_data::TableDxfSourceCapture::AttdefOrigin& origin) noexcept {
+    using C=DRW_DxfBlockCallback;
+    if(!origin.generation||origin.generation!=source.generation||!origin.scopeId||!origin.handle
+        ||row.family!=dx_tableResourceFamily::AttributeDefinition||!row.attdefContext.inBlock||row.attdefContext.applyExtrusion
+        ||!row.attdefModel||!row.raw||row.attdefModel!=origin.model||row.raw!=origin.raw
+        ||row.owner!=origin.owner||row.attdefModel->handle!=origin.handle||row.raw->handle!=origin.handle
+        ||row.attdefModel->parentHandle!=origin.owner||row.raw->parentHandle!=origin.owner
+        ||row.attdefBlockHandle!=origin.block||row.attdefBlockRecord!=origin.blockRecord
+        ||!block.original||!block.effective||!block.footer||!block.beginRaw||!block.endRaw
+        ||block.original!=origin.original||block.effective!=origin.effective||block.footer!=origin.footer
+        ||block.beginRaw!=origin.blockBegin||block.endRaw!=origin.blockEnd
+        ||block.original->handle!=origin.block||block.original->parentHandle!=origin.blockRecord
+        ||row.attdefBlockName!=block.effective->name||block.delivery!=origin.delivery||block.children!=origin.children
+        ||!origin.delivery||!origin.children||origin.delivery->scopeId!=origin.scopeId
+        ||origin.delivery->blockHandle!=origin.block||origin.children->blockHandle!=origin.block
+        ||origin.delivery->blockRecord!=origin.blockRecord||origin.children->blockRecord!=origin.blockRecord
+        ||origin.delivery->version!=row.raw->m_version||origin.children->version!=row.raw->m_version
+        ||origin.delivery->binary==row.raw->hasRawValues||origin.children->binary!=origin.delivery->binary
+        ||(row.attdefOrigin&&(origin.index>=block.attdefOrigins.size()||block.attdefOrigins[origin.index]!=origin.handle))
+        ||origin.dispatch>=origin.delivery->dispatches.size()||origin.physical>=origin.children->records.size()
+        ||origin.sourceEvent>=origin.delivery->events.size()||origin.typedEvent>=origin.delivery->events.size()
+        ||origin.typedEvent!=origin.sourceEvent+1u)return false;
+    const auto& dispatch=origin.delivery->dispatches[origin.dispatch];
+    const auto& physical=origin.children->records[origin.physical];
+    const auto& first=origin.delivery->events[origin.sourceEvent];const auto& second=origin.delivery->events[origin.typedEvent];
+    return dispatch.firstEvent==origin.sourceEvent&&dispatch.events==2u
+        &&asciiIdentifierEquals(physical.name,"ATTDEF")&&physical.endOrdinal==origin.end.ordinal
+        &&physical.endOffset==origin.end.beginOffset&&blockDeliverySpanEqual(physical.marker,origin.begin)
+        &&blockDeliverySpanEqual(dispatch.begin,origin.begin)&&blockDeliverySpanEqual(dispatch.end,origin.end)
+        &&first.dispatch==origin.dispatch&&second.dispatch==origin.dispatch&&first.callback==C::AttdefSource&&second.callback==C::addAttDef
+        &&first.hasValue&&second.hasValue&&first.entityType==static_cast<std::int32_t>(DRW::ATTDEF)&&first.entityType==second.entityType
+        &&first.handle==origin.handle&&second.handle==origin.handle&&first.owner==origin.owner&&second.owner==origin.owner;
+}
+
+void dx_iface::captureAttdefOrigin(AttdefOriginResource& row) noexcept {
+    using State=AttdefOriginResource::OriginState;
+    auto& source=cData->m_tableDxfSource;
+    row.attdefOriginState=row.attdefContext.inBlock?State::Unavailable:State::Standalone;
+    if(!row.attdefContext.inBlock)return;
+    const auto found=source.blockSources.find(source.blockSourceActive);
+    if(found==source.blockSources.end()||!found->second.deliveryExpected)return;
+    auto& block=found->second;
+    const auto fail=[&](){row.attdefOriginState=State::Failed;source.attdefOriginCaptureFailed=true;};
+    if(source.attdefOriginCaptureFailed||source.blockDeliveryCaptureFailed||source.blockChildrenCaptureFailed
+        ||!block.delivery||!block.children||block.closed||!block.deliveryPending||!block.deliveryObserved
+        ||block.deliveryNext>=block.delivery->events.size()){fail();return;}
+    // Descriptor/control owner plus conservative index reallocation allowance.
+    constexpr auto bytes=sizeof(dx_data::TableDxfSourceCapture::AttdefOrigin)+8u*sizeof(void*)+4u*sizeof(std::uint32_t);
+    if(!chargeAttdefOrigin(bytes,512u,true)){row.attdefOriginState=State::Failed;return;}
+    const auto& event=block.delivery->events[block.deliveryNext];
+    if(event.dispatch>=block.delivery->dispatches.size()){fail();return;}
+    const auto& dispatch=block.delivery->dispatches[event.dispatch];
+    const auto& records=block.children->records;
+    const auto physical=std::lower_bound(records.begin(),records.end(),dispatch.begin.ordinal,
+        [](const DRW_DxfPhysicalEntitySource& item,std::size_t ordinal){return item.marker.ordinal<ordinal;});
+    if(physical==records.end()||block.deliveryNext==(std::numeric_limits<std::size_t>::max)()){fail();return;}
+    dx_data::TableDxfSourceCapture::AttdefOrigin origin;
+    origin.generation=source.generation;origin.scopeId=block.delivery->scopeId;
+    origin.block=block.delivery->blockHandle;origin.blockRecord=block.delivery->blockRecord;
+    origin.handle=row.attdefModel->handle;origin.owner=row.owner;origin.dispatch=event.dispatch;
+    origin.sourceEvent=block.deliveryNext;origin.typedEvent=block.deliveryNext+1u;
+    origin.physical=static_cast<std::size_t>(physical-records.begin());origin.begin=dispatch.begin;origin.end=dispatch.end;
+    origin.index=block.attdefOrigins.size();
+    origin.delivery=block.delivery;origin.children=block.children;origin.model=row.attdefModel;origin.raw=row.raw;
+    origin.original=block.original;origin.effective=block.effective;origin.footer=block.footer;
+    origin.blockBegin=block.beginRaw;origin.blockEnd=block.endRaw;
+    if(!consistentAttdefOrigin(source,row,block,origin)){fail();return;}
+    try {
+        row.attdefOrigin=std::make_shared<const dx_data::TableDxfSourceCapture::AttdefOrigin>(std::move(origin));
+        block.attdefOrigins.push_back(row.attdefModel->handle);
+        row.attdefOriginState=State::SourceBound;
+    }catch(...){fail();}
+}
+
+void dx_iface::pairAttdefOrigin(AttdefOriginResource& row,const DRW_Attdef& value) noexcept {
+    if(!row.attdefOrigin)return;
+    using State=AttdefOriginResource::OriginState;
+    auto& source=cData->m_tableDxfSource;const auto& origin=*row.attdefOrigin;
+    const auto found=source.blockSources.find(source.blockSourceActive);
+    const auto fail=[&](){row.attdefOriginState=State::Failed;source.attdefOriginCaptureFailed=true;};
+    if(!chargeAttdefOrigin(0u,128u,false)){row.attdefOriginState=State::Failed;return;}
+    if(row.attdefOriginState!=State::SourceBound||found==source.blockSources.end()||source.blockSourceActive!=origin.block
+        ||source.blockDeliveryCaptureFailed||!found->second.deliveryPending||!found->second.deliveryObserved
+        ||found->second.deliveryNext!=origin.typedEvent||!consistentAttdefOrigin(source,row,found->second,origin)
+        ||value.handle!=origin.handle||value.parentHandle!=origin.owner||!row.attdefPairMatched||!row.attdefFieldsMatched) {fail();return;}
+    row.attdefOriginState=State::PairBound;
+}
+
+void dx_iface::closeAttdefOrigins(std::uint32_t handle) noexcept {
+    auto& source=cData->m_tableDxfSource;const auto found=source.blockSources.find(handle);
+    if(found==source.blockSources.end()||source.attdefOriginCaptureFailed)return;
+    auto& block=found->second;
+    for(const auto key:block.attdefOrigins) {
+        if(!chargeAttdefOrigin(0u,128u,false))return;
+        const auto at=source.resources.find(key);
+        if(at==source.resources.end()){source.attdefOriginCaptureFailed=true;return;}
+        auto& row=at->second;using State=AttdefOriginResource::OriginState;
+        if(row.attdefOriginState!=State::PairBound||!row.attdefOrigin
+            ||!consistentAttdefOrigin(source,row,block,*row.attdefOrigin)) {
+            row.attdefOriginState=State::Failed;source.attdefOriginCaptureFailed=true;return;
+        }
+        if(source.blockSourceCaptureFailed||source.blockChildrenCaptureFailed||source.blockDeliveryCaptureFailed
+            ||!block.closed||!block.beginPaired||!block.footerPaired||!block.deliveryFinished||block.deliveryPending
+            ||!block.beginFieldsMatched||!block.footerFieldsMatched||!block.beginProfile.complete()||!block.endProfile.complete()
+            ||block.reconciliation!=AttdefOriginBlock::Reconciliation::Matched||!row.attdefProfile.complete()
+            ||row.owner!=row.attdefOrigin->blockRecord)continue;
+        row.attdefOriginState=State::EnclosingMatched;
+    }
+}
+
+bool dx_iface::hasMatchedAttdefOrigin(const dx_data& data,std::uint32_t handle) noexcept {
+    const auto& source=data.m_tableDxfSource;
+    if(!source.closed||!source.successful||source.failed||source.contextFailed||source.reader||source.generation!=1u
+        ||source.generation!=data.importGeneration||data.sourceFormat!=dx_source_format::DXF||source.version!=data.sourceVersion
+        ||source.version!=data.dxfReadOutcome.sourceVersion||!data.dxfReadOutcome.readReturned||data.dxfReadOutcome.readThrew
+        ||!data.dxfReadOutcome.operationSucceeded||data.dxfReadOutcome.error!=DRW::BAD_NONE
+        ||source.resourceCaptureFailed||source.resourceProofCaptureFailed||source.blockSourceCaptureFailed
+        ||source.blockChildrenCaptureFailed||source.blockDeliveryCaptureFailed||source.attdefOriginCaptureFailed
+        ||data.typedEntityCaptureFailed||data.rawDxfEntityCaptureFailed)return false;
+    const auto found=source.resources.find(handle);if(found==source.resources.end())return false;
+    const auto& row=found->second;
+    if(!row.attdefOrigin||row.attdefOriginState!=AttdefOriginResource::OriginState::EnclosingMatched
+        ||row.awaitingAttdef||!row.attdefPairMatched||!row.attdefFieldsMatched||row.attdefFieldMismatch||!row.attdefProfile.complete())return false;
+    const auto block=source.blockSources.find(row.attdefOrigin->block);
+    if(block==source.blockSources.end())return false;const auto& owner=block->second;
+    return consistentAttdefOrigin(source,row,owner,*row.attdefOrigin)&&owner.closed&&owner.beginPaired&&owner.footerPaired
+        &&owner.beginFieldsMatched&&owner.footerFieldsMatched&&owner.beginProfile.complete()&&owner.endProfile.complete()
+        &&owner.reconciliation==AttdefOriginBlock::Reconciliation::Matched&&owner.deliveryFinished&&!owner.deliveryPending
+        &&row.owner==row.attdefOrigin->blockRecord;
+}
+
 bool dx_iface::wantsDxfAttdefSource() const {
     if(!tableSourceCaptureOpen())return false;
     const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
@@ -18325,6 +18477,7 @@ void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject
         row.attdefBlockRecord=currentBlock->parentHandle;row.attdefBlockName=blockName;
         row.attdefModel=std::make_shared<const DRW_Attdef>(value);
         row.raw=std::make_shared<const DRW_RawDxfObject>(raw);row.awaitingAttdef=true;
+        captureAttdefOrigin(row);
         if(!source.resources.emplace(value.handle,std::move(row)).second)fail();
         else ++source.attdefPending;
     } catch (...) {fail();}

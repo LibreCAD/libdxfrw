@@ -28,6 +28,7 @@
 #include <vector>
 
 class DxIfaceExtensionGraphTestAccess;
+class DxIfaceTableSourceTestAccess;
 
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
@@ -1537,6 +1538,15 @@ private:
     dx_data* m_tableSourceReadData{nullptr};
     void observeDxfBlockDeliveryValue(std::int32_t,std::uint32_t,std::uint32_t,
                                     DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr) noexcept;
+    using AttdefOriginResource=dx_data::TableDxfSourceCapture::Resource;
+    using AttdefOriginBlock=dx_data::TableDxfSourceCapture::BlockSource;
+    bool chargeAttdefOrigin(std::size_t,std::size_t,bool) noexcept;
+    void captureAttdefOrigin(AttdefOriginResource&) noexcept;
+    void pairAttdefOrigin(AttdefOriginResource&,const DRW_Attdef&) noexcept;
+    void closeAttdefOrigins(std::uint32_t) noexcept;
+    static bool consistentAttdefOrigin(const dx_data::TableDxfSourceCapture&,const AttdefOriginResource&,const AttdefOriginBlock&,
+                                      const dx_data::TableDxfSourceCapture::AttdefOrigin&) noexcept;
+    static bool hasMatchedAttdefOrigin(const dx_data&,std::uint32_t) noexcept;
     bool tableSourceCaptureOpen() const noexcept;
     bool chargeTableSource(std::size_t bytes, std::size_t groups,
                            std::size_t records = 1u) noexcept;
@@ -1569,6 +1579,7 @@ private:
     void abortDwgClassEvidenceRead() noexcept;
     friend class DxIfaceExtensionGraphTestAccess;
     friend class DxIfaceStandardDwgCaptureTestAccess;
+    friend class DxIfaceTableSourceTestAccess;
     void rejectStandardDwgObjectCapture() noexcept;
     void retainStandardDwgObjectFrame(const DRW_UnsupportedObject& data);
     void finishStandardDwgObjectCapture(bool successfulRead) noexcept;

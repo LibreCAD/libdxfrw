@@ -1019,6 +1019,17 @@ private:
         std::map<std::uint32_t, DRW_RawDxfObject> rawObjects;
         std::map<std::uint32_t, std::vector<dxfTableContent::Reference>> contentReferences;
         std::size_t contentProofWork{0};
+        struct AttdefOrigin {
+            std::uint64_t generation{0},scopeId{0};
+            std::uint32_t block{0},blockRecord{0},handle{0},owner{0};
+            std::size_t dispatch{0},sourceEvent{0},typedEvent{0},physical{0},index{0};
+            DRW_DxfPhysicalRecordSpan begin,end;
+            std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
+            std::shared_ptr<const DRW_DxfBlockChildrenSource> children;
+            std::shared_ptr<const DRW_Attdef> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw,blockBegin,blockEnd;
+            std::shared_ptr<const DRW_Block> original,effective,footer;
+        };
         struct Resource {
             dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
             std::uint32_t owner{0};
@@ -1033,6 +1044,11 @@ private:
             bool awaitingAttdef{false},attdefPairMatched{false};
             bool attdefFieldsMatched{false},attdefFieldMismatch{false};
             dx_attdef_source::Audit attdefProfile;
+            // Immutable original membership, not a handle-only association or
+            // complete compound/dependency/live/output certificate.
+            std::shared_ptr<const AttdefOrigin> attdefOrigin;
+            enum class OriginState : std::uint8_t {NotCaptured,Standalone,Unavailable,SourceBound,PairBound,EnclosingMatched,Failed};
+            OriginState attdefOriginState{OriginState::NotCaptured};
             std::set<int> styleIds;
             bool duplicateStyleId{false}, invalidStyleId{false}, namespaceComplete{false};
             std::uint32_t cellMapTarget{0};
@@ -1074,6 +1090,7 @@ private:
             std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
             std::size_t deliveryNext{0};
             bool deliveryExpected{false},deliveryPending{false},deliveryObserved{false},deliveryFinished{false};
+            std::vector<std::uint32_t> attdefOrigins;
         };
         std::map<std::uint32_t,BlockSource> blockSources;
         std::uint32_t blockSourceActive{0};
@@ -1089,6 +1106,9 @@ private:
         std::size_t maxBlockDeliveryDispatches{100000u},maxBlockDeliveryEvents{400000u};
         std::size_t maxBlockDeliveryBytes{64u*1024u*1024u},maxBlockDeliveryWork{64u*1024u*1024u};
         bool blockDeliveryCaptureFailed{false};
+        std::size_t attdefOriginRecords{0},attdefOriginBytes{0},attdefOriginWork{0};
+        std::size_t maxAttdefOriginRecords{100000u},maxAttdefOriginBytes{64u*1024u*1024u},maxAttdefOriginWork{64u*1024u*1024u};
+        bool attdefOriginCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

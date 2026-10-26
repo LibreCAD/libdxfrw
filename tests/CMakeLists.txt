@@ -532,6 +532,9 @@ set_tests_properties(libdxfrw_raw_shell_application_scope libdxfrw_acsh_projecti
 add_test(NAME libdxfrw_block_child_delivery COMMAND libdxfrw_attdef_source_tests --block-delivery)
 set_tests_properties(libdxfrw_block_child_delivery PROPERTIES
     LABELS "fast;dxf;block;source;delivery;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_attdef_original_origin COMMAND libdxfrw_attdef_source_tests --attdef-origin)
+set_tests_properties(libdxfrw_attdef_original_origin PROPERTIES
+    LABELS "fast;dxf;block;attdef;source;origin;independent;generated" TIMEOUT 60)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

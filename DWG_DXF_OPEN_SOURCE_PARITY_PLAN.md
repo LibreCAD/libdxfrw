@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dx original BLOCK dispatch origins and observed replay (2026-10-25):** optional staged-delivery manifests now retain original dispatch ordinals/byte intervals, callback roles and frozen convenience identities. The CLI partitions the physical inventory, observes actual callbacks, checks raw/ATTDEF source bodies against original scalars and rejects omitted/duplicate/misrouted/stale-scope delivery. RTEXT, arc-aligned text and large radial subtype slicing is fixed without changing legacy public callbacks. This is original-origin/observed-replay evidence, not complete body/compound/target/live/output qualification. [Implementation and next work](#implementation-progress-rpp-5dx-original-block-dispatch-origins-and-observed-replay-2026-10-25).
+**Newest implementation checkpoint — RPP-5dy immutable ATTDEF resource-to-origin binding (2026-10-25):** selected resources now pin their original BLOCK scope, dispatch, source/typed events, physical record and immutable resource/endpoint owners at the verified source callback. Pair/enclosing phases and successful whole-import context are checked separately; advisory TABLECONTENT lookup requires the resulting origin fact. This does not qualify complete membership, dependencies, editable state or output. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5dy-immutable-attdef-resource-to-origin-binding-2026-10-25) · [receipt](docs/research/rpp5dy-immutable-attdef-resource-origin-binding-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dx original BLOCK dispatch origins and observed replay (2026-10-25):** committed as `039a6704`. Its original dispatch/physical partitions, observed replay, source-body joins and subtype-preserving staging remain valid. RPP-5dy binds selected immutable ATTDEF resources to those origins, not full body/compound/target/live/output qualification. [Historical implementation](#implementation-progress-rpp-5dx-original-block-dispatch-origins-and-observed-replay-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5dw specialized raw shell and ACSH projection scope (2026-10-25):** committed as `9a693b76`. Its shell/projection scope, bounded depth, calibrated byte/node ceilings and exceptional recovery remain valid. RPP-5dx adds actual original dispatch/replay joins and repairs subtype copies, not full membership semantics, native/independent or support qualification. [Historical implementation](#implementation-progress-rpp-5dw-specialized-raw-shell-and-acsh-projection-scope-2026-10-25).
 
@@ -127207,3 +127209,116 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
 mutation or full-goal completion is included.
+
+## Implementation progress RPP-5dy: immutable ATTDEF resource-to-origin binding (2026-10-25)
+
+This checkpoint supersedes RPP-5dx's first next item for selected ATTDEF origin
+association only. It does not complete the remaining original-body, compound,
+target, live-state, output or consumer/platform requirements.
+
+1. [x] Capture an immutable descriptor at the already-observed ATTDEF source
+   callback. Pin generation, BLOCK scope token, dispatch, source/typed events,
+   physical record/span and per-block index, together with the exact frozen
+   model/raw/physical/delivery and original/effective/footer source owners.
+   Require the original physical ATTDEF record and adjacent source/typed roles;
+   a later handle-only lookup or identical-value replacement owner is not enough.
+2. [x] Keep `SourceBound`, `PairBound` and `EnclosingMatched` separate. Pair the
+   actual typed callback only at its expected event after modeled/source-field
+   agreement. Enclosing status additionally requires complete endpoint/ATTDEF
+   profiles, BLOCK_RECORD reconciliation and finished observed replay. Recheck
+   the immutable tuple, first-generation DXF context, successful whole import and
+   typed/raw retention state when querying; a historical enclosing status alone
+   cannot certify a later failed import. Standalone, opted-out, unavailable,
+   profile-pending and failed evidence remain distinguishable.
+3. [x] Require the resulting original-origin/enclosing fact in advisory
+   TABLECONTENT ATTDEF lookup. Keep complete resource/compound/dependency/live/
+   output proof separate. A malformed ATTDEF owner now returns the earlier
+   `ResourceProofMissing`, rather than the later `WrongOwner`; the existing
+   fault remains checked, with its corrected diagnostic and restored retry.
+4. [x] Bound descriptor records, logical retained bytes and inspection work
+   before allocation/visits. Use a per-block handle index rather than scanning
+   all resources for every block. Defaults are 100,000 descriptors and 64 MiB
+   each for logical bytes/work. The allowance includes descriptor/control and
+   conservative index reallocation storage, not whole-process memory or a CPU
+   theorem. Own quota/allocation failures close evidence without changing
+   ordinary input admission; inherited shared-reader failures remain separate.
+   No installed library model, existing callback vtable, DWG parser or writer
+   changes are included.
+
+Owning evidence per configuration:
+
+- [x] **36** actual profiles: four modern versions × ASCII LF/CRLF/Binary ×
+  three ATTDEF forms, with **1,968** independently checked original scalar spans.
+  **18** qualify local enclosing facts; **18** older-version embedded profiles
+  remain `PairBound`, not promoted. Source/typed/endBlock callbacks cannot query
+  a successful whole-import fact prematurely.
+- [x] **52** corrupt/replaced tuple refusals and restorations, **six** exact/
+  one-under quota/refreshed-import retry controls and **four** isolated observed
+  descriptor/index allocation faults with corrected fresh-import recovery and
+  weak-owner teardown. Allocation injection isolates new capture sites using
+  real imported snapshots; the synthetic recapture context is never qualified
+  as a successful source. This is not an all-allocator or leak-detector claim.
+- [x] **Two** mixed-stream imports bind separated A1/A2 resources to distinct
+  dispatches 0/4, source/typed events 0–1/5–6 and physical records 0/9.
+  Reordering the per-block index refuses both, and restoring it recovers both.
+  These are resource-origin facts, not POLYLINE/INSERT compound-role proof.
+- [x] **Eight** ENTITIES/selection-opt-out/missing BLOCK_RECORD boundaries,
+  **two** old-tuple replays against new identical-input owners and **two** later
+  malformed-input cases keep unsupported or failed contexts unqualified. The
+  later-input controls intentionally print read errors.
+- [x] Advisory binding integration retains **eight** version/encoding routes,
+  **240** fault/retry pairs, **64** boundaries, **40** positive variants and
+  **16** destination-preserving export refusals with successful clean retries.
+
+Final affected cohorts pass **33/33 normally in 14.12 s** and **33/33 under ASan
+in 30.73 s**, sequentially, with no failures/skips/disabled cases. Strict owning/
+affected CLI, table-geometry and `lc3_compat_check` builds pass on macOS ARM64
+Apple Clang 21.0.0, C++17 with warnings as errors. ASan uses
+`halt_on_error=1:detect_leaks=0`. An earlier overbroad 68-test selector included
+an unbuilt table-geometry executable (**Not Run**); that target was then built
+in both configurations and included in the final 33. The intermediate result is
+retained, not reported as a green full-source cohort. No full project or
+Autotools distribution suite is repeated. Local mirrored API/CLI checks are not
+native consumer execution or formal binary ABI certification. The
+[RPP-5dy receipt](docs/research/rpp5dy-immutable-attdef-resource-origin-binding-2026-10-25.json)
+records membership, hashes, phase boundaries and limits. No external drawing
+fixture is committed; all new drawing controls are generated locally at runtime.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Original common/body and complete membership proof.** Audit actual
+   physical self/owner/default/alias and application/subclass roles before
+   qualifying modeled children. Join each selected typed/raw body to its own
+   original dispatch and immutable snapshots, including non-SORT/XRECORD/
+   embedded distinctions, scalar spellings and typed markers. Keep unsupported
+   and no-callback dispositions explicit. Add same-ID field edits, wrong roles,
+   dropped/extra members and exact/under/allocation refusal/restoration controls
+   in the existing generated owning harness before changing qualification flags.
+2. [ ] **Logical compound roles, not consumed byte ranges.** Interpret original
+   POLYLINE/VERTEX and INSERT/ATTRIB/SEQEND order, ownership, termination and
+   immutable pairings. Reject cross-dispatch borrowing, orphan/duplicate/missing
+   children and mismatched owners while preserving ordinary compatible reads.
+   Use the existing mixed fixture and independent original-file walker; extend
+   ASCII LF/CRLF/Binary and version coverage without importing external fixtures.
+3. [ ] **Space, transitive targets, editable state and output.** Retain ENTITIES
+   model/paper/BLOCK_RECORD association, selected common/style/APPID/LAYER/object/
+   absent-default/opaque targets, pointer namespaces/remapping and proxy text/
+   codepages. Finish all B2b/B3/C graph/live/output/immutable/editable/compound
+   identities, exact emitted fields/references and atomic rollback/retry/
+   destination preservation. Retain IMAGE/document/native bit/decimal/carrier/
+   schema/owner, speed/ownership/allocation, LibreCAD/LibreCAD_3 2D and 3D,
+   dwg2dxf/FreeCAD and independent semantic/platform requirements.
+4. [ ] **Self-update, safely unblock and report each committed slice.** Reuse
+   existing decoders, immutable owners, physical walkers and generated harnesses.
+   Run fast owning tests per small change; reserve affected normal/ASan cohorts
+   for coherent integration slices rather than every case. Build the selected
+   executables before CTest and use an exact shortlist, not a broad `table_.*`
+   selector. Record actual failures/limits and next ready dependency, commit/
+   report progress and continue within authority. External-only qualifications
+   do not prevent available local work and cannot be replaced by local tests.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
+mutation or full-goal completion is included in this checkpoint.

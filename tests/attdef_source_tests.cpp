@@ -64,6 +64,37 @@ public:
     static bool blockFailed(const dx_data& data) {return data.m_tableDxfSource.blockSourceCaptureFailed;}
     static bool childrenFailed(const dx_data& data) {return data.m_tableDxfSource.blockChildrenCaptureFailed;}
     static bool deliveryFailed(const dx_data& data) {return data.m_tableDxfSource.blockDeliveryCaptureFailed;}
+    using OriginState=dx_data::TableDxfSourceCapture::Resource::OriginState;
+    using Origin=dx_data::TableDxfSourceCapture::AttdefOrigin;
+    static bool originMatched(const dx_iface& iface,const dx_data& data,std::uint32_t handle=0xA1u) {
+        return iface.hasMatchedAttdefOrigin(data,handle);
+    }
+    static bool originFailed(const dx_data& data) {return data.m_tableDxfSource.attdefOriginCaptureFailed;}
+    static const auto* originResource(const dx_data& data,std::uint32_t handle=0xA1u) {
+        const auto at=data.m_tableDxfSource.resources.find(handle);return at==data.m_tableDxfSource.resources.end()?nullptr:&at->second;
+    }
+    static auto& mutableOriginResource(dx_data& data,std::uint32_t handle=0xA1u) {return data.m_tableDxfSource.resources.at(handle);}
+    static auto& mutableOriginBlock(dx_data& data,std::uint32_t handle=0xB1u) {return data.m_tableDxfSource.blockSources.at(handle);}
+    static bool recaptureOrigin(dx_iface& iface,dx_data& data,long fault,long& allocations) {
+        auto& source=data.m_tableDxfSource;auto& row=source.resources.at(0xA1u);auto& owner=source.blockSources.at(0xB1u);
+        auto* previousData=iface.m_tableSourceReadData;auto* previousBlock=iface.currentBlock;
+        iface.m_tableSourceReadData=&data;
+        for(auto* block:data.blocks)if(block->handle==0xB1u)iface.currentBlock=block;
+        source.closed=false;source.successful=false;source.reader=&iface;source.blockSourceActive=0xB1u;
+        owner.closed=false;owner.deliveryFinished=false;owner.deliveryPending=true;owner.deliveryObserved=true;owner.deliveryNext=0u;
+        std::vector<std::uint32_t>().swap(owner.attdefOrigins);row.attdefOrigin.reset();row.attdefOriginState=OriginState::NotCaptured;
+        source.attdefOriginRecords=source.attdefOriginBytes=source.attdefOriginWork=0u;source.attdefOriginCaptureFailed=false;
+        allocationRemaining=fault;iface.captureAttdefOrigin(row);allocations=fault-allocationRemaining;allocationRemaining=-1;
+        iface.m_tableSourceReadData=previousData;iface.currentBlock=previousBlock;
+        return row.attdefOriginState==OriginState::SourceBound&&!source.attdefOriginCaptureFailed;
+    }
+    static std::array<std::size_t,3> originUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.attdefOriginRecords,s.attdefOriginBytes,s.attdefOriginWork};
+    }
+    static void originLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;if(which==0u)s.maxAttdefOriginRecords=n;
+        else if(which==1u)s.maxAttdefOriginBytes=n;else s.maxAttdefOriginWork=n;
+    }
     static bool deliveryTransport(const dx_data& data) {
         const auto* row=block(data);return childrenTransport(data)&&row->delivery&&row->deliveryExpected
             &&row->deliveryFinished&&!row->deliveryPending&&!deliveryFailed(data)
@@ -620,6 +651,7 @@ public:
 #include "raw_application_scope_controls.h"
 #include "raw_shell_scope_controls.h"
 #include "block_delivery_controls.h"
+#include "attdef_origin_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1024,13 +1056,15 @@ int main(int argc,char** argv) {
     const bool acshScope=argc==2&&std::string(argv[1])=="--acsh-scope";
     const bool blockDelivery=argc==2&&std::string(argv[1])=="--block-delivery";
     const bool polymorphic=argc==2&&std::string(argv[1])=="--block-polymorphic";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic)return 2;
+    const bool attdefOrigin=argc==2&&std::string(argv[1])=="--attdef-origin";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     unsigned polymorphicProfiles=0u;
     try {return (polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
+        attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):
         (rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
         blockDelivery?blockDeliveryTests(scratch/"generated.dxf"):
         rawShell?rawShellScopeTests(scratch/"generated.dxf"):
