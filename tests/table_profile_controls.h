@@ -3,9 +3,9 @@
 Tags tableProfileDocument(const std::string& version,bool blocks,bool paper,bool rich,unsigned form=1u) {
     auto tags=rich?tableBodyRichDocument(version,blocks):tableBlockSourceDocument(version,blocks,form);
     if(rich) {
-        // The earlier modeled-replay fixture intentionally includes a text-cell
-        // attribute and a noncanonical value terminator. Neither is independent
-        // semantic evidence: use the documented block-cell attribute shape.
+        // The modeled-replay fixture intentionally includes a text-cell
+        // attribute and duplicate merge flag. Neither is independent semantic
+        // evidence: use the documented block-cell attribute shape here.
         const auto at=blockField(tags,"501",179);tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at),tags.begin()+static_cast<std::ptrdiff_t>(at+3u));
         const auto merged=blockField(tags,"501",173);tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(merged));
         tags[blockField(tags,"501",304)].value="ACVALUE_END";

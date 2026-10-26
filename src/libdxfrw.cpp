@@ -17324,6 +17324,7 @@ bool dxfRW::processTable() {
         return setError(DRW::BAD_CODE_PARSED);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
+        decoder.beforeRecord(code);
         if (0 == code) {
             const DxfEntityBoundary boundary = setEntityBoundary(code);
             DRW_DBG(nextentity); DRW_DBG("\n");

@@ -20663,22 +20663,25 @@ bool retainTableCallback() {
         dx_iface parser;
         const bool imported = parser.fileImport(path.string(), &parsed, false);
         if (!imported || parsed.tables.size() != 1u
-            || parsed.tables.front().m_semanticContentComplete
+            || !parsed.tables.front().m_semanticContentComplete
             || parsed.tables.front().m_content.m_rows.size() != 3u
             || parsed.tables.front().m_content.m_rows[0].m_cells.size() != 2u
             || parsed.tables.front().m_content.m_rows[2].m_cells.size() != 2u)
             return fail(std::string(binary ? "binary" : "ASCII")
-                + " empty CELL_VALUE control lost its bounded TABLE grid or incomplete status");
+                + " empty CELL_VALUE control lost its bounded TABLE grid or complete local value fields");
 
         const DRW_TableCell& blockCell =
             parsed.tables.front().m_content.m_rows[0].m_cells[1];
         if (blockCell.m_type != 2 || blockCell.m_blockHandle != 0x301u
             || !blockCell.m_attributes.empty()
-            || blockCell.m_contents.size() != 2u
+            || blockCell.m_contents.size() != 1u
             || blockCell.m_contents[0].m_type != 4
             || blockCell.m_contents[0].m_handle != 0x301u
-            || blockCell.m_contents[1].m_type != 1
-            || !blockCell.m_contents[1].m_text.empty())
+            || blockCell.m_contents[0].m_value.m_dataType != 4
+            || blockCell.m_contents[0].m_value.m_formatFlags != 1
+            || blockCell.m_contents[0].m_value.m_unitType != 0
+            || blockCell.m_contents[0].m_value.m_value.type() != DRW_Variant::INVALID
+            || !blockCell.m_contents[0].m_text.empty())
             return fail(std::string(binary ? "binary" : "ASCII")
                 + " empty CELL_VALUE was attached to an ATTDEF or replaced the block reference");
 

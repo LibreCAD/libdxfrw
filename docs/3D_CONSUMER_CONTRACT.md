@@ -135,12 +135,12 @@ semantic or geometric qualification.
 scalar/subclass/reference inventory for every selected parent and linked record.
 Opaque application lookalikes remain opaque, while TABLESTYLE342, geometry
 BLOCK_RECORD343, cell BLOCK_RECORD340, FIELD344 and cell ATTDEF331 retain distinct
-roles. In particular343 is not substituted for structural owner330. Full CadValue
-flags/units/object/binary/coordinate forms and table-global formats not retained
-by the current TABLE model are refused rather than treated as header/common data.
-Declared nonstring CELL_VALUE datatypes cannot qualify after text parsing rewrites
-their modeled datatype. This is a refusal of unsupported evidence, not new parser
-acceptance or a claim that those payload semantics are implemented.
+roles. In particular343 is not substituted for structural owner330. The current
+independent physical profile still refuses extended CadValue flags/units/object/
+binary/coordinate envelopes and table-global formats; the structured reader
+retention described below does not extend that evidence gate. Declared nonstring
+CELL_VALUE datatypes cannot qualify through text coercion or same-parser replay.
+Unknown source forms are not reinterpreted as header/common data.
 
 Admitted original TABLE profiles now participate in the existing ENTITIES and
 BLOCKS owner/space/layout joins and their original namespace census. ATTRIB and
@@ -155,12 +155,26 @@ Actual TABLESTYLE/FIELD/block/ATTDEF and common dependencies, editable/live/outp
 native name collation and independent CAD semantics remain separate gates. The
 nine-family resource ledger and existing support/output guards remain closed.
 
-Inside a DXF TABLE `CELL_VALUE`, group93 now populates the value's format flags
-and group94 its units, without overwriting table-level override/border masks.
-This repairs scalar ownership, not full typed-value decoding or qualification:
-the independent profile still refuses these extended envelopes. The legacy
-plain-cell TABLE writer refuses nondefault value flags, units, sizes, format/
-display strings, object IDs or raw bytes that it has no output fields for.
+Inside a DXF TABLE `CELL_VALUE`, an initial group93 identifies structured Value
+flags rather than the older string-only envelope. The scoped decoder retains
+integer/double/string, 2D/3D coordinate, object-reference and date-byte payloads,
+datatype/size/flags/units, and separate format300/display302 strings. It does not
+concatenate the display cache into the payload, overwrite table/cell override
+masks or geometry, or mistake a value330 for the TABLE owner. A suppressed empty
+Value stays attached to its existing block content, without fabricating a text
+or ATTDEF slot. Legacy string-only and multi-content block/attribute associations
+remain distinct. Exact `ACVALUE_END`, required metadata, size/tuple consistency
+and bounded resynchronization govern local completeness; that parser flag is
+not independent semantic qualification. Unknown0 and General512 remain locally
+incomplete; bounded General raw-byte retention does not establish its producer
+mapping. Byte/node admission and finite reached allocation-failure controls cover
+selected operations; binary mirror/display construction commits together.
+
+The independent profile still refuses these extended envelopes. Complete original
+scalar/reference profiles, actual producer/version evidence, row/border overrides,
+dependency closure and exact output proof remain open. The legacy plain-cell
+TABLE writer refuses nondefault value flags, units, sizes, format/display strings,
+object IDs or raw bytes that it has no output fields for.
 Ordinary plain-text/block-cell output retains its existing path; unsupported
 metadata is not silently flattened into that path. Full value emission, scope
 grammar, dependencies and native/semantic qualification remain separate work.

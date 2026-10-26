@@ -543,6 +543,7 @@ protected: //only for read dwg
 private:
 	friend class DRW_Surface;
 	friend class DRW_ModelerGeometry;
+    friend class DRW_Table; // aggregate Value retention uses the shared lease
 	void init(DRW_Entity const& rhs);
 	DRW_Coord extAxisX;
 	DRW_Coord extAxisY;
@@ -1818,7 +1819,7 @@ struct DRW_TableCellContent {
 
 private:
     friend class DRW_Table;
-    // DXF text is stored both here and in m_value.m_value.
+    // Aggregate owned DXF display/payload/format/cache strings and raw bytes.
     std::size_t m_dxfRetainedTextBytes{0u};
 };
 
@@ -2031,6 +2032,8 @@ private:
     std::size_t m_dxfNextCell = 0;
     int m_dxfCurrentCell = -1;
     bool m_dxfInCellValue = false;
+    bool m_dxfStructuredCellValue = false;
+    unsigned m_dxfValueFields = 0u;
     bool m_dxfDataVersionRead = false;
     bool m_dxfTablePropertiesStarted = false;
     bool m_dxfUnsupportedData = false;
@@ -2039,6 +2042,14 @@ private:
     int m_dxfAttributesContentIndex = -1;
 
     void finalizeDxfParse() noexcept;
+    DRW_TableCellContent* dxfValueContent() noexcept;
+    bool parseDxfCellValue(int code, const std::unique_ptr<dxfReader>& reader);
+    bool finishDxfCellValue(const std::unique_ptr<dxfReader>& reader);
+    enum DxfValueField : unsigned {
+        ValueFlags=1u, ValueType=2u, ValuePayload=4u, ValueSize=8u,
+        ValueX=16u, ValueY=32u, ValueZ=64u, ValueUnits=128u,
+        ValueFormat=256u, ValueCache=512u
+    };
 
     void resetDxfParserState() noexcept {
         m_dxfSubclass = DxfSubclass::Entity;
@@ -2049,6 +2060,8 @@ private:
         m_dxfNextCell = 0;
         m_dxfCurrentCell = -1;
         m_dxfInCellValue = false;
+        m_dxfStructuredCellValue = false;
+        m_dxfValueFields = 0u;
         m_dxfDataVersionRead = false;
         m_dxfTablePropertiesStarted = false;
         m_dxfUnsupportedData = false;

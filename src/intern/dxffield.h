@@ -5,6 +5,7 @@
 #include "drw_objects.h"
 #include "dxfreader.h"
 #include "drw_reserve.h"
+#include "dxfvalue.h"
 
 #include <algorithm>
 #include <array>
@@ -17,23 +18,7 @@
 namespace dxfField {
 enum class ReferenceKind {None, ChildField, Object, CadValueObject};
 
-inline bool appendHexChunk(std::string_view text,std::vector<std::uint8_t>& target) {
-    if(target.size()>DRW::kMaxDxfBinaryPayloadBytes || (text.size()&1u)!=0u
-        || text.size()/2u>DRW::kMaxDxfBinaryPayloadBytes-target.size())return false;
-    const auto digit=[](char ch)->int {
-        if(ch>='0'&&ch<='9')return ch-'0';
-        if(ch>='a'&&ch<='f')return ch-'a'+10;
-        if(ch>='A'&&ch<='F')return ch-'A'+10;
-        return -1;
-    };
-    for(std::size_t i=0;i<text.size();i+=2u)if(digit(text[i])<0||digit(text[i+1u])<0)return false;
-    const auto size=target.size()+text.size()/2u;
-    if(size>static_cast<std::size_t>(std::numeric_limits<int>::max())
-        || !DRW::reserve(target,static_cast<int>(size)))return false;
-    for(std::size_t i=0;i<text.size();i+=2u)
-        target.push_back(static_cast<std::uint8_t>((digit(text[i])<<4)|digit(text[i+1u])));
-    return true;
-}
+using dxfValue::appendHexChunk;
 
 class Decoder {
     DRW_Field& field;

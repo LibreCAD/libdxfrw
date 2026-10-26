@@ -42,7 +42,8 @@ struct TableInputProbe final:dx_iface {
         switch(stateFault){case 0:++changed.subclass;break;case 1:++changed.rows;break;case 2:++changed.columns;break;case 3:++changed.currentCell;break;
         case 4:++changed.rowHeights;break;case 5:++changed.columnWidths;break;case 6:++changed.nextCell;break;case 7:changed.inValue=!changed.inValue;break;
         case 8:changed.dataVersion=!changed.dataVersion;break;case 9:changed.properties=!changed.properties;break;case 10:changed.unsupported=!changed.unsupported;break;
-        case 11:++changed.attributesExpected;break;case 12:++changed.attributesRead;break;case 13:++changed.attributesContent;break;default:break;}
+        case 11:++changed.attributesExpected;break;case 12:++changed.attributesRead;break;case 13:++changed.attributesContent;break;
+        case 14:changed.structuredValue=!changed.structuredValue;break;case 15:++changed.valueFields;break;default:break;}
         if(stateFault>=0)DrwEntityEncodeTestAccess::tableState(const_cast<DRW_Table&>(v),changed);
         if(alterField)const_cast<DRW_Table&>(v).m_horizontalDirection.x=42.;
         if(throwSource)throw std::runtime_error("TABLE input source callback");
@@ -110,7 +111,7 @@ bool tableInputTests(const std::filesystem::path& dir) {
         const auto retry=[&](TableInputProbe& reader){reader.clear();dx_data next;return write(path,good,binary)&&reader.fileImport(path.string(),&next,false)&&!reader.bad&&!reader.depth&&complete(next);};
         stage.name="every original private TABLE state field";
         if(!write(path,good,binary))return false;
-        for(int field=0;field<14;++field){TableInputProbe reader;reader.stateFault=field;dx_data data;
+        for(int field=0;field<16;++field){TableInputProbe reader;reader.stateFault=field;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=S::Unqualified||!retry(reader))return false;++states;}
         stage.name="producer identities and callback phases";
         for(int fault=1;fault<=8;++fault){TableInputProbe reader;reader.fault=fault;dx_data data;
@@ -180,5 +181,5 @@ bool tableInputTests(const std::filesystem::path& dir) {
     stage.done=true;std::cout<<"TABLE inputs profiles="<<profiles<<"; original state mutations="<<states<<"; producer refusals="<<refusals<<"; context/owner controls="<<contexts
         <<"; field/pending boundaries="<<boundaries<<"; exact/under quotas="<<quotas<<"; reached allocation faults="<<allocations<<"; callback/tail retries="<<failures<<"; public lifetime/reuse routes="<<views
         <<"; borrowed/owned long-declaration context controls="<<contextFailures<<'\n';
-    return profiles==72u&&states==56u&&refusals==32u&&contexts==45u&&boundaries==12u&&quotas==24u&&allocations==80u&&failures==12u&&views==16u&&contextFailures==8u;
+    return profiles==72u&&states==64u&&refusals==32u&&contexts==45u&&boundaries==12u&&quotas==24u&&allocations==80u&&failures==12u&&views==16u&&contextFailures==8u;
 }

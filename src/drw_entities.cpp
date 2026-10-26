@@ -28,6 +28,7 @@
 #include "intern/dxfreader.h"
 #include "intern/dxfnumber.h"
 #include "intern/dxfparserlimits.h"
+#include "intern/dxfvalue.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/drw_textcodec.h"
@@ -10753,6 +10754,184 @@ bool DRW_Insert::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     return true;
 }
 
+DRW_TableCellContent* DRW_Table::dxfValueContent() noexcept {
+    if(m_dxfCurrentCell<0||m_content.m_columns.empty())return nullptr;
+    const auto index=static_cast<std::size_t>(m_dxfCurrentCell),columns=m_content.m_columns.size();
+    const auto row=index/columns,column=index%columns;
+    if(row>=m_content.m_rows.size()||column>=m_content.m_rows[row].m_cells.size())return nullptr;
+    auto& contents=m_content.m_rows[row].m_cells[column].m_contents;
+    return contents.empty()?nullptr:&contents.back();
+}
+
+bool DRW_Table::parseDxfCellValue(int code,const std::unique_ptr<dxfReader>& reader) {
+    auto* content=dxfValueContent();if(!content||!reader)return false;
+    auto& value=content->m_value;const auto budget=reader->retainedByteBudget();
+    const auto incomplete=[this]() {m_dxfUnsupportedData=true;m_semanticContentComplete=false;};
+    const auto once=[&](unsigned field) {if(m_dxfValueFields&field){incomplete();return false;}m_dxfValueFields|=field;return true;};
+    const auto payload=[&]() {
+        if(!(m_dxfValueFields&ValueType)||(value.m_formatFlags&1)
+            ||(m_dxfValueFields&(ValueUnits|ValueFormat|ValueCache))){incomplete();return false;}
+        return true;
+    };
+    const auto node=[&]() {return value.m_value.type()!=DRW_Variant::INVALID||reader->chargeTypedVariantNode();};
+    const auto replaceText=[&](UTF8STRING& target) {
+        auto decoded=reader->getUtf8String();if(decoded.size()>kMaxTableStringBytes)return false;
+        const auto previous=budget?target.size():0u;std::size_t owned=previous;
+        if(previous>content->m_dxfRetainedTextBytes)return false;
+        if(!replaceDxfRetainedStringField(reader,owned,target,std::move(decoded)))return false;
+        content->m_dxfRetainedTextBytes=content->m_dxfRetainedTextBytes-previous+owned;return true;
+    };
+    switch(code) {
+    case 93: {
+        int flags=0;if(!readDxfIntInRange(reader,0,std::numeric_limits<int>::max(),flags))return false;
+        if(!m_dxfStructuredCellValue&&m_dxfValueFields==0u) {
+            if(!releaseDxfRetainedStringBytes(content->m_dxfRetainedTextBytes))return false;
+            content->m_text.clear();value=DRW_CadValue{};
+        }
+        if(m_dxfValueFields&ValueType)incomplete();
+        m_dxfStructuredCellValue=true;
+        if(once(ValueFlags))value.m_formatFlags=flags;
+        break;
+    }
+    case 90:
+        if(once(ValueType))value.m_dataType=reader->getInt32();
+        break;
+    case 91:
+        if(payload()&&(value.m_dataType==0||value.m_dataType==1)&&once(ValuePayload)) {
+            if(!node())return false;value.m_value.addInt(91,reader->getInt32());
+        }else incomplete();
+        break;
+    case 140:
+        if(payload()&&value.m_dataType==2&&once(ValuePayload)) {
+            const auto number=reader->getDouble();if(!std::isfinite(number)||!node())return false;
+            value.m_value.addDouble(140,number);
+        }else incomplete();
+        break;
+    case 1:case 2: {
+        if(!payload()||value.m_dataType!=4){incomplete();break;}
+        auto decoded=reader->getUtf8String();
+        const auto prior=value.m_value.type()==DRW_Variant::STRING?value.m_value.content.s->size():0u;
+        if(prior>kMaxTableStringBytes||decoded.size()>kMaxTableStringBytes-prior||!node())return false;
+        DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+        const auto bytes=decoded.size();
+        if(!retainDxfReadBytes(m_dxfRetainedStringLease,budget,bytes))return false;
+        value.m_value.appendString(1,std::move(decoded));
+        if(budget)content->m_dxfRetainedTextBytes+=bytes;
+        checkpoint.commit();m_dxfValueFields|=ValuePayload;break;
+    }
+    case 92: {
+        int size=0;
+        if(!readDxfIntInRange(reader,0,static_cast<int>(DRW::kMaxDxfBinaryPayloadBytes),size))return false;
+        if(!payload()||(value.m_dataType!=8&&value.m_dataType!=16&&value.m_dataType!=32&&value.m_dataType!=512)){incomplete();break;}
+        if(once(ValueSize))value.m_dataSize=static_cast<std::uint32_t>(size);
+        break;
+    }
+    case 11:case 21:case 31: {
+        if(!payload()||(value.m_dataType!=16&&value.m_dataType!=32)){incomplete();break;}
+        const auto coordinate=reader->getDouble();if(!std::isfinite(coordinate))return false;
+        if(code==11&&once(ValueX)) {
+            if(!node())return false;value.m_value.addCoord(11,DRW_Coord(coordinate,0.0,0.0));
+        }else if(code==21&&(m_dxfValueFields&ValueX)&&once(ValueY))value.m_value.setCoordY(coordinate);
+        else if(code==31&&value.m_dataType==32&&(m_dxfValueFields&ValueY)&&once(ValueZ))value.m_value.setCoordZ(coordinate);
+        else incomplete();
+        m_dxfValueFields|=ValuePayload;break;
+    }
+    case 330:
+        if(payload()&&value.m_dataType==64&&once(ValuePayload)) {
+            const auto handle=reader->getHandleString();
+            if(handle>std::numeric_limits<std::uint32_t>::max()||!node())return false;
+            value.m_handle=static_cast<std::uint32_t>(handle);
+            value.m_value.addInt(330,static_cast<std::int32_t>(value.m_handle));
+        }else incomplete();
+        break;
+    case 310: {
+        if(!payload()||(value.m_dataType!=8&&value.m_dataType!=512)||!(m_dxfValueFields&ValueSize)){incomplete();break;}
+        const auto text=reader->getStringView();
+        if(text.size()>254u||!dxfValue::validHexChunk(text,value.m_rawData.size(),value.m_dataSize))return false;
+        DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+        const auto bytes=text.size()/2u;
+        if(!retainDxfReadBytes(m_dxfRetainedStringLease,budget,bytes)
+            ||!dxfValue::appendHexChunk(text,value.m_rawData,value.m_dataSize))return false;
+        if(budget)content->m_dxfRetainedTextBytes+=bytes;
+        checkpoint.commit();m_dxfValueFields|=ValuePayload;break;
+    }
+    case 94: {
+        int units=0;if(!readDxfIntInRange(reader,0,std::numeric_limits<int>::max(),units))return false;
+        if(!(m_dxfValueFields&ValueType)||(m_dxfValueFields&(ValueFormat|ValueCache)))incomplete();
+        if(once(ValueUnits))value.m_unitType=units;
+        break;
+    }
+    case 300:
+        if(!(m_dxfValueFields&ValueUnits))incomplete();
+        if(once(ValueFormat)&&!replaceText(value.m_formatString))return false;
+        break;
+    case 302:
+        if(!(m_dxfValueFields&ValueFormat))incomplete();
+        if(once(ValueCache)&&!replaceText(value.m_valueString))return false;
+        break;
+    case 304:
+        if(reader->getStringView()!="ACVALUE_END")incomplete();
+        return finishDxfCellValue(reader);
+    default:incomplete();break;
+    }
+    return true;
+}
+
+bool DRW_Table::finishDxfCellValue(const std::unique_ptr<dxfReader>& reader) {
+    auto* content=dxfValueContent();if(!content||!reader)return false;
+    auto& value=content->m_value;const auto budget=reader->retainedByteBudget();
+    const auto required=ValueFlags|ValueType|ValueUnits|ValueFormat|ValueCache;
+    bool complete=(m_dxfValueFields&required)==required
+        &&(value.m_formatFlags&~3)==0&&hasDocumentedTableCadValueUnits(value);
+    const bool binary=!(value.m_formatFlags&1)&&(value.m_dataType==8||value.m_dataType==512)
+        &&(m_dxfValueFields&ValueSize);
+    if(value.m_formatFlags&1) {
+        complete=complete&&!(m_dxfValueFields&(ValuePayload|ValueSize|ValueX|ValueY|ValueZ));
+    }else switch(value.m_dataType) {
+    case 0:case 1:complete=complete&&value.m_value.type()==DRW_Variant::INTEGER;break;
+    case 2:complete=complete&&value.m_value.type()==DRW_Variant::DOUBLE;break;
+    case 4:complete=complete&&value.m_value.type()==DRW_Variant::STRING;break;
+    case 8:case 512:
+        complete=complete&&binary&&value.m_dataSize==value.m_rawData.size()
+            &&value.m_dataType==8&&value.m_dataSize==8u;
+        break;
+    case 16:case 32: {
+        const auto coordinates=ValueX|ValueY|(value.m_dataType==32?ValueZ:0u);
+        complete=complete&&(m_dxfValueFields&coordinates)==coordinates&&(m_dxfValueFields&ValueSize)
+            &&value.m_value.type()==DRW_Variant::COORD&&value.m_dataSize==(value.m_dataType==16?16u:24u);
+        break;
+    }
+    case 64:complete=complete&&(m_dxfValueFields&ValuePayload)&&value.m_value.type()==DRW_Variant::INTEGER;break;
+    default:complete=false;break;
+    }
+    // Unknown and General DXF values do not acquire semantics from a bounded
+    // byte carrier. The full producer mapping remains independent evidence.
+    if(value.m_dataType==0||value.m_dataType==512)complete=false;
+    const auto display=!binary&&value.m_value.type()==DRW_Variant::STRING
+        ?std::string_view(*value.m_value.content.s):std::string_view(value.m_valueString);
+    if(display.size()>kMaxTableStringBytes)return false;
+    const auto bytes=binary?value.m_rawData.size():0u;
+    const auto oldDisplay=budget?content->m_text.size():0u;
+    const auto oldValue=budget&&binary?(value.m_value.type()==DRW_Variant::STRING?value.m_value.content.s->size()
+        :value.m_value.type()==DRW_Variant::BINARY?value.m_value.binary()->size():0u):0u;
+    if(oldDisplay+oldValue>content->m_dxfRetainedTextBytes)return false;
+    // Admit and construct both destinations before publishing either. A close
+    // failure must not leave a binary mirror without its display/owner charge.
+    if(binary&&value.m_value.type()==DRW_Variant::INVALID&&!reader->chargeTypedVariantNode())return false;
+    DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+    if(!retainDxfReadBytes(m_dxfRetainedStringLease,budget,bytes+display.size()))return false;
+    DRW_Variant payload;if(binary)payload.addBinary(310,value.m_rawData);
+    UTF8STRING text(display);
+    std::size_t replaced=oldDisplay+oldValue;
+    if(!releaseDxfRetainedStringBytes(replaced))return false;
+    if(binary)value.m_value=std::move(payload);
+    content->m_text=std::move(text);
+    if(budget)content->m_dxfRetainedTextBytes=content->m_dxfRetainedTextBytes-oldDisplay-oldValue+bytes+display.size();
+    checkpoint.commit();
+    if(!complete){m_dxfUnsupportedData=true;m_semanticContentComplete=false;}
+    m_dxfInCellValue=false;return true;
+}
+
 bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     auto releaseCellTextOwners = [this](std::vector<DRW_TableCell>& cells,
                                         std::size_t firstCell) {
@@ -10896,7 +11075,9 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 
             content->m_text = std::move(newText);
             content->m_value.m_value = std::move(newValue);
-            content->m_value.m_dataType = 4;
+            if(!m_dxfInCellValue||!(m_dxfValueFields&ValueType))content->m_value.m_dataType=4;
+            else if(content->m_value.m_dataType!=4){m_dxfUnsupportedData=true;m_semanticContentComplete=false;}
+            if(m_dxfInCellValue)m_dxfValueFields|=ValuePayload;
             return true;
         }
         return false;
@@ -10961,6 +11142,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         }
     };
 
+    if(m_dxfInCellValue&&code==100){markIncomplete();return true;}
     if (code == 100) {
         const std::string_view subclass = reader->getStringView();
         if (subclass == "AcDbBlockReference") {
@@ -10976,10 +11158,20 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     if (m_dxfSubclass != DxfSubclass::Table)
         return DRW_Insert::parseCode(code, reader);
 
+    if(m_dxfInCellValue&&(code==102||code>=1000)) {
+        markIncomplete();return DRW_Entity::parseCode(code,reader);
+    }
+    if(m_dxfInCellValue&&(code==171||code==301)){markIncomplete();m_dxfInCellValue=false;}
+    if(m_dxfInCellValue&&(m_dxfStructuredCellValue||code==93))return parseDxfCellValue(code,reader);
+    if(m_dxfStructuredCellValue&&!m_dxfInCellValue&&(code==1||code==2||code==302||code==303)) {
+        markIncomplete();return true;
+    }
     if (m_dxfInCellValue
         && (code == 11 || code == 21 || code == 31 || code == 140
-            || code == 310 || code == 330))
+            || code == 310 || code == 330)) {
+        markIncomplete();
         return true;
+    }
 
     if (m_dxfAttributesExpected >= 0
         && m_dxfAttributesRead != m_dxfAttributesExpected
@@ -11022,6 +11214,8 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 90:
         if (m_dxfInCellValue) {
+            if(m_dxfValueFields&ValueType)markIncomplete();
+            m_dxfValueFields|=ValueType;
             if (DRW_TableCellContent *content = currentContent())
                 content->m_value.m_dataType = reader->getInt32();
             else
@@ -11200,6 +11394,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         }
         break;
     case 171:
+        m_dxfStructuredCellValue=false;m_dxfValueFields=0u;
         if (!ensureGrid())
             return false;
         if (m_dxfAttributesExpected >= 0
@@ -11229,8 +11424,14 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 301:
         m_dxfInCellValue = reader->getStringView() == "CELL_VALUE";
-        if (m_dxfInCellValue)
-            currentContent();
+        m_dxfStructuredCellValue=false;m_dxfValueFields=0u;
+        if (m_dxfInCellValue) {
+            auto* cell=currentCell();
+            if(!cell){markIncomplete();m_dxfInCellValue=false;break;}
+            // Wait for93 before selecting structured Value semantics. Legacy
+            // FIELD/block preludes still create their own text slot on use.
+            if(cell->m_contents.empty())currentContent();
+        }
         break;
     case 1:
     case 2:
@@ -11281,7 +11482,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             if (content != nullptr) {
                 content->m_type = 2;
                 content->m_handle = static_cast<std::uint32_t>(reader->getHandleString());
-                content->m_value.m_handle = content->m_handle;
+                if(!m_dxfStructuredCellValue)content->m_value.m_handle = content->m_handle;
                 if (m_content.m_fieldHandles.size() >= kMaxTableItems)
                     return false;
                 m_content.m_fieldHandles.push_back(content->m_handle);
@@ -11502,6 +11703,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         markIncomplete();
         break;
     case 304:
+        if(!m_dxfInCellValue||reader->getStringView()!="ACVALUE_END")markIncomplete();
         m_dxfInCellValue = false;
         break;
     default:
@@ -11514,7 +11716,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 void DRW_Table::finalizeDxfParse() noexcept {
     if (!m_hasSemanticContent)
         return;
-    if (m_dxfUnsupportedData || m_dxfRowsExpected < 0
+    if (m_dxfUnsupportedData || m_dxfInCellValue || m_dxfRowsExpected < 0
         || m_dxfColumnsExpected < 0
         || m_content.m_rows.size() != static_cast<std::size_t>(m_dxfRowsExpected)
         || m_content.m_columns.size() != static_cast<std::size_t>(m_dxfColumnsExpected)
@@ -11768,6 +11970,8 @@ void DRW_Table::resetDwgState() {
     m_dxfNextCell = 0;
     m_dxfCurrentCell = -1;
     m_dxfInCellValue = false;
+    m_dxfStructuredCellValue = false;
+    m_dxfValueFields = 0u;
     m_dxfDataVersionRead = false;
     m_dxfTablePropertiesStarted = false;
     m_dxfUnsupportedData = false;

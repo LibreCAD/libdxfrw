@@ -14,10 +14,11 @@ struct SourceState {
     unsigned subclass{0};int rows{-1},columns{-1},currentCell{-1};
     std::size_t rowHeights{0},columnWidths{0},nextCell{0};
     bool inValue{false},dataVersion{false},properties{false},unsupported{false};
+    bool structuredValue{false};unsigned valueFields{0u};
     int attributesExpected{-1},attributesRead{0},attributesContent{-1};
     bool operator==(const SourceState& b) const noexcept {
-        return common==b.common&&std::tie(subclass,rows,columns,currentCell,rowHeights,columnWidths,nextCell,inValue,dataVersion,properties,unsupported,attributesExpected,attributesRead,attributesContent)
-            ==std::tie(b.subclass,b.rows,b.columns,b.currentCell,b.rowHeights,b.columnWidths,b.nextCell,b.inValue,b.dataVersion,b.properties,b.unsupported,b.attributesExpected,b.attributesRead,b.attributesContent);
+        return common==b.common&&std::tie(subclass,rows,columns,currentCell,rowHeights,columnWidths,nextCell,inValue,dataVersion,properties,unsupported,attributesExpected,attributesRead,attributesContent,structuredValue,valueFields)
+            ==std::tie(b.subclass,b.rows,b.columns,b.currentCell,b.rowHeights,b.columnWidths,b.nextCell,b.inValue,b.dataVersion,b.properties,b.unsupported,b.attributesExpected,b.attributesRead,b.attributesContent,b.structuredValue,b.valueFields);
     }
     bool hasNoPendingXdata() const noexcept{return common.hasNoPendingXdata();}
 };
@@ -26,13 +27,19 @@ class Decoder {
     DRW_Table& value;
 public:
     explicit Decoder(DRW_Table& v):value(v){}
-    bool parseCode(int code,const std::unique_ptr<dxfReader>& reader){return value.parseCode(code,reader);}
+    void beforeRecord(int code) noexcept {
+        if(value.m_dxfInCellValue&&(code==102||code>=1000)) {
+            value.m_dxfUnsupportedData=true;value.m_semanticContentComplete=false;
+        }
+    }
+    bool parseCode(int code,const std::unique_ptr<dxfReader>& reader){beforeRecord(code);return value.parseCode(code,reader);}
     void finish() noexcept{value.finalizeDxfParse();}
     static SourceState observe(const DRW_Table& v) noexcept {
         SourceState s;s.common=dxfCompound::Decoder::observe(v);s.subclass=static_cast<unsigned>(v.m_dxfSubclass);
         s.rows=v.m_dxfRowsExpected;s.columns=v.m_dxfColumnsExpected;s.currentCell=v.m_dxfCurrentCell;
         s.rowHeights=v.m_dxfRowHeightsRead;s.columnWidths=v.m_dxfColumnWidthsRead;s.nextCell=v.m_dxfNextCell;
         s.inValue=v.m_dxfInCellValue;s.dataVersion=v.m_dxfDataVersionRead;s.properties=v.m_dxfTablePropertiesStarted;s.unsupported=v.m_dxfUnsupportedData;
+        s.structuredValue=v.m_dxfStructuredCellValue;s.valueFields=v.m_dxfValueFields;
         s.attributesExpected=v.m_dxfAttributesExpected;s.attributesRead=v.m_dxfAttributesRead;s.attributesContent=v.m_dxfAttributesContentIndex;return s;
     }
     // Exact modeled equality only: no scalar inventory, target resolution or
