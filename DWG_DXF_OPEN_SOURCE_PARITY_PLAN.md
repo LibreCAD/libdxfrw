@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5eb compound physical profiles and opaque handle scopes (2026-10-26):** admitted compound records now have original scalar/scope/field/reference-role profiles, separately gated from modeled replay. A reproduced opaque application-handle width refusal is fixed without widening typed owner/reactor/dictionary fields; literal source reconstruction stays distinct from output remapping. The 51-test normal / 51-test ASan affected cohorts and 18 final normal owning rechecks pass. Complete block/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26) · [receipt](docs/research/rpp5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ec selected BLOCK source binding (2026-10-26):** geometry-block and selected ATTDEF-owner bindings now require a unique original definition, pinned BLOCK_RECORD reconciliation owners, all admitted original members and consistent linked-host space flags. Direct role proof remains separately visible; TABLE space-owner metadata cannot certify ENTITIES. The affected cohorts pass 52/52 normally and 52/52 under ASan. Complete primary-family coverage, ENTITIES space/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ec-selected-block-source-binding-2026-10-26) · [receipt](docs/research/rpp5ec-selected-block-source-binding-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5eb compound physical profiles and opaque handle scopes (2026-10-26):** committed as `ce2c8cd4`. Its original compound scalar/scope/field/reference-role profiles, scoped opaque handle preservation and literal-source/output-remapping distinction remain valid. The 51-test normal / 51-test ASan affected cohorts and 18 final normal owning rechecks pass. RPP-5ec adds selected definition prerequisites, not full primary-family, ENTITIES, dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26) · [receipt](docs/research/rpp5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ea immutable compound bodies and original modeled replay (2026-10-25):** committed as `db4bdbef`. Its immutable snapshots, shared decoder, original replay and delivered/pre-copy state distinctions remain valid. RPP-5eb adds admitted physical field profiles and fixes an opaque-handle prerequisite, not complete dependency/live/output or external semantic qualification. [Historical implementation](#implementation-progress-rpp-5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25.json).
 
@@ -127737,6 +127739,135 @@ Next implementation-ready sequence (full objective retained):
    not full suites per item. Record actual failures and limitations, update the
    plan/receipt, commit/report verified slices and continue local work. Do not
    commit external drawing fixtures or promote support from local green tests.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
+completion is included in this checkpoint.
+
+## Implementation progress — RPP-5ec selected BLOCK source binding (2026-10-26)
+
+This implements the selected-definition prerequisite of RPP-5eb's next item,
+not its entire block/space/dependency objective. `Bound` in this advisory report
+is not a support or output certificate. An original BLOCK_RECORD row and direct
+resource roles alone do not establish the contents of a selected definition.
+
+Implemented:
+
+1. [x] Queue geometry BLOCK_RECORD references and selected ATTDEF owners for a
+   stronger definition check in the actual TABLE binding report. Preserve the
+   historical ATTDEF origin fact; do not silently redefine it as whole-block
+   semantics. Expose `directRolesBound` separately from the selected-definition
+   result, including failures after the direct-role stage.
+2. [x] Require a unique original BLOCK per selected record, successful actual
+   first-generation container-bound import, paired/replayed/profiled endpoints,
+   complete original structural membership and observed callback delivery.
+   Pin the exact immutable BLOCK_RECORD model/raw owners used by endpoint
+   reconciliation; an identical-looking replacement cannot borrow that fact.
+   The two new shared owners are included in the existing `sizeof(BlockSource)`
+   logical charge and do not copy the record payloads.
+3. [x] Account for every physical member of the selected definition. ATTDEF
+   resources must match their exact original block/dispatch/member origin;
+   POLYLINE/INSERT families require their existing original modeled replay and
+   complete physical profiles. Other primary, raw and no-callback records refuse
+   whole-definition evidence explicitly, while ordinary reader admission stays
+   compatible. Unknown endpoint/member fields and unsupported embedded ATTRIB
+   revisions likewise cannot inherit another member's positive evidence.
+4. [x] Check linked POLYLINE/VERTEX/SEQEND and INSERT/ATTRIB/SEQEND host-space
+   consistency, including absent/default model-space flags. Autodesk's
+   [complex-entity consistency guidance](https://help.autodesk.com/cloudhelp/2024/FRA/AutoCAD-AutoLISP/files/GUID-7DA0E2BA-963F-4E41-AF33-C6B9D89D4688.htm)
+   informs this prerequisite. It is not a blanket rule equating a named BLOCK's
+   endpoint flags to all its children, an embedded MTEXT host rewrite, or an
+   independently executed CAD validity witness. Preserve existing logical
+   sequence-parent versus physical footer-owner distinctions.
+5. [x] Deduplicate selected definitions and construct one bounded sorted reverse
+   index per report, rather than scan all blocks for every ATTDEF/content use.
+   Precharge index/queue logical workspace under a 64 MiB query ceiling and
+   visits under the existing binding-work ceiling. Exact and one-under limits
+   are exercised. These are logical allowances, not allocator RSS or strict
+   CPU/leak-detector bounds. Allocation failure refuses the query without
+   mutating or poisoning the immutable source; an unmodified retry succeeds.
+6. [x] Keep TABLE model/paper-space owner metadata and arbitrary ObjectIDs out of
+   the geometry-definition queue. A metadata-only direct-role report can remain
+   `Bound` with zero qualified definitions; this explicitly does NOT establish
+   ENTITIES/model/paper/BLOCK_RECORD closure or output eligibility. Empty and
+   multiple selected definitions are checked, and an unrelated unselected raw
+   definition does not broaden or invalidate the selected-body claim.
+7. [x] Reuse the independent original-file scalar observer in both owning test
+   executables. Correct its floating-point width table for 110..149/460..469,
+   including the newly exercised Binary DXF 140/144 values, consistent with the
+   [Autodesk group-code reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm).
+   Guard numeric input bounds and captured parallel-array cardinalities. A test
+   mutation initially also reached TABLE's attribute-free compatibility INSERT;
+   ASan identified that harness error and mutations now select only the authored
+   physical compound. Neither harness correction is a production parser defect
+   claim or independent external semantic evidence.
+
+Owning evidence per final configuration:
+
+- [x] **60** four-version x ASCII LF/CRLF/Binary x five-definition source cells:
+  **51** complete admitted definitions and **nine** explicit earlier-version
+  embedded-ATTRIB profile refusals, all with compatible actual import. The
+  independent observer checks **5,184** exact original member scalar spans,
+  values, numeric bits, spellings, ordinals and byte boundaries. Original
+  source is still unqualified during child callbacks.
+- [x] **44** wire-case/corrected-import controls cover missing/duplicate
+  definitions, unsupported/raw/no-callback members, unknown scalars/subclasses,
+  endpoint gaps, linked-space conflicts, valid paper-space chains, physical
+  footer owners, empty INSERTs, ATTDEF-owner-only selection, empty/multiple
+  selected definitions, unselected raw definitions and the metadata-only scope
+  boundary. These include positive variants, not 44 malformed-input claims.
+- [x] **12** callback-model mismatch/corrected-import retries; **eight** exact/
+  one-under query byte/work controls; **ten** observed query allocation faults,
+  including **two** after direct-role proof, with unmodified successful retries;
+  **14** replaced/copied/opt-out/appended context refusals/restorations; **four**
+  child-callback exception/corrected-import retries. Allocation counts are
+  observations on this host, not portable STL thresholds.
+
+Final validation: strict normal and ASan affected library/CLI, resource,
+polyface/MTEXT and local consumer targets plus `lc3_compat_check` builds pass on
+macOS ARM64 Apple Clang 21.0.0, C++17 with warnings as errors. The affected
+cohorts pass **52/52 normally in 80.67 s** and **52/52 under ASan in 164.87 s**,
+without failures/skips/disabled cases. Runtime cohorts are sequential, with
+`halt_on_error=1:detect_leaks=0`; normal runtime overlapped ASan compilation,
+not ASan runtime, so elapsed times are not paired speed benchmarks. No full
+project/distribution suite, native LibreCAD/FreeCAD platform run or formal
+binary ABI certification is claimed. No external drawing fixture is added.
+Installed model/vtable and DWG byte-parser/encoder sources are unchanged. This
+work compares the old direct stage with the new selected-definition prerequisite;
+it is not a separately rebuilt pristine-parent defect qualification. The
+[RPP-5ec receipt](docs/research/rpp5ec-selected-block-source-binding-2026-10-26.json)
+records exact scope, test membership/counts, hashes and limitations.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **ENTITIES space and remaining primary members.** Extend the existing
+   original physical-record and observed callback mechanisms to actual ENTITIES
+   section contexts, retaining original scope/ordinals/owners and successful
+   first-generation container binding. Resolve real model/paper/BLOCK_RECORD
+   associations with absent/default and conflicting-space controls; never infer
+   them from a TABLE owner's row alone. Add modeled/profile evidence for selected
+   primary families currently refused by this gate, while leaving unsupported
+   raw/no-callback and secondary/header arrangements explicitly unqualified.
+2. [ ] **Transitive targets.** Reuse the deduplicated bounded worklist/index
+   approach for nested INSERT names, common/style/APPID/LAYER/object references,
+   absent defaults and pinned target owners. Keep names, handles and local IDs
+   distinct; test cycles, unresolved/ambiguous names, owner substitutions and
+   exact/under budgets. Opaque 320..329 values are not remapped targets, and
+   specialized application grammars/proxy text/codepages need their own proof.
+3. [ ] **Live/output and complete original parity.** Finish B2b/B3/C source/live/
+   editable/output graph and compound identities, full common/body fields,
+   exact emitted references and atomic rollback/retry/destination preservation.
+   Retain original IMAGE/document/native-bit/decimal/carrier/schema/owner,
+   speed/memory, LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD requirements.
+   Native consumers and independent external semantic/platform qualification
+   remain separate gates, not consequences of local source evidence.
+4. [ ] **Self-update and continue.** Use fast owning tests during edits and
+   freshly built exact affected normal/ASan cohorts at integration boundaries,
+   not full suites per item. Record failures and limits, update the plan and
+   receipt, commit/report each verified slice and continue available local work.
+   Preserve unrelated samples and do not commit external drawing fixtures.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

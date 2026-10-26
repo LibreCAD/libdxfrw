@@ -61,7 +61,9 @@ public:
     enum class TableBindingState {
         SourceNotReady, CaptureFailed, WorkLimit, MissingTarget, WrongFamily,
         AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner,
-        ResourceProofMissing, ResourceRawTypedMismatch, WrongSymbolKind
+        ResourceProofMissing, ResourceRawTypedMismatch, WrongSymbolKind,
+        BlockSourceMissing, AmbiguousBlockDefinition, BlockSourceIncomplete,
+        BlockMemberUnsupported, BlockMemberMismatch, BlockSpaceMismatch
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
@@ -76,9 +78,15 @@ public:
         std::size_t fieldProofUses{0}, dataLinkProofUses{0};
         std::size_t dictionaryProofUses{0}, xRecordProofUses{0};
         std::size_t blockRecordProofUses{0};
+        std::size_t blockSourceDefinitions{0},blockSourceMembers{0},blockSourceWorkspaceBytes{0};
+        std::uint32_t firstSourceBlock{0};
+        std::size_t firstSourceMember{(std::numeric_limits<std::size_t>::max)()};
+        bool directRolesBound{false}; // not full block/dependency/live/output proof
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
-        // qualification remain separate gates.
+        // qualification remain separate gates. Geometry-block/ATTDEF-owner
+        // selections additionally require their complete admitted definition;
+        // a TABLE's space-owner record is metadata, not an ENTITIES certificate.
         bool outputEligible{false};
     };
     static TableContentBindingReport tableContentBindingReport(const dx_data& data) noexcept;
@@ -1548,6 +1556,7 @@ private:
     bool replayDxfCompoundBody(CompoundBody&);
     static bool hasMatchedCompoundBody(const dx_data&,std::uint32_t,std::size_t) noexcept;
     static bool hasMatchedCompoundSource(const dx_data&,std::uint32_t,std::size_t) noexcept;
+    static TableBindingState inspectTableBlockSource(const dx_data&,std::uint32_t,std::uint32_t,TableContentBindingReport&) noexcept;
     bool chargeAttdefOrigin(std::size_t,std::size_t,bool) noexcept;
     void captureAttdefOrigin(AttdefOriginResource&) noexcept;
     void pairAttdefOrigin(AttdefOriginResource&,const DRW_Attdef&) noexcept;

@@ -1096,6 +1096,10 @@ private:
         struct BlockSource {
             std::shared_ptr<const DRW_Block> original,effective,footer;
             std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
+            // Exact table-row owners used by endpoint reconciliation, not a
+            // later handle-only lookup of an interchangeable model/raw pair.
+            std::shared_ptr<const DRW_TableEntry> recordModel;
+            std::shared_ptr<const DRW_RawDxfObject> recordRaw;
             dxfAttdef::SourceState::Cursor originalCursor,footerCursor;
             bool beginPaired{false},footerPaired{false},closed{false};
             bool beginFieldsMatched{false},footerFieldsMatched{false};
@@ -1134,6 +1138,7 @@ private:
         std::size_t compoundBodyRecords{0},compoundBodyBytes{0},compoundBodyWork{0};
         std::size_t maxCompoundBodyRecords{100000u},maxCompoundBodyBytes{64u*1024u*1024u},maxCompoundBodyWork{64u*1024u*1024u};
         bool compoundBodyCaptureFailed{false};
+        std::size_t maxBlockBindingBytes{64u*1024u*1024u};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

@@ -17428,6 +17428,8 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     try {
     std::vector<std::uint32_t> pendingLineTypes;
     std::set<std::uint32_t> queuedLineTypes;
+    std::vector<std::uint32_t> pendingBlocks;
+    std::set<std::uint32_t> queuedBlocks;
     const auto fail=[&](S state,std::uint32_t handle) {
         if (report.state==S::Bound) {report.state=state;report.firstHandle=handle;}
     };
@@ -17436,6 +17438,19 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             report.state=S::WorkLimit; return false;
         }
         report.examinedSlots+=slots; return true;
+    };
+    const auto workspace=[&](std::size_t bytes) {
+        if(report.blockSourceWorkspaceBytes>source.maxBlockBindingBytes
+            ||bytes>source.maxBlockBindingBytes-report.blockSourceWorkspaceBytes){report.state=S::WorkLimit;return false;}
+        report.blockSourceWorkspaceBytes+=bytes;return true;
+    };
+    const auto queueBlock=[&](std::uint32_t handle) {
+        if(!work(1u))return false;
+        if(queuedBlocks.count(handle))return true;
+        // Set node and conservative vector reallocation allowance. This is
+        // logical query workspace, not retained source bytes or allocator RSS.
+        if(!workspace(8u*sizeof(void*)+sizeof(handle)))return false;
+        queuedBlocks.insert(handle);pendingBlocks.push_back(handle);return true;
     };
     const auto coreFamily=[&](std::uint32_t handle,F& family) {
         unsigned count=0u;
@@ -17446,7 +17461,7 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if (source.xrecords.count(handle)) {family=F::XRecord;++count;}
         return count;
     };
-    const auto lookup=[&](std::uint32_t handle,F expected,bool any=false,bool shapeStyle=false)
+    const auto lookup=[&](std::uint32_t handle,F expected,bool any=false,bool shapeStyle=false,bool blockBody=false)
             ->const dx_data::TableDxfSourceCapture::Resource* {
         const auto found=source.resources.find(handle);
         F core=F::Entity;
@@ -17479,6 +17494,7 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
                     ++report.unknownResourceReferences;fail(S::UnknownRole,ref.value);return nullptr;
                 }
                 ++report.blockRecordProofUses;
+                if(blockBody&&!queueBlock(handle))return nullptr;
             } else ++report.symbolProofUses;
         }
         if(found->second.family==F::Field || found->second.family==F::DataLink
@@ -17498,6 +17514,7 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if(found->second.family==F::AttributeDefinition) {
             if(!work(32u))return nullptr;
             if(!hasMatchedAttdefOrigin(data,handle)){fail(S::ResourceProofMissing,handle);return nullptr;}
+            if(!queueBlock(found->second.owner))return nullptr;
             // This advisory binding still does not set rawTypedMatched or
             // qualify full compound/dependency/live/output semantics.
         }
@@ -17607,7 +17624,7 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             case K::UnknownGeometry:fail(S::UnknownRole,reference.value);continue;
             default:fail(S::UnknownRole,reference.value);continue;
             }
-            if (lookup(reference.value,expected)) ++report.boundReferences;
+            if (lookup(reference.value,expected,false,false,reference.kind==K::BlockRecord)) ++report.boundReferences;
         }
         // Only an explicit block-content association establishes this owner
         // role. Do not guess one for FIELD/value contents carrying attributes.
@@ -17642,6 +17659,26 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
                 ++report.unknownResourceReferences;fail(S::UnknownRole,reference.value);
             }
         }
+    }
+    report.directRolesBound=report.state==S::Bound;
+    if(report.state!=S::Bound||pendingBlocks.empty())return report;
+    // One bounded reverse index per report, not a full scan for each selected
+    // ATTDEF/block-content use. Duplicate definitions cannot borrow a first hit.
+    using BlockIndex=std::pair<std::uint32_t,std::uint32_t>;
+    const auto n=source.blockSources.size();std::size_t bytes=0u,indexWork=0u,levels=0u;
+    for(auto k=n;k;k>>=1u)++levels;
+    if(!addAssociativeSlotBytes(n,sizeof(BlockIndex),bytes)||!workspace(bytes)
+        ||!addAssociativeSlotBytes(n,levels+1u,indexWork)||!work(indexWork)) {report.state=S::WorkLimit;return report;}
+    std::vector<BlockIndex> index;index.reserve(n);
+    for(const auto& block:source.blockSources)if(block.second.original)index.emplace_back(block.second.original->parentHandle,block.first);
+    std::sort(index.begin(),index.end());
+    for(const auto handle:pendingBlocks) {
+        if(!work(levels+2u))return report;
+        const auto at=std::lower_bound(index.begin(),index.end(),BlockIndex{handle,0u});
+        if(at==index.end()||at->first!=handle){fail(S::BlockSourceMissing,handle);return report;}
+        if(at+1u!=index.end()&&(at+1u)->first==handle){fail(S::AmbiguousBlockDefinition,handle);return report;}
+        const auto state=inspectTableBlockSource(data,handle,at->second,report);
+        if(state!=S::Bound){fail(state,handle);return report;}
     }
     return report;
     } catch (...) {report.state=S::CaptureFailed;return report;}
@@ -18045,6 +18082,7 @@ void dx_iface::proveDxfBlockSource(std::uint32_t handle) noexcept {
             ||resource.raw->m_version!=row.beginRaw->m_version
             ||row.effective->name!=(model->name.empty()?row.original->name:model->name)
             ||row.effective->insUnits!=model->insUnits||row.effective->previewData!=model->previewData) {row.reconciliation=R::SourceMismatch;return;}
+        row.recordModel=resource.model;row.recordRaw=resource.raw;
         row.reconciliation=R::Matched;
         // Not whole-block/ATTDEF eligibility: original child order, common
         // targets, live state and exact output proof still remain necessary.
@@ -18488,6 +18526,72 @@ bool dx_iface::hasMatchedCompoundSource(const dx_data& data,std::uint32_t block,
     if(!hasMatchedCompoundBody(data,block,dispatch))return false;
     const auto& body=*data.m_tableDxfSource.blockSources.at(block).compoundBodies.at(dispatch);
     return body.profilesComplete&&body.profiles.size()==body.replayStates.size();
+}
+
+dx_iface::TableBindingState dx_iface::inspectTableBlockSource(const dx_data& data,std::uint32_t record,std::uint32_t block,TableContentBindingReport& report) noexcept {
+    using S=TableBindingState;
+    const auto& source=data.m_tableDxfSource;
+    const auto failed=[&](S state,std::size_t member=(std::numeric_limits<std::size_t>::max)()) {
+        report.firstSourceBlock=block;report.firstSourceMember=member;return state;
+    };
+    const auto work=[&](std::size_t slots) {
+        if(report.examinedSlots>source.maxBindingWork||slots>source.maxBindingWork-report.examinedSlots)return false;
+        report.examinedSlots+=slots;return true;
+    };
+    const auto found=source.blockSources.find(block);const auto resource=source.resources.find(record);
+    if(found==source.blockSources.end()||resource==source.resources.end())return failed(S::BlockSourceMissing);
+    const auto& row=found->second;const auto& owner=resource->second;
+    if(!row.original||!row.effective||!row.footer||!row.beginRaw||!row.endRaw||!row.membership
+        ||row.original->handle!=block||row.original->parentHandle!=record||row.footer->parentHandle!=record
+        ||!row.beginFieldsMatched||!row.footerFieldsMatched||!row.beginProfile.complete()||!row.endProfile.complete()
+        ||row.reconciliation!=AttdefOriginBlock::Reconciliation::Matched
+        ||owner.family!=dx_tableResourceFamily::BlockRecord||!owner.model||!owner.raw||!owner.rawTypedMatched
+        ||owner.rawTypedMismatch||owner.awaitingSymbol||owner.invalidName||owner.ambiguousName
+        ||row.recordModel!=owner.model||row.recordRaw!=owner.raw||owner.model->handle!=record||owner.raw->handle!=record)
+        return failed(S::BlockSourceIncomplete);
+    const auto& audit=*row.membership;
+    std::size_t levels=0u;for(auto n=source.resources.size();n;n>>=1u)++levels;
+    std::size_t visits=0u;
+    if(!addAssociativeSlotBytes(audit.members.size(),levels+64u,visits)||!work(visits)||!work(32u))return failed(S::WorkLimit);
+    if(!hasMatchedBlockMembership(data,block)) {
+        if(audit.container==&data&&audit.children==row.children&&audit.delivery==row.delivery) {
+            for(std::size_t i=0;i<audit.members.size();++i)if(audit.members[i].reason!=dx_block_membership::Reason::Matched)return failed(S::BlockSourceIncomplete,i);
+            for(const auto& range:audit.ranges)if(range.reason!=dx_block_membership::Reason::Matched)
+                return failed(range.reason==dx_block_membership::Reason::Disposition?S::BlockMemberUnsupported:S::BlockSourceIncomplete,range.first);
+        }
+        return failed(S::BlockSourceIncomplete);
+    }
+    for(std::size_t dispatch=0;dispatch<audit.ranges.size();++dispatch) {
+        const auto range=audit.ranges[dispatch];
+        if(range.first>=range.next||range.next>audit.members.size()||range.next>audit.children->records.size())return failed(S::BlockSourceIncomplete);
+        const auto& physical=audit.children->records[range.first];
+        if(dx_block_membership::equal(physical.name,"ATTDEF")) {
+            const auto handle=audit.members[range.first].self;const auto definition=source.resources.find(handle);
+            if(range.next-range.first!=1u||!hasMatchedAttdefOrigin(data,handle)||definition==source.resources.end()
+                ||!definition->second.attdefOrigin||definition->second.attdefOrigin->block!=block
+                ||definition->second.attdefOrigin->dispatch!=dispatch||definition->second.attdefOrigin->physical!=range.first)
+                return failed(S::BlockMemberMismatch,range.first);
+        }else if(dx_block_membership::equal(physical.name,"POLYLINE")||dx_block_membership::equal(physical.name,"INSERT")||dx_block_membership::equal(physical.name,"MINSERT")) {
+            const auto body=row.compoundBodies.find(dispatch);
+            if(!hasMatchedCompoundSource(data,block,dispatch)||body==row.compoundBodies.end()) {
+                if(body!=row.compoundBodies.end()&&body->second)for(std::size_t i=0;i<body->second->profiles.size();++i)
+                    if(!body->second->profiles[i].complete())return failed(S::BlockMemberMismatch,range.first+i);
+                return failed(S::BlockMemberMismatch,range.first);
+            }
+            const auto& model=*body->second->model;
+            // Linked host entities form one complex entity. Embedded MTEXT is
+            // not another linked host; its own common fields remain retained.
+            if(const auto* pl=dynamic_cast<const DRW_Polyline*>(&model)) {
+                for(std::size_t i=0;i<pl->vertlist.size();++i)if(pl->vertlist[i]->space!=pl->space)return failed(S::BlockSpaceMismatch,range.first+1u+i);
+                if(pl->seqEndEntity->space!=pl->space)return failed(S::BlockSpaceMismatch,range.next-1u);
+            }else if(const auto* in=dynamic_cast<const DRW_Insert*>(&model)) {
+                for(std::size_t i=0;i<in->attlist.size();++i)if(in->attlist[i]->space!=in->space)return failed(S::BlockSpaceMismatch,range.first+1u+i);
+                if(in->seqEndEntity&&in->seqEndEntity->space!=in->space)return failed(S::BlockSpaceMismatch,range.next-1u);
+            }else return failed(S::BlockMemberMismatch,range.first);
+        }else return failed(S::BlockMemberUnsupported,range.first);
+    }
+    ++report.blockSourceDefinitions;report.blockSourceMembers+=audit.members.size();
+    return S::Bound;
 }
 
 bool dx_iface::chargeAttdefOrigin(std::size_t bytes,std::size_t work,bool record) noexcept {
