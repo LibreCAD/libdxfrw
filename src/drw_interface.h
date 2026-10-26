@@ -947,6 +947,70 @@ public:
                                  const DRW_DxfAttdefSourceContext& context) = 0;
 };
 
+// Immediate ENTITIES observations, distinct from BLOCK's staged replay.
+enum class DRW_DxfEntitiesCallback : std::uint8_t {
+  addPoint,addLine,add3DLine,addRay,addXline,addArc,addCircle,addEllipse,
+  addLWPolyline,addMLine,addUnderlay,addShape,addOle2Frame,addOleFrame,
+  addProxyEntity,addPolyline,addSpline,addHelix,addMesh,addKnot,addInsert,addTable,
+  addTrace,add3dFace,addSolid,addMText,addText,addAttDef,addTolerance,addCamera,
+  addGeoPositionMarker,addSectionObject,addDimAlign,addDimLinear,addDimRadial,
+  addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
+  addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
+  addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
+  addRawDxfEntity,TableSource,AttdefSource,Count
+};
+struct DRW_DxfEntitiesDeliveryEvent {
+  enum class Origin : std::uint8_t {Parser,SourceObserver,ProxyRendering};
+  std::size_t dispatch{0};
+  DRW_DxfEntitiesCallback callback{DRW_DxfEntitiesCallback::Count};
+  Origin origin{Origin::Parser};
+  std::int32_t entityType{0};
+  std::uint32_t handle{0},owner{0};
+  bool hasValue{false};
+};
+struct DRW_DxfEntitiesDispatch {
+  DRW_DxfPhysicalRecordSpan begin,end;
+  std::size_t firstEvent{0},events{0};
+};
+struct DRW_DxfEntitiesDeliveryLimits {
+  std::size_t dispatches{65536u},events{262144u};
+  std::size_t bytes{16u*1024u*1024u},work{32u*1024u*1024u};
+};
+struct DRW_DxfEntitiesDeliverySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // exactly the original ENTITIES physical scope
+  DRW_DxfPhysicalRecordSpan beginMarker,endMarker;
+  std::vector<DRW_DxfEntitiesDispatch> dispatches;
+  std::vector<DRW_DxfEntitiesDeliveryEvent> events;
+  std::size_t completedEvents{0},bytes{0},work{0};
+};
+/** Separate opt-in facet, latched per ENTITIES section and requiring that
+ * section's DRW_DxfEntitiesSourceHandler opt-in. Brackets immediate producer
+ * callbacks without copying/staging their values or changing legacy timing.
+ * Adapter-internal callbacks are not producer events. TABLE/ATTDEF source
+ * facets remain independently selected. Explicit proxy-render origins do not
+ * establish additional physical primary entities. Exceptions before final
+ * publication leave only an observed prefix. Accepted ENDSEC publishes the
+ * report after the physical source callback; a throwing report callback or a
+ * later file failure still invalidates the import. Complete requires complete physical
+ * transport and returned callbacks, not successful whole import, immutable
+ * modeled bodies, space/dependency/live/output or semantic/support proof.
+ * Own quota/allocation failures soften evidence only; shared reader limits can
+ * still fail import. Existing interfaces/vtables/layouts are unchanged.
+ */
+class DRW_DxfEntitiesDeliveryHandler {
+public:
+  virtual ~DRW_DxfEntitiesDeliveryHandler() = default;
+  virtual bool wantsDxfEntitiesDeliverySource() const {return false;}
+  virtual DRW_DxfEntitiesDeliveryLimits dxfEntitiesDeliveryLimits() const {return {};}
+  virtual void beginDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) = 0;
+  virtual void endDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) = 0;
+  virtual void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

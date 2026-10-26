@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ee original ENTITIES intervals and selected TABLE origins (2026-10-26):** a separate opt-in facet now publishes original ENTITIES scalar intervals at accepted ENDSEC, without buffering or delaying ordinary callbacks. The CLI freezes bounded container-bound observations and binds selected TABLE raw bodies to their exact retained physical owners. The generic raw reader also stops interpreting proxy count/chunk fields after foreign subclass or embedded-object boundaries. Final exact affected cohorts pass 58/58 normally and 58/58 under ASan, including 144 raw proxy class profiles and 16 actual common-count refusal/retries per configuration. Observed dispatch/body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ee-original-entities-intervals-and-selected-table-origins-2026-10-26) · [receipt](docs/research/rpp5ee-original-entities-intervals-and-selected-table-origins-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ef immediate ENTITIES dispatch and callback observations (2026-10-26):** a separate opt-in facet ties actual parser dispatch intervals and immediately bracketed producer callbacks to the original ENTITIES scope. TABLE/ATTDEF source facets, dynamic types, pointer identity, callback timing and adapter-internal TABLE projections remain intact; explicit proxy-render callbacks are not physical primaries. Final exact affected cohorts pass 59/59 normally and 59/59 under ASan. Converter immutable origin joins, body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26) · [receipt](docs/research/rpp5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ee original ENTITIES intervals and selected TABLE origins (2026-10-26; committed as `82438ca`):** a separate opt-in facet publishes original ENTITIES scalar intervals at accepted ENDSEC, without buffering or delaying ordinary callbacks. The CLI freezes bounded container-bound observations and binds selected TABLE raw bodies to their exact retained physical owners. The generic raw reader stops interpreting proxy count/chunk fields after foreign subclass or embedded-object boundaries. Its exact affected cohorts pass 58/58 normally and 58/58 under ASan, including 144 raw proxy class profiles and 16 actual common-count refusal/retries per configuration. RPP-5ef adds public immediate observations, not converter body/space/common-target/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ee-original-entities-intervals-and-selected-table-origins-2026-10-26) · [receipt](docs/research/rpp5ee-original-entities-intervals-and-selected-table-origins-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ed nested BLOCK names and canonical MINSERT profile (2026-10-26; committed as `52eb6f4f`):** selected admitted definitions now expand their original INSERT name targets through the bounded worklist and reject unresolved/ambiguous targets or cycles. Exact UTF-8/ASCII-case matches remain distinct from unqualified wider Unicode fold-only aliases. Canonical `AcDbMInsertBlock` source profiles with real array dimensions are admitted alongside the existing compatibility shape. The affected cohorts pass 53/53 normally and 53/53 under ASan, including target/failure/retry/long-chain controls. ENTITIES/common dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26) · [receipt](docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json).
 
@@ -128206,3 +128208,132 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
 completion is included in this checkpoint.
+
+## Implementation progress — RPP-5ef immediate ENTITIES dispatch and callback observations (2026-10-26)
+
+This implements the public immediate-observation prerequisite of RPP-5ee's
+dispatch/callback item, not converter qualification or full body/space proof.
+The CLI does not yet opt into or freeze the new delivery facet; selected TABLE
+physical-origin guards remain unchanged.
+
+Implemented:
+
+1. [x] Add a separate opt-in delivery facet, report/limits, dispatch, callback
+   and explicit origin types. Require physical ENTITIES opt-in, latched per
+   section, and its real scope ID/first/ENDSEC boundaries, never a BLOCK manifest
+   with fabricated ownership. Observe actual parser dispatch intervals, compound
+   subrecords consumed within one dispatch and dispatched no-callback records.
+2. [x] Immediately forward producer callbacks without copying/staging values.
+   Preserve const references, pointers, nulls and dynamic subtypes. Delegate
+   TABLE/ATTDEF source facets independently to the real consumer. Producer
+   addTable remains one event when the adapter internally projects addInsert.
+   Bracket actual callback metadata and track its contiguous returned prefix;
+   do not infer original records or bodies from typed handles/callback counts.
+3. [x] Mark both actual DXF proxy decoder call sites with exception-safe
+   ProxyRendering scopes, restoring Parser origin before typed/raw callbacks.
+   Do not classify generated primitives from guessed names or zero handles.
+   No proxy decoder math/opcodes or DWG byte-parser/encoder changes.
+4. [x] Bound default observations at 65,536 dispatches, 262,144 events, 16 MiB
+   logical bytes and 32 Mi logical work units. Reserve added report/lease/
+   dispatch/event owners against shared reader bytes. Own allocation/quota
+   failures soften evidence, not ordinary callbacks; shared reader ceilings may
+   still reject import. Accounting is not RSS, every allocator, strict CPU or
+   leak certification. Restore interface/context on normal/error/exception exits.
+5. [x] Publish after accepted ENDSEC and physical source callback. Complete
+   requires contiguous intervals, returned captured calls and matching complete
+   physical transport. An earlier callback exception leaves only a prefix; a
+   throwing final report or later file failure still invalidates import. Keep
+   established interface/facet vtables and drawing-model layouts unchanged;
+   list the new private header in CMake/Autotools. No formal ABI claim.
+
+Owning evidence per configuration:
+
+- [x] **12** four-modern-version x LF/CRLF/Binary actual-import routes,
+  **84** independent original-file dispatch joins and opt-out/missing-physical
+  callback-order controls. Main scope: 12 physical records, seven dispatches,
+  six producer callbacks; repeated empty scope: zero dispatches/events.
+  POLYLINE consumes four physical records, INSERT three, DIMENSION no callback.
+- [x] **16** exact/one-under dispatch/event/byte/work controls, **three** observed
+  isolated allocation faults with logical lease teardown, **two** per-section
+  selection latch controls and **six** malformed-input/corrected-import retries.
+  Counts are local schedules, not portable STL thresholds. Authored sources
+  deliberately include unresolved semantic targets; no native validity claim.
+- [x] **Ten** facade callback-exception/fresh-container retries; **12** public
+  readAscii routes across six revisions x LF/CRLF; **ten** same-dxfRW-reader
+  callback-exception/retries across ASCII/Binary. Hook begin, ordinary callback,
+  hook end, physical callback and final-report exceptions remain distinguishable
+  from successful imports; a failed observed prefix cannot certify completion.
+- [x] **Eight** TABLE/ATTDEF opt-in combinations (independent on/off x two
+  encodings) preserve source facets and distinguish one producer TABLE event
+  from adapter INSERT projection. **12** component pointer/subtype routes cover
+  RTEXT/arc-aligned text, large radial dimensions, six concrete surfaces,
+  SPLINE/null and POLYLINE without model copying.
+- [x] **Eight** typed proxy routes and **eight** proxy callback-exception/retries
+  prove explicit render versus typed/raw origins. The 144 existing raw class
+  profiles additionally assert origins for their 72 ENTITIES cases and absence
+  of ENTITIES reports in BLOCKS; 32 genuine cache cases render in ENTITIES.
+  Recipes are authored locally, not independent CAD/kernel witnesses.
+
+Final strict library/CLI, affected resource/polyface/MTEXT/consumer targets and
+`lc3_compat_check` builds pass on macOS ARM64 Apple Clang 21.0.0, C++17 with
+`-Wall -Wextra -pedantic -Werror`. Exact affected cohorts pass **59/59 normally
+in 82.39 s** and **59/59 under ASan in 172.14 s**, with no failed/skipped/disabled
+cases and exact matching membership. Runtime cohorts are sequential with
+`halt_on_error=1:detect_leaks=0`; normal runtime overlapped ASan compilation,
+not ASan runtime. Times are not a paired performance benchmark. The cohort is
+the previous 58 affected tests plus this new delivery selector, not a full
+project/distribution suite. A static source-site audit covers all **52** direct
+entity callback methods in the inspected parser paths with no missing forwarding
+override; this is not runtime coverage of every family/profile or field proof.
+Initial harness exception handling and strict compilation errors were corrected,
+not suppressed; stale binaries/pre-extension owning output do not count as final
+evidence. The
+[RPP-5ef receipt](docs/research/rpp5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26.json)
+records scope, exact tests/counts, source/log hashes and limitations. No native
+consumer execution, formal ABI certification, external fixture or support
+promotion is claimed.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Immutable converter origins, bodies and spaces.** Opt the CLI into the
+   facet during actual import. Bound/freeze the exact begin/end prefix and final
+   report under container/generation/scope/version/format owners. Join the
+   original physical partition and actual producer dispositions; refuse copied,
+   stale, forged, unfinished or failed-import reports. Preserve quota/allocation/
+   exception/abort/retry controls; do not derive events from cData counts or
+   promote TABLE projections/proxy rendering to primaries. Then bind immutable
+   primary/compound bodies and 330/67/410 roles to actual model/paper/BLOCK_RECORD/
+   layout owners, including absent/default/conflicting values and multiple paper
+   layouts. Keep raw/no-callback/secondary/header arrangements explicit.
+   Implementation routing: maintain one bounded active hook prefix before the
+   physical scope is published, then pin it to that immutable owner before final
+   delivery publication. Empty scopes must bind without inventing events. Compare
+   final metadata exactly to observed begin/returned/end values and original
+   partition boundaries, not a count-only check. Add per-family immutable typed
+   capture at actual producer callback entry, guarding against adapter-internal
+   projections, rather than cloning later mutable cData as historical evidence.
+   Extend shared logical byte/node/work accounting before allocation, with exact/
+   one-under, owner-substitution, later-file-failure, quota/allocation and fresh
+   actual-import retry controls; keep body/space gates distinct from transport.
+2. [ ] **Common/specialized targets and native collation.** Finish pinned
+   original common/style/APPID/LAYER/object targets, explicit/inherited/default/
+   absent cases and application/proxy/codepage semantics. Preserve opaque
+   320..329 identities; Unicode candidate keys are not native collation proof.
+3. [ ] **Live/output and full original parity.** Finish B2b/B3/C immutable source,
+   editable/live/output and compound identities, complete fields and emitted
+   names/reference roles, remapping, readback, atomic rollback/retry/destination
+   preservation. Retain IMAGE/document/native-bit/decimal/carrier/schema/owner,
+   performance/memory, LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD requirements.
+   Native consumer/platform and independent ACIS/ACDS semantic/kernel evidence
+   remain distinct requirements, not consequences of local observation transport.
+4. [ ] **Self-update and continue safely.** Use fast owning checks during edits
+   and exact freshly built affected checks at integration boundaries. Record
+   actual failures/limits/hashes, update plan/receipt, commit/report verified
+   slices and continue available local work. Preserve unrelated samples and
+   commit no external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Full goal completion and
+remote mutation are not included.

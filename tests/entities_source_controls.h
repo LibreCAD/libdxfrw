@@ -153,8 +153,15 @@ bool entitiesPublicMemoryControls(const std::filesystem::path& path,unsigned& ro
     return routes==14u;
 }
 bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& profiles,unsigned& retries) {
-    struct Consumer final:dx_iface {
+    struct Consumer final:dx_iface,DRW_DxfEntitiesDeliveryHandler {
         unsigned depth=0u,points=0u;std::vector<DRW_RawDxfObject> raw;std::vector<DRW_Circle> circles;
+        std::vector<DRW_DxfEntitiesDeliverySource> delivered;
+        bool wantsDxfEntitiesSource() const override {return true;}
+        void addDxfEntitiesSource(const DRW_DxfEntitiesSource&) override {}
+        bool wantsDxfEntitiesDeliverySource() const override {return true;}
+        void beginDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) override {}
+        void endDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) override {}
+        void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& s) override {delivered.push_back(s);}
         void addHeader(const DRW_Header*) override {}
         void addBlock(const DRW_Block&) override {++depth;}
         void addBlockEnd(const DRW_Block&) override {}
@@ -213,6 +220,16 @@ bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& pro
             }
             if(circles&&(receiver.circles.front().basePoint.x!=2.||receiver.circles.front().basePoint.y!=3.
                 ||receiver.circles.front().basePoint.z!=4.||receiver.circles.front().radious!=5.||receiver.circles.front().layer!="HOST"))return false;
+            if(block) {if(!receiver.delivered.empty())return false;}
+            else {
+                if(receiver.delivered.size()!=1u)return false;const auto& s=receiver.delivered.front();
+                if(s.status!=DRW_DxfEntitiesDeliverySource::Status::Complete||s.dispatches.size()!=2u||s.events.size()!=2u+circles||s.completedEvents!=s.events.size())return false;
+                for(std::size_t i=0;i<s.events.size();++i) {
+                    const auto& e=s.events[i];const bool rendered=circles&&i==0u;
+                    const auto expected=rendered?DRW_DxfEntitiesCallback::addCircle:i==circles?DRW_DxfEntitiesCallback::addRawDxfEntity:DRW_DxfEntitiesCallback::addPoint;
+                    if(e.callback!=expected||e.origin!=(rendered?DRW_DxfEntitiesDeliveryEvent::Origin::ProxyRendering:DRW_DxfEntitiesDeliveryEvent::Origin::Parser))return false;
+                }
+            }
             ++profiles;
         }
         Tags invalid{{5,"C1"},{330,"B100"},{100,"AcDbEntity"},{8,"HOST"},{countCode,"67108865"},{100,"VendorData"}};

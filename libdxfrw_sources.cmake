@@ -79,6 +79,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfcompound.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfphysicalentities.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfentitiessource.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfentitiesdelivery.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfwriter.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwg_dxf_output_transaction.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgwriterlayoutvalidation.h"

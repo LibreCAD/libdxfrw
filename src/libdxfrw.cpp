@@ -47,6 +47,7 @@
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
+#include "intern/dxfentitiesdelivery.h"
 #include "intern/dxfblockdelivery.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
@@ -16320,10 +16321,26 @@ bool dxfRW::processEntities(bool isblock) {
     const bool captureEntities=entitiesHandler&&entitiesHandler->wantsDxfEntitiesSource();
     dxfEntitiesSource::Capture entitiesSource(*reader);
     if(captureEntities)entitiesSource.start(entitiesHandler->dxfEntitiesSourceLimits());
+    auto* deliveryHandler=isblock?nullptr:dynamic_cast<DRW_DxfEntitiesDeliveryHandler*>(iface);
+    const bool captureDelivery=captureEntities&&deliveryHandler&&deliveryHandler->wantsDxfEntitiesDeliverySource();
+    dxfEntitiesDelivery::Capture entitiesDelivery;
+    if(captureDelivery)entitiesDelivery.start(*reader,entitiesSource.source(),deliveryHandler->dxfEntitiesDeliveryLimits());
+    DRW_Interface* const originalInterface=iface;
+    struct InterfaceRestore final {
+        DRW_Interface*& slot;DRW_Interface* original;
+        ~InterfaceRestore(){slot=original;}
+    } restore{iface,originalInterface};
+    dxfEntitiesDelivery::Sink entitiesEvents(*originalInterface,entitiesDelivery,deliveryHandler);
+    if(captureDelivery)iface=&entitiesEvents;
     const auto completeEntities=[&]() {
+        iface=originalInterface;
         if(captureEntities) {
             entitiesSource.detach();
             entitiesHandler->addDxfEntitiesSource(entitiesSource.source());
+        }
+        if(captureDelivery) {
+            entitiesDelivery.complete(entitiesSource.source());
+            deliveryHandler->addDxfEntitiesDeliverySource(entitiesDelivery.source());
         }
         return true;
     };
@@ -16359,6 +16376,7 @@ bool dxfRW::processEntities(bool isblock) {
 
         auto* blockEvents=isblock?dynamic_cast<DxfBlockEventSink*>(iface):nullptr;
         if(blockEvents)blockEvents->beginDispatch(*reader);
+        if(captureDelivery)entitiesDelivery.begin(*reader);
         bool processed {false};
         if (dxfKeywordEquals(nextentity, "POINT")) {
             processed = processPoint();
@@ -16483,6 +16501,7 @@ bool dxfRW::processEntities(bool isblock) {
                 : false;
         }
         if(blockEvents)blockEvents->endDispatch(*reader);
+        if(captureDelivery)entitiesDelivery.end(*reader);
 
         const DxfEntityBoundary nextBoundary = classifyEntityBoundary();
         if (nextBoundary == DxfEntityBoundary::Error)
@@ -22531,10 +22550,12 @@ bool dxfRW::processRawEntity() {
             if (requiresDxfSelfHandle(*reader) && !hasRawDxfSelfHandle(ent))
                 return setError(DRW::BAD_READ_ENTITIES);
             if (proxyHost.proxyGraphics.size() >= 16
-                && canDecodeProxyGraphics(*reader))
+                && canDecodeProxyGraphics(*reader)) {
+                dxfEntitiesDelivery::Sink::ProxyScope rendering(iface);
                 DRW_ProxyGraphicDecoder::decode(
                     proxyHost.proxyGraphics, reader->getSourceVersion(),
                     *iface, proxyHost);
+            }
             iface->addRawDxfEntity(ent);
             return true;  //found new entity, ENDSEC or ENDBLK, terminate
         }
@@ -22629,10 +22650,12 @@ bool dxfRW::processProxyEntity() {
                 return setError(DRW::BAD_READ_ENTITIES);
             entity.m_dxfRetainedStringLease = capture.retainedPayloadLease;
             if (entity.proxyGraphics.size() >= 16
-                && canDecodeProxyGraphics(*reader))
+                && canDecodeProxyGraphics(*reader)) {
+                dxfEntitiesDelivery::Sink::ProxyScope rendering(iface);
                 DRW_ProxyGraphicDecoder::decode(
                     entity.proxyGraphics, reader->getSourceVersion(),
                     *iface, entity);
+            }
             iface->addProxyEntity(entity);
             iface->addRawDxfEntity(raw);
             return true;
