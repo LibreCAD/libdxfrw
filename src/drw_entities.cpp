@@ -11073,7 +11073,16 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             int value = 0;
             if (!readDxfIntInRange(reader, 0, std::numeric_limits<int>::max(), value))
                 return false;
-            m_tableOverrideFlags = static_cast<std::uint32_t>(value);
+            // ODA 5.4.1, 20.4.99: within CELL_VALUE this is the
+            // CadValue format flag, not the table-level override mask.
+            if (m_dxfInCellValue) {
+                if (DRW_TableCellContent *content = currentContent())
+                    content->m_value.m_formatFlags = value;
+                else
+                    markIncomplete();
+            } else {
+                m_tableOverrideFlags = static_cast<std::uint32_t>(value);
+            }
         }
         break;
     case 94:
@@ -11081,7 +11090,16 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             int value = 0;
             if (!readDxfIntInRange(reader, 0, std::numeric_limits<int>::max(), value))
                 return false;
-            m_borderColorOverrideFlags = static_cast<std::uint32_t>(value);
+            // The same scalar code is a unit type inside the value
+            // envelope; it must not mutate the table's border colors.
+            if (m_dxfInCellValue) {
+                if (DRW_TableCellContent *content = currentContent())
+                    content->m_value.m_unitType = value;
+                else
+                    markIncomplete();
+            } else {
+                m_borderColorOverrideFlags = static_cast<std::uint32_t>(value);
+            }
         }
         break;
     case 95:

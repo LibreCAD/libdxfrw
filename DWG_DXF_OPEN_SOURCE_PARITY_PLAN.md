@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ew independent TABLE profiles and original common-role joins (2026-10-26; verified):** a separate physical scalar/subclass/reference inventory distinguishes structural owner330 from TABLESTYLE342, geometry343, cell block340, FIELD344 and cell ATTDEF331. Admitted TABLE source bodies join original ENTITIES/BLOCKS owner/space/layout targets and census; unknown payloads and missing/substituted evidence remain unqualified. The original-byte matrix covers96 profiles and8,208 scalar spans, with scope/target/ownership/failure controls. Final affected cohorts pass91/91 normally and91/91 under ASan `-O1`; earlier Debug-ASan timeouts are retained, not reported green. Full payload/dependency/live/output/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26) · [receipt](docs/research/rpp5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5ex TABLE value/header scalar isolation and metadata loss guards (2026-10-26; verified):** independently researched value groups93/94 now populate CadValue fields instead of TABLE header masks. A reproduced legacy writer loss is guarded before record publication, with authored scalar, mutation, malformed/tail and atomic corrected-retry/readback controls. Final affected cohorts pass93/93 normally and93/93 under ASan `-O1`. Full value payload/format/cache/row-override decoding/emission and successful-export reuse investigation remain open. [Implementation and next work](#implementation-progress-rpp-5ex-table-valueheader-scalar-isolation-and-metadata-loss-guards-2026-10-26). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5ew independent TABLE profiles and original common-role joins (2026-10-26; committed as `efa9cfb`):** a separate physical scalar/subclass/reference inventory distinguishes structural owner330 from TABLESTYLE342, geometry343, cell block340, FIELD344 and cell ATTDEF331. Admitted TABLE source bodies join original ENTITIES/BLOCKS owner/space/layout targets and census; unknown payloads and missing/substituted evidence remain unqualified. The original-byte matrix covers96 profiles and8,208 scalar spans, with scope/target/ownership/failure controls. Final affected cohorts pass91/91 normally and91/91 under ASan `-O1`; earlier Debug-ASan timeouts are retained, not reported green. Full payload/dependency/live/output/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26) · [receipt](docs/research/rpp5ew-independent-table-profiles-and-original-common-role-joins-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5ev original TABLE modeled replay (2026-10-26; committed as `35036400`):** bounded replay compares exact original parent/ATTRIB/SEQEND values and pre-copy parser observations against both real source/typed snapshots. The owning selector passes72 transport profiles,24 rich grids,48 footer-owner forms,24 raw stubs,1,216 actual field faults,128 reached allocation faults and recovery controls. Exact affected cohorts pass90/90 normally and90/90 under ASan. Independent physical field/reference profiles, actual targets, dependencies/live/output/native and external qualification remain open at that checkpoint. [Implementation and then-next work](#implementation-progress-rpp-5ev-original-table-modeled-replay-2026-10-26) · [receipt](docs/research/rpp5ev-original-table-modeled-replay-2026-10-26.json). No support gate is promoted.
 
@@ -130865,3 +130867,108 @@ J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full objective remains active and incomplete; no native/geometry/output
 support promotion or remote mutation is included.
+
+## Implementation progress — RPP-5ex TABLE value/header scalar isolation and metadata loss guards (2026-10-26)
+
+State: **verified; included in the RPP-5ex implementation commit**. RPP-5ew is
+committed as `efa9cfb`. This is a concrete scalar-ownership and output-loss fix,
+not a substitute for full TABLE value/override/dependency/live/output/native work.
+
+- [x] Resolve the authoritative ODA v5.4.1 document at the local alternate
+  filename `OpenDesign_Specification_for_.dwg_files (1).pdf`; verify its version
+  and inspect the complete Value page241 visually and as text. Section20.4.99
+  distinguishes value format flags93 and units94 from table-level masks in
+ 20.4.96. The TABLE/TABLECONTENT relationship does not make their schemas equal.
+  The local pinned ACadSharp value reader independently routes the value flags
+  to the value model; no third-party implementation is copied.
+- [x] Reproduce header corruption with a from-scratch AC1021 import: even value
+  flags0/units0 overwrite existing table masks4660/22136. Route93/94 inside the
+  existing CELL_VALUE scope into the current CadValue instead; outside it keep
+  the existing header path. Retain original nonnegative scalar acceptance,
+  parser/callback order, model copies/moves and the 2D INSERT projection.
+  No public field/callback, new dynamic payload, DWG layout or reader changes.
+- [x] Independently reproduce a public legacy TABLE export accepting nonzero
+  value flags and publishing without them. Preflight now refuses nondefault
+  flags, units, size, format/display strings, object IDs and raw bytes that this
+  plain-cell writer cannot emit. The guard runs before record publication and
+  uses the normal atomic failure path. Default plain text/block cells retain
+  their existing path; a full typed CELL_VALUE writer is still required.
+- [x] Runtime-authored `libdxfrw_table_value_metadata_scopes` verifies **240**
+  version/encoding/scope/header-order/value cases, original and typed callback
+  snapshots, retained models and copy/move parity. Five flag/unit pairs span
+  0/1/2/6/INT_MAX flags and0/1/2/4/8 units; this is retention, not a semantic
+  validity certificate for every combination. Add **16** actual original/typed
+  field mutations, **eight** negative scalar and **four** failed-tail imports,
+  each with corrected same-adapter use. Original profiles and support/output
+  flags remain unqualified for the extended envelopes.
+- [x] Add **56** actual public writer metadata refusal cases across four revisions
+  and both encodings, each preserving destination bytes and passing a corrected
+  same-facade retry plus actual readback. Eight separate positive plain-text
+  controls establish the output path before refusals. These are text-cell
+  controls; they do not independently certify all block-cell value shapes.
+
+Development evidence remains explicit. Strict compilation caught one misleading
+test indentation and it was corrected without changing warnings. An initial
+writer fixture reused a drawing after a previous successful export; its later
+corrected export failed for a reason not isolated by that fixture. Preserve
+`/tmp/rpp5ex-writer-diagnostic.log` and prioritize a direct success-to-success
+TABLE/fallback identity test below. Fresh candidate drawings isolate the actual
+metadata-loss reproduction; corrected reuse after each first failed metadata
+attempt is verified. The earlier sequential-export failure is not reported
+fixed or erased by those passing controls.
+
+Fast owning integration passes **5/5 in7.52s**. Final current-source builds of
+all13 affected targets pass normally and under the reused separate ASan `-O1`
+build, including both LibreCAD_3 compile gates. Exact affected cohorts pass
+**93/93 normally in111.64s** (two workers), then **93/93 under ASan `-O1` in24.75s**
+(four workers), with no failed/skipped/disabled tests. Actual registrations and
+order match across configurations; removing the new selector and additionally
+selected legacy TABLE writer/merge selector preserves the prior91 names/order.
+Executed name sets exactly match the selection and both configurations report
+all stated new counters. Compiled-source hashes remain unchanged from freeze
+through both runtimes; normal runtime completes before ASan. Different flags,
+scheduling and uncontrolled host state preclude a performance comparison.
+Existing warnings, assertions and time caps are unchanged; no full-project suite
+is repeated per edit and no external drawing fixture or derivative is committed.
+The [receipt](docs/research/rpp5ex-table-value-header-scope-and-metadata-loss-guards-2026-10-26.json)
+records exact names, hashes, original failures and the unresolved sequential
+export diagnostic. These checks are not formal ABI/native-consumer/kernel tests.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Isolate successful TABLE export reuse.** Create a minimal positive-only
+   first/second export witness using the preserved authored recipe, log table
+   and synthetic INSERT handles/owners before and after each attempt, and check
+   final original/live/destination state. Determine whether handle remapping,
+   projection equality, an already-consumed context or another cause explains
+   the retained diagnostic. Fix only the reproduced cause; test success/retry/
+   readback and 2D/3D compatibility rather than assuming metadata routing solved it.
+2. [ ] **Complete full TABLE payload and row overrides.** Retain typed scalar/
+   coordinate/object/binary values, separate payload/format/display strings and
+   datatype/size/flags/unit state, bounded malformed/truncated envelope handling,
+   and table-global row/border override boundaries. Add exact retention/work/
+   node limits, reached allocation/exception faults, original source/model/state
+   mutations and corrected retries. Reuse bounded TABLECONTENT/FIELD primitives
+   only where the actual TABLE schema and producer/version evidence match; keep
+   unknown forms unqualified. Extend source profiles and emission only with their
+   independent field/reference/output proofs, not same-parser equality alone.
+3. [ ] **Dependency and full B2b/B3/C parity.** Close TABLESTYLE, geometry/cell
+   BLOCK_RECORD, FIELD, cell ATTDEF, STYLE/APPID/LAYER/object/application/proxy/
+   codepage/nested INSERT targets, including missing/ambiguous/wrong-kind/cycle/
+   cross-import evidence. Complete source/live/edited/emitted fields and names,
+   remapping/readback, rollback/retry/destination safety, IMAGE/document/native
+   bit/decimal/carrier/schema/owner and memory/performance work. Preserve
+   LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD 2D/3D consumer behavior.
+4. [ ] **Self-update/unblock and external qualification.** Commit/report the
+   verified slice and its limits/receipt; take the next safe local prerequisite.
+   Native Linux/Windows FreeCAD and independent ACIS/ACDS semantics/kernel
+   qualification remain required, not replaced by authored or same-stack checks.
+   Use fast owning tests per edit and exact affected cohorts at integration;
+   commit no external drawing payloads or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification are **NOT_RUN**.
+The full objective remains active and incomplete. No support claim or remote
+mutation is included.

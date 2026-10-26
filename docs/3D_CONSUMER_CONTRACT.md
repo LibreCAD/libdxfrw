@@ -155,6 +155,16 @@ Actual TABLESTYLE/FIELD/block/ATTDEF and common dependencies, editable/live/outp
 native name collation and independent CAD semantics remain separate gates. The
 nine-family resource ledger and existing support/output guards remain closed.
 
+Inside a DXF TABLE `CELL_VALUE`, group93 now populates the value's format flags
+and group94 its units, without overwriting table-level override/border masks.
+This repairs scalar ownership, not full typed-value decoding or qualification:
+the independent profile still refuses these extended envelopes. The legacy
+plain-cell TABLE writer refuses nondefault value flags, units, sizes, format/
+display strings, object IDs or raw bytes that it has no output fields for.
+Ordinary plain-text/block-cell output retains its existing path; unsupported
+metadata is not silently flattened into that path. Full value emission, scope
+grammar, dependencies and native/semantic qualification remain separate work.
+
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
 native consumers and independent semantics remain separate. `wholeDocumentMatched`,

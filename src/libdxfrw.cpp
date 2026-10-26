@@ -9088,7 +9088,19 @@ bool dxfRW::writeTable(DRW_Table *ent){
                     || (blockCell && cell.m_contents.front().m_type == 4
                         && cell.m_contents.front().m_handle
                             == cell.m_blockHandle));
+            // This legacy TABLE writer emits plain text/block cells, not a
+            // CELL_VALUE envelope. Do not publish while silently discarding
+            // retained value metadata; full value output needs its own path.
+            const bool valueMetadataWouldBeLost = cellContentMatches
+                && (cell.m_contents.front().m_value.m_formatFlags != 0
+                    || cell.m_contents.front().m_value.m_unitType != 0
+                    || cell.m_contents.front().m_value.m_dataSize != 0u
+                    || !cell.m_contents.front().m_value.m_formatString.empty()
+                    || !cell.m_contents.front().m_value.m_valueString.empty()
+                    || cell.m_contents.front().m_value.m_handle != 0u
+                    || !cell.m_contents.front().m_value.m_rawData.empty());
             if ((!textCell && !blockCell) || !cellContentMatches
+                || valueMetadataWouldBeLost
                 || cell.m_attributes.size() > maxCellAttributes
                 || (!blockCell && !cell.m_attributes.empty())
                 || cell.m_hasLinkedData || cell.m_dataLinkHandle != 0u
