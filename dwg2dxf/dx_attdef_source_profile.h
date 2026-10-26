@@ -26,7 +26,7 @@ enum class Field : std::uint8_t {
 enum class Role : std::uint8_t {
     None, Self, Owner, LayerName, LineTypeName, TextStyleName, Material,
     FullVisualStyle, PlotStyle, Reactor, ExtensionDictionary, AppIdName,
-    XdataLayerName, XdataObjectId, OpaqueHandle, BlockName, RedundantBlockName, XrefPath
+    XdataLayerName, XdataObjectId, OpaqueHandle, BlockName, RedundantBlockName, XrefPath, LayoutName
 };
 enum class Form : std::uint8_t { Classic, Embedded101, EmbeddedLegacy100 };
 enum class Reason : std::uint8_t {
@@ -72,7 +72,7 @@ inline bool hexBytes(std::string_view s) noexcept {
     return true;
 }
 
-inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true) {
+inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLayoutName=false) {
     Audit out;
     const auto reject=[&](Reason reason,std::size_t at) {
         out.reason=reason;out.rejectedGroup=at;out.spans.clear();return std::move(out);
@@ -243,6 +243,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true) {
                     switch(code) {
                     case 8:if(!name(value))return reject(Reason::InvalidValue,i);role=Role::LayerName;break;
                     case 6:if(!name(value))return reject(Reason::InvalidValue,i);role=Role::LineTypeName;break;
+                    case 410:if(!allowLayoutName||!name(value))return reject(Reason::UnknownField,i);role=Role::LayoutName;break;
                     case 347:role=Role::Material;break;
                     case 348:role=Role::FullVisualStyle;break;
                     case 390:role=Role::PlotStyle;break;

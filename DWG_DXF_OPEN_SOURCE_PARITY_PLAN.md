@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5eg immutable ENTITIES callback/source origins (2026-10-26):** the converter now freezes actual begin/returned/end observations, matching final dispatch reports and available typed/raw inputs against original physical scopes. Non-copying container identities and exact shared-owner checks reject address reuse and substituted provenance. Selected TABLE binding additionally requires its real source-observer/producer events, while explicit adapter projection context preserves the 2D INSERT path. Final exact affected cohorts pass 60/60 normally and 60/60 under ASan. Complete modeled field/profile/space/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5eg-immutable-entities-callbacksource-origins-2026-10-26) · [receipt](docs/research/rpp5eg-immutable-entities-callback-source-origins-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5eh original ENTITIES compound replay and scope context (2026-10-26):** the converter now captures original compound parser states before copies and freezes actual codec/declaration/read options per scope. A distinct bounded ENTITIES audit checks POLYLINE/INSERT modeled replay, original scalar profiles, chain identities and linked 67/410 consistency without fabricating BLOCK ownership. Completed empty POLYLINE chains retain their real SEQEND; missing footers still fail before parent delivery. Final exact affected cohorts pass 61/61 normally and 61/61 under ASan. Other primary families, actual owner/layout targets, dependencies, live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5eh-original-entities-compound-replay-and-scope-context-2026-10-26) · [receipt](docs/research/rpp5eh-original-entities-compound-replay-and-scope-context-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5eg immutable ENTITIES callback/source origins (2026-10-26; committed as `4e15d248`):** the converter freezes actual begin/returned/end observations, matching final dispatch reports and available typed/raw inputs against original physical scopes. Non-copying container identities and exact shared-owner checks reject address reuse and substituted provenance. Selected TABLE binding additionally requires its real source-observer/producer events, while explicit adapter projection context preserves the 2D INSERT path. Final exact affected cohorts pass 60/60 normally and 60/60 under ASan. RPP-5eh adds selected compound replay, not full primary/target/dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5eg-immutable-entities-callbacksource-origins-2026-10-26) · [receipt](docs/research/rpp5eg-immutable-entities-callback-source-origins-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ef immediate ENTITIES dispatch and callback observations (2026-10-26; committed as `8ce09954`):** a separate opt-in facet ties actual parser dispatch intervals and immediately bracketed producer callbacks to the original ENTITIES scope. TABLE/ATTDEF source facets, dynamic types, pointer identity, callback timing and adapter-internal TABLE projections remain intact; explicit proxy-render callbacks are not physical primaries. Final exact affected cohorts pass 59/59 normally and 59/59 under ASan. Converter immutable origin joins, body/space/common-target/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26) · [receipt](docs/research/rpp5ef-immediate-entities-dispatch-and-callback-observations-2026-10-26.json).
 
@@ -128493,4 +128495,159 @@ Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full goal stays open;
+no remote mutation is included.
+
+## Implementation progress — RPP-5eh original ENTITIES compound replay and scope context (2026-10-26)
+
+This completes the selected POLYLINE/INSERT body/profile replay prerequisite
+from RPP-5eg, not all primary families, actual owner/layout targets, dependencies,
+editable/live/output or native/kernel qualification. A compound-subset report
+can be ready while POINT/LINE, raw or no-callback records remain unqualified.
+This is not a whole-section, whole-document or additional support-family claim.
+
+Implemented:
+
+1. [x] Observe `dxfCompound::Decoder::observe` on the actual POLYLINE/INSERT root,
+   owned children and SEQEND at callback entry, before typed copies reset parser
+   cursors and attribute-subclass state. Keep this immutable state separate from
+   modeled snapshots. Replay compares original pre-copy states directly, unlike
+   BLOCK staged delivery's explicit copied-state projection. Reject pending host
+   or nested XDATA rather than treating its copied/reset cursor as clean input.
+2. [x] Add an additive, read-only `dxfRW::getDxfReadContext` view during an admitted
+   read/readAscii; outside that phase it returns false and clears the view. It
+   exposes actual source/codec revisions, active decoder codepage, original
+   declaration, classifier/text/codepage policies, extrusion and binary mode.
+   Borrowed strings expire on HEADER/codec reconfiguration, completion/reuse or
+   destruction; clients retaining them must bound/copy them. The converter does
+   so per actual scope, including empty/no-callback scopes. A later HEADER or
+   mutable cData header cannot silently reinterpret an earlier body. Callback
+   setter changes remain next-operation selections, not active read settings.
+3. [x] Build a separate immutable ENTITIES audit from genuine successful-import
+   physical/delivery/observed/context owners. Pin actual audit owners separately
+   and require container identity, generation and exact shared control blocks.
+   Preserve original dispatch-to-record ranges, duplicate IDs, primary/child/
+   footer roles, explicit owner chains and canonical INSERT follow semantics.
+   Do not cast/fabricate zero-owner BLOCK manifests, infer callbacks from cData,
+   or count adapter TABLE projection/proxy rendering as physical primaries.
+4. [x] Reuse shared production/replay decoders, modeled equality and original
+   scalar/profile helpers for POLYLINE, VERTEX, INSERT/MINSERT, ATTRIB and SEQEND.
+   Compare all fields covered by those modeled equalities and classify original
+   scalar positions/reference roles independently of modeled replay. Restore
+   exact original comment indices after excluding only true ignored comments.
+   Admit group 410 as an opt-in layout-name role for this audit; existing BLOCK/
+   ATTDEF callers retain their narrower default profile. Opaque/application
+   lookalikes are not host layout fields. Older embedded-attribute profiles stay
+   explicitly unqualified, even where tolerant import/model replay succeeds.
+5. [x] Compare each linked host's original group 67 (absent/default model = 0)
+   and explicitly classified group 410. Conflicts refuse; mixed present/absent
+   layout names remain LayoutUnresolved rather than inferred inheritance.
+   Equal literal linked names are only local consistency, not native collation,
+   actual BLOCK_RECORD/LAYOUT resolution or output proof. Root owners remain
+   unresolved; compatibility footer ownership by root or root's record owner is
+   retained explicitly, not promoted into target semantics.
+6. [x] Precharge separate conservative record/byte/work allowances before new
+   inventory/index, profile, raw/wire and replay-model owners. Defaults are
+   100,000 records, 64 MiB logical bytes and 64 Mi logical work units; sorted
+   duplicate indexing is bounded. Quota/allocation failure softens this evidence
+   without invalidating compatible ordinary import or completed observation
+   transport. These are converter logical attempt/retention allowances, not
+   RSS, every allocator/capacity, strict CPU, leak proof or a speed benchmark.
+7. [x] Fix a reproduced strict-reader prerequisite: POLYLINE immediately followed
+   by SEQEND can publish its completed empty chain without inventing a vertex.
+   Unrelated entities/section/block boundaries still cannot replace the footer;
+   footer parsing and polyface validation remain in force. The official
+   [POLYLINE field reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm)
+   identifies 66 as obsolete/ignored and the
+   [SEQEND reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm)
+   identifies the linked terminator. The zero-vertex acceptance is a narrow
+   interoperability policy supported by inspection of
+   [ezdxf's linked-entity export path](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/polyline.py),
+   not an Autodesk claim of useful empty geometry or native CAD qualification.
+
+Owning evidence per configuration:
+
+- [x] **84** actual-import profile routes: four modern revisions x LF/CRLF/Binary
+  x seven authored shapes (classic 2D/3D, polyface, embedded attributes, rich
+  common/XDATA and MINSERT). **57** are compound-subset ready; **27** retain
+  explicit older embedded-profile limitations. **8,307** original scalar spans
+  are checked by an independent byte/scalar walker, including exact original
+  offsets, types/values and Self/Owner roles. This walker is not an independent
+  CAD/kernel geometry oracle. Mixed model/paper primaries and a repeated empty
+  scope remain distinct; three other primaries, one raw and one no-callback
+  dispatch are not accidentally promoted.
+- [x] **28** actual callback-field edit/corrected-import pairs preserve original
+  parser cursors and reach ModelMismatch, rather than merely testing copy-reset
+  state. **24** original identity/owner/duplicate/profile/partial-XDATA/space/
+  layout refusal/corrected-import pairs preserve ordinary import and unrelated
+  compound proof. **14** linked layout/application/empty-chain/footer-owner
+  variants retain the distinction between consistency and target resolution.
+- [x] **15** empty-POLYLINE/missing-footer/corrected-import routes across AC1015
+  plus four modern revisions x LF/CRLF/Binary. **12** exact/one-under record/
+  byte/work allowance controls preserve observation transport. **293** observed
+  isolated audit allocation faults recover from the same successful-import
+  snapshots; fresh actual imports also recover. The allocator schedule is local,
+  not a portable threshold or coverage of every allocator site.
+- [x] **17** live API/context/owner/copy/edit/later-HEADER/release contexts,
+  **eight** callback-exception/aborted-or-later-tail-failure/retry cases and
+  **four** explicitly unavailable richer compound-subtype dispositions. Original
+  source owners release without a shared cycle. Failed imports never publish
+  this completed audit. These are local controls, not formal ABI/native tests.
+
+Development findings were fixed, not suppressed: strict compilation exposed
+const readAscii input and misleading-indentation issues; the richer binary
+recipe exposed missing group-370/440 numeric widths in the existing test writer.
+The test writer now writes the defined numeric widths, independently checked
+by the scalar walker. The empty-chain control exposed the strict reader's
+unnecessary first-VERTEX requirement and now proves both completion and missing-
+footer refusal. Earlier intermediate outputs are not final evidence.
+
+Final strict affected library/CLI/consumer and `lc3_compat_check` builds pass
+on macOS ARM64 Apple Clang 21.0.0, C++17 with `-Wall -Wextra -pedantic -Werror`.
+Exact affected cohorts pass **61/61 normally in 84.01 s** and **61/61 under
+ASan in 175.46 s**, with no failed/skipped/disabled tests and exact matching
+membership. Runtime cohorts are sequential with
+`halt_on_error=1:detect_leaks=0`; normal runtime overlapped ASan compilation,
+not ASan runtime. Times are not paired performance benchmarks. The shortlist
+adds the new compound selector to the prior 60 affected tests, not a full
+project/distribution suite. The
+[RPP-5eh receipt](docs/research/rpp5eh-original-entities-compound-replay-and-scope-context-2026-10-26.json)
+records scope/counts, exact membership and source/log hashes. No native consumer
+execution, formal ABI, benchmark, external drawing fixture or support promotion
+is claimed.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Remaining original primaries and real space owners.** Extend the pinned
+   ENTITIES audit to remaining selected primary families, starting with POINT/
+   LINE and existing TABLE/ATTDEF inputs. Reuse bounded scalar serialization,
+   actual read context and shared production field admission; do not create a
+   second payload parser. Account for every original field, preserved/ignored/
+   opaque/unmodeled disposition, cursor/profile and actual producer event. Then
+   join original 330/67/410 roles to unique pinned BLOCK_RECORD and LAYOUT source
+   resources and the actual model/paper owners, including absent/defaults,
+   conflicts and multiple paper layouts. Preserve pending/raw/no-callback/header
+   arrangements explicitly. Require field-fault/retry, owner-substitution,
+   quota/allocation and failed-tail controls before using the new facts as gates.
+2. [ ] **Common/specialized targets and native collation.** Finish pinned common/
+   STYLE/APPID/LAYER/object targets, explicit/inherited/absent defaults, application/
+   proxy/codepage semantics and native collation evidence. Reuse the existing
+   bounded selected BLOCK-name worklist for original INSERT targets rather than
+   duplicate graph traversal; generalize its owner context without inventing
+   BLOCK ownership for ENTITIES. Arbitrary 320..329 identities remain opaque.
+3. [ ] **Live/output and full original parity.** Complete B2b/B3/C source/live/
+   editable/output compound identities, emitted fields/name/reference roles,
+   remapping/readback and atomic rollback/retry/destination preservation. Retain
+   IMAGE/document/native-bit/decimal/carrier/schema/owner, performance/memory,
+   LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD requirements. Native consumer/
+   platform and independent ACIS/ACDS semantic/kernel evidence remain separate.
+4. [ ] **Self-update and continue available work.** Fast owning tests during
+   edits; exact freshly built affected cohorts at integration boundaries only.
+   Preserve actual failures/limits, update plan/receipt and commit/report each
+   verified slice. Continue safe local work while external qualification remains
+   deferred. Preserve unrelated samples; commit no external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
 no remote mutation is included.

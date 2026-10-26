@@ -977,6 +977,21 @@ public:
     //! readAscii(nullptr) and rejected nesting preserve the previous snapshot.
     //! Writes leave this last-read snapshot unchanged. Consumer rebuild required.
     DRW::Version getSourceVersion() const;
+    struct DxfReadContext {
+        DRW::Version sourceVersion{DRW::UNKNOWNV},codecVersion{DRW::UNKNOWNV};
+        std::string_view codecCodePage,declaration;
+        DxfCompatibilityProfile compatibilityProfile{DxfCompatibilityProfile::StandaloneSafe};
+        DRW::DxfTextEncoding textEncoding{DRW::DxfTextEncoding::Declared};
+        DRW::DxfCodePagePolicy codePagePolicy{DRW::DxfCodePagePolicy::Compatible};
+        bool hasDeclaration{false},applyExtrusion{false},binary{false};
+    };
+    /** Live read-only interpretation context, available only during an admitted
+     * read/readAscii. Returns false and clears the view outside that phase.
+     * String views expire on HEADER/codec reconfiguration, read completion/reuse
+     * or destruction. It is codec metadata: modern DXF still decodes UTF8
+     * independently. Callers retaining it must make their own bounded copy.
+     * No interface/model layout or established callback vtable change. */
+    bool getDxfReadContext(DxfReadContext&) const noexcept;
     DRW::error getError() const;
     /// Snapshot the first failure and bounded cleanup evidence from the most
     /// recent read/write operation.  The legacy getError() value remains the

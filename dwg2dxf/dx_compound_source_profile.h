@@ -24,11 +24,11 @@ inline bool scalarType(const DRW_Variant& value) noexcept {
     }
     return false;
 }
-inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullptr) {
+inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullptr,bool allowLayoutName=false) {
     Audit out;
     const auto reject=[&](Reason why,std::size_t at){out.reason=why;out.rejectedGroup=at;out.spans.clear();return std::move(out);};
     for(std::size_t i=0;i<raw.groups.size();++i)if(!scalarType(raw.groups[i]))return reject(Reason::InvalidValue,i);
-    if(raw.name=="ATTRIB")return dx_attdef_source::audit(raw,false);
+    if(raw.name=="ATTRIB")return dx_attdef_source::audit(raw,false,allowLayoutName);
     if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
     const bool polyline=dx_block_membership::equal(raw.name,"POLYLINE"),vertex=dx_block_membership::equal(raw.name,"VERTEX");
     const bool insert=dx_block_membership::equal(raw.name,"INSERT")||dx_block_membership::equal(raw.name,"MINSERT");
@@ -143,6 +143,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                     switch(code) {
                     case 8:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LayerName;break;
                     case 6:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LineTypeName;break;
+                    case 410:if(!allowLayoutName||!name(v))return reject(Reason::UnknownField,i);role=Role::LayoutName;break;
                     case 347:role=Role::Material;break;case 348:role=Role::FullVisualStyle;break;
                     case 390:role=Role::PlotStyle;break;case 360:role=Role::ExtensionDictionary;break;
                     case 48:case 62:case 420:case 430:case 440:break;

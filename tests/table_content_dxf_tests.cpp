@@ -89,6 +89,20 @@ public:
     static auto& mutableEntitiesSources(dx_data& data) {return data.m_tableDxfSource.entitiesSources;}
     static const auto& entitiesDeliveries(const dx_data& data) {return data.m_tableDxfSource.entitiesDeliveries;}
     static auto& mutableEntitiesDeliveries(dx_data& data) {return data.m_tableDxfSource.entitiesDeliveries;}
+    using EntitiesCompoundProof=dx_data::TableDxfSourceCapture::EntitiesCompoundProof;
+    static const auto& entitiesAudits(const dx_data& data) {return data.m_tableDxfSource.entitiesCompoundAudits;}
+    static auto& mutableEntitiesAudits(dx_data& data) {return data.m_tableDxfSource.entitiesCompoundAudits;}
+    static void entitiesCompoundLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;
+        if(which==0u)s.maxEntitiesCompoundRecords=n;else if(which==1u)s.maxEntitiesCompoundBytes=n;else s.maxEntitiesCompoundWork=n;
+    }
+    // Replay only genuine successful-import snapshots, to isolate allocation
+    // sites without arming an allocator across unrelated parser/consumer work.
+    static void repeatEntitiesAudit(dx_iface& reader,dx_data& data) {
+        auto& s=data.m_tableDxfSource;s.entitiesCompoundAudits.clear();s.entitiesCompoundOwners.clear();
+        s.entitiesCompoundRecords=s.entitiesCompoundBytes=s.entitiesCompoundWork=0u;s.entitiesCompoundCaptureFailed=false;
+        reader.finishEntitiesCompoundAudits(data);
+    }
     static const auto& entitiesPending(const dx_data& data) {return data.m_tableDxfSource.entitiesPending;}
     static bool entitiesDeliveryFailed(const dx_data& data) {return data.m_tableDxfSource.entitiesDeliveryCaptureFailed;}
     static std::uint64_t entitiesContainerId(const dx_data& data) {return data.m_entitiesContainerIdentity.value;}
@@ -427,7 +441,8 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
         if (!binary) out<<tag.code<<'\n'<<tag.value<<'\n';
         else {
             word(static_cast<unsigned>(tag.code),2u);
-            if ((tag.code>=90 && tag.code<=99) || tag.code==420 || tag.code==1071) word(static_cast<std::uint32_t>(std::stoll(tag.value)),4u);
+            if ((tag.code>=90 && tag.code<=99) || (tag.code>=420 && tag.code<=429)
+                || (tag.code>=440 && tag.code<=449) || tag.code==1071) word(static_cast<std::uint32_t>(std::stoll(tag.value)),4u);
             else if(tag.code>=160&&tag.code<=169)word(static_cast<std::uint64_t>(std::stoll(tag.value)),8u);
             else if (tag.code==310 || tag.code==1004) {
                 out.put(static_cast<char>(tag.value.size()/2u));
@@ -437,6 +452,7 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
             else if ((tag.code>=60 && tag.code<=79) || tag.code==1070) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
             else if (tag.code>=170 && tag.code<=179) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
             else if (tag.code>=270 && tag.code<=289) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
+            else if ((tag.code>=370 && tag.code<=389) || (tag.code>=400 && tag.code<=409)) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
             else if ((tag.code>=10 && tag.code<=59) || tag.code==140 || tag.code==144 || (tag.code>=1010 && tag.code<=1059)) {
                 const double value=std::stod(tag.value); std::uint64_t bits=0u; std::memcpy(&bits,&value,8u); word(bits,8u);
             } else {out<<tag.value; out.put('\0');}
@@ -1351,6 +1367,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "entities_source_controls.h"
 #include "entities_delivery_controls.h"
 #include "entities_origin_controls.h"
+#include "entities_compound_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2861,6 +2878,7 @@ int main(int argc,char** argv) {
     const bool entitiesSource=argc==2 && std::string(argv[1])=="--entities-source";
     const bool entitiesDelivery=argc==2 && std::string(argv[1])=="--entities-delivery";
     const bool entitiesOrigins=argc==2 && std::string(argv[1])=="--entities-origins";
+    const bool entitiesCompounds=argc==2 && std::string(argv[1])=="--entities-compounds";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2869,10 +2887,10 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

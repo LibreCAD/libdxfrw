@@ -17380,13 +17380,16 @@ bool dxfRW::processPolyline() {
             const DxfEntityBoundary boundary = setEntityBoundary(code);
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (boundary != DxfEntityBoundary::NextEntity
-                || !dxfKeywordEquals(nextentity, "VERTEX")) {
+                || (!dxfKeywordEquals(nextentity, "VERTEX")
+                    && !dxfKeywordEquals(nextentity, "SEQEND"))) {
                 // POLYLINE owns a VERTEX...SEQEND chain.  A section or block
                 // boundary before SEQEND is a truncated child sequence; do
                 // not publish the parent with partial geometry.
                 return setError(DRW::BAD_READ_ENTITIES);
             }
-            if (!processVertex(&pl))
+            // An empty linked sequence still owns its SEQEND. Do not invent a
+            // vertex (or accept a section/block boundary in place of the footer).
+            if (dxfKeywordEquals(nextentity, "VERTEX") && !processVertex(&pl))
                 return false;
             if (!dxfKeywordEquals(nextentity, "SEQEND"))
                 return setError(DRW::BAD_READ_ENTITIES);
@@ -26720,6 +26723,18 @@ DRW::Version dxfRW::getVersion() const {
 
 DRW::Version dxfRW::getSourceVersion() const {
     return m_sourceVersion;
+}
+
+bool dxfRW::getDxfReadContext(DxfReadContext& out) const noexcept {
+    out={};
+    if(!m_readTextObservationsActive||!reader)return false;
+    out.sourceVersion=reader->getSourceVersion();out.codecVersion=static_cast<DRW::Version>(reader->getVersion());
+    out.codecCodePage=reader->codePageView();out.binary=reader->isBinary();out.applyExtrusion=applyExt;
+    out.textEncoding=reader->dxfTextEncoding();out.codePagePolicy=reader->dxfCodePagePolicy();
+    out.hasDeclaration=header.hasDxfCodePageDeclaration();out.declaration=header.dxfCodePageDeclaration();
+    out.compatibilityProfile=reader->classifierProfile()==DxfClassifierProfile::LibreCadMasterLegacy
+        ?DxfCompatibilityProfile::LibreCadMasterLegacy:DxfCompatibilityProfile::StandaloneSafe;
+    return true;
 }
 
 DRW::error dxfRW::getError() const{

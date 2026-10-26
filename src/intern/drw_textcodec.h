@@ -140,8 +140,10 @@ public:
         m_dxfCodePagePolicy = policy;
     }
     DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return m_dxfCodePagePolicy; }
+    DRW::DxfTextEncoding dxfTextEncoding() const noexcept {return m_dxfTextEncoding;}
     void setByteCodePage(const std::string &c);
     std::string getCodePage(){return cp;}
+    std::string_view codePageView() const noexcept {return cp;}
     void swap(DRW_TextCodec& other) noexcept;
 
 private:

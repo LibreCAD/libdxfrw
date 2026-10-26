@@ -17456,6 +17456,8 @@ dx_iface::EntitiesDeliveryReport dx_iface::entitiesDeliveryReport(const dx_data&
             ||c->container!=&data||c->generation!=s.generation||c->section!=i
             ||!row.physical||!sameOwner(row.physical,s.entitiesSources[i].physical)||!sameOwner(row.physical,c->physical)
             ||!row.delivery||!sameOwner(row.delivery,c->delivery)||!row.observed||!sameOwner(row.observed,c->observed)
+            ||!row.context||!sameOwner(row.context,c->context)||!row.context->captured
+            ||row.context->sourceVersion!=s.version||row.context->binary!=row.physical->binary
             ||row.delivery->status!=DRW_DxfEntitiesDeliverySource::Status::Complete
             ||row.delivery->scopeId!=row.physical->scopeId||row.delivery->version!=s.version
             ||row.delivery->binary!=row.physical->binary||row.delivery->events.size()!=row.observed->size()
@@ -17463,6 +17465,39 @@ dx_iface::EntitiesDeliveryReport dx_iface::entitiesDeliveryReport(const dx_data&
         r.dispatches+=row.delivery->dispatches.size();r.events+=row.delivery->events.size();r.valuesObserved+=c->values;
     }
     r.state=S::ObservedTransportComplete;return r;
+}
+
+dx_iface::EntitiesCompoundReport dx_iface::entitiesCompoundReport(const dx_data& data) noexcept {
+    using S=EntitiesCompoundState;using P=EntitiesCompoundProof::State;
+    EntitiesCompoundReport r;const auto& source=data.m_tableDxfSource;
+    r.records=source.entitiesCompoundRecords;r.bytes=source.entitiesCompoundBytes;r.work=source.entitiesCompoundWork;
+    const auto state=entitiesDeliveryReport(data).state;
+    if(state==EntitiesDeliveryState::Reading){r.state=S::Reading;return r;}
+    if(state==EntitiesDeliveryState::ImportFailed){r.state=S::ImportFailed;return r;}
+    if(state==EntitiesDeliveryState::ContextMismatch){r.state=S::ContextMismatch;return r;}
+    if(state!=EntitiesDeliveryState::ObservedTransportComplete){r.state=S::SourceNotReady;return r;}
+    if(source.entitiesCompoundCaptureFailed){r.state=S::CaptureFailed;return r;}
+    if(source.entitiesCompoundAudits.size()!=source.entitiesDeliveries.size()
+        ||source.entitiesCompoundOwners.size()!=source.entitiesCompoundAudits.size()){r.state=S::NotCaptured;return r;}
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    for(std::size_t section=0;section<source.entitiesCompoundAudits.size();++section) {
+        const auto& audit=source.entitiesCompoundAudits[section];const auto& row=source.entitiesDeliveries[section];
+        if(!audit||!same(audit,source.entitiesCompoundOwners[section])||audit->container!=&data||audit->containerId!=data.m_entitiesContainerIdentity.value||audit->generation!=source.generation
+            ||audit->section!=section||!same(audit->physical,row.physical)||!same(audit->delivery,row.delivery)
+            ||!same(audit->observed,row.observed)||!same(audit->context,row.context)){r.state=S::ContextMismatch;return r;}
+        ++r.sections;r.dispatches+=audit->proofs.size();
+        for(const auto& proof:audit->proofs) {
+            if(!proof.compound) {
+                if(proof.state==P::Raw)++r.raw;else if(proof.state==P::NoCallback)++r.noCallback;else ++r.otherPrimaries;
+                continue;
+            }
+            ++r.compounds;if(proof.modeledMatched)++r.modeledMatched;if(proof.profilesMatched)++r.profilesMatched;
+            if(proof.state==P::Matched)++r.matched;
+            else {if(r.compounds-r.matched==1u){r.firstSection=section;r.firstDispatch=proof.dispatch;r.firstRecord=proof.failedRecord;}
+                if(proof.state==P::ModelUnavailable)++r.unavailable;}
+        }
+    }
+    r.state=!r.compounds?S::NoCompounds:r.compounds==r.matched?S::ProofsReady:S::Unqualified;return r;
 }
 
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
@@ -18476,18 +18511,62 @@ bool dx_iface::startEntitiesDeliveryScope(std::uint64_t scope) noexcept {
     ++s.entitiesDeliveryScopes;p.container=cData;p.generation=s.generation;p.scope=scope;p.containerId=cData->m_entitiesContainerIdentity.value;p.section=s.entitiesSources.size();return true;
 }
 
+bool dx_iface::captureEntitiesReadContext() noexcept {
+    auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if(p.context)return true;
+    dxfRW::DxfReadContext live;
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021
+        ||live.sourceVersion>DRW::AC1032||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u) {
+        s.entitiesDeliveryCaptureFailed=true;return false;
+    }
+    using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+    std::size_t bytes=sizeof(Context)+8u*sizeof(void*);
+    if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
+        ||!chargeEntitiesDelivery(bytes,bytes+64u))return false;
+    try {
+        Context context;context.sourceVersion=live.sourceVersion;context.codecVersion=live.codecVersion;
+        context.codecCodePage=live.codecCodePage;context.declaration=live.declaration;context.hasDeclaration=live.hasDeclaration;
+        context.compatibilityProfile=live.compatibilityProfile;context.textEncoding=live.textEncoding;context.codePagePolicy=live.codePagePolicy;
+        context.applyExtrusion=live.applyExtrusion;context.binary=live.binary;context.captured=true;
+        p.context=std::make_shared<const Context>(std::move(context));return true;
+    }catch(...){s.entitiesDeliveryCaptureFailed=true;return false;}
+}
+
+void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,const DRW_Entity& value) noexcept {
+    const auto* pl=value.eType==DRW::POLYLINE?dynamic_cast<const DRW_Polyline*>(&value):nullptr;
+    const auto* in=value.eType==DRW::INSERT?dynamic_cast<const DRW_Insert*>(&value):nullptr;
+    if(!pl&&!in)return;
+    std::size_t count=1u;
+    if(pl) {if(!addAssociativeRetainedBytes(pl->vertlist.size(),count)||!addAssociativeRetainedBytes(pl->seqEndEntity?1u:0u,count))return;}
+    else if(!addAssociativeRetainedBytes(in->attlist.size(),count)||!addAssociativeRetainedBytes(in->seqEndEntity?1u:0u,count))return;
+    std::size_t bytes=0u,work=0u;
+    if(!addAssociativeSlotBytes(count,sizeof(dxfCompound::SourceState),bytes)||!addAssociativeSlotBytes(count,64u,work)
+        ||!chargeEntitiesDelivery(bytes,work))return;
+    try {
+        observed.compoundStates.reserve(count);observed.compoundStates.push_back(dxfCompound::Decoder::observe(value));
+        if(pl) {
+            for(const auto& child:pl->vertlist){if(!child)return;observed.compoundStates.push_back(dxfCompound::Decoder::observe(*child));}
+            if(pl->seqEndEntity)observed.compoundStates.push_back(dxfCompound::Decoder::observe(*pl->seqEndEntity));
+        }else {
+            for(const auto& child:in->attlist){if(!child)return;observed.compoundStates.push_back(dxfCompound::Decoder::observe(*child));}
+            if(in->seqEndEntity)observed.compoundStates.push_back(dxfCompound::Decoder::observe(*in->seqEndEntity));
+        }
+        observed.compoundStatesCaptured=observed.compoundStates.size()==count;
+    }catch(...){cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;}
+}
+
 void dx_iface::beginDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& event) {
     if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
     if(s.entitiesDeliveryCaptureFailed)return;
     const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
     if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||!entitiesEventValid(event)
-        ||!startEntitiesDeliveryScope(scope)||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
+        ||!startEntitiesDeliveryScope(scope)||!captureEntitiesReadContext()||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
         ||p.section!=s.entitiesSources.size()||p.pending||index!=p.next||index!=p.observed.size()
         ||s.entitiesDeliveryEvents>=s.maxEntitiesDeliveryEvents){fail();return;}
     constexpr auto bytes=2u*sizeof(EntitiesObservedValue)+8u*sizeof(void*);
     if(!chargeEntitiesDelivery(bytes,bytes+64u))return;
     ++s.entitiesDeliveryEvents;
-    try {p.observed.push_back({event,false,false,{},{}});p.pending=true;}
+    try {p.observed.emplace_back();p.observed.back().event=event;p.pending=true;}
     catch(...){fail();}
 }
 
@@ -18571,7 +18650,8 @@ void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&
         if(!chargeEntitiesDelivery(bytes,bytes+64u))return;
         ++s.entitiesDeliveryScopes;p.container=cData;p.generation=s.generation;p.scope=value.scopeId;p.containerId=cData->m_entitiesContainerIdentity.value;p.section=section;
     }
-    if(p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value||p.scope!=value.scopeId||p.section!=section||p.pending
+    if(!captureEntitiesReadContext()||p.context->sourceVersion!=value.version||p.context->binary!=value.binary
+        ||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value||p.scope!=value.scopeId||p.section!=section||p.pending
         ||p.next!=p.observed.size()||p.next!=value.events.size()){fail();return;}
     const auto dispatches=value.dispatches.size(),events=value.events.size();
     std::size_t bytes=sizeof(value)+16u*sizeof(void*),allowance=0u,work=0u;
@@ -18606,8 +18686,8 @@ void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&
     try {
         auto delivery=std::make_shared<const DRW_DxfEntitiesDeliverySource>(value);
         auto observed=std::make_shared<const std::vector<EntitiesObservedValue>>(std::move(p.observed));
-        auto certificate=std::make_shared<const D::Certificate>(D::Certificate{cData,s.generation,p.containerId,section,values,models,raws,physical,delivery,observed});
-        s.entitiesDeliveries.push_back({cData,s.generation,p.containerId,section,physical,delivery,observed,std::move(certificate)});p={};
+        auto certificate=std::make_shared<const D::Certificate>(D::Certificate{cData,s.generation,p.containerId,section,values,models,raws,physical,delivery,observed,p.context});
+        s.entitiesDeliveries.push_back({cData,s.generation,p.containerId,section,physical,delivery,observed,std::move(certificate),p.context});p={};
     }catch(...){fail();}
 }
 
@@ -18945,6 +19025,188 @@ bool dx_iface::hasMatchedCompoundSource(const dx_data& data,std::uint32_t block,
     if(!hasMatchedCompoundBody(data,block,dispatch))return false;
     const auto& body=*data.m_tableDxfSource.blockSources.at(block).compoundBodies.at(dispatch);
     return body.profilesComplete&&body.profiles.size()==body.replayStates.size();
+}
+
+bool dx_iface::chargeEntitiesCompound(std::size_t bytes,std::size_t work,std::size_t records) noexcept {
+    auto& s=cData->m_tableDxfSource;
+    if(s.entitiesCompoundRecords>s.maxEntitiesCompoundRecords||records>s.maxEntitiesCompoundRecords-s.entitiesCompoundRecords
+        ||s.entitiesCompoundBytes>s.maxEntitiesCompoundBytes||bytes>s.maxEntitiesCompoundBytes-s.entitiesCompoundBytes
+        ||s.entitiesCompoundWork>s.maxEntitiesCompoundWork||work>s.maxEntitiesCompoundWork-s.entitiesCompoundWork) {
+        s.entitiesCompoundCaptureFailed=true;return false;
+    }
+    s.entitiesCompoundRecords+=records;s.entitiesCompoundBytes+=bytes;s.entitiesCompoundWork+=work;return true;
+}
+
+void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;using P=EntitiesCompoundProof;using State=P::State;
+    if(entitiesDeliveryReport(data).state!=EntitiesDeliveryState::ObservedTransportComplete)return;
+    try {
+        for(std::size_t section=0;section<s.entitiesDeliveries.size();++section) {
+            const auto& row=s.entitiesDeliveries[section];const auto& records=row.physical->records;const auto count=records.size();
+            std::size_t bytes=sizeof(EntitiesCompoundAudit)+24u*sizeof(void*),work=0u,levels=0u;
+            for(auto n=count;n;n>>=1u)++levels;
+            if(!addAssociativeSlotBytes(count,sizeof(dx_block_membership::Member)+sizeof(std::size_t),bytes)
+                ||!addAssociativeSlotBytes(row.delivery->dispatches.size(),sizeof(P),bytes)
+                ||!addAssociativeSlotBytes(row.physical->groups,128u,work)||!addAssociativeSlotBytes(count,64u+levels*16u,work)
+                ||!addAssociativeRetainedBytes(bytes,work)||!chargeEntitiesCompound(bytes,work,count))return;
+            auto audit=std::make_shared<EntitiesCompoundAudit>();audit->container=&data;audit->containerId=data.m_entitiesContainerIdentity.value;
+            audit->generation=s.generation;audit->section=section;audit->physical=row.physical;audit->delivery=row.delivery;audit->observed=row.observed;audit->context=row.context;
+            audit->members.reserve(count);audit->proofs.reserve(row.delivery->dispatches.size());std::vector<std::size_t> ids;ids.reserve(count);
+            for(std::size_t i=0;i<count;++i){audit->members.push_back(dx_block_membership::identity(records[i]));ids.push_back(i);}
+            std::sort(ids.begin(),ids.end(),[&](auto a,auto b){return audit->members[a].self<audit->members[b].self;});
+            for(std::size_t i=0;i<ids.size();++i) {
+                auto& m=audit->members[ids[i]];
+                if(m.self&&((i&&m.self==audit->members[ids[i-1u]].self)||(i+1u<ids.size()&&m.self==audit->members[ids[i+1u]].self)))
+                    m.reason=dx_block_membership::Reason::DuplicateIdentity;
+            }
+            std::size_t at=0u;
+            for(std::size_t d=0;d<row.delivery->dispatches.size();++d) {
+                const auto& dispatch=row.delivery->dispatches[d];P proof;proof.dispatch=d;proof.first=at;proof.event=dispatch.firstEvent;
+                while(at<count&&records[at].marker.ordinal<dispatch.end.ordinal)++at;
+                proof.next=at;proof.failedRecord=proof.first;
+                const auto& name=records[proof.first].name;const bool polyline=dx_block_membership::equal(name,"POLYLINE");
+                const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
+                proof.compound=polyline||insert;
+                if(!proof.compound) {
+                    if(!dispatch.events)proof.state=State::NoCallback;
+                    else {
+                        bool raw=false,typed=false;
+                        for(std::size_t e=0;e<dispatch.events;++e) {
+                            const auto& event=row.delivery->events[dispatch.firstEvent+e];
+                            if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser)continue;
+                            if(event.callback==DRW_DxfEntitiesCallback::addRawDxfEntity)raw=true;else typed=true;
+                        }
+                        if(raw&&!typed)proof.state=State::Raw;
+                    }
+                    audit->proofs.push_back(std::move(proof));continue;
+                }
+                const auto n=at-proof.first;auto& root=audit->members[proof.first];proof.state=State::Matched;
+                if(dispatch.events!=1u||proof.event>=row.observed->size())proof.state=State::Callback;
+                else {
+                    const auto& event=row.delivery->events[proof.event];
+                    if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=(polyline?DRW_DxfEntitiesCallback::addPolyline:DRW_DxfEntitiesCallback::addInsert)
+                        ||event.handle!=root.self||event.owner!=root.owner)proof.state=State::Callback;
+                }
+                if((polyline&&n<2u)||((polyline||n>1u)&&!dx_block_membership::equal(records[at-1u].name,"SEQEND")))proof.state=State::Sequence;
+                for(std::size_t i=proof.first;i<at;++i) {
+                    auto& member=audit->members[i];member.dispatch=d;member.parent=proof.first;
+                    if(member.reason!=dx_block_membership::Reason::Matched) {
+                        proof.state=member.reason==dx_block_membership::Reason::DuplicateIdentity?State::DuplicateIdentity:State::Identity;proof.failedRecord=i;break;
+                    }
+                    if(i==proof.first) {if(member.owner==member.self)proof.state=State::Owner;continue;}
+                    const bool footer=i+1u==at&&dx_block_membership::equal(records[i].name,"SEQEND");
+                    if(!footer&&!dx_block_membership::equal(records[i].name,polyline?"VERTEX":"ATTRIB")){proof.state=State::Sequence;proof.failedRecord=i;break;}
+                    member.role=footer?dx_block_membership::Role::SequenceEnd:polyline?dx_block_membership::Role::Vertex:dx_block_membership::Role::Attribute;
+                    if(member.owner!=root.self&&(!footer||member.owner!=root.owner)){proof.state=State::Owner;proof.failedRecord=i;break;}
+                    if(member.owner==root.self)member.ownerRole=dx_block_membership::Owner::CompoundParent;
+                }
+                if(insert&&((n>1u&&root.follow!=1)||(n==1u&&root.follow==1)))proof.state=State::FollowFlag;
+                if(proof.state==State::Matched) {
+                    const auto& observed=(*row.observed)[proof.event];
+                    if(!observed.valueObserved||!observed.model||observed.modelUnavailable||!observed.compoundStatesCaptured||observed.compoundStates.size()!=n)
+                        proof.state=State::ModelUnavailable;
+                    else (void)replayEntitiesCompound(*audit,proof);
+                }
+                audit->proofs.push_back(std::move(proof));
+                if(s.entitiesCompoundCaptureFailed)return;
+            }
+            s.entitiesCompoundOwners.push_back(audit);s.entitiesCompoundAudits.push_back(std::move(audit));
+        }
+    }catch(...){s.entitiesCompoundCaptureFailed=true;}
+}
+
+bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompoundProof& proof) {
+    using State=EntitiesCompoundProof::State;auto& s=cData->m_tableDxfSource;
+    const auto& observed=(*audit.observed)[proof.event];const auto n=proof.next-proof.first;const auto& context=*audit.context;
+    proof.state=State::DecodeFailed;
+    if(!context.captured||context.applyExtrusion||context.sourceVersion!=audit.physical->version||context.binary!=audit.physical->binary)return false;
+    std::size_t bytes=0u,work=0u,groups=0u,rawBytes=0u,modelBytes=0u;
+    const bool polyline=dx_block_membership::equal(audit.physical->records[proof.first].name,"POLYLINE");
+    if(!estimateTypedEntityRetainedBytes(*observed.model,polyline?sizeof(DRW_Polyline):sizeof(DRW_Insert),modelBytes))return false;
+    for(std::size_t i=proof.first;i<proof.next;++i) {
+        const auto& record=audit.physical->records[i];
+        if(!addAssociativeRetainedBytes(record.groups.size(),groups)||!addAssociativeRetainedBytes(sizeof(DRW_RawDxfObject)+record.name.size(),rawBytes)
+            ||!addAssociativeSlotBytes(record.groups.size(),sizeof(DRW_Variant)+sizeof(UTF8STRING)+32u,rawBytes))return false;
+        for(std::size_t j=0;j<record.groups.size();++j) {
+            std::size_t payload=0u;
+            if(!record.groups[j].estimateRetainedPayloadBytes(s.maxEntitiesCompoundBytes,payload)||!addAssociativeRetainedBytes(payload,rawBytes)
+                ||!addAssociativeRetainedBytes(record.rawValues[j].size(),rawBytes))return false;
+        }
+    }
+    if(!addAssociativeSlotBytes(n,sizeof(dxfCompound::SourceState)+sizeof(dx_attdef_source::Audit),bytes)
+        ||!addAssociativeSlotBytes(groups,2u*sizeof(dx_attdef_source::Span),bytes)||!addAssociativeSlotBytes(rawBytes,6u,bytes)
+        ||!addAssociativeSlotBytes(modelBytes,3u,bytes)||!addAssociativeSlotBytes(groups,128u,work)
+        ||!addAssociativeRetainedBytes(bytes,work)||!chargeEntitiesCompound(bytes,work))return false;
+    proof.profiles.reserve(n);proof.replayStates.reserve(n);
+    const auto decode=[&](std::size_t i,dxfCompound::Decoder& decoder,auto& model,bool finalize,const DRW_Polyline* parent) {
+        proof.failedRecord=i;const auto& physical=audit.physical->records[i];const auto& member=audit.members[i];
+        DRW_RawDxfObject raw;raw.name=physical.name;raw.handle=member.self;raw.parentHandle=member.owner;
+        raw.m_version=context.sourceVersion;raw.hasRawValues=!context.binary;
+        raw.groups.reserve(physical.groups.size());raw.rawValues.reserve(physical.groups.size());
+        for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment){raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);}
+        auto profile=dx_compound_source::audit(raw,parent,true);
+        if(!dx_compound_source::restorePhysicalIndices(profile,physical)){s.entitiesCompoundCaptureFailed=true;return false;}
+        proof.profiles.push_back(std::move(profile));
+        std::string wire;if(!tableResourceSourceBody(raw,s.maxEntitiesCompoundBytes,wire))return false;
+        dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=context.sourceVersion;view.binary=context.binary;
+        view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
+        dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);auto budget=std::make_shared<DxfReadRetainedBudget>(s.maxEntitiesCompoundBytes);
+        auto reader=dx_standard_output::readerFor(input,view,budget);if(!reader)return false;
+        reader->setDxfCodePagePolicy(context.codePagePolicy);reader->setDxfTextEncoding(context.textEncoding);reader->setSemanticStringMode(true);
+        reader->setRecordBudget(raw.groups.size());reader->setTypedVariantNodeBudget(raw.groups.size());
+        reader->setDecodeWorkBudget(s.maxEntitiesCompoundWork-s.entitiesCompoundWork);int code=0;bool parsed=true;
+        while(buffer.position()<wire.size())if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)){parsed=false;break;}
+        if(!chargeEntitiesCompound(0u,reader->decodeWorkCount()))return false;
+        if(budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()||reader->inputByteBudgetExceeded()
+            ||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()){s.entitiesCompoundCaptureFailed=true;return false;}
+        if(!parsed||reader->recordCount()!=raw.groups.size()||(finalize&&!decoder.finish(parent)))return false;
+        const auto state=dxfCompound::Decoder::observe(model);proof.replayStates.push_back(state);
+        if(!state.hasNoPendingXdata()||!observed.compoundStates[i-proof.first].hasNoPendingXdata()
+            ||!(state==observed.compoundStates[i-proof.first])){proof.state=State::SourceStateMismatch;return false;}
+        return true;
+    };
+    const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b){return standardDwgVariantEqual(a,b,context.sourceVersion);};
+    if(polyline) {
+        DRW_Polyline parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,false,nullptr))return false;
+        parsed.vertlist.reserve(n-2u);
+        for(auto i=proof.first+1u;i+1u<proof.next;++i) {auto vertex=std::make_shared<DRW_Vertex>();dxfCompound::Decoder child(*vertex);
+            if(!decode(i,child,*vertex,true,&parsed))return false;parsed.vertlist.push_back(std::move(vertex));}
+        parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
+        if(!decode(proof.next-1u,footer,*parsed.seqEndEntity,true,nullptr)||!root.finish())return false;
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }else {
+        DRW_Insert parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
+        if(n>1u) {
+            parsed.attlist.reserve(n-2u);
+            for(auto i=proof.first+1u;i+1u<proof.next;++i) {auto attribute=std::make_shared<DRW_Attrib>();dxfCompound::Decoder child(*attribute);
+                if(!decode(i,child,*attribute,true,nullptr))return false;parsed.attlist.push_back(std::move(attribute));}
+            parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
+            if(!decode(proof.next-1u,footer,*parsed.seqEndEntity,true,nullptr))return false;
+        }
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }
+    proof.profilesMatched=proof.profiles.size()==n&&std::all_of(proof.profiles.begin(),proof.profiles.end(),[](const auto& p){return p.complete();});
+    if(!proof.modeledMatched){proof.state=State::ModelMismatch;return false;}
+    if(!proof.profilesMatched){proof.state=State::ProfileMismatch;return false;}
+    // Read the classified original common fields, never application/embedded
+    // lookalikes or a reconstructed section-wide model/paper assignment.
+    int rootSpace=0;std::string_view rootLayout;bool rootHasLayout=false,layoutUnresolved=false;
+    for(std::size_t i=0;i<n;++i) {
+        int space=0;bool hasLayout=false;std::string_view layout;
+        const auto& physical=audit.physical->records[proof.first+i];
+        for(const auto& span:proof.profiles[i].spans)if(span.scope==dx_attdef_source::Scope::Host&&span.field==dx_attdef_source::Field::Common) {
+            const auto& value=physical.groups[span.groupIndex];
+            if(span.code==67)space=value.i_val();
+            if(span.role==dx_attdef_source::Role::LayoutName){layout=dx_block_membership::text(value);hasLayout=true;}
+        }
+        if(!i){rootSpace=space;rootLayout=layout;rootHasLayout=hasLayout;}
+        else {
+            if(space!=rootSpace||(hasLayout&&rootHasLayout&&layout!=rootLayout)){proof.state=State::SpaceMismatch;proof.failedRecord=proof.first+i;return false;}
+            if(hasLayout!=rootHasLayout)layoutUnresolved=true;
+        }
+    }
+    proof.spaceMatched=!layoutUnresolved;
+    proof.state=layoutUnresolved?State::LayoutUnresolved:State::Matched;proof.failedRecord=proof.first;return proof.state==State::Matched;
 }
 
 dx_iface::TableBindingState dx_iface::inspectTableBlockSource(const dx_data& data,std::uint32_t record,std::uint32_t block,TableContentBindingReport& report) noexcept {
@@ -19765,7 +20027,9 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
         && data.dxfReadOutcome.error == DRW::BAD_NONE;
     source.version = source.successful ? data.sourceVersion : DRW::UNKNOWNV;
     source.reader = nullptr;
+    source.entitiesReadInput = nullptr;
     m_tableSourceReadData = nullptr;
+    if(source.successful)finishEntitiesCompoundAudits(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -24084,6 +24348,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dxfReadOutcome.attempted = true;
         fData->dxfReadOutcome.requestedCodePagePolicy = codePagePolicy;
         dxfRW dxf(fileI.c_str());
+        tableSource.entitiesReadInput=&dxf;
         dxf.setDxfCodePagePolicy(codePagePolicy);
         if (debug) {
             dxf.setDebug(DRW::DebugLevel::Debug);

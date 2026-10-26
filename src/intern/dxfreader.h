@@ -548,7 +548,9 @@ public:
         m_textReadObservations.codePagePolicy = policy;
     }
     DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return decoder.dxfCodePagePolicy(); }
+    DRW::DxfTextEncoding dxfTextEncoding() const noexcept {return decoder.dxfTextEncoding();}
     std::string getCodePage(){ return decoder.getCodePage();}
+    std::string_view codePageView() const noexcept {return decoder.codePageView();}
     DRW::Version getSourceVersion() const { return decoder.getSourceVersion(); }
     bool hasSourceVersion() const { return decoder.hasSourceVersion(); }
     bool isBinary() const noexcept { return !skip; }

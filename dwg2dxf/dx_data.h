@@ -1174,6 +1174,34 @@ private:
             bool valueObserved{false},modelUnavailable{false};
             std::shared_ptr<const DRW_Entity> model;
             std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::vector<dxfCompound::SourceState> compoundStates;
+            bool compoundStatesCaptured{false};
+        };
+        struct EntitiesReadContext {
+            DRW::Version sourceVersion{DRW::UNKNOWNV},codecVersion{DRW::UNKNOWNV};
+            UTF8STRING codecCodePage,declaration;
+            dxfRW::DxfCompatibilityProfile compatibilityProfile{dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            DRW::DxfTextEncoding textEncoding{DRW::DxfTextEncoding::Declared};
+            DRW::DxfCodePagePolicy codePagePolicy{DRW::DxfCodePagePolicy::Compatible};
+            bool hasDeclaration{false},applyExtrusion{false},binary{false},captured{false};
+        };
+        struct EntitiesCompoundProof {
+            enum class State : std::uint8_t {OtherPrimary,Raw,NoCallback,ModelUnavailable,Identity,Sequence,Owner,DuplicateIdentity,
+                Callback,FollowFlag,DecodeFailed,SourceStateMismatch,ModelMismatch,ProfileMismatch,SpaceMismatch,LayoutUnresolved,Matched};
+            State state{State::OtherPrimary};
+            std::size_t dispatch{0},first{0},next{0},event{0},failedRecord{0};
+            std::vector<dx_attdef_source::Audit> profiles;
+            std::vector<dxfCompound::SourceState> replayStates;
+            bool compound{false},modeledMatched{false},profilesMatched{false},spaceMatched{false};
+        };
+        struct EntitiesCompoundAudit {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0};
+            std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+            std::shared_ptr<const DRW_DxfEntitiesDeliverySource> delivery;
+            std::shared_ptr<const std::vector<EntitiesObservedValue>> observed;
+            std::shared_ptr<const EntitiesReadContext> context;
+            std::vector<dx_block_membership::Member> members;
+            std::vector<EntitiesCompoundProof> proofs;
         };
         struct EntitiesDelivery {
             struct Certificate {
@@ -1181,16 +1209,19 @@ private:
                 std::shared_ptr<const DRW_DxfEntitiesSource> physical;
                 std::shared_ptr<const DRW_DxfEntitiesDeliverySource> delivery;
                 std::shared_ptr<const std::vector<EntitiesObservedValue>> observed;
+                std::shared_ptr<const EntitiesReadContext> context;
             };
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t section{0};
             std::shared_ptr<const DRW_DxfEntitiesSource> physical;
             std::shared_ptr<const DRW_DxfEntitiesDeliverySource> delivery;
             std::shared_ptr<const std::vector<EntitiesObservedValue>> observed;
             std::shared_ptr<const Certificate> certificate;
+            std::shared_ptr<const EntitiesReadContext> context;
         };
         struct EntitiesPending {
             const void* container{nullptr};std::uint64_t generation{0},scope{0},containerId{0};std::size_t section{0},next{0};
             bool pending{false};std::vector<EntitiesObservedValue> observed;
+            std::shared_ptr<const EntitiesReadContext> context;
         } entitiesPending;
         std::vector<EntitiesDelivery> entitiesDeliveries;
         std::size_t entitiesDeliveryScopes{0},entitiesDeliveryDispatches{0},entitiesDeliveryEvents{0};
@@ -1198,6 +1229,14 @@ private:
         std::size_t maxEntitiesDeliveryScopes{1024u},maxEntitiesDeliveryDispatches{100000u},maxEntitiesDeliveryEvents{4000000u};
         std::size_t maxEntitiesDeliveryBytes{64u*1024u*1024u},maxEntitiesDeliveryWork{64u*1024u*1024u};
         bool entitiesDeliveryCaptureFailed{false};
+        const dxfRW* entitiesReadInput{nullptr}; // borrowed only within actual fileImport
+        std::vector<std::shared_ptr<const EntitiesCompoundAudit>> entitiesCompoundAudits;
+        // Pin the actual published audit owners separately from the query rows.
+        // A copied/substituted cache must not borrow its input certificates.
+        std::vector<std::shared_ptr<const EntitiesCompoundAudit>> entitiesCompoundOwners;
+        std::size_t entitiesCompoundRecords{0},entitiesCompoundBytes{0},entitiesCompoundWork{0};
+        std::size_t maxEntitiesCompoundRecords{100000u},maxEntitiesCompoundBytes{64u*1024u*1024u},maxEntitiesCompoundWork{64u*1024u*1024u};
+        bool entitiesCompoundCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

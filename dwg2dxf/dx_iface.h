@@ -40,6 +40,17 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
                  public DRW_DxfEntitiesDeliveryHandler {
 public:
+    enum class EntitiesCompoundState {NotCaptured,Reading,ImportFailed,SourceNotReady,CaptureFailed,ContextMismatch,NoCompounds,ProofsReady,Unqualified};
+    struct EntitiesCompoundReport {
+        // ProofsReady covers only the selected compound subset. Other primary,
+        // raw and no-callback records and actual owner/layout targets stay open.
+        EntitiesCompoundState state{EntitiesCompoundState::NotCaptured};
+        std::size_t sections{0},dispatches{0},compounds{0},matched{0},modeledMatched{0},profilesMatched{0};
+        std::size_t otherPrimaries{0},raw{0},noCallback{0},unavailable{0},records{0},bytes{0},work{0};
+        std::size_t firstSection{0},firstDispatch{0},firstRecord{0};
+        bool outputEligible{false},ownerTargetsResolved{false};
+    };
+    static EntitiesCompoundReport entitiesCompoundReport(const dx_data&) noexcept;
     enum class EntitiesDeliveryState {NotCaptured,Reading,ImportFailed,CaptureFailed,ContextMismatch,ReportMissing,ObservedTransportComplete};
     struct EntitiesDeliveryReport {
         // Actual callback/original-interval transport, NOT field/space/output proof.
@@ -1585,10 +1596,17 @@ private:
     bool m_entitiesTableProjection{false};
     bool chargeEntitiesDelivery(std::size_t,std::size_t) noexcept;
     bool startEntitiesDeliveryScope(std::uint64_t) noexcept;
+    bool captureEntitiesReadContext() noexcept;
     using EntitiesObservedValue=dx_data::TableDxfSourceCapture::EntitiesObservedValue;
     EntitiesObservedValue* observeDxfEntitiesValue(std::int32_t,std::uint32_t,std::uint32_t,DRW_DxfEntitiesCallback) noexcept;
     void observeDxfEntitiesRaw(const DRW_RawDxfObject&,DRW_DxfEntitiesCallback) noexcept;
     static bool concreteEntitiesBodyChildren(const DRW_Entity&) noexcept;
+    void captureEntitiesCompoundStates(EntitiesObservedValue&,const DRW_Entity&) noexcept;
+    using EntitiesCompoundAudit=dx_data::TableDxfSourceCapture::EntitiesCompoundAudit;
+    using EntitiesCompoundProof=dx_data::TableDxfSourceCapture::EntitiesCompoundProof;
+    void finishEntitiesCompoundAudits(dx_data&) noexcept;
+    bool chargeEntitiesCompound(std::size_t,std::size_t,std::size_t=0u) noexcept;
+    bool replayEntitiesCompound(EntitiesCompoundAudit&,EntitiesCompoundProof&);
     template<class Model,class Value>void observeDxfEntitiesTyped(const Value& value,
                             DRW_DxfEntitiesCallback route=DRW_DxfEntitiesCallback::Count) noexcept {
         auto* observed=observeDxfEntitiesValue(static_cast<std::int32_t>(value.eType),value.handle,value.parentHandle,route);
@@ -1604,6 +1622,8 @@ private:
             cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;return;
         }
         if(!concreteEntitiesBodyChildren(value)){observed->modelUnavailable=true;return;}
+        captureEntitiesCompoundStates(*observed,value);
+        if(cData->m_tableDxfSource.entitiesDeliveryCaptureFailed)return;
         try {observed->model=std::make_shared<const Model>(*typed);++cData->m_tableDxfSource.entitiesDeliveryModels;}
         catch(...){cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;}
     }
