@@ -19090,7 +19090,8 @@ void dx_iface::addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource& value
             if(item.dispatch!=i||item.callback>=DRW_DxfBlockCallback::Count
                 ||(!item.hasValue&&(item.handle||item.owner||item.entityType))
                 ||(item.callback==DRW_DxfBlockCallback::addRawDxfEntity&&item.entityType!=0)
-                ||(item.callback==DRW_DxfBlockCallback::AttdefSource&&item.entityType!=static_cast<std::int32_t>(DRW::ATTDEF))){fail();return;}
+                ||(item.callback==DRW_DxfBlockCallback::AttdefSource&&item.entityType!=static_cast<std::int32_t>(DRW::ATTDEF))
+                ||(item.callback==DRW_DxfBlockCallback::TableSource&&item.entityType!=static_cast<std::int32_t>(DRW::TABLE))){fail();return;}
         }
     }
     if(record!=physical||event!=events){fail();return;}
@@ -19142,6 +19143,9 @@ void dx_iface::finishDxfBlockDelivery(std::uint64_t scope,std::uint32_t block) {
 
 void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t handle,std::uint32_t owner,
                                           DRW_DxfBlockCallback route,const DRW_RawDxfObject* raw,const DRW_Entity* entity) noexcept {
+    // The established 2D TABLE->INSERT adapter projection is not a second
+    // original producer callback. It is observed once above in addTable.
+    if(m_entitiesTableProjection)return;
     if(!cData)return;
     auto& source=cData->m_tableDxfSource;
     if(!source.blockSourceActive||source.blockDeliveryCaptureFailed)return;
@@ -19155,6 +19159,7 @@ void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t hand
     if(!event.hasValue||event.entityType!=type||event.handle!=handle||event.owner!=owner
         ||(route!=DRW_DxfBlockCallback::Count&&event.callback!=route)
         ||(route==DRW_DxfBlockCallback::Count&&(event.callback==DRW_DxfBlockCallback::AttdefSource
+            ||event.callback==DRW_DxfBlockCallback::TableSource||event.callback==DRW_DxfBlockCallback::addTable
             ||event.callback==DRW_DxfBlockCallback::addRawDxfEntity))){fail();return;}
     dxfRW::DxfBlockSourceView actual;
     if(source.entitiesReadInput&&source.entitiesReadInput->getDxfBlockSourceView(actual))
@@ -19168,7 +19173,12 @@ void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t hand
         const auto count=raw->groups.size();
         if(count>source.maxBlockDeliveryWork/64u||source.blockDeliveryWork>source.maxBlockDeliveryWork-count*64u){fail();return;}
         source.blockDeliveryWork+=count*64u;
-        if(at==records.end()||at->marker.ordinal!=dispatch.begin.ordinal||at->endOrdinal!=dispatch.end.ordinal
+        if(at==records.end()){fail();return;}
+        // TABLE source is the parent record only; the dispatch may additionally
+        // consume ATTRIB/SEQEND. Membership checks that full linked sequence.
+        const auto& expectedEnd=event.callback==DRW_DxfBlockCallback::TableSource
+            ?(at+1u==records.end()?row.children->endMarker:(at+1u)->marker):dispatch.end;
+        if(at->marker.ordinal!=dispatch.begin.ordinal||at->endOrdinal!=expectedEnd.ordinal||at->endOffset!=expectedEnd.beginOffset
             ||!blockDeliveryRawMatches(*at,*raw,row.delivery->binary)){fail();return;}
     }
     observeDxfBlockMembership(row,event,entity);
@@ -20363,6 +20373,8 @@ bool dx_iface::chargeTableSource(
 
 void dx_iface::addDxfTableSource(const DRW_Table& table,
                                 const DRW_RawDxfObject& raw) {
+    observeDxfBlockDeliveryValue(static_cast<std::int32_t>(table.eType),table.handle,table.parentHandle,
+                                DRW_DxfBlockCallback::TableSource,&raw,&table);
     observeDxfEntitiesTyped<DRW_Table>(table,DRW_DxfEntitiesCallback::TableSource);
     observeDxfEntitiesRaw(raw,DRW_DxfEntitiesCallback::TableSource);
     if (!cData) return;

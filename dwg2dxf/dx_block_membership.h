@@ -99,7 +99,8 @@ inline bool callbackName(DRW_DxfBlockCallback callback,std::string_view name) no
     DX_MEMBER_NAME(addMLine,"MLINE");DX_MEMBER_NAME(addShape,"SHAPE");DX_MEMBER_NAME(addOle2Frame,"OLE2FRAME");
     DX_MEMBER_NAME(addOleFrame,"OLEFRAME");DX_MEMBER_NAME(addProxyEntity,"ACAD_PROXY_ENTITY");
     DX_MEMBER_NAME(addPolyline,"POLYLINE");DX_MEMBER_NAME(addSpline,"SPLINE");DX_MEMBER_NAME(addHelix,"HELIX");
-    DX_MEMBER_NAME(addTable,"ACAD_TABLE");DX_MEMBER_NAME(addTrace,"TRACE");DX_MEMBER_NAME(add3dFace,"3DFACE");
+    case C::TableSource:case C::addTable:return equal(name,"ACAD_TABLE");
+    DX_MEMBER_NAME(addTrace,"TRACE");DX_MEMBER_NAME(add3dFace,"3DFACE");
     DX_MEMBER_NAME(addSolid,"SOLID");DX_MEMBER_NAME(addMText,"MTEXT");DX_MEMBER_NAME(addTolerance,"TOLERANCE");
     DX_MEMBER_NAME(addCamera,"CAMERA");DX_MEMBER_NAME(addLeader,"LEADER");DX_MEMBER_NAME(addHatch,"HATCH");
     DX_MEMBER_NAME(addMPolygon,"MPOLYGON");DX_MEMBER_NAME(addViewport,"VIEWPORT");DX_MEMBER_NAME(addImage,"IMAGE");
@@ -149,7 +150,8 @@ inline Audit audit(const void* container,std::uint64_t generation,std::shared_pt
         Range range{first,at,Reason::Matched};auto& primary=out.members[first];
         const bool polyline=equal(records[first].name,"POLYLINE");
         const bool insert=equal(records[first].name,"INSERT")||equal(records[first].name,"MINSERT");
-        const bool compound=polyline||(insert&&at-first>1u);
+        const bool table=equal(records[first].name,"ACAD_TABLE");
+        const bool compound=polyline||((insert||table)&&at-first>1u);
         for(std::size_t i=first;i<at;++i) {
             auto& member=out.members[i];member.dispatch=d;member.parent=first;
             if(i==first) {
@@ -172,12 +174,15 @@ inline Audit audit(const void* container,std::uint64_t generation,std::shared_pt
         if(!compound&&at-first!=1u)range.reason=Reason::Sequence;
         if(insert&&((compound&&primary.follow!=1)||(!compound&&primary.follow==1)))range.reason=Reason::FollowFlag;
         const bool attdef=equal(records[first].name,"ATTDEF");
+        const bool paired=dispatch.events&&((attdef&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::AttdefSource)
+            ||(table&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::TableSource));
         if(!dispatch.events)range.reason=Reason::Disposition;
-        else if(dispatch.events!=(attdef&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::AttdefSource?2u:1u))range.reason=Reason::Callback;
+        else if(dispatch.events!=(paired?2u:1u))range.reason=Reason::Callback;
         for(std::size_t e=0;e<dispatch.events;++e) {
             const auto& event=source.events[dispatch.firstEvent+e];
             if(!event.hasValue||event.handle!=primary.self||event.owner!=primary.owner||!callbackName(event.callback,records[first].name)
-                ||(attdef&&dispatch.events==2u&&event.callback!=(e?DRW_DxfBlockCallback::addAttDef:DRW_DxfBlockCallback::AttdefSource)))range.reason=Reason::Callback;
+                ||(attdef&&paired&&event.callback!=(e?DRW_DxfBlockCallback::addAttDef:DRW_DxfBlockCallback::AttdefSource))
+                ||(table&&paired&&event.callback!=(e?DRW_DxfBlockCallback::addTable:DRW_DxfBlockCallback::TableSource)))range.reason=Reason::Callback;
         }
         out.ranges.push_back(range);
     }
@@ -204,10 +209,12 @@ inline bool compoundValue(const Audit& audit,std::size_t dispatch,const DRW_Enti
     const auto& name=audit.children->records[range.first].name;
     const bool expectPolyline=equal(name,"POLYLINE");
     const bool expectInsert=equal(name,"INSERT")||equal(name,"MINSERT");
+    const bool expectTable=equal(name,"ACAD_TABLE");
     const auto polyline=dynamic_cast<const DRW_Polyline*>(value);
     const auto insert=dynamic_cast<const DRW_Insert*>(value);
-    if((expectPolyline&&!polyline)||(expectInsert&&!insert))return false;
-    if(!expectPolyline&&!expectInsert)return n==1u;
+    if((expectPolyline&&!polyline)||((expectInsert||expectTable)&&!insert)
+        ||(expectTable&&!dynamic_cast<const DRW_Table*>(value)))return false;
+    if(!expectPolyline&&!expectInsert&&!expectTable)return n==1u;
     if(expectPolyline) {
         if(n<2u||polyline->vertlist.size()!=n-2u||!sameIdentity(audit.members[range.next-1u],polyline->seqEndEntity.get()))return false;
         for(std::size_t i=0;i<polyline->vertlist.size();++i)

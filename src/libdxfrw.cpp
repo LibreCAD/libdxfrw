@@ -2004,6 +2004,36 @@ public:
     DRW_DxfAttdefSourceHandler* attdefSourceHandler() const noexcept {
         return dynamic_cast<DRW_DxfAttdefSourceHandler*>(&m_target);
     }
+    DRW_DxfTableSourceHandler* tableSourceHandler() const noexcept {
+        return dynamic_cast<DRW_DxfTableSourceHandler*>(&m_target);
+    }
+
+    bool stageTableSource(DRW_Table&& value,DRW_RawDxfObject&& source,DRW_DxfTableSourceHandler& handler) {
+        static_assert(std::is_nothrow_move_constructible<DRW_Table>::value,"TABLE staging must transfer payload and parser state");
+        static_assert(std::is_nothrow_move_constructible<DRW_RawDxfObject>::value,"TABLE raw staging must transfer payload owners");
+        if(m_failed)return false;
+        struct Pair {
+            DRW_Table value;
+            const DRW_RawDxfObject source;
+            Pair(DRW_Table&& v,DRW_RawDxfObject&& s):value(std::move(v)),source(std::move(s)){}
+        };
+        try {
+            auto pair=std::make_shared<Pair>(std::move(value),std::move(source));
+            const auto sourcePlan=plan(DRW_DxfBlockCallback::TableSource,&pair->value);
+            const auto typedPlan=plan(DRW_DxfBlockCallback::addTable,&pair->value);
+            if(sourcePlan.index==dxfBlockDelivery::Capture::NoEvent||typedPlan.index==dxfBlockDelivery::Capture::NoEvent) {
+                m_events.emplace_back([pair=std::move(pair),&handler](DRW_Interface& target) {
+                    handler.addDxfTableSource(pair->value,pair->source);target.addTable(pair->value);
+                });
+            } else {
+                m_events.emplace_back([this,pair=std::move(pair),&handler,sourcePlan,typedPlan](DRW_Interface& target) {
+                    invoke(sourcePlan,&pair->value,&pair->source,[&](){handler.addDxfTableSource(pair->value,pair->source);});
+                    invoke(typedPlan,&pair->value,nullptr,[&](){target.addTable(pair->value);});
+                });
+            }
+        }catch(...){m_failed=true;}
+        return !m_failed;
+    }
 
     bool stageAttdefSource(DRW_Attdef&& value,DRW_RawDxfObject&& source,
                           DRW_DxfAttdefSourceContext context,
@@ -17266,7 +17296,8 @@ bool dxfRW::processTable() {
     DRW_DBG("dxfRW::processTable");
     int code;
     DRW_Table table;
-    auto* sourceHandler = dynamic_cast<DRW_DxfTableSourceHandler*>(iface);
+    auto* blockEvents=dynamic_cast<DxfBlockEventSink*>(iface);
+    auto* sourceHandler = blockEvents?blockEvents->tableSourceHandler():dynamic_cast<DRW_DxfTableSourceHandler*>(iface);
     const bool captureSource = sourceHandler != nullptr
         && sourceHandler->wantsDxfTableSource();
     DRW_RawDxfObject raw;
@@ -17299,6 +17330,11 @@ bool dxfRW::processTable() {
                 if (!validateCapturedRawDxfObject(
                         raw, binFile, reader->classifierProfile()))
                     return setError(DRW::BAD_CODE_PARSED);
+                if(blockEvents) {
+                    if(!blockEvents->stageTableSource(std::move(table),std::move(raw),*sourceHandler))
+                        return setError(DRW::BAD_READ_ENTITIES);
+                    return true;
+                }
                 sourceHandler->addDxfTableSource(table, raw);
             }
             iface->addTable(table);

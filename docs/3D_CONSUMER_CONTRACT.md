@@ -20,7 +20,7 @@ identifies the actual reader-owned publication and staged value, frozen original
 block IDs, delivery scope/index and original parser cursor. Outside those frames
 it returns false and clears the view, including after exceptions and reader
 reuse. Selection remains latched and established callback ordering is unchanged.
-Raw endpoint/ATTDEF/raw-entity carriers and completed physical/delivery reports
+Raw endpoint/ATTDEF/TABLE/raw-entity carriers and completed physical/delivery reports
 are moved into const storage before exposure; consumers must honor the const
 contract and make bounded copies of data needed beyond the callback. Pointer-
 owned variant payloads do not make this an arbitrary-memory-write integrity API.
@@ -78,6 +78,24 @@ enclosing targets; source classification alone does not resolve dependencies.
 These joins do not open the older partial ATTDEF/resource/binding gates:
 ATTDEF `rawTypedMatched` remains false, including when the separate role pass
 can qualify an explicit410 against the original layout graph.
+
+The existing optional TABLE source facet now also reaches TABLEs inside BLOCKS.
+Its raw parent/source and typed callbacks are staged together until ENDBLK is
+accepted, using one moved original TABLE and a const raw carrier. The source
+parent excludes linked ATTRIB/SEQEND records; the dispatch includes them and
+converter membership checks their actual IDs/owners separately. TABLE's original
+private parser state, common XDATA cursor and linked attribute states survive
+staging. Ordinary copies continue to sanitize parser state; explicit TABLE move
+construction/assignment transfers payload owners without that projection.
+The delivery enum appends `TableSource` without renumbering existing callbacks
+(`Count` advances); no new virtual or facade/model-layout field is added.
+
+The converter observes the actual TABLE source/typed publications once; its
+established internal 2D INSERT projection remains present but is not another
+original producer event. This repairs missing source transport and structural
+membership, not full TABLE body/state/profile, dependency, common-target or
+live/output qualification. TABLE remains an explicit unsupported body in the
+current role reports, including when its original producer origins are bound.
 
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,

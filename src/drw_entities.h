@@ -1978,6 +1978,10 @@ public:
         }
         return *this;
     }
+    // Source/typed BLOCKS pairs transfer one original parsed value, including
+    // its parser state and linked owners. Ordinary copies still reset state.
+    DRW_Table(DRW_Table&&) noexcept = default;
+    DRW_Table& operator=(DRW_Table&&) noexcept = default;
 
     // TABLE has a distinct, versioned DWG frame and linked-object graph.
     // Until that writer exists, do not inherit INSERT's lower-level encoder.

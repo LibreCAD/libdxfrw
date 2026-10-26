@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5es original ATTDEF body/pair/role joins (2026-10-26; verified before local commit):** immutable original ATTDEF model/raw/parser-state/origin/read-context owners now join selected BLOCKS and ENTITIES body/role audits. Shared replay preserves actual text interpretation and ATTDEF's pre-copy subclass state; explicit410 is qualified only through the original target graph, not older partial resource gates. The new authored selector covers72 profiles,3,264 independently walked scalar spans,40 actual field mutations,94 allocation faults and12 destination guards. Exact affected cohorts pass87/87 normally and87/87 under ASan. [Implementation and next work](#implementation-progress-rpp-5es-original-attdef-bodypairrole-joins-2026-10-26) · [receipt](docs/research/rpp5es-original-attdef-body-pair-role-joins-2026-10-26.json). TABLE/other primary,dependency,live/output,consumer and external work stays open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5et original BLOCKS TABLE source pairs (2026-10-26; verified before local commit):** the existing optional TABLE source facet now reaches BLOCKS through one moved original model/const raw pair, preserving actual parser and linked-child state until ENDBLK. Converter observations distinguish the raw parent boundary from the full ATTRIB/SEQEND dispatch and keep the established 2D INSERT projection out of original provenance accounting. The new authored selector covers72 profiles,4,848 independently walked BLOCKS scalar spans,32 allocation faults and corrected retries. Exact affected cohorts pass88/88 normally and88/88 under ASan. [Implementation and next work](#implementation-progress-rpp-5et-original-blocks-table-source-pairs-2026-10-26) · [receipt](docs/research/rpp5et-original-blocks-table-source-pairs-2026-10-26.json). Full TABLE body/state/profile/common-target/dependency/live/output and native/external work stays open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5es original ATTDEF body/pair/role joins (2026-10-26; committed as `388e5a5d`):** immutable original ATTDEF model/raw/parser-state/origin/read-context owners now join selected BLOCKS and ENTITIES body/role audits. Shared replay preserves actual text interpretation and ATTDEF's pre-copy subclass state; explicit410 is qualified only through the original target graph, not older partial resource gates. The new authored selector covers72 profiles,3,264 independently walked scalar spans,40 actual field mutations,94 allocation faults and12 destination guards. Exact affected cohorts pass87/87 normally and87/87 under ASan. [Implementation and next work](#implementation-progress-rpp-5es-original-attdef-bodypairrole-joins-2026-10-26) · [receipt](docs/research/rpp5es-original-attdef-body-pair-role-joins-2026-10-26.json). TABLE/other primary,dependency,live/output,consumer and external work stays open; no support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5er original BLOCKS role joins and sibling-boundary refusal (2026-10-26; committed as `96995a8d`):** a bounded immutable audit enumerates every original physical BLOCKS scope and joins selected POINT/LINE/POLYLINE/INSERT/MINSERT bodies to actual original definition/layout targets. Dropped or unsupported records cannot hide behind a selected subset. Endpoint definition metadata stays separate from member placement; actual67 defaults and absent/explicit410 remain distinct. A reproduced missing-ENDBLK reader bug is fixed independently of observer selection. Exact affected cohorts pass86/86 normally and86/86 under ASan. [Implementation and next work](#implementation-progress-rpp-5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26) · [receipt](docs/research/rpp5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26.json). Remaining primary/dependency/live/output/consumer/external work stays open; no support gate is promoted.
 
@@ -130301,3 +130303,140 @@ Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full goal remains active; this slice does not complete the objective.
+
+## Implementation progress — RPP-5et original BLOCKS TABLE source pairs (2026-10-26)
+
+State: **VERIFIED before local slice commit**. Exact affected cohorts pass
+normal88/ASan88. RPP-5es is committed as `388e5a5d`. This repairs a reproduced
+TABLE source-publication prerequisite and linked structural membership, not
+complete TABLE body/state/profile/common-target/dependency/live/output proof.
+
+- [x] Reproduce before implementation: an authored AC1021 ASCII TABLE inside
+  BLOCKS imports successfully but receives zero source callbacks and one typed
+  callback. `processTable` queries the staging facade for the source facet,
+  which that facade does not implement. The typed staging copy also resets
+  TABLE parser state. Retain the actual pre-fix diagnostic, not a synthetic
+  callback invocation or a changed expected result.
+- [x] Route source selection through the actual target facet and stage TABLE
+  source/typed callbacks together until the enclosing ENDBLK is accepted. Move
+  the original TABLE and raw parent into one pair, with a const raw carrier;
+  avoid independently queued clones. Plain source-facet consumers need no
+  BLOCKS source/delivery observer to receive the pair. Opt-out still receives
+  its established typed callback without a raw source callback.
+- [x] Add defaulted noexcept TABLE move construction/assignment over the
+  existing noexcept base moves. Payload owners, private TABLE parser fields,
+  common XDATA cursor and original linked attribute states survive the move;
+  ordinary copies still reset parser state. No facade/model layout field or
+  required virtual is added. The delivery enum appends `TableSource` before
+  `Count`, preserving existing callback values while advancing the sentinel.
+- [x] Observe the actual source/typed TABLE values through the existing original
+  BLOCKS publication view. The established adapter-internal INSERT projection
+  still occurs exactly once, but is not a second original producer event or
+  a substitute for TABLE semantics. Copied/missing/duplicate publications or
+  an attempted typed INSERT substitution cannot reuse original origin proof.
+- [x] Distinguish raw parent and full dispatch boundaries. A TABLE source parent
+  ends at the next physical record; the parser dispatch can also consume linked
+  ATTRIB/SEQEND. Match exact parent scalar/body/end positions, while membership
+  checks the complete physical chain and actual child/footer owners. Preserve
+  both observed SEQEND owner forms and completed empty footer chains. Do not
+  impose INSERT's group66 requirement on the TABLE parser's accepted shapes.
+- [x] Keep TABLE explicitly unsupported by the current body/role reports, even
+  when original publisher origins and structural membership are complete.
+  An original incomplete XDATA cursor is not erased into clean body evidence.
+  No TABLE cell/body profile, common target, resource/output or semantic claim
+  is promoted. Update the consumer contract with this exact boundary.
+
+New runtime-authored selector `libdxfrw_table_block_source_transport`:
+
+- **72** four-modern-version x LF/CRLF/Binary x BLOCKS/ENTITIES x parent-only/
+  two-ATTRIB+SEQEND/empty-SEQEND profiles preserve the source/typed pair and the
+  existing typed TABLE plus single 2D INSERT projection. Actual source and typed
+  model addresses and parser states agree; copies sanitize state separately.
+- **4,848** independently walked original BLOCKS child scalar spans (including
+  TABLE parent/linked records and existing neighboring records) verify original
+  values, physical positions and parent boundaries. This is scalar transport,
+  not independent TABLE field/reference-role or geometry semantics.
+- **12** direct selected/opt-out public routes work without converter/BLOCKS
+  observer participation. **Four** footer-owner variants retain wire owners.
+  **Four** converter opt-out/pending-XDATA contexts keep original transport
+  distinct from sanitized copied state. **156** counted primary/public profile
+  move checks transfer row/attribute owners and retain state without allocation.
+- **16** copied/missing/duplicate source/typed or attempted INSERT-publication
+  substitutions refuse original certification and recover on the same adapter
+  with a fresh destination. Reader-owned TABLE callback view queries allocate
+  nothing and identify actual original model/raw/event pointers.
+- **12** exact/one-under source record/group/byte cases exercise current snapshot
+  budgets. **32** reached actual source-snapshot allocation failures record
+  capture refusal and corrected import. These finite schedules are not all
+  parser/staging/allocation sites, allocator-capacity/RSS or timing guarantees.
+- **14** malformed chain/footer, wrong child/footer owner, callback exception
+  and failed-tail cases preserve balanced scopes and corrected import. Wrong
+  per-record owners stay tolerant ordinary imports but unqualified structurally;
+  structural boundaries fail. Main new Binary recipes contain no group999.
+  No external drawing bytes or derivatives are committed.
+
+Development evidence: the first test build exposed incomplete command dispatch
+and strict builds caught test indentation; fix the actual test plumbing and
+formatting without suppression. After source pairing, an initial linked TABLE
+probe reports complete membership but only two of four observed events: the
+old raw check conflates the parent end with the full dispatch end. The scoped
+TABLE parent-boundary fix above repairs it without weakening full linked
+membership. No stale executable run is accepted. Historical silent first
+CELLSTYLEMAP/TABLESTYLE launches remain unclassified.
+
+Final strict affected builds pass. Exact cohorts pass **88/88 normally in26.37s**
+and **88/88 under ASan in58.38s**, zero failed/skipped/disabled tests, identical
+registered selection/order and exact executed-name sets. Normal runtime finishes
+before ASan (`halt_on_error=1:detect_leaks=0`); only independent compilation
+overlaps. Final compiled-source hashes are unchanged. Existing library/owning
+adapter/resource/compatibility targets retain C++17 and `-Wall -Wextra -pedantic
+-Werror`; the broad fixture runner is not claimed globally warning-clean.
+These are affected cohorts, not repeated full suites, benchmarks, formal ABI,
+native consumer execution or independent geometry/kernel qualification. The
+[receipt](docs/research/rpp5et-original-blocks-table-source-pairs-2026-10-26.json)
+records exact controls/selection, source/log hashes and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Freeze complete original TABLE inputs/states.** Add a bounded immutable
+   TABLE input/body packet, not a reinterpretation of its INSERT projection or
+   the mutable-by-test legacy value map. Independently pin original source/typed
+   model/raw/context and enclosing publication owners. Capture private TABLE
+   subclass/count/cell/value/attribute cursor state and common/linked original
+   states before copies sanitize them. Add a shared nonallocating internal
+   state observation/production replay wrapper; keep original versus copy-state
+   projections explicit, including pending XDATA. ENTITIES actual producer
+   identity must be independently attested, not inferred from equal copied data.
+2. [ ] **Complete TABLE body/profile/common-role closure.** Replay the actual
+   parent plus linked ATTRIB/SEQEND through shared production grammar with the
+   frozen reader text/options context. Audit original scalar/subclass/reference
+   roles independently; distinguish outer owner and source67/410 from cell/value
+   handles and raw opaque application fields. Retain semantic-completeness flags
+   rather than converting a raw round-trip parent stub into full table content.
+   Keep ACAD_TABLE entity parent, standalone TABLECONTENT/TABLEGEOMETRY and their
+   actual wrapper graph as separate schemas and prerequisites. Add field/state/
+   owner/layout/unsupported, copied/cross-import, quota/allocation, exception/tail
+   and corrected-reuse controls before extending selected role accounting.
+3. [ ] **Other required primaries and common dependencies.** Resolve actual
+   STYLE/APPID/LAYER/object/application/proxy/codepage and bounded nested INSERT
+   targets from classified original roles. Preserve ambiguity/wrong-kind/missing
+   and source-name/output-ID distinctions. TABLE publication, structural chain,
+   original modeled equality and an enclosing target are not dependency closure.
+4. [ ] **Full B2b/B3/C and consumer/native parity.** Complete source/live/edited/
+   emitted fields/names/references, remapping/readback, atomic rollback/retry/
+   destination safety, IMAGE/document/native-bit/decimal/carrier/schema/owner and
+   memory/performance. Preserve LibreCAD/LibreCAD_3 2D/3D plus dwg2dxf/FreeCAD.
+   Compile/same-stack checks do not replace native Linux/Windows FreeCAD or
+   independent ACIS/ACDS semantic/kernel evidence.
+5. [ ] **Self-update/unblock and continue.** Commit/report this verified slice,
+   retain failures/limits/receipts, then take the next safe local prerequisite.
+   Use fast owning tests per edit and exact affected cohorts at integration
+   boundaries. Commit no external drawing payloads or derivatives, and do not
+   wait for external qualification while local work remains available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+No DWG byte-layout parser/encoder or remote mutation is included. The full goal
+remains active; this slice does not complete the objective.

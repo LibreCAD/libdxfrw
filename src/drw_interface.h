@@ -704,6 +704,7 @@ public:
  * DRW_Interface's vtable or duplicate addRawDxfEntity. The parent record
  * excludes separate ATTRIB/SEQEND records; the typed view retains those.
  * Delivered before addTable, only after the entity boundary is accepted.
+ * BLOCKS pairs are staged together until the enclosing ENDBLK is accepted.
  * This is source transport, not semantic or output qualification. */
 class DRW_DxfTableSourceHandler {
 public:
@@ -957,7 +958,7 @@ enum class DRW_DxfBlockCallback : std::uint8_t {
   addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
   addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
   addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
-  addRawDxfEntity,AttdefSource,Count
+  addRawDxfEntity,AttdefSource,TableSource,Count
 };
 struct DRW_DxfBlockDispatch {
   DRW_DxfPhysicalRecordSpan begin,end;

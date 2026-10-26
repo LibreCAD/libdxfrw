@@ -543,6 +543,8 @@ public:
             retainTypedEntity<DRW_MLeader>(*data);
     }
     void addTable(const DRW_Table& data) override {
+        observeDxfBlockDeliveryValue(static_cast<std::int32_t>(data.eType),data.handle,data.parentHandle,
+                                    DRW_DxfBlockCallback::addTable,nullptr,&data);
         observeDxfEntitiesTyped<DRW_Table>(data,DRW_DxfEntitiesCallback::addTable);
         constexpr std::size_t tableListNodeLinkBytes = 2u * sizeof(void*);
         if (cData == nullptr)

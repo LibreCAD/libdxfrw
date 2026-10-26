@@ -647,6 +647,10 @@ add_test(NAME libdxfrw_original_attdef_roles
     COMMAND libdxfrw_table_content_dxf_tests --attdef-roles)
 set_tests_properties(libdxfrw_original_attdef_roles PROPERTIES
     LABELS "fast;dxf;adapter;source;identity;attdef;block;entities;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_table_block_source_transport
+    COMMAND libdxfrw_table_content_dxf_tests --table-block-source)
+set_tests_properties(libdxfrw_table_block_source_transport PROPERTIES
+    LABELS "fast;dxf;adapter;source;table;block;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_layout_graph_read_contract
     COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
 set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES
