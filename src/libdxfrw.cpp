@@ -1984,8 +1984,10 @@ bool appendDxfHexChunk(std::string_view text,
 class DxfBlockEventSink final : public DRW_Interface {
 public:
     explicit DxfBlockEventSink(DRW_Interface& target,dxfBlockDelivery::Capture* delivery=nullptr,
-                              DRW_DxfBlockDeliveryHandler* handler=nullptr)
+                              DRW_DxfBlockDeliveryHandler* handler=nullptr,DxfBlockPublication* publication=nullptr,
+                              dxfBlockChildren::Capture* children=nullptr)
         :m_target(target),m_delivery(delivery),m_handler(handler),
+         m_publication(publication),m_children(children),
          m_blockHandle(delivery?delivery->source().blockHandle:0u),m_scopeId(delivery?delivery->source().scopeId:0u){}
 
     void beginDispatch(dxfReader& input) noexcept {
@@ -2013,7 +2015,7 @@ public:
         if(m_failed)return false;
         struct Pair {
             DRW_Attdef value;
-            DRW_RawDxfObject source;
+            const DRW_RawDxfObject source;
             Pair(DRW_Attdef&& v,DRW_RawDxfObject&& s)
                 :value(std::move(v)),source(std::move(s)){}
         };
@@ -2029,8 +2031,8 @@ public:
                 });
             } else {
                 m_events.emplace_back([this,pair=std::move(pair),context,&handler,sourcePlan,typedPlan](DRW_Interface& target) {
-                    invoke(sourcePlan,[&](){handler.addDxfAttdefSource(pair->value,pair->source,context);});
-                    invoke(typedPlan,[&](){target.addAttDef(pair->value);});
+                    invoke(sourcePlan,&pair->value,&pair->source,[&](){handler.addDxfAttdefSource(pair->value,pair->source,context);});
+                    invoke(typedPlan,&pair->value,nullptr,[&](){target.addAttDef(pair->value);});
                 });
             }
         } catch (...) {m_failed=true;}
@@ -2044,7 +2046,10 @@ public:
             return false;
         for (auto& event : m_events)
             event(m_target);
-        if(m_delivery&&m_handler&&m_delivery->completeManifest())m_handler->finishDxfBlockDelivery(m_scopeId,m_blockHandle);
+        if(m_delivery&&m_handler&&m_delivery->completeManifest()) {
+            auto view=publication(10u);DxfBlockPublicationScope scope(m_publication,view);
+            m_handler->finishDxfBlockDelivery(m_scopeId,m_blockHandle);
+        }
         return !m_failed;
     }
 
@@ -2175,13 +2180,12 @@ private:
     using Event = std::function<void(DRW_Interface&)>;
     struct Planned {
         std::size_t index{dxfBlockDelivery::Capture::NoEvent};
-        DRW_DxfBlockDeliveryEvent value;
     };
     Planned planValue(DRW_DxfBlockCallback callback,std::int32_t type,std::uint32_t handle,std::uint32_t owner,bool present) noexcept {
         if(!m_delivery)return {};
         const auto index=m_delivery->event(callback,type,handle,owner,present);
         if(index==dxfBlockDelivery::Capture::NoEvent)return {};
-        return {index,m_delivery->source().events[index]};
+        return {index};
     }
     Planned plan(DRW_DxfBlockCallback callback,const DRW_Entity* value) noexcept {
         return planValue(callback,value?static_cast<std::int32_t>(value->eType):0,
@@ -2190,15 +2194,30 @@ private:
     Planned plan(DRW_DxfBlockCallback callback,const DRW_RawDxfObject* value) noexcept {
         return planValue(callback,0,value?value->handle:0u,value?value->parentHandle:0u,value!=nullptr);
     }
-    template<class Callback>void invoke(const Planned& planned,Callback callback) {
-        const bool notify=m_delivery&&m_handler&&m_delivery->completeManifest()
-            &&planned.index!=dxfBlockDelivery::Capture::NoEvent;
-        // Copy origin metadata into the queued event before exposing the
-        // report; it is not reconstructed from mutable callback/model state.
-        if(notify)m_handler->beginDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,planned.value);
-        callback();
-        if(notify)m_handler->endDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,planned.value);
+    DxfBlockPublication publication(std::uint8_t phase) const noexcept {
+        DxfBlockPublication out;out.phase=phase;out.blockHandle=m_blockHandle;out.scope=m_scopeId;
+        if(m_delivery){out.delivery=&m_delivery->source();out.blockRecord=out.delivery->blockRecord;}
+        if(m_children)out.physical=&m_children->source();return out;
     }
+    template<class Callback>void invoke(const Planned& planned,const DRW_Entity* entity,const DRW_RawDxfObject* raw,Callback callback) {
+        const bool notify=m_delivery&&m_handler&&m_delivery->completeManifest()
+            &&planned.index!=dxfBlockDelivery::Capture::NoEvent&&planned.index<m_delivery->source().events.size();
+        // The completed manifest has moved into const storage before replay.
+        // Bracket the actual staged value with that exact original event;
+        // do not reconstruct metadata from mutable callback/model state.
+        if(!notify){callback();return;}
+        auto view=publication(7u);view.index=planned.index;view.event=&view.delivery->events[planned.index];view.entity=entity;view.raw=raw;
+        if(entity){const auto state=dxfCompound::Decoder::observe(*entity).host;view.pendingXdata=state.present;view.coordinateMask=state.coordinateMask;}
+        DxfBlockPublicationScope scope(m_publication,view);
+        m_handler->beginDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,*view.event);
+        if(m_publication)m_publication->phase=8u;callback();
+        if(m_publication)m_publication->phase=9u;
+        m_handler->endDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,*view.event);
+    }
+    static const DRW_Entity* entityPointer(const DRW_Entity* value) noexcept{return value;}
+    static const DRW_Entity* entityPointer(const DRW_RawDxfObject*) noexcept{return nullptr;}
+    static const DRW_RawDxfObject* rawPointer(const DRW_Entity*) noexcept{return nullptr;}
+    static const DRW_RawDxfObject* rawPointer(const DRW_RawDxfObject* value) noexcept{return value;}
 
     template <typename T>
     void recordText(const T& data) {
@@ -2225,13 +2244,14 @@ private:
         if (m_failed)
             return;
         try {
-            auto copy = std::make_shared<T>(data);
+            using Stored=typename std::conditional<std::is_same<T,DRW_RawDxfObject>::value,const T,T>::type;
+            auto copy = std::make_shared<Stored>(data);
             const auto planned=plan(kind,copy.get());
             if(planned.index==dxfBlockDelivery::Capture::NoEvent) {
                 m_events.emplace_back([copy=std::move(copy),callback](DRW_Interface& target){callback(target,*copy);});
             } else {
                 m_events.emplace_back([this,copy=std::move(copy),callback,planned](DRW_Interface& target) {
-                    invoke(planned,[&](){callback(target,*copy);});
+                    invoke(planned,entityPointer(copy.get()),rawPointer(copy.get()),[&](){callback(target,*copy);});
                 });
             }
         } catch (...) {
@@ -2252,7 +2272,7 @@ private:
                 m_events.emplace_back([copy=std::move(copy),callback](DRW_Interface& target){callback(target,copy.get());});
             } else {
                 m_events.emplace_back([this,copy=std::move(copy),callback,planned](DRW_Interface& target) {
-                    invoke(planned,[&](){callback(target,copy.get());});
+                    invoke(planned,entityPointer(copy.get()),rawPointer(copy.get()),[&](){callback(target,copy.get());});
                 });
             }
         } catch (...) {
@@ -2265,6 +2285,8 @@ private:
     bool m_failed {false};
     dxfBlockDelivery::Capture* m_delivery;
     DRW_DxfBlockDeliveryHandler* m_handler;
+    DxfBlockPublication* m_publication;
+    dxfBlockChildren::Capture* m_children;
     const std::uint32_t m_blockHandle;
     const std::uint64_t m_scopeId;
 };
@@ -16125,6 +16147,7 @@ bool dxfRW::processBlock() {
     const bool captureDelivery=captureChildren&&deliveryHandler&&deliveryHandler->wantsDxfBlockDeliverySource();
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockSource();
     bool beginSourceDelivered=false;
+    std::uint32_t originalBlockHandle=0u,originalBlockRecord=0u;
     DRW_RawDxfObject beginSource;
     if(captureSource&&!copyRawDxfCarrierName(beginSource,nextentity))
         return setError(DRW::BAD_CODE_PARSED);
@@ -16136,6 +16159,10 @@ bool dxfRW::processBlock() {
         if (!blockPublished)
             return;
         blockPublished = false;
+        DxfBlockPublication view;view.phase=11u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;view.block=&block;
+        if(captureDelivery){view.scope=deliverySource.source().scopeId;view.delivery=&deliverySource.source();}
+        if(captureChildren)view.physical=&childSource.source();
+        DxfBlockPublicationScope scope(captureSource||captureDelivery?&reader->m_blockPublication:nullptr,view);
         iface->endBlock();
     };
     const auto closePublishedBlockAfterException = [&]() noexcept {
@@ -16184,9 +16211,14 @@ bool dxfRW::processBlock() {
             if(beginSourceDelivered) {
                 endSource.handle=footer.handle;endSource.parentHandle=footer.parentHandle;
                 if(!validateCapturedRawDxfObject(endSource,binFile,reader->classifierProfile()))return false;
-                sourceHandler->addDxfBlockEndSource(footer,endSource);
             }
-            iface->addBlockEnd(footer);
+            const DRW_RawDxfObject original=std::move(endSource);
+            DxfBlockPublication view;view.phase=3u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;
+            view.block=&footer;view.source=&original;
+            const auto state=dxfCompound::Decoder::observe(footer).host;view.pendingXdata=state.present;view.coordinateMask=state.coordinateMask;
+            if(beginSourceDelivered){DxfBlockPublicationScope scope(&reader->m_blockPublication,view);sourceHandler->addDxfBlockEndSource(footer,original);}
+            view.phase=4u;
+            {DxfBlockPublicationScope scope(beginSourceDelivered?&reader->m_blockPublication:nullptr,view);iface->addBlockEnd(footer);}
             return true;
         }
         return false;
@@ -16213,8 +16245,8 @@ bool dxfRW::processBlock() {
             }
             // Freeze source scope identity before either source or legacy
             // callbacks can expose the mutable parser-owned BLOCK view.
-            const auto originalBlockHandle=block.handle;
-            const auto originalBlockRecord=block.parentHandle;
+            originalBlockHandle=block.handle;
+            originalBlockRecord=block.parentHandle;
             const auto recordName=block.parentHandle!=DRW::NoHandle
                 ?m_readingContext.resolveBlockRecordName(block.parentHandle):UTF8STRING{};
             const bool dropBlock=recordName.empty()&&(!beginDecoder.hasDeclaredName()||block.name.empty());
@@ -16222,9 +16254,13 @@ bool dxfRW::processBlock() {
                 beginSource.handle=block.handle;beginSource.parentHandle=block.parentHandle;
                 if(!validateCapturedRawDxfObject(beginSource,binFile,reader->classifierProfile()))
                     return setError(DRW::BAD_CODE_PARSED);
-                sourceHandler->addDxfBlockBeginSource(block,beginSource);
-                beginSourceDelivered=true;
             }
+            const DRW_RawDxfObject originalBegin=std::move(beginSource);
+            DxfBlockPublication beginView;beginView.phase=1u;beginView.blockHandle=originalBlockHandle;beginView.blockRecord=originalBlockRecord;
+            beginView.block=&block;beginView.source=&originalBegin;
+            const auto beginState=dxfCompound::Decoder::observe(block).host;beginView.pendingXdata=beginState.present;beginView.coordinateMask=beginState.coordinateMask;
+            if(captureSource&&!dropBlock){DxfBlockPublicationScope scope(&reader->m_blockPublication,beginView);
+                sourceHandler->addDxfBlockBeginSource(block,originalBegin);beginSourceDelivered=true;}
             if (!beginDecoder.hasDeclaredName())
                 block.name.clear();
             if (block.parentHandle != DRW::NoHandle) {
@@ -16246,6 +16282,7 @@ bool dxfRW::processBlock() {
             try {
                 if (!dropBlock) {
                     blockPublished = true;
+                    beginView.phase=2u;DxfBlockPublicationScope scope(beginSourceDelivered?&reader->m_blockPublication:nullptr,beginView);
                     iface->addBlock(block);
                 }
                 if(captureChildren&&!dropBlock)
@@ -16257,12 +16294,15 @@ bool dxfRW::processBlock() {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);
                     }
-                    childSource.detach();
-                    if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
+                    childSource.freeze();
+                    if(captureChildren&&!dropBlock){DxfBlockPublication view;view.phase=5u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;view.physical=&childSource.source();
+                        DxfBlockPublicationScope scope(&reader->m_blockPublication,view);childrenHandler->addDxfBlockChildrenSource(childSource.source());}
                     if(captureDelivery&&!dropBlock) {
-                        deliverySource.complete();const auto scope=deliverySource.source().scopeId;
-                        deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());
-                        if(deliverySource.completeManifest())deliveryHandler->finishDxfBlockDelivery(scope,originalBlockHandle);
+                        deliverySource.complete();deliverySource.freeze();const auto scopeId=deliverySource.source().scopeId;
+                        DxfBlockPublication view;view.phase=6u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;view.scope=scopeId;
+                        view.physical=&childSource.source();view.delivery=&deliverySource.source();
+                        {DxfBlockPublicationScope scope(&reader->m_blockPublication,view);deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());}
+                        if(deliverySource.completeManifest()){view.phase=10u;DxfBlockPublicationScope scope(&reader->m_blockPublication,view);deliveryHandler->finishDxfBlockDelivery(scopeId,originalBlockHandle);}
                     }
                     publishBlockRecord();
                     closePublishedBlock();
@@ -16271,7 +16311,8 @@ bool dxfRW::processBlock() {
                     const bool previousBlockContext = m_readingBlockEntities;
                     DRW_Interface *const previousInterface = iface;
                     DxfBlockEventSink blockEvents(*previousInterface,
-                        captureDelivery&&!dropBlock?&deliverySource:nullptr,captureDelivery&&!dropBlock?deliveryHandler:nullptr);
+                        captureDelivery&&!dropBlock?&deliverySource:nullptr,captureDelivery&&!dropBlock?deliveryHandler:nullptr,
+                        captureDelivery&&!dropBlock?&reader->m_blockPublication:nullptr,captureDelivery&&!dropBlock?&childSource:nullptr);
                     m_readingBlockEntities = true;
                     iface = &blockEvents;
                     bool entitiesProcessed = false;
@@ -16296,10 +16337,13 @@ bool dxfRW::processBlock() {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);
                     }
-                    childSource.detach();
-                    if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
+                    childSource.freeze();
+                    if(captureChildren&&!dropBlock){DxfBlockPublication view;view.phase=5u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;view.physical=&childSource.source();
+                        DxfBlockPublicationScope scope(&reader->m_blockPublication,view);childrenHandler->addDxfBlockChildrenSource(childSource.source());}
                     if(captureDelivery&&!dropBlock) {
-                        deliverySource.complete();deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());
+                        deliverySource.complete();deliverySource.freeze();DxfBlockPublication view;view.phase=6u;view.blockHandle=originalBlockHandle;view.blockRecord=originalBlockRecord;
+                        view.scope=deliverySource.source().scopeId;view.physical=&childSource.source();view.delivery=&deliverySource.source();
+                        DxfBlockPublicationScope scope(&reader->m_blockPublication,view);deliveryHandler->addDxfBlockDeliverySource(deliverySource.source());
                     }
                     if (!dropBlock && !blockEvents.flush()) {
                         closePublishedBlock();
@@ -26790,6 +26834,13 @@ bool dxfRW::getDxfReadContext(DxfReadContext& out) const noexcept {
     out.compatibilityProfile=reader->classifierProfile()==DxfClassifierProfile::LibreCadMasterLegacy
         ?DxfCompatibilityProfile::LibreCadMasterLegacy:DxfCompatibilityProfile::StandaloneSafe;
     return true;
+}
+
+bool dxfRW::getDxfBlockSourceView(DxfBlockSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& p=reader->m_blockPublication;if(!p.phase||p.phase>11u)return false;
+    out={static_cast<DxfBlockSourceView::Phase>(p.phase),p.blockHandle,p.blockRecord,p.scope,p.index,
+        p.block,p.source,p.physical,p.delivery,p.event,p.entity,p.raw,p.pendingXdata,p.coordinateMask};return true;
 }
 
 bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {

@@ -28,8 +28,30 @@
 
 class DRW_Layout;
 class DRW_TableEntry;
+class DRW_Block;
+class DRW_Entity;
 struct DRW_RawDxfObject;
 struct DRW_DxfIdentitySource;
+struct DRW_DxfBlockChildrenSource;
+struct DRW_DxfBlockDeliverySource;
+struct DRW_DxfBlockDeliveryEvent;
+struct DxfBlockPublication {
+    std::uint8_t phase{0},coordinateMask{0};bool pendingXdata{false};
+    std::uint32_t blockHandle{0},blockRecord{0};std::uint64_t scope{0};std::size_t index{0};
+    const DRW_Block* block{nullptr};const DRW_RawDxfObject* source{nullptr};
+    const DRW_DxfBlockChildrenSource* physical{nullptr};const DRW_DxfBlockDeliverySource* delivery{nullptr};
+    const DRW_DxfBlockDeliveryEvent* event{nullptr};
+    const DRW_Entity* entity{nullptr};const DRW_RawDxfObject* raw{nullptr};
+};
+class DxfBlockPublicationScope {
+    DxfBlockPublication* slot;DxfBlockPublication previous;
+public:
+    DxfBlockPublicationScope(DxfBlockPublication* target,const DxfBlockPublication& value) noexcept
+        :slot(target),previous(target?*target:DxfBlockPublication{}){if(slot)*slot=value;}
+    ~DxfBlockPublicationScope(){if(slot)*slot=previous;}
+    DxfBlockPublicationScope(const DxfBlockPublicationScope&)=delete;
+    DxfBlockPublicationScope& operator=(const DxfBlockPublicationScope&)=delete;
+};
 struct DxfLayoutPublication {
     // 0 none, 1 source callback, 2 typed callback. Internal reader-owned state,
     // so the public dxfRW facade gains no object-layout fields.
@@ -301,6 +323,7 @@ class dxfReader {
     DxfLayoutPublication m_layoutPublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
     DxfStructuralPublication m_structuralPublication{};
+    DxfBlockPublication m_blockPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     enum TYPE {

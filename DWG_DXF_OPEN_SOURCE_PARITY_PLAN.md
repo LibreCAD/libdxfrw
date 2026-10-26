@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5eo BLOCKS primary replay and read-context owners (2026-10-26; verified before local commit):** shared BLOCKS body capture/replay now includes POINT/LINE with immutable delivered model/state/profile owners. Capture the actual per-block read context independently of editable headers, observe context consistency across publication phases, and pin body/context owners against equal copies and alias control blocks. Explicit410 remains a classified source field, not a qualified target; selected-definition gates remain closed for it pending the enclosing original role join. Final exact cohorts pass80/80 normally and80/80 under ASan. [Implementation and next work](#implementation-progress-rpp-5eo-blocks-primary-replay-and-read-context-owners-2026-10-26) · [receipt](docs/research/rpp5eo-blocks-primary-replay-and-read-context-owners-2026-10-26.json). Complete BLOCKS producer-origin/owner/default, remaining bodies/dependencies, live/output/consumer and external work remains open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5ep actual BLOCKS producer origins and namespace binding (2026-10-26; verified before local commit):** reader-owned borrowed publication views identify the actual endpoint/physical/manifest/event/staged-value inputs. Original carriers move into const storage before exposure, and bounded immutable converter audits bind selected published scopes to their exact original BLOCKS namespace interval. Equal copied inputs, consistently forged source/model values and substituted/cross-import owners cannot promote original publication proof. Final exact cohorts pass81/81 normally and81/81 under ASan. [Implementation and next work](#implementation-progress-rpp-5ep-actual-blocks-producer-origins-and-namespace-binding-2026-10-26) · [receipt](docs/research/rpp5ep-actual-blocks-producer-origins-and-namespace-binding-2026-10-26.json). Whole-physical-scope enumeration, owner/default/layout joins, remaining bodies/dependencies, live/output/consumer and external work remain open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5eo BLOCKS primary replay and read-context owners (2026-10-26; committed as `3a9089c2`):** shared BLOCKS body capture/replay includes POINT/LINE with immutable delivered model/state/profile owners and actual per-block read context. Explicit410 remains a classified source field, not a qualified target. Its exact80/80 normal and80/80 ASan results remain historical; RPP-5ep adds selected actual producer origins, not enclosing owner/layout, dependency, live/output or native qualification. [Implementation](#implementation-progress-rpp-5eo-blocks-primary-replay-and-read-context-owners-2026-10-26) · [receipt](docs/research/rpp5eo-blocks-primary-replay-and-read-context-owners-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5en original selected ENTITIES owner/space/layout joins (2026-10-26; committed as `bbf1fe36`):** pinned original graph/body/physical owners join selected POINT/LINE and INSERT/POLYLINE records and linked children to actual layout block targets. Preserve absent/default 67 versus present 410, normalize original layout names under actual frozen text context, and distinguish active paper ENTITIES from inactive paper BLOCKS. Original target evidence can resolve absent linked 410 without inventing source fields. A collision-safe test scratch reservation preserves existing owners and adds filesystem diagnostics. Final exact cohorts pass 79/79 normally and 79/79 under ASan; historical silent launch failures remain unclassified. [Historical implementation](#implementation-progress-rpp-5en-original-selected-entities-ownerspacelayout-joins-2026-10-26) · [receipt](docs/research/rpp5en-original-selected-entities-owner-space-layout-joins-2026-10-26.json). Complete BLOCKS, primary/dependency/live/output/consumer and external work remains open; no support gate is promoted.
 
@@ -129798,3 +129800,119 @@ remains **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full goal stays active; no remote mutation is included.
+
+## Implementation progress — RPP-5ep actual BLOCKS producer origins and namespace binding (2026-10-26)
+
+State: **VERIFIED before local slice commit**. This implements the actual
+producer-origin prerequisite of RPP-5eo's next item, not that item's complete
+owner/space/default/layout target join or the full objective.
+
+- [x] Add allocation-free `dxfRW::getDxfBlockSourceView`, backed by internal
+  reader state rather than new facade/model fields or interface vtable slots.
+  Scoped frames distinguish original begin/footer source and reconciled typed
+  publications, physical inventory, manifest, callback begin/value/end, finish
+  and close. They carry original root IDs, scope/index, actual borrowed pointers
+  and original parser cursor. False clears the view outside a frame; exception
+  unwinding and reader reuse restore/clear state. Preserve callback order,
+  latched selection and ordinary opt-out behavior.
+- [x] Move raw endpoints, staged raw/ATTDEF source carriers, completed physical
+  inventory and manifest into const storage before publication. Manifest hooks
+  receive the exact frozen event, not an equal per-lambda copy; queued closures
+  keep only its index instead of another full event copy. Typed models retain
+  established legacy mutability. Constness is an API contract, not protection
+  against arbitrary writes through pointer-owned variant payloads.
+- [x] Add a separate bounded converter origin protocol and immutable audits,
+  with pinned container/generation/non-copying identity, original/effective/
+  footer/raw/physical/delivery/context/namespace owners. Finalize only after
+  successful whole import, with no borrowed pointer retained. Bind qualifying
+  selected BLOCK/ENDBLK handles and every intervening child name/marker/end
+  interval to the actual global BLOCKS namespace. Logical byte/work budgets,
+  exact-owner checks and sticky capture failures remain independent of retained
+  body equality and target/dependency/live/output proof.
+- [x] Document the borrowed-view/const/scope/claim boundary in the consumer
+  contract. `OriginsBound` means selected published scopes, not all physically
+  encountered/dropped/unselected BLOCKS. Do not promote old partial binding or
+  body reports to complete origin/owner/semantic/output qualification.
+
+New owning controls pass identically in normal and ASan configurations:
+
+- **24** four-modern-version x LF/CRLF/Binary x empty/POINT-LINE profiles,
+  with **72** independently walked original namespace marker spans.
+- **84** four-version x three-encoding x seven compound/subtype profiles cover
+  actual ATTDEF source/typed pairs, raw callbacks, POLYLINE and INSERT children.
+  Main new Binary recipes omit group999 comments; no drawing fixture is added.
+- **18** equal copied publication/model/event arguments refuse new origin proof
+  while existing body replay remains matched; corrected same-adapter imports
+  qualify. **44** missing/duplicate protocol or consistently forged source/model
+  controls refuse with corrected retries. The consistent forgery changes both
+  numeric and ASCII spelling plus delivered geometry: old source-body equality
+  passes, but it is not the original physical publication.
+- **46** context/owner controls cover equal-copy and alias-control-block audits,
+  all seven pinned source inputs, context substitution, copied containers,
+  cross-import transplant, live edits, opt-out and selection latching.
+  **Eight** exact/one-under byte/work cases and **six** observed isolated audit
+  allocation faults recover using genuine successful-import snapshots and fresh
+  actual imports. This is not every possible allocation or portable schedule.
+- **24** callback-exception/failed-tail/retry cases, **six** raw/multiple-block
+  variants and **12** public borrowed-view return/throw/reuse lifetimes pass.
+  Two-block controls bind distinct ordered physical intervals, source/context
+  owners and delivery scopes in one original namespace.
+
+Development findings are retained in the receipt: two new-test compile errors
+(temporary passed to a mutable-string API and a base-class-only member access)
+were corrected without warning suppression. The first forgery recipe changed
+only a numeric variant, correctly failing legacy body replay until its original
+ASCII token was changed consistently. A two-block recipe initially used an
+entity-only field locator on a TABLE header; its authoring logic is corrected.
+These are test-control findings, not newly reproduced production parser bugs.
+Historical silent first CELLSTYLEMAP/TABLESTYLE launches remain unclassified.
+
+Final strict affected builds pass. Exact registered/executed cohorts pass
+**81/81 normally in24.94s** and **81/81 under ASan in54.88s**, with zero failed,
+skipped or disabled tests and identical registered selection/order. Runtime
+normal completed before ASan (`halt_on_error=1:detect_leaks=0`); independent
+compilation, not runtimes, overlapped. Final compiled source hashes are unchanged.
+These are affected cohorts, not the full suite or performance benchmarks.
+Library, owning resource/adapter and compatibility targets retain C++17
+`-Wall -Wextra -pedantic -Werror`; the existing broad fixture runner is not claimed
+globally warning-clean. The
+[receipt](docs/research/rpp5ep-actual-blocks-producer-origins-and-namespace-binding-2026-10-26.json)
+records exact selection, commands, controls, failures and source/log hashes.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Original enclosing BLOCKS roles.** Enumerate physical BLOCKS scopes
+   from the original namespace, not only retained selected rows; give omitted/
+   dropped/unsupported scopes explicit dispositions so a subset cannot pass a
+   whole-document claim. Require actual RPP-5ep origins plus endpoint/profile/
+   reconciliation/body/membership/context owners before joining original
+   BLOCK_RECORD/layout targets. Cover ordinary definitions, inactive paper,
+   multiple paper scopes and BLOCKS/ENTITIES placement. Preserve source67/410
+   presence/default/inheritance/conflicts; only real target evidence may resolve
+   the classified410 gate. Native non-ASCII collation remains unqualified.
+2. [ ] **Empty compound and owner alternatives.** Fix and verify the remaining
+   BLOCKS membership minimum of three records for a completed empty POLYLINE
+   (actual parent+SEQEND is two). Check source and staged footer identity for
+   both observed wire-owner forms, missing/foreign footers, linked-parent roles,
+   exact bounds, failure tails, callback exceptions and corrected reader reuse.
+3. [ ] **Remaining primary/dependency evidence.** Complete original TABLE/
+   ATTDEF/other required states/profiles, STYLE/APPID/LAYER/object/application/
+   proxy/codepage and bounded nested INSERT closure. A producer identity, matched
+   body or enclosing target is not complete dependency or geometry semantics.
+4. [ ] **Full B2b/B3/C live/output/consumer/native parity.** Preserve all source/
+   live/editable/emitted fields/names/references, remapping/readback, atomic
+   rollback/retry/destination safety, IMAGE/document/native-bit/decimal/carrier/
+   schema/owner and memory/performance work. Verify LibreCAD/LibreCAD_3 2D/3D
+   and dwg2dxf/FreeCAD without substituting compile checks for native execution.
+5. [ ] **Self-update/unblock and continue.** Commit/report this green slice and
+   take the next safe local prerequisite. Use fast owning tests per edit and
+   affected cohorts at integration boundaries. Preserve unrelated working-tree
+   files and commit no external drawing payloads or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+No DWG byte-layout parser/encoder, formal ABI/native geometry qualification,
+new independent external execution, support promotion or remote mutation is
+included. The full goal remains active.

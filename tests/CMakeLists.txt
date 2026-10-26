@@ -631,6 +631,10 @@ add_test(NAME libdxfrw_block_primary_source
     COMMAND libdxfrw_attdef_source_tests --block-primary)
 set_tests_properties(libdxfrw_block_primary_source PROPERTIES
     LABELS "fast;dxf;adapter;source;identity;block;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_block_producer_origins
+    COMMAND libdxfrw_attdef_source_tests --block-origins)
+set_tests_properties(libdxfrw_block_producer_origins PROPERTIES
+    LABELS "fast;dxf;adapter;source;identity;block;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_layout_graph_read_contract
     COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
 set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES

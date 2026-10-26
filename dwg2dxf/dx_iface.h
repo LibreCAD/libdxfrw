@@ -41,6 +41,12 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
 public:
+    enum class BlockOriginState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,PublicationsReady,OriginsBound,Unqualified};
+    struct BlockOriginReport {
+        BlockOriginState state{BlockOriginState::NotCaptured};std::size_t blocks{0},publications{0},bound{0},events{0},bytes{0},work{0};
+        bool ownerTargetsResolved{false},outputEligible{false};
+    };
+    static BlockOriginReport blockOriginReport(const dx_data&) noexcept;
     using EntitiesRoleState=dx_data::TableDxfSourceCapture::EntitiesRoleAudit::State;
     struct EntitiesRoleReport {
         EntitiesRoleState state{EntitiesRoleState::NotCaptured};
@@ -1691,6 +1697,11 @@ private:
     using AttdefOriginBlock=dx_data::TableDxfSourceCapture::BlockSource;
     void captureDxfBlockReadContext(AttdefOriginBlock&) noexcept;
     void observeDxfBlockReadContext(AttdefOriginBlock&) noexcept;
+    void observeDxfBlockOrigin(AttdefOriginBlock&,dxfRW::DxfBlockSourceView::Phase,const DRW_Entity* model=nullptr,
+        const DRW_RawDxfObject* raw=nullptr,const DRW_DxfBlockChildrenSource* physical=nullptr,
+        const DRW_DxfBlockDeliverySource* delivery=nullptr,const DRW_DxfBlockDeliveryEvent* event=nullptr,
+        std::uint64_t scope=0u,std::size_t index=0u) noexcept;
+    void finishDxfBlockOriginAudits(dx_data&) noexcept;
     void captureDxfBlockMembership(AttdefOriginBlock&) noexcept;
     void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;

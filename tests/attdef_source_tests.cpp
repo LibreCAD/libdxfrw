@@ -76,6 +76,35 @@ public:
         const auto at=owner->compoundBodies.find(dispatch);return at==owner->compoundBodies.end()?nullptr:at->second.get();
     }
     static bool compoundFailed(const dx_data& data) {return data.m_tableDxfSource.compoundBodyCaptureFailed;}
+    static const auto& blockOrigins(const dx_data& data){return data.m_tableDxfSource.blockOriginAudits;}
+    static const dxfRW* blockReadInput(const dx_data& data){return data.m_tableDxfSource.entitiesReadInput;}
+    static void blockOriginLimit(dx_data& data,bool work,std::size_t value) {
+        if(work)data.m_tableDxfSource.maxBlockOriginWork=value;else data.m_tableDxfSource.maxBlockOriginBytes=value;
+    }
+    static void substituteBlockOrigin(dx_data& data,bool alias) {
+        auto& p=data.m_tableDxfSource.blockOriginAudits.at(0xB1u);
+        if(alias)p=std::shared_ptr<const dx_data::TableDxfSourceCapture::BlockOriginAudit>(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::BlockOriginAudit>(*p);
+    }
+    static void substituteBlockOriginInput(dx_data& data,unsigned kind,bool alias) {
+        auto& row=data.m_tableDxfSource.blockSources.at(0xB1u);
+        const auto change=[&](auto& p){using T=typename std::decay_t<decltype(p)>::element_type;
+            if(alias)p=std::shared_ptr<T>(p.get(),[](const auto*){});else p=std::make_shared<T>(*p);};
+        switch(kind){case 0u:change(row.original);break;case 1u:change(row.effective);break;case 2u:change(row.footer);break;
+            case 3u:change(row.beginRaw);break;case 4u:change(row.endRaw);break;case 5u:change(row.children);break;case 6u:change(row.delivery);break;}
+    }
+    static void transplantBlockOrigin(dx_data& to,const dx_data& from) {
+        to.m_tableDxfSource.blockOriginAudits=from.m_tableDxfSource.blockOriginAudits;
+    }
+    static std::size_t beforeBlockOriginAudit(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;std::size_t final=0u;
+        for(const auto& item:s.blockSources)final+=1024u+(item.second.children?item.second.children->bytes+128u*item.second.children->records.size():0u);
+        return s.blockOriginWork-final;
+    }
+    static void repeatBlockOrigins(dx_iface& reader,dx_data& data,std::size_t work) {
+        auto& s=data.m_tableDxfSource;s.blockOriginAudits.clear();s.blockOriginOwners.clear();s.blockOriginBytes=0u;s.blockOriginWork=work;s.blockOriginCaptureFailed=false;
+        reader.finishDxfBlockOriginAudits(data);
+    }
     static void substituteBlockBody(dx_data& data,std::size_t dispatch,bool alias) {
         auto& p=data.m_tableDxfSource.blockSources.at(0xB1u).compoundBodies.at(dispatch);
         if(alias)p=std::shared_ptr<const CompoundBody>(p.get(),[](const auto*){});
@@ -720,6 +749,7 @@ public:
 #include "compound_source_profile_controls.h"
 #include "application_handle_width_controls.h"
 #include "block_primary_controls.h"
+#include "block_origin_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1130,14 +1160,16 @@ int main(int argc,char** argv) {
     const bool compoundProfile=argc==2&&std::string(argv[1])=="--compound-profile";
     const bool applicationWidth=argc==2&&std::string(argv[1])=="--application-width";
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary)return 2;
+    const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
     if(scratch.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
     struct Cleanup {std::filesystem::path path;bool success=false;~Cleanup(){if(!success){std::cerr<<"Evidence: "<<path<<'\n';return;}std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     unsigned polymorphicProfiles=0u;
-    try {const bool ok=(blockPrimary?blockPrimaryTests(scratch/"generated.dxf"):
+    try {const bool ok=(blockOrigins?blockOriginTests(scratch/"generated.dxf"):
+        blockPrimary?blockPrimaryTests(scratch/"generated.dxf"):
         polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
         attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):
         blockMembership?blockMembershipTests(scratch/"generated.dxf"):

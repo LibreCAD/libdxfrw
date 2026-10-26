@@ -13,6 +13,28 @@ curve/surface evaluator, or ACIS kernel.
 
 ## Read mode and ownership
 
+Opted-in BLOCKS consumers can query `dxfRW::getDxfBlockSourceView` during the
+existing begin/footer source and typed callbacks, physical-child and delivery
+reports, staged callback begin/value/end, finish and close. The borrowed view
+identifies the actual reader-owned publication and staged value, frozen original
+block IDs, delivery scope/index and original parser cursor. Outside those frames
+it returns false and clears the view, including after exceptions and reader
+reuse. Selection remains latched and established callback ordering is unchanged.
+Raw endpoint/ATTDEF/raw-entity carriers and completed physical/delivery reports
+are moved into const storage before exposure; consumers must honor the const
+contract and make bounded copies of data needed beyond the callback. Pointer-
+owned variant payloads do not make this an arbitrary-memory-write integrity API.
+The view adds no facade/model fields or interface vtable slots.
+
+The converter's separate `blockOriginReport` binds selected published BLOCKS
+scopes to their original physical namespace using pinned snapshot/context/audit
+owners. Equal copied arguments or substituted ownership cannot supply original
+publication evidence merely because retained body values compare equal.
+`OriginsBound` does not enumerate dropped/unselected BLOCKS or qualify complete
+body/dependency semantics, enclosing owner/layout targets, native name collation,
+live edits or output. `ownerTargetsResolved` and `outputEligible` remain false;
+existing source-body reports and fail-closed export guards are not promoted.
+
 The existing optional `addTableGeometry` callback receives a complete bounded
 DXF cache projection for AC1021/AC1024/AC1027/AC1032 in ASCII/binary form when
 the plain self/owner/subclass header and every count, cell and content field

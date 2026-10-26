@@ -1098,6 +1098,8 @@ private:
         bool resourceProofCaptureFailed{false};
         std::size_t attdefPending{0};
         struct EntitiesReadContext;
+        struct IdentityInput;
+        struct IdentityAudit;
         struct CompoundBody {
             enum class State : std::uint8_t { Captured, ModeledReplayMatched, ModelMismatch, SourceStateMismatch, DecodeFailed, ContextMismatch };
             std::shared_ptr<const DRW_Entity> model;
@@ -1117,6 +1119,9 @@ private:
             std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
             std::shared_ptr<const EntitiesReadContext> context,contextOwner;
             bool contextMatched{false};
+            std::uint16_t originPhases{0};std::size_t originEvents{0};bool originFailed{false},originPending{false},originValue{false};
+            const DRW_Block* publishedEndpoint{nullptr};const DRW_RawDxfObject* publishedEndpointRaw{nullptr};
+            const DRW_DxfBlockChildrenSource* publishedChildren{nullptr};const DRW_DxfBlockDeliverySource* publishedDelivery{nullptr};
             // Exact table-row owners used by endpoint reconciliation, not a
             // later handle-only lookup of an interchangeable model/raw pair.
             std::shared_ptr<const DRW_TableEntry> recordModel;
@@ -1143,6 +1148,21 @@ private:
         std::size_t maxBlockSourceRecords{100000u},maxBlockSourceBytes{64u*1024u*1024u};
         std::size_t maxBlockSourceGroups{4000000u},maxBlockSourceWork{4000000u};
         bool blockSourceCaptureFailed{false};
+        struct BlockOriginAudit {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const DRW_Block> original,effective,footer;
+            std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
+            std::shared_ptr<const DRW_DxfBlockChildrenSource> children;
+            std::shared_ptr<const DRW_DxfBlockDeliverySource> delivery;
+            std::shared_ptr<const EntitiesReadContext> context;
+            std::shared_ptr<const IdentityInput> identity;
+            std::shared_ptr<const IdentityAudit> identities;
+            std::size_t events{0},first{0},last{0};bool publications{false},bound{false};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const BlockOriginAudit>> blockOriginAudits,blockOriginOwners;
+        std::size_t blockOriginBytes{0},blockOriginWork{0};
+        std::size_t maxBlockOriginBytes{64u*1024u*1024u},maxBlockOriginWork{64u*1024u*1024u};
+        bool blockOriginCaptureFailed{false};
         std::size_t blockChildrenRecords{0},blockChildrenGroups{0},blockChildrenBytes{0},blockChildrenWork{0};
         std::size_t maxBlockChildrenRecords{100000u},maxBlockChildrenGroups{4000000u};
         std::size_t maxBlockChildrenBytes{64u*1024u*1024u},maxBlockChildrenWork{4000000u};

@@ -992,6 +992,21 @@ public:
      * independently. Callers retaining it must make their own bounded copy.
      * No interface/model layout or established callback vtable change. */
     bool getDxfReadContext(DxfReadContext&) const noexcept;
+    struct DxfBlockSourceView {
+        enum class Phase : std::uint8_t {None,BeginSource,BeginTyped,EndSource,EndTyped,Children,Manifest,CallbackBegin,CallbackValue,CallbackEnd,Finish,Close};
+        Phase phase{Phase::None};std::uint32_t blockHandle{0},blockRecord{0};std::uint64_t scope{0};std::size_t index{0};
+        const DRW_Block* block{nullptr};const DRW_RawDxfObject* source{nullptr};
+        const DRW_DxfBlockChildrenSource* physical{nullptr};const DRW_DxfBlockDeliverySource* delivery{nullptr};
+        const DRW_DxfBlockDeliveryEvent* event{nullptr};const DRW_Entity* entity{nullptr};const DRW_RawDxfObject* raw{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+    };
+    /** Borrowed actual opted-in BLOCKS producer publication. Original carriers
+     * are moved into read-only storage before exposure; phases/pointers expire
+     * at callback/pair return or throw. False clears the view elsewhere. Keep
+     * declared source, reconciled typed block, physical inventory, manifest and
+     * staged callback identities distinct. Not target/output/native proof.
+     * State lives in the internal reader; no facade/model/vtable layout change. */
+    bool getDxfBlockSourceView(DxfBlockSourceView&) const noexcept;
     struct DxfLayoutSourceView {
         enum class Phase : std::uint8_t {None,Source,Typed};
         Phase phase{Phase::None};

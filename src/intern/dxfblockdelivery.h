@@ -5,11 +5,14 @@
 #include "dxfreader.h"
 #include <atomic>
 #include <limits>
+#include <optional>
+#include <type_traits>
 
 namespace dxfBlockDelivery {
 class Capture final {
     using Status=DRW_DxfBlockDeliverySource::Status;
     DRW_DxfBlockDeliverySource result;
+    std::optional<const DRW_DxfBlockDeliverySource> frozen;
     DRW_DxfBlockDeliveryLimits limits;
     std::shared_ptr<DxfReadRetainedLease> lease;
     dxfReader* reader{nullptr};
@@ -91,8 +94,12 @@ public:
     void complete() noexcept {
         if(result.status==Status::Collecting)result.status=active?Status::InvalidBoundary:Status::Complete;
     }
-    bool completeManifest() const noexcept {return result.status==Status::Complete;}
-    const DRW_DxfBlockDeliverySource& source() const noexcept {return result;}
+    void freeze() noexcept {
+        static_assert(std::is_nothrow_move_constructible<DRW_DxfBlockDeliverySource>::value,"delivery publication must move, not copy");
+        if(!frozen)frozen.emplace(std::move(result));
+    }
+    bool completeManifest() const noexcept {return source().status==Status::Complete;}
+    const DRW_DxfBlockDeliverySource& source() const noexcept {return frozen?*frozen:result;}
 };
 }
 #endif
