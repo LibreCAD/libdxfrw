@@ -1097,12 +1097,13 @@ private:
         std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
         bool resourceProofCaptureFailed{false};
         std::size_t attdefPending{0};
+        struct EntitiesReadContext;
         struct CompoundBody {
-            enum class State : std::uint8_t { Captured, ModeledReplayMatched, ModelMismatch, SourceStateMismatch, DecodeFailed };
+            enum class State : std::uint8_t { Captured, ModeledReplayMatched, ModelMismatch, SourceStateMismatch, DecodeFailed, ContextMismatch };
             std::shared_ptr<const DRW_Entity> model;
             std::shared_ptr<const dx_block_membership::Audit> membership;
+            std::shared_ptr<const EntitiesReadContext> context;
             std::size_t dispatch{0};
-            const char* codePage{"UTF-8"}; // static compatibility selection, not raw declaration identity
             std::vector<dxfCompound::SourceState> sourceStates;
             std::vector<dxfCompound::SourceState> replayStates;
             std::vector<dx_attdef_source::Audit> profiles;
@@ -1114,6 +1115,8 @@ private:
         struct BlockSource {
             std::shared_ptr<const DRW_Block> original,effective,footer;
             std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
+            std::shared_ptr<const EntitiesReadContext> context,contextOwner;
+            bool contextMatched{false};
             // Exact table-row owners used by endpoint reconciliation, not a
             // later handle-only lookup of an interchangeable model/raw pair.
             std::shared_ptr<const DRW_TableEntry> recordModel;
@@ -1131,6 +1134,7 @@ private:
             std::shared_ptr<const dx_block_membership::Audit> membership;
             std::size_t membershipObserved{0};
             std::map<std::size_t,std::shared_ptr<const CompoundBody>> compoundBodies;
+            std::map<std::size_t,std::shared_ptr<const CompoundBody>> compoundBodyOwners;
             std::vector<std::uint32_t> attdefOrigins;
         };
         std::map<std::uint32_t,BlockSource> blockSources;

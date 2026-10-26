@@ -6,6 +6,7 @@
 #include "intern/dxfblockdelivery.h"
 #include "intern/dxfwriter.h"
 #include "attdef_source_field_faults.h"
+#include "test_scratch.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -75,6 +76,16 @@ public:
         const auto at=owner->compoundBodies.find(dispatch);return at==owner->compoundBodies.end()?nullptr:at->second.get();
     }
     static bool compoundFailed(const dx_data& data) {return data.m_tableDxfSource.compoundBodyCaptureFailed;}
+    static void substituteBlockBody(dx_data& data,std::size_t dispatch,bool alias) {
+        auto& p=data.m_tableDxfSource.blockSources.at(0xB1u).compoundBodies.at(dispatch);
+        if(alias)p=std::shared_ptr<const CompoundBody>(p.get(),[](const auto*){});
+        else p=std::make_shared<const CompoundBody>(*p);
+    }
+    static void substituteBlockContext(dx_data& data,bool alias) {
+        auto& p=data.m_tableDxfSource.blockSources.at(0xB1u).context;
+        if(alias)p=std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesReadContext>(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::EntitiesReadContext>(*p);
+    }
     static std::array<std::size_t,3> compoundUsage(const dx_data& data) {
         const auto& s=data.m_tableDxfSource;return {s.compoundBodyRecords,s.compoundBodyBytes,s.compoundBodyWork};
     }
@@ -85,6 +96,7 @@ public:
     static bool recaptureCompound(dx_iface& iface,dx_data& data,std::size_t dispatch,long fault,long& allocations) {
         auto& source=data.m_tableDxfSource;auto& owner=source.blockSources.at(0xB1u);
         const auto saved=owner.compoundBodies.at(dispatch);owner.compoundBodies.erase(dispatch);
+        owner.compoundBodyOwners.erase(dispatch);
         source.closed=false;source.successful=false;source.reader=&iface;
         source.compoundBodyRecords=source.compoundBodyBytes=source.compoundBodyWork=0u;source.compoundBodyCaptureFailed=false;
         const auto event=owner.delivery->events[owner.delivery->dispatches[dispatch].firstEvent];
@@ -707,6 +719,7 @@ public:
 #include "compound_body_controls.h"
 #include "compound_source_profile_controls.h"
 #include "application_handle_width_controls.h"
+#include "block_primary_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1116,13 +1129,16 @@ int main(int argc,char** argv) {
     const bool compoundBody=argc==2&&std::string(argv[1])=="--compound-body";
     const bool compoundProfile=argc==2&&std::string(argv[1])=="--compound-profile";
     const bool applicationWidth=argc==2&&std::string(argv[1])=="--application-width";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth)return 2;
-    const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
-        +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    if(!std::filesystem::create_directory(scratch))return 1;
-    struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
+    const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary)return 2;
+    std::error_code error;const auto parent=std::filesystem::temp_directory_path();
+    const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+    const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
+    if(scratch.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
+    struct Cleanup {std::filesystem::path path;bool success=false;~Cleanup(){if(!success){std::cerr<<"Evidence: "<<path<<'\n';return;}std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     unsigned polymorphicProfiles=0u;
-    try {return (polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
+    try {const bool ok=(blockPrimary?blockPrimaryTests(scratch/"generated.dxf"):
+        polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
         attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):
         blockMembership?blockMembershipTests(scratch/"generated.dxf"):
         compoundBody?compoundBodyTests(scratch/"generated.dxf"):
@@ -1140,6 +1156,6 @@ int main(int argc,char** argv) {
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):
         budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
-        :tests(scratch/"generated.dxf"))?0:1;}
+        :tests(scratch/"generated.dxf"));cleanup.success=ok;return ok?0:1;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

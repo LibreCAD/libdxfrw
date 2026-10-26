@@ -1689,6 +1689,8 @@ private:
                                     DRW_DxfBlockCallback,const DRW_RawDxfObject* = nullptr,const DRW_Entity* = nullptr) noexcept;
     using AttdefOriginResource=dx_data::TableDxfSourceCapture::Resource;
     using AttdefOriginBlock=dx_data::TableDxfSourceCapture::BlockSource;
+    void captureDxfBlockReadContext(AttdefOriginBlock&) noexcept;
+    void observeDxfBlockReadContext(AttdefOriginBlock&) noexcept;
     void captureDxfBlockMembership(AttdefOriginBlock&) noexcept;
     void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;

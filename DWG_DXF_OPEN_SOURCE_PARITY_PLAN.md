@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5en original selected ENTITIES owner/space/layout joins (2026-10-26; verified before local commit):** pinned original graph/body/physical owners join selected POINT/LINE and INSERT/POLYLINE records and linked children to actual layout block targets. Preserve absent/default 67 versus present 410, normalize original layout names under actual frozen text context, and distinguish active paper ENTITIES from inactive paper BLOCKS. Original target evidence can resolve absent linked 410 without inventing source fields. A collision-safe test scratch reservation preserves existing owners and adds filesystem diagnostics. Final exact cohorts pass 79/79 normally and 79/79 under ASan; historical silent launch failures remain unclassified. [Implementation and next work](#implementation-progress-rpp-5en-original-selected-entities-ownerspacelayout-joins-2026-10-26) · [receipt](docs/research/rpp5en-original-selected-entities-owner-space-layout-joins-2026-10-26.json). Complete BLOCKS, primary/dependency/live/output/consumer and external work remains open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5eo BLOCKS primary replay and read-context owners (2026-10-26; verified before local commit):** shared BLOCKS body capture/replay now includes POINT/LINE with immutable delivered model/state/profile owners. Capture the actual per-block read context independently of editable headers, observe context consistency across publication phases, and pin body/context owners against equal copies and alias control blocks. Explicit410 remains a classified source field, not a qualified target; selected-definition gates remain closed for it pending the enclosing original role join. Final exact cohorts pass80/80 normally and80/80 under ASan. [Implementation and next work](#implementation-progress-rpp-5eo-blocks-primary-replay-and-read-context-owners-2026-10-26) · [receipt](docs/research/rpp5eo-blocks-primary-replay-and-read-context-owners-2026-10-26.json). Complete BLOCKS producer-origin/owner/default, remaining bodies/dependencies, live/output/consumer and external work remains open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5en original selected ENTITIES owner/space/layout joins (2026-10-26; committed as `bbf1fe36`):** pinned original graph/body/physical owners join selected POINT/LINE and INSERT/POLYLINE records and linked children to actual layout block targets. Preserve absent/default 67 versus present 410, normalize original layout names under actual frozen text context, and distinguish active paper ENTITIES from inactive paper BLOCKS. Original target evidence can resolve absent linked 410 without inventing source fields. A collision-safe test scratch reservation preserves existing owners and adds filesystem diagnostics. Final exact cohorts pass 79/79 normally and 79/79 under ASan; historical silent launch failures remain unclassified. [Historical implementation](#implementation-progress-rpp-5en-original-selected-entities-ownerspacelayout-joins-2026-10-26) · [receipt](docs/research/rpp5en-original-selected-entities-owner-space-layout-joins-2026-10-26.json). Complete BLOCKS, primary/dependency/live/output/consumer and external work remains open; no support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5em original dictionary provenance and reciprocal layout roles (2026-10-26; committed as `f5440bc`):** non-root source publications preserve actual typed/raw/source delivery and fixed-handle suppression. A bounded original-body graph checks the unique NOD, ACAD_LAYOUT dictionary, BLOCK_RECORD table owners and reciprocal LAYOUT associations. Shared source/live association checks reject extra reverse aliases before output; scoped opaque BLOCK_RECORD handle admission fixes a reproduced compatible-import gap without qualifying unknown payload semantics. Final exact cohorts pass 78/78 normally and 78/78 under ASan. The initial 77/78 ASan run's silent CELLSTYLEMAP failure is preserved; direct and same-source cohort confirmation pass, but its cause is not established or claimed fixed. [Historical implementation](#implementation-progress-rpp-5em-original-dictionary-provenance-and-reciprocal-layout-roles-2026-10-26) · [receipt](docs/research/rpp5em-original-dictionary-provenance-and-reciprocal-layout-roles-2026-10-26.json). Full entity/body/dependency/live/output/consumer and external work remains open; no support gate is promoted.
 
@@ -129483,7 +129485,7 @@ The full goal stays active; no remote mutation is included.
 This advances original entity target roles using RPP-5em's original graph. It does
 not substitute a selected ENTITIES subset for complete BLOCKS, remaining primary/
 dependency, live/output or native/independent consumer qualification. Integration
-validation passes; the local commit is pending.
+validation passes; committed as `bbf1fe36`.
 
 Implemented:
 
@@ -129603,7 +129605,7 @@ Next implementation-ready sequence (full objective retained):
    exact previous78 plus this new selector normally and then under ASan; compare
    registered/executed membership, source hashes and actual terminal status.
    Preserve failures/refusals/limits and receipts and update this checkpoint;
-   the local commit/report follows. The prior RPP-5em silent first ASan failure remains unclassified;
+   local commit/report completed as `bbf1fe36`. The prior RPP-5em silent first ASan failure remains unclassified;
    do not imply its cause was established by later passing runs.
 2. [ ] **Complete original BLOCKS and space/default coverage.** Reuse genuine
    enclosing block begin/footer/record/reconciliation/membership owners and the
@@ -129637,3 +129639,162 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
 no remote mutation is included.
+
+## Implementation progress — RPP-5eo BLOCKS primary replay and read-context owners (2026-10-26)
+
+This completes two prerequisites of RPP-5en's next BLOCKS work: shared POINT/LINE
+body replay and real per-block interpretation context. It does not complete
+original BLOCKS producer-origin/target joins, space/default semantics, remaining
+primary/dependency families, live/output or native/independent qualification.
+The body lane proves retained source transport versus delivered model/state and
+shared original-wire replay/profile facts, not every producer's exact original
+publication identity or independent native geometry semantics. The full objective
+and all remaining requirements are retained.
+
+Implemented:
+
+1. [x] Extend the existing BLOCKS immutable body owner/replay path to POINT and
+   LINE, retaining exact concrete types without slicing derived models. Reuse
+   existing shared production/replay decoders, modeled equality and independent
+   scalar/reference-role profiles; do not introduce another payload grammar.
+   Retain original delivered pre-snapshot cursor states separately from replay
+   pre-copy states and its real copy projection. A delivered staged copy can
+   have clean cursors while original-wire replay is incomplete; require complete
+   replay XDATA and refuse that case, never infer original completeness from a
+   cleaned-up delivered copy. POINT/LINE required-coordinate admission is unchanged.
+2. [x] Capture actual dxfRW read context at original block-begin source delivery,
+   with separately pinned immutable context owners. Observe consistency at typed
+   begin/footer/source and body callback phases. Freeze source/active codec
+   version/name, original codepage declaration/presence, compatibility profile,
+   text/codepage policy, extrusion choice and Binary mode rather than later
+   editable header fields. Bind source raw version/encoding to that context.
+   Use the observed active codec and actual read policies for endpoint/body
+   replay; preserve raw declaration identity separately without copying a legacy
+   declaration into each decoder. Projected/extruded or unavailable/mismatched
+   contexts cannot gain this source-body certificate; ordinary import remains.
+3. [x] Pin each actual captured immutable body owner independently of its query
+   map. Require exact object and shared control-block identity for body/context
+   lookups, matching context/body/membership ownership and successful whole import.
+   Equal copied body inputs and same-address independent control blocks refuse.
+   Keep older whole-import, callback/membership, quota/failure and stale-container
+   gates. Extend existing precharges to the extra context/body owner metadata;
+   reuse immutable payloads. These logical allowances are not RSS, every
+   allocator, strict CPU, leak proof or performance evidence.
+4. [x] Classify original host410 while retaining modeled/profile/target distinctions.
+   Matching modeled body plus a complete layout-name field profile is not a
+   resolved BLOCKS layout target. Keep `hasMatchedCompoundSource` and existing
+   selected-definition gates closed when410 is present until genuine original
+   enclosing-block role evidence resolves it. Do not silently ignore it, invent
+   a target, fabricate an ENTITIES block context or promote output/support.
+5. [x] Share the already-tested collision-safe scratch reservation between TABLE
+   and ATTDEF/BLOCKS test executables. Both claim new directory owners atomically,
+   use bounded collision-only retries and emit real filesystem diagnostics. The
+   ATTDEF/BLOCKS runner now preserves failed source artifacts and reports their
+   path; successful runs clean only their own claimed directory. Existing forced
+   collision/file-sentinel/error controls remain in the affected cohort. This is
+   not proof of the cause of either earlier unclassified silent launch failure.
+
+Primary references: official [POINT fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-9C6AD32D-769D-4213-85A4-CA9CCB5C5317.htm)
+and [LINE fields](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-FCEF5726-53AE-4C43-B4EA-C84EB8686A66.htm)
+define coordinates, thickness, normal and POINT's angle. Official
+[common entity fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+distinguish native owner/space/layout from application payloads. Official
+[BLOCK definitions](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm)
+and the open-source project's own [layout management](https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html)
+keep ordinary definitions and inactive paper BLOCKS distinct from active
+ENTITIES. These are source field/role references, not native execution or
+independent kernel, target or full geometry qualification. No DWG byte-layout
+parser or encoder, existing public library facade/model/interface layout or
+consumer callback/vtable is changed; private converter layouts change.
+
+Owning controls per configuration:
+
+- [x] **24** four-modern-version x LF/CRLF/Binary x minimal/rich profiles.
+  Independently walk **1,152** original scalar spans and compare body/profile
+  indices/types with physical source owners. Preserve signed zero, POINT angle,
+  thickness/normals, LINE endpoints, common references/color/application/XDATA
+  fields and optional defaults. Main Binary recipes contain no group999 comments.
+- [x] **40** same-ID field mutation/corrected-import pairs cover coordinates,
+  thickness, angle, normals and visual-style state across both entities. **28**
+  refusal/corrected-import pairs cover extended concrete classes, pending original
+  XDATA, unknown field/profile distinctions, unresolved410 and six unchanged
+  required-coordinate omissions per encoding. Ordinary tolerant import remains
+  available when only evidence refuses; required-field parser failures remain.
+- [x] **12** header-provenance/policy/equal-copy/alias-owner/live-edit contexts,
+  **12** exact/one-under record/byte/work cases, **334** observed isolated capture/
+  replay allocation faults with fresh actual-import recovery, **six** callback-
+  exception/failed-tail/retry cases and **four** scalar-order/opaque variants pass.
+  Allocation replay uses genuine successful-import snapshots while the copied
+  reading state cannot publish a completed whole-import certificate; it is not
+  a synthetic new actual parser read, every allocation or portable schedule.
+  All drawing recipes are authored locally at runtime; no external fixtures added.
+- [x] Existing **84** compound-body profiles and **80** mutation/recovery pairs
+  still pass, with **496** observed isolated allocation faults and all earlier
+  body/profile/rollback/exception limits retained in their owning selector.
+
+Development evidence retained: strict compiler findings identified an undefined
+test revision helper and misleading indentation; both are corrected without
+suppression. The initial opaque positive recipe appended an application group
+after trailing XDATA, correctly refusing the established source grammar. Move
+that group into its actual common application scope, retaining the refusal
+rules instead of relaxing them. Initial owning results before the final active-
+codec replay adjustment remain historical; final integration must use freshly
+built current source hashes. New independent body/context owner maps are also
+cleared by isolated test recapture before reusing genuine successful-import data.
+
+Final affected builds pass. Exact cohorts pass **80/80 normally in 25.72 s** and
+**80/80 under ASan in 56.85 s**, each with `ctest -j 4`, zero failed/skipped/
+disabled tests, identical registered selection/order and exact executed-name
+sets. Actual parallel completion order may differ. Normal runtime completed
+before ASan runtime (`halt_on_error=1:detect_leaks=0`); independent compilation,
+not their runtimes, overlapped. Tested source hashes remain unchanged. Strict
+library, owning resource/adapter and compatibility targets retain C++17
+`-Wall -Wextra -pedantic -Werror`; the existing broad fixture runner is not claimed
+globally warning-clean. Times are not benchmarks. The
+[RPP-5eo receipt](docs/research/rpp5eo-blocks-primary-replay-and-read-context-owners-2026-10-26.json)
+records exact controls/selection and final source/log hashes, including actual
+development failures and their limits. No repeated full suite per edit, warning
+suppression, native consumer execution, formal ABI, independent semantic/kernel
+or support promotion is claimed.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [x] **Validate this checkpoint.** Complete exact same-source ASan80 after normal
+   runtime; verify actual terminal status and registered/executed membership,
+   preserve all failures/limits/source/log receipts and update this checkpoint.
+   Local commit/report follows. Earlier silent launch failures remain unclassified.
+2. [ ] **Actual BLOCKS producer origins and owner/space/default joins.** Attest
+   original begin/footer/physical/delivery publications, including copied or
+   consistently forged callback inputs, with actual reader-owned origins rather
+   than trusting matching editable or interchangeable retained values. Bind the
+   new bodies/context and existing reconciliation/membership owners to exact
+   same-import BLOCKS namespace origins and original layout/block graph. Qualify
+   inactive paper and ordinary-definition members through real enclosing source
+   owners; cover linked-parent and both SEQEND wire-owner forms, empty completed
+   POLYLINE chains, source67/410 presence/default/inheritance/conflicts, multiple
+   paper scopes and BLOCKS/ENTITIES placement. Only genuine target proof may
+   resolve the newly classified410 gate. Keep native collation and unsupported
+   families explicit. Test source/wire scopes and forged/substituted/cross-import
+   owners, quotas/allocations, tails/callbacks and same-reader corrected retries.
+3. [ ] **Remaining primary bodies and dependencies.** Complete original TABLE/
+   ATTDEF/other required primary states/profiles and common STYLE/APPID/LAYER/
+   object/application/proxy/codepage/bounded nested INSERT dependencies. Do not
+   treat a matched body or enclosing target as complete semantic/dependency proof.
+4. [ ] **Full live/output and consumer/native parity.** Complete B2b/B3/C source/
+   live/edited/emitted fields/names/references, remapping/readback, atomic rollback/
+   retry/destination safety, IMAGE/document/native-bit/decimal/carrier/schema/
+   owner, memory/performance and LibreCAD/LibreCAD_3 2D/3D plus dwg2dxf/FreeCAD.
+   Native platform and independent ACIS/ACDS semantic/kernel qualification remain
+   separate mandatory work; no source-body result substitutes for them.
+5. [ ] **Self-update/unblock and continue.** Record actual results and next safe
+   prerequisites after each implemented item, commit/report every verified slice,
+   and continue available local work. Fast owning tests during edits and exact
+   affected cohorts at integration boundaries. Preserve unrelated samples and
+   commit no external drawing fixtures. Do not wait for external qualification
+   while local producer/body/target/dependency implementation remains available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The full goal stays active; no remote mutation is included.

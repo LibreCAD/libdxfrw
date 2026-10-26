@@ -18319,6 +18319,33 @@ void dx_iface::addDxfBlockEndSource(const DRW_Block& value,const DRW_RawDxfObjec
     retainDxfBlockSource(value,raw,true);
 }
 
+void dx_iface::captureDxfBlockReadContext(AttdefOriginBlock& row) noexcept {
+    auto& s=cData->m_tableDxfSource;dxfRW::DxfReadContext live;
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021
+        ||live.sourceVersion>DRW::AC1032||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u)return;
+    using C=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+    std::size_t bytes=sizeof(C)+8u*sizeof(void*);
+    if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
+        ||s.blockSourceBytes>s.maxBlockSourceBytes||bytes>s.maxBlockSourceBytes-s.blockSourceBytes
+        ||s.blockSourceWork>s.maxBlockSourceWork||bytes>s.maxBlockSourceWork-s.blockSourceWork){s.blockSourceCaptureFailed=true;return;}
+    s.blockSourceBytes+=bytes;s.blockSourceWork+=bytes;
+    try {
+        C context;context.sourceVersion=live.sourceVersion;context.codecVersion=live.codecVersion;
+        context.codecCodePage=live.codecCodePage;context.declaration=live.declaration;context.hasDeclaration=live.hasDeclaration;
+        context.compatibilityProfile=live.compatibilityProfile;context.textEncoding=live.textEncoding;context.codePagePolicy=live.codePagePolicy;
+        context.applyExtrusion=live.applyExtrusion;context.binary=live.binary;context.captured=true;
+        row.context=std::make_shared<const C>(std::move(context));row.contextOwner=row.context;row.contextMatched=true;
+    }catch(...){s.blockSourceCaptureFailed=true;}
+}
+
+void dx_iface::observeDxfBlockReadContext(AttdefOriginBlock& row) noexcept {
+    if(!row.contextMatched)return;const auto& c=row.context;dxfRW::DxfReadContext live;
+    const auto* input=cData->m_tableDxfSource.entitiesReadInput;
+    if(!c||c.get()!=row.contextOwner.get()||c.owner_before(row.contextOwner)||row.contextOwner.owner_before(c)||!input||!input->getDxfReadContext(live)
+        ||std::tie(c->sourceVersion,c->codecVersion,c->codecCodePage,c->declaration,c->hasDeclaration,c->compatibilityProfile,c->textEncoding,c->codePagePolicy,c->applyExtrusion,c->binary)
+          !=std::tie(live.sourceVersion,live.codecVersion,live.codecCodePage,live.declaration,live.hasDeclaration,live.compatibilityProfile,live.textEncoding,live.codePagePolicy,live.applyExtrusion,live.binary))row.contextMatched=false;
+}
+
 void dx_iface::retainDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObject& raw,bool footer) noexcept {
     if(!cData)return;
     auto& source=cData->m_tableDxfSource;
@@ -18351,10 +18378,14 @@ void dx_iface::retainDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObjec
         auto model=std::make_shared<const DRW_Block>(value);
         auto body=std::make_shared<const DRW_RawDxfObject>(raw);
         if(footer) {
+            observeDxfBlockReadContext(existing->second);
+            if(existing->second.context&&(raw.m_version!=existing->second.context->sourceVersion||raw.hasRawValues==existing->second.context->binary))existing->second.contextMatched=false;
             existing->second.footerCursor=cursor;existing->second.footer=std::move(model);
             existing->second.endRaw=std::move(body);
         } else {
             dx_data::TableDxfSourceCapture::BlockSource row;
+            captureDxfBlockReadContext(row);
+            if(row.context&&(raw.m_version!=row.context->sourceVersion||raw.hasRawValues==row.context->binary))row.contextMatched=false;
             row.originalCursor=cursor;row.original=std::move(model);row.beginRaw=std::move(body);
             row.deliveryExpected=wantsDxfBlockDeliverySource();
             if(!source.blockSources.emplace(value.handle,std::move(row)).second){fail();return;}
@@ -18370,6 +18401,7 @@ void dx_iface::pairDxfBlockSource(const DRW_Block& value,bool footer) noexcept {
     const auto found=source.blockSources.find(source.blockSourceActive);
     if(found==source.blockSources.end()){source.blockSourceCaptureFailed=true;return;}
     auto& row=found->second;
+    observeDxfBlockReadContext(row);
     const auto* original=footer?row.footer.get():row.original.get();
     const auto cursor=footer?row.footerCursor:row.originalCursor;
     const auto version=row.beginRaw->m_version;
@@ -18406,7 +18438,7 @@ void dx_iface::proveDxfBlockSource(std::uint32_t handle) noexcept {
     const auto found=source.blockSources.find(handle);
     if(found==source.blockSources.end()||source.blockSourceCaptureFailed)return;
     auto& row=found->second;
-    if(!row.original||!row.effective||!row.footer||!row.beginRaw||!row.endRaw)return;
+    if(!row.original||!row.effective||!row.footer||!row.beginRaw||!row.endRaw||!row.contextMatched||!row.context)return;
     try {
         for(bool footer:{false,true}) {
             const auto& raw=footer?*row.endRaw:*row.beginRaw;
@@ -18429,11 +18461,16 @@ void dx_iface::proveDxfBlockSource(std::uint32_t handle) noexcept {
             std::string body;
             if(!tableResourceSourceBody(raw,source.maxBlockSourceBytes,body)){source.blockSourceCaptureFailed=true;return;}
             dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;
-            view.binary=!raw.hasRawValues;view.codePage="UTF-8";
+            const auto& context=*row.context;view.binary=!raw.hasRawValues;
+            // Replay the observed active codec, not a legacy declaration that
+            // modern DXF may ignore. Preserve that original declaration in the
+            // shared context without copying it into every replay decoder.
+            view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
             dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
             auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxBlockSourceBytes);
             auto reader=dx_standard_output::readerFor(input,view,budget);
             if(!reader){source.blockSourceCaptureFailed=true;return;}
+            reader->setDxfTextEncoding(context.textEncoding);reader->setDxfCodePagePolicy(context.codePagePolicy);
             reader->setRecordBudget(raw.groups.size());
             // One typed variant per physical group is already covered by the
             // precharged group work. Do not require unpaid work headroom for
@@ -18994,6 +19031,7 @@ void dx_iface::observeDxfBlockDeliveryValue(std::int32_t type,std::uint32_t hand
             ||!blockDeliveryRawMatches(*at,*raw,row.delivery->binary)){fail();return;}
     }
     observeDxfBlockMembership(row,event,entity);
+    observeDxfBlockReadContext(row);
     captureDxfCompoundBody(row,event,entity);
     row.deliveryObserved=true;
 }
@@ -19056,11 +19094,13 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
     const auto& name=audit.children->records[range.first].name;
     const bool polyline=dx_block_membership::equal(name,"POLYLINE");
     const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
-    if(!polyline&&!insert)return;
+    const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
+    if(!polyline&&!insert&&!point&&!line)return;
     const auto* pl=dynamic_cast<const DRW_Polyline*>(entity);const auto* in=dynamic_cast<const DRW_Insert*>(entity);
     const auto fail=[&](){source.compoundBodyCaptureFailed=true;};
     if((polyline&&(!pl||typeid(*entity)!=typeid(DRW_Polyline)))||(insert&&(!in||typeid(*entity)!=typeid(DRW_Insert)))
-        ||row.compoundBodies.count(event.dispatch)){fail();return;}
+        ||(point&&typeid(*entity)!=typeid(DRW_Point))||(line&&typeid(*entity)!=typeid(DRW_Line))
+        ||row.compoundBodies.count(event.dispatch)||row.compoundBodyOwners.count(event.dispatch)){fail();return;}
     // Known concrete copies must not silently slice additional subclass state.
     if(polyline) {
         const auto* footer=pl->seqEndEntity.get();
@@ -19068,7 +19108,7 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         for(const auto& child:pl->vertlist) {
             const auto* pointer=child.get();if(!pointer||typeid(*pointer)!=typeid(DRW_Vertex)){fail();return;}
         }
-    } else {
+    } else if(insert) {
         const auto* footer=in->seqEndEntity.get();
         if(footer&&typeid(*footer)!=typeid(DRW_SeqEnd)){fail();return;}
         for(const auto& child:in->attlist) {
@@ -19078,7 +19118,8 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         }
     }
     const auto count=range.next-range.first;std::size_t modelBytes=0u,rawBytes=0u,groups=0u;
-    if(!estimateTypedEntityRetainedBytes(*entity,polyline?sizeof(DRW_Polyline):sizeof(DRW_Insert),modelBytes)){fail();return;}
+    const auto modelSize=polyline?sizeof(DRW_Polyline):insert?sizeof(DRW_Insert):point?sizeof(DRW_Point):sizeof(DRW_Line);
+    if(!estimateTypedEntityRetainedBytes(*entity,modelSize,modelBytes)){fail();return;}
     for(std::size_t i=range.first;i<range.next;++i) {
         const auto& physical=audit.children->records[i];const auto n=physical.groups.size();
         if(!addAssociativeRetainedBytes(physical.name.size()+sizeof(DRW_RawDxfObject),rawBytes)
@@ -19104,26 +19145,24 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         ||source.compoundBodyWork>source.maxCompoundBodyWork||work>source.maxCompoundBodyWork-source.compoundBodyWork){fail();return;}
     source.compoundBodyRecords+=count;source.compoundBodyBytes+=bytes;source.compoundBodyWork+=work;
     try {
-        CompoundBody body;body.membership=row.membership;body.dispatch=event.dispatch;body.sourceStates.reserve(count);body.replayStates.reserve(count);body.profiles.reserve(count);
-        if(cData->headerC.hasDxfCodePageDeclaration()) {
-            const auto selection=DRW_TextCodec::classifyCodePage(cData->headerC.dxfCodePageDeclaration());
-            if(selection.selectedName)body.codePage=selection.selectedName;
-        }
+        CompoundBody body;body.membership=row.membership;body.context=row.context;body.dispatch=event.dispatch;body.sourceStates.reserve(count);body.replayStates.reserve(count);body.profiles.reserve(count);
         body.sourceStates.push_back(dxfCompound::Decoder::observe(*entity));
         if(polyline) {
             for(const auto& child:pl->vertlist)body.sourceStates.push_back(dxfCompound::Decoder::observe(*child));
             body.sourceStates.push_back(dxfCompound::Decoder::observe(*pl->seqEndEntity));
             body.model=std::make_shared<const DRW_Polyline>(*pl);
-        } else {
+        } else if(insert) {
             for(const auto& child:in->attlist)body.sourceStates.push_back(dxfCompound::Decoder::observe(*child));
             if(in->seqEndEntity)body.sourceStates.push_back(dxfCompound::Decoder::observe(*in->seqEndEntity));
             body.model=std::make_shared<const DRW_Insert>(*in);
-        }
+        } else if(point)body.model=std::make_shared<const DRW_Point>(*static_cast<const DRW_Point*>(entity));
+        else body.model=std::make_shared<const DRW_Line>(*static_cast<const DRW_Line*>(entity));
         if(body.sourceStates.size()!=count){fail();return;}
-        (void)replayDxfCompoundBody(body);
+        if(!row.contextMatched)body.state=CompoundBody::State::ContextMismatch;
+        else (void)replayDxfCompoundBody(body);
         body.profilesComplete=body.profiles.size()==count&&std::all_of(body.profiles.begin(),body.profiles.end(),[](const auto& p){return p.complete();});
         auto frozen=std::make_shared<const CompoundBody>(std::move(body));
-        if(!row.compoundBodies.emplace(event.dispatch,std::move(frozen)).second)fail();
+        if(!row.compoundBodyOwners.emplace(event.dispatch,frozen).second||!row.compoundBodies.emplace(event.dispatch,std::move(frozen)).second)fail();
     }catch(...){fail();}
 }
 
@@ -19131,6 +19170,10 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
     using State=CompoundBody::State;
     auto& source=cData->m_tableDxfSource;const auto& audit=*body.membership;
     const auto range=audit.ranges[body.dispatch];body.state=State::DecodeFailed;
+    if(!body.context||!body.context->captured||body.context->applyExtrusion||body.context->sourceVersion!=audit.delivery->version
+        ||body.context->binary!=audit.delivery->binary){body.state=State::ContextMismatch;return false;}
+    const auto& context=*body.context;
+    const bool point=body.model->eType==DRW::POINT,line=body.model->eType==DRW::LINE;
     const auto decode=[&](std::size_t index,dxfCompound::Decoder& decoder,auto& model,bool finalize,const DRW_Polyline* parent) {
         const auto& physical=audit.children->records[index];DRW_RawDxfObject raw;
         raw.name=physical.name;raw.handle=audit.members[index].self;raw.parentHandle=audit.members[index].owner;
@@ -19139,14 +19182,16 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment) {
             raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);
         }
-        auto profile=dx_compound_source::audit(raw,parent);
+        auto profile=dx_compound_source::audit(raw,parent,true,point||line);
         if(!dx_compound_source::restorePhysicalIndices(profile,physical)){source.compoundBodyCaptureFailed=true;return false;}
         body.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,source.maxCompoundBodyBytes,wire))return false;
-        dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=raw.m_version;view.binary=audit.delivery->binary;view.codePage=body.codePage;
+        dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=raw.m_version;view.binary=audit.delivery->binary;
+        view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
         dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);
         auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxCompoundBodyBytes);
         auto reader=dx_standard_output::readerFor(input,view,budget);if(!reader)return false;
+        reader->setDxfTextEncoding(context.textEncoding);reader->setDxfCodePagePolicy(context.codePagePolicy);
         reader->setSemanticStringMode(true);reader->setRecordBudget(raw.groups.size());
         reader->setDecodeWorkBudget(source.maxCompoundBodyWork-source.compoundBodyWork);
         // Variant visits were already precharged with physical groups. Do not
@@ -19171,7 +19216,15 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         return true;
     };
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {return standardDwgVariantEqual(a,b,audit.delivery->version);};
-    if(body.model->eType==DRW::POLYLINE) {
+    if(point) {
+        DRW_Point parsed;dxfCompound::Decoder decoder(parsed);
+        if(!decode(range.first,decoder,parsed,true,nullptr))return false;
+        body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
+    } else if(line) {
+        DRW_Line parsed;dxfCompound::Decoder decoder(parsed);
+        if(!decode(range.first,decoder,parsed,true,nullptr))return false;
+        body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
+    } else if(body.model->eType==DRW::POLYLINE) {
         DRW_Polyline parsed;dxfCompound::Decoder decoder(parsed);
         if(!decode(range.first,decoder,parsed,false,nullptr))return false;
         parsed.vertlist.reserve(range.next-range.first-2u);
@@ -19203,7 +19256,9 @@ bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,st
     if(!hasMatchedBlockMembership(data,block)||data.m_tableDxfSource.compoundBodyCaptureFailed)return false;
     const auto& row=data.m_tableDxfSource.blockSources.at(block);const auto at=row.compoundBodies.find(dispatch);
     if(at==row.compoundBodies.end()||!at->second)return false;const auto& body=*at->second;
-    if(body.membership!=row.membership||body.dispatch!=dispatch||!body.model||dispatch>=row.membership->ranges.size()
+    const auto owner=row.compoundBodyOwners.find(dispatch);const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    if(owner==row.compoundBodyOwners.end()||!same(at->second,owner->second)||!row.contextMatched||!same(row.context,row.contextOwner)||!same(body.context,row.context)
+        ||body.membership!=row.membership||body.dispatch!=dispatch||!body.model||dispatch>=row.membership->ranges.size()
         ||body.state!=CompoundBody::State::ModeledReplayMatched)return false;
     const auto range=row.membership->ranges[dispatch];const auto& member=row.membership->members[range.first];
     return body.sourceStates.size()==range.next-range.first&&body.replayStates.size()==body.sourceStates.size()
@@ -19213,6 +19268,10 @@ bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,st
 bool dx_iface::hasMatchedCompoundSource(const dx_data& data,std::uint32_t block,std::size_t dispatch) noexcept {
     if(!hasMatchedCompoundBody(data,block,dispatch))return false;
     const auto& body=*data.m_tableDxfSource.blockSources.at(block).compoundBodies.at(dispatch);
+    // Newly classified410 is an original field fact, not a resolved BLOCKS
+    // layout target. Keep existing selected-definition gates closed until the
+    // separate original enclosing-block role join can qualify it.
+    for(const auto& profile:body.profiles)for(const auto& span:profile.spans)if(span.role==dx_attdef_source::Role::LayoutName)return false;
     return body.profilesComplete&&body.profiles.size()==body.replayStates.size();
 }
 

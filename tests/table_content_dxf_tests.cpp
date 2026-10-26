@@ -4,6 +4,7 @@
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfentitiesdelivery.h"
+#include "test_scratch.h"
 
 #include <algorithm>
 #include <array>
@@ -230,17 +231,7 @@ public:
 namespace {
 struct Tag {int code; std::string value;};
 using Tags=std::vector<Tag>;
-// Clock values need not be unique across concurrent test processes. Claim a
-// directory atomically, retry collisions only, and never reuse another test's
-// drawing owners or silently lose the filesystem diagnostic.
-std::filesystem::path reserveTestScratch(const std::filesystem::path& parent,const std::string& stem,std::error_code& error) {
-    for(unsigned attempt=0u;attempt<64u;++attempt) {
-        auto candidate=parent/(stem+"-"+std::to_string(attempt));error.clear();
-        if(std::filesystem::create_directory(candidate,error)&&!error)return candidate;
-        if(error&&error!=std::errc::file_exists)return {};
-    }
-    error=std::make_error_code(std::errc::file_exists);return {};
-}
+using libdxfrw_test::reserveTestScratch;
 struct Probe final : dx_iface {
     std::vector<DRW_TableContentObject> content;
     std::vector<DRW_RawDxfObject> raw;
