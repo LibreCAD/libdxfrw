@@ -91,9 +91,9 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
     const auto path=dir/"block-binding.dxf";const auto none=(std::numeric_limits<std::size_t>::max)();
     unsigned profiles=0u,matched=0u,revisions=0u,wireCases=0u,callbacks=0u,quotas=0u,contexts=0u,exceptions=0u;long allocations=0;
     std::size_t spans=0u;unsigned lateAllocationFaults=0u;
-    const auto valid=[&](const dx_data& data,std::size_t members) {
+    const auto valid=[&](const dx_data& data,std::size_t members,std::size_t definitions=2u) {
         const auto r=dx_iface::tableContentBindingReport(data);
-        if(r.state==S::Bound&&r.directRolesBound&&r.blockSourceDefinitions==1u&&r.blockSourceMembers==members&&!r.outputEligible)return true;
+        if(r.state==S::Bound&&r.directRolesBound&&r.blockNameGraphAcyclic&&r.blockSourceDefinitions==definitions&&r.blockSourceMembers==members&&!r.outputEligible)return true;
         std::cerr<<"block binding state="<<static_cast<int>(r.state)<<" handle="<<r.firstHandle<<" block="<<r.firstSourceBlock<<" member="<<r.firstSourceMember
             <<" definitions="<<r.blockSourceDefinitions<<" direct="<<r.directRolesBound<<'\n';return false;
     };
@@ -108,14 +108,14 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
             if(report.state!=S::BlockMemberMismatch||!report.directRolesBound||report.firstSourceBlock!=0x30u||report.firstSourceMember!=7u||report.outputEligible) {
                 std::cerr<<"block revision="<<version<<'/'<<encoding<<'/'<<form<<" state="<<static_cast<int>(report.state)<<" member="<<report.firstSourceMember<<'\n';return false;
             }++revisions;
-        }else {if(!valid(data,form==0u?2u:form==3u?11u:9u))return false;++matched;}
+        }else {if(!valid(data,form==0u?2u:form==3u?11u:9u,form==0u?1u:2u))return false;++matched;}
         if(!A::provisionalAttdefs(data)||!blockBindingOriginalWire(path,encoding==2u,tags,data,spans)) {
             std::cerr<<"block original wire="<<version<<'/'<<encoding<<'/'<<form<<'\n';return false;
         }++profiles;
     }
     std::cout<<"Selected BLOCK source profiles="<<profiles<<"; matched="<<matched<<"; explicit revision gaps="<<revisions<<std::endl;
     const auto append=[](Tags& t,Tags record){const auto at=slot(t,5,"31")-1u;t.insert(t.begin()+static_cast<std::ptrdiff_t>(at),record.begin(),record.end());};
-    struct Case {const char* name;std::function<void(Tags&)> change;S state;std::size_t member;std::size_t members=9u,definitions=1u;};
+    struct Case {const char* name;std::function<void(Tags&)> change;S state;std::size_t member;std::size_t members=9u,definitions=2u;};
     const std::vector<Case> cases{
         {"missing definition",[](auto& t){geometryOnlyBindings(t);const auto a=slot(t,5,"30")-1u,b=slot(t,5,"32")-1u;t.erase(t.begin()+static_cast<std::ptrdiff_t>(a),t.begin()+static_cast<std::ptrdiff_t>(b));},S::BlockSourceMissing,none},
         {"duplicate definition",[](auto& t){const auto at=slot(t,5,"33")+1u;auto end=at;while(t[end].code!=0)++end;t.insert(t.begin()+static_cast<std::ptrdiff_t>(end),{{0,"BLOCK"},{5,"34"},{330,"B100"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"TABLE-BLOCK"},{70,"0"},{10,"0"},{20,"0"},{0,"ENDBLK"},{5,"35"},{330,"B100"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"}});},S::AmbiguousBlockDefinition,none},
@@ -134,9 +134,9 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
         {"footer record owners",[](auto& t){for(const char* h:{"D103","E102"})t[blockField(t,h,330)].value="B100";},S::Bound,none},
         {"empty insert",[](auto& t){eraseBlockRecord(t,"E101");eraseBlockRecord(t,"E102");const auto at=blockField(t,"E100",66);t.erase(t.begin()+static_cast<std::ptrdiff_t>(at));},S::Bound,none,7u},
         {"ATTDEF owner selection only",[](auto& t){noBlockContentBindings(t);},S::Bound,none},
-        {"selected empty definition",[](auto& t){geometryOnlyBindings(t);t[slot(t,340,"B100")].value="B200";},S::Bound,none,0u},
+        {"selected empty definition",[](auto& t){geometryOnlyBindings(t);t[slot(t,340,"B100")].value="B200";},S::Bound,none,0u,1u},
         {"two selected definitions",[](auto& t){geometryOnlyBindings(t);const auto at=slot(t,340,"F100");t[at-1u].value="4";t[at].value="B200";},S::Bound,none,9u,2u},
-        {"unselected raw definition",[](auto& t){const auto at=slot(t,5,"33")-1u;t.insert(t.begin()+static_cast<std::ptrdiff_t>(at),{{0,"VENDOR_ENTITY"},{5,"F200"},{330,"B200"},{100,"AcDbEntity"},{8,"0"},{1,"opaque"}});},S::Bound,none},
+        {"unselected raw definition",[](auto& t){auto at=slot(t,0,"ENDTAB");t.insert(t.begin()+static_cast<std::ptrdiff_t>(at),{{0,"BLOCK_RECORD"},{5,"B300"},{330,"10"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"UNSELECTED"},{70,"0"}});at=slot(t,5,"33");while(t[at].code!=0)++at;t.insert(t.begin()+static_cast<std::ptrdiff_t>(at),{{0,"BLOCK"},{5,"34"},{330,"B300"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"UNSELECTED"},{70,"0"},{10,"0"},{20,"0"},{0,"VENDOR_ENTITY"},{5,"F200"},{330,"B300"},{100,"AcDbEntity"},{8,"0"},{1,"opaque"},{0,"ENDBLK"},{5,"35"},{330,"B300"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"}});},S::Bound,none},
         {"endpoint scalar gap",[](auto& t){geometryOnlyBindings(t);appendBlockFields(t,"30",{{90,"1"}});},S::BlockSourceIncomplete,none},
         {"space owner metadata only",[](auto& t){geometryOnlyBindings(t);noBlockContentBindings(t);const auto a=slot(t,2,"BLOCKS")-1u,b=slot(t,2,"ENTITIES")-1u;t.erase(t.begin()+static_cast<std::ptrdiff_t>(a),t.begin()+static_cast<std::ptrdiff_t>(b));},S::Bound,none,0u,0u}
     };

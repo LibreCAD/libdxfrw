@@ -17429,7 +17429,9 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     std::vector<std::uint32_t> pendingLineTypes;
     std::set<std::uint32_t> queuedLineTypes;
     std::vector<std::uint32_t> pendingBlocks;
-    std::set<std::uint32_t> queuedBlocks;
+    std::map<std::uint32_t,std::size_t> queuedBlocks;
+    struct BlockEdge {std::size_t from,to;std::uint32_t block;std::size_t member;};
+    std::vector<BlockEdge> blockEdges;
     const auto fail=[&](S state,std::uint32_t handle) {
         if (report.state==S::Bound) {report.state=state;report.firstHandle=handle;}
     };
@@ -17449,8 +17451,8 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if(queuedBlocks.count(handle))return true;
         // Set node and conservative vector reallocation allowance. This is
         // logical query workspace, not retained source bytes or allocator RSS.
-        if(!workspace(8u*sizeof(void*)+sizeof(handle)))return false;
-        queuedBlocks.insert(handle);pendingBlocks.push_back(handle);return true;
+        if(!workspace(16u*sizeof(void*)+sizeof(handle)+sizeof(std::size_t)))return false;
+        queuedBlocks.emplace(handle,pendingBlocks.size());pendingBlocks.push_back(handle);return true;
     };
     const auto coreFamily=[&](std::uint32_t handle,F& family) {
         unsigned count=0u;
@@ -17672,14 +17674,76 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     std::vector<BlockIndex> index;index.reserve(n);
     for(const auto& block:source.blockSources)if(block.second.original)index.emplace_back(block.second.original->parentHandle,block.first);
     std::sort(index.begin(),index.end());
-    for(const auto handle:pendingBlocks) {
+    for(std::size_t node=0;node<pendingBlocks.size();++node) {
+        const auto handle=pendingBlocks[node];
         if(!work(levels+2u))return report;
         const auto at=std::lower_bound(index.begin(),index.end(),BlockIndex{handle,0u});
         if(at==index.end()||at->first!=handle){fail(S::BlockSourceMissing,handle);return report;}
         if(at+1u!=index.end()&&(at+1u)->first==handle){fail(S::AmbiguousBlockDefinition,handle);return report;}
         const auto state=inspectTableBlockSource(data,handle,at->second,report);
         if(state!=S::Bound){fail(state,handle);return report;}
+        const auto& row=source.blockSources.at(at->second);
+        for(const auto& item:row.compoundBodies) {
+            if(!item.second||!item.second->model||item.first>=row.membership->ranges.size()) {
+                report.firstSourceBlock=at->second;fail(S::BlockSourceIncomplete,handle);return report;
+            }
+            const auto* insert=dynamic_cast<const DRW_Insert*>(item.second->model.get());
+            if(!insert)continue;
+            const auto member=row.membership->ranges[item.first].first;
+            const auto diagnose=[&]() {report.firstSourceBlock=at->second;report.firstSourceMember=member;};
+            ++report.blockNameReferences;
+            // Charge normalization before allocating. The shared Unicode key
+            // detects namespace ambiguity, not native collation equivalence.
+            std::size_t nameBytes=64u,nameWork=32u;
+            if(!addAssociativeSlotBytes(insert->name.size(),6u,nameBytes)
+                ||!addAssociativeSlotBytes(insert->name.size(),4u,nameWork)
+                ||!workspace(nameBytes)||!work(nameWork)) {report.state=S::WorkLimit;diagnose();return report;}
+            std::string key;
+            if(insert->name.empty()||insert->name.find('\0')!=std::string::npos
+                ||!dx_symbol_output::nameKey(insert->name,key)) {fail(S::InvalidNamespace,0u);diagnose();return report;}
+            const auto target=source.resourceNames.find({F::BlockRecord,std::move(key)});
+            if(target==source.resourceNames.end()) {fail(S::MissingTarget,0u);diagnose();return report;}
+            const auto* resource=lookup(target->second,F::BlockRecord,false,false,true);
+            if(!resource) {diagnose();return report;}
+            const auto* model=dynamic_cast<const DRW_Block_Record*>(resource->model.get());
+            if(!model) {fail(S::ResourceProofMissing,target->second);diagnose();return report;}
+            // Exact UTF-8 spelling and ASCII-case variants are admitted. A
+            // wider fold-only alias remains explicitly unqualified instead of
+            // binding a potentially different block by a low-information key.
+            if(!dx_block_membership::equal(insert->name,model->name)) {
+                fail(S::BlockNameCollationUnqualified,target->second);diagnose();return report;
+            }
+            if(!workspace(4u*sizeof(BlockEdge))||!work(1u)) {diagnose();return report;}
+            blockEdges.push_back({node,queuedBlocks.at(target->second),at->second,member});
+            ++report.blockNameBindings;
+        }
     }
+    // Edges were appended in source-node order above. A bounded iterative DFS
+    // finds a real back edge (including self references), without recursion,
+    // repeated target expansion, or an unrelated positive body hiding a cycle.
+    struct Frame {std::size_t node,next;};
+    const auto nodes=pendingBlocks.size();std::size_t graphBytes=sizeof(std::size_t),graphWork=0u;
+    if(!addAssociativeSlotBytes(nodes,sizeof(std::size_t)+sizeof(std::uint8_t)+sizeof(Frame),graphBytes)
+        ||!addAssociativeSlotBytes(nodes,8u,graphWork)||!addAssociativeSlotBytes(blockEdges.size(),8u,graphWork)
+        ||!workspace(graphBytes)||!work(graphWork)) {report.state=S::WorkLimit;return report;}
+    std::vector<std::size_t> offsets(nodes+1u,blockEdges.size());
+    std::size_t edge=0u;
+    for(std::size_t node=0;node<nodes;++node) {offsets[node]=edge;while(edge<blockEdges.size()&&blockEdges[edge].from==node)++edge;}
+    std::vector<std::uint8_t> colors(nodes,0u);std::vector<Frame> stack;stack.reserve(nodes);
+    for(std::size_t root=0;root<nodes;++root) {
+        if(colors[root])continue;colors[root]=1u;stack.push_back({root,offsets[root]});
+        while(!stack.empty()) {
+            auto& frame=stack.back();
+            if(frame.next==offsets[frame.node+1u]) {colors[frame.node]=2u;stack.pop_back();continue;}
+            const auto link=blockEdges[frame.next++];
+            if(colors[link.to]==1u) {
+                report.firstSourceBlock=link.block;report.firstSourceMember=link.member;
+                fail(S::BlockReferenceCycle,pendingBlocks[link.to]);return report;
+            }
+            if(!colors[link.to]) {colors[link.to]=1u;stack.push_back({link.to,offsets[link.to]});}
+        }
+    }
+    report.blockNameGraphAcyclic=true;
     return report;
     } catch (...) {report.state=S::CaptureFailed;return report;}
 }

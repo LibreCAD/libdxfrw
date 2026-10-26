@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ed nested BLOCK names and canonical MINSERT profile",
+  "date": "2026-10-26",
+  "parentCommit": "a668cb24dd768072b42643d09e108af1765fd478",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ADMITTED_NESTED_BLOCK_NAME_SOURCE_GRAPH_AND_CANONICAL_MINSERT_PROFILE_VERIFIED_ENTITIES_COMMON_LIVE_OUTPUT_AND_EXTERNAL_QUALIFICATION_OPEN",
+  "scope": {
+    "implementation": "Converter-private TABLE binding expands original admitted INSERT/MINSERT names through the existing deduplicated selected-definition worklist",
+    "targetRole": "BLOCK_RECORD name namespace only, never numeric handle/local-ID interpretation; target source-row proof plus unique complete admitted original definition",
+    "immutability": "Target model/raw owners must equal the owners pinned by endpoint reconciliation; actual first-generation container/import and original body/profile prerequisites retained",
+    "namespace": "Shared invariant Unicode key is an ambiguity/candidate mechanism, not native collation certification; positive matching requires exact UTF-8 or ASCII case with identical non-ASCII bytes",
+    "unqualifiedCollation": "Wider fold-only alias explicitly BlockNameCollationUnqualified; no semantic/output name rewriting",
+    "graph": "Per-source-node ordered edges, bounded adjacency offsets and iterative color/stack DFS; one expansion per unique target; exact back-edge source member diagnostic; repeated and diamond references retained as separate edges",
+    "budgets": {
+      "queryLogicalBytes": 67108864,
+      "queryWork": "Existing maxBindingWork, shared with preceding direct/source stages",
+      "defaultEndpointAuditWork": 4000000,
+      "stressTestOnlyEndpointAuditWork": 16777216,
+      "productionDefaultsChanged": false
+    },
+    "accounting": "Normalization precharged before allocation, conservative node/edge workspace and offset/color/stack owners; logical work/attempt allowances, not RSS, every allocator, strict CPU or leak detector",
+    "failure": "Missing/unqualified target, ambiguity, unsupported leaf, cycle, work/byte or allocation failure refuses completion; unmodified query or corrected fresh actual import succeeds",
+    "profileFix": "Private original compound field audit admits AcDbMInsertBlock with positive dimensions and at least one greater than one; omitted axis defaults to one; retained prior base-class/grid and legacy MINSERT reader shapes",
+    "profileLimit": "Multi-insert marker without admitted grid and unknown derived marker remain source-profile refusals, not new ordinary import rejection; no geometry transform/kernel or full output qualification",
+    "sourceOnly": "Does not establish all primary families, ENTITIES spaces, common/style/APPID/LAYER/object/opaque targets, wider native collation, external XREF contents or live/editable/output semantics",
+    "installedModelLayoutChanged": false,
+    "publicInterfaceVtableChanged": false,
+    "nativeDwgByteParserOrEncoderChanged": false,
+    "productionDxfGeometryDecoderOrWriterChanged": false,
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "All new drawings authored locally at runtime; existing repository fixture inspected only"
+  },
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/FRA/AutoCAD-AutoLISP/files/GUID-7DA0E2BA-963F-4E41-AF33-C6B9D89D4688.htm",
+      "role": "Block references and self-reference/complex-entity boundaries; local DFS is not a native validity witness"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "role": "INSERT name, array dimensions, spacing and defaults"
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/insert.py",
+      "role": "Primary peer source inspection: canonical AcDbMInsertBlock export when either array dimension exceeds one, no peer execution or fixture copying"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "role": "Existing writeInsert uses INSERT group-0 name with AcDbMInsertBlock for array shapes; writer unchanged"
+    },
+    {
+      "path": "tests/fixtures/dxf/ac1015_minsert_freecad_control.dxf",
+      "sha256": "3e33a0d1acd93e50a964d75989cca4ca5bafbdc850a0dd2992682e6b340ba529",
+      "role": "Previously existing locally authored canonical array fixture inspected; does not extend the modern private source-profile qualification to AC1015"
+    }
+  ],
+  "owningControlsPerConfiguration": {
+    "ctest": "libdxfrw_table_block_name_bindings",
+    "selector": "--block-name-bindings",
+    "sourceRoutes": 12,
+    "axes": "Four modern versions x ASCII LF/CRLF/Binary",
+    "wireFaultAndCorrectedImportRetries": 192,
+    "wireFaultKinds": 16,
+    "positiveVariants": 96,
+    "positiveVariantKinds": 8,
+    "faults": [
+      "Root/deep dangling name",
+      "Handle/local-ID-looking string is still a name",
+      "Ambiguous original namespace",
+      "Unicode fold-only alias unqualified",
+      "Missing leaf definition",
+      "Raw/other-primary leaf unsupported",
+      "Leaf endpoint gap",
+      "Self/two-/three-node cycles",
+      "Nested physical source gap",
+      "Multi-insert marker without admitted grid",
+      "Unknown derived marker"
+    ],
+    "positives": [
+      "ASCII case alias with exact non-ASCII bytes",
+      "Repeated target",
+      "Shared diamond target",
+      "Canonical INSERT/AcDbMInsertBlock full grid",
+      "One-axis grid with omitted-axis default",
+      "Legacy MINSERT base-class/grid compatibility shape",
+      "Numeric-looking name with real named record",
+      "Long exact UTF-8 name"
+    ],
+    "exactAndOneUnderQueryWorkByteControls": 8,
+    "observedQueryAllocationFaults": 30,
+    "targetModelRawOwnerSubstitutionsAndRestorations": 4,
+    "editableRecordNameDoesNotRewriteHistoricalSource": true,
+    "stress": {
+      "addedNameLinks": 256,
+      "selectedDefinitions": 258,
+      "physicalMembers": 265,
+      "nameEdges": 257,
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "deepTailFailureRetryPairs": 4,
+      "tailFaults": [
+        "Unsupported raw member",
+        "Back edge to the earlier target"
+      ],
+      "defaultEndpointWorkRefusals": 2,
+      "testOnlyEndpointWorkAllowance": 16777216,
+      "productionDefaultWorkAllowance": 4000000,
+      "productionDefaultsChanged": false,
+      "limit": "Successful stress qualification uses explicit bounded TEST-only source work, not default arbitrary-depth support or a speed benchmark"
+    },
+    "existingBlockControls": {
+      "sourceCells": 60,
+      "matched": 51,
+      "revisionRefusals": 9,
+      "independentOriginalMemberScalarSpans": 5184,
+      "wireCasesAndRetries": 44,
+      "callbackMismatchesAndRetries": 12,
+      "queryLimitControls": 8,
+      "contexts": 14,
+      "exceptions": 4,
+      "observedQueryAllocationFaults": 22,
+      "allocationFaultsAfterDirectRoles": 14,
+      "historicalLimit": "Prior RPP-5ec receipt's ten/two observations remain immutable; new target/graph owners add observed allocations"
+    },
+    "allocationLimit": "Environment-specific observed schedules and successful unmodified retries, not portable STL counts, every allocator or leak certification",
+    "attdefRawTypedMatched": false,
+    "outputEligible": false
+  },
+  "findings": [
+    {
+      "status": "TRANSITIVE_INSERT_NAME_DEFINITION_GAP_CLOSED_FOR_ADMITTED_SOURCE_GRAPH",
+      "before": "Selected root body source proof does not establish its nested INSERT name targets",
+      "after": "Every reached name uses the block namespace and source-row/definition proof; dangling/unsupported/ambiguous/cyclic graphs cannot set completion",
+      "limit": "Complete admitted name graph is not all dependencies, native CAD validity, geometry or output qualification"
+    },
+    {
+      "status": "CANONICAL_MINSERT_SOURCE_PROFILE_REFUSAL_REPRODUCED_AND_FIXED",
+      "before": "Local working binary imports canonical INSERT/AcDbMInsertBlock grid but private source-profile gate refuses it",
+      "redLog": "/tmp/rpp5ed-minsert-profile-red.log",
+      "after": "Both full and one-axis canonical grids qualify original fields alongside retained legacy compatibility; unknown/inconsistent profiles still refuse",
+      "limit": "Local pre-profile-fix working binary, not separately rebuilt pristine parent; parser/writer semantics unchanged"
+    },
+    {
+      "status": "DEFAULT_ENDPOINT_WORK_CEILING_PRESERVED",
+      "before": "Authored long chain exceeds existing endpoint-audit work and loses source qualification without rejecting import",
+      "after": "Explicit default-refusal controls retained; same authored tree qualifies under bounded larger TEST-only endpoint work and exercises iterative deep-tail failures/retries",
+      "limit": "No production quota relaxation or default arbitrary-depth support claim"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 80.05
+    },
+    "asan": {
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 169.6
+    },
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sequentialRuntimeCohorts": true,
+    "timingLimit": "Normal runtime overlapped ASan compilation, not ASan runtime; elapsed times not a paired speed benchmark",
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_block_owners",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_compound_body_replay",
+      "dxf_polyface_completed_pool",
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_application_handle_width",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_field_retained_owner_budget",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings"
+    ],
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_field_retained_budget_tests"
+    ],
+    "normalBuildLog": "/tmp/rpp5ed-normal-build.log",
+    "asanBuildLog": "/tmp/rpp5ed-asan-build.log",
+    "normalLog": "/tmp/rpp5ed-normal-affected.log",
+    "asanLog": "/tmp/rpp5ed-asan-affected.log",
+    "fullProjectSuiteRepeated": false,
+    "autotoolsDistributionSuiteRepeated": false,
+    "formalAbiCertification": false,
+    "nativeLibreCadOrLibreCad3Execution": "NOT_RUN",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "claimState": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": false,
+    "remoteMutations": false,
+    "fullGoalComplete": false
+  },
+  "remaining": [
+    "Original ENTITIES physical/callback scope and real model/paper/BLOCK_RECORD associations",
+    "Modeled/profile source proof for remaining selected primary member families and unsupported secondary/header/raw/no-callback boundaries",
+    "Common/style/APPID/LAYER/object/opaque dependencies, absent/default semantics and specialized grammars/proxy/codepages with pinned owners",
+    "Adequate independent evidence for wider native Unicode block-name collation",
+    "B2b/B3/C live/editable/output identities, complete fields/name/reference roles, remapping and atomic rollback/retry/destination preservation",
+    "Full original IMAGE/document/native-bit/decimal/carrier/schema/owner, performance/memory and 2D/3D/dwg2dxf consumer parity",
+    "Native consumer/platform and independent ACIS/ACDS semantic/kernel evidence",
+    "Self-update plan/receipts, commit/report verified slices and continue available local work with fast owning and exact affected integration checks"
+  ],
+  "sha256": {
+    "dwg2dxf/dx_compound_source_profile.h": "d57726e50ec9d17faf1cc66bc85d406dcaa33fbf377e955145ea117513dc200b",
+    "dwg2dxf/dx_iface.h": "d973fbd08539d10cdad23ef445ecd9644ce4c471fe260f16fde4c90d089cf6b6",
+    "dwg2dxf/dx_iface.cpp": "da127d8227b72ae80882574a0ba51f6dbadacb5d7837c812a30bc6607e6a564b",
+    "tests/CMakeLists.txt": "d04c028f847586e4f6a998f96100d31e92cdb0cb6e8ea61f68db51cb26342d1f",
+    "tests/table_block_binding_controls.h": "f7cb905ba3943052be06323bdd4a11b8a6a63b852c11c45578496e187bc205da",
+    "tests/table_block_name_controls.h": "d727dc1b2ca659276644dc66b7027f4db69e0bde5382e12e7f5f78f2be93b9b3",
+    "tests/table_content_dxf_tests.cpp": "3b321c4b6a5ae4e0cb2120090e6828409fe5cc62fb1d95eed0df89e33fd78222",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7793d7f839163b3125c805bd63f42e3e20a5b924c2c9efd659db9090b07bc2be",
+    "/tmp/rpp5ed-normal-build.log": "cb6f222fba5434439a5e896fa0ae1a311568723a9d359962fba836c7d7a4f3cd",
+    "/tmp/rpp5ed-asan-build.log": "04389a1693657e135cc9dd401918388efed6f55fd5094334681b4c56578d666f",
+    "/tmp/rpp5ed-normal-affected.log": "19c568b096c7df08cbcb78d50fc5f00ab5995201eda335c2b83c1003bd3350a7",
+    "/tmp/rpp5ed-asan-affected.log": "f353769fb8c675757fff4634591b0ef4b194cbb2216df9da338b072ed0597b5d",
+    "/tmp/rpp5ed-minsert-profile-red.log": "a1542fa9941aeb3f7db77e15a5271de5fbd62b9eb0063e23bdd4efde07b70199"
+  }
+}

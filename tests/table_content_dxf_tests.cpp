@@ -84,6 +84,11 @@ public:
     static auto& blockSource(dx_data& data,std::uint32_t block=0x30u) {return data.m_tableDxfSource.blockSources.at(block);}
     static const auto& blockSources(const dx_data& data) {return data.m_tableDxfSource.blockSources;}
     static void blockBindingLimit(dx_data& data,std::size_t bytes) {data.m_tableDxfSource.maxBlockBindingBytes=bytes;}
+    static void blockEndpointWorkLimit(dx_data& data,std::size_t work) {data.m_tableDxfSource.maxBlockSourceWork=work;}
+    static bool blockEndpointWorkRefused(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;
+        return s.blockSourceCaptureFailed&&s.blockSourceWork>0u&&s.blockSourceWork<=s.maxBlockSourceWork;
+    }
     static void copyBindingContext(dx_data& target,const dx_data& source) {
         target.m_tableDxfSource=source.m_tableDxfSource;target.importGeneration=source.importGeneration;
         target.sourceVersion=source.sourceVersion;target.sourceFormat=source.sourceFormat;target.dxfReadOutcome=source.dxfReadOutcome;
@@ -1319,6 +1324,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 }
 
 #include "table_block_binding_controls.h"
+#include "table_block_name_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -2825,6 +2831,7 @@ int main(int argc,char** argv) {
     const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
     const bool bindings=argc==2 && std::string(argv[1])=="--compound-bindings";
     const bool blockBindings=argc==2 && std::string(argv[1])=="--block-source-bindings";
+    const bool blockNames=argc==2 && std::string(argv[1])=="--block-name-bindings";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -2833,10 +2840,10 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

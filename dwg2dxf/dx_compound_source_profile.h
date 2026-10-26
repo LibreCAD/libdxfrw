@@ -38,7 +38,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     std::array<bool,1072> seen{};
     std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
     std::size_t depth=0u,xdepth=0u,proxyBytes=0u;unsigned reserved=0u;
-    int stage=0,point=0,next=0,flags=0;std::int64_t proxy=-1;
+    int stage=0,point=0,next=0,flags=0,columns=1,rows=1;std::int64_t proxy=-1;
     bool xdata=false,vertexMarker=false;std::string_view subtype;
     const auto integer=[](const DRW_Variant& v,int lo,int hi){return v.type()==DRW_Variant::INTEGER&&v.i_val()>=lo&&v.i_val()<=hi;};
     const auto pair=[&](int x,bool required){return (!seen[x]&&!seen[x+10]&&!seen[x+20]&&!required)||(seen[x]&&seen[x+10]);};
@@ -92,7 +92,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                 else if(!footer&&subtype.empty()&&((stage==1&&!vertexMarker)||(vertex&&vertexMarker&&stage==2))) {
                     bool known=false;
                     if(polyline)known=s=="AcDb2dPolyline"||s=="AcDb3dPolyline"||s=="AcDbPolygonMesh"||s=="AcDbPolyFaceMesh";
-                    if(insert)known=s=="AcDbBlockReference";
+                    if(insert)known=s=="AcDbBlockReference"||s=="AcDbMInsertBlock";
                     if(vertex)known=vertexMarker?(s=="AcDb2dVertex"||s=="AcDb3dPolylineVertex"||s=="AcDbPolygonMeshVertex"||s=="AcDbPolyFaceMeshVertex"):s=="AcDbFaceRecord";
                     if(!known)return reject(Reason::Subclass,i);subtype=s;stage=2;
                 }else return reject(Reason::Subclass,i);
@@ -131,7 +131,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                         case 2:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::BlockName;break;
                         case 10:case 20:case 30:case 41:case 42:case 43:case 44:case 45:case 50:case 210:case 220:case 230:break;
                         case 66:if(!integer(v,0,1))return reject(Reason::InvalidValue,i);break;
-                        case 70:case 71:if(!integer(v,1,32767))return reject(Reason::InvalidValue,i);break;
+                        case 70:case 71:
+                            if(!integer(v,1,32767))return reject(Reason::InvalidValue,i);
+                            (code==70?columns:rows)=v.i_val();break;
                         default:body=false;break;
                         }
                     }
@@ -185,7 +187,13 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
             for(auto& span:out.spans)if(span.field==Field::Compound&&(span.code==10||span.code==20||span.code==30))span.field=Field::ComputedIgnored;
             if(!seen[71]||!seen[72]||!seen[73])return reject(Reason::IncompletePoint,end);
         }else if(!pair(10,true))return reject(Reason::IncompletePoint,end);
-    }else if(insert&&(!seen[2]||!pair(10,true)||!pair(210,false)))return reject(Reason::IncompletePoint,end);
+    }else if(insert) {
+        if(!seen[2]||!pair(10,true)||!pair(210,false))return reject(Reason::IncompletePoint,end);
+        // Canonical multi-insert output uses this subclass when either grid
+        // dimension exceeds one; missing dimensions retain their default one.
+        // The already admitted base-class/grid compatibility shape is kept.
+        if(subtype=="AcDbMInsertBlock"&&columns==1&&rows==1)return reject(Reason::Subclass,end);
+    }
     out.reason=Reason::Complete;out.rejectedGroup=end;return out;
 }
 

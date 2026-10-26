@@ -63,7 +63,8 @@ public:
         AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner,
         ResourceProofMissing, ResourceRawTypedMismatch, WrongSymbolKind,
         BlockSourceMissing, AmbiguousBlockDefinition, BlockSourceIncomplete,
-        BlockMemberUnsupported, BlockMemberMismatch, BlockSpaceMismatch
+        BlockMemberUnsupported, BlockMemberMismatch, BlockSpaceMismatch,
+        BlockNameCollationUnqualified, BlockReferenceCycle
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
@@ -79,13 +80,16 @@ public:
         std::size_t dictionaryProofUses{0}, xRecordProofUses{0};
         std::size_t blockRecordProofUses{0};
         std::size_t blockSourceDefinitions{0},blockSourceMembers{0},blockSourceWorkspaceBytes{0};
+        std::size_t blockNameReferences{0},blockNameBindings{0};
+        bool blockNameGraphAcyclic{false}; // admitted name graph only, not all dependencies
         std::uint32_t firstSourceBlock{0};
         std::size_t firstSourceMember{(std::numeric_limits<std::size_t>::max)()};
         bool directRolesBound{false}; // not full block/dependency/live/output proof
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates. Geometry-block/ATTDEF-owner
-        // selections additionally require their complete admitted definition;
+        // selections additionally require their complete admitted definition
+        // and acyclic transitive admitted INSERT name graph;
         // a TABLE's space-owner record is metadata, not an ENTITIES certificate.
         bool outputEligible{false};
     };

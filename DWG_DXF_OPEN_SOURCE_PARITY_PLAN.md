@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ec selected BLOCK source binding (2026-10-26):** geometry-block and selected ATTDEF-owner bindings now require a unique original definition, pinned BLOCK_RECORD reconciliation owners, all admitted original members and consistent linked-host space flags. Direct role proof remains separately visible; TABLE space-owner metadata cannot certify ENTITIES. The affected cohorts pass 52/52 normally and 52/52 under ASan. Complete primary-family coverage, ENTITIES space/dependency/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ec-selected-block-source-binding-2026-10-26) · [receipt](docs/research/rpp5ec-selected-block-source-binding-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ed nested BLOCK names and canonical MINSERT profile (2026-10-26):** selected admitted definitions now expand their original INSERT name targets through the bounded worklist and reject unresolved/ambiguous targets or cycles. Exact UTF-8/ASCII-case matches remain distinct from unqualified wider Unicode fold-only aliases. Canonical `AcDbMInsertBlock` source profiles with real array dimensions are admitted alongside the existing compatibility shape. The affected cohorts pass 53/53 normally and 53/53 under ASan, including target/failure/retry/long-chain controls. ENTITIES/common dependencies/live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26) · [receipt](docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ec selected BLOCK source binding (2026-10-26):** committed as `a668cb2`. Its unique selected-definition, pinned reconciliation-owner, original member and linked-host space prerequisites remain valid, with 52/52 normal and 52/52 ASan affected results. RPP-5ed additionally follows admitted nested INSERT names, not full primary-family, ENTITIES/common dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ec-selected-block-source-binding-2026-10-26) · [receipt](docs/research/rpp5ec-selected-block-source-binding-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5eb compound physical profiles and opaque handle scopes (2026-10-26):** committed as `ce2c8cd4`. Its original compound scalar/scope/field/reference-role profiles, scoped opaque handle preservation and literal-source/output-remapping distinction remain valid. The 51-test normal / 51-test ASan affected cohorts and 18 final normal owning rechecks pass. RPP-5ec adds selected definition prerequisites, not full primary-family, ENTITIES, dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26) · [receipt](docs/research/rpp5eb-compound-physical-profiles-and-opaque-handle-scopes-2026-10-26.json).
 
@@ -127868,6 +127870,156 @@ Next implementation-ready sequence (full objective retained):
    not full suites per item. Record failures and limits, update the plan and
    receipt, commit/report each verified slice and continue available local work.
    Preserve unrelated samples and do not commit external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
+completion is included in this checkpoint.
+
+## Implementation progress — RPP-5ed nested BLOCK names and canonical MINSERT profile (2026-10-26)
+
+This advances RPP-5ec's transitive-target item using its already integrated
+selected-definition worklist. It does not substitute for ENTITIES space,
+remaining primary member families, common/opaque targets, live/output or the
+original native-consumer/independent semantic objective.
+
+Implemented:
+
+1. [x] Resolve each original admitted INSERT/MINSERT body name in the
+   BLOCK_RECORD namespace, preserving its distinct role from a handle or local
+   style ID. Require the target row's existing source proof and its uniquely
+   reconciled complete admitted definition, then expand each selected target
+   only once. Shared and repeated references retain their separate edge counts
+   without repeatedly qualifying the same definition. A raw/unqualified leaf
+   cannot borrow the root's positive compound proof.
+2. [x] Reuse the existing invariant Unicode key for ambiguity detection and
+   candidate lookup only. Admit exact UTF-8 spelling and ASCII-case variants
+   with unchanged non-ASCII bytes. A wider fold-only alias is explicitly
+   `BlockNameCollationUnqualified`, not an assumed native collation match.
+   Preserve semantic spelling and never rewrite output names or interpret a
+   handle-looking name numerically. Empty/invalid/unresolved/ambiguous names
+   cannot set the completed graph fact. Native Unicode collation remains open.
+3. [x] Append edges in deduplicated source-node order, build bounded adjacency
+   offsets and run iterative color/stack DFS. Self, two-node, three-node and
+   deep tail back edges refuse the graph with an actual source member diagnostic.
+   No recursive traversal or all-definition scan per edge is introduced. The
+   [Autodesk complex-entity/block guidance](https://help.autodesk.com/cloudhelp/2024/FRA/AutoCAD-AutoLISP/files/GUID-7DA0E2BA-963F-4E41-AF33-C6B9D89D4688.htm)
+   describes block references and the self-reference boundary; these local
+   graph controls are not a native CAD acceptance or geometry-kernel witness.
+4. [x] Charge normalization attempts before key allocation, map/vector node
+   workspace, edges, offsets, colors and iterative stack under the existing
+   shared binding-work and 64 MiB query allowances. Index/visit work is bounded
+   separately from retained source budgets. Allocation/limit failures refuse
+   the report, leave immutable input unchanged and allow an unmodified retry.
+   Accounting remains logical attempt/workspace allowance, not RSS, a strict
+   CPU bound, every allocator or leak-detector certification.
+5. [x] Fix a newly exercised source-profile prerequisite instead of excluding
+   the valid array shape. The previous local profile rejects the original
+   `INSERT`/`AcDbMInsertBlock` record even though the existing writer emits it.
+   Admit this subclass with positive grid dimensions and at least one dimension
+   greater than one; omitted dimensions retain their default one. Preserve the
+   already admitted base-class/grid and legacy MINSERT reader compatibility
+   shapes. A multi-insert marker without the admitted grid, zero dimensions,
+   unknown derived markers and other incomplete profiles still refuse source
+   qualification without tightening ordinary import. This changes the private
+   field profile, not the geometry decoder or writer. The
+   [Autodesk INSERT fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm),
+   local writer/existing authored fixture and
+   [ezdxf's INSERT export implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/insert.py)
+   corroborate name/grid/default/subclass distinctions. No peer fixture or code
+   payload is copied, and source inspection is not independently executed CAD
+   semantic evidence. The stored red run is the local pre-profile-fix working
+   binary, not a separately rebuilt pristine parent.
+
+Owning evidence per configuration:
+
+- [x] **12** four-version x ASCII LF/CRLF/Binary nested source routes,
+  **192** wire-fault/corrected-import retries and **96** positive variants.
+  Cases distinguish dangling root/deep names, handle/local-ID-looking names,
+  namespace ambiguity, wider Unicode aliases, missing/unqualified leaf
+  definitions, endpoint/member/profile gaps and cycles. Positive controls cover
+  ASCII case, exact/long UTF-8 names, repeated and diamond dependencies,
+  canonical full/one-axis grids, legacy MINSERT and literal numeric-looking
+  names with real matching records.
+- [x] **Eight** exact/one-under query work/byte controls, **30** observed query
+  allocation faults with unmodified retries and **four** transitive target
+  model/raw owner substitutions/restorations. Public editable record-name
+  changes do not rewrite the immutable historical source target; this is not
+  live/editable target equivalence.
+- [x] ASCII/Binary **256-link** stress paths each bind **258** selected
+   definitions, **265** members and **257** total name edges without recursive
+   DFS (256 added links beyond the root's existing reference).
+  **Four** deep tail raw-member/cycle failure and corrected-import retries pass.
+  **Two** default endpoint-work refusal controls remain: this authored tree
+  exceeds the existing 4,000,000 endpoint-audit allowance. The successful DFS
+  stress imports explicitly use a bounded **16,777,216 TEST-only endpoint work
+  units**; production defaults are unchanged. This is not a claim that the
+  default capture allowance qualifies arbitrary 256-link files or a speed
+  benchmark.
+- [x] RPP-5ec's 60-cell/5,184-original-span/44-wire/12-callback/eight-query-limit/
+  14-context/four-exception controls still pass with transitive expansion and
+  true unselected raw definitions. Their observed query allocation faults are
+  now **22**, including **14** after direct roles, versus the historical ten/two
+  in the immutable RPP-5ec receipt. Extra target/index/DFS owners explain the
+  new observations; counts are not portable STL thresholds.
+
+Final validation: strict normal/ASan affected library/CLI, resource, polyface/
+MTEXT and local consumer targets plus `lc3_compat_check` builds pass on macOS
+ARM64 Apple Clang 21.0.0, C++17 with warnings as errors. Exact affected cohorts
+pass **53/53 normally in 80.05 s** and **53/53 under ASan in 169.60 s**, without
+failures/skips/disabled cases. Runtime cohorts are sequential, with
+`halt_on_error=1:detect_leaks=0`; normal runtime overlapped ASan compilation,
+not ASan runtime, so elapsed times are not a paired speed benchmark. No full
+project/distribution suite, native LibreCAD/FreeCAD execution or formal binary
+ABI certification is claimed. Installed model/vtable and DWG byte-parser/
+encoder sources are unchanged. All new drawings are authored locally at runtime;
+no external fixture is committed. The
+[RPP-5ed receipt](docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json)
+records exact scope, counts, membership, source/log hashes and limitations.
+
+Next implementation-ready sequence (complete original objective retained):
+
+1. [ ] **ENTITIES/primary source closure.** Extend original physical/callback
+   observations into real ENTITIES section scopes; retain actual import,
+   original ordinal/span/owner and container/generation joins. Resolve actual
+   model/paper/BLOCK_RECORD associations with absent/default and conflict
+   controls, not TABLE metadata alone. Add modeled/profile proof for remaining
+   selected primary families; keep unsupported raw/no-callback/secondary/header
+   forms explicitly unqualified. Preserve optional observer facets and existing
+   2D consumer behavior rather than changing DRW_Interface's vtable.
+   Implementation routing: `processEntities(false)` owns the actual first
+   code-0 boundary after `readEntityBoundary`; capture that pending original
+   marker, not a reconstructed callback value. Factor neutral bounded scalar
+   capture from `dxfblockchildren.h` while preserving BLOCK's ENDBLK contract.
+   Use a distinct optional ENTITIES facet/context and ENDSEC terminator, never
+   a BLOCK manifest with a fabricated zero owner. A single ENTITIES section can
+   contain both model and paper records, so associate space/owner per primary
+   and linked compound rather than assigning one owner to the entire section.
+   Preserve shared-reader observer chaining, retained leases, byte/node/work
+   limits and interface/context restoration on exceptions. Owning controls
+   must cover LF/CRLF/Binary, empty/repeated/truncated scopes, exact source
+   marker/ordinal joins, compound subrecords, quota/allocation and callback
+   failures, opt-out legacy consumers, copied/late contexts and fresh retries.
+2. [ ] **Common and specialized dependency targets.** Reuse this bounded graph
+   pattern for common/style/APPID/LAYER/object references with pinned source
+   owners. Distinguish explicit targets, inherited/special defaults, absence and
+   unresolved names; never fabricate an original record from a writer-created
+   default. Qualify specialized application grammars, opaque identities, proxy
+   text and codepage contexts separately. Wider Unicode collation requires
+   adequate independent evidence; a fold key alone cannot promote that claim.
+3. [ ] **Live/output and complete original parity.** Finish B2b/B3/C source/live/
+   editable/output and compound identities, complete fields and exact emitted
+   reference/name roles, remapping and atomic rollback/retry/destination
+   preservation. Retain original IMAGE/document/native-bit/decimal/carrier/
+   schema/owner, speed/memory, LibreCAD/LibreCAD_3 2D, 3D and dwg2dxf/FreeCAD
+   requirements. No local name/profile graph certifies external XREF contents,
+   native consumers or independent ACIS/ACDS semantic/platform support.
+4. [ ] **Self-update and continue available work.** Keep fast owning validation
+   during edits and exact freshly built affected normal/ASan integration checks,
+   not full suites per item. Record limits and actual failures, update this plan
+   and its receipt, commit/report verified slices and continue safely. Preserve
+   unrelated samples and do not commit external drawing fixtures.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
