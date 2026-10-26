@@ -1364,6 +1364,33 @@ private:
         std::size_t entitiesRoleBytes{0},entitiesRoleWork{0};
         std::size_t maxEntitiesRoleBytes{64u*1024u*1024u},maxEntitiesRoleWork{64u*1024u*1024u};
         bool entitiesRoleCaptureFailed{false};
+        struct BlockRoleAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoScopes,RolesReady,Unqualified};
+            enum class Reason {Matched,InvalidBoundary,NotPublished,SourceNotReady,OriginMismatch,BodyNotReady,UnsupportedPrimary,
+                OwnerMissing,WrongPlacement,DuplicateDefinition,SpaceConflict,LayoutConflict,LayoutUnresolved,TextUnqualified};
+            struct Scope {
+                std::size_t section{0},first{0},last{0};std::uint32_t handle{0},block{0},layout{0};
+                Reason reason{Reason::NotPublished};bool boundary{false},paper{false},definition{false};
+                std::shared_ptr<const BlockOriginAudit> origin;
+                std::shared_ptr<const dx_block_membership::Audit> membership;
+                std::shared_ptr<const StructuralAudit> record;
+                std::vector<std::pair<std::size_t,std::shared_ptr<const CompoundBody>>> bodies;
+            };
+            struct Row {
+                std::size_t scope{0},physical{0},parent{0},layoutGroup{0};std::uint32_t self{0},wireOwner{0},block{0},layout{0};
+                Reason reason{Reason::BodyNotReady};bool endpoint{false},primary{false},selected{false},paper{false},definition{false},spacePresent{false},layoutPresent{false};
+                int space{0};
+            };
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
+            std::shared_ptr<const LayoutRoleAudit> graph;
+            std::vector<Scope> scopes;std::vector<Row> rows;
+            std::size_t records{0},published{0};bool censusComplete{false};
+        };
+        std::shared_ptr<const BlockRoleAudit> blockRoleAudit,blockRoleOwner;
+        std::size_t blockRoleBytes{0},blockRoleWork{0};
+        std::size_t maxBlockRoleBytes{64u*1024u*1024u},maxBlockRoleWork{64u*1024u*1024u};
+        bool blockRoleCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

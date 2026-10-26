@@ -16424,6 +16424,12 @@ bool dxfRW::processEntities(bool isblock) {
                 return true;
             return setError(DRW::BAD_READ_ENTITIES);
         }
+        // BLOCK starts a sibling definition, never a raw child of this one.
+        // Without this guard a missing ENDBLK can absorb the next definition
+        // and report success using its footer. Do not depend on opt-in source
+        // capture to notice the broken enclosing boundary.
+        if (isblock && dxfKeywordEquals(nextentity, "BLOCK"))
+            return setError(DRW::BAD_READ_BLOCKS);
 
         class SemanticStringScope final {
         public:

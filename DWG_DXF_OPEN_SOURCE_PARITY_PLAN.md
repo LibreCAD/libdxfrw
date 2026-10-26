@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5eq completed empty BLOCKS POLYLINE membership (2026-10-26; verified before local commit):** reproduce and fix a converter false negative for an already accepted parent+SEQEND. Structural membership and staged comparison now require two records, not an invented vertex; original footer IDs, observed owner forms and common-body fields remain checked. Its new144-profile owning test passes, and exact affected cohorts pass82/82 normally and82/82 under ASan. [Implementation and next work](#implementation-progress-rpp-5eq-completed-empty-blocks-polyline-membership-2026-10-26) · [receipt](docs/research/rpp5eq-completed-empty-blocks-polyline-membership-2026-10-26.json). Complete physical-scope/owner/default/layout, remaining body/dependency, live/output/consumer and external work remain open; no support gate is promoted.
+**Newest implementation checkpoint — RPP-5er original BLOCKS role joins and sibling-boundary refusal (2026-10-26; verified before local commit):** a bounded immutable audit enumerates every original physical BLOCKS scope and joins selected POINT/LINE/POLYLINE/INSERT/MINSERT bodies to actual original definition/layout targets. Dropped or unsupported records cannot hide behind a selected subset. Endpoint definition metadata stays separate from member placement; actual67 defaults and absent/explicit410 remain distinct. A reproduced missing-ENDBLK reader bug is fixed independently of observer selection. Exact affected cohorts pass86/86 normally and86/86 under ASan. [Implementation and next work](#implementation-progress-rpp-5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26) · [receipt](docs/research/rpp5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26.json). Remaining primary/dependency/live/output/consumer/external work stays open; no support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5eq completed empty BLOCKS POLYLINE membership (2026-10-26; committed as `e5355122`):** the converter now admits the already-accepted parent+SEQEND structural/body shape without inventing a vertex. Its144-profile owning test and exact82/82 normal /82/82 ASan cohorts remain historical; RPP-5er adds selected original BLOCKS scope/owner/member-space/layout joins, not complete primary/dependency/live/output or native semantics. [Implementation](#implementation-progress-rpp-5eq-completed-empty-blocks-polyline-membership-2026-10-26) · [receipt](docs/research/rpp5eq-completed-empty-blocks-polyline-membership-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5ep actual BLOCKS producer origins and namespace binding (2026-10-26; committed as `3a2e0bfd`):** reader-owned borrowed publication views and bounded immutable converter audits bind selected published scopes to original BLOCKS namespace intervals. Copied/consistently forged inputs and substituted owners cannot become original producer proof. Its exact81/81 normal and81/81 ASan cohorts remain historical; RPP-5eq repairs empty-chain membership, not whole-scope enumeration, enclosing targets, dependencies, live/output or native qualification. [Implementation](#implementation-progress-rpp-5ep-actual-blocks-producer-origins-and-namespace-binding-2026-10-26) · [receipt](docs/research/rpp5ep-actual-blocks-producer-origins-and-namespace-binding-2026-10-26.json).
 
@@ -130020,3 +130022,145 @@ J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 No whole-document/native/geometry/output support promotion or remote mutation
 is included. The full goal remains active.
+
+## Implementation progress — RPP-5er original BLOCKS role joins and sibling-boundary refusal (2026-10-26)
+
+State: **VERIFIED before local slice commit**. The owning selector and exact
+normal86/ASan86 affected cohorts pass. This implements the original physical-scope and selected
+body/endpoint-owner/member-space/layout prerequisites in RPP-5eq's next packet,
+not all required primary families, dependencies, live/output or full objective.
+
+- [x] Add `BlockRoleAudit`/`blockRoleReport`, finalized after actual BLOCKS origin
+  audits. Pin the actual container/generation/non-copying identity, original
+  namespace, layout graph, publication, membership, selected body and original
+  BLOCK_RECORD audit owners. Equal copied, aliased or transplanted inputs cannot
+  reuse a certificate merely by preserving values or addresses.
+- [x] Enumerate all original BLOCKS record intervals, including empty/repeated
+  sections, unpublished/dropped scopes and unsupported bodies. Keep boundary
+  census, published counts, selected rows and qualified scopes separate. Refuse
+  missing/ambiguous boundaries and duplicate definitions of one BLOCK_RECORD;
+  no smaller selected subset can publish `RolesReady`/`selectedRolesMatched`.
+- [x] Join original selected POINT/LINE/POLYLINE/INSERT/MINSERT bodies and linked
+  children through real enclosing BLOCK_RECORDs and the reciprocal original
+  layout graph. Ordinary definitions can qualify without a LAYOUT association;
+  inactive paper layouts remain distinct from empty model/active-paper
+  definitions whose content belongs in ENTITIES. Preserve both observed SEQEND
+  wire-owner forms and logical compound parentage separately.
+- [x] Keep endpoint ownership/modeled fields distinct from member placement:
+  default endpoint67 does not relocate a definition's contents. Member absent67
+  keeps its actual model-space default; absent410 remains absent while an actual
+  original associated LAYOUT can resolve its logical target. Explicit conflicts
+  and unresolved generic-definition410 refuse. Actual source codec/escape
+  observations and ASCII-only case keys do not qualify wider native collation.
+- [x] Classify endpoint410 in the new role pass without opening the older
+  partial binding/profile gates. Accept this common ENDBLK metadata through the
+  shared decoder; do not invent a modeled layout-name property. The old endpoint
+  profile's default still refuses unqualified410 and the old body/layout gates
+  remain independent of this report.
+- [x] Fix a reproduced structural reader bug: after deleting ENDBLK, the next
+  BLOCK could be consumed as a raw child and its footer close the wrong scope,
+  while ordinary import reported success. The pre-fix diagnostic records
+  `read=1`, `SourceNotReady` and incomplete physical census. Reject BLOCK before
+  the enclosing ENDBLK in the in-block dispatch loop, independently of optional
+  source capture. Preserve scope balancing and corrected reuse. This is a
+  structural boundary failure, not record-level error-softening removal.
+- [x] Bound added audit owners/rows/maps/profile/name temporaries and visits
+  before allocation using independent64-MiB logical byte/work ceilings. These
+  are not process RSS/allocator-capacity or portable timing guarantees. Update
+  the consumer contract with this narrower evidence boundary.
+
+Primary references distinguish the axes rather than supplying execution proof:
+[Autodesk common fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+describe outer owner and member67/410 roles; its
+[BLOCK description](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm)
+describes definitions and internal layout names.
+[ezdxf's layout design](https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html)
+and its pinned
+[BLOCK_RECORD implementation](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.5/src/ezdxf/entities/blockrecord.py)
+separate definition endpoints from member-space assignment and distinguish
+inactive-paper BLOCKS content from model/active-paper ENTITIES content. This
+source inspection is not an independent runtime, native collation, geometry or
+kernel result. No DWG byte-layout parser/encoder changes.
+
+New authored owning controls (no drawing fixture bytes):
+
+- **12** four-modern-version x LF/CRLF/Binary profiles bind four original scopes,
+  19 records, eight endpoints and five linked children. Independent file walking
+  checks **228** record origins and **456** original self/owner handle fields.
+  Empty model/active-paper definitions, inactive paper content, an ordinary
+  definition and a completed empty POLYLINE participate in each profile.
+- **24** variants cover absent linked410, both footer-owner forms, explicit0,
+  opaque false role fields, ASCII case/Unicode escapes, endpoint410, repeated/
+  empty BLOCKS sections, a second nonconsecutively named inactive-paper scope
+  and a layout-free ordinary definition. **20** target/body/space/name conflict
+  refusals have corrected same-adapter imports; **two** additional duplicate-
+  definition refusals invalidate both scopes, not only the later one.
+- **36** context controls cover dropped/unpublished scopes, unsupported ARC,
+  copied publication arguments, full observer opt-out, equal-copy/alias audit/
+  publication/membership/body owners, graph/namespace substitutions, copied
+  containers, cross-import transplant, live edits, allocation-free reporting and
+  the non-vacuous no-scopes state. Record counts cannot shrink on dropped data.
+- **Eight** exact/one-under byte/work cases and **64** observed isolated audit
+  allocation faults recover from genuine successful-import snapshots, without
+  fabricating a new live parser read. This is not every allocation or schedule.
+- **16** actual malformed-boundary/callback/failed-tail refusals and corrected
+  imports retain balanced block scopes. Missing/nested BLOCK boundaries and an
+  orphan before BLOCK fail with source capture both on and off. Main new Binary
+  recipes contain no group999 comments; unrelated samples remain untouched.
+
+Development evidence is retained: an invalid shared `auto` declaration for two
+different map iterator types was split; no warning suppression. An initial
+opt-out probe disabled only the endpoint facet while forwarding the other
+facets, correctly producing source-not-ready evidence; the all-facet opt-out
+control now tests the intended selection. The malformed-boundary failure led
+to the actual minimal reader fix above, not a weakened expectation. Earlier
+silent first CELLSTYLEMAP/TABLESTYLE launches remain unclassified.
+
+Final strict affected builds pass. Exact cohorts pass **86/86 normally in25.05s**
+and **86/86 under ASan in55.68s**, including three added block-owner CLI checks,
+zero failed/skipped/disabled tests, identical registered selection/order and
+exact executed-name sets. Normal runtime completed before ASan
+(`halt_on_error=1:detect_leaks=0`); independent compilation, not runtimes,
+overlapped. Final compiled-source hashes are unchanged. Library, owning adapter/
+resource and compatibility targets retain C++17 and `-Wall -Wextra -pedantic
+-Werror`; the existing broad fixture runner is not claimed globally warning-clean.
+These are affected cohorts, not the full suite, performance benchmarks, native
+consumer execution or formal ABI qualification. Fast owning selectors are used
+during edits; no repeated full suite per edit, external fixture admission or
+support promotion. The
+[receipt](docs/research/rpp5er-original-blocks-role-joins-and-sibling-boundary-refusal-2026-10-26.json)
+records exact controls/selection, source/log hashes, development findings and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Required primary source closure.** Extend immutable original body and
+   role accounting to ATTDEF/TABLE and remaining required primaries, without
+   coercing them into a supported type or silently excluding them. Reuse
+   ATTDEF's actual source/typed pair, `AttdefOrigin`, original parser state,
+   `attdefFieldsMatched` and `attdefProfile` owners; independently pin them and
+   qualify their common roles before any resource claim. TABLE must use its
+   actual original parent source, linked ATTRIB/SEQEND and retained dependencies,
+   not the adapter-internal INSERT projection. Keep unsupported bodies explicit.
+2. [ ] **Common dependency closure.** Resolve original STYLE/APPID/LAYER/object/
+   application/proxy/codepage and bounded nested INSERT references from actual
+   source field/reference roles to actual typed original targets, with ambiguity,
+   wrong-kind, missing, copied/cross-import, quota/allocation, tail/exception and
+   corrected-import controls. A resolved enclosing owner is not this closure.
+3. [ ] **Full B2b/B3/C live/output/consumer parity.** Check source/live/edited/
+   emitted fields/names/references, remapping and exact readback, atomic rollback/
+   retry/destination safety, IMAGE/document/native-bit/decimal/carrier/schema/
+   owner and memory/performance. Preserve LibreCAD/LibreCAD_3 2D and3D consumers
+   plus dwg2dxf/FreeCAD. No compile-only or same-stack proof may replace required
+   native platform or independent ACIS/ACDS semantic/kernel qualification.
+4. [ ] **Self-update/unblock and continue.** Identical current-source normal86/
+   ASan86, actual registered/executed membership and final hashes are verified;
+   retain development failures/limits/receipts, commit/report the slice, and
+   take the next safe local prerequisite. Commit no external drawing bytes or
+   derivatives; do not wait for external work while local work is available.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+**CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+This is not whole-document dependency/live/output or native geometry completion.
+The full goal remains active; no remote mutation is included.

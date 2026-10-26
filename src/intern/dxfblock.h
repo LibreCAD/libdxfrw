@@ -24,7 +24,7 @@ public:
     static bool endCode(int code) noexcept {
         return code==5||code==330||code==8||code==100||code==102||xdataCode(code)
             ||code==6||code==48||code==60||code==62||code==67||code==284||code==347
-            ||code==348||code==360||code==370||code==390||code==420||code==430||code==440;
+            ||code==348||code==360||code==370||code==390||code==410||code==420||code==430||code==440;
     }
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
         if(!end) {

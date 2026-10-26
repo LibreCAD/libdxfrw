@@ -41,6 +41,13 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
 public:
+    using BlockRoleState=dx_data::TableDxfSourceCapture::BlockRoleAudit::State;
+    struct BlockRoleReport {
+        BlockRoleState state{BlockRoleState::NotCaptured};
+        std::size_t scopes{0},records{0},published{0},qualifiedScopes{0},selected{0},matched{0},unsupported{0},endpoints{0},children{0},paper{0},definitions{0},spacePresent{0},layoutPresent{0},bytes{0},work{0};
+        bool physicalCensusComplete{false},selectedRolesMatched{false},wholeDocumentMatched{false},ownerTargetsResolved{false},nativeNamesQualified{false},outputEligible{false};
+    };
+    static BlockRoleReport blockRoleReport(const dx_data&) noexcept;
     enum class BlockOriginState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,PublicationsReady,OriginsBound,Unqualified};
     struct BlockOriginReport {
         BlockOriginState state{BlockOriginState::NotCaptured};std::size_t blocks{0},publications{0},bound{0},events{0},bytes{0},work{0};
@@ -1702,6 +1709,7 @@ private:
         const DRW_DxfBlockDeliverySource* delivery=nullptr,const DRW_DxfBlockDeliveryEvent* event=nullptr,
         std::uint64_t scope=0u,std::size_t index=0u) noexcept;
     void finishDxfBlockOriginAudits(dx_data&) noexcept;
+    void finishBlockRoleAudit(dx_data&) noexcept;
     void captureDxfBlockMembership(AttdefOriginBlock&) noexcept;
     void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;

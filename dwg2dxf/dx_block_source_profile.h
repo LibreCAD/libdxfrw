@@ -8,7 +8,7 @@
 // dependency/output and independent CAD semantics are separate evidence layers.
 namespace dx_block_source {
 using namespace dx_attdef_source;
-inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMatches) {
+inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMatches,bool allowLayoutName=false) {
     Audit out;
     const auto reject=[&](Reason why,std::size_t at){out.reason=why;out.rejectedGroup=at;out.spans.clear();return std::move(out);};
     if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
@@ -100,6 +100,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMat
                     switch(code) {
                     case 8:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LayerName;break;
                     case 6:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LineTypeName;break;
+                    case 410:if(!allowLayoutName||!name(v))return reject(Reason::UnknownField,i);role=Role::LayoutName;break;
                     case 347:role=Role::Material;break;
                     case 348:role=Role::FullVisualStyle;break;
                     case 390:role=Role::PlotStyle;break;

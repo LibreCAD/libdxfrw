@@ -44,6 +44,33 @@ This fixes converter evidence consistency for the tested 2D/3D profiles, not
 parser admission, useful empty geometry, native producer acceptance, enclosing
 layout/target qualification or output eligibility.
 
+The converter's separate `blockRoleReport` now enumerates the original physical
+BLOCKS namespace, including dropped/unpublished scopes and unsupported members.
+Its selected POINT/LINE/POLYLINE/INSERT/MINSERT source-body joins pin actual
+publication, endpoint, membership, body, context and reciprocal BLOCK_RECORD/
+LAYOUT graph owners. Ordinary definitions and inactive paper layouts are distinct
+from the empty model/active-paper definitions whose members belong in ENTITIES.
+`physicalCensusComplete` means boundary accounting, not supported bodies; missing
+publication, duplicate definitions, unsupported members or invalid boundaries
+cannot yield `RolesReady` or `selectedRolesMatched` through a smaller subset.
+
+Endpoint ownership and modeled fields are checked separately from member
+placement: an endpoint's default space flag does not relocate its contents.
+For members, absent67 retains the model-space default; absent410 stays absent,
+while an available original associated LAYOUT can resolve the logical target.
+Explicit conflicts remain refused. Wider native name collation is unqualified.
+The raw source role pass can classify endpoint410 independently of older partial
+binding gates; ENDBLK accepts this common metadata without inventing a modeled
+layout property. A BLOCK encountered before the current definition's ENDBLK now
+fails import rather than being absorbed as an unknown raw child, regardless of
+source-observer selection. Published block scopes remain balanced on failure.
+
+These are original selected source roles only. TABLE/ATTDEF/other bodies,
+common dependencies, editable/live state, complete emitted fields/remapping,
+native consumers and independent semantics remain separate. `wholeDocumentMatched`,
+`ownerTargetsResolved`, `nativeNamesQualified` and `outputEligible` stay false;
+the nine-family resource ledger and existing fail-closed export guards stay closed.
+
 The existing optional `addTableGeometry` callback receives a complete bounded
 DXF cache projection for AC1021/AC1024/AC1027/AC1032 in ASCII/binary form when
 the plain self/owner/subclass header and every count, cell and content field
