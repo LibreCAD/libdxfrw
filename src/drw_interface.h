@@ -859,6 +859,30 @@ struct DRW_DxfPhysicalRecordSpan {
   std::size_t ordinal{0},beginOffset{0},endOffset{0};
   bool ignoredComment{false};
 };
+/** Actual per-scalar OBJECTS observations. Fields include ignored comments;
+ * code0 markers are separate. No value, role or support semantics are inferred.
+ * Shared immutable owners retain the read-budget lease after the callback.
+ */
+struct DRW_DxfObjectPhysicalSource {
+  enum class Status : std::uint8_t {NotCaptured,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  struct Field {int code{0};DRW_DxfPhysicalRecordSpan span;};
+  Status status{Status::NotCaptured};DRW::Version version{DRW::UNKNOWNV};bool binary{false};
+  UTF8STRING name;DRW_DxfPhysicalRecordSpan marker,endMarker;
+  std::vector<Field> fields;std::size_t bytes{0},work{0};
+};
+struct DRW_DxfObjectPhysicalSourceLimits {
+  std::size_t fields{4000000u},bytes{64u*1024u*1024u},work{128u*1024u*1024u};
+};
+/** Optional independent limit policy; collection uses the existing rendering/
+ * dictionary source opt-ins. Adds no DRW_Interface or existing facet slot.
+ * Own limits/allocation leave ordinary reads intact; shared read limits still
+ * bound aggregate retained owners. Called once per selected object.
+ */
+class DRW_DxfObjectPhysicalSourcePolicy {
+public:
+  virtual ~DRW_DxfObjectPhysicalSourcePolicy()=default;
+  virtual DRW_DxfObjectPhysicalSourceLimits dxfObjectPhysicalSourceLimits() const noexcept {return {};}
+};
 /** Whole-read physical identity evidence, not object/body/target qualification.
  * Candidates preserve code 5/105 even in opaque scopes. HEADER/CLASSES are
  * framing/metadata, not object namespaces. Admission records the real parser's

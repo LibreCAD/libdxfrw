@@ -5,6 +5,7 @@
 #include "intern/dxfviewucs.h"
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfentitiesdelivery.h"
+#include "intern/dxfobjectphysicalsource.h"
 #include "test_scratch.h"
 
 #include <algorithm>
@@ -1660,6 +1661,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "viewport_source_controls.h"
 #include "rendering_input_failure_controls.h"
 #include "rendering_source_controls.h"
+#include "object_physical_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3153,6 +3155,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--object-physical") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-object-physical-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=objectPhysicalControls::test(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--rendering-sources") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

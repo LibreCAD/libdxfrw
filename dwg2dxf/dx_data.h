@@ -1367,6 +1367,8 @@ private:
             std::shared_ptr<const DRW_TableEntry> model;
             std::shared_ptr<const DRW_RawDxfObject> raw;
             std::shared_ptr<const EntitiesReadContext> context;
+            std::shared_ptr<const DRW_DxfObjectPhysicalSource> physical,physicalOwner;
+            DRW_DxfObjectPhysicalSource::Status physicalStatus{DRW_DxfObjectPhysicalSource::Status::NotCaptured};
             bool paired{false};
         };
         struct StructuralPending {
@@ -1550,6 +1552,8 @@ private:
             std::shared_ptr<const DRW_TableEntry> typedModel,rawModel;
             std::shared_ptr<const DRW_RawDxfObject> typedRaw,rawRaw;
             std::shared_ptr<const EntitiesReadContext> context;
+            std::shared_ptr<const DRW_DxfObjectPhysicalSource> physical,physicalOwner;
+            DRW_DxfObjectPhysicalSource::Status physicalStatus{DRW_DxfObjectPhysicalSource::Status::NotCaptured};
             bool actualPair{false},rawStable{false},stateStable{false};
         };
         struct RenderingPending {RenderingInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};};
@@ -1582,6 +1586,7 @@ private:
             std::shared_ptr<const RenderingInput> input;
             dx_visualstyle_source::Audit profile;
             std::vector<dx_tableResourceReference> references;
+            std::vector<std::size_t> physicalFields;
             std::size_t index{0},physical{DRW_DxfIdentitySource::None},nameGroup{DRW_DxfIdentitySource::None},targetGroup{DRW_DxfIdentitySource::None};
             bool bodyMatched{false},originBound{false},namedTarget{false},wrongOwner{false};
         };
@@ -1590,6 +1595,7 @@ private:
             State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::shared_ptr<const RenderingInputAudit> inputs;
             std::shared_ptr<const StructuralAudit> root,dictionary;
+            std::vector<std::size_t> rootFields,dictionaryFields;
             std::size_t rootKeyGroup{DRW_DxfIdentitySource::None},rootTargetGroup{DRW_DxfIdentitySource::None};
             std::map<std::uint32_t,std::shared_ptr<const RenderingSourceRecord>> records;
             std::vector<std::shared_ptr<const RenderingSourceRecord>> owners;

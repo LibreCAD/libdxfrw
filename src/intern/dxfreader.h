@@ -387,12 +387,14 @@ class dxfReader {
     DxfStructuralPublication m_structuralPublication{};
     DxfResourcePublication m_resourcePublication{};
     const void* m_renderingPublication{nullptr};
+    const void* m_objectPhysicalPublication{nullptr};
     DxfBlockPublication m_blockPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     DxfTablePublication& tablePublication() noexcept{return m_tablePublication;}
     DxfResourcePublication& resourcePublication() noexcept{return m_resourcePublication;}
     const void*& renderingPublication() noexcept{return m_renderingPublication;}
+    const void*& objectPhysicalPublication() noexcept{return m_objectPhysicalPublication;}
     enum TYPE {
         STRING,
         INT32,

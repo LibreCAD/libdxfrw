@@ -1,11 +1,26 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Included once after immutable rendering inputs and original dictionary helpers.
 namespace {
-bool renderingSourceEnvelope(const DRW_RawDxfObject& raw,const DRW_DxfIdentitySource::Record& physical) noexcept {
-    // Raw callbacks omit ignored comments. Without per-field observations,
-    // only a complete no-gap envelope establishes raw-index correspondence.
-    return physical.marker.ordinal&&physical.endMarker.ordinal>physical.marker.ordinal
-        &&physical.endMarker.ordinal-physical.marker.ordinal-1u==raw.groups.size();
+bool renderingSourceFields(const DRW_RawDxfObject& raw,const DRW_DxfIdentitySource::Record& physical,
+    const std::shared_ptr<const DRW_DxfObjectPhysicalSource>& source,DRW_DxfObjectPhysicalSource::Status status,
+    std::vector<std::size_t>& fields) {
+    using S=DRW_DxfObjectPhysicalSource::Status;
+    const auto same=[](const auto& a,const auto& b){return std::tie(a.ordinal,a.beginOffset,a.endOffset,a.ignoredComment)
+        ==std::tie(b.ordinal,b.beginOffset,b.endOffset,b.ignoredComment);};
+    if(status!=S::Complete||!source||source->status!=status||source->version!=raw.m_version||source->binary==raw.hasRawValues
+        ||source->name!=raw.name||!same(source->marker,physical.marker)||!same(source->endMarker,physical.endMarker)
+        ||!physical.marker.ordinal||physical.endMarker.ordinal<=physical.marker.ordinal
+        ||physical.endMarker.ordinal-physical.marker.ordinal-1u!=source->fields.size())return false;
+    fields.clear();fields.reserve(raw.groups.size());auto ordinal=physical.marker.ordinal+1u,offset=physical.marker.endOffset;
+    for(std::size_t index=0u;index<source->fields.size();++index){const auto& field=source->fields[index];const auto& span=field.span;
+        if(field.code<=0||span.ordinal!=ordinal++||span.beginOffset<offset||span.endOffset<=span.beginOffset
+            ||span.endOffset>physical.endMarker.beginOffset)return false;
+        offset=span.endOffset;
+        if(span.ignoredComment){if(field.code!=999)return false;continue;}
+        if(fields.size()>=raw.groups.size()||field.code!=raw.groups[fields.size()].code())return false;
+        fields.push_back(index);
+    }
+    return fields.size()==raw.groups.size();
 }
 template<class Context>bool renderingSourceName(std::string_view text,const Context& context,std::string& decoded) {
     if(text.empty()||text.find('\0')!=std::string_view::npos)return false;
@@ -27,6 +42,7 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
     using A=dx_data::TableDxfSourceCapture::RenderingSourceAudit;using S=A::State;
     using Record=dx_data::TableDxfSourceCapture::RenderingSourceRecord;using Role=dx_tableResourceRole;
     auto& s=data.m_tableDxfSource;if(s.renderingSourceFailed||s.renderingSourceLimited)return;
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
     const auto limit=[&](){s.renderingSourceLimited=true;};
     try {
         std::size_t bytes=sizeof(A),work=sizeof(A),groups=0u;
@@ -35,7 +51,12 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
             std::size_t payload=0u;
             if(!addAssociativeRetainedBytes(item.second->typedRaw->groups.size(),groups)
                 ||!estimateRawDxfObjectBytes(*item.second->typedRaw,payload)
-                ||!addAssociativeSlotBytes(payload,8u,bytes)||!addAssociativeSlotBytes(payload,16u,work)){limit();return;}}
+                ||!addAssociativeSlotBytes(payload,8u,bytes)||!addAssociativeSlotBytes(payload,16u,work)
+                ||(item.second->physical&&(!addAssociativeRetainedBytes(item.second->physical->bytes,bytes)
+                    ||!addAssociativeRetainedBytes(item.second->physical->work,work)))){limit();return;}}
+        if(!s.renderingInputs.empty())for(const auto& item:s.structuralAudits)if(item.second&&item.second->input&&item.second->input->physical)
+            if(!addAssociativeRetainedBytes(item.second->input->physical->bytes,bytes)
+                ||!addAssociativeRetainedBytes(item.second->input->physical->work,work)){limit();return;}
         if(!addAssociativeSlotBytes(s.renderingInputs.size(),sizeof(Record)+128u,bytes)
             ||!addAssociativeSlotBytes(groups,sizeof(dx_visualstyle_source::Span)+sizeof(dx_tableResourceReference)+128u,bytes)
             ||(!s.renderingInputs.empty()&&(!addAssociativeSlotBytes(s.structuralAudits.size(),128u,bytes)
@@ -59,10 +80,8 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
                 &&!in.original.originalPendingXdata&&!in.original.originalCoordinateMask&&original.originBound){
                 row->profile=dx_visualstyle_source::audit(*in.typedRaw);
                 const auto& physical=audit->inputs->identity->source->records.at(row->physical);
-                // The existing raw callback omits ignored comments. Without
-                // per-field physical observations, a gap cannot be assigned
-                // to a raw index. Do not invent ordinal/offset correspondence.
-                if(!renderingSourceEnvelope(*in.typedRaw,physical)){
+                if(!same(in.physical,in.physicalOwner)
+                    ||!renderingSourceFields(*in.typedRaw,physical,in.physical,in.physicalStatus,row->physicalFields)){
                     row->profile.reason=dx_visualstyle_source::Reason::PhysicalEnvelope;row->profile.rejected=in.typedRaw->groups.size();row->profile.spans.clear();}
                 const auto* typed=dynamic_cast<const DRW_VisualStyle*>(in.typedModel.get());const auto* raw=dynamic_cast<const DRW_VisualStyle*>(in.rawModel.get());
                 row->bodyMatched=typed&&raw&&in.context&&dx_visualstyle_source::matches(row->profile,*in.typedRaw,*typed,in.typedVisualProperties,*in.context)
@@ -81,7 +100,9 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
                 &&row->input->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary){audit->root=row;++roots;}}
         if(roots==1u){const auto& root=*audit->root->input;std::vector<dx_tableResourceReference> references;unsigned names=0u;std::uint32_t dictionary=0u;
             bool known=root.raw&&root.context&&root.raw->parentHandle==0u
-                &&renderingSourceEnvelope(*root.raw,audit->inputs->identity->source->records.at(audit->root->physical))
+                &&same(root.physical,root.physicalOwner)
+                &&renderingSourceFields(*root.raw,audit->inputs->identity->source->records.at(audit->root->physical),
+                    root.physical,root.physicalStatus,audit->rootFields)
                 &&spineSourceReferences(*root.raw,true,references);
             if(known)for(const auto& ref:references){if(ref.kind==Role::Unknown){known=false;break;}
                 if(ref.kind!=Role::DictionarySoftOwner&&ref.kind!=Role::DictionaryHardOwner)continue;
@@ -93,7 +114,9 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
                 if(row&&row->bodyMatched&&row->stateComplete&&row->originBound&&row->input&&row->input->paired&&row->input->raw&&row->input->context
                     &&asciiIdentifierEquals(row->input->raw->name,"DICTIONARY")){
                     audit->dictionary=row;references.clear();
-                    known=renderingSourceEnvelope(*row->input->raw,audit->inputs->identity->source->records.at(row->physical))
+                    known=same(row->input->physical,row->input->physicalOwner)
+                        &&renderingSourceFields(*row->input->raw,audit->inputs->identity->source->records.at(row->physical),
+                            row->input->physical,row->input->physicalStatus,audit->dictionaryFields)
                         &&spineSourceReferences(*row->input->raw,true,references);
                     std::map<std::uint32_t,std::size_t> counts;std::set<std::string> keys;
                     if(known)for(const auto& ref:references){if(ref.kind==Role::Unknown){known=false;break;}
@@ -135,13 +158,14 @@ dx_iface::RenderingSourceReport dx_iface::renderingSourceReport(const dx_data& d
     const auto structural=structuralSourceReport(data);
     if(structural.state==StructuralSourceState::ContextMismatch){report.state=S::ContextMismatch;return report;}
     for(const auto* pointer:{&audit->root,&audit->dictionary})if(*pointer){const auto& row=**pointer;
-        if(!row.input||!row.input->raw){report.state=S::ContextMismatch;return report;}
+        if(!row.input||!row.input->raw||!same(row.input->physical,row.input->physicalOwner)){report.state=S::ContextMismatch;return report;}
         const auto found=s.structuralAudits.find(row.input->raw->handle);
         if(found==s.structuralAudits.end()||!same(*pointer,found->second)){report.state=S::ContextMismatch;return report;}}
     if(structural.state==StructuralSourceState::CaptureFailed){report.state=S::SourceNotReady;return report;}
     for(const auto& item:audit->records){const auto& row=item.second;const auto found=s.renderingInputs.find(item.first);
         if(!row||found==s.renderingInputs.end()||!same(row->input,found->second)||row->index>=audit->owners.size()||!same(row,audit->owners[row->index])){
             report.state=S::ContextMismatch;return report;}
+        if(!same(row->input->physical,row->input->physicalOwner)){report.state=S::ContextMismatch;return report;}
         const auto source=audit->inputs->rows.find(item.first);
         if(source==audit->inputs->rows.end()||!same(source->second.input,row->input)||source->second.physical!=row->physical||source->second.originBound!=row->originBound){report.state=S::ContextMismatch;return report;}
         ++report.records;if(row->bodyMatched){++report.profiles;report.fields+=row->profile.spans.size();report.references+=row->references.size();}

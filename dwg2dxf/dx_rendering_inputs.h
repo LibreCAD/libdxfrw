@@ -66,6 +66,10 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
         ||view.phase!=(model?RenderingView::Phase::Typed:RenderingView::Phase::Raw)
         ||(model&&model!=view.model)||(raw&&raw!=view.source)||!renderingName(view.source->name)) {fail();return;}
     const bool visual=view.kind==RenderingView::Kind::VisualStyle;
+    dxfRW::DxfObjectPhysicalSourceView physical;
+    if(!s.entitiesReadInput->getDxfObjectPhysicalSourceView(physical)||physical.model!=view.model||physical.source!=view.source
+        ||physical.kind!=(visual?decltype(physical.kind)::VisualStyle:decltype(physical.kind)::RenderSettings)
+        ||physical.phase!=(model?decltype(physical.phase)::Typed:decltype(physical.phase)::Raw)){fail();return;}
     dxfRW::DxfVisualStylePropertiesView properties;
     if(visual&&(!s.entitiesReadInput->getDxfVisualStylePropertiesView(properties)
         ||properties.model!=view.model||properties.source!=view.source||properties.phase!=view.phase||!properties.properties)){fail();return;}
@@ -84,6 +88,7 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
                     :estimateRenderSettingsTypedBytes(static_cast<const DRW_RenderSettings&>(*model),modelBytes,values))
                 ||!addAssociativeSlotBytes(rawBytes,4u,bytes)||!addAssociativeSlotBytes(modelBytes,4u,bytes)
                 ||!addAssociativeSlotBytes(view.source->groups.size(),128u,bytes)
+                ||(physical.physical&&!addAssociativeRetainedBytes(physical.physical->bytes,bytes))
                 ||!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
                 ||s.renderingBytes>s.maxRenderingBytes||bytes>s.maxRenderingBytes-s.renderingBytes
                 ||s.renderingWork>s.maxRenderingWork||bytes>s.maxRenderingWork-s.renderingWork){fail();return;}
@@ -94,6 +99,7 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
             context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
             Pending pending;auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
             in.original=ownedRenderingState(view);in.context=std::move(context);in.typedModel=renderingSnapshot(view);
+            in.physical=physical.physical;in.physicalOwner=in.physical;in.physicalStatus=physical.status;
             in.visualPropertiesCaptured=visual;if(visual)in.typedVisualProperties=*properties.properties;
             in.typedRaw=std::make_shared<const DRW_RawDxfObject>(*view.source);in.stateStable=renderingModelState(view);
             pending.model=model;pending.raw=view.source;s.renderingPending.emplace(id,std::move(pending));return;
@@ -101,6 +107,8 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
         const auto found=s.renderingPending.find(id);if(found==s.renderingPending.end()){fail();return;}
         auto& pending=found->second;auto& in=pending.input;
         if(pending.model!=view.model||pending.raw!=raw||!renderingStatesEqual(in.original,view)
+            ||in.physicalStatus!=physical.status||in.physical.get()!=physical.physical.get()
+            ||in.physical.owner_before(physical.physical)||physical.physical.owner_before(in.physical)
             ||!in.context||!renderingContextEqual(*in.context,live)){fail();return;}
         // Raw-phase callback mutations can be larger than the original typed
         // snapshot. Admit their actual owned size before making the second copy.

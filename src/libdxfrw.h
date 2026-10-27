@@ -1120,6 +1120,21 @@ public:
      * false clears the view elsewhere. Existing model/facade/view layouts and
      * virtuals are unchanged. This is not full extension/source qualification. */
     bool getDxfVisualStylePropertiesView(DxfVisualStylePropertiesView&) const noexcept;
+    struct DxfObjectPhysicalSourceView {
+        enum class Kind : std::uint8_t {None,VisualStyle,RenderSettings,RootDictionary,Dictionary};
+        enum class Phase : std::uint8_t {None,Typed,Raw,Source};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        DRW_DxfObjectPhysicalSource::Status status{DRW_DxfObjectPhysicalSource::Status::NotCaptured};
+        std::shared_ptr<const DRW_DxfObjectPhysicalSource> physical;
+    };
+    /** Actual reader spans for opted-in rendering and OBJECTS dictionary
+     * publications, including ignored comments. Borrowed model/source pointers
+     * expire on return/throw; the immutable physical owner may be retained.
+     * Allocation/limits make evidence unavailable without changing callbacks.
+     * False clears the view outside the actual publication. No existing
+     * facade/model/view member, interface slot or callback is added. */
+    bool getDxfObjectPhysicalSourceView(DxfObjectPhysicalSourceView&) const noexcept;
     struct DxfViewUcsSourceView {
         enum class Kind : std::uint8_t {None,View,Ucs};
         enum class Phase : std::uint8_t {None=0,Typed=1,Source=3};

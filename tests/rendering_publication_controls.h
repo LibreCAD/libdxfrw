@@ -41,18 +41,26 @@ struct Probe:dx_iface {
     dx_data direct;const dxfRW* input=nullptr;bool selected=true,good=true,throwTyped=false,throwRaw=false;
     bool mutate=false;unsigned fault=0u,typed=0u,raw=0u;
     std::uintptr_t typedModel=0u,typedRaw=0u;V original;std::string order;
+    std::shared_ptr<const DRW_DxfObjectPhysicalSource> physical;
     Probe(){cData=&direct;currentBlock=direct.mBlock;}
     bool wantsDxfResourceSource()const override{return selected;}
     const dxfRW* reader()const{return input?input:cData?A::renderingReader(*cData):nullptr;}
     void observe(const DRW_TableEntry* model,const DRW_RawDxfObject* carrier) {
         const auto* read=reader();V view;
         const bool present=read&&read->getDxfRenderingSourceView(view);
+        dxfRW::DxfObjectPhysicalSourceView observed;
+        if((read&&read->getDxfObjectPhysicalSourceView(observed))!=present)good=false;
         if(present!=selected){good=false;return;}
         if(!present){if(view.model||view.source||view.kind!=V::Kind::None)good=false;return;}
         dxfRW::DxfResourceSourceView legacy;dxfRW::DxfPlotStyleSourceView plot;dxfRW::DxfViewUcsSourceView viewUcs;
         if(read->getDxfResourceSourceView(legacy)||read->getDxfPlotStyleSourceView(plot)||read->getDxfViewUcsSourceView(viewUcs))good=false;
         if(!view.source||!view.model||view.phase!=(model?V::Phase::Typed:V::Phase::Raw)
             ||(model&&view.model!=model)||(carrier&&view.source!=carrier))good=false;
+        if(observed.model!=view.model||observed.source!=view.source||!observed.physical
+            ||observed.status!=DRW_DxfObjectPhysicalSource::Status::Complete
+            ||observed.phase!=(model?dxfRW::DxfObjectPhysicalSourceView::Phase::Typed:dxfRW::DxfObjectPhysicalSourceView::Phase::Raw))good=false;
+        if(model)physical=observed.physical;
+        else if(physical.get()!=observed.physical.get()||physical.owner_before(observed.physical)||observed.physical.owner_before(physical))good=false;
         if(model){typedModel=reinterpret_cast<std::uintptr_t>(view.model);typedRaw=reinterpret_cast<std::uintptr_t>(view.source);
             original=view;original.model=nullptr;original.source=nullptr;original.phase=V::Phase::None;}
         else if(typedModel!=reinterpret_cast<std::uintptr_t>(view.model)||typedRaw!=reinterpret_cast<std::uintptr_t>(view.source)||!stateEqual(original,view))good=false;
@@ -120,6 +128,9 @@ void run(TestContext& test) {
         if(!good){std::cerr<<"render publication "<<version<<'/'<<encoding<<'/'<<kind<<'/'<<form<<'/'<<selected<<'\n';continue;}
         test.expect(!reader.getDxfRenderingSourceView(expired)&&!expired.model&&!expired.source&&expired.kind==V::Kind::None,
             "rendering borrowed view expires after the pair");++profiles;
+        dxfRW::DxfObjectPhysicalSourceView physicalExpired;
+        test.expect(!reader.getDxfObjectPhysicalSourceView(physicalExpired)&&!physicalExpired.model&&!physicalExpired.source&&!physicalExpired.physical,
+            "physical view expires after each rendering pair while an owned snapshot survives");
     }
     for(unsigned kind:{0u,1u,2u,3u,7u})for(bool binary:{false,true})for(unsigned form:{0u,2u}) {
         const auto text=renderingProjectionControls::wire(record(kind,form),binary,"AC1027");save(text);
@@ -187,6 +198,9 @@ void run(TestContext& test) {
         std::string memory=text;bool caught=false;try{(void)reader.readAscii(&throwing,false,memory);}catch(const std::runtime_error&){caught=true;}
         V expired;test.expect(caught&&!reader.getDxfRenderingSourceView(expired)&&!expired.model&&!expired.source,
             "rendering view expires after typed/raw callback throw");
+        dxfRW::DxfObjectPhysicalSourceView physicalExpired;
+        test.expect(!reader.getDxfObjectPhysicalSourceView(physicalExpired)&&!physicalExpired.physical&&!physicalExpired.model&&!physicalExpired.source,
+            "physical view also expires after rendering callback throw");
         Probe fixed;fixed.input=&reader;std::string corrected=text;test.expect(reader.readAscii(&fixed,false,corrected)&&fixed.good&&expected(fixed.original,7u,2u),
             "same reader accepts corrected rendering callbacks after throw");++retries;
         dx_data failed;Probe adapter;adapter.throwTyped=!rawThrow;adapter.throwRaw=rawThrow;bool adapterThrew=false;

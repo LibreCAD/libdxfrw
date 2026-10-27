@@ -30,7 +30,7 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
     using A=DxIfaceTableSourceTestAccess;using S=dx_iface::RenderingSourceState;using R=dx_iface::DependencyReason;
     using Role=dx_tableResourceRole;using Field=dx_visualstyle_source::Field;
     const auto path=dir/"rendering-sources.dxf";
-    std::size_t profiles=0u,fields=0u,dictionaryFields=0u,references=0u,targets=0u,refusals=0u,retries=0u,quotas=0u,bindings=0u,contexts=0u,immutable=0u,reached=0u,unreached=0u,finalizations=0u,prerequisites=0u,texts=0u;
+    std::size_t profiles=0u,fields=0u,dictionaryFields=0u,references=0u,targets=0u,refusals=0u,retries=0u,quotas=0u,bindings=0u,contexts=0u,immutable=0u,reached=0u,unreached=0u,finalizations=0u,prerequisites=0u,texts=0u,comments=0u;
     const auto fail=[&](int line){std::cerr<<"Rendering source check line="<<line<<" profiles="<<profiles<<" fields="<<fields<<" refusals="<<refusals<<" bindings="<<bindings<<'\n';return false;};
     const auto ready=[](const dx_data& data){const auto source=dx_iface::renderingSourceReport(data);const auto dependency=dx_iface::dependencyReport(data);
         return source.originalSourcesMatched&&source.records==1u&&source.profiles==1u&&source.namedTargets==1u&&source.origins==1u
@@ -121,14 +121,10 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
         if(kind==14u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(slot(bad,3,"ACAD_VISUALSTYLE")),{{999,"authored root gap"}});
         if(kind==15u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(slot(bad,3,"AuthoredStyle")),{{999,"authored dictionary gap"}});
         dx_iface reader;dx_data data;if(!writeBlockBinding(path,bad,encoding)||!reader.fileImport(path.string(),&data,false))return fail(__LINE__);
-        if(kind==0u){if(!ready(data))return fail(__LINE__);}else{if(ready(data))return fail(__LINE__);++refusals;}
+        if(kind==0u||kind>=13u){if(!ready(data))return fail(__LINE__);if(kind>=13u)++comments;}else{if(ready(data))return fail(__LINE__);++refusals;}
         if(kind==12u){bool found=false;if(A::dependencies(data))for(const auto& row:A::dependencies(data)->rows)
             if(row.source==0xA0u&&row.role==Role::LayoutShadePlot&&row.reason==R::WrongKind)found=true;
             if(!found)return fail(__LINE__);}
-        if(kind==13u){const auto& record=*A::renderingSources(data)->records.at(0xEA01u);
-            if(!dx_iface::renderingModelReport(data).modeledStateMatched||record.profile.reason!=dx_visualstyle_source::Reason::PhysicalEnvelope)return fail(__LINE__);}
-        if(kind>=14u){const auto source=dx_iface::renderingSourceReport(data);
-            if(!dx_iface::renderingModelReport(data).modeledStateMatched||!source.originalSourcesMatched||source.namedTargets)return fail(__LINE__);}
         dx_data fixed;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&fixed,false)||!ready(fixed))return fail(__LINE__);++retries;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding){dx_iface reader;dx_data data;
@@ -168,6 +164,6 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
     }
     std::cout<<"Rendering source profiles="<<profiles<<"; independent physical fields="<<fields<<"; dictionary key/target fields="<<dictionaryFields<<"; reference roles="<<references<<"; rooted target uses="<<targets
         <<"; primary binder refusals="<<bindings<<"; source/owner/dependency refusals="<<refusals<<"; corrected retries="<<retries<<"; exact/one-under limits="<<quotas
-        <<"; context refusals="<<contexts<<"; prerequisite refusals="<<prerequisites<<"; literal text controls="<<texts<<"; immutable queries="<<immutable<<"; reached allocations="<<reached<<"; unreached offsets="<<unreached<<"; corrected finalizations="<<finalizations<<'\n';
-    return profiles==48u&&fields==2496u&&dictionaryFields==192u&&references==profiles*7u&&targets==profiles*5u&&bindings==profiles*34u&&refusals==45u&&retries==69u&&quotas==6u&&contexts==9u&&prerequisites==6u&&texts==3u&&immutable==50u&&reached&&unreached==4u&&finalizations==reached+unreached;
+        <<"; context refusals="<<contexts<<"; prerequisite refusals="<<prerequisites<<"; literal text controls="<<texts<<"; commented source matches="<<comments<<"; immutable queries="<<immutable<<"; reached allocations="<<reached<<"; unreached offsets="<<unreached<<"; corrected finalizations="<<finalizations<<'\n';
+    return profiles==48u&&fields==2496u&&dictionaryFields==192u&&references==profiles*7u&&targets==profiles*5u&&bindings==profiles*34u&&refusals==36u&&retries==69u&&quotas==6u&&contexts==9u&&prerequisites==6u&&texts==3u&&comments==9u&&immutable==50u&&reached&&unreached==4u&&finalizations==reached+unreached;
 }

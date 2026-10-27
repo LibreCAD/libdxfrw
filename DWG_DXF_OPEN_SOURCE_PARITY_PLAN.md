@@ -133699,3 +133699,157 @@ extension/recursive/live/emitted/whole-document/native qualification remains
 incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/
 Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. The full objective remains active; no remote mutation is included.
+
+
+## Implementation progress — RPP-5ft actual OBJECTS fields and commented source qualification (2026-10-27)
+
+Rendering and OBJECTS dictionaries now retain actual per-field reader positions,
+including ignored comments. Canonical primary VisualStyle and named-root source
+proof no longer depends on unobserved raw-index/ordinal arithmetic. This closes
+RPP-5fs's no-gap prerequisite while keeping full producer/extension/native/live/
+output qualification separate and open.
+
+- [x] Add separate `DRW_DxfObjectPhysicalSource` and
+  `getDxfObjectPhysicalSourceView`. Observe the actual marker, next code0, every
+  scalar code/ordinal/byte span and ignored-comment flag. Reuse the actual
+  current-record span for the initial marker; observe subsequent fields and end
+  boundary before value extraction.
+  Metadata contains no scalar-value/role/semantic certificate. Complete describes
+  one bounded physical record; later import failure still invalidates import
+  qualification. Existing facade/model/source-view layouts and callback slots
+  remain unchanged; no DRW_Interface or existing-facet virtual is added.
+- [x] Reuse the existing per-object rendering/dictionary opt-in once, now latched
+  before body consumption. Chain/restore the generic record observer and leave
+  the independent identity observer intact. Metadata is sealed before existing
+  typed/raw/source callbacks. Borrowed model/raw pointers expire on return/throw;
+  shared immutable physical owners retain their logical byte-budget lease after
+  callbacks and reader destruction. Repeated getters allocate nothing.
+- [x] Add an independent optional limits policy with defaults of 4,000,000 fields,
+  64 MiB logical bytes and 128 MiB work per object. Admit own bounds before owned
+  collection and preserve explicit quota/allocation/unavailable states. Own
+  failures do not reject ordinary typed import; shared read limits still bound
+  aggregate retained owners. Opt-out attaches no observer or physical owner.
+- [x] Pin actual physical owners/status across both rendering phases and actual
+  dictionary publications. Charge retained metadata bytes and mapping workspace,
+  including ignored records. Bind full record boundaries to whole-read identity
+  evidence, then validate every observed ordinal/code/offset and the exact kept
+  raw-code sequence. Skip only observed ignored999 records. Store explicit maps
+  for the style, NOD and style dictionary; reject missing/incomplete/mismatched
+  evidence rather than guessing positions.
+- [x] Qualify the previously refused commented style/root/member shapes when
+  actual observations establish their positions. Keep active original reference,
+  owner/membership checks and parser-known alias/preset distinctions from RPP-5fs.
+  Ordinary reads, existing primary values/presence and retained modeled replay
+  remain available when independent metadata qualification is unavailable.
+
+Controls, review and self-unblocking:
+
+- [x] 168 runtime-authored profiles span four declared DXF versions, LF/CRLF/
+  binary, ENTITIES/BLOCKS consumers and seven comment placements: none, primary,
+  reactor, XDATA, NOD/member keys and dense comments between every selected
+  field. An independent file walker verifies 13,176 observed scalars, 11,424
+  mapped raw groups, 1,752 ignored comments and 672 named key/target fields.
+  Metadata stays usable after fileImport's reader is destroyed.
+- [x] Nine exact/one-under metadata field/byte/work controls preserve typed import
+  and retained modeled state while refusing unqualified source/dependencies.
+  Fifty-four wrong ordinal/offset/code/comment/boundary/encoding controls cover
+  the style and both dictionaries, followed by corrected qualification. Six
+  public opt-in profiles and 207 allocation-free getters/queries check actual
+  phases, owner reuse, opt-out and view expiration. Twenty-one typed/raw/source
+  callback throws accept corrected reads using the same reader; 84 corrected
+  imports cover quotas, mapping faults and throws.
+- [x] The actual collector constructor and observed-scalar dispatch reach eleven
+  allocation failures, two consecutive unreached controls and thirteen corrected
+  collectors. The real reader and generic/identity parent observers run outside
+  injection. Both observer chains restore correctly; retained owners preserve
+  and release their exact logical lease after collector destruction. The finite
+  schedule is bounded by 64 offsets and is not exhaustive allocation/RSS proof.
+- [x] Existing 576 rendering publication profiles now also inspect the actual
+  physical owner/phase for all eight rendering forms and view expiration after
+  return/throw. Their printed counters stay unchanged. The original 48 canonical
+  source profiles retain field/reference/binder checks; nine former comment
+  refusals now match, leaving 36 source/owner/dependency refusals. Three new maps
+  raise reached finalizer failures from 66 to 72, with four unreached controls
+  and 76 corrected finalizations. Record that deliberate counter change.
+- Strict compilation initially caught misleading indentation and an ignored
+  nodiscard test result. Correct both with `-Werror` preserved. Initial evidence
+  setup assumed new CTest registration was appended after all consumer tests;
+  it is inserted before trailing consumers. Use actual registration order and
+  independently preserve the previous 102 names' relative order. The setup
+  assertion stopped before any build started; retain the diagnostic/correction.
+
+- Archive inspection found macOS AppleDouble metadata. Preserve the original
+  archives, disable that metadata in the isolated distribution environment and
+  verify every non-metadata entry remains. Clean archive inclusion is qualified;
+  full legacy source inventory/build and production release policy remain open.
+
+Final verification:
+
+- [x] Both 11-target incremental build checks pass with `-Werror` preserved:
+  normal 31.17s and qualified ASan 377.86s.
+  Explicit fixture syntax validation passes `-Wall -Wextra -pedantic -Werror`;
+  LibreCAD_3's compile-only guard builds. This is not a native application run.
+- [x] Final affected cohorts pass **103/103** normally in 119.99s
+  and **103/103** under qualified Debug/`-O1`/ASan in 55.71s at j2.
+  Exact registration order/settings and executed sets agree; all 24 owning
+  counter lines match. Twenty-two previous lines stay unchanged; the source
+  line changes intentionally as above. Existing focused UCS/VIEWPORT controls
+  pass in both configurations. No failures/skips/disabled tests.
+- [x] The 427-file compiled-source/build-metadata manifest remains frozen through
+  both final runtimes. Builds and clean packaging finish before normal then ASan
+  tests. Original Debug/O0 ASan is unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both 144-member archives
+  contain exact production/public header hashes with AppleDouble metadata
+  absent. CMake test helper inclusion and full source-release inventory/build
+  remain unqualified. Full suite, formal ABI/native application and controlled
+  memory/performance qualification remain open.
+
+The [receipt](docs/research/rpp5ft-objects-physical-fields-and-commented-sources-2026-10-27.json)
+pins source/control/configuration evidence, the intentional source-counter change,
+retained development diagnostics, archive limits and the full remaining scope.
+
+Next implementation-ready sequence (retain the full original objective):
+
+1. [ ] **Complete rendering profiles and actual preset roots.** Reuse captured
+   scalar positions, immutable actual models/presence and owned source context.
+   Independently inventory producer/version-qualified RenderSettings shapes and
+   real NOD/named-dictionary membership before qualifying preset dependencies.
+   Keep VisualStyle optional/absent/duplicate/alias/extension interpretation
+   witness-driven; preserve raw/default/presence distinctions and native color/
+   body boundaries. Use exact field/reference mutations, quotas and finite
+   failure/retry controls before broadening original-source qualification.
+2. [ ] **Finish remaining producers and document ownership.** Complete background/
+   live-section/sun, VIEWPORT clipping, layer overrides 335/343/344/91 and qualified
+   aliases. Retain entity/material/reactor/IMAGE/document/control/owner, omitted
+   dictionary flags, names/application/XDATA, HEADER CEPSNID/CEPSNTYPE and native
+   names/collation work. Reuse actual dictionary metadata for other source
+   families where physical correspondence is required. Complete recursive/
+   coupled and whole-document ownership with actual semantic evidence.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields/names/references/modes and emitted bytes;
+   verify handle remapping, readback/refusal/rollback/retry/destination safety.
+   Finish Values, multiple-content attributes, linked-data ownership and qualified
+   formats/units/borders. Keep date epoch, native point counts and General
+   semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and measured
+   memory/performance obligations. Resolve the recorded 42-file legacy archive
+   gap, complete CMake/Autotools source/header/test inventory and qualify a real
+   source-release build. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior;
+   qualify native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence separately. External advisories cannot promote support claims.
+5. [ ] **Keep implementation efficient and self-updating.** Run fast owning
+   checks and reuse built targets. Broaden for shared parser/API/registry/build
+   changes or failures; finish builds/packaging against frozen inputs before
+   normal then ASan runtimes. Preserve failure/cap evidence, self-unblock, and
+   update/commit/report each verified slice. Commit no external drawing payload,
+   conversion or derivative.
+
+Resource families remain nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Commented selected canonical primary sources and rooted
+original target dependencies can match through actual observations. Full
+rendering/extension/recursive/live/emitted/whole-document/native qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active; no remote mutation included.

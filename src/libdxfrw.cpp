@@ -54,6 +54,7 @@
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfidentitysource.h"
+#include "intern/dxfobjectphysicalsource.h"
 #include "intern/dxfentitiesdelivery.h"
 #include "intern/dxfblockdelivery.h"
 #include "intern/drw_dbg.h"
@@ -19759,13 +19760,16 @@ struct DxfRenderingPublication {
     dxfRW::DxfRenderingSourceView view;
     const DRW_DxfVisualStyleProperties* visualProperties{nullptr};
 };
+bool renderingSourceSelected(const DRW_Interface& iface) {
+    const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
+    return handler&&handler->wantsDxfResourceSource();
+}
 template<class Typed>
 void publishDxfRendering(dxfReader& reader,DRW_Interface& iface,
                          dxfRW::DxfRenderingSourceView view,
                          const DRW_TableEntry& model,DRW_RawDxfObject& raw,
-                         Typed typed,const DRW_DxfVisualStyleProperties* visualProperties=nullptr) {
-    const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
-    if(!handler||!handler->wantsDxfResourceSource()) {
+                         bool selected,Typed typed,const DRW_DxfVisualStyleProperties* visualProperties=nullptr) {
+    if(!selected) {
         typed();iface.addRawDxfObject(raw);return;
     }
     const auto common=dxfBlockRecord::Decoder::observeCommonState(model);
@@ -19786,6 +19790,8 @@ void publishDxfRendering(dxfReader& reader,DRW_Interface& iface,
 // The post291 extension remains opaque; native body validation stays separate.
 bool dxfRW::processVisualStyle() {
     DRW_DBG("dxfRW::processVisualStyle");
+    const bool selected=renderingSourceSelected(*iface);
+    dxfObjectPhysicalSource::Capture physical(*reader,*iface,selected,nextentity);
     int code;
     DRW_VisualStyle data;
     dxfRendering::VisualStyleDecoder decoder(data);
@@ -19804,7 +19810,7 @@ bool dxfRW::processVisualStyle() {
             view.originalVisualStyleScope=state.first;
             view.originalVisualStylePropertyTail=state.second;
             const auto properties=decoder.snapshot();
-            publishDxfRendering(*reader,*iface,view,data,raw,
+            publishDxfRendering(*reader,*iface,view,data,raw,selected,
                 [&](){iface->addVisualStyle(data);},&properties);
             return true;
         }
@@ -20155,6 +20161,8 @@ bool dxfRW::processPartialViewingIndex() {
 // name; vectors finalized into named fields) + raw-net preservation.
 bool dxfRW::processRenderSettings() {
     DRW_DBG("dxfRW::processRenderSettings");
+    const bool selected=renderingSourceSelected(*iface);
+    dxfObjectPhysicalSource::Capture physical(*reader,*iface,selected,nextentity);
     int code;
     DRW_RenderSettings data;
     if (dxfKeywordEquals(nextentity, "RENDERGLOBAL")
@@ -20191,7 +20199,7 @@ bool dxfRW::processRenderSettings() {
             view.originalRenderBytes=state.bytes;
             view.originalRenderBools=state.bools;
             view.originalRenderDoubles=state.doubles;
-            publishDxfRendering(*reader,*iface,view,data,raw,
+            publishDxfRendering(*reader,*iface,view,data,raw,selected,
                 [&](){iface->addRenderSettings(data);});
             return true;
         }
@@ -20576,6 +20584,7 @@ bool dxfRW::processDictionary() {
     auto* dictionarySourceHandler=dynamic_cast<DRW_DxfDictionarySourceHandler*>(iface);
     const bool captureDictionarySource=m_objectsRootPositionPassed&&dictionarySourceHandler
         &&dictionarySourceHandler->wantsDxfDictionarySource();
+    dxfObjectPhysicalSource::Capture physical(*reader,*iface,captureRootSource||captureDictionarySource,nextentity);
     // Route non-root named dictionaries through the raw net so they round-trip
     // DXF->DXF (re-attached to the regenerated root via setRootDictEntries).
     // The source root is not routed: fixed handles C/D are regenerated, while
@@ -27088,6 +27097,28 @@ bool dxfRW::getDxfVisualStylePropertiesView(DxfVisualStylePropertiesView& out) c
     const auto* properties=static_cast<const DxfRenderingPublication*>(reader->renderingPublication())->visualProperties;
     if(!properties)return false;
     out={view.phase,static_cast<const DRW_VisualStyle*>(view.model),view.source,properties};return true;
+}
+
+bool dxfRW::getDxfObjectPhysicalSourceView(DxfObjectPhysicalSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader||!reader->objectPhysicalPublication())return false;
+    DxfRenderingSourceView rendering;DxfStructuralSourceView structural;
+    using V=DxfObjectPhysicalSourceView;
+    if(getDxfRenderingSourceView(rendering)){
+        out.kind=rendering.kind==DxfRenderingSourceView::Kind::VisualStyle?V::Kind::VisualStyle:V::Kind::RenderSettings;
+        out.phase=rendering.phase==DxfRenderingSourceView::Phase::Typed?V::Phase::Typed:V::Phase::Raw;
+        out.model=rendering.model;out.source=rendering.source;
+    }else if(getDxfStructuralSourceView(structural)
+        &&(structural.kind==DxfStructuralSourceView::Kind::RootDictionary||structural.kind==DxfStructuralSourceView::Kind::Dictionary)){
+        out.kind=structural.kind==DxfStructuralSourceView::Kind::RootDictionary?V::Kind::RootDictionary:V::Kind::Dictionary;
+        out.phase=structural.phase==DxfStructuralSourceView::Phase::Typed?V::Phase::Typed:
+            structural.phase==DxfStructuralSourceView::Phase::Raw?V::Phase::Raw:V::Phase::Source;
+        out.model=structural.model;out.source=structural.source;
+    }else return false;
+    const auto& capture=*static_cast<const dxfObjectPhysicalSource::Capture*>(reader->objectPhysicalPublication());
+    out.status=capture.sourceStatus();out.physical=capture.source();
+    if(out.status==DRW_DxfObjectPhysicalSource::Status::Complete
+        &&(!out.physical||out.physical->name!=out.source->name)){out={};return false;}
+    return true;
 }
 
 bool dxfRW::getDxfViewUcsSourceView(DxfViewUcsSourceView& out) const noexcept {

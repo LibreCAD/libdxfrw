@@ -647,10 +647,31 @@ preset source shapes still need their own qualification. Parser-known aliases
 have a known object type but remain unavailable without a qualified profile.
 
 This selected source proof requires every primary field once and excludes
-unknown extensions, foreign/legacy shapes and unobserved physical gaps. The raw
-callback omits ignored comments; a record with such gaps cannot claim exact
-field positioning until per-field reader observations are available. Ordinary
-reading remains tolerant. Original source/target matches use immutable captured
+unknown extensions and foreign/legacy shapes. `getDxfObjectPhysicalSourceView`
+now exposes actual reader observations for the existing opted-in rendering and
+OBJECTS dictionary publications. The separate `DRW_DxfObjectPhysicalSource`
+contains the original marker/end spans and each scalar's code, ordinal, byte
+span and ignored-comment flag. Retained `physical` shared owners keep both the
+immutable observations and their logical read-budget lease alive after the
+callback and reader. Borrowed model/source pointers expire on return/throw;
+false clears the view elsewhere. Complete means one bounded record, not a
+successful whole import, value/role semantics, output or format support.
+
+Collection uses the existing per-object source opt-in decision once. The new
+independent `DRW_DxfObjectPhysicalSourcePolicy` can bound fields, logical bytes
+and work, with defaults of 4,000,000 fields, 64 MiB and 128 MiB respectively.
+Own quota/allocation failures report unavailable evidence while ordinary reads
+continue; shared read limits still bound the aggregate retained owners. Opt-out
+adds no physical owner or observer. Existing facade/model/view layouts and
+interface/facet virtuals are unchanged; the optional policy is a separate type.
+
+The converter binds the actual physical owner across callback phases, checks
+both record boundaries against whole-read identity evidence, and maps every raw
+group to an observed scalar. It skips only observed ignored code999 comments, so
+commented styles and both named dictionaries can qualify without guessed
+positions. Incomplete metadata, wrong codes/offsets/ordinals/context and changed
+owners refuse source/target qualification. Ordinary reading remains tolerant.
+Original source/target matches use immutable captured
 inputs and do not validate edited live models, emitted output, recursive or
 whole-document ownership, native rendering or format support.
 

@@ -22351,6 +22351,10 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         ||(block?(typeid(value)!=typeid(DRW_Block_Record)||value.tType!=DRW::BLOCK_RECORD):
                    ((view.kind!=V::Kind::RootDictionary&&view.kind!=V::Kind::Dictionary)||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
     const bool first=block?source:!source;
+    dxfRW::DxfObjectPhysicalSourceView physical;
+    if(!block&&(!s.entitiesReadInput->getDxfObjectPhysicalSourceView(physical)||physical.model!=&value||physical.source!=view.source
+        ||physical.kind!=(view.kind==V::Kind::RootDictionary?decltype(physical.kind)::RootDictionary:decltype(physical.kind)::Dictionary)
+        ||physical.phase!=(source?decltype(physical.phase)::Source:decltype(physical.phase)::Typed))){fail();return;}
     const auto resource=s.resources.find(value.handle);
     if(resource==s.resources.end()||resource->second.family!=(block?dx_tableResourceFamily::BlockRecord:dx_tableResourceFamily::Dictionary)) {fail();return;}
     const auto& row=resource->second;
@@ -22363,6 +22367,7 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             std::size_t bytes=sizeof(Input)+sizeof(dx_data::TableDxfSourceCapture::StructuralPending)+sizeof(dx_data::TableDxfSourceCapture::StructuralAudit)
                 +sizeof(Context)+64u*sizeof(void*);
             if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
+                ||(physical.physical&&!addAssociativeRetainedBytes(physical.physical->bytes,bytes))
                 ||s.structuralBytes>s.maxStructuralBytes||bytes>s.maxStructuralBytes-s.structuralBytes
                 ||s.structuralWork>s.maxStructuralWork||bytes>s.maxStructuralWork-s.structuralWork) {fail();return;}
             s.structuralBytes+=bytes;s.structuralWork+=bytes;++s.structuralRecords;
@@ -22373,12 +22378,15 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             dx_data::TableDxfSourceCapture::StructuralPending pending;
             auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
             in.kind=view.kind;in.originalState=state;in.context=std::move(context);in.model=row.model;in.raw=row.raw;
+            in.physical=physical.physical;in.physicalOwner=in.physical;in.physicalStatus=physical.status;
             pending.model=&value;pending.raw=view.source;s.structuralPending.emplace(value.handle,std::move(pending));return;
         }
         const auto found=s.structuralPending.find(value.handle);
         if(found==s.structuralPending.end()) {fail();return;}
         auto& pending=found->second;auto& in=pending.input;
         if(pending.model!=&value||pending.raw!=view.source||in.kind!=view.kind||in.originalState!=state||!row.model||!row.raw
+            ||in.physicalStatus!=physical.status||in.physical.get()!=physical.physical.get()
+            ||in.physical.owner_before(physical.physical)||physical.physical.owner_before(in.physical)
             ||(in.model&&(in.model.get()!=row.model.get()||in.model.owner_before(row.model)||row.model.owner_before(in.model)))
             ||(in.raw&&(in.raw.get()!=row.raw.get()||in.raw.owner_before(row.raw)||row.raw.owner_before(in.raw)))) {fail();return;}
         std::size_t modelBytes=0u,items=0u,rawBytes=0u;
