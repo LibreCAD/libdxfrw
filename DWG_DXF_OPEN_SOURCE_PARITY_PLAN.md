@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fg scoped STYLE font/XDATA and output retries (2026-10-26; verified selected scope):** body1071, canonical ACAD extended-font flags and arbitrary application integers now retain distinct roles. The reader preserves ordered XDATA and LibreCAD font projection; a borrowed output overlay preserves font edits without changing caller data or public layouts. The authored matrix covers216 profiles,432 output/readbacks,432 edited-font readbacks and148 corrected retries, including legacy, malformed, quota and reached allocation controls. Final affected cohorts pass77/77 normally and77/77 under ASan; both archives include the new helper. Full source/dependency/live/emitted/native qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fg-scoped-style-fontxdata-and-output-retries-2026-10-26) · [receipt](docs/research/rpp5fg-style-font-xdata-scopes-and-output-retries-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fh original plot-style sources and rooted targets (2026-10-27; verified selected scope):** actual DICTIONARYWDFLT typed/raw and ACDBPLACEHOLDER raw-only publications now have a separate borrowed view and bounded immutable source audit. Independent field/reference inventories join the original NOD plot-style entry, dictionary owner, named/default targets and placeholder reactors; a known but unselected placeholder cannot qualify a plot-style reference. The authored matrix covers120 profiles,1,368 physical spans and330 corrected imports. Final affected cohorts pass81/81 normally and81/81 under ASan; both archives include the new helper. Existing resource-view and ordinary callback contracts stay intact. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fh-original-plot-style-sources-and-rooted-targets-2026-10-27) · [receipt](docs/research/rpp5fh-original-plotstyle-sources-and-rooted-targets-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fg scoped STYLE font/XDATA and output retries (2026-10-26; verified selected scope):** body1071, canonical ACAD extended-font flags and arbitrary application integers now retain distinct roles. The reader preserves ordered XDATA and LibreCAD font projection; a borrowed output overlay preserves font edits without changing caller data or public layouts. The authored matrix covers216 profiles,432 output/readbacks,432 edited-font readbacks and148 corrected retries, including legacy, malformed, quota and reached allocation controls. Final affected cohorts pass77/77 normally and77/77 under ASan; both archives include the new helper. Full source/dependency/live/emitted/native qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fg-scoped-style-fontxdata-and-output-retries-2026-10-26) · [receipt](docs/research/rpp5fg-style-font-xdata-scopes-and-output-retries-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5ff selected original dependency targets and symbol schema guards (2026-10-26; verified selected scope):** a bounded immutable audit now binds selected original common/name/handle references to actual producer-backed targets, with complete physical symbol census, conservative alias handling, explicit literal/inherited/null dispositions and hard-owner/cycle refusals. STYLE/LTYPE schema guards close an ignored-scalar qualification gap. The authored matrix covers144 graph profiles,12 resource-only profiles and636 corrected imports. Final affected cohorts pass73/73 normally and73/73 under ASan; both source archives include the new header. Recursive/live/emitted/native semantics and broader qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ff-selected-original-dependency-targets-and-symbol-schema-guards-2026-10-26) · [receipt](docs/research/rpp5ff-original-dependency-targets-and-symbol-schema-guards-2026-10-26.json). No support gate is promoted.
 
@@ -132129,3 +132131,138 @@ incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active and incomplete; no remote
 mutation is included.
+
+## Implementation progress — RPP-5fh original plot-style sources and rooted targets (2026-10-27)
+
+State: **verified for selected original DXF plot-style source providers and
+rooted dependency targets**. RPP-5fg is committed as `3234eeb1`. This closes the
+selected ACDBPLACEHOLDER/DICTIONARYWDFLT producer prerequisite in its next-work
+sequence; remaining source families and full recursive/live/output/native
+qualification remain required.
+
+The official [ACDBPLACEHOLDER reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3BC75FF1-6139-49F4-AEBB-AE2AB4F437E4.htm)
+distinguishes the reactor-group owner-dictionary pointer from the object's
+owner. The official [dictionary context](https://help.autodesk.com/cloudhelp/2024/FRA/AutoCAD-AutoLISP/files/GUID-24E52678-513E-4322-8070-B23C8945DC3D.htm)
+places ACAD_PLOTSTYLENAME under the NOD. The primary
+[ezdxf dictionary implementation](https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/dictionary.py)
+keeps the dictionary-wide340 fallback separate from named entries and records
+distinct350/360 ownership edges. The mutable source screen informs explicit
+roles; it is not a pinned peer execution, native semantics or plot-style result.
+
+- [x] Add a separate borrowed `DxfPlotStyleSourceView`/getter over the existing
+  internal publication slot and opt-in. DICTIONARYWDFLT keeps typed/raw order
+  and fixed C/D raw suppression. ACDBPLACEHOLDER keeps its existing raw-only
+  callback with no synthesized typed model/callback. Preserve the established
+  resource getter's kinds and non-null-model contract; new nullable raw-only
+  pointers belong to the separate view. Publication selection stays latched
+  through each pair and pointers expire at return/throw. No library model/
+  facade instance field, DRW_Interface vtable slot or DWG byte-layout/parser
+  change is included.
+- [x] Capture bounded immutable inputs from actual reader-owned publication
+  pointers and pre-copy common state. Bind shared control blocks, container/
+  generation/nonce, frozen text context and original whole-read identities.
+  Copying or replacing a callback argument cannot become original producer
+  proof. Independently inventory canonical dictionary self/owner/subclasses/
+  flags/key-edge/default fields and raw placeholder self/owner/reactor fields.
+  Unknown payloads, omitted selected flag profiles, invalid/ambiguous names,
+  wrong field order and incomplete provenance stay unavailable. This is a
+  selected profile, not complete native dictionary/plot-style semantics.
+- [x] Join the original NOD, independently walked/decoded plot-style key and
+  exact350/360 slot, default dictionary and placeholder owners/reactors. Preserve
+  named aliases and distinguish named targets from the dictionary-wide fallback;
+  the fallback need not have a named entry. Feed source records to the existing
+  TABLE/common target provider index and give340 a distinct required default
+  pointer role. A qualified original placeholder with no named/default role
+  remains unavailable for a plot-style reference. Do not infer HEADER mode/
+  CEPSNID, effective recursive hard ownership, live state or output admission.
+- [x] Precharge independent record/group/byte/work allowances for snapshots,
+  codec/reference workspace, physical census and root/graph scans. Query checks
+  immutable audit/input/provider owners and context without allocation. Avoid
+  root-graph workspace when no such objects exist. Logical charges are not a
+  measured RSS result; optional-proof failure does not reject compatible import.
+- [x] Add runtime-authored `libdxfrw_plotstyle_original_sources`: **120** profiles
+  across four revisions, LF/CRLF/binary and ENTITIES/BLOCKS; **336** independently
+  walked original object markers and **1,368** reference/root-key spans. Include
+  reversed object order, record-name/escaped-root aliases, separate unnamed
+  fallback, multiple reactors and named aliases to one placeholder. Cover **45**
+  field/graph refusal controls (including **six** existing parser refusals),
+  **45** callback identity/state/throw/latched-selection refusals, **24** exact/
+  one-under record/group/byte/work limits, **21** immutable/control-block/cross-
+  import refusals and **120** live-consumer-state independence controls. Add six
+  public default-off/on view/lifetime controls; retain the old resource-view
+  behavior during every new publication. Total corrected imports: **330**.
+- [x] A finite216-offset callback schedule reaches **85** allocation failures:
+  **56** source-proof failures and **29** adjacent capture failures where original
+  source facts remain intact. These scopes are explicitly distinguished; none
+  qualifies live state or output. **131** unreached offsets are not failure
+  evidence or exhaustive allocation coverage. A dedicated finalization fault
+  schedule is not claimed. Retain the initial test compile failure, parser
+  refusals, classification mismatch and standalone-harness segfault/offset trace.
+  Correct the public fixture to isolate its object-only callbacks instead of
+  invoking full converter callbacks without a drawing container. The final
+  focused selector passes in3.27s; preceding five owning checks pass5/5 in11.45s.
+- [x] Include the private helper in CMake and Automake manifests. An isolated
+  current-source autoreconf/configure/make-dist succeeds; both gzip/bzip2 archives
+  contain exact hashes for the new plot-source helper and prior STYLE helper.
+  Archive inclusion is not a full Autotools distribution build. All drawings
+  remain locally authored runtime recipes; commit no external drawing payload,
+  conversion or derivative.
+- [x] All **11** affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass
+  **81/81 normally in71.78s**, then **81/81 under ASan in46.07s**, with two workers
+  and no failures/skips/disabled tests. Preserve prior77 names/order, adding the
+  new owning selector and three existing dictionary writer/capture checks.
+  Registered names/order/labels/timeouts, executed sets and all **ten** selected
+  counter lines agree. The **405-file** source/build-metadata manifest stays
+  frozen through both runtimes. Both builds and packaging finish first; normal
+  finishes before ASan. No full suite, formal ABI/native application or controlled
+  memory/performance qualification is claimed. Keep the original Debug/O0 ASan
+  configuration unchanged and preserve `-Werror`, coverage and time caps.
+
+The [receipt](docs/research/rpp5fh-original-plotstyle-sources-and-rooted-targets-2026-10-27.json)
+pins exact sources, selected names/statuses/counters, configuration/build/runtime
+order, retained failure logs, archive/helper hashes, primary references and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete remaining original source/field/reference providers.** Cover
+   remaining primary/BLOCKS/LAYOUT/material/visual-style/reactor/IMAGE/document/
+   control/owner families. Extend actual producer/version/corpus coverage for
+   dictionary metadata, omitted flags, names/application/XDATA and HEADER
+   CEPSNID/CEPSNTYPE roles; extend reached finalization-fault controls. Keep
+   unknown profiles unavailable rather than treating selected source targets
+   as general plot-style/native qualification.
+2. [ ] **Finish recursive and coupled dependencies.** Resolve each required
+   target's own dependencies, effective280 hard ownership versus350/360 edge
+   roles, geometry-block-name versus TABLE343, TABLE/linked metadata, native
+   names/collation and required/absent/null/default distinctions. Preserve bounded
+   cycle handling. Source identity/membership is separate from complete control
+   bodies, recursive semantics and whole-document ownership.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against live/edited fields/names/references and exact emitted
+   fields. Verify remapping/readback/refusal/rollback/retry/destination safety.
+   Complete Value output, multiple-content attributes, linked-data ownership and
+   producer/version-qualified title/header/data formats, units and borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain all
+   remaining native bit/decimal/carrier/schema/owner, IMAGE/document, corpus/
+   version and memory/performance requirements. Audit the complete legacy
+   Autotools source/header inventory against CMake before source-release build
+   qualification. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior.
+   Obtain native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks
+   per edit and risk-based affected cohorts at integration; reuse built targets
+   and avoid routine full suites. Freeze compiled sources, finish builds/
+   packaging before final normal then ASan runtimes, preserve failures/caps,
+   and update/unblock/commit/report each verified slice. Commit no external
+   drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false`
+and `outputEligible=false`. Selected original plot-style source/target facts can
+match; full field/recursive/live/emitted/whole-document/native qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**.
+Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+qualification remain **NOT_RUN**. The full objective remains active and incomplete;
+no remote mutation is included.

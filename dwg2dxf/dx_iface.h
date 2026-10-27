@@ -52,6 +52,14 @@ public:
         bool ownerTargetsResolved{false},outputEligible{false};
     };
     static ResourceOriginReport resourceOriginReport(const dx_data&) noexcept;
+    using PlotSourceState=dx_data::TableDxfSourceCapture::PlotSourceAudit::State;
+    struct PlotSourceReport {
+        PlotSourceState state{PlotSourceState::NotCaptured};
+        std::size_t records{0},physicalRecords{0},dictionaries{0},placeholders{0},bodyMatched{0},originsBound{0},plotTargets{0},namedTargets{0},bytes{0},work{0};
+        std::uint32_t defaultTarget{0};
+        bool originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static PlotSourceReport plotStyleSourceReport(const dx_data&) noexcept;
     using DependencyState=dx_data::TableDxfSourceCapture::DependencyAudit::State;
     using DependencyReason=dx_data::TableDxfSourceCapture::DependencyAudit::Reason;
     struct DependencyReport {
@@ -1726,6 +1734,8 @@ private:
     void finishDependencies(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;
+    void observePlotStyleSource(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
+    void finishPlotStyleSources(dx_data&) noexcept;
     bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
     static bool sameTableBodyModel(const DRW_Table&,const DRW_Table&,DRW::Version) noexcept;
     static bool hasMatchedTableSource(const dx_data&,const std::shared_ptr<const TableBody>&) noexcept;

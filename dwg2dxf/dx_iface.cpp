@@ -20911,6 +20911,7 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
     using Pending=dx_data::TableDxfSourceCapture::ResourceOriginPending;using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
     const auto fail=[&](){s.resourceOriginCaptureFailed=true;};V view;dxfRW::DxfReadContext live;
     if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfResourceSourceView(view))return;
+    if(view.kind>dxfRW::DxfResourceSourceView::Kind::AppId)return;
     if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
     const bool symbol=view.kind>=V::Kind::TextStyle;
     const bool first=symbol?(model&&raw):(model&&!raw);
@@ -21020,6 +21021,8 @@ dx_iface::ResourceOriginReport dx_iface::resourceOriginReport(const dx_data& dat
         r.paired==r.records&&r.stateComplete==r.records&&r.bodyMatched==r.records&&r.originsBound==r.records?S::OriginsBound:S::Unqualified;return r;
 }
 
+#include "dx_plotstyle_source.h"
+
 void dx_iface::finishTableReferences(dx_data& data) noexcept {
     using A=dx_data::TableDxfSourceCapture::TableReferenceAudit;using S=A::State;using R=A::Reason;
     using Role=dx_attdef_source::Role;using I=DRW_DxfIdentitySource;
@@ -21031,6 +21034,7 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
         for(const auto& item:s.tableBodies)if(!item.second||item.second->profiles.empty()
             ||!addAssociativeRetainedBytes(item.second->profiles.front().spans.size(),groups)){s.tableReferenceCaptureFailed=true;return;}
         if(!addAssociativeRetainedBytes(s.layoutAudits.size(),candidates)||!addAssociativeRetainedBytes(s.resourceOriginAudits.size(),candidates)
+            ||(s.plotSourceAudit&&!addAssociativeRetainedBytes(s.plotSourceAudit->records.size(),candidates))
             ||(s.entitiesRoleAudit&&!addAssociativeRetainedBytes(s.entitiesRoleAudit->rows.size(),candidates))
             ||(s.blockRoleAudit&&!addAssociativeRetainedBytes(s.blockRoleAudit->rows.size(),candidates))
             ||!addAssociativeSlotBytes(groups,128u,work)||!addAssociativeSlotBytes(candidates,128u,work)
@@ -21048,7 +21052,7 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
         }
         s.tableReferenceBytes=bytes;s.tableReferenceWork=work;
         auto audit=std::make_shared<A>();audit->container=&data;audit->generation=s.generation;audit->containerId=data.m_entitiesContainerIdentity.value;
-        audit->identity=s.identityInput;audit->identities=s.identityAudit;audit->entities=s.entitiesRoleAudit;audit->blocks=s.blockRoleAudit;
+        audit->identity=s.identityInput;audit->identities=s.identityAudit;audit->entities=s.entitiesRoleAudit;audit->blocks=s.blockRoleAudit;audit->plots=s.plotSourceAudit;
         audit->tables.reserve(s.tableBodies.size());audit->rows.reserve(rows);
         for(const auto& item:s.tableBodies)audit->tables.push_back(item.second);
         const auto save=[&](S state){audit->state=state;s.tableReferenceAudit=std::move(audit);s.tableReferenceOwner=s.tableReferenceAudit;};
@@ -21078,6 +21082,12 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
             const auto& a=item.second;if(!a||!a->originBound||!a->bodyMatched||!a->stateComplete||!a->input||!a->input->paired)continue;
             A::Target target;target.provider=A::Provider::Resource;target.physical=a->physical;target.resource=a;add(item.first,std::move(target));
         }
+        const auto plots=plotStyleSourceReport(data);
+        if(audit->plots&&plots.state!=PlotSourceState::ContextMismatch&&plots.state!=PlotSourceState::CaptureFailed&&plots.state!=PlotSourceState::SourceNotReady)
+            for(const auto& item:audit->plots->records) {
+                const auto& row=item.second;if(!row->bodyMatched||!row->originBound)continue;
+                A::Target target;target.provider=A::Provider::PlotSource;target.physical=row->physical;target.plot=row;add(item.first,std::move(target));
+            }
         if(audit->entities&&entities.state!=EntitiesRoleState::CaptureFailed&&entities.state!=EntitiesRoleState::SourceNotReady)
             for(const auto& row:audit->entities->rows)if(row.reason==dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason::Matched) {
                 A::Target target;target.provider=A::Provider::Entities;target.physical=row.physical;target.block=row.block;add(row.self,std::move(target));
@@ -21134,14 +21144,15 @@ dx_iface::TableReferenceReport dx_iface::tableReferenceReport(const dx_data& dat
     if(s.tableReferenceCaptureFailed){r.state=S::CaptureFailed;return r;}const auto& a=s.tableReferenceAudit;if(!a)return r;
     const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
     if(!same(a,s.tableReferenceOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
-        ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)||!same(a->entities,s.entitiesRoleAudit)||!same(a->blocks,s.blockRoleAudit)
+        ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)||!same(a->entities,s.entitiesRoleAudit)||!same(a->blocks,s.blockRoleAudit)||!same(a->plots,s.plotSourceAudit)
         ||a->tables.size()!=s.tableBodies.size()){r.state=S::ContextMismatch;return r;}
     std::size_t index=0u;for(const auto& table:s.tableBodies)if(!same(table.second,a->tables[index++])){r.state=S::ContextMismatch;return r;}
     const auto identity=identitySourceReport(data);const auto structural=structuralSourceReport(data);const auto layout=layoutSourceReport(data);const auto resources=resourceOriginReport(data);
     const auto entities=entitiesRoleReport(data);const auto blocks=blockRoleReport(data);const auto body=tableBodyReport(data);
+    const auto plots=plotStyleSourceReport(data);
     if(identity.state==IdentitySourceState::ContextMismatch||structural.state==StructuralSourceState::ContextMismatch||layout.state==LayoutSourceState::ContextMismatch
         ||entities.state==EntitiesRoleState::ContextMismatch||blocks.state==BlockRoleState::ContextMismatch||body.state==TableBodyState::ContextMismatch
-        ||resources.state==ResourceOriginState::ContextMismatch){r.state=S::ContextMismatch;return r;}
+        ||resources.state==ResourceOriginState::ContextMismatch||plots.state==PlotSourceState::ContextMismatch){r.state=S::ContextMismatch;return r;}
     for(const auto& item:a->targets) {
         const auto& target=item.second;
         if(target.structural) {const auto found=s.structuralAudits.find(item.first);
@@ -21150,6 +21161,10 @@ dx_iface::TableReferenceReport dx_iface::tableReferenceReport(const dx_data& dat
             if(found==s.layoutAudits.end()||!same(target.layout,found->second)){r.state=S::ContextMismatch;return r;}}
         if(target.resource) {const auto found=s.resourceOriginAudits.find(item.first);
             if(found==s.resourceOriginAudits.end()||!same(target.resource,found->second)){r.state=S::ContextMismatch;return r;}}
+        if(target.plot) {
+            if(!a->plots||plots.state==PlotSourceState::CaptureFailed||plots.state==PlotSourceState::SourceNotReady){r.state=S::SourceNotReady;return r;}
+            const auto found=a->plots->records.find(item.first);
+            if(found==a->plots->records.end()||!same(target.plot,found->second)){r.state=S::ContextMismatch;return r;}}
     }
     if(a->state!=S::NoTables&&a->state!=S::SourceNotReady
         &&(identity.state!=IdentitySourceState::NamespaceReady||!body.modeledMatched||!body.profilesMatched
@@ -21388,6 +21403,9 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if(!source.structuralPending.empty())source.structuralCaptureFailed=true;
     source.structuralPending.clear();
     if(source.successful)finishStructuralSourceAudits(data);
+    if(!source.plotSourcePending.empty())source.plotSourceCaptureFailed=true;
+    source.plotSourcePending.clear();
+    if(source.successful)finishPlotStyleSources(data);
     if(source.successful)finishLayoutRoleAudit(data);
     if(source.successful)finishEntitiesRoleAudit(data);
     for(auto& item:source.blockSources) {
@@ -21792,6 +21810,7 @@ void dx_iface::addDictionaryVar(const DRW_DictionaryVar& data) {
 
 void dx_iface::addDictionaryWithDefault(
         const DRW_DictionaryWithDefault& data) {
+    observePlotStyleSource(&data,nullptr);
     retainDictionaryDefaultTyped(cData, cData->dictionaryWithDefaults, data,
         [](const DRW_DictionaryWithDefault& value,
            std::size_t& retainedBytes, std::size_t& itemCount) {
@@ -23300,6 +23319,7 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         return;
     retainTableResourceSource(data);
     observeResourceOrigin(nullptr,&data);
+    observePlotStyleSource(nullptr,&data);
     if (retainTableSourceRaw(data)) return;
     if (data.name.rfind("ACSH_", 0u) == 0u || data.name == "ACAD_EVALUATION_GRAPH") {
         auto& receipt = cData->acdsHistoryDxfImport;

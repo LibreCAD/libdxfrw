@@ -729,13 +729,15 @@ public:
                                  const DRW_RawDxfObject& source) = 0;
 };
 
-/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK and symbol publication context.
+/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK, DICTIONARYWDFLT,
+ * raw-only ACDBPLACEHOLDER and symbol publication context.
  * This adds no callback to DRW_Interface. Existing typed/raw callback order
  * and raw-only fallback stay intact. Symbols use their separately opted-in
  * source facet followed by the existing typed callback after valid ENDTAB.
  * Selection is latched before the pair;
- * the dxfRW resource-source view identifies the actual pointers and original
- * common/payload completeness, and expires at return/throw. The immutable raw
+ * the dxfRW resource/plot-source views identify the actual pointers and original
+ * common/payload completeness, and expires at return/throw. Raw-only placeholder
+ * views have no typed model and do not invent a typed callback. The immutable raw
  * carrier is moved only when selected; default false adds no source copy.
  * Publication transport does not qualify targets, semantics or output. */
 class DRW_DxfResourceSourceHandler {

@@ -26,14 +26,15 @@ bool dependencyNameSpelling(std::string_view a,std::string_view b) noexcept {
 template<class N> const auto& dependencyGroups(const N& n) {
     if(n.resource)return n.resource->input->raw->groups;
     if(n.structural)return n.structural->input->raw->groups;
+    if(n.plot)return n.plot->input->raw->groups;
     const auto& t=*n.table;const auto at=t.first+n.tableRecord;
     return t.source->inBlock?t.source->blockPhysical->records.at(at).groups:t.entitiesPhysical->records.at(at).groups;
 }
 template<class N> const auto& dependencyContext(const N& n) {
-    return n.resource?n.resource->input->context:n.structural?n.structural->input->context:n.table->source->context;
+    return n.resource?n.resource->input->context:n.structural?n.structural->input->context:n.plot?n.plot->input->context:n.table->source->context;
 }
 template<class N> const DRW_TableEntry* dependencyModel(const N& n) {
-    return n.resource?n.resource->input->model.get():n.structural?n.structural->input->model.get():nullptr;
+    return n.resource?n.resource->input->model.get():n.structural?n.structural->input->model.get():n.plot?n.plot->input->model.get():nullptr;
 }
 template<class C> bool dependencyNameKey(std::string_view wire,const C& c,std::string& key,std::string* decoded=nullptr) {
     if(wire.empty()||wire.size()>512u*1024u||wire.find('\0')!=std::string_view::npos||!c.captured)return false;
@@ -85,6 +86,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         std::size_t groups=s.resourceProofGroups,bytes=sizeof(A),work=0u,capacity=0u;
         for(const auto& p:s.structuralAudits)if(p.second&&p.second->input&&p.second->input->raw)
             if(!addAssociativeRetainedBytes(p.second->input->raw->groups.size(),groups)){s.dependencyCaptureFailed=true;return;}
+        if(!addAssociativeRetainedBytes(s.plotSourceGroups,groups)){s.dependencyCaptureFailed=true;return;}
         for(const auto& t:s.tableBodies)if(t.second)for(const auto& p:t.second->profiles)
             if(!addAssociativeRetainedBytes(p.spans.size(),groups)){s.dependencyCaptureFailed=true;return;}
         capacity=groups;
@@ -92,6 +94,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             ||!addAssociativeSlotBytes(identity.records.size(),sizeof(A::Node)+256u,bytes)
             ||!addAssociativeSlotBytes(capacity,sizeof(A::Row)+2u*sizeof(dx_tableResourceReference)+64u,bytes)
             ||!addAssociativeSlotBytes(s.resourceProofBytes,16u,bytes)||!addAssociativeSlotBytes(s.resourceBytes,4u,bytes)
+            ||!addAssociativeSlotBytes(s.plotSourceBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.tableBodyBytes,4u,bytes)||bytes>s.maxDependencyBytes
             ||!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(groups,128u,work)
             ||!addAssociativeSlotBytes(identity.records.size(),256u,work)||work>s.maxDependencyWork){s.dependencyCaptureFailed=true;return;}
@@ -118,6 +121,11 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             else continue;
             a->nodes.emplace(p.first,std::move(n));
         }
+        if(s.tableReferenceAudit->plots)for(const auto& p:s.tableReferenceAudit->plots->records) {
+            const auto& o=p.second;if(!o||!o->bodyMatched||!o->originBound)continue;
+            A::Node n;n.handle=p.first;n.physical=o->physical;n.family=o->input->dictionary?F::Dictionary:F::Entity;n.plot=o;n.references=o->references;
+            a->nodes.emplace(p.first,std::move(n));
+        }
         for(const auto& p:s.tableBodies) {
             const auto& t=p.second;if(!t||!t->profilesMatched)continue;
             for(std::size_t record=0u;record<t->profiles.size();++record) {
@@ -136,7 +144,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         for(std::size_t i=0u;i<identity.records.size();++i) {
             const auto& p=identity.records[i];const auto family=dependencyPhysicalFamily(p.name);const auto named=dependencyNameFamily(family);
             const bool symbol=p.kind==I::Kind::TableRecord&&named<5u;
-            const bool object=p.kind==I::Kind::Object&&(asciiIdentifierEquals(p.name,"DICTIONARY")||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::TableStyle,p.name)
+            const bool object=p.kind==I::Kind::Object&&(asciiIdentifierEquals(p.name,"DICTIONARY")||plotSourceDictionaryName(p.name)||asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER")||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::TableStyle,p.name)
                 ||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::Field,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::XRecord,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::DataLink,p.name));
             const bool table=p.kind==I::Kind::Entity&&(asciiIdentifierEquals(p.name,"ACAD_TABLE")||asciiIdentifierEquals(p.name,"TABLE"));
             if(symbol)++a->physicalNames[named];
@@ -205,7 +213,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 if(!blocked&&row.reason==R::OriginalUnavailable&&!unresolvedName) {
                     if(!row.target) {
                         const bool required=ref.kind==Role::Owner||ref.kind==Role::FieldChild||ref.kind==Role::TableStyle||ref.kind==Role::TableGeometryBlock
-                            ||ref.kind==Role::TableCellBlock||ref.kind==Role::TableCellField||ref.kind==Role::TableCellAttributeDefinition;
+                            ||ref.kind==Role::TableCellBlock||ref.kind==Role::TableCellField||ref.kind==Role::TableCellAttributeDefinition||ref.kind==Role::DictionaryDefault;
                         row.reason=required?R::NullRequired:R::NullOptional;
                         if(ref.kind==Role::Owner&&n.structural&&n.structural->input->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary)row.reason=R::NullOptional;
                     } else {
@@ -229,8 +237,11 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 if(ref.kind==Role::Material||ref.kind==Role::LayerMaterial)kind=p.kind==I::Kind::Object&&asciiIdentifierEquals(p.name,"MATERIAL");
                                 if(ref.kind==Role::PlotStyle||ref.kind==Role::LayerPlotStyle)kind=p.kind==I::Kind::Object&&asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER");
                                 if(ref.kind==Role::VisualStyle)kind=p.kind==I::Kind::Object&&asciiIdentifierEquals(p.name,"VISUALSTYLE");
+                                if(ref.kind==Role::DictionaryDefault)kind=p.kind==I::Kind::Object;
                                 const auto proof=a->targets->targets.find(row.target);
                                 row.reason=!kind?R::WrongKind:proof==a->targets->targets.end()||proof->second.ambiguous||proof->second.physical!=id->second?R::OriginalUnavailable:R::Matched;
+                                if(row.reason==R::Matched&&(ref.kind==Role::PlotStyle||ref.kind==Role::LayerPlotStyle)
+                                    &&(!proof->second.plot||!a->targets->plots||!a->targets->plots->plotTargets.count(row.target)))row.reason=R::OriginalUnavailable;
                                 if(row.reason==R::Matched&&(ref.kind==Role::LTypeShapeStyle||ref.kind==Role::LTypeTextStyle||nameFamily==F::TextStyle)) {
                                     const auto target=a->nodes.find(row.target);const auto* style=target==a->nodes.end()?nullptr:dynamic_cast<const DRW_Textstyle*>(dependencyModel(target->second));
                                     if(!style||((style->flags&1)!=0)!=(ref.kind==Role::LTypeShapeStyle))row.reason=R::WrongKind;
@@ -238,7 +249,8 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 if(row.reason==R::Matched&&dependencyHardOwner(ref.kind)) {
                                     const auto target=a->nodes.find(row.target);const auto* model=target==a->nodes.end()?nullptr:dependencyModel(target->second);
                                     if(!model&&proof->second.layout&&proof->second.layout->input)model=proof->second.layout->input->model.get();
-                                    if(!model||model->parentHandle!=n.handle)row.reason=R::WrongOwner;
+                                    const auto owner=model?model->parentHandle:target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:DRW::NoHandle;
+                                    if(owner!=n.handle)row.reason=R::WrongOwner;
                                 }
                             }
                         }
@@ -298,6 +310,8 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         if(n.resource){const auto found=s.resourceOriginAudits.find(p.first);const auto body=s.resources.find(p.first);
             if(found==s.resourceOriginAudits.end()||!same(n.resource,found->second)||body==s.resources.end()||!dependencyReferencesEqual(n.references,body->second.references)){r.state=S::ContextMismatch;return r;}}
         if(n.structural){const auto found=s.structuralAudits.find(p.first);if(found==s.structuralAudits.end()||!same(n.structural,found->second)){r.state=S::ContextMismatch;return r;}}
+        if(n.plot){if(!a->targets->plots){r.state=S::ContextMismatch;return r;}const auto found=a->targets->plots->records.find(p.first);
+            if(found==a->targets->plots->records.end()||!same(n.plot,found->second)||!dependencyReferencesEqual(n.references,n.plot->references)){r.state=S::ContextMismatch;return r;}}
         if(n.table){const auto found=s.tableBodies.find(n.table->source->model->handle);if(found==s.tableBodies.end()||!same(n.table,found->second)){r.state=S::ContextMismatch;return r;}}
     }
     r.state=a->state;r.sources=a->nodes.size();r.names=a->names.size();r.references=a->rows.size();r.unavailableSources=a->unavailableSources;

@@ -702,6 +702,10 @@ add_test(NAME libdxfrw_style_font_xdata_scopes
     COMMAND libdxfrw_table_content_dxf_tests --style-font-xdata)
 set_tests_properties(libdxfrw_style_font_xdata_scopes PROPERTIES
     LABELS "fast;dxf;adapter;source;style;xdata;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_plotstyle_original_sources
+    COMMAND libdxfrw_table_content_dxf_tests --plotstyle-sources)
+set_tests_properties(libdxfrw_plotstyle_original_sources PROPERTIES
+    LABELS "fast;dxf;adapter;source;plotstyle;generated" TIMEOUT 30)
 set_tests_properties(libdxfrw_table_value_inventory_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 add_test(NAME libdxfrw_layout_graph_read_contract

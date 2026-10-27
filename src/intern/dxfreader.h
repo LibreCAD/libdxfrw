@@ -80,7 +80,8 @@ struct DxfStructuralPublication {
     bool rawCallbackDelivered{false};
 };
 struct DxfResourcePublication {
-    // Kinds1..4 rich objects,5 STYLE,6 LTYPE,7 LAYER,8 APPID;
+    // Kinds1..4 rich objects,5 STYLE,6 LTYPE,7 LAYER,8 APPID,
+    // 9 DICTIONARYWDFLT,10 raw-only ACDBPLACEHOLDER;
     // phases1 typed,2 raw,3 symbol source.
     std::uint8_t kind{0},phase{0},coordinateMask{0};
     bool pendingXdata{false},typedAvailable{false},payloadComplete{false};

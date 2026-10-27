@@ -146,9 +146,24 @@ public:
     static const auto& tableBodies(const dx_data& data){return data.m_tableDxfSource.tableBodies;}
     static const auto& tableReferences(const dx_data& data){return data.m_tableDxfSource.tableReferenceAudit;}
     static const auto& dependencies(const dx_data& data){return data.m_tableDxfSource.dependencyAudit;}
+    static const auto& plots(const dx_data& data){return data.m_tableDxfSource.plotSourceAudit;}
+    static std::size_t plotGroups(const dx_data& data){return data.m_tableDxfSource.plotSourceGroups;}
+    static bool adjacentPlotCaptureFailure(const dx_data& data){const auto& s=data.m_tableDxfSource;
+        return data.dictionaryDefaultTypedCaptureFailed||data.rawDictionaryDefaultCaptureFailed||data.dictionaryDefaultImport.captureFailed
+            ||s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.resourceOriginCaptureFailed;}
+    static void plotLimit(dx_data& data,unsigned which,std::size_t n){auto& s=data.m_tableDxfSource;
+        if(which==0u)s.maxPlotSourceRecords=n;else if(which==1u)s.maxPlotSourceGroups=n;else if(which==2u)s.maxPlotSourceBytes=n;else s.maxPlotSourceWork=n;}
+    static void substitutePlots(dx_data& data,bool alias){auto& p=data.m_tableDxfSource.plotSourceAudit;
+        if(alias)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});else p=std::make_shared<const dx_data::TableDxfSourceCapture::PlotSourceAudit>(*p);}
+    static void transplantPlots(dx_data& data,const dx_data& other){data.m_tableDxfSource.plotSourceAudit=other.m_tableDxfSource.plotSourceAudit;}
+    template<class P> static void restorePlots(dx_data& data,const P& saved){data.m_tableDxfSource.plotSourceAudit=saved;}
+    static const auto& plotInputs(const dx_data& data){return data.m_tableDxfSource.plotSourceInputs;}
+    static void substitutePlotInput(dx_data& data,std::uint32_t id,bool alias){auto& p=data.m_tableDxfSource.plotSourceInputs.at(id);
+        if(alias)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});else p=std::make_shared<const dx_data::TableDxfSourceCapture::PlotSourceInput>(*p);}
+    template<class P> static void restorePlotInput(dx_data& data,std::uint32_t id,const P& saved){data.m_tableDxfSource.plotSourceInputs.at(id)=saved;}
     static void dependencyLimit(dx_data& data,unsigned which,std::size_t n){auto& s=data.m_tableDxfSource;if(which==0u)s.maxDependencyRows=n;else if(which==1u)s.maxDependencyBytes=n;else s.maxDependencyWork=n;}
     static void repeatDependencies(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.dependencyAudit.reset();s.dependencyOwner.reset();s.dependencyBytes=s.dependencyWork=s.dependencyRowsReserved=0u;s.dependencyCaptureFailed=false;reader.finishDependencies(data);}
-    template<class N> static const auto& dependencyGroups(const N& n){if(n.resource)return n.resource->input->raw->groups;if(n.structural)return n.structural->input->raw->groups;const auto& t=*n.table;return t.source->inBlock?t.source->blockPhysical->records.at(t.first+n.tableRecord).groups:t.entitiesPhysical->records.at(t.first+n.tableRecord).groups;}
+    template<class N> static const auto& dependencyGroups(const N& n){if(n.resource)return n.resource->input->raw->groups;if(n.structural)return n.structural->input->raw->groups;if(n.plot)return n.plot->input->raw->groups;const auto& t=*n.table;return t.source->inBlock?t.source->blockPhysical->records.at(t.first+n.tableRecord).groups:t.entitiesPhysical->records.at(t.first+n.tableRecord).groups;}
     static void substituteDependencies(dx_data& data,bool alias){auto& p=data.m_tableDxfSource.dependencyAudit;if(alias)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});else p=std::make_shared<const dx_data::TableDxfSourceCapture::DependencyAudit>(*p);}
     static void transplantDependencies(dx_data& data,const dx_data& other){data.m_tableDxfSource.dependencyAudit=other.m_tableDxfSource.dependencyAudit;}
     static void clearAdvisoryNames(dx_data& data){data.m_tableDxfSource.resourceNames.clear();}
@@ -1590,6 +1605,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "symbol_origin_controls.h"
 #include "dependency_controls.h"
 #include "style_font_controls.h"
+#include "plotstyle_source_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3123,6 +3139,7 @@ int main(int argc,char** argv) {
     const bool symbolOrigins=argc==2 && std::string(argv[1])=="--symbol-origins";
     const bool dependencies=argc==2 && std::string(argv[1])=="--dependencies";
     const bool styleFont=argc==2 && std::string(argv[1])=="--style-font-xdata";
+    const bool plotSources=argc==2 && std::string(argv[1])=="--plotstyle-sources";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -3131,12 +3148,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

@@ -209,7 +209,7 @@ enum class dx_tableResourceRole : std::uint8_t {
     XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout,
     LineTypeName, LayerMaterial, LayerPlotStyle,
     TableStyle, TableGeometryBlock, TableCellBlock, TableCellField,
-    TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName
+    TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName, DictionaryDefault
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1470,16 +1470,48 @@ private:
         std::size_t resourceOriginRecords{0},resourceOriginRawOnly{0},resourceOriginBytes{0},resourceOriginWork{0};
         std::size_t maxResourceOriginRecords{100000u},maxResourceOriginBytes{64u*1024u*1024u},maxResourceOriginWork{64u*1024u*1024u};
         bool resourceOriginCaptureFailed{false};
+        struct PlotSourceInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const DRW_DictionaryWithDefault> model;
+            std::shared_ptr<const EntitiesReadContext> context;
+            std::pair<bool,std::uint8_t> originalState{};
+            bool dictionary{false},paired{false};
+        };
+        struct PlotSourcePending {PlotSourceInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};};
+        struct PlotSourceRecord {
+            std::shared_ptr<const PlotSourceInput> input;std::size_t physical{DRW_DxfIdentitySource::None};
+            std::vector<dx_tableResourceReference> references;
+            bool bodyMatched{false},originBound{false};
+        };
+        struct PlotSourceAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,SourcesReady,Unqualified};
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
+            std::shared_ptr<const StructuralAudit> root;
+            std::size_t rootKeyGroup{DRW_DxfIdentitySource::None},rootTargetGroup{DRW_DxfIdentitySource::None};
+            std::map<std::uint32_t,std::shared_ptr<const PlotSourceRecord>> records;
+            std::set<std::uint32_t> plotTargets;
+            std::uint32_t dictionary{0},defaultTarget{0};std::size_t physicalRecords{0},namedTargets{0};
+        };
+        std::map<std::uint32_t,PlotSourcePending> plotSourcePending;
+        std::map<std::uint32_t,std::shared_ptr<const PlotSourceInput>> plotSourceInputs;
+        std::vector<std::shared_ptr<const PlotSourceInput>> plotSourceInputOwners;
+        std::shared_ptr<const PlotSourceAudit> plotSourceAudit,plotSourceOwner;
+        std::size_t plotSourceRecords{0},plotSourceGroups{0},plotSourceBytes{0},plotSourceWork{0};
+        std::size_t maxPlotSourceRecords{100000u},maxPlotSourceGroups{4000000u},maxPlotSourceBytes{64u*1024u*1024u},maxPlotSourceWork{128u*1024u*1024u};
+        bool plotSourceCaptureFailed{false};
         struct TableReferenceAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoTables,NoReferences,ReferencesReady,Unqualified};
             enum class Reason {Matched,NullValue,NullRequired,MissingTarget,WrongKind,OriginalTargetUnavailable,AmbiguousOrigin,WrongCellBlock};
-            enum class Provider {Structural,Layout,Entities,Blocks,Resource};
+            enum class Provider {Structural,Layout,Entities,Blocks,Resource,PlotSource};
             struct Target {
                 Provider provider{Provider::Structural};std::size_t physical{DRW_DxfIdentitySource::None};
                 std::uint32_t block{0};bool ambiguous{false};
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const LayoutAudit> layout;
                 std::shared_ptr<const ResourceOriginAudit> resource;
+                std::shared_ptr<const PlotSourceRecord> plot;
             };
             struct Row {
                 std::uint32_t table{0},target{0},cellBlock{0};std::size_t group{0},physical{DRW_DxfIdentitySource::None};
@@ -1488,6 +1520,7 @@ private:
             State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
             std::shared_ptr<const EntitiesRoleAudit> entities;std::shared_ptr<const BlockRoleAudit> blocks;
+            std::shared_ptr<const PlotSourceAudit> plots;
             std::vector<std::shared_ptr<const TableBody>> tables;
             std::map<std::uint32_t,Target> targets;
             std::vector<Row> rows;
@@ -1505,6 +1538,7 @@ private:
                 dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
                 std::shared_ptr<const ResourceOriginAudit> resource;
                 std::shared_ptr<const StructuralAudit> structural;
+                std::shared_ptr<const PlotSourceRecord> plot;
                 std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};
                 std::vector<dx_tableResourceReference> references;
             };

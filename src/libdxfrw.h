@@ -1060,6 +1060,22 @@ public:
      * False clears the view outside the pair, including return/throw. No
      * facade/model/vtable state, extra callback or target/output certificate. */
     bool getDxfResourceSourceView(DxfResourceSourceView&) const noexcept;
+    struct DxfPlotStyleSourceView {
+        enum class Kind : std::uint8_t {None,DictionaryWithDefault,Placeholder};
+        enum class Phase : std::uint8_t {None,Typed,Raw};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+        bool typedAvailable{false},originalPayloadComplete{false};
+    };
+    /** Borrowed actual opted-in DICTIONARYWDFLT typed/raw publication or
+     * ACDBPLACEHOLDER existing raw-only callback. Placeholder has model=null;
+     * no typed model/callback is synthesized. Fixed-handle raw suppression
+     * is preserved. Pointers expire at return/throw and false clears the view
+     * elsewhere. Uses the existing resource-source opt-in; adds no facade
+     * state or vtable slot. Existing resource-view kinds/contract are unchanged.
+     * This is original publication transport, not graph/output qualification. */
+    bool getDxfPlotStyleSourceView(DxfPlotStyleSourceView&) const noexcept;
     /** Actual legacy raw-callback delivery, only inside a non-root dictionary
      * source callback. False clears delivered outside that exact publication.
      * This distinguishes fixed-handle suppression from an adapter dropping a

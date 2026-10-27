@@ -20764,13 +20764,14 @@ bool dxfRW::processDictionaryWithDefault() {
             if (!dict.hasCompleteDxfPayload())
                 return setError(DRW::BAD_CODE_PARSED);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            iface->addDictionaryWithDefault(dict);
             // WDFLT is a separate object kind.  It must not consume the
             // first-regular-DICTIONARY slot used for owner-less root
             // detection; otherwise a WDFLT appearing first would make the
             // actual root look like a named dictionary.
             if (!isRootDictionary(raw, false))
-                iface->addRawDxfObject(raw);
+                publishDxfResource(*reader,*iface,9u,dict,raw,true,true,[&](){iface->addDictionaryWithDefault(dict);});
+            else
+                iface->addDictionaryWithDefault(dict);
             return true;  //found new entity or ENDSEC, terminate
         }
 
@@ -22759,7 +22760,13 @@ bool dxfRW::processRawObject(bool reportUnmodeled) {
                 if (handler != nullptr)
                     handler->addUnmodeledDxfObject(obj);
             }
-            iface->addRawDxfObject(obj);
+            const auto* sourceHandler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(iface);
+            if(!reportUnmodeled&&dxfKeywordEquals(obj.name,"ACDBPLACEHOLDER")&&sourceHandler&&sourceHandler->wantsDxfResourceSource()) {
+                const DRW_RawDxfObject original(std::move(obj));DxfResourcePublication view;
+                view.kind=10u;view.phase=2u;view.source=&original;
+                DxfResourcePublicationScope scope(reader->resourcePublication(),view);
+                iface->addRawDxfObject(original);
+            } else iface->addRawDxfObject(obj);
             return true;  //found new entity or ENDSEC, terminate
         }
         if (++pairCount > DRW::kMaxDxfApplicationGroupPairs)
@@ -27025,6 +27032,15 @@ bool dxfRW::getDxfResourceSourceView(DxfResourceSourceView& out) const noexcept 
     if(!v.kind||v.kind>8u||!v.phase||v.phase>3u||!v.model||!v.source)return false;
     out={static_cast<DxfResourceSourceView::Kind>(v.kind),static_cast<DxfResourceSourceView::Phase>(v.phase),v.model,v.source,
         v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
+}
+
+bool dxfRW::getDxfPlotStyleSourceView(DxfPlotStyleSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& v=reader->resourcePublication();
+    if((v.kind!=9u&&v.kind!=10u)||!v.phase||v.phase>2u||!v.source)return false;
+    if(v.kind==10u?(v.model||v.typedAvailable||v.phase!=2u):(!v.model||!v.typedAvailable))return false;
+    out={v.kind==9u?DxfPlotStyleSourceView::Kind::DictionaryWithDefault:DxfPlotStyleSourceView::Kind::Placeholder,
+        static_cast<DxfPlotStyleSourceView::Phase>(v.phase),v.model,v.source,v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
 }
 
 bool dxfRW::getDxfDictionaryRawDelivery(bool& delivered) const noexcept {
