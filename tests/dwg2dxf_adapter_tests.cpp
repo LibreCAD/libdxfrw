@@ -23258,7 +23258,8 @@ bool retainRenderSettingsCallbackAndFailClosed() {
               "wrong-root",
               [&]() {
                 data.namedObjectDictionary.m_entries.front().m_name =
-                    "ACAD_RENDER_RAPIDRT_SETTINGS";
+                    family.kind == DRW_RenderSettings::RapidRT
+                        ? "ACAD_RENDER_SETTINGS" : "ACAD_RENDER_RAPIDRT_SETTINGS";
               }) ||
           !rejectedPreservingAndRetried(
               "duplicate-render-settings-root",

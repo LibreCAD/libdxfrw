@@ -13,25 +13,34 @@
 // only from their original base subclass. Derived and foreign repeated codes
 // cannot supply missing base fields. This is not a full rendering certificate.
 namespace dxfRenderSettings {
-enum class PresetProfile { Unavailable, RapidRT, LegacyMentalRay, ModernMentalRay };
+enum class PresetProfile { Unavailable, Base, RapidRT, LegacyMentalRay, ModernMentalRay, ExtendedMentalRay };
 
 inline PresetProfile presetProfile(const DRW_RenderSettings& value) noexcept {
     if (value.hasDwgRawData() || !value.m_bytes.empty()) return PresetProfile::Unavailable;
+    if (value.m_longs.empty() || (value.m_longs[0] != 1 && value.m_longs[0] != 2)) return PresetProfile::Unavailable;
     for (double number : value.m_doubles)
         if (!std::isfinite(number)) return PresetProfile::Unavailable;
     for (auto number : value.m_shorts)
         if (number < -32768 || number > 32767) return PresetProfile::Unavailable;
+    if (value.m_kind == DRW_RenderSettings::Settings && value.m_longs.size() == 2u
+        && value.m_strings.size() == 3u && value.m_shorts.empty() && value.m_doubles.empty()
+        && (value.m_bools.size() == 4u || value.m_bools.size() == 5u))
+        return PresetProfile::Base;
     if (value.m_kind == DRW_RenderSettings::RapidRT && value.m_longs.size() == 5u
         && value.m_strings.size() == 3u && value.m_shorts.size() == 3u
-        && value.m_doubles.size() == 2u && (value.m_bools.size() == 4u || value.m_bools.size() == 5u))
+        && value.m_longs[2] == 2 && value.m_doubles.size() == 2u && (value.m_bools.size() == 4u || value.m_bools.size() == 5u))
         return PresetProfile::RapidRT;
     if (value.m_kind == DRW_RenderSettings::MentalRay && value.m_longs.size() == 16u
         && value.m_shorts.size() == 7u && value.m_doubles.size() == 11u) {
-        if (value.m_strings.size() == 3u && value.m_bools.size() == 12u)
+        if (value.m_longs[0] == 1 && value.m_longs[2] == 1 && value.m_strings.size() == 3u && value.m_bools.size() == 12u)
             return PresetProfile::LegacyMentalRay;
-        if (value.m_strings.size() == 4u && (value.m_bools.size() == 13u || value.m_bools.size() == 14u))
+        if (value.m_longs[2] == 1 && value.m_strings.size() == 4u && (value.m_bools.size() == 13u || value.m_bools.size() == 14u))
             return PresetProfile::ModernMentalRay;
     }
+    if (value.m_kind == DRW_RenderSettings::MentalRay && value.m_longs.size() == 16u
+        && value.m_shorts.size() == 7u && value.m_doubles.size() == 12u
+        && value.m_longs[2] == 2 && value.m_strings.size() == 4u && (value.m_bools.size() == 14u || value.m_bools.size() == 15u))
+        return PresetProfile::ExtendedMentalRay;
     return PresetProfile::Unavailable;
 }
 
@@ -40,7 +49,7 @@ inline bool presetProjectionMatches(const DRW_RenderSettings& value,
     if (profile == PresetProfile::Unavailable) return false;
     const bool legacy = profile == PresetProfile::LegacyMentalRay;
     const bool predefined = !legacy && value.m_bools.size()
-        == (profile == PresetProfile::RapidRT ? 5u : 14u);
+        == (profile == PresetProfile::RapidRT || profile == PresetProfile::Base ? 5u : profile == PresetProfile::ExtendedMentalRay ? 15u : 14u);
     return value.m_classVersion == value.m_longs[0]
         && value.m_name == value.m_strings[0]
         && value.m_environmentImageFilename == value.m_strings[1]
@@ -73,8 +82,9 @@ inline void writePresetBody(dxfWriter& writer, const DRW_RenderSettings& value,
         for (int code : {90,1,290,90,290,290,1}) emit(code);
     } else {
         for (int code : {90,1,290,290,290,290,1,1,90}) emit(code);
-        if (value.m_bools.size() == (profile == PresetProfile::RapidRT ? 5u : 14u)) emit(290);
+        if (value.m_bools.size() == (profile == PresetProfile::RapidRT || profile == PresetProfile::Base ? 5u : profile == PresetProfile::ExtendedMentalRay ? 15u : 14u)) emit(290);
     }
+    if (profile == PresetProfile::Base) return;
     if (profile == PresetProfile::RapidRT) {
         writer.writeString(100,"AcDbRapidRTRenderSettings");
         for (int code : {90,70,90,90,70,70,40,40}) emit(code);
@@ -83,6 +93,7 @@ inline void writePresetBody(dxfWriter& writer, const DRW_RenderSettings& value,
         for (int code : {90,90,90,70,40,40,40,40,40,40,70,290,290,90,90,90,
                          290,90,290,40,90,90,90,90,290,90,290,290,290,40,40,40,
                          70,70,40,70,70,290,1,90,70,90}) emit(code);
+        if (profile == PresetProfile::ExtendedMentalRay) { emit(290); emit(40); }
     }
 }
 
@@ -94,6 +105,10 @@ class Decoder {
     std::array<bool, 5> baseBools{};
     std::array<std::int32_t, 3> baseBytes{};
     std::array<double, 4> baseDoubles{};
+    // Some RapidRT producers place the predefined flag after the complete
+    // derived body. Keep its role scoped instead of guessing from bool count.
+    bool rapid = false,rapidSequence = true,derivedPredefined = false,derivedPredefinedSeen = false;
+    std::size_t rapidFields = 0u;
 
     bool preset() const noexcept {
         return value.m_kind == DRW_RenderSettings::Settings
@@ -122,7 +137,16 @@ public:
     }
     explicit Decoder(DRW_RenderSettings& model) noexcept : value(model) {}
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
-        if (code == 100) base = reader->getStringView() == baseSubclass();
+        if (code == 100) {
+            base = reader->getStringView() == baseSubclass();
+            rapid = value.m_kind == DRW_RenderSettings::RapidRT && reader->getStringView() == "AcDbRapidRTRenderSettings";
+        } else if (rapid && rapidSequence && code < 1000) {
+            static constexpr int primary[] = {90,70,90,90,70,70,40,40};
+            if (rapidFields < 8u && code == primary[rapidFields]) ++rapidFields;
+            else if (rapidFields == 8u && code == 290 && !derivedPredefinedSeen) {
+                derivedPredefinedSeen=true;derivedPredefined=reader->getInt32()!=0;
+            } else rapidSequence=false;
+        }
         unsigned roles = 0u;
         if (base && code == 1) {
             if (strings == 0u) roles |= 1u;
@@ -164,8 +188,11 @@ public:
             value.m_backfacesEnabled = baseBools[legacy ? 1u : 2u];
             value.m_environmentImageEnabled = baseBools[legacy ? 2u : 3u];
             value.m_displayIndex = legacy ? 0 : baseLongs[1];
-            value.m_hasPredefinedPresent = strings == 3u && longs == 2u && bools == 5u;
-            value.m_hasPredefined = value.m_hasPredefinedPresent && baseBools[4];
+            const bool basePredefined = strings == 3u && longs == 2u && bools == 5u;
+            const bool derivedPresent = value.m_kind == DRW_RenderSettings::RapidRT && rapidSequence
+                && rapidFields == 8u && derivedPredefinedSeen && strings == 3u && longs == 2u && bools == 4u;
+            value.m_hasPredefinedPresent = basePredefined || derivedPresent;
+            value.m_hasPredefined = basePredefined ? baseBools[4] : derivedPresent && derivedPredefined;
         } else if (value.m_kind == DRW_RenderSettings::Environment) {
             value.m_fogEnabled = baseBools[0];
             value.m_fogBackgroundEnabled = baseBools[1];

@@ -50,6 +50,7 @@
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfviewucs.h"
+#include "intern/dxfrenderingsource.h"
 
 namespace {
 
@@ -3570,6 +3571,38 @@ bool renderSettingsNameMatchesKind(std::string_view sourceName,
                                      "ACDBMENTALRAYRENDERSETTINGS");
     }
     return false;
+}
+
+// Index each preset dictionary once. Engine-specific roots remain distinct;
+// the historical plotting root is also retained for compatible raw replay.
+bool indexRenderPresetRoots(const dx_data& data,
+        std::unordered_map<std::uint32_t,const DRW_RenderSettings*>& targets) {
+    std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presets;
+    std::unordered_set<std::uint32_t> owners;
+    for(const auto& value:data.renderSettings){
+        if(value.m_kind!=DRW_RenderSettings::Settings&&value.m_kind!=DRW_RenderSettings::RapidRT&&value.m_kind!=DRW_RenderSettings::MentalRay)continue;
+        if(!value.handle||value.handle==DRW::NoHandle||!presets.emplace(value.handle,&value).second)return false;
+        owners.insert(value.parentHandle);
+    }
+    if(presets.empty())return true;
+    std::unordered_map<std::uint32_t,const DRW_Dictionary*> dictionaries;
+    for(const auto& value:data.dictionaries)if(owners.count(value.handle)&&!dictionaries.emplace(value.handle,&value).second)return false;
+    std::unordered_set<std::uint32_t> seenRoots;
+    for(const auto& entry:data.namedObjectDictionary.m_entries){
+        if(!owners.count(entry.m_handle))continue;
+        const auto key=layoutSymbolKey(entry.m_name);const char* canonical=nullptr;
+        for(const char* name:{"ACAD_RENDER_SETTINGS","ACAD_RENDER_RAPIDRT_SETTINGS","ACAD_RENDER_PLOT_SETTINGS"})if(key==name)canonical=name;
+        if(!canonical||!seenRoots.insert(entry.m_handle).second||!validateNamedObjectRootForExport(data,canonical,true))return false;
+        const auto found=dictionaries.find(entry.m_handle);
+        if(found==dictionaries.end()||!found->second->hasCompleteDxfEntries())return false;
+        std::unordered_set<std::string> names;
+        for(const auto& member:found->second->m_entries){const auto value=presets.find(member.m_handle);const auto name=layoutSymbolKey(member.m_name);
+            if(value==presets.end()||value->second->parentHandle!=entry.m_handle||!dx_rendering_roots::allows(key,value->second->m_kind)
+                ||name.empty()||name!=layoutSymbolKey(value->second->m_name)||!names.insert(name).second
+                ||!targets.emplace(member.m_handle,value->second).second)return false;
+        }
+    }
+    return targets.size()==presets.size();
 }
 
 std::string normalizedObjectName(std::string name) {
@@ -9359,9 +9392,9 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
         || data.renderSettings.empty()
         || data.renderSettings.size() != data.rawRenderSettingsObjects.size())
         return reject("RenderSettings replay requires paired DXF carriers at the source version");
-    if (!validateNamedObjectRootForExport(
-            data, "ACAD_RENDER_PLOT_SETTINGS", true))
-        return reject("ACAD_RENDER_PLOT_SETTINGS root is missing, duplicated, aliased, or not a unique NOD-owned DICTIONARY");
+    std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presetTargets;
+    if (!indexRenderPresetRoots(data,presetTargets))
+        return reject("RenderSettings preset root, engine, owner or name is missing or ambiguous");
 
     std::unordered_map<std::uint32_t, const DRW_RenderSettings*> typedByHandle;
     std::unordered_set<std::uint32_t> rootedHandles;
@@ -9385,12 +9418,25 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
                 == m_extensionRenderSettingsHandles.end()
             || !rootedHandles.insert(raw.handle).second)
             return reject("RenderSettings raw carrier is unpaired, unrooted, wrong-version, or owner-mismatched");
+        // Raw replay must not silently discard edits to a retained model or
+        // carrier when its actual original replay is available.
+        const auto& captured=data.m_tableDxfSource.renderingAudit;
+        if(captured){const auto original=captured->rows.find(raw.handle);
+            if(original!=captured->rows.end()&&original->second.replayDecoded){
+                const auto state=renderingModelReport(data).state;
+                const auto* model=dynamic_cast<const DRW_RenderSettings*>(original->second.replayedModel.get());
+                if(state==RenderingModelState::CaptureFailed||state==RenderingModelState::Limited||state==RenderingModelState::ContextMismatch
+                    ||!model||!dxfRendering::Observation::render(*typed->second,*model)
+                    ||!retainedRawDxfObjectsEqual(raw,*original->second.input->typedRaw))
+                    return reject("RenderSettings live data differs from the immutable raw replay");
+            }
+        }
     }
     if (rootedHandles.size() != typedByHandle.size()
         || rootedHandles.size() != m_extensionRenderSettingsHandles.size())
         return reject("unrooted or unmatched RenderSettings record remains");
     const auto validateViewportRenderPresetTargets =
-        [&typedByHandle, &rootedHandles](
+        [&typedByHandle, &rootedHandles, &presetTargets](
             const std::list<DRW_Entity*>& entities) {
             for (const DRW_Entity* entity : entities) {
                 const auto* viewport =
@@ -9401,10 +9447,7 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
                 const auto target = typedByHandle.find(handle);
                 if (handle == 0 || target == typedByHandle.end()
                     || rootedHandles.count(handle) != 1u
-                    || (target->second->m_kind
-                            != DRW_RenderSettings::RapidRT
-                        && target->second->m_kind
-                            != DRW_RenderSettings::MentalRay))
+                    || presetTargets.count(handle) != 1u)
                     return false;
             }
             return true;
@@ -9424,8 +9467,7 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
         const auto target = typedByHandle.find(handle);
         if (handle == 0 || target == typedByHandle.end()
             || rootedHandles.count(handle) != 1u
-            || (target->second->m_kind != DRW_RenderSettings::RapidRT
-                && target->second->m_kind != DRW_RenderSettings::MentalRay))
+            || presetTargets.count(handle) != 1u)
             return reject("LAYOUT mode 5 code-333 target is not a uniquely rooted render preset");
     }
     return true;
@@ -9579,85 +9621,16 @@ bool dx_iface::validatePlotSettingsGraph(const dx_data& data,
                          m_extensionVisualStyleHandles.end(), targetHandle)
                 != m_extensionVisualStyleHandles.end();
     };
-    const auto hasClosedRenderSettingsTarget = [this, &data, targetVersion](
-            std::uint32_t targetHandle) {
-        std::size_t rootMatches = 0;
-        std::uint32_t renderDictionaryHandle = 0;
-        for (const DRW_Dictionary::Entry& entry :
-             data.namedObjectDictionary.m_entries) {
-            if (layoutSymbolKey(entry.m_name) != "ACAD_RENDER_PLOT_SETTINGS")
-                continue;
-            ++rootMatches;
-            renderDictionaryHandle = entry.m_handle;
-        }
-        if (rootMatches != 1u || renderDictionaryHandle == 0
-            || renderDictionaryHandle == DRW::NoHandle)
-            return false;
-
-        const DRW_Dictionary* renderDictionary = nullptr;
-        std::size_t dictionaryMatches = 0;
-        for (const DRW_Dictionary& dictionary : data.dictionaries) {
-            if (dictionary.handle != renderDictionaryHandle)
-                continue;
-            ++dictionaryMatches;
-            renderDictionary = &dictionary;
-        }
-        if (dictionaryMatches != 1u || renderDictionary == nullptr
-            || renderDictionary->parentHandle
-                != data.namedObjectDictionary.handle
-            || !renderDictionary->hasCompleteDxfEntries()
-            || std::find(m_extensionDictionaryHandles.begin(),
-                         m_extensionDictionaryHandles.end(),
-                         renderDictionaryHandle)
-                == m_extensionDictionaryHandles.end())
-            return false;
-
-        std::size_t entryMatches = 0;
-        std::string targetKey;
-        std::unordered_set<std::string> keys;
-        for (const DRW_Dictionary::Entry& entry :
-             renderDictionary->m_entries) {
-            const std::string key = layoutSymbolKey(entry.m_name);
-            if (key.empty() || !keys.insert(key).second)
-                return false;
-            if (entry.m_handle == targetHandle) {
-                ++entryMatches;
-                targetKey = key;
-            }
-        }
-        if (entryMatches != 1u)
-            return false;
-
-        std::size_t typedMatches = 0;
-        const DRW_RenderSettings* typed = nullptr;
-        for (const DRW_RenderSettings& candidate : data.renderSettings) {
-            if (candidate.handle != targetHandle)
-                continue;
-            ++typedMatches;
-            typed = &candidate;
-        }
-        std::size_t rawMatches = 0;
-        const DRW_RawDxfObject* raw = nullptr;
-        for (const DRW_RawDxfObject& candidate :
-             data.rawRenderSettingsObjects) {
-            if (candidate.handle != targetHandle)
-                continue;
-            ++rawMatches;
-            raw = &candidate;
-        }
-        const bool supportedKind = typed != nullptr
-            && (typed->m_kind == DRW_RenderSettings::RapidRT
-                || typed->m_kind == DRW_RenderSettings::MentalRay);
-        return typedMatches == 1u && rawMatches == 1u && supportedKind
-            && typed->parentHandle == renderDictionaryHandle
-            && raw->parentHandle == renderDictionaryHandle
-            && targetKey == layoutSymbolKey(typed->m_name)
-            && renderSettingsNameMatchesKind(raw->name, typed->m_kind)
-            && visualStyleRawIdentityMatches(*raw)
-            && raw->m_version == targetVersion
-            && std::find(m_extensionRenderSettingsHandles.begin(),
-                         m_extensionRenderSettingsHandles.end(), targetHandle)
-                != m_extensionRenderSettingsHandles.end();
+    std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presetTargets;
+    if(!indexRenderPresetRoots(data,presetTargets))
+        return reject("PLOTSETTINGS render-preset roots are missing, ambiguous or engine-mismatched");
+    const auto hasClosedRenderSettingsTarget = [this, &data, targetVersion, &presetTargets](std::uint32_t targetHandle) {
+        const auto found=presetTargets.find(targetHandle);if(found==presetTargets.end())return false;
+        const DRW_RawDxfObject* raw=nullptr;std::size_t matches=0u;
+        for(const auto& value:data.rawRenderSettingsObjects)if(value.handle==targetHandle){raw=&value;++matches;}
+        return matches==1u&&raw&&raw->parentHandle==found->second->parentHandle&&raw->m_version==targetVersion
+            &&renderSettingsNameMatchesKind(raw->name,found->second->m_kind)&&visualStyleRawIdentityMatches(*raw)
+            &&std::find(m_extensionRenderSettingsHandles.begin(),m_extensionRenderSettingsHandles.end(),targetHandle)!=m_extensionRenderSettingsHandles.end();
     };
     for (const DRW_PlotSettings& settings : data.plotSettings) {
         if (settings.shadePlotMode == 4

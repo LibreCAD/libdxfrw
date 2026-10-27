@@ -643,8 +643,33 @@ envelope. It can bind original entity/VIEW/VIEWPORT style references and LAYOUT
 visual-style shade targets through the actual NOD → `ACAD_VISUALSTYLE` dictionary
 → style entry and matching owner330. Both physical LAYOUT shade-handle aliases
 remain separate observations. Render-preset mode rejects a VisualStyle target;
-preset source shapes still need their own qualification. Parser-known aliases
-have a known object type but remain unavailable without a qualified profile.
+selected canonical RenderSettings profiles can also bind original LAYOUT mode5
+targets. Parser-known aliases have a known object type but remain unavailable
+without a qualified profile.
+
+The independent preset audit covers the modern common RENDERSETTINGS body,
+RapidRT revision2, and selected legacy/revision1/revision2 MentalRay bodies.
+The revision2 MentalRay profile includes its final diagnostics-samples Boolean
+and energy-multiplier real. RapidRT's predefined flag may occur in the common
+body or after its complete derived body; absence and explicit false remain
+distinct. The typed writer emits a canonical common-body flag and the complete
+qualified derived body. Unknown class revisions, ambiguous repeated flags,
+foreign fields and unqualified aliases do not gain source proof.
+
+Actual NOD membership, unique dictionary entries and owner330 bind presets to
+their family roots: `ACAD_RENDER_RAPIDRT_SETTINGS` for RapidRT and
+`ACAD_RENDER_SETTINGS` for the common/MentalRay family. The established
+`ACAD_RENDER_PLOT_SETTINGS` replay path remains available for either engine.
+These roots are not interchangeable. Preset dictionaries and physical field
+maps are retained once per dictionary, shared by their member proofs.
+
+When immutable captured replay is available, converter raw export refuses
+edits to its RenderSettings model or carrier instead of silently replaying the
+old values. A refused export preserves an existing destination; restoring the
+captured model permits retry. This guard does not implement edited typed
+rewriting or establish live/emitted closure for the whole document. VIEWPORT
+shade-mode4/5 source qualification still needs a wire-format witness; the
+selected target proof here covers LAYOUT mode5.
 
 This selected source proof requires every primary field once and excludes
 unknown extensions and foreign/legacy shapes. `getDxfObjectPhysicalSourceView`

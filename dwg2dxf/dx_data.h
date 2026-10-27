@@ -29,6 +29,8 @@
 #include "dx_layout_source_profile.h"
 #include "dx_viewucs_source_profile.h"
 #include "dx_visualstyle_source_profile.h"
+#include "dx_rendersettings_source_profile.h"
+#include "dx_rendering_roots.h"
 
 #include <array>
 #include <atomic>
@@ -1582,9 +1584,16 @@ private:
         std::size_t renderingReplayRecords{0},renderingReplayBytes{0},renderingReplayWork{0};
         std::size_t maxRenderingReplayBytes{64u*1024u*1024u},maxRenderingReplayWork{128u*1024u*1024u};
         bool renderingReplayFailed{false},renderingReplayLimited{false};
+        struct RenderingPresetRoot {
+            std::shared_ptr<const StructuralAudit> dictionary;
+            std::vector<std::size_t> fields;
+            std::string key;std::size_t keyGroup{DRW_DxfIdentitySource::None},targetGroup{DRW_DxfIdentitySource::None};
+        };
         struct RenderingSourceRecord {
             std::shared_ptr<const RenderingInput> input;
             dx_visualstyle_source::Audit profile;
+            dx_rendersettings_source::Audit preset;
+            std::shared_ptr<const RenderingPresetRoot> presetRoot;
             std::vector<dx_tableResourceReference> references;
             std::vector<std::size_t> physicalFields;
             std::size_t index{0},physical{DRW_DxfIdentitySource::None},nameGroup{DRW_DxfIdentitySource::None},targetGroup{DRW_DxfIdentitySource::None};
@@ -1598,6 +1607,7 @@ private:
             std::vector<std::size_t> rootFields,dictionaryFields;
             std::size_t rootKeyGroup{DRW_DxfIdentitySource::None},rootTargetGroup{DRW_DxfIdentitySource::None};
             std::map<std::uint32_t,std::shared_ptr<const RenderingSourceRecord>> records;
+            std::map<std::uint32_t,std::shared_ptr<const RenderingPresetRoot>> presetRoots;
             std::vector<std::shared_ptr<const RenderingSourceRecord>> owners;
             std::size_t physicalRecords{0};
         };

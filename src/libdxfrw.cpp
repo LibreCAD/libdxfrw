@@ -26563,8 +26563,9 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
     const bool preset = ent != nullptr
         && (ent->m_kind == DRW_RenderSettings::RapidRT
             || ent->m_kind == DRW_RenderSettings::MentalRay);
-    const auto profile = preset ? dxfRenderSettings::presetProfile(*ent)
+    const auto profile = ent ? dxfRenderSettings::presetProfile(*ent)
         : dxfRenderSettings::PresetProfile::Unavailable;
+    const bool base = profile == dxfRenderSettings::PresetProfile::Base;
     if (preset && (!dxfRenderSettings::presetProjectionMatches(*ent, profile)
         || recordName == nullptr
         || (ent->m_kind == DRW_RenderSettings::RapidRT
@@ -26573,6 +26574,8 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
             : !(dxfKeywordEquals(recordName, "MENTALRAYRENDERSETTINGS")
                 || dxfKeywordEquals(recordName, "ACDBMENTALRAYRENDERSETTINGS")))))
         return failDxfWrite();
+    if(base&&(!dxfRenderSettings::presetProjectionMatches(*ent,profile)||!recordName
+        ||!(dxfKeywordEquals(recordName,"RENDERSETTINGS")||dxfKeywordEquals(recordName,"ACDBRENDERSETTINGS"))))return failDxfWrite();
     if (!preflightTableEntry(ent))
         return false;
     if (recordName == nullptr || *recordName == '\0')
@@ -26582,7 +26585,7 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
     if (!writeTableEntryAppData(*ent))
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (preset) {
+    if (preset || base) {
         dxfRenderSettings::writePresetBody(*writer, *ent, profile);
         if (!ent->extData.empty() && !writeExtData(ent->extData))
             return false;

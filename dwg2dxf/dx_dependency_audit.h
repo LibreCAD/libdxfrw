@@ -411,14 +411,12 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 row.reason=!kind?R::WrongKind:proof==a->targets->targets.end()||proof->second.ambiguous||proof->second.physical!=id->second?R::OriginalUnavailable:R::Matched;
                                 if(row.reason==R::Matched&&(ref.kind==Role::PlotStyle||ref.kind==Role::LayerPlotStyle)
                                     &&(!proof->second.plot||!a->targets->plots||!a->targets->plots->plotTargets.count(row.target)))row.reason=R::OriginalUnavailable;
-                                if(row.reason==R::Matched&&(ref.kind==Role::VisualStyle||(ref.kind==Role::LayoutShadePlot&&row.mode==4))){
+                                if(row.reason==R::Matched&&(ref.kind==Role::VisualStyle||(ref.kind==Role::LayoutShadePlot&&(row.mode==4||row.mode==5)))){
                                     const auto& rendering=proof->second.rendering;
                                     if(!rendering)row.reason=R::OriginalUnavailable;
                                     else if(rendering->wrongOwner)row.reason=R::WrongOwner;
                                     else if(!rendering->namedTarget)row.reason=R::OriginalUnavailable;}
-                                // Render preset shapes still require their own
-                                // independent source/profile and named roots.
-                                if(row.reason==R::Matched&&ref.kind==Role::LayoutShadePlot&&row.mode!=4)row.reason=R::OriginalUnavailable;
+                                if(row.reason==R::Matched&&ref.kind==Role::LayoutShadePlot&&row.mode==5&&!proof->second.rendering->preset.complete())row.reason=R::OriginalUnavailable;
                                 if(row.reason==R::Matched&&(ref.kind==Role::ViewportClip||ref.kind==Role::ViewportShade))row.reason=R::OriginalUnavailable;
                                 if(row.reason==R::Matched&&ref.kind==Role::LayoutViewport){const auto target=a->nodes.find(row.target);bool paper=false;std::uint32_t layout=0u;
                                     if(target!=a->nodes.end()){const auto& value=target->second;

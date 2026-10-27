@@ -133853,3 +133853,140 @@ rendering/extension/recursive/live/emitted/whole-document/native qualification
 remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active; no remote mutation included.
+
+## Implementation progress — RPP-5fu preset sources, actual family roots and complete writer profiles (2026-10-27)
+
+Selected canonical RenderSettings bodies now have independent source profiles,
+actual physical field maps and family-specific named-root membership. LAYOUT
+mode5 can resolve those original preset targets. Raw converter export also
+rejects captured model edits that would otherwise be silently discarded.
+This advances RPP-5ft's first ready item without closing full rendering,
+recursive ownership, edited output or native qualification.
+
+Research and implementation:
+
+- [x] Review Autodesk's RapidRT and legacy MentalRay DXF tables, current ObjectARX
+  root/engine documentation, pinned LibreDWG schema facts and an existing pinned
+  ezdxf repository drawing in memory. The current RapidRT root is
+  `ACAD_RENDER_RAPIDRT_SETTINGS`; MentalRay uses `ACAD_RENDER_SETTINGS`.
+  Preserve `ACAD_RENDER_PLOT_SETTINGS` as the established plotting path.
+  Engines are not interchangeable. The receipt links exact sources/revisions.
+- [x] Add independent literal code sequences for the complete common body,
+  RapidRT revision2, legacy MentalRay and selected modern revision1/revision2
+  MentalRay profiles. Revision2 includes its final290/40 fields. Bind every
+  primitive vector, named field and flag-presence distinction to immutable
+  actual models/context; reuse only scalar/envelope grammar helpers, never the
+  decoder/writer's profile selector or code tables as the source oracle.
+- [x] Scope RapidRT's derived predefined flag after its complete eight-field
+  body. Distinguish absent and explicit false; refuse ambiguous duplicate
+  common/derived flags for source proof. Extend typed common/MentalRay writing
+  with canonical order and complete qualified tails. Unknown revisions,
+  aliases, incomplete/foreign bodies remain source-unqualified; ordinary
+  tolerant import and the existing partial generic fallback remain available.
+- [x] Bind actual NOD key/target fields, unique dictionary members and owner330
+  to the appropriate preset family. Retain each dictionary and its physical
+  map once, shared by members. Reuse this root validation for converter preset
+  export and PLOTSETTINGS targets. Keep both physical LAYOUT333 uses separate.
+- [x] When actual immutable replay exists, compare the live RenderSettings and
+  raw carrier before raw export. Refuse edits before publishing the destination;
+  restoring the original model permits same-adapter retry. This is a loss guard,
+  not implementation of edited typed rewriting or whole-document emitted proof.
+- [x] Preserve existing public models, facade/source-view layouts, callback slots
+  and ordinary consumers. No native DWG parse body or reader layout changes.
+
+Owning controls and review:
+
+- [x] 240 locally authored profiles span four declared versions, ASCII LF/CRLF
+  and binary, ENTITIES/BLOCKS consumers and ten selected body/flag shapes.
+  An independent file walker checks 12,456 mapped fields, 1,680 handle/name roles
+  and 480 LAYOUT target uses; 7,944 individual primary-scalar mutations refuse
+  binding. 120 profiles include comments in the preset and named dictionaries.
+  All 240 repeated source/dependency queries allocate nothing.
+- [x] 36 schema/root/name/owner/alias/revision/APPID/target refusals accept corrected
+  imports. Six exact/one-under source byte/work controls preserve ordinary
+  retained data and prevent stale graph success. Two actual finalizer schedules
+  reach 230 allocation failures, four unreached offsets and 234 corrected
+  finalizations. The old successful audit remains present during attempts;
+  reached failures and unjoined replacements cannot reuse stale dependencies.
+  Stop each finite schedule after two consecutive unreached offsets, bounded
+  by256; no exhaustive allocation or process-memory claim.
+- [x] Twenty raw export/readbacks and twenty typed write/readbacks cover all ten
+  selected bodies in ASCII/binary. One hundred live-model mutation refusals
+  preserve a sentinel destination and pass corrected same-adapter retries.
+  Corrected import/quota/export retries total142, separate from finalizations.
+- [x] Review corrects the old test that treated the genuine RapidRT root as an
+  error: use an engine-mismatched root for the negative control. Strict build
+  initially catches misleading test indentation; fix it with warnings intact.
+  Existing VisualStyle/source/physical/publication controls remain unchanged.
+
+Final verification:
+
+- [x] Both 11-target incremental build checks pass with `-Werror` preserved:
+  normal 22.48s and qualified Debug/`-O1`/ASan
+  253.83s. Strict fixture syntax validation passes
+  `-Wall -Wextra -pedantic -Werror`; LibreCAD_3's compile-only guard builds.
+- [x] The affected cohort passes **104/104** normally in 89.90s
+  and **104/104** under qualified ASan in 56.56s at j2.
+  Actual names/order/labels/timeouts and executed sets agree, with no failures,
+  skips or disabled tests. All 25 owning counter lines match across both builds;
+  all 24 previous lines stay unchanged. Existing focused UCS/VIEWPORT checks pass.
+- [x] The 430-file compiled-source/build-metadata manifest stays frozen through
+  both final runtimes. Builds and packaging finish before normal then ASan tests.
+  Original Debug/O0 ASan is unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both 146-member archives
+  include exact new/updated production header hashes and no AppleDouble metadata.
+  Test-helper/source-release inventory and an actual extracted-source build stay
+  unqualified; full suite, formal ABI/native applications and controlled
+  memory/performance remain open.
+
+The [receipt](docs/research/rpp5fu-render-preset-sources-roots-and-writer-profiles-2026-10-27.json)
+pins source hashes, research revisions, controls, configurations, observed test
+sets/counters and the full remaining objective. No external drawing bytes,
+conversions or derivatives enter this slice; all new recipes are authored here.
+
+Next implementation-ready sequence (retain the full original objective):
+
+1. [ ] **Finish rendering variants and remaining providers.** Inventory remaining
+   optional/absent/duplicate/alias/extension VisualStyle and preset profiles from
+   primary schemas and actual source observations. Qualify active/global/
+   environment settings separately from named presets. Complete background,
+   live-section and sun. For VIEWPORT shade4/5 first obtain an actual wire witness
+   and reconcile the official DXF0..3 table with SDK modes4/5; do not infer byte
+   semantics from SDK enums. Then bind clipping and layer overrides335/343/344/91.
+   Reuse physical metadata and existing profile/failure helpers; run owning fast
+   selectors before any broader checkpoint.
+2. [ ] **Complete document ownership and live/emitted closure.** Retain remaining
+   entity/material/reactor/IMAGE/document/control/owner, dictionary flags,
+   name/application/XDATA, HEADER CEPSNID/CEPSNTYPE and native collation work.
+   Complete recursive/coupled/whole-document closure. Revalidate edited fields,
+   names, modes and references against actual emitted identities/bytes, including
+   remapping, raw-carrier edits, independent emitted-field/value checks and
+   readback/refusal/rollback/retry. Typed writer tests here use same-library
+   readback plus reviewed independent schemas. Source equality
+   and the new edit-refusal guard are prerequisites, not complete output proof.
+3. [ ] **Finish TABLE and native B2b/B3/C.** Complete Values, multiple-content
+   attributes, linked-data ownership and qualified formats/units/borders without
+   guessing date epochs, native point counts or General semantics. Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document and version/corpus work.
+4. [ ] **Resolve release and consumer qualification.** Fix the recorded42-file
+   legacy release gap and newly identified omitted test helpers; reconcile the
+   Git/CMake/Autotools inventories and qualify an actual extracted-source build.
+   Archive inclusion alone is insufficient. Preserve LibreCAD/LibreCAD_3 and
+   dwg2dxf/FreeCAD behavior; complete controlled memory/performance, formal/native
+   consumer checks, native Linux/Windows FreeCAD and independent ACIS/ACDS kernel
+   evidence with separate evidence gates.
+5. [ ] **Continue efficient self-updating execution.** Reuse built targets and
+   fast owning selectors. Broaden only for shared parser/API/registry/build
+   changes or failures. Freeze compiled inputs, complete builds/package checks,
+   then run normal followed by ASan. Preserve failures/caps, self-unblock,
+   update/commit/report each verified slice and continue the next ready lane.
+   Commit no external drawing payload, conversion or derivative.
+
+Resource families remain nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, full `ownerTargetsResolved=false`, `recursiveClosureMatched=false`
+and `outputEligible=false`. Selected canonical preset original sources and
+rooted LAYOUT mode5 targets can now match. Full rendering/extension/recursive/
+live/emitted/whole-document/native qualification remains incomplete.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. The full objective remains active; no remote mutation included.

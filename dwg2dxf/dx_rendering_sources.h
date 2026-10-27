@@ -88,6 +88,18 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
                     &&dx_visualstyle_source::matches(row->profile,*in.rawRaw,*raw,in.rawVisualProperties,*in.context);
                 if(row->bodyMatched)for(const auto& span:row->profile.spans)if(span.role!=dx_visualstyle_source::Role::None)
                     row->references.push_back({renderingSourceRole(span.role),span.group,span.code,span.target});
+            }else if(in.original.kind==RenderingView::Kind::RenderSettings&&original.modeledStateMatched&&original.replayDecoded
+                &&!in.original.originalPendingXdata&&!in.original.originalCoordinateMask&&original.originBound){
+                row->preset=dx_rendersettings_source::audit(*in.typedRaw);
+                const auto& physical=audit->inputs->identity->source->records.at(row->physical);
+                if(!same(in.physical,in.physicalOwner)
+                    ||!renderingSourceFields(*in.typedRaw,physical,in.physical,in.physicalStatus,row->physicalFields)){
+                    row->preset.reason=dx_visualstyle_source::Reason::PhysicalEnvelope;row->preset.spans.clear();}
+                const auto* typed=dynamic_cast<const DRW_RenderSettings*>(in.typedModel.get());const auto* raw=dynamic_cast<const DRW_RenderSettings*>(in.rawModel.get());
+                row->bodyMatched=typed&&raw&&in.context&&dx_rendersettings_source::matches(row->preset,*in.typedRaw,*typed,*in.context)
+                    &&dx_rendersettings_source::matches(row->preset,*in.rawRaw,*raw,*in.context);
+                if(row->bodyMatched)for(const auto& span:row->preset.spans)if(span.role!=dx_visualstyle_source::Role::None)
+                    row->references.push_back({renderingSourceRole(span.role),span.group,span.code,span.target});
             }
             complete=complete&&row->bodyMatched&&row->originBound;
             audit->owners.push_back(row);audit->records.emplace(item.first,std::move(row));
@@ -136,6 +148,46 @@ void dx_iface::finishRenderingSources(dx_data& data) noexcept {
                 }
             }
         }
+        const bool presets=std::any_of(audit->records.begin(),audit->records.end(),[](const auto& item){return item.second->preset.complete();});
+        if(presets&&roots==1u){const auto& root=*audit->root->input;std::vector<dx_tableResourceReference> references;
+            bool known=root.raw&&root.context&&root.raw->parentHandle==0u&&same(root.physical,root.physicalOwner)
+                &&renderingSourceFields(*root.raw,audit->inputs->identity->source->records.at(audit->root->physical),root.physical,root.physicalStatus,audit->rootFields)
+                &&spineSourceReferences(*root.raw,true,references);
+            std::map<std::string,std::size_t> names;std::map<std::uint32_t,std::size_t> targets;std::map<std::size_t,std::string> keys;
+            if(known)for(const auto& ref:references){if(ref.kind==Role::Unknown){known=false;break;}
+                if(ref.kind!=Role::DictionarySoftOwner&&ref.kind!=Role::DictionaryHardOwner)continue;
+                std::string key;if(!ref.groupIndex||root.raw->groups[ref.groupIndex-1u].code()!=3
+                    ||!renderingSourceName(dx_attdef_source::text(root.raw->groups[ref.groupIndex-1u]),*root.context,key)){known=false;break;}
+                std::string folded;if(!dx_symbol_output::nameKey(key,folded)){known=false;break;}++names[folded];++targets[ref.value];keys.emplace(ref.groupIndex,std::move(key));}
+            if(known)for(const auto& ref:references){const auto key=keys.find(ref.groupIndex);if(key==keys.end()||!dx_rendering_roots::known(key->second))continue;
+                std::string folded;if(!dx_symbol_output::nameKey(key->second,folded)||names.at(folded)!=1u||targets.at(ref.value)!=1u)continue;
+                const auto found=s.structuralAudits.find(ref.value);if(found==s.structuralAudits.end())continue;const auto& dictionary=found->second;
+                if(!dictionary||!dictionary->bodyMatched||!dictionary->stateComplete||!dictionary->originBound||!dictionary->input||!dictionary->input->paired
+                    ||!dictionary->input->raw||!dictionary->input->context||!asciiIdentifierEquals(dictionary->input->raw->name,"DICTIONARY"))continue;
+                auto binding=std::make_shared<dx_data::TableDxfSourceCapture::RenderingPresetRoot>();binding->dictionary=dictionary;binding->key=key->second;
+                binding->keyGroup=ref.groupIndex-1u;binding->targetGroup=ref.groupIndex;
+                const auto& in=*dictionary->input;std::vector<dx_tableResourceReference> members;
+                if(!same(in.physical,in.physicalOwner)||!renderingSourceFields(*in.raw,audit->inputs->identity->source->records.at(dictionary->physical),
+                    in.physical,in.physicalStatus,binding->fields)||!spineSourceReferences(*in.raw,true,members))continue;
+                std::map<std::uint32_t,std::size_t> counts;std::set<std::string> memberKeys;bool membersKnown=true;
+                for(const auto& member:members){if(member.kind==Role::Unknown){membersKnown=false;break;}
+                    if(member.kind!=Role::DictionarySoftOwner&&member.kind!=Role::DictionaryHardOwner)continue;
+                    std::string name,fold;if(!member.groupIndex||in.raw->groups[member.groupIndex-1u].code()!=3
+                        ||!renderingSourceName(dx_attdef_source::text(in.raw->groups[member.groupIndex-1u]),*in.context,name)
+                        ||!dx_symbol_output::nameKey(name,fold)||!memberKeys.insert(std::move(fold)).second){membersKnown=false;break;}++counts[member.value];}
+                if(!membersKnown)continue;
+                audit->presetRoots.emplace(ref.value,binding);
+                for(const auto& member:members){if(member.kind!=Role::DictionarySoftOwner&&member.kind!=Role::DictionaryHardOwner)continue;
+                    const auto target=audit->records.find(member.value);if(target==audit->records.end()||!target->second->preset.complete())continue;
+                    auto value=std::const_pointer_cast<Record>(target->second);const auto* model=dynamic_cast<const DRW_RenderSettings*>(value->input->typedModel.get());
+                    std::string name;if(!model||!renderingSourceName(dx_attdef_source::text(in.raw->groups[member.groupIndex-1u]),*in.context,name))continue;
+                    value->presetRoot=binding;value->nameGroup=member.groupIndex-1u;value->targetGroup=member.groupIndex;
+                    value->wrongOwner=in.raw->parentHandle!=root.raw->handle||value->input->typedRaw->parentHandle!=ref.value;
+                    value->namedTarget=value->bodyMatched&&value->originBound&&!value->wrongOwner&&counts.at(member.value)==1u
+                        &&dx_rendering_roots::allows(binding->key,model->m_kind)&&name==model->m_name;
+                }
+            }
+        }
         save(audit->records.empty()&&!audit->physicalRecords?S::NoSources:complete&&audit->records.size()==audit->physicalRecords?S::SourcesReady:S::Unqualified);
     }catch(...){s.renderingSourceFailed=true;}
 }
@@ -162,13 +214,20 @@ dx_iface::RenderingSourceReport dx_iface::renderingSourceReport(const dx_data& d
         const auto found=s.structuralAudits.find(row.input->raw->handle);
         if(found==s.structuralAudits.end()||!same(*pointer,found->second)){report.state=S::ContextMismatch;return report;}}
     if(structural.state==StructuralSourceState::CaptureFailed){report.state=S::SourceNotReady;return report;}
+    for(const auto& item:audit->presetRoots){const auto& binding=item.second;
+        if(!binding||!binding->dictionary||!binding->dictionary->input||!binding->dictionary->input->raw){report.state=S::ContextMismatch;return report;}
+        const auto found=s.structuralAudits.find(item.first);
+        if(found==s.structuralAudits.end()||!same(binding->dictionary,found->second)
+            ||!same(binding->dictionary->input->physical,binding->dictionary->input->physicalOwner)){report.state=S::ContextMismatch;return report;}}
     for(const auto& item:audit->records){const auto& row=item.second;const auto found=s.renderingInputs.find(item.first);
         if(!row||found==s.renderingInputs.end()||!same(row->input,found->second)||row->index>=audit->owners.size()||!same(row,audit->owners[row->index])){
             report.state=S::ContextMismatch;return report;}
         if(!same(row->input->physical,row->input->physicalOwner)){report.state=S::ContextMismatch;return report;}
         const auto source=audit->inputs->rows.find(item.first);
         if(source==audit->inputs->rows.end()||!same(source->second.input,row->input)||source->second.physical!=row->physical||source->second.originBound!=row->originBound){report.state=S::ContextMismatch;return report;}
-        ++report.records;if(row->bodyMatched){++report.profiles;report.fields+=row->profile.spans.size();report.references+=row->references.size();}
+        if(row->presetRoot){const auto found=audit->presetRoots.find(row->presetRoot->dictionary->input->raw->handle);
+            if(found==audit->presetRoots.end()||!same(row->presetRoot,found->second)){report.state=S::ContextMismatch;return report;}}
+        ++report.records;if(row->bodyMatched){++report.profiles;report.fields+=row->preset.complete()?row->preset.spans.size():row->profile.spans.size();report.references+=row->references.size();}
         if(row->originBound)++report.origins;if(row->namedTarget)++report.namedTargets;
     }
     report.physical=audit->physicalRecords;report.state=audit->state;

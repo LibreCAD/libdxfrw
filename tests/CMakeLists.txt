@@ -1122,6 +1122,10 @@ add_test(NAME libdxfrw_objects_physical_sources
     COMMAND libdxfrw_table_content_dxf_tests --object-physical)
 set_tests_properties(libdxfrw_objects_physical_sources PROPERTIES
     LABELS "fast;dxf;render;source;graph;physical" TIMEOUT 30)
+add_test(NAME libdxfrw_render_preset_sources
+    COMMAND libdxfrw_table_content_dxf_tests --render-presets)
+set_tests_properties(libdxfrw_render_preset_sources PROPERTIES
+    LABELS "fast;dxf;render;source;graph;writer" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_evaluation_graph_capture_limits
