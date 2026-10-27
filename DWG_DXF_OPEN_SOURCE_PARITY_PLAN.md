@@ -131238,6 +131238,11 @@ as `fcdb3d05`. This slice restores a passing normal proof result and fixes
 producer-shaped Value field-completeness gaps; it does not complete independent
 Value/output profiles, TABLE row overrides or the full plan.
 
+**Later status:** RPP-5fb below supplies independent physical profiles for selected
+structured Value forms. The all-extended-Values `profilesMatched=false` statement
+at this historical checkpoint is superseded only for those selected forms;
+actual dependency targets, output and general support remain unqualified.
+
 - [x] Materialize exact parent `d5fa40f6` in an isolated source archive and build
   the existing proof target with the same compiler/test flags. Preserve the
   original `fcdb3d05` executable before rebuilding the working source. Both
@@ -131352,3 +131357,116 @@ structured Value `profilesMatched=false`. J256/J260/J268/J284/J293/J295 remain
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full objective stays active
 and incomplete; no support promotion or remote mutation is included.
+
+## Implementation progress — RPP-5fb independent structured TABLE Value profiles (2026-10-26)
+
+State: **verified for the selected original-physical-profile/reader scope**.
+RPP-5fa is committed as `aef56129`. This is the original-physical-profile and
+distinct-reference-role prerequisite, not complete target closure or output proof.
+
+- [x] Add a converter-private, allocation-free structured Value grammar over
+  original scalar tags. Do not call the production Value parser or project a
+  decoded model to establish the physical profile. Require flags93/type90,
+  typed payload, units94/format300/cache302 and canonical304 closure in order.
+  Preserve one physical span per original tag, explicit presence and chunking.
+  Keep legacy string-only envelopes separate. Refuse nested subclass/application/
+  XDATA escapes inside the Value, duplicates, unsupported kinds/flags/units,
+  malformed/count-mismatched binary and incomplete/out-of-order tuples.
+- [x] Account for string prefix2 chunks before final1, signed91, finite140,
+  size-free11/21(/31), bounded8/16-byte date carriers, checked object330 and
+  suppressed known kinds/Unknown0. The canonical block-associated profile is an
+  empty flags1/string4 Value with unit0 and empty format/cache; do not fabricate
+  another text/ATTDEF slot. Explicit native-inspired point counts, General512,
+  unknown128/256 and unproved block forms remain outside this selected profile.
+  Two-dimensional points, object IDs and8-byte dates have isolated reader/source
+  mapping controls, not an independently inventoried producer specimen here.
+- [x] Append the distinct `TableValueObject` role. Independently walk original
+  ASCII/CRLF/binary file offsets, types, scalars and roles; distinguish Value330,
+  structural owner330, FIELD344 and cell block340. Verify both real TABLE callback
+  snapshots retain distinct owner/FIELD/Value handles, including explicit null0.
+  A nonzero dangling Value handle may have a complete physical field profile;
+  it does **not** have qualified dependency targets. No target/output gate opens.
+- [x] Recheck pinned ACadSharp commit `3a52a52047e84670759c1f9ad3916ec3ce85ff56`
+  locally after remote fetch/cache failure; reader/writer/CadValue hashes match
+  the prior receipt. Its `CadValueUnitType` and the four pinned original ASCII
+  inventories corroborate DXF units16/32 (currency/percentage). Retain and mark
+  these DXF fields locally complete without changing the native DWG unit whitelist
+  or inferring conversion/formatting semantics. Payload suppression must not make
+  unknown128/256 kinds complete. Keep them bounded/incomplete with corrected retries.
+- [x] Add runtime-authored `libdxfrw_table_value_original_profiles`: **432**
+  revision/encoding/scope/form profiles and **30,816** independently walked spans;
+  **48** owner/FIELD/Value role controls; **876** mistyped, **870** missing,
+  **852** duplicate and **876** unknown-tag refusals; **180** grammar refusal/
+  correction controls; **42** immutable/control-block/cross-import refusals;
+  **36** exact/one-under proof boundaries; **96 reached** allocation failures
+  in a finite96-offset schedule; **246** corrected imports. The selected parent
+  audit/proof is precharged through the existing bounded TABLE-body accounting;
+  the new Value grammar owns no payload/container. Reached offsets are failure
+  evidence, not exhaustive allocation coverage. Extend existing reader malformed
+  retries from68 to **76**, preserving all earlier Value/legacy/consumer controls.
+- [x] All eight affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass **44/44
+  normally in53.40s**, then **44/44 under ASan in35.03s**, with two workers and
+  zero failures/skips/disabled tests. Include all35 owning TABLE selectors and
+  nine affected inventory/legacy/consumer/CLI/graph checks; preserve all prior43
+  names/order and add only the new selector. Registered names/order and executed
+  sets match; all four selected Value/inventory/CELLSTYLEMAP counter lines match
+  across configurations. The final source manifest stays unchanged through both
+  runtimes, and all builds/normal runtime finish before ASan runtime. Preserve
+  development compile failures (misleading indentation and a test mutation using
+  a nonexistent Variant API) and corrections. Fast owning checks pass4/4 before
+  final immutable/metadata controls; the final cohorts cover those controls.
+  Rebuild the owning target in both configurations after freezing final metadata
+  assertions, removing uncertainty from editing that test header during a build.
+  Warnings, coverage and time caps stay unchanged. These are affected checks,
+  not a full suite, formal ABI/native consumer or controlled performance proof.
+
+The [receipt](docs/research/rpp5fb-independent-table-value-profiles-2026-10-26.json)
+records exact source/log hashes, selected names/statuses/counters, pinned source
+metadata, build/runtime order and limits. Only the separate Debug/O1 ASan build
+is claimed; the pre-existing Debug/O0 configuration is unchanged. Date carriers
+remain opaque; actual original producer identity and binary-producer/native
+semantic qualification are not inferred from these controls.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Actual Value and TABLE dependency joins.** Bind selected original
+   reference spans to the same import's immutable physical identity namespace,
+   exact resource/entity/object producer origins and original callback pairs.
+   Handle explicit null separately; mere nonzero handle existence, replay equality
+   or a copied/cross-import snapshot is insufficient. Establish role-specific
+   admissible targets for Value soft-object, TABLESTYLE, geometry/cell BLOCK_RECORD,
+   FIELD, cell ATTDEF, STYLE/APPID/LAYER and nested INSERT references. Cover absent,
+   duplicate, ambiguous, wrong-role/kind, cycle, stale/edited/replaced/cross-import
+   targets, original/source/typed mismatches, limits, reached faults and retries.
+   Keep unknown producer mappings unqualified and whole-document ownership closed.
+   Finalization readiness: `finishTableBodies` currently precedes identity,
+   structural, layout and entity/block role audits. Build a separate bounded,
+   immutable dependency audit after those prerequisites, pinning their original
+   shared owners plus the exact `TableBody`; do not mutate a published const body
+   or introduce a circular readiness gate. The existing TABLECONTENT advisory
+   binding query is not a general original TABLE/Value target certificate.
+2. [ ] **Exact Value output and row/border overrides.** After original profile/
+   target proof, establish independent emitted fields/remapping/readback and
+   live/edited state, refusal/rollback/retry/destination safety. Research actual
+   producer/version scope/order before adding repeated title/header/data formats,
+   datatypes/units and border overrides. Do not infer date epoch, native point
+   byte counts, formatting calculations or General semantics from retained bytes.
+3. [ ] **Complete B2b/B3/C and performance work.** Finish all original/live/
+   edited/emitted fields/names/references, IMAGE/document/native bit/decimal/
+   carrier/schema/owner and memory/performance obligations. The historical proof
+   timeout cause remains unestablished, not an active failing normal gate.
+4. [ ] **Consumer/external qualification and continued execution.** Preserve
+   LibreCAD/LibreCAD_3 2D/3D and dwg2dxf/FreeCAD compatibility. Obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence. Use fast
+   owning checks per edit and affected cohorts at integration; separate builds
+   from final runtimes, retain failures, self-update/unblock/commit/report each
+   verified slice. Commit no external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+Selected structured Value physical profiles can match; unsupported forms stay
+unqualified and matching is not actual target or semantic/output evidence.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The full objective remains active and incomplete; no remote mutation is included.

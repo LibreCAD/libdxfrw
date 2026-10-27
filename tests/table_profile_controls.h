@@ -34,7 +34,7 @@ bool tableProfileWire(const std::vector<AttdefWireTag>& wire,const DRW_DxfPhysic
                       const dx_attdef_source::Audit& profile,std::size_t& count) {
     using namespace dx_attdef_source;
     if(!profile.complete()||profile.spans.size()!=physical.groups.size())return false;
-    unsigned depth=0u;std::string application;int stage=0;bool table=physical.name=="ACAD_TABLE";
+    unsigned depth=0u;std::string application;int stage=0;bool table=physical.name=="ACAD_TABLE",inValue=false,firstValue=false,structured=false;
     for(std::size_t i=0u;i<physical.groups.size();++i) {
         const auto& p=physical.spans[i];const auto& span=profile.spans[i];const auto& value=physical.groups[i];
         if(!p.ordinal||p.ordinal>wire.size())return false;const auto& w=wire[p.ordinal-1u];
@@ -55,9 +55,11 @@ bool tableProfileWire(const std::vector<AttdefWireTag>& wire,const DRW_DxfPhysic
             if(application=="{ACAD_XDICTIONARY"&&w.code==360)role=Role::ExtensionDictionary;
             if(span.field!=Field::Application)return false;
         }else {
+            if(table&&stage==3&&w.code==301&&w.text=="CELL_VALUE"){inValue=true;firstValue=true;structured=false;}
+            else if(firstValue){structured=w.code==93;firstValue=false;}
             if(w.code==100){if(w.text=="AcDbEntity")stage=1;else if(w.text=="AcDbBlockReference")stage=2;else if(w.text=="AcDbTable")stage=3;}
             switch(w.code) {
-            case 5:role=Role::Self;break;case 330:role=Role::Owner;break;case 8:role=Role::LayerName;break;case 6:role=Role::LineTypeName;break;
+            case 5:role=Role::Self;break;case 330:role=inValue&&structured?Role::TableValueObject:Role::Owner;break;case 8:role=Role::LayerName;break;case 6:role=Role::LineTypeName;break;
             case 7:role=Role::TextStyleName;break;case 410:role=Role::LayoutName;break;case 347:role=Role::Material;break;case 348:role=Role::FullVisualStyle;break;
             case 390:role=Role::PlotStyle;break;case 360:role=Role::ExtensionDictionary;break;case 1001:role=Role::AppIdName;break;
             case 1003:role=Role::XdataLayerName;break;case 1005:role=Role::XdataObjectId;break;
@@ -66,15 +68,17 @@ bool tableProfileWire(const std::vector<AttdefWireTag>& wire,const DRW_DxfPhysic
             case 344:role=Role::TableCellField;break;case 331:role=Role::TableCellAttributeDefinition;break;
             default:break;
             }
+            if(inValue&&span.field!=Field::TableValue)return false;
+            if(w.code==304){inValue=false;structured=false;}
         }
         if(span.scope!=Scope::Host||span.role!=role)return false;
         if(role==Role::Self||role==Role::Owner||role==Role::OpaqueHandle||role==Role::Reactor||role==Role::ExtensionDictionary
             ||role==Role::Material||role==Role::FullVisualStyle||role==Role::PlotStyle||role==Role::XdataObjectId
-            ||role==Role::TableStyle||role==Role::TableGeometryBlock||role==Role::TableCellBlock||role==Role::TableCellField||role==Role::TableCellAttributeDefinition)
+            ||role==Role::TableStyle||role==Role::TableGeometryBlock||role==Role::TableCellBlock||role==Role::TableCellField||role==Role::TableCellAttributeDefinition||role==Role::TableValueObject)
             if(span.handle!=std::stoull(w.text,nullptr,16))return false;
         ++count;
     }
-    return !depth;
+    return !depth&&!inValue;
 }
 bool tableProfileTests(const std::filesystem::path& dir) {
     using A=DxIfaceTableSourceTestAccess;using BS=dx_iface::BlockRoleState;using ES=dx_iface::EntitiesRoleState;

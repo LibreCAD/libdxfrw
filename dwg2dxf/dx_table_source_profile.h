@@ -3,6 +3,7 @@
 #define DX_TABLE_SOURCE_PROFILE_H
 #include "intern/dxfparserlimits.h"
 #include "dx_compound_source_profile.h"
+#include "dx_table_value_source_profile.h"
 
 // Independent original ACAD_TABLE scalar/scope/reference inventory. No decoder,
 // model projection, target lookup, TABLECONTENT schema or CAD semantic claim.
@@ -23,10 +24,11 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
     std::size_t depth=0u,xdepth=0u,proxyBytes=0u,rowHeights=0u,columnWidths=0u,cells=0u;
     unsigned reserved=0u;int stage=0,rows=-1,columns=-1,type=0,attributes=-1,readAttributes=0,point=0,next=0;
     std::int64_t proxy=-1;bool xdata=false,inValue=false,overrides=false,attributeText=false,cellText=false,valueClosed=false;
+    bool valueFirst=false,structured=false,cellValue=false;ValueProfile value;
     const auto integer=[](const DRW_Variant& v,int lo,int hi){return v.type()==DRW_Variant::INTEGER&&v.i_val()>=lo&&v.i_val()<=hi;};
     const auto pair=[](const auto& seen,int x,bool required){return (!seen[x]&&!seen[x+10]&&!seen[x+20]&&!required)||(seen[x]&&seen[x+10]);};
     const auto finishCell=[&](){return !cells||(!inValue&&!attributeText&&(attributes<0||attributes==readAttributes)
-        &&((type==1&&(cellText||cell[344]))||(type==2&&cell[340])));};
+        &&((type==1&&(cellText||cellValue||cell[344]))||(type==2&&cell[340])));};
     for(std::size_t i=0u;i<raw.groups.size();++i) {
         const auto& v=raw.groups[i];const int code=v.code();const auto s=text(v);
         if(!dx_compound_source::scalarType(v))return reject(Reason::InvalidValue,i);
@@ -67,6 +69,7 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
         }else {
             if(xdata)return reject(Reason::Xdata,i);
             if(code==100) {
+                if(inValue)return reject(Reason::Subclass,i);
                 field=Field::Subclass;
                 if(stage==0&&s=="AcDbEntity")stage=1;
                 else if(stage==1&&s=="AcDbBlockReference")stage=2;
@@ -92,23 +95,24 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                     body=true;field=cells?Field::TableCell:Field::Table;
                     if(inValue) {
                         field=Field::TableValue;
-                        if(code==304){if(s!="ACVALUE_END"||!cellText)return reject(Reason::UnmodeledSecondary,i);inValue=false;valueClosed=true;}
+                        if(valueFirst){structured=code==93;valueFirst=false;}
+                        if(structured) {
+                            if(!value.take(v,role,handle))return reject(Reason::UnmodeledSecondary,i);
+                            if(value.closed()){inValue=false;valueClosed=true;cellValue=true;}
+                        }else if(type!=1)return reject(Reason::UnmodeledSecondary,i);
+                        else if(code==304){if(s!="ACVALUE_END"||!cellText)return reject(Reason::UnmodeledSecondary,i);inValue=false;valueClosed=true;}
                         else if(code==1||code==2||code==302||code==303){if(type!=1)return reject(Reason::UnmodeledSecondary,i);cellText=true;}
                         else if(code==90) {
                             if(cell[90])return reject(Reason::DuplicateField,i);
-                            // appendCellText currently rewrites the modeled
-                            // datatype to string. A nonstring declaration must
-                            // not disappear behind matching decoder replays.
+                            // Legacy envelopes have only the string profile;
+                            // a typed declaration requires the structured form.
                             if(!integer(v,4,4))return reject(Reason::UnmodeledSecondary,i);cell[90]=true;
                         }
-                        // Flags/units, coordinates, binary and object IDs in a
-                        // CadValue are NOT table-header flags or common owners.
-                        // The current model does not retain their full meaning.
                         else return reject(Reason::UnmodeledSecondary,i);
                     }else if(code==171) {
                         if(overrides||rows<0||columns<0||static_cast<std::uint64_t>(rows)*columns<=cells||!finishCell())return reject(Reason::InvalidValue,i);
                         if(!integer(v,1,2))return reject(Reason::UnmodeledSecondary,i);
-                        ++cells;type=v.i_val();cell.fill(false);cell[171]=true;attributes=-1;readAttributes=0;attributeText=false;cellText=false;valueClosed=false;
+                        ++cells;type=v.i_val();cell.fill(false);cell[171]=true;attributes=-1;readAttributes=0;attributeText=false;cellText=false;valueClosed=false;cellValue=false;
                     }else if(code==280&&!table[280]&&rows<0&&columns<0&&!overrides) {
                         field=Field::Table;if(!integer(v,0,65535))return reject(Reason::InvalidValue,i);table[280]=true;
                     }else if(code==70||code==40||code==41||code==280||code==281) {
@@ -135,7 +139,8 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                     }else if(cells&&!overrides) {
                         if(code==2||code==303){if(type!=1||cell[1]||valueClosed)return reject(Reason::InvalidValue,i);cellText=true;}
                         else if(code==1||code==302){if(type!=1||cell[1]||cell[302]||valueClosed)return reject(Reason::DuplicateField,i);cellText=true;cell[code]=true;}
-                        else if(code==301){if(type!=1||s!="CELL_VALUE"||cell[301]||cellText)return reject(Reason::UnmodeledSecondary,i);cell[301]=true;inValue=true;field=Field::TableValue;}
+                        else if(code==301){if(s!="CELL_VALUE"||cell[301]||cellText)return reject(Reason::UnmodeledSecondary,i);
+                            cell[301]=true;inValue=true;valueFirst=true;structured=false;value=ValueProfile{};value.block=type==2;field=Field::TableValue;}
                         else if(code==331||code==300) {
                             if(type!=2||attributes<0)return reject(Reason::UnmodeledSecondary,i);
                             if(code==331){if(attributeText||readAttributes>=attributes)return reject(Reason::InvalidValue,i);attributeText=true;++readAttributes;role=Role::TableCellAttributeDefinition;}

@@ -10884,12 +10884,20 @@ bool DRW_Table::finishDxfCellValue(const std::unique_ptr<dxfReader>& reader) {
     // Pinned DXF producer envelopes use4/5/6/7 as well as the older0..3.
     // Only bit0 suppresses their payload; preserve the other witnessed bits
     // without interpreting them or inferring a native DWG flag profile.
+    // DXF also witnesses currency16/percentage32. Keep that extension local;
+    // the native DWG unit whitelist is a separately qualified profile.
     bool complete=(m_dxfValueFields&required)==required
-        &&(value.m_formatFlags&~7)==0&&hasDocumentedTableCadValueUnits(value);
+        &&(value.m_formatFlags&~7)==0&&(hasDocumentedTableCadValueUnits(value)
+            ||value.m_unitType==16||value.m_unitType==32);
     const bool binary=!(value.m_formatFlags&1)&&(value.m_dataType==8||value.m_dataType==512)
         &&(m_dxfValueFields&ValueSize);
     if(value.m_formatFlags&1) {
         complete=complete&&!(m_dxfValueFields&(ValuePayload|ValueSize|ValueX|ValueY|ValueZ));
+        // Payload suppression cannot qualify an unknown declared kind.
+        switch(value.m_dataType) {
+        case 0:case 1:case 2:case 4:case 8:case 16:case 32:case 64:break;
+        default:complete=false;break;
+        }
     }else switch(value.m_dataType) {
     case 0:case 1:complete=complete&&value.m_value.type()==DRW_Variant::INTEGER;break;
     case 2:complete=complete&&value.m_value.type()==DRW_Variant::DOUBLE;break;

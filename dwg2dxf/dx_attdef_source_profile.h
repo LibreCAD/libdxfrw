@@ -28,7 +28,8 @@ enum class Role : std::uint8_t {
     None, Self, Owner, LayerName, LineTypeName, TextStyleName, Material,
     FullVisualStyle, PlotStyle, Reactor, ExtensionDictionary, AppIdName,
     XdataLayerName, XdataObjectId, OpaqueHandle, BlockName, RedundantBlockName, XrefPath, LayoutName,
-    TableStyle, TableGeometryBlock, TableCellBlock, TableCellField, TableCellAttributeDefinition
+    TableStyle, TableGeometryBlock, TableCellBlock, TableCellField, TableCellAttributeDefinition,
+    TableValueObject
 };
 enum class Form : std::uint8_t { Classic, Embedded101, EmbeddedLegacy100 };
 enum class Reason : std::uint8_t {
