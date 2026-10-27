@@ -6,6 +6,13 @@ void dependencyCommon(Tags& tags,const char* handle,const Tags& extra) {
 }
 Tags dependencyDocument(const std::string& version,bool blocks,unsigned form) {
     auto tags=symbolOriginDocument(version,blocks,0u,48);
+    // These positive graphs select an explicit soft-ownership policy. Omitted
+    // 280 is retained by compatible reads but is not an independently defined
+    // ownership default; dedicated omission controls keep it unqualified.
+    for(const char* handle:{"40","43"}) {
+        auto at=slot(tags,5,handle)+1u;while(tags[at].code!=100||tags[at].value!="AcDbDictionary")++at;
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at+1u),{{280,"0"}});
+    }
     // Earlier source-profile controls deliberately contain opaque handle
     // lookalikes. A complete reference graph must refuse those; the positive
     // recipe removes that group and tests an opaque group separately below.

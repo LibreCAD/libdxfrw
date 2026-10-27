@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fh original plot-style sources and rooted targets (2026-10-27; verified selected scope):** actual DICTIONARYWDFLT typed/raw and ACDBPLACEHOLDER raw-only publications now have a separate borrowed view and bounded immutable source audit. Independent field/reference inventories join the original NOD plot-style entry, dictionary owner, named/default targets and placeholder reactors; a known but unselected placeholder cannot qualify a plot-style reference. The authored matrix covers120 profiles,1,368 physical spans and330 corrected imports. Final affected cohorts pass81/81 normally and81/81 under ASan; both archives include the new helper. Existing resource-view and ordinary callback contracts stay intact. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fh-original-plot-style-sources-and-rooted-targets-2026-10-27) · [receipt](docs/research/rpp5fh-original-plotstyle-sources-and-rooted-targets-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fi explicit dictionary ownership and physical edges (2026-10-27; verified selected scope):** a red witness exposed280=1/350 edges bypassing reverse-owner checks. The bounded original-dependency audit now retains physical codes/roles and actual flag spans while applying effective hard ownership to owner/cycle checks. Missing350 policy stays unqualified; physical360 and default340 remain distinct. The authored matrix covers192 profiles,384 physical spans,126 corrected imports and384 corrected finalizations. Final affected cohorts pass82/82 normally and82/82 under ASan. Library parsing/writing/model/callback contracts are unchanged; full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fi-explicit-dictionary-ownership-and-physical-edges-2026-10-27) · [receipt](docs/research/rpp5fi-effective-dictionary-ownership-and-physical-edges-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fh original plot-style sources and rooted targets (2026-10-27; verified selected scope):** actual DICTIONARYWDFLT typed/raw and ACDBPLACEHOLDER raw-only publications now have a separate borrowed view and bounded immutable source audit. Independent field/reference inventories join the original NOD plot-style entry, dictionary owner, named/default targets and placeholder reactors; a known but unselected placeholder cannot qualify a plot-style reference. The authored matrix covers120 profiles,1,368 physical spans and330 corrected imports. Final affected cohorts pass81/81 normally and81/81 under ASan; both archives include the new helper. Existing resource-view and ordinary callback contracts stay intact. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fh-original-plot-style-sources-and-rooted-targets-2026-10-27) · [receipt](docs/research/rpp5fh-original-plotstyle-sources-and-rooted-targets-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fg scoped STYLE font/XDATA and output retries (2026-10-26; verified selected scope):** body1071, canonical ACAD extended-font flags and arbitrary application integers now retain distinct roles. The reader preserves ordered XDATA and LibreCAD font projection; a borrowed output overlay preserves font edits without changing caller data or public layouts. The authored matrix covers216 profiles,432 output/readbacks,432 edited-font readbacks and148 corrected retries, including legacy, malformed, quota and reached allocation controls. Final affected cohorts pass77/77 normally and77/77 under ASan; both archives include the new helper. Full source/dependency/live/emitted/native qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fg-scoped-style-fontxdata-and-output-retries-2026-10-26) · [receipt](docs/research/rpp5fg-style-font-xdata-scopes-and-output-retries-2026-10-26.json). No support gate is promoted.
 
@@ -132266,3 +132268,124 @@ remains incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**.
 Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
 qualification remain **NOT_RUN**. The full objective remains active and incomplete;
 no remote mutation is included.
+
+## Implementation progress — RPP-5fi explicit dictionary ownership and physical edges (2026-10-27)
+
+State: **verified for selected original explicit dictionary ownership coupling**.
+RPP-5fh is committed as `c8554b22`. This resolves its explicit280/350 dependency
+gap while retaining the remaining original-source, recursive, live/emitted and
+native/external requirements. It does not certify complete ownership semantics.
+
+The official [DICTIONARY reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm)
+makes explicit280=1 significant for ownership of dictionary elements. The
+[numerical reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+separately defines physical350 soft-owner,360 hard-owner and340 hard-pointer
+roles. The primary [ezdxf source](https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/dictionary.py)
+records omitted-flag producer differences, but its current default assumption
+is not independent evidence for a general native/default interpretation.
+The source screen is mutable; no pinned peer/native execution is claimed.
+
+- [x] Reproduce an actual qualification defect: a dictionary with280=1 and
+  entry350 pointing to a child owned elsewhere incorrectly reports matched
+  original targets and zero wrong-owner failures. Previously, reverse-owner
+  and cycle checks considered physical hard-owner roles alone.
+- [x] Add separate immutable row metadata for physical hard ownership,
+  dictionary-flag hard ownership, explicit soft ownership and unavailable
+  policy, retaining the actual flag group index. Scan each original dictionary
+  once under subclass/application/XDATA scopes, without allocation. Require
+  the scalar0/1 flag to match its immutable original model. An opaque280
+  lookalike or the parser's normalized omitted-field default cannot qualify it.
+  Keep source350 as350 with its original role; do not rewrite field evidence.
+- [x] Apply effective hard ownership to existing reverse-owner checks and the
+  bounded nonrecursive cycle pass for DICTIONARY and DICTIONARYWDFLT. Physical360
+  still supplies hard-owner evidence when280 is absent. Default340 remains a
+  non-owning hard pointer. Missing/unqualified350 policy gets an explicit
+  OwnershipUnknown refusal. Add converter-private report counts; keep full
+  ownership/recursive/output flags false. Library readers/writers, public
+  models/facade/callbacks and DWG parser/byte layout are unchanged.
+- [x] Make the intended soft policy explicit in the locally authored positive
+  root40/layout43 dependency graphs. Their earlier omission was sufficient for
+  target identity but cannot now stand in for an independently established
+  ownership default. Preserve separate omission and opaque-group controls;
+  compatible reading and its model default remain unchanged.
+- [x] Add runtime-authored `libdxfrw_dictionary_effective_ownership`: **192**
+  profiles across four revisions, LF/CRLF/binary, ENTITIES/BLOCKS, both dictionary
+  classes, explicit0/1 flags and physical350/360 edges. Independently walk
+  **192** dictionary markers and **384** flag/reference spans. Verify **192**
+  live-consumer-state independence cases and allocation-free report inspection.
+  Include default340 non-ownership checks on the default-dictionary profiles.
+- [x] Cover **48** wrong-owner controls: **36** effective-hard-owner refusals and
+  **12** allowed soft-target controls. Cover **24** cycle controls: **18** hard
+  cycle refusals and **six** soft-reference target controls; these do not qualify
+  a native ownership tree. Add **18** absent/opaque-policy controls, including
+  **six** unknown-policy refusals, and **36** exact/one-under reserved-row/byte/
+  work boundaries. The same adapter passes **126** corrected imports. A finite
+  six-route64-offset finalization schedule reaches **384** failures, all followed
+  by **384** corrected finalizations. This is not exhaustive allocation coverage.
+- [x] Retain the original red witness, initial private-nested-type helper compile
+  failure, omitted-policy regression results and missing-authored-field test
+  abort. Correct helper visibility through a deduced type and correct the positive
+  recipes without weakening `-Werror`, coverage or time caps. Final four owning
+  checks pass4/4 in13.29s. No external drawing payload, conversion or derivative
+  is committed; every new drawing remains an authored runtime recipe.
+- [x] Both affected builds retain all **11** targets, including LibreCAD_3's
+  compile-only guard. Exact affected cohorts pass **82/82 normally in72.36s**,
+  then **82/82 under Debug/`-O1`/ASan in46.10s**, with two workers and no failures/
+  skips/disabled tests. Preserve prior81 names/order and add only the new owning
+  selector. Registered names/order/labels/timeouts, executed sets and all
+  **eleven** selected counter lines agree. The **406-file** source/build-metadata
+  manifest stays frozen across both runtimes. Both builds finish first; normal
+  finishes before ASan. Keep the original Debug/O0 ASan configuration unchanged.
+- [x] In an isolated current-source copy, autoreconf/configure/make-dist pass;
+  both source archives contain exact hashes for the modified dependency helper,
+  prior plot-source helper and STYLE helper. Packaging finishes before runtime.
+  Archive inclusion is not a full Autotools distribution build. No full suite,
+  formal ABI/native application or controlled memory/performance qualification
+  is claimed; the limits remain logical accounting, not measured RSS.
+
+The [receipt](docs/research/rpp5fi-effective-dictionary-ownership-and-physical-edges-2026-10-27.json)
+pins exact sources, selected names/statuses/counters, configuration/build/runtime
+order, retained failure logs, archive/header hashes, primary references and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete remaining original producers and field/reference profiles.**
+   Cover remaining primary/BLOCKS/LAYOUT/material/visual-style/reactor/IMAGE/
+   document/control/owner families. Extend actual producer/version/corpus
+   evidence for omitted dictionary flags, names/application/XDATA and HEADER
+   CEPSNID/CEPSNTYPE roles. Do not infer a general default or native interpretation
+   from selected explicit-field source facts.
+2. [ ] **Finish full recursive/coupled dependency closure.** Resolve each
+   required target's own dependencies, whole-document ownership, geometry-
+   block-name versus TABLE343, TABLE/linked metadata, native name/collation and
+   required/absent/null/default semantics. Retain physical pointer/ownership
+   roles, bounded cycle handling and unknown-profile refusals; the explicit280
+   fix does not complete this stage.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against live/edited fields/names/references and exact emitted
+   fields. Verify remapping/readback/refusal/rollback/retry/destination safety.
+   Complete Value output, multiple-content attributes, linked-data ownership and
+   producer/version-qualified title/header/data formats, units and borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Preserve
+   all remaining native bit/decimal/carrier/schema/owner, IMAGE/document, corpus/
+   version and memory/performance obligations. Audit the complete legacy
+   Autotools source/header inventory against CMake before source-release build
+   qualification. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior;
+   obtain native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks
+   per edit and risk-based affected cohorts at integration; reuse built targets
+   and avoid routine full suites. Freeze compiled sources, finish builds/
+   packaging before final normal then ASan runtimes, preserve failures/caps,
+   and update/unblock/commit/report each verified slice. Commit no external
+   drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false`
+and `outputEligible=false`. Selected explicit dictionary ownership/source-target
+facts can match; full field/recursive/live/emitted/whole-document/native
+qualification remains incomplete. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full objective remains
+active and incomplete; no remote mutation is included.

@@ -1532,7 +1532,9 @@ private:
         struct DependencyAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,OriginalTargetsMatched,Unqualified};
             enum class Reason {Matched,NullOptional,Inherited,Literal,OriginalTableOwner,MissingTarget,WrongKind,OriginalUnavailable,
-                MissingName,AmbiguousName,NameSourceUnavailable,InvalidName,UnknownRole,NullRequired,WrongOwner,OwnershipCycle};
+                MissingName,AmbiguousName,NameSourceUnavailable,InvalidName,UnknownRole,NullRequired,WrongOwner,OwnershipCycle,OwnershipUnknown};
+            // Effective original edge policy, separate from its physical code.
+            enum class Ownership {None,PhysicalHard,DictionaryFlagHard,ExplicitSoft,Unqualified};
             struct Node {
                 std::uint32_t handle{0};std::size_t physical{DRW_DxfIdentitySource::None};
                 dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
@@ -1545,6 +1547,7 @@ private:
             struct Row {
                 std::uint32_t source{0},target{0};std::size_t group{DRW_DxfIdentitySource::None};int code{0};
                 dx_tableResourceRole role{dx_tableResourceRole::Unknown};Reason reason{Reason::OriginalUnavailable};
+                Ownership ownership{Ownership::None};std::size_t dictionaryFlagGroup{DRW_DxfIdentitySource::None};
                 bool present{true},name{false};UTF8STRING key;
             };
             struct NamedTarget {std::uint32_t handle{0};bool ambiguous{false};};

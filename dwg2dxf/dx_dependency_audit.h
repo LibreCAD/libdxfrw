@@ -64,6 +64,31 @@ bool dependencyHardOwner(DependencyRole role) noexcept {
     using R=DependencyRole;return role==R::ExtensionDictionary||role==R::FieldChild||role==R::DataLinkHardOwner
         ||role==R::DictionaryHardOwner||role==R::XRecordHardOwner;
 }
+struct DependencyDictionaryFlag {
+    bool known{false},hard{false};std::size_t group{DRW_DxfIdentitySource::None};
+};
+// Use the original subclass/body flag, never an application-group lookalike
+// or the model's normalized omitted-field default. No scan allocation/state.
+template<class N> DependencyDictionaryFlag dependencyDictionaryFlag(const N& n) noexcept {
+    DependencyDictionaryFlag result;
+    if(n.family!=DependencyFamily::Dictionary)return result;
+    const auto* model=dynamic_cast<const DRW_Dictionary*>(dependencyModel(n));if(!model)return result;
+    unsigned application=0u,stage=0u,seen=0u;bool xdata=false;
+    const auto& groups=dependencyGroups(n);
+    for(std::size_t i=0u;i<groups.size();++i) {
+        const auto& value=groups[i];const int code=value.code();const auto text=dx_attdef_source::text(value);
+        if(code==102){if(text=="}"){if(!application)return {};--application;}else ++application;continue;}
+        if(application)continue;if(code==1001)xdata=true;if(xdata)continue;
+        if(code==100){if(text=="AcDbDictionary")stage=1u;else if(stage)stage=2u;continue;}
+        if(code!=280)continue;
+        if(stage!=1u||seen++||value.type()!=DRW_Variant::INTEGER||(value.i_val()!=0&&value.i_val()!=1)||value.i_val()!=model->hardOwner)return {};
+        result.known=true;result.hard=value.i_val()==1;result.group=i;
+    }
+    if(application)return {};return result;
+}
+template<class O> bool dependencyEffectiveHardOwner(O ownership) noexcept {
+    return ownership==O::PhysicalHard||ownership==O::DictionaryFlagHard;
+}
 bool dependencyDispositionMatched(dx_iface::DependencyReason reason) noexcept {
     using R=dx_iface::DependencyReason;return reason==R::Matched||reason==R::NullOptional||reason==R::Inherited
         ||reason==R::Literal||reason==R::OriginalTableOwner;
@@ -77,7 +102,7 @@ bool dependencyReferencesEqual(const std::vector<dx_tableResourceReference>& a,c
 
 void dx_iface::finishDependencies(dx_data& data) noexcept {
     using A=dx_data::TableDxfSourceCapture::DependencyAudit;using S=A::State;using R=A::Reason;
-    using F=DependencyFamily;using Role=DependencyRole;using I=DRW_DxfIdentitySource;
+    using F=DependencyFamily;using Role=DependencyRole;using I=DRW_DxfIdentitySource;using O=A::Ownership;
     auto& s=data.m_tableDxfSource;if(s.dependencyCaptureFailed)return;
     try {
         const auto prereq=tableReferenceReport(data);
@@ -176,10 +201,18 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         a->rows.reserve(capacity);
         for(const auto& item:a->nodes) {
             const auto& n=item.second;const auto& groups=dependencyGroups(n);const auto& context=dependencyContext(n);
+            const auto ownershipFlag=dependencyDictionaryFlag(n);
             for(const auto& ref:n.references) {
                 if(ref.kind==Role::Self)continue;
                 if(a->rows.size()>=capacity||ref.groupIndex>=groups.size()){s.dependencyCaptureFailed=true;return;}
                 A::Row row;row.source=n.handle;row.target=ref.value;row.group=ref.groupIndex;row.code=ref.code;row.role=ref.kind;
+                if(dependencyHardOwner(ref.kind))row.ownership=O::PhysicalHard;
+                if(ref.kind==Role::DictionarySoftOwner||ref.kind==Role::DictionaryHardOwner) {
+                    // Keep the physical edge role/code; 280 may strengthen a
+                    // 350 edge without changing it into a source360 field.
+                    row.dictionaryFlagGroup=ownershipFlag.group;
+                    if(ref.kind==Role::DictionarySoftOwner)row.ownership=ownershipFlag.known?(ownershipFlag.hard?O::DictionaryFlagHard:O::ExplicitSoft):O::Unqualified;
+                }
                 bool blocked=false;
                 if(n.table&&!n.tableRecord) {
                     const auto old=tableRoles.find({n.handle,ref.groupIndex});
@@ -246,7 +279,8 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                     const auto target=a->nodes.find(row.target);const auto* style=target==a->nodes.end()?nullptr:dynamic_cast<const DRW_Textstyle*>(dependencyModel(target->second));
                                     if(!style||((style->flags&1)!=0)!=(ref.kind==Role::LTypeShapeStyle))row.reason=R::WrongKind;
                                 }
-                                if(row.reason==R::Matched&&dependencyHardOwner(ref.kind)) {
+                                if(row.reason==R::Matched&&row.ownership==O::Unqualified)row.reason=R::OwnershipUnknown;
+                                if(row.reason==R::Matched&&dependencyEffectiveHardOwner(row.ownership)) {
                                     const auto target=a->nodes.find(row.target);const auto* model=target==a->nodes.end()?nullptr:dependencyModel(target->second);
                                     if(!model&&proof->second.layout&&proof->second.layout->input)model=proof->second.layout->input->model.get();
                                     const auto owner=model?model->parentHandle:target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:DRW::NoHandle;
@@ -273,12 +307,12 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         // retain their original-target result and are not evaluated as geometry.
         std::map<std::uint32_t,std::size_t> vertices;for(const auto& p:a->nodes)vertices.emplace(p.first,vertices.size());
         std::vector<std::vector<std::size_t>> edges(vertices.size());std::vector<std::size_t> indegree(vertices.size(),0u),queue;
-        for(const auto& row:a->rows)if(row.reason==R::Matched&&dependencyHardOwner(row.role)) {
+        for(const auto& row:a->rows)if(row.reason==R::Matched&&dependencyEffectiveHardOwner(row.ownership)) {
             const auto from=vertices.find(row.source),to=vertices.find(row.target);if(from!=vertices.end()&&to!=vertices.end()){edges[from->second].push_back(to->second);++indegree[to->second];}
         }
         queue.reserve(vertices.size());for(std::size_t i=0u;i<indegree.size();++i)if(!indegree[i])queue.push_back(i);
         for(std::size_t at=0u;at<queue.size();++at)for(const auto to:edges[queue[at]])if(--indegree[to]==0u)queue.push_back(to);
-        for(auto& row:a->rows)if(row.reason==R::Matched&&dependencyHardOwner(row.role)) {
+        for(auto& row:a->rows)if(row.reason==R::Matched&&dependencyEffectiveHardOwner(row.ownership)) {
             const auto to=vertices.find(row.target);if(to!=vertices.end()&&indegree[to->second])row.reason=R::OwnershipCycle;
         }
         bool complete=!a->unavailableSources;
@@ -318,6 +352,9 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
     r.nameNamespacesComplete=true;
     for(unsigned i=0u;i<5u;++i){r.physicalNamedRows+=a->physicalNames[i];r.backedNamedRows+=a->backedNames[i];r.nameNamespacesComplete=r.nameNamespacesComplete&&a->nameCensusComplete[i];}
     for(const auto& row:a->rows) {
+        if(dependencyEffectiveHardOwner(row.ownership))++r.hardOwnerReferences;
+        if(row.ownership==A::Ownership::DictionaryFlagHard)++r.dictionaryFlagHardOwners;
+        if(row.ownership==A::Ownership::ExplicitSoft)++r.explicitSoftOwners;
         if(dependencyDispositionMatched(row.reason))++r.matched;else if(!r.firstSource){r.firstSource=row.source;r.firstTarget=row.target;}
         switch(row.reason) {
         case R::Matched:break;case R::NullOptional:++r.nulls;break;case R::Inherited:++r.inherited;break;case R::Literal:++r.literals;break;case R::OriginalTableOwner:++r.tableOwners;break;
@@ -325,6 +362,7 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         case R::OriginalUnavailable:case R::NameSourceUnavailable:++r.unavailable;break;case R::AmbiguousName:++r.ambiguous;break;
         case R::InvalidName:++r.invalidNames;break;case R::UnknownRole:++r.unknownRoles;break;
         case R::NullRequired:case R::WrongOwner:++r.wrongOwner;break;case R::OwnershipCycle:++r.ownershipCycles;break;
+        case R::OwnershipUnknown:++r.unknownOwnership;++r.unavailable;break;
         }
     }
     r.originalTargetsMatched=r.state==S::OriginalTargetsMatched&&r.references&&r.references==r.matched;return r;
