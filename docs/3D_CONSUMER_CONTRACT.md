@@ -637,6 +637,23 @@ metadata. `tailGroups` excludes consumed application groups and is not a full
 physical inventory. The property API adds no existing model/facade/view data
 member or interface virtual; this does not establish general binary ABI.
 
+The converter's `renderingSourceReport` separately audits the complete selected
+canonical primary shape, its actual paired models/metadata and physical record
+envelope. It can bind original entity/VIEW/VIEWPORT style references and LAYOUT
+visual-style shade targets through the actual NOD → `ACAD_VISUALSTYLE` dictionary
+→ style entry and matching owner330. Both physical LAYOUT shade-handle aliases
+remain separate observations. Render-preset mode rejects a VisualStyle target;
+preset source shapes still need their own qualification. Parser-known aliases
+have a known object type but remain unavailable without a qualified profile.
+
+This selected source proof requires every primary field once and excludes
+unknown extensions, foreign/legacy shapes and unobserved physical gaps. The raw
+callback omits ignored comments; a record with such gaps cannot claim exact
+field positioning until per-field reader observations are available. Ordinary
+reading remains tolerant. Original source/target matches use immutable captured
+inputs and do not validate edited live models, emitted output, recursive or
+whole-document ownership, native rendering or format support.
+
 `DRW_Header::dwgNamedObjectDictionaryReference()` returns an owned optional
 source H value (role, encoded size, full64-bit reference and legacy low32 view).
 Absent/fresh/DXF/failed HEADER is distinct from explicit absolute null. The

@@ -144,6 +144,15 @@ public:
     static void observeRendering(dx_iface& reader,const DRW_TableEntry* model,const DRW_RawDxfObject* raw){reader.observeRenderingInput(model,raw);}
     static const auto& renderingInputs(const dx_data& data){return data.m_tableDxfSource.renderingInputs;}
     static const auto& renderingPending(const dx_data& data){return data.m_tableDxfSource.renderingPending;}
+    static const auto& renderingSources(const dx_data& data){return data.m_tableDxfSource.renderingSourceAudit;}
+    static auto& mutableRenderingSources(dx_data& data){return data.m_tableDxfSource.renderingSourceAudit;}
+    static void renderingSourceLimit(dx_data& data,bool work,std::size_t value){auto& s=data.m_tableDxfSource;if(work)s.maxRenderingSourceWork=value;else s.maxRenderingSourceBytes=value;}
+    static void repeatRenderingSources(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.renderingSourceAudit.reset();s.renderingSourceOwner.reset();
+        s.renderingSourceBytes=s.renderingSourceWork=0u;s.renderingSourceFailed=s.renderingSourceLimited=false;reader.finishRenderingSources(data);}
+    static void attemptRenderingSources(dx_iface& reader,dx_data& data){reader.finishRenderingSources(data);}
+    static void unavailableRenderingReplay(dx_data& data,unsigned which){auto& s=data.m_tableDxfSource;s.renderingReplayFailed=which==1u;s.renderingReplayLimited=which==2u;}
+    static void joinRenderingSources(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.tableReferenceAudit.reset();s.tableReferenceOwner.reset();
+        s.tableReferenceCaptureFailed=false;reader.finishTableReferences(data);repeatDependencies(reader,data);}
     static auto renderingReplayRow(const dx_data& data){auto row=data.m_tableDxfSource.renderingAudit->rows.begin()->second;
         row.replayedModel.reset();row.replayedState={};row.replayDecoded=row.modeledStateMatched=false;return row;}
     template<class Row>static void replayRendering(dx_iface& reader,dx_data& data,Row& row){reader.replayRenderingInput(data,row);}
@@ -1650,6 +1659,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "viewucs_source_controls.h"
 #include "viewport_source_controls.h"
 #include "rendering_input_failure_controls.h"
+#include "rendering_source_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3143,6 +3153,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--rendering-sources") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-rendering-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=renderingSourceTests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--rendering-model-failures") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

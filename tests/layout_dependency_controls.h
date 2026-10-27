@@ -82,7 +82,9 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
                 if(fault==9u){layoutDependencyErase(tags,"AcDbPlotSettings",74);layoutDependencyHeader(tags,{{102,"{PLOT_HINT"},{74,"3"},{102,"}"}});reason=R::OriginalUnavailable;}}
             else if(fault<=14u){code=333;layoutDependencySet(tags,"AcDbPlotSettings",76,fault==11u||fault==13u?"5":"4");
                 for(const char* scope:{"AcDbPlotSettings","AcDbLayout"}){if(fault==10u)layoutDependencyErase(tags,scope,333);else layoutDependencySet(tags,scope,333,fault==11u||fault==14u?"0":"40");}
-                reason=fault<12u?R::NullRequired:fault==12u?R::WrongKind:R::OriginalUnavailable;
+                // Both explicit modes reject a dictionary target by kind;
+                // absent mode evidence remains separately unavailable.
+                reason=fault<12u?R::NullRequired:fault<=13u?R::WrongKind:R::OriginalUnavailable;
                 if(fault==14u)layoutDependencyErase(tags,"AcDbPlotSettings",76);}
             else if(fault<=17u){code=fault==15u?345:346;layoutDependencySet(tags,"AcDbLayout",code,fault==17u?"0":"40");layoutDependencySet(tags,"AcDbLayout",76,"1");reason=R::WrongKind;
                 if(fault==17u){layoutDependencyErase(tags,"AcDbLayout",76);reason=R::OriginalUnavailable;}}

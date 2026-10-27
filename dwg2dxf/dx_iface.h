@@ -61,6 +61,16 @@ public:
         bool propertyCoverageMatched{false},originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static RenderingModelReport renderingModelReport(const dx_data&) noexcept;
+    using RenderingSourceState=dx_data::TableDxfSourceCapture::RenderingSourceAudit::State;
+    struct RenderingSourceReport {
+        RenderingSourceState state{RenderingSourceState::NotCaptured};
+        std::size_t records{0},physical{0},profiles{0},origins{0},namedTargets{0},fields{0},references{0},bytes{0},work{0};
+        // Complete selected canonical primary source shapes only. Extension,
+        // RenderSettings, recursive/live/emitted and semantic support stay open.
+        bool originalSourcesMatched{false};
+        bool ownerTargetsResolved{false},recursiveClosureMatched{false},outputEligible{false};
+    };
+    static RenderingSourceReport renderingSourceReport(const dx_data&) noexcept;
     bool wantsDxfViewUcsSource() const override {return tableSourceCaptureOpen();}
     void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
     using ViewUcsState=dx_data::TableDxfSourceCapture::ViewUcsAudit::State;
@@ -1768,6 +1778,7 @@ private:
     void observeRenderingInput(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishRenderingInputs(dx_data&) noexcept;
     void replayRenderingInput(dx_data&,dx_data::TableDxfSourceCapture::RenderingInputRow&) noexcept;
+    void finishRenderingSources(dx_data&) noexcept;
     void finishViewUcsSources(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;

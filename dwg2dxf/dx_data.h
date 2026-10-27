@@ -28,6 +28,7 @@
 #include "dx_table_source_profile.h"
 #include "dx_layout_source_profile.h"
 #include "dx_viewucs_source_profile.h"
+#include "dx_visualstyle_source_profile.h"
 
 #include <array>
 #include <atomic>
@@ -1505,10 +1506,12 @@ private:
         bool plotSourceCaptureFailed{false};
         struct ViewUcsAudit;
         struct ViewUcsRecord;
+        struct RenderingSourceAudit;
+        struct RenderingSourceRecord;
         struct TableReferenceAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoTables,NoReferences,ReferencesReady,Unqualified};
             enum class Reason {Matched,NullValue,NullRequired,MissingTarget,WrongKind,OriginalTargetUnavailable,AmbiguousOrigin,WrongCellBlock};
-            enum class Provider {Structural,Layout,Entities,Blocks,Resource,PlotSource,ViewUcs};
+            enum class Provider {Structural,Layout,Entities,Blocks,Resource,PlotSource,ViewUcs,Rendering};
             struct Target {
                 Provider provider{Provider::Structural};std::size_t physical{DRW_DxfIdentitySource::None};
                 std::uint32_t block{0};bool ambiguous{false};
@@ -1517,6 +1520,7 @@ private:
                 std::shared_ptr<const ViewUcsRecord> viewUcs;
                 std::shared_ptr<const ResourceOriginAudit> resource;
                 std::shared_ptr<const PlotSourceRecord> plot;
+                std::shared_ptr<const RenderingSourceRecord> rendering;
             };
             struct Row {
                 std::uint32_t table{0},target{0},cellBlock{0};std::size_t group{0},physical{DRW_DxfIdentitySource::None};
@@ -1527,6 +1531,7 @@ private:
             std::shared_ptr<const EntitiesRoleAudit> entities;std::shared_ptr<const BlockRoleAudit> blocks;
             std::shared_ptr<const PlotSourceAudit> plots;
             std::shared_ptr<const ViewUcsAudit> views;
+            std::shared_ptr<const RenderingSourceAudit> renderings;
             std::vector<std::shared_ptr<const TableBody>> tables;
             std::map<std::uint32_t,Target> targets;
             std::vector<Row> rows;
@@ -1573,6 +1578,27 @@ private:
         std::size_t renderingReplayRecords{0},renderingReplayBytes{0},renderingReplayWork{0};
         std::size_t maxRenderingReplayBytes{64u*1024u*1024u},maxRenderingReplayWork{128u*1024u*1024u};
         bool renderingReplayFailed{false},renderingReplayLimited{false};
+        struct RenderingSourceRecord {
+            std::shared_ptr<const RenderingInput> input;
+            dx_visualstyle_source::Audit profile;
+            std::vector<dx_tableResourceReference> references;
+            std::size_t index{0},physical{DRW_DxfIdentitySource::None},nameGroup{DRW_DxfIdentitySource::None},targetGroup{DRW_DxfIdentitySource::None};
+            bool bodyMatched{false},originBound{false},namedTarget{false},wrongOwner{false};
+        };
+        struct RenderingSourceAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,Limited,SourceNotReady,NoSources,SourcesReady,Unqualified};
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const RenderingInputAudit> inputs;
+            std::shared_ptr<const StructuralAudit> root,dictionary;
+            std::size_t rootKeyGroup{DRW_DxfIdentitySource::None},rootTargetGroup{DRW_DxfIdentitySource::None};
+            std::map<std::uint32_t,std::shared_ptr<const RenderingSourceRecord>> records;
+            std::vector<std::shared_ptr<const RenderingSourceRecord>> owners;
+            std::size_t physicalRecords{0};
+        };
+        std::shared_ptr<const RenderingSourceAudit> renderingSourceAudit,renderingSourceOwner;
+        std::size_t renderingSourceBytes{0},renderingSourceWork{0};
+        std::size_t maxRenderingSourceBytes{64u*1024u*1024u},maxRenderingSourceWork{128u*1024u*1024u};
+        bool renderingSourceFailed{false},renderingSourceLimited{false};
         struct ViewUcsInput {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
             bool view{false},paired{false},payloadComplete{false};std::pair<bool,std::uint8_t> state;
@@ -1614,6 +1640,7 @@ private:
                 std::shared_ptr<const PlotSourceRecord> plot;
                 std::shared_ptr<const LayoutAudit> layout;
                 std::shared_ptr<const ViewUcsRecord> viewUcs;
+                std::shared_ptr<const RenderingSourceRecord> rendering;
                 std::array<int,3> layoutModes{{-1,-1,-1}};
                 std::array<std::size_t,3> layoutModeGroups{{DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None}};
                 std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};

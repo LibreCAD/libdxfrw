@@ -133536,3 +133536,166 @@ extension/rendering/recursive/live/emitted/whole-document/native qualification
 remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective stays active; no remote mutation included.
+
+
+## Implementation progress — RPP-5fs independent VisualStyle sources and rooted original targets (2026-10-27)
+
+Canonical primary DXF VisualStyle objects now have an independent source profile
+and original target binding through the real named-object/style dictionaries.
+This advances RPP-5fr's source/target prerequisites. It does not complete rendering
+extensions, general producer/version coverage, edited/output closure or semantics.
+
+- [x] Independently inventory primary scalars, identity/subclass, application and
+  XDATA groups without calling the shared payload decoder or its property-code
+  tables. Require the selected complete canonical primary shape and retain exact
+  common handle roles, point/bracket closure and separate 62/63/421 color roles.
+  Bind values/presence to both actual original callback snapshots and metadata;
+  preserve bitwise doubles, source text context and native-only field boundaries.
+- [x] Pin a separate immutable source audit to the actual rendering input audit,
+  owned context and physical OBJECTS record. Census every physical rendering
+  source so an unqualified preset/alias/shape cannot disappear. Parser-known
+  aliases retain known kind but do not inherit canonical source qualification.
+- [x] Bind actual NOD `ACAD_VISUALSTYLE` key/target and style-dictionary member
+  key/target positions, unique membership and matching owner 330. Add rendering
+  original sources to the existing target registry and dependency graph without
+  increasing the nine public resource families. Active entity/VIEW/VIEWPORT 348
+  and LAYOUT visual-style shade 333 can match only qualified named original
+  sources. Preserve both physical LAYOUT aliases. A VisualStyle is the wrong
+  kind for render-preset mode; preset profiles/roots remain unqualified.
+- [x] Bound rows, raw payload/codec/name workspace, spans/references and structural
+  scans before allocation with separate 64 MiB source/128 MiB work allowances.
+  Explicit failure/limited/prerequisite states reject stale success; corrected
+  re-finalization uses the same actual immutable originals. Inspection allocates
+  nothing. Existing library model/facade/view layouts and callbacks are unchanged;
+  this is not formal ABI or native-application qualification.
+
+Research, physical correspondence and self-unblocking:
+
+- Autodesk's [primary field inventory](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm)
+  distinguishes field/color roles. Its [Visual Styles guide](https://help.autodesk.com/cloudhelp/2018/ENU/OARX-DevGuide/files/GUID-D858DC88-BED2-4A4F-8613-D0D39E22EE7C.htm)
+  identifies the named-object/style-dictionary relationship; application type
+  configuration is separate from scalar equality. The [shade setter contract](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_SetShadePlot_PlotSettingsShadePlotType_ObjectId.html)
+  distinguishes style and preset targets. These are source-level references,
+  not a peer/native semantic run or evidence for foreign inactive-ID behavior.
+- Existing raw callbacks omit ignored 999 comments. A raw group index alone then
+  cannot identify a physical ordinal/offset. Require a complete no-gap original
+  envelope for the style and both dictionaries before claiming correspondence.
+  Final review caught the initially missing dictionary guard; add both guards,
+  inspect actual key/target byte spans and exercise comments independently in
+  all three records. Preserve earlier completed builds/archives as development
+  evidence; rebuild corrected frozen sources before final runtimes. Ordinary
+  import still succeeds. Full comment support needs actual per-field reader
+  observations, rather than inference or weakening the source check.
+- Preserve diagnostics from the initial LAYOUT recipe's conflicting 333 aliases,
+  VIEW 348 appended after XDATA and the incorrect four-use expectation. Correct
+  the locally authored scope/aliases and count five physical consumers. Apply
+  actual ASCII/binary semantic caret policy to description and dictionary keys;
+  literal-wire text controls include Unicode escapes. One development selector
+  ran before its rebuild finished and used an older binary; it is explicitly
+  unqualified. Current-source owning and final runs are authoritative.
+- The first final normal cohort passed 101/102: the existing LAYOUT fault13
+  control expected generic unavailability for an explicit preset whose target
+  is a dictionary. The stricter kind check correctly reports `WrongKind`. Correct
+  that exact assertion, retain absent-mode unavailability and all prior printed
+  counters, preserve the failed cohort and re-freeze/rebuild before qualification.
+
+Controls and limits:
+
+- [x] 48 runtime-authored profiles span four declared DXF versions, LF/CRLF/binary, ENTITIES/
+  BLOCKS consumers and both internal-use values. An independent original-file
+  walker checks 2,496 VisualStyle scalar fields, 192 dictionary key/target fields,
+  336 reference roles and 240 actual target uses. Mutating each primary field
+  independently produces 1,632 source-to-model binder refusals.
+- [x] 45 source/owner/dependency refusals and 69 corrected imports include missing/
+  extension/alias sources, missing/wrong roots/owners/kinds, APPID/LAYER/object/
+  extension-dictionary dependencies, preset mismatch and all three comment-gap
+  locations. Six exact/one-under allowance pairs, nine owner/context refusals,
+  six unavailable model prerequisites and three literal-text context controls
+  preserve ordinary reads and require corrected original proof before reuse.
+- [x] 50 immutable queries allocate nothing. Two actual long-text finalization
+  schedules reach 66 allocation failures, four unreached controls and 70 corrected
+  finalizations. The old successful audit stays present during each attempt so
+  a reached failure cannot reuse its success. Each profile stops after two
+  consecutive unreached offsets, bounded by 256; this is not exhaustive allocation
+  proof or a controlled memory/performance comparison.
+- [ ] Optional/absent/duplicate/legacy/foreign and extension shapes, native names/
+  collation, full producer/version profiles and RenderSettings remain open.
+  Selected primary source equality and rooted original targets are not proof of
+  full properties, all ownership, recursive closure, edited models or output.
+
+Final verification:
+
+- [x] Both 11-target incremental build checks pass with `-Werror` preserved: normal
+  0.04s and qualified ASan
+  64.83s. Explicit fixture syntax validation
+  passes `-Wall -Wextra -pedantic -Werror`; LibreCAD_3's compile-only guard builds.
+  The final normal check reuses objects from the completed owning rebuild;
+  preceding production builds are retained with the review/failure evidence.
+- [x] Final affected cohorts pass **102/102** normally in 132.10s
+  and **102/102** under qualified Debug/`-O1`/ASan in 66.78s at j2.
+  Names/order/labels/timeouts and executed sets match, with no failures/skips/
+  disabled tests. All 23 owning counter lines agree; all 22 previous lines remain
+  unchanged. Existing focused UCS/VIEWPORT controls pass in both configurations.
+- [x] The 425-file compiled-source/build-metadata manifest stays frozen through
+  both final runtimes. Corrected builds and packaging finish before normal then
+  ASan tests. Original Debug/O0 ASan is unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both 286-member archives
+  contain exact updated production helper/public header hashes. Test helper
+  inclusion and a full Autotools source-release build remain unqualified.
+  Full suite, formal ABI/native application and controlled memory/performance
+  qualification remain open.
+
+The [receipt](docs/research/rpp5fs-independent-visual-style-sources-and-rooted-targets-2026-10-27.json)
+pins exact source/selection/configuration/counter evidence, retained failures and
+review corrections, archive limits and the complete remaining objective.
+
+Next implementation-ready sequence (retain the full original objective):
+
+1. [ ] **Capture actual per-field rendering/dictionary observations.** Observe
+   the real reader's marker, scalar ordinal/code/byte span and ignored-comment
+   status during OBJECTS processing, including NOD/style dictionaries. Keep a
+   separately owned immutable view under existing opt-ins without adding old
+   facade/model/view members or callbacks. Bind actual typed/raw publications,
+   physical owner, context and completeness; map only observed omitted comments.
+   Replace no-gap restrictions only with that evidence. Reuse the existing
+   per-object opt-in decision once; do not introduce extra stateful wants-calls.
+   Chain/restore the existing record observer, seal at the actual next code0,
+   and retain metadata before callbacks so inspection needs no new allocation.
+   Bound capture/failure states, expire borrowed views on return/throw, and test
+   comments across primary/application/XDATA/root/member positions, limits and
+   corrected retries.
+2. [ ] **Complete rendering profiles and remaining producers.** Qualify optional/
+   absent/alias/extension shapes with witnessed independent profiles; implement
+   RenderSettings shapes and real named roots. Finish background/live-section/
+   sun, VIEWPORT clipping, layer overrides 335/343/344/91 and qualified aliases.
+   Retain entity/material/reactor/IMAGE/document/control/owner, omitted dictionary
+   flags, names/application/XDATA, HEADER CEPSNID/CEPSNTYPE, native names/collation
+   and full recursive/coupled/whole-document ownership obligations.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields/names/references/modes and actual output;
+   verify handle remapping, readback/refusal/rollback/retry/destination safety.
+   Finish Values, multiple-content attributes, linked-data ownership and qualified
+   formats/units/borders. Keep date epoch, native point counts and General
+   semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and measured
+   memory/performance obligations. Resolve the recorded 42-file legacy archive
+   gap, audit CMake/Autotools source/header/test inventory and qualify a real
+   source-release build. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior.
+   Qualify native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence separately; external advisories cannot promote support claims.
+5. [ ] **Continue efficient self-updating implementation.** Use fast owning
+   checks and built-target reuse; broaden for shared parser/API/registry/build
+   changes or failures. Freeze compiled sources and finish builds/packaging
+   before normal then ASan qualification. Preserve failures/caps, self-unblock,
+   and update/commit/report each verified slice. Commit no external drawing
+   payload, conversion or derivative.
+
+Resource families remain nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected complete canonical primary sources and rooted
+original target dependencies can now match. Global full property/rendering/
+extension/recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/
+Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. The full objective remains active; no remote mutation is included.

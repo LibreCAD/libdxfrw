@@ -17,9 +17,11 @@ bool renderingStatesEqual(const RenderingView& a,const RenderingView& b) noexcep
         b.originalRenderCounts,b.originalRenderLongs,b.originalRenderBytes,b.originalRenderBools)
         &&std::memcmp(a.originalRenderDoubles.data(),b.originalRenderDoubles.data(),sizeof(double)*4u)==0;
 }
+bool renderingVisualStyleName(std::string_view name) noexcept {
+    return asciiIdentifierEquals(name,"VISUALSTYLE")||asciiIdentifierEquals(name,"ACDBVISUALSTYLE")||asciiIdentifierEquals(name,"ACDB_VISUALSTYLE_CLASS");
+}
 bool renderingName(std::string_view name) noexcept {
-    if(asciiIdentifierEquals(name,"VISUALSTYLE")||asciiIdentifierEquals(name,"ACDBVISUALSTYLE")
-        ||asciiIdentifierEquals(name,"ACDB_VISUALSTYLE_CLASS"))return true;
+    if(renderingVisualStyleName(name))return true;
     for(auto kind:{DRW_RenderSettings::Settings,DRW_RenderSettings::Global,DRW_RenderSettings::Environment,
                   DRW_RenderSettings::Entry,DRW_RenderSettings::RapidRT,DRW_RenderSettings::MentalRay})
         if(renderSettingsNameMatchesKind(name,kind))return true;
