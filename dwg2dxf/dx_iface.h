@@ -2117,6 +2117,32 @@ private:
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DxfShadeConsumerSource {
+        enum Kind { PlotSettings, Layout, Viewport } kind{PlotSettings};
+        std::uint32_t handle{0}, owner{0}, target{0}, visualStyle{0};
+        std::uint32_t targetOwner{0}, visualStyleOwner{0};
+        unsigned targetKind{0}; // 0 none, 1 VisualStyle, 2/3/4 render engines.
+        int mode{0}, space{0};
+        const dx_ifaceBlock* block{nullptr};
+        std::string ownerName;
+        bool blocks{false}, inspected{false};
+        std::uint32_t emitted{0}, emittedOwner{0};
+    };
+    std::vector<DxfShadeConsumerSource> m_dxfShadeConsumers;
+    const dx_data* m_dxfShadeConsumerOwner{nullptr};
+    std::uint64_t m_dxfShadeConsumerGeneration{0};
+    std::size_t m_dxfShadeConsumerBytes{0};
+    std::size_t m_dxfShadeConsumerByteLimit{64u * 1024u * 1024u};
+    std::size_t m_dxfShadeConsumerRecordLimit{100000u};
+    unsigned m_dxfShadeConsumerSections{0};
+    bool m_dxfShadeConsumerActive{false};
+    bool m_dxfShadeConsumerEntities{false};
+    bool visitDxfShadeConsumers(const std::function<bool(DxfShadeConsumerSource&&)>& visit) const;
+    bool prepareDxfShadeConsumers(DRW::Version version) noexcept;
+    bool hasUnchangedDxfShadeConsumers() const noexcept;
+    bool inspectDxfShadeConsumers(const dxfRW::DxfObjectsWriteView& view,
+                                 std::string_view section) noexcept;
+    bool finalizeDxfShadeConsumers() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;

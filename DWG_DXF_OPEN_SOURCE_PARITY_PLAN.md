@@ -134310,3 +134310,130 @@ outputEligible=false. Full rendering/document/native semantic qualification
 remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**;
 native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
 remain **NOT_RUN**. The full objective stays active; no remote mutation.
+
+## Implementation progress — RPP-5fy staged shade consumers and callback rollback (2026-10-27)
+
+An actual callback regression reproduces successful publication of a dangling
+page shade target at35dda97f: writeHeader changes its admitted333 target from
+EA02 to EBAD after preflight. Existing preset/dictionary inspection does not
+compare consumer fields. Fix the real transaction, retaining valid pre-export
+consumer edits and the ordinary2D/direct-interface paths.
+
+- [x] Capture admitted PLOTSETTINGS/LAYOUT/VIEWPORT binding fields before
+  callbacks, including identities/owners, shade mode/target, viewport style and
+  provider kind/owner. Revalidate actual live lists, fields and generation at
+  section inspection and finalization. These are consistency checks, not an
+  invented original-source provenance certificate.
+- [x] Inspect staged consumer self/owner and actual scoped scalar fields. Keep
+  AcDbPlotSettings76 distinct from AcDbLayout's orthographic76; bind shade333
+  in its actual class and viewport170/348 in AcDbViewport. Skip application
+  groups. Require the actual emitted provider type/owner at finalization and
+  real source-to-emitted bindings for identified viewports. Anonymous viewports
+  use retained section order plus actual emitted identity/owner/scalars; they
+  earn no original-source identity certificate.
+- [x] Keep AcDbEntity's separate full-VisualStyle348 outside the viewport field
+  proof. The first observer overreached that scope and rejected a valid existing
+  carrier; retain the evidence and correct the selector. Common entity/reference
+  semantics and remapping remain in the complete dependency queue. Generic
+  published shade tables still list0..3; local adapter modes4/5 get transport
+  controls here, not native wire/semantic promotion.
+- [x] Preserve direct dxfRW/interface consumers without fileExport's plan and
+  the prior legacy-version path. Freeze inactive2D viewport binding fields,
+  while keeping ordinary section streaming and otherwise-unused inspection/
+  record inventory disabled. An actual no-NOD control observes zero inspection
+  sections and no record inventory, reads back modes0/2 and still refuses a
+  post-preflight dangling reference. Object consumers retain scoped proof.
+- [x] Avoid per-consumer full provider scans with a lazy bounded provider index.
+  Cap retained rows at100000 and64MiB logical row/name/map allowance, and cap
+  transient provider indexing at200000 records. Retain these limits as logical
+  bounds; allocator capacity, peak RSS and controlled performance remain open.
+
+Authored controls:
+
+- [x]38 output profiles span the ten selected canonical preset bodies in ASCII/
+  binary AC1027, named-block and anonymous viewports, provider/consumer fixed-ID
+  collisions, application scopes, selected AC1021/AC1024/AC1032 outputs, alternate
+  retained-preset rebinding and VisualStyle consumer fields. An independent
+  walker checks588 emitted fields; all120 selected observed field mutations
+  refuse. All22 valid pre-export consumer edits/rebindings export correctly.
+- [x]152 callback/unplanned-record controls refuse before publication and keep a
+  sentinel destination;156 corrected same-adapter retries pass. Cover header
+  changes, temporary emission changes restored before inspection, persistent
+  post-OBJECTS changes, finalizer changes, list removal and extra emitted page/
+  layout/viewport records. Exercise both actual viewport sections and the
+  separate348 field, not just a stand-in validator. Four inactive2D streaming
+  profiles pass with no unnecessary ledger/section inspection.
+- [x] Exact/one-under retained record/byte limits produce four refusals and
+  corrected retries. Arm allocation failure only around the real new finalizer
+  helper in the actual publication callback: four reached faults refuse and
+  preserve the destination, four unreached offsets export, and all eight
+  corrected finalizations pass. Schedules stop after two consecutive unreached
+  offsets, bounded by256 per encoding; this is a finite local schedule.
+- [x] Preserve development failures: padded ASCII integers needed numeric-space
+  handling, expanded test indentation failed strict compilation, and the first
+  348 selector conflated subclasses. Exclude a stale-binary development run
+  after the failed build. Final qualification requires completed owning builds.
+  Also retain the pre-final build checkpoint before removing the unneeded
+  inactive2D ledger; no final-runtime claim is made for that older input set.
+
+Final qualification:
+
+- [x] Build all12 owning targets against final inputs: normal
+  24.47s and qualified Debug/-O1/ASan
+  156.41s. Keep strict warnings/-Werror and the existing
+  compiler policy; the LibreCAD_3 compile guard passes. Core production C++ and
+  installed public headers remain unchanged.
+- [x] The122 selected affected tests pass in normal (207.85s), then
+  ASan (127.88s), with exact matching names/order/labels/timeouts
+  and no skipped/disabled/failing selected tests. Both focused UCS/VIEWPORT
+  controls pass. All28 counter lines agree between configurations, and all27
+  previous counter lines remain unchanged. This is one shared-change checkpoint,
+  not a full-suite or native CAD/kernel qualification claim.
+- [x] Freeze all590 release/build inputs through both runtimes. Complete both
+  builds and archive checks before runtime qualification. Regenerate gzip/bzip2
+  source releases and compare every listed source byte, including the final
+  consumer helper. RPP-5fx extracted builds remain their own checkpoint; do not
+  claim a new extracted-source compile, formal ABI/native application check or
+  controlled memory/performance run here. Original Debug/O0 ASan is unchanged.
+
+The [receipt](docs/research/rpp5fy-shade-consumer-fields-and-callback-rollback-2026-10-27.json)
+pins baseline/development failures, exact source/build/test/archive evidence and
+remaining gates. Recipes are authored locally; no external drawing payload,
+conversion or derivative is committed.
+
+Next implementation-ready work retains the complete objective:
+
+1. [ ] Complete edited typed RenderSettings body rewriting, preserving common
+   metadata, unknown carriers and actual handle roles. Start with captured,
+   independently profiled primary-field edits; bind current typed values to the
+   qualified canonical writer without rewriting immutable original evidence.
+   Independently check emitted fields/normalization, readback, refusal/rollback
+   and corrected retries. Consumer target editing now works at the recorded
+   scope; preset body editing remains a separate obligation.
+2. [ ] Complete common/full-VisualStyle and remaining entity/material/reactor/
+   IMAGE/document/control/name/application/XDATA/HEADER CEPSNID/CEPSNTYPE and
+   native-collation dependencies. Cover arbitrary remaps/collisions and recursive/
+   coupled/whole-document ownership. Selected scalar/identity proof does not
+   close full emitted dictionaries or document eligibility.
+3. [ ] Finish optional/absent/duplicate/alias/extension rendering profiles and
+   active/global/environment/background/live-section/sun providers. Obtain real
+   independent VIEWPORT shade4/5 wire witnesses and resolve the published-table
+   discrepancy, then bind clipping and layer overrides335/343/344/91.
+4. [ ] Finish TABLE Values, multiple-content/linked-data ownership and qualified
+   formatting/units/borders, plus native B2b/B3/C bit/schema/owner/version/corpus
+   evidence. Do not guess date epochs, point counts or General semantics.
+5. [ ] Complete pending platform/package/native consumers, formal ABI/application
+   checks, controlled memory/performance, native Linux/Windows FreeCAD and
+   independent ACIS/ACDS semantic/kernel qualification with separate gates.
+6. [ ] Continue fast owning selectors/target reuse, broaden for actual shared
+   changes or failures, freeze inputs and finish builds before runtimes. Retain
+   failures/caps, self-unblock, update/commit/report each coherent slice and
+   continue ready work without importing external drawing payload/derivatives.
+
+Resource families remain nine, ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Selected modern consumer transport is now checked; full
+rendering/document/native semantic qualification remains incomplete. J256/J260/
+J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and
+independent ACIS/ACDS semantic/kernel evidence remain **NOT_RUN**. The full
+objective remains active; no remote mutation.

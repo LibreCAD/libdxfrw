@@ -15569,6 +15569,271 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
     } catch (...) { return false; }
 }
 
+bool dx_iface::visitDxfShadeConsumers(
+        const std::function<bool(DxfShadeConsumerSource&&)>& visit) const {
+    if (!cData) return false;
+    std::unordered_map<std::uint32_t, std::pair<unsigned, std::uint32_t>> providers;
+    bool indexed = false;
+    const auto indexProviders = [&]() {
+        if (indexed) return true;
+        constexpr std::size_t maxProviders = 200000u;
+        if (cData->visualStyles.size() > maxProviders
+            || cData->renderSettings.size() > maxProviders - cData->visualStyles.size()) return false;
+        providers.reserve(cData->visualStyles.size() + cData->renderSettings.size());
+        for (const auto& style : cData->visualStyles)
+            if (!providers.emplace(style.handle, std::make_pair(1u, style.parentHandle)).second) return false;
+        for (const auto& preset : cData->renderSettings) {
+            const unsigned kind = preset.m_kind == DRW_RenderSettings::Settings ? 2u
+                : preset.m_kind == DRW_RenderSettings::RapidRT ? 3u : 4u;
+            if (!providers.emplace(preset.handle, std::make_pair(kind, preset.parentHandle)).second) return false;
+        }
+        indexed = true; return true;
+    };
+    const auto deliver = [&](DxfShadeConsumerSource source) {
+        const auto styleOwner = [&](std::uint32_t target, std::uint32_t& owner) {
+            if (!indexProviders()) return false;
+            const auto found = providers.find(target);
+            if (found == providers.end() || found->second.first != 1u) return false;
+            owner = found->second.second; return true;
+        };
+        if (source.target) {
+            if (source.mode == 4) {
+                source.targetKind = 1u;
+                if (!styleOwner(source.target, source.targetOwner)) return false;
+            } else if (source.mode == 5) {
+                if (!indexProviders()) return false;
+                const auto found = providers.find(source.target);
+                if (found == providers.end() || found->second.first < 2u) return false;
+                source.targetKind = found->second.first; source.targetOwner = found->second.second;
+            } else return false;
+        }
+        if (source.visualStyle && !styleOwner(source.visualStyle, source.visualStyleOwner)) return false;
+        return visit(std::move(source));
+    };
+    for (const auto& value : cData->plotSettings) {
+        DxfShadeConsumerSource source;
+        source.handle = value.handle; source.owner = value.parentHandle;
+        source.mode = value.shadePlotMode; source.target = value.shadePlotHandle.ref;
+        if (!deliver(std::move(source))) return false;
+    }
+    for (const auto& value : cData->layouts) {
+        DxfShadeConsumerSource source; source.kind = DxfShadeConsumerSource::Layout;
+        source.handle = value.handle; source.owner = value.parentHandle;
+        source.mode = value.shadePlotMode; source.target = value.shadePlotHandle.ref;
+        if (!deliver(std::move(source))) return false;
+    }
+    const auto block = [&](const dx_ifaceBlock* container) {
+        if (!container) return true;
+        for (const auto* entity : container->ent) {
+            const auto* value = dynamic_cast<const DRW_Viewport*>(entity);
+            if (!value) continue;
+            DxfShadeConsumerSource source; source.kind = DxfShadeConsumerSource::Viewport;
+            source.handle = value->handle; source.owner = value->parentHandle;
+            source.mode = value->shadePlotMode; source.target = value->shadePlotHandle;
+            source.visualStyle = value->visualStyleHandle; source.space = value->space;
+            source.block = container;
+            source.blocks = container != cData->mBlock && !isFixedSpaceBlock(container);
+            source.ownerName = container == cData->mBlock
+                ? (value->space == DRW::PaperSpace ? "*PAPER_SPACE" : "*MODEL_SPACE") : container->name;
+            if (!deliver(std::move(source))) return false;
+        }
+        return true;
+    };
+    if (!block(cData->mBlock)) return false;
+    for (const auto* container : cData->blocks) if (!block(container)) return false;
+    return true;
+}
+
+bool dx_iface::prepareDxfShadeConsumers(DRW::Version version) noexcept {
+    try {
+        m_dxfShadeConsumerActive = version > DRW::AC1015;
+        if (m_dxfShadeConsumerActive && !visitDxfShadeConsumers([&](DxfShadeConsumerSource&& source) {
+                constexpr auto fixed = sizeof(source) + 16u * sizeof(void*) + 1u;
+                if (source.ownerName.size() > m_dxfShadeConsumerByteLimit
+                    || fixed > m_dxfShadeConsumerByteLimit - source.ownerName.size()) return false;
+                const auto charge = fixed + source.ownerName.size();
+                if (m_dxfShadeConsumers.size() >= m_dxfShadeConsumerRecordLimit
+                    || m_dxfShadeConsumerBytes > m_dxfShadeConsumerByteLimit
+                    || charge > m_dxfShadeConsumerByteLimit - m_dxfShadeConsumerBytes) return false;
+                m_dxfShadeConsumerEntities |= source.kind == DxfShadeConsumerSource::Viewport
+                    && (source.target != 0u || source.visualStyle != 0u);
+                m_dxfShadeConsumers.push_back(std::move(source)); m_dxfShadeConsumerBytes += charge; return true;
+            })) return false;
+        m_dxfShadeConsumerOwner = cData;
+        m_dxfShadeConsumerGeneration = cData->importGeneration;
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedDxfShadeConsumers() const noexcept {
+    if (!cData || m_dxfShadeConsumerOwner != cData
+        || m_dxfShadeConsumerGeneration != cData->importGeneration) return false;
+    if (!m_dxfShadeConsumerActive) return true;
+    try {
+        std::size_t index = 0u;
+        const bool same = visitDxfShadeConsumers([&](DxfShadeConsumerSource&& source) {
+            if (index == m_dxfShadeConsumers.size()) return false;
+            const auto& frozen = m_dxfShadeConsumers[index++];
+            return source.kind == frozen.kind && source.handle == frozen.handle && source.owner == frozen.owner
+                && source.mode == frozen.mode && source.target == frozen.target && source.visualStyle == frozen.visualStyle
+                && source.targetKind == frozen.targetKind && source.targetOwner == frozen.targetOwner
+                && source.visualStyleOwner == frozen.visualStyleOwner && source.space == frozen.space
+                && source.block == frozen.block && source.blocks == frozen.blocks && source.ownerName == frozen.ownerName;
+        });
+        return same && index == m_dxfShadeConsumers.size();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectDxfShadeConsumers(const dxfRW::DxfObjectsWriteView& view, std::string_view section) noexcept {
+    if (!hasUnchangedDxfShadeConsumers() || !dxfW) return false;
+    if (!m_dxfShadeConsumerActive) return true;
+    const unsigned bit = section == "OBJECTS" ? 4u : section == "BLOCKS" ? 1u : section == "ENTITIES" ? 2u : 0u;
+    if (!bit || (m_dxfShadeConsumerSections & bit)) return false;
+    m_dxfShadeConsumerSections |= bit;
+    try {
+        std::map<std::uint32_t, std::size_t> objects;
+        std::vector<std::size_t> viewports;
+        for (std::size_t i = 0u; i < m_dxfShadeConsumers.size(); ++i) {
+            const auto& source = m_dxfShadeConsumers[i];
+            if (source.kind == DxfShadeConsumerSource::Viewport) {
+                if (bit != 4u && source.blocks == (bit == 1u)) viewports.push_back(i);
+            } else if (bit == 4u) {
+                const auto handle = dxfW->remapHandle(source.handle);
+                if (!handle || handle == DRW::NoHandle || !objects.emplace(handle, i).second) return false;
+            }
+        }
+        std::size_t nextViewport = 0u;
+        std::string_view selectedName;
+        const auto integer = [&](std::string_view text, std::uint32_t& value, bool handle) {
+            if (!handle && view.binary) {
+                if (text.size() != 2u) return false;
+                value = static_cast<unsigned char>(text[0]) | (static_cast<unsigned char>(text[1]) << 8u); return true;
+            }
+            while (!text.empty() && (text.front() == ' ' || text.front() == '\t')) text.remove_prefix(1);
+            while (!text.empty() && (text.back() == ' ' || text.back() == '\t')) text.remove_suffix(1);
+            if (!handle && !text.empty() && text.front() == '+') text.remove_prefix(1);
+            if (text.empty()) return false;
+            const auto parsed = std::from_chars(text.data(), text.data() + text.size(), value, handle ? 16 : 10);
+            return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
+        };
+        const bool inspected = view.bytes.empty() ? objects.empty() && viewports.empty()
+            : dx_standard_output::inspectSelected(view,
+                [&](std::string_view name, std::uint32_t handle) {
+                    selectedName = name;
+                    return bit == 4u ? objects.count(handle) || name == "PLOTSETTINGS" || name == "LAYOUT" : name == "VIEWPORT";
+                },
+                [&](const auto& shape, std::string_view body) {
+                    std::size_t index = 0u;
+                    if (bit == 4u) {
+                        const auto found = objects.find(shape.handle);
+                        if (found == objects.end()) return false;
+                        index = found->second;
+                    } else {
+                        if (nextViewport == viewports.size()) return false;
+                        index = viewports[nextViewport++];
+                    }
+                    auto& source = m_dxfShadeConsumers[index];
+                    const bool viewport = source.kind == DxfShadeConsumerSource::Viewport;
+                    const bool layout = source.kind == DxfShadeConsumerSource::Layout;
+                    const char* name = viewport ? "VIEWPORT" : layout ? "LAYOUT" : "PLOTSETTINGS";
+                    if (source.inspected || selectedName != name || !shape.handle || shape.handle == DRW::NoHandle) return false;
+                    if (source.handle && source.handle != DRW::NoHandle
+                        && shape.handle != (viewport ? dxfW->remapEntityHandle(source.handle) : dxfW->remapHandle(source.handle))) return false;
+                    const auto ownerKey = viewport ? layoutSymbolKey(source.ownerName) : std::string();
+                    const auto owner = !viewport ? dxfW->remapHandle(source.owner)
+                        : ownerKey == "*MODEL_SPACE" ? DRW::DxfModelSpaceBlockRecordHandle
+                        : ownerKey == "*PAPER_SPACE" ? DRW::DxfPaperSpaceBlockRecordHandle
+                        : dxfW->getBlockRecordHandleToWrite(source.ownerName);
+                    if (owner == DRW::NoHandle) return false;
+                    dx_standard_output::RecordCursor cursor(body, view);
+                    dx_standard_output::RecordCursor::Token token;
+                    enum Scope { Common, Other, Plot, Layout, Viewport } scope = Common;
+                    unsigned depth = 0u, selves = 0u, owners = 0u, modes = 0u, targets = 0u, styles = 0u;
+                    unsigned plots = 0u, layouts = 0u, viewportBodies = 0u;
+                    bool xdata = false;
+                    while (!cursor.done()) {
+                        if (!cursor.next(token)) return false;
+                        if (xdata) { if (token.code < 1000) return false; continue; }
+                        if (token.code == 102) {
+                            if (token.text == "}") { if (!depth) return false; --depth; }
+                            else if (!token.text.empty() && token.text.front() == '{') {
+                                if (++depth > static_cast<unsigned>(DRW::kMaxDxfApplicationGroupNesting)) return false;
+                            } else return false;
+                            continue;
+                        }
+                        if (depth) continue;
+                        if (token.code >= 1000) { xdata = true; continue; }
+                        if (token.code == 100) {
+                            scope = token.text == "AcDbPlotSettings" ? (++plots, Plot)
+                                : token.text == "AcDbLayout" ? (++layouts, Layout)
+                                : token.text == "AcDbViewport" ? (++viewportBodies, Viewport) : Other;
+                            continue;
+                        }
+                        std::uint32_t actual = 0u;
+                        if (token.code == 5) {
+                            if (scope != Common || ++selves != 1u || !integer(token.text, actual, true) || actual != shape.handle) return false;
+                        } else if (token.code == 330 && scope == Common) {
+                            if (++owners != 1u || !integer(token.text, actual, true) || actual != owner) return false;
+                        } else if (token.code == (viewport ? 170 : 76) && scope == (viewport ? Viewport : Plot)) {
+                            if (++modes != 1u || !integer(token.text, actual, false) || actual != static_cast<std::uint32_t>(source.mode)) return false;
+                        } else if (token.code == 333) {
+                            if (scope != (viewport ? Viewport : layout ? Layout : Plot) || ++targets != 1u
+                                || !integer(token.text, actual, true) || actual != dxfW->remapHandle(source.target)) return false;
+                        } else if (token.code == 348 && viewport && scope == Viewport) {
+                            // AcDbEntity's separate full-VisualStyle carrier is
+                            // outside this consumer's AcDbViewport field.
+                            if (++styles != 1u || !integer(token.text, actual, true)
+                                || actual != dxfW->remapHandle(source.visualStyle)) return false;
+                        }
+                    }
+                    if (depth || selves != 1u || owners != 1u || modes != 1u
+                        || targets != static_cast<unsigned>(source.target != 0u)
+                        || styles != static_cast<unsigned>(source.visualStyle != 0u)
+                        || plots != static_cast<unsigned>(!viewport) || layouts != static_cast<unsigned>(layout)
+                        || viewportBodies != static_cast<unsigned>(viewport)) return false;
+                    source.inspected = true; source.emitted = shape.handle; source.emittedOwner = owner; return true;
+                });
+        if (!inspected || nextViewport != viewports.size()) return false;
+        for (const auto& item : objects) if (!m_dxfShadeConsumers[item.second].inspected) return false;
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeDxfShadeConsumers() const noexcept {
+    // Direct dxfRW callers can use this interface without fileExport's plan.
+    if (!m_dxfShadeConsumerOwner) return true;
+    if (!hasUnchangedDxfShadeConsumers() || !dxfW) return false;
+    if (!m_dxfShadeConsumerActive
+        || (!m_dxfShadeConsumerEntities && std::none_of(m_dxfShadeConsumers.begin(), m_dxfShadeConsumers.end(),
+                [](const auto& source) { return source.kind != DxfShadeConsumerSource::Viewport; }))) return true;
+    if (m_dxfShadeConsumerSections != (m_dxfShadeConsumerEntities ? 7u : 4u)) return false;
+    try {
+        const auto provider = [&](std::uint32_t target, std::uint32_t owner, unsigned kind) {
+            if (!target) return kind == 0u;
+            const auto emitted = dxfW->remapHandle(target);
+            const char* name = kind == 1u ? "VISUALSTYLE" : kind == 2u ? "RENDERSETTINGS"
+                : kind == 3u ? "RAPIDRTRENDERSETTINGS" : kind == 4u ? "MENTALRAYRENDERSETTINGS" : "";
+            return dxfW->dxfWriteRecordHasIdentity(emitted, name, "OBJECTS")
+                && dxfW->dxfWriteRecordHasOwner(emitted, dxfW->remapHandle(owner));
+        };
+        for (const auto& source : m_dxfShadeConsumers) {
+            const bool viewport = source.kind == DxfShadeConsumerSource::Viewport;
+            // Inactive 2D viewports retain the ordinary streaming path. Their
+            // live binding fields are still frozen; they earn no byte proof.
+            if (viewport && !m_dxfShadeConsumerEntities) continue;
+            const char* name = viewport ? "VIEWPORT" : source.kind == DxfShadeConsumerSource::Layout ? "LAYOUT" : "PLOTSETTINGS";
+            const char* section = viewport ? (source.blocks ? "BLOCKS" : "ENTITIES") : "OBJECTS";
+            if (!source.inspected || !dxfW->dxfWriteRecordHasIdentity(source.emitted, name, section)
+                || !dxfW->dxfWriteRecordHasOwner(source.emitted, source.emittedOwner)
+                || !provider(source.target, source.targetOwner, source.targetKind)
+                || !provider(source.visualStyle, source.visualStyleOwner, source.visualStyle ? 1u : 0u)) return false;
+            if (viewport && source.handle && source.handle != DRW::NoHandle
+                && !dxfW->dxfWriteSourceEntityHasIdentity(source.handle, source.emitted, name, section, source.emittedOwner)) return false;
+        }
+        return true;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (!cData || !dxfW) return false;
     const auto planned = m_extensionRenderSettingsHandles.size();
@@ -27680,6 +27945,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if (!finalizeDxfShadeConsumers()) return false;
     if (!hasUnchangedDxfMaterialSources()
         || (!m_dxfMaterialWriteSources.empty() && !m_dxfMaterialWriteInspected)) return false;
     for (const auto& source : m_dxfMaterialWriteSources) {
@@ -28519,6 +28785,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_dxfShadeConsumers.clear(); m_dxfShadeConsumerOwner = nullptr;
+    m_dxfShadeConsumerBytes = 0u; m_dxfShadeConsumerSections = 0u; m_dxfShadeConsumerEntities = false;
+    struct ShadeConsumerScope {
+        dx_iface& owner;
+        ~ShadeConsumerScope() {
+            std::vector<DxfShadeConsumerSource>().swap(owner.m_dxfShadeConsumers);
+            owner.m_dxfShadeConsumerOwner = nullptr; owner.m_dxfShadeConsumerGeneration = 0u;
+            owner.m_dxfShadeConsumerBytes = 0u; owner.m_dxfShadeConsumerSections = 0u;
+            owner.m_dxfShadeConsumerActive = false;
+            owner.m_dxfShadeConsumerEntities = false;
+        }
+    } shadeConsumerScope{*this};
     m_xrecordWriteSources.clear(); m_xrecordWriteSourceHandles.clear(); m_xrecordWriteSourceOwner = nullptr; m_xrecordWriteSourceBytes = 0u;
     m_xrecordWriteDictionaries.clear(); m_xrecordWriteDictionaryHandles.clear();
     struct XrecordSourceScope {
@@ -30030,6 +30308,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                                    : "standalone PLOTSETTINGS graph closure");
         return false;
     }
+    if (!prepareDxfShadeConsumers(v)) {
+        reportPreflightFailure("shade consumer binding capture incomplete or over budget");
+        return false;
+    }
     if (!cData->dataStorageSections.empty()
         && (!cData->rawProxyObjects.empty()
             || !cData->dxfClasses.empty())) {
@@ -31250,11 +31532,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     for (const dx_ifaceBlock* block : cData->blocks)
         rawXdataHandleInventory = rawXdataHandleInventory
             || hasRawXdataHandle(block);
+    const bool needsShadeOutput = m_dxfShadeConsumerEntities
+        || std::any_of(m_dxfShadeConsumers.begin(), m_dxfShadeConsumers.end(),
+            [](const auto& source) { return source.kind != DxfShadeConsumerSource::Viewport; });
     dxfW->setDxfWriteRecordInventoryEnabled(
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
-        || cData->hasNamedObjectDictionary);
+        || cData->hasNamedObjectDictionary || needsShadeOutput);
     const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
@@ -31267,9 +31552,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     const bool needsRenderingOutput = !cData->renderSettings.empty();
-    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || !m_acdsDxfHistoryObjects.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
+    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_acdsDxfHistoryObjects.empty())
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput](const auto& view) {
             return hasUnchangedXrecordWriteSources()
+                && (!needsShadeOutput || inspectDxfShadeConsumers(view, "OBJECTS"))
                 && inspectDxfRenderSettingsOutput(view)
                 && inspectDxfMaterialOutput(view)
                 && inspectAcdsDxfHistory(view)
@@ -31279,9 +31565,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }
-    if (needsRasterOutput
-        && !dxfW->setDxfEntitySectionsWriteInspector([this](const auto& view, auto section) {
-            return inspectRasterImageEdges(view, section);
+    const bool needsShadeEntities = m_dxfShadeConsumerEntities;
+    if ((needsRasterOutput || needsShadeEntities)
+        && !dxfW->setDxfEntitySectionsWriteInspector([this, needsRasterOutput, needsShadeEntities](const auto& view, auto section) {
+            return (!needsRasterOutput || inspectRasterImageEdges(view, section))
+                && (!needsShadeEntities || inspectDxfShadeConsumers(view, section));
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }

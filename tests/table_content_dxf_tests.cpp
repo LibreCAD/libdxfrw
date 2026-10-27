@@ -87,6 +87,11 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    static auto shadeSize(const dx_iface& writer){return std::make_pair(writer.m_dxfShadeConsumers.size(),writer.m_dxfShadeConsumerBytes);}
+    static void shadeLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfShadeConsumerRecordLimit=records;writer.m_dxfShadeConsumerByteLimit=bytes;}
+    static bool finalizeShade(const dx_iface& writer){return writer.finalizeDxfShadeConsumers();}
+    static bool inactiveShadeOutput(const dx_iface& writer){return writer.m_dxfShadeConsumerSections==0u&&writer.dxfW
+        &&writer.dxfW->dxfWriteRecordHandleCount(writer.dxfW->remapEntityHandle(0xE801u))==0u;}
     static bool presetOutput(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view){return writer.inspectDxfRenderSettingsOutput(view);}
     static std::size_t presetDictionaryBytes(const dx_iface& writer){return writer.m_xrecordWriteSourceBytes;}
     static void presetDictionaryLimit(dx_iface& writer,std::size_t bytes){writer.m_xrecordWriteSourceByteLimit=bytes;}
@@ -3167,6 +3172,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--shade-consumer-output") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-shade-consumer-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=shadeConsumerOutputControls::tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--render-preset-graph-output") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

@@ -1134,6 +1134,10 @@ add_test(NAME libdxfrw_render_preset_graph_output
     COMMAND libdxfrw_table_content_dxf_tests --render-preset-graph-output)
 set_tests_properties(libdxfrw_render_preset_graph_output PROPERTIES
     LABELS "fast;dxf;render;writer;graph;physical" TIMEOUT 30)
+add_test(NAME libdxfrw_shade_consumer_output
+    COMMAND libdxfrw_table_content_dxf_tests --shade-consumer-output)
+set_tests_properties(libdxfrw_shade_consumer_output PROPERTIES
+    LABELS "fast;dxf;render;writer;graph;physical" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_evaluation_graph_capture_limits
