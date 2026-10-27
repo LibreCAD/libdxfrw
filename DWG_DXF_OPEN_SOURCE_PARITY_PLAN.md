@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fk original entity dependencies and physical census (2026-10-27; verified selected scope):** previously validated primary/compound/ATTDEF/BLOCK boundary sources now supply their own original dependencies, and every physical entity is counted. Immutable producer/body/context owners, original wire-owner values and bounded reference inventories preserve source roles and refuse unsupported records. The authored matrix covers72 profiles,2,016 markers,10,416 reference positions,258 corrected imports and384 corrected finalizations. Final affected cohorts pass84/84 normally and84/84 under ASan; prior dependency markers/reference spans increase without reducing its controls. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fk-original-entity-dependencies-and-physical-census-2026-10-27) · [receipt](docs/research/rpp5fk-original-entity-dependencies-and-census-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fl original LAYOUT dependencies and source modes (2026-10-27; verified selected scope):** actual original LAYOUT bodies now feed scoped references and actual Plot74/Plot76/Layout76 mode evidence. Declaration1, two330 roles, mode-required inputs, inactive uses and derived UCS absence dispositions remain distinct; unsupported active targets and foreign inactive nonzero shade IDs stay unqualified. The authored matrix covers96 profiles,1,968 reference spans,312 reference-to-mode joins,228 corrected imports and384 corrected finalizations. Final affected cohorts pass85/85 normally and85/85 under ASan. Active specialized providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fl-original-layout-dependencies-and-source-modes-2026-10-27) · [receipt](docs/research/rpp5fl-original-layout-dependencies-and-source-modes-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fk original entity dependencies and physical census (2026-10-27; verified selected scope):** previously validated primary/compound/ATTDEF/BLOCK boundary sources now supply their own original dependencies, and every physical entity is counted. Immutable producer/body/context owners, original wire-owner values and bounded reference inventories preserve source roles and refuse unsupported records. The authored matrix covers72 profiles,2,016 markers,10,416 reference positions,258 corrected imports and384 corrected finalizations. Final affected cohorts pass84/84 normally and84/84 under ASan; prior dependency markers/reference spans increase without reducing its controls. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fk-original-entity-dependencies-and-physical-census-2026-10-27) · [receipt](docs/research/rpp5fk-original-entity-dependencies-and-census-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fj original TABLE geometry name/handle coupling (2026-10-27; verified selected scope):** a red witness showed group2 and343 resolving to different original BLOCK_RECORDs while still qualifying. The bounded dependency audit now joins their original targets, retains reciprocal physical group/target metadata and preserves specific prerequisite/refusal reasons. The authored matrix covers72 profiles,216 field spans,144 corrected imports and384 corrected finalizations. Final affected cohorts pass83/83 normally and83/83 under ASan. Graphical contents, full recursive/live/emitted/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fj-original-table-geometry-namehandle-coupling-2026-10-27) · [receipt](docs/research/rpp5fj-table-geometry-name-handle-coupling-2026-10-27.json). No support gate is promoted.
 
@@ -132617,6 +132619,136 @@ Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledge
 **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
 `outputEligible=false`. Selected original entity reference facts can match;
 full field/recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active and incomplete; no remote
+mutation is included.
+
+## Implementation progress — RPP-5fl original LAYOUT dependencies and source modes (2026-10-27)
+
+State: **verified for selected original LAYOUT reference dispositions**.
+RPP-5fk is committed as `b7150663`. Actual original LAYOUT bodies now feed their
+own scoped references and conditional mode evidence. Active specialized target
+providers, full recursive/live/emitted/whole-document/native and external
+qualification remain open; inactive dispositions are not target-body proof.
+
+The official [LAYOUT reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm)
+distinguishes structural owner330 from associated BLOCK_RECORD330, viewport331,
+named345 and orthographic base346 UCS references. Its absence rules distinguish
+unnamed UCS and, with an original nonzero orthographic76, inherited WORLD.
+The [PlotSettings reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm)
+selects plot-view6 with plotType74=3; its shade76 differs from Layout's UCS76.
+The official [shade enum](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPlotSettings__ShadePlotType.html)
+adds VisualStyle4/RenderPreset5. The [setter contract](https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__OVERLOADED_setShadePlot_AcDbPlotSettings.html)
+requires corresponding real rendering objects and clears unused IDs in modes0/3.
+That setter is not independent evidence for loading a foreign inactive nonzero
+DXF ID; retain those carriers but keep their qualification unavailable.
+
+- [x] Reproduce a gap: original LAYOUT A0 has an unregistered XDATA APPID,
+  ordinary reading succeeds and the old pass still reports matched targets
+  because it never visits LAYOUT's own fields.
+- [x] Admit only matched actual original LAYOUT producer/model/profile/identity
+  providers. Pin immutable owners, census physical LAYOUT rows and keep name1
+  as a declaration. Preserve two330 roles, viewport/UCS/shade/view-name roles,
+  reactors, extension dictionaries and XDATA uses. Source names and pointers
+  use the existing actual namespace/target prerequisites, not live models.
+- [x] Store actual Plot74, Plot76 and Layout76 values and their original group
+  indices separately. Application lookalikes, another subclass's76, normalized
+  omitted-field defaults and live edits cannot supply mode evidence. Keep mode
+  spans in reference rows. Actual active view/shade modes require their inputs;
+  absent named UCS and original nonzero-ortho missing base UCS retain separate
+  derived dispositions, with absent/present status and physical roles intact.
+- [x] Expose Inactive source-use dispositions for explicit inactive view fields
+  and canonical null shade IDs in modes0/3. Nonzero inactive shade carriers
+  stay unqualified and unchanged by ordinary reading. Real active VIEW/UCS,
+  VIEWPORT and VisualStyle/RenderSettings source profiles remain required;
+  callbacks/object shells alone cannot promote them. Source facts do not
+  certify native loading, graphical content or later mode edits/output.
+- [x] Charge original layout retention/profiles and enlarged nodes/rows before
+  work; reserve up to four derived rows per identity without raising configured
+  row/byte/work caps. Queries remain allocation-free in controls. Add layout
+  source/reference/physical/backed and inactive counts; retain all earlier
+  dictionary ownership, entity census and TABLE geometry coupling. No library
+  parser/writer, installed public model/facade/callback or DWG layout changes;
+  writer admission and global support gates stay unchanged.
+- [x] Add authored `libdxfrw_original_layout_dependencies`: **96** profiles over
+  four revisions, LF/CRLF/binary, ENTITIES/BLOCKS and four source forms. Each has
+  three LAYOUT records. Independently bind **288** markers, **1,968** reference
+  spans and **312** reference-to-mode span joins, including two330 roles and repeated333 scopes.
+  Verify **96** live-mode/name/advisory independence cases and allocation-free
+  queries. Cover **144** field/mode/target refusals, including **six** earlier
+  inconsistent333 prerequisite refusals, and preserve foreign inactive carriers.
+- [x] Include **36** exact/one-under row/byte/work boundaries, **36** audit/input/
+  graph copy/alias/transplant controls and **12** source/typed callback throws.
+  The same adapters pass **228** corrected imports. A finite six-route64-offset
+  schedule reaches **384** failures and **384** corrected finalizations; it is
+  not exhaustive allocation coverage. All drawings are locally authored recipes.
+- [x] Retain the sibling-pointer compile failure, stale tests accidentally
+  dispatched against the previous binary, and an expanded-test -Werror
+  indentation failure. Stale results are explicitly excluded from verification.
+  Correct typed lookup branches and test statement layout; preserve warning
+  policy and caps. The final owning selector passes in3.60s. Prior dependency
+  controls retain144 profiles/refusal/quota/context/retry counts; markers grow
+  **5,688 to6,120**, physical reference spans **14,568 to15,432**, as LAYOUT's
+  original fields enter their inventory.
+
+- [x] Both affected builds retain all **11** targets, including LibreCAD_3's
+  compile-only guard. Final exact cohorts pass **85/85 normally in77.29s**, then
+  **85/85 under Debug/`-O1`/ASan in49.23s**, with two workers and no failures/skips/
+  disabled tests. Preserve prior84 names/order; add only the owning selector.
+  Names/order/labels/timeouts and executed sets match. All **fourteen** selected
+  counter lines agree; twelve prior lines are unchanged and only the documented
+  marker/reference fields increase in the prior dependency selector. The
+  **409-file** compiled-source/build-metadata manifest stays frozen through both
+  runtimes. Builds and packaging finish first; normal completes before ASan.
+  Keep the original Debug/O0 ASan configuration unchanged.
+- [x] Isolated current-source autoreconf/configure/make-dist pass; both archives
+  contain exact dependency/plot-source/STYLE helper hashes. Archive inclusion
+  is not a full Autotools distribution build. No full suite, formal ABI/native
+  application or controlled RSS/performance qualification is claimed.
+
+The [receipt](docs/research/rpp5fl-original-layout-dependencies-and-source-modes-2026-10-27.json)
+pins sources, selected names/statuses/counters, ordering, invalid/stale and
+corrected development logs, compiler settings, packaging/header hashes and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete active specialized target providers.** Implement actual
+   original VIEW/UCS table pairs, VIEWPORT body/profile origins and
+   VisualStyle/RenderSettings producer pairs. Reuse borrowed publication/lifetime
+   patterns while preserving legacy resource-view kinds1..8 and existing
+   callback contracts; add no pure DRW_Interface virtuals. Bind independent
+   fields and actual table/entity/object namespace origins before named/handle
+   joins. Cover source/mode/owner mismatch, ambiguity, omission/null, bounds,
+   failures, rollback and retries before active LAYOUT references can match.
+2. [ ] **Complete remaining original producers and full recursive closure.**
+   Retain other entity/material/visual-style/reactor/IMAGE/document/control/owner
+   families, omitted dictionary flags, names/application/XDATA and HEADER
+   CEPSNID/CEPSNTYPE. Resolve whole-document ownership, TABLE/linked metadata,
+   native name/collation and required/absent/null/default semantics. Selected
+   LAYOUT dispositions do not complete these requirements.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields, names, references and mode changes, then
+   exact emitted fields. Verify handle remapping/readback/refusal/rollback/retry/
+   destination safety. Finish Values, multiple-content attributes, linked-data
+   ownership and producer/version-qualified formats, units and borders. Keep
+   date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Preserve
+   native bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and
+   measured memory/performance obligations. Audit complete legacy Autotools
+   source/header inventory against CMake before source-release build qualification.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior; obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks,
+   risk-based affected integration and built-target reuse. Freeze compiled
+   sources, finish builds/packaging before normal then ASan runtimes, retain
+   failures/caps and update/unblock/commit/report each verified slice. Commit no
+   external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected original LAYOUT reference dispositions can
+match; full field/recursive/live/emitted/whole-document/native qualification is
 incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active and incomplete; no remote

@@ -197,7 +197,7 @@ enum class dx_source_format : std::uint8_t {
 enum class dx_tableResourceFamily : std::uint8_t {
     TextStyle, LineType, TableStyle, CellStyleMap, Field, DataLink,
     BlockRecord, AppId, Layer, Dictionary, XRecord, AttributeDefinition,
-    Entity, Table, TableContent, TableGeometry
+    Entity, Table, TableContent, TableGeometry, Layout
 };
 
 enum class dx_tableResourceRole : std::uint8_t {
@@ -209,7 +209,8 @@ enum class dx_tableResourceRole : std::uint8_t {
     XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout,
     LineTypeName, LayerMaterial, LayerPlotStyle,
     TableStyle, TableGeometryBlock, TableCellBlock, TableCellField,
-    TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName, DictionaryDefault
+    TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName, DictionaryDefault,
+    LayoutBlockRecord,LayoutViewport,LayoutNamedUcs,LayoutBaseUcs,LayoutShadePlot,PlotViewName
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1533,7 +1534,7 @@ private:
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,OriginalTargetsMatched,Unqualified};
             enum class Reason {Matched,NullOptional,Inherited,Literal,OriginalTableOwner,MissingTarget,WrongKind,OriginalUnavailable,
                 MissingName,AmbiguousName,NameSourceUnavailable,InvalidName,UnknownRole,NullRequired,WrongOwner,OwnershipCycle,OwnershipUnknown,
-                CoupledTargetMismatch,CoupledTargetUnavailable};
+                CoupledTargetMismatch,CoupledTargetUnavailable,Inactive};
             // Effective original edge policy, separate from its physical code.
             enum class Ownership {None,PhysicalHard,DictionaryFlagHard,ExplicitSoft,Unqualified};
             struct Node {
@@ -1542,6 +1543,9 @@ private:
                 std::shared_ptr<const ResourceOriginAudit> resource;
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const PlotSourceRecord> plot;
+                std::shared_ptr<const LayoutAudit> layout;
+                std::array<int,3> layoutModes{{-1,-1,-1}};
+                std::array<std::size_t,3> layoutModeGroups{{DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None}};
                 std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};
                 std::shared_ptr<const EntitiesRoleAudit> entities;
                 std::shared_ptr<const BlockRoleAudit> blocks;std::size_t entityRow{0};
@@ -1552,6 +1556,7 @@ private:
                 std::uint32_t source{0},target{0};std::size_t group{DRW_DxfIdentitySource::None};int code{0};
                 dx_tableResourceRole role{dx_tableResourceRole::Unknown};Reason reason{Reason::OriginalUnavailable};
                 Ownership ownership{Ownership::None};std::size_t dictionaryFlagGroup{DRW_DxfIdentitySource::None};
+                int mode{-1};std::size_t modeGroup{DRW_DxfIdentitySource::None};
                 // Original TABLE geometry pair only; preserve each physical
                 // role and its own target even when the other side disagrees.
                 bool geometryCoupled{false};std::size_t coupledGroup{DRW_DxfIdentitySource::None};std::uint32_t coupledTarget{0};
@@ -1566,6 +1571,7 @@ private:
             std::array<bool,5> nameCensusComplete{};
             std::vector<Row> rows;std::size_t unavailableSources{0};
             std::size_t physicalEntityRows{0},backedEntityRows{0},entityReferences{0};
+            std::size_t physicalLayoutRows{0},backedLayoutRows{0},layoutReferences{0};
         };
         std::shared_ptr<const DependencyAudit> dependencyAudit,dependencyOwner;
         std::size_t dependencyBytes{0},dependencyWork{0},dependencyRowsReserved{0};

@@ -27,6 +27,7 @@ template<class N> const auto& dependencyGroups(const N& n) {
     if(n.resource)return n.resource->input->raw->groups;
     if(n.structural)return n.structural->input->raw->groups;
     if(n.plot)return n.plot->input->raw->groups;
+    if(n.layout)return n.layout->input->raw->groups;
     if(n.entities){const auto& row=n.entities->rows.at(n.entityRow);return n.entities->scopes.at(row.section)->physical->records.at(row.record).groups;}
     if(n.blocks){const auto& row=n.blocks->rows.at(n.entityRow);const auto& scope=n.blocks->scopes.at(row.scope);
         if(row.endpoint)return (row.physical==scope.first?scope.origin->beginRaw:scope.origin->endRaw)->groups;
@@ -37,10 +38,22 @@ template<class N> const auto& dependencyGroups(const N& n) {
 template<class N> const auto& dependencyContext(const N& n) {
     if(n.entities)return n.entities->scopes.at(n.entities->rows.at(n.entityRow).section)->context;
     if(n.blocks)return n.blocks->scopes.at(n.blocks->rows.at(n.entityRow).scope).origin->context;
+    if(n.layout)return n.layout->input->context;
     return n.resource?n.resource->input->context:n.structural?n.structural->input->context:n.plot?n.plot->input->context:n.table->source->context;
 }
 template<class N> const DRW_TableEntry* dependencyModel(const N& n) {
-    return n.resource?n.resource->input->model.get():n.structural?n.structural->input->model.get():n.plot?n.plot->input->model.get():nullptr;
+    if(n.resource)return n.resource->input->model.get();if(n.structural)return n.structural->input->model.get();
+    if(n.plot)return n.plot->input->model.get();if(n.layout)return n.layout->input->model.get();return nullptr;
+}
+DependencyRole dependencyLayoutRole(dx_layout_source::Role role) noexcept {
+    using L=dx_layout_source::Role;using R=DependencyRole;
+    switch(role) {
+    case L::Self:return R::Self;case L::Owner:return R::Owner;case L::Reactor:return R::Reactor;case L::ExtensionDictionary:return R::ExtensionDictionary;
+    case L::BlockRecord:return R::LayoutBlockRecord;case L::Viewport:return R::LayoutViewport;
+    case L::NamedUcs:return R::LayoutNamedUcs;case L::BaseUcs:return R::LayoutBaseUcs;case L::ShadePlot:return R::LayoutShadePlot;
+    case L::PlotViewName:return R::PlotViewName;case L::AppIdName:return R::AppIdName;case L::XdataLayerName:return R::LayerName;case L::XdataObjectId:return R::XdataObjectId;
+    default:return R::Unknown;
+    }
 }
 template<class C> bool dependencyNameKey(std::string_view wire,const C& c,std::string& key,std::string* decoded=nullptr) {
     if(wire.empty()||wire.size()>512u*1024u||wire.find('\0')!=std::string_view::npos||!c.captured)return false;
@@ -97,7 +110,7 @@ template<class O> bool dependencyEffectiveHardOwner(O ownership) noexcept {
 }
 bool dependencyDispositionMatched(dx_iface::DependencyReason reason) noexcept {
     using R=dx_iface::DependencyReason;return reason==R::Matched||reason==R::NullOptional||reason==R::Inherited
-        ||reason==R::Literal||reason==R::OriginalTableOwner;
+        ||reason==R::Literal||reason==R::OriginalTableOwner||reason==R::Inactive;
 }
 bool dependencyReferencesEqual(const std::vector<dx_tableResourceReference>& a,const std::vector<dx_tableResourceReference>& b) noexcept {
     if(a.size()!=b.size())return false;
@@ -120,6 +133,8 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         if(!addAssociativeRetainedBytes(s.plotSourceGroups,groups)){s.dependencyCaptureFailed=true;return;}
         for(const auto& t:s.tableBodies)if(t.second)for(const auto& p:t.second->profiles)
             if(!addAssociativeRetainedBytes(p.spans.size(),groups)){s.dependencyCaptureFailed=true;return;}
+        for(const auto& p:s.layoutAudits)if(p.second)
+            if(!addAssociativeRetainedBytes(p.second->profile.spans.size(),groups)){s.dependencyCaptureFailed=true;return;}
         if(s.tableReferenceAudit->entities)for(const auto& scope:s.tableReferenceAudit->entities->scopes)
             if(!addAssociativeRetainedBytes(scope->physical->groups,groups)){s.dependencyCaptureFailed=true;return;}
         if(s.tableReferenceAudit->blocks)for(const auto& scope:s.tableReferenceAudit->blocks->scopes)
@@ -128,12 +143,13 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 ||!addAssociativeRetainedBytes(scope.origin->beginRaw->groups.size(),groups)
                 ||!addAssociativeRetainedBytes(scope.origin->endRaw->groups.size(),groups)){s.dependencyCaptureFailed=true;return;}
         capacity=groups;
-        if(!addAssociativeSlotBytes(identity.records.size(),3u,capacity)||capacity>s.maxDependencyRows
+        if(!addAssociativeSlotBytes(identity.records.size(),4u,capacity)||capacity>s.maxDependencyRows
             ||!addAssociativeSlotBytes(identity.records.size(),sizeof(A::Node)+256u,bytes)
             ||!addAssociativeSlotBytes(capacity,sizeof(A::Row)+2u*sizeof(dx_tableResourceReference)+64u,bytes)
             ||!addAssociativeSlotBytes(s.resourceProofBytes,16u,bytes)||!addAssociativeSlotBytes(s.resourceBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.plotSourceBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.entitiesBytes,4u,bytes)||!addAssociativeSlotBytes(s.blockSourceBytes,4u,bytes)
+            ||!addAssociativeSlotBytes(s.layoutBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.tableBodyBytes,4u,bytes)||bytes>s.maxDependencyBytes
             ||!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(groups,128u,work)
             ||!addAssociativeSlotBytes(identity.records.size(),256u,work)||work>s.maxDependencyWork){s.dependencyCaptureFailed=true;return;}
@@ -173,6 +189,20 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             const auto& o=p.second;if(!o||!o->bodyMatched||!o->originBound)continue;
             A::Node n;n.handle=p.first;n.physical=o->physical;n.family=o->input->dictionary?F::Dictionary:F::Entity;n.plot=o;n.references=o->references;
             a->nodes.emplace(p.first,std::move(n));
+        }
+        for(const auto& item:a->targets->targets)if(item.second.layout) {
+            const auto& layout=item.second.layout;
+            if(!layout->profilesMatched||!layout->profile.complete()||!layout->modeledMatched||!layout->input)continue;
+            A::Node n;n.layout=layout;n.handle=item.first;n.physical=item.second.physical;n.family=F::Layout;
+            for(const auto& span:layout->profile.spans) {
+                if(span.scope==dx_layout_source::Scope::Plot&&(span.code==74||span.code==76)) {
+                    const auto index=span.code==74?0u:1u;n.layoutModes[index]=layout->input->raw->groups.at(span.groupIndex).i_val();n.layoutModeGroups[index]=span.groupIndex;
+                }else if(span.scope==dx_layout_source::Scope::Layout&&span.code==76){n.layoutModes[2]=layout->input->raw->groups.at(span.groupIndex).i_val();n.layoutModeGroups[2]=span.groupIndex;}
+                // Layout1 defines this object; it is not a name-reference use.
+                if(span.role==dx_layout_source::Role::None||span.role==dx_layout_source::Role::LayoutName)continue;
+                n.references.push_back({dependencyLayoutRole(span.role),span.groupIndex,span.code,static_cast<std::uint32_t>(span.handle)});
+            }
+            a->nodes.emplace(n.handle,std::move(n));
         }
         for(const auto& p:s.tableBodies) {
             const auto& t=p.second;if(!t||!t->profilesMatched)continue;
@@ -215,14 +245,17 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         for(std::size_t i=0u;i<identity.records.size();++i) {
             const auto& p=identity.records[i];const auto family=dependencyPhysicalFamily(p.name);const auto named=dependencyNameFamily(family);
             const bool symbol=p.kind==I::Kind::TableRecord&&named<5u;
-            const bool object=p.kind==I::Kind::Object&&(asciiIdentifierEquals(p.name,"DICTIONARY")||plotSourceDictionaryName(p.name)||asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER")||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::TableStyle,p.name)
+            const bool layout=p.kind==I::Kind::Object&&asciiIdentifierEquals(p.name,"LAYOUT");
+            const bool object=p.kind==I::Kind::Object&&(layout||asciiIdentifierEquals(p.name,"DICTIONARY")||plotSourceDictionaryName(p.name)||asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER")||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::TableStyle,p.name)
                 ||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::Field,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::XRecord,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::DataLink,p.name));
             const bool entity=p.kind==I::Kind::Entity;
             if(entity)++a->physicalEntityRows;
+            if(layout)++a->physicalLayoutRows;
             if(symbol)++a->physicalNames[named];
             if(!symbol&&!object&&!entity)continue;
-            const auto node=a->nodes.find(ids[i]);if(node==a->nodes.end()||node->second.physical!=i||(entity&&!node->second.entity)){++a->unavailableSources;continue;}
+            const auto node=a->nodes.find(ids[i]);if(node==a->nodes.end()||node->second.physical!=i||(entity&&!node->second.entity)||(layout&&!node->second.layout)){++a->unavailableSources;continue;}
             if(entity)++a->backedEntityRows;
+            if(layout)++a->backedLayoutRows;
             if(!symbol)continue;
             const auto& n=node->second;const auto* model=dependencyModel(n);if(!model||!dependencyContext(n))continue;
             unsigned depth=0u,names=0u;bool xdata=false,emptyNames=true;std::string key,decoded;bool valid=true;
@@ -263,6 +296,13 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                     if(ref.kind==Role::DictionarySoftOwner)row.ownership=ownershipFlag.known?(ownershipFlag.hard?O::DictionaryFlagHard:O::ExplicitSoft):O::Unqualified;
                 }
                 bool blocked=false;
+                const auto mode=ref.kind==Role::PlotViewName?0u:ref.kind==Role::LayoutShadePlot?1u:ref.kind==Role::LayoutBaseUcs?2u:3u;
+                if(n.layout&&mode<3u){row.mode=n.layoutModes[mode];row.modeGroup=n.layoutModeGroups[mode];
+                    if(row.mode<0){blocked=true;row.reason=R::OriginalUnavailable;}
+                    else if((mode==0u&&row.mode!=3)||(mode==1u&&(row.mode==0||row.mode==3))||(mode==2u&&row.mode==0))row.reason=R::Inactive;}
+                // SDK setters clear unused shade IDs. Preserve foreign nonzero
+                // carriers without treating setter behavior as DXF-load proof.
+                if(ref.kind==Role::LayoutShadePlot&&row.reason==R::Inactive&&row.target){blocked=true;row.reason=R::OriginalUnavailable;}
                 if(n.table&&!n.tableRecord) {
                     const auto old=tableRoles.find({n.handle,ref.groupIndex});
                     if(old!=tableRoles.end()&&old->second!=TableReferenceReason::Matched&&old->second!=TableReferenceReason::NullValue) {
@@ -276,7 +316,15 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 else if(ref.kind==Role::TextStyleName)nameFamily=F::TextStyle;else if(ref.kind==Role::LineTypeName)nameFamily=F::LineType;
                 else if(ref.kind==Role::BlockName)nameFamily=F::BlockRecord;
                 row.name=dependencyNameFamily(nameFamily)<5u||ref.kind==Role::LayoutName;
-                if(ref.kind==Role::Unknown)row.reason=R::UnknownRole;
+                if(ref.kind==Role::PlotViewName) {
+                    row.name=true;
+                    if(!blocked&&row.reason!=R::Inactive) {
+                        if(dx_attdef_source::text(groups[ref.groupIndex]).empty())row.reason=R::NullRequired;
+                        else if(!context||!dependencyNameKey(dx_attdef_source::text(groups[ref.groupIndex]),*context,row.key))row.reason=R::InvalidName;
+                        else row.reason=R::NameSourceUnavailable; // actual VIEW producer proof remains required
+                    }
+                }
+                else if(ref.kind==Role::Unknown)row.reason=R::UnknownRole;
                 else if(ref.kind==Role::XRecordHandle)row.reason=R::Literal;
                 else if(row.name) {
                     std::string decoded;
@@ -295,7 +343,8 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 if(!blocked&&row.reason==R::OriginalUnavailable&&!unresolvedName) {
                     if(!row.target) {
                         const bool required=ref.kind==Role::Owner||ref.kind==Role::FieldChild||ref.kind==Role::TableStyle||ref.kind==Role::TableGeometryBlock
-                            ||ref.kind==Role::TableCellBlock||ref.kind==Role::TableCellField||ref.kind==Role::TableCellAttributeDefinition||ref.kind==Role::DictionaryDefault;
+                            ||ref.kind==Role::TableCellBlock||ref.kind==Role::TableCellField||ref.kind==Role::TableCellAttributeDefinition||ref.kind==Role::DictionaryDefault||ref.kind==Role::LayoutBlockRecord
+                            ||(ref.kind==Role::LayoutShadePlot&&(row.mode==4||row.mode==5));
                         row.reason=required?R::NullRequired:R::NullOptional;
                         if(ref.kind==Role::Owner&&n.structural&&n.structural->input->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary)row.reason=R::NullOptional;
                     } else {
@@ -311,6 +360,10 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 if(ref.kind==Role::TableStyle)kind=p.kind==I::Kind::Object&&asciiIdentifierEquals(p.name,"TABLESTYLE");
                                 if(ref.kind==Role::FieldChild||ref.kind==Role::TableCellField)kind=p.kind==I::Kind::Object&&resourceOriginName(dxfRW::DxfResourceSourceView::Kind::Field,p.name);
                                 if(ref.kind==Role::TableGeometryBlock||ref.kind==Role::TableCellBlock||ref.kind==Role::BlockName)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"BLOCK_RECORD");
+                                if(ref.kind==Role::LayoutBlockRecord)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"BLOCK_RECORD");
+                                if(ref.kind==Role::LayoutViewport)kind=p.kind==I::Kind::Entity&&asciiIdentifierEquals(p.name,"VIEWPORT");
+                                if(ref.kind==Role::LayoutNamedUcs||ref.kind==Role::LayoutBaseUcs)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"UCS");
+                                if(ref.kind==Role::LayoutShadePlot)kind=p.kind==I::Kind::Object&&(row.mode!=4||asciiIdentifierEquals(p.name,"VISUALSTYLE"));
                                 if(ref.kind==Role::TableCellAttributeDefinition)kind=p.kind==I::Kind::Entity&&asciiIdentifierEquals(p.name,"ATTDEF");
                                 if(ref.kind==Role::LTypeShapeStyle||ref.kind==Role::LTypeTextStyle||ref.kind==Role::TextStyle)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"STYLE");
                                 if(ref.kind==Role::LineType)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"LTYPE");
@@ -324,6 +377,9 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 row.reason=!kind?R::WrongKind:proof==a->targets->targets.end()||proof->second.ambiguous||proof->second.physical!=id->second?R::OriginalUnavailable:R::Matched;
                                 if(row.reason==R::Matched&&(ref.kind==Role::PlotStyle||ref.kind==Role::LayerPlotStyle)
                                     &&(!proof->second.plot||!a->targets->plots||!a->targets->plots->plotTargets.count(row.target)))row.reason=R::OriginalUnavailable;
+                                // VisualStyle/RenderSettings need their own actual
+                                // source profiles; an arbitrary object is no proof.
+                                if(row.reason==R::Matched&&ref.kind==Role::LayoutShadePlot)row.reason=R::OriginalUnavailable;
                                 if(row.reason==R::Matched&&(ref.kind==Role::LTypeShapeStyle||ref.kind==Role::LTypeTextStyle||nameFamily==F::TextStyle)) {
                                     const auto target=a->nodes.find(row.target);const auto* style=target==a->nodes.end()?nullptr:dynamic_cast<const DRW_Textstyle*>(dependencyModel(target->second));
                                     if(!style||((style->flags&1)!=0)!=(ref.kind==Role::LTypeShapeStyle))row.reason=R::WrongKind;
@@ -372,6 +428,17 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 if(!line){A::Row row;row.source=n.handle;row.role=Role::LineTypeName;row.code=6;row.present=false;row.reason=R::NullRequired;a->rows.push_back(std::move(row));}
             }
             if(n.entity)a->entityReferences+=a->rows.size()-firstRow;
+            if(n.layout) {
+                bool view=false,shade=false,named=false,base=false;
+                for(const auto& ref:n.references){view=view||ref.kind==Role::PlotViewName;shade=shade||ref.kind==Role::LayoutShadePlot;named=named||ref.kind==Role::LayoutNamedUcs;base=base||ref.kind==Role::LayoutBaseUcs;}
+                const auto absent=[&](Role role,int code,R reason,unsigned mode){A::Row row;row.source=n.handle;row.role=role;row.code=code;row.present=false;row.reason=reason;
+                    if(mode<3u){row.mode=n.layoutModes[mode];row.modeGroup=n.layoutModeGroups[mode];}a->rows.push_back(std::move(row));};
+                if(!view&&n.layoutModes[0]==3)absent(Role::PlotViewName,6,R::NullRequired,0u);
+                if(!shade&&(n.layoutModes[1]==4||n.layoutModes[1]==5))absent(Role::LayoutShadePlot,333,R::NullRequired,1u);
+                if(!named)absent(Role::LayoutNamedUcs,345,R::Inherited,3u);
+                if(!base&&n.layoutModes[2]>0)absent(Role::LayoutBaseUcs,346,R::Inherited,2u);
+                a->layoutReferences+=a->rows.size()-firstRow;
+            }
         }
         // Linear nonrecursive hard-ownership cycle check; soft pointer cycles
         // retain their original-target result and are not evaluated as geometry.
@@ -414,6 +481,7 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         if(n.entities&&(!same(n.entities,a->targets->entities)||n.entityRow>=n.entities->rows.size()||n.entities->rows[n.entityRow].self!=n.handle)){r.state=S::ContextMismatch;return r;}
         if(n.blocks&&(!same(n.blocks,a->targets->blocks)||n.entityRow>=n.blocks->rows.size()||n.blocks->rows[n.entityRow].self!=n.handle)){r.state=S::ContextMismatch;return r;}
         if(n.entity)++r.entitySources;
+        if(n.layout){const auto found=s.layoutAudits.find(p.first);if(found==s.layoutAudits.end()||!same(n.layout,found->second)){r.state=S::ContextMismatch;return r;}++r.layoutSources;}
         if(n.resource){const auto found=s.resourceOriginAudits.find(p.first);const auto body=s.resources.find(p.first);
             if(found==s.resourceOriginAudits.end()||!same(n.resource,found->second)||body==s.resources.end()||!dependencyReferencesEqual(n.references,body->second.references)){r.state=S::ContextMismatch;return r;}}
         if(n.structural){const auto found=s.structuralAudits.find(p.first);if(found==s.structuralAudits.end()||!same(n.structural,found->second)){r.state=S::ContextMismatch;return r;}}
@@ -423,6 +491,7 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
     }
     r.state=a->state;r.sources=a->nodes.size();r.names=a->names.size();r.references=a->rows.size();r.unavailableSources=a->unavailableSources;
     r.physicalEntityRows=a->physicalEntityRows;r.backedEntityRows=a->backedEntityRows;r.entityReferences=a->entityReferences;
+    r.physicalLayoutRows=a->physicalLayoutRows;r.backedLayoutRows=a->backedLayoutRows;r.layoutReferences=a->layoutReferences;
     r.nameNamespacesComplete=true;
     for(unsigned i=0u;i<5u;++i){r.physicalNamedRows+=a->physicalNames[i];r.backedNamedRows+=a->backedNames[i];r.nameNamespacesComplete=r.nameNamespacesComplete&&a->nameCensusComplete[i];}
     for(const auto& row:a->rows) {
@@ -445,6 +514,7 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         case R::OwnershipUnknown:++r.unknownOwnership;++r.unavailable;break;
         case R::CoupledTargetMismatch:break;
         case R::CoupledTargetUnavailable:++r.unavailable;break;
+        case R::Inactive:++r.inactiveReferences;break;
         }
     }
     r.originalTargetsMatched=r.state==S::OriginalTargetsMatched&&r.references&&r.references==r.matched;return r;
