@@ -1044,16 +1044,18 @@ public:
      * All publication state lives in the internal reader, not this facade. */
     bool getDxfStructuralSourceView(DxfStructuralSourceView&) const noexcept;
     struct DxfResourceSourceView {
-        enum class Kind : std::uint8_t {None,TableStyle,Field,XRecord,DataLink};
-        enum class Phase : std::uint8_t {None,Typed,Raw};
+        enum class Kind : std::uint8_t {None,TableStyle,Field,XRecord,DataLink,TextStyle,LineType,Layer,AppId};
+        enum class Phase : std::uint8_t {None,Typed,Raw,Source};
         Kind kind{Kind::None};Phase phase{Phase::None};
         const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
         bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
         bool typedAvailable{false},originalPayloadComplete{false};
     };
-    /** Borrowed opted-in rich-resource publication. Actual typed then raw
+    /** Borrowed opted-in resource publication. Rich objects publish typed/raw;
+     * symbols publish source/typed when their source facet is selected. Actual
      * pointers, immutable raw carrier and original pre-copy cursor/decoder
-     * closure verdict (not complete field semantics). Raw-only TABLESTYLE
+     * closure verdict (not complete field semantics). Symbol state is observed
+     * before staging, including copies that sanitize it. Raw-only TABLESTYLE
      * fallback has typedAvailable=false.
      * False clears the view outside the pair, including return/throw. No
      * facade/model/vtable state, extra callback or target/output certificate. */

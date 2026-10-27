@@ -206,7 +206,8 @@ enum class dx_tableResourceRole : std::uint8_t {
     TextStyleName, LTypeTextStyle, LTypeShapeStyle,
     FieldChild, FieldObject, FieldValueObject, DataLinkCustomTarget, DataLinkHardOwner,
     DictionarySoftOwner, DictionaryHardOwner, XRecordHandle, XRecordSoftPointer,
-    XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout
+    XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout,
+    LineTypeName, LayerMaterial, LayerPlotStyle
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1448,6 +1449,7 @@ private:
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
             dxfRW::DxfResourceSourceView::Kind kind{dxfRW::DxfResourceSourceView::Kind::None};
             std::shared_ptr<const DRW_TableEntry> model;std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const DRW_TableEntry> sourceModel;
             std::shared_ptr<const EntitiesReadContext> context;
             std::pair<bool,std::uint8_t> state;bool payloadComplete{false},paired{false};
         };

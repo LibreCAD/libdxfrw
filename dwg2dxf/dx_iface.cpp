@@ -17100,6 +17100,79 @@ bool lineTypeSourceEqual(const DRW_LType& a,const DRW_LType& b,DRW::Version vers
     return true;
 }
 
+bool layerSourceEqual(const DRW_Layer& a,const DRW_Layer& b,DRW::Version version) {
+    return standardDwgCommonEqual(a,b,version)&&a.lineType==b.lineType&&a.color==b.color&&a.color24==b.color24&&a.colorName==b.colorName
+        &&a.plotF==b.plotF&&a.lWeight==b.lWeight&&a.handlePlotS==b.handlePlotS&&a.handleMaterialS==b.handleMaterialS
+        &&symbolHandleEqual(a.lTypeH,b.lTypeH)&&symbolHandleEqual(a.xrefBlockHandle,b.xrefBlockHandle)
+        &&symbolHandleEqual(a.plotStyleHandle,b.plotStyleHandle)&&symbolHandleEqual(a.materialHandle,b.materialHandle)&&symbolHandleEqual(a.unknownHandle,b.unknownHandle)
+        &&a.hasInvalidDxfLineweightValue()==b.hasInvalidDxfLineweightValue()&&a.invalidDxfLineweightValue()==b.invalidDxfLineweightValue()
+        &&a.colorDwgMethod()==b.colorDwgMethod()&&a.hasDwgColorCmcMetadata()==b.hasDwgColorCmcMetadata()&&a.colorDwgFlags()==b.colorDwgFlags()
+        &&a.colorDwgRawIndex()==b.colorDwgRawIndex()&&a.colorDwgName()==b.colorDwgName()&&a.colorDwgBookName()==b.colorDwgBookName()&&a.sameDwgNameSource(b);
+}
+
+// Independent bounded APPID/LAYER source-role inventory. Unknown fields stay
+// unqualified instead of disappearing behind tolerant model replay.
+bool namespaceSourceReferences(const DRW_RawDxfObject& raw,bool layer,std::vector<dx_tableResourceReference>& refs) {
+    using R=dx_tableResourceRole;std::array<bool,1072> seen{};
+    std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
+    unsigned depth=0u,xdepth=0u,stage=0u;int point=0,next=0;bool xdata=false;
+    for(std::size_t i=0u;i<raw.groups.size();++i) {
+        const auto& v=raw.groups[i];const int code=v.code();const auto text=dx_attdef_source::text(v);
+        if(!dx_compound_source::scalarType(v))return false;R role=R::Unknown;bool reference=false;std::uint64_t handle=0u;
+        if(code==102) {
+            if(xdata)return false;
+            if(text=="}"){if(!depth)return false;--depth;}
+            else if(text.size()>1u&&text.front()=='{'&&depth<applications.size())applications[depth++]=text;
+            else return false;
+            continue;
+        }
+        if(depth) {
+            if(isDxfHandleCode(code)) {
+                if(!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX)return false;reference=true;
+                if(depth==1u&&applications[0]=="{ACAD_REACTORS"&&code==330)role=R::Reactor;
+                else if(depth==1u&&applications[0]=="{ACAD_XDICTIONARY"&&code==360)role=R::ExtensionDictionary;
+            }
+        }else if(code>=1000) {
+            if(stage!=2u)return false;
+            if(point){if(code!=next)return false;next+=10;if(code==point+20)point=0;}
+            else if(code>=1010&&code<=1013){point=code;next=code+10;}
+            else if(code>=1020&&code<=1033)return false;
+            if(code==1001){if(xdepth||text.empty())return false;xdata=true;role=R::AppIdName;reference=true;}
+            else if(!xdata)return false;
+            else if(code==1002){if(text=="{"){if(++xdepth>DRW::kMaxDxfApplicationGroupNesting)return false;}
+                else if(text=="}"){if(!xdepth)return false;--xdepth;}else return false;}
+            else if(code==1003){if(text.empty())return false;role=R::LayerName;reference=true;}
+            else if(code==1005){if(!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX)return false;role=R::XdataObjectId;reference=true;}
+            else if(code==1004){if(text.size()>254u||!dx_attdef_source::hexBytes(text))return false;}
+            else if(code!=1000&&!(code>=1010&&code<=1013)&&!(code>=1020&&code<=1023)&&!(code>=1030&&code<=1033)
+                &&!(code>=1040&&code<=1042)&&code!=1070&&code!=1071)return false;
+        }else {
+            if(xdata||code<0||code>=static_cast<int>(seen.size()))return false;
+            if(code==100) {
+                if(stage==0u&&text=="AcDbSymbolTableRecord")stage=1u;
+                else if(stage==1u&&text==(layer?"AcDbLayerTableRecord":"AcDbRegAppTableRecord"))stage=2u;
+                else return false;
+                continue;
+            }
+            if(seen[code])return false;seen[code]=true;
+            if(code==5||code==330) {
+                if(stage||!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX||handle!=(code==5?raw.handle:raw.parentHandle))return false;
+                role=code==5?R::Self:R::Owner;reference=true;
+            }else if(code==360){if(!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX)return false;role=R::ExtensionDictionary;reference=true;}
+            else if(stage!=2u)return false;
+            else if(code==2){if(text.empty())return false;}
+            else if(code==70){}
+            else if(layer&&(code==6||code==62||code==290||code==370||code==420||code==430||code==347||code==390)) {
+                if(code==6){if(text.empty())return false;role=R::LineTypeName;reference=true;}
+                if(code==347||code==390){if(!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX)return false;role=code==347?R::LayerMaterial:R::LayerPlotStyle;reference=true;}
+            }else if(!layer&&code==71){if(v.i_val()!=0)return false;}
+            else return false;
+        }
+        if(reference)refs.push_back({role,i,code,static_cast<std::uint32_t>(handle)});
+    }
+    return !depth&&!xdepth&&!point&&stage==2u&&seen[5]&&seen[330]&&seen[2]&&seen[70];
+}
+
 bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx_tableResourceReference>& refs) {
     using R=dx_tableResourceRole;
     std::string_view application;unsigned self=0u,owner=0u,base=0u,body=0u;bool xdata=false,dash=false;
@@ -18349,6 +18422,7 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
 
 bool dx_iface::wantsDxfSymbolSource() const {return tableSourceCaptureOpen();}
 bool dx_iface::wantsDxfResourceSource() const {return tableSourceCaptureOpen();}
+bool dx_iface::wantsDxfNamespaceSource() const {return tableSourceCaptureOpen();}
 
 bool dx_iface::wantsDxfRootDictionarySource() const {return tableSourceCaptureOpen();}
 bool dx_iface::wantsDxfDictionarySource() const {return tableSourceCaptureOpen();}
@@ -20078,6 +20152,13 @@ void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObje
     if(!cData)return;
     if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
     retainTableResourceSource(raw,&row);
+    observeResourceOrigin(&row,&raw);
+}
+
+void dx_iface::addDxfNamespaceSource(const DRW_TableEntry& row,const DRW_RawDxfObject& raw) {
+    if(!cData)return;
+    if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
+    retainTableResourceSource(raw,&row);observeResourceOrigin(&row,&raw);
 }
 
 void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_TableEntry* symbol) noexcept {
@@ -20089,6 +20170,7 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_T
     const bool text=symbol && asciiIdentifierEquals(raw.name,"STYLE");
     const bool line=symbol && asciiIdentifierEquals(raw.name,"LTYPE");
     const bool block=symbol && asciiIdentifierEquals(raw.name,"BLOCK_RECORD");
+    const bool layer=symbol&&asciiIdentifierEquals(raw.name,"LAYER"),appid=symbol&&asciiIdentifierEquals(raw.name,"APPID");
     if (!tableSourceCaptureOpen()) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceProofCaptureFailed) return;
@@ -20101,13 +20183,15 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_T
     }
     // Unmatched raw-only records retain their ordinary fallback, not partial proof.
     using F=dx_tableResourceFamily;
-    const auto family=text?F::TextStyle:line?F::LineType:block?F::BlockRecord:style?F::TableStyle:field?F::Field:dataLink?F::DataLink:
+    const auto family=text?F::TextStyle:line?F::LineType:block?F::BlockRecord:layer?F::Layer:appid?F::AppId:style?F::TableStyle:field?F::Field:dataLink?F::DataLink:
         dictionary?F::Dictionary:xrecord?F::XRecord:F::CellStyleMap;
     if(symbol) {
-        if((!text && !line && !block) || symbol->handle!=raw.handle || symbol->parentHandle!=raw.parentHandle
+        if((!text && !line && !block&&!layer&&!appid) || symbol->handle!=raw.handle || symbol->parentHandle!=raw.parentHandle
             || (text && (symbol->tType!=DRW::STYLE || !dynamic_cast<const DRW_Textstyle*>(symbol)))
             || (line && (symbol->tType!=DRW::LTYPE || !dynamic_cast<const DRW_LType*>(symbol)))
             || (block && (symbol->tType!=DRW::BLOCK_RECORD || !dynamic_cast<const DRW_Block_Record*>(symbol)))
+            ||(layer&&(symbol->tType!=DRW::LAYER||!dynamic_cast<const DRW_Layer*>(symbol)))
+            ||(appid&&(symbol->tType!=DRW::APPID||!dynamic_cast<const DRW_AppId*>(symbol)))
             || found!=source.resources.end()){source.resourceProofCaptureFailed=true;return;}
         if(!raw.handle)return; // legacy handle-free rows cannot be selected by a modern compound
     } else {
@@ -20256,6 +20340,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
     const bool style=resource.family==dx_tableResourceFamily::TableStyle;
     const bool text=resource.family==dx_tableResourceFamily::TextStyle;
     const bool line=resource.family==dx_tableResourceFamily::LineType;
+    const bool layer=resource.family==dx_tableResourceFamily::Layer,appid=resource.family==dx_tableResourceFamily::AppId;
     const bool block=resource.family==dx_tableResourceFamily::BlockRecord;
     const bool field=resource.family==dx_tableResourceFamily::Field;
     const bool dataLink=resource.family==dx_tableResourceFamily::DataLink;
@@ -20346,6 +20431,14 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
             struct Replay:DRW_DataLink{using DRW_DataLink::parseCode;};
             Replay parsed;const auto* model=dynamic_cast<const DRW_DataLink*>(resource.model.get());
             if(!model||!decode(parsed)||!dataLinkSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(layer) {
+            struct Replay:DRW_Layer{using DRW_Layer::parseCode;using DRW_Layer::validateDxf;};Replay parsed;
+            const auto* model=dynamic_cast<const DRW_Layer*>(resource.model.get());
+            if(!model||!decode(parsed)||!parsed.validateDxf()||!layerSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(appid) {
+            struct Replay:DRW_AppId{using DRW_AppId::parseCode;using DRW_AppId::validateDxf;};Replay parsed;
+            const auto* model=dynamic_cast<const DRW_AppId*>(resource.model.get());
+            if(!model||!decode(parsed)||!parsed.validateDxf()||parsed.unknown71!=model->unknown71||!standardDwgCommonEqual(parsed,*model,raw.m_version)||!parsed.sameDwgNameSource(*model))return;
         } else if(text) {
             struct Replay:DRW_Textstyle{using DRW_Textstyle::parseCode;using DRW_Textstyle::validateDxf;};
             Replay parsed;const auto* model=dynamic_cast<const DRW_Textstyle*>(resource.model.get());
@@ -20376,6 +20469,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         if(block){if(!blockRecordSourceReferences(raw,references))return;}
         else if(dictionary||xrecord){if(!spineSourceReferences(raw,dictionary,references))return;}
         else if(field || dataLink){if(!auxiliarySourceReferences(raw,field,references))return;}
+        else if(layer||appid){if(!namespaceSourceReferences(raw,layer,references))return;}
         else if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
         else if (!tableResourceSourceReferences(raw,style,references)) return;
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
@@ -20729,13 +20823,16 @@ namespace {
 dx_tableResourceFamily resourceOriginFamily(dxfRW::DxfResourceSourceView::Kind kind) {
     using K=dxfRW::DxfResourceSourceView::Kind;using F=dx_tableResourceFamily;
     switch(kind){case K::TableStyle:return F::TableStyle;case K::Field:return F::Field;
-    case K::XRecord:return F::XRecord;case K::DataLink:return F::DataLink;default:return F::Entity;}
+    case K::XRecord:return F::XRecord;case K::DataLink:return F::DataLink;
+    case K::TextStyle:return F::TextStyle;case K::LineType:return F::LineType;case K::Layer:return F::Layer;case K::AppId:return F::AppId;default:return F::Entity;}
 }
 bool resourceOriginName(dxfRW::DxfResourceSourceView::Kind kind,std::string_view name) {
     using K=dxfRW::DxfResourceSourceView::Kind;
     switch(kind){case K::TableStyle:return asciiIdentifierEquals(name,"TABLESTYLE");
     case K::Field:return asciiIdentifierEquals(name,"FIELD")||asciiIdentifierEquals(name,"ACDBFIELD")||asciiIdentifierEquals(name,"ACAD_FIELD");
-    case K::XRecord:return asciiIdentifierEquals(name,"XRECORD");case K::DataLink:return asciiIdentifierEquals(name,"DATALINK");default:return false;}
+    case K::XRecord:return asciiIdentifierEquals(name,"XRECORD");case K::DataLink:return asciiIdentifierEquals(name,"DATALINK");
+    case K::TextStyle:return asciiIdentifierEquals(name,"STYLE");case K::LineType:return asciiIdentifierEquals(name,"LTYPE");
+    case K::Layer:return asciiIdentifierEquals(name,"LAYER");case K::AppId:return asciiIdentifierEquals(name,"APPID");default:return false;}
 }
 bool resourceOriginEqual(const DRW_TableEntry& a,const DRW_TableEntry& b,DRW::Version version,dxfRW::DxfResourceSourceView::Kind kind) {
     using K=dxfRW::DxfResourceSourceView::Kind;
@@ -20744,7 +20841,21 @@ bool resourceOriginEqual(const DRW_TableEntry& a,const DRW_TableEntry& b,DRW::Ve
     case K::Field:{const auto* x=dynamic_cast<const DRW_Field*>(&a);const auto* y=dynamic_cast<const DRW_Field*>(&b);return x&&y&&fieldSourceEqual(*x,*y,version);}
     case K::XRecord:return dynamic_cast<const DRW_XRecord*>(&a)&&dynamic_cast<const DRW_XRecord*>(&b)&&standardDwgModelsEqual(a,b,version,dwgObjType::XRECORD);
     case K::DataLink:{const auto* x=dynamic_cast<const DRW_DataLink*>(&a);const auto* y=dynamic_cast<const DRW_DataLink*>(&b);return x&&y&&dataLinkSourceEqual(*x,*y,version);}
+    case K::TextStyle:{const auto* x=dynamic_cast<const DRW_Textstyle*>(&a);const auto* y=dynamic_cast<const DRW_Textstyle*>(&b);return x&&y&&textStyleSourceEqual(*x,*y,version);}
+    case K::LineType:{const auto* x=dynamic_cast<const DRW_LType*>(&a);const auto* y=dynamic_cast<const DRW_LType*>(&b);return x&&y&&lineTypeSourceEqual(*x,*y,version);}
+    case K::Layer:{const auto* x=dynamic_cast<const DRW_Layer*>(&a);const auto* y=dynamic_cast<const DRW_Layer*>(&b);return x&&y&&layerSourceEqual(*x,*y,version);}
+    case K::AppId:{const auto* x=dynamic_cast<const DRW_AppId*>(&a);const auto* y=dynamic_cast<const DRW_AppId*>(&b);return x&&y&&x->unknown71==y->unknown71&&x->sameDwgNameSource(*y)&&standardDwgCommonEqual(a,b,version);}
     default:return false;
+    }
+}
+std::shared_ptr<const DRW_TableEntry> symbolOriginSnapshot(const DRW_TableEntry& value,dxfRW::DxfResourceSourceView::Kind kind) {
+    using K=dxfRW::DxfResourceSourceView::Kind;
+    switch(kind) {
+    case K::TextStyle:{const auto* p=dynamic_cast<const DRW_Textstyle*>(&value);return p?std::make_shared<const DRW_Textstyle>(*p):nullptr;}
+    case K::LineType:{const auto* p=dynamic_cast<const DRW_LType*>(&value);return p?std::make_shared<const DRW_LType>(*p):nullptr;}
+    case K::Layer:{const auto* p=dynamic_cast<const DRW_Layer*>(&value);return p?std::make_shared<const DRW_Layer>(*p):nullptr;}
+    case K::AppId:{const auto* p=dynamic_cast<const DRW_AppId*>(&value);return p?std::make_shared<const DRW_AppId>(*p):nullptr;}
+    default:return nullptr;
     }
 }
 }
@@ -20756,24 +20867,30 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
     const auto fail=[&](){s.resourceOriginCaptureFailed=true;};V view;dxfRW::DxfReadContext live;
     if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfResourceSourceView(view))return;
     if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
+    const bool symbol=view.kind>=V::Kind::TextStyle;
+    const bool first=symbol?(model&&raw):(model&&!raw);
+    const auto phase=model&&raw?V::Phase::Source:model?V::Phase::Typed:V::Phase::Raw;
     if(!view.model||!view.source||!view.model->handle||view.source->handle!=view.model->handle||view.source->parentHandle!=view.model->parentHandle
         ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary||!resourceOriginName(view.kind,view.source->name)
-        ||(model?(view.phase!=V::Phase::Typed||view.model!=model||raw):(view.phase!=V::Phase::Raw||view.source!=raw))) {fail();return;}
+        ||view.phase!=phase||(model&&view.model!=model)||(raw&&view.source!=raw)||(symbol&&phase==V::Phase::Raw)||(!symbol&&phase==V::Phase::Source)) {fail();return;}
     if(!view.typedAvailable) {
         if(s.resourceOriginRecords>s.maxResourceOriginRecords||s.resourceOriginRawOnly>=s.maxResourceOriginRecords-s.resourceOriginRecords
             ||s.resourceOriginWork>=s.maxResourceOriginWork){fail();return;}
         ++s.resourceOriginRawOnly;++s.resourceOriginWork;return;
     }
     const auto resource=s.resources.find(view.model->handle);
-    if(resource==s.resources.end()||resource->second.family!=resourceOriginFamily(view.kind)||!resource->second.model){fail();return;}
+    if(resource==s.resources.end()||resource->second.family!=resourceOriginFamily(view.kind)
+        ||(first?(symbol?!resource->second.raw:!resource->second.model):(!resource->second.raw||!resource->second.model))){fail();return;}
     const auto& row=resource->second;const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
     const auto state=std::make_pair(view.originalPendingXdata,view.originalCoordinateMask);
     try {
-        if(model) {
+        if(first) {
             if(s.resourceOriginInputs.count(model->handle)||s.resourceOriginPending.count(model->handle)||s.resourceOriginRawOnly>s.maxResourceOriginRecords
                 ||s.resourceOriginRecords>=s.maxResourceOriginRecords-s.resourceOriginRawOnly
                 ||live.codecCodePage.size()>128u){fail();return;}
             std::size_t bytes=sizeof(Input)+sizeof(Pending)+sizeof(dx_data::TableDxfSourceCapture::ResourceOriginAudit)+sizeof(Context)+64u*sizeof(void*);
+            std::size_t modelBytes=0u,items=0u;
+            if(symbol&&(!estimateTableResourceBytes(row.family,*model,modelBytes,items)||!addAssociativeSlotBytes(modelBytes,3u,bytes))){fail();return;}
             if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
                 ||s.resourceOriginBytes>s.maxResourceOriginBytes||bytes>s.maxResourceOriginBytes-s.resourceOriginBytes
                 ||s.resourceOriginWork>s.maxResourceOriginWork||bytes>s.maxResourceOriginWork-s.resourceOriginWork){fail();return;}
@@ -20783,25 +20900,26 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
             context->compatibilityProfile=live.compatibilityProfile;context->textEncoding=live.textEncoding;context->codePagePolicy=live.codePagePolicy;
             context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
             Pending pending;auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
-            in.kind=view.kind;in.state=state;in.payloadComplete=view.originalPayloadComplete;in.context=std::move(context);in.model=row.model;
+            in.kind=view.kind;in.state=state;in.payloadComplete=view.originalPayloadComplete;in.context=std::move(context);in.model=row.model;in.raw=row.raw;
+            in.sourceModel=symbol?symbolOriginSnapshot(*model,view.kind):row.model;if(!in.sourceModel){fail();return;}
             in.paired=dxfBlockRecord::Decoder::observeCommonState(*model)==state;
             pending.model=view.model;pending.raw=view.source;s.resourceOriginPending.emplace(model->handle,std::move(pending));return;
         }
-        const auto found=s.resourceOriginPending.find(raw->handle);if(found==s.resourceOriginPending.end()){fail();return;}
+        const auto id=view.model->handle;const auto found=s.resourceOriginPending.find(id);if(found==s.resourceOriginPending.end()){fail();return;}
         auto& pending=found->second;auto& in=pending.input;const auto& context=*in.context;
-        if(pending.model!=view.model||pending.raw!=raw||in.kind!=view.kind||in.state!=state||in.payloadComplete!=view.originalPayloadComplete
-            ||!same(in.model,row.model)||!row.raw||context.sourceVersion!=live.sourceVersion||context.codecVersion!=live.codecVersion
+        if(pending.model!=view.model||pending.raw!=view.source||in.kind!=view.kind||in.state!=state||in.payloadComplete!=view.originalPayloadComplete
+            ||(in.model&&!same(in.model,row.model))||(in.raw&&!same(in.raw,row.raw))||!row.raw||!row.model||!in.sourceModel||context.sourceVersion!=live.sourceVersion||context.codecVersion!=live.codecVersion
             ||context.codecCodePage!=live.codecCodePage||context.declaration!=live.declaration||context.hasDeclaration!=live.hasDeclaration
             ||context.compatibilityProfile!=live.compatibilityProfile||context.textEncoding!=live.textEncoding||context.codePagePolicy!=live.codePagePolicy
             ||context.binary!=live.binary||context.applyExtrusion!=live.applyExtrusion){fail();return;}
         std::size_t work=0u,items=0u,rawBytes=0u;
-        if(!estimateTableResourceBytes(row.family,*view.model,work,items)||!estimateRawDxfObjectBytes(*raw,rawBytes)
+        if(!estimateTableResourceBytes(row.family,*view.model,work,items)||!estimateRawDxfObjectBytes(*view.source,rawBytes)
             ||!addAssociativeRetainedBytes(rawBytes,work)||s.resourceOriginWork>s.maxResourceOriginWork||work>s.maxResourceOriginWork-s.resourceOriginWork){fail();return;}
-        s.resourceOriginWork+=work;in.raw=row.raw;
-        in.paired=in.paired&&dxfBlockRecord::Decoder::observeCommonState(*view.model)==state&&retainedRawDxfObjectsEqual(*row.raw,*raw)
-            &&resourceOriginEqual(*view.model,*row.model,live.sourceVersion,view.kind);
+        s.resourceOriginWork+=work;in.raw=row.raw;in.model=row.model;
+        in.paired=in.paired&&dxfBlockRecord::Decoder::observeCommonState(*view.model)==state&&retainedRawDxfObjectsEqual(*row.raw,*view.source)
+            &&resourceOriginEqual(*view.model,*row.model,live.sourceVersion,view.kind)&&resourceOriginEqual(*in.sourceModel,*row.model,live.sourceVersion,view.kind);
         in.index=s.resourceOriginInputOwners.size();auto input=std::make_shared<const Input>(std::move(in));
-        s.resourceOriginInputs.emplace(raw->handle,input);s.resourceOriginInputOwners.push_back(std::move(input));s.resourceOriginPending.erase(found);
+        s.resourceOriginInputs.emplace(id,input);s.resourceOriginInputOwners.push_back(std::move(input));s.resourceOriginPending.erase(found);
     }catch(...){fail();}
 }
 
@@ -20816,8 +20934,13 @@ void dx_iface::finishResourceOrigins(dx_data& data) noexcept {
             const auto id=s.identityAudit->identities.find(item.first);const auto& source=*s.identityInput->source;
             if(id!=s.identityAudit->identities.end()&&id->second<source.records.size()) {
                 const auto& p=source.records[id->second];
-                if(p.kind==DRW_DxfIdentitySource::Kind::Object&&p.section<source.sections.size()
-                    &&source.sections[p.section].kind==DRW_DxfIdentitySource::Section::Objects&&resourceOriginName(item.second->kind,p.name)
+                const bool symbol=item.second->kind>=dxfRW::DxfResourceSourceView::Kind::TextStyle;
+                const auto owner=s.identityAudit->identities.find(item.second->raw->parentHandle);
+                const bool table=symbol&&p.kind==DRW_DxfIdentitySource::Kind::TableRecord&&p.table<source.records.size()
+                    &&source.records[p.table].kind==DRW_DxfIdentitySource::Kind::TableControl&&source.records[p.table].section==p.section
+                    &&asciiIdentifierEquals(source.records[p.table].tableName,p.name)&&owner!=s.identityAudit->identities.end()&&owner->second==p.table;
+                if(p.section<source.sections.size()&&(symbol?(table&&source.sections[p.section].kind==DRW_DxfIdentitySource::Section::Tables):
+                    (p.kind==DRW_DxfIdentitySource::Kind::Object&&source.sections[p.section].kind==DRW_DxfIdentitySource::Section::Objects))&&resourceOriginName(item.second->kind,p.name)
                     &&item.second->paired&&audit.bodyMatched&&audit.stateComplete){audit.physical=id->second;audit.originBound=true;}
             }
         }
@@ -21964,6 +22087,7 @@ void dx_iface::addUCS(const DRW_UCS& data) {
 
 void dx_iface::addAppId(const DRW_AppId& data) {
     retainTableResource(dx_tableResourceFamily::AppId,data);
+    observeResourceOrigin(&data,nullptr);
     if (cData == nullptr)
         return;
     const auto previousSize = cData->appIds.size();
@@ -21977,6 +22101,7 @@ void dx_iface::addAppId(const DRW_AppId& data) {
 
 void dx_iface::addLayer(const DRW_Layer& data) {
     retainTableResource(dx_tableResourceFamily::Layer,data);
+    observeResourceOrigin(&data,nullptr);
     if (cData == nullptr)
         return;
     const auto previousSize = cData->layers.size();
@@ -21989,6 +22114,7 @@ void dx_iface::addLayer(const DRW_Layer& data) {
 
 void dx_iface::addLType(const DRW_LType& data) {
     retainTableResource(dx_tableResourceFamily::LineType,data);
+    observeResourceOrigin(&data,nullptr);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->lineTypes, data,
@@ -22794,6 +22920,7 @@ void dx_iface::addDimStyle(const DRW_Dimstyle& data) {
 
 void dx_iface::addTextStyle(const DRW_Textstyle& data) {
     retainTableResource(dx_tableResourceFamily::TextStyle,data);
+    observeResourceOrigin(&data,nullptr);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->textStyles, data,

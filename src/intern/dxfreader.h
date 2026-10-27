@@ -80,7 +80,8 @@ struct DxfStructuralPublication {
     bool rawCallbackDelivered{false};
 };
 struct DxfResourcePublication {
-    // Kinds1 TABLESTYLE,2 FIELD,3 XRECORD,4 DATALINK; phases1 typed,2 raw.
+    // Kinds1..4 rich objects,5 STYLE,6 LTYPE,7 LAYER,8 APPID;
+    // phases1 typed,2 raw,3 symbol source.
     std::uint8_t kind{0},phase{0},coordinateMask{0};
     bool pendingXdata{false},typedAvailable{false},payloadComplete{false};
     const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
@@ -92,8 +93,12 @@ public:
         :slot(target),previous(target){slot=value;}
     ~DxfResourcePublicationScope(){slot=previous;}
     void raw() noexcept {slot.phase=2u;}
+    void typed() noexcept {slot.phase=1u;}
     DxfResourcePublicationScope(const DxfResourcePublicationScope&)=delete;
     DxfResourcePublicationScope& operator=(const DxfResourcePublicationScope&)=delete;
+};
+struct DxfSymbolOriginalState {
+    bool pendingXdata{false};std::uint8_t coordinateMask{0};bool payloadComplete{false};
 };
 
 // Shared by one public DXF read operation so independently retained buffers

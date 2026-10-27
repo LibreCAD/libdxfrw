@@ -7524,7 +7524,12 @@ bool DRW_AppId::validatePayloadFields() const {
 }
 
 bool DRW_AppId::validateDxf() const {
-    return validatePayloadFields()
+    // DXF documents bit 32 (resolved externally dependent xref) as well as
+    // 16/64. Keep this domain separate from native DWG qualification.
+    return flags >= 0 && (flags & ~0x70) == 0
+        && dwgSafety::validReactorCount(numReactors)
+        && reactorHandles.size() <= dwgSafety::MaxReactorCount
+        && xDictFlag <= 1
         && flags <= std::numeric_limits<std::int16_t>::max();
 }
 

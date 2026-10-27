@@ -15566,6 +15566,19 @@ bool dxfRW::processBlockRecord() {
     return setError(DRW::BAD_READ_TABLES);
 }
 
+namespace {
+template<class Source,class Typed>
+void publishDxfSymbol(dxfReader& reader,DRW_Interface& iface,std::uint8_t kind,const DRW_TableEntry& model,
+                       DRW_RawDxfObject& raw,const DxfSymbolOriginalState& state,Source source,Typed typed) {
+    const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
+    if(!handler||!handler->wantsDxfResourceSource()){source(raw);typed();return;}
+    const DRW_RawDxfObject original(std::move(raw));DxfResourcePublication view;
+    view.kind=kind;view.phase=3u;view.model=&model;view.source=&original;view.pendingXdata=state.pendingXdata;
+    view.coordinateMask=state.coordinateMask;view.typedAvailable=true;view.payloadComplete=state.payloadComplete;
+    DxfResourcePublicationScope scope(reader.resourcePublication(),view);source(original);scope.typed();typed();
+}
+}
+
 bool dxfRW::processLType() {
     DRW_DBG("dxfRW::processLType\n");
     int code;
@@ -15577,6 +15590,8 @@ bool dxfRW::processLType() {
     DRW_RawDxfObject raw;
     std::vector<DRW_RawDxfObject> pendingSources;
     std::vector<DRW_LType> pendingLTypes;
+    std::vector<DxfSymbolOriginalState> pendingSourceStates;
+    DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
     std::set<std::uint32_t> pendingLineTypeHandles;
     std::size_t pendingLineTypeNameBytes = 0u;
     DxfReadRetainedReservation pendingLineTypeNameMapReservation(
@@ -15601,8 +15616,13 @@ bool dxfRW::processLType() {
         }
         // This object remains staged until ENDTAB. Moving it avoids an
         // uncharged duplicate of its retained strings and shared lease.
+        if(captureSource) {
+            if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            pendingSourceStates.push_back({ltype.curr!=nullptr,ltype.currCoordMask,true});raw.handle=ltype.handle;raw.parentHandle=ltype.parentHandle;
+            pendingSources.push_back(std::move(raw));
+        }
         pendingLTypes.push_back(std::move(ltype));
-        if(captureSource)pendingSources.push_back(std::move(raw));
         return true;
     };
     const auto publishLTypes = [&]() -> bool {
@@ -15621,13 +15641,14 @@ bool dxfRW::processLType() {
                 pendingLineTypeNameBytes))
             return failDxfReadRetainedBudget();
         if(captureSource) {
-            if(pendingSources.size()!=pendingLTypes.size())return false;
+            if(pendingSources.size()!=pendingLTypes.size()||pendingSourceStates.size()!=pendingLTypes.size())return false;
             for(const auto& source:pendingSources)
                 if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return false;
         }
         for(std::size_t i=0;i<pendingLTypes.size();++i) {
-            if(captureSource)sourceHandler->addDxfSymbolSource(pendingLTypes[i],pendingSources[i]);
-            iface->addLType(pendingLTypes[i]);
+            if(captureSource)publishDxfSymbol(*reader,*iface,6u,pendingLTypes[i],pendingSources[i],pendingSourceStates[i],
+                [&](const auto& original){sourceHandler->addDxfSymbolSource(pendingLTypes[i],original);},[&](){iface->addLType(pendingLTypes[i]);});
+            else iface->addLType(pendingLTypes[i]);
         }
         for (const DRW_LType &entry : pendingLTypes) {
             if (entry.handle != 0 && !entry.name.empty()) {
@@ -15678,6 +15699,10 @@ bool dxfRW::processLayer() {
     bool reading = false;
     DRW_Layer layer;
     std::vector<DRW_Layer> pendingLayers;
+    auto* sourceHandler=dynamic_cast<DRW_DxfNamespaceSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfNamespaceSource();
+    DRW_RawDxfObject raw;std::vector<DRW_RawDxfObject> pendingSources;std::vector<DxfSymbolOriginalState> pendingSourceStates;
+    DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
     std::set<std::uint32_t> seenHandles;
     const auto publishLayer = [&]() -> bool {
         if (!dxfTableEntryComplete(layer, reader->getSourceVersion())
@@ -15693,6 +15718,12 @@ bool dxfRW::processLayer() {
                 "dxf-layer-value-preserved",
                 "invalid LAYER semantic value preserved on read; structured output requires explicit repair",
                 0, false, layer.handle, layer.handle != DRW::NoHandle, true);
+        if(captureSource) {
+            if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            pendingSourceStates.push_back({layer.curr!=nullptr,layer.currCoordMask,layer.validateDxf()});raw.handle=layer.handle;raw.parentHandle=layer.parentHandle;
+            pendingSources.push_back(std::move(raw));
+        }
         pendingLayers.push_back(std::move(layer));
         return true;
     };
@@ -15706,15 +15737,23 @@ bool dxfRW::processLayer() {
             if (dxfKeywordEquals(sectionstr, "LAYER")) {
                 reading = true;
                 layer.reset();
+                if(captureSource){raw=DRW_RawDxfObject{};if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);}
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
-                for (const DRW_Layer &entry : pendingLayers)
-                    iface->addLayer(entry);
+                if(captureSource) {
+                    if(pendingSources.size()!=pendingLayers.size()||pendingSourceStates.size()!=pendingLayers.size())return setError(DRW::BAD_CODE_PARSED);
+                    for(const auto& source:pendingSources)if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);
+                }
+                for(std::size_t i=0;i<pendingLayers.size();++i) {
+                    if(captureSource)publishDxfSymbol(*reader,*iface,7u,pendingLayers[i],pendingSources[i],pendingSourceStates[i],
+                        [&](const auto& original){sourceHandler->addDxfNamespaceSource(pendingLayers[i],original);},[&](){iface->addLayer(pendingLayers[i]);});
+                    else iface->addLayer(pendingLayers[i]);
+                }
                 return true;  //found ENDTAB terminate
             } else {
                 return setError(DRW::BAD_READ_TABLES);
             }
         } else if (reading) {
-            if (!layer.parseCode(code, reader)) {
+            if (captureSource?!captureAndParseRawDxfGroup(raw,code,layer):!layer.parseCode(code, reader)) {
                 return setError( DRW::BAD_CODE_PARSED);
             }
         }
@@ -15797,6 +15836,8 @@ bool dxfRW::processTextStyle(){
     DRW_RawDxfObject raw;
     std::vector<DRW_RawDxfObject> pendingSources;
     std::vector<DRW_Textstyle> pendingTextStyles;
+    std::vector<DxfSymbolOriginalState> pendingSourceStates;
+    DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
     std::set<std::uint32_t> seenHandles;
     const auto publishTextStyle = [&]() -> bool {
         const bool shapeFile = (TxtSty.flags & 0x01) != 0;
@@ -15806,8 +15847,13 @@ bool dxfRW::processTextStyle(){
         if (TxtSty.handle != DRW::NoHandle
             && !seenHandles.insert(TxtSty.handle).second)
             return false;
+        if(captureSource) {
+            if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            pendingSourceStates.push_back({TxtSty.curr!=nullptr,TxtSty.currCoordMask,true});raw.handle=TxtSty.handle;raw.parentHandle=TxtSty.parentHandle;
+            pendingSources.push_back(std::move(raw));
+        }
         pendingTextStyles.push_back(std::move(TxtSty));
-        if(captureSource)pendingSources.push_back(std::move(raw));
         return true;
     };
     while (reader->readRec(&code)) {
@@ -15826,13 +15872,14 @@ bool dxfRW::processTextStyle(){
                 }
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
                 if(captureSource) {
-                    if(pendingSources.size()!=pendingTextStyles.size())return setError(DRW::BAD_CODE_PARSED);
+                    if(pendingSources.size()!=pendingTextStyles.size()||pendingSourceStates.size()!=pendingTextStyles.size())return setError(DRW::BAD_CODE_PARSED);
                     for(const auto& source:pendingSources)
                         if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);
                 }
                 for(std::size_t i=0;i<pendingTextStyles.size();++i) {
-                    if(captureSource)sourceHandler->addDxfSymbolSource(pendingTextStyles[i],pendingSources[i]);
-                    iface->addTextStyle(pendingTextStyles[i]);
+                    if(captureSource)publishDxfSymbol(*reader,*iface,5u,pendingTextStyles[i],pendingSources[i],pendingSourceStates[i],
+                        [&](const auto& original){sourceHandler->addDxfSymbolSource(pendingTextStyles[i],original);},[&](){iface->addTextStyle(pendingTextStyles[i]);});
+                    else iface->addTextStyle(pendingTextStyles[i]);
                 }
                 return true;  //found ENDTAB terminate
             } else {
@@ -16036,6 +16083,10 @@ bool dxfRW::processAppId(){
     bool reading = false;
     DRW_AppId vp;
     std::vector<DRW_AppId> pendingAppIds;
+    auto* sourceHandler=dynamic_cast<DRW_DxfNamespaceSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfNamespaceSource();
+    DRW_RawDxfObject raw;std::vector<DRW_RawDxfObject> pendingSources;std::vector<DxfSymbolOriginalState> pendingSourceStates;
+    DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
     std::set<std::uint32_t> seenHandles;
     const auto publishAppId = [&]() -> bool {
         if (!dxfTableEntryComplete(vp, reader->getSourceVersion())
@@ -16044,6 +16095,12 @@ bool dxfRW::processAppId(){
         if (vp.handle != DRW::NoHandle
             && !seenHandles.insert(vp.handle).second)
             return false;
+        if(captureSource) {
+            if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            pendingSourceStates.push_back({vp.curr!=nullptr,vp.currCoordMask,true});raw.handle=vp.handle;raw.parentHandle=vp.parentHandle;
+            pendingSources.push_back(std::move(raw));
+        }
         pendingAppIds.push_back(std::move(vp));
         return true;
     };
@@ -16057,15 +16114,23 @@ bool dxfRW::processAppId(){
             if (dxfKeywordEquals(sectionstr, "APPID")) {
                 reading = true;
                 vp.reset();
+                if(captureSource){raw=DRW_RawDxfObject{};if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);}
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
-                for (const DRW_AppId &entry : pendingAppIds)
-                    iface->addAppId(entry);
+                if(captureSource) {
+                    if(pendingSources.size()!=pendingAppIds.size()||pendingSourceStates.size()!=pendingAppIds.size())return setError(DRW::BAD_CODE_PARSED);
+                    for(const auto& source:pendingSources)if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);
+                }
+                for(std::size_t i=0;i<pendingAppIds.size();++i) {
+                    if(captureSource)publishDxfSymbol(*reader,*iface,8u,pendingAppIds[i],pendingSources[i],pendingSourceStates[i],
+                        [&](const auto& original){sourceHandler->addDxfNamespaceSource(pendingAppIds[i],original);},[&](){iface->addAppId(pendingAppIds[i]);});
+                    else iface->addAppId(pendingAppIds[i]);
+                }
                 return true;  //found ENDTAB terminate
             } else {
                 return setError(DRW::BAD_READ_TABLES);
             }
         } else if (reading) {
-            if (!vp.parseCode(code, reader)) {
+            if (captureSource?!captureAndParseRawDxfGroup(raw,code,vp):!vp.parseCode(code, reader)) {
                 return setError(DRW::BAD_CODE_PARSED);
             }
         }
@@ -26948,7 +27013,7 @@ bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexc
 bool dxfRW::getDxfResourceSourceView(DxfResourceSourceView& out) const noexcept {
     out={};if(!m_readTextObservationsActive||!reader)return false;
     const auto& v=reader->resourcePublication();
-    if(!v.kind||v.kind>4u||!v.phase||v.phase>2u||!v.model||!v.source)return false;
+    if(!v.kind||v.kind>8u||!v.phase||v.phase>3u||!v.model||!v.source)return false;
     out={static_cast<DxfResourceSourceView::Kind>(v.kind),static_cast<DxfResourceSourceView::Phase>(v.phase),v.model,v.source,
         v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
 }

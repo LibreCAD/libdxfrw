@@ -729,9 +729,11 @@ public:
                                  const DRW_RawDxfObject& source) = 0;
 };
 
-/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK publication context.
+/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK and symbol publication context.
  * This adds no callback to DRW_Interface. Existing typed/raw callback order
- * and raw-only fallback stay intact. Selection is latched before the pair;
+ * and raw-only fallback stay intact. Symbols use their separately opted-in
+ * source facet followed by the existing typed callback after valid ENDTAB.
+ * Selection is latched before the pair;
  * the dxfRW resource-source view identifies the actual pointers and original
  * common/payload completeness, and expires at return/throw. The immutable raw
  * carrier is moved only when selected; default false adds no source copy.
@@ -740,6 +742,18 @@ class DRW_DxfResourceSourceHandler {
 public:
   virtual ~DRW_DxfResourceSourceHandler()=default;
   virtual bool wantsDxfResourceSource() const {return false;}
+};
+
+/** Explicit opt-in APPID/LAYER source rows. Source precedes the
+ * existing typed callback after a valid ENDTAB. Default false captures no raw
+ * row or original-state vector. Separate from both DRW_Interface and the
+ * established STYLE/LTYPE source facet; existing callback contracts stay intact.
+ * Source transport alone does not qualify names, targets, semantics or output. */
+class DRW_DxfNamespaceSourceHandler {
+public:
+  virtual ~DRW_DxfNamespaceSourceHandler()=default;
+  virtual bool wantsDxfNamespaceSource() const {return false;}
+  virtual void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
 };
 
 /** Opt-in source transport for the first OBJECTS dictionary. Its historical

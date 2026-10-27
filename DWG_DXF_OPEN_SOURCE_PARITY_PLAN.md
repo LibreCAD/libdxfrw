@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fa observed DXF TABLE Value forms and focused proof recovery (2026-10-26; verified selected scope):** pinned ASCII inventories identify164 envelopes in eight TABLE records and14 metadata forms per revision. The reader now retains witnessed flag bits, absent point counts,16-byte date carriers and suppressed empty Unknown0 without inferring native/calendar semantics.264 new authored controls and final43/43 normal plus43/43 ASan checks pass; the previously failing normal proof also passes a matched-flags focused retry with unchanged coverage/caps. Historical timeout cause, independent Value/output profiles, row overrides and broader/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fa-observed-dxf-table-value-forms-and-focused-proof-recovery-2026-10-26) · [receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fe original symbol publications and DXF APPID flags (2026-10-26; verified selected scope):** STYLE/LTYPE/LAYER/APPID source/typed publications now retain original pre-staging state and independently pinned source-phase models, bind actual TABLES origins and feed selected TABLE Value targets. DXF APPID bit32 is accepted with physical-output/readback controls; native validation stays unchanged. The authored matrix covers768 profiles,6,144 original markers,402 corrected imports and48 public lifetimes. Final affected cohorts pass72/72 normally and72/72 under ASan. Common/name/recursive/live/emitted and broader/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fe-original-symbol-publications-and-dxf-appid-flags-2026-10-26) · [receipt](docs/research/rpp5fe-original-symbol-publications-and-appid-flags-2026-10-26.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fa observed DXF TABLE Value forms and focused proof recovery (2026-10-26; verified selected scope):** pinned ASCII inventories identify164 envelopes in eight TABLE records and14 metadata forms per revision. The reader now retains witnessed flag bits, absent point counts,16-byte date carriers and suppressed empty Unknown0 without inferring native/calendar semantics.264 new authored controls and final43/43 normal plus43/43 ASan checks pass; the previously failing normal proof also passes a matched-flags focused retry with unchanged coverage/caps. Historical timeout cause, independent Value/output profiles, row overrides and broader/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fa-observed-dxf-table-value-forms-and-focused-proof-recovery-2026-10-26) · [receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5ez structured DXF TABLE Value retention (2026-10-26; normal validation open):** bounded typed payload/format/display retention preserves legacy block/attribute association. Owning checks pass6/6 and affected ASan `-O1` checks pass97/97; the normal cohort passes95/97, followed by a passing export-reuse retry but repeated unresolved CELLSTYLEMAP proof timeouts. Both13-target builds pass; there is no all-green normal claim. Independent full Value/output profiles, row overrides, dependencies and consumer/native qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ez-structured-dxf-table-value-retention-2026-10-26) · [checkpoint receipt](docs/research/rpp5ez-structured-table-value-retention-2026-10-26.json). No support gate is promoted.
 
@@ -131715,3 +131717,131 @@ native qualification remain incomplete. J256/J260/J268/J284/J293/J295 remain
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full objective remains
 active and incomplete; no remote mutation is included.
+
+## Implementation progress — RPP-5fe original symbol publications and DXF APPID flags (2026-10-26)
+
+State: **verified for selected original symbol publication/body origins and
+the documented DXF APPID flag domain**. RPP-5fd is committed as `11bdac6a`.
+The four rich-resource families retain their original publication/body proof.
+STYLE/LTYPE/LAYER/APPID can now supply selected original symbol origins; this
+does not complete common/name/recursive/live/emitted dependencies.
+
+The official [APPID DXF reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6E3140E9-E560-4C77-904E-480382F0553E.htm)
+defines flag bits16/32/64. Source inspection found that DXF validation delegated
+to the narrower native mask0x50, rejecting the documented bit32. DXF validation
+now uses0x70; native DWG validation stays0x50. The official
+[LAYER DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm)
+distinguishes linetype name6, material pointer347 and plot-style pointer390.
+Their independent inventory is separate from resolving those dependencies.
+
+- [x] Append symbol kinds and a source phase to the existing borrowed resource
+  view without renumbering existing enum values. Preserve STYLE/LTYPE source
+  callbacks, and add a separately opted-in `DRW_DxfNamespaceSourceHandler` for
+  APPID/LAYER. Default selection is false; no ordinary DRW_Interface virtual or
+  public facade/model data field is added. Publish source then typed only after
+  a valid ENDTAB. Move selected raw carriers into const publication storage
+  without copying their vectors/strings or retained lease. Preserve source
+  facet/publication gate independence, current-pair selection and scope cleanup
+  on return/throw.
+- [x] Observe original pending-XDATA/coordinate state before batch staging can
+  copy/sanitize it. Charge the internal state vector before retaining rows.
+  Freeze a separate bounded source-callback model snapshot, then compare both
+  actual source/typed phases and original state. A transient semantic or cursor
+  mutation restored before typed publication cannot become original proof.
+  Precharge metadata/model/context/work and retain record/byte/work ceilings;
+  clear borrowed pending pointers on completion/failure.
+- [x] Extend selected LAYER/APPID body replay with complete modeled comparisons
+  and an independent bounded scalar/subclass/reference inventory. Unknown and
+  duplicate fields, unsupported APPID71 metadata and invalid retained LAYER
+  lineweights withhold proof. Tolerant import remains available for these
+  controls. Join original TABLES records to the same import's unique enclosing
+  table-control identity and exact owner, rather than accepting a matching
+  name/handle or a copied row alone. Feed actual original symbol origins to the
+  existing selected TABLE Value330 target audit. Common/name/material/plot-style
+  dependencies and whole-document ownership remain unqualified.
+- [x] Add runtime-authored `libdxfrw_symbol_original_publications`: **768**
+  revision/encoding/TABLE-scope/APPID-flag/Value-target profiles and **6,144**
+  independently walked original resource markers; **72** callback/cursor/throw
+  refusals, **24** original pre-staging pending-state refusals, **48** field/owner
+  refusals, **six** source-opt-out controls, **36** exact/one-under record/byte/work
+  boundaries, **30** immutable/control-block/cross-import refusals and **402**
+  corrected imports. A finite192-offset finalization schedule reaches **96**
+  allocation failures; **96** unreached offsets are not failure evidence or
+  exhaustive allocation coverage. **48** public lifetime/default-off/independent-
+  facet/throw/latched-selection cases check the getter without allocation.
+- [x] Check all eight documented APPID bit combinations on DXF reads and direct
+  DXF/native validators. Verify **16** ASCII/Binary AC1032 outputs with independent
+  physical flag inspection and readback; **four** invalid-flag controls preserve
+  the destination and succeed after correction on the same exporter. Native
+  acceptance is unchanged, including rejection of bit32 by its existing mask.
+  These are selected DXF flag controls, not general APPID/native qualification.
+- [x] Preserve the first red binary-profile run: the authored fixture writer
+  emitted group290 as a string instead of a one-byte Boolean. Correct the test
+  writer without weakening production validation or `-Werror`. The final focused
+  symbol selector passes in6.09s; the preceding four owning checks pass4/4 in8.08s.
+  All drawing recipes are authored locally. No external drawing payload,
+  conversion, derivative or native DWG parser/byte-layout change is committed.
+- [x] All **11** affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass
+  **72/72 normally in64.31s**, then **72/72 under ASan in42.49s**, with two workers
+  and zero failures/skips/disabled tests. Include all38 owning TABLE selectors
+  and34 relevant consumer/CLI/symbol-name/codepage/APPID/LAYER/budget/color/
+  dependency checks. Preserve prior60 names/order, adding the new selector and11
+  relevant existing checks. Registered names/order/labels/timeouts, executed
+  sets and all seven selected owning counter lines agree. The389-file frozen
+  source manifest stays unchanged across both runtimes. Both builds finish
+  before runtime; normal runtime finishes before ASan. No full suite, formal
+  ABI/native application or controlled memory/performance result is claimed.
+
+The [receipt](docs/research/rpp5fe-original-symbol-publications-and-appid-flags-2026-10-26.json)
+pins exact sources, selected names/statuses/counters, build/runtime order,
+failure evidence, primary references and limits. Only the separate Debug/O1
+ASan configuration is claimed; the original Debug/O0 build remains unchanged.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Common/name/dependency audit.** Finalize a separate bounded immutable
+   audit after original identity/structural/layout/entity/block/resource proofs.
+   Pin exact source/audit shared owners and frozen text contexts. Reuse existing
+   physical reference inventories and the locale-independent `nameKey` policy,
+   but build an original-producer-backed name index; the mutable advisory
+   `resourceNames` map alone is insufficient. Bind STYLE/LTYPE/APPID/LAYER,
+   XDATA/EED, block names/nested INSERT, rich-resource and owner/application/proxy
+   roles. Add prerequisite producer evidence for missing target kinds, including
+   material/plot-style targets, rather than guessing a role from handle existence.
+   Establish required/absent/null/default semantics and bounded cycles. Cover
+   escaped/codepage/invalid/ambiguous names, aliases, wrong kinds/owners,
+   copied/replaced/cross-import inputs, budgets, reached faults and corrected
+   retries. Original target provenance is separate from recursive semantics.
+2. [ ] **Live and emitted dependency closure.** Revalidate original certificates
+   against live/edited resources and exact emitted fields/names/references.
+   Preserve explicit null/default distinctions, remapping and target-to-target
+   graphs. A successful origin/body match cannot open whole-document ownership
+   or output admission before every required dependency is qualified.
+3. [ ] **Exact Value output and row/border overrides.** Complete independent
+   emitted-field/remap/readback/edit/refusal/rollback/retry/destination proof.
+   Establish actual producer/version scope/order for title/header/data formats,
+   units and border overrides. Keep date epoch, native point counts and General
+   semantics unguessed; preserve 2D behavior and 3D retained data.
+4. [ ] **Full B2b/B3/C and external qualification.** Finish all remaining IMAGE/
+   document/native bit/decimal/carrier/schema/owner, corpus/version and memory/
+   performance obligations from the original plan. Preserve LibreCAD/LibreCAD_3
+   and dwg2dxf/FreeCAD behavior. Obtain native Linux/Windows FreeCAD and independent
+   ACIS/ACDS semantic/kernel evidence; selected source transport does not replace
+   those results.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks
+   after edits and risk-based affected cohorts at integration. Reuse built
+   targets, freeze compiled sources, finish builds before final runtimes, run
+   normal before ASan, preserve failures/caps, and update/unblock/commit/report
+   each verified slice. Keep the full objective active and commit no external
+   drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+Four rich and four symbol families can supply selected original publication/body
+origins, and selected TABLE targets can bind them. Common/name/recursive/live/
+emitted and whole-document/native qualification remain incomplete.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. The full objective remains active and incomplete; no remote mutation
+is included.

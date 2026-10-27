@@ -40,9 +40,11 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler,
-                 public DRW_DxfResourceSourceHandler {
+                 public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler {
 public:
     bool wantsDxfResourceSource() const override;
+    bool wantsDxfNamespaceSource() const override;
+    void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
     enum class ResourceOriginState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoOrigins,OriginsBound,Unqualified};
     struct ResourceOriginReport {
         ResourceOriginState state{ResourceOriginState::NotCaptured};
