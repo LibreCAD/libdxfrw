@@ -17177,7 +17177,7 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     using R=dx_tableResourceRole;
     std::string_view application;unsigned self=0u,owner=0u,base=0u,body=0u;bool xdata=false,dash=false;
     std::size_t dashCount=0u,dashReference=SIZE_MAX;int declaredDashes=-1,flags=0,shapeCode=0;
-    unsigned dashFields=0u;
+    unsigned dashFields=0u,xdepth=0u;int point=0,next=0;bool fontFamilySeen=false;
     const auto finishDash=[&]() {
         if(!dash)return true;
         if(flags==0)return (dashFields&~1u)==0u; // optional default-0 group 74 only
@@ -17191,13 +17191,34 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& value=raw.groups[i];const int code=value.code();
         const auto text=value.type()==DRW_Variant::STRING && value.content.s?std::string_view(*value.content.s):std::string_view{};
+        if(!dx_compound_source::scalarType(value))return false;
+        if(code==999)continue; // explicitly ignored DXF comment, not a dependency
         if(code==102) {
+            if(xdata)return false;
             if(text=="}"){if(application.empty())return false;application={};}
             else if(!text.empty() && text.front()=='{' && application.empty())application=text;
             else return false;
             continue;
         }
         if(application.empty()) {
+            if(!body&&code!=100&&!isDxfHandleCode(code))return false;
+            if(xdata&&code<1000)return false;
+            const bool fontFamily=!line&&code==1071;
+            if(fontFamily){if(fontFamilySeen)return false;fontFamilySeen=true;}
+            if(code>=1000&&!(fontFamily&&!xdata)) {
+                if(body!=1u)return false;
+                if(point){if(code!=next)return false;next+=10;if(code==point+20)point=0;}
+                else if(code>=1010&&code<=1013){point=code;next=code+10;}
+                else if(code>=1020&&code<=1033)return false;
+                if(code==1001){if(xdepth||text.empty())return false;}
+                else if(!xdata)return false;
+                else if(code==1002){if(text=="{"){if(++xdepth>DRW::kMaxDxfApplicationGroupNesting)return false;}
+                    else if(text=="}"){if(!xdepth)return false;--xdepth;}else return false;}
+                else if(code==1003){if(text.empty())return false;}
+                else if(code==1004){if(text.size()>254u||!dx_attdef_source::hexBytes(text))return false;}
+                else if(code!=1000&&code!=1005&&!(code>=1010&&code<=1013)&&!(code>=1020&&code<=1023)
+                    &&!(code>=1030&&code<=1033)&&!(code>=1040&&code<=1042)&&code!=1070&&code!=1071)return false;
+            }
             if(code==100) {
                 if(text=="AcDbSymbolTableRecord"){if(++base!=1u || body)return false;}
                 else if(text==(line?"AcDbLinetypeTableRecord":"AcDbTextStyleTableRecord")){if(base!=1u || ++body!=1u)return false;}
@@ -17207,6 +17228,8 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
                 const bool field=line?(code==2 || code==70 || code==3 || code==72 || code==73 || code==40)
                     :(code==2 || code==70 || code==40 || code==41 || code==50 || code==71 || code==42 || code==3 || code==4);
                 if(field){if(core[static_cast<std::size_t>(code)])return false;core[static_cast<std::size_t>(code)]=true;}
+                const bool segment=line&&(code==49||code==74||code==75||code==340||code==50||code==9||code==44||code==45||code==46);
+                if(!field&&!segment&&!fontFamily&&code!=100&&code<1000&&!isDxfHandleCode(code))return false;
                 if(line && code==73) {
                     if(value.type()!=DRW_Variant::INTEGER || dash)return false;
                     declaredDashes=value.i_val();
@@ -17251,7 +17274,7 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     // Optional payload fields keep their production-parser defaults. Require
     // identity, class and the declared dash-count/flags rather than inferring
     // those from a normalized row. Shape-file STYLE may legitimately omit 2.
-    return application.empty() && self==1u && owner==1u && base==1u && body==1u
+    return application.empty() && !xdepth && !point && self==1u && owner==1u && base==1u && body==1u
         && core[70] && (!line || (core[2] && core[72] && core[73] && core[40]
             && declaredDashes>=0 && dashCount==static_cast<std::size_t>(declaredDashes) && finishDash()));
 }
@@ -21007,9 +21030,8 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
         audit->tables.reserve(s.tableBodies.size());audit->rows.reserve(rows);
         for(const auto& item:s.tableBodies)audit->tables.push_back(item.second);
         const auto save=[&](S state){audit->state=state;s.tableReferenceAudit=std::move(audit);s.tableReferenceOwner=s.tableReferenceAudit;};
-        if(s.tableBodies.empty()){save(s.tableInputs.empty()?S::NoTables:S::SourceNotReady);return;}
         const auto body=tableBodyReport(data);
-        if(!body.modeledMatched||!body.profilesMatched||identitySourceReport(data).state!=IdentitySourceState::NamespaceReady) {save(S::SourceNotReady);return;}
+        if((!s.tableBodies.empty()&&(!body.modeledMatched||!body.profilesMatched))||identitySourceReport(data).state!=IdentitySourceState::NamespaceReady) {save(S::SourceNotReady);return;}
         const auto structural=structuralSourceReport(data);const auto layout=layoutSourceReport(data);const auto resources=resourceOriginReport(data);
         const auto entities=entitiesRoleReport(data);const auto blocks=blockRoleReport(data);
         if(structural.state==StructuralSourceState::ContextMismatch||layout.state==LayoutSourceState::ContextMismatch
@@ -21042,6 +21064,7 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
             for(const auto& row:audit->blocks->rows)if(row.reason==dx_data::TableDxfSourceCapture::BlockRoleAudit::Reason::Matched) {
                 A::Target target;target.provider=A::Provider::Blocks;target.physical=row.physical;target.block=row.block;add(row.self,std::move(target));
             }
+        if(s.tableBodies.empty()){save(s.tableInputs.empty()?S::NoTables:S::SourceNotReady);return;}
         bool complete=true;
         for(const auto& table:audit->tables) {
             const auto& physical=table->source->inBlock?table->source->blockPhysical->records[table->first]:table->entitiesPhysical->records[table->first];
@@ -21124,6 +21147,8 @@ dx_iface::TableReferenceReport dx_iface::tableReferenceReport(const dx_data& dat
     r.sourceTargetsMatched=r.state==S::ReferencesReady&&r.references&&r.references==r.matched;
     r.valueSourceTargetsMatched=(r.state==S::ReferencesReady||r.state==S::Unqualified)&&r.values&&r.values==r.matchedValues;return r;
 }
+
+#include "dx_dependency_audit.h"
 
 bool dx_iface::chargeTableSource(
         std::size_t bytes, std::size_t groups, std::size_t records) noexcept {
@@ -21351,6 +21376,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if(source.successful)finishDxfBlockOriginAudits(data);
     if(source.successful)finishBlockRoleAudit(data);
     if(source.successful)finishTableReferences(data);
+    if(source.successful)finishDependencies(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {

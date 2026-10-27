@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 
 add_executable(dwg2dxf dx_iface.cpp main.cpp dx_batch_output_names.cpp
-    dx_iface.h dx_data.h dx_batch_output_names.h dx_standard_output.h
+    dx_iface.h dx_data.h dx_dependency_audit.h dx_batch_output_names.h dx_standard_output.h
     dx_symbol_output.h dx_symbol_name_key.h dx_attdef_source_profile.h dx_block_source_profile.h dx_block_membership.h dx_compound_source_profile.h
     ../src/intern/drw_symbol_casefold_data.h)
 target_compile_options(dwg2dxf PRIVATE ${LIBDXFRW_WARNING_FLAGS})

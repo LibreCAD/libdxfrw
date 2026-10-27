@@ -207,7 +207,9 @@ enum class dx_tableResourceRole : std::uint8_t {
     FieldChild, FieldObject, FieldValueObject, DataLinkCustomTarget, DataLinkHardOwner,
     DictionarySoftOwner, DictionaryHardOwner, XRecordHandle, XRecordSoftPointer,
     XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout,
-    LineTypeName, LayerMaterial, LayerPlotStyle
+    LineTypeName, LayerMaterial, LayerPlotStyle,
+    TableStyle, TableGeometryBlock, TableCellBlock, TableCellField,
+    TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1494,6 +1496,36 @@ private:
         std::size_t tableReferenceBytes{0},tableReferenceWork{0};
         std::size_t maxTableReferenceBytes{64u*1024u*1024u},maxTableReferenceWork{64u*1024u*1024u},maxTableReferenceRows{200000u};
         bool tableReferenceCaptureFailed{false};
+        struct DependencyAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,OriginalTargetsMatched,Unqualified};
+            enum class Reason {Matched,NullOptional,Inherited,Literal,OriginalTableOwner,MissingTarget,WrongKind,OriginalUnavailable,
+                MissingName,AmbiguousName,NameSourceUnavailable,InvalidName,UnknownRole,NullRequired,WrongOwner,OwnershipCycle};
+            struct Node {
+                std::uint32_t handle{0};std::size_t physical{DRW_DxfIdentitySource::None};
+                dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
+                std::shared_ptr<const ResourceOriginAudit> resource;
+                std::shared_ptr<const StructuralAudit> structural;
+                std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};
+                std::vector<dx_tableResourceReference> references;
+            };
+            struct Row {
+                std::uint32_t source{0},target{0};std::size_t group{DRW_DxfIdentitySource::None};int code{0};
+                dx_tableResourceRole role{dx_tableResourceRole::Unknown};Reason reason{Reason::OriginalUnavailable};
+                bool present{true},name{false};UTF8STRING key;
+            };
+            struct NamedTarget {std::uint32_t handle{0};bool ambiguous{false};};
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const TableReferenceAudit> targets;
+            std::map<std::uint32_t,Node> nodes;
+            std::map<std::pair<dx_tableResourceFamily,UTF8STRING>,NamedTarget> names;
+            std::array<std::size_t,5> physicalNames{},backedNames{};
+            std::array<bool,5> nameCensusComplete{};
+            std::vector<Row> rows;std::size_t unavailableSources{0};
+        };
+        std::shared_ptr<const DependencyAudit> dependencyAudit,dependencyOwner;
+        std::size_t dependencyBytes{0},dependencyWork{0},dependencyRowsReserved{0};
+        std::size_t maxDependencyBytes{128u*1024u*1024u},maxDependencyWork{128u*1024u*1024u},maxDependencyRows{400000u};
+        bool dependencyCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

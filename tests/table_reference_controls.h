@@ -91,6 +91,13 @@ bool tableReferenceTests(const std::filesystem::path& dir) {
                 ++replays;
             }
             const auto r=dx_iface::tableReferenceReport(data);
+            if(fault==6u) {
+                const auto& dependencies=A::dependencies(data);bool refused=false;
+                if(dependencies)for(const auto& row:dependencies->rows)
+                    if(row.source==0x501u&&row.role==dx_tableResourceRole::TableCellAttributeDefinition&&row.target==0x703u
+                        &&row.reason==dx_iface::DependencyReason::WrongOwner)refused=true;
+                if(!refused||dx_iface::dependencyReport(data).originalTargetsMatched)return false;
+            }
             if(r.state!=S::Unqualified||r.sourceTargetsMatched||r.ownerTargetsResolved||r.outputEligible
                 ||(fault==0u||fault==10u?r.missing!=1u:fault==1u?r.nullRequired!=1u:fault==5u||fault==8u||fault==9u?r.unavailable!=1u:fault==6u?r.wrongCellBlock!=1u:r.wrongKind!=1u)
                 ||!retry(reader)) {std::cerr<<"TABLE reference refusal fault="<<fault<<" state="<<static_cast<int>(r.state)<<'\n';return false;}++refusals;

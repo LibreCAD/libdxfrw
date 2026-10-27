@@ -694,6 +694,10 @@ add_test(NAME libdxfrw_symbol_original_publications
     COMMAND libdxfrw_table_content_dxf_tests --symbol-origins)
 set_tests_properties(libdxfrw_symbol_original_publications PROPERTIES
     LABELS "fast;dxf;adapter;source;identity;generated;symbol" TIMEOUT 30)
+add_test(NAME libdxfrw_original_dependency_targets
+    COMMAND libdxfrw_table_content_dxf_tests --dependencies)
+set_tests_properties(libdxfrw_original_dependency_targets PROPERTIES
+    LABELS "fast;dxf;adapter;source;identity;generated;dependency" TIMEOUT 30)
 set_tests_properties(libdxfrw_table_value_inventory_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 add_test(NAME libdxfrw_layout_graph_read_contract

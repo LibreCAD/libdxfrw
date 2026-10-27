@@ -52,6 +52,20 @@ public:
         bool ownerTargetsResolved{false},outputEligible{false};
     };
     static ResourceOriginReport resourceOriginReport(const dx_data&) noexcept;
+    using DependencyState=dx_data::TableDxfSourceCapture::DependencyAudit::State;
+    using DependencyReason=dx_data::TableDxfSourceCapture::DependencyAudit::Reason;
+    struct DependencyReport {
+        DependencyState state{DependencyState::NotCaptured};
+        std::size_t sources{0},names{0},references{0},matched{0},inherited{0},literals{0},nulls{0},tableOwners{0},unavailableSources{0},bytes{0},work{0},reservedRows{0};
+        std::size_t missing{0},wrongKind{0},unavailable{0},ambiguous{0},invalidNames{0},unknownRoles{0},wrongOwner{0},ownershipCycles{0};
+        std::size_t physicalNamedRows{0},backedNamedRows{0};bool nameNamespacesComplete{false};
+        std::uint32_t firstSource{0},firstTarget{0};
+        // Original selected resource/TABLE reference targets only. Recursive
+        // dependency semantics, live state, emitted output and native consumers
+        // remain separate; this does not certify whole-document ownership.
+        bool originalTargetsMatched{false},recursiveClosureMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static DependencyReport dependencyReport(const dx_data&) noexcept;
     enum class TableInputState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NoInputs,OriginalPairsReady,Unqualified};
     struct TableInputReport {
         TableInputState state{TableInputState::NotCaptured};
@@ -1709,6 +1723,7 @@ private:
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;
     void finishTableBodies(dx_data&) noexcept;
     void finishTableReferences(dx_data&) noexcept;
+    void finishDependencies(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;
     bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
