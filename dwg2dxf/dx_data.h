@@ -1543,6 +1543,9 @@ private:
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const PlotSourceRecord> plot;
                 std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};
+                std::shared_ptr<const EntitiesRoleAudit> entities;
+                std::shared_ptr<const BlockRoleAudit> blocks;std::size_t entityRow{0};
+                bool entity{false};std::uint32_t originalOwner{0};
                 std::vector<dx_tableResourceReference> references;
             };
             struct Row {
@@ -1562,6 +1565,7 @@ private:
             std::array<std::size_t,5> physicalNames{},backedNames{};
             std::array<bool,5> nameCensusComplete{};
             std::vector<Row> rows;std::size_t unavailableSources{0};
+            std::size_t physicalEntityRows{0},backedEntityRows{0},entityReferences{0};
         };
         std::shared_ptr<const DependencyAudit> dependencyAudit,dependencyOwner;
         std::size_t dependencyBytes{0},dependencyWork{0},dependencyRowsReserved{0};

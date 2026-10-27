@@ -714,6 +714,10 @@ add_test(NAME libdxfrw_table_geometry_dependencies
     COMMAND libdxfrw_table_content_dxf_tests --table-geometry-dependencies)
 set_tests_properties(libdxfrw_table_geometry_dependencies PROPERTIES
     LABELS "fast;dxf;adapter;source;dependency;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_original_entity_dependencies
+    COMMAND libdxfrw_table_content_dxf_tests --entity-dependencies)
+set_tests_properties(libdxfrw_original_entity_dependencies PROPERTIES
+    LABELS "fast;dxf;adapter;source;dependency;entity;generated" TIMEOUT 30)
 set_tests_properties(libdxfrw_table_value_inventory_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 add_test(NAME libdxfrw_layout_graph_read_contract

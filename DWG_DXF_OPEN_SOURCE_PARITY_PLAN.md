@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fj original TABLE geometry name/handle coupling (2026-10-27; verified selected scope):** a red witness showed group2 and343 resolving to different original BLOCK_RECORDs while still qualifying. The bounded dependency audit now joins their original targets, retains reciprocal physical group/target metadata and preserves specific prerequisite/refusal reasons. The authored matrix covers72 profiles,216 field spans,144 corrected imports and384 corrected finalizations. Final affected cohorts pass83/83 normally and83/83 under ASan. Graphical contents, full recursive/live/emitted/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fj-original-table-geometry-namehandle-coupling-2026-10-27) · [receipt](docs/research/rpp5fj-table-geometry-name-handle-coupling-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fk original entity dependencies and physical census (2026-10-27; verified selected scope):** previously validated primary/compound/ATTDEF/BLOCK boundary sources now supply their own original dependencies, and every physical entity is counted. Immutable producer/body/context owners, original wire-owner values and bounded reference inventories preserve source roles and refuse unsupported records. The authored matrix covers72 profiles,2,016 markers,10,416 reference positions,258 corrected imports and384 corrected finalizations. Final affected cohorts pass84/84 normally and84/84 under ASan; prior dependency markers/reference spans increase without reducing its controls. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fk-original-entity-dependencies-and-physical-census-2026-10-27) · [receipt](docs/research/rpp5fk-original-entity-dependencies-and-census-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fj original TABLE geometry name/handle coupling (2026-10-27; verified selected scope):** a red witness showed group2 and343 resolving to different original BLOCK_RECORDs while still qualifying. The bounded dependency audit now joins their original targets, retains reciprocal physical group/target metadata and preserves specific prerequisite/refusal reasons. The authored matrix covers72 profiles,216 field spans,144 corrected imports and384 corrected finalizations. Final affected cohorts pass83/83 normally and83/83 under ASan. Graphical contents, full recursive/live/emitted/native and external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fj-original-table-geometry-namehandle-coupling-2026-10-27) · [receipt](docs/research/rpp5fj-table-geometry-name-handle-coupling-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fi explicit dictionary ownership and physical edges (2026-10-27; verified selected scope):** a red witness exposed280=1/350 edges bypassing reverse-owner checks. The bounded original-dependency audit now retains physical codes/roles and actual flag spans while applying effective hard ownership to owner/cycle checks. Missing350 policy stays unqualified; physical360 and default340 remain distinct. The authored matrix covers192 profiles,384 physical spans,126 corrected imports and384 corrected finalizations. Final affected cohorts pass82/82 normally and82/82 under ASan. Library parsing/writing/model/callback contracts are unchanged; full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fi-explicit-dictionary-ownership-and-physical-edges-2026-10-27) · [receipt](docs/research/rpp5fi-effective-dictionary-ownership-and-physical-edges-2026-10-27.json). No support gate is promoted.
 
@@ -132499,3 +132501,123 @@ field/recursive/live/emitted/whole-document/native qualification is incomplete.
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full objective remains active and incomplete; no remote mutation is included.
+
+## Implementation progress — RPP-5fk original entity dependencies and physical census (2026-10-27)
+
+State: **verified for selected original entity reference fields**.
+RPP-5fj is committed as `465c1a50`. Existing original POINT/LINE, compound,
+ATTDEF and block-boundary body/role proofs now feed their own dependencies.
+This extends the selected original-source pass; full recursive, live/emitted,
+whole-document, native and external qualification remains incomplete.
+
+The official [common entity DXF reference](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+distinguishes mandatory layer/owner fields, inherited linetype use and scoped
+reactor/extension-dictionary/material/plot references. Reuse the already
+independent original scalar/profile classifiers and actual producer/context
+certificates. A target's available body alone cannot qualify its unchecked
+source name or handle uses.
+
+- [x] Reproduce a missing-reference gap: original POINT701 names a nonexistent
+  layer, ordinary import succeeds, and the old dependency pass still reports
+  originalTargetsMatched because it scans TABLE/resource sources only.
+- [x] Admit only actual matched immutable ENTITIES/BLOCKS role rows and their
+  validated original primary/compound/ATTDEF profiles. Bind self and original
+  owner values to those rows. Reuse actual original BLOCK/ENDBLK raw profiles;
+  keep TABLE's existing provider and geometry2/343 coupling. Never construct
+  producer proof from live models, normalized defaults or handle-only aliases.
+- [x] Pin original role-audit roots and row indexes in entity nodes. Existing
+  source/body/context-owner checks plus exact target-root ownership reject
+  copied, no-op-aliased and substituted inputs. Store original entity owner
+  values separately for effective hard-owner reverse checks. Preserve physical
+  reference codes/roles, inherited ENTITY6 and existing refusal reasons.
+- [x] Census every physical entity, including dropped/unsupported/unqualified
+  records. An unavailable original entity cannot vanish from a matched source
+  result. Add entity-source/reference and physical/backed counts. Precharge
+  entity/block source retention, groups and enlarged private nodes. Accumulate
+  entity-reference counts during finalization so query inspection stays
+  allocation-free without per-reference target-map searches. Library parsers,
+  writers, installed public models/facade/callbacks and DWG byte layout remain
+  unchanged; output admission and global support gates are unchanged.
+- [x] Add authored `libdxfrw_original_entity_dependencies`: **72** profiles over
+  four revisions, LF/CRLF/binary, ENTITIES/BLOCKS and explicit/inherited/Unicode/
+  extension-dictionary forms. Each has28 original entity rows. Independently
+  bind **2,016** original markers and **10,416** reference group positions.
+  Represent POINT, LINE, POLYLINE, INSERT, ATTRIB, VERTEX, ATTDEF, BLOCK, ENDBLK,
+  SEQEND and ACAD_TABLE. Verify **72** live-entity/symbol/advisory independence
+  cases and allocation-free reports. These are selected authored profiles,
+  not native or complete entity-type/graphical-content qualification.
+- [x] Cover **174** field/target/unsupported refusals, including102 missing-layer
+  cases across17 selected record roles. Exercise missing linetype/text style/
+  APPID/XDATA targets, material/visual-style kind, unselected plot placeholder,
+  extension owner, reactor, opaque role and unsupported physical entity cases.
+  Preserve **36** exact/one-under row/byte/work boundaries, **36** source-audit/
+  body copy/alias/substitution controls and **12** point/ATTDEF callback throws.
+  The same adapters pass **258** corrected imports. A finite six-route64-offset
+  schedule reaches **384** failures and **384** corrected finalizations; this
+  is not exhaustive allocation coverage. Every drawing is an authored recipe.
+- [x] Retain the red and an expanded-test misleading-indentation compile failure;
+  fix statement layout while preserving -Werror and caps. The first broader
+  owning checks pass; the expanded owning selector passes in3.57s before final
+  fixed-count assertions. Existing dependency controls keep144 profiles and
+  all refusal/quota/context/retry counts; their original markers increase from
+  **2,664 to5,688**, reference spans from **6,648 to14,568**, as the additional
+  original entities are now inspected. This is added coverage, not a reduction.
+
+- [x] Both affected builds retain all **11** targets, including LibreCAD_3's
+  compile-only guard. Final exact cohorts pass **84/84 normally in76.09s**, then
+  **84/84 under Debug/`-O1`/ASan in48.45s**, with two workers and no failures/skips/
+  disabled tests. Preserve prior83 names/order; add only the owning selector.
+  Names/order/labels/timeouts and executed sets match. All **thirteen** selected
+  counter lines agree across configurations; eleven prior lines are unchanged
+  and only the documented marker/reference fields increase in the broader prior
+  dependency selector. The **408-file** compiled-source/build-metadata manifest
+  stays frozen through both runtimes. Both builds and packaging finish first;
+  normal completes before ASan. Original Debug/O0 ASan remains unchanged.
+- [x] Isolated current-source autoreconf/configure/make-dist pass; both archives
+  contain exact dependency/plot-source/STYLE helper hashes. Archive inclusion
+  is not a full Autotools distribution build. No full suite, formal ABI/native
+  application or controlled RSS/performance qualification is claimed.
+
+The [receipt](docs/research/rpp5fk-original-entity-dependencies-and-census-2026-10-27.json)
+pins sources, exact selected names/statuses/counters, build/runtime order,
+retained failures, packaging/header hashes, compiler configuration and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete remaining original producers and field/reference profiles.**
+   Extend other entity types and LAYOUT's own references, material/visual-style/
+   reactor/IMAGE/document/control/owner families. Obtain actual producer/version/
+   corpus evidence for omitted dictionary flags, names/application/XDATA and
+   HEADER CEPSNID/CEPSNTYPE. Keep unknown producer/default semantics unavailable.
+2. [ ] **Finish full recursive/coupled closure and whole-document ownership.**
+   Resolve all required target dependencies and remaining TABLE/linked metadata,
+   with native name/collation and required/absent/null/default semantics. The
+   selected existing entity profiles and physical census do not certify all
+   entity types, graphical block contents or a native ownership tree. Preserve
+   physical roles, bounded cycles and original-source refusals.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields/names/references and exact emitted fields.
+   Verify handle remapping/readback/refusal/rollback/retry/destination safety.
+   Finish Values, multiple-content attributes, linked-data ownership and
+   producer/version-qualified title/header/data formats, units and borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain
+   native bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and
+   measured memory/performance obligations. Audit complete legacy Autotools
+   source/header inventory against CMake before source-release build qualification.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior; obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks
+   per edit, risk-based affected integration and built-target reuse. Freeze
+   compiled sources, finish builds/packaging before final normal then ASan
+   runtimes, preserve failures/caps and update/unblock/commit/report every verified
+   slice. Commit no external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected original entity reference facts can match;
+full field/recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active and incomplete; no remote
+mutation is included.

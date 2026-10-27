@@ -27,10 +27,16 @@ template<class N> const auto& dependencyGroups(const N& n) {
     if(n.resource)return n.resource->input->raw->groups;
     if(n.structural)return n.structural->input->raw->groups;
     if(n.plot)return n.plot->input->raw->groups;
+    if(n.entities){const auto& row=n.entities->rows.at(n.entityRow);return n.entities->scopes.at(row.section)->physical->records.at(row.record).groups;}
+    if(n.blocks){const auto& row=n.blocks->rows.at(n.entityRow);const auto& scope=n.blocks->scopes.at(row.scope);
+        if(row.endpoint)return (row.physical==scope.first?scope.origin->beginRaw:scope.origin->endRaw)->groups;
+        return scope.origin->children->records.at(row.physical-scope.first-1u).groups;}
     const auto& t=*n.table;const auto at=t.first+n.tableRecord;
     return t.source->inBlock?t.source->blockPhysical->records.at(at).groups:t.entitiesPhysical->records.at(at).groups;
 }
 template<class N> const auto& dependencyContext(const N& n) {
+    if(n.entities)return n.entities->scopes.at(n.entities->rows.at(n.entityRow).section)->context;
+    if(n.blocks)return n.blocks->scopes.at(n.blocks->rows.at(n.entityRow).scope).origin->context;
     return n.resource?n.resource->input->context:n.structural?n.structural->input->context:n.plot?n.plot->input->context:n.table->source->context;
 }
 template<class N> const DRW_TableEntry* dependencyModel(const N& n) {
@@ -114,12 +120,20 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         if(!addAssociativeRetainedBytes(s.plotSourceGroups,groups)){s.dependencyCaptureFailed=true;return;}
         for(const auto& t:s.tableBodies)if(t.second)for(const auto& p:t.second->profiles)
             if(!addAssociativeRetainedBytes(p.spans.size(),groups)){s.dependencyCaptureFailed=true;return;}
+        if(s.tableReferenceAudit->entities)for(const auto& scope:s.tableReferenceAudit->entities->scopes)
+            if(!addAssociativeRetainedBytes(scope->physical->groups,groups)){s.dependencyCaptureFailed=true;return;}
+        if(s.tableReferenceAudit->blocks)for(const auto& scope:s.tableReferenceAudit->blocks->scopes)
+            if(scope.origin&&scope.origin->children&&scope.origin->beginRaw&&scope.origin->endRaw)
+            if(!addAssociativeRetainedBytes(scope.origin->children->groups,groups)
+                ||!addAssociativeRetainedBytes(scope.origin->beginRaw->groups.size(),groups)
+                ||!addAssociativeRetainedBytes(scope.origin->endRaw->groups.size(),groups)){s.dependencyCaptureFailed=true;return;}
         capacity=groups;
         if(!addAssociativeSlotBytes(identity.records.size(),3u,capacity)||capacity>s.maxDependencyRows
             ||!addAssociativeSlotBytes(identity.records.size(),sizeof(A::Node)+256u,bytes)
             ||!addAssociativeSlotBytes(capacity,sizeof(A::Row)+2u*sizeof(dx_tableResourceReference)+64u,bytes)
             ||!addAssociativeSlotBytes(s.resourceProofBytes,16u,bytes)||!addAssociativeSlotBytes(s.resourceBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.plotSourceBytes,4u,bytes)
+            ||!addAssociativeSlotBytes(s.entitiesBytes,4u,bytes)||!addAssociativeSlotBytes(s.blockSourceBytes,4u,bytes)
             ||!addAssociativeSlotBytes(s.tableBodyBytes,4u,bytes)||bytes>s.maxDependencyBytes
             ||!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(groups,128u,work)
             ||!addAssociativeSlotBytes(identity.records.size(),256u,work)||work>s.maxDependencyWork){s.dependencyCaptureFailed=true;return;}
@@ -131,6 +145,15 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             ||identitySourceReport(data).state!=IdentitySourceState::NamespaceReady){save(S::SourceNotReady);return;}
         std::vector<std::uint32_t> ids(identity.records.size(),0u);
         for(const auto& p:s.identityAudit->identities)if(p.second<ids.size())ids[p.second]=p.first;
+        const auto entityProfile=[&](A::Node& node,const auto& profile) {
+            node.entity=true;
+            for(const auto& span:profile.spans)if(span.role!=dx_attdef_source::Role::None) {
+                const auto role=dependencyEntityRole(span.role);
+                node.references.push_back({role,span.groupIndex,span.code,static_cast<std::uint32_t>(span.handle)});
+                if(role==Role::Self)node.handle=static_cast<std::uint32_t>(span.handle);
+                if(role==Role::Owner)node.originalOwner=static_cast<std::uint32_t>(span.handle);
+            }
+        };
         for(const auto& p:s.resourceOriginAudits) {
             const auto& o=p.second;if(!o||!o->originBound||!o->bodyMatched||!o->stateComplete||!o->input||!o->input->paired)continue;
             const auto found=s.resources.find(p.first);if(found==s.resources.end())continue;
@@ -155,14 +178,37 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             const auto& t=p.second;if(!t||!t->profilesMatched)continue;
             for(std::size_t record=0u;record<t->profiles.size();++record) {
                 A::Node n;n.table=t;n.tableRecord=record;n.family=F::Table;
-                for(const auto& span:t->profiles[record].spans)if(span.role!=dx_attdef_source::Role::None) {
-                    const auto role=dependencyEntityRole(span.role);
-                    n.references.push_back({role,span.groupIndex,span.code,static_cast<std::uint32_t>(span.handle)});
-                    if(role==Role::Self)n.handle=static_cast<std::uint32_t>(span.handle);
-                }
+                entityProfile(n,t->profiles[record]);
                 const auto original=s.identityAudit->identities.find(n.handle);if(original==s.identityAudit->identities.end())continue;
                 n.physical=original->second;a->nodes.emplace(n.handle,std::move(n));
             }
+        }
+        if(a->targets->entities)for(std::size_t index=0u;index<a->targets->entities->rows.size();++index) {
+            const auto& row=a->targets->entities->rows[index];
+            if(row.reason!=dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason::Matched||a->nodes.count(row.self))continue;
+            const auto& scope=*a->targets->entities->scopes.at(row.section);const auto& member=scope.members.at(row.record);
+            const auto& proof=scope.proofs.at(member.dispatch);
+            if(proof.tablePrimary||!proof.profilesMatched||row.record<proof.first||row.record>=proof.next)continue;
+            const auto& profile=proof.profiles.at(row.record-proof.first);if(!profile.complete())continue;
+            A::Node n;n.entities=a->targets->entities;n.entityRow=index;n.physical=row.physical;
+            entityProfile(n,profile);if(n.handle==row.self&&n.originalOwner==row.wireOwner)a->nodes.emplace(n.handle,std::move(n));
+        }
+        if(a->targets->blocks)for(std::size_t index=0u;index<a->targets->blocks->rows.size();++index) {
+            const auto& row=a->targets->blocks->rows[index];
+            if(row.reason!=dx_data::TableDxfSourceCapture::BlockRoleAudit::Reason::Matched||a->nodes.count(row.self))continue;
+            const auto& scope=a->targets->blocks->scopes.at(row.scope);if(!scope.origin)continue;
+            A::Node n;n.blocks=a->targets->blocks;n.entityRow=index;n.physical=row.physical;
+            if(row.endpoint) {
+                const bool footer=row.physical==scope.last;const auto& raw=footer?*scope.origin->endRaw:*scope.origin->beginRaw;
+                const auto profile=dx_block_source::audit(raw,footer,true,true);if(!profile.complete())continue;entityProfile(n,profile);
+            }else {
+                const auto record=row.physical-scope.first-1u;const auto& member=scope.membership->members.at(record);
+                const auto found=std::lower_bound(scope.bodies.begin(),scope.bodies.end(),member.dispatch,[](const auto& item,std::size_t value){return item.first<value;});
+                if(found==scope.bodies.end()||found->first!=member.dispatch||!found->second||!found->second->profilesComplete)continue;
+                const auto range=scope.membership->ranges.at(member.dispatch);if(record<range.first||record>=range.next)continue;
+                const auto& profile=found->second->profiles.at(record-range.first);if(!profile.complete())continue;entityProfile(n,profile);
+            }
+            if(n.handle==row.self&&n.originalOwner==row.wireOwner)a->nodes.emplace(n.handle,std::move(n));
         }
         // Census every physical row, including dropped/unqualified producers.
         // An unobserved competitor cannot disappear from a successful name lookup.
@@ -171,10 +217,12 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             const bool symbol=p.kind==I::Kind::TableRecord&&named<5u;
             const bool object=p.kind==I::Kind::Object&&(asciiIdentifierEquals(p.name,"DICTIONARY")||plotSourceDictionaryName(p.name)||asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER")||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::TableStyle,p.name)
                 ||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::Field,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::XRecord,p.name)||resourceOriginName(dxfRW::DxfResourceSourceView::Kind::DataLink,p.name));
-            const bool table=p.kind==I::Kind::Entity&&(asciiIdentifierEquals(p.name,"ACAD_TABLE")||asciiIdentifierEquals(p.name,"TABLE"));
+            const bool entity=p.kind==I::Kind::Entity;
+            if(entity)++a->physicalEntityRows;
             if(symbol)++a->physicalNames[named];
-            if(!symbol&&!object&&!table)continue;
-            const auto node=a->nodes.find(ids[i]);if(node==a->nodes.end()||node->second.physical!=i){++a->unavailableSources;continue;}
+            if(!symbol&&!object&&!entity)continue;
+            const auto node=a->nodes.find(ids[i]);if(node==a->nodes.end()||node->second.physical!=i||(entity&&!node->second.entity)){++a->unavailableSources;continue;}
+            if(entity)++a->backedEntityRows;
             if(!symbol)continue;
             const auto& n=node->second;const auto* model=dependencyModel(n);if(!model||!dependencyContext(n))continue;
             unsigned depth=0u,names=0u;bool xdata=false,emptyNames=true;std::string key,decoded;bool valid=true;
@@ -233,7 +281,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 else if(row.name) {
                     std::string decoded;
                     if(!context||!dependencyNameKey(dx_attdef_source::text(groups[ref.groupIndex]),*context,row.key,&decoded))row.reason=R::InvalidName;
-                    else if(ref.kind==Role::LineTypeName&&n.table&&(row.key=="bylayer"||row.key=="byblock"))row.reason=R::Inherited;
+                    else if(ref.kind==Role::LineTypeName&&n.entity&&(row.key=="bylayer"||row.key=="byblock"))row.reason=R::Inherited;
                     else if(ref.kind==Role::LayoutName) {const auto found=layouts.find(n.handle);if(found!=layouts.end())row.target=found->second;else row.reason=R::OriginalUnavailable;}
                     else if(!a->nameCensusComplete[dependencyNameFamily(nameFamily)])row.reason=R::NameSourceUnavailable;
                     else {const auto found=a->names.find({nameFamily,row.key});if(found==a->names.end())row.reason=R::MissingName;
@@ -284,7 +332,8 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 if(row.reason==R::Matched&&dependencyEffectiveHardOwner(row.ownership)) {
                                     const auto target=a->nodes.find(row.target);const auto* model=target==a->nodes.end()?nullptr:dependencyModel(target->second);
                                     if(!model&&proof->second.layout&&proof->second.layout->input)model=proof->second.layout->input->model.get();
-                                    const auto owner=model?model->parentHandle:target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:DRW::NoHandle;
+                                    const auto owner=model?model->parentHandle:target!=a->nodes.end()&&target->second.entity?target->second.originalOwner:
+                                        target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:DRW::NoHandle;
                                     if(owner!=n.handle)row.reason=R::WrongOwner;
                                 }
                             }
@@ -312,7 +361,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 };
                 couple(name,handle);couple(handle,name);
             }
-            if(n.table) {
+            if(n.entity) {
                 bool line=false,layer=false;for(const auto& ref:n.references){line=line||ref.kind==Role::LineTypeName;layer=layer||(ref.kind==Role::LayerName&&ref.code==8);}
                 if(!line){A::Row row;row.source=n.handle;row.role=Role::LineTypeName;row.code=6;row.present=false;row.reason=R::Inherited;a->rows.push_back(std::move(row));}
                 if(!layer){A::Row row;row.source=n.handle;row.role=Role::LayerName;row.code=8;row.present=false;row.reason=R::NullRequired;a->rows.push_back(std::move(row));}
@@ -322,6 +371,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 // the parser's CONTINUOUS default is not an original name use.
                 if(!line){A::Row row;row.source=n.handle;row.role=Role::LineTypeName;row.code=6;row.present=false;row.reason=R::NullRequired;a->rows.push_back(std::move(row));}
             }
+            if(n.entity)a->entityReferences+=a->rows.size()-firstRow;
         }
         // Linear nonrecursive hard-ownership cycle check; soft pointer cycles
         // retain their original-target result and are not evaluated as geometry.
@@ -361,6 +411,9 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         ||structural.state==StructuralSourceState::CaptureFailed){r.state=S::SourceNotReady;return r;}
     for(const auto& p:a->nodes) {
         const auto& n=p.second;
+        if(n.entities&&(!same(n.entities,a->targets->entities)||n.entityRow>=n.entities->rows.size()||n.entities->rows[n.entityRow].self!=n.handle)){r.state=S::ContextMismatch;return r;}
+        if(n.blocks&&(!same(n.blocks,a->targets->blocks)||n.entityRow>=n.blocks->rows.size()||n.blocks->rows[n.entityRow].self!=n.handle)){r.state=S::ContextMismatch;return r;}
+        if(n.entity)++r.entitySources;
         if(n.resource){const auto found=s.resourceOriginAudits.find(p.first);const auto body=s.resources.find(p.first);
             if(found==s.resourceOriginAudits.end()||!same(n.resource,found->second)||body==s.resources.end()||!dependencyReferencesEqual(n.references,body->second.references)){r.state=S::ContextMismatch;return r;}}
         if(n.structural){const auto found=s.structuralAudits.find(p.first);if(found==s.structuralAudits.end()||!same(n.structural,found->second)){r.state=S::ContextMismatch;return r;}}
@@ -369,6 +422,7 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         if(n.table){const auto found=s.tableBodies.find(n.table->source->model->handle);if(found==s.tableBodies.end()||!same(n.table,found->second)){r.state=S::ContextMismatch;return r;}}
     }
     r.state=a->state;r.sources=a->nodes.size();r.names=a->names.size();r.references=a->rows.size();r.unavailableSources=a->unavailableSources;
+    r.physicalEntityRows=a->physicalEntityRows;r.backedEntityRows=a->backedEntityRows;r.entityReferences=a->entityReferences;
     r.nameNamespacesComplete=true;
     for(unsigned i=0u;i<5u;++i){r.physicalNamedRows+=a->physicalNames[i];r.backedNamedRows+=a->backedNames[i];r.nameNamespacesComplete=r.nameNamespacesComplete&&a->nameCensusComplete[i];}
     for(const auto& row:a->rows) {
