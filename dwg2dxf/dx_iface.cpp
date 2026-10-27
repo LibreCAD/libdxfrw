@@ -38,6 +38,7 @@
 #include "libdwgr.h"
 #include "libdxfrw.h"
 #include "intern/dxfparserlimits.h"
+#include "intern/dxfstylefont.h"
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
@@ -17177,7 +17178,8 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     using R=dx_tableResourceRole;
     std::string_view application;unsigned self=0u,owner=0u,base=0u,body=0u;bool xdata=false,dash=false;
     std::size_t dashCount=0u,dashReference=SIZE_MAX;int declaredDashes=-1,flags=0,shapeCode=0;
-    unsigned dashFields=0u,xdepth=0u;int point=0,next=0;bool fontFamilySeen=false;
+    unsigned dashFields=0u,xdepth=0u,xordinal=0u;int point=0,next=0;bool fontFamilySeen=false;
+    bool acad=false,firstFontName=false,acadFontSeen=false;int bodyFont=0,acadFont=0;
     const auto finishDash=[&]() {
         if(!dash)return true;
         if(flags==0)return (dashFields&~1u)==0u; // optional default-0 group 74 only
@@ -17203,14 +17205,22 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
         if(application.empty()) {
             if(!body&&code!=100&&!isDxfHandleCode(code))return false;
             if(xdata&&code<1000)return false;
-            const bool fontFamily=!line&&code==1071;
-            if(fontFamily){if(fontFamilySeen)return false;fontFamilySeen=true;}
+            const bool fontFamily=!line&&code==1071&&!xdata;
+            if(fontFamily){if(fontFamilySeen)return false;fontFamilySeen=true;bodyFont=value.i_val();}
             if(code>=1000&&!(fontFamily&&!xdata)) {
                 if(body!=1u)return false;
                 if(point){if(code!=next)return false;next+=10;if(code==point+20)point=0;}
                 else if(code>=1010&&code<=1013){point=code;next=code+10;}
                 else if(code>=1020&&code<=1033)return false;
-                if(code==1001){if(xdepth||text.empty())return false;}
+                if(code==1001){
+                    if(xdepth||text.empty())return false;
+                    acad=dxfStyleFont::isAcad(text);xordinal=0u;firstFontName=false;
+                    if(!line&&!acad&&text.size()<=64u&&text.find('\\')!=std::string_view::npos) {
+                        DRW_TextCodec codec;codec.setVersion(raw.m_version,true);codec.setCodePage("UTF-8",true);
+                        const auto decoded=codec.toUtf8(text);if(codec.lastDecodeObservation().issues)return false;
+                        acad=dxfStyleFont::isAcad(decoded);
+                    }
+                }
                 else if(!xdata)return false;
                 else if(code==1002){if(text=="{"){if(++xdepth>DRW::kMaxDxfApplicationGroupNesting)return false;}
                     else if(text=="}"){if(!xdepth)return false;--xdepth;}else return false;}
@@ -17218,6 +17228,17 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
                 else if(code==1004){if(text.size()>254u||!dx_attdef_source::hexBytes(text))return false;}
                 else if(code!=1000&&code!=1005&&!(code>=1010&&code<=1013)&&!(code>=1020&&code<=1023)
                     &&!(code>=1030&&code<=1033)&&!(code>=1040&&code<=1042)&&code!=1070&&code!=1071)return false;
+                if(!line&&code!=1001) {
+                    if(acad&&code==1071&&(xordinal==0u||(xordinal==1u&&firstFontName))) {
+                        // Bare-ACAD compatibility projection has no independently
+                        // established font-name profile. Conflicting body/ACAD
+                        // metadata and repeated font prefixes also stay opaque.
+                        if(xordinal==0u||acadFontSeen)return false;
+                        acadFontSeen=true;acadFont=value.i_val();
+                    }
+                    if(xordinal==0u)firstFontName=code==1000;
+                    ++xordinal;
+                }
             }
             if(code==100) {
                 if(text=="AcDbSymbolTableRecord"){if(++base!=1u || body)return false;}
@@ -17275,6 +17296,7 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     // identity, class and the declared dash-count/flags rather than inferring
     // those from a normalized row. Shape-file STYLE may legitimately omit 2.
     return application.empty() && !xdepth && !point && self==1u && owner==1u && base==1u && body==1u
+        && (!fontFamilySeen||!acadFontSeen||bodyFont==acadFont)
         && core[70] && (!line || (core[2] && core[72] && core[73] && core[40]
             && declaredDashes>=0 && dashCount==static_cast<std::size_t>(declaredDashes) && finishDash()));
 }

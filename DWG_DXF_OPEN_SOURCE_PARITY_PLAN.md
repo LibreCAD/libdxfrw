@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ff selected original dependency targets and symbol schema guards (2026-10-26; verified selected scope):** a bounded immutable audit now binds selected original common/name/handle references to actual producer-backed targets, with complete physical symbol census, conservative alias handling, explicit literal/inherited/null dispositions and hard-owner/cycle refusals. STYLE/LTYPE schema guards close an ignored-scalar qualification gap. The authored matrix covers144 graph profiles,12 resource-only profiles and636 corrected imports. Final affected cohorts pass73/73 normally and73/73 under ASan; both source archives include the new header. Recursive/live/emitted/native semantics and broader qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ff-selected-original-dependency-targets-and-symbol-schema-guards-2026-10-26) · [receipt](docs/research/rpp5ff-original-dependency-targets-and-symbol-schema-guards-2026-10-26.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fg scoped STYLE font/XDATA and output retries (2026-10-26; verified selected scope):** body1071, canonical ACAD extended-font flags and arbitrary application integers now retain distinct roles. The reader preserves ordered XDATA and LibreCAD font projection; a borrowed output overlay preserves font edits without changing caller data or public layouts. The authored matrix covers216 profiles,432 output/readbacks,432 edited-font readbacks and148 corrected retries, including legacy, malformed, quota and reached allocation controls. Final affected cohorts pass77/77 normally and77/77 under ASan; both archives include the new helper. Full source/dependency/live/emitted/native qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fg-scoped-style-fontxdata-and-output-retries-2026-10-26) · [receipt](docs/research/rpp5fg-style-font-xdata-scopes-and-output-retries-2026-10-26.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5ff selected original dependency targets and symbol schema guards (2026-10-26; verified selected scope):** a bounded immutable audit now binds selected original common/name/handle references to actual producer-backed targets, with complete physical symbol census, conservative alias handling, explicit literal/inherited/null dispositions and hard-owner/cycle refusals. STYLE/LTYPE schema guards close an ignored-scalar qualification gap. The authored matrix covers144 graph profiles,12 resource-only profiles and636 corrected imports. Final affected cohorts pass73/73 normally and73/73 under ASan; both source archives include the new header. Recursive/live/emitted/native semantics and broader qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ff-selected-original-dependency-targets-and-symbol-schema-guards-2026-10-26) · [receipt](docs/research/rpp5ff-original-dependency-targets-and-symbol-schema-guards-2026-10-26.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fe original symbol publications and DXF APPID flags (2026-10-26; verified selected scope):** STYLE/LTYPE/LAYER/APPID source/typed publications now retain original pre-staging state and independently pinned source-phase models, bind actual TABLES origins and feed selected TABLE Value targets. DXF APPID bit32 is accepted with physical-output/readback controls; native validation stays unchanged. The authored matrix covers768 profiles,6,144 original markers,402 corrected imports and48 public lifetimes. Final affected cohorts pass72/72 normally and72/72 under ASan. Common/name/recursive/live/emitted and broader/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fe-original-symbol-publications-and-dxf-appid-flags-2026-10-26) · [receipt](docs/research/rpp5fe-original-symbol-publications-and-appid-flags-2026-10-26.json). No support gate is promoted.
 
@@ -132003,3 +132005,127 @@ incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**.
 Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
 qualification remain **NOT_RUN**. The full objective remains active and incomplete;
 no remote mutation is included.
+
+## Implementation progress — RPP-5fg scoped STYLE font/XDATA and output retries (2026-10-26)
+
+State: **verified for selected DXF STYLE font/XDATA scopes and output controls**.
+RPP-5ff is committed as `794f98ea`. This stage resolves its STYLE1071 routing
+follow-up while retaining the full original source/dependency/live/emitted/native
+objective. Font metadata transport does not establish native font rendering.
+
+The official [STYLE reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm)
+documents1071 as the font pitch/family/charset/style carrier. The primary
+[ezdxf implementation](https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/textstyle.py)
+separately reads ACAD1000/1071 extended-font metadata, allows an empty family,
+and cautions that these metadata do not reliably establish rendering. This
+mutable source screen informs the selected profile; no pinned peer execution
+or native font result is claimed.
+
+- [x] Reproduce the actual reader defect: custom-APPID1071 integers overwrite
+  `fontFamily` and disappear from retained XDATA. Preserve bare body1071 behavior,
+  but route every integer after an APPID through ordinary TableEntry retention
+  and node accounting. Only the immediate ACAD1071 compatibility prefix or
+  canonical ACAD1000/1071 prefix additionally projects font flags, after a
+  successful append. Subsequent ACAD/custom integers cannot overwrite that
+  projection. Use a two-tag lookbehind in the existing sequence, with no new
+  parser/model/facade state, public callback or layout field. No DWG parser or
+  byte-layout change is included.
+- [x] Preserve edited font flags on output through a constant borrowed1071
+  overlay for the recognized ACAD flag pointer. Reuse the existing generic
+  validation/emission path; borrow all other values unchanged and leave the
+  caller's vector, variant types and contents intact. Null, malformed-type and
+  out-of-range original flags cannot be hidden by the overlay. The added scan
+  is linear and does not copy the retained sequence.
+- [x] Separate independent body1071 duplicate detection from repeated legal
+  XDATA integers. Recognize the canonical ACAD name/flag prefix, including
+  bounded escaped APPIDs and empty family strings. Require agreement when both
+  body and canonical ACAD flags exist. Conflicting metadata and the legacy bare
+  ACAD prefix retain tolerant read/projection behavior but stay source-unqualified.
+  This selected profile does not complete STYLE/native-name/rendering semantics.
+- [x] Add runtime-authored `libdxfrw_style_font_xdata_scopes`: **216** profiles
+  across four modern revisions, LF/CRLF/binary and ENTITIES/BLOCKS, **216**
+  copy/assignment profiles, **168** admitted and **48** withheld original
+  profiles, **432** output/readbacks and **432** edited-font readbacks. Add six
+  paired source-on/off controls, six callback throw/retries, three escaped-APPID
+  profiles, three empty-family profiles and two representable INTEGER64 flag
+  output controls. Independently walk **4,032** emitted integer spans and compare
+  ordered semantic XDATA/readback without mutating the input model.
+- [x] Verify **eight** supported legacy ASCII/binary readbacks for AC1009/14/15/18,
+  **12** malformed-output refusal/corrected retries, **two** unsupported AC1012
+  target refusal/corrected retries and **two** exact/one-under integer-node
+  limits. A finite128-offset STYLE-write schedule reaches **41** allocation
+  failures; **87** unreached offsets are not failure evidence or exhaustive
+  allocation coverage. Refusals/reached faults preserve destination sentinels;
+  the same adapter succeeds after correction. Total corrected retries: **148**.
+- [x] Retain the red reader reproduction and development failures. Correct the
+  test recipe that accidentally placed body1071 before APPID in `extData`; the
+  existing XDATA validator correctly refused it. AC1012 is already excluded by
+  the public writer whitelist, so preserve its refusal and supported-version
+  retry instead of changing that contract. Fix initial misleading-indentation
+  warnings without weakening `-Werror`, coverage or time caps. The final five
+  owning checks pass5/5 in13.94s. All drawings are authored runtime recipes;
+  no external drawing payload, conversion or derivative is committed.
+- [x] Include the new private helper in CMake and Automake manifests. In an
+  isolated current-source copy, autoreconf/configure/make-dist pass and both
+  gzip/bzip2 archives contain its exact hash. This proves archive inclusion,
+  not a full Autotools distribution build; the broader source inventory audit
+  remains required.
+- [x] All **11** affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass
+  **77/77 normally in73.64s**, then **77/77 under ASan in49.22s**, with two workers
+  and no failures/skips/disabled tests. Preserve the prior73 names/order, adding
+  the new owning selector and three relevant existing XDATA checks. Registered
+  names/order/labels/timeouts, executed sets and all **nine** selected counter
+  lines agree. The **403-file** compiled-source/build-metadata manifest remains
+  frozen through both runtimes. Both builds and packaging finish before runtime;
+  normal finishes before ASan. No full suite, formal ABI/native application or
+  controlled memory/performance qualification is claimed. The original Debug/O0
+  ASan configuration remains unchanged.
+
+The [receipt](docs/research/rpp5fg-style-font-xdata-scopes-and-output-retries-2026-10-26.json)
+pins exact sources, selected names/statuses/counters, configuration/build/runtime
+order, retained failure logs, archive/helper hashes, primary references and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete remaining original producers and field/reference profiles.**
+   Cover remaining primary/BLOCKS/LAYOUT/material/plot-style/visual-style/reactor/
+   IMAGE/document/control/owner families. Start the missing plot-style producer
+   prerequisite by joining actual ACDBPLACEHOLDER publication/body evidence to
+   the rooted plot-style-name dictionary and its exact membership/owner/default
+   roles. Existing selected default-placeholder transport is not general
+   plot-style qualification. Keep unknown producers unavailable and preserve
+   source census, callback identity, quotas, faults and corrected retries.
+2. [ ] **Finish recursive and coupled dependency semantics.** Resolve every
+   required target's own dependencies, geometry-block-name versus TABLE343,
+   TABLE/linked metadata, application/proxy roles, native name legality/collation
+   and required/absent/null/default distinctions. Preserve bounded cycle
+   handling. Original membership/target matches cannot substitute for complete
+   control bodies, recursive semantics or whole-document ownership.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against live/edited fields/names/references and exact emitted
+   bytes; verify remapping/readback/refusal/rollback/retry/destination safety.
+   Complete Value output, multiple-content attributes, linked-data ownership,
+   and producer/version-qualified title/header/data formats, units and borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain all
+   remaining native bit/decimal/carrier/schema/owner, IMAGE/document, corpus/
+   version and memory/performance obligations. Audit the full legacy Autotools
+   source/header inventory against CMake before source-release build qualification.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior. Obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks
+   after edits and risk-based affected cohorts at integration; reuse built
+   targets rather than running full suites routinely. Freeze compiled sources,
+   finish builds/packaging before final normal then ASan runtimes, preserve
+   failures/caps, and update/unblock/commit/report each verified slice. Commit
+   no external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false`
+and `outputEligible=false`. Selected original target/font-XDATA profiles can
+match; full recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active and incomplete; no remote
+mutation is included.

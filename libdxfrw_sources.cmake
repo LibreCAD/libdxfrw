@@ -72,6 +72,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgutil.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/proxygraphicdecoder.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfreader.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfstylefont.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfnumber.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxffield.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfblockrecord.h"

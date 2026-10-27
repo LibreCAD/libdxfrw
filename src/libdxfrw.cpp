@@ -35,6 +35,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfstylefont.h"
 #include "intern/dxfnumber.h"
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
@@ -5801,8 +5802,16 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
         write(writer->writeUtf8Caps(3, ent->font));
         write(writer->writeUtf8Caps(4, ent->bigFont));
     }
-    if (!ent->extData.empty())
-        result = writeExtData(ent->extData) && result;
+    if (!ent->extData.empty()) {
+        const auto* fontFlags=dxfStyleFont::flags(ent->extData);
+        const DRW_Variant projected(1071,ent->fontFamily);
+        // Keep recognized ACAD font metadata consistent with an edited font
+        // projection. Borrow all other values unchanged; never mutate/copy the
+        // caller's sequence or mask malformed original flag variants.
+        result = writeExtDataRange(ent->extData,[&](const DRW_Variant* value) {
+            return fontFlags&&value==fontFlags?&projected:value;
+        }) && result;
+    }
     if (!result || writer->hasWriteError())
         m_writeError = true;
     if (!result || writer->hasWriteError())

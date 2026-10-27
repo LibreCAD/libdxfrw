@@ -22,6 +22,7 @@
 #include "drw_entities.h"
 #include "intern/drw_dimvar_migration.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfstylefont.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfwriter.h"
 #include "intern/dwgbuffer.h"
@@ -5380,9 +5381,14 @@ bool DRW_Textstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader
     case 71:
         genFlag = reader->getInt32();
         break;
-    case 1071:
-        fontFamily = reader->getInt32();
+    case 1071: {
+        const auto value=reader->getInt32();
+        if(extData.empty()) {fontFamily=value;break;}
+        const bool font=dxfStyleFont::prefix(extData,extData.size());
+        if(!DRW_TableEntry::parseCode(code,reader))return false;
+        if(font)fontFamily=value;
         break;
+    }
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
