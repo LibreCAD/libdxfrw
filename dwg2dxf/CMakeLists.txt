@@ -1,9 +1,7 @@
 include(GNUInstallDirs)
 
-add_executable(dwg2dxf dx_iface.cpp main.cpp dx_batch_output_names.cpp
-    dx_iface.h dx_data.h dx_dependency_audit.h dx_plotstyle_source.h dx_rendering_inputs.h dx_batch_output_names.h dx_standard_output.h
-    dx_symbol_output.h dx_symbol_name_key.h dx_attdef_source_profile.h dx_block_source_profile.h dx_block_membership.h dx_compound_source_profile.h
-    ../src/intern/drw_symbol_casefold_data.h)
+include(${CMAKE_CURRENT_SOURCE_DIR}/source-files.cmake)
+add_executable(dwg2dxf ${LIBDXFRW_CLI_SOURCES} ${LIBDXFRW_CLI_HEADERS})
 target_compile_options(dwg2dxf PRIVATE ${LIBDXFRW_WARNING_FLAGS})
 target_include_directories(dwg2dxf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 target_link_libraries(dwg2dxf PRIVATE dxfrw)

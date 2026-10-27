@@ -59,7 +59,10 @@ def is_drawing_candidate(path: Path, data: bytes) -> tuple[bool, str]:
     if suffix in SOURCE_EXTENSIONS:
         return False, ""
     upper = data[:4096].upper()
-    if sum(marker in upper for marker in DXF_MARKERS) >= 2:
+    # Drawing records use whole marker tokens. Build identifiers/filenames
+    # such as dist_noinst_HEADERS and drw_entities.cpp are not record tokens.
+    if sum(re.search(rb"\b" + marker + rb"\b", upper) is not None
+           for marker in DXF_MARKERS) >= 2:
         return True, "DXF structural markers"
     return False, ""
 
@@ -257,6 +260,10 @@ def self_test() -> None:
     assert is_drawing_candidate(Path("x.zip"), b"not a drawing")[0]
     assert is_drawing_candidate(Path("x.bin"), b"AC1021")[0]
     assert is_drawing_candidate(Path("x.bin"), b"0\nSECTION\n2\nHEADER\n0\nENDSEC\n")[0]
+    inventory = b"dist_noinst_HEADERS = drw_entities.h\nlibdxfrw_la_SOURCES = drw_entities.cpp\n"
+    assert not is_drawing_candidate(Path("source-files.am"), inventory)[0]
+    assert is_drawing_candidate(Path("source-files.am"), b"0\nSECTION\n2\nHEADER\n0\nENDSEC\n")[0]
+    assert is_drawing_candidate(Path("source-files.am"), b"AC1021")[0]
     assert not is_drawing_candidate(Path("x.txt"), b"ordinary source text")[0]
     assert not is_drawing_candidate(Path("x.cpp"), b'const char* x = "AC1021 SECTION HEADER";')[0]
     assert is_drawing_candidate(Path("x.cpp"), b'const unsigned char x[] = "\\x41\\x43\\x31\\x30\\x32\\x31\\x00SECTION";')[0]

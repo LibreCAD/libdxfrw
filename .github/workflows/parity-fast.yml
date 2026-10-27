@@ -14,6 +14,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  source-release:
+    # Keep the full package build at merge/manual checkpoints, not every PR.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      # Makefile.am supplies strict warnings, including the per-file GCC policy.
+      CXXFLAGS: -O0
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check inventories and bootstrap source release
+        run: |
+          python3 -B tools/generate_build_inventory.py --check
+          ./autogen.sh
+          ./configure --disable-static
+      - name: Check extracted source, install, uninstall and regeneration
+        run: COPYFILE_DISABLE=1 make -j2 distcheck
+
   fast-regressions:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -35,6 +60,11 @@ jobs:
           && python3 -B tools/check_external_fixture_hook.py
           && python3 -B tools/check_staged_package.py --self-test
           --build-options-self-test --cxx g++-13
+
+      - name: Check build and source-release inventories
+        run: >-
+          python3 -B tools/generate_build_inventory.py --check
+          && python3 -B tools/generate_build_inventory.py --self-test
 
       - name: Configure ordinary regression profile
         run: >-

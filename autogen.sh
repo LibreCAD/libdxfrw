@@ -1,6 +1,5 @@
 #!/bin/sh
 
-aclocal \
-&& libtoolize -c \
-&& automake --copy --gnu --add-missing -f\
-&& autoconf
+set -eu
+mkdir -p m4
+exec autoreconf -fi

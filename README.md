@@ -22,8 +22,10 @@ LibreCAD's bundled `libraries/libdxfrw/` tree remains a consumer snapshot update
 
 CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The Conan 2
 recipe consumes the same canonical source manifest and disables tests and
-documentation for a small package build. Autotools and MinGW remain reference
-builds.
+documentation for a small package build. Autotools source releases use the same
+source/header inventory and provide a pkg-config install; see
+[source release instructions](docs/SOURCE_RELEASE.md). The historical MinGW
+project files remain reference material.
 
 ```sh
 cmake -S . -B build

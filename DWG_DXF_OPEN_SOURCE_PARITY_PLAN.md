@@ -134194,3 +134194,119 @@ format/rendering semantics, all native/version profiles or complete document
 eligibility. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active; no remote mutation.
+
+## Implementation progress — RPP-5fx source inventory and extracted release builds (2026-10-27)
+
+The measured RPP-5fw source-release failure is reproduced and repaired. Its
+extracted archive configures but make immediately fails on missing drw_acis.h.
+The new archive contains all59 previously omitted observed production inputs,
+including18 C++ sources, and qualifies actual extracted builds. This closes the
+local source-inventory/build gap while retaining platform and consumer gates.
+
+- [x] Make the canonical inventories complete:36 core C++ sources,81 core headers,
+  three converter C++ sources and29 converter headers. Preserve the existing
+  core CMake manifest grammar used by the independent semantic-adapter builder;
+  put CLI lists in their own fragment. Generate explicit Automake inventories
+  from those lists, installing the same ten public and four transitive headers.
+- [x] Generate a590-file source-release inventory from tracked files plus eight
+  explicit managed inputs. Include CMake modules, tests and helpers, including
+  the recent preset graph helper. Exclude untracked drawings/build/editor state,
+  the active append-only parity plan and historical receipts except the two
+  actual CMake research inputs. Verify every source byte in gzip/bzip2 archives;
+  allow only known generated Autotools files beyond that inventory. No new
+  drawing payload, conversion or derivative is admitted.
+- [x] Align Autotools with CMake's C++17, ABI major2, header install and ordinary
+  libdxfrw.pc name. Use link-only language/filesystem/thread checks and the
+  macOS CLI CoreFoundation dependency. Bootstrap with autoreconf. A one-source
+  noninstalled convenience library carries CMake's existing GNU entity-parser
+  warning policy; retain strict warnings and -Werror. Production C++ and header
+  bytes remain identical to f590610a; no parser/API/runtime change in this slice.
+- [x] Add two fast inventory CTests and ordinary CI checks. Schedule Linux GCC
+  source-release distcheck at master/manual checkpoints, preserving quick PR
+  validation. The new Linux job has not run here. Review the actual generated
+  compile rule: user CXXFLAGS follow package flags, so remove a duplicated CI
+  -Wextra that would override the per-source GNU default. CI now supplies -O0;
+  the package supplies strict warnings. Native GCC remains separately unrun.
+- [x] Preserve development failures: the first guard rejected legitimate libtool
+  lt~obsolete.m4; fix only the generated-archive grammar. Replace repeated
+  random-access decompression with one streaming pass. Eighteen negative
+  controls cover path/duplicate/literal-list/archive-byte/payload refusal;
+  valid archive and no-Git behavior also pass. The semantic-adapter manifest
+  self-test and package checker pass, including four configure profiles and
+  eight Python-probe controls.
+
+Actual local qualification (macOS ARM64, Apple Clang21):
+
+- [x] Rebuild static and shared releases after the convenience-library change
+  from a read-only extraction outside the checkout. Disable Autoconf/Automake/
+  aclocal/autoheader during consumer builds. Pass22/23 steps in81.47s/80.93s:
+  configure/build/install/pkg-config, compile all14 installed headers alone,
+  link/run an installed consumer, run installed dwg2dxf and independently check
+  six coordinates of a locally authored3D LINE. Remove developer loader paths;
+  confirm the shared converter loads installed libdxfrw.2.dylib. Uninstall every
+  installed file/symlink, then distclean both build trees with no files left.
+- [x] Build the extracted CMake library/converter, owning TABLE-content test
+  target and LibreCAD_3 compile guard. Pass all six selected tests (inventory,
+  inventory self-test, preset body output, preset graph output and both FreeCAD
+  CLI contracts), install and link/run a separate find_package consumer. Six
+  driver steps take46.34s. These are CLI contract checks, not native FreeCAD.
+- [x] Run actual make distcheck with a shared-only inner build:173.95s, exit0.
+  Its read-only VPATH build, ordinary and DESTDIR installation/uninstallation,
+  cleanup and self-contained archive regeneration pass. Automake's check and
+  installcheck have no semantic runner here; do not count them as format tests.
+  Recheck both final archives against all590 current listed source files.
+- [x] The staged fixture guard initially mistakes HEADERS and drw_entities
+  substrings in generated Automake lists for drawing records. Recognize whole
+  marker tokens instead; new controls accept ordinary build identifiers while
+  still flagging actual DXF marker pairs and DWG magic under an .am name. Keep
+  the original index/provenance checks. Correct the trailing blank CLI manifest
+  line found by git diff --check. Rerun the fast guard rather than rebuild C++.
+- [x] Pin separate qualification phases and preserve their archives. Final
+  ancillary differences are corrected CI flags, the CLI manifest's trailing
+  newline and the fixture scanner. C++/headers and Autotools build configuration
+  remain exact; effective CMake inventory is unchanged. Refresh both final
+  archives and verify every listed byte. Retain exact manifests, hashes,
+  commands, failures and logs rather than claim earlier archives contained
+  later ancillary edits. No broad runtime/ASan rerun for these changes; earlier
+  runtime qualification remains scoped to its own frozen inputs.
+
+The [receipt](docs/research/rpp5fx-source-release-inventory-and-extracted-builds-2026-10-27.json)
+pins the baseline failure, full inventory, phases, builds, installed checks,
+archive hashes and remaining limits. [Source-release instructions](docs/SOURCE_RELEASE.md)
+explain maintainer and extracted builds. Autotools install relocation is not
+promised; the existing CMake relocation contract remains unchanged.
+
+Next implementation-ready sequence retains the complete objective:
+
+1. [ ] Complete edited typed rewriting and emitted PLOTSETTINGS/LAYOUT/VIEWPORT
+   consumer-to-provider binding. Start with actual callback edits to live shade
+   modes/handles after preflight; prove the emitted fields and provider identity,
+   then test remap/collision, refusal/rollback and corrected same-adapter retry.
+   Extend to recursive/coupled/whole-document ownership; the selected preset and
+   dictionary proof alone does not close document eligibility.
+2. [ ] Complete remaining optional/absent/duplicate/alias/extension rendering
+   profiles and active/global/environment/background/live-section/sun providers.
+   Obtain actual VIEWPORT shade4/5 wire witnesses and resolve the published-table
+   discrepancy before asserting source semantics; then bind clipping and
+   layer overrides335/343/344/91. Preserve entity/material/reactor/IMAGE/document/
+   control/name/application/XDATA/HEADER/native-collation obligations.
+3. [ ] Finish TABLE Values/multiple-content/linked-data ownership and qualified
+   formatting/units/borders, and native B2b/B3/C bit/schema/owner/version/corpus
+   qualification. Do not guess date epochs, point counts or General semantics.
+4. [ ] Run the pending native Linux GCC release job and remaining platform/
+   package/consumer qualification. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/
+   FreeCAD behavior. Complete formal/native ABI/application checks, controlled
+   memory/performance, native Linux/Windows FreeCAD and independent ACIS/ACDS
+   semantic/kernel evidence with separate gates. Local packaging is now proven
+   at the recorded scope; other platforms and native applications are not.
+5. [ ] Continue target reuse and fast owning checks; broaden only for actual
+   shared changes or failures. Freeze inputs and finish builds before runtimes,
+   retain failed evidence/caps, self-unblock, update/commit/report each verified
+   slice and continue ready work. Commit no external drawing payload/derivative.
+
+Resource families remain nine, ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Full rendering/document/native semantic qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**;
+native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
+remain **NOT_RUN**. The full objective stays active; no remote mutation.

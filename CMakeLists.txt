@@ -72,6 +72,8 @@ set(installdxfrw_hdrs ${LIBDXFRW_PUBLIC_HEADERS})
 set(libdxfrw_transitive_hdrs
     src/intern/dwg_fixed_handles.h
     src/intern/dwgutil.h
+    src/intern/dwgbufferw.h
+    src/intern/dwgsafety.h
 )
 
 set(LIBDXFRW_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/libdxfrw)
@@ -178,6 +180,14 @@ if(LIBDXFRW_BUILD_TESTS)
         message(FATAL_ERROR
             "LIBDXFRW_BUILD_TESTS Python version probe failed (${LIBDXFRW_PYTHON_VERSION_OK})")
     endif()
+    add_test(NAME libdxfrw_build_inventory
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_build_inventory.py --check)
+    add_test(NAME libdxfrw_build_inventory_selftest
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_build_inventory.py --self-test)
+    set_tests_properties(libdxfrw_build_inventory libdxfrw_build_inventory_selftest
+        PROPERTIES LABELS "fast;build;package" TIMEOUT 15)
     add_subdirectory(tests)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libdxfrwRootTestAdapters.cmake)
     # This compiler-only contract needs no library build or X11 dependency.
@@ -2048,8 +2058,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
         # The imported public façades still expose these declarations.  Install
         # only the narrow transitive closure; HandleAllocator is now internal and the
         # DataStorage writer enum is declared by the installed foundational header.
-        install(FILES src/intern/dwgutil.h src/intern/dwg_fixed_handles.h
-                      src/intern/dwgbufferw.h src/intern/dwgsafety.h
+        install(FILES ${libdxfrw_transitive_hdrs}
                 DESTINATION ${LIBDXFRW_INSTALL_INCLUDEDIR}/intern)
         install(FILES
                 ${CMAKE_CURRENT_BINARY_DIR}/libdxfrw.pc
