@@ -17,6 +17,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <array>
 #include <memory>
 #include <set>
 #include <string>
@@ -1084,6 +1085,30 @@ public:
      * state or vtable slot. Existing resource-view kinds/contract are unchanged.
      * This is original publication transport, not graph/output qualification. */
     bool getDxfPlotStyleSourceView(DxfPlotStyleSourceView&) const noexcept;
+    struct DxfRenderingSourceView {
+        enum class Kind : std::uint8_t {None,VisualStyle,RenderSettings};
+        enum class Phase : std::uint8_t {None,Typed,Raw};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};
+        const DRW_RawDxfObject* source{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+        bool originalVisualStyleScope{false},originalVisualStylePropertyTail{false};
+        bool originalRenderBaseScope{false};
+        // Counts: base strings,90,290,280,40. Fixed base values retain their
+        // original positional state; zero/absent distinctions use the counts.
+        std::array<std::size_t,5> originalRenderCounts{};
+        std::array<std::int32_t,3> originalRenderLongs{},originalRenderBytes{};
+        std::array<bool,5> originalRenderBools{};
+        std::array<double,4> originalRenderDoubles{};
+    };
+    /** Borrowed actual VISUALSTYLE/RenderSettings typed/raw publication through
+     * the existing resource-source opt-in. Original common/private/positional
+     * state is captured before callbacks; it is not reconstructed from copies.
+     * Pointers expire at return/throw; false clears the view elsewhere. Adds no
+     * facade/model data member or existing interface/facet virtual. Existing
+     * callback order and resource-view kinds stay intact. Transport and parser
+     * state alone do not qualify full properties, targets, semantics or output. */
+    bool getDxfRenderingSourceView(DxfRenderingSourceView&) const noexcept;
     struct DxfViewUcsSourceView {
         enum class Kind : std::uint8_t {None,View,Ucs};
         enum class Phase : std::uint8_t {None=0,Typed=1,Source=3};

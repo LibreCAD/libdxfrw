@@ -49,6 +49,7 @@ namespace dxfBlockRecord { class Decoder; }
 namespace dxfLayout { class Decoder; }
 namespace dxfViewUcs { class Decoder; }
 namespace dxfRenderSettings { class Decoder; }
+namespace dxfRendering { class Observation; }
 class dwgBuffer;
 class dwgRW;
 
@@ -8089,6 +8090,7 @@ struct DRW_VisualStyleBody {
  */
 class DRW_VisualStyle : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfRendering::Observation;
 public:
   static constexpr std::uint16_t kDwgClassNum = 560;
 

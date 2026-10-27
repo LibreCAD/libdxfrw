@@ -49,6 +49,7 @@
 #include "intern/dxflayout.h"
 #include "intern/dxfviewucs.h"
 #include "intern/dxfrendersettings.h"
+#include "intern/dxfrenderingsource.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
@@ -19753,6 +19754,29 @@ bool dxfRW::processGeoData() {
     return setError(DRW::BAD_READ_OBJECTS);
 }
 
+namespace {
+template<class Typed>
+void publishDxfRendering(dxfReader& reader,DRW_Interface& iface,
+                         dxfRW::DxfRenderingSourceView view,
+                         const DRW_TableEntry& model,DRW_RawDxfObject& raw,
+                         Typed typed) {
+    const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
+    if(!handler||!handler->wantsDxfResourceSource()) {
+        typed();iface.addRawDxfObject(raw);return;
+    }
+    const auto common=dxfBlockRecord::Decoder::observeCommonState(model);
+    const DRW_RawDxfObject original(std::move(raw));
+    view.model=&model;view.source=&original;
+    view.originalPendingXdata=common.first;
+    view.originalCoordinateMask=common.second;
+    view.phase=dxfRW::DxfRenderingSourceView::Phase::Typed;
+    DxfRenderingPublicationScope scope(reader.renderingPublication(),&view);
+    typed();
+    view.phase=dxfRW::DxfRenderingSourceView::Phase::Raw;
+    iface.addRawDxfObject(original);
+}
+}
+
 // VISUALSTYLE (AcDbVisualStyle): structured DXF read of description + style type,
 // plus full raw-net preservation (the per-property face/edge/display settings are
 // round-tripped raw only — matches dwgTs's VISUALSTYLE decode depth).
@@ -19769,8 +19793,13 @@ bool dxfRW::processVisualStyle() {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            iface->addVisualStyle(data);
-            iface->addRawDxfObject(raw);  // no typed writer: raw re-emits on DXF->DXF
+            DxfRenderingSourceView view;
+            view.kind=DxfRenderingSourceView::Kind::VisualStyle;
+            const auto state=dxfRendering::Observation::visualStyle(data);
+            view.originalVisualStyleScope=state.first;
+            view.originalVisualStylePropertyTail=state.second;
+            publishDxfRendering(*reader,*iface,view,data,raw,
+                [&](){iface->addVisualStyle(data);});
             return true;
         }
         if (!captureAndParseRawDxfGroup(raw, code, data))
@@ -20146,8 +20175,17 @@ bool dxfRW::processRenderSettings() {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             decoder.finish();
-            iface->addRenderSettings(data);
-            iface->addRawDxfObject(raw);
+            DxfRenderingSourceView view;
+            view.kind=DxfRenderingSourceView::Kind::RenderSettings;
+            const auto state=decoder.snapshot();
+            view.originalRenderBaseScope=state.base;
+            view.originalRenderCounts=state.counts;
+            view.originalRenderLongs=state.longs;
+            view.originalRenderBytes=state.bytes;
+            view.originalRenderBools=state.bools;
+            view.originalRenderDoubles=state.doubles;
+            publishDxfRendering(*reader,*iface,view,data,raw,
+                [&](){iface->addRenderSettings(data);});
             return true;
         }
         if (code == 102 ? !captureAndParseRawDxfGroup(raw, code, data)
@@ -27023,6 +27061,18 @@ bool dxfRW::getDxfPlotStyleSourceView(DxfPlotStyleSourceView& out) const noexcep
     if(v.kind==10u?(v.model||v.typedAvailable||v.phase!=2u):(!v.model||!v.typedAvailable))return false;
     out={v.kind==9u?DxfPlotStyleSourceView::Kind::DictionaryWithDefault:DxfPlotStyleSourceView::Kind::Placeholder,
         static_cast<DxfPlotStyleSourceView::Phase>(v.phase),v.model,v.source,v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
+}
+
+bool dxfRW::getDxfRenderingSourceView(DxfRenderingSourceView& out) const noexcept {
+    out={};
+    if(!m_readTextObservationsActive||!reader||!reader->renderingPublication())return false;
+    const auto& view=*static_cast<const DxfRenderingSourceView*>(reader->renderingPublication());
+    if((view.kind!=DxfRenderingSourceView::Kind::VisualStyle
+        &&view.kind!=DxfRenderingSourceView::Kind::RenderSettings)
+        ||(view.phase!=DxfRenderingSourceView::Phase::Typed
+            &&view.phase!=DxfRenderingSourceView::Phase::Raw)
+        ||!view.model||!view.source)return false;
+    out=view;return true;
 }
 
 bool dxfRW::getDxfViewUcsSourceView(DxfViewUcsSourceView& out) const noexcept {

@@ -141,6 +141,9 @@ public:
     static const auto& layoutAudits(const dx_data& data) {return data.m_tableDxfSource.layoutAudits;}
     static const auto& viewUcs(const dx_data& data){return data.m_tableDxfSource.viewUcsAudit;}
     static const auto& viewUcsInputs(const dx_data& data){return data.m_tableDxfSource.viewUcsInputs;}
+    static void observeRendering(dx_iface& reader,const DRW_TableEntry* model,const DRW_RawDxfObject* raw){reader.observeRenderingInput(model,raw);}
+    static const auto& renderingInputs(const dx_data& data){return data.m_tableDxfSource.renderingInputs;}
+    static const auto& renderingPending(const dx_data& data){return data.m_tableDxfSource.renderingPending;}
     static void observeViewUcs(dx_iface& reader,const DRW_TableEntry& model){reader.observeViewUcsSource(&model,nullptr);}
     static void viewUcsLimit(dx_data& data,unsigned which,std::size_t value){auto& s=data.m_tableDxfSource;
         if(which==0u)s.maxViewUcsRecords=value;else if(which==1u)s.maxViewUcsGroups=value;else if(which==2u)s.maxViewUcsBytes=value;else s.maxViewUcsWork=value;}
@@ -1639,6 +1642,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "layout_dependency_controls.h"
 #include "viewucs_source_controls.h"
 #include "viewport_source_controls.h"
+#include "rendering_input_failure_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3132,6 +3136,15 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--rendering-input-failures") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-rendering-input-failure-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;
+        const bool ok=renderingInputFailureTests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';
+        return ok?0:1;
+    }
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
     if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source"||std::string(argv[1])=="--generate-spine-source"||std::string(argv[1])=="--generate-block-record-source")) {
         const std::string revision=argv[2],encoding=argv[3];

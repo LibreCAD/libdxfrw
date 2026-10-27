@@ -61,8 +61,8 @@ std::string wire(const Tags& record, bool binary, const std::string& version) {
     writer->writeString(9,"$ACADVER"); writer->writeString(1,version);
     writer->writeString(0,"ENDSEC"); writer->writeString(0,"SECTION"); writer->writeString(2,"OBJECTS");
     for (const auto& tag : record) {
-        if (tag.code == 40) writer->writeDouble(tag.code,std::stod(tag.text));
-        else if (tag.code == 290) writer->writeBool(tag.code,tag.text != "0");
+        if ((tag.code >= 40 && tag.code <= 59) || (tag.code >= 1010 && tag.code <= 1059)) writer->writeDouble(tag.code,std::stod(tag.text));
+        else if (tag.code >= 290 && tag.code <= 299) writer->writeBool(tag.code,tag.text != "0");
         else if (tag.code == 90) writer->writeInt32(tag.code,std::stoi(tag.text));
         else if (tag.code == 70 || tag.code == 280 || tag.code == 1070) writer->writeInt16(tag.code,std::stoi(tag.text));
         else writer->writeUtf8String(tag.code,tag.text);

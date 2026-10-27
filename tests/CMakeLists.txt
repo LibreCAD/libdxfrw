@@ -1094,6 +1094,14 @@ add_test(NAME libdxfrw_rendering_dxf_projections
     COMMAND libdxfrw_dxf_fixture_tests --rendering-projections)
 set_tests_properties(libdxfrw_rendering_dxf_projections PROPERTIES
     LABELS "fast;dxf;render;parser" TIMEOUT 30)
+add_test(NAME libdxfrw_rendering_original_publications
+    COMMAND libdxfrw_dxf_fixture_tests --rendering-publications)
+set_tests_properties(libdxfrw_rendering_original_publications PROPERTIES
+    LABELS "fast;dxf;render;parser;source" TIMEOUT 30)
+add_test(NAME libdxfrw_rendering_input_failures
+    COMMAND libdxfrw_table_content_dxf_tests --rendering-input-failures)
+set_tests_properties(libdxfrw_rendering_input_failures PROPERTIES
+    LABELS "fast;dxf;render;source;failure" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_evaluation_graph_capture_limits

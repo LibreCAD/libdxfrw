@@ -109,6 +109,17 @@ class Decoder {
         }
     }
 public:
+    struct Snapshot {
+        bool base{false};
+        // Strings, longs90, bools290, bytes280 and doubles40 in the base scope.
+        std::array<std::size_t,5> counts{};
+        std::array<std::int32_t,3> longs{},bytes{};
+        std::array<bool,5> bools{};
+        std::array<double,4> doubles{};
+    };
+    Snapshot snapshot() const noexcept {
+        return {base,{strings,longs,bools,bytes,doubles},baseLongs,baseBytes,baseBools,baseDoubles};
+    }
     explicit Decoder(DRW_RenderSettings& model) noexcept : value(model) {}
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
         if (code == 100) base = reader->getStringView() == baseSubclass();

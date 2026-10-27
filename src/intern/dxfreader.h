@@ -110,6 +110,19 @@ public:
     DxfResourcePublicationScope(const DxfResourcePublicationScope&)=delete;
     DxfResourcePublicationScope& operator=(const DxfResourcePublicationScope&)=delete;
 };
+// Points only to a stack-owned dxfRW rendering view during an existing
+// typed/raw callback pair. The producer and public getter own its concrete
+// type; the internal reader does not depend on the public facade definition.
+class DxfRenderingPublicationScope {
+    const void*& slot;
+    const void* previous;
+public:
+    DxfRenderingPublicationScope(const void*& target,const void* view) noexcept
+        :slot(target),previous(target){slot=view;}
+    ~DxfRenderingPublicationScope(){slot=previous;}
+    DxfRenderingPublicationScope(const DxfRenderingPublicationScope&)=delete;
+    DxfRenderingPublicationScope& operator=(const DxfRenderingPublicationScope&)=delete;
+};
 struct DxfSymbolOriginalState {
     bool pendingXdata{false};std::uint8_t coordinateMask{0};bool payloadComplete{false};
 };
@@ -373,11 +386,13 @@ class dxfReader {
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
     DxfStructuralPublication m_structuralPublication{};
     DxfResourcePublication m_resourcePublication{};
+    const void* m_renderingPublication{nullptr};
     DxfBlockPublication m_blockPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     DxfTablePublication& tablePublication() noexcept{return m_tablePublication;}
     DxfResourcePublication& resourcePublication() noexcept{return m_resourcePublication;}
+    const void*& renderingPublication() noexcept{return m_renderingPublication;}
     enum TYPE {
         STRING,
         INT32,

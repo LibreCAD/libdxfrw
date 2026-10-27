@@ -21043,6 +21043,7 @@ dx_iface::ResourceOriginReport dx_iface::resourceOriginReport(const dx_data& dat
 
 #include "dx_plotstyle_source.h"
 #include "dx_viewucs_source.h"
+#include "dx_rendering_inputs.h"
 
 void dx_iface::finishTableReferences(dx_data& data) noexcept {
     using A=dx_data::TableDxfSourceCapture::TableReferenceAudit;using S=A::State;using R=A::Reason;
@@ -21438,6 +21439,9 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if(!source.viewUcsPending.empty())source.viewUcsCaptureFailed=true;
     source.viewUcsPending.clear();
     if(source.successful)finishViewUcsSources(data);
+    if(!source.renderingPending.empty())source.renderingCaptureFailed=true;
+    source.renderingPending.clear();
+    if(source.successful)finishRenderingInputs(data);
     if(source.successful)finishLayoutRoleAudit(data);
     if(source.successful)finishEntitiesRoleAudit(data);
     for(auto& item:source.blockSources) {
@@ -21481,6 +21485,7 @@ void dx_iface::addTableGeometry(const DRW_TableGeometry& data) {
 }
 
 void dx_iface::addRenderSettings(const DRW_RenderSettings& data) {
+    observeRenderingInput(&data,nullptr);
     if (cData == nullptr || cData->renderSettingsCaptureFailed)
         return;
     if (cData->renderSettingsRetainedRecords
@@ -23074,6 +23079,7 @@ void dx_iface::addSun(const DRW_Sun& data) {
 }
 
 void dx_iface::addVisualStyle(const DRW_VisualStyle& data) {
+    observeRenderingInput(&data,nullptr);
     retainVisualStyleTyped(cData, data);
 }
 
@@ -23354,6 +23360,7 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     retainTableResourceSource(data);
     observeResourceOrigin(nullptr,&data);
     observePlotStyleSource(nullptr,&data);
+    observeRenderingInput(nullptr,&data);
     if (retainTableSourceRaw(data)) return;
     if (data.name.rfind("ACSH_", 0u) == 0u || data.name == "ACAD_EVALUATION_GRAPH") {
         auto& receipt = cData->acdsHistoryDxfImport;

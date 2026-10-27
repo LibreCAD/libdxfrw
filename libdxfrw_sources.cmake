@@ -78,6 +78,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfblockrecord.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfviewucs.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfrendersettings.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfrenderingsource.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfattdef.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfcompound.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfphysicalentities.h"

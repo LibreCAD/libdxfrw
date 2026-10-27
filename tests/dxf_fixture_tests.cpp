@@ -13511,83 +13511,6 @@ bool readLegacyMTextWire(const std::string& bytes, bool binary,
     return true;
 }
 
-struct BinarySplineCountWidths {
-    int controlCount = -1;
-    int fitCount = -1;
-    bool nextRecordIsLine = false;
-    bool reachedEof = false;
-};
-
-bool readBinarySplineCountWidths(const std::filesystem::path& path,
-                                 BinarySplineCountWidths& result) {
-    std::ifstream stream(path, std::ios::binary);
-    if (!stream)
-        return false;
-    const std::string bytes(
-        (std::istreambuf_iterator<char>(stream)),
-        std::istreambuf_iterator<char>());
-    constexpr std::size_t headerBytes = 22u;
-    constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
-    if (bytes.size() < headerBytes
-        || bytes.compare(0, headerBytes, signature, headerBytes) != 0)
-        return false;
-
-    std::size_t offset = headerBytes;
-    std::string recordName;
-    bool sawSpline = false;
-    bool sawControlCount = false;
-    bool sawFitCount = false;
-    while (offset < bytes.size()) {
-        if (bytes.size() - offset < 2u)
-            return false;
-        const int code = static_cast<unsigned char>(bytes[offset])
-            | (static_cast<int>(static_cast<unsigned char>(bytes[offset + 1u]))
-               << 8);
-        offset += 2u;
-        const std::size_t valueBegin = offset;
-        std::string_view stringValue;
-        if (code == 0) {
-            if (!skipBinaryDxfGroupValue(bytes, code, offset, stringValue))
-                return false;
-            if (recordName == "SPLINE" && stringValue == "LINE")
-                result.nextRecordIsLine = true;
-            recordName.assign(stringValue.data(), stringValue.size());
-            if (recordName == "SPLINE")
-                sawSpline = true;
-            if (recordName == "EOF") {
-                result.reachedEof = true;
-                break;
-            }
-            continue;
-        }
-
-        if (recordName == "SPLINE" && (code == 73 || code == 74)) {
-            if (!binaryDxfGroupHasInt16Value(code)
-                || !skipBinaryDxfGroupValue(bytes, code, offset, stringValue)
-                || offset - valueBegin != 2u)
-                return false;
-            const int value = static_cast<unsigned char>(bytes[valueBegin])
-                | (static_cast<int>(static_cast<unsigned char>(
-                       bytes[valueBegin + 1u])) << 8);
-            if (code == 73) {
-                if (sawControlCount)
-                    return false;
-                result.controlCount = value;
-                sawControlCount = true;
-            } else {
-                if (sawFitCount)
-                    return false;
-                result.fitCount = value;
-                sawFitCount = true;
-            }
-            continue;
-        }
-        if (!skipBinaryDxfGroupValue(bytes, code, offset, stringValue))
-            return false;
-    }
-    return result.reachedEof && sawSpline && sawControlCount && sawFitCount;
-}
-
 bool locateBinaryImageDefPixelSizeWireSlot(
         const std::string& bytes, ImageDefPixelSizeWireSlot& slot) {
     constexpr std::size_t binaryHeaderBytes = 22u;
@@ -34596,8 +34519,14 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 } // namespace
 
 #include "rendering_projection_controls.h"
+#include "rendering_publication_controls.h"
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--rendering-publications") {
+        TestContext context;
+        renderingPublicationControls::run(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--rendering-projections") {
         TestContext context;
         renderingProjectionControls::run(context);
@@ -35382,6 +35311,7 @@ int main(int argc, char** argv) {
     testViewBackgroundAndSunFailClosed(context);
     testVisualStyleTypeScope(context);
     renderingProjectionControls::run(context);
+    renderingPublicationControls::run(context);
     testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testDwgViewportProjection(context);

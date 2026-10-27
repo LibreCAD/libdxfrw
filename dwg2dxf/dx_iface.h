@@ -43,6 +43,14 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler,
                  public DRW_DxfViewUcsSourceHandler {
 public:
+    using RenderingInputState=dx_data::TableDxfSourceCapture::RenderingInputAudit::State;
+    struct RenderingInputReport {
+        RenderingInputState state{RenderingInputState::NotCaptured};
+        std::size_t records{0},physical{0},pairs{0},rawStable{0},stateStable{0},origins{0},bytes{0},work{0};
+        bool publicationInputsCaptured{false};
+        bool fullModelsMatched{false},originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static RenderingInputReport renderingInputReport(const dx_data&) noexcept;
     bool wantsDxfViewUcsSource() const override {return tableSourceCaptureOpen();}
     void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
     using ViewUcsState=dx_data::TableDxfSourceCapture::ViewUcsAudit::State;
@@ -1747,6 +1755,8 @@ private:
     void finishTableReferences(dx_data&) noexcept;
     void finishDependencies(dx_data&) noexcept;
     void observeViewUcsSource(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
+    void observeRenderingInput(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
+    void finishRenderingInputs(dx_data&) noexcept;
     void finishViewUcsSources(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;

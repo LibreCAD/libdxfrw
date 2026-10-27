@@ -1535,6 +1535,34 @@ private:
         std::size_t tableReferenceBytes{0},tableReferenceWork{0};
         std::size_t maxTableReferenceBytes{64u*1024u*1024u},maxTableReferenceWork{64u*1024u*1024u},maxTableReferenceRows{200000u};
         bool tableReferenceCaptureFailed{false};
+        struct RenderingInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
+            // Owned observation has null model/source and Phase::None; no
+            // borrowed callback pointer survives in an immutable input.
+            dxfRW::DxfRenderingSourceView original;
+            std::shared_ptr<const DRW_TableEntry> typedModel,rawModel;
+            std::shared_ptr<const DRW_RawDxfObject> typedRaw,rawRaw;
+            std::shared_ptr<const EntitiesReadContext> context;
+            bool actualPair{false},rawStable{false},stateStable{false};
+        };
+        struct RenderingPending {RenderingInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};};
+        struct RenderingInputRow {
+            std::shared_ptr<const RenderingInput> input;
+            std::size_t physical{DRW_DxfIdentitySource::None};bool originBound{false};
+        };
+        struct RenderingInputAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoInputs,InputsCaptured,Unqualified};
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
+            std::map<std::uint32_t,RenderingInputRow> rows;std::size_t physicalRecords{0};
+        };
+        std::map<std::uint32_t,RenderingPending> renderingPending;
+        std::map<std::uint32_t,std::shared_ptr<const RenderingInput>> renderingInputs;
+        std::vector<std::shared_ptr<const RenderingInput>> renderingInputOwners;
+        std::shared_ptr<const RenderingInputAudit> renderingAudit,renderingAuditOwner;
+        std::size_t renderingRecords{0},renderingGroups{0},renderingBytes{0},renderingWork{0};
+        std::size_t maxRenderingRecords{100000u},maxRenderingGroups{4000000u},maxRenderingBytes{64u*1024u*1024u},maxRenderingWork{128u*1024u*1024u};
+        bool renderingCaptureFailed{false};
         struct ViewUcsInput {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
             bool view{false},paired{false},payloadComplete{false};std::pair<bool,std::uint8_t> state;
