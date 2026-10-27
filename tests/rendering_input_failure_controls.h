@@ -7,7 +7,10 @@ struct RenderingFailureProbe:dx_iface {
         using A=DxIfaceTableSourceTestAccess;
         const auto* input=cData?A::readInput(*cData):nullptr;
         dxfRW::DxfRenderingSourceView view;bool present=false;
-        {SymbolAllocationFailure none(0);present=input&&input->getDxfRenderingSourceView(view);}
+        {SymbolAllocationFailure none(0);present=input&&input->getDxfRenderingSourceView(view);
+            dxfRW::DxfVisualStylePropertiesView properties;
+            const bool visual=present&&view.kind==dxfRW::DxfRenderingSourceView::Kind::VisualStyle;
+            if(input&&input->getDxfVisualStylePropertiesView(properties)!=visual)good=false;}
         if(!present||(model&&view.model!=model)||(raw&&view.source!=raw))good=false;
         if(offset>=0&&phase==(model?1u:2u)) {
             SymbolAllocationFailure fault(offset);A::observeRendering(*this,model,raw);

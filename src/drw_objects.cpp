@@ -23,6 +23,7 @@
 #include "intern/drw_dimvar_migration.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfstylefont.h"
+#include "intern/dxfrenderingsource.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfwriter.h"
 #include "intern/dwgbuffer.h"
@@ -29512,8 +29513,10 @@ bool DRW_VisualStyle::parseCode(int code, const std::unique_ptr<dxfReader>& read
         m_dxfInVisualStyle = reader->getStringView() == "AcDbVisualStyle";
         return DRW_TableEntry::parseCode(code, reader);
     case 291:
-        if (m_dxfInVisualStyle)
+        if (m_dxfInVisualStyle && !m_dxfInPropertyTail) {
+            m_body.internalOnly = reader->getBool();
             m_dxfInPropertyTail = true; // Presence matters, including false.
+        }
         return DRW_TableEntry::parseCode(code, reader);
     case 2:
     case 4:
@@ -29528,6 +29531,11 @@ bool DRW_VisualStyle::parseCode(int code, const std::unique_ptr<dxfReader>& read
             type = reader->getInt32();
         break;
     default:
+        if (m_dxfInVisualStyle && !m_dxfInPropertyTail
+            && dxfRendering::Observation::applyPrimary(*this,code,reader))
+            // Preserve the prior common-parser cursor cleanup for these
+            // formerly unmodeled scalar codes, including pending XDATA.
+            return DRW_TableEntry::parseCode(code, reader);
         return DRW_TableEntry::parseCode(code, reader);
     }
     return true;

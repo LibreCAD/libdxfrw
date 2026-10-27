@@ -1110,6 +1110,10 @@ add_test(NAME libdxfrw_rendering_model_failures
     COMMAND libdxfrw_table_content_dxf_tests --rendering-model-failures)
 set_tests_properties(libdxfrw_rendering_model_failures PROPERTIES
     LABELS "fast;dxf;render;model;failure" TIMEOUT 30)
+add_test(NAME libdxfrw_visual_style_primary_properties
+    COMMAND libdxfrw_dxf_fixture_tests --visual-style-properties)
+set_tests_properties(libdxfrw_visual_style_primary_properties PROPERTIES
+    LABELS "fast;dxf;render;model;parser;source" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_evaluation_graph_capture_limits

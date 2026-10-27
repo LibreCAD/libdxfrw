@@ -1109,6 +1109,17 @@ public:
      * callback order and resource-view kinds stay intact. Transport and parser
      * state alone do not qualify full properties, targets, semantics or output. */
     bool getDxfRenderingSourceView(DxfRenderingSourceView&) const noexcept;
+    struct DxfVisualStylePropertiesView {
+        DxfRenderingSourceView::Phase phase{DxfRenderingSourceView::Phase::None};
+        const DRW_VisualStyle* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        const DRW_DxfVisualStyleProperties* properties{nullptr};
+    };
+    /** Original scoped primary DXF properties/presence for the actual opted-in
+     * VISUALSTYLE typed/raw callbacks. The separate immutable properties include
+     * distinct colors62/63/421. All pointers expire at callback return/throw;
+     * false clears the view elsewhere. Existing model/facade/view layouts and
+     * virtuals are unchanged. This is not full extension/source qualification. */
+    bool getDxfVisualStylePropertiesView(DxfVisualStylePropertiesView&) const noexcept;
     struct DxfViewUcsSourceView {
         enum class Kind : std::uint8_t {None,View,Ucs};
         enum class Phase : std::uint8_t {None=0,Typed=1,Source=3};

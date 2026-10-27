@@ -612,14 +612,30 @@ metadata is not a complete format/profile certificate. This prerequisite does
 not implement typed DWG→DXF style emission, named-color target
 mapping or renderer/ACIS semantics; full CLI acceptance remains separate.
 
-DXF VISUALSTYLE description/type are basic fields scoped to AcDbVisualStyle
-(or markerless older records). Group291's presence, including a false value,
-latches the opaque property tail: a later70 is a property count, not `type`.
-Foreign/repeated subclasses cannot overwrite those fields or reopen that
-tail. Copies own the parser scope and reset restores fresh basic parsing.
-Raw groups remain preserved; DXF `m_bodyDecoded` stays false. This does not
-validate property counts/companions or imply typed render-property coverage.
-Private state extends public class layout; consumers must rebuild.
+DXF VISUALSTYLE reads primary description/type and unambiguous face/edge/display
+values into the existing model, scoped to AcDbVisualStyle or the historical
+markerless projection. Group291's presence, including false, latches the opaque
+property tail: later70 is not `type`. Foreign scopes supply no primary values;
+repeated subclass markers cannot reopen the tail. Copies own parser scope and
+reset restores fresh parsing. Raw groups remain preserved.
+
+Consumers using the existing `DRW_DxfResourceSourceHandler` opt-in can query
+`dxfRW::getDxfVisualStylePropertiesView` during actual typed/raw callbacks.
+The view identifies the actual model/raw carrier and immutable original
+`DRW_DxfVisualStyleProperties`. Its integer/real enums, values and occurrence
+counts distinguish absence, explicit zero and repetitions; description4 has a
+separate compatibility count. `Integer::Color62`, `Color63` and `FaceMonoRgb`
+preserve independent source roles. No native palette index or CMC encoding is
+inferred from RGB421. Copy the properties to retain them: borrowed pointers
+expire on return/throw, and false clears the view outside these callbacks.
+
+DXF `m_bodyDecoded` stays false: it retains its native body-validation meaning.
+Primary values/presence do not validate the post291 property grammar, unknown
+fields, producer/version semantics, owners, edited output or rendering.
+Noncanonical Booleans remain tolerated and set `invalidBoolean` in the primary
+metadata. `tailGroups` excludes consumed application groups and is not a full
+physical inventory. The property API adds no existing model/facade/view data
+member or interface virtual; this does not establish general binary ABI.
 
 `DRW_Header::dwgNamedObjectDictionaryReference()` returns an owned optional
 source H value (role, encoded size, full64-bit reference and legacy low32 view).

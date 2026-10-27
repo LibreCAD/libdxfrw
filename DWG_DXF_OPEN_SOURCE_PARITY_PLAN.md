@@ -133386,3 +133386,153 @@ rendering/recursive/live/emitted/whole-document/native qualification remains
 incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/
 Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. The full objective remains active; no remote mutation is included.
+
+
+## Implementation progress — RPP-5fr primary DXF VisualStyle properties (2026-10-27)
+
+The VisualStyle primary DXF decoder now exposes the documented face/edge/display
+properties instead of leaving every value beyond description/type opaque. This
+implements the next RPP-5fq prerequisite while preserving separate native-body,
+physical source, extension, ownership and output qualifications.
+
+- [x] Read unambiguous primary scalar roles into existing `m_body` fields. Keep
+  `m_bodyDecoded=false` on DXF and leave native CMC/source companions untouched.
+  Do not collapse colors62/63 and RGB421 into a guessed native palette index.
+- [x] Add the separate fixed-size `DRW_DxfVisualStyleProperties` type with 28
+  integer roles, five real roles, per-field occurrence counts, separate canonical/
+  legacy description counts and original scope/tail/invalid-Boolean observations.
+  Counts distinguish absence, explicit zero and repeated fields. Existing model,
+  facade and source-view layouts and interface/facet virtuals are unchanged.
+- [x] Publish immutable original property metadata through
+  `getDxfVisualStylePropertiesView` during the existing opted-in actual typed/raw
+  callbacks. Use the existing internal reader slot with a private publication
+  bundle; all borrowed pointers expire on return/throw and false clears the view.
+  Opt-out preserves ordinary typed/raw delivery and receives no borrowed view.
+  Update the 3D consumer contract with field access, lifetime and qualification
+  limits; the separate DTO provides consumer-owned copying without model changes.
+- [x] Share primary decoding between original import and bounded replay. Own both
+  actual phase observations inline in the captured input and own replay metadata
+  in the sealed audit; compare role/value/count/scope observations against both
+  original phases before retained modeled state can match. The existing input/
+  row size admission includes these fixed-size values without new allocations.
+- [x] Preserve markerless projection, description4 compatibility, tolerant reads
+  and last-value behavior, while retaining presence/duplicates separately. Keep
+  foreign subclasses and consumed application groups from supplying properties.
+  Presence of291 latches the opaque tail even when false; repeated markers and
+  reused primary codes cannot reopen/overwrite primary properties. Delegate new
+  scalar codes to the common parser after assignment so prior pending-XDATA
+  cursor cleanup is preserved.
+
+Research and self-unblocking:
+
+- Autodesk's [VISUALSTYLE primary inventory](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm)
+  supplies the distinct field/color roles. Pinned [ezdxf v1.4.4](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/visualstyle.py)
+  separately retains the post291 extension before primary attribute loading.
+  These source inspections guide implementation; no peer runtime or independent
+  semantic kernel is executed and no general support claim is promoted. The
+  [Autodesk property API](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_VisualStyleProperty.html)
+  describes crease angle in degrees and its application isoline range. Retain
+  raw scalars; do not import a native implementation cap or equate an API range
+  with a physical file-format maximum. Domain qualification stays separate.
+- The first tests used aggregate `Tag` with C++20-style emplace construction and
+  passed a string to the `const char*` reader constructor. Correct the test
+  construction without widening production APIs. A later raw helper name also
+  collided through ADL; use its explicit distinct test name. Preserve diagnostics.
+- A direct-reader retry test omitted its concrete adapter data owner and crashed
+  in the callback. Install owned test data as the existing direct probes do;
+  preserve the failing log. This was test setup, not an import ownership change.
+- More importantly, the new literal inventory found that the shared recipe
+  helper sent numeric71 and related integer codes through the string writer,
+  ignored rejection and silently omitted them. Use proper numeric widths, check
+  every field write, and author noncanonical Boolean2 verbatim instead of
+  normalizing it. Re-run prior controls with the repaired generator; do not
+  describe the rejected earlier fields as exercised. Prior printed counts stay
+  unchanged, while the corrected actual sources now include the intended fields.
+
+Controls and limits:
+
+- [x] 144 authored profiles span four versions, ASCII/binary, opt-in/out and nine
+  forms: full primary fields, reused tail fields/repeated markers, foreign scope/
+  foreign291, markerless projection, repeated final-zero values, absent fields,
+  explicit zeros/signed zero, noncanonical Boolean2 and legacy description4.
+  Independently compare 3,640 literal raw fields in order against both actual
+  raw snapshots, in addition to named model values and property observations.
+- [x] Four typed/raw throw/lifetime cases reuse the same reader successfully.
+  Ten captured metadata color-role/presence/scope substitutions refuse modeled
+  equality and accept corrected original inputs, for 14 corrected retries. 56
+  scalar controls preserve prior incomplete-XDATA cursor cleanup and exact replay.
+  Existing allocation-free getter/report checks and all prior 21 printed owning
+  counters remain intact; finite allocation schedules are not exhaustive proof.
+- [ ] Full producer/version-qualified physical property/subclass/reference span
+  inventories remain required. The DTO's tail counter excludes consumed
+  application groups and is not a complete physical inventory. Post291 extension
+  grammar/semantics and unknown fields remain opaque and witness-driven. Exact
+  retained replay, including a recorded invalid Boolean, is not semantic validity.
+
+Final verification:
+
+- [x] Both 11-target affected builds pass with `-Werror` preserved: normal
+  31.90s and qualified ASan
+  364.05s. Explicit fixture syntax validation
+  passes `-Wall -Wextra -pedantic -Werror`; LibreCAD_3's compile-only guard builds.
+- [x] Final affected cohorts pass **101/101** normally in 109.70s
+  and **101/101** under qualified Debug/`-O1`/ASan in 76.25s at j2.
+  Names/order/labels/timeouts and executed sets match, with no failures/skips/
+  disabled tests. All 22 owning counter lines agree; all 21 prior lines remain
+  unchanged. Existing focused UCS/VIEWPORT controls pass in both configurations.
+- [x] The 422-file compiled-source/build-metadata manifest stays frozen through
+  both final runtimes. Builds and packaging finish before normal then ASan tests.
+  Original Debug/O0 ASan is unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both 282-member archives
+  contain exact updated production helper/public header hashes. Test helper
+  inclusion and a full Autotools source-release build remain unqualified.
+  Full suite, formal ABI/native application and controlled memory/performance
+  qualification remain open.
+
+The [receipt](docs/research/rpp5fr-primary-dxf-visual-style-properties-2026-10-27.json)
+pins source/configuration/selection/counter evidence, retained failures, source
+research, packaging limits and the complete remaining objective.
+
+Next implementation-ready sequence (retain the full original objective):
+
+1. [ ] **Complete independent rendering source qualification.** Independently
+   inventory actual primary property/subclass/reference spans, bind every typed
+   role/presence observation, and qualify producer/version shapes. Decode opaque
+   extension semantics only with a witnessed profile. Complete RenderSettings
+   shapes and original source inventories before marking original sources matched.
+2. [ ] **Bind actual targets and finish remaining producers.** Join real NOD/
+   named dictionaries, owners and active LAYOUT/VIEW/VIEWPORT rendering references.
+   Complete background/live-section/sun, VIEWPORT clip geometry, layer overrides
+   335/343/344/91 and qualified aliases. Retain entity/material/reactor/IMAGE/
+   document/control/owner, omitted dictionary flags, names/application/XDATA and
+   HEADER CEPSNID/CEPSNTYPE work. Finish recursive/coupled/whole-document ownership
+   and native names/collation evidence.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edits and emitted fields; verify handle remapping,
+   readback/refusal/rollback/retry/destination safety. Finish Values, multiple-
+   content attributes, linked-data ownership and qualified formats/units/borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and measured
+   memory/performance obligations. Resolve the recorded 42-file legacy release
+   inventory gap, complete CMake/Autotools source/header/test inventory and qualify
+   a real source-release build. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD;
+   obtain native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence separately.
+5. [ ] **Continue efficient self-updating execution.** Fast owning checks,
+   risk-based affected integration and built-target reuse; freeze compiled
+   sources and complete builds/packaging before normal then ASan runtimes.
+   Preserve failures/caps, self-unblock and update/commit/report each verified
+   slice. Reuse this shared-parser integration checkpoint: profile-only followups
+   should select owning rendering/identity/owner tests; broaden when shared
+   parser/publication/API/build changes or failures justify it. Commit no external
+   drawing payload, conversion or derivative.
+
+Resource families remain nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. New primary values/presence can be observed and replayed;
+`propertyCoverageMatched` and `originalSourcesMatched` remain false. Full
+extension/rendering/recursive/live/emitted/whole-document/native qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective stays active; no remote mutation included.

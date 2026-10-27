@@ -1540,6 +1540,8 @@ private:
             // Owned observation has null model/source and Phase::None; no
             // borrowed callback pointer survives in an immutable input.
             dxfRW::DxfRenderingSourceView original;
+            DRW_DxfVisualStyleProperties typedVisualProperties,rawVisualProperties;
+            bool visualPropertiesCaptured{false};
             std::shared_ptr<const DRW_TableEntry> typedModel,rawModel;
             std::shared_ptr<const DRW_RawDxfObject> typedRaw,rawRaw;
             std::shared_ptr<const EntitiesReadContext> context;
@@ -1551,6 +1553,7 @@ private:
             std::size_t physical{DRW_DxfIdentitySource::None};bool originBound{false};
             std::shared_ptr<const DRW_TableEntry> replayedModel;
             dxfRW::DxfRenderingSourceView replayedState;
+            DRW_DxfVisualStyleProperties replayedVisualProperties;
             bool replayDecoded{false},modeledStateMatched{false};
         };
         struct RenderingInputAudit {

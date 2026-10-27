@@ -61,11 +61,21 @@ std::string wire(const Tags& record, bool binary, const std::string& version) {
     writer->writeString(9,"$ACADVER"); writer->writeString(1,version);
     writer->writeString(0,"ENDSEC"); writer->writeString(0,"SECTION"); writer->writeString(2,"OBJECTS");
     for (const auto& tag : record) {
-        if ((tag.code >= 40 && tag.code <= 59) || (tag.code >= 1010 && tag.code <= 1059)) writer->writeDouble(tag.code,std::stod(tag.text));
-        else if (tag.code >= 290 && tag.code <= 299) writer->writeBool(tag.code,tag.text != "0");
-        else if (tag.code == 90) writer->writeInt32(tag.code,std::stoi(tag.text));
-        else if (tag.code == 70 || tag.code == 280 || tag.code == 1070) writer->writeInt16(tag.code,std::stoi(tag.text));
-        else writer->writeUtf8String(tag.code,tag.text);
+        bool written=false;
+        if ((tag.code >= 40 && tag.code <= 59) || (tag.code >= 1010 && tag.code <= 1059)) written=writer->writeDouble(tag.code,std::stod(tag.text));
+        else if (tag.code >= 290 && tag.code <= 299) {
+            const int value=std::stoi(tag.text);
+            if(value==0||value==1)written=writer->writeBool(tag.code,value!=0);
+            else { // Deliberately authored noncanonical Boolean; do not normalize.
+                if(binary){output.put(static_cast<char>(tag.code));output.put(static_cast<char>(tag.code>>8));output.put(static_cast<char>(value));}
+                else output<<tag.code<<'\n'<<value<<'\n';
+                written=output.good();
+            }
+        }
+        else if ((tag.code >= 90 && tag.code <= 99)||(tag.code >= 420 && tag.code <= 429)) written=writer->writeInt32(tag.code,std::stoi(tag.text));
+        else if ((tag.code >= 60 && tag.code <= 79)||(tag.code >= 170 && tag.code <= 179)||tag.code == 280 || tag.code == 1070) written=writer->writeInt16(tag.code,std::stoi(tag.text));
+        else written=writer->writeUtf8String(tag.code,tag.text);
+        if(!written)throw std::runtime_error("authored rendering wire rejected group "+std::to_string(tag.code));
     }
     writer->writeString(0,"ENDSEC"); writer->writeString(0,"EOF");
     return output.str();

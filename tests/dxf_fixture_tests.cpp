@@ -34525,8 +34525,12 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 #include "rendering_projection_controls.h"
 #include "rendering_publication_controls.h"
 #include "rendering_model_controls.h"
+#include "visual_style_property_controls.h"
 
 int main(int argc, char** argv) {
+    if(argc==2&&std::string(argv[1])=="--visual-style-properties") {
+        TestContext context;visualStylePropertyControls::run(context);return context.failures==0?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--rendering-model-replay") {
         TestContext context;renderingModelControls::run(context);return context.failures==0?0:1;
     }
@@ -35321,6 +35325,7 @@ int main(int argc, char** argv) {
     renderingProjectionControls::run(context);
     renderingPublicationControls::run(context);
     renderingModelControls::run(context);
+    visualStylePropertyControls::run(context);
     testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testDwgViewportProjection(context);

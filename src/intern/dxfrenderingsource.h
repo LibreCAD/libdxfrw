@@ -15,6 +15,43 @@ class Observation {
         return value.extData.size();
     }
 public:
+    // Only fields with the same scalar role are projected into the historical
+    // native-shaped model. Independent DXF colors62/63/421 use the property DTO.
+    static bool applyPrimary(DRW_VisualStyle& value,int code,const std::unique_ptr<dxfReader>& reader) {
+        auto& b=value.m_body;
+        switch(code){
+        case 71:b.faceLightingModel=reader->getInt32();break;
+        case 72:b.faceLightingQuality=reader->getInt32();break;
+        case 73:b.faceColorMode=reader->getInt32();break;
+        case 90:b.faceModifier=reader->getInt32();break;
+        case 40:b.faceOpacity=reader->getDouble();break;
+        case 41:b.faceSpecular=reader->getDouble();break;
+        case 74:b.edgeModel=reader->getInt32();break;
+        case 91:b.edgeStyle=reader->getInt32();break;
+        case 64:b.edgeIntersectionColor=reader->getInt32();break;
+        case 65:b.edgeObscuredColor=reader->getInt32();break;
+        case 75:b.edgeObscuredLtype=reader->getInt32();break;
+        case 175:b.edgeIntersectionLtype=reader->getInt32();break;
+        case 42:b.edgeCreaseAngle=reader->getDouble();break;
+        case 92:b.edgeModifier=reader->getInt32();break;
+        case 66:b.edgeColor=reader->getInt32();break;
+        case 43:b.edgeOpacity=reader->getDouble();break;
+        case 76:b.edgeWidth=reader->getInt32();break;
+        case 77:b.edgeOverhang=reader->getInt32();break;
+        case 78:b.edgeJitter=reader->getInt32();break;
+        case 67:b.edgeSilhouetteColor=reader->getInt32();break;
+        case 79:b.edgeSilhouetteWidth=reader->getInt32();break;
+        case 170:b.edgeHaloGap=reader->getInt32();break;
+        case 171:b.edgeIsolines=reader->getInt32();break;
+        case 290:b.edgeDoHidePrecision=reader->getBool();break;
+        case 174:b.edgeStyleApply=reader->getInt32();break;
+        case 93:b.displaySettings=reader->getInt32();break;
+        case 44:b.displayBrightness=reader->getDouble();break;
+        case 173:b.displayShadowType=reader->getInt32();break;
+        default:return false;
+        }
+        return true;
+    }
     static std::pair<bool,bool> visualStyle(const DRW_VisualStyle& value) noexcept {
         return {value.m_dxfInVisualStyle,value.m_dxfInPropertyTail};
     }
@@ -63,6 +100,41 @@ public:
         for(std::size_t i=0u;i<a.m_doubles.size();++i)if(!real(a.m_doubles[i],b.m_doubles[i]))return false;
         return real(a.m_fogDensityNear,b.m_fogDensityNear)&&real(a.m_fogDensityFar,b.m_fogDensityFar)
             &&real(a.m_fogDistanceNear,b.m_fogDistanceNear)&&real(a.m_fogDistanceFar,b.m_fogDistanceFar);
+    }
+};
+
+inline bool propertiesEqual(const DRW_DxfVisualStyleProperties& a,const DRW_DxfVisualStyleProperties& b) noexcept {
+    return std::tie(a.integers,a.integerOccurrences,a.realOccurrences,a.descriptionOccurrences,a.legacyDescriptionOccurrences,
+        a.tailGroups,a.inVisualStyle,a.propertyTail,a.invalidBoolean)
+        ==std::tie(b.integers,b.integerOccurrences,b.realOccurrences,b.descriptionOccurrences,b.legacyDescriptionOccurrences,
+        b.tailGroups,b.inVisualStyle,b.propertyTail,b.invalidBoolean)
+        &&std::memcmp(a.reals.data(),b.reals.data(),sizeof(double)*a.reals.size())==0;
+}
+
+class VisualStyleDecoder {
+    DRW_VisualStyle& model;
+    DRW_DxfVisualStyleProperties properties;
+public:
+    explicit VisualStyleDecoder(DRW_VisualStyle& value):model(value){}
+    const DRW_DxfVisualStyleProperties& snapshot()const noexcept{return properties;}
+    bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
+        const auto before=Observation::visualStyle(model);
+        if(before.second&&code!=102)++properties.tailGroups;
+        else if(before.first){
+            if(code==2)++properties.descriptionOccurrences;
+            if(code==4)++properties.legacyDescriptionOccurrences;
+            for(std::size_t i=0u;i<properties.integerCodes.size();++i)if(code==properties.integerCodes[i]){
+                const auto value=reader->getInt32();properties.integers[i]=value;++properties.integerOccurrences[i];
+                if((code==290||code==291)&&value!=0&&value!=1)properties.invalidBoolean=true;
+                break;
+            }
+            for(std::size_t i=0u;i<properties.realCodes.size();++i)if(code==properties.realCodes[i]){
+                properties.reals[i]=reader->getDouble();++properties.realOccurrences[i];break;
+            }
+        }
+        if(!Observation::parseVisual(model,code,reader))return false;
+        const auto after=Observation::visualStyle(model);
+        properties.inVisualStyle=after.first;properties.propertyTail=after.second;return true;
     }
 };
 }

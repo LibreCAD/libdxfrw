@@ -8080,6 +8080,38 @@ struct DRW_VisualStyleBody {
   DRW_VisualStyleEncoding m_encoding;
 };
 
+/** Primary DXF VISUALSTYLE property values, independent of native CMC encoding.
+ * Occurrence counts distinguish absence, explicit zero and repeated fields.
+ * Color62/Color63/FaceMonoRgb are separate source roles. No native palette
+ * index is inferred from RGB421. Description text stays on DRW_VisualStyle.
+ * Extension fields after291 remain on the raw carrier; tailGroups counts
+ * decoder-visible groups excluding consumed application groups, not a full
+ * physical span inventory or certificate. */
+struct DRW_DxfVisualStyleProperties {
+  enum class Integer : std::size_t {
+    Type,FaceLightingModel,FaceLightingQuality,FaceColorMode,FaceModifiers,
+    Color62,Color63,FaceMonoRgb,EdgeModel,EdgeStyle,EdgeIntersectionColor,
+    EdgeObscuredColor,EdgeObscuredLinetype,EdgeIntersectionLinetype,EdgeModifiers,
+    EdgeColor,EdgeWidth,EdgeOverhang,EdgeJitter,EdgeSilhouetteColor,
+    EdgeSilhouetteWidth,EdgeHaloGap,EdgeIsolines,EdgeHidePrecision,EdgeStyleApply,
+    DisplaySettings,ShadowType,InternalOnly,Count
+  };
+  enum class Real : std::size_t {FaceOpacity,FaceSpecular,EdgeCreaseAngle,EdgeOpacity,Brightness,Count};
+  static constexpr std::array<int,static_cast<std::size_t>(Integer::Count)> integerCodes{
+    70,71,72,73,90,62,63,421,74,91,64,65,75,175,92,66,76,77,78,67,79,170,171,290,174,93,173,291};
+  static constexpr std::array<int,static_cast<std::size_t>(Real::Count)> realCodes{40,41,42,43,44};
+  std::array<std::int32_t,integerCodes.size()> integers{};
+  std::array<double,realCodes.size()> reals{};
+  std::array<std::size_t,integerCodes.size()> integerOccurrences{};
+  std::array<std::size_t,realCodes.size()> realOccurrences{};
+  std::size_t descriptionOccurrences{0},legacyDescriptionOccurrences{0},tailGroups{0};
+  bool inVisualStyle{true},propertyTail{false},invalidBoolean{false};
+  std::int32_t value(Integer field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<integers.size()?integers[i]:0;}
+  double value(Real field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<reals.size()?reals[i]:0.0;}
+  std::size_t occurrences(Integer field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<integerOccurrences.size()?integerOccurrences[i]:0u;}
+  std::size_t occurrences(Real field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<realOccurrences.size()?realOccurrences[i]:0u;}
+};
+
 //! Class to handle VISUALSTYLE (AcDbVisualStyle) — custom-class object
 //! Non-fixed class; ODA 5.4.1 lists it but does not specify its complete body.
 /*!
@@ -8121,7 +8153,7 @@ public:
   std::int32_t type =
       0; /*!< visual-style type code (BL style_type in DWG, 70) */
   DRW_VisualStyleBody
-      m_body; /*!< decoded body (DWG); empty on DXF/failed parse */
+      m_body; /*!< native body or unambiguous primary DXF values; DXF color62/63/421 and presence use the separate property view */
   bool m_bodyDecoded =
       false; /*!< true only after body, strings, and handles validate */
 

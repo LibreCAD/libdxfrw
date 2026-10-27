@@ -64,6 +64,9 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
         ||view.phase!=(model?RenderingView::Phase::Typed:RenderingView::Phase::Raw)
         ||(model&&model!=view.model)||(raw&&raw!=view.source)||!renderingName(view.source->name)) {fail();return;}
     const bool visual=view.kind==RenderingView::Kind::VisualStyle;
+    dxfRW::DxfVisualStylePropertiesView properties;
+    if(visual&&(!s.entitiesReadInput->getDxfVisualStylePropertiesView(properties)
+        ||properties.model!=view.model||properties.source!=view.source||properties.phase!=view.phase||!properties.properties)){fail();return;}
     if(visual?typeid(*view.model)!=typeid(DRW_VisualStyle)
         :(typeid(*view.model)!=typeid(DRW_RenderSettings)
           ||!renderSettingsNameMatchesKind(view.source->name,static_cast<const DRW_RenderSettings&>(*view.model).m_kind))) {fail();return;}
@@ -89,6 +92,7 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
             context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
             Pending pending;auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
             in.original=ownedRenderingState(view);in.context=std::move(context);in.typedModel=renderingSnapshot(view);
+            in.visualPropertiesCaptured=visual;if(visual)in.typedVisualProperties=*properties.properties;
             in.typedRaw=std::make_shared<const DRW_RawDxfObject>(*view.source);in.stateStable=renderingModelState(view);
             pending.model=model;pending.raw=view.source;s.renderingPending.emplace(id,std::move(pending));return;
         }
@@ -107,6 +111,7 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
             ||s.renderingWork>s.maxRenderingWork||cost>s.maxRenderingWork-s.renderingWork){fail();return;}
         s.renderingBytes+=cost;s.renderingWork+=cost;
         in.rawModel=renderingSnapshot(view);in.rawRaw=std::make_shared<const DRW_RawDxfObject>(*raw);
+        if(visual)in.rawVisualProperties=*properties.properties;
         in.actualPair=true;in.rawStable=retainedRawDxfObjectsEqual(*in.typedRaw,*in.rawRaw);
         in.stateStable=in.stateStable&&renderingModelState(view);in.index=s.renderingInputOwners.size();
         auto saved=std::make_shared<const Input>(std::move(in));s.renderingInputs.emplace(id,saved);
@@ -165,11 +170,15 @@ void dx_iface::replayRenderingInput(dx_data& data,dx_data::TableDxfSourceCapture
             using Model=std::decay_t<decltype(model)>;
             row.replayedModel=std::make_shared<const Model>(std::move(model));
         };
-        if(visual){DRW_VisualStyle model;
-            decode(model,[&](int code){return dxfRendering::Observation::parseVisual(model,code,reader);},[&](){
+        if(visual){DRW_VisualStyle model;dxfRendering::VisualStyleDecoder decoder(model);
+            decode(model,[&](int code){return decoder.parseCode(code,reader);},[&](){
+                row.replayedVisualProperties=decoder.snapshot();
                 const auto state=dxfRendering::Observation::visualStyle(model);row.replayedState.originalVisualStyleScope=state.first;
                 row.replayedState.originalVisualStylePropertyTail=state.second;
-            },[&](const DRW_TableEntry& value){const auto* other=dynamic_cast<const DRW_VisualStyle*>(&value);return other&&dxfRendering::Observation::visual(model,*other);});
+            },[&](const DRW_TableEntry& value){const auto* other=dynamic_cast<const DRW_VisualStyle*>(&value);
+                return other&&dxfRendering::Observation::visual(model,*other)&&in.visualPropertiesCaptured
+                    &&dxfRendering::propertiesEqual(row.replayedVisualProperties,in.typedVisualProperties)
+                    &&dxfRendering::propertiesEqual(row.replayedVisualProperties,in.rawVisualProperties);});
         }else{DRW_RenderSettings model;model.m_kind=static_cast<const DRW_RenderSettings&>(*in.typedModel).m_kind;
             dxfRenderSettings::Decoder decoder(model);
             decode(model,[&](int code){return decoder.parseCode(code,reader);},[&](){decoder.finish();const auto state=decoder.snapshot();
