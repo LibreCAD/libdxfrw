@@ -131481,6 +131481,12 @@ State: **verified for selected original TABLE handle-target origins**.
 RPP-5fb is committed as `bce206a5`. This is original target-origin binding for
 selected physical handle roles, not complete TABLE dependency/output support.
 
+**Later status:** RPP-5fd below supplies original publication/body origins for
+TABLESTYLE/FIELD/XRECORD/DATALINK. Replay-only negatives now explicitly opt out
+of the new publication facet, preserving their proof that replay alone cannot
+substitute for original producer evidence. Symbol/common/name/recursive/output
+qualification remains incomplete.
+
 The [Autodesk TABLE DXF reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm)
 specifies the separate TABLESTYLE, BLOCK_RECORD, FIELD and cell ATTDEF target
 roles. Structured Value330 mapping remains the separately pinned source profile;
@@ -131590,3 +131596,122 @@ whole-document/native qualification remain incomplete. J256/J260/J268/J284/J293/
 J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
 ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full objective
 remains active and incomplete; no remote mutation is included.
+
+## Implementation progress — RPP-5fd original rich-resource publications (2026-10-26)
+
+State: **verified for selected original rich-resource publication/body origins**.
+RPP-5fc is committed as `a4f90da5`. This supplies original publication origins
+for four rich resource families, not complete format/target/output qualification.
+
+- [x] Add opt-in `DRW_DxfResourceSourceHandler` and borrowed
+  `dxfRW::getDxfResourceSourceView` for TABLESTYLE/FIELD/XRECORD/DATALINK. Keep the
+  existing typed-then-raw callbacks and raw-only TABLESTYLE fallback. The new
+  independent facet defaults false, adds no DRW_Interface callback/pure virtual,
+  and changes no public facade/model layout. Reader-owned scoped state restores
+  after return/throw. Selection is latched before the pair; disabling selection
+  inside its typed callback cannot invalidate that pair's raw context.
+- [x] Move selected raw carriers into immutable publication storage without
+  copying their vectors/strings or duplicating their retained lease. Default
+  selection adds no source copy. Capture original common XDATA cursor/mask and
+  the production decoder's closure verdict before consumer copies/callbacks;
+  that verdict is not complete field semantics. Preserve typed availability
+  separately from raw-only fallback. The getter copies only borrowed pointers/
+  scalar state and clears all fields outside the publication lifetime.
+- [x] Freeze converter-private original typed/raw pairs with exact live model/
+  raw pointer identity, import/container/generation, read context, original
+  cursor/payload state and shared snapshot owners. Compare both actual phases;
+  a transient typed-cursor mutation remains a mismatch even when the consumer
+  restores it before raw and model copying sanitizes its private state. Retain
+  pre-copy unfinished common state instead of laundering it through a copy.
+  Precharge capture/finalization metadata/work, enforce record/byte/work ceilings,
+  clear borrowed pending pointers on completion/failure and withhold optional
+  proof on allocation or callback failures without changing tolerant import.
+- [x] After the whole-read identity audit, join original OBJECTS record origins
+  only when publication pairs, original state and existing complete selected
+  raw/model body proof match. Revalidate input/audit/resource shared control
+  blocks, families and same-import namespace on query. Feed these original
+  certificates into the six-role TABLE target audit. Recognize the already-read
+  FIELD/ACDBFIELD/ACAD_FIELD aliases in its FIELD target-kind check. Replay-only
+  opt-out controls still refuse TABLESTYLE/FIELD targets; raw-only/incomplete
+  records, copied/dropped/duplicate/mutated callbacks and cross-import sources
+  cannot become target evidence. Source origins are not recursive dependencies,
+  independent semantics, expression evaluation, live state or output proof.
+- [x] Add runtime-authored `libdxfrw_resource_original_publications`: **288**
+  revision/encoding/TABLE-scope/FIELD-alias/Value-target profiles with **1,152**
+  independently walked original record markers and unchanged typed/raw order;
+  **60** callback/cursor/throw refusals, **30** immutable/control-block/cross-import
+  refusals, **six** unfinished-state refusals, **six** raw-only fallback controls,
+  **36** exact/one-under record/byte/work boundaries and **330** corrected imports.
+  A finite192-offset finalization schedule reaches **48** allocation failures;
+  **144** unreached offsets are not failure evidence or exhaustive coverage.
+  **Ten** public lifetime/default-off/throw/latched-selection controls check the
+  getter without allocations. Existing12 TABLESTYLE/FIELD replay-only negatives
+  explicitly disable the new facet while preserving their positive replay checks.
+- [x] Preserve the development compile warning (misleading indentation in a
+  test marker counter) and its source correction without weakening `-Werror`.
+  Final focused resource/reference checks pass **2/2 in5.34s**. All drawing recipes
+  are authored locally; no external drawing fixture, conversion or derivative
+  is committed. No DWG byte-layout/parser-body or writer emission change.
+- [x] All nine affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass **60/60
+  normally in61.86s**, then **60/60 under ASan in52.62s**, with two workers and
+  zero failures/skips/disabled tests. Include all37 owning TABLE selectors and
+  23 affected consumer/CLI/legacy XRECORD/FIELD/TABLESTYLE/DATALINK/capture/lease
+  checks, preserving prior45 names/order and adding the new selector plus14
+  relevant existing checks. Registered selected names/order and executed sets
+  match; all six selected inventory/Value/CELLSTYLEMAP/reference/resource counter
+  lines agree. The final source manifest stays unchanged through both runtimes.
+  Builds finish before final runtime; normal runtime finishes before ASan.
+  Coverage, warning policy and time caps are unchanged. These are affected
+  checks, not a full suite, formal ABI/native application or controlled
+  memory/performance qualification.
+
+The [receipt](docs/research/rpp5fd-original-rich-resource-publications-2026-10-26.json)
+records exact source/log hashes, names/statuses/counters, original-pointer and
+lifetime controls, build/runtime order and scope limits. Only the separate
+Debug/O1 ASan build is claimed; the pre-existing Debug/O0 configuration remains
+unchanged. The new source facet preserves default consumer behavior and adds no
+ordinary callback, but compile/CLI checks do not replace native application/ABI
+or independent CAD/kernel evidence.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Original STYLE/LTYPE and APPID/LAYER producers.** Add borrowed actual
+   symbol source/typed publication evidence with original pre-staging cursors;
+   STYLE/LTYPE batches can copy/sanitize state before their existing source
+   callbacks, so observe before staging and carry it alongside each real row.
+   Preserve batch selection, ENDTAB ordering, immutable raw storage and callback
+   identity; never bind a cloned row by matching name/handle alone. Give required
+   APPID/LAYER source transport an explicit opt-in contract rather than changing
+   legacy callbacks implicitly. Keep DRW_Interface/facade/model layouts stable,
+   charge raw/model/context storage/work first, and cover missing/copied/duplicate/
+   mutated callbacks, state, aliases/codepages, limits, reached faults and retries.
+2. [ ] **Complete common/name/target graphs.** Bind STYLE/LTYPE/APPID/LAYER,
+   XDATA/EED, block names/nested INSERT, application/proxy/owner/codepage and
+   rich-resource target-to-target dependencies to those actual origins. Establish
+   role-specific required/absent/null/default and cycle semantics before emission.
+   Cover original/live/edited/emitted targets, invalid/ambiguous aliases and
+   cross-imports. Source publication/body correlation is not native CAD/kernel,
+   whole-document semantics or a qualified expression/geometry evaluator.
+3. [ ] **Exact Value output and table row/border overrides.** After complete
+   original field/target proof, independently verify emitted fields, remapping/
+   readback, edits, refusals/rollback/retries/destination safety. Establish actual
+   producer/version scope/order before title/header/data formats, units and
+   border overrides. Keep date epoch, native point counts and General semantics
+   unguessed; keep 2D consumers and 3D retained data compatible.
+4. [ ] **Full B2b/B3/C and external qualification.** Finish remaining IMAGE/
+   document/native bit/decimal/carrier/schema/owner and memory/performance work.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior; obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence. Keep fast
+   owning checks per edit and risk-based affected cohorts at integration, builds
+   separate from final runtimes, failure evidence, self-update/unblock/commit/
+   progress reporting, and no committed external drawing payloads/derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+Four rich families can have original publication/body origins and selected TABLE
+targets can bind them; symbol/common/name/recursive/live/output and whole-document/
+native qualification remain incomplete. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full objective remains
+active and incomplete; no remote mutation is included.

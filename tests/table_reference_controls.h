@@ -80,7 +80,9 @@ bool tableReferenceTests(const std::filesystem::path& dir) {
                 auto at=blockField(tags,"501",301)+1u;while(tags[at].code!=330)++at;tags[at].value="FFFF";
                 appendBlockFields(tags,"501",{{102,"{OPAQUE_TARGET"},{5,"FFFF"},{330,"FFFF"},{102,"}"}});
             }
-            dx_iface reader;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false))return false;
+            struct ReplayOnly:dx_iface {bool selected=true;bool wantsDxfResourceSource() const override{return selected&&dx_iface::wantsDxfResourceSource();}}reader;
+            reader.selected=fault!=8u&&fault!=9u;dx_data data;
+            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false))return false;
             if(fault==8u||fault==9u) {
                 const auto found=A::resources(data).find(0x704u);
                 if(found==A::resources(data).end()||!found->second.rawTypedMatched||found->second.rawTypedMismatch) {

@@ -39,8 +39,17 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
-                 public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler {
+                 public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler,
+                 public DRW_DxfResourceSourceHandler {
 public:
+    bool wantsDxfResourceSource() const override;
+    enum class ResourceOriginState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoOrigins,OriginsBound,Unqualified};
+    struct ResourceOriginReport {
+        ResourceOriginState state{ResourceOriginState::NotCaptured};
+        std::size_t records{0},paired{0},stateComplete{0},bodyMatched{0},originsBound{0},rawOnly{0},bytes{0},work{0};
+        bool ownerTargetsResolved{false},outputEligible{false};
+    };
+    static ResourceOriginReport resourceOriginReport(const dx_data&) noexcept;
     enum class TableInputState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NoInputs,OriginalPairsReady,Unqualified};
     struct TableInputReport {
         TableInputState state{TableInputState::NotCaptured};
@@ -1698,6 +1707,8 @@ private:
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;
     void finishTableBodies(dx_data&) noexcept;
     void finishTableReferences(dx_data&) noexcept;
+    void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
+    void finishResourceOrigins(dx_data&) noexcept;
     bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
     static bool sameTableBodyModel(const DRW_Table&,const DRW_Table&,DRW::Version) noexcept;
     static bool hasMatchedTableSource(const dx_data&,const std::shared_ptr<const TableBody>&) noexcept;

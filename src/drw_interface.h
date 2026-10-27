@@ -729,6 +729,19 @@ public:
                                  const DRW_RawDxfObject& source) = 0;
 };
 
+/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK publication context.
+ * This adds no callback to DRW_Interface. Existing typed/raw callback order
+ * and raw-only fallback stay intact. Selection is latched before the pair;
+ * the dxfRW resource-source view identifies the actual pointers and original
+ * common/payload completeness, and expires at return/throw. The immutable raw
+ * carrier is moved only when selected; default false adds no source copy.
+ * Publication transport does not qualify targets, semantics or output. */
+class DRW_DxfResourceSourceHandler {
+public:
+  virtual ~DRW_DxfResourceSourceHandler()=default;
+  virtual bool wantsDxfResourceSource() const {return false;}
+};
+
 /** Opt-in source transport for the first OBJECTS dictionary. Its historical
  * addRawDxfObject suppression is preserved. Selection is latched before reading
  * that record; default false adds no callback or source copy. Delivered after

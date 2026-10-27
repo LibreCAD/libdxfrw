@@ -19783,6 +19783,24 @@ bool dxfRW::processSpatialFilter() {
     return setError(DRW::BAD_READ_OBJECTS);
 }
 
+namespace {
+template<class Typed>
+void publishDxfResource(dxfReader& reader,DRW_Interface& iface,std::uint8_t kind,
+                        const DRW_TableEntry& model,DRW_RawDxfObject& raw,
+                        bool typedAvailable,bool payloadComplete,Typed typed) {
+    const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
+    const bool selected=handler&&handler->wantsDxfResourceSource();
+    if(!selected){if(typedAvailable)typed();iface.addRawDxfObject(raw);return;}
+    const auto cursor=dxfBlockRecord::Decoder::observeCommonState(model);
+    const DRW_RawDxfObject original(std::move(raw));
+    DxfResourcePublication view;view.kind=kind;view.phase=typedAvailable?1u:2u;
+    view.model=&model;view.source=&original;view.pendingXdata=cursor.first;view.coordinateMask=cursor.second;
+    view.typedAvailable=typedAvailable;view.payloadComplete=payloadComplete;
+    DxfResourcePublicationScope scope(reader.resourcePublication(),view);
+    if(typedAvailable)typed();scope.raw();iface.addRawDxfObject(original);
+}
+}
+
 // TABLESTYLE (AcDbTableStyle): structured DXF read of core fields and bounded
 // row-style groups + raw-net preservation for the complete object.
 bool dxfRW::processTableStyle() {
@@ -19796,11 +19814,10 @@ bool dxfRW::processTableStyle() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (data.finalizeDxfNestedStyles())
-                iface->addTableStyle(data);
-            else
+            const bool ready=data.finalizeDxfNestedStyles();
+            if (!ready)
                 DRW_DBG("TABLESTYLE nested DXF row-style state incomplete; retaining raw object only\n");
-            iface->addRawDxfObject(raw);
+            publishDxfResource(*reader,*iface,1u,data,raw,ready,ready,[&](){iface->addTableStyle(data);});
             return true;
         }
         if (!captureAndParseRawDxfGroup(raw, code, data))
@@ -20344,8 +20361,7 @@ bool dxfRW::processDataLink() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            iface->addDataLink(dataLink);
-            iface->addRawDxfObject(raw);
+            publishDxfResource(*reader,*iface,4u,dataLink,raw,true,true,[&](){iface->addDataLink(dataLink);});
             return true;
         }
         if (!captureAndParseRawDxfGroup(raw, code, dataLink))
@@ -20643,8 +20659,7 @@ bool dxfRW::processXRecord() {
                 return setError(DRW::BAD_READ_OBJECTS);
             if (!validateCapturedRawDxfObject(raw, binFile, reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
-            iface->addXRecord(record);
-            iface->addRawDxfObject(raw);
+            publishDxfResource(*reader,*iface,3u,record,raw,true,record.hasExactDxfCoordinateTuples(),[&](){iface->addXRecord(record);});
             return true;
         }
 
@@ -20759,8 +20774,7 @@ bool dxfRW::processField() {
             if (!decoder.finish()
                 || !validateCapturedRawDxfObject(raw,binFile,reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
-            iface->addField(field);
-            iface->addRawDxfObject(raw);
+            publishDxfResource(*reader,*iface,2u,field,raw,true,decoder.sourceCorePresent(),[&](){iface->addField(field);});
             return true;
         }
         if (code == 102) {
@@ -26929,6 +26943,14 @@ bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexc
     if(!view.kind||view.kind>3u||!view.phase||view.phase>3u||!view.model||!view.source)return false;
     out={static_cast<DxfStructuralSourceView::Kind>(view.kind),static_cast<DxfStructuralSourceView::Phase>(view.phase),
         view.model,view.source,view.pendingXdata,view.coordinateMask};return true;
+}
+
+bool dxfRW::getDxfResourceSourceView(DxfResourceSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& v=reader->resourcePublication();
+    if(!v.kind||v.kind>4u||!v.phase||v.phase>2u||!v.model||!v.source)return false;
+    out={static_cast<DxfResourceSourceView::Kind>(v.kind),static_cast<DxfResourceSourceView::Phase>(v.phase),v.model,v.source,
+        v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
 }
 
 bool dxfRW::getDxfDictionaryRawDelivery(bool& delivered) const noexcept {

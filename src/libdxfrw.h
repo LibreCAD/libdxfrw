@@ -1043,6 +1043,21 @@ public:
      * false clears the view elsewhere. Not target/graph/output qualification.
      * All publication state lives in the internal reader, not this facade. */
     bool getDxfStructuralSourceView(DxfStructuralSourceView&) const noexcept;
+    struct DxfResourceSourceView {
+        enum class Kind : std::uint8_t {None,TableStyle,Field,XRecord,DataLink};
+        enum class Phase : std::uint8_t {None,Typed,Raw};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+        bool typedAvailable{false},originalPayloadComplete{false};
+    };
+    /** Borrowed opted-in rich-resource publication. Actual typed then raw
+     * pointers, immutable raw carrier and original pre-copy cursor/decoder
+     * closure verdict (not complete field semantics). Raw-only TABLESTYLE
+     * fallback has typedAvailable=false.
+     * False clears the view outside the pair, including return/throw. No
+     * facade/model/vtable state, extra callback or target/output certificate. */
+    bool getDxfResourceSourceView(DxfResourceSourceView&) const noexcept;
     /** Actual legacy raw-callback delivery, only inside a non-root dictionary
      * source callback. False clears delivered outside that exact publication.
      * This distinguishes fixed-handle suppression from an adapter dropping a

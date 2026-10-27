@@ -79,6 +79,22 @@ struct DxfStructuralPublication {
     const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
     bool rawCallbackDelivered{false};
 };
+struct DxfResourcePublication {
+    // Kinds1 TABLESTYLE,2 FIELD,3 XRECORD,4 DATALINK; phases1 typed,2 raw.
+    std::uint8_t kind{0},phase{0},coordinateMask{0};
+    bool pendingXdata{false},typedAvailable{false},payloadComplete{false};
+    const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+};
+class DxfResourcePublicationScope {
+    DxfResourcePublication& slot;DxfResourcePublication previous;
+public:
+    DxfResourcePublicationScope(DxfResourcePublication& target,const DxfResourcePublication& value) noexcept
+        :slot(target),previous(target){slot=value;}
+    ~DxfResourcePublicationScope(){slot=previous;}
+    void raw() noexcept {slot.phase=2u;}
+    DxfResourcePublicationScope(const DxfResourcePublicationScope&)=delete;
+    DxfResourcePublicationScope& operator=(const DxfResourcePublicationScope&)=delete;
+};
 
 // Shared by one public DXF read operation so independently retained buffers
 // can use one aggregate logical-byte ceiling. This deliberately measures
@@ -337,10 +353,12 @@ class dxfReader {
     DxfTablePublication m_tablePublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
     DxfStructuralPublication m_structuralPublication{};
+    DxfResourcePublication m_resourcePublication{};
     DxfBlockPublication m_blockPublication{};
     const DRW_DxfIdentitySource* m_identityPublication{nullptr};
 public:
     DxfTablePublication& tablePublication() noexcept{return m_tablePublication;}
+    DxfResourcePublication& resourcePublication() noexcept{return m_resourcePublication;}
     enum TYPE {
         STRING,
         INT32,

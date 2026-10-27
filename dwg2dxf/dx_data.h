@@ -1444,15 +1444,38 @@ private:
         std::size_t blockRoleBytes{0},blockRoleWork{0};
         std::size_t maxBlockRoleBytes{64u*1024u*1024u},maxBlockRoleWork{64u*1024u*1024u};
         bool blockRoleCaptureFailed{false};
+        struct ResourceOriginInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
+            dxfRW::DxfResourceSourceView::Kind kind{dxfRW::DxfResourceSourceView::Kind::None};
+            std::shared_ptr<const DRW_TableEntry> model;std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const EntitiesReadContext> context;
+            std::pair<bool,std::uint8_t> state;bool payloadComplete{false},paired{false};
+        };
+        struct ResourceOriginPending {
+            ResourceOriginInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};
+        };
+        struct ResourceOriginAudit {
+            std::shared_ptr<const ResourceOriginInput> input;std::shared_ptr<const IdentityAudit> identities;
+            std::size_t index{0},physical{DRW_DxfIdentitySource::None};bool bodyMatched{false},stateComplete{false},originBound{false};
+        };
+        std::map<std::uint32_t,ResourceOriginPending> resourceOriginPending;
+        std::map<std::uint32_t,std::shared_ptr<const ResourceOriginInput>> resourceOriginInputs;
+        std::vector<std::shared_ptr<const ResourceOriginInput>> resourceOriginInputOwners;
+        std::map<std::uint32_t,std::shared_ptr<const ResourceOriginAudit>> resourceOriginAudits;
+        std::vector<std::shared_ptr<const ResourceOriginAudit>> resourceOriginAuditOwners;
+        std::size_t resourceOriginRecords{0},resourceOriginRawOnly{0},resourceOriginBytes{0},resourceOriginWork{0};
+        std::size_t maxResourceOriginRecords{100000u},maxResourceOriginBytes{64u*1024u*1024u},maxResourceOriginWork{64u*1024u*1024u};
+        bool resourceOriginCaptureFailed{false};
         struct TableReferenceAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoTables,NoReferences,ReferencesReady,Unqualified};
             enum class Reason {Matched,NullValue,NullRequired,MissingTarget,WrongKind,OriginalTargetUnavailable,AmbiguousOrigin,WrongCellBlock};
-            enum class Provider {Structural,Layout,Entities,Blocks};
+            enum class Provider {Structural,Layout,Entities,Blocks,Resource};
             struct Target {
                 Provider provider{Provider::Structural};std::size_t physical{DRW_DxfIdentitySource::None};
                 std::uint32_t block{0};bool ambiguous{false};
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const LayoutAudit> layout;
+                std::shared_ptr<const ResourceOriginAudit> resource;
             };
             struct Row {
                 std::uint32_t table{0},target{0},cellBlock{0};std::size_t group{0},physical{DRW_DxfIdentitySource::None};
