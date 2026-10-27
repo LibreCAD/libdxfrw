@@ -76,6 +76,10 @@ public:
 
 class DrwObjectEncodeTestAccess {
 public:
+    static void renderingHeader(DRW_TableEntry& value,unsigned which) {
+        if(which==0u)++value.oType;else if(which==1u)++value.objSize;else ++value.handleStreamBitSize;
+    }
+    static void renderingCursor(DRW_TableEntry& value) {if(!value.extData.empty())value.curr=value.extData.front();}
     static void setLayerColorCmc(DRW_Layer& layer, std::uint8_t method,
                                  std::uint8_t flags, std::uint16_t rawIndex,
                                  const UTF8STRING& colorName,
@@ -34520,8 +34524,12 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 
 #include "rendering_projection_controls.h"
 #include "rendering_publication_controls.h"
+#include "rendering_model_controls.h"
 
 int main(int argc, char** argv) {
+    if(argc==2&&std::string(argv[1])=="--rendering-model-replay") {
+        TestContext context;renderingModelControls::run(context);return context.failures==0?0:1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--rendering-publications") {
         TestContext context;
         renderingPublicationControls::run(context);
@@ -35312,6 +35320,7 @@ int main(int argc, char** argv) {
     testVisualStyleTypeScope(context);
     renderingProjectionControls::run(context);
     renderingPublicationControls::run(context);
+    renderingModelControls::run(context);
     testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testDwgViewportProjection(context);

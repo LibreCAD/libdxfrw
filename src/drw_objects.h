@@ -214,6 +214,7 @@ class DRW_TableEntry {
   friend class dxfBlockRecord::Decoder;
   friend class dxfLayout::Decoder;
   friend class dxfViewUcs::Decoder;
+  friend class dxfRendering::Observation;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 

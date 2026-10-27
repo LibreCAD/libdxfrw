@@ -133260,3 +133260,129 @@ native qualification remains incomplete. J256/J260/J268/J284/J293/J295 remain
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full objective remains
 active and incomplete; no remote mutation is included.
+
+
+## Implementation progress — RPP-5fq rendering retained-model replay (2026-10-27)
+
+Actual rendering inputs now have bounded shared replay and exact retained-model/
+parser-state comparison against both original callback snapshots. This closes
+that prerequisite from RPP-5fp. It does not turn the current partial VisualStyle
+DXF projection into full property coverage or qualify rendering owners/output.
+
+- [x] Replay the original immutable source with its source/codec versions,
+  codepage, compatibility profile and text policies. Use the real VisualStyle
+  parser and shared RenderSettings decoder/finalizer. Keep a separately owned
+  replayed model and original scoped state in the sealed audit.
+- [x] Compare common header/application/XDATA state, owned pending-cursor index,
+  scope/tail latches, all retained VisualStyle body/encoding/color fields and
+  RenderSettings positional/named/native opaque fields against both actual
+  callback snapshots. Preserve double bits, including signed zero. Budget lease
+  identities and logical accounting counters remain lifetime/accounting state,
+  rather than semantic value fields.
+- [x] Admit independent replay byte/work allowances before construction and use
+  bounded reader record/node/retained/work accounting. Keep captured original
+  inputs available after a replay limit/failure. Allocation-free model reports
+  expose only `modeledStateMatched`; property coverage, original source, owner
+  and output qualification stay false.
+- [x] Authored controls cover 192 original profiles across four versions, two
+  encodings, eight forms and three scope/pending states. Actual typed/raw edits
+  exercise 450 retained fields and 40 common/header/cursor mutations, followed by
+  490 corrected imports. Eight exact/one-under replay allowance pairs retain
+  actual inputs and accept corrected re-finalization.
+- [x] Four isolated replay-allocation profiles reach 146 failures with eight
+  unreached controls and154 corrected finalizations. Four report queries run
+  with allocation failure armed at zero. Finite calibration stops after two
+  consecutive unreached offsets per profile, bounded by 256 offsets; this is not
+  exhaustive allocation coverage or a controlled memory/performance result.
+
+Self-unblocking and implementation readiness:
+
+- Reached failure offset 6 reproduced a stale-success hazard: in-memory stream
+  reconstruction can return false instead of throwing while an old sealed
+  audit remains successful. Failed source reconstruction or replay decoding now
+  sets an explicit failure flag checked before model qualification. Every
+  reached fault refuses the old success; corrected full finalization succeeds
+  using the same immutable original inputs. Original publication input capture
+  stays available. Preserve the failing log and corrected controls.
+- Autodesk's [VISUALSTYLE inventory](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm)
+  distinguishes colors62/63 from mono color421. Pinned [ezdxf v1.4.4](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/visualstyle.py)
+  also separates these fields and removes the post291 extension before ordinary
+  attribute decoding. Reused primary codes in that tail must not overwrite
+  primary properties. These are source-level findings, not a peer semantic run.
+- The next property implementation must preserve absent/zero/default and each
+  independent color role, using ABI-safe structured publication metadata where
+  existing native-shaped fields are insufficient. Share original/replay decode,
+  independently inventory physical property/subclass/reference spans, and keep
+  native `bodyDecoded` meaning intact. Do not infer completeness from equal
+  default bodies or opaque retention.
+- The first archive check incorrectly expected CMake test helper headers in the
+  legacy Automake distribution. They are absent. Preserve that diagnostic and
+  report only actual production-header inclusion. Complete CMake test/source
+  inventory and a real distribution build remain release tasks; the corrected
+  archive check makes neither qualification claim. A read-only comparison of 99
+  CMake-declared/transitive library files finds 42 absent from the legacy archive
+  (17 sources, 25 headers). The receipt records exact names/hashes. This is a
+  concrete release prerequisite, not a complete test/consumer inventory audit.
+
+Final verification:
+
+- [x] Both 11-target affected builds pass with `-Werror` preserved: normal
+  31.05s and qualified ASan
+  358.49s. Explicit fixture syntax validation
+  passes `-Wall -Wextra -pedantic -Werror`; LibreCAD_3's compile-only guard builds.
+- [x] Final affected cohorts pass **100/100** normally in 89.39s
+  and **100/100** under qualified Debug/`-O1`/ASan in 57.71s at j2.
+  Names/order/labels/timeouts and executed sets match, with no failures/skips/
+  disabled tests. All 21 owning counter lines agree; all 19 prior lines remain
+  unchanged. Existing focused UCS/VIEWPORT controls pass in both configurations.
+- [x] The 421-file compiled-source/build-metadata manifest stays frozen through
+  both final runtimes. Builds and packaging finish before normal then ASan tests.
+  Original Debug/O0 ASan is unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both 282-member archives
+  contain exact updated production helper/public header hashes. Test helper
+  inclusion and a full Autotools source-release build remain unqualified.
+  Full suite, formal ABI/native application and controlled memory/performance
+  qualification remain open.
+
+The [receipt](docs/research/rpp5fq-rendering-retained-model-replay-2026-10-27.json)
+pins exact source/selection/configuration/counter evidence, retained failures,
+packaging limitations and the full remaining objective.
+
+Next implementation-ready sequence (full original objective retained):
+
+1. [ ] **Complete rendering property/source semantics.** Implement witnessed
+   VisualStyle primary properties and presence/color/tail metadata; independently
+   verify full scalar/property/subclass/reference coverage. Complete producer/
+   version-qualified RenderSettings shapes. Only then qualify original sources.
+2. [ ] **Bind real rendering targets and finish remaining producers.** Resolve
+   NOD/named-dictionary/owner and active LAYOUT/VIEW/VIEWPORT rendering references;
+   complete background/live-section/sun, VIEWPORT clip geometry, layer overrides
+   335/343/344/91 and qualified aliases. Retain entity/material/reactor/IMAGE/
+   document/control/owner, omitted dictionary flags, names/application/XDATA and
+   HEADER CEPSNID/CEPSNTYPE work. Finish recursive/coupled and whole-document
+   ownership, with native names/collation evidence.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edits and emitted fields; verify handle remapping,
+   readback/refusal/rollback/retry/destination safety. Finish Values, multiple-
+   content attributes, linked-data ownership and qualified formats/units/borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and measured
+   memory/performance obligations. Audit complete Autotools/CMake source/header/
+   test inventory and qualify a real source-release build. Preserve LibreCAD/
+   LibreCAD_3 and dwg2dxf/FreeCAD behavior. Obtain native Linux/Windows FreeCAD and
+   independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient self-updating execution.** Fast owning checks,
+   risk-based affected integration and built-target reuse; freeze compiled
+   sources and complete builds/packaging before normal then ASan runtimes.
+   Preserve failures/caps, self-unblock and update/commit/report each verified
+   slice. Commit no external drawing payload, conversion or derivative.
+
+Resource families remain nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected rendering retained models can match, while
+`propertyCoverageMatched` and `originalSourcesMatched` remain false. Full
+rendering/recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/
+Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. The full objective remains active; no remote mutation is included.

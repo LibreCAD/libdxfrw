@@ -7,6 +7,10 @@ public:
     static const dxfRW* renderingReader(const dx_data& data){return data.m_tableDxfSource.entitiesReadInput;}
     static auto& rendering(dx_data& data){return data.m_tableDxfSource;}
     static const auto& rendering(const dx_data& data){return data.m_tableDxfSource;}
+    static void repeatRendering(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;
+        s.renderingAudit.reset();s.renderingAuditOwner.reset();s.renderingBytes=s.renderingInputBytes;s.renderingWork=s.renderingInputWork;
+        s.renderingReplayBytes=s.renderingReplayWork=s.renderingReplayRecords=0u;s.renderingReplayFailed=s.renderingReplayLimited=false;
+        reader.finishRenderingInputs(data);}
 };
 namespace renderingPublicationControls {
 using V=dxfRW::DxfRenderingSourceView;

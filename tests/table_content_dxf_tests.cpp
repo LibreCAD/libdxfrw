@@ -144,6 +144,13 @@ public:
     static void observeRendering(dx_iface& reader,const DRW_TableEntry* model,const DRW_RawDxfObject* raw){reader.observeRenderingInput(model,raw);}
     static const auto& renderingInputs(const dx_data& data){return data.m_tableDxfSource.renderingInputs;}
     static const auto& renderingPending(const dx_data& data){return data.m_tableDxfSource.renderingPending;}
+    static auto renderingReplayRow(const dx_data& data){auto row=data.m_tableDxfSource.renderingAudit->rows.begin()->second;
+        row.replayedModel.reset();row.replayedState={};row.replayDecoded=row.modeledStateMatched=false;return row;}
+    template<class Row>static void replayRendering(dx_iface& reader,dx_data& data,Row& row){reader.replayRenderingInput(data,row);}
+    static void resetRenderingReplay(dx_data& data){auto& s=data.m_tableDxfSource;
+        s.renderingReplayRecords=s.renderingReplayBytes=s.renderingReplayWork=0u;s.renderingReplayFailed=s.renderingReplayLimited=false;}
+    static void repeatRenderingModels(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.renderingAudit.reset();s.renderingAuditOwner.reset();
+        s.renderingBytes=s.renderingInputBytes;s.renderingWork=s.renderingInputWork;resetRenderingReplay(data);reader.finishRenderingInputs(data);}
     static void observeViewUcs(dx_iface& reader,const DRW_TableEntry& model){reader.observeViewUcsSource(&model,nullptr);}
     static void viewUcsLimit(dx_data& data,unsigned which,std::size_t value){auto& s=data.m_tableDxfSource;
         if(which==0u)s.maxViewUcsRecords=value;else if(which==1u)s.maxViewUcsGroups=value;else if(which==2u)s.maxViewUcsBytes=value;else s.maxViewUcsWork=value;}
@@ -3136,6 +3143,15 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--rendering-model-failures") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-rendering-model-failure-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;
+        const bool ok=renderingModelFailureTests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';
+        return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--rendering-input-failures") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

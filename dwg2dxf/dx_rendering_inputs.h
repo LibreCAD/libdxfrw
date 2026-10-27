@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Included once after the source/context/identity and size-estimation helpers.
 #include "intern/dxfrenderingsource.h"
+#include "intern/dxfrendersettings.h"
 namespace {
 using RenderingView=dxfRW::DxfRenderingSourceView;
 RenderingView ownedRenderingState(RenderingView view) noexcept {
@@ -110,7 +111,74 @@ void dx_iface::observeRenderingInput(const DRW_TableEntry* model,const DRW_RawDx
         in.stateStable=in.stateStable&&renderingModelState(view);in.index=s.renderingInputOwners.size();
         auto saved=std::make_shared<const Input>(std::move(in));s.renderingInputs.emplace(id,saved);
         s.renderingInputOwners.push_back(std::move(saved));s.renderingPending.erase(found);
+        s.renderingInputBytes=s.renderingBytes;s.renderingInputWork=s.renderingWork;
     }catch(...){fail();}
+}
+
+void dx_iface::replayRenderingInput(dx_data& data,dx_data::TableDxfSourceCapture::RenderingInputRow& row) noexcept {
+    auto& s=data.m_tableDxfSource;
+    if(s.renderingReplayFailed||s.renderingReplayLimited||!row.input)return;
+    const auto& in=*row.input;
+    if(!in.actualPair||!in.rawStable||!in.stateStable||!row.originBound||!in.context||!in.typedModel||!in.rawModel||!in.typedRaw||!in.rawRaw)return;
+    const bool visual=in.original.kind==RenderingView::Kind::VisualStyle;
+    const auto limit=[&](){s.renderingReplayLimited=true;};
+    try {
+        std::size_t rawBytes=0u,modelBytes=0u,values=0u,bytes=1024u,work=1024u;
+        if(!estimateRawDxfObjectBytes(*in.typedRaw,rawBytes)
+            ||!(visual?estimateVisualStyleTypedBytes(static_cast<const DRW_VisualStyle&>(*in.typedModel),modelBytes)
+                :estimateRenderSettingsTypedBytes(static_cast<const DRW_RenderSettings&>(*in.typedModel),modelBytes,values))
+            ||!addAssociativeSlotBytes(rawBytes,8u,bytes)||!addAssociativeSlotBytes(modelBytes,4u,bytes)
+            ||!addAssociativeSlotBytes(in.typedRaw->groups.size(),128u,work)||!addAssociativeRetainedBytes(bytes,work)
+            ||s.renderingReplayBytes>s.maxRenderingReplayBytes||bytes>s.maxRenderingReplayBytes-s.renderingReplayBytes
+            ||s.renderingReplayWork>s.maxRenderingReplayWork||work>s.maxRenderingReplayWork-s.renderingReplayWork){limit();return;}
+        s.renderingReplayBytes+=bytes;s.renderingReplayWork+=work;++s.renderingReplayRecords;
+        std::string wire;
+        if(!tableResourceSourceBody(*in.typedRaw,s.maxRenderingReplayBytes,wire)){s.renderingReplayFailed=true;return;}
+        dxfRW::DxfObjectsWriteView profile{};profile.bytes=wire;profile.version=in.context->sourceVersion;
+        profile.binary=in.context->binary;profile.codePage=in.context->codecCodePage;profile.compatibilityProfile=in.context->compatibilityProfile;
+        dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);
+        auto budget=std::make_shared<DxfReadRetainedBudget>(bytes);auto reader=dx_standard_output::readerFor(input,profile,budget);
+        if(!reader){s.renderingReplayFailed=true;return;}
+        const char* codecVersion=nullptr;for(const auto& name:DRW::dwgVersionStrings)if(name.second==in.context->codecVersion)codecVersion=name.first;
+        if(!codecVersion)return;
+        reader->setVersion(codecVersion,true);reader->setDxfTextEncoding(in.context->textEncoding);
+        reader->setDxfCodePagePolicy(in.context->codePagePolicy);reader->setSemanticStringMode(true);
+        reader->setRecordBudget(in.typedRaw->groups.size());reader->setTypedVariantNodeBudget(in.typedRaw->groups.size());
+        reader->setDecodeWorkBudget(s.maxRenderingReplayWork-s.renderingReplayWork);
+        const auto common=[&](const auto& a,const auto& b){return standardDwgCommonEqual(a,b,in.context->sourceVersion);};
+        const auto decode=[&](auto& model,auto&& parse,auto&& finish,auto&& equal) {
+            int code=0;bool good=true;
+            while(buffer.position()<wire.size())if(!reader->readRec(&code)||!code||!parse(code)){good=false;break;}
+            if(good)finish();
+            if(budget->exceeded()||reader->decodeWorkBudgetExceeded()||reader->recordBudgetExceeded()
+                ||reader->typedVariantNodeBudgetExceeded()||reader->tokenByteBudgetExceeded()||reader->inputByteBudgetExceeded())limit();
+            if(!addAssociativeRetainedBytes(reader->decodeWorkCount(),s.renderingReplayWork)
+                ||s.renderingReplayWork>s.maxRenderingReplayWork){limit();return;}
+            if(!good||reader->recordCount()!=in.typedRaw->groups.size()){s.renderingReplayFailed=true;return;}
+            if(s.renderingReplayLimited)return;
+            const auto state=dxfBlockRecord::Decoder::observeCommonState(model);
+            row.replayedState.kind=in.original.kind;row.replayedState.originalPendingXdata=state.first;
+            row.replayedState.originalCoordinateMask=state.second;
+            row.replayDecoded=true;
+            row.modeledStateMatched=renderingStatesEqual(in.original,row.replayedState)
+                &&common(model,*in.typedModel)&&common(model,*in.rawModel)&&equal(*in.typedModel)&&equal(*in.rawModel);
+            using Model=std::decay_t<decltype(model)>;
+            row.replayedModel=std::make_shared<const Model>(std::move(model));
+        };
+        if(visual){DRW_VisualStyle model;
+            decode(model,[&](int code){return dxfRendering::Observation::parseVisual(model,code,reader);},[&](){
+                const auto state=dxfRendering::Observation::visualStyle(model);row.replayedState.originalVisualStyleScope=state.first;
+                row.replayedState.originalVisualStylePropertyTail=state.second;
+            },[&](const DRW_TableEntry& value){const auto* other=dynamic_cast<const DRW_VisualStyle*>(&value);return other&&dxfRendering::Observation::visual(model,*other);});
+        }else{DRW_RenderSettings model;model.m_kind=static_cast<const DRW_RenderSettings&>(*in.typedModel).m_kind;
+            dxfRenderSettings::Decoder decoder(model);
+            decode(model,[&](int code){return decoder.parseCode(code,reader);},[&](){decoder.finish();const auto state=decoder.snapshot();
+                row.replayedState.originalRenderBaseScope=state.base;row.replayedState.originalRenderCounts=state.counts;
+                row.replayedState.originalRenderLongs=state.longs;row.replayedState.originalRenderBytes=state.bytes;
+                row.replayedState.originalRenderBools=state.bools;row.replayedState.originalRenderDoubles=state.doubles;
+            },[&](const DRW_TableEntry& value){const auto* other=dynamic_cast<const DRW_RenderSettings*>(&value);return other&&dxfRendering::Observation::render(model,*other);});
+        }
+    }catch(...){s.renderingReplayFailed=true;}
 }
 
 void dx_iface::finishRenderingInputs(dx_data& data) noexcept {
@@ -140,6 +208,7 @@ void dx_iface::finishRenderingInputs(dx_data& data) noexcept {
                     &&physical.sections[record.section].kind==I::Section::Objects;
                 if(row.originBound)row.physical=found->second;}
             complete=complete&&in.actualPair&&in.rawStable&&in.stateStable&&row.originBound;
+            replayRenderingInput(data,row);
             audit->rows.emplace(item.first,std::move(row));}
         save(!audit->physicalRecords&&!s.renderingRecords?S::NoInputs:complete?S::InputsCaptured:S::Unqualified);
     }catch(...){s.renderingCaptureFailed=true;}
@@ -172,5 +241,30 @@ dx_iface::RenderingInputReport dx_iface::renderingInputReport(const dx_data& dat
     report.publicationInputsCaptured=report.state==S::InputsCaptured&&report.records!=0u
         &&report.records==report.physical&&report.records==report.pairs&&report.records==report.rawStable
         &&report.records==report.stateStable&&report.records==report.origins;
+    return report;
+}
+
+dx_iface::RenderingModelReport dx_iface::renderingModelReport(const dx_data& data) noexcept {
+    using S=RenderingModelState;using I=RenderingInputState;RenderingModelReport report;
+    const auto input=renderingInputReport(data);const auto& s=data.m_tableDxfSource;
+    report.records=input.records;report.bytes=s.renderingReplayBytes;report.work=s.renderingReplayWork;
+    switch(input.state){
+    case I::NotCaptured:return report;
+    case I::Reading:report.state=S::Reading;return report;
+    case I::ImportFailed:report.state=S::ImportFailed;return report;
+    case I::ContextMismatch:report.state=S::ContextMismatch;return report;
+    case I::CaptureFailed:report.state=S::CaptureFailed;return report;
+    case I::SourceNotReady:report.state=S::SourceNotReady;return report;
+    case I::NoInputs:report.state=S::NoInputs;return report;
+    default:break;
+    }
+    if(s.renderingReplayFailed){report.state=S::CaptureFailed;return report;}
+    if(s.renderingReplayLimited){report.state=S::Limited;return report;}
+    for(const auto& item:s.renderingAudit->rows){const auto& row=item.second;
+        if(row.replayDecoded&&row.replayedModel)++report.decoded;
+        if(row.modeledStateMatched&&row.replayDecoded&&row.replayedModel)++report.matched;
+    }
+    report.modeledStateMatched=input.publicationInputsCaptured&&report.records==report.decoded&&report.records==report.matched;
+    report.state=report.modeledStateMatched?S::ModeledStateMatched:S::Unqualified;
     return report;
 }

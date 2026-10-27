@@ -1549,6 +1549,9 @@ private:
         struct RenderingInputRow {
             std::shared_ptr<const RenderingInput> input;
             std::size_t physical{DRW_DxfIdentitySource::None};bool originBound{false};
+            std::shared_ptr<const DRW_TableEntry> replayedModel;
+            dxfRW::DxfRenderingSourceView replayedState;
+            bool replayDecoded{false},modeledStateMatched{false};
         };
         struct RenderingInputAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoInputs,InputsCaptured,Unqualified};
@@ -1561,8 +1564,12 @@ private:
         std::vector<std::shared_ptr<const RenderingInput>> renderingInputOwners;
         std::shared_ptr<const RenderingInputAudit> renderingAudit,renderingAuditOwner;
         std::size_t renderingRecords{0},renderingGroups{0},renderingBytes{0},renderingWork{0};
+        std::size_t renderingInputBytes{0},renderingInputWork{0};
         std::size_t maxRenderingRecords{100000u},maxRenderingGroups{4000000u},maxRenderingBytes{64u*1024u*1024u},maxRenderingWork{128u*1024u*1024u};
         bool renderingCaptureFailed{false};
+        std::size_t renderingReplayRecords{0},renderingReplayBytes{0},renderingReplayWork{0};
+        std::size_t maxRenderingReplayBytes{64u*1024u*1024u},maxRenderingReplayWork{128u*1024u*1024u};
+        bool renderingReplayFailed{false},renderingReplayLimited{false};
         struct ViewUcsInput {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
             bool view{false},paired{false},payloadComplete{false};std::pair<bool,std::uint8_t> state;

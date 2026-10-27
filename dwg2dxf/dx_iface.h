@@ -51,6 +51,16 @@ public:
         bool fullModelsMatched{false},originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static RenderingInputReport renderingInputReport(const dx_data&) noexcept;
+    enum class RenderingModelState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,Limited,SourceNotReady,NoInputs,ModeledStateMatched,Unqualified};
+    struct RenderingModelReport {
+        RenderingModelState state{RenderingModelState::NotCaptured};
+        std::size_t records{0},decoded{0},matched{0},bytes{0},work{0};
+        // Exact retained model/parser-state replay is separate from full
+        // physical property coverage and dependency/output qualification.
+        bool modeledStateMatched{false};
+        bool propertyCoverageMatched{false},originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static RenderingModelReport renderingModelReport(const dx_data&) noexcept;
     bool wantsDxfViewUcsSource() const override {return tableSourceCaptureOpen();}
     void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
     using ViewUcsState=dx_data::TableDxfSourceCapture::ViewUcsAudit::State;
@@ -1757,6 +1767,7 @@ private:
     void observeViewUcsSource(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void observeRenderingInput(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishRenderingInputs(dx_data&) noexcept;
+    void replayRenderingInput(dx_data&,dx_data::TableDxfSourceCapture::RenderingInputRow&) noexcept;
     void finishViewUcsSources(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;
