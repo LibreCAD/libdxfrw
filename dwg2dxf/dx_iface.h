@@ -67,6 +67,7 @@ public:
         std::size_t sources{0},names{0},references{0},matched{0},inherited{0},literals{0},nulls{0},tableOwners{0},unavailableSources{0},bytes{0},work{0},reservedRows{0};
         std::size_t missing{0},wrongKind{0},unavailable{0},ambiguous{0},invalidNames{0},unknownRoles{0},wrongOwner{0},ownershipCycles{0};
         std::size_t hardOwnerReferences{0},dictionaryFlagHardOwners{0},explicitSoftOwners{0},unknownOwnership{0};
+        std::size_t geometryPairs{0},geometryMatched{0},geometryMismatches{0},geometryUnavailable{0};
         std::size_t physicalNamedRows{0},backedNamedRows{0};bool nameNamespacesComplete{false};
         std::uint32_t firstSource{0},firstTarget{0};
         // Original selected resource/TABLE reference targets only. Recursive

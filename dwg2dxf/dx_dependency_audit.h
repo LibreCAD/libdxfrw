@@ -201,6 +201,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         a->rows.reserve(capacity);
         for(const auto& item:a->nodes) {
             const auto& n=item.second;const auto& groups=dependencyGroups(n);const auto& context=dependencyContext(n);
+            const auto firstRow=a->rows.size();
             const auto ownershipFlag=dependencyDictionaryFlag(n);
             for(const auto& ref:n.references) {
                 if(ref.kind==Role::Self)continue;
@@ -292,6 +293,25 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 }
                 a->rows.push_back(std::move(row));
             }
+            if(n.table&&!n.tableRecord) {
+                // AcDbBlockReference2 and AcDbTable343 describe the same
+                // graphical BLOCK_RECORD, independently of entity owner330.
+                // Join resolved original targets, never decoded/live defaults.
+                A::Row* name=nullptr;A::Row* handle=nullptr;
+                for(auto i=firstRow;i<a->rows.size();++i) {
+                    auto& row=a->rows[i];if(row.role==Role::BlockName)name=&row;
+                    if(row.role==Role::TableGeometryBlock)handle=&row;
+                }
+                const bool resolved=name&&handle&&name->reason==R::Matched&&handle->reason==R::Matched;
+                const bool same=resolved&&name->target&&name->target==handle->target;
+                const auto couple=[&](A::Row* row,const A::Row* other) {
+                    if(!row)return;row->geometryCoupled=true;
+                    if(other){row->coupledGroup=other->group;row->coupledTarget=other->target;}
+                    // Keep an existing missing/wrong-kind/ambiguous refusal.
+                    if(row->reason==R::Matched&&!same)row->reason=resolved?R::CoupledTargetMismatch:R::CoupledTargetUnavailable;
+                };
+                couple(name,handle);couple(handle,name);
+            }
             if(n.table) {
                 bool line=false,layer=false;for(const auto& ref:n.references){line=line||ref.kind==Role::LineTypeName;layer=layer||(ref.kind==Role::LayerName&&ref.code==8);}
                 if(!line){A::Row row;row.source=n.handle;row.role=Role::LineTypeName;row.code=6;row.present=false;row.reason=R::Inherited;a->rows.push_back(std::move(row));}
@@ -352,6 +372,12 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
     r.nameNamespacesComplete=true;
     for(unsigned i=0u;i<5u;++i){r.physicalNamedRows+=a->physicalNames[i];r.backedNamedRows+=a->backedNames[i];r.nameNamespacesComplete=r.nameNamespacesComplete&&a->nameCensusComplete[i];}
     for(const auto& row:a->rows) {
+        if(row.geometryCoupled&&row.role==DependencyRole::BlockName) {
+            ++r.geometryPairs;
+            if(row.reason==R::Matched)++r.geometryMatched;
+            else if(row.reason==R::CoupledTargetMismatch)++r.geometryMismatches;
+            else ++r.geometryUnavailable;
+        }
         if(dependencyEffectiveHardOwner(row.ownership))++r.hardOwnerReferences;
         if(row.ownership==A::Ownership::DictionaryFlagHard)++r.dictionaryFlagHardOwners;
         if(row.ownership==A::Ownership::ExplicitSoft)++r.explicitSoftOwners;
@@ -363,6 +389,8 @@ dx_iface::DependencyReport dx_iface::dependencyReport(const dx_data& data) noexc
         case R::InvalidName:++r.invalidNames;break;case R::UnknownRole:++r.unknownRoles;break;
         case R::NullRequired:case R::WrongOwner:++r.wrongOwner;break;case R::OwnershipCycle:++r.ownershipCycles;break;
         case R::OwnershipUnknown:++r.unknownOwnership;++r.unavailable;break;
+        case R::CoupledTargetMismatch:break;
+        case R::CoupledTargetUnavailable:++r.unavailable;break;
         }
     }
     r.originalTargetsMatched=r.state==S::OriginalTargetsMatched&&r.references&&r.references==r.matched;return r;

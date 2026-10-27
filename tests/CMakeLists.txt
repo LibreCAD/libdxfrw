@@ -710,6 +710,10 @@ add_test(NAME libdxfrw_dictionary_effective_ownership
     COMMAND libdxfrw_table_content_dxf_tests --effective-ownership)
 set_tests_properties(libdxfrw_dictionary_effective_ownership PROPERTIES
     LABELS "fast;dxf;adapter;source;ownership;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_geometry_dependencies
+    COMMAND libdxfrw_table_content_dxf_tests --table-geometry-dependencies)
+set_tests_properties(libdxfrw_table_geometry_dependencies PROPERTIES
+    LABELS "fast;dxf;adapter;source;dependency;table;generated" TIMEOUT 30)
 set_tests_properties(libdxfrw_table_value_inventory_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 add_test(NAME libdxfrw_layout_graph_read_contract
