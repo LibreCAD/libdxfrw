@@ -131364,6 +131364,10 @@ State: **verified for the selected original-physical-profile/reader scope**.
 RPP-5fa is committed as `aef56129`. This is the original-physical-profile and
 distinct-reference-role prerequisite, not complete target closure or output proof.
 
+**Later status:** RPP-5fc below joins selected actual original target origins for
+the six inventoried TABLE handle roles. Other producer families, common/name
+roles, recursive dependencies, live/edited state and output remain incomplete.
+
 - [x] Add a converter-private, allocation-free structured Value grammar over
   original scalar tags. Do not call the production Value parser or project a
   decoded model to establish the physical profile. Require flags93/type90,
@@ -131470,3 +131474,119 @@ unqualified and matching is not actual target or semantic/output evidence.
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The full objective remains active and incomplete; no remote mutation is included.
+
+## Implementation progress — RPP-5fc original TABLE handle-target origins (2026-10-26)
+
+State: **verified for selected original TABLE handle-target origins**.
+RPP-5fb is committed as `bce206a5`. This is original target-origin binding for
+selected physical handle roles, not complete TABLE dependency/output support.
+
+The [Autodesk TABLE DXF reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm)
+specifies the separate TABLESTYLE, BLOCK_RECORD, FIELD and cell ATTDEF target
+roles. Structured Value330 mapping remains the separately pinned source profile;
+this slice changes no native DWG parser, byte layout or public consumer callback.
+
+- [x] Finalize a separate bounded immutable `TableReferenceAudit` after identity,
+  structural, LAYOUT and ENTITIES/BLOCKS role audits. Pin the actual import,
+  container identity, original identity source/audit, TABLE body owners and target
+  provider audits/control blocks. Keep published const TABLE bodies unchanged and
+  avoid a circular readiness condition or speculative handle-only association.
+- [x] Inventory every span in the six selected TABLE handle roles: TABLESTYLE342,
+  geometry BLOCK_RECORD343, cell BLOCK_RECORD340, FIELD344, cell ATTDEF331 and
+  Value-object330. Reuse the independent original physical role classification,
+  including null presence, without confusing structural owner330, opaque handles,
+  FIELD344 or named/common dependencies. Check role-specific actual record kinds
+  against the original unique whole-read namespace. Null Value IDs are accounted
+  explicitly; null required handles remain unqualified. Source rows remain
+  unqualified for missing/wrong-kind targets or absent original producer proof.
+- [x] Join original proven BLOCK_RECORD/DICTIONARY structural producers, LAYOUT
+  callback/body origins and matched ENTITIES/BLOCKS body/role providers. Confirm
+  actual source and target shared owners again when querying the immutable audit.
+  Match a cell ATTDEF's original containing BLOCK_RECORD to that particular cell's
+  block340, not an interchangeable ATTDEF handle or a different definition/layout.
+  Bound the index/workspace/inventory before allocation/individual scans, with
+  separate row/byte/work ceilings and exception-safe optional-proof failure.
+- [x] Preserve the distinction between an original target and all its recursive
+  dependencies/semantics. Direct self-references and mutually referring TABLEs
+  bind their original origins without recursion; this does not certify cyclic
+  dependency serialization. Missing source profiles/identity evidence refuse
+  readiness. Duplicate target IDs preserve tolerant import but make the original
+  namespace unqualified. Opaque application code5/330 lookalikes cannot supply a
+  missing target. Live edits/common/name/owner closure and output remain separate.
+- [x] Add runtime-authored `libdxfrw_table_original_reference_targets`: **408**
+  revision/encoding/scope/form profiles and **816** original target-file marker
+  checks; **66** missing/null/kind/producer/cell-block refusal/corrections;
+  **12** TABLESTYLE/FIELD replay-only target refusals despite `rawTypedMatched`;
+  **six** duplicate-ID refusals, **six** bounded mutual-reference controls,
+  **132** immutable/control-block/cross-import refusals, **36** exact/one-under
+  row/byte/work boundaries and **594** corrected imports. A finite384-offset
+  allocation schedule reaches **222** failures; **162** unreached offsets are
+  not failure evidence or exhaustive allocation coverage. All drawing recipes
+  are authored locally; no external drawing payload/derivative is committed.
+- [x] Retain and resolve development evidence. The new compile warning was a
+  misleading-indentation diagnostic in a test counter; fix the code and retain
+  `-Werror`. An initial duplicate-ID control incorrectly expected hard import
+  failure; the diagnostic confirms actual tolerant import plus unqualified
+  namespace/source readiness. Correct the control to that existing contract,
+  retaining its red runs and requiring zero target/output qualification. Keep
+  original callback/report time limits and prior positive controls unchanged.
+- [x] All eight affected targets build normally and with Debug/`-O1`/ASan,
+  including the LibreCAD_3 compile-only guard. Exact affected cohorts pass **45/45
+  normally in57.02s**, then **45/45 under ASan in38.97s**, with two workers and
+  zero failures/skips/disabled tests. Include all36 owning TABLE selectors and
+  nine affected inventory/legacy/consumer/CLI/graph checks, preserving the prior44
+  names/order and adding only this selector. Registered selected names/order and
+  executed sets match; all five Value/inventory/CELLSTYLEMAP/reference counter
+  lines agree across configurations. Final frozen source hashes stay unchanged
+  through both runtimes; builds finish before final runtime, and normal runtime
+  finishes before ASan. The final focused owning selector previously passed
+  in5.10s. Coverage, warnings and limits are unchanged. These are affected checks,
+  not full-suite, formal ABI/native application or controlled performance proof.
+
+The [receipt](docs/research/rpp5fc-original-table-handle-target-origins-2026-10-26.json)
+records exact sources/log hashes, selected names/statuses/counters, failure
+evidence, runtime order, source references and limits. Only the separate Debug/O1
+ASan build is claimed; the pre-existing Debug/O0 configuration is unchanged.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Rich-resource and symbol original producer proof.** The actual
+   TABLESTYLE/FIELD replay-only negatives demonstrate the immediate missing
+   prerequisite. Add an opted-in borrowed original publication view around the
+   existing typed/raw callbacks for TABLESTYLE, FIELD, XRECORD, DATALINK and other
+   relevant DB objects. Observe original cursor/state and exact model/raw pointers
+   before staging/copies; freeze paired owners with same-import physical record
+   origins, and keep established callback order/raw suppression/exception lifetime.
+   Do not add pure DRW_Interface virtuals or facade/model layout state. Extend
+   original symbol pair/origin evidence for STYLE/LTYPE and required APPID/LAYER
+   dependencies. Cover copied/dropped/duplicate/mutated callbacks, pending state,
+   ambiguous identities, version/encoding/scope, budgets/faults and corrected retries.
+   Feed only these original certificates into the new target audit; `rawTypedMatched`
+   or name/handle equality alone remains insufficient.
+2. [ ] **Complete TABLE dependency semantics.** Close required/absent role
+   presence, block names and nested INSERT, STYLE/APPID/LAYER/application/proxy/
+   codepage/owner roles, selected-reactor/IMAGE/document joins, target-to-target
+   graphs and role-specific cycles. Check original/live/edited/emitted targets,
+   aliases and cross-imports. A source target-origin row is not general support
+   qualification or proof that that target's own references can be emitted.
+3. [ ] **Value output and row/border overrides.** After complete original
+   field/target proof, verify independent emitted fields, remapping/readback,
+   edits and refusal/rollback/retry/destination safety. Establish actual producer/
+   version scope/order before title/header/data formats, units and borders.
+   Keep date epoch, native point counts and General semantics unguessed.
+4. [ ] **Full B2b/B3/C, consumers and external qualification.** Finish remaining
+   native bit/decimal/carrier/schema/owner, memory/performance and document/IMAGE
+   obligations. Preserve LibreCAD/LibreCAD_3 2D/3D and dwg2dxf/FreeCAD behavior.
+   Obtain native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel
+   evidence. Keep fast owning checks per edit, affected cohorts at integration,
+   separate final runtimes from builds, retain failures, self-update/unblock/
+   commit/report each verified slice, and commit no external fixtures/derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the support
+ledger **CLOSED**, `ownerTargetsResolved=false` and `outputEligible=false`.
+Selected original TABLE handle-target origins can match; absent roles, other
+producer families/common/name references, recursive/live/output semantics and
+whole-document/native qualification remain incomplete. J256/J260/J268/J284/J293/
+J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
+ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full objective
+remains active and incomplete; no remote mutation is included.

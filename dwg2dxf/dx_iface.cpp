@@ -20724,6 +20724,148 @@ bool dx_iface::hasMatchedTableSource(const dx_data& data,const std::shared_ptr<c
         &&same(body->entitiesDelivery,s.entitiesDeliveries[p.section].delivery)&&same(p.context,s.entitiesDeliveries[p.section].context);
 }
 
+void dx_iface::finishTableReferences(dx_data& data) noexcept {
+    using A=dx_data::TableDxfSourceCapture::TableReferenceAudit;using S=A::State;using R=A::Reason;
+    using Role=dx_attdef_source::Role;using I=DRW_DxfIdentitySource;
+    auto& s=data.m_tableDxfSource;if(s.tableReferenceCaptureFailed)return;
+    const auto selected=[](Role role){return role==Role::TableStyle||role==Role::TableGeometryBlock||role==Role::TableCellBlock
+        ||role==Role::TableCellField||role==Role::TableCellAttributeDefinition||role==Role::TableValueObject;};
+    try {
+        std::size_t groups=0u,candidates=s.structuralAudits.size(),bytes=sizeof(A)+32u*sizeof(void*),work=256u;
+        for(const auto& item:s.tableBodies)if(!item.second||item.second->profiles.empty()
+            ||!addAssociativeRetainedBytes(item.second->profiles.front().spans.size(),groups)){s.tableReferenceCaptureFailed=true;return;}
+        if(!addAssociativeRetainedBytes(s.layoutAudits.size(),candidates)
+            ||(s.entitiesRoleAudit&&!addAssociativeRetainedBytes(s.entitiesRoleAudit->rows.size(),candidates))
+            ||(s.blockRoleAudit&&!addAssociativeRetainedBytes(s.blockRoleAudit->rows.size(),candidates))
+            ||!addAssociativeSlotBytes(groups,128u,work)||!addAssociativeSlotBytes(candidates,128u,work)
+            ||work>s.maxTableReferenceWork){s.tableReferenceCaptureFailed=true;return;}
+        // Charge the linear inventory pass before examining individual spans.
+        s.tableReferenceWork=work;std::size_t rows=0u;
+        for(const auto& item:s.tableBodies)for(const auto& span:item.second->profiles.front().spans)if(selected(span.role)) {
+            if(rows>=s.maxTableReferenceRows){s.tableReferenceCaptureFailed=true;return;}++rows;
+        }
+        if(!addAssociativeSlotBytes(rows,sizeof(A::Row),bytes)
+            ||!addAssociativeSlotBytes(candidates,sizeof(A::Target)+sizeof(std::uint32_t)+8u*sizeof(void*),bytes)
+            ||!addAssociativeSlotBytes(s.tableBodies.size(),sizeof(std::shared_ptr<const TableBody>),bytes)
+            ||bytes>s.maxTableReferenceBytes||!addAssociativeRetainedBytes(bytes,work)||work>s.maxTableReferenceWork) {
+            s.tableReferenceCaptureFailed=true;return;
+        }
+        s.tableReferenceBytes=bytes;s.tableReferenceWork=work;
+        auto audit=std::make_shared<A>();audit->container=&data;audit->generation=s.generation;audit->containerId=data.m_entitiesContainerIdentity.value;
+        audit->identity=s.identityInput;audit->identities=s.identityAudit;audit->entities=s.entitiesRoleAudit;audit->blocks=s.blockRoleAudit;
+        audit->tables.reserve(s.tableBodies.size());audit->rows.reserve(rows);
+        for(const auto& item:s.tableBodies)audit->tables.push_back(item.second);
+        const auto save=[&](S state){audit->state=state;s.tableReferenceAudit=std::move(audit);s.tableReferenceOwner=s.tableReferenceAudit;};
+        if(s.tableBodies.empty()){save(s.tableInputs.empty()?S::NoTables:S::SourceNotReady);return;}
+        const auto body=tableBodyReport(data);
+        if(!body.modeledMatched||!body.profilesMatched||identitySourceReport(data).state!=IdentitySourceState::NamespaceReady) {save(S::SourceNotReady);return;}
+        const auto structural=structuralSourceReport(data);const auto layout=layoutSourceReport(data);
+        const auto entities=entitiesRoleReport(data);const auto blocks=blockRoleReport(data);
+        if(structural.state==StructuralSourceState::ContextMismatch||layout.state==LayoutSourceState::ContextMismatch
+            ||entities.state==EntitiesRoleState::ContextMismatch||blocks.state==BlockRoleState::ContextMismatch) {save(S::ContextMismatch);return;}
+        const auto& source=*audit->identity->source;
+        const auto add=[&](std::uint32_t handle,A::Target target) {
+            const auto id=audit->identities->identities.find(handle);
+            if(!handle||id==audit->identities->identities.end()||id->second>=source.records.size()||id->second!=target.physical)return;
+            const auto inserted=audit->targets.emplace(handle,std::move(target));if(!inserted.second)inserted.first->second.ambiguous=true;
+        };
+        if(structural.state!=StructuralSourceState::CaptureFailed)for(const auto& item:s.structuralAudits) {
+            const auto& a=item.second;if(!a||!a->originBound||!a->bodyMatched||!a->stateComplete||!a->input||!a->input->paired)continue;
+            A::Target target;target.provider=A::Provider::Structural;target.physical=a->physical;target.structural=a;add(item.first,std::move(target));
+        }
+        if(layout.state!=LayoutSourceState::CaptureFailed)for(const auto& item:s.layoutAudits) {
+            const auto& a=item.second;if(!a||a->state!=dx_data::TableDxfSourceCapture::LayoutAudit::State::Matched)continue;
+            const auto id=audit->identities->identities.find(item.first);if(id==audit->identities->identities.end()||id->second>=source.records.size())continue;
+            const auto& p=source.records[id->second];if(p.kind!=I::Kind::Object||!asciiIdentifierEquals(p.name,"LAYOUT"))continue;
+            A::Target target;target.provider=A::Provider::Layout;target.physical=id->second;target.layout=a;add(item.first,std::move(target));
+        }
+        if(audit->entities&&entities.state!=EntitiesRoleState::CaptureFailed&&entities.state!=EntitiesRoleState::SourceNotReady)
+            for(const auto& row:audit->entities->rows)if(row.reason==dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason::Matched) {
+                A::Target target;target.provider=A::Provider::Entities;target.physical=row.physical;target.block=row.block;add(row.self,std::move(target));
+            }
+        if(audit->blocks&&blocks.state!=BlockRoleState::CaptureFailed&&blocks.state!=BlockRoleState::SourceNotReady)
+            for(const auto& row:audit->blocks->rows)if(row.reason==dx_data::TableDxfSourceCapture::BlockRoleAudit::Reason::Matched) {
+                A::Target target;target.provider=A::Provider::Blocks;target.physical=row.physical;target.block=row.block;add(row.self,std::move(target));
+            }
+        bool complete=true;
+        for(const auto& table:audit->tables) {
+            const auto& physical=table->source->inBlock?table->source->blockPhysical->records[table->first]:table->entitiesPhysical->records[table->first];
+            std::uint32_t cellBlock=0u;
+            for(const auto& span:table->profiles.front().spans) {
+                if(span.code==171&&span.field==dx_attdef_source::Field::TableCell)cellBlock=0u;
+                if(!selected(span.role))continue;
+                A::Row row;row.table=table->source->model->handle;row.target=static_cast<std::uint32_t>(span.handle);row.group=span.groupIndex;row.role=span.role;
+                if(span.groupIndex>=physical.groups.size()){save(S::ContextMismatch);return;}
+                if(span.role==Role::TableCellBlock)cellBlock=row.target;row.cellBlock=cellBlock;
+                if(!row.target)row.reason=span.role==Role::TableValueObject?R::NullValue:R::NullRequired;
+                else {
+                    const auto id=audit->identities->identities.find(row.target);
+                    if(id==audit->identities->identities.end())row.reason=R::MissingTarget;
+                    else {
+                        row.physical=id->second;const auto& target=source.records[id->second];
+                        const bool block=span.role==Role::TableGeometryBlock||span.role==Role::TableCellBlock;
+                        const bool kind=span.role==Role::TableValueObject
+                            ||(block&&target.kind==I::Kind::TableRecord&&asciiIdentifierEquals(target.name,"BLOCK_RECORD"))
+                            ||(span.role==Role::TableStyle&&target.kind==I::Kind::Object&&asciiIdentifierEquals(target.name,"TABLESTYLE"))
+                            ||(span.role==Role::TableCellField&&target.kind==I::Kind::Object&&asciiIdentifierEquals(target.name,"FIELD"))
+                            ||(span.role==Role::TableCellAttributeDefinition&&target.kind==I::Kind::Entity&&asciiIdentifierEquals(target.name,"ATTDEF"));
+                        const auto proof=audit->targets.find(row.target);
+                        if(!kind)row.reason=R::WrongKind;
+                        else if(proof==audit->targets.end())row.reason=R::OriginalTargetUnavailable;
+                        else if(proof->second.ambiguous)row.reason=R::AmbiguousOrigin;
+                        else if(proof->second.physical!=row.physical)row.reason=R::OriginalTargetUnavailable;
+                        else if(span.role==Role::TableCellAttributeDefinition&&(!cellBlock||proof->second.block!=cellBlock))row.reason=R::WrongCellBlock;
+                        else row.reason=R::Matched;
+                    }
+                }
+                complete=complete&&(row.reason==R::Matched||row.reason==R::NullValue);audit->rows.push_back(row);
+            }
+        }
+        save(audit->rows.empty()?S::NoReferences:complete?S::ReferencesReady:S::Unqualified);
+    }catch(...){s.tableReferenceCaptureFailed=true;}
+}
+
+dx_iface::TableReferenceReport dx_iface::tableReferenceReport(const dx_data& data) noexcept {
+    using A=dx_data::TableDxfSourceCapture::TableReferenceAudit;using S=A::State;using R=A::Reason;TableReferenceReport r;
+    const auto& s=data.m_tableDxfSource;r.bytes=s.tableReferenceBytes;r.work=s.tableReferenceWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
+    if(s.tableReferenceCaptureFailed){r.state=S::CaptureFailed;return r;}const auto& a=s.tableReferenceAudit;if(!a)return r;
+    const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
+    if(!same(a,s.tableReferenceOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
+        ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)||!same(a->entities,s.entitiesRoleAudit)||!same(a->blocks,s.blockRoleAudit)
+        ||a->tables.size()!=s.tableBodies.size()){r.state=S::ContextMismatch;return r;}
+    std::size_t index=0u;for(const auto& table:s.tableBodies)if(!same(table.second,a->tables[index++])){r.state=S::ContextMismatch;return r;}
+    const auto identity=identitySourceReport(data);const auto structural=structuralSourceReport(data);const auto layout=layoutSourceReport(data);
+    const auto entities=entitiesRoleReport(data);const auto blocks=blockRoleReport(data);const auto body=tableBodyReport(data);
+    if(identity.state==IdentitySourceState::ContextMismatch||structural.state==StructuralSourceState::ContextMismatch||layout.state==LayoutSourceState::ContextMismatch
+        ||entities.state==EntitiesRoleState::ContextMismatch||blocks.state==BlockRoleState::ContextMismatch||body.state==TableBodyState::ContextMismatch){r.state=S::ContextMismatch;return r;}
+    for(const auto& item:a->targets) {
+        const auto& target=item.second;
+        if(target.structural) {const auto found=s.structuralAudits.find(item.first);
+            if(found==s.structuralAudits.end()||!same(target.structural,found->second)){r.state=S::ContextMismatch;return r;}}
+        if(target.layout) {const auto found=s.layoutAudits.find(item.first);
+            if(found==s.layoutAudits.end()||!same(target.layout,found->second)){r.state=S::ContextMismatch;return r;}}
+    }
+    if(a->state!=S::NoTables&&a->state!=S::SourceNotReady
+        &&(identity.state!=IdentitySourceState::NamespaceReady||!body.modeledMatched||!body.profilesMatched
+            ||structural.state==StructuralSourceState::CaptureFailed||layout.state==LayoutSourceState::CaptureFailed
+            ||entities.state==EntitiesRoleState::CaptureFailed||blocks.state==BlockRoleState::CaptureFailed
+            ||entities.state==EntitiesRoleState::SourceNotReady||blocks.state==BlockRoleState::SourceNotReady)){r.state=S::SourceNotReady;return r;}
+    r.state=a->state;r.tables=a->tables.size();r.references=a->rows.size();r.targets=a->targets.size();
+    for(const auto& row:a->rows) {
+        const bool matched=row.reason==R::Matched||row.reason==R::NullValue;
+        if(matched)++r.matched;else if(!r.firstTable){r.firstTable=row.table;r.firstTarget=row.target;}
+        if(row.role==dx_attdef_source::Role::TableValueObject){++r.values;if(matched)++r.matchedValues;}
+        switch(row.reason) {case R::Matched:break;case R::NullValue:++r.nullValues;break;case R::NullRequired:++r.nullRequired;break;
+        case R::MissingTarget:++r.missing;break;case R::WrongKind:++r.wrongKind;break;case R::OriginalTargetUnavailable:++r.unavailable;break;
+        case R::AmbiguousOrigin:++r.ambiguous;break;case R::WrongCellBlock:++r.wrongCellBlock;break;}
+    }
+    r.sourceTargetsMatched=r.state==S::ReferencesReady&&r.references&&r.references==r.matched;
+    r.valueSourceTargetsMatched=(r.state==S::ReferencesReady||r.state==S::Unqualified)&&r.values&&r.values==r.matchedValues;return r;
+}
+
 bool dx_iface::chargeTableSource(
         std::size_t bytes, std::size_t groups, std::size_t records) noexcept {
     if (!cData) return false;
@@ -20946,6 +21088,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     }
     if(source.successful)finishDxfBlockOriginAudits(data);
     if(source.successful)finishBlockRoleAudit(data);
+    if(source.successful)finishTableReferences(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {

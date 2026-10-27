@@ -59,6 +59,19 @@ public:
         bool modeledMatched{false},profilesMatched{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static TableBodyReport tableBodyReport(const dx_data&) noexcept;
+    using TableReferenceState=dx_data::TableDxfSourceCapture::TableReferenceAudit::State;
+    using TableReferenceReason=dx_data::TableDxfSourceCapture::TableReferenceAudit::Reason;
+    struct TableReferenceReport {
+        TableReferenceState state{TableReferenceState::NotCaptured};
+        std::size_t tables{0},references{0},matched{0},nullValues{0},values{0},matchedValues{0},targets{0},bytes{0},work{0};
+        std::size_t missing{0},wrongKind{0},unavailable{0},ambiguous{0},wrongCellBlock{0},nullRequired{0};
+        std::uint32_t firstTable{0},firstTarget{0};
+        // Original origins of the six inventoried TABLE handle roles. Absent
+        // roles, target dependencies, common/name roles, edits and output
+        // require separate qualification; this is not full TABLE closure.
+        bool sourceTargetsMatched{false},valueSourceTargetsMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static TableReferenceReport tableReferenceReport(const dx_data&) noexcept;
     using BlockRoleState=dx_data::TableDxfSourceCapture::BlockRoleAudit::State;
     struct BlockRoleReport {
         BlockRoleState state{BlockRoleState::NotCaptured};
@@ -1684,6 +1697,7 @@ private:
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;
     void finishTableBodies(dx_data&) noexcept;
+    void finishTableReferences(dx_data&) noexcept;
     bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
     static bool sameTableBodyModel(const DRW_Table&,const DRW_Table&,DRW::Version) noexcept;
     static bool hasMatchedTableSource(const dx_data&,const std::shared_ptr<const TableBody>&) noexcept;

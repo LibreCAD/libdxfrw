@@ -1444,6 +1444,31 @@ private:
         std::size_t blockRoleBytes{0},blockRoleWork{0};
         std::size_t maxBlockRoleBytes{64u*1024u*1024u},maxBlockRoleWork{64u*1024u*1024u};
         bool blockRoleCaptureFailed{false};
+        struct TableReferenceAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoTables,NoReferences,ReferencesReady,Unqualified};
+            enum class Reason {Matched,NullValue,NullRequired,MissingTarget,WrongKind,OriginalTargetUnavailable,AmbiguousOrigin,WrongCellBlock};
+            enum class Provider {Structural,Layout,Entities,Blocks};
+            struct Target {
+                Provider provider{Provider::Structural};std::size_t physical{DRW_DxfIdentitySource::None};
+                std::uint32_t block{0};bool ambiguous{false};
+                std::shared_ptr<const StructuralAudit> structural;
+                std::shared_ptr<const LayoutAudit> layout;
+            };
+            struct Row {
+                std::uint32_t table{0},target{0},cellBlock{0};std::size_t group{0},physical{DRW_DxfIdentitySource::None};
+                dx_attdef_source::Role role{dx_attdef_source::Role::None};Reason reason{Reason::OriginalTargetUnavailable};
+            };
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
+            std::shared_ptr<const EntitiesRoleAudit> entities;std::shared_ptr<const BlockRoleAudit> blocks;
+            std::vector<std::shared_ptr<const TableBody>> tables;
+            std::map<std::uint32_t,Target> targets;
+            std::vector<Row> rows;
+        };
+        std::shared_ptr<const TableReferenceAudit> tableReferenceAudit,tableReferenceOwner;
+        std::size_t tableReferenceBytes{0},tableReferenceWork{0};
+        std::size_t maxTableReferenceBytes{64u*1024u*1024u},maxTableReferenceWork{64u*1024u*1024u},maxTableReferenceRows{200000u};
+        bool tableReferenceCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

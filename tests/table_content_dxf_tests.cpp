@@ -140,6 +140,20 @@ public:
     static const auto& tableInputs(const dx_data& data){return data.m_tableDxfSource.tableInputs;}
     static const auto& tableTypedInputs(const dx_data& data){return data.m_tableDxfSource.tableTypedInputs;}
     static const auto& tableBodies(const dx_data& data){return data.m_tableDxfSource.tableBodies;}
+    static const auto& tableReferences(const dx_data& data){return data.m_tableDxfSource.tableReferenceAudit;}
+    static void repeatTableReferences(dx_iface& reader,dx_data& data) {
+        auto& s=data.m_tableDxfSource;s.tableReferenceAudit.reset();s.tableReferenceOwner.reset();s.tableReferenceBytes=s.tableReferenceWork=0u;s.tableReferenceCaptureFailed=false;
+        reader.finishTableReferences(data);
+    }
+    static void tableReferenceLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;if(which==0u)s.maxTableReferenceRows=n;else if(which==1u)s.maxTableReferenceBytes=n;else s.maxTableReferenceWork=n;
+    }
+    static void substituteTableReferences(dx_data& data,bool alias) {
+        auto& p=data.m_tableDxfSource.tableReferenceAudit;
+        if(alias)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});
+        else p=std::make_shared<const dx_data::TableDxfSourceCapture::TableReferenceAudit>(*p);
+    }
+    static void transplantTableReferences(dx_data& data,const dx_data& other){data.m_tableDxfSource.tableReferenceAudit=other.m_tableDxfSource.tableReferenceAudit;}
     static void removeTableBody(dx_data& data){data.m_tableDxfSource.tableBodies.erase(0x501u);}
     static bool sameTableBody(const DRW_Table& a,const DRW_Table& b){return dx_iface::sameTableBodyModel(a,b,DRW::AC1032);}
     static void tableBodyLimit(dx_data& data,unsigned which,std::size_t n) {
@@ -1541,6 +1555,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "table_export_reuse_controls.h"
 #include "table_value_payload_controls.h"
 #include "table_value_profile_controls.h"
+#include "table_reference_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3069,6 +3084,7 @@ int main(int argc,char** argv) {
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
     const bool tableValueProfiles=argc==2 && std::string(argv[1])=="--table-value-profiles";
+    const bool tableReferences=argc==2 && std::string(argv[1])=="--table-references";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -3077,12 +3093,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }
