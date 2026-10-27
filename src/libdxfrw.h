@@ -1076,6 +1076,19 @@ public:
      * state or vtable slot. Existing resource-view kinds/contract are unchanged.
      * This is original publication transport, not graph/output qualification. */
     bool getDxfPlotStyleSourceView(DxfPlotStyleSourceView&) const noexcept;
+    struct DxfViewUcsSourceView {
+        enum class Kind : std::uint8_t {None,View,Ucs};
+        enum class Phase : std::uint8_t {None=0,Typed=1,Source=3};
+        Kind kind{Kind::None};Phase phase{Phase::None};
+        const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* source{nullptr};
+        bool originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+        bool originalPayloadComplete{false};
+    };
+    /** Borrowed actual opted-in VIEW/UCS source/typed pair, including original
+     * pre-staging common state. Pointers expire on return/throw; false clears
+     * the view elsewhere. No facade state/vtable changes or legacy resource
+     * kind extension. Publication alone is not target/semantic/output proof. */
+    bool getDxfViewUcsSourceView(DxfViewUcsSourceView&) const noexcept;
     /** Actual legacy raw-callback delivery, only inside a non-root dictionary
      * source callback. False clears delivered outside that exact publication.
      * This distinguishes fixed-handle suppression from an adapter dropping a

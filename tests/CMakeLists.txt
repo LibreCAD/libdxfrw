@@ -722,6 +722,10 @@ add_test(NAME libdxfrw_original_layout_dependencies
     COMMAND libdxfrw_table_content_dxf_tests --layout-dependencies)
 set_tests_properties(libdxfrw_original_layout_dependencies PROPERTIES
     LABELS "fast;dxf;adapter;source;dependency;layout;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_view_ucs_original_sources
+    COMMAND libdxfrw_table_content_dxf_tests --view-ucs-sources)
+set_tests_properties(libdxfrw_view_ucs_original_sources PROPERTIES
+    LABELS "fast;dxf;adapter;source;dependency;view;ucs;generated" TIMEOUT 30)
 set_tests_properties(libdxfrw_table_value_inventory_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 add_test(NAME libdxfrw_layout_graph_read_contract

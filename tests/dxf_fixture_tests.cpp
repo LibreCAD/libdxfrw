@@ -22467,6 +22467,12 @@ void testViewVportAmbientColorCmc(TestContext& t) {
         DrwObjectEncodeTestAccess::setVportAmbientCmc(
             duplicatedAciIndexVport, dwgColor::ACI, 0u, 250u, {}, {});
         dx_data duplicatedAciIndexSource;
+        // The writer emits the first VPORT row as *ACTIVE. Keep a real active
+        // row before this named metadata witness so the physical name lookup
+        // actually reaches the intended record.
+        DRW_Vport activeVport;
+        activeVport.name = "*ACTIVE";
+        duplicatedAciIndexSource.VPorts.push_back(activeVport);
         duplicatedAciIndexSource.VPorts.push_back(duplicatedAciIndexVport);
         const std::filesystem::path duplicatedAciPath =
             makePath(binary ? "aci-duplicate-index-binary"
@@ -22485,6 +22491,24 @@ void testViewVportAmbientColorCmc(TestContext& t) {
                      && !duplicatedAciTags.hasColor421
                      && !duplicatedAciTags.hasColor431,
                  "VPORT DXF projects a redundant packed ACI reserved-index value");
+        FixtureInterface duplicatedAciImporter;
+        dx_data duplicatedAciReadback;
+        const bool duplicatedAciRead = duplicatedAciExported
+            && duplicatedAciImporter.fileImport(
+                duplicatedAciPath.string(), &duplicatedAciReadback, false);
+        const auto duplicatedAciRow = std::find_if(
+            duplicatedAciReadback.VPorts.begin(),
+            duplicatedAciReadback.VPorts.end(),
+            [](const DRW_Vport& value) {
+                return value.name == "CMC_ACI_DUPLICATED_INDEX";
+            });
+        t.expect(duplicatedAciRead
+                     && duplicatedAciReadback.VPorts.size() == 2u
+                     && duplicatedAciRow != duplicatedAciReadback.VPorts.end()
+                     && duplicatedAciRow->ambientColor == 250u
+                     && duplicatedAciRow->ambientColorRgb == -1
+                     && duplicatedAciRow->ambientColorName.empty(),
+                 "named redundant-ACI VPORT survives physical output and readback");
 
         dwgBufferW refusedDwgBody, refusedDwgStrings, refusedDwgHandles;
         const bool duplicatedAciDwgEncoded =

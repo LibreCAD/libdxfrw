@@ -2,6 +2,7 @@
 #include "intern/dwgbufferw.h"
 #include "intern/dxftablecontent.h"
 #include "intern/dxfblockrecord.h"
+#include "intern/dxfviewucs.h"
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfentitiesdelivery.h"
 #include "test_scratch.h"
@@ -49,6 +50,10 @@ public:
     static void commonMask(DRW_TableEntry& row,std::uint8_t value){row.currCoordMask=value;}
     static bool appIdDxfValid(const DRW_AppId& row){return row.validateDxf();}
     static bool appIdNativeValid(const DRW_AppId& row){return row.validatePayloadFields();}
+    static bool viewDxfValid(const DRW_View& row){return row.validateDxf();}
+    static bool viewNativeValid(const DRW_View& row){return row.validatePayloadFields();}
+    static bool ucsDxfValid(const DRW_UCS& row){return row.validateDxf();}
+    static bool ucsNativeValid(const DRW_UCS& row){return row.validatePayloadFields();}
     static bool styleCode(DRW_Textstyle& row,int code,const std::unique_ptr<dxfReader>& reader){return row.parseCode(code,reader);}
     static void pendingDictionaryEntry(DRW_Dictionary& row) {row.m_pendingEntryName="unfinished";}
     static void nativeBlockLinks(DRW_Block_Record& row,unsigned field) {
@@ -134,6 +139,19 @@ public:
     static const auto& entitiesPending(const dx_data& data) {return data.m_tableDxfSource.entitiesPending;}
     static const auto& layoutInputs(const dx_data& data) {return data.m_tableDxfSource.layoutInputs;}
     static const auto& layoutAudits(const dx_data& data) {return data.m_tableDxfSource.layoutAudits;}
+    static const auto& viewUcs(const dx_data& data){return data.m_tableDxfSource.viewUcsAudit;}
+    static const auto& viewUcsInputs(const dx_data& data){return data.m_tableDxfSource.viewUcsInputs;}
+    static void observeViewUcs(dx_iface& reader,const DRW_TableEntry& model){reader.observeViewUcsSource(&model,nullptr);}
+    static void viewUcsLimit(dx_data& data,unsigned which,std::size_t value){auto& s=data.m_tableDxfSource;
+        if(which==0u)s.maxViewUcsRecords=value;else if(which==1u)s.maxViewUcsGroups=value;else if(which==2u)s.maxViewUcsBytes=value;else s.maxViewUcsWork=value;}
+    static std::size_t viewUcsGroups(const dx_data& data){return data.m_tableDxfSource.viewUcsGroups;}
+    static void repeatViewUcs(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.viewUcsAudit.reset();s.viewUcsOwner.reset();s.viewUcsCaptureFailed=false;
+        s.viewUcsBytes=s.viewUcsInputBytes;s.viewUcsWork=s.viewUcsInputWork;reader.finishViewUcsSources(data);}
+    static void substituteViewUcs(dx_data& data,unsigned which,bool alias){auto& s=data.m_tableDxfSource;
+        const auto change=[&](auto& p){using P=std::decay_t<decltype(p)>;if(alias)p=P(p.get(),[](const auto*){});else p=std::make_shared<const std::remove_const_t<typename P::element_type>>(*p);};
+        if(which==0u)change(s.viewUcsAudit);else change(s.viewUcsInputs.at(0xE701u));}
+    static void transplantViewUcs(dx_data& data,const dx_data& other,bool input){auto& s=data.m_tableDxfSource;const auto& o=other.m_tableDxfSource;
+        if(input)s.viewUcsInputs.at(0xE701u)=o.viewUcsInputs.at(0xE701u);else s.viewUcsAudit=o.viewUcsAudit;}
     static auto& mutableLayoutAudits(dx_data& data) {return data.m_tableDxfSource.layoutAudits;}
     static void substituteLayoutDependencyInput(dx_data& data,bool alias){auto& p=data.m_tableDxfSource.layoutInputs.at(0xA0u).input;
         if(alias)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});else p=std::make_shared<const dx_data::TableDxfSourceCapture::LayoutInput>(*p);}
@@ -167,7 +185,7 @@ public:
     template<class P> static void restorePlotInput(dx_data& data,std::uint32_t id,const P& saved){data.m_tableDxfSource.plotSourceInputs.at(id)=saved;}
     static void dependencyLimit(dx_data& data,unsigned which,std::size_t n){auto& s=data.m_tableDxfSource;if(which==0u)s.maxDependencyRows=n;else if(which==1u)s.maxDependencyBytes=n;else s.maxDependencyWork=n;}
     static void repeatDependencies(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.dependencyAudit.reset();s.dependencyOwner.reset();s.dependencyBytes=s.dependencyWork=s.dependencyRowsReserved=0u;s.dependencyCaptureFailed=false;reader.finishDependencies(data);}
-    template<class N> static const auto& dependencyGroups(const N& n){if(n.resource)return n.resource->input->raw->groups;if(n.structural)return n.structural->input->raw->groups;if(n.plot)return n.plot->input->raw->groups;if(n.layout)return n.layout->input->raw->groups;
+    template<class N> static const auto& dependencyGroups(const N& n){if(n.resource)return n.resource->input->raw->groups;if(n.structural)return n.structural->input->raw->groups;if(n.plot)return n.plot->input->raw->groups;if(n.layout)return n.layout->input->raw->groups;if(n.viewUcs)return n.viewUcs->input->raw->groups;
         if(n.entities){const auto& row=n.entities->rows.at(n.entityRow);return n.entities->scopes.at(row.section)->physical->records.at(row.record).groups;}
         if(n.blocks){const auto& row=n.blocks->rows.at(n.entityRow);const auto& scope=n.blocks->scopes.at(row.scope);
             if(row.endpoint)return (row.physical==scope.first?scope.origin->beginRaw:scope.origin->endRaw)->groups;
@@ -1619,6 +1637,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "table_geometry_dependency_controls.h"
 #include "entity_dependency_controls.h"
 #include "layout_dependency_controls.h"
+#include "viewucs_source_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3157,6 +3176,7 @@ int main(int argc,char** argv) {
     const bool tableGeometryDependencies=argc==2 && std::string(argv[1])=="--table-geometry-dependencies";
     const bool entityDependencies=argc==2 && std::string(argv[1])=="--entity-dependencies";
     const bool layoutDependencies=argc==2 && std::string(argv[1])=="--layout-dependencies";
+    const bool viewUcsSources=argc==2 && std::string(argv[1])=="--view-ucs-sources";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
@@ -3165,12 +3185,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

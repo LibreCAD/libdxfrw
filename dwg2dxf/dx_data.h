@@ -27,6 +27,7 @@
 #include "dx_compound_source_profile.h"
 #include "dx_table_source_profile.h"
 #include "dx_layout_source_profile.h"
+#include "dx_viewucs_source_profile.h"
 
 #include <array>
 #include <atomic>
@@ -197,7 +198,7 @@ enum class dx_source_format : std::uint8_t {
 enum class dx_tableResourceFamily : std::uint8_t {
     TextStyle, LineType, TableStyle, CellStyleMap, Field, DataLink,
     BlockRecord, AppId, Layer, Dictionary, XRecord, AttributeDefinition,
-    Entity, Table, TableContent, TableGeometry, Layout
+    Entity, Table, TableContent, TableGeometry, Layout, View, Ucs
 };
 
 enum class dx_tableResourceRole : std::uint8_t {
@@ -210,7 +211,7 @@ enum class dx_tableResourceRole : std::uint8_t {
     LineTypeName, LayerMaterial, LayerPlotStyle,
     TableStyle, TableGeometryBlock, TableCellBlock, TableCellField,
     TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName, DictionaryDefault,
-    LayoutBlockRecord,LayoutViewport,LayoutNamedUcs,LayoutBaseUcs,LayoutShadePlot,PlotViewName
+    LayoutBlockRecord,LayoutViewport,LayoutNamedUcs,LayoutBaseUcs,LayoutShadePlot,PlotViewName,ViewBackground,ViewLiveSection,ViewSun
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1502,15 +1503,18 @@ private:
         std::size_t plotSourceRecords{0},plotSourceGroups{0},plotSourceBytes{0},plotSourceWork{0};
         std::size_t maxPlotSourceRecords{100000u},maxPlotSourceGroups{4000000u},maxPlotSourceBytes{64u*1024u*1024u},maxPlotSourceWork{128u*1024u*1024u};
         bool plotSourceCaptureFailed{false};
+        struct ViewUcsAudit;
+        struct ViewUcsRecord;
         struct TableReferenceAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoTables,NoReferences,ReferencesReady,Unqualified};
             enum class Reason {Matched,NullValue,NullRequired,MissingTarget,WrongKind,OriginalTargetUnavailable,AmbiguousOrigin,WrongCellBlock};
-            enum class Provider {Structural,Layout,Entities,Blocks,Resource,PlotSource};
+            enum class Provider {Structural,Layout,Entities,Blocks,Resource,PlotSource,ViewUcs};
             struct Target {
                 Provider provider{Provider::Structural};std::size_t physical{DRW_DxfIdentitySource::None};
                 std::uint32_t block{0};bool ambiguous{false};
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const LayoutAudit> layout;
+                std::shared_ptr<const ViewUcsRecord> viewUcs;
                 std::shared_ptr<const ResourceOriginAudit> resource;
                 std::shared_ptr<const PlotSourceRecord> plot;
             };
@@ -1522,6 +1526,7 @@ private:
             std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
             std::shared_ptr<const EntitiesRoleAudit> entities;std::shared_ptr<const BlockRoleAudit> blocks;
             std::shared_ptr<const PlotSourceAudit> plots;
+            std::shared_ptr<const ViewUcsAudit> views;
             std::vector<std::shared_ptr<const TableBody>> tables;
             std::map<std::uint32_t,Target> targets;
             std::vector<Row> rows;
@@ -1530,6 +1535,32 @@ private:
         std::size_t tableReferenceBytes{0},tableReferenceWork{0};
         std::size_t maxTableReferenceBytes{64u*1024u*1024u},maxTableReferenceWork{64u*1024u*1024u},maxTableReferenceRows{200000u};
         bool tableReferenceCaptureFailed{false};
+        struct ViewUcsInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};std::size_t index{0};
+            bool view{false},paired{false},payloadComplete{false};std::pair<bool,std::uint8_t> state;
+            std::shared_ptr<const DRW_TableEntry> model;std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const EntitiesReadContext> context;
+        };
+        struct ViewUcsPending {ViewUcsInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};};
+        struct ViewUcsRecord {
+            std::shared_ptr<const ViewUcsInput> input;dx_viewucs_source::Audit profile;
+            std::size_t physical{DRW_DxfIdentitySource::None};bool bodyMatched{false},originBound{false},stateComplete{false};
+            std::vector<dx_tableResourceReference> references;
+        };
+        struct ViewUcsAudit {
+            enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,SourcesReady,Unqualified};
+            State state{State::SourceNotReady};const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const IdentityInput> identity;std::shared_ptr<const IdentityAudit> identities;
+            std::map<std::uint32_t,std::shared_ptr<const ViewUcsRecord>> records;std::size_t physicalRecords{0};
+        };
+        std::map<std::uint32_t,ViewUcsPending> viewUcsPending;
+        std::map<std::uint32_t,std::shared_ptr<const ViewUcsInput>> viewUcsInputs;
+        std::vector<std::shared_ptr<const ViewUcsInput>> viewUcsInputOwners;
+        std::shared_ptr<const ViewUcsAudit> viewUcsAudit,viewUcsOwner;
+        std::size_t viewUcsRecords{0},viewUcsGroups{0},viewUcsBytes{0},viewUcsWork{0};
+        std::size_t viewUcsInputBytes{0},viewUcsInputWork{0};
+        std::size_t maxViewUcsRecords{100000u},maxViewUcsGroups{4000000u},maxViewUcsBytes{64u*1024u*1024u},maxViewUcsWork{128u*1024u*1024u};
+        bool viewUcsCaptureFailed{false};
         struct DependencyAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoSources,OriginalTargetsMatched,Unqualified};
             enum class Reason {Matched,NullOptional,Inherited,Literal,OriginalTableOwner,MissingTarget,WrongKind,OriginalUnavailable,
@@ -1544,6 +1575,7 @@ private:
                 std::shared_ptr<const StructuralAudit> structural;
                 std::shared_ptr<const PlotSourceRecord> plot;
                 std::shared_ptr<const LayoutAudit> layout;
+                std::shared_ptr<const ViewUcsRecord> viewUcs;
                 std::array<int,3> layoutModes{{-1,-1,-1}};
                 std::array<std::size_t,3> layoutModeGroups{{DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None,DRW_DxfIdentitySource::None}};
                 std::shared_ptr<const TableBody> table;std::size_t tableRecord{0};
@@ -1567,8 +1599,8 @@ private:
             std::shared_ptr<const TableReferenceAudit> targets;
             std::map<std::uint32_t,Node> nodes;
             std::map<std::pair<dx_tableResourceFamily,UTF8STRING>,NamedTarget> names;
-            std::array<std::size_t,5> physicalNames{},backedNames{};
-            std::array<bool,5> nameCensusComplete{};
+            std::array<std::size_t,7> physicalNames{},backedNames{};
+            std::array<bool,7> nameCensusComplete{};
             std::vector<Row> rows;std::size_t unavailableSources{0};
             std::size_t physicalEntityRows{0},backedEntityRows{0},entityReferences{0};
             std::size_t physicalLayoutRows{0},backedLayoutRows{0},layoutReferences{0};

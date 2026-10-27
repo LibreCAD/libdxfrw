@@ -758,6 +758,16 @@ public:
   virtual void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
 };
 
+/** Separate explicit VIEW/UCS source opt-in. Source/typed pairs are published
+ * only after valid ENDTAB. Existing DRW_Interface and symbol/resource facets
+ * retain their callback and kind contracts. Transport is not semantic proof. */
+class DRW_DxfViewUcsSourceHandler {
+public:
+  virtual ~DRW_DxfViewUcsSourceHandler()=default;
+  virtual bool wantsDxfViewUcsSource() const {return false;}
+  virtual void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
+};
+
 /** Opt-in source transport for the first OBJECTS dictionary. Its historical
  * addRawDxfObject suppression is preserved. Selection is latched before reading
  * that record; default false adds no callback or source copy. Delivered after

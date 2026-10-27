@@ -47,6 +47,7 @@
 #include "intern/dxfcompound.h"
 #include "intern/dxftable.h"
 #include "intern/dxflayout.h"
+#include "intern/dxfviewucs.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
@@ -15949,138 +15950,77 @@ bool dxfRW::processVports(){
     return setError(DRW::BAD_READ_TABLES);
 }
 
+namespace {
+template<class Source,class Typed>
+void publishDxfViewUcs(dxfReader& reader,std::uint8_t kind,const DRW_TableEntry& model,
+                      DRW_RawDxfObject& raw,const DxfSymbolOriginalState& state,Source source,Typed typed) {
+    const DRW_RawDxfObject original(std::move(raw));DxfResourcePublication view;
+    view.kind=kind;view.phase=3u;view.model=&model;view.source=&original;view.pendingXdata=state.pendingXdata;
+    view.coordinateMask=state.coordinateMask;view.typedAvailable=true;view.payloadComplete=state.payloadComplete;
+    DxfResourcePublicationScope scope(reader.resourcePublication(),view);source(original);scope.typed();typed();
+}
+}
+
 bool dxfRW::processView(){
     DRW_DBG("dxfRW::processView");
-    int code;
-    std::string_view sectionstr;
-    bool reading = false;
-    DRW_View v;
-    std::vector<DRW_View> pendingViews;
-    std::set<std::uint32_t> seenHandles;
-    const auto publishView = [&]() -> bool {
-        if (!dxfTableEntryComplete(v, reader->getSourceVersion())
-            || !v.validateDxf())
-            return false;
-        if (v.handle != DRW::NoHandle
-            && !seenHandles.insert(v.handle).second)
-            return false;
-        pendingViews.push_back(std::move(v));
-        return true;
+    int code=0;bool reading=false;DRW_View value;dxfViewUcs::Decoder decoder(value);
+    std::vector<DRW_View> pending;std::set<std::uint32_t> handles;
+    auto* handler=dynamic_cast<DRW_DxfViewUcsSourceHandler*>(iface);
+    const bool selected=handler&&handler->wantsDxfViewUcsSource();
+    DRW_RawDxfObject raw;std::vector<DRW_RawDxfObject> sources;std::vector<DxfSymbolOriginalState> states;
+    DxfReadRetainedReservation stateReservation(reader->retainedByteBudget(),0u);
+    const auto finish=[&](){
+        if(!dxfTableEntryComplete(value,reader->getSourceVersion())||!decoder.finish())return false;
+        if(value.handle!=DRW::NoHandle&&!handles.insert(value.handle).second)return false;
+        if(selected){if(states.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!stateReservation.resize((states.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            const auto state=dxfViewUcs::Decoder::observe(value);states.push_back({state.first,state.second,true});raw.handle=value.handle;raw.parentHandle=value.parentHandle;sources.push_back(std::move(raw));}
+        pending.push_back(std::move(value));return true;
     };
-    while (reader->readRec(&code)) {
-        DRW_DBG(code); DRW_DBG("\n");
-        if (code == 0) {
-            if (reading && !publishView())
-                return setError(DRW::BAD_CODE_PARSED);
-            sectionstr = reader->getStringView();
-            DRW_DBG(sectionstr.data()); DRW_DBG("\n");
-            if (dxfKeywordEquals(sectionstr, "VIEW")) {
-                reading = true;
-                v.reset();
-            } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
-                for (const DRW_View &entry : pendingViews)
-                    iface->addView(entry);
-                return true;
-            } else {
-                return setError(DRW::BAD_READ_TABLES);
-            }
-        } else if (reading) {
-            if (!v.parseCode(code, reader)) {
-                return setError(DRW::BAD_CODE_PARSED);
-            }
-        }
+    while(reader->readRec(&code)) {
+        DRW_DBG(code);DRW_DBG("\n");
+        if(code==0){if(reading&&!finish())return setError(DRW::BAD_CODE_PARSED);const auto name=reader->getStringView();DRW_DBG(name.data());DRW_DBG("\n");
+            if(dxfKeywordEquals(name,"VIEW")){reading=true;value.reset();decoder.reset();if(selected){raw={};if(!copyRawDxfCarrierName(raw,std::string(name)))return setError(DRW::BAD_CODE_PARSED);}}
+            else if(dxfKeywordEquals(name,"ENDTAB")){
+                if(selected){if(sources.size()!=pending.size()||states.size()!=pending.size())return setError(DRW::BAD_CODE_PARSED);
+                    for(const auto& source:sources)if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);}
+                for(std::size_t i=0u;i<pending.size();++i){if(selected)publishDxfViewUcs(*reader,11u,pending[i],sources[i],states[i],
+                        [&](const auto& source){handler->addDxfViewUcsSource(pending[i],source);},[&](){iface->addView(pending[i]);});else iface->addView(pending[i]);}return true;
+            }else return setError(DRW::BAD_READ_TABLES);
+        }else if(reading){const bool good=selected?(code==102?captureAndParseRawDxfGroup(raw,code,value):captureRawGroup(raw,code,true)&&decoder.parseCode(code,reader)):decoder.parseCode(code,reader);
+            if(!good)return setError(DRW::BAD_CODE_PARSED);}
     }
     return setError(DRW::BAD_READ_TABLES);
 }
 
 bool dxfRW::processUCS(){
     DRW_DBG("dxfRW::processUCS");
-    int code;
-    std::string_view sectionstr;
-    bool reading = false;
-    DRW_UCS u;
-    std::vector<DRW_UCS> pendingUcs;
-    std::set<std::uint32_t> seenHandles;
-    DRW_UCSOrthoPoint pendingOption;
-    bool hasPendingOption = false;
-    unsigned int optionCoordinateMask = 0;
-    const auto finishOption = [&]() -> bool {
-        if (!hasPendingOption)
-            return true;
-        if (optionCoordinateMask != 0x7u
-            || pendingOption.type < 1 || pendingOption.type > 6
-            || u.orthographicOptions.size()
-                >= DRW_UCS::kMaxOrthographicOptions
-            || !DRW::reserve(
-                u.orthographicOptions,
-                static_cast<int>(u.orthographicOptions.size() + 1u)))
-            return false;
-        if (u.orthographicOptions.empty())
-            u.orthoOrigin = pendingOption.point;
-        u.orthographicOptions.push_back(pendingOption);
-        hasPendingOption = false;
-        optionCoordinateMask = 0;
-        pendingOption = DRW_UCSOrthoPoint{};
-        return true;
+    int code=0;bool reading=false;DRW_UCS value;dxfViewUcs::Decoder decoder(value);
+    std::vector<DRW_UCS> pending;std::set<std::uint32_t> handles;
+    auto* handler=dynamic_cast<DRW_DxfViewUcsSourceHandler*>(iface);
+    const bool selected=handler&&handler->wantsDxfViewUcsSource();
+    DRW_RawDxfObject raw;std::vector<DRW_RawDxfObject> sources;std::vector<DxfSymbolOriginalState> states;
+    DxfReadRetainedReservation stateReservation(reader->retainedByteBudget(),0u);
+    const auto finish=[&](){
+        if(!decoder.finish()||!dxfTableEntryComplete(value,reader->getSourceVersion()))return false;
+        if(value.handle!=DRW::NoHandle&&!handles.insert(value.handle).second)return false;
+        if(selected){if(states.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(DxfSymbolOriginalState)
+                ||!stateReservation.resize((states.size()+1u)*sizeof(DxfSymbolOriginalState)))return false;
+            const auto state=dxfViewUcs::Decoder::observe(value);states.push_back({state.first,state.second,true});raw.handle=value.handle;raw.parentHandle=value.parentHandle;sources.push_back(std::move(raw));}
+        pending.push_back(std::move(value));return true;
     };
-    const auto publishUcs = [&]() -> bool {
-        if (!finishOption()
-            || !dxfTableEntryComplete(u, reader->getSourceVersion())
-            || !u.validateDxf())
-            return false;
-        if (u.handle != DRW::NoHandle
-            && !seenHandles.insert(u.handle).second)
-            return false;
-        pendingUcs.push_back(std::move(u));
-        return true;
-    };
-    while (reader->readRec(&code)) {
-        DRW_DBG(code); DRW_DBG("\n");
-        if (code == 0) {
-            if (reading && !publishUcs())
-                return setError(DRW::BAD_CODE_PARSED);
-            sectionstr = reader->getStringView();
-            DRW_DBG(sectionstr.data()); DRW_DBG("\n");
-            if (dxfKeywordEquals(sectionstr, "UCS")) {
-                reading = true;
-                u.reset();
-                hasPendingOption = false;
-                optionCoordinateMask = 0;
-            } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
-                for (const DRW_UCS &entry : pendingUcs)
-                    iface->addUCS(entry);
-                return true;
-            } else {
-                return setError(DRW::BAD_READ_TABLES);
-            }
-        } else if (reading && code == 71) {
-            if (!finishOption())
-                return setError(DRW::BAD_CODE_PARSED);
-            pendingOption.type = reader->getInt32();
-            pendingOption.point = DRW_Coord{0.0, 0.0, 0.0};
-            hasPendingOption = true;
-            optionCoordinateMask = 0;
-        } else if (reading
-                   && (code == 13 || code == 23 || code == 33)) {
-            if (!hasPendingOption)
-                return setError(DRW::BAD_CODE_PARSED);
-            const unsigned int coordinateBit = code == 13 ? 1u
-                : code == 23 ? 2u : 4u;
-            if ((optionCoordinateMask & coordinateBit) != 0)
-                return setError(DRW::BAD_CODE_PARSED);
-            const double value = reader->getDouble();
-            if (code == 13)
-                pendingOption.point.x = value;
-            else if (code == 23)
-                pendingOption.point.y = value;
-            else
-                pendingOption.point.z = value;
-            optionCoordinateMask |= coordinateBit;
-        } else if (reading) {
-            if (!u.parseCode(code, reader)) {
-                return setError(DRW::BAD_CODE_PARSED);
-            }
-        }
+    while(reader->readRec(&code)) {
+        DRW_DBG(code);DRW_DBG("\n");
+        if(code==0){if(reading&&!finish())return setError(DRW::BAD_CODE_PARSED);const auto name=reader->getStringView();DRW_DBG(name.data());DRW_DBG("\n");
+            if(dxfKeywordEquals(name,"UCS")){reading=true;value.reset();decoder.reset();if(selected){raw={};if(!copyRawDxfCarrierName(raw,std::string(name)))return setError(DRW::BAD_CODE_PARSED);}}
+            else if(dxfKeywordEquals(name,"ENDTAB")){
+                if(selected){if(sources.size()!=pending.size()||states.size()!=pending.size())return setError(DRW::BAD_CODE_PARSED);
+                    for(const auto& source:sources)if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);}
+                for(std::size_t i=0u;i<pending.size();++i){if(selected)publishDxfViewUcs(*reader,12u,pending[i],sources[i],states[i],
+                        [&](const auto& source){handler->addDxfViewUcsSource(pending[i],source);},[&](){iface->addUCS(pending[i]);});else iface->addUCS(pending[i]);}return true;
+            }else return setError(DRW::BAD_READ_TABLES);
+        }else if(reading){const bool good=selected?(code==102?captureAndParseRawDxfGroup(raw,code,value):captureRawGroup(raw,code,true)&&decoder.parseCode(code,reader)):decoder.parseCode(code,reader);
+            if(!good)return setError(DRW::BAD_CODE_PARSED);}
     }
     return setError(DRW::BAD_READ_TABLES);
 }
@@ -27041,6 +26981,13 @@ bool dxfRW::getDxfPlotStyleSourceView(DxfPlotStyleSourceView& out) const noexcep
     if(v.kind==10u?(v.model||v.typedAvailable||v.phase!=2u):(!v.model||!v.typedAvailable))return false;
     out={v.kind==9u?DxfPlotStyleSourceView::Kind::DictionaryWithDefault:DxfPlotStyleSourceView::Kind::Placeholder,
         static_cast<DxfPlotStyleSourceView::Phase>(v.phase),v.model,v.source,v.pendingXdata,v.coordinateMask,v.typedAvailable,v.payloadComplete};return true;
+}
+
+bool dxfRW::getDxfViewUcsSourceView(DxfViewUcsSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;const auto& v=reader->resourcePublication();
+    if((v.kind!=11u&&v.kind!=12u)||(v.phase!=1u&&v.phase!=3u)||!v.model||!v.source||!v.typedAvailable)return false;
+    out={v.kind==11u?DxfViewUcsSourceView::Kind::View:DxfViewUcsSourceView::Kind::Ucs,
+        static_cast<DxfViewUcsSourceView::Phase>(v.phase),v.model,v.source,v.pendingXdata,v.coordinateMask,v.payloadComplete};return true;
 }
 
 bool dxfRW::getDxfDictionaryRawDelivery(bool& delivered) const noexcept {

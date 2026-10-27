@@ -6768,7 +6768,7 @@ bool DRW_UCS::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 71:
         // Group 71 is a repeated orthographic-option type paired with the
-        // following 13/23/33 point. dxfRW::processUCS owns that tuple state;
+        // following 13/23/33 point. The shared DXF decoder owns tuple state;
         // it must not overwrite the distinct scalar group 79 field.
         break;
     case 79:
@@ -6790,6 +6790,10 @@ bool DRW_UCS::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 }
 
 bool DRW_UCS::validatePayloadFields() const {
+    return validatePayloadFields(0x50u);
+}
+
+bool DRW_UCS::validatePayloadFields(unsigned int flagMask) const {
     const auto finiteCoord = [](const DRW_Coord& point) {
         return std::isfinite(point.x) && std::isfinite(point.y)
             && std::isfinite(point.z);
@@ -6801,7 +6805,7 @@ bool DRW_UCS::validatePayloadFields() const {
     return finiteCoord(origin) && finiteCoord(xAxisDirection)
         && finiteCoord(yAxisDirection) && finiteCoord(orthoOrigin)
         && std::isfinite(elevation)
-        && flags >= 0 && (flags & ~0x50) == 0
+        && flags >= 0 && (static_cast<unsigned int>(flags) & ~flagMask) == 0u
         && fitsBitShort(orthoType)
         && orthographicOptions.size() <= kMaxOrthographicOptions
         && dwgSafety::validReactorCount(numReactors)
@@ -6818,7 +6822,7 @@ bool DRW_UCS::validateDxf() const {
     const auto validDxfOption = [](const DRW_UCSOrthoPoint& option) {
         return option.type >= 1 && option.type <= 6;
     };
-    return validatePayloadFields()
+    return validatePayloadFields(0x70u)
         && flags <= std::numeric_limits<std::int16_t>::max()
         && orthoType <= std::numeric_limits<std::int16_t>::max()
         && std::all_of(orthographicOptions.begin(), orthographicOptions.end(),
@@ -7156,6 +7160,10 @@ bool DRW_View::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 }
 
 bool DRW_View::validatePayloadFields() const {
+    return validatePayloadFields(0x51u);
+}
+
+bool DRW_View::validatePayloadFields(unsigned int flagMask) const {
     const auto finite2D = [](const DRW_Coord& point) {
         return std::isfinite(point.x) && std::isfinite(point.y);
     };
@@ -7175,7 +7183,7 @@ bool DRW_View::validatePayloadFields() const {
         && std::isfinite(backClippingPlaneOffset)
         && std::isfinite(twistAngle) && std::isfinite(ucsElevation)
         && std::isfinite(m_brightness) && std::isfinite(m_contrast)
-        && flags >= 0 && (flags & ~0x51) == 0
+        && flags >= 0 && (static_cast<unsigned int>(flags) & ~flagMask) == 0u
         && viewMode >= 0 && (viewMode & ~0x17) == 0
         && renderMode <= std::numeric_limits<std::uint8_t>::max()
         && validUnsignedBitShort(ucsOrthoType)
@@ -7187,7 +7195,7 @@ bool DRW_View::validatePayloadFields() const {
 }
 
 bool DRW_View::validateDxf() const {
-    return validatePayloadFields()
+    return validatePayloadFields(0x71u)
         && validAmbientColorDxfProjection(m_ambientColorCmc,
                                           m_ambientColor, m_ambientColorRgb)
         && flags <= std::numeric_limits<std::int16_t>::max()

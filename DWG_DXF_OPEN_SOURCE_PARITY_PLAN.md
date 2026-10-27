@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fl original LAYOUT dependencies and source modes (2026-10-27; verified selected scope):** actual original LAYOUT bodies now feed scoped references and actual Plot74/Plot76/Layout76 mode evidence. Declaration1, two330 roles, mode-required inputs, inactive uses and derived UCS absence dispositions remain distinct; unsupported active targets and foreign inactive nonzero shade IDs stay unqualified. The authored matrix covers96 profiles,1,968 reference spans,312 reference-to-mode joins,228 corrected imports and384 corrected finalizations. Final affected cohorts pass85/85 normally and85/85 under ASan. Active specialized providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fl-original-layout-dependencies-and-source-modes-2026-10-27) · [receipt](docs/research/rpp5fl-original-layout-dependencies-and-source-modes-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fm original VIEW/UCS providers and DXF flags (2026-10-27; verified selected scope):** actual original source/typed pairs, immutable parser/model/raw/context snapshots, shared bounded replay, independent field/reference inventories and physical TABLES origins now supply selected active LAYOUT view-name/UCS targets. DXF flag32 is preserved while native masks stay unchanged. The authored matrix covers144 profiles,14,544 physical positions,348 corrected imports and384 corrected source finalizations. Final affected cohorts pass89/89 normally and89/89 under ASan, with focused existing UCS controls also passing. A pre-existing ambient test recipe is corrected with additional readback proof. VIEWPORT/rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fm-original-viewucs-target-providers-and-dxf-flags-2026-10-27) · [receipt](docs/research/rpp5fm-original-view-ucs-target-providers-and-dxf-flags-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fl original LAYOUT dependencies and source modes (2026-10-27; verified selected scope):** actual original LAYOUT bodies now feed scoped references and actual Plot74/Plot76/Layout76 mode evidence. Declaration1, two330 roles, mode-required inputs, inactive uses and derived UCS absence dispositions remain distinct; unsupported active targets and foreign inactive nonzero shade IDs stay unqualified. The authored matrix covers96 profiles,1,968 reference spans,312 reference-to-mode joins,228 corrected imports and384 corrected finalizations. Final affected cohorts pass85/85 normally and85/85 under ASan. Active specialized providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fl-original-layout-dependencies-and-source-modes-2026-10-27) · [receipt](docs/research/rpp5fl-original-layout-dependencies-and-source-modes-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fk original entity dependencies and physical census (2026-10-27; verified selected scope):** previously validated primary/compound/ATTDEF/BLOCK boundary sources now supply their own original dependencies, and every physical entity is counted. Immutable producer/body/context owners, original wire-owner values and bounded reference inventories preserve source roles and refuse unsupported records. The authored matrix covers72 profiles,2,016 markers,10,416 reference positions,258 corrected imports and384 corrected finalizations. Final affected cohorts pass84/84 normally and84/84 under ASan; prior dependency markers/reference spans increase without reducing its controls. Full recursive/live/emitted/native and external qualification remains open. [Implementation and next work](#implementation-progress-rpp-5fk-original-entity-dependencies-and-physical-census-2026-10-27) · [receipt](docs/research/rpp5fk-original-entity-dependencies-and-census-2026-10-27.json). No support gate is promoted.
 
@@ -132749,6 +132751,136 @@ Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledge
 **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
 `outputEligible=false`. Selected original LAYOUT reference dispositions can
 match; full field/recursive/live/emitted/whole-document/native qualification is
+incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active and incomplete; no remote
+mutation is included.
+
+## Implementation progress — RPP-5fm original VIEW/UCS target providers and DXF flags (2026-10-27)
+
+State: **verified for selected original VIEW/UCS source/target providers**.
+RPP-5fl is committed as `68fb73a5`. Actual original VIEW/UCS table bodies now
+provide selected active LAYOUT view-name and UCS-handle targets. VIEWPORT,
+VisualStyle/RenderSettings and full recursive/live/emitted/native/external
+qualification remain open. Original source facts do not certify native loading
+or edited/output behavior.
+
+The official [VIEW reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm)
+defines flag32, group72 UCS gating and distinct named/base UCS, background,
+live-section, visual-style and sun references. The [UCS reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1906E8A7-3393-4BF9-BD27-F9AE4352FB8B.htm)
+defines flag32 and repeated71/13/23/33 orthographic option tuples. Its always0
+description of79 and conditional nonzero/base-UCS paragraph do not independently
+qualify native loading; keep that producer/corpus obligation explicit.
+
+- [x] Add a separate opt-in source facet and callback-only borrowed VIEW/UCS
+  view. Retain actual source/typed model/raw identities and original pre-staging
+  common state. Latch selection for the table; expire publication on return or
+  throw and clear false views. Preserve old resource-view kinds1..8, plot-source
+  getters and legacy callback order; add no pure DRW_Interface virtual, facade/
+  installed-model data member or existing vtable slot.
+- [x] Share the existing production UCS tuple grammar with replay; opt-out
+  callbacks keep ordinary decoding without raw/source-state retention. Separate
+  DXF flag masks VIEW0x71/UCS0x70 from unchanged native masks VIEW0x51/UCS0x50.
+  Preserve repeated options and legacy first-point projection, debug markers,
+  ordinary parser refusal rules and record staging.
+- [x] Pin immutable actual source model/raw/common-state/read-context snapshots
+  and pair the real typed callback. Independently inventory original subclasses,
+  scalars and reference roles, then compare bounded replay of all modeled fields.
+  Bind original TABLES record/control/owner origins and census all physical VIEW/
+  UCS rows. Missing/copy/duplicate/unknown providers cannot supply complete names.
+- [x] Join active original LAYOUT plot-view names and UCS handles through those
+  original providers. Preserve conservative ASCII/same-Unicode-spelling lookup,
+  ambiguity, mode-required inputs, original common/XDATA references and actual
+  target kinds. Keep background/live-section/sun and missing specialized source
+  semantics unqualified. No full recursive/ownership/output gate is promoted.
+- [x] Preserve bounded records/groups/bytes/work and check every replay reader
+  budget verdict. Queries allocate nothing in controls. The new source finalizer
+  retains failures separately from ordinary reader acceptance; configured caps
+  and the original Debug/O0 ASan build stay unchanged.
+- [x] Add `libdxfrw_view_ucs_original_sources`: **144** profiles over four
+  revisions, LF/CRLF/binary, ENTITIES/BLOCKS, three flag forms and two option
+  forms. Independently inspect **432** original markers and **14,544** physical
+  scalar/reference positions. Cover **144** live/advisory independence cases,
+  **78** callback/state/throw/opt-out refusals and **90** field/namespace/parser-
+  state controls, including incomplete pre-copy XDATA and malformed UCS tuples.
+- [x] Cover **48** exact/one-under source caps, **36** root/input copy/alias/
+  transplant refusals, **20** public lifetime/latching/default-off cases and
+  **24** optional/case profiles. Verify **16** physical flag output/readbacks
+  over all eight flag combinations and **eight** invalid-flag destination guards
+  with corrected exporter retries. All new drawings are runtime-authored recipes.
+- [x] A finite six-route64-offset source-finalization schedule reaches **384**
+  failures and **384** corrected finalizations. Source/typed observer schedules
+  reach **66** failures with **30** unreached offsets; retain all96 observations.
+  The same adapters complete **348** corrected imports. These are finite schedules,
+  not exhaustive allocator or controlled memory/performance qualification.
+- [x] Retain development failures: a misanchored UCS declaration, incorrect test
+  expectations for a refused UCS345 carrier, an output recipe missing required
+  UCS identity and allocation injection reaching later live retention. Correct
+  each witness/setup without bypassing warnings or relaxing source guards.
+  A mixed-case recipe exposes and fixes a real new origin check using a
+  noncanonical expected keyword. Keep ordinary reader case behavior unchanged.
+- [x] The first wider normal cohort passes **88/89**, exposing an older VPORT
+  ambient test that looks for a named first row after the writer emits it as
+  `*ACTIVE`. Preserve that failure and both initial build receipts. An isolated
+  ASCII/binary probe shows the expected color under the emitted name; the writer
+  and failing recipe spans match committed HEAD. Precede the witness with an
+  active row and add named physical-output/readback assertions. Keep the original
+  metadata/destination/DWG refusal controls; no VPORT production behavior changes.
+- [x] Both final affected builds retain all **11** targets, including LibreCAD_3's
+  compile-only guard. Preserve prior85 test names/order and add the owning selector
+  plus three existing affected core guards. Final cohorts pass **89/89 normally
+  in79.26s**, then **89/89 under Debug/`-O1`/ASan in51.52s**, with two workers and
+  no failures/skips/disabled tests. Names/order/labels/timeouts and executed sets
+  match. All **fifteen** owning counter lines agree; all **fourteen** prior lines
+  stay unchanged. Existing focused UCS orthographic-option controls also pass in
+  both configurations. The **413-file** source/build manifest stays frozen through
+  both final runtimes; both builds and packaging finish before either runtime.
+- [x] Isolated current-source autoreconf/configure/make-dist pass. Both archives
+  include exact shared VIEW/UCS decoder and converter source/profile header
+  hashes, alongside prior helpers. Archive inclusion is not a complete Autotools
+  distribution build. Keep full-suite, formal ABI/native application and controlled
+  RSS/performance qualifications open.
+
+The [receipt](docs/research/rpp5fm-original-view-ucs-target-providers-and-dxf-flags-2026-10-27.json)
+pins sources, selected names/settings/counters, ordering, retained failures,
+compiler configuration, packaging/header hashes and evidence limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete remaining specialized target providers.** Implement actual
+   original VIEWPORT entity source/body/profile origins and VisualStyle/
+   RenderSettings producer pairs. Retain VIEW background/live-section/sun sources,
+   producer/version/corpus evidence and native mode/reference/owner obligations.
+   Preserve publication lifetimes and existing consumer contracts; cover bounds,
+   ambiguity, omission/null, failure, rollback and retries before qualification.
+2. [ ] **Complete remaining original producers and full recursive closure.**
+   Retain other entity/material/reactor/IMAGE/document/control/owner families,
+   omitted dictionary flags, names/application/XDATA and HEADER CEPSNID/CEPSNTYPE.
+   Resolve whole-document ownership, TABLE/linked metadata, native name/collation
+   and required/absent/null/default semantics. Selected original VIEW/UCS target
+   providers do not complete those requirements.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields/names/references/modes and exact emitted
+   fields. Verify handle remapping/readback/refusal/rollback/retry/destination
+   safety. Finish Values, multiple-content attributes, linked-data ownership and
+   producer/version-qualified formats, units and borders. Keep date epoch, native
+   point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Preserve
+   native bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and
+   measured memory/performance obligations. Audit the complete legacy Autotools
+   source/header inventory against CMake before source-release build qualification.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior; obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks,
+   risk-based affected integration and built-target reuse. Freeze compiled
+   sources, finish builds/packaging before normal then ASan runtimes, retain
+   failures/caps and update/unblock/commit/report each verified slice. Commit no
+   external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected original VIEW/UCS sources/targets can match;
+full field/recursive/live/emitted/whole-document/native qualification remains
 incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active and incomplete; no remote

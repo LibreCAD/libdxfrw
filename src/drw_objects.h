@@ -47,6 +47,7 @@ class DxfReadRetainedLease;
 namespace dxfField { class Decoder; }
 namespace dxfBlockRecord { class Decoder; }
 namespace dxfLayout { class Decoder; }
+namespace dxfViewUcs { class Decoder; }
 class dwgBuffer;
 class dwgRW;
 
@@ -210,6 +211,7 @@ class DRW_TableEntry {
   friend class dxfField::Decoder;
   friend class dxfBlockRecord::Decoder;
   friend class dxfLayout::Decoder;
+  friend class dxfViewUcs::Decoder;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 
@@ -3261,6 +3263,7 @@ struct DRW_UCSOrthoPoint {
 
 class DRW_UCS : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfViewUcs::Decoder;
 public:
   DRW_UCS() { reset(); }
 
@@ -3286,6 +3289,7 @@ protected:
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
+  [[nodiscard]] bool validatePayloadFields(unsigned int flagMask) const;
   [[nodiscard]] bool validateDxf() const;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
@@ -3314,6 +3318,7 @@ public:
  */
 class DRW_View : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfViewUcs::Decoder;
 public:
   DRW_View() { reset(); }
 
@@ -3361,6 +3366,7 @@ protected:
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
+  [[nodiscard]] bool validatePayloadFields(unsigned int flagMask) const;
   [[nodiscard]] bool validateDxf() const;
   [[nodiscard]] bool validateDxf(DRW::Version version) const;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,

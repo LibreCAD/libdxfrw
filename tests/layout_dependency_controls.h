@@ -78,7 +78,7 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
             else if(fault==5u){code=330;layoutDependencyHeader(tags,{{102,"{OPAQUE"},{330,"DEAD"},{102,"}"}});reason=R::UnknownRole;}
             else if(fault<=9u){code=6;layoutDependencySet(tags,"AcDbPlotSettings",74,"3");
                 if(fault==6u)layoutDependencyErase(tags,"AcDbPlotSettings",6);else layoutDependencySet(tags,"AcDbPlotSettings",6,fault==7u?"":"LOOKUP");
-                reason=fault<8u?R::NullRequired:R::NameSourceUnavailable;
+                reason=fault<8u?R::NullRequired:R::MissingName;
                 if(fault==9u){layoutDependencyErase(tags,"AcDbPlotSettings",74);layoutDependencyHeader(tags,{{102,"{PLOT_HINT"},{74,"3"},{102,"}"}});reason=R::OriginalUnavailable;}}
             else if(fault<=14u){code=333;layoutDependencySet(tags,"AcDbPlotSettings",76,fault==11u||fault==13u?"5":"4");
                 for(const char* scope:{"AcDbPlotSettings","AcDbLayout"}){if(fault==10u)layoutDependencyErase(tags,scope,333);else layoutDependencySet(tags,scope,333,fault==11u||fault==14u?"0":"40");}
@@ -94,11 +94,12 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
                 const Tags viewport{{0,"VIEWPORT"},{5,"709"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbViewport"},{10,"0"},{20,"0"},{30,"0"},{40,"10"},{41,"10"},{68,"1"},{69,"2"}};tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),viewport.begin(),viewport.end());}
             else if(fault==22u)layoutDependencySet(tags,"AcDbLayout",333,"F00");
             else {code=333;for(const char* scope:{"AcDbPlotSettings","AcDbLayout"})layoutDependencySet(tags,scope,333,"FFFF");}
-            dx_iface reader;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data))return fail(__LINE__);
+            struct CallbackOnlyUcs:dx_iface {bool selected=true;bool wantsDxfViewUcsSource() const override{return selected&&dx_iface::wantsDxfViewUcsSource();}} reader;
+            reader.selected=fault!=20u;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data))return fail(__LINE__);
             if(fault==22u){if(dx_iface::dependencyReport(data).state!=S::SourceNotReady)return fail(__LINE__);++prerequisites;}
             else if(!refusal(data,code,reason)){const auto r=dx_iface::dependencyReport(data);std::cerr<<"LAYOUT refusal fault="<<fault<<" state="<<static_cast<int>(r.state)<<" code="<<code<<" expected="<<static_cast<int>(reason)<<'\n';return fail(__LINE__);}
             if(fault==23u&&A::layoutInputs(data).at(0xA0u).input->model->shadePlotHandle.ref!=0xFFFFu)return fail(__LINE__);
-            if(!retry(reader))return fail(__LINE__);++refusals;
+            reader.selected=true;if(!retry(reader))return fail(__LINE__);++refusals;
         }
         dx_iface reader;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto report=dx_iface::dependencyReport(base);const std::size_t limits[]{report.reservedRows,report.bytes,report.work};

@@ -40,8 +40,18 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler,
-                 public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler {
+                 public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler,
+                 public DRW_DxfViewUcsSourceHandler {
 public:
+    bool wantsDxfViewUcsSource() const override {return tableSourceCaptureOpen();}
+    void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
+    using ViewUcsState=dx_data::TableDxfSourceCapture::ViewUcsAudit::State;
+    struct ViewUcsReport {
+        ViewUcsState state{ViewUcsState::NotCaptured};
+        std::size_t records{0},physical{0},paired{0},bodies{0},origins{0},bytes{0},work{0};
+        bool originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static ViewUcsReport viewUcsSourceReport(const dx_data&) noexcept;
     bool wantsDxfResourceSource() const override;
     bool wantsDxfNamespaceSource() const override;
     void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
@@ -1736,6 +1746,8 @@ private:
     void finishTableBodies(dx_data&) noexcept;
     void finishTableReferences(dx_data&) noexcept;
     void finishDependencies(dx_data&) noexcept;
+    void observeViewUcsSource(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
+    void finishViewUcsSources(dx_data&) noexcept;
     void observeResourceOrigin(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
     void finishResourceOrigins(dx_data&) noexcept;
     void observePlotStyleSource(const DRW_TableEntry*,const DRW_RawDxfObject*) noexcept;
