@@ -1988,9 +1988,9 @@ class DxfBlockEventSink final : public DRW_Interface {
 public:
     explicit DxfBlockEventSink(DRW_Interface& target,dxfBlockDelivery::Capture* delivery=nullptr,
                               DRW_DxfBlockDeliveryHandler* handler=nullptr,DxfBlockPublication* publication=nullptr,
-                              dxfBlockChildren::Capture* children=nullptr,DxfTablePublication* tablePublication=nullptr)
+                              dxfBlockChildren::Capture* children=nullptr,DxfTablePublication* tablePublication=nullptr,DxfViewportPublication* viewportPublication=nullptr)
         :m_target(target),m_delivery(delivery),m_handler(handler),
-         m_publication(publication),m_children(children),m_tablePublication(tablePublication),
+         m_publication(publication),m_children(children),m_tablePublication(tablePublication),m_viewportPublication(viewportPublication),
          m_blockHandle(delivery?delivery->source().blockHandle:0u),m_scopeId(delivery?delivery->source().scopeId:0u){}
 
     void beginDispatch(dxfReader& input) noexcept {
@@ -2168,7 +2168,16 @@ public:
     DRW_BLOCK_EVENT_POINTER(addLeader, DRW_Leader)
     DRW_BLOCK_EVENT_POINTER(addHatch, DRW_Hatch)
     DRW_BLOCK_EVENT_POINTER(addMPolygon, DRW_MPolygon)
-    DRW_BLOCK_EVENT_VALUE(addViewport, DRW_Viewport)
+    void addViewport(const DRW_Viewport& data) override {
+        if(m_failed)return;const auto event=plan(DRW_DxfBlockCallback::addViewport,&data);
+        auto original=m_viewportPublication?*m_viewportPublication:DxfViewportPublication{};
+        const bool published=original.model==&data;original.model=nullptr;
+        try {m_events.emplace_back([this,value=data,original,published,event](DRW_Interface& target) {
+            auto view=original;view.model=published?&value:nullptr;
+            DxfViewportPublicationScope publication(m_viewportPublication,view);
+            invoke(event,&value,nullptr,[&](){target.addViewport(value);});
+        });}catch(...){m_failed=true;}
+    }
     DRW_BLOCK_EVENT_POINTER(addImage, DRW_Image)
     DRW_BLOCK_EVENT_POINTER(addWipeout, DRW_Wipeout)
     DRW_BLOCK_EVENT_POINTER(addPointCloud, DRW_PointCloud)
@@ -2325,6 +2334,7 @@ private:
     DxfBlockPublication* m_publication;
     dxfBlockChildren::Capture* m_children;
     DxfTablePublication* m_tablePublication;
+    DxfViewportPublication* m_viewportPublication;
     const std::uint32_t m_blockHandle;
     const std::uint64_t m_scopeId;
 };
@@ -16374,7 +16384,7 @@ bool dxfRW::processBlock() {
                     DRW_Interface *const previousInterface = iface;
                     DxfBlockEventSink blockEvents(*previousInterface,
                         captureDelivery&&!dropBlock?&deliverySource:nullptr,captureDelivery&&!dropBlock?deliveryHandler:nullptr,
-                        captureDelivery&&!dropBlock?&reader->m_blockPublication:nullptr,captureDelivery&&!dropBlock?&childSource:nullptr,&reader->tablePublication());
+                        captureDelivery&&!dropBlock?&reader->m_blockPublication:nullptr,captureDelivery&&!dropBlock?&childSource:nullptr,&reader->tablePublication(),&reader->m_viewportPublication);
                     m_readingBlockEntities = true;
                     iface = &blockEvents;
                     bool entitiesProcessed = false;
@@ -16980,6 +16990,7 @@ bool dxfRW::processViewport() {
     DRW_DBG("dxfRW::processViewport");
     int code;
     DRW_Viewport vp;
+    dxfCompound::Decoder decoder(vp);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -16988,13 +16999,15 @@ bool dxfRW::processViewport() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!vp.validateDxf())
+            if (!decoder.finish())
                 return setError(DRW::BAD_CODE_PARSED);
+            const auto state=dxfCompound::Decoder::observe(vp);
+            DxfViewportPublicationScope publication(&reader->m_viewportPublication,{&vp,m_readingBlockEntities,state.host.present,state.host.coordinateMask});
             iface->addViewport(vp);
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        if (!vp.parseCode(code, reader)) {
+        if (!decoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -26956,6 +26969,12 @@ bool dxfRW::getDxfTableSourceView(DxfTableSourceView& out) const noexcept {
     out={};if(!m_readTextObservationsActive||!reader)return false;
     const auto& v=reader->tablePublication();if(!v.phase||v.phase>2u||!v.model||!v.source)return false;
     out={static_cast<DxfTableSourceView::Phase>(v.phase),v.model,v.source,v.inBlock};return true;
+}
+bool dxfRW::getDxfViewportSourceView(DxfViewportSourceView& out) const noexcept {
+    out={};if(!m_readTextObservationsActive||!reader)return false;
+    const auto& p=reader->m_viewportPublication;const auto* model=dynamic_cast<const DRW_Viewport*>(p.model);
+    if(!model||model->eType!=DRW::VIEWPORT)return false;
+    out={model,p.inBlock,p.pendingXdata,p.coordinateMask};return true;
 }
 
 bool dxfRW::getDxfStructuralSourceView(DxfStructuralSourceView& out) const noexcept {

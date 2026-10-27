@@ -5653,6 +5653,7 @@ public:
 */
 class DRW_Viewport : public DRW_Point {
     SETENTFRIENDS
+    friend class dxfCompound::Decoder;
 public:
     DRW_Viewport() {
         eType = DRW::VIEWPORT;
@@ -5703,41 +5704,41 @@ public:
     double viewHeight = 0.0;  /*!< View height in model space units, code 45 */
     double snapAngle = 0.0;   /*!< Snap angle, code 50 */
     double twistAngle = 0.0;  /*!< view twist angle, code 51 */
-    std::uint32_t m_sunHandle = 0;    /*!< R2007+ SUN hard-owner ref (DWG-only) */
+    std::uint32_t m_sunHandle = 0;    /*!< R2007+ SUN reference, DXF code 361 */
 
     double gridSpX = 0.0;        /*!< Grid spacing X, code 15 */
     double gridSpY = 0.0;        /*!< Grid spacing Y, code 25 */
-    double circleZoom = 0.0;     /*!< Circle zoom percent, code 46 */
-    int majorGridLines = 0;      /*!< Major grid lines per minor, code 72 */
+    double circleZoom = 0.0;     /*!< Circle zoom percent, code 72 */
+    int majorGridLines = 0;      /*!< Major grid lines per minor, code 61 */
     int statusFlags = 0;         /*!< Status flags, code 90 */
     UTF8STRING styleSheet;       /*!< Style sheet, code 1 */
     int renderMode = 0;          /*!< Render mode, code 281 */
-    bool ucsAtOrigin = false;    /*!< UCS at origin flag, code 71 */
-    bool ucsPerViewport = false; /*!< UCS per viewport flag, code 74 */
+    bool ucsAtOrigin = false;    /*!< UCS at origin flag, code 74 */
+    bool ucsPerViewport = false; /*!< UCS per viewport flag, code 71 */
     DRW_Coord ucsOrigin;         /*!< UCS origin, code 110, 120, 130 */
     DRW_Coord ucsXAxis;          /*!< UCS X axis, code 111, 121, 131 */
     DRW_Coord ucsYAxis;          /*!< UCS Y axis, code 112, 122, 132 */
     double ucsElevation = 0.0;   /*!< UCS elevation, code 146 */
-    int ucsOrthographicType = 0; /*!< UCS orthographic type, code 76 */
-    int shadePlotMode = 0;       /*!< Shade plot mode, code 148 */
+    int ucsOrthographicType = 0; /*!< UCS orthographic type, code 79 */
+    int shadePlotMode = 0;       /*!< Shade plot mode, code 170 */
     bool useDefaultLighting = false;  /*!< Use default lighting, code 292 */
     int defaultLightingType = 0; /*!< Default lighting type, code 282 */
-    double brightness = 0.0;     /*!< Brightness, code 451 */
-    double contrast = 0.0;       /*!< Contrast, code 452 */
+    double brightness = 0.0;     /*!< Brightness, code 141 */
+    double contrast = 0.0;       /*!< Contrast, code 142 */
     std::uint32_t ambientColor = 250; /*!< Ambient CMC color, DWG/DXF code 63 */
     int ambientColorRgb = -1;    /*!< Ambient color RGB, code 421 */
     std::uint8_t ambientColorMethod = 0; /*!< Legacy compatibility field; not DXF code 431 */
     UTF8STRING ambientColorName; /*!< Ambient color-book name, DXF code 431 */
 
-    std::uint32_t vpHeaderHandle = 0;   /*!< Viewport entity header handle, code 331 */
+    std::uint32_t vpHeaderHandle = 0;   /*!< Legacy DWG viewport-header handle; not DXF 331 */
     std::uint32_t clipBoundaryHandle = 0; /*!< Clip boundary handle, code 340 */
     std::uint32_t namedUcsHandle = 0;   /*!< Named UCS handle, code 345 */
     std::uint32_t baseUcsHandle = 0;    /*!< Base UCS handle, code 346 */
     std::uint32_t backgroundHandle = 0; /*!< Background handle, DXF code 332 */
     std::uint32_t visualStyleHandle = 0; /*!< Visual style handle, code 348 */
-    std::uint32_t shadePlotHandle = 0;  /*!< Shade plot handle, code 349 */
+    std::uint32_t shadePlotHandle = 0;  /*!< Shade plot handle, code 333 */
 
-    std::vector<std::uint32_t> frozenLayerHandles; /*!< Frozen layer handles */
+    std::vector<std::uint32_t> frozenLayerHandles; /*!< Frozen layer handles, repeated code 331 */
 
 private:
     std::uint32_t frozenLyCount = 0;

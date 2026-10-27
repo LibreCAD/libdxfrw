@@ -90,14 +90,18 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
             else if(fault==20u){code=345;layoutDependencySet(tags,"AcDbLayout",345,"E701");auto at=slot(tags,2,"TABLES")+1u;while(tags[at].code!=0||tags[at].value!="ENDSEC")++at;
                 const Tags ucs{{0,"TABLE"},{2,"UCS"},{5,"E700"},{330,"0"},{100,"AcDbSymbolTable"},{70,"1"},{0,"UCS"},{5,"E701"},{330,"E700"},{100,"AcDbSymbolTableRecord"},{100,"AcDbUCSTableRecord"},{2,"LOOKUP"},{70,"0"},
                     {10,"0"},{20,"0"},{30,"0"},{11,"1"},{21,"0"},{31,"0"},{12,"0"},{22,"1"},{32,"0"},{79,"0"},{146,"0"},{0,"ENDTAB"}};tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),ucs.begin(),ucs.end());}
-            else if(fault==21u){code=331;layoutDependencySet(tags,"AcDbLayout",331,"709");auto at=slot(tags,2,"ENTITIES")+1u;
+            // This actual VIEWPORT body is now qualified, exposing its model-
+            // space owner as invalid for a last-active paper-space viewport.
+            else if(fault==21u){code=331;reason=R::WrongOwner;layoutDependencySet(tags,"AcDbLayout",331,"709");auto at=slot(tags,2,"ENTITIES")+1u;
                 const Tags viewport{{0,"VIEWPORT"},{5,"709"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbViewport"},{10,"0"},{20,"0"},{30,"0"},{40,"10"},{41,"10"},{68,"1"},{69,"2"}};tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),viewport.begin(),viewport.end());}
             else if(fault==22u)layoutDependencySet(tags,"AcDbLayout",333,"F00");
             else {code=333;for(const char* scope:{"AcDbPlotSettings","AcDbLayout"})layoutDependencySet(tags,scope,333,"FFFF");}
             struct CallbackOnlyUcs:dx_iface {bool selected=true;bool wantsDxfViewUcsSource() const override{return selected&&dx_iface::wantsDxfViewUcsSource();}} reader;
             reader.selected=fault!=20u;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data))return fail(__LINE__);
             if(fault==22u){if(dx_iface::dependencyReport(data).state!=S::SourceNotReady)return fail(__LINE__);++prerequisites;}
-            else if(!refusal(data,code,reason)){const auto r=dx_iface::dependencyReport(data);std::cerr<<"LAYOUT refusal fault="<<fault<<" state="<<static_cast<int>(r.state)<<" code="<<code<<" expected="<<static_cast<int>(reason)<<'\n';return fail(__LINE__);}
+            else if(!refusal(data,code,reason)){const auto r=dx_iface::dependencyReport(data);std::cerr<<"LAYOUT refusal fault="<<fault<<" state="<<static_cast<int>(r.state)<<" code="<<code<<" expected="<<static_cast<int>(reason)<<'\n';
+                if(A::dependencies(data))for(const auto& row:A::dependencies(data)->rows)if(row.source==0xA0u&&row.code==code)std::cerr<<" actual reason="<<static_cast<int>(row.reason)<<'\n';
+                return fail(__LINE__);}
             if(fault==23u&&A::layoutInputs(data).at(0xA0u).input->model->shadePlotHandle.ref!=0xFFFFu)return fail(__LINE__);
             reader.selected=true;if(!retry(reader))return fail(__LINE__);++refusals;
         }

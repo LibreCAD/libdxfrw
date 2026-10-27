@@ -36,11 +36,12 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     const bool footer=dx_block_membership::equal(raw.name,"SEQEND");
     const bool pointRoot=allowPrimary&&dx_block_membership::equal(raw.name,"POINT");
     const bool lineRoot=allowPrimary&&dx_block_membership::equal(raw.name,"LINE");
-    if((!polyline&&!vertex&&!insert&&!footer&&!pointRoot&&!lineRoot)||!raw.handle||(vertex&&!parent))return reject(Reason::Identity,0u);
+    const bool viewportRoot=allowPrimary&&dx_block_membership::equal(raw.name,"VIEWPORT");
+    if((!polyline&&!vertex&&!insert&&!footer&&!pointRoot&&!lineRoot&&!viewportRoot)||!raw.handle||(vertex&&!parent))return reject(Reason::Identity,0u);
     out.spans.reserve(raw.groups.size()); // entire bound precharged by caller
     std::array<bool,1072> seen{};
     std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
-    std::size_t depth=0u,xdepth=0u,proxyBytes=0u;unsigned reserved=0u;
+    std::size_t depth=0u,xdepth=0u,proxyBytes=0u,frozen=0u;unsigned reserved=0u;
     int stage=0,point=0,next=0,flags=0,columns=1,rows=1;std::int64_t proxy=-1;
     bool xdata=false,vertexMarker=false;std::string_view subtype;
     const auto integer=[](const DRW_Variant& v,int lo,int hi){return v.type()==DRW_Variant::INTEGER&&v.i_val()>=lo&&v.i_val()<=hi;};
@@ -98,6 +99,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                     if(insert)known=s=="AcDbBlockReference"||s=="AcDbMInsertBlock";
                     if(pointRoot)known=s=="AcDbPoint";
                     if(lineRoot)known=s=="AcDbLine";
+                    if(viewportRoot)known=s=="AcDbViewport";
                     if(vertex)known=vertexMarker?(s=="AcDb2dVertex"||s=="AcDb3dPolylineVertex"||s=="AcDbPolygonMeshVertex"||s=="AcDbPolyFaceMeshVertex"):s=="AcDbFaceRecord";
                     if(!known)return reject(Reason::Subclass,i);subtype=s;stage=2;
                 }else return reject(Reason::Subclass,i);
@@ -111,7 +113,30 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                 bool body=false;
                 if(stage==2&&!subtype.empty()) {
                     field=Field::Compound;body=true;
-                    if(pointRoot||lineRoot) {
+                    if(viewportRoot) {
+                        field=Field::Primary;
+                        switch(code) {
+                        case 10:case 20:case 30:case 40:case 41:case 12:case 22:case 13:case 23:case 14:case 24:case 15:case 25:
+                        case 16:case 26:case 36:case 17:case 27:case 37:case 42:case 43:case 44:case 45:case 50:case 51:
+                        case 110:case 120:case 130:case 111:case 121:case 131:case 112:case 122:case 132:case 146:case 141:case 142:break;
+                        case 68:if(!integer(v,-1,32767))return reject(Reason::InvalidValue,i);break;
+                        case 69:case 72:case 61:if(!integer(v,0,32767))return reject(Reason::InvalidValue,i);break;
+                        case 90:if(!integer(v,0,0x3FFFFF))return reject(Reason::InvalidValue,i);flags=v.i_val();break;
+                        case 71:case 74:case 292:if(!integer(v,0,1))return reject(Reason::InvalidValue,i);break;
+                        case 281:case 79:if(!integer(v,0,6))return reject(Reason::InvalidValue,i);break;
+                        case 170:if(!integer(v,0,3))return reject(Reason::InvalidValue,i);break;
+                        case 282:if(!integer(v,0,1))return reject(Reason::InvalidValue,i);break;
+                        case 63:if(!integer(v,0,256))return reject(Reason::InvalidValue,i);break;
+                        case 421:if(!integer(v,0,0xFFFFFF))return reject(Reason::InvalidValue,i);break;
+                        case 1:case 431:break;
+                        case 331:seen[331]=false;if(++frozen>512u)return reject(Reason::InvalidValue,i);role=Role::ViewportFrozenLayer;break; // existing parser cap
+                        case 340:role=Role::ViewportClip;break;case 345:role=Role::ViewportNamedUcs;break;case 346:role=Role::ViewportBaseUcs;break;
+                        case 332:role=Role::ViewportBackground;break;case 333:role=Role::ViewportShade;break;case 348:role=Role::ViewportVisualStyle;break;case 361:role=Role::ViewportSun;break;
+                        default:body=false;break;
+                        }
+                        if(body&&handleCode(code)&&(!hexHandle(v,handle)||handle>UINT32_MAX))return reject(Reason::InvalidValue,i);
+                        if(body&&(code==331||code==340)&&!handle)return reject(Reason::InvalidValue,i);
+                    }else if(pointRoot||lineRoot) {
                         field=Field::Primary;
                         switch(code) {
                         case 10:case 20:case 30:case 39:case 210:case 220:case 230:break;
@@ -187,7 +212,14 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
     if(depth)return reject(Reason::Application,end);if(xdepth)return reject(Reason::Xdata,end);if(point)return reject(Reason::IncompletePoint,end);
     if(stage!=(footer?1:2)||!seen[5]||!seen[330]||!seen[8]||(!footer&&subtype.empty()))return reject(Reason::Identity,end);
     if(proxy>=0&&proxyBytes!=static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,end);
-    if(pointRoot||lineRoot) {
+    if(viewportRoot) {
+        const auto triple=[&](int first,bool required){return (!seen[first]&&!seen[first+10]&&!seen[first+20]&&!required)||(seen[first]&&seen[first+10]&&seen[first+20]);};
+        if(!triple(10,true)||!seen[40]||!seen[41]||!seen[68]||!seen[69]||!triple(16,false)||!triple(17,false)
+            ||!triple(110,false)||!triple(111,false)||!triple(112,false))return reject(Reason::IncompletePoint,end);
+        for(int first:{12,13,14,15})if(seen[first]!=seen[first+10])return reject(Reason::IncompletePoint,end);
+        if(((flags&0x10000)!=0)!=seen[340])return reject(Reason::InvalidValue,end);
+        if(seen[346]){bool ortho=false;for(const auto& v:raw.groups)if(v.code()==79&&v.type()==DRW_Variant::INTEGER&&v.i_val()>0)ortho=true;if(!ortho)return reject(Reason::InvalidValue,end);}
+    }else if(pointRoot||lineRoot) {
         if(!pair(10,true)||(lineRoot&&!pair(11,true)))return reject(Reason::IncompletePoint,end);
     }else if(polyline) {
         const auto expected=(flags&64)?"AcDbPolyFaceMesh":(flags&16)?"AcDbPolygonMesh":(flags&8)?"AcDb3dPolyline":"AcDb2dPolyline";

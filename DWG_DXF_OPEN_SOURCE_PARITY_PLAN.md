@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fm original VIEW/UCS providers and DXF flags (2026-10-27; verified selected scope):** actual original source/typed pairs, immutable parser/model/raw/context snapshots, shared bounded replay, independent field/reference inventories and physical TABLES origins now supply selected active LAYOUT view-name/UCS targets. DXF flag32 is preserved while native masks stay unchanged. The authored matrix covers144 profiles,14,544 physical positions,348 corrected imports and384 corrected source finalizations. Final affected cohorts pass89/89 normally and89/89 under ASan, with focused existing UCS controls also passing. A pre-existing ambient test recipe is corrected with additional readback proof. VIEWPORT/rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fm-original-viewucs-target-providers-and-dxf-flags-2026-10-27) · [receipt](docs/research/rpp5fm-original-view-ucs-target-providers-and-dxf-flags-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fn original VIEWPORT targets and Boolean observations (2026-10-27; verified selected scope):** actual callback identities and original pre-staging state now bind selected VIEWPORT bodies, independent fields/references and paper-space LAYOUT targets through existing ENTITIES/BLOCKS origins. A reproduced shared BOOL-observer bug is fixed without changing ordinary Boolean parsing; the existing512 frozen-layer cap is enforced before append. The authored matrix covers72 profiles,4,200 scalar positions,864 reference spans,240 corrected imports and384 corrected dependency finalizations. Final affected cohorts pass90/90 normally and90/90 under ASan; focused existing UCS/VIEWPORT controls also pass. Rendering objects, clipping/layer overrides and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fn-original-viewport-targets-and-boolean-observations-2026-10-27) · [receipt](docs/research/rpp5fn-original-viewport-targets-and-boolean-observations-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fm original VIEW/UCS providers and DXF flags (2026-10-27; verified selected scope):** actual original source/typed pairs, immutable parser/model/raw/context snapshots, shared bounded replay, independent field/reference inventories and physical TABLES origins now supply selected active LAYOUT view-name/UCS targets. DXF flag32 is preserved while native masks stay unchanged. The authored matrix covers144 profiles,14,544 physical positions,348 corrected imports and384 corrected source finalizations. Final affected cohorts pass89/89 normally and89/89 under ASan, with focused existing UCS controls also passing. A pre-existing ambient test recipe is corrected with additional readback proof. VIEWPORT/rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fm-original-viewucs-target-providers-and-dxf-flags-2026-10-27) · [receipt](docs/research/rpp5fm-original-view-ucs-target-providers-and-dxf-flags-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fl original LAYOUT dependencies and source modes (2026-10-27; verified selected scope):** actual original LAYOUT bodies now feed scoped references and actual Plot74/Plot76/Layout76 mode evidence. Declaration1, two330 roles, mode-required inputs, inactive uses and derived UCS absence dispositions remain distinct; unsupported active targets and foreign inactive nonzero shade IDs stay unqualified. The authored matrix covers96 profiles,1,968 reference spans,312 reference-to-mode joins,228 corrected imports and384 corrected finalizations. Final affected cohorts pass85/85 normally and85/85 under ASan. Active specialized providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fl-original-layout-dependencies-and-source-modes-2026-10-27) · [receipt](docs/research/rpp5fl-original-layout-dependencies-and-source-modes-2026-10-27.json). No support gate is promoted.
 
@@ -132880,6 +132882,133 @@ Next implementation-ready sequence (retain the entire original objective):
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledger
 **CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
 `outputEligible=false`. Selected original VIEW/UCS sources/targets can match;
+full field/recursive/live/emitted/whole-document/native qualification remains
+incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active and incomplete; no remote
+mutation is included.
+
+## Implementation progress — RPP-5fn original VIEWPORT targets and Boolean observations (2026-10-27)
+
+State: **verified for selected original VIEWPORT source/target providers**.
+RPP-5fm is committed as `0af93ff8`. Actual original VIEWPORT producers, modeled
+bodies and independent fields/references now join selected original ENTITIES/
+BLOCKS and LAYOUT targets. Rendering-object providers, clipping geometry, layer
+VP overrides and full recursive/live/emitted/native/external qualification
+remain open. Selected original source matches are not native loading proof.
+
+The official [VIEWPORT reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm)
+distinguishes repeated frozen-layer331, conditional clip340, UCS345/346, shade
+170/333 and rendering/light fields. The [common entity reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+keeps identity/owner/common/application fields separate from the viewport body.
+The independent profile refuses unmodeled VP override carriers335/343/344/91
+and legacy46/76/148/451/452 aliases; ordinary parser behavior is retained.
+Those paths need explicit producer/version and semantic implementation work.
+
+- [x] Add a borrowed actual VIEWPORT callback view using internal reader state,
+  with original pre-staging common cursor bits and ENTITIES/BLOCKS scope. The
+  existing deferred BLOCKS event preserves that state and publishes its actual
+  staged value without retaining an expired parser pointer. Restore state on
+  return/throw and clear false queries. Add no callback, raw/source copy,
+  facade/installed-model data member or existing DRW_Interface vtable slot.
+- [x] Reuse the existing physical/delivery/context/origin machinery and shared
+  compound decoder. Admit exact concrete VIEWPORT models and actual callback
+  pointers, independently retain original pre-copy state and compare all modeled
+  viewport/entity/point fields, vectors, strings, handles and legacy/private
+  provenance. Copied callbacks, altered fields and reset copies cannot stand in
+  for the original producer or hide incomplete XDATA.
+- [x] Extend the independent scalar/subclass/reference inventory for modeled
+  VIEWPORT fields, finite values, full selected coordinate tuples, known flags/
+  modes and repeated frozen-layer references. Keep body331 distinct from owner/
+  reactor330 and the legacy DWG viewport-header field. Correct stale public
+  field-code comments; model layout and ordinary decoding remain intact.
+- [x] Resolve frozen layers through actual original LAYER providers and UCS
+  through actual original UCS providers. Keep shade references tied to the actual
+  source170 span/value. Bind LAYOUT331 only to a matched original paper-space
+  VIEWPORT belonging to that same original LAYOUT. Missing original bodies stay
+  unavailable before owner tests; known wrong owners retain a distinct refusal.
+  Nonzero clip/shade/background/sun/rendering targets remain unqualified until
+  their own semantic source/geometry/ownership evidence is complete.
+- [x] Reproduce and fix a shared observer bug: a rich292 record has matching
+  modeled replay, but its physical source variant is a string containing stale
+  prior text. `recordView` now classifies reader BOOL as Integer, preserving its
+  actual value in physical/identity observations. Ordinary Boolean parsing and
+  lexical tolerance stay unchanged. Independently verify true/false values over
+  LF/CRLF/binary; noncanonical Boolean2 remains unqualified.
+- [x] Apply the existing **512** frozen-layer reader cap before reserve/append,
+  rather than waiting for final validation after excess allocation. Keep that
+  implementation bound distinct from a format maximum. Reuse existing source
+  retention/replay budgets and caps; queries remain allocation-free in controls.
+- [x] Add `libdxfrw_viewport_original_sources`: **72** authored profiles over
+  four revisions, three transports, ENTITIES/BLOCKS and three forms. Independently
+  inspect **72** markers, **4,200** scalar positions and **864** reference spans.
+  Cover **72** immutable queries, **72** modeled-field refusals, **120** callback/
+  field/owner controls and **six** original pending-state refusals.
+- [x] Cover **36** exact/one-under body allowances, **six** exact512/excess513
+  frozen-layer routes, **six** callback throw/retries and **12** public callback
+  lifetimes. Same adapters complete **240** corrected imports. A finite six-route
+  64-offset dependency-finalization schedule reaches **384** failures and **384**
+  corrected finalizations, with no unreached offsets. This is not exhaustive
+  allocation coverage or a controlled memory/performance qualification.
+- [x] Preserve development failures and diagnostics. The old LAYOUT test's
+  complete original model-space VIEWPORT now exposes a stronger `WrongOwner`
+  refusal; retain its original body and all controls/counters. Keep missing-body
+  refusal distinct. Final owning selectors pass **3/3 in12.40s**. No external
+  drawing payload, conversion or derivative is introduced.
+- [x] Both affected builds retain all **11** targets, including LibreCAD_3's
+  compile-only guard. Preserve prior89 test names/order and add only the owning
+  selector. Final exact cohorts pass **90/90 normally in82.17s**, then **90/90 under
+  Debug/`-O1`/ASan in52.52s**, with two workers and no failures/skips/disabled tests.
+  Names/order/labels/timeouts and executed sets match. All **sixteen** owning
+  counter lines agree; all **fifteen** prior lines stay unchanged. Existing focused
+  UCS tuple and VIEWPORT typed handle-remapping controls pass in both builds.
+  The **414-file** compiled-source/build manifest stays frozen through both final
+  runtimes. Both builds and packaging finish before either runtime; keep the
+  original Debug/O0 ASan configuration unchanged.
+- [x] Isolated current-source autoreconf/configure/make-dist pass; both archives
+  include exact updated reader/compound decoder and independent profile header
+  hashes, alongside prior helpers. Archive inclusion is not a full Autotools
+  distribution build. Full suite, formal ABI/native application and controlled
+  RSS/performance qualifications remain open.
+
+The [receipt](docs/research/rpp5fn-original-viewport-targets-and-boolean-observations-2026-10-27.json)
+pins sources, exact selected names/settings/counters, ordered runtimes,
+retained failures, compiler configuration, packaging/header hashes and limits.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete actual rendering-object providers.** Implement original
+   VisualStyle/RenderSettings model/raw/state/profile/origin pairs and bind real
+   active LAYOUT/VIEW/VIEWPORT rendering references. Complete background/live-
+   section/sun producers and ownership. Preserve callback lifetimes, existing
+   consumer contracts and bounded failure/retry behavior before qualification.
+2. [ ] **Complete VIEWPORT and remaining original producer semantics.** Implement
+   clipping geometry, layer VP override335/343/344/91 fields/references, qualified
+   legacy aliases and required/absent/null/default semantics. Retain other entity/
+   material/reactor/IMAGE/document/control/owner, omitted dictionary flags,
+   names/application/XDATA and HEADER CEPSNID/CEPSNTYPE work. Finish full recursive/
+   coupled closure, whole-document ownership and native names/collation.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edited fields/names/references/modes and exact emitted
+   fields. Verify handle remapping/readback/refusal/rollback/retry/destination
+   safety. Finish Values, multiple-content attributes, linked-data ownership and
+   producer/version-qualified formats, units and borders. Keep date epoch, native
+   point counts and General semantics unguessed.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Preserve
+   native bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and
+   measured memory/performance obligations. Audit complete legacy Autotools
+   source/header inventory against CMake before source-release build qualification.
+   Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD behavior; obtain native Linux/
+   Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence separately.
+5. [ ] **Continue efficient, self-updating execution.** Use fast owning checks,
+   risk-based affected integration and built-target reuse. Freeze compiled
+   sources, finish builds/packaging before normal then ASan runtimes, retain
+   failures/caps and update/unblock/commit/report each verified slice. Commit no
+   external drawing payloads, conversions or derivatives.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Selected original VIEWPORT sources/targets can match;
 full field/recursive/live/emitted/whole-document/native qualification remains
 incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification

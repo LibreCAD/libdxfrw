@@ -27238,6 +27238,8 @@ bool DRW_Viewport::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         ambientColorDwgMetadataPresent = false;
         break;
     case 331:
+        if(frozenLayerHandles.size()>=static_cast<std::size_t>(kMaxViewportFrozenLayers)
+            ||!DRW::reserve(frozenLayerHandles,static_cast<int>(frozenLayerHandles.size()+1u)))return false;
         frozenLayerHandles.push_back(
             static_cast<std::uint32_t>(reader->getHandleString()));
         break;

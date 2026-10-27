@@ -1790,7 +1790,7 @@ private:
         }
         if(!concreteEntitiesBodyChildren(value)){observed->modelUnavailable=true;return;}
         captureEntitiesCompoundStates(*observed,value);
-        if(cData->m_tableDxfSource.entitiesDeliveryCaptureFailed)return;
+        if(cData->m_tableDxfSource.entitiesDeliveryCaptureFailed||observed->modelUnavailable)return;
         try {observed->model=std::make_shared<const Model>(*typed);++cData->m_tableDxfSource.entitiesDeliveryModels;}
         catch(...){cData->m_tableDxfSource.entitiesDeliveryCaptureFailed=true;}
     }

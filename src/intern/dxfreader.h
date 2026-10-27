@@ -63,6 +63,18 @@ struct DxfLayoutPublication {
 struct DxfTablePublication {
     std::uint8_t phase{0};const DRW_Table* model{nullptr};const DRW_RawDxfObject* source{nullptr};bool inBlock{false};
 };
+struct DxfViewportPublication {
+    const DRW_Entity* model{nullptr};bool inBlock{false},pendingXdata{false};std::uint8_t coordinateMask{0};
+};
+class DxfViewportPublicationScope {
+    DxfViewportPublication* slot;DxfViewportPublication previous;
+public:
+    DxfViewportPublicationScope(DxfViewportPublication* target,const DxfViewportPublication& value) noexcept
+        :slot(target),previous(target?*target:DxfViewportPublication{}){if(slot)*slot=value;}
+    ~DxfViewportPublicationScope(){if(slot)*slot=previous;}
+    DxfViewportPublicationScope(const DxfViewportPublicationScope&)=delete;
+    DxfViewportPublicationScope& operator=(const DxfViewportPublicationScope&)=delete;
+};
 class DxfTablePublicationScope {
     DxfTablePublication* slot;DxfTablePublication previous;
 public:
@@ -357,6 +369,7 @@ class dxfReader {
     friend class dxfRW;
     DxfLayoutPublication m_layoutPublication{};
     DxfTablePublication m_tablePublication{};
+    DxfViewportPublication m_viewportPublication{};
     DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
     DxfStructuralPublication m_structuralPublication{};
     DxfResourcePublication m_resourcePublication{};
@@ -757,7 +770,9 @@ private:
         value.endOffset=m_inputByteCount;value.text=strData;value.raw=rawData;
         value.integer=intData;value.wide=int64;value.real=doubleData;value.ignoredComment=comment;
         switch(type) {
-        case INT32:value.kind=DxfReadRecordView::Integer;break;
+        // Boolean records use intData too; treating them as text leaks the
+        // preceding string into physical/identity observations.
+        case INT32:case BOOL:value.kind=DxfReadRecordView::Integer;break;
         case INT64:value.kind=DxfReadRecordView::WideInteger;break;
         case DOUBLE:value.kind=DxfReadRecordView::Real;break;
         case BINARY:value.kind=DxfReadRecordView::Binary;break;

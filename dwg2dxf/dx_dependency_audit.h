@@ -79,6 +79,10 @@ DependencyRole dependencyEntityRole(dx_attdef_source::Role role) noexcept {
     case E::TableStyle:return R::TableStyle;case E::TableGeometryBlock:return R::TableGeometryBlock;
     case E::TableCellBlock:return R::TableCellBlock;case E::TableCellField:return R::TableCellField;
     case E::TableCellAttributeDefinition:return R::TableCellAttributeDefinition;case E::TableValueObject:return R::TableValueObject;
+    case E::ViewportFrozenLayer:return R::ViewportFrozenLayer;case E::ViewportClip:return R::ViewportClip;
+    case E::ViewportNamedUcs:return R::LayoutNamedUcs;case E::ViewportBaseUcs:return R::LayoutBaseUcs;
+    case E::ViewportBackground:return R::ViewBackground;case E::ViewportShade:return R::ViewportShade;
+    case E::ViewportVisualStyle:return R::VisualStyle;case E::ViewportSun:return R::ViewSun;
     default:return R::Unknown;
     }
 }
@@ -168,6 +172,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
         for(const auto& p:s.identityAudit->identities)if(p.second<ids.size())ids[p.second]=p.first;
         const auto entityProfile=[&](A::Node& node,const auto& profile) {
             node.entity=true;
+            for(const auto& span:profile.spans)if(span.field==dx_attdef_source::Field::Primary&&span.code==170){node.layoutModes[1]=dependencyGroups(node).at(span.groupIndex).i_val();node.layoutModeGroups[1]=span.groupIndex;}
             for(const auto& span:profile.spans)if(span.role!=dx_attdef_source::Role::None) {
                 const auto role=dependencyEntityRole(span.role);
                 node.references.push_back({role,span.groupIndex,span.code,static_cast<std::uint32_t>(span.handle)});
@@ -310,6 +315,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 // SDK setters clear unused shade IDs. Preserve foreign nonzero
                 // carriers without treating setter behavior as DXF-load proof.
                 if(ref.kind==Role::LayoutShadePlot&&row.reason==R::Inactive&&row.target){blocked=true;row.reason=R::OriginalUnavailable;}
+                if(ref.kind==Role::ViewportShade){row.mode=n.layoutModes[1];row.modeGroup=n.layoutModeGroups[1];if(row.mode<0){blocked=true;row.reason=R::OriginalUnavailable;}}
                 if(n.table&&!n.tableRecord) {
                     const auto old=tableRoles.find({n.handle,ref.groupIndex});
                     if(old!=tableRoles.end()&&old->second!=TableReferenceReason::Matched&&old->second!=TableReferenceReason::NullValue) {
@@ -375,6 +381,9 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 if(ref.kind==Role::TableGeometryBlock||ref.kind==Role::TableCellBlock||ref.kind==Role::BlockName)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"BLOCK_RECORD");
                                 if(ref.kind==Role::LayoutBlockRecord)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"BLOCK_RECORD");
                                 if(ref.kind==Role::LayoutViewport)kind=p.kind==I::Kind::Entity&&asciiIdentifierEquals(p.name,"VIEWPORT");
+                                if(ref.kind==Role::ViewportFrozenLayer)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"LAYER");
+                                if(ref.kind==Role::ViewportClip)kind=p.kind==I::Kind::Entity;
+                                if(ref.kind==Role::ViewportShade)kind=p.kind==I::Kind::Object;
                                 if(ref.kind==Role::LayoutNamedUcs||ref.kind==Role::LayoutBaseUcs)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"UCS");
                                 if(ref.kind==Role::PlotViewName)kind=p.kind==I::Kind::TableRecord&&asciiIdentifierEquals(p.name,"VIEW");
                                 if(ref.kind==Role::LayoutShadePlot)kind=p.kind==I::Kind::Object&&(row.mode!=4||asciiIdentifierEquals(p.name,"VISUALSTYLE"));
@@ -394,6 +403,13 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                 // VisualStyle/RenderSettings need their own actual
                                 // source profiles; an arbitrary object is no proof.
                                 if(row.reason==R::Matched&&ref.kind==Role::LayoutShadePlot)row.reason=R::OriginalUnavailable;
+                                if(row.reason==R::Matched&&(ref.kind==Role::ViewportClip||ref.kind==Role::ViewportShade))row.reason=R::OriginalUnavailable;
+                                if(row.reason==R::Matched&&ref.kind==Role::LayoutViewport){const auto target=a->nodes.find(row.target);bool paper=false;std::uint32_t layout=0u;
+                                    if(target!=a->nodes.end()){const auto& value=target->second;
+                                        if(value.entities){const auto& source=value.entities->rows.at(value.entityRow);paper=source.paper;layout=source.layout;}
+                                        else if(value.blocks){const auto& source=value.blocks->rows.at(value.entityRow);paper=source.paper;layout=source.layout;}}
+                                    if(target==a->nodes.end()||(!target->second.entities&&!target->second.blocks))row.reason=R::OriginalUnavailable;
+                                    else if(!paper||layout!=n.handle)row.reason=R::WrongOwner;}
                                 if(row.reason==R::Matched&&(ref.kind==Role::ViewBackground||ref.kind==Role::ViewLiveSection||ref.kind==Role::ViewSun))row.reason=R::OriginalUnavailable;
                                 if(row.reason==R::Matched&&(ref.kind==Role::LTypeShapeStyle||ref.kind==Role::LTypeTextStyle||nameFamily==F::TextStyle)) {
                                     const auto target=a->nodes.find(row.target);const auto* style=target==a->nodes.end()?nullptr:dynamic_cast<const DRW_Textstyle*>(dependencyModel(target->second));

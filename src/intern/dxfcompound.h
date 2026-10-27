@@ -10,7 +10,7 @@
 namespace dxfCompound {
 using SourceState=dxfAttdef::SourceState;
 class Decoder {
-    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line,Definition};
+    enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line,Definition,Viewport};
     DRW_Entity* value;Kind kind;unsigned fields{0u};
     std::optional<dxfAttdef::Decoder> definition;
     enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u,EndX=32u,EndY=64u};
@@ -23,6 +23,7 @@ public:
     explicit Decoder(DRW_Point& v):value(&v),kind(Kind::Point){}
     explicit Decoder(DRW_Line& v):value(&v),kind(Kind::Line){}
     explicit Decoder(DRW_Attdef& v):value(&v),kind(Kind::Definition),definition(std::in_place,v){}
+    explicit Decoder(DRW_Viewport& v):value(&v),kind(Kind::Viewport){}
     void reset(DRW_Vertex& v) noexcept {value=&v;kind=Kind::Vertex;fields=0u;definition.reset();}
     void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;definition.reset();}
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
@@ -52,6 +53,7 @@ public:
         case Kind::Point:return (fields&(X|Y))==(X|Y);
         case Kind::Line:return (fields&(X|Y|EndX|EndY))==(X|Y|EndX|EndY);
         case Kind::Definition:return definition->finish(false);
+        case Kind::Viewport:return static_cast<const DRW_Viewport*>(value)->validateDxf();
         }
         return false;
     }
@@ -63,6 +65,24 @@ public:
     static bool sameModel(const DRW_Entity& a,const DRW_Entity& b,Equal equal) noexcept {
         if(a.eType!=b.eType)return false;
         switch(a.eType) {
+        case DRW::VIEWPORT: {
+            const auto* x=dynamic_cast<const DRW_Viewport*>(&a);const auto* y=dynamic_cast<const DRW_Viewport*>(&b);
+            if(!x||!y||!samePoint(*x,*y,equal))return false;
+            if(std::tie(x->vpstatus,x->vpID,x->majorGridLines,x->statusFlags,x->styleSheet,x->renderMode,x->ucsAtOrigin,x->ucsPerViewport,
+                    x->ucsOrthographicType,x->shadePlotMode,x->useDefaultLighting,x->defaultLightingType,x->ambientColor,x->ambientColorRgb,x->ambientColorMethod,x->ambientColorName,
+                    x->vpHeaderHandle,x->clipBoundaryHandle,x->namedUcsHandle,x->baseUcsHandle,x->backgroundHandle,x->visualStyleHandle,x->shadePlotHandle,x->m_sunHandle,
+                    x->frozenLayerHandles,x->frozenLyCount,x->ambientColorDwgFlags,x->ambientColorDwgIndex,x->ambientColorDwgMetadataPresent)
+                !=std::tie(y->vpstatus,y->vpID,y->majorGridLines,y->statusFlags,y->styleSheet,y->renderMode,y->ucsAtOrigin,y->ucsPerViewport,
+                    y->ucsOrthographicType,y->shadePlotMode,y->useDefaultLighting,y->defaultLightingType,y->ambientColor,y->ambientColorRgb,y->ambientColorMethod,y->ambientColorName,
+                    y->vpHeaderHandle,y->clipBoundaryHandle,y->namedUcsHandle,y->baseUcsHandle,y->backgroundHandle,y->visualStyleHandle,y->shadePlotHandle,y->m_sunHandle,
+                    y->frozenLayerHandles,y->frozenLyCount,y->ambientColorDwgFlags,y->ambientColorDwgIndex,y->ambientColorDwgMetadataPresent))return false;
+            return point(x->viewDir,y->viewDir)&&point(x->viewTarget,y->viewTarget)&&point(x->ucsOrigin,y->ucsOrigin)&&point(x->ucsXAxis,y->ucsXAxis)&&point(x->ucsYAxis,y->ucsYAxis)
+                &&real(x->pswidth,y->pswidth)&&real(x->psheight,y->psheight)&&real(x->centerPX,y->centerPX)&&real(x->centerPY,y->centerPY)
+                &&real(x->snapPX,y->snapPX)&&real(x->snapPY,y->snapPY)&&real(x->snapSpPX,y->snapSpPX)&&real(x->snapSpPY,y->snapSpPY)&&real(x->gridSpX,y->gridSpX)&&real(x->gridSpY,y->gridSpY)
+                &&real(x->viewLength,y->viewLength)&&real(x->frontClip,y->frontClip)&&real(x->backClip,y->backClip)&&real(x->viewHeight,y->viewHeight)
+                &&real(x->snapAngle,y->snapAngle)&&real(x->twistAngle,y->twistAngle)&&real(x->circleZoom,y->circleZoom)&&real(x->ucsElevation,y->ucsElevation)
+                &&real(x->brightness,y->brightness)&&real(x->contrast,y->contrast);
+        }
         case DRW::ATTDEF: {
             const auto* x=dynamic_cast<const DRW_Attdef*>(&a);const auto* y=dynamic_cast<const DRW_Attdef*>(&b);
             return x&&y&&dxfAttdef::Decoder::sameModel(*x,*y,equal);

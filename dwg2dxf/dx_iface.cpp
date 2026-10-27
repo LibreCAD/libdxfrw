@@ -19025,7 +19025,8 @@ bool dx_iface::captureEntitiesReadContext() noexcept {
 void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,const DRW_Entity& value) noexcept {
     const auto* pl=value.eType==DRW::POLYLINE?dynamic_cast<const DRW_Polyline*>(&value):nullptr;
     const auto* in=value.eType==DRW::INSERT?dynamic_cast<const DRW_Insert*>(&value):nullptr;
-    const bool primary=value.eType==DRW::POINT||value.eType==DRW::LINE||value.eType==DRW::ATTDEF;
+    const bool viewport=value.eType==DRW::VIEWPORT;
+    const bool primary=value.eType==DRW::POINT||value.eType==DRW::LINE||value.eType==DRW::ATTDEF||viewport;
     if(!pl&&!in&&!primary)return;
     std::size_t count=1u;
     if(pl) {if(!addAssociativeRetainedBytes(pl->vertlist.size(),count)||!addAssociativeRetainedBytes(pl->seqEndEntity?1u:0u,count))return;}
@@ -19035,6 +19036,9 @@ void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,con
         ||!chargeEntitiesDelivery(bytes,work))return;
     try {
         observed.compoundStates.reserve(count);observed.compoundStates.push_back(dxfCompound::Decoder::observe(value));
+        if(viewport){dxfRW::DxfViewportSourceView view;
+            if(!cData->m_tableDxfSource.entitiesReadInput||!cData->m_tableDxfSource.entitiesReadInput->getDxfViewportSourceView(view)||view.model!=&value||view.inBlock){observed.modelUnavailable=true;return;}
+            observed.compoundStates.front().host={view.originalPendingXdata,view.originalCoordinateMask};}
         if(pl) {
             for(const auto& child:pl->vertlist){if(!child)return;observed.compoundStates.push_back(dxfCompound::Decoder::observe(*child));}
             if(pl->seqEndEntity)observed.compoundStates.push_back(dxfCompound::Decoder::observe(*pl->seqEndEntity));
@@ -19378,14 +19382,15 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
     const bool polyline=dx_block_membership::equal(name,"POLYLINE");
     const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
     const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
+    const bool viewport=dx_block_membership::equal(name,"VIEWPORT");
     const bool attdef=dx_block_membership::equal(name,"ATTDEF");
     if(attdef&&event.callback!=DRW_DxfBlockCallback::addAttDef)return;
-    if(!polyline&&!insert&&!point&&!line&&!attdef)return;
+    if(!polyline&&!insert&&!point&&!line&&!attdef&&!viewport)return;
     const auto* pl=dynamic_cast<const DRW_Polyline*>(entity);const auto* in=dynamic_cast<const DRW_Insert*>(entity);
     const auto fail=[&](){source.compoundBodyCaptureFailed=true;};
     if((polyline&&(!pl||typeid(*entity)!=typeid(DRW_Polyline)))||(insert&&(!in||typeid(*entity)!=typeid(DRW_Insert)))
         ||(point&&typeid(*entity)!=typeid(DRW_Point))||(line&&typeid(*entity)!=typeid(DRW_Line))||(attdef&&typeid(*entity)!=typeid(DRW_Attdef))
-        ||row.compoundBodies.count(event.dispatch)||row.compoundBodyOwners.count(event.dispatch)){fail();return;}
+        ||(viewport&&typeid(*entity)!=typeid(DRW_Viewport))||row.compoundBodies.count(event.dispatch)||row.compoundBodyOwners.count(event.dispatch)){fail();return;}
     // Known concrete copies must not silently slice additional subclass state.
     if(polyline) {
         const auto* footer=pl->seqEndEntity.get();
@@ -19405,7 +19410,7 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
         const auto* nested=static_cast<const DRW_Attdef*>(entity)->mtext.get();if(nested&&typeid(*nested)!=typeid(DRW_MText)){fail();return;}
     }
     const auto count=range.next-range.first;std::size_t modelBytes=0u,rawBytes=0u,groups=0u;
-    const auto modelSize=polyline?sizeof(DRW_Polyline):insert?sizeof(DRW_Insert):point?sizeof(DRW_Point):attdef?sizeof(DRW_Attdef):sizeof(DRW_Line);
+    const auto modelSize=polyline?sizeof(DRW_Polyline):insert?sizeof(DRW_Insert):point?sizeof(DRW_Point):attdef?sizeof(DRW_Attdef):viewport?sizeof(DRW_Viewport):sizeof(DRW_Line);
     if(!estimateTypedEntityRetainedBytes(*entity,modelSize,modelBytes)){fail();return;}
     for(std::size_t i=range.first;i<range.next;++i) {
         const auto& physical=audit.children->records[i];const auto n=physical.groups.size();
@@ -19434,6 +19439,9 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
     try {
         CompoundBody body;body.membership=row.membership;body.context=row.context;body.dispatch=event.dispatch;body.sourceStates.reserve(count);body.replayStates.reserve(count);body.profiles.reserve(count);
         body.sourceStates.push_back(dxfCompound::Decoder::observe(*entity));
+        if(viewport){dxfRW::DxfViewportSourceView view;
+            if(!source.entitiesReadInput||!source.entitiesReadInput->getDxfViewportSourceView(view)||view.model!=entity||!view.inBlock){fail();return;}
+            body.sourceStates.front().host={view.originalPendingXdata,view.originalCoordinateMask};}
         if(polyline) {
             for(const auto& child:pl->vertlist)body.sourceStates.push_back(dxfCompound::Decoder::observe(*child));
             body.sourceStates.push_back(dxfCompound::Decoder::observe(*pl->seqEndEntity));
@@ -19446,7 +19454,8 @@ void dx_iface::captureDxfCompoundBody(AttdefOriginBlock& row,const DRW_DxfBlockD
             body.model=std::make_shared<const DRW_Attdef>(*static_cast<const DRW_Attdef*>(entity));
             const auto resource=source.resources.find(entity->handle);
             if(resource!=source.resources.end()){const auto& r=resource->second;body.attdef={r.attdefModel,r.raw,r.attdefOrigin,r.attdefReadContext,r.attdefState,r.attdefContext};}
-        } else if(point)body.model=std::make_shared<const DRW_Point>(*static_cast<const DRW_Point*>(entity));
+        } else if(viewport)body.model=std::make_shared<const DRW_Viewport>(*static_cast<const DRW_Viewport*>(entity));
+        else if(point)body.model=std::make_shared<const DRW_Point>(*static_cast<const DRW_Point*>(entity));
         else body.model=std::make_shared<const DRW_Line>(*static_cast<const DRW_Line*>(entity));
         if(body.sourceStates.size()!=count){fail();return;}
         if(!row.contextMatched)body.state=CompoundBody::State::ContextMismatch;
@@ -19465,6 +19474,7 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         ||body.context->binary!=audit.delivery->binary){body.state=State::ContextMismatch;return false;}
     const auto& context=*body.context;
     const bool point=body.model->eType==DRW::POINT,line=body.model->eType==DRW::LINE,attdef=body.model->eType==DRW::ATTDEF;
+    const bool viewport=body.model->eType==DRW::VIEWPORT;
     const auto decode=[&](std::size_t index,dxfCompound::Decoder& decoder,auto& model,bool finalize,const DRW_Polyline* parent) {
         const auto& physical=audit.children->records[index];DRW_RawDxfObject raw;
         raw.name=physical.name;raw.handle=audit.members[index].self;raw.parentHandle=audit.members[index].owner;
@@ -19473,7 +19483,7 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         for(std::size_t j=0;j<physical.groups.size();++j)if(!physical.spans[j].ignoredComment) {
             raw.groups.push_back(physical.groups[j]);raw.rawValues.push_back(physical.rawValues[j]);
         }
-        auto profile=dx_compound_source::audit(raw,parent,true,point||line||attdef);
+        auto profile=dx_compound_source::audit(raw,parent,true,point||line||attdef||viewport);
         if(!dx_compound_source::restorePhysicalIndices(profile,physical)){source.compoundBodyCaptureFailed=true;return false;}
         body.profiles.push_back(std::move(profile));
         std::string wire;if(!tableResourceSourceBody(raw,source.maxCompoundBodyBytes,wire))return false;
@@ -19502,7 +19512,7 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         // share a moved value instead, preserving its original grammar state.
         // Do not project that observation through a state-resetting copy.
         const auto projectedState=[&]() {
-            if constexpr(std::is_same<std::decay_t<decltype(model)>,DRW_Attdef>::value)return replayState;
+            if constexpr(std::is_same<std::decay_t<decltype(model)>,DRW_Attdef>::value||std::is_same<std::decay_t<decltype(model)>,DRW_Viewport>::value)return replayState;
             else {const std::decay_t<decltype(model)> projected(model);return dxfCompound::Decoder::observe(projected);}
         }();
         if(!replayState.hasNoPendingXdata()||!original.hasNoPendingXdata()
@@ -19512,6 +19522,10 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {return standardDwgVariantEqual(a,b,audit.delivery->version);};
     if(attdef) {
         DRW_Attdef parsed;dxfCompound::Decoder decoder(parsed);
+        if(!decode(range.first,decoder,parsed,true,nullptr))return false;
+        body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
+    } else if(viewport) {
+        DRW_Viewport parsed;dxfCompound::Decoder decoder(parsed);
         if(!decode(range.first,decoder,parsed,true,nullptr))return false;
         body.state=dxfCompound::Decoder::sameModel(parsed,*body.model,equal)?State::ModeledReplayMatched:State::ModelMismatch;
     } else if(point) {
@@ -19637,10 +19651,11 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 const auto& name=records[proof.first].name;const bool polyline=dx_block_membership::equal(name,"POLYLINE");
                 const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
                 const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
+                const bool viewport=dx_block_membership::equal(name,"VIEWPORT");
                 const bool attdef=dx_block_membership::equal(name,"ATTDEF");proof.attributeDefinition=attdef;
                 proof.tablePrimary=dx_block_membership::equal(name,"ACAD_TABLE");
                 proof.compound=polyline||insert;
-                proof.primary=point||line;
+                proof.primary=point||line||viewport;
                 if(proof.tablePrimary) {
                     const auto body=s.tableBodies.find(audit->members[proof.first].self);
                     proof.state=State::ModelUnavailable;
@@ -19709,7 +19724,7 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 else {
                     const auto& event=row.delivery->events[proof.event];
                     const auto callback=polyline?DRW_DxfEntitiesCallback::addPolyline:insert?DRW_DxfEntitiesCallback::addInsert
-                        :point?DRW_DxfEntitiesCallback::addPoint:DRW_DxfEntitiesCallback::addLine;
+                        :point?DRW_DxfEntitiesCallback::addPoint:viewport?DRW_DxfEntitiesCallback::addViewport:DRW_DxfEntitiesCallback::addLine;
                     if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=callback
                         ||event.handle!=root.self||event.owner!=root.owner)proof.state=State::Callback;
                 }
@@ -19751,8 +19766,9 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
     const bool polyline=dx_block_membership::equal(audit.physical->records[proof.first].name,"POLYLINE");
     const bool point=dx_block_membership::equal(audit.physical->records[proof.first].name,"POINT");
     const bool line=dx_block_membership::equal(audit.physical->records[proof.first].name,"LINE");
+    const bool viewport=dx_block_membership::equal(audit.physical->records[proof.first].name,"VIEWPORT");
     const bool attdef=proof.attributeDefinition;
-    const auto modelSize=polyline?sizeof(DRW_Polyline):point?sizeof(DRW_Point):line?sizeof(DRW_Line):attdef?sizeof(DRW_Attdef):sizeof(DRW_Insert);
+    const auto modelSize=polyline?sizeof(DRW_Polyline):point?sizeof(DRW_Point):line?sizeof(DRW_Line):attdef?sizeof(DRW_Attdef):viewport?sizeof(DRW_Viewport):sizeof(DRW_Insert);
     if(!estimateTypedEntityRetainedBytes(*observed.model,modelSize,modelBytes))return false;
     for(std::size_t i=proof.first;i<proof.next;++i) {
         const auto& record=audit.physical->records[i];
@@ -19799,6 +19815,9 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
     const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b){return standardDwgVariantEqual(a,b,context.sourceVersion);};
     if(attdef) {
         DRW_Attdef parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
+        proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
+    }else if(viewport) {
+        DRW_Viewport parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
         proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
     }else if(point) {
         DRW_Point parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,true,nullptr))return false;
@@ -22654,7 +22673,7 @@ void dx_iface::finishBlockRoleAudit(dx_data& data) noexcept {
                 const auto range=b.membership->ranges[d];const auto& p=b.children->records[range.first];
                 const bool attdef=dx_block_membership::equal(p.name,"ATTDEF");
                 const bool table=dx_block_membership::equal(p.name,"ACAD_TABLE");
-                const bool selected=table||attdef||dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
+                const bool selected=table||attdef||dx_block_membership::equal(p.name,"POINT")||dx_block_membership::equal(p.name,"LINE")||dx_block_membership::equal(p.name,"VIEWPORT")||dx_block_membership::equal(p.name,"POLYLINE")||dx_block_membership::equal(p.name,"INSERT")||dx_block_membership::equal(p.name,"MINSERT");
                 const auto body=b.compoundBodies.find(d);const auto tableBody=s.tableBodies.find(b.membership->members[range.first].self);
                 const bool tableReady=table&&tableBody!=s.tableBodies.end()&&tableBody->second->source->inBlock&&tableBody->second->source->block==target.handle
                     &&tableBody->second->dispatch==d&&tableBody->second->first==range.first&&tableBody->second->next==range.next

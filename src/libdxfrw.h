@@ -1028,6 +1028,14 @@ public:
      * the view elsewhere. No new callback, writable history or output proof.
      * State lives in the internal reader, not the public facade/model layout. */
     bool getDxfTableSourceView(DxfTableSourceView&) const noexcept;
+    struct DxfViewportSourceView {
+        const DRW_Viewport* model{nullptr};bool inBlock{false},originalPendingXdata{false};std::uint8_t originalCoordinateMask{0};
+    };
+    /** Borrowed actual VIEWPORT typed publication and original pre-staging
+     * common state in ENTITIES/BLOCKS. Available only during its callback;
+     * false clears the view and pointers expire on return/throw. Uses internal
+     * reader state; adds no facade field, callback, raw copy or support claim. */
+    bool getDxfViewportSourceView(DxfViewportSourceView&) const noexcept;
     struct DxfStructuralSourceView {
         enum class Kind : std::uint8_t {None,BlockRecord,RootDictionary,Dictionary};
         enum class Phase : std::uint8_t {None,Source,Typed,Raw};

@@ -211,7 +211,7 @@ enum class dx_tableResourceRole : std::uint8_t {
     LineTypeName, LayerMaterial, LayerPlotStyle,
     TableStyle, TableGeometryBlock, TableCellBlock, TableCellField,
     TableCellAttributeDefinition, TableValueObject, BlockName, Material, PlotStyle, VisualStyle, LayoutName, DictionaryDefault,
-    LayoutBlockRecord,LayoutViewport,LayoutNamedUcs,LayoutBaseUcs,LayoutShadePlot,PlotViewName,ViewBackground,ViewLiveSection,ViewSun
+    LayoutBlockRecord,LayoutViewport,LayoutNamedUcs,LayoutBaseUcs,LayoutShadePlot,PlotViewName,ViewBackground,ViewLiveSection,ViewSun,ViewportFrozenLayer,ViewportClip,ViewportShade
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
