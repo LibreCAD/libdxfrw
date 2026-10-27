@@ -665,7 +665,8 @@ maps are retained once per dictionary, shared by their member proofs.
 
 When immutable captured replay is available, converter raw export refuses
 edits to its RenderSettings model or carrier instead of silently replaying the
-old values. A refused export preserves an existing destination; restoring the
+old values. It repeats this check after writing callbacks. A refused export
+preserves an existing destination; restoring the
 captured model permits retry. This guard does not implement edited typed
 rewriting or establish live/emitted closure for the whole document. VIEWPORT
 shade-mode4/5 source qualification still needs a wire-format witness; the
@@ -675,9 +676,30 @@ For ten locally authored AC1027 profiles in ASCII and binary, an independent
 byte walker checks the emitted common/derived field order and scalar values,
 plus self/owner handles, for raw replay and typed writing. Per-field code/value
 mutations fail that comparison. Raw-carrier scalar edits also refuse converter
-export, preserve the destination and accept corrected retry. These checks do
-not qualify dictionary emission, arbitrary producer/version profiles, native
-reader acceptance, semantic rendering or the complete emitted document graph.
+export, preserve the destination and accept corrected retry. These body checks
+remain separate from arbitrary producer/version profiles, native reader
+acceptance, semantic rendering or the complete emitted document graph.
+
+For selected captured canonical presets, the converter also compares actual
+OBJECTS preset bodies and staged dictionaries with retained pre-callback sources.
+It captures those dictionaries under the existing byte/item limits even when
+there is no XRECORD. Dictionary checks include common metadata, flags, ordered
+names, mapped targets and explicit350/360 roles. Live rechecks and actual-byte
+comparison catch both persistent callback edits and temporary edits restored
+after serialization. Both live preset lists must still match the planned record
+count, including when a callback removes every entry. Preset raw transport keeps
+arbitrary IDs and code5 inside
+application groups literal while translating admitted references; this does not
+interpret unknown application schemas. Allocation/limit failures refuse
+publication and permit a corrected retry. Existing uncaptured/unqualified replay
+receives no new source
+or output certificate.
+
+Independent authored graph controls check the NOD40-to-C remap, preset and page
+dictionary membership, generated ACAD_GROUP, the preset extension dictionary,
+and the selected page's shade target in ASCII/binary AC1027 output. They do not
+complete arbitrary handle remapping, edited typed rewriting, all rendering
+providers, recursive ownership or coupled whole-document emitted qualification.
 
 This selected source proof requires every primary field once and excludes
 unknown extensions and foreign/legacy shapes. `getDxfObjectPhysicalSourceView`

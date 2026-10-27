@@ -82,6 +82,7 @@ inline std::unique_ptr<dxfReader> readerFor(
 }
 
 enum class Family { Other, Dictionary, Group, Xrecord };
+enum class RawHandleTransport { Translate, ObjectScopes };
 // Exact ordered primitive transport for a separately admitted raw profile.
 // The caller owns field-role admission; no unknown widths or record defaults
 // are inferred. Only the current token is decoded, never a record inventory.
@@ -90,21 +91,35 @@ template<class Mapper> bool rawScalarTransportEqual(
         const dxfRW::DxfObjectsWriteView& view, Mapper&& map,
         bool materialColors = false,
         std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes,
-        bool literalSourceHandles = false) {
+        bool literalSourceHandles = false,
+        RawHandleTransport handleTransport = RawHandleTransport::Translate) {
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
         std::make_shared<DxfReadRetainedBudget>(retainedByteBudget));
     if (!reader) return false;
     reader->setMaterialUnsignedColorValues(materialColors);
     if(literalSourceHandles)reader->setAllowWideHandleLexemes(true);
+    std::size_t applicationDepth = 0u;
     for (const auto& value : source) {
         int code = 0;
         if (!reader->readRec(&code) || code != value.code()) return false;
+        if (handleTransport == RawHandleTransport::ObjectScopes && code == 102) {
+            if (value.type() != DRW_Variant::STRING || !value.content.s) return false;
+            const auto& text = *value.content.s;
+            if (!text.empty() && text.front() == '{') {
+                if (++applicationDepth > DRW::kMaxDxfApplicationGroupNesting) return false;
+            } else if (text == "}" && applicationDepth) --applicationDepth;
+            else return false;
+        }
         if (isDxfHandleCode(code)) {
             if (value.type() != DRW_Variant::STRING || !value.content.s) return false;
             // Source reconstruction must retain exact lexical values, including
             // opaque/arbitrary wide IDs. This opt-in is NOT output remap proof.
-            if(literalSourceHandles) {
+            // Raw-object replay keeps arbitrary IDs and application-local5
+            // literal. Their spelling is not a translated identity/reference.
+            const bool literalRole = handleTransport == RawHandleTransport::ObjectScopes
+                && (!isDxfTranslatedHandleCode(code) || (code == 5 && applicationDepth));
+            if(literalSourceHandles || literalRole) {
                 if(reader->getStringView()!=*value.content.s)return false;
                 continue;
             }
@@ -129,7 +144,7 @@ template<class Mapper> bool rawScalarTransportEqual(
             if (std::memcmp(&actual, &expected, sizeof(double)) != 0) return false;
         } else return false;
     }
-    return buffer.position() == body.size();
+    return buffer.position() == body.size() && applicationDepth == 0u;
 }
 
 inline Family family(std::string_view name) noexcept {

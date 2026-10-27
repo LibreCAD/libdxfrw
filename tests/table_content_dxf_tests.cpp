@@ -87,6 +87,14 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    static bool presetOutput(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view){return writer.inspectDxfRenderSettingsOutput(view);}
+    static std::size_t presetDictionaryBytes(const dx_iface& writer){return writer.m_xrecordWriteSourceBytes;}
+    static void presetDictionaryLimit(dx_iface& writer,std::size_t bytes){writer.m_xrecordWriteSourceByteLimit=bytes;}
+    static bool presetDirect(dx_iface& writer,dx_data& data,dxfRW& codec){
+        writer.cData=&data;writer.currentBlock=data.mBlock;writer.dxfW=&codec;
+        writer.m_extensionRenderSettingsHandles={0xEA02u};writer.m_extensionDictionaryHandles={0xEE00u,0xEE10u,0xEF00u};
+        return writer.captureXrecordWriteSources();
+    }
     using Ownership=dx_data::TableDxfSourceCapture::DependencyAudit::Ownership;
     using DependencyRow=dx_data::TableDxfSourceCapture::DependencyAudit::Row;
     static std::size_t emittedTables(const dx_iface& writer){return writer.m_emittedTableHandles.size();}
@@ -1665,6 +1673,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "object_physical_controls.h"
 #include "render_preset_source_controls.h"
 #include "render_preset_output_controls.h"
+#include "render_preset_graph_output_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3158,6 +3167,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--render-preset-graph-output") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-render-preset-graph-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=renderPresetGraphOutputControls::tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--render-preset-output") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

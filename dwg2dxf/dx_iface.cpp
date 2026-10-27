@@ -15350,7 +15350,12 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
         || m_extensionXRecordHandles.size() > kMaxAdapterXRecordRecords) return false;
     try {
         const auto count = m_extensionXRecordHandles.size();
-        if (count == 0u) return true;
+        const auto& rendering = cData->m_tableDxfSource.renderingSourceAudit;
+        const bool presetDictionaries = rendering && std::any_of(rendering->records.begin(), rendering->records.end(),
+            [](const auto& row) { return row.second && row.second->preset.complete() && row.second->namedTarget; });
+        // Preset dictionaries also need a pre-callback snapshot when no XRECORD
+        // happens to be present. Reuse the existing bounded dictionary capture.
+        if (count == 0u && !presetDictionaries) return true;
         const auto dictionaries = m_extensionDictionaryHandles.size();
         if (dictionaries > kMaxAdapterDictionaryTypedRecords) return false;
         if (count > m_xrecordWriteSourceByteLimit / (sizeof(DRW_XRecord) + sizeof(std::uint32_t))) return false;
@@ -15561,6 +15566,81 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
                 || !standardDwgModelsEqual(frozen, *current, cData->sourceVersion, dwgObjType::DICTIONARY)) return false;
         }
         return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (!cData || !dxfW) return false;
+    const auto planned = m_extensionRenderSettingsHandles.size();
+    if (cData->renderSettings.size() != planned || cData->rawRenderSettingsObjects.size() != planned) return false;
+    if (!planned) return true;
+    try {
+        // Callbacks run after preflight. Recheck live/captured correspondence
+        // even when the emitted body happens to retain the old scalar values.
+        if (!validateRenderSettingsGraph(*cData, view.version, nullptr)) return false;
+        const auto& sources = cData->m_tableDxfSource.renderingSourceAudit;
+        if (!sources) return true; // Existing uncaptured replay earns no new proof.
+        const auto map = [this](std::uint32_t source, std::uint32_t& output) {
+            const auto* context = dxfW->getWritingContext();
+            if (!context || context->ambiguousSourceHandles.count(source)) return false;
+            output = dxfW->remapHandle(source);
+            return source == 0u || (output != 0u && output != DRW::NoHandle);
+        };
+        const auto count = sources->records.size() + m_xrecordWriteDictionaries.size();
+        constexpr auto slot = sizeof(std::pair<const std::uint32_t, const void*>) + 12u * sizeof(void*);
+        if (count > m_xrecordWriteSourceByteLimit / slot) return false;
+        std::map<std::uint32_t, const DRW_RawDxfObject*> expected;
+        for (const auto& item : sources->records) {
+            const auto& row = item.second;
+            if (!row || !row->preset.complete() || !row->bodyMatched || !row->namedTarget) continue;
+            std::uint32_t handle = 0u;
+            if (!row->input || !row->input->typedRaw || !map(item.first, handle)
+                || !expected.emplace(handle, row->input->typedRaw.get()).second) return false;
+        }
+        if (expected.empty()) return true;
+        if (m_xrecordWriteSourceOwner != cData || !hasUnchangedXrecordWriteSources()) return false;
+        std::map<std::uint32_t, const DRW_Dictionary*> dictionaries;
+        for (const auto& source : m_xrecordWriteDictionaries) {
+            std::uint32_t handle = 0u;
+            if (!map(source.handle, handle) || expected.count(handle)
+                || !dictionaries.emplace(handle, &source).second) return false;
+        }
+        std::set<std::uint32_t> seen;
+        std::string_view selectedName;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view name, std::uint32_t handle) {
+                selectedName = name;
+                return expected.count(handle) || dictionaries.count(handle);
+            },
+            [&](const auto& shape, std::string_view body) {
+                if (!seen.insert(shape.handle).second) return false;
+                const auto dictionary = dictionaries.find(shape.handle);
+                if (dictionary == dictionaries.end()) {
+                    const auto& source = *expected.at(shape.handle);
+                    return selectedName == source.name
+                        && dx_standard_output::rawScalarTransportEqual(source.groups, body, view, map,
+                            false, DRW::kMaxDxfBinaryPayloadBytes, false, dx_standard_output::RawHandleTransport::ObjectScopes);
+                }
+                if (selectedName != "DICTIONARY") return false;
+                const auto& source = *dictionary->second;
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& actual) {
+                    std::vector<std::uint32_t> references;
+                    if (!actual.hasCompleteDxfEntries() || source.hardOwner != actual.hardOwner
+                        || source.cloning != actual.cloning || source.m_entries.size() != actual.m_entries.size()
+                        || !generatedDictionaryCommonEqual(source, actual, map, references, view.binary)) return false;
+                    for (std::size_t i = 0u; i < source.m_entries.size(); ++i) {
+                        const auto& a = source.m_entries[i]; const auto& b = actual.m_entries[i];
+                        using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                        const auto role = a.m_dxfHandleCode == Role::Unspecified
+                            ? (source.hardOwner ? Role::HardOwner : Role::SoftOwner) : a.m_dxfHandleCode;
+                        std::uint32_t target = 0u;
+                        if (!map(a.m_handle, target) || a.m_name != b.m_name || target != b.m_handle || role != b.m_dxfHandleCode) return false;
+                    }
+                    return true;
+                });
+            });
+        return inspected && seen.size() == expected.size() + dictionaries.size();
     } catch (...) { return false; }
 }
 
@@ -31186,9 +31266,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
-    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || !m_acdsDxfHistoryObjects.empty())
+    const bool needsRenderingOutput = !cData->renderSettings.empty();
+    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || !m_acdsDxfHistoryObjects.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
             return hasUnchangedXrecordWriteSources()
+                && inspectDxfRenderSettingsOutput(view)
                 && inspectDxfMaterialOutput(view)
                 && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))

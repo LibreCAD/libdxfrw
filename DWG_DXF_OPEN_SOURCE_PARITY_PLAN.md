@@ -134066,3 +134066,131 @@ acceptance or all producer/version combinations. J256/J260/J268/J284/J293/J295
 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
 ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full objective
 stays active; no remote mutation included.
+
+## Implementation progress — RPP-5fw preset callback-edit protection and emitted dictionary proof (2026-10-27)
+
+The next ownership/output review found a real preflight-to-write gap. A locally
+written regression changes a RenderSettings model in writeHeader after preflight;
+export at23062d0a still succeeds. Preserve that failing test and fix the actual
+transaction path rather than treating preflight/readback as emitted proof.
+
+- [x] Recheck RenderSettings source/model correspondence in the existing staged
+  OBJECTS inspector after callbacks. Independently select captured canonical
+  preset rows; compare their actual emitted names and complete ordered scalar
+  transport with immutable original carriers and the current handle map. Reject
+  duplicate/missing/wrong-family output. No new model/facade/source-view fields,
+  interface virtuals or native DWG parser changes.
+- [x] Reuse bounded pre-callback dictionary capture even when no XRECORD exists,
+  if a captured canonical preset has actual named membership. Inspect those
+  staged dictionaries for common metadata, hard-owner/cloning flags, ordered
+  names, mapped targets and explicit350/360 roles. Existing generated-NOD proof
+  continues to own root projection and root aliases. Recheck live frozen sources
+  as well as actual bytes, catching edits restored after serialization.
+- [x] Preserve raw handle roles in the preset transport check: arbitrary IDs and
+  application-local5 stay literal; translated handles follow the actual remap.
+  The optional helper mode leaves other existing callers unchanged. Add explicit
+  controls for source40→C alongside literal40 values in the same application
+  group. This does not establish unknown application semantics or all remaps.
+- [x] Primary Autodesk dictionary/common-object/range documents establish flags,
+  entry ownership roles and application scope. Existing selected shade-mode5
+  behavior is exercised as a local route; the published generic shade tables
+  still omit SDK modes4/5. Keep wider native/format qualification separate.
+
+Controls and review:
+
+- [x] Forty authored graph profiles span ten bodies, ASCII/binary AC1027 and
+  soft/hard entry/flag variants. An independent byte walker checks the remapped
+  NOD, generated ACAD_GROUP, preset/page dictionaries, preset extension owner
+  and page shade target. Check1,760 dictionary/reference fields; all1,240
+  single-observed-field mutations refuse comparison. Two additional application
+  profiles bind arbitrary, translated and nested5 roles without guessing IDs;
+  six temporary scoped edits refuse and pass corrected retries.
+- [x] Eighty-eight callback-edit refusals preserve a sentinel destination and pass
+  corrected same-adapter retries. Cover header-time model/raw/dictionary/role
+  edits, temporary raw/dictionary edits restored after writing, and persistent
+  edits after writeObjects, including removal of both live lists. Mutation recipes change actual callbacks, not a
+  stand-in validator. Closing destination readers before retry preserves the
+  existing portability fix; native Windows remains unqualified.
+- [x] Exact/one-under dictionary-source limits refuse two exports before
+  publication and accept corrected retries. Inject allocation failure only
+  inside the real OBJECTS preset inspector, outside writer/fixture/assertion
+  construction; every reached failure must refuse and preserve the destination,
+  every unreached offset must actually export, and every correction reuses the
+  same codec and verifies selected emitted body bytes. Finite schedules stop
+  after two consecutive unreached offsets, bounded by512 per encoding.
+- [x] Review finds that treating every handle as translated would reject valid
+  arbitrary/application-local metadata. Preserve the initial build evidence,
+  add the explicit role mode and controls, refreeze and rebuild before final
+  runtimes. No broad qualification is claimed for the superseded inputs.
+
+Qualification and the final boundary correction:
+
+- [x] The shared-change checkpoint passes **115/115 normal** (148.53s)
+  and **115/115 ASan** (84.64s), including dictionary/XRECORD/
+  material compatibility and focused UCS/VIEWPORT checks. All27 counter lines
+  agree; all26 previous lines stay unchanged. Preserve its exact432-file
+  manifest, source hashes and separate checkpoint receipt.
+- [x] A further actual callback regression reproduces publication after clearing
+  both live preset lists (edit10). The old empty-input shortcut skipped live
+  revalidation. Compare both live counts with the planned records before that
+  shortcut. Only dx_iface.cpp and this test header change after the checkpoint.
+  Callback rollbacks now total88, scoped-handle rollbacks6 and corrected normal
+  export retries96; inspector faults remain128, with four unreached controls
+  and132 corrections.
+- [x] Rebuild all11 affected targets against final inputs: normal
+  64.46s and qualified Debug/`-O1`/ASan
+  246.81s. Strict warning policy and LibreCAD_3's
+  compile guard remain intact. Final focused rendering/FreeCAD CLI cohorts pass
+  **9/9 normal** (9.72s) and **9/9 ASan** (5.77s).
+  Names/order/labels/timeouts and actual executed sets agree; all six final
+  counters agree and the five unaffected selected lines stay unchanged.
+- [x] The final432-file compiled/build-input manifest stays frozen through both
+  final runtimes. All corrected builds/package checks finish before normal then
+  ASan. Use focused checks for the isolated count guard rather than repeat the
+  broad cohort; do not claim the earlier115-test run used final inputs.
+- [x] Final isolated autoreconf/configure/make-dist passes. Both146-member
+  archives include exact final converter/transport hashes and no AppleDouble
+  metadata. Full source-release inventory, omitted CMake/test helpers and a real
+  extracted-source build remain unqualified. No failures/skips/disabled final
+  tests; full suite, formal ABI/native consumers, original Debug/O0 ASan and
+  controlled memory/performance receive no new qualification.
+
+The [receipt](docs/research/rpp5fw-preset-callback-edits-and-emitted-dictionary-proof-2026-10-27.json)
+pins the baseline failure, source/control/research hashes, selected test sets and
+remaining gates. All recipes are authored locally; commit no external drawing
+payload, conversion or derivative.
+
+Next implementation-ready work retains the complete objective:
+
+1. [ ] Repair the measured source-release gap: 59 of148 observed macOS CMake
+   library/CLI production inputs are absent from the archive, including18 C++
+   sources. The receipt names each missing path. Inventory other conditional
+   platform inputs and omitted CMake/test helpers, including the graph helper.
+   Qualify extracted-source builds,
+   LibreCAD/LibreCAD_3/FreeCAD consumers, controlled memory/performance and formal/
+   native application behavior. Archive inclusion is not a complete build.
+2. [ ] Complete edited typed rewriting and emitted PLOTSETTINGS/LAYOUT/VIEWPORT
+   consumer-to-provider proof, all remap/collision routes and recursive/coupled/
+   whole-document ownership. The selected preset/dictionary inspector is one
+   prerequisite; page/live mode changes and other providers still need closure.
+3. [ ] Complete optional/absent/duplicate/alias/extension rendering profiles,
+   active/global/environment settings, background/live-section/sun, VIEWPORT
+   shade wire/spec reconciliation, clipping and335/343/344/91 overrides. Retain
+   entity/material/reactor/IMAGE/document/control/name/application/XDATA/HEADER
+   and native-collation obligations; unknown application semantics stay opaque.
+4. [ ] Finish TABLE Values, multiple-content attributes, linked-data ownership
+   and qualified units/formatting/borders; retain full native B2b/B3/C bit/schema/
+   owner/version/corpus work and unguessed date/point/General semantics.
+5. [ ] Continue fast owning checks and reuse built targets. Broaden affected
+   cohorts for actual shared implementation changes; freeze inputs, finish
+   builds/package checks, then normal and ASan runtimes. Preserve failures/caps,
+   self-unblock, update/commit/report each verified slice without pausing other
+   ready lanes or importing external drawing derivatives.
+
+Resource families remain nine; ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, full `ownerTargetsResolved=false`, `recursiveClosureMatched=false`
+and `outputEligible=false`. Selected local source/output equality is not full
+format/rendering semantics, all native/version profiles or complete document
+eligibility. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The full objective remains active; no remote mutation.

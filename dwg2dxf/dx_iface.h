@@ -65,8 +65,8 @@ public:
     struct RenderingSourceReport {
         RenderingSourceState state{RenderingSourceState::NotCaptured};
         std::size_t records{0},physical{0},profiles{0},origins{0},namedTargets{0},fields{0},references{0},bytes{0},work{0};
-        // Complete selected canonical primary source shapes only. Extension,
-        // RenderSettings, recursive/live/emitted and semantic support stay open.
+        // Complete selected canonical source shapes only. Other rendering
+        // profiles, recursive/live/emitted and semantic support stay open.
         bool originalSourcesMatched{false};
         bool ownerTargetsResolved{false},recursiveClosureMatched{false},outputEligible{false};
     };
@@ -2116,6 +2116,7 @@ private:
     bool prepareDxfMaterialSources(DRW::Version version);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;
