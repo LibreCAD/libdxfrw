@@ -671,6 +671,14 @@ rewriting or establish live/emitted closure for the whole document. VIEWPORT
 shade-mode4/5 source qualification still needs a wire-format witness; the
 selected target proof here covers LAYOUT mode5.
 
+For ten locally authored AC1027 profiles in ASCII and binary, an independent
+byte walker checks the emitted common/derived field order and scalar values,
+plus self/owner handles, for raw replay and typed writing. Per-field code/value
+mutations fail that comparison. Raw-carrier scalar edits also refuse converter
+export, preserve the destination and accept corrected retry. These checks do
+not qualify dictionary emission, arbitrary producer/version profiles, native
+reader acceptance, semantic rendering or the complete emitted document graph.
+
 This selected source proof requires every primary field once and excludes
 unknown extensions and foreign/legacy shapes. `getDxfObjectPhysicalSourceView`
 now exposes actual reader observations for the existing opted-in rendering and

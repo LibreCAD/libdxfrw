@@ -139,7 +139,7 @@ bool tests(const std::filesystem::path& dir) {
             if(fault==4u)value.m_hasPredefinedPresent=!value.m_hasPredefinedPresent;
             {std::ofstream sentinel(output,std::ios::binary);sentinel<<"KEEP_PRESET_DESTINATION";}
             if(reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
-            std::ifstream preserved(output,std::ios::binary);const std::string kept((std::istreambuf_iterator<char>(preserved)),{});if(kept!="KEEP_PRESET_DESTINATION")return fail(__LINE__);++rollback;
+            std::ifstream preserved(output,std::ios::binary);const std::string kept((std::istreambuf_iterator<char>(preserved)),{});if(kept!="KEEP_PRESET_DESTINATION")return fail(__LINE__);preserved.close();++rollback;
             value=original;if(!reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!verify())return fail(__LINE__);++retries;
         }
         dxfRW target(output.string().c_str());TypedWriter writer(target,model);

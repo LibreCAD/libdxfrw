@@ -133990,3 +133990,79 @@ live/emitted/whole-document/native qualification remains incomplete.
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. The full objective remains active; no remote mutation included.
+
+## Implementation progress — RPP-5fv independent emitted preset bodies and raw-edit rollback (2026-10-27)
+
+The next RPP-5fu output prerequisite now compares actual emitted bytes with the
+locally authored literal bodies. This supplements same-library readback while
+keeping full object/dictionary/emitted-document and native acceptance gates open.
+
+- [x] Add a separate fast `--render-preset-output` selector. Reuse the independent
+  ASCII/binary scalar walker, never the production decoder, writer profile
+  selector or positional tables as the output oracle. Compare complete selected
+  common/derived bodies, exact primitive kinds/values/order and contiguous byte
+  bounds. Check actual self and owner handles outside application groups.
+- [x] Verify40 emitted profiles: ten selected bodies × ASCII/binary × raw/typed
+  output at AC1027. Check1,396 actual body fields and80 self/owner observations.
+  Each observed code and value is independently altered; all2,792 comparisons
+  refuse. The alternative derived RapidRT false flag remains there in raw replay
+  and occupies the documented common-body position in canonical typed output.
+- [x] Forty raw-carrier string/Boolean edits refuse before publication, preserve
+  a sentinel destination and accept40 corrected same-adapter retries. Recheck
+  corrected output using the independent walker. This directly exercises the
+  captured raw-carrier branch, complementing RPP-5fu's100 model-edit controls.
+- [x] Close verification streams before retrying file replacement in both new
+  preset controls. This removes an unnecessary open destination reader for
+  platforms with restrictive file-sharing behavior; it is not native Windows
+  qualification. Production code and all prior production hashes stay unchanged.
+- [x] Preserve the initial failed cohort: all field/identity/rollback checks
+  completed, but final aggregate constants had an arithmetic error. The ten
+  body sizes are10/11/19/20/20/51/53/54/55/56, totaling349; four routes yield1,396
+  fields and2,792 mutation refusals. Correct only the aggregate constants,
+  rebuild both configurations and retain the failed evidence.
+
+- [x] Final focused cohorts pass **5/5 normal** (5.23s) and
+  **5/5 qualified Debug/`-O1`/ASan** (2.82s). Actual selected
+  names/order/labels/timeouts match, with no failures/skips/disabled tests.
+  The new emitted counter and all three prior selected counter lines agree.
+- [x] Both owning builds finish before normal then ASan runtimes; the431-file
+  compiled/build-input manifest stays frozen. All prior430 inputs except three
+  test/build-test files are unchanged. Preserve `-Werror`; original Debug/O0
+  ASan is unchanged. Reuse production qualification at22703eea rather than
+  repeat the104-test cohort for coverage-only changes. No new full-suite,
+  package-build, formal ABI/native application or performance claim.
+
+The [receipt](docs/research/rpp5fv-independent-preset-output-and-raw-edit-retries-2026-10-27.json)
+pins source/control/build evidence, exact focused selection, unchanged prior
+production/counters and the arithmetic correction. No new external payload,
+conversion or derivative is committed; recipes remain locally authored.
+
+Next ready work retains the complete objective:
+
+1. [ ] Extend emitted proof to actual dictionary/root/member identities, handle
+   remapping and edited typed rewriting. Complete recursive/coupled/whole-document
+   ownership; source/body equality and edit refusal do not close those gates.
+2. [ ] Complete remaining rendering variants and producers: optional/absent/
+   duplicate/alias/extension profiles, active/global/environment settings,
+   background/live-section/sun and VIEWPORT shade wire evidence, clipping and
+   layer overrides. Preserve remaining entity/material/reactor/IMAGE/document/
+   control/name/application/XDATA/HEADER/native-collation obligations.
+3. [ ] Finish TABLE Values, multiple-content attributes, linked-data ownership
+   and qualified formatting/units/borders; retain full B2b/B3/C native bit/schema/
+   owner/version/corpus work and unguessed date/point/General semantics.
+4. [ ] Repair the recorded source-release inventory gap and omitted CMake/test
+   helpers, including the new output helper. Qualify extracted-source builds,
+   LibreCAD/LibreCAD_3/FreeCAD consumers, controlled memory/performance and formal/
+   native application behavior. Archive creation is not a full release build.
+5. [ ] Continue fast owning checks and target reuse, broaden when actual shared
+   implementation/build changes justify it, freeze compiled inputs, complete
+   builds before normal then ASan tests, self-unblock and commit/update/report.
+
+Resource families remain nine; ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, full `ownerTargetsResolved=false`, `recursiveClosureMatched=false`
+and `outputEligible=false`. The emitted evidence covers selected AC1027 body
+fields and two identity roles, not complete object/dictionary semantics, native
+acceptance or all producer/version combinations. J256/J260/J268/J284/J293/J295
+remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
+ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full objective
+stays active; no remote mutation included.

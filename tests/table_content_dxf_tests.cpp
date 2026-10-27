@@ -1664,6 +1664,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "rendering_source_controls.h"
 #include "object_physical_controls.h"
 #include "render_preset_source_controls.h"
+#include "render_preset_output_controls.h"
 
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
@@ -3157,6 +3158,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--render-preset-output") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-render-preset-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=renderPresetOutputControls::tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--render-presets") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
