@@ -1090,6 +1090,10 @@ set_tests_properties(libdxfrw_render_settings_owner_order PROPERTIES
     LABELS "fast;dxf;graph;adapter;render;plotsettings"
     TIMEOUT 30
 )
+add_test(NAME libdxfrw_rendering_dxf_projections
+    COMMAND libdxfrw_dxf_fixture_tests --rendering-projections)
+set_tests_properties(libdxfrw_rendering_dxf_projections PROPERTIES
+    LABELS "fast;dxf;render;parser" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_evaluation_graph_capture_limits

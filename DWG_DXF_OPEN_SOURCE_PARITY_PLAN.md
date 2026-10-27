@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fn original VIEWPORT targets and Boolean observations (2026-10-27; verified selected scope):** actual callback identities and original pre-staging state now bind selected VIEWPORT bodies, independent fields/references and paper-space LAYOUT targets through existing ENTITIES/BLOCKS origins. A reproduced shared BOOL-observer bug is fixed without changing ordinary Boolean parsing; the existing512 frozen-layer cap is enforced before append. The authored matrix covers72 profiles,4,200 scalar positions,864 reference spans,240 corrected imports and384 corrected dependency finalizations. Final affected cohorts pass90/90 normally and90/90 under ASan; focused existing UCS/VIEWPORT controls also pass. Rendering objects, clipping/layer overrides and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fn-original-viewport-targets-and-boolean-observations-2026-10-27) · [receipt](docs/research/rpp5fn-original-viewport-targets-and-boolean-observations-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5fo rendering subclass projections and typed preset output (2026-10-27; verified selected scope):** original base subclasses now govern rendering named fields, with charged environment filename aliases and distinct legacy MentalRay roles. A reproduced typed preset writer loss is fixed with canonical base/derived bodies and refusal before publication for unrepresented or inconsistent inputs. The authored matrix covers504 projection profiles,15,840 raw tags,306 writer/readback/refusal controls and bounded ownership/recovery. Final affected cohorts pass96/96 normally and96/96 under ASan. Actual original rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fo-rendering-subclass-projections-and-typed-preset-output-2026-10-27) · [receipt](docs/research/rpp5fo-rendering-subclass-projections-and-preset-output-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fn original VIEWPORT targets and Boolean observations (2026-10-27; verified selected scope):** actual callback identities and original pre-staging state now bind selected VIEWPORT bodies, independent fields/references and paper-space LAYOUT targets through existing ENTITIES/BLOCKS origins. A reproduced shared BOOL-observer bug is fixed without changing ordinary Boolean parsing; the existing512 frozen-layer cap is enforced before append. The authored matrix covers72 profiles,4,200 scalar positions,864 reference spans,240 corrected imports and384 corrected dependency finalizations. Final affected cohorts pass90/90 normally and90/90 under ASan; focused existing UCS/VIEWPORT controls also pass. Rendering objects, clipping/layer overrides and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fn-original-viewport-targets-and-boolean-observations-2026-10-27) · [receipt](docs/research/rpp5fn-original-viewport-targets-and-boolean-observations-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fm original VIEW/UCS providers and DXF flags (2026-10-27; verified selected scope):** actual original source/typed pairs, immutable parser/model/raw/context snapshots, shared bounded replay, independent field/reference inventories and physical TABLES origins now supply selected active LAYOUT view-name/UCS targets. DXF flag32 is preserved while native masks stay unchanged. The authored matrix covers144 profiles,14,544 physical positions,348 corrected imports and384 corrected source finalizations. Final affected cohorts pass89/89 normally and89/89 under ASan, with focused existing UCS controls also passing. A pre-existing ambient test recipe is corrected with additional readback proof. VIEWPORT/rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fm-original-viewucs-target-providers-and-dxf-flags-2026-10-27) · [receipt](docs/research/rpp5fm-original-view-ucs-target-providers-and-dxf-flags-2026-10-27.json). No support gate is promoted.
 
@@ -133014,3 +133016,123 @@ incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The full objective remains active and incomplete; no remote
 mutation is included.
+
+## Implementation progress — RPP-5fo rendering subclass projections and typed preset output (2026-10-27)
+
+The rendering-provider investigation reproduced concrete prerequisites rather
+than certifying the existing projections. The original library fails396 of504
+new authored projection profiles. RENDERENVIRONMENT drops its named image path;
+preset predefined state stays absent; foreign/derived repeated fields can fill
+base metadata; the documented legacy MentalRay texture-quality90 becomes a
+display index and its derived MI filename becomes a description. The standalone
+writer probe also confirms successful ASCII/binary preset output omits the base
+subclass and loses named fields on readback. All evidence remains selected DXF
+projection/body-output work, not full rendering or original-source qualification.
+
+Research and implementation:
+
+- [x] Read Autodesk's [RENDERENVIRONMENT](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-286E5C8A-6EC6-4EB4-B54B-2DCD8278EC07.htm),
+  [RapidRT](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-427599C5-9562-4384-82E6-8B7B87492C57.htm)
+  and [MentalRay](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-69B42C9D-062D-4FEC-952E-CA0DDF7B4831.htm)
+  DXF layouts. Environment image text, preset preview/description/display/index,
+  predefined presence and the documented legacy MentalRay base stay distinct.
+  The modern MentalRay shared-base route is existing authored compatibility
+  evidence; it does not establish a vendor/producer rendering profile.
+- [x] Add one shared internal decoder for actual base-subclass projection.
+  Positional vectors and raw tags still retain every original value, including
+  unknown/foreign subclasses. Application102 and XDATA retain their existing
+  route. Derived/foreign values cannot backfill missing base fields. Keep
+  markerless compatibility, callback order and default consumer behavior.
+- [x] Charge the environment filename's positional, historical name and image
+  aliases through the existing retained-byte lease. Exact/one-under controls,
+  copy/assignment/reset lifetimes and failed admission release remain bounded.
+  Existing preset fog/image member names remain documented historical aliases;
+  no public data member or DRW_Interface virtual is added. Native parseDwg and
+  native finalization retain their separate path. Formal ABI remains unqualified.
+- [x] Emit complete closed RapidRT and legacy/modern-base MentalRay DXF preset
+  vectors in canonical base/derived subclass and field order. Before emitting a
+  record, refuse incomplete/ambiguous vectors, opaque native tails, non-finite
+  doubles, short overflow, incompatible record names and inconsistent named
+  projections. Do not silently discard live named edits. Existing same-version
+  raw converter replay stays separate. Other render typed bodies, source/version/
+  class/ownership semantics and native output are not qualified by this change.
+- [x] Runtime-authored controls cover504 projection profiles across four declared
+  DXF versions, memory/file ASCII and binary inputs, seven forms, three flag
+  presence/value forms and foreign scopes. Independently compare15,840 raw tags,
+  six partial-base/markerless cases, six exact/one-under owner controls, three
+  malformed/callback corrected retries and504 public lifetimes. Complete preset
+  output additionally checks canonical physical bodies, every retained vector and
+  named projection, repeated output,15 refusal reasons, preserved destinations
+  and corrected reuse. No DWG/DXF fixture is added to the source tree.
+
+Validation and retained evidence:
+
+- [x] Final affected cohorts pass **96/96** normally in88.37s and
+  **96/96** under qualified ASan in55.45s atj2. All17 printed
+  owning counter lines agree across configurations; all16 previous lines stay
+  unchanged. Existing focused UCS/VIEWPORT selectors also pass in each run.
+- [x] Both final11-target builds pass with `-Werror`; built-target reuse makes
+  the final normal refresh10.74s and ASan refresh
+  70.03s after the substantive writer fix. Keep
+  the earlier projection-stage build cost visible. The416-file compiled-source/
+  metadata manifest remains frozen through both ordered runtimes; both builds
+  and packaging finish before either final runtime. Original Debug/O0 ASan is
+  unchanged and receives no green claim.
+- [x] Isolated autoreconf/configure/make-dist passes. Both278-member archives
+  contain the exact new internal header and existing required helper hashes.
+  This is archive inclusion, not a full Autotools source-distribution build.
+  Full suite, formal ABI/native applications and controlled RSS/performance
+  qualification remain open.
+
+The [receipt](docs/research/rpp5fo-rendering-subclass-projections-and-preset-output-2026-10-27.json)
+pins sources, selected names/settings/counters, ordered runtimes, packaging,
+research and diagnostic failures. The initial harness's unset adapter writer
+state and unresolved authored XDATA APPID are harness prerequisites, not library
+crash/semantic evidence; the corrected body-only probe demonstrates the actual
+writer issue. The initial signed-width refusal probe was corrected to exceed the
+accepted unsigned32 carrier range. Preserve these observations; do not relabel
+an earlier or invalidated build/runtime as current-source qualification.
+
+Next implementation-ready sequence (retain the entire original objective):
+
+1. [ ] **Complete actual rendering-object providers.** Reuse the shared decoder
+   for bounded replay. Publish actual original VisualStyle/RenderSettings typed/
+   raw identities with pre-copy common and subclass/counter states through a
+   separate borrowed view and existing opt-in facet. Own immutable model/raw/
+   context/origin snapshots; independently inventory full properties, positional
+   fields and references. Description/type alone cannot certify VisualStyle's
+   opaque property body. Distinguish observed legacy/modern producer profiles
+   from authored compatibility shapes. Join original named dictionaries and real
+   active LAYOUT/VIEW/VIEWPORT rendering references; then background/live-section/
+   sun providers and ownership. Verify callback identity/lifetime, mutations,
+   exact quotas, reached allocation failure, rollback and corrected retries.
+2. [ ] **Complete VIEWPORT and remaining original producer semantics.** Finish
+   clipping geometry, layer VP overrides335/343/344/91, qualified legacy aliases,
+   required/absent/null/default behavior, remaining entity/material/reactor/IMAGE/
+   document/control/owner and dictionary-flag work, names/application/XDATA and
+   HEADER CEPSNID/CEPSNTYPE. Close recursive/coupled dependencies, whole-document
+   ownership and native names/collation.
+3. [ ] **Complete live/emitted closure and TABLE output.** Revalidate original
+   certificates against edits and emitted fields, remapping/readback/refusal/
+   rollback/retry/destination safety. Finish Values, multiple-content attributes,
+   linked-data ownership and producer/version-qualified formats, units/borders.
+   Preserve unguessed date epoch, native point counts and General semantics.
+4. [ ] **Complete full B2b/B3/C and release/consumer qualification.** Retain native
+   bit/decimal/carrier/schema/owner, IMAGE/document, version/corpus and measured
+   memory/performance work. Audit full Autotools source/header inventory against
+   CMake before a source-release build. Preserve LibreCAD/LibreCAD_3 and dwg2dxf/
+   FreeCAD behavior. Obtain native Linux/Windows FreeCAD and independent ACIS/ACDS
+   semantic/kernel evidence separately.
+5. [ ] **Continue efficient self-updating execution.** Fast owning checks,
+   risk-based affected integration and built-target reuse; freeze compiled
+   sources and finish builds/packaging before normal then ASan runtimes. Preserve
+   failures/caps, self-unblock and update/commit/report each verified slice.
+   Commit no external drawing payloads, conversions or derivatives.
+
+Resource families stay nine, ATTDEF `rawTypedMatched=false`, support ledger
+**CLOSED**, `recursiveClosureMatched=false`, `ownerTargetsResolved=false` and
+`outputEligible=false`. Full rendering/original-source/recursive/live/emitted/
+whole-document/native qualification remains incomplete. J256/J260/J268/J284/J293/
+J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
+ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full objective
+remains active and incomplete; no remote mutation is included.

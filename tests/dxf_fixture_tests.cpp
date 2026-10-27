@@ -34595,7 +34595,14 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 }
 } // namespace
 
+#include "rendering_projection_controls.h"
+
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--rendering-projections") {
+        TestContext context;
+        renderingProjectionControls::run(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--dxf-consumer-finalization") {
         TestContext focused;
         testDxfConsumerFinalization(focused);
@@ -35374,6 +35381,7 @@ int main(int argc, char** argv) {
     testViewLiveSectionFailClosed(context);
     testViewBackgroundAndSunFailClosed(context);
     testVisualStyleTypeScope(context);
+    renderingProjectionControls::run(context);
     testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testDwgViewportProjection(context);

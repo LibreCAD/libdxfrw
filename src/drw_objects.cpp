@@ -12035,9 +12035,15 @@ bool DRW_Section::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 bool DRW_RenderSettings::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // Positional record: accumulate per-code value vectors (the named meaning is
-    // by order, resolved per-kind in finalize()).  Code map per dwgTs
-    // parseObjectsRenderDxf.ts.
+    return parseDxfValue(code, reader, 8u);
+}
+
+bool DRW_RenderSettings::parseDxfValue(
+        int code, const std::unique_ptr<dxfReader>& reader,
+        unsigned stringRoles) {
+    // Positional values stay available independently of the named projection.
+    // The production DXF decoder supplies original subclass-specific string
+    // roles; direct parseCode callers retain the markerless compatibility path.
     switch (code) {
     case 90:
         if (m_longs.size() >= dwgSafety::MaxOwnedObjectCount)
@@ -12068,20 +12074,28 @@ bool DRW_RenderSettings::parseCode(int code, const std::unique_ptr<dxfReader>& r
                 return true;
             };
 
+            if (stringRoles == 8u) {
+                stringRoles = stringIndex == 0u ? 1u : 0u;
+                if (m_kind == Environment && stringIndex == 0u)
+                    stringRoles |= 2u;
+                if (m_kind == Settings || m_kind == RapidRT
+                    || m_kind == MentalRay) {
+                    if (stringIndex == 1u) stringRoles |= 2u;
+                    if (stringIndex == 2u) stringRoles |= 4u;
+                }
+            }
             const UTF8STRING& retainedValue = m_strings.back();
             bool retainedNamedField = true;
-            if (stringIndex == 0u) {
+            if ((stringRoles & 1u) != 0u) {
                 retainedNamedField = replaceDxfRetainedStringField(
                     reader, m_dxfRetainedNameBytes, m_name, retainedValue);
-            } else if ((m_kind == Settings || m_kind == RapidRT
-                        || m_kind == MentalRay)
-                       && stringIndex == 1u) {
+            }
+            if (retainedNamedField && (stringRoles & 2u) != 0u) {
                 retainedNamedField = replaceDxfRetainedStringField(
                     reader, m_dxfRetainedEnvironmentFilenameBytes,
                     m_environmentImageFilename, retainedValue);
-            } else if ((m_kind == Settings || m_kind == RapidRT
-                        || m_kind == MentalRay)
-                       && stringIndex == 2u) {
+            }
+            if (retainedNamedField && (stringRoles & 4u) != 0u) {
                 retainedNamedField = replaceDxfRetainedStringField(
                     reader, m_dxfRetainedDescriptionBytes,
                     m_description, retainedValue);

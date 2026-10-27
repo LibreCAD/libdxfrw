@@ -48,6 +48,7 @@ namespace dxfField { class Decoder; }
 namespace dxfBlockRecord { class Decoder; }
 namespace dxfLayout { class Decoder; }
 namespace dxfViewUcs { class Decoder; }
+namespace dxfRenderSettings { class Decoder; }
 class dwgBuffer;
 class dwgRW;
 
@@ -5294,6 +5295,7 @@ private:
 //! settings are still retained by the raw-object path for same-version replay.
 class DRW_RenderSettings : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfRenderSettings::Decoder;
 public:
   enum Kind { Settings, Global, Environment, Entry, RapidRT, MentalRay };
   static constexpr std::uint16_t kDwgClassNumEntry = 549;
@@ -5323,6 +5325,10 @@ public:
   std::vector<std::int32_t> m_bytes;  /*!< code 280 (RC) */
   std::vector<double> m_doubles;      /*!< code 40 */
   /* named fields finalized for the documented kinds */
+  // Preset records retain the historical aliases: materials, texture sampling
+  // and shadows use fogEnabled, fogBackgroundEnabled and environmentImageEnabled.
+  // Environment records use the literal fog/image meanings. Preset image text
+  // is the preview filename, not an environment map.
   bool m_fogEnabled = false;
   bool m_fogBackgroundEnabled = false;
   bool m_backfacesEnabled = false;
@@ -5376,6 +5382,12 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 private:
+  // Internal DXF decoder supplies string roles from the original subclass.
+  // Roles:1 name,2 image/preview filename,4 description.8 selects the legacy,
+  // markerless parseCode projection. No parser state is
+  // added to installed models and native DWG finalization remains separate.
+  bool parseDxfValue(int code, const std::unique_ptr<dxfReader>& reader,
+                     unsigned stringRoles);
   std::size_t m_dxfRetainedStringVectorBytes{0u};
   std::size_t m_dxfRetainedNameBytes{0u};
   std::size_t m_dxfRetainedEnvironmentFilenameBytes{0u};

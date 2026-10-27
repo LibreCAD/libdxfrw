@@ -48,6 +48,7 @@
 #include "intern/dxftable.h"
 #include "intern/dxflayout.h"
 #include "intern/dxfviewucs.h"
+#include "intern/dxfrendersettings.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
@@ -20136,6 +20137,7 @@ bool dxfRW::processRenderSettings() {
              || dxfKeywordEquals(nextentity, "ACDBMENTALRAYRENDERSETTINGS"))
         data.m_kind = DRW_RenderSettings::MentalRay;
     else data.m_kind = DRW_RenderSettings::Settings;
+    dxfRenderSettings::Decoder decoder(data);
     DRW_RawDxfObject raw;
     if (!copyRawDxfCarrierName(raw, nextentity))
         return setError(DRW::BAD_CODE_PARSED);
@@ -20143,12 +20145,14 @@ bool dxfRW::processRenderSettings() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            data.finalize();
+            decoder.finish();
             iface->addRenderSettings(data);
             iface->addRawDxfObject(raw);
             return true;
         }
-        if (!captureAndParseRawDxfGroup(raw, code, data))
+        if (code == 102 ? !captureAndParseRawDxfGroup(raw, code, data)
+                        : !(captureRawGroup(raw, code, true)
+                            && decoder.parseCode(code, reader)))
             return setError(DRW::BAD_CODE_PARSED);
     }
     return setError(DRW::BAD_READ_OBJECTS);
@@ -26502,6 +26506,19 @@ bool dxfRW::writePartialViewingIndex(DRW_PartialViewingIndex *ent) {
 
 bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
                                 const char *recordName) {
+    const bool preset = ent != nullptr
+        && (ent->m_kind == DRW_RenderSettings::RapidRT
+            || ent->m_kind == DRW_RenderSettings::MentalRay);
+    const auto profile = preset ? dxfRenderSettings::presetProfile(*ent)
+        : dxfRenderSettings::PresetProfile::Unavailable;
+    if (preset && (!dxfRenderSettings::presetProjectionMatches(*ent, profile)
+        || recordName == nullptr
+        || (ent->m_kind == DRW_RenderSettings::RapidRT
+            ? !(dxfKeywordEquals(recordName, "RAPIDRTRENDERSETTINGS")
+                || dxfKeywordEquals(recordName, "ACDBRAPIDRTRENDERSETTINGS"))
+            : !(dxfKeywordEquals(recordName, "MENTALRAYRENDERSETTINGS")
+                || dxfKeywordEquals(recordName, "ACDBMENTALRAYRENDERSETTINGS")))))
+        return failDxfWrite();
     if (!preflightTableEntry(ent))
         return false;
     if (recordName == nullptr || *recordName == '\0')
@@ -26511,6 +26528,12 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
     if (!writeTableEntryAppData(*ent))
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+    if (preset) {
+        dxfRenderSettings::writePresetBody(*writer, *ent, profile);
+        if (!ent->extData.empty() && !writeExtData(ent->extData))
+            return false;
+        return !writer->hasWriteError();
+    }
     switch (ent->m_kind) {
     case DRW_RenderSettings::Global:
         writer->writeString(100, "AcDbRenderGlobal"); break;
