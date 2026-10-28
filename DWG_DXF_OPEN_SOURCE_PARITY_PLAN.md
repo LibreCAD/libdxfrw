@@ -201,7 +201,14 @@ dual-`280` byte form. Other-version, ordering, nested and secondary-profile
 semantics remain separately qualified; retain existing single-`280` compatibility.
 
 **Next P4a candidate — source/meaning/representation search, not ready.** The
-retained AC1032 source in the [versioned readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
+independent [ACadSharp producer receipt](docs/research/rpp5hj-acadsharp-attribute-profile-2026-10-28.json)
+shows equal host Text/Attribute alignments and distinct embedded insertion for
+authored AC1032 ATTDEF and ATTRIB records. Its no-280 profile and embedded
+MTEXT group `73=0` do not qualify the retained dual-280 source; the ordinary
+peer normalizes that value. Investigate the raw `73` meaning or author a valid
+distinguishing profile before first save, then bind original capture, ownership
+and actual output without treating the peer's repaired value as source evidence.
+The retained AC1032 source in the [versioned readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
 has ATTDEF `796` / owner `77F` at `[75957,76505)` and ATTRIB `79D` / owner `79C`
 at `[210468,211002)`. Each has a later embedded MTEXT marker after its dual pair.
 Its Text `11/21/31`, Attribute `11/21/31` and MTEXT insertion `10/20/30` values
