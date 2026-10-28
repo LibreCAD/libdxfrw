@@ -45,7 +45,7 @@ runs separately.
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT MISSING LAYER, THEN IMPLEMENT | P4a: remaining original profile/representation/role evidence; P4b: compose document closure | One current distinguishing witness; embedded equal-value alignment is not implementation-ready |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
-| P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries, including the retained whole-adapter DIMSTYLE refusal | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
+| P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
 | P8 | PLATFORM / INTEGRATION | Consumer, packaging, ABI and native qualification | A composed source-stable candidate |
 | P9 | DEFERRED_EXTERNAL | Resolve the six J dispositions without weakening claim policy | Independent eligible evidence and native execution |
@@ -61,10 +61,10 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P6 — classify next current refusal | Retained authored source's whole-adapter DIMSTYLE TABLES refusal and existing TABLES/writer diagnostics | Reproduce on current binding, name the exact offending source record/field/owner or normalization rule and smallest owning selector before marking a fix READY |
 | P4a — classify next original profile | Retained AC1032 ATTDEF `796` / ATTRIB `79D`, alignment collisions and existing source/role/model reports | Establish separate Text/Attribute/MTEXT alignment meanings and representation with a distinguishing source before changing the grammar; otherwise select another witnessed local operation |
 | P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
+| P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
 Select the next local packet from a current exact witness and its missing layer.
 Embedded source-profile classification and independent native meaning remain
@@ -299,18 +299,12 @@ document closure remain separate evidence tasks. Preserve the direct writer's
 existing successful identity mutation contract; selected field preservation is
 not whole borrowed-caller immutability.
 
-**Next P6 witness selection.** The unchanged authored input in the retained
-[readiness receipt](docs/research/rpp5hd-embedded-attribute-alignment-writer-readiness-2026-10-28.json)
-also has a whole-adapter export refusal at default DIMSTYLE TABLES emission,
-before selected entities are written. Reproduce that exact operation on the
-current binding, retain the first diagnostic and input digest, and identify its
-offending source record/field, target policy and minimal owning selector. Decide
-whether it is a valid missing writer route, a producer/default normalization
-boundary or unqualified input before proposing a fix. The selected clean writer
-callbacks bypass this route and provide no evidence that it has been resolved.
-Do not mark this investigation READY until that exact classification and expected
-output/refusal contract exist. Continue another witnessed local packet if it
-does not yet identify an implementable gap.
+The [DIMSTYLE text-style receipt](docs/research/rpp5hf-dimstyle-compatible-text-style-2026-10-28.json)
+qualifies the selected compatible name-to-STYLE route and the retained authored
+whole-adapter witness. Remaining boundaries include ambiguous all-hex names,
+duplicate STYLE-name identity, strict omitted-field document qualification and
+broader native/semantic evidence. Do not reinterpret preserved hexadecimal tokens
+as proof of wide-handle support or general document closure.
 
 The rows below are remaining verification/qualification boundaries, not assertions
 that historical local fixes are still absent. For each row, check current code and
