@@ -75,6 +75,10 @@ private:
     bool publish();
 
     std::filesystem::path m_target;
+    // Resolve allocating path components before output exists. All later
+    // noexcept identity/rollback checks borrow these stable native paths.
+    std::filesystem::path m_targetName;
+    std::filesystem::path m_directory;
     std::filesystem::path m_temporary;
     std::ios::openmode m_mode;
     std::ofstream m_stream;

@@ -18,6 +18,7 @@ from bounded_process import run_bounded
 from check_staged_package import PUBLIC_HEADERS
 
 ENUMS = {
+    "Admission": ("DRW_DxfIdentitySource::Admission", "Unobserved", "Accepted"),
     "DwgDataStorageWriterOperation": ("DwgDataStorageWriterOperation", "NoOperation", "WriteMLeaderStyle"),
     "OperationKind": ("DRW::OperationKind", "NoOperation", "Read"),
     "OperationPhase": ("DRW::OperationPhase", "NoPhase", "Argument"),
@@ -36,9 +37,12 @@ SAFE_ASSERTS = "".join(
     'static_assert(std::is_same<decltype(%s::%s), %s>::value);\n'
     % (scope, safe, scope, following, scope, safe, scope)
     for scope, safe, following in ENUMS.values())
+SAFE_ASSERTS += "static_assert(DRW_DxfIdentitySource::NoIndex == (std::numeric_limits<std::size_t>::max)());\n"
 LEGACY_ASSERTS = "".join(
     'static_assert(%s::%s == %s::None);\n' % (scope, safe, scope)
     for scope, safe, _ in ENUMS.values())
+
+LEGACY_ASSERTS += "static_assert(DRW_DxfIdentitySource::NoIndex == DRW_DxfIdentitySource::None);\n"
 
 
 def checked(command: list[str], root: Path, timeout: float = 15) -> None:
@@ -287,8 +291,8 @@ def check(include_root: Path, compiler: str, msvc: bool,
         # Link only: the configured compiler may target another machine.
         if not executable.is_file():
             raise RuntimeError("mixed translation-unit link produced no executable")
-        print("public header hygiene: PASS (%d entry points, 10 identical enums, mixed-TU link%s)"
-              % (len(PUBLIC_HEADERS), ", actual X11" if x11_include else "; actual X11 unavailable/not requested"))
+        print("public header hygiene: PASS (%d entry points, %d identical enums, mixed-TU link%s)"
+              % (len(PUBLIC_HEADERS), len(ENUMS), ", actual X11" if x11_include else "; actual X11 unavailable/not requested"))
 
 
 def main() -> int:

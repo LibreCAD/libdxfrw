@@ -56,7 +56,7 @@ constexpr char kCanonicalDxfHeaderVariableNames[] =
     "3DDWFPREC ACADMAINTVER ACADVER ANGBASE ANGDIR ATTDIA ATTMODE ATTREQ "
     "AUNITS AUPREC BLIPMODE CAMERADISPLAY CAMERAHEIGHT CECOLOR CELTSCALE "
     "CELTYPE CELWEIGHT CEPSNID CEPSNTYPE CHAMFERA CHAMFERB CHAMFERC "
-    "CHAMFERD CLAYER CMLJUST CMLSCALE CMLSTYLE COORDS CSHADOW DGNFRAME "
+    "CHAMFERD CLAYER CMATERIAL CMLJUST CMLSCALE CMLSTYLE COORDS CSHADOW DGNFRAME "
     "DIMADEC DIMALT DIMALTD DIMALTF DIMALTMZF DIMALTMZS DIMALTRND "
     "DIMALTTD DIMALTTZ DIMALTU DIMALTZ DIMAPOST DIMARCSYM DIMASO "
     "DIMASSOC DIMASZ DIMATFIT DIMAUNIT DIMAZIN DIMBLK DIMBLK1 DIMBLK2 "
@@ -408,6 +408,9 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
             m_dxfHeaderStructureWellFormed = false;
         m_dxfHeaderCurrentGroupCodes.set(static_cast<std::size_t>(code));
     }
+    if (code != 9 && (name == "$CMATERIAL" || name == "CMATERIAL")
+        && code != 347)
+        m_dxfHeaderStructureWellFormed = false;
     if (code != 9 && isDxfCustomPropertyVariable(name) && code != 1)
         m_dxfCustomPropertiesWellFormed = false;
     if (code != 9 && name == kDxfRequiredVersions && code != 160)
@@ -629,6 +632,11 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         if (isDxfPlotStyleIdVariable(name)
             && curr->type() != DRW_Variant::INVALID)
             m_dxfPlotStyleIdWellFormed = false;
+        curr->addString(code, reader->takeString());
+        break;
+    case 347:
+        if (name != "$CMATERIAL" && name != "CMATERIAL")
+            return false;
         curr->addString(code, reader->takeString());
         break;
     case 345:
@@ -896,6 +904,10 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
     if (!resolveDxfDimensionVariables(ver, legacyDimunit, legacyDimfit,
                                       dimlunit, dimfrac, dimatfit, dimtmove))
         return;
+    if (!canWriteDxfMaterialReference(ver)) {
+        writer->markWriteError();
+        return;
+    }
     if (!canWriteDxfVisualStyleReferences(ver))
         return;
     if (!canWriteDxfCustomProperties(ver))
@@ -964,6 +976,21 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             continue;
         writer->writeString(9, reference.name);
         writer->writeString(reference.code, value->second->c_str());
+    }
+
+    // Preserve only supplied CMATERIAL values. Defaults are drawing-local
+    // object IDs, so neither an absent value nor a null implies a new default.
+    std::uint32_t materialHandle = 0u;
+    bool hasMaterial = false;
+    if (!getDxfMaterialReferenceHandle(materialHandle, hasMaterial)) {
+        writer->markWriteError();
+        return;
+    }
+    if (hasMaterial) {
+        const auto dollar = vars.find("$CMATERIAL");
+        const auto value = dollar != vars.end() ? dollar : vars.find("CMATERIAL");
+        writer->writeString(9, "$CMATERIAL");
+        writer->writeString(347, *value->second->content.s);
     }
 
     if (!getStr("$DWGCODEPAGE", &varStr)) {
@@ -2612,6 +2639,42 @@ void DRW_Header::addCoord(std::string key, DRW_Coord value, int code){
     storeVar(key, new DRW_Variant(code, value));
 }
 
+bool DRW_Header::getDxfMaterialReferenceHandle(
+    std::uint32_t& handle, bool& present) const noexcept {
+    handle = 0u;
+    present = false;
+    const DRW_Variant* value = nullptr;
+    // Avoid allocating lookup keys in the noexcept query, including under a
+    // caller's allocator failure. There is no new per-HEADER instance state.
+    for (const auto& item : vars) {
+        const std::string_view key(item.first);
+        if (key != "$CMATERIAL" && key != "CMATERIAL")
+            continue;
+        if (present)
+            return false;
+        present = true;
+        value = item.second;
+    }
+    if (!present)
+        return true;
+    if (!value || value->type() != DRW_Variant::STRING
+        || value->code() != 347 || !value->content.s)
+        return false;
+    const std::string_view text(*value->content.s);
+    if (text.empty() || text.size() > 16u)
+        return false;
+    const auto parsed = std::from_chars(text.data(), text.data() + text.size(),
+                                         handle, 16);
+    return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
+}
+
+bool DRW_Header::canWriteDxfMaterialReference(DRW::Version target) const noexcept {
+    std::uint32_t handle = 0u;
+    bool present = false;
+    return getDxfMaterialReferenceHandle(handle, present)
+        && (!present || target >= DRW::AC1021);
+}
+
 bool DRW_Header::canWriteDxfVisualStyleReferences(DRW::Version target) const {
     for (const DxfHeaderVisualStyleReference& reference :
          dxfHeaderVisualStyleReferences) {
@@ -2671,7 +2734,12 @@ bool DRW_Header::canWriteDxfRequiredVersions(
     DRW::Version target) const noexcept {
     if (!m_dxfRequiredVersionsWellFormed)
         return false;
-    const auto value = vars.find(kDxfRequiredVersions);
+    auto value = vars.end();
+    for (auto it = vars.begin(); it != vars.end(); ++it)
+        if (std::string_view(it->first) == kDxfRequiredVersions) {
+            value = it;
+            break;
+        }
     if (value == vars.end())
         return true;
     return target >= DRW::AC1027 && value->second != nullptr
@@ -2694,8 +2762,13 @@ bool DRW_Header::getDxfPlotStyleIdHandle(std::uint64_t& handle,
                                          bool& present) const noexcept {
     handle = 0;
     present = false;
-    const auto dollar = vars.find(kDxfPlotStyleId);
-    const auto bare = vars.find("CEPSNID");
+    auto dollar = vars.end();
+    auto bare = vars.end();
+    for (auto it = vars.begin(); it != vars.end(); ++it) {
+        const std::string_view key(it->first);
+        if (key == kDxfPlotStyleId) dollar = it;
+        else if (key == "CEPSNID") bare = it;
+    }
     if (dollar != vars.end() && bare != vars.end())
         return false;
     const auto value = dollar != vars.end() ? dollar : bare;

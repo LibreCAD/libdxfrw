@@ -15624,6 +15624,85 @@ bool rawCommonReference(const DRW_RawDxfObject& raw,std::uint32_t& target,int& s
 }
 }
 
+bool dx_iface::prepareDxfHeaderMaterial(DRW::Version targetVersion) noexcept {
+    auto& state=m_dxfHeaderMaterialState;
+    if(!cData||!cData->headerC.canWriteDxfMaterialReference(targetVersion)
+        ||!cData->headerC.getDxfMaterialReferenceHandle(state.target,state.present))return false;
+    state.owner=cData;state.generation=cData->importGeneration;
+    state.format=cData->sourceFormat;state.version=cData->sourceVersion;
+    state.active=state.present||!m_dxfMaterialWriteSources.empty();
+    if(state.target) {
+        if(state.format!=dx_source_format::DXF)return false;
+        unsigned matches=0u;
+        for(const auto& source:m_dxfMaterialWriteSources)if(source.raw.handle==state.target) {
+            if(++matches!=1u)return false;state.targetOwner=source.raw.parentHandle;
+        }
+        if(matches!=1u)return false;
+    }
+    return true;
+}
+
+bool dx_iface::hasUnchangedDxfHeaderMaterial() const noexcept {
+    const auto& state=m_dxfHeaderMaterialState;
+    if(!state.owner)return true;
+    std::uint32_t target=0u;bool present=false;
+    return cData==state.owner&&cData->importGeneration==state.generation
+        &&cData->sourceFormat==state.format&&cData->sourceVersion==state.version
+        &&cData->headerC.getDxfMaterialReferenceHandle(target,present)
+        &&target==state.target&&present==state.present;
+}
+
+bool dx_iface::inspectDxfHeaderMaterial(const dxfRW::DxfHeaderWriteView& view) noexcept {
+    auto& state=m_dxfHeaderMaterialState;
+    if(!hasUnchangedDxfHeaderMaterial()||!dxfW)return false;
+    if(!state.active)return true;
+    if(state.inspected)return false;
+    try {
+        dx_standard_output::RecordCursor cursor(view.bytes,view);dx_standard_output::RecordCursor::Token token;
+        if(!cursor.next(token)||token.code!=2||token.text!="HEADER")return false;
+        bool selected=false;unsigned variables=0u,fields=0u;std::uint32_t target=0u;
+        while(!cursor.done()) {
+            if(!cursor.next(token)||token.code==0)return false;
+            if(token.code==9) {
+                if(selected&&fields!=1u)return false;
+                auto alias=token.text;
+                if(!alias.empty()&&alias.front()=='$')alias.remove_prefix(1);
+                constexpr std::string_view expected="CMATERIAL";
+                bool materialAlias=alias.size()==expected.size();
+                for(std::size_t i=0u;materialAlias&&i<alias.size();++i) {
+                    const auto c=alias[i]>='a'&&alias[i]<='z'?alias[i]-'a'+'A':alias[i];
+                    materialAlias=c==expected[i];
+                }
+                if(materialAlias&&token.text!="$CMATERIAL")return false;
+                selected=token.text=="$CMATERIAL";
+                if(selected&&++variables!=1u)return false;
+                continue;
+            }
+            if(!selected)continue;
+            if(token.code!=347||++fields!=1u||token.text.empty()||token.text.size()>16u)return false;
+            const auto parsed=std::from_chars(token.text.data(),token.text.data()+token.text.size(),target,16);
+            if(parsed.ec!=std::errc{}||parsed.ptr!=token.text.data()+token.text.size())return false;
+        }
+        if((selected&&fields!=1u)||variables!=(state.present?1u:0u)
+            ||target!=(state.target?dxfW->remapHandle(state.target):0u))return false;
+        state.inspected=true;return true;
+    }catch(...){return false;}
+}
+
+bool dx_iface::finalizeDxfHeaderMaterial() const noexcept {
+    const auto& state=m_dxfHeaderMaterialState;
+    if(!state.owner)return true;
+    if(!hasUnchangedDxfHeaderMaterial())return false;
+    if(!state.active)return true;
+    if(!state.inspected||!dxfW)return false;
+    if(!state.target)return true;
+    try {
+        const auto target=dxfW->remapHandle(state.target);
+        return dxfW->dxfWriteRecordHasIdentity(target,"MATERIAL","OBJECTS")
+            &&dxfW->dxfWriteRecordHasOwner(target,dxfW->remapHandle(state.targetOwner));
+    }catch(...){return false;}
+}
+
 bool dx_iface::prepareDxfLayerMaterials(DRW::Version version) noexcept {
     auto& state=m_dxfLayerMaterialState;
     if(!cData)return false;
@@ -28603,7 +28682,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
-    if(!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
+    if(!finalizeDxfHeaderMaterial()||!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
     if (!hasUnchangedDxfRenderPresetSources()
         || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
     if (!finalizeDxfShadeConsumers()) return false;
@@ -29446,9 +29525,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_dxfHeaderMaterialState={};
     m_dxfLayerMaterialState.clear();
     m_dxfFullStyleState.clear();m_dxfMaterialReferenceState.clear();
     struct CommonReferenceScope {dx_iface& owner;~CommonReferenceScope(){
+        owner.m_dxfHeaderMaterialState={};
         owner.m_dxfLayerMaterialState.clear();
         owner.m_dxfFullStyleState.clear();owner.m_dxfMaterialReferenceState.clear();
     }} commonReferenceScope{*this};
@@ -30995,7 +31076,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                                    : "standalone PLOTSETTINGS graph closure");
         return false;
     }
-    if(!prepareDxfLayerMaterials(v)||!prepareDxfFullStyles(v)||!prepareDxfCommonReferences(v,347,m_dxfMaterialReferenceState)){
+    if(!prepareDxfHeaderMaterial(v)||!prepareDxfLayerMaterials(v)||!prepareDxfFullStyles(v)||!prepareDxfCommonReferences(v,347,m_dxfMaterialReferenceState)){
         reportPreflightFailure("common material/style carrier capture incomplete, wrong-version or over budget");return false;
     }
     if (!prepareDxfShadeConsumers(v)) {
@@ -32230,6 +32311,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active);
+    if (m_dxfHeaderMaterialState.active && !dxfW->setDxfHeaderWriteInspector([this](const auto& view) {
+            return inspectDxfHeaderMaterial(view);
+        })) {
+        delete dxfW; dxfW=nullptr; return false;
+    }
     const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();

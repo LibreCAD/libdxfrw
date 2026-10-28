@@ -69,6 +69,11 @@ public:
         for(auto& row:state.sources)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
         const bool result=value.inspectDxfCommonReferences(view,section,347,state);state=std::move(saved);return result;
     }
+    static bool headerInactive(const dx_iface& value){return !value.m_dxfHeaderMaterialState.active&&!value.m_dxfHeaderMaterialState.inspected;}
+    static bool headerReplay(dx_iface& value,const dxfRW::DxfHeaderWriteView& view){
+        const auto saved=value.m_dxfHeaderMaterialState;value.m_dxfHeaderMaterialState.inspected=false;
+        const bool good=value.inspectDxfHeaderMaterial(view)&&value.finalizeDxfHeaderMaterial();value.m_dxfHeaderMaterialState=saved;return good;
+    }
     static auto layerSize(const dx_iface& value){return std::make_pair(value.m_dxfLayerMaterialState.rows.size(),value.m_dxfLayerMaterialState.bytes);}
     static void layerLimit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfLayerMaterialState.recordLimit=records;value.m_dxfLayerMaterialState.byteLimit=bytes;}
     static bool layerInactive(const dx_iface& value){return !value.m_dxfLayerMaterialState.active&&value.m_dxfLayerMaterialState.rows.empty()&&!value.m_dxfLayerMaterialState.inspected;}
@@ -27160,6 +27165,171 @@ void testLayerMaterialBindings(TestContext& t){
     t.expect(passed,"LAYER material output, closure and failure recovery");
 }
 
+namespace headerMaterialControls {
+using namespace materialConsumerControls;
+Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
+    auto source=materialConsumerControls::recipe(dir,version,false);
+    if(!material.empty()){auto end=std::find(source.begin(),source.end(),std::make_pair(0,std::string("ENDSEC")));source.insert(end,{{9,"$CMATERIAL"},{347,material}});}
+    return source;
+}
+bool noTemporaries(const std::filesystem::path& dir){
+    for(const auto& entry:std::filesystem::directory_iterator(dir))if(entry.path().filename().string().find(".libdxfrw-")!=std::string::npos)return false;return true;
+}
+void erase(DRW_Header& header,const std::string& name){const auto found=header.vars.find(name);if(found!=header.vars.end()){delete found->second;header.vars.erase(found);}}
+std::uint32_t number(const std::string& text){return static_cast<std::uint32_t>(std::stoull(text,nullptr,16));}
+bool proof(const std::vector<Wire>& fields,unsigned mode,std::size_t& count,bool direct=false){
+    bool header=false;std::string variable,material;unsigned materialVars=0u,materialFields=0u,seeds=0u;
+    std::uint32_t seed=0u,maximum=0u;
+    for(std::size_t i=0u;i<fields.size();++i){const auto& tag=fields[i];
+        if(tag.code==0&&tag.text=="SECTION"&&i+1u<fields.size()){header=fields[i+1u].text=="HEADER";variable.clear();}
+        if(tag.code==0&&tag.text=="ENDSEC"){header=false;variable.clear();}
+        if(header){if(tag.code==9){variable=tag.text;if(variable=="$CMATERIAL")++materialVars;}
+            else if(variable=="$CMATERIAL"){if(tag.code!=347)return false;material=tag.text;++materialFields;}
+            else if(variable=="$HANDSEED"&&tag.code==5){seed=number(tag.text);++seeds;}}
+        else if(tag.code==5||tag.code==105)maximum=std::max(maximum,number(tag.text));
+    }
+    if(seeds!=1u||seed<=maximum||materialVars!=(mode?1u:0u)||materialFields!=(mode?1u:0u))return false;count+=4u;
+    if(mode==1u){if(number(material)!=0u)return false;++count;}
+    if(mode>=2u){const auto rows=records(fields);const auto target=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.name=="MATERIAL"&&row.id==material;});
+        if(target==rows.end()||(!direct&&target->label!=(mode==3u?"OtherPaint":"Paint"))||material=="2"||material=="3")return false;
+        const auto owner=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return row.name=="DICTIONARY"&&row.id==target->owner;});if(owner==rows.end())return false;count+=4u;}
+    return true;
+}
+bool readback(const std::filesystem::path& path,unsigned mode){
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
+    std::uint32_t handle=0u;bool present=false;if(!data.headerC.getDxfMaterialReferenceHandle(handle,present)||present!=(mode!=0u))return false;
+    if(mode<2u)return handle==0u;
+    for(const auto& material:data.materials)if(material.handle==handle)return material.m_name==(mode==3u?"OtherPaint":"Paint");return false;
+}
+struct Editing:dx_iface {
+    unsigned phase=0u,copy=0u;bool active=true,copyOnly=false,inactive=false;std::function<void()> change;
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);inactive=A::headerInactive(*this);
+        if(active&&phase==0u){if(copyOnly){if(copy==0u)header.addStr("$CMATERIAL","3",347);if(copy==1u)erase(header,"$CMATERIAL");if(copy==2u)header.addStr("CMATERIAL","2",347);}else change();}}
+    void writeLayers()override{if(active&&phase==1u)change();dx_iface::writeLayers();}
+    void writeEntities()override{dx_iface::writeEntities();if(active&&phase==2u)change();}
+    bool finalizeDxfWrite()override{if(active&&phase==3u)change();return dx_iface::finalizeDxfWrite();}
+};
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t mutations=0u;
+    bool finalizeDxfWrite()override{
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(input)),{});
+        std::size_t begin=0u,end=0u;for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text=="HEADER"){
+            begin=fields[i+1u].begin;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;}
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);dxfRW::DxfHeaderWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::headerReplay(*this,view))return false;
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==9&&fields[i].text=="$CMATERIAL"){
+            for(unsigned mode=0u;mode<8u;++mode){const auto& name=fields[i];const auto& value=fields[i+1u];auto changed=body;
+                if(mode==0u)changed.at(name.value-begin+1u)='X';
+                if(mode==1u)changed.at(value.value-begin)=changed.at(value.value-begin)=='F'?'E':'F';
+                if(mode==2u)changed.erase(name.begin-begin,value.end-name.begin);
+                if(mode==3u)changed.insert(name.begin-begin,body.substr(name.begin-begin,value.end-name.begin));
+                if(mode==4u)changed.insert(value.begin-begin,body.substr(value.begin-begin,value.end-value.begin));
+                if(mode==5u)changed.at(name.value-begin+1u)='c';
+                if(mode==6u)changed.erase(name.value-begin,1u);
+                if(mode==7u){if(binary)changed.at(value.begin-begin)=static_cast<char>(346&255);else changed.at(value.begin-begin)='2';}
+                auto bad=view;bad.bytes=changed;if(A::headerReplay(*this,bad)||!A::headerReplay(*this,view))return false;++mutations;
+            }
+            break;
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+struct Direct:dx_iface {
+    dx_data data;dxfRW& output;std::string material="2";bool bare=false;unsigned provider=0u;long allocation=-1;bool inspected=false;std::size_t inventory=0u;
+    explicit Direct(dxfRW& writer):output(writer){cData=&data;currentBlock=data.mBlock;}
+    void writeHeader(DRW_Header& header)override{if(!material.empty())header.addStr(bare?"CMATERIAL":"$CMATERIAL",material,347);if(allocation>=0)materialAllocationCountdown=allocation;}
+    void writeBlocks()override{}void writeBlockRecords()override{}void writeLayers()override{}void writeLTypes()override{}void writeTextstyles()override{}
+    void writeVports()override{}void writeDimstyles()override{}void writeAppId()override{}
+    void emit(){DRW_Material value;value.handle=0xEA02u;value.parentHandle=0xCu;value.m_name="Direct Paint";output.writeMaterial(&value);}
+    void writeEntities()override{if(provider==2u){DRW_Line value;value.handle=2u;value.secPoint=DRW_Coord(1,2,3);output.writeLine(&value);}if(provider==3u)emit();}
+    void writeObjects()override{if(provider==0u)emit();}
+    bool finalizeDxfWrite()override{materialAllocationCountdown=-1;inventory=output.dxfWriteRecordHandleCount(0xEA02u);return dx_iface::finalizeDxfWrite();}
+};
+bool run(const std::filesystem::path& dir){
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,fields=0u,readbacks=0u,callbacks=0u,retries=0u,invalid=0u,mutations=0u,direct=0u,guards=0u,faults=0u,unreached=0u,fast=0u,diagnostics=0u;
+    const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"HEADER binding line="<<line<<" profiles="<<profiles<<" callbacks="<<callbacks<<" direct="<<direct<<" faults="<<faults<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool inputBinary:{false,true})for(bool binary:{false,true})for(unsigned mode=0u;mode<3u;++mode)for(bool bare:{false,true}){
+        if(mode==0u&&bare)continue; // absence has no spelling variant
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface writer;dx_data data;if(!write(input,recipe(dir,version,mode==2u?"2":mode==1u?"0":""),inputBinary,version)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(bare&&mode){erase(data.headerC,"$CMATERIAL");data.headerC.addStr("CMATERIAL",mode==2u?"2":"0",347);}
+        if(!writer.fileExport(output.string(),v,binary,&data,false)||!proof(wire(output,binary),mode,fields)||!readback(output,mode))return fail(__LINE__);++profiles;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned what=0u;what<7u;++what){
+        Editing writer;writer.phase=phase;dx_data data;if(!write(input,recipe(dir,"AC1027","2"),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto saved=data.headerC;const auto generation=data.importGeneration;const auto owner=data.materials.front().parentHandle;
+        writer.change=[&]{if(what==0u)data.headerC.addStr("$CMATERIAL","3",347);if(what==1u)erase(data.headerC,"$CMATERIAL");if(what==2u)data.headerC.addStr("CMATERIAL","2",347);
+            if(what==3u)++data.importGeneration;if(what==4u)data.sourceFormat=dx_source_format::Unknown;if(what==5u)data.sourceVersion=DRW::AC1024;if(what==6u)data.materials.front().parentHandle=0xEBADu;};
+        sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        writer.active=false;data.headerC=saved;data.importGeneration=generation;data.sourceFormat=dx_source_format::DXF;data.sourceVersion=DRW::AC1027;data.materials.front().parentHandle=owner;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,2u))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true}){
+        Editing writer;writer.copyOnly=true;dx_data data;if(!write(input,recipe(dir,"AC1027","2"),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        for(unsigned copy=0u;copy<3u;++copy){writer.copy=copy;sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+            writer.active=false;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;writer.active=true;}
+        writer.active=false;const auto saved=data.headerC;
+        for(const auto& bad:std::vector<std::string>{"EBAD","C","+2"," 2","2 ","0x2","100000000","FFFFFFFF","00000000000000002",std::string("2\0F",3)}){
+            data.headerC.addStr("$CMATERIAL",bad,347);sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;
+            data.headerC=saved;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        }
+        for(unsigned malformed=0u;malformed<3u;++malformed){if(malformed==0u)data.headerC.addInt("$CMATERIAL",2,347);if(malformed==1u)data.headerC.addStr("$CMATERIAL","2",340);if(malformed==2u)data.headerC.addStr("CMATERIAL","2",347);
+            sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;data.headerC=saved;
+            if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;}
+        data.headerC.addStr("$CMATERIAL","0000000000000003",347);
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(wire(output,binary),3u,fields)||!readback(output,3u))return fail(__LINE__);data.headerC=saved;
+        const auto previous=dir/(binary?"captured-binary.dxf":"captured-ascii.dxf");if(!writer.fileExport(previous.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        Replay replay;replay.previous=previous;replay.binary=binary;if(!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);mutations+=replay.mutations;
+        erase(data.headerC,"$CMATERIAL");writer.active=true;writer.copy=0u;sentinel(output);
+        if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;writer.active=false;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,0u))return fail(__LINE__);++retries;
+        Editing plain;plain.active=false;dx_data ordinary;const Tags empty{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},{0,"EOF"}};
+        if(!write(input,empty,binary,"AC1027")||!plain.fileImport(input.string(),&ordinary,false)||!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!plain.inactive)return fail(__LINE__);++fast;
+        plain.active=true;plain.change=[&]{ordinary.headerC.addStr("$CMATERIAL","2",347);};sentinel(output);
+        if(plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!kept(output))return fail(__LINE__);++callbacks;plain.active=false;erase(ordinary.headerC,"$CMATERIAL");
+        if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false))return fail(__LINE__);++retries;
+        ordinary.headerC.addStr("$CMATERIAL","0",347);if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!proof(wire(output,binary),1u,fields)||!readback(output,1u))return fail(__LINE__);++fast;
+        dxfRW target(output.string().c_str());target.setHandleRemap({{2u,0xEA02u},{0xEA02u,0xEA12u}});Direct codec(target);codec.bare=true;
+        if(!target.write(&codec,DRW::AC1027,binary)||codec.inventory!=1u||!proof(wire(output,binary),2u,fields,true))return fail(__LINE__);++direct;
+        codec.material.clear();if(!target.write(&codec,DRW::AC1027,binary)||codec.inventory||!proof(wire(output,binary),0u,fields,true))return fail(__LINE__);++direct;
+        codec.material="2";
+        unsigned guard=0u;target.setDxfHeaderWriteInspector([&](const auto& view){codec.inspected=true;if(view.bytes.empty()||view.bytes.find("ENDSEC")!=std::string_view::npos)return false;
+            if(guard==1u)return false;if(guard==2u)throw std::runtime_error("authored HEADER inspector failure");if(guard==3u)target.setDxfHeaderWriteInspector({});if(guard==4u&&target.write(&codec,DRW::AC1027,binary))return false;return true;});
+        if(!target.write(&codec,DRW::AC1027,binary)||!codec.inspected||!proof(wire(output,binary),2u,fields,true))return fail(__LINE__);++direct;
+        for(guard=1u;guard<=4u;++guard){sentinel(output);if(target.write(&codec,DRW::AC1027,binary)||!kept(output))return fail(__LINE__);++guards;const auto old=guard;guard=0u;
+            if(!target.write(&codec,DRW::AC1027,binary)||!proof(wire(output,binary),2u,fields,true))return fail(__LINE__);++retries;guard=old;}guard=0u;
+        for(unsigned provider=1u;provider<4u;++provider){codec.provider=provider;sentinel(output);if(target.write(&codec,DRW::AC1027,binary)||!kept(output))return fail(__LINE__);++invalid;
+            codec.provider=0u;if(!target.write(&codec,DRW::AC1027,binary))return fail(__LINE__);++retries;}
+        for(long offset=0;offset<64;++offset){codec.allocation=offset;const auto before=materialFailedAllocations;sentinel(output);const bool good=target.write(&codec,DRW::AC1027,binary);materialAllocationCountdown=-1;
+            if(materialFailedAllocations!=before){if(good||!kept(output)||!noTemporaries(dir))return fail(__LINE__);const auto diagnostic=target.getLastDiagnostic();if(!diagnostic.failed())return fail(__LINE__);if(diagnostic.code.empty()&&diagnostic.message.empty())++diagnostics;++faults;}else{if(!good)return fail(__LINE__);++unreached;}
+            codec.allocation=-1;if(!target.write(&codec,DRW::AC1027,binary)||!proof(wire(output,binary),2u,fields,true))return fail(__LINE__);++retries;
+        }
+        for(const auto legacy:{DRW::AC1009,DRW::AC1014,DRW::AC1015,DRW::AC1018}){codec.material="0";sentinel(output);if(target.write(&codec,legacy,binary)||!kept(output))return fail(__LINE__);++invalid;}
+    }
+    for(bool binary:{false,true})for(unsigned malformed=0u;malformed<6u;++malformed){
+        auto source=recipe(dir,"AC1027","2");const auto where=std::find(source.begin(),source.end(),std::make_pair(9,std::string("$CMATERIAL")))-source.begin();
+        if(malformed==0u)source.insert(source.begin()+where+2,{{347,"3"}});
+        if(malformed==1u)source.insert(source.begin()+where+2,{{9,"$CMATERIAL"},{347,"3"}});
+        if(malformed==2u)source[static_cast<std::size_t>(where)+1u]={70,"2"};
+        if(malformed==3u)source.insert(source.begin()+where+2,{{1,"extra"}});
+        if(malformed==4u)source.insert(source.begin()+where+2,{{9,"CMATERIAL"},{347,"2"}});
+        if(malformed==5u)source.erase(source.begin()+where+1);
+        dx_iface writer;dx_data data;if(!write(input,source,binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;
+        dx_data corrected;if(!write(input,recipe(dir,"AC1027","2"),binary,"AC1027")||!writer.fileImport(input.string(),&corrected,false)
+            ||!writer.fileExport(output.string(),DRW::AC1027,binary,&corrected,false)||!readback(output,2u))return fail(__LINE__);++retries;
+    }
+    std::cout<<"HEADER material profiles="<<profiles<<"; independent fields="<<fields<<"; readbacks="<<readbacks<<"; callback rollbacks="<<callbacks<<"; corrected retries="<<retries<<"; malformed/target refusals="<<invalid
+        <<"; staged field refusals="<<mutations<<"; direct profiles="<<direct<<"; inspector guards="<<guards<<"; reached post-header writer faults="<<faults<<"; unreached offsets="<<unreached<<"; scalar-only diagnostics="<<diagnostics<<"; inactive/null2D profiles="<<fast<<'\n';
+    return profiles==80u&&readbacks==80u&&callbacks==66u&&invalid==52u&&retries==246u&&mutations==16u&&direct==6u&&guards==8u&&faults+unreached==128u&&diagnostics==faults&&fast==4u;
+}
+}
+void testHeaderMaterialBindings(TestContext& t){
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-header-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=headerMaterialControls::run(dir);if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"HEADER material evidence: "<<dir<<'\n';
+    t.expect(passed,"HEADER material output, closure and failure recovery");
+}
+
 void testMaterialRawCapture(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
@@ -35055,6 +35225,9 @@ int main(int argc, char** argv) {
         testDxfConsumerFinalization(focused);
         std::cout << "DXF consumer finalization: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--header-material-bindings") {
+        TestContext context;testHeaderMaterialBindings(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--layer-material-bindings") {
         TestContext context;testLayerMaterialBindings(context);return context.failures == 0 ? 0 : 1;

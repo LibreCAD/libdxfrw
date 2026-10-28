@@ -41,9 +41,23 @@
 #  include <unistd.h>
 #endif
 
+#if !defined(_WIN32)
+namespace {
+const char* temporaryFileName(const std::filesystem::path& path) noexcept {
+    const auto& native = path.native();
+    const auto slash = native.find_last_of('/');
+    return native.c_str() + (slash == std::string::npos ? 0u : slash + 1u);
+}
+}
+#endif
+
 DwgDxfOutputTransaction::DwgDxfOutputTransaction(
     const std::string& target, std::ios::openmode mode)
-    : m_target(std::filesystem::u8path(target)), m_mode(mode) {}
+    : m_target(std::filesystem::u8path(target)),
+      m_targetName(m_target.filename()), m_directory(m_target.parent_path()),
+      m_mode(mode) {
+    if (m_directory.empty()) m_directory = ".";
+}
 
 DwgDxfOutputTransaction::~DwgDxfOutputTransaction() {
     if (!m_committed)
@@ -58,11 +72,9 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     if (m_target.empty())
         return false;
 
-    const std::filesystem::path directory =
-        m_target.parent_path().empty() ? std::filesystem::path(".")
-                                       : m_target.parent_path();
+    const auto& directory = m_directory;
     // Keep the basename native (UTF-16 on Windows); append only ASCII suffixes.
-    const std::filesystem::path name = m_target.filename();
+    const auto& name = m_targetName;
     if (name.empty())
         return false;
 
@@ -179,7 +191,7 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
 }
 
 bool DwgDxfOutputTransaction::captureTargetSnapshot() noexcept {
-    if (m_target.empty() || m_target.filename().empty())
+    if (m_target.empty() || m_targetName.empty())
         return false;
 #if defined(_WIN32)
     const HANDLE targetHandle = CreateFileW(
@@ -226,7 +238,7 @@ bool DwgDxfOutputTransaction::captureTargetSnapshot() noexcept {
     if (m_directoryDescriptor < 0)
         return false;
     struct stat targetStatus {};
-    const std::filesystem::path targetName = m_target.filename();
+    const auto& targetName = m_targetName;
     const int flags =
 #  if defined(AT_SYMLINK_NOFOLLOW)
         AT_SYMLINK_NOFOLLOW;
@@ -324,7 +336,7 @@ bool DwgDxfOutputTransaction::targetSnapshotMatches() const noexcept {
     if (m_directoryDescriptor < 0)
         return false;
     struct stat targetStatus {};
-    const std::filesystem::path targetName = m_target.filename();
+    const auto& targetName = m_targetName;
     const int flags =
 #  if defined(AT_SYMLINK_NOFOLLOW)
         AT_SYMLINK_NOFOLLOW;
@@ -401,8 +413,8 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
     };
     struct stat pathStatus {
     };
-    const std::filesystem::path temporaryName = m_temporary.filename();
-    if (m_directoryDescriptor < 0 || temporaryName.empty())
+    const char* temporaryName = temporaryFileName(m_temporary);
+    if (m_directoryDescriptor < 0 || *temporaryName == '\0')
         return false;
     // Resolve the temporary name relative to the directory descriptor that
     // created it.  This remains valid when the parent directory is renamed,
@@ -415,7 +427,7 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
         0;
 #  endif
     return ::fstat(m_exclusiveDescriptor, &descriptorStatus) == 0
-           && ::fstatat(m_directoryDescriptor, temporaryName.c_str(),
+           && ::fstatat(m_directoryDescriptor, temporaryName,
                         &pathStatus, flags) == 0
            && descriptorStatus.st_dev == pathStatus.st_dev
            && descriptorStatus.st_ino == pathStatus.st_ino;
@@ -430,9 +442,7 @@ bool DwgDxfOutputTransaction::directoryIdentityMatchesPath() const noexcept {
 #else
     if (m_directoryDescriptor < 0 || m_target.empty())
         return false;
-    const std::filesystem::path directory =
-        m_target.parent_path().empty() ? std::filesystem::path(".")
-                                       : m_target.parent_path();
+    const auto& directory = m_directory;
     struct stat descriptorStatus {
     };
     struct stat pathStatus {
@@ -535,9 +545,9 @@ bool DwgDxfOutputTransaction::publish() {
     if (m_targetMode >= 0 && m_exclusiveDescriptor >= 0)
         ::fchmod(m_exclusiveDescriptor, static_cast<mode_t>(m_targetMode));
 
-    const std::filesystem::path temporaryName = m_temporary.filename();
-    const std::filesystem::path targetName = m_target.filename();
-    return ::renameat(m_directoryDescriptor, temporaryName.c_str(),
+    const char* temporaryName = temporaryFileName(m_temporary);
+    const auto& targetName = m_targetName;
+    return ::renameat(m_directoryDescriptor, temporaryName,
                       m_directoryDescriptor, targetName.c_str()) == 0;
 #endif
 }
@@ -623,9 +633,9 @@ void DwgDxfOutputTransaction::abort() noexcept {
         }
 #else
         if (owned && m_directoryDescriptor >= 0) {
-            const std::filesystem::path temporaryName = m_temporary.filename();
-            if (!temporaryName.empty())
-                (void)::unlinkat(m_directoryDescriptor, temporaryName.c_str(),
+            const char* temporaryName = temporaryFileName(m_temporary);
+            if (*temporaryName != '\0')
+                (void)::unlinkat(m_directoryDescriptor, temporaryName,
                                  0);
         }
 #endif

@@ -2135,6 +2135,18 @@ private:
     bool prepareDxfMaterialSources(DRW::Version version);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DxfHeaderMaterialState {
+        const dx_data* owner{nullptr};
+        std::uint64_t generation{0};
+        dx_source_format format{dx_source_format::Unknown};
+        DRW::Version version{DRW::UNKNOWNV};
+        std::uint32_t target{0}, targetOwner{0};
+        bool present{false}, active{false}, inspected{false};
+    } m_dxfHeaderMaterialState;
+    bool prepareDxfHeaderMaterial(DRW::Version) noexcept;
+    bool hasUnchangedDxfHeaderMaterial() const noexcept;
+    bool inspectDxfHeaderMaterial(const dxfRW::DxfHeaderWriteView&) noexcept;
+    bool finalizeDxfHeaderMaterial() const noexcept;
     struct DxfLayerMaterialState {
         struct Row {
             const DRW_Layer* layer{nullptr};

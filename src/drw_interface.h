@@ -13,6 +13,17 @@
 #ifndef DRW_INTERFACE_H
 #define DRW_INTERFACE_H
 
+// Preserve a caller's X11 None macro while declaring all header enums.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include <cstring>
 #include <limits>
 
@@ -886,27 +897,28 @@ public:
 /** Whole-read physical identity evidence, not object/body/target qualification.
  * Candidates preserve code 5/105 even in opaque scopes. HEADER/CLASSES are
  * framing/metadata, not object namespaces. Admission records the real parser's
- * registry decision; None is NOT proof that a physical identity is absent.
+ * registry decision; Unobserved is NOT proof that a physical identity is absent.
  */
 struct DRW_DxfIdentitySource {
   enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
   enum class Section : std::uint8_t {Header,Classes,Tables,Blocks,Entities,Objects,Other};
   enum class Kind : std::uint8_t {TableControl,TableRecord,Entity,Object,Unclassified};
   enum class Scope : std::uint8_t {Outer,Application,Xdata,Embedded,Unframed};
-  enum class Admission : std::uint8_t {None,Accepted,Null,Duplicate,Invalid};
-  static constexpr std::size_t None=(std::numeric_limits<std::size_t>::max)();
+  enum class Admission : std::uint8_t {None,Unobserved=None,Accepted,Null,Duplicate,Invalid};
+  static constexpr std::size_t NoIndex=(std::numeric_limits<std::size_t>::max)();
+  static constexpr std::size_t None=NoIndex; // legacy spelling; NoIndex is macro-safe
   struct SectionSource {
     Section kind{Section::Other};UTF8STRING name;
     DRW_DxfPhysicalRecordSpan marker,endMarker;
   };
   struct Record {
     Kind kind{Kind::Unclassified};UTF8STRING name,tableName;
-    std::size_t section{None},table{None},firstCandidate{0},candidates{0};
+    std::size_t section{NoIndex},table{NoIndex},firstCandidate{0},candidates{0};
     DRW_DxfPhysicalRecordSpan marker,endMarker;
   };
   struct Candidate {
-    std::size_t record{None},section{None};int code{0};
-    Scope scope{Scope::Unframed};Admission admission{Admission::None};
+    std::size_t record{NoIndex},section{NoIndex};int code{0};
+    Scope scope{Scope::Unframed};Admission admission{Admission::Unobserved};
     std::size_t repeatedAdmissions{0};UTF8STRING lexeme,rawValue;
     DRW_DxfPhysicalRecordSpan span;
   };
@@ -1175,5 +1187,10 @@ public:
     (void)data;
   }
 };
+
+#ifdef LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+#endif
 
 #endif

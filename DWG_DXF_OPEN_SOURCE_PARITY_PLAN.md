@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5gd LAYER material transport (2026-10-27; selected scope verified):** supplied modern LAYER 347 values now retain absence/null distinctions, object remapping and actual type/owner/output proof. 32 authored profiles, 82 callback refusals, 108 corrected retries and 135 selected normal/ASan checks pass. Ordinary2D and legacy non-DXF projection controls pass; HEADER $CMATERIAL, material body/native and full-document qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gd-layer-material-transport-and-output-closure-2026-10-27) · [receipt](docs/research/rpp5gd-layer-material-transport-and-output-closure-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5ge HEADER material and allocation-safe output (2026-10-28; selected scope verified):** supplied modern `$CMATERIAL` now remaps once and binds actual MATERIAL output, with staged HEADER proof and correct HANDSEED relocation. Persistent allocation tests exposed and fixed an atomic rollback abort; 128 reached offsets preserve destinations, remove owned temporaries and allow corrected retries. All 145 selected normal/ASan checks pass. Consumers must rebuild for the added `dxfRW` inspector state; native/material-body/document/ABI qualification remains open. [Implementation and remaining work](#implementation-progress-rpp-5ge-header-material-and-allocation-safe-output-2026-10-28) · [receipt](docs/research/rpp5ge-header-material-and-allocation-safe-output-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5gd LAYER material transport (2026-10-27; selected scope verified):** supplied modern LAYER 347 values now retain absence/null distinctions, object remapping and actual type/owner/output proof. 32 authored profiles, 82 callback refusals, 108 corrected retries and 135 selected normal/ASan checks pass. Ordinary2D and legacy non-DXF projection controls pass; HEADER $CMATERIAL, material body/native and full-document qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gd-layer-material-transport-and-output-closure-2026-10-27) · [receipt](docs/research/rpp5gd-layer-material-transport-and-output-closure-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fp original rendering publications and immutable inputs (2026-10-27; verified transport/input scope):** a separate borrowed view now attests actual VisualStyle/RenderSettings typed/raw identities and original common/private/positional state through the existing opt-in. Bounded immutable phase snapshots bind generation/context and physical OBJECTS namespace origins without claiming full model equality.576 publication profiles,20 input pairs,80 refusal/limit/owner controls and152 reached allocation failures with168 corrected imports pass. Final affected cohorts pass98/98 normally and98/98 under ASan. Full rendering model/property/reference/dependency and recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fp-original-rendering-publications-and-immutable-inputs-2026-10-27) · [receipt](docs/research/rpp5fp-rendering-original-publications-and-immutable-inputs-2026-10-27.json). No support gate is promoted.
 
@@ -135064,27 +135066,28 @@ and native Linux GCC release remain **NOT_RUN**. The full goal remains active.
 ## Next-slice readiness — RPP-5ge HEADER material dependency (2026-10-27)
 
 RPP-5gd completes the selected LAYER 347 transaction and its affected normal/
-ASan checkpoint. HEADER $CMATERIAL remains unimplemented. This
-readiness record does not promote either native semantic or document support.
+ASan checkpoint. The selected requirements 1–4 below are implemented by the RPP-5ge checkpoint
+dated 2026-10-28. Native semantics, remaining source profiles and the full
+requirement 5 objective stay open; this historical record does not promote support.
 
-1. [ ] Add canonical $CMATERIAL/group 347 scalar handling, strict 32-bit hex and
+1. [x] Add canonical $CMATERIAL/group 347 scalar handling, strict 32-bit hex and
    dollar/bare alias validation, shape/duplicate refusal and R2007+ output gating.
    Keep supplied zero distinct from absence and never synthesize a default or
    copy another file's hardcoded material ID. The primary peer headervars source
    gates 347 at DXF2007 and warns about a zero default; native acceptance is a
    separate gate. Preserve the generic malformed-HEADER safeguards.
-2. [ ] Make the core writer own exactly one object-handle remap after the HEADER
+2. [x] Make the core writer own exactly one object-handle remap after the HEADER
    callback. Verify the actual nonzero target is MATERIAL in OBJECTS before
    publication, including direct codec callbacks. The facade must additionally
    bind its admitted paired/rooted provider and freeze current header/context
    against late additions, removals, route changes and target edits.
-3. [ ] Add optional actual HEADER byte inspection with the existing guarded,
+3. [x] Add optional actual HEADER byte inspection with the existing guarded,
    borrowed, tentative-before-publication contract. Retain ordinary streaming
    when inactive. If staging HEADER, relocate its relative HANDSEED placeholder
    offset into the parent stream and verify the final absolute backpatch. Do not
    reset a writer while its staging scopes remain live. Any new installed dxfRW
    state requires consistent rebuilds and an explicit formal-ABI limitation.
-4. [ ] Author ASCII/Binary and cross-encoding modern controls for missing/null/
+4. [x] Author ASCII/Binary and cross-encoding modern controls for missing/null/
    nonzero, canonical/bare names, remaps/collisions, valid pre-export rebindings,
    malformed/duplicate aliases and old-version refusal. Check actual header
    fields, HANDSEED above all emitted IDs, provider type/owner and readback.
@@ -135096,3 +135099,151 @@ readiness record does not promote either native semantic or document support.
    Rendering variants, TABLE/native B2b/B3/C, native consumers, ABI/platform/RSS,
    Linux/Windows FreeCAD and independent ACIS/ACDS qualification remain required.
    J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and nonpromoting.
+
+
+
+## Implementation progress — RPP-5ge HEADER material and allocation-safe output (2026-10-28)
+
+The parent imports both authored encodings but refuses their valid nonzero
+$CMATERIAL references as unknown HEADER handles, preserving the old destination.
+Implement the selected HEADER 347 transaction and its source/output evidence. A
+new persistent-allocation control also exposes a real rollback abort; fix its
+ownership/diagnostic path without substituting one-shot allocation faults.
+
+- [x] Add canonical CMATERIAL parsing/writing, an R2007 floor and a stateless
+  noexcept full-string 32-bit hexadecimal query. Distinguish supplied null from
+  absence; accept one dollar/bare model alias and reject wrong variants/codes,
+  duplicate aliases and embedded NUL. Retain generic HEADER duplicate/shape
+  guards. No new DRW_Header instance or virtual state; do not invent defaults.
+- [x] Make the core own one material remap after the HEADER callback. Bind its
+  nonzero reference to an actual MATERIAL in OBJECTS before publication, enabling
+  inventory for that attempt only. The direct low-level MATERIAL writer retains
+  caller-supplied physical self IDs and graph responsibility; no new raw/native
+  material rewriting or dictionary certification is inferred.
+- [x] Add an optional guarded, borrowed HEADER observer. Its bytes include
+  opening group 2 HEADER, exclude SECTION/ENDSEC and contain prepatch HANDSEED.
+  Rebase the staged relative seed offset into the parent stream with overflow
+  checks; unwind byte/state scopes before resetting the writer. With no observer
+  the normal HEADER still streams. The new dxfRW private function state changes
+  its installed instance layout: rebuild consumers; formal ABI remains unqualified.
+- [x] Freeze a constant-size current facade target/presence/provider-owner/data/
+  generation/format/version snapshot. Check actual returned-copy/header fields
+  and actual MATERIAL identity/owner. Admitted material data activates absent-
+  header protection too; ordinary absent/material-free 2D has no new observer,
+  row inventory or retained HEADER-variable copies. Preserve the existing
+  non-DXF nonzero-reference refusal and raw MATERIAL source/version policy.
+- [x] Fix the LLDB-proven persistent-OOM abort: cache target basename/directory
+  before output exists and borrow native POSIX temporary-name bytes during
+  identity, publication and unlink. No allocating filename/parent extraction
+  remains in noexcept identity/rollback checks. Preserve directory descriptors,
+  no-follow flags and inode/owner checks; native Windows cleanup stays unqualified.
+- [x] Diagnostic recording now retains first scalar phase/cause/location if
+  optional text allocation fails. DXF write classifies bad_alloc as an allocation
+  resource failure. Remove allocating temporary lookup keys from existing
+  noexcept REQUIREDVERSIONS/CEPSNID queries. A getLastDiagnostic snapshot itself
+  is not promised allocation-free. Existing normal diagnostic assertions pass.
+- [x] Authored controls pass 80 modern version/input/output/current-model-alias
+  profiles, 80 primary readbacks and 1634 independent field relationships. Physical
+  input uses canonical dollar names; bare forms are model edits, not native file
+  qualification. Every counted output proof checks final HANDSEED above all 5/105
+  identities, exact CMATERIAL presence/target and actual MATERIAL type/owner.
+- [x] 66 actual callback attempts refuse, 52 malformed/target/version/source cases
+  refuse and 246 corrected same-adapter/codec attempts pass. Cover persistent and
+  returned-copy edits, active absent-header/inactive2D introductions, wrong
+  provider family/section, physical duplicate/malformed inputs and fresh corrected
+  input containers. Two valid pre-export rebindings and four absent/null2D controls
+  retain their selected scope; no native null-acceptance claim is made.
+- [x] 16 corruptions of completed same-input HEADER bytes refuse through the real
+  inspector/finalizer during another actual export; corrected views pass. Six
+  direct profiles prove once-only remapping and no inherited inventory policy.
+  Eight inspector return/throw/setup/nested-write guards preserve destinations
+  and corrected retries. Direct graph semantics remain the caller's obligation.
+- [x] Reach all 128 tested persistent allocation offsets, 0–63 per encoding, armed
+  after the actual HEADER callback and disabled at finalization or after refusal.
+  All refuse, preserve sentinel destinations, remove owned temporary files and
+  retain scalar-only diagnostics. All128 corrected writes pass. This is a capped
+  allocation prefix, not complete whole-operation failure or RSS qualification.
+- [x] Retain the development evidence: the initial direct control incorrectly
+  supplied logical 2 to the literal MATERIAL self writer; the actual-target guard
+  correctly refused. Correct the authored physical ID to EA02, retain the chain
+  2→EA02→EA12 remap witness, and do not weaken production identity checks. Retain
+  the crash, diagnostic-only retry and LLDB backtrace that led to the rollback fix.
+- [x] Retain the first shared normal checkpoint: 144/145 tests passed and the
+  separate fast property selector passed. Public-header hygiene found pre-existing
+  unguarded None declarations in the identity-source and codec headers. Preserve
+  and restore the caller macro; add Unobserved/NoIndex aliases while retaining
+  legacy enum values/names and object layout. The expanded compiler check covers
+  ten entry points, 11 enum definitions and a mixed-TU link; actual X11 headers
+  are unavailable here. ASan runtime was not run for the first shared inputs.
+- [x] Build all 16 affected targets normally (79.63s) and under the
+  qualified Debug/-O1/ASan configuration (397.97s), with the existing
+  strict warnings/-Werror and LibreCAD_3 guard. No new interface virtual or DWG
+  parser/byte-layout change. The private adapter/transaction state is rebuilt
+  consistently; formal ABI/application and native platform qualification stay open.
+- [x] 145 selected tests pass normally (163.79s), then under ASan
+  (83.46s), with identical registrations/labels/timeouts and
+  no selected failure/skip/disabled test. All 34 counter lines match and all 33
+  previous lines are unchanged. The existing fast writer-output-property selector
+  also passes in both configurations. Eight development owning checks passed
+  earlier in 3.07s. This is an affected shared checkpoint, not a full-project suite.
+- [x] Freeze all 590 release/build inputs through both builds/runtimes, complete
+  builds and archive checks first, and verify every listed source byte in both
+  gzip/bzip2 archives with COPYFILE_DISABLE=1. No fresh extracted-source compile/
+  distcheck, native CAD/kernel, formal ABI/application or controlled RSS/performance
+  run is claimed. All new drawing controls are locally authored source recipes/
+  runtime API models; no external drawing payload, derivative or fixture is added.
+
+The [receipt](docs/research/rpp5ge-header-material-and-allocation-safe-output-2026-10-28.json)
+records the baseline, actual source/output/rollback controls, retained failures,
+frozen builds/tests/counters/archives and separate remaining gates.
+
+### Next implementation-ready sequence
+
+1. [ ] **MATERIAL body transactions (RPP-5gf).** First reproduce a typed scalar,
+   filename/transform and presence edit that current raw replay can ignore. The
+   existing DxfMaterialWriteSource.common already copies the typed model, while
+   hasUnchangedDxfMaterialSources compares only common metadata: inspect complete
+   byte accounting, retain full body equality and bind an independently decoded
+   raw baseline. Distinguish unchanged replay, typed-only edits, raw-only edits
+   and conflicting edits. Reuse bounded raw overlays/typed serialization and the
+   existing RenderSettings transaction pattern where applicable; preserve repeated
+   group roles, unknown/generic-procedure tails, unsigned color bits and source
+   spelling. Support representable complete profiles and refuse unrepresented
+   changes explicitly. Verify actual output/readback, ownership, late edits,
+   rollback/retries and source/version/encoding variants before promotion.
+2. [ ] **Complete common/dependency/document closure.** Finish remaining material/
+   full/face/edge producer/source/version profiles and native LAYER/HEADER/common 348
+   evidence. Retain reactor/IMAGE/document/control/name/application/XDATA/CEPSNID/
+   CEPSNTYPE roles, arbitrary remaps/collisions and recursive/coupled/full ownership.
+   Selected supplied identities and transport do not certify original sources or
+   complete emitted dictionaries/documents.
+3. [ ] **Rendering and TABLE completeness.** Finish class/engine/schema/optional/
+   absent/duplicate/alias/extension and active/global/environment/background/live-
+   section/sun providers; independent VIEWPORT shade 4/5 witnesses, 335/343/344/91
+   and native dictionary collation. Finish TABLE Values/multiple-content/linked-
+   data ownership, formatting/units/borders and native B2b/B3/C bit/schema/owner/
+   version/corpus evidence; do not guess date epochs, point counts or semantics.
+4. [ ] **Qualification.** Complete package/platform/native consumers, formal ABI/
+   application and controlled RSS/performance, native Linux GCC release, native
+   Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence.
+5. [ ] **Reduce repeated adapter compilation without changing contracts.** The
+   read-only Ninja inventory finds six dx_iface.cpp object profiles, all with
+   distinct normalized commands, include paths and/or fixture definitions. Use
+   CMake OBJECT-library sharing only after matching compiler/configuration,
+   sanitizer/PIC/definitions and resolved header/preprocessed-token evidence;
+   preserve strict warnings, test macros and CLI/consumer boundaries. Measure
+   cold/incremental build counts/time before claiming improvement. Do not reuse
+   unequal objects blindly or edit compiled inputs during live builds/runtimes.
+6. [ ] Reuse targets and fast owning controls; run compiler-only public-header
+   macro hygiene early after any public-header edit, before expensive SDK rebuilds.
+   Broaden only for real shared risks or failures. Freeze inputs, finish builds
+   before runtimes, retain failures/caps,
+   self-unblock, update/commit/report every verified slice and continue ready work
+   without external drawing payloads or derivatives.
+
+Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger
+stays **CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false
+and outputEligible=false. Full material/rendering/native/document eligibility
+remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**
+and nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/
+kernel and native Linux GCC release remain **NOT_RUN**. The full goal stays active.

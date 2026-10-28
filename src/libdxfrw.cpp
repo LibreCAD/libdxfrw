@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <new>
 #include <set>
 #include <sstream>
 #include <cassert>
@@ -3180,6 +3181,13 @@ bool dxfRW::setDxfTablesWriteInspector(DxfTablesWriteInspector inspector) {
     return true;
 }
 
+bool dxfRW::setDxfHeaderWriteInspector(DxfHeaderWriteInspector inspector) {
+    if (!preflightDxfSetup() || m_wholeOperationActive || writer != nullptr)
+        return failDxfWrite();
+    m_dxfHeaderWriteInspector = std::move(inspector);
+    return true;
+}
+
 bool dxfRW::setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector) {
     if (!preflightDxfSetup() || m_wholeOperationActive || writer != nullptr)
         return failDxfWrite();
@@ -4004,7 +4012,11 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     DRW_Header header;
     outputStage = "HEADER callback/validation";
     iface->writeHeader(header);
-    if (!header.canWriteDxfHeaderStructure()
+    std::uint32_t headerMaterial = 0u;
+    bool hasHeaderMaterial = false;
+    if (!header.getDxfMaterialReferenceHandle(headerMaterial, hasHeaderMaterial)
+        || !header.canWriteDxfMaterialReference(version)
+        || !header.canWriteDxfHeaderStructure()
         || !header.canWriteDxfUnknownHeaderVariables()
         || !header.canWriteDxfDimensionVariables(version)
         || !header.canWriteDxfVisualStyleReferences(version)
@@ -4012,15 +4024,54 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         || !header.canWriteDxfRequiredVersions(version)
         || !header.canWriteDxfPlotStyleId(version))
         return failWrite();
+    const bool needsHeaderMaterialInventory = hasHeaderMaterial && headerMaterial != 0u;
+    if (needsHeaderMaterialInventory) {
+        headerMaterial = remapObjectHandle(headerMaterial);
+        if (!headerMaterial || headerMaterial == DRW::NoHandle)
+            return failWrite();
+        const char* key = header.vars.find("$CMATERIAL") != header.vars.end()
+            ? "$CMATERIAL" : "CMATERIAL";
+        header.addStr(key, toHexStr(headerMaterial), 347);
+        // No physical record has been emitted yet. Enable only this attempt's
+        // actual target proof without changing future-operation policy.
+        if (!m_dxfWriteRecordInventoryEnabled)
+            writer->setRecordInventoryEnabled(true, m_dxfWriteRecordInventoryLimit);
+    }
     outputStage = "GROUP source-identity planning";
     if (version > DRW::AC1009 && !planDxfGroupHandles())
         return failWrite();
     outputStage = "HEADER emission";
     if (!writeRequiredString(0, "SECTION"))
         return failWrite();
-    header.write(writer, version);
-    if (writer->hasWriteError())
-        return failWrite();
+    if (m_dxfHeaderWriteInspector) {
+        const bool staged = [&]() {
+            const auto parent = filestr.tellp();
+            if (parent == std::streampos(-1)) return false;
+            RecordStateScope state(*this);
+            DxfWriterRecordScope record(*writer);
+            header.write(writer, version);
+            if (m_writeError || writer->hasWriteError()) return false;
+            auto absoluteSeed = header.m_handseedValueOffset;
+            if (absoluteSeed != std::streampos(-1)) {
+                const auto base = static_cast<std::streamoff>(parent);
+                const auto relative = static_cast<std::streamoff>(absoluteSeed);
+                if (base < 0 || relative < 0
+                    || base > (std::numeric_limits<std::streamoff>::max)() - relative)
+                    return false;
+                absoluteSeed = std::streampos(base + relative);
+            }
+            if (!record.commit([this](std::string_view bytes) {
+                    return inspectDxfWriteSection(m_dxfHeaderWriteInspector, bytes);
+                })) return false;
+            header.m_handseedValueOffset = absoluteSeed;
+            state.commit();
+            return true;
+        }(); // Release byte/state scopes before failWrite resets the writer.
+        if (!staged) return failWrite();
+    } else {
+        header.write(writer, version);
+        if (m_writeError || writer->hasWriteError()) return failWrite();
+    }
     if (!writeRequiredString(0, "ENDSEC"))
         return failWrite();
     if (ver > DRW::AC1009) {
@@ -4133,8 +4184,11 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     if (!isOk)
         return failWrite();
     outputStage = "write inventory finalization";
-    if (m_dxfWriteRecordInventoryEnabled
+    if ((m_dxfWriteRecordInventoryEnabled || needsHeaderMaterialInventory)
         && !writer->finalizeRecordInventory())
+        return failWrite();
+    if (needsHeaderMaterialInventory
+        && !dxfWriteRecordHasIdentity(headerMaterial, "MATERIAL", "OBJECTS"))
         return failWrite();
     // Borrowed callback records have expired and the HANDSEED patch is final.
     // Keep the closed phase through publication/catches; the admitted whole-
@@ -4164,6 +4218,16 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     writer.reset();
     attempt.commit();
     return true;
+}
+catch (const std::bad_alloc&) {
+    writer.reset();
+    m_writeError = true;
+    recordOperationDiagnostic(DRW::OperationPhase::Allocation,
+                              DRW::OperationCause::ResourceLimit,
+                              "allocation-failure",
+                              "memory allocation failed during DXF write");
+    setError(DRW::BAD_OPEN);
+    return false;
 }
 catch (const std::exception&) {
     writer.reset();
@@ -27194,31 +27258,49 @@ void dxfRW::recordOperationDiagnostic(
     DRW::OperationPhase phase, DRW::OperationCause cause, const char* code,
     const char* message, std::uint64_t offset, bool hasOffset,
     std::uint32_t handle, bool hasHandle, bool secondary) {
-    DRW::OperationDiagnosticEntry entry;
-    entry.phase = phase;
-    entry.cause = cause;
-    entry.code = code == nullptr ? std::string{} : std::string{code};
-    entry.message = message == nullptr ? std::string{} : std::string{message};
-    entry.offset = offset;
-    entry.handle = handle;
-    entry.hasOffset = hasOffset;
-    entry.hasHandle = hasHandle;
-    if (secondary) {
-        if (m_lastDiagnostic.secondary.size()
-            < DRW::OperationDiagnostic::MaxSecondaryEntries)
-            m_lastDiagnostic.secondary.push_back(std::move(entry));
+    if ((!secondary && m_lastDiagnostic.failed())
+        || (secondary && m_lastDiagnostic.secondary.size()
+            >= DRW::OperationDiagnostic::MaxSecondaryEntries))
         return;
+    try {
+        DRW::OperationDiagnosticEntry entry;
+        entry.phase = phase;
+        entry.cause = cause;
+        entry.code = code == nullptr ? std::string{} : std::string{code};
+        entry.message = message == nullptr ? std::string{} : std::string{message};
+        entry.offset = offset;
+        entry.handle = handle;
+        entry.hasOffset = hasOffset;
+        entry.hasHandle = hasHandle;
+        if (secondary) {
+            if (m_lastDiagnostic.secondary.size()
+                < DRW::OperationDiagnostic::MaxSecondaryEntries)
+                m_lastDiagnostic.secondary.push_back(std::move(entry));
+            return;
+        }
+        m_lastDiagnostic.phase = phase;
+        m_lastDiagnostic.cause = cause;
+        m_lastDiagnostic.code = std::move(entry.code);
+        m_lastDiagnostic.message = std::move(entry.message);
+        m_lastDiagnostic.offset = offset;
+        m_lastDiagnostic.handle = handle;
+        m_lastDiagnostic.hasOffset = hasOffset;
+        m_lastDiagnostic.hasHandle = hasHandle;
+    } catch (...) {
+        // Diagnostic text is optional under allocation pressure. Preserve the
+        // first failure's scalar evidence without allocating while reporting
+        // the original error (including from write()'s exception handlers).
+        if (!secondary && !m_lastDiagnostic.failed()) {
+            m_lastDiagnostic.phase = phase;
+            m_lastDiagnostic.cause = cause;
+            m_lastDiagnostic.code.clear();
+            m_lastDiagnostic.message.clear();
+            m_lastDiagnostic.offset = offset;
+            m_lastDiagnostic.handle = handle;
+            m_lastDiagnostic.hasOffset = hasOffset;
+            m_lastDiagnostic.hasHandle = hasHandle;
+        }
     }
-    if (m_lastDiagnostic.failed())
-        return;
-    m_lastDiagnostic.phase = phase;
-    m_lastDiagnostic.cause = cause;
-    m_lastDiagnostic.code = std::move(entry.code);
-    m_lastDiagnostic.message = std::move(entry.message);
-    m_lastDiagnostic.offset = offset;
-    m_lastDiagnostic.handle = handle;
-    m_lastDiagnostic.hasOffset = hasOffset;
-    m_lastDiagnostic.hasHandle = hasHandle;
 }
 
 void dxfRW::recordOperationDiagnosticForError(DRW::error value) {

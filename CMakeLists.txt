@@ -1849,6 +1849,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy)
     set_tests_properties(libdxfrw_dxf_proxy_graphic_loss_policy PROPERTIES
         LABELS "fast;dxf;reader;writer;proxy;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_header_material_bindings
+        COMMAND libdxfrw_dxf_fixture_tests --header-material-bindings)
+    set_tests_properties(libdxfrw_header_material_bindings PROPERTIES
+        LABELS "fast;dxf;adapter;material;header;writer;graph" TIMEOUT 120)
     add_test(NAME libdxfrw_layer_material_bindings
         COMMAND libdxfrw_dxf_fixture_tests --layer-material-bindings)
     set_tests_properties(libdxfrw_layer_material_bindings PROPERTIES

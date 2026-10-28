@@ -203,6 +203,12 @@ public:
     bool getDxfVisualStyleReferenceHandle(const char* name,
                                           std::uint32_t& handle,
                                           bool& present) const;
+    /// Optional R2007+ HEADER material hard pointer (group347). Accept either
+    /// dollar or bare spelling, never both. Validate the full scalar string;
+    /// `present` distinguishes absence from an explicitly supplied null handle.
+    bool getDxfMaterialReferenceHandle(std::uint32_t& handle,
+                                       bool& present) const noexcept;
+    bool canWriteDxfMaterialReference(DRW::Version target) const noexcept;
     /// Return whether the dimension-variable family can be represented in the
     /// requested DXF revision without dropping modern split-variable values.
     bool canWriteDxfDimensionVariables(DRW::Version target) const;

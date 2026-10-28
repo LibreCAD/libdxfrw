@@ -14,6 +14,17 @@
 #ifndef LIBDXFRW_H
 #define LIBDXFRW_H
 
+// Preserve a caller's X11 None macro while declaring all header enums.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_LIBDXFRW_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include <functional>
 #include <list>
 #include <map>
@@ -204,6 +215,14 @@ public:
      * capacity backpatching. Called before BLOCKS/ENTITIES/OBJECTS; table names
      * alone do not qualify complete table semantics or future publication. */
     bool setDxfTablesWriteInspector(DxfTablesWriteInspector inspector);
+    using DxfHeaderWriteView = DxfObjectsWriteView;
+    using DxfHeaderWriteInspector = DxfObjectsWriteInspector;
+    /** Optional HEADER inspection with the same guard/lifetime/tentative
+     * contract as OBJECTS. Bytes include the opening group2 HEADER, exclude
+     * SECTION/ENDSEC, and contain the pre-backpatch HANDSEED placeholder.
+     * Empty by default: retain normal HEADER streaming. Consumer rebuild
+     * required for the added private inspector state; no new virtual. */
+    bool setDxfHeaderWriteInspector(DxfHeaderWriteInspector inspector);
     // Opt-in staged BLOCKS/ENTITIES inspection. Same guard/lifetime/tentative
     // contract as OBJECTS; section is exactly "BLOCKS" or "ENTITIES". With no
     // inspector, ENTITIES keeps its ordinary streaming path. No new callback.
@@ -1160,7 +1179,8 @@ public:
     DRW::error getError() const;
     /// Snapshot the first failure and bounded cleanup evidence from the most
     /// recent read/write operation.  The legacy getError() value remains the
-    /// compatibility channel.
+    /// compatibility channel. If diagnostic text allocation fails, recording
+    /// retains the scalar phase/cause/location; optional text can be empty.
     DRW_OperationDiagnostic getLastDiagnostic() const;
     /** Fixed-size observations from completed semantic DXF decode calls.
      * Counters overlap and are not unique-record/character coverage. Metadata,
@@ -1700,6 +1720,7 @@ private:
     bool m_dxfWriteInspecting {false};
     DxfObjectsWriteInspector m_dxfObjectsWriteInspector;
     DxfEntitySectionsWriteInspector m_dxfEntitySectionsWriteInspector;
+    DxfHeaderWriteInspector m_dxfHeaderWriteInspector;
     DxfTablesWriteInspector m_dxfTablesWriteInspector;
     bool inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
                                 std::string_view bytes);
@@ -1818,5 +1839,10 @@ private:
 };
 
 #undef LIBDXFRW_TEST_SEAM_NOINLINE
+
+#ifdef LIBDXFRW_LIBDXFRW_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_LIBDXFRW_RESTORE_NONE
+#endif
 
 #endif // LIBDXFRW_H
