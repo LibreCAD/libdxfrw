@@ -16080,6 +16080,91 @@ template<class Context> bool decodeMlineBody(const DRW_RawDxfObject& raw,
         && payload.validateDxfRecord() && mlineFieldsEqual(result,payload);
 }
 
+// Geometry equivalence needs a known schema, not just equal modeled fields.
+// The ordinary transport path still retains unqualified extensions.
+bool mlineRetargetCoreBody(const DRW_RawDxfObject& raw,bool& ownerReactor) noexcept {
+    ownerReactor=false;
+    unsigned selves=0u,owners=0u,markers=0u,groups=0u,links=0u;
+    bool application=false;
+    if (!raw.handle || !raw.parentHandle || !asciiIdentifierEquals(raw.name,"MLINESTYLE")) return false;
+    for (const auto& field:raw.groups) {
+        const int code=field.code();
+        if (code==999) continue;
+        if (code==102) {
+            if (markers || field.type()!=DRW_Variant::STRING || !field.content.s) return false;
+            if (*field.content.s=="{ACAD_REACTORS" && !application && ++groups==1u) application=true;
+            else if (*field.content.s=="}" && application && links==1u) {application=false;ownerReactor=true;}
+            else return false;
+            continue;
+        }
+        if (application) {
+            std::uint64_t handle=0u;
+            if (code!=330 || ++links!=1u || !dx_standard_output::handleValue(field,handle)
+                || handle!=raw.parentHandle) return false;
+            continue;
+        }
+        if (code==5 || code==330) {
+            std::uint64_t handle=0u;
+            if (markers || !dx_standard_output::handleValue(field,handle)) return false;
+            if (code==5) {if (++selves!=1u || handle!=raw.handle) return false;}
+            else if (++owners!=1u || handle!=raw.parentHandle) return false;
+            continue;
+        }
+        if (code==100) {
+            if (++markers!=1u || field.type()!=DRW_Variant::STRING || !field.content.s
+                || *field.content.s!="AcDbMlineStyle") return false;
+            continue;
+        }
+        if (!markers || (code!=2 && code!=3 && code!=70 && code!=62 && code!=51
+            && code!=52 && code!=71 && code!=49 && code!=6)) return false;
+    }
+    return !application && selves==1u && owners==1u && markers==1u;
+}
+
+bool mlineRetargetGeometryKnown(const DRW_MLineStyle& value) noexcept {
+    // Only documented geometry flag meanings participate in this profile.
+    return mlineFlagInRange(value.flags)
+        && (static_cast<std::uint16_t>(value.flags)&~0x0773u)==0u;
+}
+
+bool mlineRetargetGeometryEqual(const DRW_MLineStyle& original,const DRW_MLineStyle& target) noexcept {
+    if (!mlineRetargetGeometryKnown(original) || !mlineRetargetGeometryKnown(target)
+        || !mlineFlagBitsEqual(original.flags,target.flags)
+        || !retainedDoubleEqual(original.startAngle,target.startAngle)
+        || !retainedDoubleEqual(original.endAngle,target.endAngle)
+        || original.elements.size()!=target.elements.size()) return false;
+    for (std::size_t i=0u;i<original.elements.size();++i)
+        if (!retainedDoubleEqual(original.elements[i].offset,target.elements[i].offset)) return false;
+    return true;
+}
+
+bool mlineRetargetCommonOutputEqual(const DRW_MLine& model,const DRW_MLine& actual,
+        dxfRW& writer,std::uint32_t handle,std::uint32_t owner,DRW::Version version) {
+    // These temporaries are covered by the precharged consumer allowance.
+    DRW_MLine projected=model;projected.handle=handle;projected.parentHandle=owner;
+    const auto* context=writer.getWritingContext();
+    if (!context) return false;
+    const auto map=[&](std::uint32_t source,std::uint32_t& output) noexcept {
+        output=0u;if (!source) return true;
+        if (context->ambiguousSourceHandles.count(source)) return false;
+        output=writer.remapHandle(source);bool bound=output!=source;
+        for (const auto* aliases:{&context->sourceHandleToWrittenTableMap,
+                &context->sourceHandleToWrittenObjectMap,&context->sourceHandleToMintedMap}) {
+            const auto found=aliases->find(source);if (found==aliases->end()) continue;
+            if (bound && output!=found->second) return false;
+            output=found->second;bound=true;
+        }
+        return output!=0u && output!=DRW::NoHandle;
+    };
+    if ((model.material!=DRW::MaterialByLayer && !map(model.material,projected.material))
+        || !map(model.fullVisualStyleHandle,projected.fullVisualStyleHandle)) return false;
+    // The core physical schema excludes app/XDATA/proxy carriers. Keep their
+    // state and un-emitted/private fields strict; plotStyle is emitted literally.
+    return dxfAttdef::Decoder::sameEntityModel(projected,actual,[&](const auto& a,const auto& b) noexcept {
+        return standardDwgVariantEqual(a,b,version);
+    });
+}
+
 bool mlineDictionaryKeysEqual(const DRW_Dictionary& original,const DRW_Dictionary& requested,
         const std::unordered_set<std::uint32_t>& styles,DRW::Version version) {
     if (!standardDwgCommonEqual(original,requested,version) || original.countCap || requested.countCap
@@ -16146,18 +16231,47 @@ bool mlineAuthorityFields(const std::vector<DRW_Variant>& groups) {
     }
     return shape.complete();
 }
-bool mlineAuthorityBody(const dxfRW::DxfObjectsWriteView& view,std::string_view body) {
+struct MlineRetargetConsumerCore {
+    unsigned stage{0u};
+    bool accept(int code,std::string_view text={}) noexcept {
+        if (code==999) return true;
+        if (code==100) {
+            if (stage==0u && text=="AcDbEntity") {stage=1u;return true;}
+            if (stage==1u && text=="AcDbMline") {stage=2u;return true;}
+            return false;
+        }
+        if (stage==0u) return code==5 || code==330;
+        if (stage==1u) return code==67 || code==8 || code==6 || code==62 || code==48
+            || code==60 || code==370 || code==420 || code==430 || code==440
+            || code==284 || code==347 || code==348 || code==390;
+        return code==2 || code==340 || code==40 || code==70 || code==71 || code==72 || code==73
+            || code==10 || code==20 || code==30 || code==210 || code==220 || code==230
+            || code==11 || code==21 || code==31 || code==12 || code==22 || code==32
+            || code==13 || code==23 || code==33 || code==74 || code==41 || code==75 || code==42;
+    }
+};
+bool mlineRetargetConsumerFields(const std::vector<DRW_Variant>& groups) noexcept {
+    MlineRetargetConsumerCore core;
+    for (const auto& field:groups) {
+        const auto text=field.type()==DRW_Variant::STRING && field.content.s
+            ? std::string_view(*field.content.s) : std::string_view{};
+        if (!core.accept(field.code(),text)) return false;
+    }
+    return core.stage==2u;
+}
+bool mlineAuthorityBody(const dxfRW::DxfObjectsWriteView& view,std::string_view body,bool retarget=false) {
     dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
     auto budget=std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes);
     auto reader=dx_standard_output::readerFor(input,view,budget);
     if (!reader) return false;
-    MlineAuthorityShape shape;
+    MlineAuthorityShape shape;MlineRetargetConsumerCore core;
     while (buffer.position()<body.size()) {
         int code=0;
         if (!reader->readRec(&code) || code==0
+            || (retarget && !core.accept(code,code==100?reader->getStringView():std::string_view{}))
             || !shape.accept(code,MlineAuthorityShape::textCode(code)?reader->getStringView():std::string_view{})) return false;
     }
-    return !budget->exceeded() && shape.complete();
+    return !budget->exceeded() && shape.complete() && (!retarget || core.stage==2u);
 }
 
 bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false) noexcept {
@@ -16551,6 +16665,62 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             return a.ordinal==b.ordinal && a.beginOffset==b.beginOffset && a.endOffset==b.endOffset
                 && a.ignoredComment==b.ignoredComment;
         };
+        struct RetargetStyle {
+            DRW_MLineStyle original;
+            bool ownerReactor{false},targetChecked{false};
+        };
+        std::unordered_map<std::uint32_t,RetargetStyle> retargetStyles;
+        std::size_t retargetWork=0u;
+        const auto visit=[&](std::size_t count) {
+            if (retargetWork>kMaxAdapterBasicTableItems || count>kMaxAdapterBasicTableItems-retargetWork) return false;
+            retargetWork+=count;return true;
+        };
+        const auto originalStyle=[&](std::uint32_t handle)->RetargetStyle* {
+            if (!visit(1u)) return nullptr;
+            const auto cached=retargetStyles.find(handle);
+            if (cached!=retargetStyles.end()) return &cached->second;
+            const auto source=m_dxfMLineStyles.find(handle);
+            const auto capturedBaseline=cData->m_mlineStyleBodyBaselines.find(handle);
+            if (source==m_dxfMLineStyles.end() || !source->second.baseline
+                || !source->second.dictionaryOrigin || !source->second.linetypesBound
+                || capturedBaseline==cData->m_mlineStyleBodyBaselines.end() || !capturedBaseline->second
+                || !same(source->second.baseline,capturedBaseline->second)
+                || retargetStyles.size()>=kMaxAdapterBasicTableRecords) return nullptr;
+            const auto& baseline=*capturedBaseline->second;
+            std::size_t rawBytes=0u,typedBytes=0u,items=0u;
+            if (!estimateRawDxfObjectBytes(baseline,rawBytes)
+                || !estimateMLineStyleTypedBytes(source->second.model,typedBytes,items)
+                || !visit(baseline.groups.size()) || !visit(items)
+                || !chargeNamedResourceBytes(bytes,rawBytes) || !chargeNamedResourceBytes(bytes,typedBytes)
+                || !chargeNamedResourceBytes(bytes,sizeof(RetargetStyle)+16u*sizeof(void*))) return nullptr;
+            RetargetStyle qualified;MlineSlots slots;std::size_t insertion=0u;
+            if (!mlineRetargetCoreBody(baseline,qualified.ownerReactor)
+                || !decodeMlineBody(baseline,baseline,qualified.original,slots,insertion)
+                || qualified.original.handle!=handle || !mlineRetargetGeometryKnown(qualified.original)) return nullptr;
+            return &retargetStyles.emplace(handle,std::move(qualified)).first->second;
+        };
+        const auto compatibleTarget=[&](const DRW_MLine& value,const DRW_MLine& original) {
+            const auto* old=originalStyle(original.styleHandle);
+            auto* target=originalStyle(value.styleHandle);
+            if (!old || !target || old->original.elements.size()!=original.numLines) return false;
+            const auto& planned=m_dxfMLineStyles.at(value.styleHandle);
+            if (!target->targetChecked) {
+                std::size_t rawBytes=0u;bool ownerReactor=false;
+                if (!estimateRawDxfObjectBytes(planned.output,rawBytes) || !visit(planned.output.groups.size())
+                    || !chargeNamedResourceBytes(bytes,rawBytes)
+                    || !mlineRetargetCoreBody(planned.output,ownerReactor)
+                    || planned.output.handle!=target->original.handle
+                    || planned.output.parentHandle!=target->original.parentHandle
+                    || ownerReactor!=target->ownerReactor) return false;
+                target->targetChecked=true;
+            }
+            const auto variant=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
+                return standardDwgVariantEqual(a,b,version);
+            };
+            return mlineRetargetGeometryEqual(old->original,planned.projection)
+                && mlineGeometryEqual(value,original)
+                && dxfAttdef::Decoder::sameEntityModel(value,original,variant);
+        };
         const auto addOriginal=[&](const std::shared_ptr<const DRW_MLine>& original,
                 const DRW_DxfPhysicalEntitySource& physical,const Capture::EntitiesReadContext& context,
                 const dx_ifaceBlock* block,const std::shared_ptr<const Certificate>& entities,
@@ -16565,8 +16735,11 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 || context.codecCodePage.size()>128u || !mlineAuthorityFields(physical.groups)) return false;
             if (current->second.block!=block) return false;
             const auto& value=*current->second.model;
+            if (value.styleHandle!=original->styleHandle
+                && (!visit(physical.groups.size()) || !mlineRetargetConsumerFields(physical.groups))) return false;
             if (value.handle!=original->handle || value.parentHandle!=original->parentHandle
-                || value.styleName!=original->styleName || value.styleHandle!=original->styleHandle
+                || value.styleName!=original->styleName
+                || (value.styleHandle!=original->styleHandle && !compatibleTarget(value,*original))
                 || m_dxfMLineStyles.count(value.styleHandle)!=1u) return false;
             // Precharge the physical copy, wire/decoder temporaries and their
             // string owners before materializing them. The shared conservative
@@ -16759,8 +16932,10 @@ bool dx_iface::inspectDxfMLineConsumers(const dxfRW::DxfObjectsWriteView& view,s
             return selected;
         },[&](const auto& shape,std::string_view body) {
             const auto source=expected.find(shape.handle);
-            if (source==expected.end() || !seen.insert(shape.handle).second || !mlineAuthorityBody(view,body)) return false;
+            if (source==expected.end() || !seen.insert(shape.handle).second) return false;
             const auto& model=source->second->model;
+            const bool retarget=model.styleHandle!=source->second->original->styleHandle;
+            if (!mlineAuthorityBody(view,body,retarget)) return false;
             const auto owner=dxfMLineConsumerOwnerToWrite(*source->second);
             if (!owner) return false;
             dx_standard_output::Decoder decoder(view);
@@ -16768,6 +16943,7 @@ bool dx_iface::inspectDxfMLineConsumers(const dxfRW::DxfObjectsWriteView& view,s
                 return actual.handle==shape.handle && actual.parentHandle==owner
                     && actual.styleHandle==dxfW->remapHandle(model.styleHandle) && actual.styleName==model.styleName
                     && actual.space==model.space
+                    && (!retarget || mlineRetargetCommonOutputEqual(model,actual,*dxfW,shape.handle,owner,view.version))
                     && mlineGeometryEqual(model,actual,true);
             });
         });
