@@ -16001,11 +16001,13 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
 // Validate owning physical roles before decoding. Header angles may legally
 // follow elements; repeated62 belongs to fill before49, then to each element.
 bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
-        MlineSlots& slots,std::size_t& insertion) {
+        MlineSlots& slots,std::size_t& insertion,
+        std::vector<std::size_t>* textSlots=nullptr) {
     slots.fill(noScaleSlot);insertion=raw.groups.size();
+    if (textSlots) textSlots->clear();
     selected.m_version=raw.m_version; selected.hasRawValues=raw.hasRawValues;
     unsigned depth=0u,markers=0u,elements=0u;
-    bool body=false,xdata=false;std::set<int> headers;
+    bool body=false,xdata=false,elementTextSeen=false;std::set<int> headers;
     for (std::size_t i=0u;i<raw.groups.size();++i) {
         const auto& field=raw.groups[i];const int code=field.code();
         if (code==102) {
@@ -16041,16 +16043,25 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
         if (scalar!=mlineScalarCodes.end() && (code!=62 || elements==0u))
             slots[static_cast<std::size_t>(scalar-mlineScalarCodes.begin())]=i;
         if (code==49 || code==71) insertion=(std::min)(insertion,i);
-        if (code==49 && ++elements>UINT8_MAX) return false;
+        if (code==49) {
+            if (++elements>UINT8_MAX) return false;
+            elementTextSeen=false;
+        }
+        if (code==6) {
+            if (elements==0u || elementTextSeen) return false;
+            elementTextSeen=true;
+        }
+        if (textSlots && (code==2 || code==6)) textSlots->push_back(i);
         selected.groups.push_back(field);
     }
     return depth==0u && markers==1u;
 }
 
 template<class Context> bool decodeMlineBody(const DRW_RawDxfObject& raw,
-        const Context& context,DRW_MLineStyle& result,MlineSlots& slots,std::size_t& insertion) {
+        const Context& context,DRW_MLineStyle& result,MlineSlots& slots,std::size_t& insertion,
+        std::vector<std::size_t>* textSlots=nullptr) {
     DRW_RawDxfObject selected;
-    if (!mlineBodyFields(raw,selected,slots,insertion)
+    if (!mlineBodyFields(raw,selected,slots,insertion,textSlots)
         || !dx_material_body::decodeRecord(raw,result,!raw.hasRawValues,
             context.codePage,context.encoding,context.policy,context.compatibility)
         || !result.validateDxfRecord()) return false;
@@ -16098,8 +16109,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             DRW_TextCodec sourceCodec;sourceCodec.setVersion(version,true);
             if (sourceCodec.getVersion()!=static_cast<int>(context.codecVersion)) return false;
             DRW_MLineStyle original,parsed;MlineSlots oldSlots,slots;std::size_t oldInsertion=0u,insertion=0u;
+            std::vector<std::size_t> textSlots;
             if (!decodeMlineBody(context,context,original,oldSlots,oldInsertion)
-                || !decodeMlineBody(raw,context,parsed,slots,insertion)
+                || !decodeMlineBody(raw,context,parsed,slots,insertion,&textSlots)
                 || !standardDwgCommonEqual(value,parsed,version,false)
                 || !mlineFieldsEqual(value,original,false,false) || parsed.name!=original.name) return false;
             // The current slice has no renamed dictionary or LTYPE provider.
@@ -16149,7 +16161,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             const bool pageChanged=sourcePage!=m_dxfMLineStyleState.codePage;
             if (pageChanged) for (std::size_t i=0u;i<raw.groups.size();++i) {
                 const auto& field=raw.groups[i];
-                if (i!=slots[1] && field.type()==DRW_Variant::STRING && field.content.s)
+                if (i!=slots[1] && !std::binary_search(textSlots.begin(),textSlots.end(),i)
+                    && field.type()==DRW_Variant::STRING && field.content.s)
                     for (unsigned char c:*field.content.s) if (c>=128u) return false;
             }
             dx_material_body::BodyWriter encoded(binary,version,m_dxfMLineStyleState.codePage);
@@ -16173,20 +16186,15 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 }
                 return true;
             };
-            std::size_t descriptionSlot=slots[1];
             std::vector<DRW_Variant> added;
             for (std::size_t role=0u;role<slots.size();++role) if (edits[role]) {
                 if (slots[role]!=noScaleSlot) {
                     if (!replace(slots[role],encoded.groups[role])) return false;
                 } else {
-                    if (role==1u) descriptionSlot=insertion+added.size();
                     added.push_back(encoded.groups[role]);
                 }
             }
             if (!added.empty()) {
-                // Track an existing late description when scalar insertion
-                // precedes it; an absent slot remains the true sentinel.
-                if (slots[1]!=noScaleSlot && descriptionSlot>=insertion) descriptionSlot+=added.size();
                 source.output.groups.insert(source.output.groups.begin()+insertion,added.begin(),added.end());
                 if (source.output.hasRawValues && !binary) {
                     std::vector<std::string> spellings;
@@ -16197,15 +16205,37 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     source.output.rawValues.insert(source.output.rawValues.begin()+insertion,spellings.begin(),spellings.end());
                 }
             }
-            if (policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021
-                && descriptionSlot<source.output.groups.size()) {
-                const auto& field=source.output.groups[descriptionSlot];
-                if (field.type()==DRW_Variant::STRING && field.content.s
-                    && std::any_of(field.content.s->begin(),field.content.s->end(),[](unsigned char c){return c>=128u;})) {
-                    if (!replace(descriptionSlot,encoded.groups[1])) return false;
-                    source.stringOverrides.emplace_back(descriptionSlot,text);
+            // Scalar insertion can move a late header or every element. Bind
+            // semantic edits to the final owning indices, never all groups
+            // with the same code in application/extension payloads.
+            DRW_RawDxfObject selected;MlineSlots finalSlots;std::size_t finalInsertion=0u;
+            if (!mlineBodyFields(source.output,selected,finalSlots,finalInsertion,&textSlots)) return false;
+            const auto transcode=[&](std::size_t index,const UTF8STRING& semantic,bool changed) {
+                const auto& field=source.output.groups[index];
+                if (field.type()!=DRW_Variant::STRING || !field.content.s) return false;
+                const bool strictLegacy=policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021;
+                const auto highBytes=[](const DRW_Variant& value) {
+                    return std::any_of(value.content.s->begin(),value.content.s->end(),[](unsigned char c){return c>=128u;});
+                };
+                if (changed || (strictLegacy && highBytes(field))) {
+                    if (!encoded.writeUtf8String(field.code(),semantic)
+                        || !replace(index,encoded.groups.back())) return false;
                 }
+                if (strictLegacy && highBytes(source.output.groups[index]))
+                    source.stringOverrides.emplace_back(index,semantic);
+                return true;
+            };
+            if (finalSlots[1]!=noScaleSlot && !transcode(finalSlots[1],text,false)) return false;
+            std::size_t element=0u;
+            for (const auto index:textSlots) {
+                const bool nameField=source.output.groups[index].code()==2;
+                if (!nameField && element>=target.elements.size()) return false;
+                const auto& semantic=nameField ? target.name : target.elements[element++].linetype;
+                if (!transcode(index,semantic,sourceBinary!=binary || pageChanged)) return false;
             }
+            if (element!=target.elements.size()) return false;
+            std::sort(source.stringOverrides.begin(),source.stringOverrides.end(),
+                [](const auto& a,const auto& b){return a.first<b.first;});
             if (binary) { source.output.hasRawValues=false;source.output.rawValues.clear(); }
             DRW_MLineStyle projected;
             if (!dx_material_body::decodeRecord(source.output,projected,binary,m_dxfMLineStyleState.codePage)

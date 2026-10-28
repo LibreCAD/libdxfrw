@@ -9,7 +9,8 @@ source ordering remain unqualified.
 Optional SCALE checks use authored generic tags and independent projections;
 ezdxf has no typed annotation-scale implementation for this profile.
 Optional MLINESTYLE checks use its typed producer/parser for descriptions and
-unchanged field/element tuples; actual MLINE rendering remains unqualified.
+unchanged field/element tuples, plus selected name/LTYPE text transcoding;
+actual MLINE rendering remains unqualified.
 All drawings are created from scratch in the requested empty output directory.
 """
 import argparse
@@ -319,12 +320,18 @@ def mline_style_values(style):
             "elements": [(e.offset, e.color, e.linetype) for e in style.elements]}
 
 
-def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
-                                    expected_presence=None):
-    """Check every selected style and its ordered element tuples before setup."""
-    from ezdxf.lldxf.extendedtags import ExtendedTags
+def selected_semantic_text(ezdxf, value, binary):
+    """Decode each transport layer once, including names and reference names."""
     from ezdxf.tools.text import caret_decode
 
+    value = ezdxf.decode_dxf_unicode(value)
+    return value if binary else caret_decode(value)
+
+
+def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
+                                    expected_presence=None, require_linetypes=False):
+    """Check every selected style and its ordered element tuples before setup."""
+    from ezdxf.lldxf.extendedtags import ExtendedTags
     records = selected_physical_records(path, binary)
     controls = selected_physical_controls(records, source_recipe)
     objects = [ExtendedTags(record) for scope, record in records if scope == "OBJECTS"]
@@ -340,8 +347,39 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
     assert len(selected) == 1, "physical MLINESTYLE dictionary target"
     dictionary = selected[0]
     assert dictionary.subclasses[0].get_first_value(330) == root_handle, "physical MLINESTYLE dictionary owner"
-    targets = selected_dictionary_entries(dictionary)
+    raw_targets = selected_dictionary_entries(dictionary)
+    targets = {selected_semantic_text(ezdxf, key, binary): {**value, "wireKey": key}
+               for key, value in raw_targets.items()}
+    assert len(targets) == len(raw_targets), "physical MLINESTYLE decoded key collision"
     assert set(targets) == set(expected), "physical MLINESTYLE keys"
+    linetypes, linetype_control = {}, None
+    if require_linetypes:
+        table_controls = [record for scope, record in records
+                          if scope == "TABLES" and record[0].value == "TABLE"
+                          and record.get_first_value(2, None) == "LTYPE"]
+        assert len(table_controls) == 1, "physical LTYPE TABLE control census"
+        control_handles = [tag.value for tag in table_controls[0] if tag.code == 5]
+        assert len(control_handles) == 1, "physical LTYPE TABLE control handle count"
+        control_id = int(control_handles[0], 16)
+        assert 0 < control_id < 0xFFFFFFFF, "physical LTYPE TABLE control handle"
+        linetype_control = {"handle": control_handles[0], "recordCount": 0}
+        identities = {control_id}
+        for scope, record in records:
+            if scope != "TABLES" or record[0].value != "LTYPE":
+                continue
+            handles = [tag.value for tag in record if tag.code == 5]
+            owners = [tag.value for tag in record if tag.code == 330]
+            assert len(handles) == 1, "physical LTYPE record handle count"
+            assert len(owners) == 1, "physical LTYPE record owner count"
+            identity = int(handles[0], 16)
+            assert 0 < identity < 0xFFFFFFFF and identity not in identities, "physical LTYPE duplicate/null identity"
+            assert int(owners[0], 16) == control_id, "physical LTYPE owner/control association"
+            identities.add(identity)
+            wire_name = record.get_first_value(2)
+            name = selected_semantic_text(ezdxf, wire_name, binary)
+            assert name not in linetypes, "physical LTYPE decoded name collision"
+            linetypes[name] = {"handle": handles[0], "owner": owners[0], "wireName": wire_name}
+            linetype_control["recordCount"] += 1
     styles = [r for r in objects if r.dxftype() == "MLINESTYLE"]
     assert len(styles) == len(expected), "physical MLINESTYLE census"
     observations = {}
@@ -363,9 +401,7 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
             presence[code] = bool(filed)
             value = filed[0] if filed else default
             if name in ("name", "description"):
-                value = ezdxf.decode_dxf_unicode(value)
-                if not binary:
-                    value = caret_decode(value)
+                value = selected_semantic_text(ezdxf, value, binary)
             values[name] = value
         if expected_presence and key in expected_presence:
             for code, present in expected_presence[key].items():
@@ -380,7 +416,7 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
                 current = {49: value}
             elif code in (62, 6):
                 assert current is not None and code not in current, "physical MLINESTYLE tuple field"
-                current[code] = value
+                current[code] = selected_semantic_text(ezdxf, value, binary) if code == 6 else value
             else:
                 raise AssertionError("unexpected selected MLINESTYLE tuple code %d" % code)
         if current is not None:
@@ -388,54 +424,85 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
         assert len(elements) == body[counts[0]].value, "physical MLINESTYLE declared/actual elements"
         values["elements"] = elements
         assert values == expected[key], "physical MLINESTYLE %s: %r != %r" % (key, values, expected[key])
+        references = []
+        if require_linetypes:
+            for _, _, name in elements:
+                if name.upper() in ("BYLAYER", "BYBLOCK"):
+                    references.append({"name": name, "disposition": "inherited"})
+                else:
+                    assert name in linetypes, "physical MLINESTYLE LTYPE target"
+                    references.append({"name": name, "disposition": "defined",
+                                       **linetypes[name]})
         observations[key] = {"fields": values, "handle": target["handle"],
                              "owner": dictionary_handle, "pointerRole": target["role"],
-                             "fieldPresence": presence, "elementCount": len(elements)}
+                             "wireDictionaryKey": target["wireKey"],
+                             "wireBodyName": next((t.value for t in prefix if t.code == 2), "Standard"),
+                             "wireElementLinetypes": [t.value for t in tail if t.code == 6],
+                             "fieldPresence": presence, "elementCount": len(elements),
+                             "linetypeReferences": references}
     return {"styles": observations, "styleCount": len(styles), "rootHandle": root_handle,
-            "dictionaryHandle": dictionary_handle, **controls}
+            "dictionaryHandle": dictionary_handle, "linetypeDefinitions": linetypes,
+            "linetypeControl": linetype_control, "linetypeTargetsChecked": require_linetypes, **controls}
 
 
 def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
-                                   expected_presence=None):
-    from ezdxf.tools.text import caret_decode
-
+                                   expected_presence=None, require_linetypes=False):
     physical = physical_mline_style_projection(
-        ezdxf, path, binary, expected, source_recipe, expected_presence)
+        ezdxf, path, binary, expected, source_recipe, expected_presence, require_linetypes)
     doc = ezdxf.readfile(path)
     dictionary = doc.rootdict["ACAD_MLINESTYLE"]
     assert dictionary.dxf.owner == doc.rootdict.dxf.handle, "MLINESTYLE dictionary owner after setup"
-    assert set(dictionary.keys()) == set(expected), "MLINESTYLE keys after setup"
+    named_styles = {selected_semantic_text(ezdxf, name, binary): style
+                    for name, style in dictionary.items()}
+    assert len(named_styles) == len(dictionary), "MLINESTYLE decoded key collision after setup"
+    assert set(named_styles) == set(expected), "MLINESTYLE keys after setup"
     styles = [e for e in doc.objects if e.dxftype() == "MLINESTYLE"]
     assert len(styles) == len(expected), "MLINESTYLE census after setup"
     for name, wanted in expected.items():
-        style = dictionary[name]
+        style = named_styles[name]
         assert style in styles and style.dxf.owner == dictionary.dxf.handle, "MLINESTYLE typed owner"
         values = mline_style_values(style)
         for key in ("name", "description"):
-            values[key] = ezdxf.decode_dxf_unicode(values[key])
-            if not binary:
-                values[key] = caret_decode(values[key])
+            values[key] = selected_semantic_text(ezdxf, values[key], binary)
+        values["elements"] = [(offset, color, selected_semantic_text(ezdxf, linetype, binary))
+                              for offset, color, linetype in values["elements"]]
         assert values == wanted, "MLINESTYLE typed fields %s" % name
+    if require_linetypes:
+        typed_linetypes = {selected_semantic_text(ezdxf, entry.dxf.name, binary): entry
+                           for entry in doc.linetypes}
+        assert len(typed_linetypes) == len(doc.linetypes), "typed LTYPE decoded name collision"
+        for row in physical["styles"].values():
+            for reference in row["linetypeReferences"]:
+                if reference["disposition"] == "defined":
+                    target = typed_linetypes[reference["name"]]
+                    assert target.dxf.handle == reference["handle"], "typed LTYPE target identity"
+                    assert target.dxf.owner == reference["owner"], "typed LTYPE target owner"
     original_materials = {row["handle"] for row in physical["materialObjects"]}
     added_materials = [{"handle": e.dxf.handle, "name": e.dxf.name}
                        for e in doc.objects if e.dxftype() == "MATERIAL"
                        and e.dxf.handle not in original_materials]
     return {"physicalBeforeDocumentSetup": physical, "ordinaryReadAfterDocumentSetup": True,
+            "ordinaryReadEncoding": doc.encoding, "ordinaryReadVersion": doc.dxfversion,
             "explicitAuditOrRecoveryRun": False, "documentSetupAddedMaterials": added_materials,
             "documentSetupAddedMaterialCount": len(added_materials),
             "typedStylesMatched": len(styles), "nativeMlineConsumerQualified": False}
 
 
 def author_mline_style_profile(ezdxf, version, page, description,
-                               start_angle=37.5, end_angle=142.5):
+                               start_angle=37.5, end_angle=142.5,
+                               style_name=PEER_MLINE_STYLE_NAME,
+                               linetype_name="CONTINUOUS"):
     doc = ezdxf.new(version)
     if version == "R2000":
         doc.encoding = page
     null_bindings, omitted = author_null_material_bindings(doc)
-    style = doc.mline_styles.new(PEER_MLINE_STYLE_NAME)
+    if linetype_name != "CONTINUOUS":
+        doc.linetypes.new(linetype_name, dxfattribs={
+            "description": "authored selected continuous reference", "pattern": [0.0]})
+    style = doc.mline_styles.new(style_name)
     style.dxf.update({"description": description, "flags": 3, "fill_color": 4,
                       "start_angle": start_angle, "end_angle": end_angle})
-    style.elements.append(1.25, 3, "CONTINUOUS")
+    style.elements.append(1.25, 3, linetype_name)
     style.elements.append(-0.75, 5, "BYLAYER")
     doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
     expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
@@ -553,6 +620,100 @@ def qualify_mline_style_boundaries(ezdxf, probe, converter, output):
             row["case"] = case
         scalar_edits.extend(scalar)
     return inputs, round_trips, edits, scalar_edits
+
+
+def qualify_mline_style_text_boundaries(ezdxf, probe, converter, output):
+    """Two unchanged-name sources; format changes and one legacy page change.
+
+    The producer accepts semantic caret names but does not itself caret-escape
+    them. Author that transport layer while the three selected owning entities
+    are being written, before an input file or its digest exists. A legacy
+    unrepresentable Omega is independently CIF-encoded by ezdxf's dxfreplace.
+    """
+    from functools import partial
+
+    class SelectedTextWriter:
+        def __init__(self, writer, selected, binary, counts):
+            self.writer, self.selected = writer, selected
+            self.binary, self.counts = binary, counts
+
+        def __getattr__(self, name):
+            return getattr(self.writer, name)
+
+        def write_tag(self, tag):
+            self.write_tag2(tag.code, tag.value)
+
+        def write_tag2(self, code, value):
+            role = self.selected.get((code, value)) if isinstance(value, str) else None
+            if role:
+                self.counts[role] += 1
+                if not self.binary:
+                    value = value.replace("^", "^ ")
+            self.writer.write_tag2(code, value)
+
+    inputs, round_trips, transcoded = [], [], []
+    cases = (("legacy-cif-caret", "R2000", "cp1252", "asc", "café_Ω"),
+             ("modern-unicode-caret", "R2007", "utf-8", "bin", "表タ_Ω"))
+    projection = partial(selected_mline_style_projection, require_linetypes=True)
+    for case, version, page, fmt, glyphs in cases:
+        style_name, linetype_name = "Peer_" + glyphs + "^A", "Line_" + glyphs + "^A"
+        doc, style, expected, null_bindings, omitted = author_mline_style_profile(
+            ezdxf, version, page, "Unchanged text boundary", style_name=style_name,
+            linetype_name=linetype_name)
+        exported = {role: 0 for role in ("bodyName2", "elementLinetype6", "dictionaryKey3", "tableName2")}
+        selected = ((style, {(2, style_name): "bodyName2", (6, linetype_name): "elementLinetype6"}),
+                    (doc.rootdict["ACAD_MLINESTYLE"], {(3, style_name): "dictionaryKey3"}),
+                    (doc.linetypes.get(linetype_name), {(2, linetype_name): "tableName2"}))
+        for entity, slots in selected:
+            original_export = entity.export_entity
+            entity.export_entity = lambda writer, export=original_export, fields=slots: export(
+                SelectedTextWriter(writer, fields, fmt == "bin", exported))
+        source = output / ("mline-style-text-" + case + "-" + doc.dxfversion + "-" + fmt + ".dxf")
+        doc.saveas(source, fmt=fmt)
+        assert all(count == 1 for count in exported.values()), "authored selected text role counts"
+        original = {"case": case, "version": doc.dxfversion, "page": page, "format": fmt,
+                    "path": source.name, "sha256": digest(source), "matched": False,
+                    "selectedNullLayerBindings": null_bindings, "omittedDefaultMaterialHandles": omitted,
+                    "semanticStyleName": style_name, "semanticLinetypeName": linetype_name,
+                    "exportedTextRoleCounts": exported,
+                    "recipe": "Typed authored style/dictionary/LTYPE; scoped generation-time ASCII caret encoding, legacy CIF by producer; no post-generation source changes or name edits"}
+        try:
+            original["observations"] = projection(ezdxf, source, fmt == "bin", expected, source_recipe=True)
+            original["matched"] = True
+        except Exception as error:
+            original["mismatch"] = str(error)
+        inputs.append(original)
+        unchanged, _ = selected_resource_outputs(
+            ezdxf, probe, converter, source, version, page, fmt, original,
+            "--mline-style-text-probe", projection, expected, expected, modes=(False,))
+        for row in unchanged:
+            row["case"] = case
+        round_trips.extend(unchanged)
+        if version != "R2000":
+            continue
+        for target_format in ("asc", "bin"):
+            target = output / ("page-1251-" + source.stem + "-" + target_format + ".dxf")
+            command = [str(probe), "--mline-style-text-probe", str(source), str(target),
+                       target_format, "ANSI_1251"]
+            row = {"case": case, "version": doc.dxfversion, "sourcePage": page,
+                   "targetPage": "cp1251", "input": fmt, "output": target_format,
+                   "sourceSha256": original["sha256"], "path": target.name,
+                   "command": command, "matched": False}
+            try:
+                run = subprocess.run(command, capture_output=True, text=True, timeout=60)
+                row.update({"exitCode": run.returncode, "stdout": run.stdout, "stderr": run.stderr})
+                if run.returncode == 0:
+                    row["sha256"] = digest(target)
+                    row["observations"] = projection(ezdxf, target, target_format == "bin", expected)
+                    assert row["observations"]["ordinaryReadEncoding"] == "cp1251", "output HEADER page is not cp1251"
+                    assert row["observations"]["ordinaryReadVersion"] == doc.dxfversion, "text transport changed version"
+                    row["matched"] = original["matched"]
+            except subprocess.TimeoutExpired:
+                row.update({"exitCode": 124, "mismatch": "Selected text process timeout (60s)"})
+            except Exception as error:
+                row["mismatch"] = str(error)
+            transcoded.append(row)
+    return inputs, round_trips, transcoded
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -761,11 +922,14 @@ def main():
             ezdxf, probe, converter, output)
     mline_inputs, mline_round_trips, mline_edits = [], [], []
     mline_boundary_inputs, mline_boundary_round_trips, mline_boundary_edits, mline_scalar_edits = [], [], [], []
+    mline_text_inputs, mline_text_round_trips, mline_text_transcodes = [], [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
         (mline_boundary_inputs, mline_boundary_round_trips,
          mline_boundary_edits, mline_scalar_edits) = qualify_mline_style_boundaries(
+            ezdxf, probe, converter, output)
+        mline_text_inputs, mline_text_round_trips, mline_text_transcodes = qualify_mline_style_text_boundaries(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -823,6 +987,12 @@ def main():
         "mlineStyleBoundaryEditsMatched": sum(row["matched"] for row in mline_boundary_edits),
         "mlineStyleScalarEdits": mline_scalar_edits,
         "mlineStyleScalarEditsMatched": sum(row["matched"] for row in mline_scalar_edits),
+        "mlineStyleTextInputs": mline_text_inputs,
+        "mlineStyleTextInputsMatched": sum(row["matched"] for row in mline_text_inputs),
+        "mlineStyleTextRoundTrips": mline_text_round_trips,
+        "mlineStyleTextRoundTripsMatched": sum(row["matched"] for row in mline_text_round_trips),
+        "mlineStyleTextCodepageTranscodes": mline_text_transcodes,
+        "mlineStyleTextCodepageTranscodesMatched": sum(row["matched"] for row in mline_text_transcodes),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -835,6 +1005,15 @@ def main():
             "scalarProbe": {"selector": "--mline-style-scalar-probe", "edits": PEER_MLINE_STYLE_SCALAR_EDIT,
                             "knownFlagBits": [1, 2, 16, 32, 64, 256, 512, 1024], "knownFlagMask": 1907,
                             "fillColorScope": "Selected ACI 6 within 1..255; not broad CMC or extra producer-value qualification"},
+            "textBoundaryScope": {
+                "sources": 2, "unchangedCliOutputs": 4, "legacyCodepageOutputs": 2,
+                "sourceVersionsFormats": ["AC1015/cp1252/ASCII", "AC1021/UTF-8/Binary"],
+                "codepageProbe": "--mline-style-text-probe input output asc|bin ANSI_1251",
+                "semanticValues": "Valid typed nonASCII style and LTYPE names containing literal caret-A; legacy Omega uses producer CIF; no source-version/name/reference edits",
+                "authoring": "Scoped generation-time caret encoding on owning style2/6, dictionary3 and LTYPE2; original files are never changed after generation",
+                "projection": "Independent pre-setup dictionary/body joins, unique nonnull LTYPE TABLE control/record identities, exact single owner-to-control joins, defined LTYPE target names, ordered tuples and LINE; typed ordinary read separately",
+                "literalBackslashSymbolNamesQualified": False, "nativeSymbolCollationQualified": False,
+            },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
             "currentPrimaryReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -847,7 +1026,8 @@ def main():
             "modules": {name: digest(Path(ezdxf.__file__).parent / name) for name in (
                 "entities/mline.py", "entities/objectcollection.py", "entities/dxfentity.py",
                 "entities/factory.py", "sections/objects.py", "lldxf/tagger.py",
-                "lldxf/validator.py", "lldxf/tags.py", "lldxf/extendedtags.py")},
+                "entities/dictionary.py", "entities/ltype.py", "entities/dxfns.py", "sections/table.py",
+                "lldxf/encoding.py", "lldxf/tagwriter.py", "lldxf/validator.py", "lldxf/tags.py", "lldxf/extendedtags.py")},
         },
         "qualificationScriptSha256": digest(Path(__file__)),
         "converterSha256": digest(converter) if converter else None,
@@ -881,12 +1061,17 @@ def main():
             report["mlineStyleBoundaryRoundTripsMatched"], len(mline_boundary_round_trips),
             report["mlineStyleBoundaryEditsMatched"], len(mline_boundary_edits),
             report["mlineStyleScalarEditsMatched"], len(mline_scalar_edits)))
+        print("Independent MLINESTYLE text source/CLI/codepage projections: %d/%d, %d/%d, %d/%d" % (
+            report["mlineStyleTextInputsMatched"], len(mline_text_inputs),
+            report["mlineStyleTextRoundTripsMatched"], len(mline_text_round_trips),
+            report["mlineStyleTextCodepageTranscodesMatched"], len(mline_text_transcodes)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
         + mline_inputs + mline_round_trips + mline_edits
         + mline_boundary_inputs + mline_boundary_round_trips + mline_boundary_edits
-        + mline_scalar_edits) else 1
+        + mline_scalar_edits + mline_text_inputs + mline_text_round_trips
+        + mline_text_transcodes) else 1
 
 
 if __name__ == "__main__":
