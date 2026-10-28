@@ -28795,16 +28795,22 @@ using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
 const std::string initialDescription="source description café^A\\U+1234";
 const std::string editedDescription="edited description café^A\\U+1234";
-Tags recipe(const std::string& version,bool binary=false,bool description=true,bool angles=true) {
+struct Scalars {int flags=0,fill=256;double start=90.0,end=90.0;};
+void setScalars(dx_data& data,const Scalars& value) {
+    auto& style=data.mLineStyles.front();style.flags=value.flags;style.fillColor=value.fill;style.startAngle=value.start;style.endAngle=value.end;
+}
+Tags recipe(const std::string& version,bool binary=false,bool description=true,bool angles=true,unsigned scalarMask=15u) {
     Tags fields{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},
         {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"LTYPE"},{5,"100"},{100,"AcDbSymbolTable"},{70,"2"},
         {0,"LTYPE"},{5,"101"},{330,"100"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLinetypeTableRecord"},{2,"ByLayer"},{70,"0"},{3,""},{72,"65"},{73,"0"},{40,"0"},
         {0,"LTYPE"},{5,"102"},{330,"100"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLinetypeTableRecord"},{2,"Continuous"},{70,"0"},{3,""},{72,"65"},{73,"0"},{40,"0"},{0,"ENDTAB"},{0,"ENDSEC"},
         {0,"SECTION"},{2,"OBJECTS"},{0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
         {3,"ACAD_MLINESTYLE"},{350,"A"},{0,"DICTIONARY"},{5,"A"},{330,"C"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
-        {3,"BODY_STYLE"},{350,"D"},{0,"MLINESTYLE"},{5,"D"},{330,"A"},{100,"AcDbMlineStyle"},{2,"BODY_STYLE"},{70,"0"}};
+        {3,"BODY_STYLE"},{350,"D"},{0,"MLINESTYLE"},{5,"D"},{330,"A"},{100,"AcDbMlineStyle"},{2,"BODY_STYLE"}};
+    if(scalarMask&1u)fields.emplace_back(70,"0");
     if(description)fields.emplace_back(3,materialBodyControls::encodedText(initialDescription,version,binary,"ANSI_1252"));
-    fields.emplace_back(62,"256");if(angles)fields.insert(fields.end(),{{51,"90"},{52,"90"}});
+    if(scalarMask&2u)fields.emplace_back(62,"256");
+    if(angles&&(scalarMask&4u))fields.emplace_back(51,"90");if(angles&&(scalarMask&8u))fields.emplace_back(52,"90");
     fields.insert(fields.end(),{{71,"2"},{49,"0.5"},{62,"1"},{6,"ByLayer"},{49,"-0.25"},{62,"3"},{6,"Continuous"},{301,"opaque-mline-tail"},
         {0,"ENDSEC"},{0,"EOF"}});return fields;
 }
@@ -28816,21 +28822,23 @@ void rawValue(dx_data& data,int code,const std::string& text,bool binary,const s
     auto& row=raw(data);
     for(std::size_t i=0u;i<row.groups.size();++i)if(row.groups[i].code()==code) {
         if(code==2||code==3||code==6||code==301)row.groups[i]=DRW_Variant(code,UTF8STRING(materialBodyControls::encodedText(text,version,binary,"ANSI_1252")));
+        else if(code==70||code==62)row.groups[i]=DRW_Variant(code,std::int32_t(std::stoi(text)));
         else row.groups[i]=DRW_Variant(code,std::stod(text));
         if(row.hasRawValues)row.rawValues[i]=(code==2||code==3||code==6||code==301)?materialBodyControls::encodedText(text,version,binary,"ANSI_1252"):text;
         return;
     }
     throw std::runtime_error("MLINESTYLE raw role missing");
 }
-bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5) {
+bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256) {
     dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.mLineStyles.size()!=1u)return false;
     const auto& value=data.mLineStyles.front();
-    return value.name=="BODY_STYLE"&&value.description==description&&value.flags==0&&value.fillColor==256
-        &&value.startAngle==start&&value.endAngle==end&&value.elements.size()==2u
+    return value.name=="BODY_STYLE"&&value.description==description&&static_cast<std::uint16_t>(value.flags)==static_cast<std::uint16_t>(flags)&&value.fillColor==fill
+        &&value.startAngle==start&&value.endAngle==end
+        &&std::signbit(value.startAngle)==std::signbit(start)&&std::signbit(value.endAngle)==std::signbit(end)&&value.elements.size()==2u
         &&value.elements[0].offset==firstOffset&&value.elements[0].color==1&&value.elements[0].linetype=="ByLayer"
         &&value.elements[1].offset==-.25&&value.elements[1].color==3&&value.elements[1].linetype=="Continuous";
 }
-bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5) {
+bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5,double end=90.0,int flags=0,int fill=256,unsigned scalarMask=15u) {
     using Row=customDictionaryVarControls::Row;std::vector<Row> rows;
     for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
         if(field.first==0){rows.push_back({field.second,{},{},{}});continue;}
@@ -28847,14 +28855,30 @@ bool proof(const std::filesystem::path& path,bool binary,const std::string& vers
     if(!root)return false;const auto* owner=entry(*root,"ACAD_MLINESTYLE");if(!owner||owner->type!="DICTIONARY"||owner->owner!=root->id)return false;
     const auto* style=entry(*owner,"BODY_STYLE");if(!style||style->type!="MLINESTYLE"||style->owner!=owner->id)return false;
     std::map<int,std::vector<std::string>> fields;for(const auto& field:style->fields)fields[field.first].push_back(field.second);
-    const auto nums=[&](int code,const std::vector<double>& expected){if(fields[code].size()!=expected.size())return false;for(std::size_t i=0u;i<expected.size();++i)if(std::stod(fields[code][i])!=expected[i])return false;return true;};
+    const auto nums=[&](int code,const std::vector<double>& expected){if(fields[code].size()!=expected.size())return false;for(std::size_t i=0u;i<expected.size();++i)if(std::stod(fields[code][i])!=expected[i]||std::signbit(std::stod(fields[code][i]))!=std::signbit(expected[i]))return false;return true;};
+    const bool flagMatched=fields[70].size()==((scalarMask&1u)?1u:0u)
+        &&(!(scalarMask&1u)||(std::stoll(fields[70].front())>=-32768&&std::stoll(fields[70].front())<=65535
+            &&static_cast<std::uint16_t>(std::stoll(fields[70].front()))==static_cast<std::uint16_t>(flags)));
     return fields[2]==std::vector<std::string>{"BODY_STYLE"}&&fields[3]==(descriptionPresent?std::vector<std::string>{materialBodyControls::encodedText(description,version,binary,"ANSI_1252")}:std::vector<std::string>{})
-        &&nums(70,{0})&&nums(62,{256,1,3})&&nums(51,angles?std::vector<double>{start}:std::vector<double>{})&&nums(52,angles?std::vector<double>{90}:std::vector<double>{})
+        &&flagMatched&&nums(62,(scalarMask&2u)?std::vector<double>{double(fill),1,3}:std::vector<double>{1,3})
+        &&nums(51,(angles&&(scalarMask&4u))?std::vector<double>{start}:std::vector<double>{})&&nums(52,(angles&&(scalarMask&8u))?std::vector<double>{end}:std::vector<double>{})
         &&nums(71,{2})&&nums(49,{firstOffset,-.25})&&fields[6]==std::vector<std::string>{"ByLayer","Continuous"}&&fields[301]==std::vector<std::string>{opaque};
+}
+bool scalarProof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,const Scalars& wanted,unsigned mask=15u) {
+    return proof(path,binary,version,description,true,wanted.start,true,"opaque-mline-tail",.5,wanted.end,wanted.flags,wanted.fill,mask)
+        &&values(path,description,wanted.start,wanted.end,.5,wanted.flags,wanted.fill);
 }
 bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
     dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;unsigned edited=0u;
     for(auto& value:data.mLineStyles)if(value.name=="PeerMline"){value.description="edited peer café^A\\U+1234";++edited;}
+    return edited==1u&&adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+bool scalarPeer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;unsigned edited=0u;
+    for(auto& value:data.mLineStyles)if(value.name=="PeerMline") {
+        value.description="edited peer café^A\\U+1234";value.flags=273;value.fillColor=6;value.startAngle=22.5;value.endAngle=157.5;++edited;
+    }
     return edited==1u&&adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
         dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
 }
@@ -28901,7 +28925,7 @@ struct Replay:dx_iface {
 };
 bool run(const std::filesystem::path& dir) {
     const auto input=dir/"input.dxf",output=dir/"output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,presence=0u,prepFaults=0u,lengthRefusals=0u,lengthBoundaries=0u,unsupported=0u,scopeControls=0u,encodingRefusals=0u,corruptions=0u,geometryGuards=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,presence=0u,prepFaults=0u,lengthRefusals=0u,lengthBoundaries=0u,unsupported=0u,scopeControls=0u,encodingRefusals=0u,corruptions=0u,geometryGuards=0u,scalarReadbacks=0u,scalarConflicts=0u,scalarPresence=0u,invalidScalars=0u,signedZeros=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
     for(const std::string version:{"AC1015","AC1027"})for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         const auto v=version=="AC1015"?DRW::AC1015:DRW::AC1027;dx_iface adapter;dx_data data;
@@ -28917,6 +28941,28 @@ bool run(const std::filesystem::path& dir) {
         reset();rawValue(data,51,"45",sourceBinary,version);data.mLineStyles.front().description=editedDescription;if(!check(editedDescription,45))return fail(__LINE__);
         reset();rawValue(data,3,editedDescription,sourceBinary,version);data.mLineStyles.front().description=editedDescription;if(!check(editedDescription))return fail(__LINE__);
         reset();rawValue(data,301,"edited-opaque-tail",sourceBinary,version);data.mLineStyles.front().description=editedDescription;if(!check(editedDescription,90,"edited-opaque-tail"))return fail(__LINE__);
+        const auto scalarCheck=[&](const Scalars& wanted,const std::string& description=editedDescription) {
+            const bool good=adapter.fileExport(output.string(),v,binary,&data,false,true,dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless)
+                &&scalarProof(output,binary,version,description,wanted);if(good){++readbacks;++scalarReadbacks;}return good;};
+        reset();Scalars wanted{273,6,22.5,157.5};setScalars(data,wanted);data.mLineStyles.front().description=editedDescription;
+        if(!scalarCheck(wanted))return fail(__LINE__);
+        reset();rawValue(data,70,"273",sourceBinary,version);rawValue(data,62,"6",sourceBinary,version);rawValue(data,51,"22.5",sourceBinary,version);rawValue(data,52,"157.5",sourceBinary,version);
+        data.mLineStyles.front().description=editedDescription;if(!scalarCheck(wanted))return fail(__LINE__);
+        reset();rawValue(data,51,"22.5",sourceBinary,version);data.mLineStyles.front().description=editedDescription;
+        data.mLineStyles.front().fillColor=6;data.mLineStyles.front().endAngle=157.5;wanted.flags=0;
+        if(!scalarCheck(wanted))return fail(__LINE__);
+        reset();wanted={273,6,22.5,157.5};setScalars(data,wanted);data.mLineStyles.front().description=editedDescription;
+        rawValue(data,70,"273",sourceBinary,version);rawValue(data,62,"6",sourceBinary,version);rawValue(data,51,"22.5",sourceBinary,version);rawValue(data,52,"157.5",sourceBinary,version);
+        if(!scalarCheck(wanted))return fail(__LINE__);
+        for(unsigned kind=0u;kind<4u;++kind) {
+            reset();Scalars corrected;data.mLineStyles.front().description=editedDescription;
+            if(kind==0u){rawValue(data,70,"273",sourceBinary,version);data.mLineStyles.front().flags=274;corrected.flags=273;}
+            if(kind==1u){rawValue(data,62,"6",sourceBinary,version);data.mLineStyles.front().fillColor=7;corrected.fill=6;}
+            if(kind==2u){rawValue(data,51,"22.5",sourceBinary,version);data.mLineStyles.front().startAngle=45;corrected.start=22.5;}
+            if(kind==3u){rawValue(data,52,"157.5",sourceBinary,version);data.mLineStyles.front().endAngle=135;corrected.end=157.5;}
+            sentinel(output);if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++scalarConflicts;
+            setScalars(data,corrected);if(!scalarCheck(corrected))return fail(__LINE__);++retries;
+        }
         reset();rawValue(data,3,"raw conflict",sourceBinary,version);data.mLineStyles.front().description="typed conflict";sentinel(output);
         if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
         data.mLineStyles.front().description="raw conflict";if(!check("raw conflict"))return fail(__LINE__);++retries;
@@ -28929,36 +28975,38 @@ bool run(const std::filesystem::path& dir) {
     }
     for(bool binary:{false,true})for(bool angles:{false,true}) {
         dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary,false,angles),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
-        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027","",false,angles?90:0,angles)||!values(output,"",angles?90:0,angles?90:0))return fail(__LINE__);++readbacks;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027","",false,90,angles)||!values(output,"",90,90))return fail(__LINE__);++readbacks;
         data.mLineStyles.front().description=editedDescription;
-        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",editedDescription,true,angles?90:0,angles)||!values(output,editedDescription,angles?90:0,angles?90:0))return fail(__LINE__);++readbacks;++presence;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",editedDescription,true,90,angles)||!values(output,editedDescription,90,90))return fail(__LINE__);++readbacks;++presence;
     }
-    for(bool binary:{false,true})for(unsigned kind=0u;kind<20u;++kind) {
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<15u;++kind) {
         dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
         const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;auto& value=data.mLineStyles.front();
-        if(kind==0u)value.name="OTHER_STYLE";if(kind==1u)value.flags=1;if(kind==2u)value.startAngle=45;if(kind==3u)value.endAngle=45;
-        if(kind==4u)value.fillColor=3;if(kind==5u)value.fillColor24=0x123456;if(kind==6u)value.fillColorMethod=1;if(kind==7u)value.fillColorFlags=1;
-        if(kind==8u)value.fillColorName="Azure";if(kind==9u)value.fillColorBookName="Book";if(kind==10u)value.fillColorDwgIndex=1;
-        if(kind==11u)value.elements.front().offset=.75;if(kind==12u)value.elements.front().color=5;if(kind==13u)value.elements.front().linetype="Continuous";
-        if(kind==14u)value.elements.front().color24=0x123456;if(kind==15u)value.elements.front().linetypeHandle=0xEA09u;
-        if(kind==16u)value.elements.push_back(value.elements.front());if(kind==17u)value.elements.erase(value.elements.begin());
-        if(kind==18u){value.startAngle=45;rawValue(data,51,"45",binary);}
-        if(kind==19u)value.parentHandle=0xEA08u;
+        if(kind==0u)value.name="OTHER_STYLE";if(kind==1u)value.fillColor24=0x123456;if(kind==2u)value.fillColorMethod=1;if(kind==3u)value.fillColorFlags=1;
+        if(kind==4u)value.fillColorName="Azure";if(kind==5u)value.fillColorBookName="Book";if(kind==6u)value.fillColorDwgIndex=1;
+        if(kind==7u)value.elements.front().offset=.75;if(kind==8u)value.elements.front().color=5;if(kind==9u)value.elements.front().linetype="Continuous";
+        if(kind==10u)value.elements.front().color24=0x123456;if(kind==11u)value.elements.front().linetypeHandle=0xEA09u;
+        if(kind==12u)value.elements.push_back(value.elements.front());if(kind==13u)value.elements.erase(value.elements.begin());
+        if(kind==14u)value.parentHandle=0xEA08u;
         sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++unsupported;
         data.mLineStyles=typed;data.rawNamedResourceObjects=raws;
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",initialDescription)||!values(output,initialDescription))return fail(__LINE__);++readbacks;++retries;
     }
-    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<5u;++kind) {
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<11u;++kind) {
         materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
         if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        Scalars planned;if(kind==9u)planned.start=-0.0;if(kind==10u)planned.flags=65535;setScalars(data,planned);
         data.mLineStyles.front().description=editedDescription;const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;const auto dictionaries=data.dictionaries;
         auto page=data.headerC.vars.find("$DWGCODEPAGE");if(page==data.headerC.vars.end()||!page->second||!page->second->content.s)return fail(__LINE__);
         adapter.change=[&]{if(kind==0u)data.mLineStyles.front().description="late description";if(kind==1u)rawValue(data,3,"late raw",binary);
             if(kind==2u)data.mLineStyles.front().elements.front().offset=.75;if(kind==3u)data.dictionaries.front().m_entries.front().m_name="OTHER_STYLE";
-            if(kind==4u)*page->second->content.s="ANSI_1251";};sentinel(output);
+            if(kind==4u)*page->second->content.s="ANSI_1251";
+            if(kind==5u)data.mLineStyles.front().flags=273;if(kind==6u)data.mLineStyles.front().fillColor=6;
+            if(kind==7u)data.mLineStyles.front().startAngle=22.5;if(kind==8u)data.mLineStyles.front().endAngle=157.5;
+            if(kind==9u)data.mLineStyles.front().startAngle=0.0;if(kind==10u)data.mLineStyles.front().flags=-1;};sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++callbacks;
         adapter.active=false;data.mLineStyles=typed;data.rawNamedResourceObjects=raws;data.dictionaries=dictionaries;*page->second->content.s="ANSI_1252";
-        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",editedDescription)||!values(output,editedDescription))return fail(__LINE__);++readbacks;++retries;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!scalarProof(output,binary,"AC1027",editedDescription,planned))return fail(__LINE__);++readbacks;++retries;
     }
     for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -29027,8 +29075,41 @@ bool run(const std::filesystem::path& dir) {
         if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
             ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);corruptions+=replay.corruptions;
     }
-    std::cout<<"MLINESTYLE transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; prepFaults="<<prepFaults<<"; lengthRefusals="<<lengthRefusals<<"; lengthBoundaries="<<lengthBoundaries<<"; unsupported="<<unsupported<<"; scopeControls="<<scopeControls<<"; encodingRefusals="<<encodingRefusals<<"; corruptions="<<corruptions<<"; geometryGuards="<<geometryGuards<<'\n';
-    return profiles==8u&&presence==4u&&callbacks==40u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==40u&&scopeControls==4u&&encodingRefusals==4u&&corruptions>0u&&geometryGuards==2u;
+    for(bool binary:{false,true})for(unsigned mask:{0u,14u,13u,11u,7u}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary,true,true,mask),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!scalarProof(output,binary,"AC1027",initialDescription,Scalars{},mask))return fail(__LINE__);++readbacks;
+        Scalars wanted{273,6,22.5,157.5};setScalars(data,wanted);data.mLineStyles.front().description=editedDescription;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!scalarProof(output,binary,"AC1027",editedDescription,wanted))return fail(__LINE__);++readbacks;++scalarPresence;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;auto& value=data.mLineStyles.front();
+        if(kind==0u)value.flags=-32769;if(kind==1u)value.flags=65536;if(kind==2u)value.fillColor=-1;if(kind==3u)value.fillColor=257;
+        if(kind==4u)value.startAngle=std::numeric_limits<double>::quiet_NaN();if(kind==5u)value.endAngle=std::numeric_limits<double>::infinity();
+        if(kind==6u)rawValue(data,70,"65536",binary);if(kind==7u)rawValue(data,62,"257",binary);
+        if(kind==8u)rawValue(data,51,"nan",binary);if(kind==9u)rawValue(data,52,"inf",binary);
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++invalidScalars;
+        data.mLineStyles=typed;data.rawNamedResourceObjects=raws;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!scalarProof(output,binary,"AC1027",initialDescription,Scalars{}))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.mLineStyles=typed;data.rawNamedResourceObjects=raws;data.mLineStyles.front().description=editedDescription;};
+        const auto check=[&](const Scalars& wanted) {
+            const bool good=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)&&scalarProof(output,binary,"AC1027",editedDescription,wanted);
+            if(good){++readbacks;++scalarReadbacks;}return good;};
+        reset();Scalars wanted{-32768,0,-360.0,720.0};setScalars(data,wanted);if(!check(wanted))return fail(__LINE__);
+        reset();wanted={65535,256,-0.0,-0.0};setScalars(data,wanted);if(!check(wanted))return fail(__LINE__);++signedZeros;
+        // Wire flags compare 16-bit patterns, while late snapshots above keep
+        // the caller's exact signed integer representation frozen.
+        reset();wanted={65535,256,90.0,90.0};data.mLineStyles.front().flags=65535;rawValue(data,70,"-1",binary);if(!check(wanted))return fail(__LINE__);
+        reset();rawValue(data,51,"-0",binary);data.mLineStyles.front().startAngle=0.0;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++scalarConflicts;
+        data.mLineStyles.front().startAngle=-0.0;wanted={0,256,-0.0,90.0};if(!check(wanted))return fail(__LINE__);++signedZeros;++retries;
+    }
+    std::cout<<"MLINESTYLE transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; prepFaults="<<prepFaults<<"; lengthRefusals="<<lengthRefusals<<"; lengthBoundaries="<<lengthBoundaries<<"; unsupported="<<unsupported<<"; scopeControls="<<scopeControls<<"; encodingRefusals="<<encodingRefusals<<"; corruptions="<<corruptions<<"; geometryGuards="<<geometryGuards<<"; scalarReadbacks="<<scalarReadbacks<<"; scalarConflicts="<<scalarConflicts<<"; scalarPresence="<<scalarPresence<<"; invalidScalars="<<invalidScalars<<"; signedZeros="<<signedZeros<<'\n';
+    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==30u&&scopeControls==4u&&encodingRefusals==4u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u;
 }
 }
 void testMLineStyleBodyTransactions(TestContext& t) {
@@ -37112,6 +37193,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 5 && std::string(argv[1]) == "--scale-edit-probe") {
         return scaleBodyTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 5 && std::string(argv[1]) == "--mline-style-scalar-probe") {
+        return mlineStyleBodyTransactionControls::scalarPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-edit-probe") {
         return mlineStyleBodyTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;

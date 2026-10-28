@@ -6169,6 +6169,12 @@ public:
   [[nodiscard]] bool validateDxfRecord() const noexcept;
 
 protected:
+  // DXF cap-angle defaults differ from the historical API/DWG reset contract.
+  // No fields or virtuals are added; each DXF record starts independently.
+  void resetDxf() {
+    reset();
+    startAngle = endAngle = 90.0;
+  }
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;

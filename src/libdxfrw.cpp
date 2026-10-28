@@ -20770,6 +20770,7 @@ bool dxfRW::processMLineStyle() {
     DRW_DBG("dxfRW::processMLineStyle");
     int code;
     DRW_MLineStyle style;
+    style.resetDxf();
     DRW_RawDxfObject raw;       //data-only type: also preserved for DXF re-emit
     if (!copyRawDxfCarrierName(raw, nextentity))
         return setError(DRW::BAD_CODE_PARSED);

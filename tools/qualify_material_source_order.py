@@ -32,6 +32,9 @@ PEER_SCALE_EDIT = {70: 9, 300: r"edited peer café^A\U+1234",
                    140: 2.5, 141: 7.5, 290: 0}
 PEER_MLINE_STYLE_NAME = "PeerMline"
 PEER_MLINE_STYLE_EDIT = r"edited peer café^A\U+1234"
+PEER_MLINE_STYLE_SCALAR_EDIT = {"flags": 273, "fillColor": 6,
+                                "startAngle": 22.5, "endAngle": 157.5,
+                                "description": PEER_MLINE_STYLE_EDIT}
 
 
 def selected_physical_records(path, binary):
@@ -274,12 +277,13 @@ def qualify_scales(ezdxf, probe, converter, output):
 
 
 def selected_resource_outputs(ezdxf, probe, converter, source, version, page, fmt,
-                              original, selector, projection, expected, edited_expected):
+                              original, selector, projection, expected, edited_expected,
+                              modes=(False, True), edit_prefix="edit-"):
     """Reuse the same bounded CLI/edit invocation for the selected resources."""
     round_trips, edits = [], []
     for target_format in ("asc", "bin"):
-        for edit in (False, True):
-            target = source.parent / (("edit-" if edit else "out-")
+        for edit in modes:
+            target = source.parent / ((edit_prefix if edit else "out-")
                                       + source.stem + "-" + target_format + ".dxf")
             if edit:
                 command = [str(probe), selector, str(source), str(target), target_format]
@@ -315,7 +319,8 @@ def mline_style_values(style):
             "elements": [(e.offset, e.color, e.linetype) for e in style.elements]}
 
 
-def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False):
+def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
+                                    expected_presence=None):
     """Check every selected style and its ordered element tuples before setup."""
     from ezdxf.lldxf.extendedtags import ExtendedTags
     from ezdxf.tools.text import caret_decode
@@ -362,6 +367,9 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
                 if not binary:
                     value = caret_decode(value)
             values[name] = value
+        if expected_presence and key in expected_presence:
+            for code, present in expected_presence[key].items():
+                assert presence[code] == present, "physical MLINESTYLE %s field %d presence" % (key, code)
         assert values["name"] == key, "physical MLINESTYLE dictionary/body name binding"
         assert len(values["description"]) <= 255, "physical MLINESTYLE description characters"
         elements, current = [], None
@@ -387,10 +395,12 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
             "dictionaryHandle": dictionary_handle, **controls}
 
 
-def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False):
+def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
+                                   expected_presence=None):
     from ezdxf.tools.text import caret_decode
 
-    physical = physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe)
+    physical = physical_mline_style_projection(
+        ezdxf, path, binary, expected, source_recipe, expected_presence)
     doc = ezdxf.readfile(path)
     dictionary = doc.rootdict["ACAD_MLINESTYLE"]
     assert dictionary.dxf.owner == doc.rootdict.dxf.handle, "MLINESTYLE dictionary owner after setup"
@@ -416,6 +426,22 @@ def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe
             "typedStylesMatched": len(styles), "nativeMlineConsumerQualified": False}
 
 
+def author_mline_style_profile(ezdxf, version, page, description,
+                               start_angle=37.5, end_angle=142.5):
+    doc = ezdxf.new(version)
+    if version == "R2000":
+        doc.encoding = page
+    null_bindings, omitted = author_null_material_bindings(doc)
+    style = doc.mline_styles.new(PEER_MLINE_STYLE_NAME)
+    style.dxf.update({"description": description, "flags": 3, "fill_color": 4,
+                      "start_angle": start_angle, "end_angle": end_angle})
+    style.elements.append(1.25, 3, "CONTINUOUS")
+    style.elements.append(-0.75, 5, "BYLAYER")
+    doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
+    expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
+    return doc, style, expected, null_bindings, omitted
+
+
 def qualify_mline_styles(ezdxf, probe, converter, output):
     inputs, round_trips, edits = [], [], []
     profiles = (("R2000", "cp1252", "Peer café mline"),
@@ -423,17 +449,8 @@ def qualify_mline_styles(ezdxf, probe, converter, output):
                 ("R2007", "utf-8", "Peer Ω mline"),
                 ("R2018", "utf-8", "Peer café Ω mline"))
     for version, page, description in profiles:
-        doc = ezdxf.new(version)
-        if version == "R2000":
-            doc.encoding = page
-        null_bindings, omitted = author_null_material_bindings(doc)
-        style = doc.mline_styles.new(PEER_MLINE_STYLE_NAME)
-        style.dxf.update({"description": description, "flags": 3, "fill_color": 4,
-                          "start_angle": 37.5, "end_angle": 142.5})
-        style.elements.append(1.25, 3, "CONTINUOUS")
-        style.elements.append(-0.75, 5, "BYLAYER")
-        doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
-        expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
+        doc, _, expected, null_bindings, omitted = author_mline_style_profile(
+            ezdxf, version, page, description)
         edited_expected = {name: dict(value) for name, value in expected.items()}
         edited_expected[PEER_MLINE_STYLE_NAME]["description"] = PEER_MLINE_STYLE_EDIT
         for fmt in ("asc", "bin"):
@@ -457,6 +474,85 @@ def qualify_mline_styles(ezdxf, probe, converter, output):
             round_trips.extend(unchanged)
             edits.extend(edited)
     return inputs, round_trips, edits
+
+
+def qualify_mline_style_boundaries(ezdxf, probe, converter, output):
+    """Four authored angle boundaries, separated from the original 8/16/16 lane."""
+    from functools import partial
+
+    class OmittedAnglesWriter:
+        # This is a generation-time filter for this one authored style, not
+        # normalization of a downloaded or previously qualified input file.
+        def __init__(self, writer, omitted, counts):
+            self.writer, self.omitted, self.counts = writer, omitted, counts
+
+        def __getattr__(self, name):
+            return getattr(self.writer, name)
+
+        def write_tag(self, tag):
+            if tag.code in self.omitted:
+                self.counts[tag.code] += 1
+            else:
+                self.writer.write_tag(tag)
+
+        def write_tag2(self, code, value):
+            if code in self.omitted:
+                self.counts[code] += 1
+            else:
+                self.writer.write_tag2(code, value)
+
+    inputs, round_trips, edits, scalar_edits = [], [], [], []
+    cases = (("both-missing", "R2000", "cp1252", "asc", (51, 52), 90.0, 90.0),
+             ("start-missing", "R2007", "utf-8", "bin", (51,), 90.0, 142.5),
+             ("end-missing", "R2018", "utf-8", "asc", (52,), 37.5, 90.0),
+             ("explicit-zero", "R2000", "cp932", "bin", (), 0.0, 0.0))
+    for case, version, page, fmt, missing, start, end in cases:
+        description = "Boundary 表タ mline" if page == "cp932" else "Boundary café mline"
+        doc, style, expected, null_bindings, omitted = author_mline_style_profile(
+            ezdxf, version, page, description, start, end)
+        exported_omissions = {code: 0 for code in missing}
+        original_export = style.export_entity
+        if missing:
+            style.export_entity = lambda writer: original_export(
+                OmittedAnglesWriter(writer, missing, exported_omissions))
+        source = output / ("mline-style-boundary-" + case + "-" + doc.dxfversion
+                           + "-" + page + "-" + fmt + ".dxf")
+        doc.saveas(source, fmt=fmt)
+        assert all(count == 1 for count in exported_omissions.values()), "authored angle omission counts"
+        presence = {PEER_MLINE_STYLE_NAME: {code: code not in missing for code in (51, 52)}}
+        projection = partial(selected_mline_style_projection, expected_presence=presence)
+        original = {"case": case, "version": doc.dxfversion, "page": page, "format": fmt,
+                    "path": source.name, "sha256": digest(source), "matched": False,
+                    "selectedNullLayerBindings": null_bindings, "omittedDefaultMaterialHandles": omitted,
+                    "authoredOmittedAngleCodes": list(missing), "exportedOmissionCounts": exported_omissions,
+                    "recipe": "Typed authored style with scoped generation-time angle-tag omission; independent defaults are 90 degrees; explicit zero remains zero"}
+        try:
+            original["observations"] = projection(ezdxf, source, fmt == "bin", expected, source_recipe=True)
+            original["matched"] = True
+        except Exception as error:
+            original["mismatch"] = str(error)
+        inputs.append(original)
+        description_expected = {name: dict(value) for name, value in expected.items()}
+        description_expected[PEER_MLINE_STYLE_NAME]["description"] = PEER_MLINE_STYLE_EDIT
+        unchanged, edited = selected_resource_outputs(
+            ezdxf, probe, converter, source, version, page, fmt, original,
+            "--mline-style-edit-probe", projection, expected, description_expected)
+        for row in unchanged + edited:
+            row["case"] = case
+        round_trips.extend(unchanged)
+        edits.extend(edited)
+        scalar_expected = {name: dict(value) for name, value in expected.items()}
+        scalar_expected[PEER_MLINE_STYLE_NAME].update(PEER_MLINE_STYLE_SCALAR_EDIT)
+        scalar_presence = {PEER_MLINE_STYLE_NAME: {code: True for code in (3, 70, 62, 51, 52)}}
+        _, scalar = selected_resource_outputs(
+            ezdxf, probe, converter, source, version, page, fmt, original,
+            "--mline-style-scalar-probe",
+            partial(selected_mline_style_projection, expected_presence=scalar_presence),
+            expected, scalar_expected, modes=(True,), edit_prefix="scalar-edit-")
+        for row in scalar:
+            row["case"] = case
+        scalar_edits.extend(scalar)
+    return inputs, round_trips, edits, scalar_edits
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -664,8 +760,12 @@ def main():
         scale_inputs, scale_round_trips, scale_edits = qualify_scales(
             ezdxf, probe, converter, output)
     mline_inputs, mline_round_trips, mline_edits = [], [], []
+    mline_boundary_inputs, mline_boundary_round_trips, mline_boundary_edits, mline_scalar_edits = [], [], [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
+            ezdxf, probe, converter, output)
+        (mline_boundary_inputs, mline_boundary_round_trips,
+         mline_boundary_edits, mline_scalar_edits) = qualify_mline_style_boundaries(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -715,13 +815,31 @@ def main():
         "mlineStyleRoundTripsMatched": sum(row["matched"] for row in mline_round_trips),
         "mlineStyleEdits": mline_edits,
         "mlineStyleEditsMatched": sum(row["matched"] for row in mline_edits),
+        "mlineStyleBoundaryInputs": mline_boundary_inputs,
+        "mlineStyleBoundaryInputsMatched": sum(row["matched"] for row in mline_boundary_inputs),
+        "mlineStyleBoundaryRoundTrips": mline_boundary_round_trips,
+        "mlineStyleBoundaryRoundTripsMatched": sum(row["matched"] for row in mline_boundary_round_trips),
+        "mlineStyleBoundaryEdits": mline_boundary_edits,
+        "mlineStyleBoundaryEditsMatched": sum(row["matched"] for row in mline_boundary_edits),
+        "mlineStyleScalarEdits": mline_scalar_edits,
+        "mlineStyleScalarEditsMatched": sum(row["matched"] for row in mline_scalar_edits),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
             "editedStyle": PEER_MLINE_STYLE_NAME, "editedDescription": PEER_MLINE_STYLE_EDIT,
             "descriptionMaxCharacters": 255, "angleWireUnits": "degrees",
+            "angleDefaultDegrees": 90,
+            "additionalBoundaryCases": ["both-missing", "start-missing", "end-missing", "explicit-zero"],
+            "originalDescriptionMatrixCountsUnchanged": {"inputs": 8, "roundTrips": 16, "edits": 16},
+            "boundaryScope": "Four separately reported authored sources; eight CLI, eight description and eight scalar outputs; expected physical presence/absence checked before setup and across output, independent typed defaults checked separately",
+            "scalarProbe": {"selector": "--mline-style-scalar-probe", "edits": PEER_MLINE_STYLE_SCALAR_EDIT,
+                            "knownFlagBits": [1, 2, 16, 32, 64, 256, 512, 1024], "knownFlagMask": 1907,
+                            "fillColorScope": "Selected ACI 6 within 1..255; not broad CMC or extra producer-value qualification"},
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+            "currentPrimaryReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+            "colorReference": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+            "aciReference": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcCmColor__setColorIndex_Adesk__UInt16.html",
             "materialBindingRecipe": "Shared authored null LAYER bindings before omitting unused defaults; setup-created MATERIALs disclosed",
             "normalization": {"allFormats": ["ezdxf.decode_dxf_unicode once"],
                               "asciiOnly": ["ezdxf.tools.text.caret_decode once"]},
@@ -758,10 +876,17 @@ def main():
             report["mlineStyleInputsMatched"], len(mline_inputs),
             report["mlineStyleRoundTripsMatched"], len(mline_round_trips),
             report["mlineStyleEditsMatched"], len(mline_edits)))
+        print("Independent MLINESTYLE boundary source/CLI/description/scalar projections: %d/%d, %d/%d, %d/%d, %d/%d" % (
+            report["mlineStyleBoundaryInputsMatched"], len(mline_boundary_inputs),
+            report["mlineStyleBoundaryRoundTripsMatched"], len(mline_boundary_round_trips),
+            report["mlineStyleBoundaryEditsMatched"], len(mline_boundary_edits),
+            report["mlineStyleScalarEditsMatched"], len(mline_scalar_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
-        + mline_inputs + mline_round_trips + mline_edits) else 1
+        + mline_inputs + mline_round_trips + mline_edits
+        + mline_boundary_inputs + mline_boundary_round_trips + mline_boundary_edits
+        + mline_scalar_edits) else 1
 
 
 if __name__ == "__main__":

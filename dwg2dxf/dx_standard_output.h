@@ -316,6 +316,12 @@ public:
     using Record::parseCode;
 };
 
+template <> class Probe<DRW_MLineStyle> final : public DRW_MLineStyle {
+public:
+    Probe() { resetDxf(); }
+    using DRW_MLineStyle::parseCode;
+};
+
 // The input/reader/scratch owners are bounded and lexical. Application-group
 // parsers may consume several tokens; hence the separate physical shape pass.
 class Decoder final {

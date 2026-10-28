@@ -801,6 +801,10 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_mleader_writer_version PROPERTIES
         LABELS "fast;dxf;writer;mleader"
         TIMEOUT 10)
+    add_test(NAME libdxfrw_mline_style_dxf_defaults
+        COMMAND libdxfrw_wave1_tests --mline-style-dxf-defaults)
+    set_tests_properties(libdxfrw_mline_style_dxf_defaults PROPERTIES
+        LABELS "fast;dxf;reader;mline;generated" TIMEOUT 15)
     add_test(NAME libdxfrw_mline_style_validation
         COMMAND libdxfrw_wave1_tests --mline-style-validation)
     set_tests_properties(libdxfrw_mline_style_validation PROPERTIES

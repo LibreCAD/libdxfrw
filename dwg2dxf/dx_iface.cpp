@@ -15971,11 +15971,19 @@ bool dx_iface::inspectDxfScales(const dxfRW::DxfObjectsWriteView& view) noexcept
 }
 
 namespace {
+bool mlineFlagInRange(int value) noexcept { return value>=INT16_MIN && value<=UINT16_MAX; }
+bool mlineFlagBitsEqual(int a,int b) noexcept {
+    return mlineFlagInRange(a) && mlineFlagInRange(b)
+        && static_cast<std::uint16_t>(a)==static_cast<std::uint16_t>(b);
+}
+using MlineSlots=std::array<std::size_t,5>;
+constexpr std::array<int,5> mlineScalarCodes{{70,3,62,51,52}};
 bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
-        bool description=true) noexcept {
-    if (a.name!=b.name || a.flags!=b.flags || (description && a.description!=b.description)
-        || !retainedDoubleEqual(a.startAngle,b.startAngle) || !retainedDoubleEqual(a.endAngle,b.endAngle)
-        || a.fillColor!=b.fillColor || a.fillColor24!=b.fillColor24
+        bool description=true,bool scalars=true,bool flagBits=false) noexcept {
+    if (a.name!=b.name || (description && a.description!=b.description)
+        || (scalars && (!(flagBits ? mlineFlagBitsEqual(a.flags,b.flags) : a.flags==b.flags)
+            || !retainedDoubleEqual(a.startAngle,b.startAngle) || !retainedDoubleEqual(a.endAngle,b.endAngle)
+            || a.fillColor!=b.fillColor)) || a.fillColor24!=b.fillColor24
         || a.fillColorMethod!=b.fillColorMethod || a.fillColorFlags!=b.fillColorFlags
         || a.fillColorName!=b.fillColorName || a.fillColorBookName!=b.fillColorBookName
         || a.fillColorDwgIndex!=b.fillColorDwgIndex || a.elements.size()!=b.elements.size()) return false;
@@ -15993,8 +16001,8 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
 // Validate owning physical roles before decoding. Header angles may legally
 // follow elements; repeated62 belongs to fill before49, then to each element.
 bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
-        std::size_t& descriptionSlot,std::size_t& insertion) {
-    descriptionSlot=noScaleSlot;insertion=raw.groups.size();
+        MlineSlots& slots,std::size_t& insertion) {
+    slots.fill(noScaleSlot);insertion=raw.groups.size();
     selected.m_version=raw.m_version; selected.hasRawValues=raw.hasRawValues;
     unsigned depth=0u,markers=0u,elements=0u;
     bool body=false,xdata=false;std::set<int> headers;
@@ -16029,7 +16037,9 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
         if (number && (field.type()!=DRW_Variant::DOUBLE || !std::isfinite(field.d_val()))) return false;
         if (integer && (field.type()!=DRW_Variant::INTEGER
             || field.i_val()<INT16_MIN || field.i_val()>UINT16_MAX)) return false;
-        if (code==3) descriptionSlot=i;
+        const auto scalar=std::find(mlineScalarCodes.begin(),mlineScalarCodes.end(),code);
+        if (scalar!=mlineScalarCodes.end() && (code!=62 || elements==0u))
+            slots[static_cast<std::size_t>(scalar-mlineScalarCodes.begin())]=i;
         if (code==49 || code==71) insertion=(std::min)(insertion,i);
         if (code==49 && ++elements>UINT8_MAX) return false;
         selected.groups.push_back(field);
@@ -16038,9 +16048,9 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
 }
 
 template<class Context> bool decodeMlineBody(const DRW_RawDxfObject& raw,
-        const Context& context,DRW_MLineStyle& result,std::size_t& slot,std::size_t& insertion) {
+        const Context& context,DRW_MLineStyle& result,MlineSlots& slots,std::size_t& insertion) {
     DRW_RawDxfObject selected;
-    if (!mlineBodyFields(raw,selected,slot,insertion)
+    if (!mlineBodyFields(raw,selected,slots,insertion)
         || !dx_material_body::decodeRecord(raw,result,!raw.hasRawValues,
             context.codePage,context.encoding,context.policy,context.compatibility)
         || !result.validateDxfRecord()) return false;
@@ -16087,11 +16097,11 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || (raw.hasRawValues && raw.rawValues.size()!=raw.groups.size())) return false;
             DRW_TextCodec sourceCodec;sourceCodec.setVersion(version,true);
             if (sourceCodec.getVersion()!=static_cast<int>(context.codecVersion)) return false;
-            DRW_MLineStyle original,parsed;std::size_t oldSlot=0u,oldInsertion=0u,slot=0u,insertion=0u;
-            if (!decodeMlineBody(context,context,original,oldSlot,oldInsertion)
-                || !decodeMlineBody(raw,context,parsed,slot,insertion)
+            DRW_MLineStyle original,parsed;MlineSlots oldSlots,slots;std::size_t oldInsertion=0u,insertion=0u;
+            if (!decodeMlineBody(context,context,original,oldSlots,oldInsertion)
+                || !decodeMlineBody(raw,context,parsed,slots,insertion)
                 || !standardDwgCommonEqual(value,parsed,version,false)
-                || !mlineFieldsEqual(value,original,false) || parsed.name!=original.name) return false;
+                || !mlineFieldsEqual(value,original,false,false) || parsed.name!=original.name) return false;
             // The current slice has no renamed dictionary or LTYPE provider.
             // Keep their reference meanings unchanged while other raw fields
             // remain authoritative and receive exact output transport proof.
@@ -16118,48 +16128,88 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             // a limit on encoded CIF/codepage byte length or a memory claim.
             if (std::count_if(text.begin(),text.end(),[](unsigned char c){return (c&0xC0u)!=0x80u;})>255) return false;
             DxfMLineStyleSource source;source.model=value;source.projection=parsed;
-            source.projection.description=text;source.raw=raw;source.output=raw;source.baseline=baseline->second;
+            auto& target=source.projection;
+            target.description=text;
+            const auto choose=[](const auto& old,const auto& typed,const auto& rawValue,auto& result,const auto& equal) {
+                const bool typedEdit=!equal(old,typed),rawEdit=!equal(old,rawValue);
+                if (typedEdit && rawEdit && !equal(typed,rawValue)) return false;
+                result=typedEdit ? typed : rawValue;return true;
+            };
+            if (!mlineFlagInRange(value.flags)
+                || !choose(original.flags,value.flags,parsed.flags,target.flags,mlineFlagBitsEqual)
+                || !choose(original.fillColor,value.fillColor,parsed.fillColor,target.fillColor,[](int a,int b){return a==b;})
+                || !choose(original.startAngle,value.startAngle,parsed.startAngle,target.startAngle,retainedDoubleEqual)
+                || !choose(original.endAngle,value.endAngle,parsed.endAngle,target.endAngle,retainedDoubleEqual)
+                || target.fillColor<0 || target.fillColor>256
+                || !std::isfinite(target.startAngle) || !std::isfinite(target.endAngle)) return false;
+            source.raw=raw;source.output=raw;source.baseline=baseline->second;
             for (std::size_t i=0u;i<parsed.elements.size();++i)
                 source.geometryChanged=source.geometryChanged || !retainedDoubleEqual(parsed.elements[i].offset,original.elements[i].offset);
             const auto sourcePage=version>=DRW::AC1021 ? std::string_view("UTF-8") : std::string_view(context.codePage);
             const bool pageChanged=sourcePage!=m_dxfMLineStyleState.codePage;
             if (pageChanged) for (std::size_t i=0u;i<raw.groups.size();++i) {
                 const auto& field=raw.groups[i];
-                if (i!=slot && field.type()==DRW_Variant::STRING && field.content.s)
+                if (i!=slots[1] && field.type()==DRW_Variant::STRING && field.content.s)
                     for (unsigned char c:*field.content.s) if (c>=128u) return false;
             }
             dx_material_body::BodyWriter encoded(binary,version,m_dxfMLineStyleState.codePage);
-            if (!encoded.writeUtf8String(3,text) || encoded.groups.size()!=1u) return false;
+            const auto bits=static_cast<std::uint16_t>(target.flags);
+            const int wireFlags=binary && bits>INT16_MAX ? static_cast<int>(bits)-65536 : target.flags;
+            if (!encoded.writeInt16(70,wireFlags) || !encoded.writeUtf8String(3,text)
+                || !encoded.writeInt16(62,target.fillColor) || !encoded.writeDouble(51,target.startAngle)
+                || !encoded.writeDouble(52,target.endAngle) || encoded.groups.size()!=slots.size()) return false;
             const bool sourceBinary=!context.hasRawValues;
-            const bool edit=text!=parsed.description || ((sourceBinary!=binary || pageChanged) && slot!=noScaleSlot);
-            const auto replace=[&](std::size_t index) {
-                source.output.groups[index]=encoded.groups[0];
+            const std::array<bool,5> edits{{!mlineFlagBitsEqual(target.flags,parsed.flags)
+                    || (binary && slots[0]!=noScaleSlot && raw.groups[slots[0]].i_val()>INT16_MAX),
+                text!=parsed.description || ((sourceBinary!=binary || pageChanged) && slots[1]!=noScaleSlot),
+                target.fillColor!=parsed.fillColor,
+                !retainedDoubleEqual(target.startAngle,parsed.startAngle),
+                !retainedDoubleEqual(target.endAngle,parsed.endAngle)}};
+            const auto replace=[&](std::size_t index,const DRW_Variant& field) {
+                source.output.groups[index]=field;
                 if (source.output.hasRawValues && !binary) {
-                    std::string spelling;if (!dx_material_body::spelling(encoded.groups[0],spelling)) return false;
+                    std::string spelling;if (!dx_material_body::spelling(field,spelling)) return false;
                     source.output.rawValues.at(index)=std::move(spelling);
                 }
                 return true;
             };
-            if (edit) {
-                if (slot==noScaleSlot) {
-                    slot=insertion;source.output.groups.insert(source.output.groups.begin()+insertion,encoded.groups[0]);
-                    if (source.output.hasRawValues && !binary) {
-                        std::string spelling;if (!dx_material_body::spelling(encoded.groups[0],spelling)) return false;
-                        source.output.rawValues.insert(source.output.rawValues.begin()+insertion,std::move(spelling));
-                    }
-                } else if (!replace(slot)) return false;
+            std::size_t descriptionSlot=slots[1];
+            std::vector<DRW_Variant> added;
+            for (std::size_t role=0u;role<slots.size();++role) if (edits[role]) {
+                if (slots[role]!=noScaleSlot) {
+                    if (!replace(slots[role],encoded.groups[role])) return false;
+                } else {
+                    if (role==1u) descriptionSlot=insertion+added.size();
+                    added.push_back(encoded.groups[role]);
+                }
             }
-            if (policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021 && slot<source.output.groups.size()) {
-                const auto& field=source.output.groups[slot];
+            if (!added.empty()) {
+                // Track an existing late description when scalar insertion
+                // precedes it; an absent slot remains the true sentinel.
+                if (slots[1]!=noScaleSlot && descriptionSlot>=insertion) descriptionSlot+=added.size();
+                source.output.groups.insert(source.output.groups.begin()+insertion,added.begin(),added.end());
+                if (source.output.hasRawValues && !binary) {
+                    std::vector<std::string> spellings;
+                    for (const auto& field:added) {
+                        std::string spelling;if (!dx_material_body::spelling(field,spelling)) return false;
+                        spellings.push_back(std::move(spelling));
+                    }
+                    source.output.rawValues.insert(source.output.rawValues.begin()+insertion,spellings.begin(),spellings.end());
+                }
+            }
+            if (policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021
+                && descriptionSlot<source.output.groups.size()) {
+                const auto& field=source.output.groups[descriptionSlot];
                 if (field.type()==DRW_Variant::STRING && field.content.s
                     && std::any_of(field.content.s->begin(),field.content.s->end(),[](unsigned char c){return c>=128u;})) {
-                    if (!replace(slot)) return false;source.stringOverrides.emplace_back(slot,text);
+                    if (!replace(descriptionSlot,encoded.groups[1])) return false;
+                    source.stringOverrides.emplace_back(descriptionSlot,text);
                 }
             }
             if (binary) { source.output.hasRawValues=false;source.output.rawValues.clear(); }
             DRW_MLineStyle projected;
             if (!dx_material_body::decodeRecord(source.output,projected,binary,m_dxfMLineStyleState.codePage)
-                || !projected.validateDxfRecord() || !mlineFieldsEqual(projected,source.projection)
+                || !projected.validateDxfRecord() || !mlineFieldsEqual(projected,source.projection,true,true,true)
                 || !m_dxfMLineStyles.emplace(value.handle,std::move(source)).second) return false;
         }
         return m_dxfMLineStyles.size()==handles.size() && hasUnchangedDxfMLineStyles();
@@ -16209,7 +16259,7 @@ bool dx_iface::inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView& view) noe
             [&](const auto& source,std::string_view body) {
                 dx_standard_output::Decoder decoder(view);
                 return decoder.decodeRecord<DRW_MLineStyle>(body,[&](const auto& value) {
-                    return value.validateDxfRecord() && mlineFieldsEqual(value,source.projection);
+                    return value.validateDxfRecord() && mlineFieldsEqual(value,source.projection,true,true,true);
                 });
             });
         return m_dxfMLineStylesInspected;

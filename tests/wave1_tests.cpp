@@ -2911,6 +2911,7 @@ void testMlineStyleColorAdmission(TestContext& t) {
 class MLineStyleParseProbe final : public DRW_MLineStyle {
 public:
     bool parsePayload(const std::string& payload) {
+        resetDxf();
         std::istringstream input(payload);
         std::unique_ptr<dxfReader> reader =
             std::make_unique<dxfReaderAscii>(&input);
@@ -2922,6 +2923,32 @@ public:
         return validateDxfRecord();
     }
 };
+
+void testMLineStyleDxfDefaults(TestContext& t) {
+    DRW_MLineStyle api;
+    t.expect(api.startAngle==0.0&&api.endAngle==0.0,
+             "MLINESTYLE API construction preserves zero-angle defaults");
+    api.startAngle=25.0;api.endAngle=155.0;api.reset();
+    t.expect(api.startAngle==0.0&&api.endAngle==0.0,
+             "MLINESTYLE API reset keeps its zero-angle contract");
+    const std::string tuple="71\n1\n49\n0.5\n62\n104\n6\nCONTINUOUS\n";
+    struct Row {std::string payload;double start,end;};
+    const std::vector<Row> cases{
+        {tuple,90.0,90.0},{"51\n0\n"+tuple,0.0,90.0},{"52\n0\n"+tuple,90.0,0.0},
+        {"51\n0\n52\n0\n"+tuple,0.0,0.0},{"52\n157.5\n"+tuple+"51\n22.5\n",22.5,157.5},
+        {tuple+"51\n-0\n52\n-0\n",-0.0,-0.0}};
+    MLineStyleParseProbe reused;std::size_t parsed=0u;
+    for(const auto& row:cases) {
+        t.expect(reused.parsePayload(row.payload)&&reused.startAngle==row.start&&reused.endAngle==row.end
+                     &&std::signbit(reused.startAngle)==std::signbit(row.start)
+                     &&std::signbit(reused.endAngle)==std::signbit(row.end),
+                 "MLINESTYLE independent omitted/default/explicit/reordered angles survive probe reuse");++parsed;
+    }
+    t.expect(!reused.parsePayload("51\n12\n71\n2\n49\n0.5\n62\n104\n6\nCONTINUOUS\n")
+                 &&reused.parsePayload(tuple)&&reused.startAngle==90.0&&reused.endAngle==90.0,
+             "MLINESTYLE rejected partial record cannot contaminate following DXF defaults");
+    std::cout<<"MLINESTYLE DXF defaults profiles="<<parsed<<"; reused omission=90/90; API constructor/reset=0/0\n";
+}
 
 void testMlineStyleDxfSchemaAdmission(TestContext& t) {
     const std::string validReordered =
@@ -13816,6 +13843,9 @@ int main(int argc, char** argv) {
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--mline-style-dxf-defaults") {
+        TestContext focused;testMLineStyleDxfDefaults(focused);return focused.failures==0?0:1;
+    }
     if (argc == 2
         && std::string(argv[1]) == "--mline-style-validation") {
         TestContext focused;
@@ -13918,6 +13948,7 @@ int main(int argc, char** argv) {
     testCommonAppDataBaseScope(context);
     testTypedObjectCommonMetadata(context);
     testMlineStyleColorAdmission(context);
+    testMLineStyleDxfDefaults(context);
     testMlineStyleDxfSchemaAdmission(context);
     testMLineStyleReferenceHandleRemapping(context);
     testMLeaderStyleVersionAndHandleRemapping(context);
