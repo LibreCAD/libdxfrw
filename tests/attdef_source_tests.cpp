@@ -2,6 +2,7 @@
 #include "dx_iface.h"
 #include "dx_standard_output.h"
 #include "intern/dxfattdef.h"
+#include "intern/dxfblockrecord.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfblockdelivery.h"
 #include "intern/dxfwriter.h"
@@ -808,6 +809,8 @@ LegacyCapturedReplay legacyCapturedReplay(const DRW_RawDxfObject& raw,const DRW_
     return result;
 }
 
+#include "block_legacy_record_observation.h"
+
 // Observational transport only: deliberately opts into the reader's existing
 // optional facet. It does not change the adapter's AC1018 opt-in or certify
 // a profile, owner graph, APPID target, output closure, or native semantics.
@@ -1453,6 +1456,7 @@ int main(int argc,char** argv) {
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
     const bool legacyBlockCapture=argc==2&&std::string(argv[1])=="--legacy-block-capture";
+    const bool legacyBlockRecord=argc==2&&std::string(argv[1])=="--legacy-block-record-observation";
     const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
     const bool rawIdentity=argc==2&&std::string(argv[1])=="--raw-identity";
     const bool rawMissing=argc==2&&std::string(argv[1])=="--raw-identity-missing";
@@ -1470,7 +1474,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1495,6 +1499,7 @@ int main(int argc,char** argv) {
         blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         legacyBlockCapture?legacyBlockCaptureTests(scratch/"generated.dxf"):
+        legacyBlockRecord?legacyBlockRecordObservationTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
         dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):
