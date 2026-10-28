@@ -2511,6 +2511,16 @@ class DRW_Attrib : public DRW_Text {
     friend class dxfAttdef::Decoder;
 private:
     std::size_t m_dxfRetainedTagBytes{0};
+    // Earlier files may contain the tolerated embedded multiline header.
+    // Keep the host values until the later embedded marker resolves its role.
+    struct DxfLegacyAttributeHeader {
+        int textgen{0};
+        int alignH{0};
+        int candidateType{0};
+        bool active{false};
+        bool typeSeen{false};
+        bool horizontalSeen{false};
+    } m_dxfLegacyAttributeHeader;
 
 public:
     DRW_Attrib() {

@@ -2358,6 +2358,33 @@ if(TARGET dwg2dxf AND EXISTS "${_dxf_roundtrip_spline_sample}")
     )
 endif()
 
+# Distinct diffuse and normal MATERIAL map fields without an explicit marker.
+# The sources are authored in the test; no drawing fixture is committed.
+add_executable(libdxfrw_material_normal_role_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/material_normal_role_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_material_normal_role_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_material_normal_role_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_material_normal_role_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_material_normal_role_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_material_normal_roles COMMAND libdxfrw_material_normal_role_tests)
+set_tests_properties(libdxfrw_material_normal_roles PROPERTIES
+    LABELS "dxf;fast;material;adapter;transaction" TIMEOUT 30)
+
+# Text justification in pre-R2018 ATTRIB/ATTDEF subclass records.
+add_executable(libdxfrw_attribute_subclass_alignment_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute_subclass_alignment_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_attribute_subclass_alignment_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_attribute_subclass_alignment_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_attribute_subclass_alignment_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_attribute_subclass_alignment_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_attribute_subclass_alignment COMMAND libdxfrw_attribute_subclass_alignment_tests)
+set_tests_properties(libdxfrw_attribute_subclass_alignment PROPERTIES
+    LABELS "dxf;fast;attribute;adapter" TIMEOUT 30)
+
 # Empty optional DIMSTYLE reference vars must not corrupt a repeated CLI pass.
 # Explicit null/nonempty lexemes are checked directly, without claiming their
 # target closure is qualified. All drawing controls are generated at runtime.

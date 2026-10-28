@@ -4343,6 +4343,9 @@ public:
     m_dxfRetainedRefractionMapFileNameBytes = 0u;
     m_dxfRetainedNormalMapFileNameBytes = 0u;
     m_dxfPastPreNormalMapFields = false;
+    m_dxfCompleteDiffuseBeforeRefraction = false;
+    m_dxfInferredNormalMapBoundary = false;
+    m_dxfRepeatedDiffuseMapField = false;
     m_rawData.clear();
     m_rawDataBitSize = 0;
     m_rawDataValid = false;
@@ -4569,7 +4572,13 @@ public:
   std::int32_t m_channelFlags {0};
   bool m_hasChannelFlags {false};
   [[nodiscard]] bool hasCompleteDxfMapTransforms() const noexcept {
-    return (!m_hasDiffuseMapTransform
+    // Without an explicit normal-map marker, the reader only admits the
+    // complete distinguishing tuple following the refraction fields.
+    return (!m_dxfInferredNormalMapBoundary
+            || (m_hasNormalMapBlendFactor && m_hasNormalMapSource
+                && m_hasNormalMapFileName && m_hasNormalMapProjection
+                && m_hasNormalMapTiling && m_hasNormalMapAutoTransform))
+        && (!m_hasDiffuseMapTransform
             || m_dxfDiffuseMapTransformCount
                 == m_diffuseMapTransform.size())
         && (!m_hasSpecularMapTransform
@@ -4629,6 +4638,9 @@ private:
   // The Normal Map block follows luminance and reuses groups 3/42/43/72-75.
   // Keep those post-boundary fields opaque instead of overwriting base maps.
   bool m_dxfPastPreNormalMapFields{false};
+  bool m_dxfCompleteDiffuseBeforeRefraction{false};
+  bool m_dxfInferredNormalMapBoundary{false};
+  bool m_dxfRepeatedDiffuseMapField{false};
   bool m_dxfMaterialGenProcTableStarted{false};
   bool m_dxfMaterialGenProcTableEnded{false};
   std::size_t m_dxfDiffuseMapTransformCount{0u};

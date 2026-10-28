@@ -13591,6 +13591,23 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         && m_dxfNormalMapTransformCount < m_normalMapTransform.size()
         && code != 43)
         return false;
+    // Only a unique preceding diffuse tuple can distinguish an inferred
+    // normal-map tuple. Preserve existing explicit-marker profiles.
+    if (!m_dxfPastPreNormalMapFields) {
+        if ((code == 3 && m_hasDiffuseMapFileName)
+            || (code == 72 && m_hasDiffuseMapSource)
+            || (code == 73 && m_hasDiffuseMapProjection)
+            || (code == 74 && m_hasDiffuseMapTiling)
+            || (code == 75 && m_hasDiffuseMapAutoTransform))
+            m_dxfRepeatedDiffuseMapField = true;
+    } else if (m_dxfInferredNormalMapBoundary) {
+        if ((code == 3 && m_hasNormalMapFileName)
+            || (code == 72 && m_hasNormalMapSource)
+            || (code == 73 && m_hasNormalMapProjection)
+            || (code == 74 && m_hasNormalMapTiling)
+            || (code == 75 && m_hasNormalMapAutoTransform))
+            return false;
+    }
     switch (code) {
     case 1:
         if (!replaceDxfRetainedStringField(
@@ -13925,6 +13942,10 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         if (!std::isfinite(value))
             return false;
         if (code == 145) {
+            m_dxfCompleteDiffuseBeforeRefraction = !m_hasRefractionIndex &&
+                m_hasDiffuseMapBlendFactor && m_hasDiffuseMapSource
+                && m_hasDiffuseMapFileName && m_hasDiffuseMapProjection
+                && m_hasDiffuseMapTiling && m_hasDiffuseMapAutoTransform;
             m_refractionIndex = value;
             m_hasRefractionIndex = true;
         } else {
@@ -14024,7 +14045,27 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         const double value = reader->getDouble();
         if (!std::isfinite(value))
             return false;
+        if (!m_dxfPastPreNormalMapFields && m_hasDiffuseMapBlendFactor) {
+            // A second blend factor after complete diffuse and refraction
+            // fields starts the normal map even when optional 464/465 are
+            // omitted. Without those preceding fields its role is ambiguous;
+            // refuse instead of overwriting an already published diffuse map.
+            if (m_dxfMaterialGenProcTableStarted
+                || !m_dxfCompleteDiffuseBeforeRefraction
+                || m_dxfRepeatedDiffuseMapField
+                || !m_hasDiffuseMapSource || !m_hasDiffuseMapFileName
+                || !m_hasDiffuseMapProjection || !m_hasDiffuseMapTiling
+                || !m_hasDiffuseMapAutoTransform || !m_hasRefractionIndex
+                || !m_hasRefractionMapBlendFactor || !m_hasRefractionMapSource
+                || !m_hasRefractionMapProjection || !m_hasRefractionMapTiling
+                || !m_hasRefractionMapAutoTransform)
+                return false;
+            m_dxfPastPreNormalMapFields = true;
+            m_dxfInferredNormalMapBoundary = true;
+        }
         if (m_dxfPastPreNormalMapFields) {
+            if (m_dxfInferredNormalMapBoundary && m_hasNormalMapBlendFactor)
+                return false;
             m_normalMapBlendFactor = value;
             m_hasNormalMapBlendFactor = true;
         } else {

@@ -14599,6 +14599,7 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
         // Do not retain the destination parser's subclass mode after an
         // assignment; the copied model starts a fresh DXF walk.
         dxfInAttributeSubclass = false;
+        m_dxfLegacyAttributeHeader = {};
         copyExtDataFrom(o);
     }
     return *this;
@@ -15366,13 +15367,29 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // rect width, 71 attachment point, 72 drawing direction, 1 formatted text),
     // then the ATTRIB-specific tail (tag=2, prompt=3 for ATTDEF, flags=70,
     // lock-position=280) which we must NOT route into the embedded MText.
+    const auto resolveLegacyEmbeddedHeader = [this]() {
+        auto& header = m_dxfLegacyAttributeHeader;
+        if (!header.active)
+            return true;
+        if (header.typeSeen) {
+            if (header.candidateType < 0
+                || header.candidateType > std::numeric_limits<std::uint8_t>::max())
+                return false;
+            m_attributeType = static_cast<std::uint8_t>(header.candidateType);
+            textgen = header.textgen;
+        }
+        if (header.horizontalSeen)
+            alignH = static_cast<HAlign>(header.alignH);
+        header = {};
+        return true;
+    };
     if (code == 101) {
         const std::string_view marker = reader->getStringView();
         if (marker == "Embedded Object") {
             // ATTRIB/ATTDEF has one embedded MTEXT object. Reusing the same
             // model for a second marker would overwrite or merge two nested
             // scopes without a bounded carrier for the extra payload.
-            if (mtext)
+            if (mtext || !resolveLegacyEmbeddedHeader())
                 return false;
             mtext = std::make_unique<DRW_MText>();
             if (attVersion == 0) attVersion = 1;
@@ -15386,7 +15403,7 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         const std::string_view sub = reader->getStringView();
         if (sub == "Embedded Object") {
             // The legacy spelling has the same single-scope rule as 101.
-            if (mtext)
+            if (mtext || !resolveLegacyEmbeddedHeader())
                 return false;
             mtext = std::make_unique<DRW_MText>();
             if (attVersion == 0) attVersion = 1;
@@ -15402,9 +15419,24 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             m_attributeType = 4;
         dxfInAttributeSubclass = sub == "AcDbAttribute"
             || sub == "AcDbAttributeDefinition";
+        if (dxfInAttributeSubclass && !mtext
+            && reader->getSourceVersion() != DRW::UNKNOWNV
+            && reader->getSourceVersion() < DRW::AC1032) {
+            m_dxfLegacyAttributeHeader = {};
+            m_dxfLegacyAttributeHeader.active = true;
+            m_dxfLegacyAttributeHeader.textgen = textgen;
+            m_dxfLegacyAttributeHeader.alignH = static_cast<int>(alignH);
+        }
         return true;
     }
-    if (dxfInAttributeSubclass && !mtext) {
+    // Earlier DXF ATTRIB/ATTDEF records can put the ordinary TEXT generation
+    // and horizontal-justification fields in the attribute subclass. The
+    // multiline attribute header is an R2018 profile; interpreting legacy
+    // groups 71/72 as that header discards the host text properties.
+    const DRW::Version sourceVersion = reader->getSourceVersion();
+    const bool possibleMultilineHeader = sourceVersion == DRW::UNKNOWNV
+        || sourceVersion >= DRW::AC1032;
+    if (dxfInAttributeSubclass && !mtext && possibleMultilineHeader) {
         if (code == 71) {
             const int value = reader->getInt32();
             if (value < 0 || value > std::numeric_limits<std::uint8_t>::max())
@@ -15415,6 +15447,14 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (code == 72) {
             (void)reader->getInt32();
             return true;
+        }
+    }
+    if (dxfInAttributeSubclass && !mtext && !possibleMultilineHeader) {
+        if (code == 71) {
+            m_dxfLegacyAttributeHeader.candidateType = reader->getInt32();
+            m_dxfLegacyAttributeHeader.typeSeen = true;
+        } else if (code == 72) {
+            m_dxfLegacyAttributeHeader.horizontalSeen = true;
         }
     }
     // XDATA after the attribute subclass belongs to the host ATTRIB/ATTDEF,
@@ -15486,6 +15526,7 @@ void DRW_Attrib::resetAttribDwgState() {
     m_r2018OuterAnnotativeAppIdName.clear();
     mtext.reset();
     dxfInAttributeSubclass = false;
+    m_dxfLegacyAttributeHeader = {};
 }
 
 bool DRW_Attrib::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
