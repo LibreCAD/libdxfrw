@@ -134567,3 +134567,130 @@ outputEligible=false. Full rendering/document/native semantic qualification
 remains incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**;
 native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
 remain **NOT_RUN**. The full objective remains active; no remote mutation.
+
+## Implementation progress — RPP-5ga coupled preset names, optional slots and application replay (2026-10-27)
+
+The parent adapter refuses a valid coupled preset/dictionary rename plus
+predefined-field edit. Implement transactions within the already independently
+admitted schema families and repair an actual live/replay metadata discrepancy.
+Keep original evidence, native semantics and complete document gates separate.
+
+- [x] Prepare normalized names before both preset and PLOTSETTINGS root checks.
+  Require an exact edited dictionary key/name pair, retain target identity,
+  parent and engine binding, and reject duplicate adapter keys. Accept named,
+  vector and coherent edits, including simultaneous name swaps. New literal
+  names reject documented illegal dictionary characters, invalid UTF8 and ASCII
+  controls. Preserve untouched replay and current duplicate-key behavior;
+  native Unicode collation remains unqualified.
+- [x] Project named-only/vector-only/coherent predefined-presence edits within
+  admitted Base, RapidRT and modern/extended MentalRay families. Insert/remove
+  only model flag4 and its independently admitted raw primary slot, retaining
+  other positional fields and unknown application carriers. Preserve unchanged
+  RapidRT trailing placement. Legacy MentalRay gets renaming only; class revision,
+  engine and other schema-family changes still refuse.
+- [x] Audit candidate shape before/after slot rewriting and inspect actual staged
+  body and dictionary fields before publication. Do not rewrite immutable input
+  audits or recertify projected output as original evidence. Existing typed/raw
+  snapshots and dictionary/finalization checks retain callback rollback.
+- [x] Bound normalized-name copies and both candidate-audit group/span allowances
+  before allocation under the existing100000-row/64MiB logical caps. Retain
+  exact/one-under controls and finite fault/retry schedules. These are logical
+  allowances, not allocator-capacity, peak RSS or throughput qualification.
+- [x] A scope adjacent to RapidRT's trailing flag exposes actual disagreement:
+  live reading consumes102 application groups before the decoder, whereas replay
+  invalidates its primary sequence at the opener and loses the flag projection.
+  Exclude102 from that sequence, then require original independent profile/body/
+  named-target readiness in the regression. This changes one internal DXF header;
+  installed interfaces and all DWG parse/layout code remain unchanged.
+
+Authored controls:
+
+- [x]336 positive transactions span the ten source forms, both input/output
+  encodings including cross-conversion, named/vector/coherent edits and rename/
+  presence/coupled operations. Independently compare11316 literal body fields
+  and read back all336 outputs. Names exceed32 characters and include spaces,
+  apostrophes and Unicode. All428 corrected same-adapter retries pass.
+- [x]630 mutations of actual emitted body/dictionary fields refuse in ASCII and
+  binary; corrected views pass. Fifty-six invalid-name/key/target/class/vector
+  or name-collision attempts and32 header/temporary-emission/after-OBJECTS/
+  finalization callback attempts preserve sentinel destinations. Two simultaneous
+  swaps get independent dictionary/body readback; two reserved-ID collisions
+  preserve actual page-consumer bindings.
+- [x] Four exact/one-under record/byte controls refuse and retry. Reach183 faults
+  in the actual preparation helper, followed by187 corrected real exports,
+  including four unreached offsets. This is direct helper injection, not a whole
+  file transaction allocation schedule. Stop after two consecutive unreached
+  offsets, bounded by1024 per encoding. Earlier actual-finalizer controls remain
+  unchanged in the selected owning tests.
+- [x] Eight scope/collision profiles preserve opaque290/100/1 metadata before or
+  adjacent to common/derived optional slots, including the formerly failing
+  RapidRT replay case. Four literal-caret name profiles read back exactly across
+  input/output encodings. Caller models and original source evidence remain
+  distinct from normalized output.
+- [x] Replace older blanket refusals for a single optional boolean or presence
+  change with unsupported growth/class revision/unmodeled-field controls. Retain
+  their totals. Preserve the strict-compilation indentation failure and adjacent
+  scope failure; correct source/expectations and rerun owning checks without
+  using stale binaries after a failed build.
+
+Final focused qualification:
+
+- [x] Build all seven owning targets against frozen inputs: normal
+  43.17s and qualified Debug/-O1/ASan
+  346.33s, retaining strict warnings/-Werror. The
+  LibreCAD_3 compile guard passes. No installed public header or DWG reader changes;
+  the internal DXF decoder change is explicitly included in this checkpoint.
+- [x]25 selected affected tests pass in normal (16.16s),
+  then ASan (9.73s), with matching exact names,
+  order, labels and timeouts, and no selected failure/skip/disabled case. Cover
+  rendering, source/replay, physical sources, metadata/text budgets, shade
+  bindings, 3D consumer and both FreeCAD CLI contracts. CLI contracts do not
+  qualify native FreeCAD. All six owning counter lines match across builds;
+  all five previous selected owning lines remain unchanged.
+- [x] Use this focused checkpoint after RPP-5fz's broader123-test checkpoint;
+  do not repeat the full prior cohort for these local name/optional/replay changes.
+  Build seven affected targets rather than the prior12. Preserve the earlier
+  checkpoint's scope instead of claiming its unselected tests were rerun.
+- [x] Freeze all590 listed source/build inputs through both runtimes, finish
+  builds and archive checks before qualification, regenerate gzip/bzip2 archives
+  with COPYFILE_DISABLE=1 and verify every listed source byte. No fresh extracted
+  source compile/distcheck, formal ABI/native application or RSS/performance
+  qualification is claimed; earlier package gates retain their own checkpoints.
+
+The [receipt](docs/research/rpp5ga-preset-name-optional-slot-and-application-replay-2026-10-27.json)
+pins the official schema/name references, exact source/build/test/archive evidence
+and retained failures. New drawing controls are locally authored source recipes;
+no external drawing payload, conversion or derivative is committed.
+
+Next implementation-ready sequence retains the complete objective:
+
+1. [ ] Complete remaining class-revision/engine/schema-family and absent/duplicate/
+   alias/extension rendering profiles, plus active/global/environment/background/
+   live-section/sun providers. Research actual source/version differences before
+   projecting defaults or translating engines; preserve metadata and actual
+   references, inspect emitted fields/readback and retain rollback/retry controls.
+   Obtain independent VIEWPORT shade4/5 wire evidence and resolve the published
+   table discrepancy, then bind clipping/layer overrides335/343/344/91. Keep
+   native dictionary collation as an independent gate.
+2. [ ] Complete common/full-VisualStyle and entity/material/reactor/IMAGE/document/
+   control/name/application/XDATA/HEADER CEPSNID/CEPSNTYPE dependencies, arbitrary
+   remaps/collisions and recursive/coupled/whole-document ownership. Selected
+   preset transactions do not close complete emitted dictionaries/document
+   eligibility or native rendering semantics.
+3. [ ] Finish TABLE Values/multiple-content/linked-data ownership, formatting/
+   units/borders and native B2b/B3/C bit/schema/owner/version/corpus evidence.
+   Do not guess date epochs, point counts or General semantics.
+4. [ ] Complete platform/package/native consumer and formal ABI/application checks,
+   controlled RSS/performance, native Linux/Windows FreeCAD and independent ACIS/
+   ACDS semantic/kernel evidence. Native Linux GCC release remains NOT_RUN here.
+5. [ ] Continue target reuse and fast owning validation, broadening only for actual
+   shared risks or failures. Freeze inputs and finish builds before runtimes,
+   retain failures/caps, self-unblock and update/commit/report each verified slice
+   while continuing ready work without external drawing payloads/derivatives.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Full rendering/document/native semantic qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**;
+native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
+remain **NOT_RUN**. The full objective remains active; no remote mutation.

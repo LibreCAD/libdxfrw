@@ -260,7 +260,7 @@ bool tests(const std::filesystem::path& dir) {
         if(fault==3u)value.m_doubles[0]=std::numeric_limits<double>::infinity();
         if(fault==4u)value.m_doubles[0]=std::numeric_limits<double>::quiet_NaN();
         if(fault==5u)value.m_name=value.m_strings[0]="unqualified rename";
-        if(fault==6u)value.m_hasPredefinedPresent=false;
+        if(fault==6u)value.m_procedure=17;
         if(fault==7u)value.m_bools.push_back(true);
         if(fault==8u)value.m_longs[2]=99;
         if(fault==9u)value.xDictHandle=0;
@@ -389,5 +389,232 @@ bool tests(const std::filesystem::path& dir) {
     return profiles==60u&&refusals==26u&&callbacks==8u&&limits==8u&&reached&&unreached==4u
         &&corrections==reached+unreached&&retries==106u&&versions==6u&&textProfiles==8u&&textRollbacks==4u&&metadata==2u
         &&observedRefusals==698u&&prepareFaults&&prepareUnreached==4u&&preparedRetries==prepareFaults+prepareUnreached;
+}
+}
+
+namespace renderPresetTransactionControls {
+using A=DxIfaceTableSourceTestAccess;
+bool present(unsigned form){return form==1u||form==3u||form==4u||form==7u||form==9u;}
+std::string changedName(unsigned form){return std::string(48u,'P')+" renamed 'Profile' "+std::to_string(form)+" \xCE\xA9";}
+void dictionaryName(dx_data& data,std::uint32_t target,const std::string& name){
+    for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xEE00u)
+        for(auto& entry:dictionary.m_entries)if(entry.m_handle==target)entry.m_name=name;
+}
+Tags edit(dx_data& data,unsigned form,unsigned mode,unsigned operation){
+    auto& value=data.renderSettings.front();auto body=renderPresetOutputControls::expectedBody(form,false);
+    if(operation!=1u){const auto name=changedName(form);dictionaryName(data,value.handle,name);
+        if(mode!=1u)value.m_name=name;if(mode!=0u)value.m_strings[0]=name;
+        body[slot(body,1,"AuthoredPreset")].value=name;}
+    if(operation!=0u){const bool before=present(form);
+        if(mode!=1u){value.m_hasPredefinedPresent=!before;value.m_hasPredefined=!before;}
+        if(mode!=0u){if(before)value.m_bools.erase(value.m_bools.begin()+4);else value.m_bools.insert(value.m_bools.begin()+4,true);}
+        if(before){if(form==4u)body.pop_back();else body.erase(body.begin()+10);}
+        else body.insert(body.begin()+10,{290,"1"});
+    }
+    return body;
+}
+using Wire=std::vector<AttdefWireTag>;
+bool dictionaryMatches(const Wire& wire,const std::string& name,std::uint32_t target){
+    bool dictionary=false,selected=false;std::string pending;unsigned count=0u;
+    for(const auto& tag:wire){if(tag.code==0){dictionary=tag.text=="DICTIONARY";selected=false;pending.clear();}
+        else if(dictionary&&tag.code==5)selected=tag.text=="EE00";
+        else if(selected&&tag.code==3)pending=tag.text;
+        else if(selected&&(tag.code==350||tag.code==360)&&std::stoul(tag.text,nullptr,16)==target){if(pending!=name)return false;++count;}}
+    return count==1u;
+}
+struct EditingWriter:dx_iface{
+    unsigned when=0u,what=0u;bool enabled=true;
+    void change(){auto& value=cData->renderSettings.front();
+        if(what==0u||what==3u){value.m_name+=" callback";value.m_strings[0]=value.m_name;}
+        if(what==1u||what==3u)dictionaryName(*cData,value.handle,changedName(3u)+" callback");
+        if(what==2u||what==3u)value.m_hasPredefinedPresent=!value.m_hasPredefinedPresent;
+    }
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);if(enabled&&when==0u)change();}
+    void writeObjects()override{
+        if(enabled&&when==1u){const auto value=cData->renderSettings.front();const auto dictionaries=cData->dictionaries;
+            change();dx_iface::writeObjects();cData->renderSettings.front()=value;cData->dictionaries=dictionaries;}
+        else{dx_iface::writeObjects();if(enabled&&when==2u)change();}
+    }
+    bool finalizeDxfWrite()override{if(enabled&&when==3u)change();return dx_iface::finalizeDxfWrite();}
+};
+struct BudgetWriter:dx_iface{std::pair<std::size_t,std::size_t> size;void writeObjects()override{size=A::presetEditSize(*this);dx_iface::writeObjects();}};
+Tags twoPresets(){
+    auto tags=renderPresetControls::exportDocument(3u);
+    const auto entry=slot(tags,3,"AuthoredPreset")+2u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(entry),{{3,"SecondPreset"},{350,"EA03"}});
+    auto second=renderPresetControls::record(3u);const auto xdata=slot(second,1001,"REGISTERED_APP");second.erase(second.begin()+static_cast<std::ptrdiff_t>(xdata),second.end());
+    const auto reactor=slot(second,102,"{ACAD_REACTORS");second.erase(second.begin()+static_cast<std::ptrdiff_t>(reactor),second.begin()+static_cast<std::ptrdiff_t>(reactor+3u));
+    for(auto& tag:second){if(tag.value=="EA02")tag.value="EA03";if(tag.value=="EE10")tag.value="EE11";if(tag.value=="AuthoredPreset")tag.value="SecondPreset";}
+    second.insert(second.end(),{{0,"DICTIONARY"},{5,"EE11"},{330,"EA03"},{100,"AcDbDictionary"},{280,"1"},{281,"1"}});
+    auto end=tags.size()-2u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),second.begin(),second.end());return tags;
+}
+bool tests(const std::filesystem::path& dir){
+    const auto input=dir/"transaction-input.dxf",output=dir/"transaction-output.dxf";
+    std::size_t profiles=0u,fields=0u,readbacks=0u,validNames=0u,retries=0u,refusals=0u,callbacks=0u,mutations=0u,quotas=0u,multi=0u,collisions=0u,metadata=0u,reached=0u,unreached=0u,corrections=0u;
+    const auto fail=[&](int line){std::cerr<<"Preset transaction line="<<line<<" profiles="<<profiles<<" refusals="<<refusals<<" callbacks="<<callbacks<<'\n';return false;};
+    for(unsigned form=0u;form<10u;++form)for(unsigned encoding:{0u,2u})for(bool binary:{false,true})for(unsigned mode=0u;mode<3u;++mode)for(unsigned operation=0u;operation<3u;++operation){
+        if(form==5u&&operation!=0u)continue;
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(form),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;
+        const auto expected=edit(data,form,mode,operation);const auto live=data.renderSettings.front();
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        const auto wire=attdefWireTags(output,binary);Wire body;
+        if(!renderPresetOutputControls::selectBody(wire,form,body)||!renderPresetOutputControls::bodyMatches(body,expected)
+            ||!dictionaryMatches(wire,operation==1u?"AuthoredPreset":changedName(form),0xEA02u))return fail(__LINE__);
+        fields+=body.size();
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.size()!=1u)return fail(__LINE__);
+        const auto& actual=reopened.renderSettings.front();const bool after=operation==0u?present(form):!present(form);
+        if(actual.m_name!=(operation==1u?"AuthoredPreset":changedName(form))||actual.m_strings[0]!=actual.m_name
+            ||actual.m_hasPredefinedPresent!=after||actual.m_hasPredefined!=(after&&(operation!=0u||form!=4u))
+            ||!dxfRendering::Observation::render(live,data.renderSettings.front()))return fail(__LINE__);
+        ++readbacks;
+        if(mode==2u&&operation==2u&&((!binary&&encoding==0u)||(binary&&encoding==2u))){
+            dx_iface proof;dxfRW codec(output.string().c_str());codec.setHandleRemap({{0x40u,0xCu}});
+            if(!A::presetDirect(proof,data,codec)||!A::preparePresetEdits(proof,data,binary))return fail(__LINE__);
+            std::size_t first=0u,last=0u;for(std::size_t i=0u;i+1u<wire.size();++i)if(wire[i].text=="SECTION"&&wire[i+1u].text=="OBJECTS"){
+                first=wire[i+1u].end;for(auto j=i+2u;j<wire.size();++j)if(wire[j].code==0&&wire[j].text=="ENDSEC"){last=wire[j].begin;break;}break;}
+            std::ifstream file(output,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+            if(last<=first)return fail(__LINE__);const auto section=bytes.substr(first,last-first);
+            dxfRW::DxfObjectsWriteView view{section,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            if(!A::presetOutput(proof,view))return fail(__LINE__);
+            Wire selected=body;bool selectedDictionary=false;
+            for(const auto& field:wire){if(field.code==0)selectedDictionary=false;
+                else if(field.code==5)selectedDictionary=field.text=="EE00"||field.text=="EF00";
+                else if(selectedDictionary&&field.code==3)selected.push_back(field);}
+            for(const auto& field:selected){auto changed=section;auto at=field.valueBegin-first;
+                if(binary)changed.at(at)^=1;
+                else{while(at<changed.size()&&(changed[at]==' '||changed[at]=='\t'))++at;
+                    if(at==changed.size())return fail(__LINE__);auto& byte=changed[at];byte=byte=='1'?'2':byte=='0'?'1':byte>='2'&&byte<='9'?'1':'X';}
+                view.bytes=changed;if(A::presetOutput(proof,view))return fail(__LINE__);++mutations;}
+            view.bytes=section;if(!A::presetOutput(proof,view))return fail(__LINE__);
+        }
+        data.renderSettings.front()=original;data.dictionaries=dictionaries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;++profiles;
+    }
+    for(unsigned encoding:{0u,2u})for(unsigned fault=0u;fault<17u;++fault){
+        const auto form=fault==15u?4u:3u;dx_iface writer;dx_data data;
+        if(!writeBlockBinding(input,renderPresetControls::exportDocument(form),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;auto& value=data.renderSettings.front();
+        if(fault==0u)value.m_name=value.m_strings[0]="MissingKey";
+        if(fault==1u)dictionaryName(data,value.handle,"UnmatchedKey");
+        if(fault==2u){value.m_name="NamedConflict";value.m_strings[0]="VectorConflict";dictionaryName(data,value.handle,"NamedConflict");}
+        if(fault==3u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xEE00u)dictionary.m_entries.front().m_handle=0xEA03u;
+        if(fault==4u)value.parentHandle=0xEF00u;
+        if(fault==5u){value.m_name=value.m_strings[0]="";dictionaryName(data,value.handle,"");}
+        if(fault==6u){value.m_name=value.m_strings[0]="*Invalid";dictionaryName(data,value.handle,value.m_name);}
+        if(fault==7u){value.m_name=value.m_strings[0]="Bad\\Name";dictionaryName(data,value.handle,value.m_name);}
+        if(fault==8u){value.m_name=value.m_strings[0]=std::string("bad\0name",8u);dictionaryName(data,value.handle,value.m_name);}
+        if(fault==9u){value.m_name=value.m_strings[0]=std::string("bad\xED\xA0\x80",6u);dictionaryName(data,value.handle,value.m_name);}
+        if(fault==10u)value.m_bools.insert(value.m_bools.begin()+4,2u,true);
+        if(fault==11u)value.m_kind=DRW_RenderSettings::MentalRay;
+        if(fault==12u)value.m_classVersion=value.m_longs[0]=99;
+        if(fault==13u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xEE00u)dictionary.m_entries.push_back(dictionary.m_entries.front());
+        if(fault==14u){value.m_name="CarrierEdit";dictionaryName(data,value.handle,value.m_name);data.rawRenderSettingsObjects.front().groups.push_back(DRW_Variant(999,UTF8STRING("raw edit")));}
+        if(fault==15u){value.m_hasPredefinedPresent=false;value.m_hasPredefined=true;}
+        if(fault==16u){value.m_name=value.m_strings[0]="CaseChanged";dictionaryName(data,value.handle,"CASECHANGED");}
+        renderPresetEditControls::sentinel(output);
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++refusals;
+        value=original;data.dictionaries=dictionaries;
+        if(fault==14u){auto& groups=data.rawRenderSettingsObjects.front().groups;groups.pop_back();}
+        edit(data,form,2u,2u);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+    }
+    for(unsigned encoding:{0u,2u})for(char illegal:std::string("|*\\:;<>?\"")){
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(3u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;const auto name=std::string("Invalid")+illegal+"Name";
+        data.renderSettings.front().m_name=data.renderSettings.front().m_strings[0]=name;dictionaryName(data,0xEA02u,name);renderPresetEditControls::sentinel(output);
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++refusals;
+        data.renderSettings.front()=original;data.dictionaries=dictionaries;edit(data,3u,2u,2u);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+    }
+    for(unsigned encoding:{0u,2u})for(unsigned when=0u;when<4u;++when)for(unsigned what=0u;what<4u;++what){
+        EditingWriter writer;writer.when=when;writer.what=what;dx_data data;
+        if(!writeBlockBinding(input,renderPresetControls::exportDocument(3u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,3u,2u,2u);const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;renderPresetEditControls::sentinel(output);
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++callbacks;
+        writer.enabled=false;data.renderSettings.front()=original;data.dictionaries=dictionaries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+    }
+    for(unsigned encoding:{0u,2u}){
+        BudgetWriter writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(0u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,0u,2u,2u);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);const auto exact=writer.size;
+        A::presetEditLimit(writer,exact.first,exact.second);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        for(bool records:{false,true}){A::presetEditLimit(writer,exact.first-(records?1u:0u),exact.second-(records?0u:1u));renderPresetEditControls::sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++quotas;
+            A::presetEditLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
+        A::presetEditLimit(writer,100000u,64u*1024u*1024u);unsigned untouched=0u;
+        for(long offset=0;offset<1024&&untouched<2u;++offset){const auto before=symbolFailedAllocations;bool ok=false;
+            {SymbolAllocationFailure injection(offset);ok=A::preparePresetEdits(writer,data,encoding==2u);}
+            if(symbolFailedAllocations!=before){if(ok)return fail(__LINE__);++reached;untouched=0u;}
+            else{if(!ok)return fail(__LINE__);++unreached;++untouched;}
+            if(!A::preparePresetEdits(writer,data,encoding==2u)||!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++corrections;
+        }
+        if(untouched!=2u)return fail(__LINE__);
+        dx_data pair;if(!writeBlockBinding(input,twoPresets(),encoding)||!writer.fileImport(input.string(),&pair,false)||pair.renderSettings.size()!=2u)return fail(__LINE__);
+        for(auto& value:pair.renderSettings){const auto name=value.handle==0xEA02u?"SecondPreset":"AuthoredPreset";value.m_name=value.m_strings[0]=name;dictionaryName(pair,value.handle,name);}
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&pair,false))return fail(__LINE__);
+        dx_iface pairReader;dx_data pairReadback;
+        if(!pairReader.fileImport(output.string(),&pairReadback,false)||pairReadback.renderSettings.size()!=2u)return fail(__LINE__);
+        const auto pairWire=attdefWireTags(output,encoding==2u);
+        for(const auto& value:pairReadback.renderSettings){const auto name=value.handle==0xEA02u?"SecondPreset":"AuthoredPreset";
+            if(value.m_name!=name||!dictionaryMatches(pairWire,name,value.handle))return fail(__LINE__);}
+        ++multi;
+        const auto originals=pair.renderSettings;const auto dictionaries=pair.dictionaries;
+        for(unsigned duplicate=0u;duplicate<2u;++duplicate){unsigned index=0u;for(auto& value:pair.renderSettings){const auto name=duplicate&&index++?"duplicate":"DUPLICATE";value.m_name=value.m_strings[0]=name;dictionaryName(pair,value.handle,name);}
+            renderPresetEditControls::sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&pair,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++refusals;
+            pair.renderSettings=originals;pair.dictionaries=dictionaries;if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&pair,false))return fail(__LINE__);++retries;}
+        auto tags=renderPresetControls::exportDocument(4u);for(auto& tag:tags)if(tag.value=="EA02")tag.value="1F";
+        auto at=slot(tags,5,"1F")+1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{102,"{TRANSACTION_SCOPE"},{290,"1"},{100,"OpaqueSubclass"},{1,"opaque name"},{102,"}"}});
+        dx_data current;if(!writeBlockBinding(input,tags,encoding)||!writer.fileImport(input.string(),&current,false))return fail(__LINE__);
+        edit(current,4u,2u,2u);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&current,false))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.size()!=1u)return fail(__LINE__);
+        const auto& value=reopened.renderSettings.front();if(value.handle==0x1Fu||value.m_name!=changedName(4u)||value.m_hasPredefinedPresent
+            ||reopened.plotSettings.front().shadePlotHandle.ref!=value.handle)return fail(__LINE__);
+        ++collisions;
+        const auto wire=attdefWireTags(output,encoding==2u);bool app=false;unsigned scoped=0u;
+        for(const auto& field:wire){if(field.code==102){app=field.text=="{TRANSACTION_SCOPE";continue;}if(!app)continue;
+            if(field.code==290){if(field.integer!=1)return fail(__LINE__);++scoped;}
+            if(field.code==100){if(field.text!="OpaqueSubclass")return fail(__LINE__);++scoped;}
+            if(field.code==1){if(field.text!="opaque name")return fail(__LINE__);++scoped;}}
+        if(scoped!=3u)return fail(__LINE__);++metadata;
+    }
+    for(unsigned encoding:{0u,2u})for(unsigned form:{2u,3u,4u}){
+        auto tags=renderPresetControls::exportDocument(form);
+        const auto boundary=form==4u?slot(tags,40,"2.875")+1u:slot(tags,90,"19")+(form==3u?2u:1u);
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(boundary),{{102,"{SLOT_BOUNDARY_SCOPE"},{290,"0"},{100,"OpaqueAtSlot"},{1,"authored slot metadata"},{102,"}"}});
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,tags,encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto& source=*A::renderingSources(data)->records.at(0xEA02u);
+        if(!source.preset.complete()||!source.bodyMatched||!source.namedTarget)return fail(__LINE__);
+        edit(data,form,2u,2u);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.front().m_hasPredefinedPresent==present(form)
+            ||reopened.renderSettings.front().m_name!=changedName(form))return fail(__LINE__);
+        bool app=false;unsigned checked=0u;
+        for(const auto& field:attdefWireTags(output,encoding==2u)){
+            if(field.code==102){app=field.text=="{SLOT_BOUNDARY_SCOPE";continue;}if(!app)continue;
+            if(field.code==290){if(field.integer!=0)return fail(__LINE__);++checked;}
+            if(field.code==100){if(field.text!="OpaqueAtSlot")return fail(__LINE__);++checked;}
+            if(field.code==1){if(field.text!="authored slot metadata")return fail(__LINE__);++checked;}
+        }
+        if(checked!=3u)return fail(__LINE__);++metadata;
+    }
+    for(unsigned encoding:{0u,2u})for(bool binary:{false,true}){
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(0u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const std::string name="Caret ^J \xCE\xA9";
+        data.renderSettings.front().m_name=data.renderSettings.front().m_strings[0]=name;dictionaryName(data,0xEA02u,name);
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.front().m_name!=name)return fail(__LINE__);
+        bool exact=false;for(const auto& dictionary:reopened.dictionaries)if(dictionary.handle==0xEE00u)
+            exact=dictionary.m_entries.size()==1u&&dictionary.m_entries.front().m_name==name;
+        if(!exact)return fail(__LINE__);++validNames;
+    }
+    std::cout<<"Render preset transactions="<<profiles<<"; independent fields="<<fields<<"; readbacks="<<readbacks<<"; observed-field refusals="<<mutations
+        <<"; invalid/name collision rollbacks="<<refusals<<"; callback rollbacks="<<callbacks<<"; exact/one-under limits="<<quotas
+        <<"; preparation faults="<<reached<<"; unreached offsets="<<unreached<<"; corrected prepared exports="<<corrections
+        <<"; corrected retries="<<retries<<"; literal caret name profiles="<<validNames<<"; simultaneous name swaps="<<multi<<"; mapped identity profiles="<<collisions<<"; scoped metadata profiles="<<metadata<<'\n';
+    return profiles==336u&&readbacks==profiles&&refusals==56u&&callbacks==32u&&quotas==4u&&reached&&unreached==4u&&corrections==reached+unreached
+        &&retries==428u&&validNames==4u&&multi==2u&&collisions==2u&&metadata==8u&&mutations==630u;
 }
 }

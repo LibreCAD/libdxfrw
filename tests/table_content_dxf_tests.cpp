@@ -3180,6 +3180,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--render-preset-transactions") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-preset-transactions-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=renderPresetTransactionControls::tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--render-preset-edits") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

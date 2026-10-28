@@ -2122,6 +2122,8 @@ private:
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     struct DxfRenderPresetWriteSource {
         DRW_RenderSettings live;
+        UTF8STRING name;
+        bool renamed{false};
         DRW_RawDxfObject output;
         std::shared_ptr<const DRW_RawDxfObject> original;
     };

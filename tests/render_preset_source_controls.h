@@ -135,8 +135,8 @@ bool tests(const std::filesystem::path& dir) {
             if(fault==0u)value.m_fogColorR=17;
             if(fault==1u)value.m_longs.push_back(17);
             if(fault==2u)value.m_strings[0]="unsupported preset rename";
-            if(fault==3u)value.m_bools.push_back(true);
-            if(fault==4u)value.m_hasPredefinedPresent=!value.m_hasPredefinedPresent;
+            if(fault==3u)value.m_bools.insert(value.m_bools.end(),2u,true);
+            if(fault==4u)value.m_classVersion=99;
             {std::ofstream sentinel(output,std::ios::binary);sentinel<<"KEEP_PRESET_DESTINATION";}
             if(reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
             std::ifstream preserved(output,std::ios::binary);const std::string kept((std::istreambuf_iterator<char>(preserved)),{});if(kept!="KEEP_PRESET_DESTINATION")return fail(__LINE__);preserved.close();++rollback;

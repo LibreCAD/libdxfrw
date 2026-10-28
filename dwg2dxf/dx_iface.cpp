@@ -3577,7 +3577,8 @@ bool renderSettingsNameMatchesKind(std::string_view sourceName,
 // Index each preset dictionary once. Engine-specific roots remain distinct;
 // the historical plotting root is also retained for compatible raw replay.
 bool indexRenderPresetRoots(const dx_data& data,
-        std::unordered_map<std::uint32_t,const DRW_RenderSettings*>& targets) {
+        std::unordered_map<std::uint32_t,const DRW_RenderSettings*>& targets,
+        const std::function<const UTF8STRING*(std::uint32_t)>& editedName) {
     std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presets;
     std::unordered_set<std::uint32_t> owners;
     for(const auto& value:data.renderSettings){
@@ -3598,8 +3599,9 @@ bool indexRenderPresetRoots(const dx_data& data,
         if(found==dictionaries.end()||!found->second->hasCompleteDxfEntries())return false;
         std::unordered_set<std::string> names;
         for(const auto& member:found->second->m_entries){const auto value=presets.find(member.m_handle);const auto name=layoutSymbolKey(member.m_name);
+            const auto* edited=editedName(member.m_handle);
             if(value==presets.end()||value->second->parentHandle!=entry.m_handle||!dx_rendering_roots::allows(key,value->second->m_kind)
-                ||name.empty()||name!=layoutSymbolKey(value->second->m_name)||!names.insert(name).second
+                ||name.empty()||(edited ? member.m_name!=*edited : name!=layoutSymbolKey(value->second->m_name))||!names.insert(name).second
                 ||!targets.emplace(member.m_handle,value->second).second)return false;
         }
     }
@@ -9394,7 +9396,10 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
         || data.renderSettings.size() != data.rawRenderSettingsObjects.size())
         return reject("RenderSettings replay requires paired DXF carriers at the source version");
     std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presetTargets;
-    if (!indexRenderPresetRoots(data,presetTargets))
+    if (!indexRenderPresetRoots(data,presetTargets,[this](std::uint32_t handle)->const UTF8STRING* {
+            const auto found=m_dxfRenderPresetSources.find(handle);
+            return found!=m_dxfRenderPresetSources.end()&&found->second.renamed ? &found->second.name : nullptr;
+        }))
         return reject("RenderSettings preset root, engine, owner or name is missing or ambiguous");
 
     const bool unchangedPreparedSources = hasUnchangedDxfRenderPresetSources();
@@ -9625,7 +9630,10 @@ bool dx_iface::validatePlotSettingsGraph(const dx_data& data,
                 != m_extensionVisualStyleHandles.end();
     };
     std::unordered_map<std::uint32_t,const DRW_RenderSettings*> presetTargets;
-    if(!indexRenderPresetRoots(data,presetTargets))
+    if(!indexRenderPresetRoots(data,presetTargets,[this](std::uint32_t handle)->const UTF8STRING* {
+            const auto found=m_dxfRenderPresetSources.find(handle);
+            return found!=m_dxfRenderPresetSources.end()&&found->second.renamed ? &found->second.name : nullptr;
+        }))
         return reject("PLOTSETTINGS render-preset roots are missing, ambiguous or engine-mismatched");
     const auto hasClosedRenderSettingsTarget = [this, &data, targetVersion, &presetTargets](std::uint32_t targetHandle) {
         const auto found=presetTargets.find(targetHandle);if(found==presetTargets.end())return false;
@@ -15847,7 +15855,7 @@ bool normalizeRenderPresetEdit(const DRW_RenderSettings& original,
     const auto profile = dxfRenderSettings::presetProfile(original);
     if (profile == dxfRenderSettings::PresetProfile::Unavailable
         || live.m_kind != original.m_kind || live.m_longs.size() != original.m_longs.size()
-        || live.m_strings.size() != original.m_strings.size() || live.m_bools.size() != original.m_bools.size()
+        || live.m_strings.size() != original.m_strings.size()
         || live.m_shorts.size() != original.m_shorts.size() || live.m_doubles.size() != original.m_doubles.size()
         || !standardDwgCommonEqual(original, live, version)) return false;
     value = live;
@@ -15861,6 +15869,24 @@ bool normalizeRenderPresetEdit(const DRW_RenderSettings& original,
         || !reconcile(value.m_name, value.m_strings[0], original.m_name, original.m_strings[0])
         || !reconcile(value.m_environmentImageFilename, value.m_strings[1], original.m_environmentImageFilename, original.m_strings[1])) return false;
     const bool legacy = profile == dxfRenderSettings::PresetProfile::LegacyMentalRay;
+    const bool beforePresent=original.m_hasPredefinedPresent;
+    if(legacy){
+        if(value.m_bools.size()!=original.m_bools.size()||value.m_hasPredefinedPresent)return false;
+    }else if(value.m_bools.size()==original.m_bools.size()){
+        if(value.m_hasPredefinedPresent!=beforePresent){
+            if(value.m_hasPredefinedPresent)value.m_bools.insert(value.m_bools.begin()+4,value.m_hasPredefined);
+            else value.m_bools.erase(value.m_bools.begin()+4);
+        }
+    }else{
+        const auto before=original.m_bools.size(),after=value.m_bools.size();
+        if(!beforePresent&&after==before+1u)value.m_hasPredefinedPresent=true;
+        else if(beforePresent&&after+1u==before)value.m_hasPredefinedPresent=false;
+        else return false;
+    }
+    if(!value.m_hasPredefinedPresent){
+        if(value.m_hasPredefined&&!original.m_hasPredefined)return false;
+        value.m_hasPredefined=false;
+    }
     if (!legacy && (!reconcile(value.m_description, value.m_strings[2], original.m_description, original.m_strings[2])
         || !reconcile(value.m_displayIndex, value.m_longs[1], original.m_displayIndex, original.m_longs[1]))) return false;
     const auto boolean = [&](bool& alias, const bool beforeAlias, std::size_t index) {
@@ -15871,15 +15897,24 @@ bool normalizeRenderPresetEdit(const DRW_RenderSettings& original,
     if (!boolean(value.m_fogEnabled, original.m_fogEnabled, 0u)
         || (!legacy && !boolean(value.m_fogBackgroundEnabled, original.m_fogBackgroundEnabled, 1u))
         || !boolean(value.m_backfacesEnabled, original.m_backfacesEnabled, legacy ? 1u : 2u)
-        || !boolean(value.m_environmentImageEnabled, original.m_environmentImageEnabled, legacy ? 2u : 3u)
-        || (original.m_hasPredefinedPresent && !boolean(value.m_hasPredefined, original.m_hasPredefined, 4u))) return false;
-    // Renaming needs a separately qualified dictionary/name transaction. Profile
-    // revision and optional-field presence changes likewise need a new schema.
-    if (value.m_name != original.m_name || value.m_classVersion != original.m_classVersion
-        || value.m_hasPredefinedPresent != original.m_hasPredefinedPresent
+        || !boolean(value.m_environmentImageEnabled, original.m_environmentImageEnabled, legacy ? 2u : 3u)) return false;
+    if(value.m_hasPredefinedPresent){
+        bool scalar=value.m_bools[4];
+        if(!reconcile(value.m_hasPredefined,scalar,original.m_hasPredefined,original.m_hasPredefined))return false;
+        value.m_bools[4]=scalar;
+    }
+    // Renaming is admitted only with the matching dictionary transaction. Keep
+    // class revisions and engine/subclass changes outside this projection.
+    if (value.m_classVersion != original.m_classVersion
         || dxfRenderSettings::presetProfile(value) != profile
         || !dxfRenderSettings::presetProjectionMatches(value, profile)) return false;
+    if(value.m_name!=original.m_name){
+        if(value.m_name.empty()||!DRW_TextCodec::isUtf8ScalarText(value.m_name)
+            ||value.m_name.find_first_of("|*\\:;<>?\"")!=UTF8STRING::npos)return false;
+        for(unsigned char byte:value.m_name)if(byte<0x20u||byte==0x7fu)return false;
+    }
     auto guard = value;
+    guard.m_name=original.m_name;guard.m_hasPredefinedPresent=original.m_hasPredefinedPresent;
     guard.m_longs = original.m_longs; guard.m_strings = original.m_strings;
     guard.m_bools = original.m_bools; guard.m_shorts = original.m_shorts; guard.m_doubles = original.m_doubles;
     guard.m_environmentImageFilename = original.m_environmentImageFilename; guard.m_description = original.m_description;
@@ -15926,7 +15961,7 @@ bool dx_iface::prepareDxfRenderPresetSources(DRW::Version version, bool binary) 
             if (!estimateRawDxfObjectBytes(raw, charge)
                 || !estimateRenderSettingsTypedBytes(*model->second, typedBytes, values)
                 || !addAssociativeRetainedBytes(typedBytes, charge)
-                || !addAssociativeRetainedBytes(sizeof(DxfRenderPresetWriteSource) + 12u * sizeof(void*), charge)) return false;
+                || !addAssociativeRetainedBytes(sizeof(DxfRenderPresetWriteSource) + 12u * sizeof(void*) + 2u * (sizeof(DRW_Variant) + sizeof(UTF8STRING)), charge)) return false;
             for (const auto& text : model->second->m_strings)
                 if (text.size() > m_dxfRenderPresetByteLimit / 12u
                     || !addAssociativeRetainedBytes(12u * text.size(), charge)) return false;
@@ -15938,12 +15973,20 @@ bool dx_iface::prepareDxfRenderPresetSources(DRW::Version version, bool binary) 
                                     &model->second->m_description})
                 if (text->size() > m_dxfRenderPresetByteLimit / 12u
                     || !addAssociativeRetainedBytes(12u * text->size(), charge)) return false;
+            if(model->second->m_hasPredefinedPresent!=original->m_hasPredefinedPresent
+                ||model->second->m_bools.size()!=original->m_bools.size()){
+                // Both independent output audits coexist during slot rewriting.
+                // Reserve their logical group/span allowance before allocation.
+                constexpr auto slot=2u*sizeof(dx_rendersettings_source::Span)+6u*sizeof(std::size_t);
+                if(!addAssociativeSlotBytes(raw.groups.size()+1u,slot,charge))return false;
+            }
             if (m_dxfRenderPresetBytes > m_dxfRenderPresetByteLimit
                 || charge > m_dxfRenderPresetByteLimit - m_dxfRenderPresetBytes) return false;
             DRW_RenderSettings normalized;
             if (!normalizeRenderPresetEdit(*original, *model->second, version, normalized)) return false;
             DxfRenderPresetWriteSource plan;
             plan.live = *model->second; plan.original = row->input->typedRaw; plan.output = raw;
+            plan.name=normalized.m_name;plan.renamed=normalized.m_name!=original->m_name;
             if (!dxfRendering::Observation::render(normalized, *original)) {
                 RenderPresetBodyWriter writer(binary);
                 writer.setVersion(version == DRW::AC1021 ? "AC1021" : version == DRW::AC1024 ? "AC1024" : version == DRW::AC1032 ? "AC1032" : "AC1027", true);
@@ -15952,14 +15995,33 @@ bool dx_iface::prepareDxfRenderPresetSources(DRW::Version version, bool binary) 
                 writer.setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
                 dxfRenderSettings::writePresetBody(writer, normalized, dxfRenderSettings::presetProfile(normalized));
                 if (writer.hasWriteError()) return false;
-                // Pool the canonical writer's fields by scalar code, then put
-                // them into independently profiled source slots. This retains
-                // the derived RapidRT predefined placement and all non-body
-                // metadata/application/XDATA/comment groups verbatim.
+                // Change only the admitted optional-field slot. Other common
+                // carriers remain in source order; unchanged RapidRT derived
+                // predefined placement remains intact.
+                dx_rendersettings_source::Audit changedProfile;
+                const auto* slots=&row->preset;
+                const bool changedPresence=normalized.m_hasPredefinedPresent!=row->preset.predefined;
+                if(changedPresence){
+                    if(row->preset.predefined){
+                        const auto index=row->preset.derivedPredefined ? row->preset.derived.back() : row->preset.base.back();
+                        if(plan.output.groups.at(index).code()!=290)return false;
+                        plan.output.groups.erase(plan.output.groups.begin()+static_cast<std::ptrdiff_t>(index));
+                    }else{
+                        const auto index=row->preset.base.back()+1u;
+                        plan.output.groups.insert(plan.output.groups.begin()+static_cast<std::ptrdiff_t>(index),DRW_Variant(290,0));
+                    }
+                    changedProfile=dx_rendersettings_source::audit(plan.output);
+                    if(!changedProfile.complete()||changedProfile.shape!=row->preset.shape
+                        ||changedProfile.predefined!=normalized.m_hasPredefinedPresent)return false;
+                    slots=&changedProfile;
+                }
+                // Pool the canonical writer's fields by code, then put them
+                // into independently admitted source/output slots. This does
+                // not turn a projected output into original source evidence.
                 std::map<int, std::vector<const DRW_Variant*>> fields;
                 std::map<int, std::size_t> next;
                 for (const auto& value : writer.groups) if (value.code() != 100) fields[value.code()].push_back(&value);
-                for (auto index : row->preset.body) {
+                for (auto index : slots->body) {
                     auto& value = plan.output.groups.at(index);
                     const int code = value.code();
                     auto& offset = next[code];
@@ -15967,6 +16029,11 @@ bool dx_iface::prepareDxfRenderPresetSources(DRW::Version version, bool binary) 
                     value = *fields[code][offset++];
                 }
                 for (const auto& field : fields) if (next[field.first] != field.second.size()) return false;
+                if(changedPresence){
+                    const auto actual=dx_rendersettings_source::audit(plan.output);
+                    if(!actual.complete()||actual.shape!=row->preset.shape
+                        ||actual.predefined!=normalized.m_hasPredefinedPresent)return false;
+                }
                 // Source lexical numeric spellings are no longer authoritative
                 // for edited fields; groups retain all opaque string bytes.
                 plan.output.hasRawValues = false; plan.output.rawValues.clear();

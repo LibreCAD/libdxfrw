@@ -140,7 +140,10 @@ public:
         if (code == 100) {
             base = reader->getStringView() == baseSubclass();
             rapid = value.m_kind == DRW_RenderSettings::RapidRT && reader->getStringView() == "AcDbRapidRTRenderSettings";
-        } else if (rapid && rapidSequence && code < 1000) {
+        // Live reading consumes application groups before this decoder; replay
+        // passes their opener here. Neither route adds them to the primary
+        // RapidRT sequence, including before a trailing predefined flag.
+        } else if (rapid && rapidSequence && code < 1000 && code != 102) {
             static constexpr int primary[] = {90,70,90,90,70,70,40,40};
             if (rapidFields < 8u && code == primary[rapidFields]) ++rapidFields;
             else if (rapidFields == 8u && code == 290 && !derivedPredefinedSeen) {
