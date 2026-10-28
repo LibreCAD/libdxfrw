@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5gf MATERIAL body transactions (2026-10-28; selected modern DXF scope verified):** typed/raw body edits now reconcile against a pinned immutable callback baseline, with full public body freezing, contextual text encoding and planned actual-output proof. All 151 selected normal/ASan checks pass. Independent producer/native MATERIAL evidence, broader schema variants, complete document ownership and platform qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gf-material-body-transactions-2026-10-28) · [receipt](docs/research/rpp5gf-material-body-transactions-2026-10-28.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gg MATERIAL alternate normal boundary (2026-10-28; selected modern DXF scope verified):** supplied group 465 now supports represented mode/method edits without group 464. Coherent luminance removal relocates the strength boundary while preserving its unchanged value/spelling. All 22 affected normal/ASan checks pass; independent source/native/schema and full-document gates remain open. [Implementation and remaining work](#implementation-progress-rpp-5gg-material-alternate-normal-boundary-2026-10-28) · [receipt](docs/research/rpp5gg-material-alternate-normal-boundary-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5gf MATERIAL body transactions (2026-10-28; selected modern DXF scope verified):** typed/raw body edits now reconcile against a pinned immutable callback baseline, with full public body freezing, contextual text encoding and planned actual-output proof. All 151 selected normal/ASan checks pass. Independent producer/native MATERIAL evidence, broader schema variants, complete document ownership and platform qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gf-material-body-transactions-2026-10-28) · [receipt](docs/research/rpp5gf-material-body-transactions-2026-10-28.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5ge HEADER material and allocation-safe output (2026-10-28; selected scope verified):** supplied modern `$CMATERIAL` now remaps once and binds actual MATERIAL output, with staged HEADER proof and correct HANDSEED relocation. Persistent allocation tests exposed and fixed an atomic rollback abort; 128 reached offsets preserve destinations, remove owned temporaries and allow corrected retries. All 145 selected normal/ASan checks pass. Consumers must rebuild for the added `dxfRW` inspector state; native/material-body/document/ABI qualification remains open. [Implementation and remaining work](#implementation-progress-rpp-5ge-header-material-and-allocation-safe-output-2026-10-28) · [receipt](docs/research/rpp5ge-header-material-and-allocation-safe-output-2026-10-28.json). No support gate is promoted.
 
@@ -135389,3 +135391,87 @@ and outputEligible=false. Full MATERIAL/rendering/native/document eligibility
 remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**
 and nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/
 kernel and native Linux GCC release remain **NOT_RUN**. The full goal stays active.
+
+
+## Implementation progress — RPP-5gg MATERIAL alternate normal boundary (2026-10-28)
+
+- [x] Reproduce the parent gap using a locally authored 465-only source: import
+  succeeds, then adding represented normal mode/method fields refuses. The actual
+  streaming parser already recognizes strength 465 as the alternate boundary.
+- [x] Accept supplied 464 or 465 for the reused mode/method roles. When 464 is
+  absent, emit 465 before 270/271; retain the previous ordering with luminance.
+  Models missing both boundaries still refuse dependent fields. No defaults are
+  fabricated and no DWG parser, installed instance state or callbacks change.
+- [x] Reconcile merged boundary presence before ordering inserted fields. Support
+  coherent luminance removal by relocating supplied strength before existing
+  normal mode/method fields. Retain the actual strength carrier and ASCII spelling
+  for a layout-only move; canonicalize it only for an actual value edit. Reject
+  ambiguous duplicate strengths when relocation would be required.
+- [x] Pass 64 four-version/input/output/presence projections, 64 actual optional
+  mode/method insertions, 16 full-source luminance removals, 128 boundary presence
+  transitions and 32 raw/typed compositions. Check selected repeated wire roles
+  independently and perform 542 owning-parser readbacks. Preserve four exact
+  ASCII spellings, including signed zero and untouched replay controls.
+- [x] Refuse six invalid/conflicting/direct cases and 24 real callback mutations
+  while preserving sentinels. Pass 46 corrected/restored same-adapter/writer
+  retries and four direct-writer output proofs. Refuse 798 mutated completed
+  OBJECTS views through the actual MATERIAL inspector; these are replayed views,
+  not 798 real filesystem-corruption attempts. No new exhaustive allocation or
+  aggregate RSS claim is made; the existing allocation/rollback controls pass.
+- [x] Update the existing body presence control: luminance removal now succeeds,
+  adding two presence/readback successes and removing two refusals. Its other
+  value, callback, preparation-allocation, lexical/text and opaque controls remain.
+- [x] Verify seven affected targets normally and under the existing Debug/-O1/
+  ASan profile, with strict warnings retained and the LibreCAD_3 target verified.
+  Run 22 affected tests normally (31.83s), then under ASan
+  (21.77s), with matching registrations and owning counters.
+  The writer-output-property selector also passes in both configurations.
+- [x] Freeze all 592 release inputs across builds and runtimes; the source/build
+  inventory check passes. Reuse configured targets rather than repeat the full
+  suite. No fresh archive/extracted-source/distcheck/native CAD/kernel, formal
+  ABI/application or controlled memory/performance qualification is claimed.
+  No external payload, derivative or new drawing fixture is committed.
+
+The [receipt](docs/research/rpp5gg-material-alternate-normal-boundary-2026-10-28.json)
+retains baseline failure, implementation hashes, actual build/test/counter records,
+primary references and the separate qualification limits. Autodesk's
+[MATERIAL roles](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm)
+and [general group-order guidance](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm)
+guide the projection; neither certifies every repeated-code input grammar or
+native consumer acceptance. Peer source is advisory, not runtime qualification.
+
+### Next implementation-ready sequence
+
+1. [ ] **Complete MATERIAL source/schema readiness.** Obtain independent original
+   producer/version/native bodies and renderer evidence. Resolve sources whose
+   mode/method precede 465 with no 464 using actual physical/profile evidence;
+   the current streaming parser can interpret those reused codes as bump fields.
+   Complete remaining optional-boundary omissions and represented versus opaque
+   subclass/procedure transactions without fabricated defaults. Retain exact
+   unchanged replay, output/readback/conflict/callback/failure/retry checks.
+2. [ ] **Complete common/dependency/document closure.** Finish material/full/face/
+   edge and native LAYER/HEADER/common 348 profiles, reactor/IMAGE/document/
+   control/name/application/XDATA/CEPSNID/CEPSNTYPE roles, remaps/collisions and
+   recursive/coupled/full ownership. Current supplied identities do not certify
+   original dictionaries or complete emitted documents.
+3. [ ] **Finish rendering and TABLE completeness.** Retain remaining engine/
+   schema/optional/absent/duplicate/alias/extension providers, active/global/
+   environment/background/live-section/sun, independent VIEWPORT shade 4/5,
+   335/343/344/91 and native dictionary collation. Complete TABLE Values/multiple-
+   content/linked-data ownership, formatting/units/borders and native B2b/B3/C
+   schema/bit/owner/version/corpus evidence; do not guess epochs/counts/semantics.
+4. [ ] **Finish qualification.** Complete platform/package/native consumers,
+   formal ABI/application, controlled RSS/performance, native Linux GCC release,
+   native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence.
+5. [ ] **Continue efficient, self-updating implementation.** Reuse configured
+   targets and fast owning checks; broaden for actual shared risks/failures. Match
+   compiler/configuration/definitions/sanitizer/PIC/resolved includes/tokens before
+   sharing adapter objects. Freeze inputs during builds/runtimes, retain failures,
+   self-unblock, update/commit/report each verified slice and continue ready work.
+
+Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger stays
+**CLOSED**. Full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false; the complete MATERIAL/rendering/native/document objective
+remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and
+nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel
+and native Linux GCC release remain **NOT_RUN**. The full goal stays active.

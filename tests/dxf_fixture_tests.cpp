@@ -27605,7 +27605,7 @@ bool run(const std::filesystem::path& dir) {
     for(bool binary:{false,true})for(auto flag:flags){
         dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
         auto& material=data.materials.front();material.*flag=false;sentinel(output);
-        const bool dependent=flag==&DRW_Material::m_hasLuminance||flag==&DRW_Material::m_hasGenProcTableEnd;
+        const bool dependent=flag==&DRW_Material::m_hasGenProcTableEnd;
         const bool exported=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false);
         if(dependent){if(exported||!kept(output))return fail(__LINE__);++refusals;}
         else {dx_iface reader;dx_data actual;if(!exported||!reader.fileImport(output.string(),&actual,false)||actual.materials.front().*flag)return fail(__LINE__);++readbacks;++presence;}
@@ -27766,6 +27766,168 @@ void testMaterialBodyTransactions(TestContext& t) {
     t.expect(passed,"MATERIAL typed body edits survive export");
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MATERIAL body evidence: "<<dir<<'\n';
+}
+
+namespace materialNormalBoundaryControls {
+using namespace materialBodyControls;
+Tags alternate(const std::filesystem::path& dir,const std::string& version,unsigned modes=3u) {
+    const auto source=fullRecipe(dir,version);Tags result;
+    bool selected=false,header=false;
+    for(const auto& field:source) {
+        if(field.first==0){selected=field.second=="MATERIAL";header=false;}
+        if(selected&&field.first==464){header=true;continue;}
+        if(header&&(field.first==270||field.first==271))continue;
+        result.push_back(field);
+        if(selected&&field.first==465){
+            header=false;
+            if(modes&1u)result.emplace_back(270,"3");
+            if(modes&2u)result.emplace_back(271,"2");
+        }
+    }
+    return result;
+}
+bool proof(const std::filesystem::path& path,bool binary,bool luminance,
+           bool mode,bool method,int wantedMode,int wantedMethod) {
+    bool selected=false,normal=false,procedure=false;
+    std::vector<int> bumpModes,bumpMethods,normalModes,normalMethods;
+    unsigned luminances=0u,strengths=0u;std::vector<double> normalMatrix;
+    std::vector<std::string> normalFiles;
+    for(const auto& field:physicalTags(path,binary)) {
+        if(field.first==0){if(selected)break;selected=field.second=="MATERIAL";continue;}
+        if(!selected)continue;
+        if(field.first==464){normal=true;++luminances;}
+        if(field.first==465){normal=true;++strengths;}
+        if(field.first==300||field.first==292)procedure=true;
+        if(procedure)continue;
+        if(field.first==270)(normal?normalModes:bumpModes).push_back(std::stoi(field.second));
+        if(field.first==271)(normal?normalMethods:bumpMethods).push_back(std::stoi(field.second));
+        if(normal&&field.first==3)normalFiles.push_back(field.second);
+        if(normal&&field.first==43)normalMatrix.push_back(std::stod(field.second));
+    }
+    return luminances==(luminance?1u:0u)&&strengths==1u
+        &&bumpModes==std::vector<int>{2}&&bumpMethods==std::vector<int>{3}
+        &&normalModes==(mode?std::vector<int>{wantedMode}:std::vector<int>{})
+        &&normalMethods==(method?std::vector<int>{wantedMethod}:std::vector<int>{})
+        &&normalFiles.size()==1u&&normalMatrix.size()==16u;
+}
+bool readback(const std::filesystem::path& path,bool luminance,bool mode,bool method,
+              int wantedMode,int wantedMethod) {
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.materials.size()!=2u)return false;
+    const auto& value=data.materials.front();
+    return value.m_hasLuminance==luminance&&value.m_hasNormalMapStrength
+        &&value.m_hasLuminanceMode==mode&&value.m_hasNormalMapMethod==method
+        &&(!mode||value.m_luminanceMode==wantedMode)&&(!method||value.m_normalMapMethod==wantedMethod)
+        &&value.m_bumpMapProjection==2u&&value.m_bumpMapTiling==3u
+        &&value.m_diffuseMapFileName=="diffuse-map.png"&&value.m_normalMapFileName=="normal-map.png"
+        &&value.m_diffuseMapTransform[15]==115.0&&value.m_normalMapTransform[15]==215.0
+        &&value.m_hasMapUTile&&value.m_mapUTile==4;
+}
+struct Direct:dx_iface {
+    DRW_Material material;bool written=false;
+    void writeHeader(DRW_Header& header)override{header.vars.clear();}
+    void writeBlockRecords()override{}
+    void writeObjects()override{written=dxfW->writeMaterial(&material);}
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,insertions=0u,removals=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,direct=0u,transitions=0u,compositions=0u,lexical=0u,corruptions=0u;
+    const auto fail=[&](int line){std::cerr<<"MATERIAL boundary line="<<line<<" profiles="<<profiles<<" insertions="<<insertions<<" removals="<<removals<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        for(unsigned modes=0u;modes<4u;++modes) {
+            dx_iface adapter;dx_data data;if(!write(input,alternate(dir,version,modes),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+            auto& value=data.materials.front();if(value.m_hasLuminance||value.m_hasLuminanceMode!=bool(modes&1u)||value.m_hasNormalMapMethod!=bool(modes&2u))return fail(__LINE__);
+            value.m_luminanceMode=-7;value.m_hasLuminanceMode=true;value.m_normalMapMethod=7;value.m_hasNormalMapMethod=true;
+            if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,true,true,-7,7)||!readback(output,false,true,true,-7,7))return fail(__LINE__);
+            ++profiles;++readbacks;insertions+=2u-unsigned(bool(modes&1u))-unsigned(bool(modes&2u));
+            for(unsigned keep=0u;keep<4u;++keep) {
+                value.m_hasLuminanceMode=bool(keep&1u);value.m_hasNormalMapMethod=bool(keep&2u);
+                if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,bool(keep&1u),bool(keep&2u),-7,7)
+                    ||!readback(output,false,bool(keep&1u),bool(keep&2u),-7,7))return fail(__LINE__);
+                ++readbacks;
+            }
+            value.m_luminance=.2;value.m_hasLuminance=true;
+            if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,true,true,true,-7,7)||!readback(output,true,true,true,-7,7))return fail(__LINE__);
+            ++transitions;++readbacks;
+            value.m_hasLuminance=false;
+            if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,true,true,-7,7)||!readback(output,false,true,true,-7,7))return fail(__LINE__);
+            ++transitions;++readbacks;
+        }
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,version),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& value=data.materials.front();value.m_hasLuminance=false;
+        if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,true,true,3,2)||!readback(output,false,true,true,3,2))return fail(__LINE__);
+        ++removals;++readbacks;
+        value.m_hasLuminance=true;if(!adapter.fileExport(output.string(),v,binary,&data,false)||!readback(output,true,true,true,3,2))return fail(__LINE__);++retries;++readbacks;
+        bool normal=false;
+        for(std::size_t i=0u;i<raw(data).groups.size();++i) {
+            auto& field=raw(data).groups[i];if(field.code()==464)normal=true;
+            if(normal&&field.code()==270){field=DRW_Variant(270,std::int32_t(8));if(raw(data).hasRawValues)raw(data).rawValues[i]="8";break;}
+        }
+        value.m_hasLuminance=false;
+        if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,true,true,8,2)||!readback(output,false,true,true,8,2))return fail(__LINE__);
+        ++compositions;++readbacks;
+        value.m_normalMapStrength=.125;
+        if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,false,true,true,8,2)||!readback(output,false,true,true,8,2))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.materials.front().m_normalMapStrength!=.125)return fail(__LINE__);
+        ++compositions;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<3u;++kind) {
+        Editing adapter;adapter.phase=phase;dx_data data;if(!write(input,alternate(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto saved=data.materials.front();data.materials.front().m_luminanceMode=-7;
+        adapter.change=[&]{auto& value=data.materials.front();if(kind==0u)value.m_hasNormalMapStrength=false;if(kind==1u)value.m_hasLuminance=true;if(kind==2u)value.m_normalMapMethod=9;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.materials.front()=saved;data.materials.front().m_luminanceMode=-7;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,false,true,true,-7,2))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,alternate(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto saved=raw(data);bool boundary=false;
+        for(auto& field:raw(data).groups){if(field.code()==465)boundary=true;if(boundary&&field.code()==271){field=DRW_Variant(271,std::int32_t(8));break;}}
+        clearSpelling(raw(data));data.materials.front().m_normalMapMethod=9;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+        data.materials.front().m_normalMapMethod=8;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,false,true,true,3,8))return fail(__LINE__);++retries;++readbacks;
+        raw(data)=saved;data.materials.front().m_normalMapMethod=2;data.materials.front().m_hasNormalMapStrength=false;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+        data.materials.front().m_hasNormalMapStrength=true;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,false,true,true,3,2))return fail(__LINE__);++retries;++readbacks;
+        Direct directWriter;dx_data directData;directWriter.cData=&directData;directWriter.currentBlock=directData.mBlock;
+        directWriter.material=data.materials.front();directWriter.material.handle=0xF002u;directWriter.material.parentHandle=0xCu;
+        const auto filename=output.string();dxfRW writer(filename.c_str());directWriter.dxfW=&writer;
+        if(!writer.write(&directWriter,DRW::AC1027,binary)||!directWriter.written||!proof(output,binary,false,true,true,3,2))return fail(__LINE__);++direct;
+        directWriter.material.m_hasNormalMapStrength=false;sentinel(output);
+        if(writer.write(&directWriter,DRW::AC1027,binary)||!kept(output))return fail(__LINE__);++refusals;
+        directWriter.material.m_hasNormalMapStrength=true;
+        if(!writer.write(&directWriter,DRW::AC1027,binary)||!directWriter.written||!proof(output,binary,false,true,true,3,2))return fail(__LINE__);++retries;++direct;
+    }
+    for(const std::string spelling:{" +5.0000000000000000e-1 ","-0.00000"}) {
+        auto fields=fullRecipe(dir,"AC1027");for(auto& field:fields)if(field.first==465)field.second=spelling;
+        {std::ofstream file(input,std::ios::binary);for(const auto& field:fields)file<<field.first<<'\n'<<field.second<<'\n';if(!file)return fail(__LINE__);}
+        dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.materials.front().m_hasLuminance=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false)||!proof(output,false,false,true,true,3,2)||!readback(output,false,true,true,3,2))return fail(__LINE__);
+        bool selected=false;unsigned matched=0u;
+        for(const auto& field:tags(output)){if(field.first==0)selected=field.second=="MATERIAL";if(selected&&field.first==465){if(field.second!=spelling)return fail(__LINE__);++matched;}}
+        if(matched!=2u)return fail(__LINE__);lexical+=matched;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        OutputReplay adapter;adapter.binary=binary;adapter.previous=dir/(binary?"proof-binary.dxf":"proof-ascii.dxf");dx_data data;
+        if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.materials.front().m_hasLuminance=false;data.materials.front().m_luminanceMode=-7;
+        dx_iface initial;if(!initial.fileExport(adapter.previous.string(),DRW::AC1027,binary,&data,false)||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        corruptions+=adapter.corruptions;
+    }
+    std::cout<<"MATERIAL normal-boundary profiles="<<profiles<<"; insertions="<<insertions<<"; removals="<<removals<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; callbacks="<<callbacks<<"; retries="<<retries<<"; direct="<<direct<<"; transitions="<<transitions<<"; compositions="<<compositions
+        <<"; lexical="<<lexical<<"; corruptions="<<corruptions<<'\n';return true;
+}
+}
+void testMaterialNormalBoundaries(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-material-normal-boundaries-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);bool passed=false;
+    try{passed=materialNormalBoundaryControls::run(dir);}catch(const std::exception& error){std::cerr<<"MATERIAL boundary error: "<<error.what()<<'\n';}
+    t.expect(passed,"MATERIAL alternate normal boundary survives edits and retries");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MATERIAL boundary evidence: "<<dir<<'\n';
 }
 
 namespace headerMaterialControls {
@@ -35831,6 +35993,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--material-body-transactions") {
         TestContext context;testMaterialBodyTransactions(context);return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--material-normal-boundaries") {
+        TestContext context;testMaterialNormalBoundaries(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--header-material-bindings") {
         TestContext context;testHeaderMaterialBindings(context);return context.failures == 0 ? 0 : 1;

@@ -22,7 +22,12 @@ inline const std::vector<int>& order() {
         1293,1272,1273,2292,3270,3148,3468,3093,3094};
     return keys;
 }
-inline std::size_t rank(int key) {
+inline std::size_t rank(int key,bool strengthFirst=false) {
+    if(strengthFirst) {
+        if(key==1465)key=1270;
+        else if(key==1270)key=1271;
+        else if(key==1271)key=1465;
+    }
     const auto& keys=order();return static_cast<std::size_t>(std::find(keys.begin(),keys.end(),key)-keys.begin());
 }
 inline bool slots(const Groups& groups,Slots& result,std::size_t& bodyEnd,std::size_t* procedure=nullptr) {
@@ -181,6 +186,21 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         if(typedEdit&&rawEdit&&!fieldEqual(typedBody,typedFields,rawBody,rawFields,key))return false;
         if(typedEdit&&!fieldEqual(typedBody,typedFields,rawBody,rawFields,key)){edits.insert(key);typedEdits.insert(key);}
     }
+    const auto present=[&](int key){return (typedEdits.count(key)?typedFields:rawFields).count(key)!=0u;};
+    const bool strengthFirst=!present(1464)&&present(1465);
+    bool relocateStrength=false,keepStrengthSpelling=false;
+    if(strengthFirst) {
+        const auto strength=physical.find(1465);
+        if(strength!=physical.end())for(int key:{1270,1271}) {
+            const auto field=physical.find(key);
+            if(field!=physical.end()&&field->second.front()<strength->second.front())relocateStrength=true;
+        }
+        if(relocateStrength) {
+            if(strength->second.size()!=1u)return false;
+            keepStrengthSpelling=edits.count(1465)==0u;
+            edits.insert(1465);
+        }
+    }
     // Caret escapes are ASCII-only. Known text fields must be transcoded when
     // changing wire format, even without a typed edit. Other opaque bytes stay
     // raw; their semantic transcoding is not certified by this transaction.
@@ -202,8 +222,12 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             const auto found=physical.find(key);std::size_t insertion=bodyEnd;
             if(found!=physical.end()) {
                 insertion=found->second.front();removed.insert(found->second.begin(),found->second.end());
+                if(key==1465&&relocateStrength)for(int boundary:{1464,1270,1271}) {
+                    const auto field=physical.find(boundary);
+                    if(field!=physical.end())insertion=std::min(insertion,field->second.front());
+                }
             } else {
-                for(const auto& field:physical)if(rank(field.first)>rank(key))insertion=std::min(insertion,field.second.front());
+                for(const auto& field:physical)if(rank(field.first,strengthFirst)>rank(key,strengthFirst))insertion=std::min(insertion,field.second.front());
                 // Insert pre-procedure fields before its opaque table too.
                 if(rank(key)<rank(2292))insertion=std::min(insertion,procedure);
             }
@@ -215,8 +239,15 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         for(std::size_t i=0;i<=raw.groups.size();++i) {
             auto found=insertions.find(i);
             if(found!=insertions.end()) {
-                auto& keys=found->second;std::sort(keys.begin(),keys.end(),[](int a,int b){return rank(a)<rank(b);});
-                for(int key:keys){const auto& fields=typedEdits.count(key)?typedFields:rawFields;
+                auto& keys=found->second;std::sort(keys.begin(),keys.end(),[&](int a,int b){return rank(a,strengthFirst)<rank(b,strengthFirst);});
+                for(int key:keys){
+                    // Boundary relocation is a layout edit. Keep the caller's
+                    // actual value and lexical spelling if its value is unchanged.
+                    if(key==1465&&keepStrengthSpelling) {
+                        const auto index=physical.find(key)->second.front();changed.push_back(raw.groups[index]);
+                        if(keepSpellings)spellings.push_back(raw.rawValues[index]);continue;
+                    }
+                    const auto& fields=typedEdits.count(key)?typedFields:rawFields;
                     const auto& values=typedEdits.count(key)?typedBody:rawBody;
                     const auto foundField=fields.find(key);if(foundField!=fields.end())for(auto index:foundField->second){
                     changed.push_back(values[index]);if(keepSpellings){

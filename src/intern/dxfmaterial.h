@@ -15,7 +15,7 @@ inline bool validBody(const DRW_Material& value) {
     // The reused codes cannot be emitted without their actual boundary field.
     // Never invent a luminance/default value to disambiguate an incomplete model.
     const bool normalBoundary=ent->m_hasLuminance||ent->m_hasNormalMapStrength;
-    if((!ent->m_hasLuminance&&(ent->m_hasLuminanceMode||ent->m_hasNormalMapMethod))
+    if((!normalBoundary&&(ent->m_hasLuminanceMode||ent->m_hasNormalMapMethod))
         ||(!normalBoundary&&(ent->m_hasNormalMapBlendFactor||ent->m_hasNormalMapSource
             ||ent->m_hasNormalMapFileName||ent->m_hasNormalMapProjection||ent->m_hasNormalMapTiling
             ||ent->m_hasNormalMapAutoTransform||ent->m_hasNormalMapTransform
@@ -322,11 +322,15 @@ inline bool writeBody(dxfWriter& output, const DRW_Material& value, bool binary)
         writer->writeBool(290, ent->m_twoSidedMaterial);
     if (ent->m_hasLuminance)
         writer->writeDouble(464, ent->m_luminance);
+    // Without luminance, put the supplied alternate boundary before reused
+    // 270/271. Otherwise a reader can mistake them for bump mapper fields.
+    if (!ent->m_hasLuminance && ent->m_hasNormalMapStrength)
+        writer->writeDouble(465, ent->m_normalMapStrength);
     if (ent->m_hasLuminanceMode)
         writer->writeInt16(270, ent->m_luminanceMode);
     if (ent->m_hasNormalMapMethod)
         writer->writeInt16(271, ent->m_normalMapMethod);
-    if (ent->m_hasNormalMapStrength)
+    if (ent->m_hasLuminance && ent->m_hasNormalMapStrength)
         writer->writeDouble(465, ent->m_normalMapStrength);
     if (ent->m_hasNormalMapBlendFactor)
         writer->writeDouble(42, ent->m_normalMapBlendFactor);
