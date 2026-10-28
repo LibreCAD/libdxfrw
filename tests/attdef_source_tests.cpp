@@ -754,6 +754,57 @@ public:
 #include "attdef_equal_alignment_controls.h"
 #include "attdef_embedded_dual280_controls.h"
 
+struct LegacyCapturedReplay {
+    bool transport=false,decoded=false,state=false,model=false;
+};
+bool legacyVariantEqual(const DRW_Variant& a,const DRW_Variant& b) noexcept {
+    if(a.code()!=b.code()||a.type()!=b.type()||a.isLayerRef()!=b.isLayerRef()
+        ||a.rawDwgLayerReference()!=b.rawDwgLayerReference())return false;
+    const auto real=[](double x,double y){return std::memcmp(&x,&y,sizeof(x))==0;};
+    switch(a.type()) {
+    case DRW_Variant::STRING:return a.content.s&&b.content.s&&*a.content.s==*b.content.s;
+    case DRW_Variant::INTEGER:return a.i_val()==b.i_val();
+    case DRW_Variant::INTEGER64:return a.i64_val()==b.i64_val();
+    case DRW_Variant::DOUBLE:return real(a.d_val(),b.d_val());
+    case DRW_Variant::COORD:return a.coord()&&b.coord()&&real(a.coord()->x,b.coord()->x)
+        &&real(a.coord()->y,b.coord()->y)&&real(a.coord()->z,b.coord()->z);
+    case DRW_Variant::BINARY:return a.content.b&&b.content.b&&*a.content.b==*b.content.b;
+    default:return false;
+    }
+}
+// Observational reconstruction of the selected known scalar types; this is
+// not the adapter's production source-body admission or an output proof.
+LegacyCapturedReplay legacyCapturedReplay(const DRW_RawDxfObject& raw,const DRW_Attdef& expected,
+        const dxfAttdef::SourceState& expectedState,const std::string& codePage,bool extrusion) {
+    LegacyCapturedReplay result;if(raw.groups.size()!=raw.rawValues.size())return result;
+    std::ostringstream output(std::ios::out|std::ios::binary);dxfWriterBinary binary(&output);
+    for(std::size_t i=0u;i<raw.groups.size();++i) {
+        const auto& value=raw.groups[i];const int code=value.code();
+        if(raw.hasRawValues) {output<<code<<'\n'<<raw.rawValues[i]<<'\n';continue;}
+        if(!raw.rawValues[i].empty())return result;
+        if(value.type()==DRW_Variant::STRING&&value.content.s) {if(!binary.writeRawString(code,*value.content.s))return result;}
+        else if(value.type()==DRW_Variant::INTEGER) {if(!binary.writeInt16(code,value.i_val()))return result;}
+        else if(value.type()==DRW_Variant::DOUBLE) {if(!binary.writeDouble(code,value.d_val()))return result;}
+        else return result;
+    }
+    const auto bytes=output.str();dxfRW::DxfObjectsWriteView view{};view.bytes=bytes;
+    view.version=raw.m_version;view.binary=!raw.hasRawValues;view.codePage=codePage;
+    result.transport=dx_standard_output::rawScalarTransportEqual(raw.groups,bytes,view,
+        [](std::uint32_t source,std::uint32_t& mapped){mapped=source;return true;},false,1024u*1024u,true);
+    if(!result.transport)return result;
+    dx_standard_output::InputBuffer buffer(bytes);std::istream input(&buffer);
+    auto reader=dx_standard_output::readerFor(input,view,std::make_shared<DxfReadRetainedBudget>(1024u*1024u));
+    if(!reader)return result;reader->setSemanticStringMode(true);
+    DRW_Attdef parsed;dxfAttdef::Decoder decoder(parsed);int code=0;
+    while(buffer.position()<bytes.size())
+        if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader))return result;
+    if(!decoder.finish(extrusion)||reader->recordCount()!=raw.groups.size())return result;
+    result.decoded=true;const auto observed=dxfAttdef::Decoder::observe(parsed);
+    result.state=observed==expectedState&&observed.hasNoPendingXdata();
+    result.model=dxfAttdef::Decoder::sameModel(parsed,expected,legacyVariantEqual);
+    return result;
+}
+
 // Observational transport only: deliberately opts into the reader's existing
 // optional facet. It does not change the adapter's AC1018 opt-in or certify
 // a profile, owner graph, APPID target, output closure, or native semantics.
@@ -761,7 +812,8 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
     struct Observer final:dx_iface {
         dxfRW* reader=nullptr;bool selected=true,live=false;unsigned depth=0u;
         DRW_RawDxfObject source;DRW_Attdef sourceModel,typedModel;
-        DRW_DxfAttdefSourceContext context{};DRW::Version sourceVersion=DRW::UNKNOWNV,codecVersion=DRW::UNKNOWNV;
+        DRW_DxfAttdefSourceContext context{};dxfAttdef::SourceState sourceState{},typedState{};
+        DRW::Version sourceVersion=DRW::UNKNOWNV,codecVersion=DRW::UNKNOWNV;
         std::string page,declaration;bool declared=false,binary=false,extrusion=false;
         unsigned sourceCalls=0u,typedCalls=0u;
         void addHeader(const DRW_Header*)override {}
@@ -771,20 +823,21 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
         bool wantsDxfAttdefSource()const override{return selected;}
         void addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
                                 const DRW_DxfAttdefSourceContext& current)override {
-            ++sourceCalls;source=raw;sourceModel=value;context=current;dxfRW::DxfReadContext c;
+            ++sourceCalls;sourceState=dxfAttdef::Decoder::observe(value);source=raw;sourceModel=value;
+            context=current;dxfRW::DxfReadContext c;
             live=reader&&reader->getDxfReadContext(c);
             if(live) {sourceVersion=c.sourceVersion;codecVersion=c.codecVersion;page=std::string(c.codecCodePage);
                 declaration=std::string(c.declaration);declared=c.hasDeclaration;binary=c.binary;extrusion=c.applyExtrusion;}
         }
-        void addAttDef(const DRW_Attdef& value)override{++typedCalls;typedModel=value;}
+        void addAttDef(const DRW_Attdef& value)override{++typedCalls;typedState=dxfAttdef::Decoder::observe(value);typedModel=value;}
     };
     // The two non-ASCII bytes are authored directly in Windows-1252; XDATA
     // includes an APPID name and values, but no APPID target is claimed.
     const Tags row{{5,"A1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
         {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,std::string("caf\xE9",4u)},
         {100,"AcDbAttributeDefinition"},{3,std::string("prom\xE9",5u)},{2,"ATTINFO"},{70,"0"},
-        {1001,"AcDbAttr"},{1070,"0"},{1070,"1"}};
-    unsigned originals=0u,spans=0u,optouts=0u,retries=0u;
+        {1001,"AcDbAttr"},{1000,std::string("caf\xE9",4u)},{1070,"0"},{1070,"1"}};
+    unsigned originals=0u,spans=0u,optouts=0u,retries=0u,full=0u,mutations=0u,pages=0u;
     for(bool binary:{false,true})for(bool block:{false,true})for(bool extrusion:{false,true}) {
         auto tags=document("AC1018",row,block);tags.insert(tags.begin()+4,{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});
         if(!write(path,tags,binary))return false;dxfRW reader(path.string().c_str());Observer selected;selected.reader=&reader;
@@ -798,10 +851,11 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
             &&raw.m_version==DRW::AC1018&&raw.hasRawValues!=binary&&raw.groups.size()==row.size()
             &&raw.rawValues.size()==row.size()&&snapshot(model)==snapshot(selected.typedModel)
             &&model.text=="caf\xC3\xA9"&&model.prompt=="prom\xC3\xA9"&&model.tag=="ATTINFO"
-            &&model.extData.size()==3u&&model.extData[0]&&model.extData[1]&&model.extData[2]
+            &&model.extData.size()==4u&&model.extData[0]&&model.extData[1]&&model.extData[2]&&model.extData[3]
             &&model.extData[0]->code()==1001&&std::string(model.extData[0]->c_str())=="AcDbAttr"
-            &&model.extData[1]->code()==1070&&model.extData[1]->i_val()==0
-            &&model.extData[2]->code()==1070&&model.extData[2]->i_val()==1,
+            &&model.extData[1]->code()==1000&&std::string(model.extData[1]->c_str())=="caf\xC3\xA9"
+            &&model.extData[2]->code()==1070&&model.extData[2]->i_val()==0
+            &&model.extData[3]->code()==1070&&model.extData[3]->i_val()==1,
             "legacy typed capture, source model and XDATA values"))return false;
         const auto wire=attdefWireTags(path,binary);std::size_t first=wire.size();
         for(std::size_t i=0u;i<wire.size();++i)if(wire[i].code==0&&wire[i].text=="ATTDEF")first=i+1u;
@@ -811,13 +865,34 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
             if(!check(field.code()==row[i].code&&physical.code==row[i].code&&physical.begin<physical.valueBegin
                 &&physical.valueBegin<physical.end&&(!i||wire[first+i-1u].end==physical.begin)
                 &&(binary?raw.rawValues[i].empty():raw.rawValues[i]==row[i].value),"legacy exact physical field/span"))return false;
-            if(physical.kind==AttdefWireTag::String&&physical.text!=row[i].value)return false;
+            if(physical.kind==AttdefWireTag::String&&(physical.text!=row[i].value
+                ||field.type()!=DRW_Variant::STRING||!field.content.s||*field.content.s!=physical.text))return false;
+            if(physical.kind==AttdefWireTag::Integer&&(field.type()!=DRW_Variant::INTEGER||field.i_val()!=physical.integer))return false;
+            if(physical.kind==AttdefWireTag::Real&&(field.type()!=DRW_Variant::DOUBLE
+                ||field.d_val()!=physical.real))return false;
             if(physical.kind==AttdefWireTag::Integer&&physical.integer!=std::stoll(row[i].value))return false;
             if(physical.kind==AttdefWireTag::Real&&physical.real!=std::stod(row[i].value))return false;
             ++spans;
         }
         if(!check(replayMatches(row,"AC1018",snapshot(model),extrusion),
             "legacy authored raw replay matches captured typed model"))return false;
+        if(!check(selected.sourceState==selected.typedState&&selected.sourceState.hasNoPendingXdata()
+            &&dxfAttdef::Decoder::sameModel(model,selected.typedModel,legacyVariantEqual),"legacy full callback model and state pair"))return false;
+        const auto replay=legacyCapturedReplay(raw,model,selected.sourceState,selected.page,extrusion);
+        if(!check(replay.transport&&replay.decoded&&replay.state&&replay.model,"legacy captured-raw full model/state replay"))return false;
+        ++full;
+        const auto wrongPage=legacyCapturedReplay(raw,model,selected.sourceState,"ANSI_1251",extrusion);
+        if(!check(wrongPage.transport&&wrongPage.decoded&&wrongPage.state&&!wrongPage.model,"legacy replay requires captured codepage"))return false;
+        ++pages;
+        for(int altered:{1,1070}) {
+            auto corrupted=raw;const auto at=std::find_if(corrupted.groups.begin(),corrupted.groups.end(),
+                [=](const DRW_Variant& v){return v.code()==altered;});
+            if(at==corrupted.groups.end())return false;
+            *at=altered==1?DRW_Variant(1,std::string("changed")):DRW_Variant(1070,7);
+            const auto rejected=legacyCapturedReplay(corrupted,model,selected.sourceState,selected.page,extrusion);
+            if(!check(!rejected.transport||(rejected.decoded&&!rejected.model),"legacy captured-raw corruption sensitivity"))return false;
+            ++mutations;
+        }
         const auto gated=dx_attdef_source::audit(raw);
         if(!check(!gated.complete()&&gated.spans.empty()&&gated.reason==dx_attdef_source::Reason::Revision
             &&gated.rejectedGroup==0u,"legacy source audit remains gated"))return false;
@@ -836,8 +911,9 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
         ++retries;++originals;
     }
     std::cout<<"AC1018 observational ATTDEF sources="<<originals<<" raw spans="<<spans
-        <<" opt-outs="<<optouts<<" malformed/retries="<<retries<<'\n';
-    return originals==8u&&spans==136u&&optouts==8u&&retries==8u;
+        <<" opt-outs="<<optouts<<" malformed/retries="<<retries<<" full-replays="<<full
+        <<" wrong-page="<<pages<<" raw-mutations="<<mutations<<'\n';
+    return originals==8u&&spans==144u&&optouts==8u&&retries==8u&&full==8u&&pages==8u&&mutations==16u;
 }
 
 bool sourceProfileTests(const std::filesystem::path& path) {
