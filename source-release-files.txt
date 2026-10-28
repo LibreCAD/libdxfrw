@@ -573,6 +573,7 @@ tools/generate_iso8859_4.py
 tools/generate_symbol_casefold.py
 tools/normalize_drawing_result.py
 tools/normalize_oracle.py
+tools/qualify_material_source_order.py
 tools/run_external_advisory.py
 tools/run_fast_baseline.py
 tools/run_fast_focus.py

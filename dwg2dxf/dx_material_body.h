@@ -31,7 +31,8 @@ inline std::size_t rank(int key,bool strengthFirst=false) {
     const auto& keys=order();return static_cast<std::size_t>(std::find(keys.begin(),keys.end(),key)-keys.begin());
 }
 inline bool slots(const Groups& groups,Slots& result,std::size_t& bodyEnd,std::size_t* procedure=nullptr) {
-    unsigned depth=0u,phase=0u,markers=0u;bool body=false,xdata=false;
+    unsigned depth=0u,phase=0u,markers=0u,refractionMatrix=0u;
+    bool body=false,xdata=false,bumpProjection=false,bumpTiling=false;
     bodyEnd=groups.size();
     if(procedure)*procedure=groups.size();
     for(std::size_t i=0;i<groups.size();++i) {
@@ -54,14 +55,20 @@ inline bool slots(const Groups& groups,Slots& result,std::size_t& bodyEnd,std::s
             continue;
         }
         if(!body)continue;
+        if(phase==0u&&code==147)++refractionMatrix;
         if(code==300){phase=2u;if(procedure)*procedure=std::min(*procedure,i);continue;}
         int key=-1;
         if(code==292){key=2292;phase=3u;}
         else if(phase<2u&&(code==464||code==465)){phase=1u;key=1000+code;}
+        else if(phase<2u&&(code==290||(code>=460&&code<=463)))key=code;
+        else if(phase==0u&&refractionMatrix==16u
+            &&((code==270&&bumpProjection)||(code==271&&bumpTiling)))key=1000+code;
         else if(code==293&&phase<2u)key=1293;
         else if(phase==0u&&rank(code)<rank(1464))key=code;
         else if(phase==1u&&rank(1000+code)>=rank(1464)&&rank(1000+code)<rank(2292))key=1000+code;
         else if(phase==3u&&rank(3000+code)<order().size())key=3000+code;
+        if(key==270)bumpProjection=true;
+        if(key==271)bumpTiling=true;
         if(key>=0)result[key].push_back(i);
     }
     return depth==0u&&markers==1u&&phase!=2u;

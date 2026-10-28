@@ -19765,7 +19765,9 @@ bool dxfRW::processMaterial() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (!data.hasCompleteDxfMapTransforms())
+            if (!data.hasCompleteDxfMapTransforms()
+                || ((!data.m_hasLuminance && !data.m_hasNormalMapStrength)
+                    && (data.m_hasLuminanceMode || data.m_hasNormalMapMethod)))
                 return setError(DRW::BAD_CODE_PARSED);
             DRW_DBG(nextentity); DRW_DBG("\n");
             iface->addMaterial(data);

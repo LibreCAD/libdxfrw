@@ -27930,6 +27930,133 @@ void testMaterialNormalBoundaries(TestContext& t) {
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MATERIAL boundary evidence: "<<dir<<'\n';
 }
 
+namespace materialSourceOrderControls {
+using namespace materialBodyControls;
+Tags recipe(const std::filesystem::path& dir,const std::string& version,unsigned modes=3u) {
+    const auto source=fullRecipe(dir,version);Tags result,late;
+    bool selected=false,header=false;
+    for(auto field:source) {
+        if(field.first==0){selected=field.second=="MATERIAL";header=false;}
+        if(selected&&(field.first==290||(field.first>=460&&field.first<=463))){late.push_back(field);continue;}
+        if(selected&&field.first==464){header=true;continue;}
+        if(header&&field.first==270){if(!(modes&1u))continue;field.second="-7";}
+        if(header&&field.first==271){if(!(modes&2u))continue;field.second="7";}
+        if(selected&&field.first==465)header=false;
+        if(selected&&field.first==293){result.insert(result.end(),late.begin(),late.end());late.clear();}
+        result.push_back(std::move(field));
+    }
+    return result;
+}
+bool state(const DRW_Material& value,bool mode,bool method,int wantedMode,int wantedMethod,double scale) {
+    return !value.m_hasLuminance&&value.m_hasNormalMapStrength&&value.m_normalMapStrength==.5
+        &&value.m_hasLuminanceMode==mode&&value.m_hasNormalMapMethod==method
+        &&(!mode||value.m_luminanceMode==wantedMode)&&(!method||value.m_normalMapMethod==wantedMethod)
+        &&value.m_bumpMapProjection==2u&&value.m_bumpMapTiling==3u
+        &&value.m_refractionMapTransform[15]==1115.0&&value.m_normalMapTransform[15]==215.0
+        &&value.m_hasColorBleedScale&&value.m_colorBleedScale==scale
+        &&value.m_hasIndirectDumpScale&&value.m_indirectDumpScale==.7
+        &&value.m_hasReflectanceScale&&value.m_reflectanceScale==.8
+        &&value.m_hasTransmittanceScale&&value.m_transmittanceScale==.9
+        &&value.m_hasTwoSidedMaterial&&value.m_twoSidedMaterial;
+}
+bool proof(const std::filesystem::path& path,bool binary,bool mode,bool method,int wantedMode,int wantedMethod,double scale) {
+    bool selected=false;std::map<int,std::vector<std::string>> groups;
+    for(const auto& field:physicalTags(path,binary)) {
+        if(field.first==0){if(selected)break;selected=field.second=="MATERIAL";continue;}
+        if(selected)groups[field.first].push_back(field.second);
+    }
+    const auto ints=[&](int code){std::vector<int> result;for(const auto& text:groups[code])result.push_back(std::stoi(text));return result;};
+    const auto expectedModes=mode?std::vector<int>{2,wantedMode,4}:std::vector<int>{2,4};
+    const auto expectedMethods=method?std::vector<int>{3,wantedMethod,123}:std::vector<int>{3,123};
+    return groups[464].empty()&&groups[465].size()==1u&&ints(270)==expectedModes&&ints(271)==expectedMethods
+        &&groups[147].size()==16u&&groups[43].size()==32u&&groups[460].size()==1u&&std::stod(groups[460].front())==scale
+        &&groups[300]==std::vector<std::string>{"opaque-procedure"}&&groups[301]==std::vector<std::string>{"opaque-text"};
+}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,reorderedBase=0u;
+    const auto fail=[&](int line){std::cerr<<"MATERIAL source-order line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(unsigned modes=0u;modes<4u;++modes) {
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(dir,version,modes),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false)
+            ||!state(data.materials.front(),bool(modes&1u),bool(modes&2u),-7,7,.6))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,bool(modes&1u),bool(modes&2u),-7,7,.6))return fail(__LINE__);
+        {dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||!state(actual.materials.front(),bool(modes&1u),bool(modes&2u),-7,7,.6))return fail(__LINE__);}++readbacks;
+        auto& value=data.materials.front();value.m_hasLuminanceMode=true;value.m_luminanceMode=9;value.m_hasNormalMapMethod=true;value.m_normalMapMethod=-9;value.m_colorBleedScale=.125;
+        if(!adapter.fileExport(output.string(),v,binary,&data,false)||!proof(output,binary,true,true,9,-9,.125))return fail(__LINE__);
+        {dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||!state(actual.materials.front(),true,true,9,-9,.125))return fail(__LINE__);}++readbacks;++profiles;
+    }
+    // A first base-mapper role can be reordered after its matrix/refraction
+    // block. It must not be promoted to a normal role merely by that position.
+    for(bool binary:{false,true}) {
+        const auto source=recipe(dir,"AC1027",0u);Tags fields,pending;
+        bool selected=false;
+        for(const auto& field:source) {
+            if(field.first==0)selected=field.second=="MATERIAL";
+            if(selected&&((field.first==270&&field.second=="2")||(field.first==271&&field.second=="3"))){pending.push_back(field);continue;}
+            if(selected&&field.first==465){fields.insert(fields.end(),pending.begin(),pending.end());pending.clear();}
+            fields.push_back(field);
+        }
+        dx_iface adapter;dx_data data;
+        if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!state(data.materials.front(),false,false,0,0,.6))return fail(__LINE__);
+        data.materials.front().m_colorBleedScale=.125;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(output,binary,false,false,0,0,.125))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||!state(actual.materials.front(),false,false,0,0,.125))return fail(__LINE__);
+        ++reorderedBase;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<6u;++kind) {
+        auto fields=recipe(dir,"AC1027");bool selected=false;
+        if(kind<4u)fields.erase(std::remove_if(fields.begin(),fields.end(),[&](const auto& field){
+            if(field.first==0){selected=field.second=="MATERIAL";return false;}
+            return selected&&field.first==(kind==0u?465:kind==1u?147:kind==2u?270:271);
+        }),fields.end());
+        // Kinds2/3 retain the other inferred mode and lose its actual boundary.
+        if(kind==2u||kind==3u)fields.erase(std::remove_if(fields.begin(),fields.end(),[](const auto& field){return field.first==465;}),fields.end());
+        if(!write(input,fields,binary,"AC1027"))return fail(__LINE__);
+        if(kind>=4u) {
+            if(binary) {
+                std::ifstream stream(input,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(stream)),{});
+                for(const auto& field:wire(input,true))if(field.code==(kind==4u?460:290)) {
+                    if(kind==4u){const std::uint64_t bits=0x7ff8000000000000ULL;for(unsigned i=0u;i<8u;++i)bytes[field.value+i]=static_cast<char>((bits>>(8u*i))&255u);}
+                    else bytes[field.value]=2;break;
+                }
+                std::ofstream file(input,std::ios::binary|std::ios::trunc);file.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));if(!file)return fail(__LINE__);
+            } else if(!replaceAsciiDxfGroupValue(input,kind==4u?460:290,kind==4u?"nan":"2",0u))return fail(__LINE__);
+        }
+        dx_iface adapter;dx_data data;if(adapter.fileImport(input.string(),&data,false)||!data.materials.empty()||!data.rawMaterialObjects.empty())return fail(__LINE__);++refusals;
+        dx_data corrected;if(!write(input,recipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&corrected,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&corrected,false))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase) {
+        Editing adapter;adapter.phase=phase;dx_data data;if(!write(input,recipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        adapter.change=[&]{data.materials.front().m_normalMapMethod=99;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.materials.front().m_normalMapMethod=7;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(output,binary,true,true,-7,7,.6))return fail(__LINE__);++retries;
+    }
+    std::cout<<"MATERIAL source-order profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; reorderedBase="<<reorderedBase<<'\n';return true;
+}
+bool peer(const std::filesystem::path& path) {
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
+    for(const auto& value:data.materials)if(value.m_name=="PeerSurface") {
+        const bool matched=!value.m_hasLuminance&&!value.m_hasLuminanceMode&&value.m_hasNormalMapMethod&&value.m_normalMapMethod==7
+            &&value.m_hasNormalMapStrength&&value.m_normalMapStrength==.5&&value.m_normalMapFileName=="peer-normal.png"
+            &&value.m_bumpMapProjection==2u&&value.m_bumpMapTiling==3u&&value.m_diffuseMapTransform[15]==115.0
+            &&value.m_bumpMapTransform[15]==915.0&&value.m_refractionMapTransform[15]==1115.0&&value.m_normalMapTransform[15]==215.0
+            &&value.m_hasColorBleedScale&&value.m_colorBleedScale==.6&&value.m_hasIndirectDumpScale&&value.m_indirectDumpScale==.7
+            &&value.m_hasReflectanceScale&&value.m_reflectanceScale==.8&&value.m_hasTransmittanceScale&&value.m_transmittanceScale==.9
+            &&value.m_hasTwoSidedMaterial&&value.m_twoSidedMaterial;
+        if(matched)std::cout<<"Independent MATERIAL producer selected body: PASS\n";return matched;
+    }
+    return false;
+}
+}
+void testMaterialSourceOrder(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-material-source-order-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=materialSourceOrderControls::run(dir);t.expect(passed,"MATERIAL observed source ordering preserves selected body semantics");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MATERIAL source-order evidence: "<<dir<<'\n';
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -35996,6 +36123,12 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--material-normal-boundaries") {
         TestContext context;testMaterialNormalBoundaries(context);return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--material-source-order") {
+        TestContext context;testMaterialSourceOrder(context);return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--material-source-order-probe") {
+        return materialSourceOrderControls::peer(argv[2]) ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--header-material-bindings") {
         TestContext context;testHeaderMaterialBindings(context);return context.failures == 0 ? 0 : 1;

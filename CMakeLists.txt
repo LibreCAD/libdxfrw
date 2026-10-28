@@ -1857,6 +1857,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --material-normal-boundaries)
     set_tests_properties(libdxfrw_material_normal_boundaries PROPERTIES
         LABELS "fast;dxf;adapter;material;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_material_source_order
+        COMMAND libdxfrw_dxf_fixture_tests --material-source-order)
+    set_tests_properties(libdxfrw_material_source_order PROPERTIES
+        LABELS "fast;dxf;reader;adapter;material;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_header_material_bindings
         COMMAND libdxfrw_dxf_fixture_tests --header-material-bindings)
     set_tests_properties(libdxfrw_header_material_bindings PROPERTIES

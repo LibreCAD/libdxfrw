@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5gg MATERIAL alternate normal boundary (2026-10-28; selected modern DXF scope verified):** supplied group 465 now supports represented mode/method edits without group 464. Coherent luminance removal relocates the strength boundary while preserving its unchanged value/spelling. All 22 affected normal/ASan checks pass; independent source/native/schema and full-document gates remain open. [Implementation and remaining work](#implementation-progress-rpp-5gg-material-alternate-normal-boundary-2026-10-28) · [receipt](docs/research/rpp5gg-material-alternate-normal-boundary-2026-10-28.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gh observed MATERIAL source order (2026-10-28; selected scope verified):** pinned ezdxf 1.4.5 independently reproduces normal-method-before-strength input and late physical fields. The reader/reconciler now retain selected values after a complete refraction prefix and an already-bound corresponding bump role. All 23 affected normal/ASan checks and eight independent body probes per configuration pass. Whole-document peer export still refuses the EZDXF_META/DICTIONARYVAR ownership profile; resolve that producer/specification distinction next. [Implementation and remaining work](#implementation-progress-rpp-5gh-observed-material-source-order-2026-10-28) · [receipt](docs/research/rpp5gh-material-observed-source-order-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5gg MATERIAL alternate normal boundary (2026-10-28; selected modern DXF scope verified):** supplied group 465 now supports represented mode/method edits without group 464. Coherent luminance removal relocates the strength boundary while preserving its unchanged value/spelling. All 22 affected normal/ASan checks pass; independent source/native/schema and full-document gates remain open. [Implementation and remaining work](#implementation-progress-rpp-5gg-material-alternate-normal-boundary-2026-10-28) · [receipt](docs/research/rpp5gg-material-alternate-normal-boundary-2026-10-28.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5gf MATERIAL body transactions (2026-10-28; selected modern DXF scope verified):** typed/raw body edits now reconcile against a pinned immutable callback baseline, with full public body freezing, contextual text encoding and planned actual-output proof. All 151 selected normal/ASan checks pass. Independent producer/native MATERIAL evidence, broader schema variants, complete document ownership and platform qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gf-material-body-transactions-2026-10-28) · [receipt](docs/research/rpp5gf-material-body-transactions-2026-10-28.json). No support gate is promoted.
 
@@ -135475,3 +135477,101 @@ outputEligible=false; the complete MATERIAL/rendering/native/document objective
 remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and
 nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel
 and native Linux GCC release remain **NOT_RUN**. The full goal stays active.
+
+
+## Implementation progress — RPP-5gh observed MATERIAL source order (2026-10-28)
+
+- [x] Reproduce an actual independent producer failure with pinned ezdxf 1.4.5:
+  after sixteen refraction-matrix values, normal method 271 precedes strength 465
+  with luminance 464 absent. The parent treats method 7 as bump tiling and refuses.
+  Generated sources also put unique physical scales and 290 after the normal map,
+  where the previous reader ignored them. Retain the baseline trace and package/
+  runtime source hashes; no peer code or drawing payload is copied into Git.
+- [x] Recognize the selected header after a completed refraction mapper and an
+  already-bound corresponding bump role, without overwriting earlier bump values. Require an actual 464/465 boundary before
+  publishing that inferred header. Keep absent/ambiguous prefix profiles open.
+  Parse unique physical fields before or after the normal map up to the procedural
+  boundary, retaining finite and Boolean guards. Match private source slot roles
+  for reconciliation/output proof. No installed state, callback, DWG parser or
+  byte-layout change is introduced.
+- [x] Pass 64 locally authored version/input/output/presence profiles, unchanged
+  and edited output proofs, 130 owning readbacks, 12 first-record refusals with
+  empty typed/raw callbacks, eight real callback mutations and 20 corrected
+  import/export retries. The malformed-source cases include missing boundaries/
+  refraction evidence and invalid late physical values. Existing body/boundary/
+  budget/rollback/CLI/consumer controls also pass. Two reordered-first-base controls
+  preserve bump roles and edited output/readback. Retain the initially green
+  checkpoint and subsequent review correction separately; only the final corrected
+  sources qualify the checkpoint below.
+- [x] Add [the optional independent generator/probe](tools/qualify_material_source_order.py).
+  It creates all eight drawings locally from scratch, requires pinned ezdxf and
+  an empty output directory, and verifies selected body values through the real
+  C++ reader. Eight original inputs pass normally and eight under ASan. The peer
+  emits its specular method at reused 73; the original default 73=0 control fails.
+  The recipe explicitly selects 1 to isolate this slice; it does not qualify
+  specular-color or complete peer semantics. No global package or library build
+  dependency is added.
+- [x] Verify seven affected strict targets and LibreCAD_3, then 23 affected tests
+  normally (39.06s) and under ASan (36.45s), with
+  matching registrations/counters. The writer-output-property selector passes in
+  both. Freeze all 593 release inputs across builds/archive checks/runtimes.
+  Regenerated gzip/bzip2 archives contain every listed byte, including the optional
+  harness. No extracted-source compile/distcheck, native CAD/kernel, formal ABI/
+  application or controlled RSS/performance run is claimed.
+- [ ] **Whole-document peer export remains refused.** Actual import now passes,
+  but conversion reports `DICTIONARYVAR records require the NOD
+  AcDbVariableDictionary route` (19 nodes, 53 edges, 34 source records).
+  The CLI already requests resolved-owner/NOD validation. The peer owns its two
+  variable records through root `EZDXF_META` dictionary 2D, whereas the normative
+  [DICTIONARYVAR table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm) names ACDBVARIABLEDICTIONARY. Retain this producer/specification distinction,
+  qualify a separate bounded preservation path if justified, and do not bypass the
+  existing graph guard or count this failed attempt as a round trip.
+
+The [receipt](docs/research/rpp5gh-material-observed-source-order-2026-10-28.json)
+records normative [MATERIAL roles](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm),
+the [pinned producer release](https://pypi.org/project/ezdxf/1.4.5/), selected
+original/runtime observations and the separate whole-document failure.
+Reproduce the optional evidence with an isolated Python containing `ezdxf==1.4.5`:
+
+```sh
+/path/to/isolated/python -B tools/qualify_material_source_order.py \
+  --probe build/libdxfrw_dxf_fixture_tests --output-dir /tmp/new-material-peer-run
+```
+
+### Next implementation-ready sequence
+
+1. [ ] **Resolve the peer metadata ownership profile.** The actual NOD is
+   present and selected; two DICTIONARYVAR records belong to `EZDXF_META`, while
+   Autodesk names the standard variable dictionary owner. Research this extension
+   against native/primary evidence and the existing owner/unique-root/alias rules.
+   Define any justified bounded preservation path separately; independently verify
+   emitted root/entry/owner/reference fields, callback/corruption refusals, atomic
+   destinations and corrected retries. Re-run the original full peer document
+   and independent selected semantic readback; retain unqualified native gates.
+2. [ ] **Finish MATERIAL source/schema qualification.** Resolve profiles without
+   the observed complete refraction prefix and already-bound bump role, ambiguous
+   repeated values, remaining boundary omissions, source specular conflicts and represented versus opaque
+   subclass/procedure edits. Obtain independent native producer/renderer evidence;
+   preserve exact unchanged replay and real output/failure/retry verification.
+3. [ ] **Complete common/dependency/document closure.** Finish material/full/face/
+   edge and native LAYER/HEADER/common 348 profiles, IMAGE/reactor/document/control/
+   name/application/XDATA/CEPSNID/CEPSNTYPE roles, arbitrary remaps/collisions and
+   recursive/coupled/full ownership. Supplied transport does not certify original
+   dictionaries or complete emitted documents.
+4. [ ] **Finish rendering and TABLE.** Retain remaining engine/schema/optional/
+   absent/duplicate/alias/extension providers and active/global/environment/
+   background/live-section/sun, independent VIEWPORT shade 4/5 and 335/343/344/91
+   and native dictionary collation. Complete TABLE Values/multiple-content/linked-
+   data ownership, formatting/units/borders and native B2b/B3/C evidence.
+5. [ ] **Finish qualification and continue efficiently.** Keep platform/package/
+   native consumers, formal ABI/application, controlled RSS/performance, native
+   Linux GCC release, Linux/Windows FreeCAD and independent ACIS/ACDS semantic/
+   kernel work open. Reuse configured targets and fast owning checks; broaden for
+   actual risks/failures. Freeze inputs, retain failures, self-unblock and update/
+   commit/report each verified slice without external drawing payloads in Git.
+
+Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger stays
+**CLOSED**. Full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and
+nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel
+and native Linux GCC release remain **NOT_RUN**. The full goal remains active.

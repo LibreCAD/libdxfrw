@@ -13744,7 +13744,7 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 461:
     case 462:
     case 463: {
-        if (m_dxfPastPreNormalMapFields)
+        if (m_dxfMaterialGenProcTableStarted)
             break;
         const double value = reader->getDouble();
         if (!std::isfinite(value))
@@ -13765,7 +13765,7 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     }
     case 290: {
-        if (m_dxfPastPreNormalMapFields)
+        if (m_dxfMaterialGenProcTableStarted)
             break;
         int value = 0;
         if (!readDxfIntInRange(reader, 0, 1, value))
@@ -14061,7 +14061,18 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 274:
     case 275:
     case 276: {
-        if (m_dxfPastPreNormalMapFields
+        // Some producers omit luminance and put the normal header before
+        // strength. A complete refraction matrix closes the last base mapper
+        // in that profile, with the corresponding bump role already bound.
+        // Otherwise a reordered first bump field still belongs to that mapper.
+        // Keep other layouts ambiguous, and require an actual boundary before
+        // publication in processMaterial(). Procedural values remain separate.
+        const bool normalHeader = !m_dxfMaterialGenProcTableStarted
+            && m_hasRefractionMapTransform
+            && m_dxfRefractionMapTransformCount == m_refractionMapTransform.size()
+            && ((code == 270 && m_hasBumpMapProjection)
+                || (code == 271 && m_hasBumpMapTiling));
+        if ((m_dxfPastPreNormalMapFields || normalHeader)
             && (code == 270 || code == 271 || code == 272 || code == 273)) {
             if (m_dxfMaterialGenProcTableStarted
                 && (!m_dxfMaterialGenProcTableEnded || code != 270))
