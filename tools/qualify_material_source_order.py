@@ -10,7 +10,8 @@ Optional SCALE checks use authored generic tags and independent projections;
 ezdxf has no typed annotation-scale implementation for this profile.
 Optional MLINESTYLE checks use its typed producer/parser for descriptions and
 unchanged field/element tuples, plus selected name/LTYPE text transcoding;
-actual MLINE rendering remains unqualified.
+selected element ACI edits reuse the dictionary-authority source profiles.
+Actual MLINE rendering remains unqualified.
 All drawings are created from scratch in the requested empty output directory.
 """
 import argparse
@@ -37,6 +38,7 @@ PEER_MLINE_STYLE_EDIT = r"edited peer café^A\U+1234"
 PEER_MLINE_STYLE_SCALAR_EDIT = {"flags": 273, "fillColor": 6,
                                 "startAngle": 22.5, "endAngle": 157.5,
                                 "description": PEER_MLINE_STYLE_EDIT}
+PEER_MLINE_STYLE_ELEMENT_ACI_EDIT = (0, 256)
 
 
 def selected_physical_records(path, binary):
@@ -869,8 +871,8 @@ def qualify_mline_style_text_boundaries(ezdxf, probe, converter, output):
 
 
 def qualify_mline_style_key_authority(ezdxf, probe, converter, output):
-    """Author real MLINE geometry, then distinct redundant names before save."""
-    inputs, round_trips, edits = [], [], []
+    """Reuse real MLINE sources for independent dictionary-key and ACI edits."""
+    inputs, round_trips, edits, aci_edits = [], [], [], []
     for fmt in ("asc", "bin"):
         doc, style, _, null_bindings, omitted = author_mline_style_profile(
             ezdxf, "R2013", "utf-8", "Dictionary authority boundary")
@@ -935,7 +937,21 @@ def qualify_mline_style_key_authority(ezdxf, probe, converter, output):
             row["redundantNamesAndGeometryPreserved"] = row["matched"]
         round_trips.extend(unchanged)
         edits.extend(edited)
-    return inputs, round_trips, edits
+        aci_expected = {key: dict(value) for key, value in expected.items()}
+        elements = expected[PEER_MLINE_STYLE_NAME]["elements"]
+        assert len(elements) == len(PEER_MLINE_STYLE_ELEMENT_ACI_EDIT), "selected ACI element census"
+        aci_expected[PEER_MLINE_STYLE_NAME]["elements"] = [
+            (offset, color, linetype)
+            for (offset, _, linetype), color in zip(elements, PEER_MLINE_STYLE_ELEMENT_ACI_EDIT)]
+        _, edited_aci = selected_resource_outputs(
+            ezdxf, probe, converter, source, "R2013", "utf-8", fmt, original,
+            "--mline-style-aci-probe", projection, expected, aci_expected,
+            modes=(True,), edit_prefix="element-aci-edit-")
+        for row in edited_aci:
+            row["dictionaryAuthoritySourceReused"] = True
+            row["onlyElementAciChanged"] = row["matched"]
+        aci_edits.extend(edited_aci)
+    return inputs, round_trips, edits, aci_edits
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -1146,6 +1162,7 @@ def main():
     mline_boundary_inputs, mline_boundary_round_trips, mline_boundary_edits, mline_scalar_edits = [], [], [], []
     mline_text_inputs, mline_text_round_trips, mline_text_transcodes = [], [], []
     mline_key_inputs, mline_key_round_trips, mline_key_edits = [], [], []
+    mline_element_aci_edits = []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
@@ -1154,7 +1171,8 @@ def main():
             ezdxf, probe, converter, output)
         mline_text_inputs, mline_text_round_trips, mline_text_transcodes = qualify_mline_style_text_boundaries(
             ezdxf, probe, converter, output)
-        mline_key_inputs, mline_key_round_trips, mline_key_edits = qualify_mline_style_key_authority(
+        (mline_key_inputs, mline_key_round_trips, mline_key_edits,
+         mline_element_aci_edits) = qualify_mline_style_key_authority(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -1224,6 +1242,8 @@ def main():
         "mlineStyleKeyRoundTripsMatched": sum(row["matched"] for row in mline_key_round_trips),
         "mlineStyleKeyEdits": mline_key_edits,
         "mlineStyleKeyEditsMatched": sum(row["matched"] for row in mline_key_edits),
+        "mlineStyleElementAciEdits": mline_element_aci_edits,
+        "mlineStyleElementAciEditsMatched": sum(row["matched"] for row in mline_element_aci_edits),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -1253,6 +1273,18 @@ def main():
                 "projection": "Independent physical dictionary/body/340/self/BLOCK_RECORD control/owner/frame joins, every MLINE scalar/vector/line/fill tuple; typed ordinary read with authoritative handle identity separately; no geometry regeneration or explicit audit/recovery",
                 "rename": "Dictionary key only; redundant group-2 values and geometry remain their original values",
                 "nativeMlineRenderingQualified": False, "wholeDocumentClosureQualified": False,
+            },
+            "elementAciScope": {
+                "reusedSourceLane": "mlineStyleKeyInputs", "reusedSources": 2,
+                "additionalSourcesGenerated": 0, "additionalUnchangedCliRuns": 0,
+                "sourceVersionsFormats": ["AC1027/UTF-8/ASCII", "AC1027/UTF-8/Binary"],
+                "editOutputs": 4, "probe": "--mline-style-aci-probe input output asc|bin",
+                "editedDictionaryKey": PEER_MLINE_STYLE_NAME,
+                "editedElementColors": PEER_MLINE_STYLE_ELEMENT_ACI_EDIT,
+                "projection": "Reuse frozen pre-setup physical and ordinary typed style/consumer projections; change only the two ordered element ACI values, preserving all other style fields, offsets, LTYPE names, dictionary/body/consumer names, owners, 340 targets and complete MLINE geometry",
+                "noSourcePostMutationOrGeometryRegeneration": True,
+                "nativeByBlockByLayerSemanticsQualified": False,
+                "otherVersionOrCmcProfilesQualified": False,
             },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -1310,6 +1342,8 @@ def main():
             report["mlineStyleKeyInputsMatched"], len(mline_key_inputs),
             report["mlineStyleKeyRoundTripsMatched"], len(mline_key_round_trips),
             report["mlineStyleKeyEditsMatched"], len(mline_key_edits)))
+        print("Independent MLINESTYLE element ACI edits on reused authority sources: %d/%d" % (
+            report["mlineStyleElementAciEditsMatched"], len(mline_element_aci_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
@@ -1317,7 +1351,7 @@ def main():
         + mline_boundary_inputs + mline_boundary_round_trips + mline_boundary_edits
         + mline_scalar_edits + mline_text_inputs + mline_text_round_trips
         + mline_text_transcodes + mline_key_inputs + mline_key_round_trips
-        + mline_key_edits) else 1
+        + mline_key_edits + mline_element_aci_edits) else 1
 
 
 if __name__ == "__main__":

@@ -15977,9 +15977,10 @@ bool mlineFlagBitsEqual(int a,int b) noexcept {
         && static_cast<std::uint16_t>(a)==static_cast<std::uint16_t>(b);
 }
 using MlineSlots=std::array<std::size_t,5>;
+using MlineElementSlots=std::array<std::size_t,UINT8_MAX>;
 constexpr std::array<int,5> mlineScalarCodes{{70,3,62,51,52}};
 bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
-        bool description=true,bool scalars=true,bool flagBits=false) noexcept {
+        bool description=true,bool scalars=true,bool flagBits=false,bool elementAci=true) noexcept {
     if (a.name!=b.name || (description && a.description!=b.description)
         || (scalars && (!(flagBits ? mlineFlagBitsEqual(a.flags,b.flags) : a.flags==b.flags)
             || !retainedDoubleEqual(a.startAngle,b.startAngle) || !retainedDoubleEqual(a.endAngle,b.endAngle)
@@ -15989,7 +15990,7 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
         || a.fillColorDwgIndex!=b.fillColorDwgIndex || a.elements.size()!=b.elements.size()) return false;
     for (std::size_t i=0u;i<a.elements.size();++i) {
         const auto& x=a.elements[i];const auto& y=b.elements[i];
-        if (!retainedDoubleEqual(x.offset,y.offset) || x.color!=y.color || x.color24!=y.color24
+        if (!retainedDoubleEqual(x.offset,y.offset) || (elementAci && x.color!=y.color) || x.color24!=y.color24
             || x.colorMethod!=y.colorMethod || x.colorFlags!=y.colorFlags
             || x.colorName!=y.colorName || x.colorBookName!=y.colorBookName
             || x.colorDwgIndex!=y.colorDwgIndex || x.linetype!=y.linetype
@@ -16002,9 +16003,10 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
 // follow elements; repeated62 belongs to fill before49, then to each element.
 bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
         MlineSlots& slots,std::size_t& insertion,
-        std::vector<std::size_t>* textSlots=nullptr) {
+        std::vector<std::size_t>* textSlots=nullptr,MlineElementSlots* elementColors=nullptr) {
     slots.fill(noScaleSlot);insertion=raw.groups.size();
     if (textSlots) textSlots->clear();
+    if (elementColors) elementColors->fill(noScaleSlot);
     selected.m_version=raw.m_version; selected.hasRawValues=raw.hasRawValues;
     unsigned depth=0u,markers=0u,elements=0u;
     bool body=false,xdata=false,elementTextSeen=false;std::set<int> headers;
@@ -16050,6 +16052,11 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
         if (code==6) {
             if (elements==0u || elementTextSeen) return false;
             elementTextSeen=true;
+        }
+        if (elementColors && code==62 && elements!=0u) {
+            auto& slot=(*elementColors)[elements-1u];
+            if (slot!=noScaleSlot) return false;
+            slot=i;
         }
         if (textSlots && (code==2 || code==6)) textSlots->push_back(i);
         selected.groups.push_back(field);
@@ -16247,10 +16254,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             if (!decodeMlineBody(context,context,original,oldSlots,oldInsertion)
                 || !decodeMlineBody(raw,context,parsed,slots,insertion,&textSlots)
                 || !standardDwgCommonEqual(value,parsed,version,false)
-                || !mlineFieldsEqual(value,original,false,false) || parsed.name!=original.name) return false;
-            // The current slice has no renamed dictionary or LTYPE provider.
-            // Keep their reference meanings unchanged while other raw fields
-            // remain authoritative and receive exact output transport proof.
+                || !mlineFieldsEqual(value,original,false,false,false,false) || parsed.name!=original.name) return false;
+            // LTYPE edits require their own provider proof. Keep those reference
+            // meanings unchanged while reconciling the represented ACI fields.
             if (parsed.elements.size()==original.elements.size()) {
                 for (std::size_t i=0u;i<parsed.elements.size();++i)
                     if (parsed.elements[i].linetype!=original.elements[i].linetype
@@ -16309,6 +16315,12 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || !choose(original.endAngle,value.endAngle,parsed.endAngle,target.endAngle,retainedDoubleEqual)
                 || target.fillColor<0 || target.fillColor>256
                 || !std::isfinite(target.startAngle) || !std::isfinite(target.endAngle)) return false;
+            for (std::size_t i=0u;i<target.elements.size();++i) {
+                const int old=original.elements[i].color,typedColor=value.elements[i].color,rawColor=parsed.elements[i].color;
+                const bool edited=typedColor!=old || rawColor!=old;
+                if (!choose(old,typedColor,rawColor,target.elements[i].color,[](int a,int b){return a==b;})
+                    || (edited && (target.elements[i].color<0 || target.elements[i].color>256))) return false;
+            }
             source.raw=raw;source.output=raw;source.baseline=baseline->second;
             for (std::size_t i=0u;i<parsed.elements.size();++i)
                 source.geometryChanged=source.geometryChanged || !retainedDoubleEqual(parsed.elements[i].offset,original.elements[i].offset);
@@ -16363,8 +16375,14 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             // Scalar insertion can move a late header or every element. Bind
             // semantic edits to the final owning indices, never all groups
             // with the same code in application/extension payloads.
-            DRW_RawDxfObject selected;MlineSlots finalSlots;std::size_t finalInsertion=0u;
-            if (!mlineBodyFields(source.output,selected,finalSlots,finalInsertion,&textSlots)) return false;
+            DRW_RawDxfObject selected;MlineSlots finalSlots;MlineElementSlots elementColors;std::size_t finalInsertion=0u;
+            if (!mlineBodyFields(source.output,selected,finalSlots,finalInsertion,&textSlots,&elementColors)) return false;
+            for (std::size_t i=0u;i<target.elements.size();++i) {
+                if (elementColors[i]==noScaleSlot) return false;
+                if (target.elements[i].color!=parsed.elements[i].color
+                    && (!encoded.writeInt16(62,target.elements[i].color)
+                        || !replace(elementColors[i],encoded.groups.back()))) return false;
+            }
             const auto transcode=[&](std::size_t index,const UTF8STRING& semantic,bool changed) {
                 const auto& field=source.output.groups[index];
                 if (field.type()!=DRW_Variant::STRING || !field.content.s) return false;

@@ -28926,6 +28926,7 @@ using A=DxIfaceMaterialReferenceTestAccess;
 const std::string initialDescription="source description café^A\\U+1234";
 const std::string editedDescription="edited description café^A\\U+1234";
 struct Scalars {int flags=0,fill=256;double start=90.0,end=90.0;};
+using AciColors=std::array<int,2>;
 void setScalars(dx_data& data,const Scalars& value) {
     auto& style=data.mLineStyles.front();style.flags=value.flags;style.fillColor=value.fill;style.startAngle=value.start;style.endAngle=value.end;
 }
@@ -28959,16 +28960,48 @@ void rawValue(dx_data& data,int code,const std::string& text,bool binary,const s
     }
     throw std::runtime_error("MLINESTYLE raw role missing");
 }
-bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256) {
-    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.mLineStyles.size()!=1u)return false;
+std::vector<std::size_t> elementColorSlots(const DRW_RawDxfObject& record) {
+    std::vector<std::size_t> result;unsigned depth=0u,elements=0u;bool body=false;
+    for(std::size_t i=0u;i<record.groups.size();++i) {
+        const auto& field=record.groups[i];const auto code=field.code();
+        if(code==102){if(field.type()!=DRW_Variant::STRING||!field.content.s)throw std::runtime_error("ACI application marker");
+            if(*field.content.s=="}"){if(!depth)throw std::runtime_error("ACI application depth");--depth;}else ++depth;continue;}
+        if(depth)continue;
+        if(code==100){body=field.type()==DRW_Variant::STRING&&field.content.s&&*field.content.s=="AcDbMlineStyle";continue;}
+        if(!body)continue;if(code==49)++elements;
+        if(code==62&&elements){if(result.size()!=elements-1u)throw std::runtime_error("ACI tuple color count");result.push_back(i);}
+    }
+    if(depth||result.size()!=elements)throw std::runtime_error("ACI tuple color scope");return result;
+}
+void rawElementColor(dx_data& data,std::size_t element,int color) {
+    auto& record=raw(data);const auto slots=elementColorSlots(record);if(element>=slots.size())throw std::runtime_error("ACI element missing");
+    record.groups[slots[element]]=DRW_Variant(62,std::int32_t(color));if(record.hasRawValues)record.rawValues[slots[element]]=std::to_string(color);
+}
+bool aciRawUnchanged(const DRW_RawDxfObject& a,const DRW_RawDxfObject& b) {
+    if(a.name!=b.name||a.handle!=b.handle||a.parentHandle!=b.parentHandle||a.m_version!=b.m_version
+        ||a.hasRawValues!=b.hasRawValues||a.rawValues!=b.rawValues||a.groups.size()!=b.groups.size())return false;
+    for(std::size_t i=0u;i<a.groups.size();++i) {
+        const auto& x=a.groups[i];const auto& y=b.groups[i];if(x.code()!=y.code()||x.type()!=y.type())return false;
+        if(x.type()==DRW_Variant::STRING){if(!x.content.s||!y.content.s||*x.content.s!=*y.content.s)return false;}
+        else if(x.type()==DRW_Variant::INTEGER){if(x.i_val()!=y.i_val())return false;}
+        else if(x.type()==DRW_Variant::DOUBLE){if(x.d_val()!=y.d_val()||std::signbit(x.d_val())!=std::signbit(y.d_val()))return false;}
+        else return false;
+    }
+    return true;
+}
+bool modelValues(const dx_data& data,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}}) {
+    if(data.mLineStyles.size()!=1u)return false;
     const auto& value=data.mLineStyles.front();
     return value.name=="BODY_STYLE"&&value.description==description&&static_cast<std::uint16_t>(value.flags)==static_cast<std::uint16_t>(flags)&&value.fillColor==fill
         &&value.startAngle==start&&value.endAngle==end
         &&std::signbit(value.startAngle)==std::signbit(start)&&std::signbit(value.endAngle)==std::signbit(end)&&value.elements.size()==2u
-        &&value.elements[0].offset==firstOffset&&value.elements[0].color==1&&value.elements[0].linetype=="ByLayer"
-        &&value.elements[1].offset==-.25&&value.elements[1].color==3&&value.elements[1].linetype=="Continuous";
+        &&value.elements[0].offset==firstOffset&&value.elements[0].color==colors[0]&&value.elements[0].linetype=="ByLayer"
+        &&value.elements[1].offset==-.25&&value.elements[1].color==colors[1]&&value.elements[1].linetype=="Continuous";
 }
-bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5,double end=90.0,int flags=0,int fill=256,unsigned scalarMask=15u) {
+bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}}) {
+    dx_iface reader;dx_data data;return reader.fileImport(path.string(),&data,false)&&modelValues(data,description,start,end,firstOffset,flags,fill,colors);
+}
+bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5,double end=90.0,int flags=0,int fill=256,unsigned scalarMask=15u,const AciColors& colors=AciColors{{1,3}}) {
     using Row=customDictionaryVarControls::Row;std::vector<Row> rows;
     for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
         if(field.first==0){rows.push_back({field.second,{},{},{}});continue;}
@@ -28990,9 +29023,32 @@ bool proof(const std::filesystem::path& path,bool binary,const std::string& vers
         &&(!(scalarMask&1u)||(std::stoll(fields[70].front())>=-32768&&std::stoll(fields[70].front())<=65535
             &&static_cast<std::uint16_t>(std::stoll(fields[70].front()))==static_cast<std::uint16_t>(flags)));
     return fields[2]==std::vector<std::string>{"BODY_STYLE"}&&fields[3]==(descriptionPresent?std::vector<std::string>{materialBodyControls::encodedText(description,version,binary,"ANSI_1252")}:std::vector<std::string>{})
-        &&flagMatched&&nums(62,(scalarMask&2u)?std::vector<double>{double(fill),1,3}:std::vector<double>{1,3})
+        &&flagMatched&&nums(62,(scalarMask&2u)?std::vector<double>{double(fill),double(colors[0]),double(colors[1])}:std::vector<double>{double(colors[0]),double(colors[1])})
         &&nums(51,(angles&&(scalarMask&4u))?std::vector<double>{start}:std::vector<double>{})&&nums(52,(angles&&(scalarMask&8u))?std::vector<double>{end}:std::vector<double>{})
         &&nums(71,{2})&&nums(49,{firstOffset,-.25})&&fields[6]==std::vector<std::string>{"ByLayer","Continuous"}&&fields[301]==std::vector<std::string>{opaque};
+}
+bool aciLiteral(const std::filesystem::path& path,bool binary,const AciColors& colors,int fill=256) {
+    std::vector<std::pair<int,std::string>> selected;bool style=false,body=false;unsigned depth=0u,styles=0u;
+    for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
+        if(field.first==0){style=field.second=="MLINESTYLE";body=false;depth=0u;if(style)++styles;continue;}
+        if(!style)continue;
+        if(field.first==102){if(field.second=="}"){if(!depth)return false;--depth;}else ++depth;continue;}
+        if(depth)continue;if(field.first==100){body=field.second=="AcDbMlineStyle";continue;}
+        if(body&&(field.first==49||field.first==62||field.first==6))selected.push_back(field);
+    }
+    const std::array<int,7> codes{{62,49,62,6,49,62,6}};
+    if(styles!=1u||selected.size()!=codes.size())return false;
+    for(std::size_t i=0u;i<codes.size();++i)if(selected[i].first!=codes[i])return false;
+    std::int64_t a=0,b=0,c=0;
+    return dx_raster_output::integer(selected[0].second,a)&&a==fill
+        &&dx_raster_output::integer(selected[2].second,b)&&b==colors[0]
+        &&dx_raster_output::integer(selected[5].second,c)&&c==colors[1]
+        &&std::stod(selected[1].second)==.5&&std::stod(selected[4].second)==-.25
+        &&selected[3].second=="ByLayer"&&selected[6].second=="Continuous";
+}
+bool aciProof(const std::filesystem::path& path,bool binary,const AciColors& colors,const std::string& description=initialDescription,int fill=256) {
+    return proof(path,binary,"AC1027",description,true,90,true,"opaque-mline-tail",.5,90,0,fill,15u,colors)
+        &&values(path,description,90,90,.5,0,fill,colors)&&aciLiteral(path,binary,colors,fill);
 }
 bool scalarProof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,const Scalars& wanted,unsigned mask=15u) {
     return proof(path,binary,version,description,true,wanted.start,true,"opaque-mline-tail",.5,wanted.end,wanted.flags,wanted.fill,mask)
@@ -29088,6 +29144,66 @@ bool textPeer(const std::filesystem::path& input,const std::filesystem::path& ou
     return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
         dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
 }
+bool aciPeer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;DRW_MLineStyle* selected=nullptr;
+    for(const auto& dictionary:data.dictionaries)for(const auto& entry:dictionary.m_entries)if(entry.m_name=="PeerMline")
+        for(auto& style:data.mLineStyles)if(style.handle==entry.m_handle&&style.parentHandle==dictionary.handle) {
+            if(selected)return false;selected=&style;
+        }
+    if(!selected||selected->elements.size()!=2u)return false;selected->elements[0].color=0;selected->elements[1].color=256;
+    return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+Tags aciScopedRecipe(bool binary) {
+    auto fields=recipe("AC1027",binary);const auto where=std::find(fields.begin(),fields.end(),std::make_pair(49,std::string("0.5")));
+    if(where==fields.end())throw std::runtime_error("ACI offset witness missing");
+    fields.insert(where+1,{{102,"{ACI_META"},{62,"-300"},{102,"}"}});return fields;
+}
+bool aciOpaque(const std::filesystem::path& path,bool binary) {
+    const auto fields=materialBodyControls::physicalTags(path,binary);unsigned groups=0u,tails=0u;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(301,std::string("opaque-mline-tail")))++tails;
+        if(fields[i]==std::make_pair(102,std::string("{ACI_META"))) {
+            std::int64_t value=0;
+            if(i+2u>=fields.size()||fields[i+1u].first!=62||!dx_raster_output::integer(fields[i+1u].second,value)
+                ||value!=-300||fields[i+2u]!=std::make_pair(102,std::string("}")))return false;++groups;
+        }
+    }
+    return groups==1u&&tails==1u;
+}
+struct AciReplay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u;
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==0&&fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::mlineStylesReplay(*this,view))return false;bool selected=false,owning=false;unsigned depth=0u,element=0u;
+        for(const auto& field:fields) {
+            if(field.code==0){selected=field.text=="MLINESTYLE";owning=false;depth=0u;element=0u;continue;}
+            if(!selected||field.begin<begin||field.begin>=end)continue;
+            if(field.code==102){if(field.text=="}"){if(!depth)return false;--depth;}else ++depth;continue;}
+            if(depth)continue;if(field.code==100){owning=field.text=="AcDbMlineStyle";continue;}
+            if(!owning)continue;if(field.code==49)++element;
+            if(field.code!=62||!element)continue;if(element>2u)return false;
+            auto changed=body;auto at=field.value-begin;const int color=element==1u?1:255;
+            if(binary) {
+                if(field.end<field.value||field.end-field.value!=2u)return false;
+                changed.at(at)=static_cast<char>(color&255);changed.at(at+1u)=static_cast<char>((color>>8)&255);
+            } else {
+                while(changed.at(at)==' '||changed.at(at)=='\t')++at;
+                const auto stop=changed.find('\n',at);if(stop==std::string::npos)return false;
+                changed.replace(at,stop-at,std::to_string(color));
+            }
+            auto bad=view;bad.bytes=changed;
+            if(A::mlineStylesReplay(*this,bad)||!A::mlineStylesReplay(*this,view))return false;++corruptions;
+        }
+        return corruptions==2u&&dx_iface::finalizeDxfWrite();
+    }
+};
 struct Replay:dx_iface {
     std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
     bool finalizeDxfWrite()override {
@@ -29133,7 +29249,132 @@ bool run(const std::filesystem::path& dir) {
     const auto input=dir/"input.dxf",output=dir/"output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,presence=0u,prepFaults=0u,lengthRefusals=0u,lengthBoundaries=0u,unsupported=0u,scopeControls=0u,encodingRefusals=0u,corruptions=0u,geometryGuards=0u,scalarReadbacks=0u,scalarConflicts=0u,scalarPresence=0u,invalidScalars=0u,signedZeros=0u;
     std::size_t textProfiles=0u,textReadbacks=0u,textInsertions=0u,textCallbacks=0u,textShadows=0u,textSpellings=0u,textAppScopes=0u,textLateNames=0u;
+    std::size_t aciProfiles=0u,aciReadbacks=0u,aciConflicts=0u,aciInvalid=0u,aciCallbacks=0u,aciInsertions=0u,aciScopes=0u,aciTransports=0u,aciCorruptions=0u,aciBoundary=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe("AC1027",sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.mLineStyles=typed;data.rawNamedResourceObjects=raws;};
+        const auto check=[&](const AciColors& wanted) {
+            const AciColors caller{{data.mLineStyles.front().elements[0].color,data.mLineStyles.front().elements[1].color}};
+            const auto before=raw(data);
+            const bool good=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                &&aciProof(output,binary,wanted)&&modelValues(data,initialDescription,90,90,.5,0,256,caller)
+                &&aciRawUnchanged(before,raw(data));
+            if(good){++readbacks;++aciReadbacks;}return good;
+        };
+        for(unsigned element=0u;element<2u;++element) {
+            reset();AciColors wanted{{1,3}};wanted[element]=5+static_cast<int>(element);
+            data.mLineStyles.front().elements[element].color=wanted[element];if(!check(wanted))return fail(__LINE__);
+            reset();wanted={{1,3}};wanted[element]=7+static_cast<int>(element);rawElementColor(data,element,wanted[element]);
+            if(!check(wanted))return fail(__LINE__);
+            reset();wanted={{1,3}};wanted[element]=9+static_cast<int>(element);rawElementColor(data,element,wanted[element]);
+            data.mLineStyles.front().elements[element].color=wanted[element];if(!check(wanted))return fail(__LINE__);
+        }
+        reset();data.mLineStyles.front().elements[0].color=5;rawElementColor(data,1u,6);if(!check({{5,6}}))return fail(__LINE__);
+        reset();data.mLineStyles.front().elements[0].color=0;data.mLineStyles.front().elements[1].color=256;
+        if(!check({{0,256}}))return fail(__LINE__);
+        reset();rawElementColor(data,0u,256);rawElementColor(data,1u,0);if(!check({{256,0}}))return fail(__LINE__);
+        for(unsigned element=0u;element<2u;++element) {
+            reset();data.mLineStyles.front().elements[element].color=5;rawElementColor(data,element,6);
+            const auto before=raw(data);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!aciRawUnchanged(before,raw(data))
+                ||data.mLineStyles.front().elements[element].color!=5)return fail(__LINE__);++aciConflicts;++refusals;
+            data.mLineStyles.front().elements[element].color=6;AciColors wanted{{1,3}};wanted[element]=6;
+            if(!check(wanted))return fail(__LINE__);++retries;
+        }
+        for(unsigned element=0u;element<2u;++element)for(int invalid:{-1,257})for(bool rawEdit:{false,true}) {
+            reset();if(rawEdit)rawElementColor(data,element,invalid);else data.mLineStyles.front().elements[element].color=invalid;
+            const AciColors caller{{data.mLineStyles.front().elements[0].color,data.mLineStyles.front().elements[1].color}};
+            const auto before=raw(data);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!aciRawUnchanged(before,raw(data))
+                ||!modelValues(data,initialDescription,90,90,.5,0,256,caller))return fail(__LINE__);++aciInvalid;++refusals;
+            reset();if(!check({{1,3}}))return fail(__LINE__);++retries;
+        }
+        ++aciProfiles;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned element=0u;element<2u;++element)for(bool rawEdit:{false,true}) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe("AC1027",binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].color=0;rawElementColor(data,1u,256);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        adapter.change=[&]{if(rawEdit)rawElementColor(data,element,11);else data.mLineStyles.front().elements[element].color=12;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++aciCallbacks;
+        adapter.active=false;data.mLineStyles=typed;data.rawNamedResourceObjects=raws;const auto before=raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{0,256}})
+            ||!modelValues(data,initialDescription,90,90,.5,0,256,{{0,3}})||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        ++readbacks;++aciReadbacks;++retries;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe("AC1027",sourceBinary,true,true,13u),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().fillColor=6;data.mLineStyles.front().elements[0].color=0;rawElementColor(data,1u,256);
+        data.mLineStyles.front().description=editedDescription;const auto before=raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{0,256}},editedDescription,6)
+            ||!modelValues(data,editedDescription,90,90,.5,0,6,{{0,3}})||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        ++readbacks;++aciReadbacks;++aciInsertions;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,aciScopedRecipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].color=0;rawElementColor(data,1u,256);const auto before=raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciLiteral(output,binary,{{0,256}})
+            ||!values(output,initialDescription,90,90,.5,0,256,{{0,256}})||!aciOpaque(output,binary)
+            ||!modelValues(data,initialDescription,90,90,.5,0,256,{{0,3}})||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        ++readbacks;++aciReadbacks;++aciScopes;
+        AciReplay replay;replay.binary=binary;replay.previous=dir/(binary?"aci-proof-bin.dxf":"aci-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!aciLiteral(output,binary,{{0,256}})||!values(output,initialDescription,90,90,.5,0,256,{{0,256}})
+            ||!aciOpaque(output,binary)||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        aciCorruptions+=replay.corruptions;++readbacks;++aciReadbacks;
+    }
+    for(bool binary:{false,true})for(int transported:{-1,257}) {
+        auto fields=recipe("AC1027",binary);bool style=false,first=false;unsigned offsets=0u;
+        for(auto& field:fields) {
+            if(field.first==0)style=field.second=="MLINESTYLE";
+            if(style&&field.first==49)++offsets;
+            if(style&&offsets==1u&&field.first==62){field.second=std::to_string(transported);first=true;}
+        }
+        if(!first)return fail(__LINE__);dx_iface adapter;dx_data data;
+        if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto before=raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{transported,3}})
+            ||!modelValues(data,initialDescription,90,90,.5,0,256,{{transported,3}})||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        ++readbacks;++aciReadbacks;data.mLineStyles.front().elements[0].color=5;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{5,3}})
+            ||!modelValues(data,initialDescription,90,90,.5,0,256,{{5,3}})||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        ++readbacks;++aciReadbacks;++aciTransports;
+    }
+    {
+        auto fields=recipe("AC1027",false);const auto count=std::find(fields.begin(),fields.end(),std::make_pair(71,std::string("2")));
+        const auto tail=std::find(fields.begin(),fields.end(),std::make_pair(301,std::string("opaque-mline-tail")));
+        if(count==fields.end()||tail==fields.end()||tail<=count)return fail(__LINE__);
+        const auto at=static_cast<std::size_t>(count-fields.begin());fields.erase(count+1,tail);fields[at].second="255";Tags tuples;
+        for(unsigned i=0u;i<255u;++i)tuples.insert(tuples.end(),{{49,std::to_string(double(i)/16.0)},
+            {62,i==254u?"3":"1"},{6,i==254u?"Continuous":"ByLayer"}});
+        fields.insert(fields.begin()+at+1u,tuples.begin(),tuples.end());dx_iface adapter;dx_data data;
+        if(!write(input,fields,false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=255u)return fail(__LINE__);
+        data.mLineStyles.front().elements.back().color=256;const auto before=raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)||!aciRawUnchanged(before,raw(data)))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.mLineStyles.size()!=1u)return fail(__LINE__);
+        const auto& value=actual.mLineStyles.front();
+        if(value.fillColor!=256||value.elements.size()!=255u||data.mLineStyles.front().elements.back().color!=256)return fail(__LINE__);
+        for(unsigned i=0u;i<255u;++i)if(value.elements[i].offset!=double(i)/16.0
+            ||value.elements[i].color!=(i==254u?256:1)||value.elements[i].linetype!=(i==254u?"Continuous":"ByLayer"))return fail(__LINE__);
+        unsigned colors=0u;bool selected=false;
+        for(const auto& field:materialBodyControls::physicalTags(output,false)) {
+            if(field.first==0)selected=field.second=="MLINESTYLE";
+            if(selected&&field.first==62){std::int64_t color=0;
+                if(!dx_raster_output::integer(field.second,color)||color!=((colors==0u||colors==255u)?256:1))return fail(__LINE__);++colors;}
+        }
+        if(colors!=256u)return fail(__LINE__);++readbacks;++aciReadbacks;++aciBoundary;
+    }
     for(const std::string version:{"AC1015","AC1027"})for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         const auto v=version=="AC1015"?DRW::AC1015:DRW::AC1027;dx_iface adapter;dx_data data;
         if(!write(input,recipe(version,sourceBinary),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u)return fail(__LINE__);
@@ -29195,7 +29436,12 @@ bool run(const std::filesystem::path& dir) {
         if(kind==10u)value.elements.front().color24=0x123456;if(kind==11u)value.elements.front().linetypeHandle=0xEA09u;
         if(kind==12u)value.elements.push_back(value.elements.front());if(kind==13u)value.elements.erase(value.elements.begin());
         if(kind==14u)value.parentHandle=0xEA08u;
-        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++unsupported;
+        if(kind==8u) {
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{5,3}}))return fail(__LINE__);
+            ++readbacks;++aciReadbacks;
+        } else {
+            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++unsupported;
+        }
         data.mLineStyles=typed;data.rawNamedResourceObjects=raws;
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",initialDescription)||!values(output,initialDescription))return fail(__LINE__);++readbacks;++retries;
     }
@@ -29440,9 +29686,14 @@ bool run(const std::filesystem::path& dir) {
         if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++scalarConflicts;
         data.mLineStyles.front().startAngle=-0.0;wanted={0,256,-0.0,90.0};if(!check(wanted))return fail(__LINE__);++signedZeros;++retries;
     }
-    std::cout<<"MLINESTYLE transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; prepFaults="<<prepFaults<<"; lengthRefusals="<<lengthRefusals<<"; lengthBoundaries="<<lengthBoundaries<<"; unsupported="<<unsupported<<"; scopeControls="<<scopeControls<<"; encodingRefusals="<<encodingRefusals<<"; corruptions="<<corruptions<<"; geometryGuards="<<geometryGuards<<"; scalarReadbacks="<<scalarReadbacks<<"; scalarConflicts="<<scalarConflicts<<"; scalarPresence="<<scalarPresence<<"; invalidScalars="<<invalidScalars<<"; signedZeros="<<signedZeros<<"; textProfiles="<<textProfiles<<"; textReadbacks="<<textReadbacks<<"; textInsertions="<<textInsertions<<"; textCallbacks="<<textCallbacks<<"; textShadows="<<textShadows<<"; textSpellings="<<textSpellings<<"; textAppScopes="<<textAppScopes<<"; textLateNames="<<textLateNames<<'\n';
-    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==30u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
-        &&textProfiles==16u&&textReadbacks==48u&&textInsertions==16u&&textCallbacks==32u&&textShadows==4u&&textSpellings==2u&&textAppScopes==4u&&textLateNames==2u;
+    std::cout<<"MLINESTYLE transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; prepFaults="<<prepFaults<<"; lengthRefusals="<<lengthRefusals<<"; lengthBoundaries="<<lengthBoundaries<<"; unsupported="<<unsupported<<"; scopeControls="<<scopeControls<<"; encodingRefusals="<<encodingRefusals<<"; corruptions="<<corruptions<<"; geometryGuards="<<geometryGuards<<"; scalarReadbacks="<<scalarReadbacks<<"; scalarConflicts="<<scalarConflicts<<"; scalarPresence="<<scalarPresence<<"; invalidScalars="<<invalidScalars<<"; signedZeros="<<signedZeros<<"; textProfiles="<<textProfiles<<"; textReadbacks="<<textReadbacks<<"; textInsertions="<<textInsertions<<"; textCallbacks="<<textCallbacks<<"; textShadows="<<textShadows<<"; textSpellings="<<textSpellings<<"; textAppScopes="<<textAppScopes<<"; textLateNames="<<textLateNames
+        <<"; aciProfiles="<<aciProfiles<<"; aciReadbacks="<<aciReadbacks<<"; aciConflicts="<<aciConflicts<<"; aciInvalid="<<aciInvalid
+        <<"; aciCallbacks="<<aciCallbacks<<"; aciInsertions="<<aciInsertions<<"; aciScopes="<<aciScopes<<"; aciTransports="<<aciTransports
+        <<"; aciCorruptions="<<aciCorruptions<<"; aciBoundary="<<aciBoundary<<'\n';
+    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==28u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
+        &&textProfiles==16u&&textReadbacks==48u&&textInsertions==16u&&textCallbacks==32u&&textShadows==4u&&textSpellings==2u&&textAppScopes==4u&&textLateNames==2u
+        &&aciProfiles==4u&&aciReadbacks==127u&&aciConflicts==8u&&aciInvalid==32u&&aciCallbacks==32u&&aciInsertions==4u
+        &&aciScopes==2u&&aciTransports==4u&&aciCorruptions==4u&&aciBoundary==1u;
 }
 }
 void testMLineStyleBodyTransactions(TestContext& t) {
@@ -38168,6 +38419,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-scalar-probe") {
         return mlineStyleBodyTransactionControls::scalarPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 5 && std::string(argv[1]) == "--mline-style-aci-probe") {
+        return mlineStyleBodyTransactionControls::aciPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
     }
     if ((argc == 5 || argc == 6) && std::string(argv[1]) == "--mline-style-text-probe") {
         return mlineStyleBodyTransactionControls::textPeer(argv[2],argv[3],std::string(argv[4])=="bin",
