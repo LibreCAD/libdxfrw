@@ -120,9 +120,10 @@ proof. Refused fields are not implemented editing support.
    Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json),
    [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
    [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
-   and [multi-element append](docs/research/rpp5ht-mline-multi-append-2026-10-28.json)
+   [multi-element append](docs/research/rpp5ht-mline-multi-append-2026-10-28.json)
+   and [selected 4→2 tail removal](docs/research/rpp5hy-mline-unused-two-tail-removal-2026-10-28.json)
    receipts and their original/live ordinary MLINE census. They do not qualify
-   multiple-element removal, simultaneous retained-element edits, 1→0,
+   other multiple-element removals, simultaneous retained-element edits, 1→0,
    consumed geometry, earlier versions, proxy or unknown dependencies. Continue
    to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
