@@ -175,7 +175,8 @@ and broader producer behavior remain unqualified.
    qualifies only isolated typed blend and [projection](docs/research/rpp5ig-material-unmarked-normal-projection-2026-10-28.json)
    edits on that captured source; its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
-   keeps unqualified bodies out of that edit. Treat absent/ambiguous
+   keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
+   refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
    refraction/bump, repeated fields, omitted normal/luminance and represented/
    opaque subclass or procedural variants as later, separately witnessed slices;
    do not multiply the initial matrix by every optional combination.
@@ -262,6 +263,9 @@ The [AC1018 BLOCK endpoint receipt](docs/research/rpp5ih-ac1018-block-endpoint-p
 qualifies selected opt-in begin/end field profiles and replay. Default legacy
 consumers remain opted out; BLOCK_RECORD, original membership, dependencies
 and output remain separate gates.
+The [BLOCK_RECORD observation](docs/research/rpp5ii-ac1018-block-record-observation-2026-10-28.json)
+tests captured-raw replay with the legacy codec but does not qualify the adapter's
+original-source proof or owner graph.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
@@ -333,7 +337,9 @@ qualifies the matching AC1018 modeled write path and selected override compositi
 Polarity remains inferred, the original record remains incomplete, and native
 geometry and complete original output remain open; explicit zero group 177 may
 be omitted. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
-reject excess cell descriptors and bound sparse-grid range allocation. For its `0x4460` top-border profile, distinguish absent
+reject excess cell descriptors and bound sparse-grid range allocation; a
+[writer guard](docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json)
+also refuses unoccupied zero spans it would otherwise normalize. For its `0x4460` top-border profile, distinguish absent
 group 289 from an explicit value before changing output. The paired DWG and DXF
 observations do not yet establish equivalent visibility or common save state.
 Bind original source bodies, nested scopes and referenced resources before actual
