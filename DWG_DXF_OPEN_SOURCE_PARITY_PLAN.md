@@ -41,8 +41,8 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | SELECT WITNESS, THEN IMPLEMENT | Consumed geometry/count, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | One current unsupported operation with original source authority and an explicit actual-output expectation |
-| P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
+| P2 | PROVE CENSUS, THEN IMPLEMENT | Unused MLINESTYLE count change, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Original/live ordinary MLINE census including empty and dropped-consumer cases, then actual-output transaction proof |
+| P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER, THEN IMPLEMENT | P4a: remaining original profile/representation/role evidence; P4b: compose document closure | One current distinguishing witness; embedded equal-value alignment is not implementation-ready |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
@@ -62,14 +62,15 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — classify next original profile | Retained AC1032 ATTDEF `796` / ATTRIB `79D`, alignment collisions and existing source/role/model reports | Establish separate Text/Attribute/MTEXT alignment meanings and representation with a distinguishing source before changing the grammar; otherwise select another witnessed local operation |
-| P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
-| P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
+| P2 — prove unused-style census | Existing count-change refusal, ENTITIES delivery, BLOCKS membership and original physical captures | Bind all ordinary original MLINE targets to live consumers, including zero-live and dropped-record cases, before admitting one-element append |
+| P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
 Select the next local packet from a current exact witness and its missing layer.
 Embedded source-profile classification and independent native meaning remain
 separate and unqualified; selected writer consistency does not establish their
-readiness. P2/P3 still need concrete witnesses;
+readiness. P2 has a witnessed count-change refusal but needs original-consumer
+closure; P3's remaining variants still need concrete witnesses;
 secondary `AcDbXrecord` remains a separate source/meaning search. Reuse existing
 source-bound refusals and projections before authoring another source.
 Gap classification and the next source recipe/projection can run in parallel,
@@ -116,6 +117,12 @@ proof. Refused fields are not implemented editing support.
    redundant group-2 values and refuse unsupported operations atomically. Bind
    consumer arity to the reconciled style that will actually be emitted, including
    raw-only edits; a stale typed count cannot authorize a changed output style.
+   For an unused-style append, first compare every physical ENTITIES and BLOCKS
+   scope with captured delivery/membership and live models, including an empty
+   live set. Refuse omitted original consumers, missing or changed certificates,
+   ambiguous targets and later insertion/removal/retargeting. The live-only scan
+   cannot prove an original consumer was not dropped. Qualify ordinary MLINE
+   references separately from proxy and unknown dependencies.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;
@@ -147,24 +154,22 @@ layouts or angular units.
 
 Reuse the [field-role regression receipt](docs/research/rpp5gq-material-specular-role-regression-2026-10-28.json)
 and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json).
-Correcting the producer's specular group code alone does not resolve its ambiguous
-Normal Map or qualify an earlier adapter route. The [ODA sentinel experiment](docs/research/rpp5ha-material-normal-role-oda-advisory-2026-10-28.json)
+Correcting the producer's specular group code alone does not qualify its remaining
+Normal Map variants or an earlier adapter route. The [ODA sentinel experiment](docs/research/rpp5ha-material-normal-role-oda-advisory-2026-10-28.json)
 used distinct diffuse/normal fields and an explicit-465 positive control; this
 selected conversion lost the diffuse tuple and 465, so it cannot disambiguate the
-omitted-boundary source. Do not repeat the same route without changed evidence;
-find a producer or reader that preserves both roles in the positive control.
+omitted-boundary source. The selected parser fix uses separately authored intent,
+actual output and an independent source-level role comparison; native rendering
+and broader producer behavior remain unqualified.
 
-1. Select one retained source exposing the later reused 42/72/3/73/74/75 Normal
-   Map set without 464/465 or a complete refraction boundary. Bind its physical
-   scope, exact expected role and one owning selector before changing the parser
-   or model. Implement that ambiguity first, retaining exact replay, an adjacent
-   valid-profile control and actual output proof. Treat absent/ambiguous
+1. The [selected omitted-boundary receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
+   covers one unique complete diffuse/refraction tuple followed by a complete
+   normal tuple without 464/465. Treat absent/ambiguous
    refraction/bump, repeated fields, omitted normal/luminance and represented/
    opaque subclass or procedural variants as later, separately witnessed slices;
    do not multiply the initial matrix by every optional combination.
-   Correcting the producer's specular `73` to `76` does not identify its later
-   Normal Map roles; require a distinguishing producer/specification witness
-   before changing those ambiguous roles. Retain unqualified replay otherwise.
+   Further roles require a distinguishing source and actual-output proof; retain
+   unqualified replay otherwise.
 2. Complete remaining original/common/full/face/edge material providers and native
    LAYER/HEADER/common348 profiles. Extend existing planners/inspectors rather
    than reimplementing verified transport binders.
@@ -215,6 +220,9 @@ and caller/refusal behavior protected. If this meaning remains unavailable,
 continue a separately witnessed local operation instead of inventing an alignment
 schema or waiting on native evidence.
 
+The [attribute receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
+covers selected earlier-version subclass alignment and tolerated embedded input.
+AC1032 classic and unknown/late-header role ambiguity remain open.
 The 36 retained attributes supply no secondary `AcDbXrecord` or column-bearing
 embedded MTEXT witness. Those remain separate source/meaning searches. The full
 B2b/B3/C objective remains; selected records or a mutable live container cannot
