@@ -1861,6 +1861,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --material-source-order)
     set_tests_properties(libdxfrw_material_source_order PROPERTIES
         LABELS "fast;dxf;reader;adapter;material;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_scale_body_transactions
+        COMMAND libdxfrw_dxf_fixture_tests --scale-body-transactions)
+    set_tests_properties(libdxfrw_scale_body_transactions PROPERTIES
+        LABELS "fast;dxf;adapter;scale;transaction;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_dictionaryvar_legacy
         COMMAND libdxfrw_dxf_fixture_tests --dictionaryvar-legacy)
     set_tests_properties(libdxfrw_dictionaryvar_legacy PROPERTIES

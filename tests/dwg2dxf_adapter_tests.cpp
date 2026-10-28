@@ -29515,10 +29515,11 @@ bool namedResourceRawCaptureLimitsFailClosed() {
         || captured.rawNamedResourceRetainedBytes != expectedBytes)
         return fail("named-resource raw callback copies were not bounded and accounted");
 
+    // Appended-import raw accounting is separate from first-import body proof.
     dx_data tracked;
     tracked.sourceFormat = dx_source_format::DXF;
-    tracked.importGeneration = 1u;
-    tracked.namedResourceImport.generation = 1u;
+    tracked.importGeneration = 2u;
+    tracked.namedResourceImport.generation = 2u;
     dx_iface trackedIface;
     trackedIface.cData = &tracked;
     trackedIface.addRawDxfObject(rawObjects.front());
@@ -29529,6 +29530,24 @@ bool namedResourceRawCaptureLimitsFailClosed() {
         || tracked.namedResourceImport.retainedBytes
             != retainedBytes(rawObjects.front()))
         return fail("tracked named-resource raw receipt did not match capture");
+
+    // A fabricated public import receipt cannot supply the live source codec
+    // required by the immutable scalar-body baseline. Ordinary untracked raw
+    // callback storage above remains independently supported and accounted.
+    for (std::size_t scalar : {0u, 1u}) {
+        dx_data missingContext;
+        missingContext.sourceFormat = dx_source_format::DXF;
+        missingContext.importGeneration = 1u;
+        missingContext.namedResourceImport.generation = 1u;
+        dx_iface scalarIface;
+        scalarIface.cData = &missingContext;
+        scalarIface.addRawDxfObject(rawObjects[scalar]);
+        if (!missingContext.rawNamedResourceCaptureFailed
+            || !missingContext.namedResourceImport.captureFailed
+            || missingContext.namedResourceImport.resourceLimitExceeded
+            || !missingContext.rawNamedResourceObjects.empty())
+            return fail("scalar baseline accepted a fabricated source context");
+    }
 
     const auto rejected = [&makeRaw](const std::string& label,
                                      std::size_t retainedBytes,

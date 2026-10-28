@@ -1,0 +1,355 @@
+{
+  "schema": "scalar-resource-transaction-evidence-v1",
+  "slice": "RPP-5gl",
+  "date": "2026-10-28",
+  "parentCommit": "faaacba7584733108c76adc8dcb619a07263e3b6",
+  "state": "IMPLEMENTED; AFFECTED_NORMAL_ASAN_PASS; INDEPENDENT_SELECTED_FIELD_PROJECTION_PASS",
+  "scope": "DXF-origin SCALE represented body edits and selected owner/key transport. No full-document, native annotation or DWG-byte-layout qualification.",
+  "fileSha256": {
+    "CMakeLists.txt": "b94ae57921e23ee67e87d8ed18d129ad8c58846b2b39cc688bd1abd1fa0f49dd",
+    "dwg2dxf/dx_data.h": "a56865f7ae4fb11930bbed2cb45f0ea90c9677c3e2844c5fe5e606f38a15cf96",
+    "dwg2dxf/dx_iface.cpp": "9724ae925f6bf80feb40d8321ae169821261238b779590080351c5f1a7e91204",
+    "dwg2dxf/dx_iface.h": "bd0ad7ad00789435f9e86e5f368d3a0866989df3bb596b712cccfcbe4e4f3c28",
+    "tests/dxf_fixture_tests.cpp": "648fa2395ec0b67d5195f185837ad6908cddaca3c38d66f16f38020cc7ae3db2",
+    "tests/dwg2dxf_adapter_tests.cpp": "aaf96804c16d7f02175186c6ea58ca0e424aa4f96278d406cd85e458bc8e86db",
+    "tools/qualify_material_source_order.py": "cb88704a607130282a5a57027268470e5d9fc37af90c1effb606de41433f1c2a"
+  },
+  "baseline": {
+    "log": "build/rpp5gl-evidence/baseline-test.log",
+    "logSha256": "cebaaffb16257e2b88d1ead4d71e1dc448c76efb72dd472b9ad096b76911cd83",
+    "observed": "Typed paperUnits2->4 exported successfully but readback remained2.",
+    "retainedArtifacts": [
+      {
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-scale-body-transactions-138962100565000/input.dxf",
+        "sha256": "eb39f3f56c4f409f8dfdcfee7f0ce60d2eedc8e1560fced2fc82da8afa9f2fbe"
+      },
+      {
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-scale-body-transactions-138962100565000/output.dxf",
+        "sha256": "be6f955e224518451cd6891f86182a59bef969374a65583e6e32a95b7ac41207"
+      }
+    ]
+  },
+  "primaryReferences": [
+    {
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "edition": "5.4.1",
+      "section": "20.4.92",
+      "page": 221,
+      "basis": "SCALE70 unknown short (ODA writes0),300 name,140/141 paper/drawing units,290bit. No new DWG layout implementation."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbAnnotationScale__setPaperUnits_double.html",
+      "basis": "Positive nonzero paper units."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbAnnotationScale__setDrawingUnits_double.html",
+      "basis": "Positive nonzero drawing units."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbAnnotationScale.html",
+      "basis": "Display names need not be unique; context identities remain distinct. Dictionary keys are not rewritten from display-name edits."
+    }
+  ],
+  "implementation": [
+    "Shared immutable scalar baseline shape and lifetime allowance for SCALE/DICTIONARYVAR; capture live codec/profile before callback returns; roll back baseline insertion if raw retention fails.",
+    "Scoped physical roles70/300/140/141/290; widths/Boolean/finitepositive admission before owning decode; source/typed/raw three-way reconciliation with explicit conflict refusal.",
+    "Retain unchanged presence, lexical spelling and unknown fields. Known name transcodes across ASCII/Binary/codepage boundaries using existing indexed300 override; ambiguous subclass shadows refuse.",
+    "Freeze model/raw/baseline/header/profile/NOD/selected dictionary providers before callbacks; emit via prepared indexed plans; no per-SCALE quadratic raw/typed container search.",
+    "Inspect actual ordered SCALE fields, remapped handles, arbitrary320 and application-local5, owner dictionary metadata/key/target/hard-soft roles. Include prepared resources in inspector-install condition even without NOD.",
+    "Map table-owned extension dictionary parents through emitted writing-context bindings; normalize Unspecified dictionary roles exactly as the existing writer.",
+    "Preserve the existing typed DWG SCALE writer route and installed library API. Formal consumer/ABI/native qualification remains separate."
+  ],
+  "qualification": {
+    "selectedTests": [
+      "libdxfrw_scale_body_transactions",
+      "libdxfrw_dictionaryvar_legacy",
+      "libdxfrw_dictionaryvar_transactions",
+      "libdxfrw_dictionaryvar_custom_owners",
+      "dwg2dxf_named_resource_typed_capture_limits",
+      "dwg2dxf_named_resource_raw_capture_limits",
+      "libdxfrw_named_resource_import_evidence",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_dictionary_effective_ownership",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_dxf_consumer_finalization",
+      "libdxfrw_extension_graph_limits",
+      "dwg2dxf_generated_root_common_closure",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_build_inventory",
+      "libdxfrw_build_inventory_selftest"
+    ],
+    "fullSuiteRun": false,
+    "cppInputs": "All593 frozen source inputs match except the separately corrected independent Python recipe; no C++/owning-test input changed after its qualification.",
+    "cppManifestSha256": "ac4374a0c60c663e658e1c92d9d843a544a2a96799bdc973056564616f390f39",
+    "peerManifestSha256": "003c1989af4f42c4c5b50dcff24b2d81b730bf905d454f065be93890d80e5238",
+    "sourceChangesSinceCppQualification": [
+      "tools/qualify_material_source_order.py"
+    ],
+    "builds": [
+      {
+        "configuration": "normal",
+        "build": "build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "seconds": 0.01905383402481675,
+        "exitCode": 0
+      },
+      {
+        "configuration": "asan",
+        "build": "build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "seconds": 76.32769754098263,
+        "exitCode": 0
+      }
+    ],
+    "initialCompilationBuilds": [
+      {
+        "configuration": "normal",
+        "build": "build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "seconds": 14.805761209019693,
+        "exitCode": 0
+      },
+      {
+        "configuration": "asan",
+        "build": "build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "seconds": 126.96944791698479,
+        "exitCode": 0
+      }
+    ],
+    "normal": {
+      "ctestExitCode": 0,
+      "ctestSeconds": 10.787108792021172,
+      "passed": 18,
+      "ctestLogSha256": "9e4e4eaf186914832c108195eeccb4e531138042b76f2d5cd4ce98e7b63beebf"
+    },
+    "asan": {
+      "configuration": "asan",
+      "exitCode": 0,
+      "seconds": 5.31332874999498,
+      "passed": 18,
+      "logSha256": "e07c76b6e8def785026aa4117bc309501c657015417035724e91613a94ff00ea"
+    },
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "scaleCounters": {
+      "normal": "SCALE transaction profiles=16; readbacks=312; refusals=82; retries=136; callbacks=32; presence=12; lexical=1; prepFaults=18; corruptions=66; budgetRefusals=2; highFlags=2; scopeControls=4; headerCallbacks=2; noNod=2",
+      "asan": "SCALE transaction profiles=16; readbacks=312; refusals=82; retries=136; callbacks=32; presence=12; lexical=1; prepFaults=18; corruptions=66; budgetRefusals=2; highFlags=2; scopeControls=4; headerCallbacks=2; noNod=2",
+      "match": true
+    },
+    "registrationScopesMatch": true,
+    "registrationConfigurationDifferences": [
+      "normal Python=/opt/homebrew/bin/python3.12; ASan Python=/opt/homebrew/bin/python3",
+      "normal CMAKE_CONFIG empty; ASan=Debug"
+    ],
+    "registrationsSha256": "d296da52b078cb7f4a6ff1c8224af80232f8eff89943f4dde5f254f1ed24c0a2",
+    "sourceInventory": "PASS:593 released paths; no manifest regeneration required",
+    "sourceArchiveOrExtractedBuildRun": false
+  },
+  "independentPeer": {
+    "runtime": "build/rpp5gh-evidence/peer/bin/python",
+    "version": "ezdxf1.4.5",
+    "producer": "Locally authored generic SCALE tags through ezdxf document/tag writer; no typed SCALE producer implementation.",
+    "results": [
+      {
+        "configuration": "normal",
+        "exitCode": 0,
+        "seconds": 2.14590837500873,
+        "logSha256": "a97bfa597e893e7aa4341205ed9957788d91c614c58c1f6841a66d134071ef39",
+        "scaleInputsMatched": 8,
+        "scaleRoundTripsMatched": 16,
+        "scaleEditsMatched": 16,
+        "reportSha256": "2adaeb8aa760939c86a84a4db281be0fe9faea2bee28e2b59ebb07b7848331b0"
+      },
+      {
+        "configuration": "asan",
+        "exitCode": 0,
+        "seconds": 1.4063170829904266,
+        "logSha256": "a97bfa597e893e7aa4341205ed9957788d91c614c58c1f6841a66d134071ef39",
+        "scaleInputsMatched": 8,
+        "scaleRoundTripsMatched": 16,
+        "scaleEditsMatched": 16,
+        "reportSha256": "3e6acca7c6b89757f4fdfc809eb42bd6734d19583f5fee33d2efddb444815fff"
+      }
+    ],
+    "recipe": {
+      "source": "Authored generic SCALE tags; ezdxf 1.4.5 document/tag writer",
+      "producerTypedScaleImplementation": false,
+      "projection": "Physical low-level tags/compiled fields, class, owner/key, null LAYER347 and LINE before document setup; ordinary DXFTagStorage read reported separately",
+      "materialBindingRecipe": "Set LAYER material handles to null before omitting three unused defaults; retain original handles and disclose setup-created MATERIAL objects",
+      "normalization": {
+        "allFormats": [
+          "ezdxf.decode_dxf_unicode once"
+        ],
+        "asciiOnly": [
+          "ezdxf.tools.text.caret_decode once"
+        ]
+      },
+      "scope": "Selected field/reference transport; annotation semantics/native acceptance unqualified",
+      "defaultMaterialProfileQualified": false,
+      "modules": {
+        "entities/dxfentity.py": "fddd3c4331be2be4a00da769e6368ce2ee3621710f0536ad2f65be2f71a568b1",
+        "entities/factory.py": "279abcd9a1c7dc4019de83991b3f8b1b485ca1cc1eef7a0b455f7a09b4c8b871",
+        "sections/classes.py": "51f48788c5391cf60662be03072c94a83608e53c37a037d9f1764aeaacd82a81",
+        "sections/objects.py": "8b8d7ddb5aca1c2fac0e3709a0f4de779727ffee4d6bb1520d630a1b01659b25",
+        "lldxf/tagger.py": "03c5eafad5f5e82570ab72815bb107e5a9ef404da36e046cdcc9742eb594e97d",
+        "lldxf/validator.py": "c96d39f078500ab5ca5c3cff1339341c50467ab2989011e5cdc27f9eee9e6d19",
+        "lldxf/tags.py": "f53074f8eb651ca2ca797f6ff70f9532c98d3a2a38b6fc9f5cc25395a6fe5c2e",
+        "lldxf/extendedtags.py": "a93b50c5512a971f0dae18e66db2e027b12e6c1c7d3a0f0e806072a6b24178a9"
+      }
+    },
+    "beforeSetup": "Physical tags/typed field widths, one SCALE, exact owner/key/CLASS, explicit-null LAYER347 and LINE3D checked before document setup.",
+    "implicitDocumentSetup": "Every ordinary document read discloses added default MATERIAL objects; no explicit audit/recovery is run. These additions are not original-source or repair-free semantic evidence.",
+    "sourceProfiles": [
+      {
+        "version": "AC1015",
+        "page": "cp1252",
+        "format": "asc",
+        "sha256": "5dd02b60291a00f3b9dccf987edc8109853c9f361bbc0458d9e690a737a5bfbd",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1015",
+        "page": "cp1252",
+        "format": "bin",
+        "sha256": "648783b8190e84ebb7e2441555b4e0cd6df5b53b2b09b49858ae2548733ef203",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1015",
+        "page": "cp932",
+        "format": "asc",
+        "sha256": "fce2581494020a82988af091a230dbd1f03a63abe6aa0ebd8300f911b8a39966",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1015",
+        "page": "cp932",
+        "format": "bin",
+        "sha256": "81da982eafc3cd5820f1746a9b63476eebabaa2967a1aac50ade270ad061ac71",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1021",
+        "page": "utf-8",
+        "format": "asc",
+        "sha256": "c05384fe47886fa25cf341d957d767612188787a7d92794a529d899af9f948d9",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1021",
+        "page": "utf-8",
+        "format": "bin",
+        "sha256": "65ff120180bafc2c3d4fbe60b2fea1141774663e3bc1217d657f70a024dbfe70",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1032",
+        "page": "utf-8",
+        "format": "asc",
+        "sha256": "ca7ba351057af71d3331a7da8a5e41b311be8a079fc70e59179c2716f63e138e",
+        "documentSetupAddedMaterialCount": 3
+      },
+      {
+        "version": "AC1032",
+        "page": "utf-8",
+        "format": "bin",
+        "sha256": "6923b6b0041e9f40a76f6cdae894e67b16a35ae5adebc9f36194e9bb8426e7f3",
+        "documentSetupAddedMaterialCount": 3
+      }
+    ],
+    "artifactBinding": {
+      "normal": {
+        "probeSha256": "6cdcaf15a693ebd89b884d5121aaa642d44f443f9c1548f7118e940d4485d1f9",
+        "converterSha256": "ac24e9fb5f42469355a32a626f14eaae373923596fa5595aaf88bf6f9c88d028",
+        "qualificationScriptSha256": "cb88704a607130282a5a57027268470e5d9fc37af90c1effb606de41433f1c2a"
+      },
+      "asan": {
+        "probeSha256": "23c19be9329cc0467afa49573df20296866f2e8e151415aea59792ff0b03c881",
+        "converterSha256": "5d2ed4ae011a41cb18e587060a47531707ee8d0657ac0b3bc509dde9e77c80c2",
+        "qualificationScriptSha256": "cb88704a607130282a5a57027268470e5d9fc37af90c1effb606de41433f1c2a"
+      }
+    },
+    "wholeDocumentExportQualified": false,
+    "nativeAnnotationSemanticsQualified": false
+  },
+  "retainedDevelopmentEvidence": [
+    {
+      "path": "build/rpp5gl-evidence/owning-development.log",
+      "sha256": "91ca90ce370fcf8fda9edf81fe521a86e747712a04f435e7ddd6f72f47759d50",
+      "finding": "Late dictionary key mutation published; fixed by pre-callback provider snapshots and actual owner/key proof."
+    },
+    {
+      "path": "build/rpp5gl-evidence/owner-owning-development.log",
+      "sha256": "2cb37707ecf8221bdfe33466b77e56acbadef35a4ea648772b5d94ea125d2335",
+      "finding": "NoNOD parentLTYPE source101 emitted15; fixed by actual table binding instead of structural-only remapHandle."
+    },
+    {
+      "path": "build/rpp5gl-evidence/pre-context-test-normal-ctest.log",
+      "sha256": "6d32af629268df1b8fbe3bf24fc21b815dd3d3c96687e17bd9048021121101ed",
+      "finding": "Synthetic first-import raw capture lacked live context; accounting test now separates appended imports and explicitly rejects fabricated SCALE/variable contexts."
+    },
+    {
+      "path": "build/rpp5gl-evidence/normal-peer/qualification.json",
+      "sha256": "d2faa72ea6017f5118293aabe2f7f7c0e492208bc65ade81ffc0a7d248a2d37a",
+      "finding": "First authored recipe deleted MATERIALs but left modern LAYER347 dangling. Corrected separately before new source generation; rejected artifacts unchanged."
+    }
+  ],
+  "limitations": [
+    "Selected original generic-tag projections do not qualify arbitrary SCALE versions/omission rules, reserved70 meanings, annotation rendering or native application acceptance. Existing AC1014+ transport boundary is not a native version certificate.",
+    "Unknown known-role shadows and unqualified opaque text/encoding conversions refuse. Full original common/dependency/recursive closure and every unrelated dictionary field remain unqualified.",
+    "Default MATERIAL producer73/specular and Normal Map ambiguities remain separate. Selected null-binding authoring is not a fix for unmodified producer documents.",
+    "Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel, native Linux GCC release, formal ABI/application and controlled RSS/performance remain NOT_RUN. No full suite or source archive was run for this slice."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "legacyDefaultMaterialProfileQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Embedded local-from-scratch recipes only. No generated/downloaded DWG/DXF payload is committed."
+}

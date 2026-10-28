@@ -6,6 +6,8 @@ Run with an isolated Python containing ezdxf==1.4.5. The probe is the built
 libdxfrw_dxf_fixture_tests executable. An optional converter also checks selected
 metadata, material and geometry round trips. Native rendering and arbitrary
 source ordering remain unqualified.
+Optional SCALE checks use authored generic tags and independent projections;
+ezdxf has no typed annotation-scale implementation for this profile.
 All drawings are created from scratch in the requested empty output directory.
 """
 import argparse
@@ -23,6 +25,255 @@ def digest(path):
 
 
 PEER_VARIABLE_EDIT = r"edited peer_Ω^A\U+1234" + chr(1)
+PEER_SCALE_KEY = "A0"
+PEER_SCALE_EDIT = {70: 9, 300: r"edited peer café^A\U+1234",
+                   140: 2.5, 141: 7.5, 290: 0}
+
+
+def physical_scale_projection(ezdxf, path, binary, expected, source_recipe=False):
+    """Inspect the actual file through low-level tags before document setup."""
+    from ezdxf.filemanagement import dxf_file_info
+    from ezdxf.lldxf.extendedtags import ExtendedTags
+    from ezdxf.lldxf.tagger import ascii_tags_loader, binary_tags_loader, tag_compiler
+    from ezdxf.lldxf.tags import group_tags
+    from ezdxf.tools.text import caret_decode
+
+    if binary:
+        tags = list(tag_compiler(binary_tags_loader(path.read_bytes(), errors="strict")))
+    else:
+        info = dxf_file_info(path)
+        with path.open(encoding=info.encoding, errors="strict") as stream:
+            tags = list(tag_compiler(ascii_tags_loader(stream)))
+    section, records = None, []
+    for record in group_tags(tags):
+        kind = record[0].value
+        if kind == "SECTION":
+            section = record.get_first_value(2)
+        elif kind == "ENDSEC":
+            section = None
+        else:
+            records.append((section, record))
+    objects = [record for scope, record in records if scope == "OBJECTS"]
+    dictionaries = [ExtendedTags(record) for record in objects
+                    if record[0].value == "DICTIONARY"]
+
+    def entries(xtags):
+        result, pending = {}, None
+        for code, value in xtags.get_subclass("AcDbDictionary"):
+            if code == 3:
+                assert pending is None, "physical dictionary missing pointer"
+                pending = value
+            elif code in (350, 360):
+                assert pending is not None and pending not in result, "physical dictionary key"
+                result[pending] = {"handle": value, "role": code}
+                pending = None
+        assert pending is None, "physical dictionary dangling key"
+        return result
+
+    roots = [d for d in dictionaries
+             if int(d.subclasses[0].get_first_value(330, "0"), 16) == 0]
+    assert len(roots) == 1, "physical root dictionary census"
+    root = roots[0]
+    root_handle = root.subclasses[0].get_first_value(5)
+    dictionary_handle = entries(root)["ACAD_SCALELIST"]["handle"]
+    selected = [d for d in dictionaries
+                if d.subclasses[0].get_first_value(5) == dictionary_handle]
+    assert len(selected) == 1, "physical SCALE dictionary target"
+    dictionary = selected[0]
+    assert dictionary.subclasses[0].get_first_value(330) == root_handle, "physical dictionary owner"
+    targets = entries(dictionary)
+    assert list(targets) == [PEER_SCALE_KEY], "physical SCALE dictionary keys"
+    scales = [ExtendedTags(record) for record in objects if record[0].value == "SCALE"]
+    assert len(scales) == 1, "physical SCALE census"
+    scale = scales[0]
+    scale_handle = scale.subclasses[0].get_first_value(5)
+    assert targets[PEER_SCALE_KEY]["handle"] == scale_handle, "physical SCALE key target"
+    assert scale.subclasses[0].get_first_value(330) == dictionary_handle, "physical SCALE owner"
+    fields = {}
+    for code in (70, 300, 140, 141, 290):
+        values = [tag.value for tag in scale.get_subclass("AcDbScale") if tag.code == code]
+        assert len(values) == 1, "physical SCALE field count %d" % code
+        fields[code] = values[0]
+    assert isinstance(fields[70], int) and isinstance(fields[290], int), "physical SCALE integer types"
+    assert isinstance(fields[140], float) and isinstance(fields[141], float), "physical SCALE real types"
+    fields[300] = ezdxf.decode_dxf_unicode(fields[300])
+    if not binary:
+        fields[300] = caret_decode(fields[300])
+    assert fields == expected, "physical SCALE fields: %r != %r" % (fields, expected)
+    layers = []
+    for scope, record in records:
+        if scope != "TABLES" or record[0].value != "LAYER":
+            continue
+        handles = [t.value for t in record if t.code == 347]
+        assert len(handles) <= 1, "physical LAYER material multiplicity"
+        assert not handles or int(handles[0], 16) == 0, "physical LAYER dangling/non-null material"
+        layers.append({"name": record.get_first_value(2),
+                       "materialHandlePresent": bool(handles),
+                       "materialHandle": handles[0] if handles else None,
+                       "selectedEffectiveBinding": "null"})
+    assert len(layers) == 2 and {row["name"].upper() for row in layers} == {"0", "DEFPOINTS"}, "physical LAYER census"
+    lines = [r for scope, r in records if scope == "ENTITIES" and r[0].value == "LINE"]
+    assert len(lines) == 1, "physical LINE census"
+    assert tuple(lines[0].get_first_value(10)) == (1, 2, 3), "physical LINE start"
+    assert tuple(lines[0].get_first_value(11)) == (4, 5, 6), "physical LINE end"
+    classes = [r for scope, r in records if scope == "CLASSES" and r[0].value == "CLASS"
+               and r.get_first_value(1) == "SCALE"]
+    assert len(classes) == 1 and classes[0].get_first_value(2) == "AcDbScale", "physical SCALE class"
+    materials = [{"handle": r.get_first_value(5), "name": r.get_first_value(1)}
+                 for r in objects if r[0].value == "MATERIAL"]
+    if source_recipe:
+        assert not materials, "selected source unexpectedly contains MATERIAL bodies"
+    return {"fields": fields, "key": PEER_SCALE_KEY, "scaleHandle": scale_handle,
+            "dictionaryHandle": dictionary_handle, "rootHandle": root_handle,
+            "dictionaryPointerRole": targets[PEER_SCALE_KEY]["role"],
+            "layerMaterialBindings": layers, "materialObjects": materials,
+            "scaleCount": len(scales), "lineCount": len(lines),
+            "beforeDocumentSetup": True, "beforeExplicitAuditOrRecovery": True}
+
+
+def selected_scale_projection(ezdxf, path, binary, expected, source_recipe=False):
+    """Independent physical projection, then ordinary read with setup disclosed.
+
+    ezdxf 1.4.5 retains SCALE as DXFTagStorage rather than a typed annotation
+    object. These checks establish selected field values, not native semantics.
+    """
+    from ezdxf.tools.text import caret_decode
+
+    physical = physical_scale_projection(ezdxf, path, binary, expected, source_recipe)
+    doc = ezdxf.readfile(path)
+    dictionary = doc.rootdict["ACAD_SCALELIST"]
+    assert dictionary.dxftype() == "DICTIONARY", "scale dictionary type"
+    assert dictionary.dxf.owner == doc.rootdict.dxf.handle, "scale dictionary owner"
+    assert list(dictionary.keys()) == [PEER_SCALE_KEY], "scale dictionary keys"
+    scales = [e for e in doc.objects if e.dxftype() == "SCALE"]
+    assert len(scales) == 1, "original/converted SCALE census"
+    scale = dictionary[PEER_SCALE_KEY]
+    assert scale is scales[0], "scale dictionary target identity"
+    assert scale.dxf.owner == dictionary.dxf.handle, "scale body owner"
+    body = scale.xtags.get_subclass("AcDbScale")
+    fields = {}
+    for code in (70, 300, 140, 141, 290):
+        values = [tag.value for tag in body if tag.code == code]
+        assert len(values) == 1, "SCALE field presence/count %d" % code
+        fields[code] = values[0]
+    assert isinstance(fields[70], int) and isinstance(fields[290], int), "SCALE integer widths"
+    assert isinstance(fields[140], float) and isinstance(fields[141], float), "SCALE real widths"
+    assert isinstance(fields[300], str), "SCALE name type"
+    # One CIF decode for either wire format, followed by one ASCII-only caret
+    # decode. A literal backslash-U name must not be decoded a second time.
+    fields[300] = ezdxf.decode_dxf_unicode(fields[300])
+    if not binary:
+        fields[300] = caret_decode(fields[300])
+    assert fields == expected, "SCALE fields: %r != %r" % (fields, expected)
+    assert fields[300] != PEER_SCALE_KEY, "dictionary key/name distinction"
+    lines = list(doc.modelspace().query("LINE"))
+    assert len(lines) == 1, "selected LINE census"
+    assert tuple(lines[0].dxf.start) == (1, 2, 3), "selected LINE start"
+    assert tuple(lines[0].dxf.end) == (4, 5, 6), "selected LINE end"
+    assert any(c.dxf.name == "SCALE" for c in doc.classes), "SCALE CLASS entry"
+    material_handles = {row["handle"] for row in physical["materialObjects"]}
+    added_materials = [{"handle": obj.dxf.handle, "name": obj.dxf.name}
+                       for obj in doc.objects if obj.dxftype() == "MATERIAL"
+                       and obj.dxf.handle not in material_handles]
+    return {"fields": fields, "key": PEER_SCALE_KEY, "scaleHandle": scale.dxf.handle,
+            "scaleOwner": scale.dxf.owner, "dictionaryHandle": dictionary.dxf.handle,
+            "dictionaryOwner": dictionary.dxf.owner, "rootHandle": doc.rootdict.dxf.handle,
+            "line3d": True, "physicalBeforeDocumentSetup": physical,
+            "ordinaryReadAfterDocumentSetup": True, "explicitAuditOrRecoveryRun": False,
+            "documentSetupAddedMaterials": added_materials,
+            "documentSetupAddedMaterialCount": len(added_materials),
+            "representation": type(scale).__name__, "nativeSemanticsQualified": False}
+
+
+def qualify_scales(ezdxf, probe, converter, output):
+    """Author a small generic-tag matrix and check actual unchanged/edited output."""
+    from ezdxf.entities import factory
+    from ezdxf.lldxf.extendedtags import ExtendedTags
+
+    inputs, round_trips, edits = [], [], []
+    profiles = (("R2000", "cp1252", "Peer café scale"),
+                ("R2000", "cp932", "Peer 表タ scale"),
+                ("R2007", "utf-8", "Peer Ω scale"),
+                ("R2018", "utf-8", "Peer café Ω scale"))
+    for version, page, name in profiles:
+        doc = ezdxf.new(version)
+        if version == "R2000":
+            doc.encoding = page
+        # Author a primitive/SCALE profile with explicit null material bindings,
+        # then omit the unused defaults. Deleting them first leaves modern
+        # LAYER347 dangling; ordinary peer document setup can hide that defect
+        # by creating new defaults. The physical pre-setup check forbids it.
+        null_layer_bindings = []
+        for layer in doc.layers:
+            null_layer_bindings.append({"name": layer.dxf.name,
+                                        "originalMaterialHandle": layer.dxf.get("material_handle"),
+                                        "selectedMaterialHandle": "0"})
+            layer.dxf.material_handle = "0"
+        omitted_material_handles = [{"name": key, "handle": obj.dxf.handle}
+                                    for key, obj in doc.materials]
+        omitted_materials = [row["name"] for row in omitted_material_handles]
+        for key in omitted_materials:
+            doc.materials.delete(key)
+        dictionary = doc.rootdict.get_required_dict("ACAD_SCALELIST")
+        handle = doc.entitydb.next_handle()
+        tags = ExtendedTags.from_text(
+            "0\nSCALE\n5\n%s\n330\n%s\n100\nAcDbScale\n"
+            "70\n0\n300\n%s\n140\n1.25\n141\n1.25\n290\n1\n"
+            % (handle, dictionary.dxf.handle, name))
+        scale = factory.load(tags, doc)
+        factory.bind(scale, doc)
+        doc.objects.add_object(scale)
+        dictionary.add(PEER_SCALE_KEY, scale)
+        doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
+        expected = {70: 0, 300: name, 140: 1.25, 141: 1.25, 290: 1}
+        for fmt in ("asc", "bin"):
+            stem = "scale-" + doc.dxfversion + "-" + page + "-" + fmt
+            source = output / (stem + ".dxf")
+            doc.saveas(source, fmt=fmt)
+            original = {"version": doc.dxfversion, "page": page, "format": fmt,
+                        "path": source.name, "sha256": digest(source), "matched": False,
+                        "omittedUnusedDefaultMaterials": omitted_materials,
+                        "omittedDefaultMaterialHandles": omitted_material_handles,
+                        "selectedNullLayerBindings": null_layer_bindings,
+                        "bindingIntent": "Authored SCALE/LINE profile with no material dependency; not the original default document"}
+            try:
+                original["observations"] = selected_scale_projection(
+                    ezdxf, source, fmt == "bin", expected, source_recipe=True)
+                original["matched"] = True
+            except Exception as error:
+                original["mismatch"] = str(error)
+            inputs.append(original)
+            for target_format in ("asc", "bin"):
+                for edit in (False, True):
+                    target = output / (("edit-" if edit else "out-")
+                                       + stem + "-" + target_format + ".dxf")
+                    if edit:
+                        command = [str(probe), "--scale-edit-probe", str(source),
+                                   str(target), target_format]
+                    else:
+                        command = [str(converter), str(source), "-y", "-v" + version[1:]]
+                        if target_format == "bin":
+                            command.append("-b")
+                        command.append(str(target))
+                    row = {"version": doc.dxfversion, "page": page, "input": fmt,
+                           "output": target_format, "sourceSha256": original["sha256"],
+                           "path": target.name, "command": command, "matched": False}
+                    try:
+                        run = subprocess.run(command, capture_output=True, text=True, timeout=60)
+                        row.update({"exitCode": run.returncode, "stdout": run.stdout,
+                                    "stderr": run.stderr})
+                        if run.returncode == 0:
+                            row["sha256"] = digest(target)
+                            row["observations"] = selected_scale_projection(
+                                ezdxf, target, target_format == "bin",
+                                PEER_SCALE_EDIT if edit else expected)
+                            row["matched"] = original["matched"]
+                    except subprocess.TimeoutExpired:
+                        row.update({"exitCode": 124, "mismatch": "SCALE process timeout (60s)"})
+                    except Exception as error:
+                        row["mismatch"] = str(error)
+                    (edits if edit else round_trips).append(row)
+    return inputs, round_trips, edits
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -74,7 +325,15 @@ def main():
                         help="also edit peer metadata with the C++ adapter and independently decode it")
     parser.add_argument("--legacy-variables", action="store_true",
                         help="also qualify R2000/R2004 variable text in three legacy codepages")
+    parser.add_argument("--scale-probe", action="store_true",
+                        help="also check authored generic SCALE tags with independent selected projections")
+    parser.add_argument("--scale-only", action="store_true",
+                        help="run only SCALE projections, actual CLI round trips and adapter edits")
     args = parser.parse_args()
+    if (args.scale_probe or args.scale_only) and not args.converter:
+        parser.error("SCALE qualification requires --converter for unchanged actual CLI output")
+    if args.scale_only and (args.edit_variables or args.legacy_variables):
+        parser.error("--scale-only cannot be combined with variable qualification flags")
     import ezdxf
     from ezdxf.math import Matrix44
 
@@ -91,7 +350,7 @@ def main():
     variable_edits = []
     legacy_inputs, legacy_round_trips, legacy_edits = [], [], []
     source = None
-    for version in ("R2007", "R2010", "R2013", "R2018"):
+    for version in (() if args.scale_only else ("R2007", "R2010", "R2013", "R2018")):
         doc = ezdxf.new(version)
         material = doc.materials.new("PeerSurface")
         material.dxf.update({
@@ -209,6 +468,10 @@ def main():
                                 except Exception as error:
                                     row["mismatch"] = str(error)
                             (legacy_edits if edit else legacy_round_trips).append(row)
+    scale_inputs, scale_round_trips, scale_edits = [], [], []
+    if args.scale_probe or args.scale_only:
+        scale_inputs, scale_round_trips, scale_edits = qualify_scales(
+            ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
         "schema": "libdxfrw.material-peer-source-order.v1",
@@ -216,7 +479,7 @@ def main():
         "python": sys.version, "producer": "ezdxf", "version": ezdxf.__version__,
         "packages": {name: importlib.metadata.version(name) for name in (
             "ezdxf", "numpy", "fonttools", "pyparsing", "typing_extensions")},
-        "producerMaterialSourceSha256": digest(source),
+        "producerMaterialSourceSha256": digest(source) if source else None,
         "probeSha256": digest(probe), "generated": len(rows), "passed": passed,
         "results": rows, "wholeDocumentExportQualified": False,
         "roundTrips": round_trips,
@@ -232,11 +495,33 @@ def main():
         "variableEditNormalization": {"allFormats": ["ezdxf.decode_dxf_unicode"],
                                       "asciiOnly": ["ezdxf.tools.text.caret_decode"]},
         "roundTripsMatched": sum(row["matched"] for row in round_trips),
+        "scaleInputs": scale_inputs,
+        "scaleInputsMatched": sum(row["matched"] for row in scale_inputs),
+        "scaleRoundTrips": scale_round_trips,
+        "scaleRoundTripsMatched": sum(row["matched"] for row in scale_round_trips),
+        "scaleEdits": scale_edits,
+        "scaleEditsMatched": sum(row["matched"] for row in scale_edits),
+        "scaleRecipe": {
+            "source": "Authored generic SCALE tags; ezdxf 1.4.5 document/tag writer",
+            "producerTypedScaleImplementation": False,
+            "projection": "Physical low-level tags/compiled fields, class, owner/key, null LAYER347 and LINE before document setup; ordinary DXFTagStorage read reported separately",
+            "materialBindingRecipe": "Set LAYER material handles to null before omitting three unused defaults; retain original handles and disclose setup-created MATERIAL objects",
+            "normalization": {"allFormats": ["ezdxf.decode_dxf_unicode once"],
+                              "asciiOnly": ["ezdxf.tools.text.caret_decode once"]},
+            "scope": "Selected field/reference transport; annotation semantics/native acceptance unqualified",
+            "defaultMaterialProfileQualified": False,
+            "modules": {name: digest(Path(ezdxf.__file__).parent / name) for name in (
+                "entities/dxfentity.py", "entities/factory.py", "sections/classes.py", "sections/objects.py",
+                "lldxf/tagger.py", "lldxf/validator.py", "lldxf/tags.py", "lldxf/extendedtags.py")},
+        },
+        "qualificationScriptSha256": digest(Path(__file__)),
+        "converterSha256": digest(converter) if converter else None,
         "nativeRenderingQualified": False, "fullObjectiveComplete": False,
     }
     (output / "qualification.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("Independent MATERIAL selected body matches: %d/%d" % (passed, len(rows)))
-    if converter:
+    if not args.scale_only:
+        print("Independent MATERIAL selected body matches: %d/%d" % (passed, len(rows)))
+    if converter and not args.scale_only:
         print("Independent selected document round trips: %d/%d" % (
             report["roundTripsMatched"], len(round_trips)))
     if args.edit_variables:
@@ -246,8 +531,14 @@ def main():
         print("Independent legacy round trips/edits: %d/%d, %d/%d" % (
             report["legacyRoundTripsMatched"], len(legacy_round_trips),
             report["legacyEditsMatched"], len(legacy_edits)))
+    if args.scale_probe or args.scale_only:
+        print("Independent SCALE source/unchanged/edit projections: %d/%d, %d/%d, %d/%d" % (
+            report["scaleInputsMatched"], len(scale_inputs),
+            report["scaleRoundTripsMatched"], len(scale_round_trips),
+            report["scaleEditsMatched"], len(scale_edits)))
     return 0 if passed == len(rows) and all(
-        row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits) else 1
+        row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
+        + scale_inputs + scale_round_trips + scale_edits) else 1
 
 
 if __name__ == "__main__":

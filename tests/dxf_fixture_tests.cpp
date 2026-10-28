@@ -71,6 +71,12 @@ public:
         const bool good=value.inspectDxfMaterialOutput(view);value.m_dxfMaterialWriteInspected=saved;return good;
     }
     static bool prepareVariables(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfDictionaryVars(value.cData->sourceVersion,binary);}
+    static bool prepareScales(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfScales(value.cData->sourceVersion,binary);}
+    static bool scalesUnchanged(const dx_iface& value){return value.hasUnchangedDxfScales()&&value.m_dxfScalesInspected;}
+    static bool scalesReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
+        const auto saved=value.m_dxfScalesInspected;value.m_dxfScalesInspected=false;
+        const bool good=value.inspectDxfScales(view);value.m_dxfScalesInspected=saved;return good;
+    }
     static bool customVariableUnchanged(const dx_iface& value){return value.hasUnchangedDxfDictionaryVars();}
     static bool customVariableReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
         const auto saved=value.m_dxfDictionaryVarsInspected;value.m_dxfDictionaryVarsInspected=false;
@@ -28493,6 +28499,291 @@ void testLegacyDictionaryVars(TestContext& t) {
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"Legacy DICTIONARYVAR evidence: "<<dir<<'\n';
 }
 
+namespace scaleBodyTransactionControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+struct State {
+    std::string name="source café^A\\U+1234";
+    std::uint16_t flag=0u;
+    double paper=2.0,drawing=3.0;
+    bool unit=false;
+};
+Tags recipe(const std::string& version,bool binary,bool hard,unsigned mask=31u) {
+    const int role=hard?360:350;
+    Tags fields{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"OBJECTS"},{0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
+        {3,"ACAD_SCALELIST"},{350,"A"},{0,"DICTIONARY"},{5,"A"},{330,"C"},{100,"AcDbDictionary"},{280,hard?"1":"0"},{281,"1"},
+        {3,"KEY_ALPHA"},{role,"D"},{3,"KEY_BETA"},{role,"E"},{0,"SCALE"},{5,"D"},
+        {102,"{SCALE_META"},{5,"BEEF"},{320,"DEAD"},{102,"}"},{330,"A"},{100,"AcDbScale"}};
+    if(mask&1u)fields.emplace_back(70,"0");
+    if(mask&2u)fields.emplace_back(300,materialBodyControls::encodedText(State{}.name,version,binary,"ANSI_1252"));
+    if(mask&4u)fields.emplace_back(140,"2");
+    if(mask&8u)fields.emplace_back(141,"3");
+    if(mask&16u)fields.emplace_back(290,"0");
+    fields.insert(fields.end(),{{301,"opaque-scale-tail"},{320,"CAFE"},
+        {0,"SCALE"},{5,"E"},{330,"A"},{100,"AcDbScale"},{70,"7"},{300,"second display label"},{140,"1"},{141,"1"},{290,"1"},
+        {0,"ENDSEC"},{0,"EOF"}});return fields;
+}
+DRW_RawDxfObject& raw(dx_data& data) {
+    for(auto& row:data.rawNamedResourceObjects)if(row.handle==data.scales.front().handle)return row;
+    throw std::runtime_error("SCALE raw source missing");
+}
+void rawValue(dx_data& data,int code,const std::string& value,bool binary,const std::string& version="AC1027") {
+    auto& row=raw(data);
+    for(std::size_t i=0u;i<row.groups.size();++i)if(row.groups[i].code()==code) {
+        if(code==300||code==301)row.groups[i]=DRW_Variant(code,UTF8STRING(materialBodyControls::encodedText(value,version,binary,"ANSI_1252")));
+        else if(code==140||code==141)row.groups[i]=DRW_Variant(code,std::stod(value));
+        else row.groups[i]=DRW_Variant(code,std::int32_t(std::stoi(value)));
+        if(row.hasRawValues)row.rawValues[i]=(code==300||code==301)?materialBodyControls::encodedText(value,version,binary,"ANSI_1252"):value;
+        return;
+    }
+    throw std::runtime_error("SCALE raw role missing");
+}
+bool values(const std::filesystem::path& path,const State& wanted) {
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.scales.size()!=2u)return false;
+    std::uint32_t owner=0u,target=0u;
+    for(const auto& row:data.namedObjectDictionary.m_entries)if(row.m_name=="ACAD_SCALELIST") {if(owner)return false;owner=row.m_handle;}
+    for(const auto& row:data.dictionaries)if(row.handle==owner)
+        for(const auto& entry:row.m_entries)if(entry.m_name=="KEY_ALPHA") {if(target)return false;target=entry.m_handle;}
+    const auto first=std::find_if(data.scales.begin(),data.scales.end(),[&](const auto& row){return row.handle==target;});
+    return owner&&target&&first!=data.scales.end()&&first->parentHandle==owner
+        &&first->name==wanted.name&&first->flag==wanted.flag&&first->paperUnits==wanted.paper
+        &&first->drawingUnits==wanted.drawing&&first->isUnitScale==wanted.unit;
+}
+bool proof(const std::filesystem::path& path,bool binary,const std::string& version,bool hard,const State& wanted,unsigned mask=31u,const std::string& opaque="opaque-scale-tail") {
+    using Row=customDictionaryVarControls::Row;std::vector<Row> rows;unsigned scope=0u;
+    for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
+        if(field.first==0){rows.push_back({field.second,{},{},{}});scope=0u;continue;}
+        if(rows.empty())continue;auto& row=rows.back();row.fields.push_back(field);
+        if(field.first==102){if(!field.second.empty()&&field.second.front()=='{')++scope;else if(field.second=="}"&&scope)--scope;continue;}
+        if(!scope&&field.first==5&&row.id.empty())row.id=field.second;
+        if(!scope&&field.first==330&&row.owner.empty())row.owner=field.second;
+    }
+    const auto find=[&](const std::string& handle)->const Row*{const Row* result=nullptr;for(const auto& row:rows)if(row.id==handle){if(result)return nullptr;result=&row;}return result;};
+    const auto entry=[&](const Row& row,const std::string& key,int role)->const Row* {
+        const Row* result=nullptr;
+        for(std::size_t i=0u;i+1u<row.fields.size();++i)if(row.fields[i]==std::make_pair(3,key)) {
+            if(result||row.fields[i+1u].first!=role)return nullptr;result=find(row.fields[i+1u].second);
+        }return result;
+    };
+    const Row* root=nullptr;for(const auto& row:rows)if(row.type=="DICTIONARY"&&row.owner=="0"){if(root)return false;root=&row;}
+    if(!root)return false;const auto* owner=entry(*root,"ACAD_SCALELIST",350);
+    if(!owner||owner->type!="DICTIONARY"||owner->owner!=root->id)return false;
+    const auto* first=entry(*owner,"KEY_ALPHA",hard?360:350);const auto* second=entry(*owner,"KEY_BETA",hard?360:350);
+    if(!first||!second||first==second||first->type!="SCALE"||second->type!="SCALE"||first->owner!=owner->id||second->owner!=owner->id)return false;
+    std::map<int,std::vector<std::string>> following;
+    for(const auto& field:second->fields)following[field.first].push_back(field.second);
+    if(following[300]!=std::vector<std::string>{"second display label"}
+        ||following[70].size()!=1u||std::stoi(following[70].front())!=7
+        ||following[140].size()!=1u||std::stod(following[140].front())!=1.0
+        ||following[141].size()!=1u||std::stod(following[141].front())!=1.0
+        ||following[290].size()!=1u||std::stoi(following[290].front())!=1)return false;
+    std::map<int,std::vector<std::string>> actual;scope=0u;
+    for(const auto& field:first->fields) {
+        if(field.first==102){if(!field.second.empty()&&field.second.front()=='{')++scope;else if(field.second=="}"&&scope)--scope;continue;}
+        if(!scope)actual[field.first].push_back(field.second);
+    }
+    const auto one=[&](int code,const std::string& value,bool present){return actual[code]==(present?std::vector<std::string>{value}:std::vector<std::string>{});};
+    const auto number=[&](int code,double value,bool present){return actual[code].size()==(present?1u:0u)&&(!present||std::stod(actual[code].front())==value);};
+    const bool flagMatched=actual[70].size()==((mask&1u)?1u:0u)
+        &&(!(mask&1u)||(std::stoll(actual[70].front())>=-32768&&std::stoll(actual[70].front())<=65535
+            &&static_cast<std::uint16_t>(std::stoll(actual[70].front()))==wanted.flag));
+    if(!flagMatched||!one(300,materialBodyControls::encodedText(wanted.name,version,binary,"ANSI_1252"),bool(mask&2u))
+        ||!number(140,wanted.paper,bool(mask&4u))||!number(141,wanted.drawing,bool(mask&8u))||!number(290,wanted.unit?1.0:0.0,bool(mask&16u))
+        ||!one(301,opaque,true)||!one(320,"CAFE",true))return false;
+    // Application-local group 5 and arbitrary group 320 are data, not aliases
+    // for the record identity or remappable pointers.
+    return std::count(first->fields.begin(),first->fields.end(),std::make_pair(5,std::string("BEEF")))==1
+        &&std::count(first->fields.begin(),first->fields.end(),std::make_pair(320,std::string("DEAD")))==1;
+}
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false)||data.scales.empty())return false;
+    auto& value=data.scales.front();value.name="edited peer café^A\\U+1234";value.paperUnits=2.5;value.drawingUnits=7.5;value.flag=9;value.isUnitScale=false;
+    return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u;
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+        std::size_t dictionaryBegin=0u,dictionaryEnd=0u;
+        for(std::size_t i=0u;i<fields.size();++i)if(fields[i].code==0&&fields[i].text=="DICTIONARY"&&fields[i].begin>=begin&&fields[i].begin<end) {
+            auto stop=i+1u;while(stop<fields.size()&&fields[stop].code!=0)++stop;bool ownsScale=false;
+            for(auto j=i+1u;j<stop;++j)if(fields[j].code==3&&fields[j].text=="KEY_ALPHA")ownsScale=true;
+            if(ownsScale){if(dictionaryEnd)return false;dictionaryBegin=fields[i].begin;dictionaryEnd=stop<fields.size()?fields[stop].begin:end;}
+        }
+        if(!dictionaryEnd)return false;
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        const auto refused=[&](const std::string& changed){auto bad=view;bad.bytes=changed;return !A::scalesReplay(*this,bad)&&A::scalesReplay(*this,view);};
+        if(!A::scalesReplay(*this,view))return false;bool selected=false;
+        for(const auto& field:fields) {
+            if(field.code==0)selected=field.text=="SCALE";
+            const bool ownerField=field.begin>=dictionaryBegin&&field.begin<dictionaryEnd
+                &&(field.code==3||field.code==350||field.code==360||field.code==280||field.code==281||field.code==330);
+            if((!selected&&!ownerField)||field.begin<begin||field.begin>=end)continue;
+            auto changed=body;auto at=field.value-begin;
+            if(binary)changed.at(at)^=1;
+            else{while(changed.at(at)==' '||changed.at(at)=='\t')++at;
+                changed.at(at)=ownerField&&(field.code==280||field.code==281)
+                    ?(changed.at(at)=='0'?'1':'0'):(changed.at(at)=='F'?'E':'F');}
+            if(!refused(changed))return false;++corruptions;
+            if(ownerField&&(field.code==350||field.code==360)) {
+                // A valid handle with the wrong hard/soft role must also fail.
+                changed=body;const int other=field.code==350?360:350;at=field.begin-begin;
+                if(binary){changed.at(at)=static_cast<char>(other&255);changed.at(at+1u)=static_cast<char>((other>>8)&255);}
+                else{while(changed.at(at)==' '||changed.at(at)=='\t')++at;changed.replace(at,3u,std::to_string(other));}
+                if(!refused(changed))return false;++corruptions;
+            }
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,presence=0u,lexical=0u,prepFaults=0u,corruptions=0u,budgetRefusals=0u,highFlags=0u,scopeControls=0u,headerCallbacks=0u,noNod=0u;
+    const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"SCALE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    for(const std::string version:{"AC1015","AC1027"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool hard:{false,true}) {
+        const auto v=version=="AC1015"?DRW::AC1015:DRW::AC1027;dx_iface adapter;dx_data data;
+        if(!write(input,recipe(version,sourceBinary,hard),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false)||data.scales.size()!=2u)return fail(__LINE__);
+        const auto typed=data.scales;const auto raws=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.scales=typed;data.rawNamedResourceObjects=raws;};
+        const auto check=[&](const State& wanted,const std::string& opaque="opaque-scale-tail") {
+            const bool ok=adapter.fileExport(output.string(),v,binary,&data,false,true,dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless)
+                &&proof(output,binary,version,hard,wanted,31u,opaque)&&values(output,wanted);if(ok)++readbacks;return ok;};
+        State wanted;if(!check(wanted))return fail(__LINE__);
+        wanted.name="edited café^A\\U+1234";data.scales.front().name=wanted.name;if(!check(wanted))return fail(__LINE__);
+        wanted.paper=4;data.scales.front().paperUnits=4;if(!check(wanted))return fail(__LINE__);
+        wanted.drawing=4;data.scales.front().drawingUnits=4;wanted.unit=true;data.scales.front().isUnitScale=true;
+        wanted.flag=9;data.scales.front().flag=9;if(!check(wanted))return fail(__LINE__);
+        wanted.flag=65535u;data.scales.front().flag=65535u;if(!check(wanted))return fail(__LINE__);
+        reset();wanted=State{};wanted.name="raw café^A";rawValue(data,300,wanted.name,sourceBinary,version);if(!check(wanted))return fail(__LINE__);
+        reset();wanted=State{};wanted.paper=5;rawValue(data,140,"5",sourceBinary,version);wanted.name="disjoint café";data.scales.front().name=wanted.name;if(!check(wanted))return fail(__LINE__);
+        reset();wanted=State{};wanted.drawing=6;rawValue(data,141,"6",sourceBinary,version);data.scales.front().drawingUnits=6;
+        wanted.flag=8;rawValue(data,70,"8",sourceBinary,version);data.scales.front().flag=8;if(!check(wanted))return fail(__LINE__);
+        reset();wanted=State{};rawValue(data,301,"edited-opaque-tail",sourceBinary,version);if(!check(wanted,"edited-opaque-tail"))return fail(__LINE__);
+        for(unsigned kind=0u;kind<4u;++kind) {
+            reset();wanted=State{};
+            if(kind==0u){rawValue(data,300,"raw-conflict",sourceBinary,version);data.scales.front().name="typed-conflict";}
+            if(kind==1u){rawValue(data,140,"5",sourceBinary,version);data.scales.front().paperUnits=6;}
+            if(kind==2u){rawValue(data,141,"7",sourceBinary,version);data.scales.front().drawingUnits=8;}
+            if(kind==3u){rawValue(data,70,"3",sourceBinary,version);data.scales.front().flag=4;}
+            sentinel(output);if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+            reset();if(!check(wanted))return fail(__LINE__);++retries;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned mask:{0u,30u,29u,27u,23u,15u}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary,false,mask),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        State wanted;if(!(mask&2u))wanted.name.clear();if(!(mask&4u))wanted.paper=1;if(!(mask&8u))wanted.drawing=1;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted,mask)||!values(output,wanted))return fail(__LINE__);++readbacks;
+        wanted.name="inserted café";wanted.paper=5;wanted.drawing=10;wanted.flag=9;wanted.unit=true;
+        auto& value=data.scales.front();value.name=wanted.name;value.paperUnits=wanted.paper;value.drawingUnits=wanted.drawing;value.flag=wanted.flag;value.isUnitScale=wanted.unit;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++readbacks;++presence;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<8u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.scales;const auto raws=data.rawNamedResourceObjects;
+        if(kind==0u)data.scales.front().paperUnits=0;if(kind==1u)data.scales.front().drawingUnits=-1;
+        if(kind==2u)data.scales.front().paperUnits=std::numeric_limits<double>::quiet_NaN();
+        if(kind==3u)data.scales.front().drawingUnits=std::numeric_limits<double>::infinity();
+        if(kind==4u)rawValue(data,290,"2",binary);if(kind==5u)rawValue(data,70,"65536",binary);
+        if(kind==6u){auto& row=raw(data);row.groups.emplace_back(140,2.0);if(row.hasRawValues)row.rawValues.emplace_back("2");}
+        if(kind==7u){auto& row=raw(data);row.groups.emplace_back(300,UTF8STRING("duplicate"));if(row.hasRawValues)row.rawValues.emplace_back("duplicate");}
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+        data.scales=typed;data.rawNamedResourceObjects=raws;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,State{})||!values(output,State{}))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<4u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe("AC1027",binary,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.scales.front().paperUnits=4;const auto typed=data.scales;const auto raws=data.rawNamedResourceObjects;const auto dictionaries=data.dictionaries;
+        adapter.change=[&]{if(kind==0u)data.scales.front().paperUnits=8;if(kind==1u)rawValue(data,300,"late raw",binary);
+            if(kind==2u)data.scales.back()=data.scales.front();if(kind==3u)data.dictionaries.front().m_entries.front().m_handle=0xEA09u;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.scales=typed;data.rawNamedResourceObjects=raws;data.dictionaries=dictionaries;State wanted;wanted.paper=4;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe("AC1027",false,false);for(auto& field:fields)if(field.first==140){field.second=" 0002.000 ";break;}
+        {std::ofstream file(input,std::ios::binary);for(const auto& field:fields)file<<field.first<<'\n'<<field.second<<'\n';if(!file)return fail(__LINE__);}
+        dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.scales.front().name="lexical edit";State wanted;wanted.name="lexical edit";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++readbacks;
+        if(!binary){unsigned selected=0u;for(const auto& field:materialBodyControls::physicalTags(output,false))if(field.first==140&&field.second==" 0002.000 ")++selected;if(selected!=1u)return fail(__LINE__);++lexical;}
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",binary,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.scales.front().name="fault edit";State wanted;wanted.name="fault edit";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);
+        for(long offset:{0L,1L,2L,4L,8L,16L,32L,64L,128L}) {
+            sentinel(output);const auto before=materialFailedAllocations;const bool prepared=A::prepareScales(adapter,offset,binary);const bool injected=materialFailedAllocations!=before;
+            if(prepared==injected||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);if(injected)++prepFaults;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++retries;++readbacks;
+        }
+        data.scales.front().name.assign(1024u*1024u,'A');sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++budgetRefusals;
+        data.scales.front().name=wanted.name;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++retries;++readbacks;
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"scale-proof-bin.dxf":"scale-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);corruptions+=replay.corruptions;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe("AC1027",true,false);for(auto& field:fields)if(field.first==70){field.second="-1";break;}
+        dx_iface adapter;dx_data data;if(!write(input,fields,true,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.scales.front().paperUnits=4;State wanted;wanted.paper=4;wanted.flag=65535u;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++readbacks;++highFlags;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe("AC1027",binary,false);const auto where=std::find(fields.begin(),fields.end(),std::make_pair(320,std::string("CAFE")));
+        if(where==fields.end())return fail(__LINE__);fields.insert(where+1,{{100,"VendorScaleSuffix"},{301,"vendor-scale-payload"}});
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.scales.front().paperUnits=4;State wanted;wanted.paper=4;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!values(output,wanted))return fail(__LINE__);
+        const auto outputFields=materialBodyControls::physicalTags(output,binary);const auto suffix=std::find(outputFields.begin(),outputFields.end(),std::make_pair(100,std::string("VendorScaleSuffix")));
+        if(suffix==outputFields.end()||suffix+1==outputFields.end()||*(suffix+1)!=std::make_pair(301,std::string("vendor-scale-payload")))return fail(__LINE__);++readbacks;++scopeControls;
+        auto& body=raw(data);body.groups.emplace_back(300,UTF8STRING("shadow-name"));if(body.hasRawValues)body.rawValues.emplace_back("shadow-name");
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++scopeControls;
+        body.groups.pop_back();if(body.hasRawValues)body.rawValues.pop_back();
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!values(output,wanted))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        materialBodyControls::Editing adapter;adapter.phase=0u;dx_data data;
+        if(!write(input,recipe("AC1027",binary,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto page=data.headerC.vars.find("$DWGCODEPAGE");if(page==data.headerC.vars.end()||!page->second||!page->second->content.s)return fail(__LINE__);
+        data.scales.front().paperUnits=4;adapter.change=[&]{*page->second->content.s="ANSI_1251";};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++headerCallbacks;
+        adapter.active=false;*page->second->content.s="ANSI_1252";State wanted;wanted.paper=4;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"AC1027",false,wanted)||!values(output,wanted))return fail(__LINE__);++readbacks;++retries;
+    }
+    // A supported extension-graph root need not come from a canonical NOD.
+    // This is transport/inspector evidence, not native annotation-scale meaning.
+    for(bool binary:{false,true}) {
+        Tags fields{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"LTYPE"},{5,"100"},{100,"AcDbSymbolTable"},{70,"1"},
+            {0,"LTYPE"},{5,"101"},{102,"{ACAD_XDICTIONARY"},{360,"200"},{102,"}"},{330,"100"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLinetypeTableRecord"},
+            {2,"ByLayer"},{70,"0"},{3,""},{72,"65"},{73,"0"},{40,"0"},{0,"ENDTAB"},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"OBJECTS"},{0,"SCALE"},{5,"D"},{330,"200"},{100,"AcDbScale"},{70,"0"},{300,"extension label"},{140,"2"},{141,"3"},{290,"0"},
+            {0,"DICTIONARY"},{5,"200"},{330,"101"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},{3,"SCALE_TEST"},{350,"D"},{0,"ENDSEC"},{0,"EOF"}};
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)||data.hasNamedObjectDictionary||data.scales.size()!=1u)return fail(__LINE__);
+        data.scales.front().paperUnits=4;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.scales.size()!=1u||actual.scales.front().paperUnits!=4)return fail(__LINE__);
+        if(!A::scalesUnchanged(adapter))return fail(__LINE__);++readbacks;++noNod;
+    }
+    std::cout<<"SCALE transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; lexical="<<lexical<<"; prepFaults="<<prepFaults<<"; corruptions="<<corruptions<<"; budgetRefusals="<<budgetRefusals<<"; highFlags="<<highFlags<<"; scopeControls="<<scopeControls<<"; headerCallbacks="<<headerCallbacks<<"; noNod="<<noNod<<'\n';return profiles==16u&&prepFaults>0u&&corruptions>0u&&budgetRefusals==2u&&highFlags==2u&&scopeControls==4u&&headerCallbacks==2u&&noNod==2u;
+}
+}
+void testScaleBodyTransactions(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-scale-body-transactions-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=scaleBodyTransactionControls::run(dir);t.expect(passed,"SCALE body transactions preserve represented edits");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"SCALE transaction evidence: "<<dir<<'\n';
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -36565,6 +36856,12 @@ int main(int argc, char** argv) {
     }
     if (argc == 3 && std::string(argv[1]) == "--material-source-order-probe") {
         return materialSourceOrderControls::peer(argv[2]) ? 0 : 1;
+    }
+    if (argc == 5 && std::string(argv[1]) == "--scale-edit-probe") {
+        return scaleBodyTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
+        TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-legacy") {
         TestContext context;testLegacyDictionaryVars(context);return context.failures == 0 ? 0 : 1;
