@@ -69,11 +69,32 @@ bool legacyMergeAllocationRetry(const std::filesystem::path& path,bool binary) {
     return model.m_semanticContentComplete
         &&legacyMergeRanges(model,{{0,0,0,2},{1,0,2,2}});
 }
+bool legacyMergeSparseAllocation(const std::filesystem::path& path,bool binary) {
+    const auto full=legacyMergeDocument("AC1018",1,1000);
+    const auto begin=slot(full,0,"ACAD_TABLE")+1u;
+    auto end=begin;while(end<full.size()&&full[end].code!=0)++end;
+    const Tags fragment(full.begin()+static_cast<std::ptrdiff_t>(begin),
+                        full.begin()+static_cast<std::ptrdiff_t>(end));
+    if(!write(path,fragment,binary))return false;
+    DRW_Table model;dxfTable::Decoder decoder(model);
+    std::ifstream input(path,std::ios::binary);if(binary)input.seekg(22);
+    std::unique_ptr<dxfReader> reader=binary?std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+        :std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+    reader->setVersion("AC1018",true);int code=0;
+    for(std::size_t i=0u;i<fragment.size();++i)
+        if(!reader->readRec(&code)||!decoder.parseCode(code,reader))return false;
+    const auto before=symbolFailedAllocations;
+    // Only the merge finalizer is constrained: a single 1000-cell merge
+    // should not require any allocation larger than this bounded allowance.
+    {SymbolLargeAllocationFailure limit(2048u);decoder.finish();}
+    return symbolFailedAllocations==before&&model.m_semanticContentComplete
+        &&legacyMergeRanges(model,{{0,0,0,999}});
+}
 bool legacyTableMergeTests(const std::filesystem::path& dir) {
     const auto path=dir/"legacy-merge.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE merge: "<<reason<<'\n';return false;};
     const std::vector<DRW_TableMergedRange> expected{{0,0,0,2},{1,0,2,2}};
-    unsigned positives=0u,refusals=0u,retries=0u,modern=0u,boundaries=0u,allocationRetries=0u;
+    unsigned positives=0u,refusals=0u,retries=0u,modern=0u,boundaries=0u,allocationRetries=0u,sparse=0u;
     for(bool binary:{false,true}) {
         const auto good=legacyMergeDocument("AC1018",3,3);
         dx_iface reader;dx_data first;
@@ -95,7 +116,7 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
         // Every rejection is followed by a corrected read on the same facade.
         // Incomplete records may be delivered diagnostically, but must publish no
         // partial inferred ranges and cannot assert semantic completeness.
-        for(unsigned mode=0u;mode<22u;++mode) {
+        for(unsigned mode=0u;mode<23u;++mode) {
             auto bad=good;
             if(mode<12u) {
                 const bool duplicate=mode>=6u;const unsigned offset=mode%6u;
@@ -121,7 +142,8 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
                 auto end=start+1u;while(end<bad.size()&&bad[end].code!=0)++end;
                 bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(start),bad.begin()+static_cast<std::ptrdiff_t>(end));
             } else if(mode==20u)bad[3].value="AC1015"; // unqualified source version
-            else bad.erase(bad.begin()+2,bad.begin()+4); // no declared source version
+            else if(mode==21u)bad.erase(bad.begin()+2,bad.begin()+4); // no declared source version
+            else bad.insert(bad.end()-2,{171,"1"}); // bare excess cell descriptor
             if(!write(path,bad,binary))return fail("malformed fixture write");
             dx_data rejected;const bool accepted=reader.fileImport(path.string(),&rejected,false);
             if(accepted) {
@@ -166,9 +188,11 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
         ++boundaries;
         if(!legacyMergeAllocationRetry(path,binary))return fail("reached finalization allocation retry");
         ++allocationRetries;
+        if(!legacyMergeSparseAllocation(path,binary))return fail("sparse merge allocation allowance");
+        ++sparse;
     }
     std::cout<<"legacy TABLE merge positives="<<positives<<" malformed="<<refusals
         <<" retries="<<retries<<" modern="<<modern<<" boundaries="<<boundaries
-        <<" reached finalization allocation retries="<<allocationRetries<<'\n';
-    return positives==2u&&refusals==44u&&retries==44u&&modern==4u&&boundaries==4u&&allocationRetries==2u;
+        <<" reached finalization allocation retries="<<allocationRetries<<" sparse allocation="<<sparse<<'\n';
+    return positives==2u&&refusals==46u&&retries==46u&&modern==4u&&boundaries==4u&&allocationRetries==2u&&sparse==2u;
 }

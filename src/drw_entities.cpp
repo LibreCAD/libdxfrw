@@ -11455,8 +11455,12 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         } else {
             m_dxfCurrentCell = -1;
             reader->getInt32();
-            if (m_dxfMergeSourceKnown && m_dxfMergeSourceVersion == DRW::AC1018)
+            if (m_dxfMergeSourceKnown && m_dxfMergeSourceVersion == DRW::AC1018) {
+                // An excess cell descriptor invalidates the selected grid,
+                // even when no later cell field forces a parse failure.
+                m_dxfMergeFieldsInvalid = true;
                 markIncomplete();
+            }
         }
         m_dxfInCellValue = false;
         m_dxfAttributesExpected = -1;
@@ -11797,12 +11801,18 @@ void DRW_Table::finalizeDxfParse() noexcept {
     // 173=1 spanning-anchor spelling remains a separate compatibility path.
     bool inferredAnchor = false;
     bool anyExplicitAnchor = false;
+    std::size_t inferredAnchorCount = 0u;
+    std::size_t explicitAnchorCount = 0u;
     for (const DRW_TableRow& row : m_content.m_rows) {
         for (const DRW_TableCell& cell : row.m_cells) {
-            if (!cell.m_isMerged && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1))
+            if (!cell.m_isMerged && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1)) {
                 inferredAnchor = true;
-            if (cell.m_isMerged)
+                ++inferredAnchorCount;
+            }
+            if (cell.m_isMerged) {
                 anyExplicitAnchor = true;
+                ++explicitAnchorCount;
+            }
         }
     }
     const bool legacy = m_dxfMergeSourceKnown
@@ -11838,6 +11848,12 @@ void DRW_Table::finalizeDxfParse() noexcept {
             return;
         }
     }
+    const std::size_t anchorCount = inferredAnchor
+        ? inferredAnchorCount : explicitAnchorCount;
+    if (anchorCount > kMaxTableItems) {
+        failMerge();
+        return;
+    }
 
     try {
         const std::size_t cells = rows * columns;
@@ -11845,8 +11861,7 @@ void DRW_Table::finalizeDxfParse() noexcept {
         // is occupied once; a collision terminates the pass immediately.
         std::vector<std::uint8_t> occupancy(cells, 0u);
         std::vector<DRW_TableMergedRange> ranges;
-        ranges.reserve(std::min<std::size_t>(
-            inferredAnchor ? cells / 2u : cells, kMaxTableItems));
+        ranges.reserve(anchorCount);
         for (std::size_t row = 0u; row < rows; ++row) {
             for (std::size_t column = 0u; column < columns; ++column) {
                 const DRW_TableCell& cell = m_content.m_rows[row].m_cells[column];
