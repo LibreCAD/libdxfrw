@@ -23159,7 +23159,8 @@ bool dxfRW::writeRawDxfEntityGroups(
                 || groups[override.first].type() != DRW_Variant::STRING
                 || (groups[override.first].code() == 320
                     ? !parseRawDxfHandleLexeme(override.second, parsedHandle)
-                    : groups[override.first].code() != 3
+                    : groups[override.first].code() != 1
+                        && groups[override.first].code() != 3
                         && groups[override.first].code() != 300))
                 return failDxfWrite();
             previousIndex = override.first;
@@ -23321,7 +23322,7 @@ bool dxfRW::writeRawDxfEntityGroups(
                 == (*stringOverrides)[stringOverrideIndex].first) {
             const std::string& replacement =
                 (*stringOverrides)[stringOverrideIndex].second;
-            const bool written = v.code() == 3 || v.code() == 300
+            const bool written = v.code() == 1 || v.code() == 3 || v.code() == 300
                 ? writer->writeUtf8String(
                     v.code(), std::string_view(replacement.data(),
                                                replacement.size()))

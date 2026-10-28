@@ -1,0 +1,2206 @@
+{
+  "schema": "libdxfrw-legacy-dictionaryvar-codec-transactions-v1",
+  "slice": "RPP-5gk",
+  "date": "2026-10-28",
+  "dateTimezone": "America/Toronto",
+  "observedAtUtc": "2026-10-28T11:58:49.259626+00:00",
+  "parentCommit": "cbdc5456e134af1eb60fdbdd072a86370d1592a6",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "scope": "R14/R2000/R2004 standard and application DXF DICTIONARYVAR body transactions using the actual callback source codec, same DXF revision, selected CP1252/CP1251/CP932 profiles and ASCII/Binary output. Preserve the modern UTF8 interpretation rule, target-codepage projection and immutable source/body/output checks. Independent legacy observations use a selected primitive/metadata document recipe; the original default MATERIAL profile and arbitrary/native documents remain unqualified.",
+  "fileSha256": {
+    "CMakeLists.txt": "3bb34788c0bfab38d2f07602d5032ab34a0852f0c49e76be99e55a70bf170a10",
+    "dwg2dxf/dx_data.h": "1f5d5a33eb58cc33b67784c8a024aee9161bfc0859f235276c6382fd9e7ffa96",
+    "dwg2dxf/dx_iface.cpp": "653f6c76b6d3ba519069ae72f43043881552d876e6b06fa93b253690a9a117dc",
+    "dwg2dxf/dx_iface.h": "05ce6a238932e9fb7340b17f9918f10925b2f755fcc24f5e8cdb0463f20e81d3",
+    "dwg2dxf/dx_material_body.h": "c3e9e17654d547722d7b788a80703a1df1ddbcf1e98de1a7e0309976f9af5bcf",
+    "dwg2dxf/dx_standard_output.h": "b43b24d2731dcb0ff818f939e4e4c0eaa6e274b4587bf9f5379c6f1e67956570",
+    "src/libdxfrw.cpp": "07a29f96cbd58d42ffddb10babc28fafa900585772d37492310fcef9ef299115",
+    "src/libdxfrw.h": "fa8f0b7667073cdf754509f7b23789f521978fc6c86046bb10772f4d6c3181eb",
+    "tests/dxf_fixture_tests.cpp": "f495847171a6e612db1bb31228d3aace2f85ffe269b4a32ba66d6cfeb5da60cc",
+    "tools/qualify_material_source_order.py": "bc11afb5bf9454aba2bf469079d034fda937f56ad6b0b7ee530e538c39086307"
+  },
+  "baseline": {
+    "sourceSha256": "f6d3873aa20959ac5e6047819f4cac428c39f23af77eceb5bbacbadf2f932136",
+    "outputSha256": "8616c3dc79f3f4c226aa3587b7200a2b759b680f3945cf2be7dc6bc2d8e89876",
+    "expectedEditedValue": "edited_\u03a9^A",
+    "actualFields": [
+      {
+        "code": 280,
+        "value": "    0"
+      },
+      {
+        "code": 1,
+        "value": "caf\u00e9"
+      },
+      {
+        "code": 280,
+        "value": "    0"
+      },
+      {
+        "code": 1,
+        "value": "second"
+      }
+    ],
+    "result": "The R14 source imports caf\u00e9 correctly, but after a typed edit the successful export retains caf\u00e9."
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "supports": "Modern DXF uses UTF8; R2004 and earlier use legacy/ASCII and Unicode escape forms. Header codepage metadata cannot change modern body interpretation."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "supports": "Actual DXF revision names and DWGCODEPAGE metadata; not a per-field source decoding certificate."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "supports": "DictionaryVariables subclass, schema280 and value1 under the normative system dictionary owner."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html",
+      "supports": "Primary peer source describes legacy codepage selection and unrepresentable Unicode escapes versus modern UTF8."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/tutorials/custom_data.html",
+      "supports": "Primary producer uses NOD EZDXF_META metadata from R2000 onward; source factory and object deletion are observed in the pinned1.4.5 runtime."
+    }
+  ],
+  "implementation": [
+    "Extend the private immutable raw baseline with owned live source codec metadata: bounded canonical page, selected text/codepage policies, compatibility classifier and normalized codec version. Capture from getDxfReadContext during the actual callback, never from the mutable final header; match source revision/binary context and precharge owned profile bytes before copies. Shared const baseline identity freezes this profile with its raw body.",
+    "Allow the existing DICTIONARYVAR transaction for R14+ canonical and application owners under the existing graph/unique-membership rules. Keep the existing raw-writer exact-source-revision constraint. Re-decode original/current bodies using the captured source context and verify its codec revision; do not reinterpret the original bytes through a subsequently edited header.",
+    "Plan the output codec with the writer-equivalent target header selection, using bounded borrowed declaration text before copying. Encode value1 for the selected version/page/binary profile and owning-decode the planned projection. Freeze the selected header declaration and actual output version/effective codepage/binary profile against callback drift.",
+    "Retain ASCII opaque transport through legacy page changes but refuse unknown non-ASCII fields that would acquire a different page interpretation. Same-page corrected retries remain admitted. This is a byte-preservation boundary, not general opaque semantic transcoding.",
+    "Use effective UTF8 for modern DXF even when the header/codec reports legacy metadata. Review reproduced a failure of existing modern inspector replay and a potential false refusal of opaque UTF8 fields; the corrected guard separates modern body encoding from legacy metadata. Two explicit modern unknown-field controls retain UTF8 payloads across changed codepage metadata.",
+    "Extend the optional independent recipe with R2000/R2004 variable/LINE profiles in three legacy pages. The C++ probe verifies the independently generated input value before editing; the peer independently reads unchanged/edited output strings, dictionary/variable owners and 3D line endpoints. Three unused default materials are omitted before source generation; original defaults failing at MATERIAL73=0 remain retained and unqualified.",
+    "Extend the existing indexed UTF8 override API to explicitly selected group1 strings, retaining index/type/order/UTF8 validation and all unselected raw-text guards. Under RequireLossless, route validated legacy non-ASCII value1 through semantic encoding and match its actual encoded output. Compatible unchanged spellings and ASCII/CIF raw slots retain replay; unknown non-ASCII suffixes still refuse strict publication.",
+    "Precharge64 times current/original raw and typed logical storage to include typed edit expansion, semantic overrides and decode temporaries. Two1MiB public edits refuse before preparation copies and recover on the same adapter. Use an explicit missing-slot sentinel so a schema-only insertion cannot turn an absent value into an override of a following unknown field.",
+    "No installed header layout/signature, interface callback/pure virtual, DWG parser layout or public text policy changes. Private adapter/header users must rebuild. Shared decoder/writer defaults remain compatible, verified by the retained modern/application/material/consumer cohorts."
+  ],
+  "controls": {
+    "counterLine": "Legacy DICTIONARYVAR profiles=72; readbacks=536; refusals=72; retries=102; pageChanges=72; callbacks=24; opaqueRefusals=2; modernOpaque=2; strictReadbacks=144; budgetRefusals=2; unknownSuffixRefusals=2",
+    "counts": {
+      "profiles": 72,
+      "readbacks": 536,
+      "preflightConflictRefusals": 72,
+      "correctedRetries": 102,
+      "targetPageChanges": 72,
+      "callbackRefusals": 24,
+      "opaquePageRefusals": 2,
+      "modernOpaqueUtf8Profiles": 2,
+      "strictPolicyReadbacks": 144,
+      "typedEditBudgetRefusals": 2,
+      "unknownSuffixRefusals": 2
+    },
+    "matrix": "Three legacy versions x source/output ASCII/Binary x canonical/application owners x CP1252/CP1251/CP932. Initial values caf\u00e9/\u041f\u0440\u0438\u0432\u0435\u0442/\u8868\u30bf exercise actual codepage bytes; Shift-JIS values contain trail bytes resembling backslash/caret. Typed edits contain UTF8, literal caret/Unicode-escape-looking text and control1. Check unchanged, typed/raw-only, conflicting edits and corrected retries, then target-page changes with actual wire values and owning readback.",
+    "callbacks": "24 real mutations (typed value, target header codepage, raw opaque field) across four phases and both encodings preserve sentinel destinations and leave no owned temporary files; corrected sources export/read back using the same adapter.",
+    "lossless": "144 strict-policy readbacks pass across the legacy matrix. Two unknown non-ASCII suffixes with an omitted value slot remain opaque and refuse lossless output; compatible corrected retries preserve schema insertion, suffix bytes and value absence. The CLI and independent edit probe both request RequireValidSource and RequireLossless.",
+    "opaque": "Two legacy non-ASCII unknown-field page changes refuse; same-page retries preserve them. Two modern non-ASCII unknown fields pass with altered legacy codepage metadata because modern interpretation is UTF8.",
+    "retainedModern": {
+      "normal": "DICTIONARYVAR transaction profiles=32; readbacks=422; refusals=72; retries=132; callbacks=40; presence=32; lexical=2; prepFaults=17; corruptions=26",
+      "asan": "DICTIONARYVAR transaction profiles=32; readbacks=422; refusals=72; retries=132; callbacks=40; presence=32; lexical=2; prepFaults=17; corruptions=26"
+    },
+    "compatibility": "Retain128 application ownership profiles, modern32 transaction profiles/422 readbacks, exact lexical/presence, corruption, allocation/refusal/retry, canonical DXF/synthetic DWG routes, named resource limits, dictionary defaults/source ownership, MATERIAL, local/installed CLI and LibreCAD_3 compile checks. These remain selected transport/compatibility observations, not native CAD or formal ABI/application qualification."
+  },
+  "independentPeer": {
+    "normal": {
+      "version": "1.4.5",
+      "packages": {
+        "ezdxf": "1.4.5",
+        "numpy": "2.5.4",
+        "fonttools": "4.68.0",
+        "pyparsing": "3.3.3",
+        "typing_extensions": "4.16.0"
+      },
+      "probeSha256": "f021f8feb8114404498f61cddc97c04e432b88e7aa3cd41bd2bb27421da33a2f",
+      "converterSha256": "29f4e4d18517ef5a9d22e6a284ad63835584769d8459ea6c278e53da677bbbe6",
+      "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "reportSha256": "d763bac01d011e29f1ce1f0a453c8004ef3440085d866a3398bbfd22bf4be869",
+      "modernBodyProbes": 8,
+      "modernUnchanged": 16,
+      "modernEdited": 16,
+      "legacyInputs": [
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "format": "asc",
+          "sha256": "e1f4a12ebcec68d147c34ec518920a1852a05ef3da9dea354481175488aa6a4f"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "format": "bin",
+          "sha256": "2c6b23c91b657d98a973255d37ee7031f38c7131a7731246d8af897122dd9e8e"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "format": "asc",
+          "sha256": "4f2b0b94a34279ae53c84c86e67aa9445e58690975ab971351974d8a929c75e2"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "format": "bin",
+          "sha256": "49af8fec9a13c47f0ee1ecac0938d7b43bcc6e9d0b62395295a9796cc2312332"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "format": "asc",
+          "sha256": "744168b10ce5d6fc252128ed8d4fd3a7e2a6f97155ea871fd39b16a6cfc2c9d3"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "format": "bin",
+          "sha256": "04c4660cec333ed8464e37be80c17179d1df29bc05cb2ad39b6ffb6d90cd84f7"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "format": "asc",
+          "sha256": "61f41d8744443762b3c76099318c60b9bfaa5a019b116db59c7bc1b46799b4b8"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "format": "bin",
+          "sha256": "ef17e9aa6bdea0446efffe5c202ea73d0001bcadb6781a9aac179e1fd76d9f8c"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "format": "asc",
+          "sha256": "26fd9589b60528606e3386f4e94b534b995ad1eedcb689131f9f16e5d5ed5482"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "format": "bin",
+          "sha256": "00f6b1ea028bf314306dc0d801bf0401cfe4c1904ab221ab2cff31e60307d643"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "format": "asc",
+          "sha256": "f7cdf4f84c50aa3d47a84189d68a571d09efafca5973cf0945fac0209b56450e"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "format": "bin",
+          "sha256": "5f7170a00d4936c3889597d4f8ea6c4c02ccc96d954f780c939a35cdb4fcb5c4"
+        }
+      ],
+      "legacyRecipe": "Primitive LINE and metadata; three unused producer default materials omitted before generation",
+      "legacyUnchangedMatched": 24,
+      "legacyEditedMatched": 24,
+      "normalization": {
+        "allFormats": [
+          "ezdxf.decode_dxf_unicode"
+        ],
+        "asciiOnly": [
+          "ezdxf.tools.text.caret_decode"
+        ]
+      },
+      "legacyOutputs": [
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "3b6438a13c71cf09d80c0ad857d96ece5ea23df81d0008e398790aea81fc7f5f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "ceac0369b7036c3946cc4e37c526798060231a54067e3618c70b26726504f34c",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "f2bd7e18e976b1acd75415cf5408c7e85939fb2277936a0245f699f3d25bcad4",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "00862f061d5501b8de4dbc73a46210fecd99e71dc229498c6f2545f8af23b35f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "7b1029e3e5aedb336f20708b2eff0343e821e8695425a4235cd48bba426576c9",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "d76dd5d76d47be091ae26548a2ffb95bcf7ef78c76637292aead16ae5f022054",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "8944853140b8880413321845553c5c67ada89048aa3290b946a87ede32a0077b",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "84a22d9178b9b55e6cdd3fcc4b775732bcf1449924db62a427d1105ee8ca943e",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "979a751f0e18a74da40966b41005871a35ef4f1599b652a666e7f5b526502ab2",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "2257e81e19cecee5a3af624fd29dc8ce9e60de48981775a0a89bb83d5a7fac90",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "192f9171049194c2332c0e3e722991c3b37955617860a526789c20b93f2ce89c",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "d8cdffcae4040f97c28ff6da83fca30f571048ba894bd0b6f8ab954c115c80d7",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "efb743212c3aa17bdad93e0ba7ac59f88b1f88b752171e78a92c3df762b1be65",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "a1ae91a1c1de2df2f539852587d4114cd220a1fa39a5dde8ea40cc8836d7c295",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "609c1297ab14528f34f525d95ba0fcd653820a5fb1a0d1dffc319f14c23bd3b6",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "e81d1878393a792feef26e6928a84a700c76335bf24c17237a1c33152e5b960e",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "f20731ac42493846064689b592e273ae6876460c78271fd3917cfe26b47ac7e0",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "2fb5874cc51436d964ccfbcfc6e5bf32c3fbe123b1e0c17ab09213c7d80f8e52",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "30298e11843fd346cca7363c51b554d810a790faca3b3dd4ed2b7ff6efb0457d",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "d69d57a799921842ede99d0cdb6b9158e0b6a44aed63702fb8cf5a4d3b995e89",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "9f3fdace5fd7f7036d405dfbb5a8bc7507cd655195cd51cb83aad9fa2ed7ace9",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "2f95b3965de5796331cd1b3f63b759198f6a7c69aaed0b83e305aecc2fd1af21",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "e630575b3c5eb7d447a7018b34b426e742ad755517a886b81e00640c87f6e2f6",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "4a488428135d39c085f026e61f486f4c5be1536f1bd0300833b8a39d3a53b9fd",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "5e3bc2fef6409bb98b90b03aeffb6b7690ed1d9db33a5b55cd09c510abbec6b2",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "4291d1e5fd83ee632a9c7d1ba8eb7151f4c8ecef232f242925b1585e5bd5d3fb",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "4faa5fa79c9c9717f04ccf20c6b6e17ea904dcb793a12bb400d523b9e301de7c",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "242027ac40a06d89044ce9ab2f161639efcae03926173392773059d9a5a6f0c9",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "db0f9e2b3884b9e30bf33b53ef36b45532e70d41d18f9944e4707eaa842c9990",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "7c1f30f9d930d86665a106c5008d4b2efbcaa089e5b9fd6cdfc37778c08b01db",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "799f5861b60b77b7a38f53c24759758fb41e01343d9eadfa95f9f3a8babb4a8f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "694eaee3de6d670d73a6c33a13488d38d215b1fbc69ebfd1775a598be8e72702",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "54425a624bde45b1aa0f7cf6df57544ba25d9b2ca95ee2679aa70f3c1033857c",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "9462f900f84bbd0f7fe79bacb440136ebce97d48f468495e41654c8be076c510",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "5c5c384d7c11b946989b65fe78687eded881eebef4af35eaafe4f77c2bf0b9cb",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "79cd9bfae66cde36e019b6902fa07f81b35a3cffb9786dcc0ac33e01121a43f3",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "b42d07e3a6705b0f7e22a7c4868e19070783378efadb8f33f25d614d38cb80fe",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "0d983ea78af7fee49aca9ce631bd38742d31093288faaebfe8ce7930e2ca112b",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "23af4d247c289cd385c3cc8ac589dd1e85a9b1e7db3dfb387645e4d798cebc73",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "d268cee39ab1ade50a0cb56187725cc467cbfa7231c819c50490d935dd77a6c1",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "1db7798231b4abe63b8caafa9040bbb2e31488b180000c479adf1b539a0f327a",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "fd76c8963dc9ab38134aa35c10e6f9eae1ad2c92cf20e18d6bcdf2871aa5e3b1",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "89c4e108d83da072b379e81c262cb3ed6bc6bd8a7964213e47044d5d0f240094",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "aaf03476b8d4239b515b4a71160717b850c41602a0c37a4447c31fcb2d349d4f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "a47cc6988c09ae095d1438c463b0077821d065e032a61ec55209ca8a2e3e7332",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "31f8f292701ae02d2fd4c17ced06a5d275dd32ba6870710214c0a17244e40236",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "80a61b819f5c386ec0b5748b83df4db4d3b9b22a86e3d224ce9a891d6c168445",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "b03b2f4e6b06aaeba328012e4b3743bc19d4106de0d653d1af35dc4d51996349",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        }
+      ]
+    },
+    "asan": {
+      "version": "1.4.5",
+      "packages": {
+        "ezdxf": "1.4.5",
+        "numpy": "2.5.4",
+        "fonttools": "4.68.0",
+        "pyparsing": "3.3.3",
+        "typing_extensions": "4.16.0"
+      },
+      "probeSha256": "356592ce4deeddbd3a3413326984d179a33234c7e33934fd51e9d0fb4c994cd3",
+      "converterSha256": "1ca086baaac46a86cd5638dd38876c850c77b25d952a519a6ac2b87b5cd0f677",
+      "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "reportSha256": "b3ac10df5e17b68c3b205c36f7f2f114ea729eecb78ba87a38a8bc8b055f24d9",
+      "modernBodyProbes": 8,
+      "modernUnchanged": 16,
+      "modernEdited": 16,
+      "legacyInputs": [
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "format": "asc",
+          "sha256": "efce5661dae70ab21d355225f52c566fb13b28633637247eea59922404b5c4fe"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "format": "bin",
+          "sha256": "1e93c21438d96a65af6587de1327498efabbdf4cfac8091eaa41958c53efac45"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "format": "asc",
+          "sha256": "978abf18fcacb182c5f2880367aa97c542ce2b2e7312303f59f28b951fe6b0f2"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "format": "bin",
+          "sha256": "08b4376c0a7d904cffa29aad2f6bbb85dfc6d1095bbd24496bb87a070d428294"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "format": "asc",
+          "sha256": "5b7919c6f4fdea31d87e1ec19da09d2dc7c90fefb89db08feaf749052a14d735"
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "format": "bin",
+          "sha256": "ce55a0ede2971478c2db8103a94941407a2c9fd123d7e0264a65d77a416c604c"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "format": "asc",
+          "sha256": "82d6f8a74dcdd761d9e598f49021624e6b2a5a77f50008a70799981f5ed4576d"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "format": "bin",
+          "sha256": "d4b2a3929f7675df02a9f9253761199e1e610edac6791df57fd2dd9f771d7f98"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "format": "asc",
+          "sha256": "1f228dc7f568160edb3b251a7c8fcbfcca96bb01c2d9a6f8d0ae2dc8d572098e"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "format": "bin",
+          "sha256": "f5eb5653bd898f12635931c0c6c0eb03ffcf9b7a45db90bb3df34dd7e604c2fe"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "format": "asc",
+          "sha256": "1758a8446eda2c8b974fbaac2a0069613c2213048a2dbd452684b86129a9de74"
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "format": "bin",
+          "sha256": "24f56c6c3b30d51c5523e210284ee982fe3e50feb160a4093d064416e4ec119e"
+        }
+      ],
+      "legacyRecipe": "Primitive LINE and metadata; three unused producer default materials omitted before generation",
+      "legacyUnchangedMatched": 24,
+      "legacyEditedMatched": 24,
+      "normalization": {
+        "allFormats": [
+          "ezdxf.decode_dxf_unicode"
+        ],
+        "asciiOnly": [
+          "ezdxf.tools.text.caret_decode"
+        ]
+      },
+      "legacyOutputs": [
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "e9f67df95cd14f9ad522b44aa75c4e9e1c899526f571c7618541a555cfd10967",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "f7770644877737498d4f6d7480078bbaf944556421c126cc36541504fd128d65",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "a1491a0f66099970822e264ea733213157450c3ea27947c23444e3bca2e0d969",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "526c192d8935b734770e53ba5148a8673389244c6de2578e07c8693eee096ce6",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "9acf56adbdd684aef0dd397890f4d18f348f90638a4deb663138649476fbc550",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "29cd8c8fa43794410383d30a00726f17a18c96d22f5e8f51d4d76c42e57e66c7",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "57ad88ba55a9cae5a674158a623e25deb94544d8b881425abfa96ae214e36c16",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "1dd19692f0a04c0085556d4e6059aa3af6e83022c6f5eebb69798d1526af5bba",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "20461a3385ec10aaef99ef05d048cf65cb10c9c335e8c4f90eb3db12b670d84f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "7be54a18ffc7cbd4d4c52a04936151c3aa2f7188bec476865dbd7123a6dbf9dd",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "65446260dec7eb4cbd0c8bd28eb8e747472b733fbc3e1993e106237934107169",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "8dba490323547e486f462a118fbee09fdf1d51f59adc62173eff70b2032ade0d",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "c87686f6e6c15ac295fabc4c7f6800ea6c88dff4bc1e40b8ea6952d570631ada",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "11b888072f564a120ea8f6698201457a9a9693d6de6863423925ac3dce4ce7e3",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "cc12b53280052ac4152d6997d31b1bb1b2927d80ca321c6fcb51f4fe169214a6",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "303a863e14218445d392dd80d0b3df73687d0dce0335f15ac180b2ba5071c018",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "a76fa5ad4625fce7162348ce96bc36176ffbe5f8a6434832efa91214ddcdfcee",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "811e02e9e00c11fd1e9468dde50e87c364d33f6a100bd2ec4d222e35c5bdef39",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "78c3df085c8e2a4c5662bbce116212868b4a01cf80963641b11f1d01d6928b80",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "26f6c1c4262b5f9a0e3ba0ef564248058b5970dd952c4d9b5f5179c59555a277",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "9a25aac8f12dd194582c89fda42357858ab14dbeff59c89efef3297027743059",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "65c7918021fd310cf87683c9f81605294660e403ad81708fb1af3cf040bfded6",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "e522751af9be9f391a98c22cbbf71b108476445bb41d2a7c58d12ccfc9d7b024",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "4b6854f7f295d2e55a1e131308d9c56267627719abae2a1a4710e161db765391",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "2296bd02aa339c9b610d371790d79e87640d43b973d17ac712b95106e804ec42",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "ba6255f8ca4dec88da85ee64b8fa11ea45c25affdf43e7fa730c12cdec6a20c3",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "ce8d19e14e7d1f5b3bf87a9d9c3f044b87a8a1365287c3819c82be2a591b3ecd",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "fbdfe2ca8b2bfce32e971a3136f4d87e264963fce777e299c901c768ef155198",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "3d70ac35ac5cc700d3ff12ea76fbd00811072cfb1be034c92e3e2b01bbbfa478",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "2dd546bc205ae8299e3ca1158e67d5ce7f49312de3812c30bfca21c0b0e87e0f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "47ae879313688264444331fbc08c97f175405eac77c6adbfede1ce419ae4d095",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "0c8e0cf43c12c247d26250b2069f49117fe2c219ad26aa2d05e5d622371e2f7c",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "de317c322f8bbd8b2572a444a26022b34482ae3e4c40fef87917828a70e4cc3f",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "bcb8da2005f5665fe828a375816ec3a373c76672158f12594ec13ea182a39789",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "d948cf0d0be507c50939c384c702fbdb16ea820b4567e160756cfd6cef90b6e7",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1015",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "9a75d228c26525477ae328e9f20c779fd6bb063093814e3658a29c2315ed0489",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "1c3e829d9ec5960ce178def187e2138dca1fe89f7d45d3511580bee476a025c0",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "02caf378a623407d76c154d37adfff2259a91e3900d107eedee1e11f1bf03a89",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "c2635674cf34191a4eb54219aaacade7e3675946d985567920acee45821f4e29",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1252",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "6627c5da5cafb7f0120ac11fedc54ad65b9b347ccb29646dddea212a218fc587",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "02b1fa4fca61d766de0e1a7536af3ecfe3460bfa33d079d0e2c21daff9a54c3b",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "79a82c076483a54fb0a94c3318a618792efe75748ddcd95dedc50232c786f93e",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "2bebf2b08b1bf8c80209a75c13e52f6527c46a06248c125263d77ce6a111d85d",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp1251",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "855941b1535699930984ef77d963f0eed0d824a6559b6b8831354ce54d3d7df7",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "3537c59582b0f5b3ce81b704c28deeaee85ee954f42f6a9c142724ee6ef69d36",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "0cec33ed027f25e891193aafcb4c1712349c4d8a1f97ab4c792c9d63cc584942",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "570e16f20073aa539de363a92079dbc1f44f4284d401d29d9c6d65bc0bde38c5",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        },
+        {
+          "version": "AC1018",
+          "page": "cp932",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "995c6840dace4d04e7483ce1ea89c124826a99b6b2c13f56857c47b676943441",
+          "observations": {
+            "metadataEntries": 2,
+            "matrices": 0,
+            "line3d": true,
+            "materialLinkChecked": false,
+            "line3dAndMaterial": false
+          }
+        }
+      ]
+    }
+  },
+  "qualification": {
+    "selected": [
+      "libdxfrw_build_inventory",
+      "libdxfrw_build_inventory_selftest",
+      "libdxfrw_public_header_hygiene",
+      "libdxfrw_generated_dictionary_source_metadata",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_material_text_owner_budget",
+      "libdxfrw_material_body_transactions",
+      "libdxfrw_material_normal_boundaries",
+      "libdxfrw_material_source_order",
+      "libdxfrw_dictionaryvar_legacy",
+      "libdxfrw_dictionaryvar_transactions",
+      "libdxfrw_dictionaryvar_custom_owners",
+      "libdxfrw_header_material_bindings",
+      "libdxfrw_layer_material_bindings",
+      "libdxfrw_material_consumer_bindings",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_dxf_consumer_finalization",
+      "libdxfrw_extension_graph_limits",
+      "dwg2dxf_material_typed_capture_limits",
+      "dwg2dxf_named_resource_typed_capture_limits",
+      "dwg2dxf_named_resource_raw_capture_limits",
+      "libdxfrw_named_resource_import_evidence",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_dictionary_effective_ownership",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_shade_consumer_output",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "frozenInputs": 593,
+    "sourceManifestSha256": "ccb1973d9a172cd5e43a63e8af55ca0263ec02ed125181b5c961bddc7e343cc1",
+    "sourceManifestUnchanged": true,
+    "bothBuildsAndPackagingBeforeRuntime": true,
+    "normalBeforeAsan": true,
+    "registrationsMatch": true,
+    "countersMatchAcrossConfigurations": true,
+    "fullSuiteRun": false,
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "packaging": {
+      "steps": [
+        {
+          "step": "inventory",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check"
+          ],
+          "exitCode": 0,
+          "seconds": 0.08898391600814648
+        },
+        {
+          "step": "configure",
+          "command": [
+            "/Users/dli/dev/libdxfrw/configure",
+            "--disable-shared",
+            "CXXFLAGS=-O0"
+          ],
+          "exitCode": 0,
+          "seconds": 6.288541290996363
+        },
+        {
+          "step": "dist",
+          "command": [
+            "make",
+            "dist"
+          ],
+          "exitCode": 0,
+          "seconds": 7.100765541981673
+        },
+        {
+          "step": "check-bz2",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check",
+            "--archive",
+            "/Users/dli/dev/libdxfrw/build/rpp5gk-evidence/source-release/libdxfrw-2.0.0.tar.bz2"
+          ],
+          "exitCode": 0,
+          "seconds": 0.846136124979239
+        },
+        {
+          "step": "check-gz",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check",
+            "--archive",
+            "/Users/dli/dev/libdxfrw/build/rpp5gk-evidence/source-release/libdxfrw-2.0.0.tar.gz"
+          ],
+          "exitCode": 0,
+          "seconds": 0.22008995900978334
+        }
+      ],
+      "archives": [
+        {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gk-evidence/source-release/libdxfrw-2.0.0.tar.bz2",
+          "sha256": "b5bcef446d476799b8e85d0d90515427eb126ea1d18cbe056320edfeeda64c8f"
+        },
+        {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gk-evidence/source-release/libdxfrw-2.0.0.tar.gz",
+          "sha256": "f08160c5e1f968a08e5875ca4e35cd6223ab888f341d55b54586b796d02996ad"
+        }
+      ],
+      "end": "2026-10-28T11:41:08.405319+00:00",
+      "sourceInputs": 593,
+      "scope": "Source archive byte verification only; no extracted-source build or distcheck"
+    },
+    "normal": {
+      "build": {
+        "start": "2026-10-28T11:37:14.047212+00:00",
+        "end": "2026-10-28T11:37:14.068167+00:00",
+        "seconds": 0.020858332980424166,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_writer_primitives_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ]
+      },
+      "start": "2026-10-28T11:50:04.475777+00:00",
+      "end": "2026-10-28T11:51:48.254130+00:00",
+      "seconds": 103.77712087499094,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_material_normal_boundaries",
+          "status": "Passed   15.14 sec"
+        },
+        {
+          "name": "dwg2dxf_acds_strict_material_closure",
+          "status": "Passed   10.73 sec"
+        },
+        {
+          "name": "libdxfrw_material_body_transactions",
+          "status": "Passed   27.56 sec"
+        },
+        {
+          "name": "dwg2dxf_generated_root_common_closure",
+          "status": "Passed   11.59 sec"
+        },
+        {
+          "name": "libdxfrw_material_strict_color_closure",
+          "status": "Passed   11.86 sec"
+        },
+        {
+          "name": "libdxfrw_public_header_hygiene",
+          "status": "Passed   29.01 sec"
+        },
+        {
+          "name": "libdxfrw_material_color_lexemes",
+          "status": "Passed    9.54 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_transactions",
+          "status": "Passed    9.19 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_legacy",
+          "status": "Passed   11.05 sec"
+        },
+        {
+          "name": "libdxfrw_header_material_bindings",
+          "status": "Passed    6.58 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    6.12 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_custom_owners",
+          "status": "Passed    5.15 sec"
+        },
+        {
+          "name": "libdxfrw_material_source_order",
+          "status": "Passed    4.02 sec"
+        },
+        {
+          "name": "libdxfrw_material_consumer_bindings",
+          "status": "Passed    4.45 sec"
+        },
+        {
+          "name": "libdxfrw_layer_material_bindings",
+          "status": "Passed    4.43 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_consumer_finalization",
+          "status": "Passed    0.98 sec"
+        },
+        {
+          "name": "libdxfrw_shade_consumer_output",
+          "status": "Passed    4.01 sec"
+        },
+        {
+          "name": "libdxfrw_generated_dictionary_source_metadata",
+          "status": "Passed    1.16 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    2.14 sec"
+        },
+        {
+          "name": "libdxfrw_material_root_output_compatibility",
+          "status": "Passed    0.82 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.67 sec"
+        },
+        {
+          "name": "libdxfrw_extension_graph_limits",
+          "status": "Passed    1.31 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_material_text_owner_budget",
+          "status": "Passed    0.35 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory",
+          "status": "Passed    0.35 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    1.50 sec"
+        },
+        {
+          "name": "dwg2dxf_material_typed_capture_limits",
+          "status": "Passed    0.07 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.52 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory_selftest",
+          "status": "Passed    0.19 sec"
+        },
+        {
+          "name": "libdxfrw_named_resource_import_evidence",
+          "status": "Passed    1.59 sec"
+        },
+        {
+          "name": "libdxfrw_writer_primitives",
+          "status": "Passed    0.41 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.17 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_typed_capture_limits",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_material_raw_scalar_wire_controls",
+          "status": "Passed    0.07 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_raw_capture_limits",
+          "status": "Passed    0.11 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_operation_admission",
+          "status": "Passed    0.28 sec"
+        }
+      ],
+      "passed": 35,
+      "writerOutputPropertyExitCode": 0,
+      "independentBodyProbesPassed": 8,
+      "independentSelectedRoundTrips": 16,
+      "independentVariableEdits": 16,
+      "independentLegacyRoundTrips": 24,
+      "independentLegacyEdits": 24,
+      "ctestSeconds": 91.68,
+      "logSha256": "4e5cbb9e906939b5e9bd4246c71e156688e80bcad9bbd95e685723ca6d788b0f"
+    },
+    "asan": {
+      "build": {
+        "start": "2026-10-28T11:37:14.148874+00:00",
+        "end": "2026-10-28T11:37:14.168114+00:00",
+        "seconds": 0.019234207982663065,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_writer_primitives_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ]
+      },
+      "start": "2026-10-28T11:51:48.371095+00:00",
+      "end": "2026-10-28T11:52:55.289859+00:00",
+      "seconds": 66.91806129098404,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_material_body_transactions",
+          "status": "Passed   20.78 sec"
+        },
+        {
+          "name": "libdxfrw_public_header_hygiene",
+          "status": "Passed   23.95 sec"
+        },
+        {
+          "name": "libdxfrw_material_normal_boundaries",
+          "status": "Passed    9.58 sec"
+        },
+        {
+          "name": "dwg2dxf_acds_strict_material_closure",
+          "status": "Passed    6.98 sec"
+        },
+        {
+          "name": "libdxfrw_header_material_bindings",
+          "status": "Passed    5.34 sec"
+        },
+        {
+          "name": "dwg2dxf_generated_root_common_closure",
+          "status": "Passed    6.30 sec"
+        },
+        {
+          "name": "libdxfrw_material_strict_color_closure",
+          "status": "Passed    4.73 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_transactions",
+          "status": "Passed    5.84 sec"
+        },
+        {
+          "name": "libdxfrw_material_color_lexemes",
+          "status": "Passed    4.54 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    3.09 sec"
+        },
+        {
+          "name": "libdxfrw_shade_consumer_output",
+          "status": "Passed    2.56 sec"
+        },
+        {
+          "name": "libdxfrw_material_consumer_bindings",
+          "status": "Passed    2.73 sec"
+        },
+        {
+          "name": "libdxfrw_material_source_order",
+          "status": "Passed    2.70 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_custom_owners",
+          "status": "Passed    3.14 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    1.59 sec"
+        },
+        {
+          "name": "libdxfrw_layer_material_bindings",
+          "status": "Passed    2.34 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    1.16 sec"
+        },
+        {
+          "name": "libdxfrw_generated_dictionary_source_metadata",
+          "status": "Passed    0.96 sec"
+        },
+        {
+          "name": "libdxfrw_material_root_output_compatibility",
+          "status": "Passed    0.72 sec"
+        },
+        {
+          "name": "libdxfrw_named_resource_import_evidence",
+          "status": "Passed    1.09 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_consumer_finalization",
+          "status": "Passed    0.53 sec"
+        },
+        {
+          "name": "libdxfrw_extension_graph_limits",
+          "status": "Passed    0.64 sec"
+        },
+        {
+          "name": "libdxfrw_writer_primitives",
+          "status": "Passed    0.38 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.44 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.43 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_material_text_owner_budget",
+          "status": "Passed    0.39 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory",
+          "status": "Passed    0.36 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory_selftest",
+          "status": "Passed    0.19 sec"
+        },
+        {
+          "name": "libdxfrw_material_raw_scalar_wire_controls",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_operation_admission",
+          "status": "Passed    0.16 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.13 sec"
+        },
+        {
+          "name": "dwg2dxf_material_typed_capture_limits",
+          "status": "Passed    0.04 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_raw_capture_limits",
+          "status": "Passed    0.03 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_typed_capture_limits",
+          "status": "Passed    0.03 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_legacy",
+          "status": "Passed    4.50 sec"
+        }
+      ],
+      "passed": 35,
+      "writerOutputPropertyExitCode": 0,
+      "independentBodyProbesPassed": 8,
+      "independentSelectedRoundTrips": 16,
+      "independentVariableEdits": 16,
+      "independentLegacyRoundTrips": 24,
+      "independentLegacyEdits": 24,
+      "ctestSeconds": 61.51,
+      "logSha256": "014e03832415d9f4225210156c68cbcc5332819bec405e02a4b0cbea41fbf900"
+    }
+  },
+  "retainedDevelopmentEvidence": [
+    {
+      "path": "build/rpp5gk-evidence/baseline-test.log",
+      "sha256": "e3c1d82fd476a3c48e97f92302a4bce3339d23814e8b75acdaa629212beff897",
+      "observation": "Actual R14 typed edit is silently ignored before implementation."
+    },
+    {
+      "path": "build/rpp5gk-evidence/development-peer/qualification.json",
+      "sha256": "4c8f033374379b8f2c72f1c81585b6725d5644ddce5ef17a97d9fbc4916269bd",
+      "observation": "Original independent producer defaults fail24/24 at the known MATERIAL73=0 read conflict."
+    },
+    {
+      "path": "build/rpp5gk-evidence/peer-read-trace.log",
+      "sha256": "7cd534c89902d61d7b62d7327381248d902eeb5272204229dad475f7ba9905ed",
+      "observation": "Debug trace identifies the original producer MATERIAL parser boundary, independently of variable ownership."
+    },
+    {
+      "path": "build/rpp5gk-evidence/peer-variable-only-attempt.json",
+      "sha256": "45b19ece3878c9d7f4298fd16b2f667bdce93eaeff1b9edd70c0c24f130a8916",
+      "observation": "Original independent primitive/metadata profile succeeds after omitting three unused defaults before generation."
+    },
+    {
+      "path": "build/rpp5gk-evidence/modern-transactions.log",
+      "sha256": "bcd0921136ff9a267f21e397e4305617ced93d4b254c3add0dac1118729dc0e4",
+      "observation": "Review catches the wrong literal-modern-codepage guard via existing actual inspector replay."
+    },
+    {
+      "path": "build/rpp5gk-evidence/pre-review-sources-before.sha256",
+      "sha256": "1421ac05e89d24e0b7c492168350bbe31cb419b5f296bd0faeeead985f9a518f",
+      "observation": "Earlier green builds precede the review correction; they are not the final qualified source set."
+    },
+    {
+      "path": "build/rpp5gk-evidence/corrected-owning.json",
+      "sha256": "97612701381898ad88fcf9235cb1ecd7f38c8dc9d56c0c9ba729edd818dc76d5",
+      "observation": "Effective-encoding correction passes all three owning suites before discovering the distinct CLI policy gap."
+    },
+    {
+      "path": "build/rpp5gk-evidence/pre-lossless-normal-peer-final/qualification.json",
+      "sha256": "6e1727a1d80bd8f526b3c65af89ab114d7c44ca70d9c68576471f44ff122d6e8",
+      "observation": "The compatible adapter edits pass24/24, but strict CLI unchanged outputs fail24/24 as opaque legacy value text. This failed qualification is retained and not promoted."
+    },
+    {
+      "path": "build/rpp5gk-evidence/lossless-owning.json",
+      "sha256": "dfb2eb9b2f8e7891419f30d8d502d5bf3448b8024c64d40554706d85fc174a0e",
+      "observation": "Final legacy/modern/application owning suites include strict-policy, typed budget and omitted-value/suffix controls."
+    },
+    {
+      "path": "build/rpp5gk-evidence/lossless-peer-development/qualification.json",
+      "sha256": "b0324c1ff1ebcbb7c8d9b099202f3e6e9e372034d172c750ad1699d796f46aa8",
+      "observation": "Final strict-policy development run independently matches24 legacy unchanged and24 edited outputs plus existing modern observations."
+    }
+  ],
+  "limitations": [
+    "Legacy independent source profiles are R2000/R2004, not an independent R14 native producer run. R14 evidence is authored locally. The three codepage/text specimens do not certify every codepoint, alias, recovery policy, source/header ordering or native application.",
+    "The variable-only legacy recipe omits three unused MATERIAL defaults before generation. Initial unmodified producer files fail at the known MATERIAL group73/specular ambiguity; this remains a separate required MATERIAL/specification/version investigation. Neither that default source profile nor full legacy producer documents are promoted.",
+    "Different DXF revisions remain refused by the existing raw transport contract. Opaque non-ASCII legacy page changes refuse rather than invent field semantics; arbitrary opaque text encoding/format changes and common/recursive document ownership remain unqualified.",
+    "Callback baselines/profile matching and output readback do not establish independent original semantic certification, native setvar/getvar behavior or unknown schema meanings. Source/consumer corpus breadth, SCALE/MLINESTYLE/MLEADERSTYLE transactions, MATERIAL/rendering/TABLE/document closure remain open.",
+    "Native Linux GCC release, Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel, formal ABI/application and controlled RSS/performance remain NOT_RUN. Archive byte verification is not an extracted-source build or distcheck."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "legacyDefaultMaterialProfileQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "All drawings are authored/generated locally from original recipes and retained only in ignored scratch space. No drawing fixture, third-party implementation, package or derivative payload enters Git."
+}

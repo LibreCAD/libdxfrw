@@ -25,7 +25,7 @@ def digest(path):
 PEER_VARIABLE_EDIT = r"edited peer_Ω^A\U+1234" + chr(1)
 
 
-def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False):
+def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
     before, after = ezdxf.readfile(source), ezdxf.readfile(output)
     expected, actual = before.rootdict["EZDXF_META"], after.rootdict["EZDXF_META"]
     expected_values = {k: v.dxf.value for k, v in expected.items()}
@@ -45,19 +45,23 @@ def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_bin
     assert actual.dxf.owner == after.rootdict.dxf.handle, "metadata dictionary owner"
     assert all(v.dxftype() == "DICTIONARYVAR" and v.dxf.owner == actual.dxf.handle
                for _, v in actual.items()), "variable owners"
-    a, b = before.materials["PeerSurface"], after.materials["PeerSurface"]
-    for field in ("normal_map_method", "normal_map_strength", "normal_map_file_name",
-                  "color_bleed_scale", "indirect_dump_scale", "reflectance_scale",
-                  "transmittance_scale", "two_sided_material"):
-        assert a.dxf.get(field) == b.dxf.get(field), field
-    for field in ("diffuse_mapper_matrix", "bump_mapper_matrix",
-                  "refraction_mapper_matrix", "normal_mapper_matrix"):
-        assert list(getattr(a, field)) == list(getattr(b, field)), field
+    if not legacy:
+        a, b = before.materials["PeerSurface"], after.materials["PeerSurface"]
+        for field in ("normal_map_method", "normal_map_strength", "normal_map_file_name",
+                      "color_bleed_scale", "indirect_dump_scale", "reflectance_scale",
+                      "transmittance_scale", "two_sided_material"):
+            assert a.dxf.get(field) == b.dxf.get(field), field
+        for field in ("diffuse_mapper_matrix", "bump_mapper_matrix",
+                      "refraction_mapper_matrix", "normal_mapper_matrix"):
+            assert list(getattr(a, field)) == list(getattr(b, field)), field
     lines = list(after.modelspace().query("LINE"))
     assert len(lines) == 1 and tuple(lines[0].dxf.start) == (1, 2, 3), "3D start"
     assert tuple(lines[0].dxf.end) == (4, 5, 6), "3D end"
-    assert lines[0].dxf.material_handle == b.dxf.handle, "material reference"
-    return {"metadataEntries": len(actual), "matrices": 4, "line3dAndMaterial": True}
+    if not legacy:
+        assert lines[0].dxf.material_handle == b.dxf.handle, "material reference"
+    return {"metadataEntries": len(actual), "matrices": 0 if legacy else 4,
+            "line3d": True, "materialLinkChecked": not legacy,
+            "line3dAndMaterial": not legacy}
 
 
 def main():
@@ -68,6 +72,8 @@ def main():
                         help="also convert each source to ASCII/Binary and verify selected values")
     parser.add_argument("--edit-variables", action="store_true",
                         help="also edit peer metadata with the C++ adapter and independently decode it")
+    parser.add_argument("--legacy-variables", action="store_true",
+                        help="also qualify R2000/R2004 variable text in three legacy codepages")
     args = parser.parse_args()
     import ezdxf
     from ezdxf.math import Matrix44
@@ -83,6 +89,7 @@ def main():
     rows = []
     round_trips = []
     variable_edits = []
+    legacy_inputs, legacy_round_trips, legacy_edits = [], [], []
     source = None
     for version in ("R2007", "R2010", "R2013", "R2018"):
         doc = ezdxf.new(version)
@@ -156,6 +163,52 @@ def main():
                         except Exception as error:
                             row["mismatch"] = str(error)
                     variable_edits.append(row)
+    if args.legacy_variables:
+        for version in ("R2000", "R2004"):
+            for page, text in (("cp1252", "café"), ("cp1251", "Привет"), ("cp932", "表タ")):
+                doc = ezdxf.new(version)
+                doc.encoding = page
+                # A variable/primitive legacy profile. Keep the separately
+                # retained default-producer MATERIAL failure unqualified.
+                # These three unused defaults are omitted before generation.
+                for name, _ in list(doc.materials):
+                    doc.materials.delete(name)
+                doc.ezdxf_metadata()["CREATED_BY_EZDXF"] = text
+                doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
+                for fmt in ("asc", "bin"):
+                    path = output / ("legacy-" + doc.dxfversion + "-" + page + "-" + fmt + ".dxf")
+                    doc.saveas(path, fmt=fmt)
+                    legacy_inputs.append({"version": doc.dxfversion, "page": page,
+                                          "format": fmt, "sha256": digest(path)})
+                    for target_format in ("asc", "bin"):
+                        for edit in (False, True):
+                            if not edit and not converter:
+                                continue
+                            target = output / (("legacy-edit-" if edit else "legacy-out-")
+                                               + doc.dxfversion + "-" + page + "-" + fmt + "-" + target_format + ".dxf")
+                            if edit:
+                                command = [str(probe), "--dictionaryvar-edit-probe", str(path),
+                                           str(target), target_format, text]
+                            else:
+                                command = [str(converter), str(path), "-y", "-v" + version[1:]]
+                                if target_format == "bin":
+                                    command.append("-b")
+                                command.append(str(target))
+                            converted = subprocess.run(command, capture_output=True, text=True)
+                            row = {"version": doc.dxfversion, "page": page, "input": fmt,
+                                   "output": target_format, "exitCode": converted.returncode,
+                                   "stdout": converted.stdout, "stderr": converted.stderr, "matched": False}
+                            if converted.returncode == 0:
+                                row["sha256"] = digest(target)
+                                try:
+                                    row["observations"] = selected_round_trip(
+                                        ezdxf, path, target,
+                                        {"CREATED_BY_EZDXF": PEER_VARIABLE_EDIT} if edit else None,
+                                        target_binary=target_format == "bin", legacy=True)
+                                    row["matched"] = True
+                                except Exception as error:
+                                    row["mismatch"] = str(error)
+                            (legacy_edits if edit else legacy_round_trips).append(row)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
         "schema": "libdxfrw.material-peer-source-order.v1",
@@ -167,6 +220,13 @@ def main():
         "probeSha256": digest(probe), "generated": len(rows), "passed": passed,
         "results": rows, "wholeDocumentExportQualified": False,
         "roundTrips": round_trips,
+        "legacyInputs": legacy_inputs,
+        "legacyRecipe": "Primitive LINE and metadata; three unused producer default materials omitted before generation",
+        "legacyDefaultMaterialProfileQualified": False,
+        "legacyRoundTrips": legacy_round_trips,
+        "legacyRoundTripsMatched": sum(row["matched"] for row in legacy_round_trips),
+        "legacyEdits": legacy_edits,
+        "legacyEditsMatched": sum(row["matched"] for row in legacy_edits),
         "variableEdits": variable_edits,
         "variableEditsMatched": sum(row["matched"] for row in variable_edits),
         "variableEditNormalization": {"allFormats": ["ezdxf.decode_dxf_unicode"],
@@ -182,8 +242,12 @@ def main():
     if args.edit_variables:
         print("Independent edited metadata round trips: %d/%d" % (
             report["variableEditsMatched"], len(variable_edits)))
+    if args.legacy_variables:
+        print("Independent legacy round trips/edits: %d/%d, %d/%d" % (
+            report["legacyRoundTripsMatched"], len(legacy_round_trips),
+            report["legacyEditsMatched"], len(legacy_edits)))
     return 0 if passed == len(rows) and all(
-        row["matched"] for row in round_trips + variable_edits) else 1
+        row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits) else 1
 
 
 if __name__ == "__main__":

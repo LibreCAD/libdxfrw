@@ -70,7 +70,7 @@ public:
         const auto saved=value.m_dxfMaterialWriteInspected;value.m_dxfMaterialWriteInspected=false;
         const bool good=value.inspectDxfMaterialOutput(view);value.m_dxfMaterialWriteInspected=saved;return good;
     }
-    static bool prepareVariables(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfDictionaryVars(binary);}
+    static bool prepareVariables(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfDictionaryVars(value.cData->sourceVersion,binary);}
     static bool customVariableUnchanged(const dx_iface& value){return value.hasUnchangedDxfDictionaryVars();}
     static bool customVariableReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
         const auto saved=value.m_dxfDictionaryVarsInspected;value.m_dxfDictionaryVarsInspected=false;
@@ -27436,9 +27436,10 @@ Tags physicalTags(const std::filesystem::path& path,bool binary) {
     }
     return result;
 }
-std::string encodedText(const std::string& text,const std::string& version,bool binary) {
+std::string encodedText(const std::string& text,const std::string& version,bool binary,const std::string& page="") {
     std::ostringstream stream;std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
     writer->setVersion(version,true);writer->setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+    if(!page.empty())writer->setCodePage(page);
     if(!writer->writeUtf8String(1,text))throw std::runtime_error("material text recipe encoding failed");
     const auto value=stream.str();if(binary)return value.substr(2u,value.size()-3u);
     const auto begin=value.find('\n');return value.substr(begin+1u,value.size()-begin-2u);
@@ -28247,7 +28248,7 @@ void rawValue(dx_data& data,int code,const std::string& text,bool binary) {
     }
     throw std::runtime_error("missing transaction raw slot");
 }
-bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary,std::string_view expected="") {
     dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;
     std::uint32_t owner=0u,target=0u;
     for(const auto& entry:data.namedObjectDictionary.m_entries)if(entry.m_name=="EZDXF_META") {
@@ -28259,9 +28260,11 @@ bool peer(const std::filesystem::path& input,const std::filesystem::path& output
         }
     unsigned edited=0u;
     for(auto& variable:data.dictionaryVars)if(variable.handle==target&&variable.parentHandle==owner) {
+        if(!expected.empty()&&variable.m_value!=expected)return false;
         variable.m_value=UTF8STRING("edited peer_Ω^A\\U+1234")+char(1);++edited;
     }
-    return edited==1u&&adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true);
+    return edited==1u&&adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
 }
 bool keptWithoutTemporary(const std::filesystem::path& output) {
     if(!kept(output))return false;
@@ -28363,6 +28366,131 @@ void testDictionaryVarTransactions(TestContext& t) {
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-dictionaryvar-transactions-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
     const bool passed=dictionaryVarTransactionControls::run(dir);t.expect(passed,"DICTIONARYVAR body transactions preserve represented edits");
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"DICTIONARYVAR transaction evidence: "<<dir<<'\n';
+}
+
+namespace legacyDictionaryVarControls {
+using namespace dictionaryVarTransactionControls;
+bool source(const std::filesystem::path& path,const std::string& version,bool binary,const std::string& page,const std::string& value,bool custom=false,bool suffix=false) {
+    auto fields=dictionaryVarTransactionControls::recipe(version,custom,true);
+    for(auto& field:fields){if(field.first==3&&field.second=="DATA_Ω")field.second="DATA";if(field.first==1&&field.second=="custom-Ω")field.second=value;}
+    if(suffix) {
+        unsigned variable=0u;Tags amended;
+        for(const auto& field:fields) {
+            if(field.first==0&&field.second=="DICTIONARYVAR")++variable;
+            if(variable==1u&&(field.first==280||field.first==1))continue;
+            amended.push_back(field);
+            if(variable==1u&&field.first==300)amended.insert(amended.end(),{{100,"VendorSuffix"},{301,"Привет"}});
+        }
+        fields=std::move(amended);
+    }
+    const auto end=std::find(fields.begin(),fields.end(),std::make_pair(0,std::string("ENDSEC")));fields.insert(end,{{9,"$DWGCODEPAGE"},{3,page}});
+    std::ofstream file(path,std::ios::binary);if(binary)file.write("AutoCAD Binary DXF\r\n\x1a\0",22);
+    std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&file)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&file));writer->setVersion(version,true);writer->setCodePage(page);writer->setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+    for(const auto& field:fields) {
+        const auto code=field.first;bool good=false;
+        if(dxfValueKindForCode(code)==DxfValueKind::Str)good=writer->writeUtf8String(code,field.second);
+        else good=writer->writeInt16(code,std::stoi(field.second));
+        if(!good)return false;
+    }
+    return file.good()&&!writer->hasWriteError();
+}
+bool value(const std::filesystem::path& path,const std::string& text) {
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.dictionaryVars.size()!=2u)return false;
+    return data.dictionaryVars.front().m_value==text;
+}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,pageChanges=0u,callbacks=0u,opaqueRefusals=0u,modernOpaque=0u,strictReadbacks=0u,budgetRefusals=0u,unknownSuffixRefusals=0u;
+    const auto fail=[&](int line){std::cerr<<"Legacy DICTIONARYVAR line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<'\n';return false;};
+    const std::string edited=std::string("edited_Ω^A\\U+1234")+char(1);
+    for(const std::string version:{"AC1014","AC1015","AC1018"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool custom:{false,true})
+        for(const auto& pair:std::vector<std::pair<std::string,std::string>>{{"ANSI_1252","café"},{"ANSI_1251","Привет"},{"ANSI_932","表タ"}}) {
+        const auto v=version=="AC1014"?DRW::AC1014:version=="AC1015"?DRW::AC1015:DRW::AC1018;const auto& page=pair.first;const auto& initial=pair.second;
+        dx_iface adapter;dx_data data;if(!source(input,version,sourceBinary,page,initial,custom)||!adapter.fileImport(input.string(),&data,false)||data.dictionaryVars.front().m_value!=initial)return fail(__LINE__);
+        const auto typed=data.dictionaryVars;const auto raw=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.dictionaryVars=typed;data.rawNamedResourceObjects=raw;};
+        const auto check=[&](const std::string& text,const std::string& outputPage,bool strict=false){
+            if(!adapter.fileExport(output.string(),v,binary,&data,false,true,dx_dxfSourceTextPolicy::Compatible,
+                strict?DRW::DxfTextWritePolicy::RequireLossless:DRW::DxfTextWritePolicy::Compatible)||!value(output,text))return false;
+            unsigned selected=0u;bool variable=false;for(const auto& field:materialBodyControls::physicalTags(output,binary)) {
+                if(field.first==0)variable=field.second=="DICTIONARYVAR";
+                if(variable&&field.first==1&&selected++==0u&&field.second!=materialBodyControls::encodedText(text,version,binary,outputPage))return false;
+            }
+            if(selected!=2u)return false;++readbacks;if(strict)++strictReadbacks;return true;
+        };
+        if(!check(initial,page)||!check(initial,page,true))return fail(__LINE__);
+        data.dictionaryVars.front().m_value=edited;if(!check(edited,page)||!check(edited,page,true))return fail(__LINE__);
+        reset();auto& record=data.rawNamedResourceObjects.front();
+        for(std::size_t i=0u;i<record.groups.size();++i)if(record.groups[i].code()==1) {
+            const auto encoded=materialBodyControls::encodedText("raw_"+initial,version,sourceBinary,page);record.groups[i]=DRW_Variant(1,UTF8STRING(encoded));if(record.hasRawValues)record.rawValues[i]=encoded;break;
+        }
+        if(!check("raw_"+initial,page))return fail(__LINE__);
+        data.dictionaryVars.front().m_value="conflict";sentinel(output);
+        if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+        data.dictionaryVars.front().m_value="raw_"+initial;if(!check("raw_"+initial,page))return fail(__LINE__);++retries;
+        reset();data.dictionaryVars.front().m_value=edited;
+        auto header=data.headerC.vars.find("$DWGCODEPAGE");if(header==data.headerC.vars.end()||!header->second||!header->second->content.s)return fail(__LINE__);
+        const std::string next=page=="ANSI_1251"?"ANSI_1252":"ANSI_1251";*header->second->content.s=next;
+        if(!check(edited,next))return fail(__LINE__);++pageChanges;++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<3u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!source(input,"AC1015",binary,"ANSI_1251","Привет",true)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.dictionaryVars;const auto raw=data.rawNamedResourceObjects;
+        auto page=data.headerC.vars.find("$DWGCODEPAGE");if(page==data.headerC.vars.end())return fail(__LINE__);
+        data.dictionaryVars.front().m_value=edited;
+        adapter.change=[&]{if(kind==0u)data.dictionaryVars.front().m_value="late";
+            if(kind==1u)*page->second->content.s="ANSI_1252";
+            if(kind==2u)data.rawNamedResourceObjects.front().groups.emplace_back(300,UTF8STRING("late-opaque"));};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.dictionaryVars=typed;data.dictionaryVars.front().m_value=edited;data.rawNamedResourceObjects=raw;*page->second->content.s="ANSI_1251";
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!value(output,edited))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!source(input,"AC1015",binary,"ANSI_1251","Привет")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& raw=data.rawNamedResourceObjects.front();for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()==300) {
+            const auto text=materialBodyControls::encodedText("Привет","AC1015",binary,"ANSI_1251");raw.groups[i]=DRW_Variant(300,UTF8STRING(text));if(raw.hasRawValues)raw.rawValues[i]=text;
+        }
+        auto page=data.headerC.vars.find("$DWGCODEPAGE");*page->second->content.s="ANSI_1252";sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++opaqueRefusals;
+        *page->second->content.s="ANSI_1251";if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!value(output,"Привет"))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!source(input,"AC1027",binary,"ANSI_1252","café")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& raw=data.rawNamedResourceObjects.front();for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()==300) {
+            raw.groups[i]=DRW_Variant(300,UTF8STRING("opaque-Ω"));if(raw.hasRawValues)raw.rawValues[i]="opaque-Ω";
+        }
+        auto page=data.headerC.vars.find("$DWGCODEPAGE");*page->second->content.s="ANSI_1251";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!value(output,"café"))return fail(__LINE__);
+        unsigned matched=0u;for(const auto& field:materialBodyControls::physicalTags(output,binary))if(field==std::make_pair(300,std::string("opaque-Ω")))++matched;
+        if(matched!=1u)return fail(__LINE__);++modernOpaque;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!source(input,"AC1015",binary,"ANSI_1252","café")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_value.assign(1024u*1024u,'A');sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++budgetRefusals;
+        data.dictionaryVars.front().m_value="café";if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!value(output,"café"))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!source(input,"AC1015",binary,"ANSI_1251","",true,true)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_schema=3;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true,dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::RequireLossless)||!keptWithoutTemporary(output))return fail(__LINE__);++unknownSuffixRefusals;
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!value(output,""))return fail(__LINE__);
+        unsigned variable=0u,values=0u,suffixes=0u,schemas=0u;
+        for(const auto& field:materialBodyControls::physicalTags(output,binary)) {
+            if(field.first==0&&field.second=="DICTIONARYVAR")++variable;
+            if(variable!=1u)continue;if(field.first==1)++values;
+            if(field.first==280&&std::stoi(field.second)==3)++schemas;
+            if(field.first==301&&field.second==materialBodyControls::encodedText("Привет","AC1015",binary,"ANSI_1251"))++suffixes;
+        }
+        if(values||schemas!=1u||suffixes!=1u)return fail(__LINE__);++retries;++readbacks;
+    }
+    std::cout<<"Legacy DICTIONARYVAR profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; pageChanges="<<pageChanges<<"; callbacks="<<callbacks<<"; opaqueRefusals="<<opaqueRefusals<<"; modernOpaque="<<modernOpaque<<"; strictReadbacks="<<strictReadbacks<<"; budgetRefusals="<<budgetRefusals<<"; unknownSuffixRefusals="<<unknownSuffixRefusals<<'\n';return true;
+}
+}
+void testLegacyDictionaryVars(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-legacy-dictionaryvar-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=legacyDictionaryVarControls::run(dir);t.expect(passed,"legacy variable transactions preserve codepage text");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"Legacy DICTIONARYVAR evidence: "<<dir<<'\n';
 }
 
 namespace headerMaterialControls {
@@ -36438,8 +36566,11 @@ int main(int argc, char** argv) {
     if (argc == 3 && std::string(argv[1]) == "--material-source-order-probe") {
         return materialSourceOrderControls::peer(argv[2]) ? 0 : 1;
     }
-    if (argc == 5 && std::string(argv[1]) == "--dictionaryvar-edit-probe") {
-        return dictionaryVarTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-legacy") {
+        TestContext context;testLegacyDictionaryVars(context);return context.failures == 0 ? 0 : 1;
+    }
+    if ((argc == 5 || argc == 6) && std::string(argv[1]) == "--dictionaryvar-edit-probe") {
+        return dictionaryVarTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin",argc==6?std::string_view(argv[5]):std::string_view{}) ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-transactions") {
         TestContext context;testDictionaryVarTransactions(context);return context.failures == 0 ? 0 : 1;

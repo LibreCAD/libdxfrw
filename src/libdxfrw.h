@@ -541,8 +541,8 @@ public:
     bool writeRawDxfObject(DRW_RawDxfObject *obj);
     bool writeRawDxfObject(DRW_RawDxfObject *obj,
                            std::uint32_t ownerOverride);
-    //! Replay a raw object while semantically re-encoding selected group-3 or
-    //! group-300 UTF-8 strings. All other captured values retain the raw path.
+    //! Replay a raw object while semantically re-encoding selected group-1,
+    //! group-3 or group-300 UTF-8 strings. Other values retain the raw path.
     bool writeRawDxfObjectWithStringOverrides(
         DRW_RawDxfObject *obj,
         const std::vector<std::pair<std::size_t, std::string>>& overrides);

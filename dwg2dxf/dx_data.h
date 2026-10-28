@@ -1012,7 +1012,19 @@ public:
 private:
     // Original DXF variable bodies for represented three-way edits. Retention
     // has a private lifetime allowance independent of mutable import receipts.
-    std::map<std::uint32_t,std::shared_ptr<const DRW_RawDxfObject>> m_dictionaryVarBodyBaselines;
+    struct DictionaryVarBodyBaseline final : DRW_RawDxfObject {
+        explicit DictionaryVarBodyBaseline(const DRW_RawDxfObject& raw,
+                                           const dxfRW::DxfReadContext& context)
+            : DRW_RawDxfObject(raw), codePage(context.codecCodePage),
+              encoding(context.textEncoding), policy(context.codePagePolicy),
+              compatibility(context.compatibilityProfile), codecVersion(context.codecVersion) {}
+        UTF8STRING codePage;
+        DRW::DxfTextEncoding encoding;
+        DRW::DxfCodePagePolicy policy;
+        dxfRW::DxfCompatibilityProfile compatibility;
+        DRW::Version codecVersion;
+    };
+    std::map<std::uint32_t,std::shared_ptr<const DictionaryVarBodyBaseline>> m_dictionaryVarBodyBaselines;
     std::size_t m_dictionaryVarBaselineBytes{0u};
     // Immutable-by-API callback baselines for three-way MATERIAL body edits.
     // These do not certify original producers or native rendering semantics.

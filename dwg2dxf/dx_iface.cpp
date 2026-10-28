@@ -15592,18 +15592,31 @@ bool dx_iface::writeDxfMaterialSource(std::uint32_t handle) {
     return false;
 }
 
-bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
+bool dx_iface::prepareDxfDictionaryVars(DRW::Version version,bool binary,DRW::DxfTextWritePolicy policy) noexcept {
     m_dxfDictionaryVars.clear();
     m_dxfDictionaryVarOwner = nullptr;
     m_dxfDictionaryVarsInspected = false;
     if (!cData) return false;
     if (cData->sourceFormat != dx_source_format::DXF) return true;
-    // Keep the existing legacy canonical route; custom legacy owners were
-    // already refused. Modern variables use the represented transaction below.
-    if (cData->sourceVersion < DRW::AC1021) return m_customDxfDictionaryVarHandles.empty();
     if (m_extensionDictionaryVarHandles.empty()) return true;
     try {
-        if (!cData->hasSingleSuccessfulNamedResourceImport()) return false;
+        if (!cData->hasSingleSuccessfulNamedResourceImport()
+            || version != cData->sourceVersion || version < DRW::AC1014) return false;
+        std::string_view declaration = "ANSI_1252";
+        auto pageEntry = cData->headerC.vars.find("$DWGCODEPAGE");
+        if (pageEntry == cData->headerC.vars.end()) pageEntry = cData->headerC.vars.find("DWGCODEPAGE");
+        if (pageEntry != cData->headerC.vars.end() && pageEntry->second
+            && pageEntry->second->type() == DRW_Variant::STRING && pageEntry->second->content.s)
+            declaration = *pageEntry->second->content.s;
+        if (declaration.size() > 128u) return false;
+        m_dxfDictionaryVarDeclarationPresent = pageEntry != cData->headerC.vars.end();
+        m_dxfDictionaryVarOutputDeclaration = declaration;
+        DRW_TextCodec outputCodec;
+        outputCodec.setVersion(version, true);
+        outputCodec.setCodePage(std::string(declaration), true);
+        m_dxfDictionaryVarOutputVersion = version;
+        m_dxfDictionaryVarOutputPage = version >= DRW::AC1021 ? "UTF-8" : outputCodec.getCodePage();
+        m_dxfDictionaryVarOutputBinary = binary;
         const std::unordered_set<std::uint32_t> handles(
             m_extensionDictionaryVarHandles.begin(), m_extensionDictionaryVarHandles.end());
         std::size_t bytes = 0u;
@@ -15625,8 +15638,10 @@ bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
                 || retained > (kMaxAdapterRawNamedResourceRetainedBytes - bytes) / 64u)
                 return false;
             bytes += 64u * retained;
-            if (typed > (kMaxAdapterRawNamedResourceRetainedBytes - bytes) / 2u) return false;
-            bytes += 2u * typed;
+            // Include typed edit expansion, semantic overrides and decoding
+            // temporaries before any of those strings are materialized.
+            if (typed > (kMaxAdapterRawNamedResourceRetainedBytes - bytes) / 64u) return false;
+            bytes += 64u * typed;
             const auto baseline = cData->m_dictionaryVarBodyBaselines.find(value.handle);
             if (baseline == cData->m_dictionaryVarBodyBaselines.end() || !baseline->second
                 || baseline->second->handle != raw.handle
@@ -15637,8 +15652,14 @@ bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
             bytes += 64u * originalBytes;
             const bool sourceBinary = !baseline->second->hasRawValues;
             DRW_DictionaryVar original, parsed;
-            if (!dx_material_body::decodeRecord(*baseline->second, original, sourceBinary)
-                || !dx_material_body::decodeRecord(raw, parsed, sourceBinary)
+            const auto& context = *baseline->second;
+            DRW_TextCodec sourceCodec;
+            sourceCodec.setVersion(raw.m_version,true);
+            if (sourceCodec.getVersion()!=static_cast<int>(context.codecVersion)) return false;
+            if (!dx_material_body::decodeRecord(context, original, sourceBinary,
+                    context.codePage, context.encoding, context.policy, context.compatibility)
+                || !dx_material_body::decodeRecord(raw, parsed, sourceBinary,
+                    context.codePage, context.encoding, context.policy, context.compatibility)
                 || !standardDwgCommonEqual(value, parsed, cData->sourceVersion)) return false;
             const auto choose = [](const auto& old, const auto& typedValue,
                                    const auto& rawValue, auto& result) {
@@ -15696,12 +15717,24 @@ bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
             source.value = text;
             // Preserve unchanged spelling and absence. Insert or rewrite only
             // represented edits and the known text slot for a format change.
-            dx_material_body::BodyWriter encoded(binary);
+            dx_material_body::BodyWriter encoded(binary,version,m_dxfDictionaryVarOutputPage);
             if (!encoded.writeInt16(280, schema) || !encoded.writeUtf8String(1, text)
                 || encoded.groups.size() != 2u) return false;
             const bool editSchema = schema != parsed.m_schema;
+            const auto effectiveSourcePage = raw.m_version >= DRW::AC1021
+                ? std::string_view("UTF-8") : std::string_view(context.codePage);
+            const bool pageChanged = effectiveSourcePage != m_dxfDictionaryVarOutputPage;
+            if (pageChanged) {
+                // Unknown text has no semantic transcoder. Preserve ASCII
+                // opaque fields but refuse non-ASCII payload reinterpretation.
+                for (std::size_t i=0u;i<raw.groups.size();++i) {
+                    const auto& field=raw.groups[i];
+                    if (i!=slot && field.type()==DRW_Variant::STRING && field.content.s)
+                        for (unsigned char c:*field.content.s) if (c>=128u) return false;
+                }
+            }
             const bool editValue = text != parsed.m_value
-                || (sourceBinary != binary && slot != raw.groups.size());
+                || ((sourceBinary != binary || pageChanged) && slot != raw.groups.size());
             const auto replace = [&](std::size_t index, const DRW_Variant& field) {
                 source.output.groups[index] = field;
                 if (source.output.hasRawValues && !binary) {
@@ -15715,9 +15748,14 @@ bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
                 && !replace(schemaSlot, encoded.groups[0])) return false;
             if (editValue && slot != raw.groups.size()
                 && !replace(slot, encoded.groups[1])) return false;
+            std::size_t outputValueSlot=slot==raw.groups.size()
+                ? (std::numeric_limits<std::size_t>::max)() : slot;
             std::vector<DRW_Variant> added;
             if (editSchema && schemaSlot == raw.groups.size()) added.push_back(encoded.groups[0]);
-            if (editValue && slot == raw.groups.size()) added.push_back(encoded.groups[1]);
+            if (editValue && slot == raw.groups.size()) {
+                outputValueSlot=bodyEnd+added.size();
+                added.push_back(encoded.groups[1]);
+            }
             if (!added.empty()) {
                 source.output.groups.insert(source.output.groups.begin() + bodyEnd, added.begin(), added.end());
                 if (source.output.hasRawValues && !binary) {
@@ -15730,12 +15768,24 @@ bool dx_iface::prepareDxfDictionaryVars(bool binary) noexcept {
                     source.output.rawValues.insert(source.output.rawValues.begin() + bodyEnd, spellings.begin(), spellings.end());
                 }
             }
+            if (policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021
+                && outputValueSlot<source.output.groups.size()) {
+                const auto& field=source.output.groups[outputValueSlot];
+                const bool nonAscii=field.type()==DRW_Variant::STRING && field.content.s
+                    && std::any_of(field.content.s->begin(),field.content.s->end(),[](unsigned char c){return c>=128u;});
+                if (nonAscii) {
+                    // The owning decoder has validated value1. Send it through
+                    // semantic text encoding, leaving unknown fields opaque.
+                    if (!replace(outputValueSlot,encoded.groups[1])) return false;
+                    source.stringOverrides.emplace_back(outputValueSlot,text);
+                }
+            }
             if (binary) {
                 source.output.hasRawValues = false;
                 source.output.rawValues.clear();
             }
             DRW_DictionaryVar projected;
-            if (!dx_material_body::decodeRecord(source.output, projected, binary)
+            if (!dx_material_body::decodeRecord(source.output, projected, binary,m_dxfDictionaryVarOutputPage)
                 || projected.m_schema != schema || projected.m_value != text
                 || !m_dxfDictionaryVars.emplace(value.handle, std::move(source)).second) return false;
         }
@@ -15752,6 +15802,12 @@ bool dx_iface::hasUnchangedDxfDictionaryVars() const noexcept {
         || cData->sourceFormat != dx_source_format::DXF
         || cData->importGeneration != m_dxfDictionaryVarGeneration) return false;
     try {
+        auto page = cData->headerC.vars.find("$DWGCODEPAGE");
+        if (page == cData->headerC.vars.end()) page = cData->headerC.vars.find("DWGCODEPAGE");
+        if ((page != cData->headerC.vars.end()) != m_dxfDictionaryVarDeclarationPresent) return false;
+        if (page != cData->headerC.vars.end()
+            && (!page->second || page->second->type() != DRW_Variant::STRING || !page->second->content.s
+                || *page->second->content.s != m_dxfDictionaryVarOutputDeclaration)) return false;
         if (!cData->hasSingleSuccessfulNamedResourceImport()) return false;
         std::unordered_set<std::uint32_t> typed, raws;
         for (const auto& value : cData->dictionaryVars) {
@@ -15782,7 +15838,11 @@ bool dx_iface::hasUnchangedDxfDictionaryVars() const noexcept {
 
 bool dx_iface::inspectDxfDictionaryVars(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (m_dxfDictionaryVars.empty()) return true;
-    if (m_dxfDictionaryVarsInspected || !hasUnchangedDxfDictionaryVars()) return false;
+    if (m_dxfDictionaryVarsInspected || !hasUnchangedDxfDictionaryVars()
+        || view.version != m_dxfDictionaryVarOutputVersion
+        || (view.version >= DRW::AC1021 ? std::string_view("UTF-8") : view.codePage)
+            != m_dxfDictionaryVarOutputPage
+        || view.binary != m_dxfDictionaryVarOutputBinary) return false;
     try {
         std::map<std::uint32_t, const DxfDictionaryVarSource*> expected;
         for (const auto& row : m_dxfDictionaryVars)
@@ -25304,8 +25364,18 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
             return;
         }
         const bool captureBaseline = trackedImport && cData->importGeneration == 1u
-            && data.m_version >= DRW::AC1021 && asciiIdentifierEquals(normalizedName, "DICTIONARYVAR");
-        const std::size_t baselineOverhead = 8u * sizeof(void*);
+            && data.m_version >= DRW::AC1014 && asciiIdentifierEquals(normalizedName, "DICTIONARYVAR");
+        dxfRW::DxfReadContext sourceContext;
+        if (captureBaseline && (!cData->m_tableDxfSource.entitiesReadInput
+            || !cData->m_tableDxfSource.entitiesReadInput->getDxfReadContext(sourceContext)
+            || sourceContext.sourceVersion != data.m_version
+            || sourceContext.binary == data.hasRawValues || sourceContext.codecCodePage.size() > 128u)) {
+            reject(false);
+            return;
+        }
+        const std::size_t baselineOverhead = 8u * sizeof(void*)
+            + sizeof(dx_data::DictionaryVarBodyBaseline) - sizeof(DRW_RawDxfObject)
+            + sourceContext.codecCodePage.size();
         if (captureBaseline
             && (cData->m_dictionaryVarBaselineBytes > kMaxAdapterRawNamedResourceRetainedBytes
                 || kMaxAdapterRawNamedResourceRetainedBytes - cData->m_dictionaryVarBaselineBytes < baselineOverhead
@@ -25318,7 +25388,7 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
             bool inserted = false;
             if (captureBaseline) {
                 inserted = cData->m_dictionaryVarBodyBaselines.emplace(data.handle,
-                    std::make_shared<const DRW_RawDxfObject>(data)).second;
+                    std::make_shared<const dx_data::DictionaryVarBodyBaseline>(data,sourceContext)).second;
                 if (!inserted) { reject(false); return; }
             }
             try { cData->rawNamedResourceObjects.push_back(data); }
@@ -30756,7 +30826,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         }
         return false;
     }
-    if(!prepareDxfDictionaryVars(binary)) {
+    if(!prepareDxfDictionaryVars(v,binary,targetTextPolicy)) {
         reportPreflightFailure("DICTIONARYVAR current source/body transaction");
         return false;
     }

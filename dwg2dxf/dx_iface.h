@@ -1424,9 +1424,11 @@ public:
                     || !dxfW->writeDictionaryVar(typedVar))
                     return;
             } else if (m_dxfDictionaryVars.count(handle) != 0u) {
-                if (!hasUnchangedDxfDictionaryVars()
-                    || !dxfW->writeRawDxfObject(&m_dxfDictionaryVars.at(handle).output))
-                    return;
+                if (!hasUnchangedDxfDictionaryVars()) return;
+                auto& source=m_dxfDictionaryVars.at(handle);
+                if (source.stringOverrides.empty()
+                    ? !dxfW->writeRawDxfObject(&source.output)
+                    : !dxfW->writeRawDxfObjectWithStringOverrides(&source.output,source.stringOverrides)) return;
             } else if (rawMatches != 1u || typedMatches != 1u
                        || rawVar == nullptr
                        || !dxfW->writeRawDxfObject(rawVar)) {
@@ -2129,13 +2131,19 @@ private:
         std::shared_ptr<const DRW_RawDxfObject> baseline;
         int schema{0};
         UTF8STRING value;
+        std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
     };
     std::unordered_set<std::uint32_t> m_customDxfDictionaryVarHandles;
     std::unordered_map<std::uint32_t,DxfDictionaryVarSource> m_dxfDictionaryVars;
     const dx_data* m_dxfDictionaryVarOwner{nullptr};
     std::uint64_t m_dxfDictionaryVarGeneration{0};
     bool m_dxfDictionaryVarsInspected{false};
-    bool prepareDxfDictionaryVars(bool binary) noexcept;
+    DRW::Version m_dxfDictionaryVarOutputVersion{DRW::UNKNOWNV};
+    UTF8STRING m_dxfDictionaryVarOutputPage, m_dxfDictionaryVarOutputDeclaration;
+    bool m_dxfDictionaryVarDeclarationPresent{false};
+    bool m_dxfDictionaryVarOutputBinary{false};
+    bool prepareDxfDictionaryVars(DRW::Version version,bool binary,
+        DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfDictionaryVars() const noexcept;
     bool inspectDxfDictionaryVars(const dxfRW::DxfObjectsWriteView&) noexcept;
     std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
