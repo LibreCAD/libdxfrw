@@ -1,0 +1,128 @@
+{
+  "schema": "ac1018-table-merge-reconstruction-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "80fbad605867f65b2218164b50d41abe8f5da3b7",
+  "supportClaimsPromoted": false,
+  "scope": "Selected source-specific AC1018 TABLE parser reconstruction of nonoverlapping rectangles from explicit 173/175/176 anchor-and-covered descriptors. This is an inferred producer profile, not a universal group-173 rule, native geometry/rendering claim, or output qualification.",
+  "authorityAndPriorResearch": {
+    "sourceReceipt": "docs/research/rpp5ie-ac1018-table-merge-visibility-2026-10-28.json",
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a720.4.96.1, printed pages 230\u2013231; describes 173 and 175/176 but does not establish anchor polarity",
+    "autodeskRectangle": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbTable__isMergedCell_int_int_int__int__int__int__const.html",
+    "independentModel": "https://docs.rs/dxf-tools-rs/latest/src/dxf_tools_rs/entities/table.rs.html",
+    "limitations": "The independent code models spans at top-left but is not shown to have read this legacy source or to establish the 173 polarity. Paired-source field agreement does not prove a common save state."
+  },
+  "sourceWitness": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "ascii": "samples/sample_AC1018_ascii.dxf",
+    "asciiSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "binary": "samples/sample_AC1018_binary.dxf",
+    "binarySha256": "d659b8e7964eb30700660eea34454696bbbfc927726c3417d93df8776e88e225",
+    "record": "TABLE 528, 7 rows by 3 columns",
+    "preservedRawDescriptors": "Anchor (0,0) has 173=0,175=3,176=1; anchor (4,0) has 173=0,175=3,176=2; the seven covered cells have 173=1,175=176=1.",
+    "reconstructedRanges": [
+      [
+        0,
+        0,
+        0,
+        2
+      ],
+      [
+        4,
+        0,
+        5,
+        2
+      ]
+    ],
+    "fullTableSemanticComplete": false,
+    "custody": "Existing external repository samples are used read-only; no external fixture is added to Git."
+  },
+  "realSourceProbe": {
+    "sourcePath": "build/table-merge-real-source/probe.cpp",
+    "sourceSha256": "50dcec46f9b585a3af3dc4dbe00590095ea5051a49d9320379be36096d37d9c5",
+    "executableSha256": "1b106e0918c91b28c26b8d981d44a585f28a50dbed0113dbc64ca114fb4d6855",
+    "librarySha256AtLink": "77497fcab54d339380e07334e0ada321825397d27116029b1c362959fd1ce62a",
+    "adapterObjectSha256AtLink": "bdc510cd52262f1491b79b13e152bfd862c523634daa87ee7797b0eaf83e74d3",
+    "result": "Both original encodings import and preserve all selected anchor/covered descriptors and expose exactly the two inferred rectangles; full TABLE semanticComplete remains false. This is in-tree typed readback checked against previously observed independent raw descriptors, not independent native merged geometry."
+  },
+  "codeBindings": {
+    "entitySource": {
+      "path": "src/drw_entities.cpp",
+      "sha256": "5e496d1656911d398044a14255b6e930395bf6c458c0c892a3bbb3263fc20ed4"
+    },
+    "entityHeader": {
+      "path": "src/drw_entities.h",
+      "sha256": "14fdf6d7179e16bd40dca2f80ab62cf77ebed44cd2173068efdb00b04623ed16"
+    },
+    "stateObserver": {
+      "path": "src/intern/dxftable.h",
+      "sha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e"
+    },
+    "testSource": {
+      "path": "tests/table_content_dxf_tests.cpp",
+      "sha256": "b13504d2bad87722f69271ecd1da89ec5058e5c763fdfd43433275c55c83c679"
+    },
+    "mergeControls": {
+      "path": "tests/table_legacy_merge_controls.h",
+      "sha256": "9ef7397abc319d8f4c5298df0a6423ca18391bab79a392f4fe0650979b4615da"
+    },
+    "stateControls": {
+      "path": "tests/table_input_controls.h",
+      "sha256": "3caeedfd1ab43b3c642eb9ac89a6ada54b572cf0add94ce2c2256b254650c333"
+    },
+    "testExecutable": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "681e5a3cfa67b031f13bee4562aea19ebd430ae75d8a6b266337c7ca399b758c"
+    }
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof|original_inputs)|material_normal_roles)$' --output-on-failure",
+    "result": "7/7 passed as reported; no retained CTest log hash asserted",
+    "mergeSelectorCounts": {
+      "authoredSourceEncodings": 2,
+      "malformedRefusals": 44,
+      "sameFacadeCorrectedRetries": 44,
+      "explicitAnchorCompatibilityProfiles": 4,
+      "exactAndOverBoundControls": 4,
+      "reachedFinalizationAllocationFailureRetries": 2
+    },
+    "controls": [
+      "Presence and duplicates of 173/175/176; absent or unqualified source version",
+      "Overlapping or missing covered cells, out-of-bounds, nested/invalid spans, partial grids",
+      "Exact maximum width, over-limit parse, same-facade retry",
+      "Legacy and modern explicit-anchor compatibility",
+      "Parser-state copy/reset/move and extended paired source-state mutation checks",
+      "Allocation failure reached only during noexcept finalization, with no partial ranges and a corrected decode retry"
+    ],
+    "bindingNote": "The adapter object at normal link includes the frozen, then-uncommitted MATERIAL header 554a7606d4a9ed8c9cbf606d257d62a6cfe540f78f72839cf91b723b4481dee9; that work was committed later as b983e03f. The normal adapter object digest is independently bound in realSourceProbe."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof|original_inputs)|material_normal_roles)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "7/7 passed as reported; ASan does not qualify native semantics",
+    "testExecutable": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "e02f3d95043eb2c57f8c1fa64c00931101ec3c0f2f17b62fd1cc819956bca336"
+    },
+    "library": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "513edfbeb231312e0be0666b644aa3fd1bc694d4b328f3cbd520e004c1c2a089"
+    },
+    "adapterObject": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "b7d5745080fc0edeed7bfc56065eb81204c85e317c29d03834af711375303737"
+    },
+    "concurrentMaterialHeader": {
+      "path": "dwg2dxf/dx_material_body.h",
+      "sha256": "554a7606d4a9ed8c9cbf606d257d62a6cfe540f78f72839cf91b723b4481dee9",
+      "note": "Frozen during both normal and ASan builds while uncommitted; subsequently committed as b983e03f."
+    }
+  },
+  "abiAndOutstanding": [
+    "DRW_Table has new private fields and a changed class layout; existing binary consumers need a compatible rebuild and formal ABI/API qualification is still open. No new pure callbacks were added.",
+    "The writer does not yet emit this inferred 173=0 anchor/173=1 covered representation. Preserve its refusal until staged output, identity, failure/retry and independent consumer evidence are qualified.",
+    "Group 289 presence/default and source 0x4460 top-border semantics remain unresolved; this packet makes no border-visibility or native rendering claim.",
+    "Incomplete or unsupported source cells, full-document ownership/dependencies and platform integration remain open."
+  ]
+}

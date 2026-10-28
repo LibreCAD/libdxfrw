@@ -171,7 +171,8 @@ and broader producer behavior remain unqualified.
 
 1. The [selected omitted-boundary receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
    covers one unique complete diffuse/refraction tuple followed by a complete
-   normal tuple without 464/465. Treat absent/ambiguous
+   normal tuple without 464/465. The [normal-blend edit](docs/research/rpp5ie-material-unmarked-normal-blend-2026-10-28.json)
+   qualifies only an isolated typed edit on that captured source. Treat absent/ambiguous
    refraction/bump, repeated fields, omitted normal/luminance and represented/
    opaque subclass or procedural variants as later, separately witnessed slices;
    do not multiply the initial matrix by every optional combination.
@@ -317,12 +318,11 @@ and [alignment](docs/research/rpp5ic-ac1018-table-alignment-2026-10-28.json)
 field evidence. The alignment masks are inferred profiles; neither establishes
 other masks, full original TABLE output or native rendering.
 For the [AC1018 TABLE 528 residual](docs/research/rpp5ie-ac1018-table-merge-visibility-2026-10-28.json),
-investigate the source's apparent anchor/covered merge layout at grid scope.
-The current parser constructs singleton merged ranges for covered cells and leaves
-the record incomplete. Establish the anchor polarity and preserved geometry with
-independent source/consumer evidence, then implement bounded nonoverlapping range
-construction and actual-output proof; do not remove the unmerged-span refusal
-without that work. For its `0x4460` top-border profile, distinguish absent
+the [selected merge reconstruction](docs/research/rpp5ih-ac1018-table-merge-2026-10-28.json)
+forms bounded nonoverlapping ranges from the observed anchor/covered pattern.
+Its polarity is inferred, the original record remains incomplete, and native
+geometry and actual-output proof remain open; do not remove the unmerged-span
+writer refusal without that work. For its `0x4460` top-border profile, distinguish absent
 group 289 from an explicit value before changing output. The paired DWG and DXF
 observations do not yet establish equivalent visibility or common save state.
 Bind original source bodies, nested scopes and referenced resources before actual
