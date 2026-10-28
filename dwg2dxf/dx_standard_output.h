@@ -314,12 +314,26 @@ struct Shape {
 template <class Record> class Probe final : public Record {
 public:
     using Record::parseCode;
+    bool complete() const noexcept { return true; }
 };
 
 template <> class Probe<DRW_MLineStyle> final : public DRW_MLineStyle {
 public:
     Probe() { resetDxf(); }
     using DRW_MLineStyle::parseCode;
+    bool complete() const noexcept { return true; }
+};
+
+template <> class Probe<DRW_MLine> final : public DRW_MLine {
+public:
+    bool complete() const { return validateDxfRecord(); }
+    bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
+        if (!DRW_MLine::parseCode(code,reader)) return false;
+        // Match processMLine's callback-boundary normalization. The owning
+        // physical-field observer separately rejects duplicate/shadow names.
+        if (code==2) styleName=reader->toUtf8String(styleName,2);
+        return true;
+    }
 };
 
 // The input/reader/scratch owners are bounded and lexical. Application-group
@@ -348,7 +362,7 @@ public:
         while (buffer.position() < bytes.size()) {
             if (!reader->readRec(&code) || code == 0 || !record.parseCode(code, reader)) return false;
         }
-        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) return false;
+        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded() || !record.complete()) return false;
         return visit(static_cast<const Record&>(record));
     }
 private:

@@ -1157,7 +1157,7 @@ public:
 
         if (!hasUnchangedAcdsDxfHistorySources() || !hasUnchangedDxfMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
-            || !hasUnchangedDxfMLineStyles()) {
+            || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
@@ -2196,6 +2196,7 @@ private:
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;
         std::shared_ptr<const DRW_RawDxfObject> baseline;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::StructuralAudit> dictionaryOrigin;
         std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
         bool geometryChanged{false};
     };
@@ -2206,6 +2207,21 @@ private:
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLineStyles() const noexcept;
     bool inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DxfMLineConsumerSource {
+        const DRW_MLine* live{nullptr};
+        const dx_ifaceBlock* block{nullptr};
+        DRW_MLine model;
+        std::shared_ptr<const DRW_MLine> original;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesDelivery::Certificate> entities;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::BlockOriginAudit> blocks;
+        std::size_t dispatch{0};
+    };
+    std::unordered_map<std::uint32_t,DxfMLineConsumerSource> m_dxfMLineConsumers;
+    std::uint8_t m_dxfMLineConsumerInspected{0};
+    bool prepareDxfMLineConsumers(DRW::Version,bool) noexcept;
+    bool hasUnchangedDxfMLineConsumers() const noexcept;
+    std::uint32_t dxfMLineConsumerOwnerToWrite(const DxfMLineConsumerSource&) const;
+    bool inspectDxfMLineConsumers(const dxfRW::DxfObjectsWriteView&,std::string_view) noexcept;
     std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
     dx_materialImportReceipt m_dxfMaterialWriteReceipt;
     bool m_dxfMaterialWriteInspected{false};

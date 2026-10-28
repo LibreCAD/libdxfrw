@@ -1183,6 +1183,13 @@ private:
             std::size_t membershipObserved{0};
             std::map<std::size_t,std::shared_ptr<const CompoundBody>> compoundBodies;
             std::map<std::size_t,std::shared_ptr<const CompoundBody>> compoundBodyOwners;
+            // Original typed MLINE callbacks, keyed by their actual delivery
+            // dispatch. These pin redundant group-2/reference state only;
+            // they do not certify the full MLINE body or its geometry.
+            // Keep the observed owners separately so a substituted query row
+            // cannot borrow the enclosing block's provenance certificate.
+            std::map<std::size_t,std::shared_ptr<const DRW_MLine>> mlineModels;
+            std::map<std::size_t,std::shared_ptr<const DRW_MLine>> mlineModelOwners;
             std::vector<std::uint32_t> attdefOrigins;
         };
         std::map<std::uint32_t,BlockSource> blockSources;

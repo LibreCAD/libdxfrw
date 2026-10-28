@@ -2295,6 +2295,8 @@ protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0, dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
 public:
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
+    //! Validate this model and retained DXF parser state before copying it.
+    [[nodiscard]] bool validateDxfRecord() const { return validateDxf(); }
     double scale;                  /*!< BD / DXF 40 */
     std::uint8_t justification;          /*!< RC / DXF 70 — 0=top, 1=zero, 2=bottom */
     DRW_Coord basePoint;           /*!< 3BD / DXF 10 20 30 */

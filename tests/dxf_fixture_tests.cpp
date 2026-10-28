@@ -72,10 +72,39 @@ public:
     }
     static bool prepareVariables(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfDictionaryVars(value.cData->sourceVersion,binary);}
     static bool prepareMLineStyles(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfMLineStyles(value.cData->sourceVersion,binary);}
+    static bool prepareMLineConsumers(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfMLineConsumers(value.cData->sourceVersion,binary);}
+    static void limitMLineBlockSource(dx_iface& value);
+    static bool mlineBlockSourceCaptureFailed(const dx_data& value);
+    struct MLineBlockModelSwap {
+        std::uint32_t block{0u};std::size_t dispatch{0u};std::shared_ptr<const DRW_MLine> original,anchor;
+    };
+    static MLineBlockModelSwap replaceMLineBlockModel(dx_data& value);
+    static bool mlineBlockOwnerUnchanged(const dx_data& value,const MLineBlockModelSwap& saved);
+    static bool restoreMLineBlockModel(dx_data& value,const MLineBlockModelSwap& saved);
     static bool prepareMLineStyleGeometry(dx_iface& value,bool binary){return value.prepareDxfMLineStyles(value.cData->sourceVersion,binary);}
     static bool mlineStylesReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
         const auto saved=value.m_dxfMLineStylesInspected;value.m_dxfMLineStylesInspected=false;
         const bool good=value.inspectDxfMLineStyles(view);value.m_dxfMLineStylesInspected=saved;return good;
+    }
+    static bool mlineAuthorityObjectsReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
+        const auto styleInspected=value.m_dxfMLineStylesInspected;
+        auto proofs=std::move(value.m_generatedRootOutputProofs);
+        const auto bytes=value.m_generatedRootOutputBytes;
+        const auto inspected=value.m_generatedRootOutputInspected;
+        const auto finalized=value.m_generatedRootOutputFinalized;
+        const auto published=value.m_generatedRootOutputPublished;
+        value.m_dxfMLineStylesInspected=false;value.m_generatedRootOutputProofs.clear();
+        value.m_generatedRootOutputBytes=0u;value.m_generatedRootOutputInspected=false;
+        value.m_generatedRootOutputFinalized=false;value.m_generatedRootOutputPublished=false;
+        const bool good=value.inspectDxfMLineStyles(view)&&value.inspectGeneratedRootOutput(view);
+        value.m_dxfMLineStylesInspected=styleInspected;value.m_generatedRootOutputProofs=std::move(proofs);
+        value.m_generatedRootOutputBytes=bytes;value.m_generatedRootOutputInspected=inspected;
+        value.m_generatedRootOutputFinalized=finalized;value.m_generatedRootOutputPublished=published;
+        return good;
+    }
+    static bool mlineConsumersReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view,std::string_view section){
+        const auto saved=value.m_dxfMLineConsumerInspected;value.m_dxfMLineConsumerInspected=0u;
+        const bool good=value.inspectDxfMLineConsumers(view,section);value.m_dxfMLineConsumerInspected=saved;return good;
     }
     static bool prepareScales(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfScales(value.cData->sourceVersion,binary);}
     static bool scalesUnchanged(const dx_iface& value){return value.hasUnchangedDxfScales()&&value.m_dxfScalesInspected;}
@@ -29321,6 +29350,536 @@ void testMLineStyleBodyTransactions(TestContext& t) {
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MLINESTYLE transaction evidence: "<<dir<<'\n';
 }
 
+namespace mlineStyleAuthorityControls {
+using namespace materialConsumerControls;
+void appendMline(Tags& fields,const std::string& handle,const std::string& owner,int first) {
+    fields.insert(fields.end(),{{0,"MLINE"},{5,handle},{330,owner},{100,"AcDbEntity"},{8,"0"},{100,"AcDbMline"},
+        {2,"OLD_ENTITY_NAME"},{340,"D"},{40,"1"},{70,"0"},{71,"1"},{72,"2"},{73,"2"},
+        {10,std::to_string(first)},{20,"2"},{30,"3"},{210,"0"},{220,"0"},{230,"1"}});
+    for(int x:{first,first+10})fields.insert(fields.end(),{{11,std::to_string(x)},{21,"2"},{31,"3"},
+        {12,"1"},{22,"0"},{32,"0"},{13,"0"},{23,"1"},{33,"0"},
+        {74,"1"},{41,"0.5"},{75,"0"},{74,"1"},{41,"-0.25"},{75,"0"}});
+}
+void appendBlock(Tags& fields,const std::string& name,const std::string& owner,const std::string& begin,
+        const std::string& end,bool consumer) {
+    fields.insert(fields.end(),{{0,"BLOCK"},{5,begin},{330,owner},{100,"AcDbEntity"},{8,"0"},
+        {100,"AcDbBlockBegin"},{2,name},{70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,name},{1,""}});
+    if(consumer)appendMline(fields,"D101",owner,4);
+    fields.insert(fields.end(),{{0,"ENDBLK"},{5,end},{330,owner},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"}});
+}
+Tags recipe(bool binary) {
+    auto fields=mlineStyleBodyTransactionControls::recipe("AC1027",binary);bool style=false;
+    for(auto& field:fields) {
+        if(field.first==0)style=field.second=="MLINESTYLE";
+        if(field.first==3&&field.second=="BODY_STYLE")field.second="EFFECTIVE_STYLE";
+        if(style&&field.first==2)field.second="OLD_BODY_NAME";
+    }
+    auto tableEnd=fields.end();bool tables=false;
+    for(auto it=fields.begin();it!=fields.end();++it) {
+        if(*it==std::make_pair(2,std::string("TABLES")))tables=true;
+        if(tables&&*it==std::make_pair(0,std::string("ENDSEC"))){tableEnd=it;break;}
+    }
+    if(tableEnd==fields.end())throw std::runtime_error("authority TABLES boundary missing");
+    Tags tablesFields{{0,"TABLE"},{2,"LAYER"},{5,"1E0"},{100,"AcDbSymbolTable"},{70,"1"},
+        {0,"LAYER"},{5,"1E1"},{330,"1E0"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},
+        {2,"0"},{70,"0"},{62,"7"},{6,"Continuous"},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"200"},{100,"AcDbSymbolTable"},{70,"3"}};
+    for(const auto& block:std::vector<std::pair<std::string,std::string>>{{"201","*Model_Space"},{"202","*Paper_Space"},{"203","AuthorityBlock"}})
+        tablesFields.insert(tablesFields.end(),{{0,"BLOCK_RECORD"},{5,block.first},{330,"200"},{100,"AcDbSymbolTableRecord"},
+            {100,"AcDbBlockTableRecord"},{2,block.second},{70,"0"}});
+    tablesFields.emplace_back(0,"ENDTAB");fields.insert(tableEnd,tablesFields.begin(),tablesFields.end());
+    Tags blocks{{0,"SECTION"},{2,"BLOCKS"}};
+    appendBlock(blocks,"*Model_Space","201","310","311",false);
+    appendBlock(blocks,"*Paper_Space","202","312","313",false);
+    appendBlock(blocks,"AuthorityBlock","203","300","301",true);blocks.emplace_back(0,"ENDSEC");
+    Tags entities{{0,"SECTION"},{2,"ENTITIES"}};appendMline(entities,"D100","201",1);entities.emplace_back(0,"ENDSEC");
+    auto objects=fields.end();
+    for(auto it=fields.begin();it!=fields.end();++it)if(*it==std::make_pair(0,std::string("SECTION"))
+        &&it+1!=fields.end()&&*(it+1)==std::make_pair(2,std::string("OBJECTS"))){objects=it;break;}
+    if(objects==fields.end())throw std::runtime_error("authority OBJECTS boundary missing");
+    blocks.insert(blocks.end(),entities.begin(),entities.end());fields.insert(objects,blocks.begin(),blocks.end());return fields;
+}
+Tags fixedSpaceRecipe(bool binary,bool paper) {
+    auto fields=recipe(binary);std::size_t first=fields.size(),end=fields.size();bool entities=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(2,std::string("ENTITIES")))entities=true;
+        if(entities&&fields[i]==std::make_pair(0,std::string("MLINE"))) {
+            first=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
+        }
+    }
+    if(first==fields.size())throw std::runtime_error("fixed-space source MLINE missing");
+    Tags consumer(fields.begin()+first,fields.begin()+end);fields.erase(fields.begin()+first,fields.begin()+end);
+    for(auto& field:consumer)if(field.first==330)field.second=paper?"202":"201";
+    if(paper) {
+        const auto common=std::find(consumer.begin(),consumer.end(),std::make_pair(100,std::string("AcDbEntity")));
+        if(common==consumer.end())throw std::runtime_error("fixed-space common marker missing");consumer.insert(common+1,{67,"1"});
+    }
+    const std::string sourceName=paper?"*Paper_Space":"*Model_Space";
+    const std::string canonical=paper?"*PAPER_SPACE":"*MODEL_SPACE";
+    bool selected=false;
+    for(auto it=fields.begin();it!=fields.end();++it) {
+        if(it->first==0&&it->second=="BLOCK")selected=false;
+        if(it->first==2&&it->second==sourceName)selected=true;
+        if(selected&&*it==std::make_pair(0,std::string("ENDBLK"))) {
+            fields.insert(it,consumer.begin(),consumer.end());
+            for(auto& field:fields)if(field.second==sourceName)field.second=canonical;
+            return fields;
+        }
+    }
+    throw std::runtime_error("fixed-space BLOCK footer missing");
+}
+Tags emptyFinalParameterRecipe(bool binary) {
+    auto fields=recipe(binary);std::vector<std::size_t> counts;
+    for(std::size_t i=0u;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("MLINE"))) {
+        auto end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+        std::size_t last=end;for(auto j=i+1u;j<end;++j)if(fields[j].first==74)last=j;
+        if(last==end||last+2u>=end||fields[last+1u].first!=41||fields[last+2u]!=std::make_pair(75,std::string("0")))
+            throw std::runtime_error("final parameter witness missing");
+        counts.push_back(last);i=end-1u;
+    }
+    if(counts.size()!=2u)throw std::runtime_error("empty-parameter consumer count");
+    for(auto it=counts.rbegin();it!=counts.rend();++it) {
+        fields[*it].second="0";fields.erase(fields.begin()+*it+1u);
+    }
+    return fields;
+}
+Tags legacyConsumerRecipe(bool binary) {
+    auto fields=recipe(binary);bool style=false;
+    for(auto& field:fields) {
+        if(field.first==0)style=field.second=="MLINESTYLE";
+        if(field.first==1&&field.second=="AC1027")field.second="AC1015";
+        if(field.first==3&&field.second=="EFFECTIVE_STYLE")field.second="OLD_BODY_NAME";
+        if(field.first==2&&field.second=="OLD_ENTITY_NAME")field.second="OLD_BODY_NAME";
+        if(style&&field.first==3)field.second=materialBodyControls::encodedText(
+            mlineStyleBodyTransactionControls::initialDescription,"AC1015",binary,"ANSI_1252");
+    }
+    return fields;
+}
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary,std::string_view key) {
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;
+    if(!key.empty()) {
+        const DRW_MLineStyle* selected=nullptr;
+        for(const auto& style:data.mLineStyles)if(style.name!="Standard"&&style.name!="STANDARD") {
+            if(selected)return false;selected=&style;
+        }
+        if(!selected)return false;unsigned matches=0u;
+        for(auto& dictionary:data.dictionaries)if(dictionary.handle==selected->parentHandle)
+            for(auto& entry:dictionary.m_entries)if(entry.m_handle==selected->handle){entry.m_name=std::string(key);++matches;}
+        if(matches!=1u)return false;
+    }
+    return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+std::vector<DRW_MLine*> consumers(dx_data& data) {
+    std::vector<DRW_MLine*> result;
+    const auto append=[&](dx_ifaceBlock* block) {
+        if(block)for(auto* entity:block->ent)if(auto* mline=dynamic_cast<DRW_MLine*>(entity))result.push_back(mline);
+    };
+    append(data.mBlock);for(auto* block:data.blocks)if(block&&block->name=="AuthorityBlock")append(block);
+    return result;
+}
+DRW_Dictionary& owner(dx_data& data) {
+    if(data.mLineStyles.size()!=1u)throw std::runtime_error("authority style count");
+    DRW_Dictionary* result=nullptr;
+    for(auto& dictionary:data.dictionaries)if(dictionary.handle==data.mLineStyles.front().parentHandle) {
+        if(result)throw std::runtime_error("authority owner alias");result=&dictionary;
+    }
+    if(!result)throw std::runtime_error("authority owner missing");return *result;
+}
+DRW_Dictionary::Entry& key(dx_data& data) {
+    auto& dictionary=owner(data);DRW_Dictionary::Entry* result=nullptr;
+    for(auto& entry:dictionary.m_entries)if(entry.m_handle==data.mLineStyles.front().handle) {
+        if(result)throw std::runtime_error("authority key alias");result=&entry;
+    }
+    if(!result)throw std::runtime_error("authority key missing");return *result;
+}
+bool geometry(const DRW_MLine& value,int first,bool emptyFinal=false) {
+    const auto same=[](const DRW_Coord& actual,const DRW_Coord& expected){return actual.x==expected.x&&actual.y==expected.y&&actual.z==expected.z;};
+    if(value.scale!=1||value.justification!=0||value.openClosed!=1||value.numLines!=2u||value.numVerts!=2u
+        ||value.vertlist.size()!=2u||!same(value.basePoint,{double(first),2,3})||!same(value.extPoint,{0,0,1}))return false;
+    for(unsigned i=0u;i<2u;++i) {
+        const auto& vertex=value.vertlist[i];
+        if(!same(vertex.position,{double(first+10*static_cast<int>(i)),2,3})||!same(vertex.vertexDir,{1,0,0})
+            ||!same(vertex.miterDir,{0,1,0})
+            ||vertex.segParms!=(emptyFinal&&i==1u?std::vector<std::vector<double>>{{.5},{}}:std::vector<std::vector<double>>{{.5},{-.25}})
+            ||vertex.areaFillParms!=std::vector<std::vector<double>>{{},{}})return false;
+    }
+    return true;
+}
+bool callerUnchanged(dx_data& data,const std::string& expected,bool emptyFinal=false,const std::string& entityName="OLD_ENTITY_NAME") {
+    if(data.mLineStyles.size()!=1u||data.mLineStyles.front().name!="OLD_BODY_NAME"||key(data).m_name!=expected)return false;
+    const auto values=consumers(data);if(values.size()!=2u)return false;
+    for(unsigned i=0u;i<2u;++i)if(values[i]->styleName!=entityName||values[i]->styleHandle!=0xDu
+        ||!geometry(*values[i],i?4:1,emptyFinal))return false;
+    return true;
+}
+struct Row {std::string type,section,id,owner;std::vector<std::pair<int,std::string>> fields;};
+std::vector<Row> records(const std::filesystem::path& path,bool binary) {
+    const auto fields=materialBodyControls::physicalTags(path,binary);std::vector<Row> result;std::string section;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        const auto& field=fields[i];
+        if(field.first==0&&field.second=="SECTION"&&i+1u<fields.size())section=fields[i+1u].second;
+        if(field.first==0&&field.second=="ENDSEC")section.clear();
+        if(field.first==0){result.push_back({field.second,section,{},{},{}});continue;}
+        if(result.empty())continue;auto& row=result.back();row.fields.push_back(field);
+        if(field.first==5&&row.id.empty())row.id=field.second;
+        if(field.first==330&&row.owner.empty())row.owner=field.second;
+    }
+    return result;
+}
+bool proof(const std::filesystem::path& path,bool binary,const std::string& expected,bool paper=false,bool emptyFinal=false,
+        const std::string& version="AC1027",const std::string& entityName="OLD_ENTITY_NAME") {
+    const auto rows=records(path,binary);std::map<std::string,const Row*> ids;const Row* root=nullptr;const Row* style=nullptr;
+    for(const auto& row:rows) {
+        if(!row.id.empty()&&!ids.emplace(row.id,&row).second)return false;
+        if(row.type=="DICTIONARY"&&row.owner=="0"){if(root)return false;root=&row;}
+        if(row.type=="MLINESTYLE"){if(style)return false;style=&row;}
+    }
+    const auto fields=[](const Row& row,int code){std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;};
+    const auto entry=[&](const Row& row,const std::string& name)->const Row* {
+        const Row* result=nullptr;
+        for(std::size_t i=0u;i+1u<row.fields.size();++i)if(row.fields[i]==std::make_pair(3,name)) {
+            const auto target=ids.find(row.fields[i+1u].second);
+            if(result||row.fields[i+1u].first!=350||target==ids.end())return nullptr;result=target->second;
+        }
+        return result;
+    };
+    if(!root||!style||fields(*style,2)!=std::vector<std::string>{"OLD_BODY_NAME"})return false;
+    const auto* dictionary=entry(*root,"ACAD_MLINESTYLE");
+    const auto encoded=materialBodyControls::encodedText(expected,version,binary);
+    if(!dictionary||dictionary->type!="DICTIONARY"||dictionary->owner!=root->id
+        ||entry(*dictionary,encoded)!=style||style->owner!=dictionary->id)return false;
+    const auto styleNumbers=[&](int code,const std::vector<double>& values) {
+        const auto actual=fields(*style,code);if(actual.size()!=values.size())return false;
+        for(std::size_t i=0u;i<values.size();++i)if(std::stod(actual[i])!=values[i])return false;return true;
+    };
+    if(fields(*style,3)!=std::vector<std::string>{materialBodyControls::encodedText(mlineStyleBodyTransactionControls::initialDescription,version,binary)}
+        ||fields(*style,6)!=std::vector<std::string>{"ByLayer","Continuous"}
+        ||fields(*style,301)!=std::vector<std::string>{"opaque-mline-tail"}
+        ||!styleNumbers(70,{0})||!styleNumbers(62,{256,1,3})||!styleNumbers(51,{90})
+        ||!styleNumbers(52,{90})||!styleNumbers(71,{2})||!styleNumbers(49,{.5,-.25}))return false;
+    unsigned model=0u,named=0u;
+    for(const auto& row:rows)if(row.type=="MLINE") {
+        const auto block=ids.find(row.owner);
+        if(block==ids.end()||block->second->type!="BLOCK_RECORD"
+            ||fields(row,2)!=std::vector<std::string>{entityName}
+            ||fields(row,340)!=std::vector<std::string>{style->id})return false;
+        const auto names=fields(*block->second,2);int first=0;
+        if(row.section=="ENTITIES"&&names==std::vector<std::string>{paper?"*Paper_Space":"*Model_Space"}) {
+            if(paper) {
+                const auto space=fields(row,67);std::int64_t value=0;
+                if(space.size()!=1u||!dx_raster_output::integer(space.front(),value)||value!=1)return false;
+            }
+            ++model;first=1;
+        }
+        else if(row.section=="BLOCKS"&&names==std::vector<std::string>{"AuthorityBlock"}){++named;first=4;}
+        else return false;
+        const auto nums=[&](int code,const std::vector<double>& values) {
+            const auto actual=fields(row,code);if(actual.size()!=values.size())return false;
+            for(std::size_t i=0u;i<values.size();++i)if(std::stod(actual[i])!=values[i])return false;return true;
+        };
+        if(!nums(40,{1})||!nums(70,{0})||!nums(71,{1})||!nums(72,{2})||!nums(73,{2})
+            ||!nums(10,{double(first)})||!nums(20,{2})||!nums(30,{3})||!nums(11,{double(first),double(first+10)})
+            ||!nums(21,{2,2})||!nums(31,{3,3})||!nums(12,{1,1})||!nums(22,{0,0})||!nums(32,{0,0})
+            ||!nums(13,{0,0})||!nums(23,{1,1})||!nums(33,{0,0})
+            ||!nums(74,emptyFinal?std::vector<double>{1,1,1,0}:std::vector<double>{1,1,1,1})
+            ||!nums(41,emptyFinal?std::vector<double>{.5,-.25,.5}:std::vector<double>{.5,-.25,.5,-.25})
+            ||!nums(75,{0,0,0,0})||!fields(row,42).empty())return false;
+    }
+    if(model!=1u||named!=1u)return false;
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
+        ||(version=="AC1015"&&actual.sourceVersion!=DRW::AC1015)
+        ||actual.mLineStyles.front().name!="OLD_BODY_NAME"||key(actual).m_name!=expected)return false;
+    const auto values=consumers(actual);if(values.size()!=2u)return false;
+    for(unsigned i=0u;i<2u;++i)if(values[i]->styleName!=entityName
+        ||values[i]->styleHandle!=actual.mLineStyles.front().handle||!values[i]->validateDxfRecord()
+        ||!geometry(*values[i],i?4:1,emptyFinal))return false;
+    if(values[0]->space!=(paper?DRW::PaperSpace:DRW::ModelSpace))return false;
+    return true;
+}
+struct CaptureLimited:dx_iface {
+    bool applied=false;
+    void addMLine(const DRW_MLine* value)override {
+        if(value&&cData&&currentBlock&&currentBlock!=cData->mBlock) {
+            A::limitMLineBlockSource(*this);applied=true;
+        }
+        dx_iface::addMLine(value);
+    }
+};
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false,pending=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});
+        for(const std::string section:{"BLOCKS","ENTITIES","OBJECTS"}) {
+            if(pending&&section=="OBJECTS")continue;
+            std::size_t begin=0u,end=0u;
+            for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==0&&fields[i].text=="SECTION"
+                &&fields[i+1u].code==2&&fields[i+1u].text==section) {
+                begin=fields[i+1u].end;
+                for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}
+                break;
+            }
+            if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+            dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            const auto compare=[&](const dxfRW::DxfObjectsWriteView& candidate) {
+                return section=="OBJECTS"?A::mlineAuthorityObjectsReplay(*this,candidate):A::mlineConsumersReplay(*this,candidate,section);
+            };
+            if(!compare(view))return false;std::string record;
+            for(std::size_t index=0u;index<fields.size();++index) {
+                const auto& field=fields[index];
+                if(field.code==0)record=field.text;
+                if(field.begin<begin||field.begin>=end)continue;
+                bool selected=section=="OBJECTS"
+                    ?((record=="DICTIONARY"&&(field.code==3||field.code==350||field.code==360))
+                        ||(record=="MLINESTYLE"&&(field.code==2||field.code==330)))
+                    :(record=="MLINE"&&(field.code==2||field.code==340||field.code==330||field.code==11));
+                if(pending) {
+                    selected=record=="MLINE"&&(field.code==74||field.code==75);
+                    if(selected)for(auto next=index+1u;next<fields.size()&&fields[next].code!=0;++next)
+                        if(fields[next].code==field.code)selected=false;
+                    if(selected) {
+                        std::int64_t count=-1;
+                        const bool zero=binary
+                            ?(field.end>=field.value&&field.end-field.value==2u&&field.end<=bytes.size()
+                                &&bytes[field.value]=='\0'&&bytes[field.value+1u]=='\0')
+                            :(dx_raster_output::integer(field.text,count)&&count==0);
+                        if(!zero){std::cerr<<"MLINESTYLE pending zero witness section="<<section<<" code="<<field.code<<" binary="<<binary<<'\n';return false;}
+                    }
+                }
+                if(!selected)continue;auto changed=body;auto at=field.value-begin;
+                if(binary)changed.at(at)^=1;
+                else {
+                    while(changed.at(at)==' '||changed.at(at)=='\t')++at;
+                    changed.at(at)=pending?'1':field.code==11?(changed.at(at)=='1'?'2':'1'):(changed.at(at)=='F'?'E':'F');
+                }
+                auto bad=view;bad.bytes=changed;
+                const bool accepted=compare(bad),recovered=compare(view);
+                if(accepted||!recovered) {
+                    std::cerr<<"MLINESTYLE authority replay section="<<section<<" code="<<field.code<<" binary="<<binary
+                        <<" pending="<<pending<<" acceptedBad="<<accepted<<" recovered="<<recovered<<'\n';return false;
+                }
+                ++corruptions;
+            }
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,allocations=0u,corruptions=0u,fixedProfiles=0u,pendingRefusals=0u,legacyRefusals=0u,legacyConsumerProfiles=0u,legacyConsumerRefusals=0u;
+    std::size_t consumerPlannerFaults=0u,consumerPlannerUnreached=0u,sourceQuotaRefusals=0u,modelOwnerRefusals=0u;
+    const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE authority line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!callerUnchanged(data,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        for(const std::string requested:{"EFFECTIVE_STYLE","NEW_EFFECTIVE","KEY_caféΩ^A"}) {
+            key(data).m_name=requested;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true,
+                    dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless)
+                ||!proof(output,binary,requested)||!callerUnchanged(data,requested))return fail(__LINE__);++readbacks;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<16u;++kind) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto dictionaries=data.dictionaries;const auto typed=data.mLineStyles;const auto raw=data.rawNamedResourceObjects;
+        const auto root=data.namedObjectDictionary;
+        const auto values=consumers(data);if(values.size()!=2u)return fail(__LINE__);
+        if(kind==0u)key(data).m_name.clear();
+        if(kind==1u)key(data).m_name="bad\nkey";
+        if(kind==2u)key(data).m_name=std::string("bad\0key",7u);
+        if(kind==3u){auto alias=key(data);alias.m_name="ALIAS";owner(data).m_entries.push_back(alias);}
+        if(kind==4u){auto alias=key(data);alias.m_name="effective_style";owner(data).m_entries.push_back(alias);}
+        if(kind==5u)key(data).m_dxfHandleCode=static_cast<DRW_Dictionary::Entry::DxfHandleCode>(330);
+        if(kind==6u)key(data).m_handle=0x203u;
+        if(kind==7u)data.mLineStyles.front().parentHandle=0xCu;
+        if(kind==8u)data.mLineStyles.front().name="EDITED_BODY_NAME";
+        if(kind==9u)mlineStyleBodyTransactionControls::rawValue(data,2,"EDITED_RAW_BODY",binary);
+        if(kind==10u)values[0]->styleName="EDITED_ENTITY_NAME";
+        if(kind==11u)values[1]->styleHandle=0x203u;
+        if(kind>=12u) {
+            auto& entries=data.namedObjectDictionary.m_entries;
+            const auto entry=std::find_if(entries.begin(),entries.end(),[](const auto& row){return row.m_name=="ACAD_MLINESTYLE";});
+            if(!data.hasNamedObjectDictionary||entry==entries.end())return fail(__LINE__);
+            if(kind==12u)entries.erase(entry);
+            if(kind==13u)entry->m_name="RENAMED_ROOT";
+            if(kind==14u)entry->m_handle=0x203u;
+            if(kind==15u)entry->m_dxfHandleCode=DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+        }
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+        data.dictionaries=dictionaries;data.mLineStyles=typed;data.rawNamedResourceObjects=raw;data.namedObjectDictionary=root;
+        values[0]->styleName="OLD_ENTITY_NAME";values[1]->styleHandle=0xDu;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"EFFECTIVE_STYLE")
+            ||!callerUnchanged(data,"EFFECTIVE_STYLE"))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<8u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        key(data).m_name="NEW_EFFECTIVE";const auto dictionaries=data.dictionaries;const auto typed=data.mLineStyles;const auto raw=data.rawNamedResourceObjects;
+        const auto values=consumers(data);if(values.size()!=2u)return fail(__LINE__);
+        adapter.change=[&] {
+            if(kind==0u)key(data).m_name="LATE_KEY";
+            if(kind==1u)data.mLineStyles.front().name="LATE_BODY";
+            if(kind==2u)mlineStyleBodyTransactionControls::rawValue(data,2,"LATE_RAW_BODY",binary);
+            if(kind==3u)values[0]->styleName="LATE_ENTITY_NAME";
+            if(kind==4u)values[1]->styleName="LATE_BLOCK_ENTITY_NAME";
+            if(kind==5u)values[0]->styleHandle=0x203u;
+            if(kind==6u)key(data).m_dxfHandleCode=DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+            if(kind==7u)values[1]->vertlist.front().position.x=99;
+        };
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.dictionaries=dictionaries;data.mLineStyles=typed;data.rawNamedResourceObjects=raw;
+        values[0]->styleName="OLD_ENTITY_NAME";values[1]->styleName="OLD_ENTITY_NAME";values[0]->styleHandle=0xDu;values[1]->vertlist.front().position.x=4;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"NEW_EFFECTIVE")
+            ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        key(data).m_name="NEW_EFFECTIVE";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);
+        for(long offset:{0L,1L,4L,16L,64L,128L}) {
+            sentinel(output);const auto before=materialFailedAllocations;const bool prepared=A::prepareMLineStyles(adapter,offset,binary);
+            const bool injected=materialFailedAllocations!=before;
+            if(prepared==injected||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+                ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);if(injected)++allocations;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"NEW_EFFECTIVE")
+                ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);++readbacks;++retries;
+        }
+        for(long offset:{0L,1L,4L,16L,64L,128L}) {
+            sentinel(output);const auto before=materialFailedAllocations;
+            const bool prepared=A::prepareMLineConsumers(adapter,offset,binary),injected=materialFailedAllocations!=before;
+            if(prepared==injected||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+                ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);
+            if(injected)++consumerPlannerFaults;else ++consumerPlannerUnreached;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,"NEW_EFFECTIVE")
+                ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);++readbacks;++retries;
+        }
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"authority-proof-bin.dxf":"authority-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,"NEW_EFFECTIVE")||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);
+        corruptions+=replay.corruptions;++readbacks;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool paper:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fixedSpaceRecipe(sourceBinary,paper),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const std::string name=paper?"*PAPER_SPACE":"*MODEL_SPACE";dx_ifaceBlock* sourceBlock=nullptr;
+        for(auto* block:data.blocks)if(block&&block->name==name){if(sourceBlock)return fail(__LINE__);sourceBlock=block;}
+        if(!sourceBlock||sourceBlock->ent.size()!=1u||!data.mBlock||!data.mBlock->ent.empty())return fail(__LINE__);
+        const auto* source=dynamic_cast<const DRW_MLine*>(sourceBlock->ent.front());
+        if(!source||!geometry(*source,1)||source->styleName!="OLD_ENTITY_NAME"||source->styleHandle!=0xDu
+            ||source->space!=(paper?DRW::PaperSpace:DRW::ModelSpace))return fail(__LINE__);
+        key(data).m_name="NEW_EFFECTIVE";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,"NEW_EFFECTIVE",paper)||!data.mBlock->ent.empty()
+            ||sourceBlock->ent.front()!=source||!geometry(*source,1)||source->styleName!="OLD_ENTITY_NAME"
+            ||source->styleHandle!=0xDu||key(data).m_name!="NEW_EFFECTIVE")return fail(__LINE__);++fixedProfiles;++readbacks;
+    }
+    // Empty final segment/fill arrays expose a parser-state failure that a
+    // comparison of public vectors alone cannot distinguish from valid input.
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,emptyFinalParameterRecipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!callerUnchanged(data,"EFFECTIVE_STYLE",true))return fail(__LINE__);
+        key(data).m_name="NEW_EFFECTIVE";Replay replay;replay.binary=binary;replay.pending=true;
+        replay.previous=dir/(binary?"pending-proof-bin.dxf":"pending-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,"NEW_EFFECTIVE",false,true)||!callerUnchanged(data,"NEW_EFFECTIVE",true))return fail(__LINE__);
+        pendingRefusals+=replay.corruptions;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=mlineStyleBodyTransactionControls::recipe("AC1015",binary);
+        for(auto& field:fields)if(field==std::make_pair(3,std::string("BODY_STYLE")))field.second="UNQUALIFIED_KEY";
+        dx_iface adapter;dx_data data;
+        if(!write(input,fields,binary,"AC1015")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++legacyRefusals;
+        dx_data corrected;
+        if(!write(input,mlineStyleBodyTransactionControls::recipe("AC1015",binary),binary,"AC1015")
+            ||!adapter.fileImport(input.string(),&corrected,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1015,binary,&corrected,false,true)
+            ||!mlineStyleBodyTransactionControls::proof(output,binary,"AC1015",mlineStyleBodyTransactionControls::initialDescription))return fail(__LINE__);
+        ++readbacks;++retries;key(corrected).m_name="UNQUALIFIED_RENAME";sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&corrected,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++legacyRefusals;
+        key(corrected).m_name="BODY_STYLE";
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&corrected,false,true)
+            ||!mlineStyleBodyTransactionControls::proof(output,binary,"AC1015",mlineStyleBodyTransactionControls::initialDescription))return fail(__LINE__);
+        ++readbacks;++retries;
+    }
+    // Preserve the established consistent-name R2000 consumer route. This is
+    // compatibility evidence; the modern original-source gate is not widened.
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,legacyConsumerRecipe(binary),binary,"AC1015")||!adapter.fileImport(input.string(),&data,false)
+            ||!callerUnchanged(data,"OLD_BODY_NAME",false,"OLD_BODY_NAME"))return fail(__LINE__);
+        const auto check=[&] {
+            if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+                ||!proof(output,binary,"OLD_BODY_NAME",false,false,"AC1015","OLD_BODY_NAME")
+                ||!callerUnchanged(data,"OLD_BODY_NAME",false,"OLD_BODY_NAME"))return false;
+            ++readbacks;return true;
+        };
+        if(!check())return fail(__LINE__);const auto values=consumers(data);if(values.size()!=2u)return fail(__LINE__);
+        for(auto* value:values) {
+            value->styleName="EDITED_LEGACY_ENTITY";sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++legacyConsumerRefusals;
+            value->styleName="OLD_BODY_NAME";if(!check())return fail(__LINE__);++retries;
+        }
+        ++legacyConsumerProfiles;
+    }
+    for(bool binary:{false,true}) {
+        CaptureLimited adapter;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!adapter.applied||!A::mlineBlockSourceCaptureFailed(data)||data.typedEntityCaptureFailed
+            ||!callerUnchanged(data,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!callerUnchanged(data,"EFFECTIVE_STYLE")
+            ||!A::mlineBlockSourceCaptureFailed(data)||data.typedEntityCaptureFailed)return fail(__LINE__);++sourceQuotaRefusals;
+        dx_iface corrected;dx_data fresh;
+        if(!corrected.fileImport(input.string(),&fresh,false)||A::mlineBlockSourceCaptureFailed(fresh)
+            ||!corrected.fileExport(output.string(),DRW::AC1027,binary,&fresh,false,true)
+            ||!proof(output,binary,"EFFECTIVE_STYLE")||!callerUnchanged(fresh,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        ++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        key(data).m_name="NEW_EFFECTIVE";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);
+        const auto saved=A::replaceMLineBlockModel(data);
+        if(!A::mlineBlockOwnerUnchanged(data,saved)||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!A::mlineBlockOwnerUnchanged(data,saved)
+            ||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);++modelOwnerRefusals;
+        if(!A::restoreMLineBlockModel(data,saved)||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,"NEW_EFFECTIVE")||!callerUnchanged(data,"NEW_EFFECTIVE"))return fail(__LINE__);++readbacks;++retries;
+    }
+    std::cout<<"MLINESTYLE authority profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; retries="<<retries<<"; callbacks="<<callbacks<<"; allocations="<<allocations<<"; corruptions="<<corruptions
+        <<"; fixedProfiles="<<fixedProfiles<<"; pendingRefusals="<<pendingRefusals<<"; legacyRefusals="<<legacyRefusals
+        <<"; legacyConsumerProfiles="<<legacyConsumerProfiles<<"; legacyConsumerRefusals="<<legacyConsumerRefusals
+        <<"; consumerPlannerFaults="<<consumerPlannerFaults<<"; consumerPlannerUnreached="<<consumerPlannerUnreached
+        <<"; sourceQuotaRefusals="<<sourceQuotaRefusals<<"; modelOwnerRefusals="<<modelOwnerRefusals<<'\n';
+    return profiles==4u&&refusals==32u&&callbacks==64u&&allocations>0u&&corruptions>0u
+        &&fixedProfiles==8u&&pendingRefusals==8u&&legacyRefusals==4u&&legacyConsumerProfiles==2u&&legacyConsumerRefusals==4u
+        &&consumerPlannerFaults>0u&&consumerPlannerFaults+consumerPlannerUnreached==12u&&sourceQuotaRefusals==2u&&modelOwnerRefusals==2u;
+}
+}
+void testMLineStyleAuthority(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-style-authority-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=mlineStyleAuthorityControls::run(dir);
+    t.expect(passed,"MLINESTYLE dictionary keys stay authoritative while redundant names are preserved");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MLINESTYLE authority evidence: "<<dir<<'\n';
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -37356,6 +37915,41 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 
 #include "rendering_projection_controls.h"
 #include "rendering_publication_controls.h"
+
+void DxIfaceMaterialReferenceTestAccess::limitMLineBlockSource(dx_iface& value) {
+    DxIfaceTableSourceTestAccess::rendering(*value.cData).maxCompoundBodyBytes=0u;
+}
+bool DxIfaceMaterialReferenceTestAccess::mlineBlockSourceCaptureFailed(const dx_data& value) {
+    return DxIfaceTableSourceTestAccess::rendering(value).compoundBodyCaptureFailed;
+}
+DxIfaceMaterialReferenceTestAccess::MLineBlockModelSwap
+DxIfaceMaterialReferenceTestAccess::replaceMLineBlockModel(dx_data& value) {
+    auto& source=DxIfaceTableSourceTestAccess::rendering(value);
+    for(auto& block:source.blockSources)for(auto& model:block.second.mlineModels)if(model.second) {
+        const auto owner=block.second.mlineModelOwners.find(model.first);
+        if(owner==block.second.mlineModelOwners.end()||owner->second.get()!=model.second.get()
+            ||owner->second.owner_before(model.second)||model.second.owner_before(owner->second))
+            throw std::runtime_error("MLINE source owner anchor mismatch");
+        MLineBlockModelSwap saved{block.first,model.first,model.second,owner->second};
+        model.second=std::make_shared<const DRW_MLine>(*model.second);return saved;
+    }
+    throw std::runtime_error("MLINE block model missing");
+}
+bool DxIfaceMaterialReferenceTestAccess::mlineBlockOwnerUnchanged(const dx_data& value,const MLineBlockModelSwap& saved) {
+    const auto& source=DxIfaceTableSourceTestAccess::rendering(value);
+    const auto& block=source.blockSources.at(saved.block);
+    const auto& model=block.mlineModels.at(saved.dispatch);const auto& anchor=block.mlineModelOwners.at(saved.dispatch);
+    return model.get()!=saved.original.get()&&anchor.get()==saved.anchor.get()
+        &&!anchor.owner_before(saved.anchor)&&!saved.anchor.owner_before(anchor)
+        &&model->handle==saved.original->handle&&model->parentHandle==saved.original->parentHandle
+        &&model->styleName==saved.original->styleName&&model->styleHandle==saved.original->styleHandle;
+}
+bool DxIfaceMaterialReferenceTestAccess::restoreMLineBlockModel(dx_data& value,const MLineBlockModelSwap& saved) {
+    if(!mlineBlockOwnerUnchanged(value,saved))return false;
+    DxIfaceTableSourceTestAccess::rendering(value).blockSources.at(saved.block).mlineModels.at(saved.dispatch)=saved.original;
+    return true;
+}
+
 #include "rendering_model_controls.h"
 #include "visual_style_property_controls.h"
 
@@ -37403,6 +37997,13 @@ int main(int argc, char** argv) {
     if ((argc == 5 || argc == 6) && std::string(argv[1]) == "--mline-style-text-probe") {
         return mlineStyleBodyTransactionControls::textPeer(argv[2],argv[3],std::string(argv[4])=="bin",
             argc==6?std::string_view(argv[5]):std::string_view{}) ? 0 : 1;
+    }
+    if ((argc == 5 || argc == 6) && std::string(argv[1]) == "--mline-style-key-probe") {
+        return mlineStyleAuthorityControls::peer(argv[2],argv[3],std::string(argv[4])=="bin",
+            argc==6?std::string_view(argv[5]):std::string_view{}) ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-style-authority") {
+        TestContext context;testMLineStyleAuthority(context);return context.failures==0?0:1;
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-edit-probe") {
         return mlineStyleBodyTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
