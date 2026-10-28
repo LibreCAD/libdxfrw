@@ -510,6 +510,10 @@ add_test(NAME libdxfrw_attdef_source_profile
     COMMAND libdxfrw_attdef_source_tests --source-profile)
 set_tests_properties(libdxfrw_attdef_source_profile PROPERTIES
     LABELS "fast;dxf;attdef;source;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_attdef_embedded_equal_alignment
+    COMMAND libdxfrw_attdef_source_tests --equal-alignment)
+set_tests_properties(libdxfrw_attdef_embedded_equal_alignment PROPERTIES
+    LABELS "fast;dxf;attdef;attrib;source;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_block_source_capture
     COMMAND libdxfrw_attdef_source_tests --block-source)
 set_tests_properties(libdxfrw_block_source_capture PROPERTIES

@@ -92,7 +92,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
     std::size_t depth=0u,xdepth=0u;
     std::size_t attributeMarker=raw.groups.size(),firstAttribute280=raw.groups.size();
-    bool dualAttribute280=false;
+    bool dualAttribute280=false,qualifiedSingleLock280=false,verticalAfterLock280=false;
+    std::array<std::size_t,3> textAlignment{{raw.groups.size(),raw.groups.size(),raw.groups.size()}};
+    bool redundantHostAlignment=false;
     int pointCode=0,pointNext=0;
     int attributeType=1;
     bool nestedText=false;
@@ -203,7 +205,15 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                         return reject(code==280?Reason::AmbiguousVersion:Reason::DuplicateField,i);
                     out.spans[firstAttribute280].field=Field::ReservedDefault;
                     dualAttribute280=true;
-                } else if(stage==Attribute&&code==280) firstAttribute280=i;
+                } else if(stage==Attribute&&code==280) {
+                    firstAttribute280=i;
+                    // A single flag after the required attribute fields is
+                    // the writer's lock-position role. A leading version
+                    // marker remains ambiguous in the embedded profile.
+                    qualifiedSingleLock280=seen[3][2]&&seen[3][70]&&seen[3][73]
+                        &&(!definition||seen[3][3])&&!seen[3][71]&&!seen[3][72]
+                        &&!seen[3][11]&&!seen[3][21]&&!seen[3][31];
+                }
                 slots[code]=true;
                 if(stage==Attribute) {
                     scope=Scope::Host;field=Field::Attribute;
@@ -212,7 +222,10 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                     case 3:if(!definition)return reject(Reason::UnknownField,i);break;
                     case 70:if(!integer(value,0,15))return reject(Reason::InvalidValue,i);break;
                     case 73:if(!integer(value,0,65535))return reject(Reason::InvalidValue,i);break;
-                    case 74:if(!integer(value,0,3))return reject(Reason::InvalidValue,i);break;
+                    case 74:
+                        if(!integer(value,0,3))return reject(Reason::InvalidValue,i);
+                        if(seen[3][280])verticalAfterLock280=true;
+                        break;
                     case 280:if(!integer(value,0,1))return reject(Reason::InvalidValue,i);break;
                     case 71:
                         if(raw.m_version!=DRW::AC1032)return reject(Reason::Revision,i);
@@ -224,7 +237,20 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                         if(nested||!integer(value,0,0))return reject(Reason::UnknownField,i);
                         field=Field::ReservedDefault;break;
                     case 11:case 21:case 31:
-                        if(nested||seen[2][code])return reject(Reason::DuplicateField,i);
+                        if(nested)return reject(Reason::DuplicateField,i);
+                        if(seen[2][code]) {
+                            const auto index=static_cast<std::size_t>((code-11)/10);
+                            if(raw.m_version!=DRW::AC1032 || textAlignment[index]>=raw.groups.size()
+                                || value.type()!=DRW_Variant::DOUBLE
+                                || raw.groups[textAlignment[index]].type()!=DRW_Variant::DOUBLE)
+                                return reject(Reason::DuplicateField,i);
+                            const double first=raw.groups[textAlignment[index]].d_val();
+                            const double second=value.d_val();
+                            if(!std::isfinite(first)||!std::isfinite(second)||first!=second
+                                ||(first==0.0&&std::signbit(first)!=std::signbit(second)))
+                                return reject(Reason::DuplicateField,i);
+                            redundantHostAlignment=true;
+                        }
                         break;
                     default:return reject(Reason::UnknownField,i);
                     }
@@ -237,7 +263,10 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                         if(stage!=Embedded||nestedText)return reject(Reason::UnknownField,i);
                         slots[code]=false;break; // ordered continuation chunks, no overwrite
                     case 7:if(!name(value))return reject(Reason::InvalidValue,i);role=Role::TextStyleName;break;
-                    case 10:case 20:case 30:case 11:case 21:case 31:case 210:case 220:case 230:case 39:case 50:case 51:break;
+                    case 11:case 21:case 31:
+                        if(stage==Text)textAlignment[static_cast<std::size_t>((code-11)/10)]=i;
+                        break;
+                    case 10:case 20:case 30:case 210:case 220:case 230:case 39:case 50:case 51:break;
                     case 40:if(value.type()!=DRW_Variant::DOUBLE||value.d_val()<=0.0)return reject(Reason::InvalidValue,i);break;
                     case 41:if(value.type()!=DRW_Variant::DOUBLE||value.d_val()<0.0)return reject(Reason::InvalidValue,i);break;
                     case 71:if(!integer(value,stage==Text?0:1,stage==Text?6:9))return reject(Reason::InvalidValue,i);break;
@@ -303,6 +332,13 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     if(pointCode)return reject(Reason::IncompletePoint,end);
     if(!entity||!hostText||!attribute||!seen[4][5]||!seen[4][330])return reject(Reason::Identity,end);
     if(attributeType!=1&&!nested)return reject(Reason::InvalidValue,end);
+    if(redundantHostAlignment) {
+        if(!nested||out.form!=Form::Embedded101||attributeType!=(definition?4:2)
+            ||(seen[3][280]&&(!qualifiedSingleLock280||dualAttribute280||verticalAfterLock280)))
+            return reject(Reason::AmbiguousVersion,end);
+        for(const int code:{11,21,31})
+            if(seen[2][code]!=seen[3][code])return reject(Reason::IncompletePoint,end);
+    }
     if(!seen[0][8]||!seen[2][1]||!seen[2][40]||!seen[3][2]||(definition&&!seen[3][3]))return reject(Reason::UnknownField,end);
     if(!pointComplete(seen[2],10,true)||!pointComplete(seen[2],11,false)
         ||!pointComplete(seen[2],210,false)||!pointComplete(seen[3],11,false))return reject(Reason::IncompletePoint,end);
