@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — qualify equal embedded host alignment | Centered AC1032 ACadSharp original and compatible output, current profile auditor and compound proofs | Accept only matching finite Text/Attribute triples with identical component presence in the witnessed embedded no-280 profile; retain both spans and test actual output, conflicts and ownership |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused first/multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -116,10 +116,12 @@ proof. Refused fields are not implemented editing support.
    redundant group-2 values and refuse unsupported operations atomically. Bind
    consumer arity to the reconciled style that will actually be emitted, including
    raw-only edits; a stale typed count cannot authorize a changed output style.
-   Reuse the [selected unused-style append receipt](docs/research/rpp5hk-mline-unused-append-2026-10-28.json):
-   its original/live ordinary MLINE census and staged-output checks do not yet
-   qualify removals, multi-element changes, consumed geometry, earlier versions,
-   proxy or unknown dependencies. Continue to refuse unsupported operations.
+   Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json)
+   and [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
+   receipts and their original/live ordinary MLINE census. They do not qualify
+   first/multiple-element removal, simultaneous retained-element edits, 1→0,
+   consumed geometry, earlier versions, proxy or unknown dependencies. Continue
+   to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;
