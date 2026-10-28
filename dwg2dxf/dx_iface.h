@@ -2201,6 +2201,7 @@ private:
         bool geometryChanged{false};
         bool referencesChanged{false};
         bool linetypesBound{false};
+        bool countChanged{false};
     };
     std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;
     DxfNamedResourceState m_dxfMLineStyleState;
@@ -2208,6 +2209,8 @@ private:
     bool prepareDxfMLineStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLineStyles() const noexcept;
+    bool hasCompleteDxfMLineCountCensus() const noexcept;
+    bool needsDxfMLineConsumerInspection() const noexcept;
     bool inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLineLinetypeSource {
         const DRW_LType* live{nullptr};
