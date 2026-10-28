@@ -15624,6 +15624,165 @@ bool rawCommonReference(const DRW_RawDxfObject& raw,std::uint32_t& target,int& s
 }
 }
 
+bool dx_iface::prepareDxfLayerMaterials(DRW::Version version) noexcept {
+    auto& state=m_dxfLayerMaterialState;
+    if(!cData)return false;
+    if(cData->sourceFormat!=dx_source_format::DXF)return true;
+    state.owner=cData;state.generation=cData->importGeneration;state.version=cData->sourceVersion;
+    try {
+        state.active=!m_dxfMaterialWriteSources.empty();
+        for(const auto& layer:cData->layers) {
+            std::uint32_t handle=0u;bool present=false;
+            if(!layer.getDxfMaterialHandle(handle,present)||(present&&version<DRW::AC1021))return false;
+            state.active=state.active||present;
+        }
+        if(!state.active)return true; // no row/name/index retention on ordinary 2D input
+        if(cData->layers.size()>state.recordLimit||cData->materials.size()>200000u)return false;
+        constexpr auto slot=sizeof(std::pair<const std::uint32_t,DxfLayerMaterialState::Provider>)+8u*sizeof(void*);
+        if(!addAssociativeSlotBytes(cData->materials.size(),slot,state.bytes)||state.bytes>state.byteLimit)return false;
+        state.providers.reserve(cData->materials.size());
+        for(const auto& material:cData->materials)
+            if(!material.handle||material.handle==DRW::NoHandle
+                ||!state.providers.emplace(material.handle,DxfLayerMaterialState::Provider{material.parentHandle,false}).second)return false;
+        for(const auto& layer:cData->layers) {
+            std::uint32_t target=0u;bool present=false;
+            if(!layer.getDxfMaterialHandle(target,present)||(target&&!state.providers.count(target)))return false;
+            std::size_t charge=sizeof(DxfLayerMaterialState::Row)+24u*sizeof(void*);
+            // Include the persistent name, pointer index and both inspection indexes
+            // before making any name copy. Logical bytes are not allocator/RSS.
+            if(!addStringPayloadBytes(layer.name,charge)||!addStringPayloadBytes(layer.name,charge)
+                ||state.bytes>state.byteLimit||charge>state.byteLimit-state.bytes)return false;
+            const auto index=state.rows.size();
+            if(!state.layers.emplace(&layer,index).second)return false;
+            state.rows.push_back({&layer,layer.handle,layer.parentHandle,target,0u,layer.name,present,false,false});state.bytes+=charge;
+        }
+        return hasUnchangedDxfLayerMaterials();
+    }catch(...){return false;}
+}
+
+bool dx_iface::checkDxfLayerMaterial(const DRW_Layer& layer) const noexcept {
+    const auto& state=m_dxfLayerMaterialState;
+    if(!state.owner)return true;
+    std::uint32_t target=0u;bool present=false;
+    if(!layer.getDxfMaterialHandle(target,present))return false;
+    if(!state.active)return !present;
+    const auto found=state.layers.find(&layer);
+    if(found==state.layers.end())return false;
+    const auto& row=state.rows[found->second];
+    return layer.handle==row.handle&&layer.parentHandle==row.owner&&layer.name==row.name
+        &&present==row.present&&target==row.target;
+}
+
+bool dx_iface::hasUnchangedDxfLayerMaterials() const noexcept {
+    const auto& state=m_dxfLayerMaterialState;
+    if(!state.owner)return true;
+    if(cData!=state.owner||cData->sourceFormat!=dx_source_format::DXF
+        ||cData->sourceVersion!=state.version||cData->importGeneration!=state.generation
+        ||(state.active&&cData->layers.size()!=state.rows.size()))return false;
+    std::size_t index=0u;
+    for(const auto& layer:cData->layers) {
+        if(!checkDxfLayerMaterial(layer)||(state.active&&state.rows[index++].layer!=&layer))return false;
+    }
+    if(state.active) {
+        if(cData->materials.size()!=state.providers.size())return false;
+        for(const auto& material:cData->materials) {
+            const auto found=state.providers.find(material.handle);
+            if(found==state.providers.end()||found->second.owner!=material.parentHandle)return false;
+        }
+    }
+    return true;
+}
+
+bool dx_iface::inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView& view) noexcept {
+    auto& state=m_dxfLayerMaterialState;
+    if(!hasUnchangedDxfLayerMaterials()||!dxfW)return false;
+    if(!state.active)return true;
+    if(state.inspected||view.version<DRW::AC1021)return false;
+    state.inspected=true;
+    try {
+        std::map<std::string,std::size_t> names;
+        std::unordered_map<std::uint32_t,std::size_t> emitted;
+        for(std::size_t i=0u;i<state.rows.size();++i)
+            if(!names.emplace(state.rows[i].name,i).second)return false;
+        if(!dx_symbol_output::inspect(view,[&](const auto& named) {
+            if(named.type!=dx_symbol_output::Kind::Layer)return true;
+            const auto found=names.find(named.name);if(found==names.end())return true;
+            auto& row=state.rows[found->second];
+            const auto expected=row.handle&&row.handle!=DRW::NoHandle?dxfW->dxfWriteEmittedSourceTableHandle(row.handle):named.handle;
+            if(!named.qualified||row.named||named.owner!=0x2u||named.tableHandle!=0x2u
+                ||!expected||expected!=named.handle||!emitted.emplace(named.handle,found->second).second)return false;
+            row.named=true;row.emitted=named.handle;return true;
+        }))return false;
+        for(const auto& row:state.rows)if(!row.named)return false;
+        std::unordered_map<std::uint32_t,std::uint32_t> targets;
+        for(const auto& provider:state.providers) {
+            const auto target=dxfW->remapHandle(provider.first);
+            if(!target||target==DRW::NoHandle||!targets.emplace(target,provider.first).second)return false;
+        }
+        if(!dx_standard_output::inspectSelected(view,[](std::string_view name,std::uint32_t){return name=="LAYER";},
+            [&](const auto& shape,std::string_view body) {
+                dx_standard_output::RecordCursor cursor(body,view);dx_standard_output::RecordCursor::Token token;
+                unsigned depth=0u,fields=0u;bool layer=false,xdata=false;std::uint32_t target=0u;
+                while(!cursor.done()) {
+                    if(!cursor.next(token))return false;
+                    if(token.code==102) {
+                        if(token.text=="}"){if(!depth)return false;--depth;}
+                        else if(!token.text.empty()&&token.text.front()=='{'){if(++depth>DRW::kMaxDxfApplicationGroupNesting)return false;}
+                        else return false;
+                        continue;
+                    }
+                    if(depth)continue;
+                    if(token.code>=1000){xdata=true;continue;}
+                    if(xdata)return false;
+                    if(token.code==100)layer=token.text=="AcDbLayerTableRecord";
+                    else if(token.code==347) {
+                        if(!layer||++fields!=1u||token.text.empty()||token.text.size()>16u)return false;
+                        for(unsigned char c:token.text) {
+                            const unsigned digit=c>='0'&&c<='9'?c-'0':c>='A'&&c<='F'?c-'A'+10u:c>='a'&&c<='f'?c-'a'+10u:16u;
+                            if(digit>15u||target>(UINT32_MAX-digit)/16u)return false;target=target*16u+digit;
+                        }
+                    }
+                }
+                if(depth)return false;
+                const auto found=emitted.find(shape.handle);
+                if(found!=emitted.end()) {
+                    auto& row=state.rows[found->second];
+                    if(row.inspected||fields!=(row.present?1u:0u)||target!=(row.target?dxfW->remapHandle(row.target):0u))return false;
+                    row.inspected=true;
+                }
+                if(target) {
+                    const auto provider=targets.find(target);if(provider==targets.end())return false;
+                    state.providers.at(provider->second).observed=true;
+                }
+                return true;
+            }))return false;
+        for(const auto& row:state.rows)if(!row.inspected)return false;
+        return true;
+    }catch(...){return false;}
+}
+
+bool dx_iface::finalizeDxfLayerMaterials() const noexcept {
+    const auto& state=m_dxfLayerMaterialState;
+    if(!state.owner)return true; // Direct codec users have no facade transaction.
+    if(!hasUnchangedDxfLayerMaterials()||!dxfW)return false;
+    if(!state.active)return true;
+    if(!state.inspected)return false;
+    try {
+        for(const auto& row:state.rows) {
+            if(!row.named||!row.inspected||!dxfW->dxfWriteRecordHasIdentity(row.emitted,"LAYER","TABLES")
+                ||!dxfW->dxfWriteRecordHasOwner(row.emitted,0x2u))return false;
+            if(row.handle&&row.handle!=DRW::NoHandle
+                &&!dxfW->dxfWriteSourceTableHasIdentity(row.handle,row.emitted,"LAYER",0x2u))return false;
+        }
+        for(const auto& provider:state.providers)if(provider.second.observed) {
+            const auto target=dxfW->remapHandle(provider.first);
+            if(!dxfW->dxfWriteRecordHasIdentity(target,"MATERIAL","OBJECTS")
+                ||!dxfW->dxfWriteRecordHasOwner(target,dxfW->remapHandle(provider.second.owner)))return false;
+        }
+        return true;
+    }catch(...){return false;}
+}
+
 bool dx_iface::visitDxfCommonReferences(const dx_data& data,int code,const DxfCommonReferenceState& state,
         const std::function<bool(DxfCommonReferenceSource&&)>& visit) const noexcept {
     if(code==347&&data.sourceFormat!=dx_source_format::DXF)return true;
@@ -28444,7 +28603,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
-    if(!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
+    if(!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
     if (!hasUnchangedDxfRenderPresetSources()
         || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
     if (!finalizeDxfShadeConsumers()) return false;
@@ -29287,8 +29446,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_dxfLayerMaterialState.clear();
     m_dxfFullStyleState.clear();m_dxfMaterialReferenceState.clear();
     struct CommonReferenceScope {dx_iface& owner;~CommonReferenceScope(){
+        owner.m_dxfLayerMaterialState.clear();
         owner.m_dxfFullStyleState.clear();owner.m_dxfMaterialReferenceState.clear();
     }} commonReferenceScope{*this};
     m_dxfRenderPresetSources.clear(); m_dxfRenderPresetOwner = nullptr;
@@ -30834,7 +30995,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                                    : "standalone PLOTSETTINGS graph closure");
         return false;
     }
-    if(!prepareDxfFullStyles(v)||!prepareDxfCommonReferences(v,347,m_dxfMaterialReferenceState)){
+    if(!prepareDxfLayerMaterials(v)||!prepareDxfFullStyles(v)||!prepareDxfCommonReferences(v,347,m_dxfMaterialReferenceState)){
         reportPreflightFailure("common material/style carrier capture incomplete, wrong-version or over budget");return false;
     }
     if (!prepareDxfShadeConsumers(v)) {
@@ -32068,13 +32229,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
-        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty());
+        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active);
     const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
         });
-    if (needsStandardNames && !dxfW->setDxfTablesWriteInspector([this](const auto& view) {
-            return inspectStandardDwgTablesOutput(view);
+    if ((needsStandardNames || m_dxfLayerMaterialState.active) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames](const auto& view) {
+            return inspectDxfLayerMaterials(view) && (!needsStandardNames || inspectStandardDwgTablesOutput(view));
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }

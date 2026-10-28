@@ -1111,9 +1111,21 @@ public:
         for (std::list<DRW_LType>::iterator it=cData->lineTypes.begin(); it != cData->lineTypes.end(); ++it)
             dxfW->writeLineType(&(*it));
     }
-    virtual void writeLayers() override{
-        for (std::list<DRW_Layer>::iterator it=cData->layers.begin(); it != cData->layers.end(); ++it)
-            dxfW->writeLayer(&(*it));
+    virtual void writeLayers() override {
+        if (!hasUnchangedDxfLayerMaterials()) { dxfW->writeLayer(nullptr); return; }
+        for (auto& layer : cData->layers) {
+            if (!checkDxfLayerMaterial(layer)) { dxfW->writeLayer(nullptr); return; }
+            if (cData->sourceFormat != dx_source_format::DXF
+                && (!layer.handleMaterialS.empty() || layer.materialHandle.ref
+                    || layer.materialHandle.ref64)) {
+                // The legacy DWG/Unknown facade projection omits this
+                // unqualified dependency. Keep the source model intact.
+                auto projection = layer;
+                projection.handleMaterialS.clear();
+                projection.materialHandle = dwgHandle{};
+                if (!dxfW->writeLayer(&projection)) return;
+            } else if (!dxfW->writeLayer(&layer)) return;
+        }
     }
     virtual void writeTextstyles() override{
         for (std::list<DRW_Textstyle>::iterator it=cData->textStyles.begin(); it != cData->textStyles.end(); ++it)
@@ -2123,6 +2135,34 @@ private:
     bool prepareDxfMaterialSources(DRW::Version version);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DxfLayerMaterialState {
+        struct Row {
+            const DRW_Layer* layer{nullptr};
+            std::uint32_t handle{0}, owner{0}, target{0}, emitted{0};
+            std::string name;
+            bool present{false}, named{false}, inspected{false};
+        };
+        struct Provider { std::uint32_t owner{0}; bool observed{false}; };
+        std::vector<Row> rows;
+        std::unordered_map<const DRW_Layer*,std::size_t> layers;
+        std::unordered_map<std::uint32_t,Provider> providers;
+        const dx_data* owner{nullptr};
+        std::uint64_t generation{0};
+        DRW::Version version{DRW::UNKNOWNV};
+        std::size_t bytes{0}, byteLimit{64u*1024u*1024u}, recordLimit{100000u};
+        bool active{false}, inspected{false};
+        void clear() noexcept {
+            decltype(rows){}.swap(rows); decltype(layers){}.swap(layers);
+            decltype(providers){}.swap(providers);
+            owner=nullptr; generation=0u; version=DRW::UNKNOWNV;
+            bytes=0u; active=false; inspected=false;
+        }
+    } m_dxfLayerMaterialState;
+    bool prepareDxfLayerMaterials(DRW::Version) noexcept;
+    bool hasUnchangedDxfLayerMaterials() const noexcept;
+    bool checkDxfLayerMaterial(const DRW_Layer&) const noexcept;
+    bool inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView&) noexcept;
+    bool finalizeDxfLayerMaterials() const noexcept;
     struct DxfRenderPresetWriteSource {
         DRW_RenderSettings live;
         UTF8STRING name;

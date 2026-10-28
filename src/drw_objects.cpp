@@ -7866,6 +7866,31 @@ bool DRW_Layer::validatePayloadFields() const {
         && xDictFlag <= 1;
 }
 
+bool DRW_Layer::getDxfMaterialHandle(std::uint32_t &handle,
+                                     bool &present) const noexcept {
+    handle = 0u;
+    present = !handleMaterialS.empty() || materialHandle.ref != 0u
+        || materialHandle.ref64 != 0u;
+    if (materialHandle.ref64 != 0u
+        && materialHandle.ref64 != materialHandle.ref)
+        return false;
+    if (handleMaterialS.empty()) {
+        handle = materialHandle.ref;
+        return true;
+    }
+    if (handleMaterialS.size() > 16u)
+        return false;
+    for (const unsigned char c : handleMaterialS) {
+        const unsigned digit = c >= '0' && c <= '9' ? c - '0'
+            : c >= 'A' && c <= 'F' ? c - 'A' + 10u
+            : c >= 'a' && c <= 'f' ? c - 'a' + 10u : 16u;
+        if (digit > 15u || handle > (UINT32_MAX - digit) / 16u)
+            return false;
+        handle = handle * 16u + digit;
+    }
+    return materialHandle.ref == 0u || materialHandle.ref == handle;
+}
+
 bool DRW_Layer::validateDxf() const {
     const std::int64_t colorValue = static_cast<std::int64_t>(color);
     const std::int64_t colorIndex = colorValue < 0

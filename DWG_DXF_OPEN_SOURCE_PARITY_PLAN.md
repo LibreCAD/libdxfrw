@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5fp original rendering publications and immutable inputs (2026-10-27; verified transport/input scope):** a separate borrowed view now attests actual VisualStyle/RenderSettings typed/raw identities and original common/private/positional state through the existing opt-in. Bounded immutable phase snapshots bind generation/context and physical OBJECTS namespace origins without claiming full model equality.576 publication profiles,20 input pairs,80 refusal/limit/owner controls and152 reached allocation failures with168 corrected imports pass. Final affected cohorts pass98/98 normally and98/98 under ASan. Full rendering model/property/reference/dependency and recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fp-original-rendering-publications-and-immutable-inputs-2026-10-27) · [receipt](docs/research/rpp5fp-rendering-original-publications-and-immutable-inputs-2026-10-27.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gd LAYER material transport (2026-10-27; selected scope verified):** supplied modern LAYER 347 values now retain absence/null distinctions, object remapping and actual type/owner/output proof. 32 authored profiles, 82 callback refusals, 108 corrected retries and 135 selected normal/ASan checks pass. Ordinary2D and legacy non-DXF projection controls pass; HEADER $CMATERIAL, material body/native and full-document qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gd-layer-material-transport-and-output-closure-2026-10-27) · [receipt](docs/research/rpp5gd-layer-material-transport-and-output-closure-2026-10-27.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5fp original rendering publications and immutable inputs (2026-10-27; verified transport/input scope):** a separate borrowed view now attests actual VisualStyle/RenderSettings typed/raw identities and original common/private/positional state through the existing opt-in. Bounded immutable phase snapshots bind generation/context and physical OBJECTS namespace origins without claiming full model equality.576 publication profiles,20 input pairs,80 refusal/limit/owner controls and152 reached allocation failures with168 corrected imports pass. Final affected cohorts pass98/98 normally and98/98 under ASan. Full rendering model/property/reference/dependency and recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fp-original-rendering-publications-and-immutable-inputs-2026-10-27) · [receipt](docs/research/rpp5fp-rendering-original-publications-and-immutable-inputs-2026-10-27.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5fo rendering subclass projections and typed preset output (2026-10-27; verified selected scope):** original base subclasses now govern rendering named fields, with charged environment filename aliases and distinct legacy MentalRay roles. A reproduced typed preset writer loss is fixed with canonical base/derived bodies and refusal before publication for unrepresented or inconsistent inputs. The authored matrix covers504 projection profiles,15,840 raw tags,306 writer/readback/refusal controls and bounded ownership/recovery. Final affected cohorts pass96/96 normally and96/96 under ASan. Actual original rendering providers and full recursive/live/emitted/native/external qualification remain open. [Implementation and next work](#implementation-progress-rpp-5fo-rendering-subclass-projections-and-typed-preset-output-2026-10-27) · [receipt](docs/research/rpp5fo-rendering-subclass-projections-and-preset-output-2026-10-27.json). No support gate is promoted.
 
@@ -134967,3 +134969,130 @@ full material/rendering/native/document qualification remains incomplete. J256/
 J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD
 and independent ACIS/ACDS semantic/kernel evidence remain **NOT_RUN**. The full
 objective remains active; no remote mutation.
+
+
+## Implementation progress — RPP-5gd LAYER material transport and output closure (2026-10-27)
+
+The parent emitted zero of three supplied LAYER 347 fields in the authored ASCII
+baseline. The reader retained them; the table writer omitted them. Autodesk's
+LAYER table identifies347 as a material hard pointer, and the primary ezdxf
+implementation gates it at R2007. Close that selected transaction while retaining
+the separate HEADER, native rendering and whole-document obligations.
+
+- [x] Add a nonvirtual stateless LAYER material getter with strict 1–16 digit
+  hexadecimal/32-bit representation and native ref/ref64/string agreement.
+  Preserve absence versus supplied null 0. Emit supplied modern 347 with the
+  shared object remap; refuse pre-R2007 targets, including explicit null, and
+  invalid mapped nonzero targets through the existing transactional writer.
+- [x] Freeze all current layer pointers/self/owner/names/presence/targets when
+  admitted DXF material data or any supplied layer field makes this route active.
+  Bind data/import generation/format/version and material provider identities/
+  owners. Charge names and indexes before copies, with 100000-row/200000-provider/
+  64MiB logical bounds. This is not allocator capacity or whole-operation RSS.
+- [x] Combine the TABLES observer with existing DWG dependency-name inspection.
+  Check actual name/subclass/table owner/self and exact 347 presence/target, then
+  actual final LAYER source binding and MATERIAL type/owner. Anonymous identities
+  require final inventory membership; they receive no original-identity certificate.
+  Generated extras retain provider-only scope, not complete source certification.
+- [x] Keep inactive 2D free of new row/name/index retention and TABLES observation.
+  Preserve the legacy non-DXF facade material omission using a temporary projection
+  copy, retaining original source metadata. Direct codec users retain graph
+  responsibility. General DWG layer material projection remains unqualified.
+- [x] Authored controls pass 32 modern revision/input/output/identity profiles,
+  748 independent field relationships and 32 primary readbacks; include Unicode
+  names, reserved 2/3 target IDs, layer 0 and anonymous/NoHandle controls. Two valid
+  rebindings and two native-alias fallbacks also read back. These are local
+  schema/transport controls, not native rendering or semantic acceptance.
+- [x] 82 callback attempts refuse with unchanged sentinel destinations; 108
+  corrected same-adapter retries pass. Include copied-row nonzero/null/absent
+  edits, inactive 2D additions, four exact/one-under limits and 34 malformed/wrong-
+  type/dangling/alias/wide/legacy refusals. Two generated rooted extras read back;
+  two authored Unknown-source models preserve the legacy omission and metadata.
+- [x] Feed completed same-input TABLES bytes into the actual inspector and layer
+  finalizer during another real export finalization: 54 selected type/self/owner/
+  name/subclass/target corruptions and 18 missing/duplicate/application-spoof fields
+  refuse. 50 reached helper allocation faults refuse, four offsets are unreached
+  and all 54 corrected helper views pass. Probe at most 256 offsets per encoding,
+  stop after two consecutive unreached offsets, restore test state and keep the
+  hook disabled elsewhere. This is finite helper, not whole-file fault coverage.
+- [x] Retain the first shared normal checkpoint: 131/135 passed; four direct codec
+  routes failed because the optional layer finalizer required a facade writer
+  before checking whether any transaction was prepared. Add the missing early
+  inactive return, retaining all prepared-state checks; ASan runtime was not run
+  for those inputs. Rebuild and repeat against a new complete input freeze.
+- [x] Retain the development correction: anonymous self-ID corruption requires
+  the final actual inventory, not staged-name proof alone. The new control invokes
+  both real helpers; no production weakening or invented identity is introduced.
+- [x] Build all 14 affected targets normally (21.63s) and with the
+  qualified Debug/-O1/ASan configuration (148.00s), preserving strict
+  warnings/-Werror and LibreCAD_3. No installed instance/virtual state or DWG
+  parser/layout changes; one public nonvirtual method is added and the private
+  adapter is rebuilt consistently. Formal ABI/application qualification stays open.
+- [x] 135 selected tests pass normally (118.32s), then under ASan
+  (71.84s); identical registrations/labels/timeouts, no selected
+  failure/skip/disabled test. All 33 tracked counter lines agree across configurations
+  and all 32 prior tracked lines are unchanged. Seven development owning tests
+  passed earlier in 4.07s; this final shared checkpoint is not a full-project suite.
+- [x] Freeze all 590 release inputs through both builds/runtimes; finish builds
+  and archive checks before runtimes. Regenerate gzip/bzip2 with COPYFILE_DISABLE=1
+  and verify every listed byte. No new extracted-source compile/distcheck, native
+  CAD/kernel, ABI/application or controlled RSS/performance run is claimed. All
+  new drawing controls are locally authored source recipes/runtime API models;
+  no external drawing payload, derivative or fixture file is added.
+
+The [receipt](docs/research/rpp5gd-layer-material-transport-and-output-closure-2026-10-27.json)
+records the parent limitation, source references, frozen inputs, actual builds/
+tests/counters/archives, development correction and full remaining gates.
+
+Next: implement RPP-5ge below, then complete MATERIAL body edit/schema/unknown-
+field fidelity; remaining common/full/face/edge producer/source/version, reactor/
+IMAGE/document/control/name/application/XDATA/CEPSNID/CEPSNTYPE and recursive/
+coupled ownership. Rendering engine/schema/optional/alias/extension/active/global/
+environment/background/live-section/sun, independent VIEWPORT shade4/5 and 335/
+343/344/91/native collation, TABLE Values/multiple-content/linked-data/formatting/
+units/borders/native B2b/B3/C, package/platform/ABI/application/RSS/performance and
+native consumers all remain required. Reuse fast owning checks, broaden for real
+shared risks, self-unblock, update/commit/report every verified slice and continue.
+
+Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger
+remains **CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false
+and outputEligible=false. Native semantics and complete document eligibility
+remain unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and
+nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel
+and native Linux GCC release remain **NOT_RUN**. The full goal remains active.
+
+## Next-slice readiness — RPP-5ge HEADER material dependency (2026-10-27)
+
+RPP-5gd completes the selected LAYER 347 transaction and its affected normal/
+ASan checkpoint. HEADER $CMATERIAL remains unimplemented. This
+readiness record does not promote either native semantic or document support.
+
+1. [ ] Add canonical $CMATERIAL/group 347 scalar handling, strict 32-bit hex and
+   dollar/bare alias validation, shape/duplicate refusal and R2007+ output gating.
+   Keep supplied zero distinct from absence and never synthesize a default or
+   copy another file's hardcoded material ID. The primary peer headervars source
+   gates 347 at DXF2007 and warns about a zero default; native acceptance is a
+   separate gate. Preserve the generic malformed-HEADER safeguards.
+2. [ ] Make the core writer own exactly one object-handle remap after the HEADER
+   callback. Verify the actual nonzero target is MATERIAL in OBJECTS before
+   publication, including direct codec callbacks. The facade must additionally
+   bind its admitted paired/rooted provider and freeze current header/context
+   against late additions, removals, route changes and target edits.
+3. [ ] Add optional actual HEADER byte inspection with the existing guarded,
+   borrowed, tentative-before-publication contract. Retain ordinary streaming
+   when inactive. If staging HEADER, relocate its relative HANDSEED placeholder
+   offset into the parent stream and verify the final absolute backpatch. Do not
+   reset a writer while its staging scopes remain live. Any new installed dxfRW
+   state requires consistent rebuilds and an explicit formal-ABI limitation.
+4. [ ] Author ASCII/Binary and cross-encoding modern controls for missing/null/
+   nonzero, canonical/bare names, remaps/collisions, valid pre-export rebindings,
+   malformed/duplicate aliases and old-version refusal. Check actual header
+   fields, HANDSEED above all emitted IDs, provider type/owner and readback.
+   Exercise returned-copy and persistent callback edits, atomic destination
+   preservation, corrected same-adapter retries, bounded allocations and the
+   ordinary2D route. Do not import external drawing payloads or derivatives.
+5. [ ] Keep the full material-body, common/full/face/edge, reactor/IMAGE/document/
+   application/XDATA/CEPSNID/CEPSNTYPE and recursive/coupled ownership work open.
+   Rendering variants, TABLE/native B2b/B3/C, native consumers, ABI/platform/RSS,
+   Linux/Windows FreeCAD and independent ACIS/ACDS qualification remain required.
+   J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and nonpromoting.

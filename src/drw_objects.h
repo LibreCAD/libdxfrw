@@ -2547,6 +2547,11 @@ public:
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *hdlBuf = nullptr) const;
+  /// Resolve the optional DXF group-347 material pointer without consuming it.
+  /// Empty text/native zero is absent; text "0" is explicitly null. Nonzero
+  /// native aliases must agree, and all supplied handles must fit 32 bits.
+  /// This validates representation only; the exporter owns graph closure.
+  bool getDxfMaterialHandle(std::uint32_t &handle, bool &present) const noexcept;
   UTF8STRING lineType;  /*!< line type, code 6 */
   int color;            /*!< layer color, code 62 */
   int color24;          /*!< 24-bit color, code 420 */
@@ -2554,9 +2559,7 @@ public:
   bool plotF;           /*!< Plot flag, code 290 */
   enum DRW_LW_Conv::lineWidth lWeight; /*!< layer lineweight, code 370 */
   std::string handlePlotS; /*!< Hard-pointer ID/handle of plotstyle, code 390 */
-  std::string
-      handleMaterialS; /*!< Hard-pointer ID/handle of materialstyle, code 347 */
-                       /*only used for read dwg*/
+  std::string handleMaterialS; /*!< Optional material hard pointer, DXF code 347 */
   dwgHandle lTypeH;
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in DWG */
   dwgHandle plotStyleHandle; /*!< plot-style hard pointer in DWG */

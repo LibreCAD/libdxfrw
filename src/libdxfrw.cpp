@@ -5621,8 +5621,12 @@ bool dxfRW::recordDxfTableRow() noexcept {
 }
 
 bool dxfRW::writeLayer(DRW_Layer *ent){
+    std::uint32_t material = 0u;
+    bool hasMaterial = false;
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()
+        || !ent->getDxfMaterialHandle(material, hasMaterial)
+        || (hasMaterial && version < DRW::AC1021)
         || (!ent->colorName.empty() && version <= DRW::AC1015)) {
         m_writeError = true;
         return false;
@@ -5673,6 +5677,14 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         write(writer->writeUtf8String(2, ent->name));
     } else {
         write(writer->writeUtf8Caps(2, ent->name));
+    }
+    // R2007+ material hard pointer: preserve supplied presence, including
+    // explicit null, and use the shared object remap rather than a source ID.
+    if (hasMaterial) {
+        const auto target = material ? remapObjectHandle(material) : 0u;
+        if (material && (!target || target == DRW::NoHandle))
+            return failDxfWrite();
+        write(writer->writeString(347, toHexStr(target)));
     }
     write(writer->writeInt16(70, ent->flags));
     // A C2 DWG LAYER has exact RGB but no source ACI. 256 is an internal

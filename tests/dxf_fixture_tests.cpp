@@ -69,6 +69,16 @@ public:
         for(auto& row:state.sources)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
         const bool result=value.inspectDxfCommonReferences(view,section,347,state);state=std::move(saved);return result;
     }
+    static auto layerSize(const dx_iface& value){return std::make_pair(value.m_dxfLayerMaterialState.rows.size(),value.m_dxfLayerMaterialState.bytes);}
+    static void layerLimit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfLayerMaterialState.recordLimit=records;value.m_dxfLayerMaterialState.byteLimit=bytes;}
+    static bool layerInactive(const dx_iface& value){return !value.m_dxfLayerMaterialState.active&&value.m_dxfLayerMaterialState.rows.empty()&&!value.m_dxfLayerMaterialState.inspected;}
+    static bool layerReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view,long fault=-1){
+        auto& state=value.m_dxfLayerMaterialState;auto saved=state;state.inspected=false;
+        for(auto& row:state.rows){row.named=false;row.inspected=false;row.emitted=0u;}
+        for(auto& provider:state.providers)provider.second.observed=false;
+        bool result=false;{MaterialAllocationFailure failure(fault);result=value.inspectDxfLayerMaterials(view)&&value.finalizeDxfLayerMaterials();}
+        state=std::move(saved);return result;
+    }
     static bool inactive(const dx_iface& value){return value.m_dxfMaterialReferenceState.sources.empty()&&value.m_dxfMaterialReferenceState.sections==0u&&value.dxfW
         &&value.dxfW->dxfWriteRecordHandleCount(value.dxfW->remapEntityHandle(0xE801u))==0u;}
 };
@@ -26969,6 +26979,187 @@ void testMaterialConsumerBindings(TestContext& t){
     t.expect(passed,"common material consumer bindings and failure/retry controls");
 }
 
+namespace layerMaterialControls {
+using namespace materialConsumerControls;
+Tags recipe(const std::filesystem::path& dir,const std::string& version){
+    auto source=materialConsumerControls::recipe(dir,version,false);
+    Tags tables{{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"LAYER"},{5,"2E"},{330,"0"},{100,"AcDbSymbolTable"},{70,"4"}};
+    for(const auto& item:std::vector<std::array<std::string,3>>{{"0","50","2"},{"Paint_Ω","4","3"},{"Null","E300","0"},{"Absent","E301",""}}){
+        tables.insert(tables.end(),{{0,"LAYER"},{5,item[1]},{330,"2E"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,item[0]},{70,"0"},{62,"7"},{6,"CONTINUOUS"}});
+        if(!item[2].empty())tables.emplace_back(347,item[2]);
+    }
+    tables.insert(tables.end(),{{0,"ENDTAB"},{0,"ENDSEC"}});
+    auto insert=std::find(source.begin(),source.end(),std::make_pair(2,std::string("OBJECTS")))-1;
+    source.insert(insert,tables.begin(),tables.end());return source;
+}
+DRW_Layer& find(dx_data& data,const std::string& name){
+    for(auto& layer:data.layers)if(layer.name==name)return layer;throw std::runtime_error("missing layer");
+}
+bool proof(const std::vector<Wire>& fields,std::size_t& checks,bool projected=false,bool rebound=false){
+    struct Row {std::string type,id,owner,name,material;unsigned count=0u;};std::vector<Row> rows;std::string scope;unsigned depth=0u;
+    for(const auto& tag:fields){
+        if(tag.code==0){rows.push_back({tag.text,{},{},{},{},0u});scope.clear();continue;}
+        if(rows.empty())continue;if(tag.code==102){if(tag.text=="}")--depth;else ++depth;continue;}if(depth)continue;
+        auto& row=rows.back();if(tag.code==100){scope=tag.text;continue;}
+        if(tag.code==5&&scope.empty())row.id=tag.text;if(tag.code==330&&scope.empty())row.owner=tag.text;
+        if((scope=="AcDbLayerTableRecord"&&tag.code==2)||(scope=="AcDbMaterial"&&tag.code==1))row.name=tag.text;
+        if(scope=="AcDbLayerTableRecord"&&tag.code==347){row.material=tag.text;++row.count;}
+    }
+    std::map<std::string,const Row*> ids;std::string paint,other;
+    for(const auto& row:rows)if(!row.id.empty()){
+        if(!ids.emplace(row.id,&row).second)return false;
+        if(row.type=="MATERIAL"){if(row.name=="Paint")paint=row.id;if(row.name=="OtherPaint")other=row.id;}
+    }
+    unsigned seen=0u;for(const auto& row:rows)if(row.type=="LAYER"){
+        const auto expected=row.name=="0"?(rebound?other:paint):row.name=="Paint_Ω"?other:std::string("0");
+        const auto wanted=projected||row.name=="Absent"?0u:1u;
+        if(row.owner!="2"||row.id.empty()||row.count!=wanted||(wanted&&row.material!=expected))return false;
+        if(row.name=="0"&&row.id!="10")return false;
+        if(wanted&&row.material!="0"){
+            if(row.material=="2"||row.material=="3")return false;
+            const auto target=ids.find(row.material);if(target==ids.end()||target->second->type!="MATERIAL")return false;
+            const auto owner=ids.find(target->second->owner);if(owner==ids.end()||owner->second->type!="DICTIONARY")return false;checks+=3u;
+        }
+        checks+=4u;++seen;
+    }
+    return seen==4u;
+}
+bool readback(const std::filesystem::path& output,bool projected=false,bool rebound=false){
+    dx_iface reader;dx_data data;if(!reader.fileImport(output.string(),&data,false)||data.layers.size()!=4u||data.materials.size()!=2u)return false;
+    std::uint32_t paint=0u,other=0u;for(const auto& material:data.materials){if(material.m_name=="Paint")paint=material.handle;if(material.m_name=="OtherPaint")other=material.handle;}
+    for(const auto& layer:data.layers){std::uint32_t target=0u;bool present=false;if(!layer.getDxfMaterialHandle(target,present))return false;
+        const bool wanted=!projected&&layer.name!="Absent";
+        const auto expected=layer.name=="0"?(rebound?other:paint):layer.name=="Paint_Ω"?other:0u;
+        if(present!=wanted||target!=(wanted?expected:0u))return false;}
+    return true;
+}
+struct Editing:dx_iface {
+    unsigned phase=0u;bool active=true,copyOnly=false,fast=false;unsigned copyFault=0u;std::function<void()> change;
+    std::pair<std::size_t,std::size_t> size;
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);size=A::layerSize(*this);fast=A::layerInactive(*this);if(active&&phase==0u)change();}
+    void writeLayers()override{
+        if(active&&phase==1u){if(copyOnly){for(auto layer:cData->layers){if(copyFault==0u&&layer.name=="0")layer.handleMaterialS="3";if(copyFault==1u&&layer.name=="Null")layer.handleMaterialS.clear();if(copyFault==2u&&layer.name=="Absent")layer.handleMaterialS="0";dxfW->writeLayer(&layer);}return;}change();}
+        dx_iface::writeLayers();
+    }
+    void writeBlocks()override{if(active&&phase==2u)change();dx_iface::writeBlocks();}
+    void writeEntities()override{dx_iface::writeEntities();if(active&&phase==3u)change();}
+    bool finalizeDxfWrite()override{if(active&&phase==4u)change();return dx_iface::finalizeDxfWrite();}
+};
+struct Extra:dx_iface {
+    bool invalid=false;
+    void writeLayers()override{dx_iface::writeLayers();DRW_Layer layer;layer.name="Generated";layer.handle=0xEF17u;layer.handleMaterialS=invalid?"EBAD":"2";dxfW->writeLayer(&layer);}
+};
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t mutations=0u,reached=0u,unreached=0u;
+    bool finalizeDxfWrite()override{
+        const auto fail=[&](int line){std::cerr<<"Layer replay line="<<line<<" mutations="<<mutations<<" faults="<<reached<<" unreached="<<unreached<<'\n';return false;};
+        const auto fields=wire(previous,binary);std::ifstream file(previous,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+        std::size_t begin=0u,end=0u;for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text=="TABLES"){
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;}
+        if(end<=begin)return fail(__LINE__);const auto body=bytes.substr(begin,end-begin);
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::layerReplay(*this,view))return fail(__LINE__);bool selected=false;std::string scope;
+        for(const auto& field:fields){if(field.begin<begin||field.begin>=end)continue;
+            if(field.code==0){selected=field.text=="LAYER";scope.clear();}if(field.code==100)scope=field.text;
+            if(!selected||(field.code!=0&&field.code!=5&&field.code!=330&&field.code!=2&&field.code!=347&&field.code!=100))continue;
+            auto changed=body;auto offset=field.value-begin;if(binary)changed.at(offset)^=1;else{while(changed.at(offset)==' '||changed.at(offset)=='\t')++offset;changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
+            auto bad=view;bad.bytes=changed;if(A::layerReplay(*this,bad)||!A::layerReplay(*this,view))return fail(__LINE__);++mutations;
+        }
+        for(const auto& field:fields)if(field.begin>=begin&&field.begin<end&&field.code==347){
+            for(unsigned mode=0u;mode<3u;++mode){auto changed=body;const auto offset=field.begin-begin;const auto original=body.substr(offset,field.end-field.begin);
+                if(mode==0u)changed.erase(offset,field.end-field.begin);
+                if(mode==1u)changed.insert(offset,original);
+                if(mode==2u){std::string open,close;if(binary){open=std::string("\x66\0{AUTHORED\0",12);close=std::string("\x66\0}\0",4);}else{open="102\n{AUTHORED\n";close="102\n}\n";}changed.replace(offset,field.end-field.begin,open+original+close);}
+                auto bad=view;bad.bytes=changed;if(A::layerReplay(*this,bad)||!A::layerReplay(*this,view))return fail(__LINE__);++mutations;
+            }
+        }
+        unsigned untouched=0u;for(long offset=0;offset<256&&untouched<2u;++offset){const auto before=materialFailedAllocations;const bool good=A::layerReplay(*this,view,offset);
+            if(materialFailedAllocations!=before){if(good)return fail(__LINE__);++reached;untouched=0u;}else{if(!good)return fail(__LINE__);++unreached;++untouched;}
+            if(!A::layerReplay(*this,view))return fail(__LINE__);
+        }
+        return untouched==2u&&dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir){
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,fields=0u,readbacks=0u,callbacks=0u,retries=0u,limits=0u,invalid=0u,mutations=0u,reached=0u,unreached=0u,fast=0u,projections=0u;
+    const auto fail=[&](int line){std::cerr<<"Layer binding line="<<line<<" profiles="<<profiles<<" callbacks="<<callbacks<<" mutations="<<mutations<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool inputBinary:{false,true})for(bool binary:{false,true})for(bool anonymous:{false,true}){
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface writer;dx_data data;if(!write(input,recipe(dir,version),inputBinary,version)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(anonymous)for(auto& layer:data.layers)layer.handle=0u;
+        if(!writer.fileExport(output.string(),v,binary,&data,false)||!proof(wire(output,binary),fields)||!readback(output))return fail(__LINE__);++profiles;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<5u;++phase)for(unsigned what=0u;what<9u;++what){
+        if(phase==1u&&what>0u)continue;
+        Editing writer;writer.phase=phase;dx_data data;if(!write(input,recipe(dir,"AC1027"),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& zero=find(data,"0");const auto saved=zero;auto& absent=find(data,"Absent");const auto oldAbsent=absent;const auto owner=data.materials.front().parentHandle;const auto generation=data.importGeneration;
+        writer.change=[&]{if(what==0u)zero.handleMaterialS="3";if(what==1u)zero.handleMaterialS.clear();if(what==2u)zero.handle=0xEF00u;if(what==3u)zero.name="Changed";if(what==4u)zero.parentHandle=0xEF00u;
+            if(what==5u)absent.handleMaterialS="2";if(what==6u)data.materials.front().parentHandle=0xEF00u;if(what==7u)++data.importGeneration;if(what==8u)data.sourceFormat=dx_source_format::DWG;};
+        sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        writer.active=false;zero=saved;absent=oldAbsent;data.materials.front().parentHandle=owner;data.importGeneration=generation;data.sourceFormat=dx_source_format::DXF;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true}){
+        Editing writer;writer.active=false;dx_data data;if(!write(input,recipe(dir,"AC1027"),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);const auto exact=writer.size;if(exact.first!=4u)return fail(__LINE__);
+        for(bool rows:{false,true}){A::layerLimit(writer,exact.first-(rows?1u:0u),exact.second-(rows?0u:1u));sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++limits;A::layerLimit(writer,exact.first,exact.second);
+            if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;}
+        auto& zero=find(data,"0");for(const auto* bad:{"EBAD","E301","100000000","+2"," 2","2 ","0x2","FFFFFFFF","00000000000000002"}){
+            zero.handleMaterialS=bad;sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;
+            zero.handleMaterialS="2";if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        }
+        writer.active=true;writer.phase=1u;writer.copyOnly=true;
+        for(unsigned fault=0u;fault<3u;++fault){writer.copyFault=fault;sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;writer.active=false;
+            if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;writer.active=true;}
+        writer.active=false;
+        Extra extra;if(!extra.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface extraReader;dx_data extraData;if(!extraReader.fileImport(output.string(),&extraData,false)||extraData.layers.size()!=5u)return fail(__LINE__);
+        std::uint32_t generated=0u;bool generatedPresent=false;if(!find(extraData,"Generated").getDxfMaterialHandle(generated,generatedPresent)||!generatedPresent||generated!=extraData.materials.front().handle)return fail(__LINE__);
+        extra.invalid=true;sentinel(output);if(extra.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;
+        extra.invalid=false;if(!extra.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        zero.handleMaterialS="0000000000000003";zero.materialHandle.ref=3u;zero.materialHandle.ref64=3u;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(wire(output,binary),fields,false,true)||!readback(output,false,true))return fail(__LINE__);
+        zero.handleMaterialS.clear();if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output,false,true))return fail(__LINE__);
+        for(unsigned alias=0u;alias<3u;++alias){zero.handleMaterialS=alias==0u?"2":"3";zero.materialHandle.ref=3u;zero.materialHandle.ref64=alias==1u?0x100000003ull:alias==2u?2u:3u;sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;}
+        zero.handleMaterialS="2";zero.materialHandle=dwgHandle{};if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        for(auto& layer:data.layers)layer.handle=DRW::NoHandle;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!readback(output))return fail(__LINE__);
+        const auto previous=dir/(binary?"captured-binary.dxf":"captured-ascii.dxf");if(!writer.fileExport(previous.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        Replay replay;replay.previous=previous;replay.binary=binary;
+        if(!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);mutations+=replay.mutations;reached+=replay.reached;unreached+=replay.unreached;
+        Editing plain;plain.active=false;dx_data ordinary;Tags empty{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},{0,"EOF"}};
+        if(!write(input,empty,binary,"AC1027")||!plain.fileImport(input.string(),&ordinary,false))return fail(__LINE__);DRW_Layer layer;layer.name="0";ordinary.layers.push_back(layer);
+        if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!plain.fast||plain.size.first)return fail(__LINE__);++fast;
+        plain.active=true;plain.change=[&]{ordinary.layers.front().handleMaterialS="2";};sentinel(output);
+        if(plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!kept(output))return fail(__LINE__);++callbacks;plain.active=false;ordinary.layers.front().handleMaterialS.clear();
+        if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false))return fail(__LINE__);++retries;
+        // Exercise the existing non-DXF projection using authored models, not a
+        // native DWG receipt: it must omit rather than introduce dangling IDs.
+        data.sourceFormat=dx_source_format::Unknown;data.materials.clear();data.rawMaterialObjects.clear();data.hasNamedObjectDictionary=false;data.dictionaries.clear();
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        for(const auto& tag:wire(output,binary))if(tag.code==347)return fail(__LINE__);if(find(data,"0").handleMaterialS!="2")return fail(__LINE__);++projections;
+    }
+    // The low-level codec keeps caller graph responsibility, but refuses a
+    // supplied material on pre-R2007 targets, including explicit null.
+    for(bool binary:{false,true})for(const auto v:{DRW::AC1009,DRW::AC1014,DRW::AC1015,DRW::AC1018}){
+        struct Legacy:dx_iface {void writeLayers()override{DRW_Layer layer;layer.name="0";layer.handleMaterialS="0";dxfW->writeLayer(&layer);}} writer;
+        dx_data data;sentinel(output);if(writer.fileExport(output.string(),v,binary,&data,false)||!kept(output))return fail(__LINE__);++invalid;
+    }
+    std::cout<<"Layer material profiles="<<profiles<<"; independent fields="<<fields<<"; readbacks="<<readbacks<<"; callback rollbacks="<<callbacks<<"; corrected retries="<<retries<<"; exact/one-under limits="<<limits
+        <<"; invalid pointer refusals="<<invalid<<"; staged field refusals="<<mutations<<"; reached inspector faults="<<reached<<"; unreached offsets="<<unreached<<"; inactive2D profiles="<<fast<<"; legacy projection models="<<projections<<'\n';
+    return profiles==32u&&readbacks==32u&&callbacks==82u&&retries==108u&&limits==4u&&invalid==34u&&mutations>0u&&reached>0u&&unreached==4u&&fast==2u&&projections==2u;
+}
+}
+void testLayerMaterialBindings(TestContext& t){
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-layer-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=layerMaterialControls::run(dir);if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"Layer material evidence: "<<dir<<'\n';
+    t.expect(passed,"LAYER material output, closure and failure recovery");
+}
+
 void testMaterialRawCapture(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
@@ -34864,6 +35055,9 @@ int main(int argc, char** argv) {
         testDxfConsumerFinalization(focused);
         std::cout << "DXF consumer finalization: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--layer-material-bindings") {
+        TestContext context;testLayerMaterialBindings(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--material-consumer-bindings") {
         TestContext context;testMaterialConsumerBindings(context);return context.failures == 0 ? 0 : 1;
