@@ -27980,6 +27980,48 @@ void testMaterialNormalBoundaries(TestContext& t) {
 
 namespace materialSourceOrderControls {
 using namespace materialBodyControls;
+Tags specularRecipe(const std::filesystem::path& dir,const std::string& version,bool malformed=false) {
+    auto fields=fullRecipe(dir,version);unsigned materials=0u,projections=0u;
+    bool selected=false;
+    for(auto& field:fields) {
+        if(field.first==0)selected=field.second=="MATERIAL" && ++materials==1u;
+        if(!selected)continue;
+        if(field.first==73 && ++projections==1u)field.second="3";
+        if(field.first==76){field.first=malformed?73:76;field.second="0";}
+    }
+    return fields;
+}
+bool specularState(const DRW_Material& value) {
+    return value.m_hasDiffuseMapProjection && value.m_diffuseMapProjection==3u
+        &&value.m_hasSpecularColorMethod && value.m_specularColorMethod==0u
+        &&value.m_hasSpecularGlossFactor && value.m_specularGlossFactor==.65
+        &&value.m_hasSpecularColorFactor && value.m_specularColorFactor==.8
+        &&value.m_hasSpecularColorValue && value.m_specularColorValue==0xFEDCBA98u
+        &&value.m_hasSpecularMapBlendFactor && value.m_specularMapBlendFactor==.45
+        &&value.m_diffuseMapFileName=="diffuse-map.png" && value.m_specularMapFileName=="specular-map.hdr"
+        &&value.m_diffuseMapTransform[15]==115.0 && value.m_specularMapTransform[15]==315.0
+        &&value.m_hasNormalMapProjection && value.m_normalMapProjection==4u;
+}
+bool specularProof(const std::filesystem::path& path,bool binary) {
+    bool selected=false;std::map<int,std::vector<std::string>> groups;
+    for(const auto& field:physicalTags(path,binary)) {
+        if(field.first==0){if(selected)break;selected=field.second=="MATERIAL";continue;}
+        if(selected)groups[field.first].push_back(field.second);
+    }
+    const auto integers=[&](int code){std::vector<int> values;for(const auto& text:groups[code])values.push_back(std::stoi(text));return values;};
+    const auto number=[&](int code,double value){return groups[code].size()==1u&&std::stod(groups[code].front())==value;};
+    if(integers(73)!=std::vector<int>{3,4} || integers(76)!=std::vector<int>{0}
+        ||integers(74)!=std::vector<int>{3,2} || integers(75)!=std::vector<int>{3,4}
+        ||!number(44,.65)||!number(45,.8)||!number(46,.45)
+        ||groups[92].size()!=1u||static_cast<std::uint32_t>(std::stoll(groups[92].front()))!=0xFEDCBA98u
+        ||groups[3]!=std::vector<std::string>{"diffuse-map.png","normal-map.png"}
+        ||groups[4]!=std::vector<std::string>{"specular-map.hdr"}
+        ||groups[43].size()!=32u||groups[47].size()!=16u)return false;
+    for(std::size_t i=0u;i<16u;++i)
+        if(std::stod(groups[43][i])!=100.0+i||std::stod(groups[43][16u+i])!=200.0+i
+            ||std::stod(groups[47][i])!=300.0+i)return false;
+    return true;
+}
 Tags recipe(const std::filesystem::path& dir,const std::string& version,unsigned modes=3u) {
     const auto source=fullRecipe(dir,version);Tags result,late;
     bool selected=false,header=false;
@@ -28022,7 +28064,63 @@ bool proof(const std::filesystem::path& path,bool binary,bool mode,bool method,i
 }
 bool run(const std::filesystem::path& dir) {
     const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,reorderedBase=0u;
+    std::size_t specularSources=0u,specularReadbacks=0u,specularImportRefusals=0u,specularImportRetries=0u,specularOutputRefusals=0u,specularOutputRetries=0u,specularLegacyRefusals=0u;
     const auto fail=[&](int line){std::cerr<<"MATERIAL source-order line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<'\n';return false;};
+    // 73 stays diffuse projection even immediately after gloss44. Only76 owns
+    // the specular method; the negative changes that single field code to73.
+    for(const std::string version:{"AC1018","AC1021"})for(bool sourceBinary:{false,true}) {
+        const auto target=version=="AC1018"?DRW::AC1018:DRW::AC1021;
+        const auto canonical=specularRecipe(dir,version),malformed=specularRecipe(dir,version,true);
+        std::size_t differences=0u;
+        if(canonical.size()!=malformed.size())return fail(__LINE__);
+        for(std::size_t i=0u;i<canonical.size();++i)if(canonical[i]!=malformed[i]) {
+            if(canonical[i]!=std::make_pair(76,std::string("0"))
+                ||malformed[i]!=std::make_pair(73,std::string("0")))return fail(__LINE__);
+            ++differences;
+        }
+        if(differences!=1u||!write(input,canonical,sourceBinary,version)
+            ||!specularProof(input,sourceBinary))return fail(__LINE__);
+        dx_iface adapter;dx_data data;
+        if(!adapter.fileImport(input.string(),&data,false)||data.materials.size()!=2u
+            ||!specularState(data.materials.front()))return fail(__LINE__);
+        ++specularSources;
+        for(bool binary:{false,true}) {
+            // The field grammar predates the adapter's qualified replay route.
+            // Preserve its AC1021+ admission instead of widening it in a test.
+            if(target==DRW::AC1018) {
+                sentinel(output);
+                if(adapter.fileExport(output.string(),target,binary,&data,false)||!kept(output)
+                    ||!specularState(data.materials.front()))return fail(__LINE__);
+                ++specularLegacyRefusals;continue;
+            }
+            if(!adapter.fileExport(output.string(),target,binary,&data,false)
+                ||!specularProof(output,binary))return fail(__LINE__);
+            dx_iface reader;dx_data actual;
+            if(!reader.fileImport(output.string(),&actual,false)||actual.materials.size()!=2u
+                ||!specularState(actual.materials.front()))return fail(__LINE__);
+            ++specularReadbacks;
+            auto& record=raw(data);const auto saved=record;
+            const auto field=std::find_if(record.groups.begin(),record.groups.end(),[](const auto& item){return item.code()==76;});
+            if(field==record.groups.end())return fail(__LINE__);
+            *field=DRW_Variant(73,0);sentinel(output);
+            if(adapter.fileExport(output.string(),target,binary,&data,false)||!kept(output))return fail(__LINE__);
+            ++specularOutputRefusals;record=saved;
+            if(!adapter.fileExport(output.string(),target,binary,&data,false)
+                ||!specularProof(output,binary)||!specularState(data.materials.front()))return fail(__LINE__);
+            ++specularOutputRetries;
+        }
+        if(!write(input,malformed,sourceBinary,version))return fail(__LINE__);
+        dx_iface retry;dx_data rejected;sentinel(output);
+        if(retry.fileImport(input.string(),&rejected,false)||!rejected.materials.empty()
+            ||!rejected.rawMaterialObjects.empty()||!kept(output))return fail(__LINE__);
+        ++specularImportRefusals;
+        dx_data corrected;
+        if(!write(input,canonical,sourceBinary,version)||!retry.fileImport(input.string(),&corrected,false)
+            ||corrected.materials.size()!=2u||!specularState(corrected.materials.front()))return fail(__LINE__);
+        if(target>=DRW::AC1021&&(!retry.fileExport(output.string(),target,sourceBinary,&corrected,false)
+            ||!specularProof(output,sourceBinary)))return fail(__LINE__);
+        ++specularImportRetries;
+    }
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(unsigned modes=0u;modes<4u;++modes) {
         const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
         dx_iface adapter;dx_data data;
@@ -28082,7 +28180,10 @@ bool run(const std::filesystem::path& dir) {
         adapter.active=false;data.materials.front().m_normalMapMethod=7;
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(output,binary,true,true,-7,7,.6))return fail(__LINE__);++retries;
     }
-    std::cout<<"MATERIAL source-order profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; reorderedBase="<<reorderedBase<<'\n';return true;
+    std::cout<<"MATERIAL source-order profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; reorderedBase="<<reorderedBase
+        <<"; specularSources="<<specularSources<<"; specularReadbacks="<<specularReadbacks<<"; specularImportRefusals="<<specularImportRefusals<<"; specularImportRetries="<<specularImportRetries
+        <<"; specularOutputRefusals="<<specularOutputRefusals<<"; specularOutputRetries="<<specularOutputRetries<<"; specularLegacyRefusals="<<specularLegacyRefusals<<'\n';
+    return specularSources==4u&&specularReadbacks==4u&&specularImportRefusals==4u&&specularImportRetries==4u&&specularOutputRefusals==4u&&specularOutputRetries==4u&&specularLegacyRefusals==4u;
 }
 bool peer(const std::filesystem::path& path) {
     dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
