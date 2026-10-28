@@ -10333,6 +10333,258 @@ void testEmbeddedMTextXdataRefusal(TestContext& t) {
     }
 }
 
+namespace embeddedAlignmentControls {
+#include "independent_dxf_scalar_walker.h"
+constexpr unsigned count=6u;
+struct Profile {DRW_Coord alignment,insertion,base;bool embedded,justified;};
+Profile profile(unsigned index,bool definition) {
+    const double n=definition?10.:30.;
+    Profile p{{n+1,n+2,n+3},{n+11,n+12,n+13},{n+101,n+102,n+103},index!=5u,index!=3u&&index!=4u};
+    if(index==1u)p.insertion=p.alignment;
+    if(index==2u||index==3u)p.alignment={0,0,0};
+    if(index==5u){p.alignment.z=0;p.base.z=0;}
+    return p;
+}
+bool equal(const DRW_Coord& a,const DRW_Coord& b){return a.x==b.x&&a.y==b.y&&a.z==b.z;}
+std::string hex(std::uint32_t value){std::ostringstream out;out<<std::hex<<std::uppercase<<value;return out.str();}
+bool source(const std::filesystem::path& path,bool binary) {
+    std::ofstream stream(path,std::ios::binary|std::ios::trunc);if(binary)stream.write("AutoCAD Binary DXF\r\n\032\0",22);
+    std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1032",true);
+    const auto s=[&](int code,const std::string& value){writer->writeUtf8String(code,value);};
+    const auto i=[&](int code,int value){writer->writeInt16(code,value);};
+    const auto point=[&](int code,const DRW_Coord& p){writer->writeDouble(code,p.x);writer->writeDouble(code+10,p.y);writer->writeDouble(code+20,p.z);};
+    s(0,"SECTION");s(2,"HEADER");s(9,"$ACADVER");s(1,"AC1032");s(0,"ENDSEC");s(0,"SECTION");s(2,"TABLES");
+    s(0,"TABLE");s(2,"BLOCK_RECORD");s(5,"8");s(100,"AcDbSymbolTable");i(70,3);
+    for(const auto& record:std::array<std::pair<const char*,const char*>,3>{{{"1F","*Model_Space"},{"1B","*Paper_Space"},{"B0","ALIGN_BLOCK"}}}) {
+        s(0,"BLOCK_RECORD");s(5,record.first);s(330,"8");s(100,"AcDbSymbolTableRecord");s(100,"AcDbBlockTableRecord");s(2,record.second);i(70,0);
+    }
+    s(0,"ENDTAB");s(0,"ENDSEC");s(0,"SECTION");s(2,"BLOCKS");s(0,"BLOCK");s(5,"B1");s(330,"B0");
+    s(100,"AcDbEntity");s(8,"0");s(100,"AcDbBlockBegin");s(2,"ALIGN_BLOCK");i(70,0);point(10,{0,0,0});
+    const auto attribute=[&](unsigned index,bool definition) {
+        const auto p=profile(index,definition);s(0,definition?"ATTDEF":"ATTRIB");s(5,hex((definition?0xA10u:0xE20u)+index));s(330,definition?"B0":"E1");
+        s(102,"{ALIGN_SHADOW");point(11,{901,902,903});s(102,"}");
+        s(100,"AcDbEntity");s(8,"0");s(100,"AcDbText");point(10,p.base);writer->writeDouble(40,1);s(1,"fallback_"+std::to_string(index));
+        point(11,p.alignment);s(100,definition?"AcDbAttributeDefinition":"AcDbAttribute");
+        if(definition)s(3,"prompt_"+std::to_string(index));s(2,std::string(definition?"DEF_":"ATTR_")+std::to_string(index));i(70,0);i(74,p.justified?3:0);i(280,1);
+        if(p.embedded) {
+            i(71,definition?4:2);i(72,0);point(11,p.alignment);s(101,"Embedded Object");point(10,p.insertion);
+            writer->writeDouble(40,1);writer->writeDouble(41,5);i(71,1);i(72,1);s(1,"nested_"+std::to_string(index));point(11,{0,1,0});
+        }
+    };
+    for(unsigned n=0u;n<count;++n)attribute(n,true);
+    s(0,"ENDBLK");s(5,"B2");s(330,"B0");s(100,"AcDbEntity");s(8,"0");s(100,"AcDbBlockEnd");s(0,"ENDSEC");
+    s(0,"SECTION");s(2,"ENTITIES");s(0,"INSERT");s(5,"E1");s(330,"1F");s(100,"AcDbEntity");s(8,"0");s(100,"AcDbBlockReference");
+    s(2,"ALIGN_BLOCK");i(66,1);point(10,{1,2,3});for(unsigned n=0u;n<count;++n)attribute(n,false);
+    s(0,"SEQEND");s(5,"E2");s(330,"E1");s(100,"AcDbEntity");s(8,"0");
+    s(0,"LINE");s(5,"E3");s(330,"1F");s(100,"AcDbEntity");s(8,"0");s(100,"AcDbLine");point(10,{71,72,73});point(11,{74,75,76});
+    s(0,"ENDSEC");s(0,"EOF");writer.reset();stream.flush();return stream.good();
+}
+struct Selection {std::array<DRW_Attdef*,count> definitions{};DRW_Insert* parent=nullptr;DRW_Line* line=nullptr;std::uint32_t blockRecord=0u;};
+Selection select(dx_data& data) {
+    Selection out;
+    for(const auto& row:data.blockRecords)if(row.name=="ALIGN_BLOCK"){if(out.blockRecord)return {};out.blockRecord=row.handle;}
+    for(auto* block:data.blocks)if(block&&block->name=="ALIGN_BLOCK")for(auto* entity:block->ent)if(auto* value=dynamic_cast<DRW_Attdef*>(entity)) {
+        for(unsigned n=0u;n<count;++n)if(value->tag=="DEF_"+std::to_string(n)){if(out.definitions[n])return {};out.definitions[n]=value;}
+    }
+    if(data.mBlock)for(auto* entity:data.mBlock->ent) {
+        if(auto* value=dynamic_cast<DRW_Insert*>(entity))if(value->name=="ALIGN_BLOCK"){if(out.parent)return {};out.parent=value;}
+        if(auto* value=dynamic_cast<DRW_Line*>(entity)){if(out.line)return {};out.line=value;}
+    }
+    return out;
+}
+bool model(const Selection& selected,bool owners) {
+    if(!selected.blockRecord||!selected.parent||!selected.line||selected.parent->attlist.size()!=count||!selected.parent->seqEndEntity
+        ||!equal(selected.parent->basePoint,{1,2,3})||!equal(selected.line->basePoint,{71,72,73})||!equal(selected.line->secPoint,{74,75,76}))return false;
+    if(owners&&(selected.parent->parentHandle!=DRW::DxfModelSpaceBlockRecordHandle||selected.parent->seqEndEntity->parentHandle!=selected.parent->handle))return false;
+    for(unsigned kind=0u;kind<2u;++kind)for(unsigned n=0u;n<count;++n) {
+        const bool definition=kind==0u;const auto p=profile(n,definition);
+        const DRW_Attrib* value=definition?selected.definitions[n]:selected.parent->attlist[n].get();
+        if(!value||!equal(value->basePoint,p.base)||!equal(value->secPoint,p.alignment)||value->height!=1||value->lockPosition!=true
+            ||value->text!="fallback_"+std::to_string(n)||value->tag!=std::string(definition?"DEF_":"ATTR_")+std::to_string(n)
+            ||value->alignH!=DRW_Text::HLeft||value->alignV!=(p.justified?DRW_Text::VTop:DRW_Text::VBaseLine)
+            ||bool(value->mtext)!=p.embedded||value->attVersion!=(p.embedded?1:0)||value->m_attributeType!=(p.embedded?(definition?4:2):1))return false;
+        if(definition&&selected.definitions[n]->prompt!="prompt_"+std::to_string(n))return false;
+        if(owners&&value->parentHandle!=(definition?selected.blockRecord:selected.parent->handle))return false;
+        if(p.embedded&&(!equal(value->mtext->basePoint,p.insertion)||!equal(value->mtext->secPoint,{0,1,0})||value->mtext->angle!=90
+            ||value->mtext->text!="nested_"+std::to_string(n)||value->mtext->height!=1||value->mtext->widthscale!=5))return false;
+    }
+    return true;
+}
+struct Output final:dx_iface {
+    dx_data empty;Selection selected;bool good=true;
+    explicit Output(Selection s):selected(s){cData=&empty;currentBlock=empty.mBlock;}
+    void writeBlockRecords()override{good=dxfW->writeBlockRecord("ALIGN_BLOCK")&&good;}
+    void writeBlocks()override {
+        DRW_Block block;block.name="ALIGN_BLOCK";good=dxfW->writeBlock(&block)&&good;
+        const auto owner=dxfW->getBlockRecordHandleToWrite("ALIGN_BLOCK");
+        for(auto* definition:selected.definitions)good=dxfW->writeAttdef(definition,owner)&&good;
+        good=dxfW->writeBlockEnd()&&good;
+    }
+    void writeEntities()override{good=dxfW->writeInsert(selected.parent)&&good;good=dxfW->writeLine(selected.line)&&good;}
+};
+struct WireRecord {std::string name,tag;std::uint32_t self=0u,owner=0u;std::size_t ordinal=0u;
+    std::array<std::vector<std::pair<int,double>>,3> points;std::array<unsigned,3> markers{};};
+std::vector<WireRecord> records(const std::vector<AttdefWireTag>& wire) {
+    std::vector<WireRecord> out;unsigned depth=0u;int scope=-1;
+    for(std::size_t at=0u;at<wire.size();++at) {
+        const auto& field=wire[at];if(field.code==0){out.push_back({});out.back().name=field.text;out.back().ordinal=at;scope=-1;depth=0u;continue;}
+        // The ASCII writer emits its legal group-999 version comment before
+        // SECTION. It still participates in the independent byte-bound walk.
+        if(out.empty()&&field.code==999)continue;
+        if(out.empty())return {};auto& record=out.back();
+        if(field.code==102){if(field.text=="}"){if(!depth)return {};--depth;}else ++depth;continue;}
+        if(depth)continue;
+        if(field.code==5)record.self=static_cast<std::uint32_t>(std::stoul(field.text,nullptr,16));
+        if(field.code==330&&(record.name=="ATTDEF"||record.name=="ATTRIB"||record.name=="INSERT"||record.name=="SEQEND"||record.name=="LINE"||record.name=="BLOCK_RECORD")) {
+            if(record.owner)return {};record.owner=static_cast<std::uint32_t>(std::stoul(field.text,nullptr,16));
+        }
+        if(field.code==2)record.tag=field.text;
+        if(field.code==100||field.code==101) {
+            if(field.text=="AcDbText")scope=0;
+            else if(field.text=="AcDbAttribute"||field.text=="AcDbAttributeDefinition")scope=1;
+            else if(field.text=="Embedded Object")scope=2;
+            else scope=-1;
+            if(scope>=0)++record.markers[static_cast<unsigned>(scope)];
+        }
+        if(scope>=0&&field.kind==AttdefWireTag::Real&&(field.code==10||field.code==20||field.code==30||field.code==11||field.code==21||field.code==31))
+            record.points[static_cast<unsigned>(scope)].push_back({field.code,field.real});
+    }
+    return out;
+}
+bool wireProof(const std::vector<AttdefWireTag>& wire,bool original,bool quiet=false) {
+    const auto failed=[&](const char* stage,const WireRecord* record=nullptr) {
+        if(!quiet){std::cerr<<"Embedded alignment wire stage="<<stage<<" original="<<original;
+            if(record){std::cerr<<" record="<<record->name<<" tag="<<record->tag<<" self="<<hex(record->self)<<" owner="<<hex(record->owner);
+                for(unsigned scope=0u;scope<3u;++scope){std::cerr<<" scope"<<scope<<'=';for(const auto& value:record->points[scope])std::cerr<<value.first<<':'<<value.second<<',';}}
+            std::cerr<<'\n';}
+        return false;
+    };
+    const auto rows=records(wire);if(rows.empty())return failed("record projection");
+    for(std::size_t n=0u;n<wire.size();++n)if(wire[n].begin>=wire[n].valueBegin||wire[n].valueBegin>=wire[n].end||(n&&wire[n-1u].end!=wire[n].begin))return failed("independent physical bounds");
+    const auto tuple=[](const auto& values,int code,const DRW_Coord& expected,bool present) {
+        std::vector<std::pair<int,double>> found;for(const auto& value:values)if(value.first==code||value.first==code+10||value.first==code+20)found.push_back(value);
+        return present?found==std::vector<std::pair<int,double>>{{code,expected.x},{code+10,expected.y},{code+20,expected.z}}:found.empty();
+    };
+    std::uint32_t block=0u,parent=0u;unsigned definitions=0u,children=0u,footers=0u,parents=0u,lines=0u;std::size_t parentAt=0u,footerAt=0u,lineAt=0u;
+    std::array<std::array<bool,count>,2> seen{};
+    for(const auto& row:rows)if(row.name=="BLOCK_RECORD"&&row.tag=="ALIGN_BLOCK"){if(block)return failed("unique definition BLOCK_RECORD",&row);block=row.self;}
+    for(const auto& row:rows)if(row.name=="INSERT"&&row.tag=="ALIGN_BLOCK"){parent=row.self;parentAt=row.ordinal;if(++parents!=1u||row.owner!=DRW::DxfModelSpaceBlockRecordHandle)return failed("INSERT identity/owner",&row);}
+    for(const auto& row:rows)if(row.name=="SEQEND"){if(row.owner!=parent)return failed("SEQEND owner",&row);++footers;footerAt=row.ordinal;}
+    if(!block||!parent)return failed("required BLOCK_RECORD/INSERT");std::vector<std::uint32_t> identities{block,parent};
+    for(const auto& row:rows) {
+        if(row.name=="ATTDEF"||row.name=="ATTRIB") {
+            const bool definition=row.name=="ATTDEF";const std::string prefix=definition?"DEF_":"ATTR_";if(row.tag.compare(0u,prefix.size(),prefix)!=0)return failed("attribute tag namespace",&row);
+            const auto n=static_cast<unsigned>(std::stoul(row.tag.substr(prefix.size())));if(n>=count||seen[definition?0u:1u][n])return failed("unique attribute tag",&row);seen[definition?0u:1u][n]=true;const auto p=profile(n,definition);
+            if(row.owner!=(definition?block:parent))return failed("attribute owner",&row);
+            if(row.markers!=std::array<unsigned,3>{{1u,1u,p.embedded?1u:0u}})return failed("owning subclass census",&row);
+            if(!tuple(row.points[0],10,p.base,true))return failed("Text insertion triple",&row);
+            if(!tuple(row.points[0],11,p.alignment,original||p.justified))return failed("Text alignment triple/default",&row);
+            if(!tuple(row.points[1],11,p.alignment,p.embedded))return failed("Attribute alignment triple",&row);
+            if(!tuple(row.points[2],10,p.insertion,p.embedded))return failed("MTEXT insertion triple",&row);
+            if(!tuple(row.points[2],11,{0,1,0},p.embedded))return failed("MTEXT direction triple",&row);
+            if(original&&(row.self!=(definition?0xA10u:0xE20u)+n||block!=0xB0u||parent!=0xE1u))return failed("authored original identities",&row);
+            if(definition)++definitions;else {if(row.ordinal<=parentAt||row.ordinal>=footerAt)return failed("physical child membership interval",&row);++children;}identities.push_back(row.self);
+        }
+        if(row.name=="SEQEND"){if(original&&row.self!=0xE2u)return failed("authored SEQEND identity",&row);identities.push_back(row.self);}
+        if(row.name=="LINE"){if(row.owner!=DRW::DxfModelSpaceBlockRecordHandle||(original&&row.self!=0xE3u))return failed("LINE identity/owner",&row);++lines;lineAt=row.ordinal;identities.push_back(row.self);}
+    }
+    if(definitions!=count||children!=count||footers!=1u||lines!=1u||footerAt>=lineAt)return failed("selected physical census/order");
+    std::sort(identities.begin(),identities.end());return (identities.front()!=0u&&std::adjacent_find(identities.begin(),identities.end())==identities.end())||failed("distinct physical identities");
+}
+std::string snapshot(const Selection& selected,bool identities) {
+    std::string out;const auto scalar=[&](const auto& value){out.append(reinterpret_cast<const char*>(&value),sizeof(value));};
+    const auto point=[&](const DRW_Coord& p){scalar(p.x);scalar(p.y);scalar(p.z);};
+    const auto entity=[&](const DRW_Entity& value){if(identities){scalar(value.handle);scalar(value.parentHandle);}scalar(value.color);};
+    entity(*selected.parent);point(selected.parent->basePoint);entity(*selected.parent->seqEndEntity);entity(*selected.line);point(selected.line->basePoint);point(selected.line->secPoint);
+    for(unsigned kind=0u;kind<2u;++kind)for(unsigned n=0u;n<count;++n) {
+        const DRW_Attrib& value=kind?*selected.parent->attlist[n]:*selected.definitions[n];entity(value);point(value.basePoint);point(value.secPoint);
+        scalar(value.height);scalar(value.alignH);scalar(value.alignV);scalar(value.attVersion);scalar(value.m_attributeType);scalar(value.lockPosition);
+        out+=value.tag+'\0'+value.text+'\0';if(!kind)out+=selected.definitions[n]->prompt+'\0';
+        if(value.mtext){point(value.mtext->basePoint);point(value.mtext->secPoint);scalar(value.mtext->height);scalar(value.mtext->widthscale);scalar(value.mtext->angle);
+            scalar(value.mtext->m_r2018ColumnType);scalar(value.mtext->m_r2018ColumnCount);scalar(value.mtext->m_r2018ColumnWidth);out+=value.mtext->text+'\0';}
+    }
+    return out;
+}
+bool run(TestContext& t) {
+    const auto nonce=std::chrono::steady_clock::now().time_since_epoch().count();const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-embedded-alignment-"+std::to_string(nonce));
+    std::filesystem::create_directory(dir);struct Cleanup{std::filesystem::path dir;bool passed=false;~Cleanup(){
+        if(!passed){std::cerr<<"Embedded attribute alignment retained scratch="<<dir<<'\n';return;}std::error_code error;std::filesystem::remove_all(dir,error);}}cleanup{dir};
+    unsigned sources=0u,cells=0u,readbacks=0u,observerRefusals=0u,nonfinite=0u,late=0u,retries=0u;
+    unsigned transportModels=0u,sourcePhysical=0u,outputPhysical=0u,readbackProfiles=0u,zeroProfiles=0u,equalProfiles=0u,defaultProfiles=0u,classicProfiles=0u;
+    const auto bytes=[](const std::filesystem::path& path){std::ifstream in(path,std::ios::binary);return std::string(std::istreambuf_iterator<char>(in),{});};
+    const auto verify=[&](bool good,const char* stage){if(!good)std::cerr<<"Embedded attribute alignment stage="<<stage<<" cells="<<cells<<" nonfinite="<<nonfinite<<" late="<<late<<'\n';return good;};
+    const auto outputProof=[&](const std::filesystem::path& output,bool binary) {
+        if(!wireProof(attdefWireTags(output,binary),false))return verify(false,"physical Text/Attribute/nested output");
+        outputPhysical+=2u*count;
+        dx_iface reader;dx_data data;if(!reader.fileImport(output.string(),&data,false)||!model(select(data),true))return verify(false,"ordinary output readback");
+        ++readbacks;readbackProfiles+=2u*count;return true;
+    };
+    for(bool inputBinary:{false,true}) {
+        const auto input=dir/(inputBinary?"source-bin.dxf":"source-asc.dxf");if(!verify(source(input,inputBinary)&&wireProof(attdefWireTags(input,inputBinary),true),"authored original wire"))return false;++sources;sourcePhysical+=2u*count;
+        for(bool binary:{false,true}) {
+            dx_iface reader;dx_data data;if(!reader.fileImport(input.string(),&data,false))return verify(false,"original import");const auto selected=select(data);
+            if(!verify(model(selected,true),"original A/C model and owners"))return false;const auto geometry=snapshot(selected,false);Output adapter(selected);
+            transportModels+=2u*count;zeroProfiles+=4u;equalProfiles+=2u;defaultProfiles+=4u;classicProfiles+=2u;
+            const auto output=dir/"transport.dxf";dxfRW writer(output.string().c_str());adapter.dxfW=&writer;
+            if(!verify(writer.write(&adapter,DRW::AC1032,binary)&&adapter.good&&snapshot(selected,false)==geometry,"selected export/caller geometry")||!outputProof(output,binary))return false;
+            ++cells;
+            const auto wire=attdefWireTags(output,binary);
+            for(unsigned kind=0u;kind<6u;++kind) {
+                auto broken=wire;std::string record,tag;int scope=-1;unsigned depth=0u;bool changed=false;
+                for(auto& field:broken) {
+                    if(field.code==0){record=field.text;tag.clear();scope=-1;depth=0u;continue;}
+                    if(field.code==102){depth=field.text=="}"?depth-1u:depth+1u;continue;}if(depth)continue;
+                    if(field.code==2)tag=field.text;
+                    if(field.code==100||field.code==101)scope=field.text=="AcDbText"?0:field.text=="AcDbAttribute"||field.text=="AcDbAttributeDefinition"?1:field.text=="Embedded Object"?2:-1;
+                    if(kind<2u&&scope==1&&field.code==11&&tag==(kind?"DEF_0":"ATTR_0")){field.real=profile(0u,kind==1u).insertion.x;changed=true;break;}
+                    if(kind==2u&&scope==1&&field.code==11&&tag=="ATTR_3"){field.real=profile(3u,false).insertion.x;changed=true;break;}
+                    if(kind==3u&&scope==2&&field.code==10&&tag=="DEF_0"){field.real=profile(0u,true).alignment.x;changed=true;break;}
+                    if(kind>=4u&&field.code==330&&record==(kind==4u?"ATTRIB":"SEQEND")){field.text="DEAD";changed=true;break;}
+                }
+                if(!verify(changed&&!wireProof(broken,false,true),"independent scope/owner observer sensitivity"))return false;++observerRefusals;
+            }
+        }
+    }
+    const auto input=dir/"source-asc.dxf";
+    for(bool binary:{false,true})for(unsigned family=0u;family<2u;++family)for(unsigned fault=0u;fault<7u;++fault) {
+        dx_iface reader;dx_data data;if(!reader.fileImport(input.string(),&data,false))return false;const auto selected=select(data);if(!model(selected,true))return false;
+        DRW_Attrib* target=family?selected.parent->attlist[3].get():selected.definitions[3];double* bad=fault<3u?&target->secPoint.x:&target->mtext->basePoint.x;
+        const double saved=*bad;
+        if(fault<6u)*bad=fault%3u==0u?(std::numeric_limits<double>::quiet_NaN)():fault%3u==1u?(std::numeric_limits<double>::infinity)():-(std::numeric_limits<double>::infinity)();
+        else {target->mtext->m_r2018ColumnType=1;target->mtext->m_r2018ColumnCount=2;target->mtext->m_r2018ColumnWidth=4;}
+        // Direct writer calls can retain minted handles on an earlier
+        // successful borrowed prefix. Only the failing record/compound owns
+        // its identity rollback; all caller A/C values remain unchanged.
+        const auto before=snapshot(selected,false);const auto failingHandle=target->handle;
+        const auto compoundIds=[&](){std::vector<std::pair<std::uint32_t,std::uint32_t>> ids{{selected.parent->handle,selected.parent->parentHandle},
+                {selected.parent->seqEndEntity->handle,selected.parent->seqEndEntity->parentHandle}};
+            for(const auto& child:selected.parent->attlist){ids.push_back({child->handle,child->parentHandle});}return ids;};
+        const auto beforeCompound=compoundIds();
+        const auto output=dir/"refusal.dxf";const std::string sentinel="preserve embedded alignment destination\n";{std::ofstream seed(output);seed<<sentinel;}
+        Output adapter(selected);dxfRW writer(output.string().c_str());adapter.dxfW=&writer;
+        if(!verify(!writer.write(&adapter,DRW::AC1032,binary)&&snapshot(selected,false)==before&&target->handle==failingHandle
+            &&compoundIds()==beforeCompound&&bytes(output)==sentinel,"refused transaction preserves A/C, failing identities and destination"))return false;
+        if(fault<6u){*bad=saved;++nonfinite;}else{target->mtext->m_r2018ColumnType=0;target->mtext->m_r2018ColumnCount=0;target->mtext->m_r2018ColumnWidth=0;++late;}
+        adapter.good=true;const auto geometry=snapshot(selected,false);
+        if(!verify(writer.write(&adapter,DRW::AC1032,binary)&&adapter.good&&snapshot(selected,false)==geometry,"same writer corrected retry")||!outputProof(output,binary))return false;
+        ++retries;
+    }
+    std::cout<<"Embedded attribute alignment sources="<<sources<<"; transport cells="<<cells<<"; transport model profiles="<<transportModels
+        <<"; original physical profiles="<<sourcePhysical<<"; output physical profiles="<<outputPhysical<<"; readback profiles="<<readbackProfiles
+        <<"; explicit-zero transport profiles="<<zeroProfiles<<"; equal-A/C transport profiles="<<equalProfiles<<"; default-justification transport profiles="<<defaultProfiles<<"; classic 2D transport profiles="<<classicProfiles
+        <<"; independent observer refusals="<<observerRefusals<<"; nonfinite refusals="<<nonfinite<<"; late column refusals="<<late
+        <<"; corrected retries="<<retries<<"; ordinary output readbacks="<<readbacks<<'\n';
+    const bool complete=sources==2u&&cells==4u&&transportModels==48u&&sourcePhysical==24u&&outputPhysical==384u&&readbackProfiles==384u
+        &&zeroProfiles==16u&&equalProfiles==8u&&defaultProfiles==16u&&classicProfiles==8u&&observerRefusals==24u&&nonfinite==24u&&late==4u&&retries==28u&&readbacks==32u;
+    t.expect(complete,"all embedded attribute alignment controls executed");cleanup.passed=complete;return complete;
+}
+} // namespace embeddedAlignmentControls
+
+void testEmbeddedAttributeAlignment(TestContext& t) {
+    t.expect(embeddedAlignmentControls::run(t),"embedded host alignment and MTEXT insertion retain separate coordinates and transactional behavior");
+}
+
 void testEmbeddedMTextOrientation(TestContext& t, bool binary,
                                   const std::filesystem::path& output,
                                   int embeddedMarker,
@@ -10518,6 +10770,7 @@ void testEmbeddedMTextOrientation(TestContext& t, bool binary,
 }
 
 void testMTextColumnObjectScope(TestContext& t) {
+    testEmbeddedAttributeAlignment(t);
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     for (const bool binary : {false, true}) {
         const auto stem = std::filesystem::temp_directory_path()

@@ -10247,9 +10247,10 @@ bool dxfRW::writeAttributeR2018Features(DRW_Attrib *ent) {
         attributeType = ent->eType == DRW::ATTDEF ? 4 : 2;
     writer->writeInt16(71, attributeType);
     writer->writeInt16(72, 0); // R2018 keep-duplicate-records placeholder.
-    writer->writeDouble(11, ent->mtext->basePoint.x);
-    writer->writeDouble(21, ent->mtext->basePoint.y);
-    writer->writeDouble(31, ent->mtext->basePoint.z);
+    // The host alignment is distinct from the nested MTEXT insertion point.
+    writer->writeDouble(11, ent->secPoint.x);
+    writer->writeDouble(21, ent->secPoint.y);
+    writer->writeDouble(31, ent->secPoint.z);
     return writeEmbeddedMText(ent->mtext.get());
 }
 
