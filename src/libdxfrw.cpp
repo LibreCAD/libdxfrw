@@ -9327,12 +9327,12 @@ bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<
             const bool legacyTextHeight = version == DRW::AC1018 && textCell
                 && (cell.m_overrideFlags & 0x20u) != 0u
                 && std::isfinite(cell.m_textHeight) && cell.m_textHeight > 0.0;
-            const bool legacyAlignment = version == DRW::AC1018 && textCell
+            const bool legacyAlignment = version == DRW::AC1018 && (textCell || blockCell)
                 && (cell.m_overrideFlags & 0x01u) != 0u
                 && cell.m_textAlignment >= 1 && cell.m_textAlignment <= 9;
-            const bool legacyOverrides = version == DRW::AC1018 && textCell
+            const bool legacyOverrides = version == DRW::AC1018 && (textCell || blockCell)
                 && cell.m_overrideFlags != 0u
-                && (cell.m_overrideFlags & ~0x21u) == 0u
+                && (cell.m_overrideFlags & ~(textCell ? 0x21u : 0x01u)) == 0u
                 && ((cell.m_overrideFlags & 0x20u) == 0u || legacyTextHeight)
                 && ((cell.m_overrideFlags & 0x01u) == 0u || legacyAlignment);
             const bool cellContentMatches = cell.m_contents.size() == 1u
@@ -9718,6 +9718,8 @@ bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<
                         writer->writeUtf8String(300, attribute.m_text);
                     }
                 }
+                if (version == DRW::AC1018 && (cell->m_overrideFlags & 0x01u) != 0u)
+                    writer->writeInt16(170, cell->m_textAlignment);
                 continue;
             }
 

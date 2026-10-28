@@ -2,6 +2,7 @@
 // Selected legacy TABLE text-height override. Inputs here are authored from
 // scratch; independent original records only identify the field-role profile.
 bool legacyTableAlignmentTests(const std::filesystem::path& dir);
+bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir);
 bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     const auto source=dir/"legacy-height-source.dxf", output=dir/"legacy-height-output.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE height: "<<reason<<'\n';return false;};
@@ -81,7 +82,7 @@ bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE height source routes="<<sourceRoutes<<" outputs="<<successes
         <<" atomic refusals="<<refusals<<" corrected retries="<<retries<<'\n';
     return sourceRoutes==2u&&successes==8u&&refusals==72u&&retries==72u
-        &&legacyTableAlignmentTests(dir);
+        &&legacyTableAlignmentTests(dir)&&legacyTableBlockAlignmentTests(dir);
 }
 
 // Autodesk specifies the nine alignment values for table cells. The selected
@@ -174,4 +175,89 @@ bool legacyTableAlignmentTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE alignment sources="<<inputs<<" outputs="<<outputs
         <<" atomic refusals="<<refusals<<" corrected retries="<<retries<<'\n';
     return inputs==36u&&outputs==144u&&refusals==128u&&retries==128u;
+}
+
+// Source-witnessed AC1018 block-cell alignment; 179=0 physical presence is
+// not yet retained. All test source and block definitions are locally authored.
+bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-block-align-source.dxf",output=dir/"legacy-block-align-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE block alignment: "<<why<<'\n';return false;};
+    const Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"ENTITIES"},{0,"ACAD_TABLE"},{5,"4F2"},{100,"AcDbEntity"},{8,"0"},
+        {100,"AcDbBlockReference"},{2,"*T1"},{10,"1"},{20,"2"},{30,"3"},{100,"AcDbTable"},
+        {90,"2"},{91,"1"},{92,"1"},{141,"8"},{142,"20"},{171,"2"},{172,"0"},{173,"0"},
+        {174,"1"},{175,"1"},{176,"1"},{177,"1"},{178,"0"},{145,"0"},{340,"601"},{144,"1.5"},{179,"0"},{170,"1"},
+        {0,"ENDSEC"},{0,"EOF"}};
+    unsigned sourceRoutes=0u,successes=0u,refusals=0u,retries=0u,modern=0u;
+    for(bool inputBinary:{false,true}) {
+        if(!write(source,tags,inputBinary))return fail("source write");
+        dx_iface importer;dx_data imported;
+        if(!importer.fileImport(source.string(),&imported,false)||imported.tables.size()!=1u
+            ||!imported.tables.front().m_semanticContentComplete)return fail("source import");
+        const auto sourceCell=imported.tables.front().m_content.m_rows[0].m_cells[0];
+        if(sourceCell.m_type!=2||sourceCell.m_blockHandle!=0x601u||sourceCell.m_overrideFlags!=1u
+            ||sourceCell.m_textAlignment!=1||sourceCell.m_blockScale!=1.5||!sourceCell.m_attributes.empty())return fail("source fields");
+        ++sourceRoutes;
+        for(bool binary:{false,true})for(bool strict:{false,true})for(int alignment:{1,9}) {
+            dx_data data;dx_iface writer;tableExportReuseDrawing(writer,data,0u,false);
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+            DRW_Block_Record record;record.handle=0x601u;record.name="TABLE_CELL_BLOCK";data.blockRecords.push_back(record);
+            auto* block=new dx_ifaceBlock();block->name=record.name;block->parentHandle=record.handle;
+            DRW_Line line;line.handle=0x602u;line.basePoint=DRW_Coord(1.,2.,0.);line.secPoint=DRW_Coord(3.,4.,0.);
+            block->ent.push_back(new DRW_Line(line));data.blocks.push_back(block);
+            auto& table=data.tables.front();table.m_content.m_rows[0].m_cells[0]=sourceCell;
+            auto& cell=table.m_content.m_rows[0].m_cells[0];cell.m_textAlignment=alignment;
+            const DRW_Table baseline(table);const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data after;
+                if(!reader.fileImport(output.string(),&after,false)||after.tables.size()!=1u
+                    ||!after.tables.front().m_semanticContentComplete)return false;
+                const auto& got=after.tables.front().m_content.m_rows[0].m_cells[0];
+                auto found=std::find_if(after.blockRecords.begin(),after.blockRecords.end(),[](const auto& b){return b.name=="TABLE_CELL_BLOCK";});
+                if(found==after.blockRecords.end()||got.m_type!=2||got.m_blockHandle!=found->handle
+                    ||got.m_contents.size()!=1u||got.m_contents[0].m_handle!=got.m_blockHandle
+                    ||got.m_overrideFlags!=1u||got.m_textAlignment!=alignment||got.m_blockScale!=1.5)return false;
+                bool hasBlock=false;for(const auto* b:after.blocks)if(b&&b->name==record.name&&b->parentHandle==found->handle)hasBlock=true;
+                if(!hasBlock)return false;
+                const auto wire=attdefWireTags(output,binary);bool inTable=false,inCell=false;std::vector<int> codes;unsigned tables=0;
+                for(const auto& tag:wire) {
+                    if(tag.code==0){inTable=tag.text=="ACAD_TABLE";inCell=false;if(inTable)++tables;continue;}
+                    if(!inTable)continue;if(tag.code==171)inCell=true;if(!inCell)continue;codes.push_back(tag.code);
+                    if(tag.code==177&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=1))return false;
+                    if(tag.code==170&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=alignment))return false;
+                }
+                // The authored source has explicit 179=0, output omits it;
+                // no absent-vs-zero semantics are claimed by this check.
+                return tables==1u&&codes==std::vector<int>{171,172,173,174,175,176,177,178,145,340,144,170};
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("positive");
+            ++successes;
+            for(unsigned fault=0u;fault<8u;++fault) {
+                if(fault==0u)cell.m_textAlignment=0;
+                if(fault==1u)cell.m_textAlignment=10;
+                if(fault==2u)cell.m_overrideFlags=0u;
+                if(fault==3u)cell.m_overrideFlags=0x21u;
+                if(fault==4u)cell.m_overrideFlags=0x20u;
+                if(fault==5u)cell.m_overrideFlags=0x41u;
+                if(fault==6u){cell.m_blockHandle=0x700u;cell.m_contents[0].m_handle=0x700u;}
+                const DRW_Table invalid(table);const auto saved=tableExportIdentities(data);
+                const auto version=fault==7u?DRW::AC1015:DRW::AC1018;
+                if(!tableExportSentinel(output,true)||writer.fileExport(output.string(),version,binary,&data,false,strict)
+                    ||!tableExportSentinel(output)||saved!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(invalid,table))return fail("invalid "+std::to_string(fault));
+                ++refusals;table=baseline;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("retry");
+                ++retries;
+            }
+            if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,strict))return fail("modern compatibility");
+            dx_iface modernReader;dx_data readback;
+            if(!modernReader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u
+                ||readback.tables.front().m_content.m_rows[0].m_cells[0].m_textAlignment!=alignment)return fail("modern readback");
+            ++modern;
+        }
+    }
+    std::cout<<"legacy TABLE block alignment source="<<sourceRoutes<<" outputs="<<successes<<" refusals="<<refusals<<" retries="<<retries<<" modern="<<modern<<'\n';
+    return sourceRoutes==2u&&successes==16u&&refusals==128u&&retries==128u&&modern==16u;
 }
