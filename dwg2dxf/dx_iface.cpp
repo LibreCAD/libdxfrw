@@ -51,6 +51,7 @@
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfviewucs.h"
 #include "intern/dxfrenderingsource.h"
+#include "intern/dxfrendersettings.h"
 
 namespace {
 
@@ -9396,6 +9397,7 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
     if (!indexRenderPresetRoots(data,presetTargets))
         return reject("RenderSettings preset root, engine, owner or name is missing or ambiguous");
 
+    const bool unchangedPreparedSources = hasUnchangedDxfRenderPresetSources();
     std::unordered_map<std::uint32_t, const DRW_RenderSettings*> typedByHandle;
     std::unordered_set<std::uint32_t> rootedHandles;
     typedByHandle.reserve(data.renderSettings.size());
@@ -9426,7 +9428,8 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
                 const auto state=renderingModelReport(data).state;
                 const auto* model=dynamic_cast<const DRW_RenderSettings*>(original->second.replayedModel.get());
                 if(state==RenderingModelState::CaptureFailed||state==RenderingModelState::Limited||state==RenderingModelState::ContextMismatch
-                    ||!model||!dxfRendering::Observation::render(*typed->second,*model)
+                    ||!model||(!dxfRendering::Observation::render(*typed->second,*model)
+                        && (m_dxfRenderPresetSources.count(raw.handle)==0u || !unchangedPreparedSources))
                     ||!retainedRawDxfObjectsEqual(raw,*original->second.input->typedRaw))
                     return reject("RenderSettings live data differs from the immutable raw replay");
             }
@@ -15834,10 +15837,182 @@ bool dx_iface::finalizeDxfShadeConsumers() const noexcept {
     } catch (...) { return false; }
 }
 
+namespace {
+// Reconcile the public aliases against immutable input, never against an edited
+// carrier. Conflicting dual edits and changes outside this body's fixed schema
+// cannot be serialized by the retained carrier route.
+bool normalizeRenderPresetEdit(const DRW_RenderSettings& original,
+                              const DRW_RenderSettings& live, DRW::Version version,
+                              DRW_RenderSettings& value) {
+    const auto profile = dxfRenderSettings::presetProfile(original);
+    if (profile == dxfRenderSettings::PresetProfile::Unavailable
+        || live.m_kind != original.m_kind || live.m_longs.size() != original.m_longs.size()
+        || live.m_strings.size() != original.m_strings.size() || live.m_bools.size() != original.m_bools.size()
+        || live.m_shorts.size() != original.m_shorts.size() || live.m_doubles.size() != original.m_doubles.size()
+        || !standardDwgCommonEqual(original, live, version)) return false;
+    value = live;
+    const auto reconcile = [](auto& alias, auto& scalar, const auto& beforeAlias, const auto& beforeScalar) {
+        if (alias == scalar) return true;
+        if (alias == beforeAlias) { alias = scalar; return true; }
+        if (scalar == beforeScalar) { scalar = alias; return true; }
+        return false;
+    };
+    if (!reconcile(value.m_classVersion, value.m_longs[0], original.m_classVersion, original.m_longs[0])
+        || !reconcile(value.m_name, value.m_strings[0], original.m_name, original.m_strings[0])
+        || !reconcile(value.m_environmentImageFilename, value.m_strings[1], original.m_environmentImageFilename, original.m_strings[1])) return false;
+    const bool legacy = profile == dxfRenderSettings::PresetProfile::LegacyMentalRay;
+    if (!legacy && (!reconcile(value.m_description, value.m_strings[2], original.m_description, original.m_strings[2])
+        || !reconcile(value.m_displayIndex, value.m_longs[1], original.m_displayIndex, original.m_longs[1]))) return false;
+    const auto boolean = [&](bool& alias, const bool beforeAlias, std::size_t index) {
+        bool scalar = value.m_bools[index];
+        if (!reconcile(alias, scalar, beforeAlias, static_cast<bool>(original.m_bools[index]))) return false;
+        value.m_bools[index] = scalar; return true;
+    };
+    if (!boolean(value.m_fogEnabled, original.m_fogEnabled, 0u)
+        || (!legacy && !boolean(value.m_fogBackgroundEnabled, original.m_fogBackgroundEnabled, 1u))
+        || !boolean(value.m_backfacesEnabled, original.m_backfacesEnabled, legacy ? 1u : 2u)
+        || !boolean(value.m_environmentImageEnabled, original.m_environmentImageEnabled, legacy ? 2u : 3u)
+        || (original.m_hasPredefinedPresent && !boolean(value.m_hasPredefined, original.m_hasPredefined, 4u))) return false;
+    // Renaming needs a separately qualified dictionary/name transaction. Profile
+    // revision and optional-field presence changes likewise need a new schema.
+    if (value.m_name != original.m_name || value.m_classVersion != original.m_classVersion
+        || value.m_hasPredefinedPresent != original.m_hasPredefinedPresent
+        || dxfRenderSettings::presetProfile(value) != profile
+        || !dxfRenderSettings::presetProjectionMatches(value, profile)) return false;
+    auto guard = value;
+    guard.m_longs = original.m_longs; guard.m_strings = original.m_strings;
+    guard.m_bools = original.m_bools; guard.m_shorts = original.m_shorts; guard.m_doubles = original.m_doubles;
+    guard.m_environmentImageFilename = original.m_environmentImageFilename; guard.m_description = original.m_description;
+    guard.m_displayIndex = original.m_displayIndex; guard.m_fogEnabled = original.m_fogEnabled;
+    guard.m_fogBackgroundEnabled = original.m_fogBackgroundEnabled; guard.m_backfacesEnabled = original.m_backfacesEnabled;
+    guard.m_environmentImageEnabled = original.m_environmentImageEnabled; guard.m_hasPredefined = original.m_hasPredefined;
+    return dxfRendering::Observation::render(guard, original);
+}
+
+class RenderPresetBodyWriter final : public dxfWriter {
+public:
+    std::vector<DRW_Variant> groups;
+    explicit RenderPresetBodyWriter(bool binary) : dxfWriter(nullptr, binary) {}
+    bool writeString(int code, std::string_view text) override { groups.emplace_back(code, UTF8STRING(text)); return true; }
+    bool writeInt16(int code, int value) override { groups.emplace_back(code, static_cast<std::int32_t>(value)); return true; }
+    bool writeInt32(int code, int value) override { groups.emplace_back(code, static_cast<std::int32_t>(value)); return true; }
+    bool writeInt64(int, std::int64_t) override { markWriteError(); return false; }
+    bool writeDouble(int code, double value) override { groups.emplace_back(code, value); return true; }
+    bool writeBool(int code, bool value) override { groups.emplace_back(code, static_cast<std::int32_t>(value)); return true; }
+};
+}
+
+bool dx_iface::prepareDxfRenderPresetSources(DRW::Version version, bool binary) noexcept {
+    if (!cData) return false;
+    m_dxfRenderPresetOwner = cData; m_dxfRenderPresetGeneration = cData->importGeneration;
+    m_dxfRenderPresetCount = cData->renderSettings.size();
+    if (m_dxfRenderPresetCount > m_dxfRenderPresetRecordLimit) return false;
+    const auto& sources = cData->m_tableDxfSource.renderingSourceAudit;
+    if (!sources || !m_dxfRenderPresetCount) return true;
+    try {
+        std::map<std::uint32_t, const DRW_RenderSettings*> models;
+        for (const auto& model : cData->renderSettings) if (!models.emplace(model.handle, &model).second) return false;
+        for (const auto& raw : cData->rawRenderSettingsObjects) {
+            const auto found = sources->records.find(raw.handle);
+            if (found == sources->records.end()) continue;
+            const auto& row = found->second;
+            if (!row || !row->preset.complete() || !row->bodyMatched || !row->namedTarget) continue;
+            const auto model = models.find(raw.handle);
+            const auto* original = row->input ? dynamic_cast<const DRW_RenderSettings*>(row->input->typedModel.get()) : nullptr;
+            if (!original || model == models.end() || !row->input->typedRaw || !row->input->context
+                || raw.m_version != version || !retainedRawDxfObjectsEqual(raw, *row->input->typedRaw)) return false;
+            // Bound copies and worst-case text quoting before materializing them.
+            std::size_t charge = 0u, typedBytes = 0u, values = 0u;
+            if (!estimateRawDxfObjectBytes(raw, charge)
+                || !estimateRenderSettingsTypedBytes(*model->second, typedBytes, values)
+                || !addAssociativeRetainedBytes(typedBytes, charge)
+                || !addAssociativeRetainedBytes(sizeof(DxfRenderPresetWriteSource) + 12u * sizeof(void*), charge)) return false;
+            for (const auto& text : model->second->m_strings)
+                if (text.size() > m_dxfRenderPresetByteLimit / 12u
+                    || !addAssociativeRetainedBytes(12u * text.size(), charge)) return false;
+            // A named-only edit may dwarf its unchanged positional value.
+            // Bound that representation before normalization copies it into the
+            // vector and before the canonical writer quotes its text.
+            for (const auto* text : {&model->second->m_name,
+                                    &model->second->m_environmentImageFilename,
+                                    &model->second->m_description})
+                if (text->size() > m_dxfRenderPresetByteLimit / 12u
+                    || !addAssociativeRetainedBytes(12u * text->size(), charge)) return false;
+            if (m_dxfRenderPresetBytes > m_dxfRenderPresetByteLimit
+                || charge > m_dxfRenderPresetByteLimit - m_dxfRenderPresetBytes) return false;
+            DRW_RenderSettings normalized;
+            if (!normalizeRenderPresetEdit(*original, *model->second, version, normalized)) return false;
+            DxfRenderPresetWriteSource plan;
+            plan.live = *model->second; plan.original = row->input->typedRaw; plan.output = raw;
+            if (!dxfRendering::Observation::render(normalized, *original)) {
+                RenderPresetBodyWriter writer(binary);
+                writer.setVersion(version == DRW::AC1021 ? "AC1021" : version == DRW::AC1024 ? "AC1024" : version == DRW::AC1032 ? "AC1032" : "AC1027", true);
+                // Newly synthesized body text must round-trip exactly even when
+                // unrelated legacy carriers use the compatible export policy.
+                writer.setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                dxfRenderSettings::writePresetBody(writer, normalized, dxfRenderSettings::presetProfile(normalized));
+                if (writer.hasWriteError()) return false;
+                // Pool the canonical writer's fields by scalar code, then put
+                // them into independently profiled source slots. This retains
+                // the derived RapidRT predefined placement and all non-body
+                // metadata/application/XDATA/comment groups verbatim.
+                std::map<int, std::vector<const DRW_Variant*>> fields;
+                std::map<int, std::size_t> next;
+                for (const auto& value : writer.groups) if (value.code() != 100) fields[value.code()].push_back(&value);
+                for (auto index : row->preset.body) {
+                    auto& value = plan.output.groups.at(index);
+                    const int code = value.code();
+                    auto& offset = next[code];
+                    if (offset >= fields[code].size()) return false;
+                    value = *fields[code][offset++];
+                }
+                for (const auto& field : fields) if (next[field.first] != field.second.size()) return false;
+                // Source lexical numeric spellings are no longer authoritative
+                // for edited fields; groups retain all opaque string bytes.
+                plan.output.hasRawValues = false; plan.output.rawValues.clear();
+            }
+            if (!m_dxfRenderPresetSources.emplace(raw.handle, std::move(plan)).second) return false;
+            m_dxfRenderPresetBytes += charge;
+        }
+        return hasUnchangedDxfRenderPresetSources();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedDxfRenderPresetSources() const noexcept {
+    if (!m_dxfRenderPresetOwner) return true; // Direct codec consumers have no facade plan.
+    if (cData != m_dxfRenderPresetOwner || cData->importGeneration != m_dxfRenderPresetGeneration
+        || cData->renderSettings.size() != m_dxfRenderPresetCount
+        || cData->rawRenderSettingsObjects.size() != m_dxfRenderPresetCount) return false;
+    try {
+        std::size_t typed = 0u, raw = 0u;
+        std::set<std::uint32_t> seenTyped, seenRaw;
+        for (const auto& value : cData->renderSettings) {
+            const auto found = m_dxfRenderPresetSources.find(value.handle);
+            if (found == m_dxfRenderPresetSources.end()) continue;
+            if (!seenTyped.insert(value.handle).second || !dxfRendering::Observation::render(value, found->second.live)
+                || !standardDwgCommonEqual(value, found->second.live, cData->sourceVersion)) return false;
+            ++typed;
+        }
+        for (const auto& value : cData->rawRenderSettingsObjects) {
+            const auto found = m_dxfRenderPresetSources.find(value.handle);
+            if (found == m_dxfRenderPresetSources.end()) continue;
+            if (!seenRaw.insert(value.handle).second || !retainedRawDxfObjectsEqual(value, *found->second.original)) return false;
+            ++raw;
+        }
+        return typed == m_dxfRenderPresetSources.size() && raw == typed;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::writeDxfRenderPreset(DRW_RawDxfObject& raw) {
+    const auto found = m_dxfRenderPresetSources.find(raw.handle);
+    return dxfW->writeRawDxfObject(found == m_dxfRenderPresetSources.end() ? &raw : &found->second.output);
+}
+
 bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (!cData || !dxfW) return false;
     const auto planned = m_extensionRenderSettingsHandles.size();
     if (cData->renderSettings.size() != planned || cData->rawRenderSettingsObjects.size() != planned) return false;
+    if (!hasUnchangedDxfRenderPresetSources()) return false;
     if (!planned) return true;
     try {
         // Callbacks run after preflight. Recheck live/captured correspondence
@@ -15860,7 +16035,8 @@ bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& 
             if (!row || !row->preset.complete() || !row->bodyMatched || !row->namedTarget) continue;
             std::uint32_t handle = 0u;
             if (!row->input || !row->input->typedRaw || !map(item.first, handle)
-                || !expected.emplace(handle, row->input->typedRaw.get()).second) return false;
+                || !expected.emplace(handle, m_dxfRenderPresetSources.count(item.first)
+                    ? &m_dxfRenderPresetSources.at(item.first).output : row->input->typedRaw.get()).second) return false;
         }
         if (expected.empty()) return true;
         if (m_xrecordWriteSourceOwner != cData || !hasUnchangedXrecordWriteSources()) return false;
@@ -15905,7 +16081,9 @@ bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& 
                     return true;
                 });
             });
-        return inspected && seen.size() == expected.size() + dictionaries.size();
+        const bool complete = inspected && seen.size() == expected.size() + dictionaries.size();
+        if (complete && m_dxfRenderPresetOwner) m_dxfRenderPresetInspected = true;
+        return complete;
     } catch (...) { return false; }
 }
 
@@ -27945,6 +28123,8 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if (!hasUnchangedDxfRenderPresetSources()
+        || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
     if (!finalizeDxfShadeConsumers()) return false;
     if (!hasUnchangedDxfMaterialSources()
         || (!m_dxfMaterialWriteSources.empty() && !m_dxfMaterialWriteInspected)) return false;
@@ -28785,6 +28965,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_dxfRenderPresetSources.clear(); m_dxfRenderPresetOwner = nullptr;
+    m_dxfRenderPresetCount = 0u; m_dxfRenderPresetBytes = 0u; m_dxfRenderPresetInspected = false;
+    struct RenderPresetScope {
+        dx_iface& owner;
+        ~RenderPresetScope() {
+            decltype(owner.m_dxfRenderPresetSources){}.swap(owner.m_dxfRenderPresetSources);
+            owner.m_dxfRenderPresetOwner = nullptr; owner.m_dxfRenderPresetGeneration = 0u;
+            owner.m_dxfRenderPresetCount = 0u; owner.m_dxfRenderPresetBytes = 0u; owner.m_dxfRenderPresetInspected = false;
+        }
+    } renderPresetScope{*this};
     m_dxfShadeConsumers.clear(); m_dxfShadeConsumerOwner = nullptr;
     m_dxfShadeConsumerBytes = 0u; m_dxfShadeConsumerSections = 0u; m_dxfShadeConsumerEntities = false;
     struct ShadeConsumerScope {
@@ -30293,6 +30483,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                                        : "VISUALSTYLE reference closure");
             return false;
         }
+    }
+    if (!prepareDxfRenderPresetSources(v, binary)) {
+        reportPreflightFailure("RenderSettings body edit is ambiguous, unsupported or over budget");
+        return false;
     }
     const char* renderSettingsFailure = nullptr;
     if (!validateRenderSettingsGraph(*cData, v, &renderSettingsFailure)) {

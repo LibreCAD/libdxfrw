@@ -1260,6 +1260,10 @@ public:
                 break;
             }
         }
+        if (!hasUnchangedDxfRenderPresetSources()) {
+            dxfW->writeRawDxfObject(nullptr);
+            return;
+        }
         std::unordered_set<std::uint32_t> renderSettingsHandles;
         for (std::uint32_t handle : m_extensionRenderSettingsHandles) {
             std::size_t matches = 0;
@@ -1267,7 +1271,7 @@ public:
                 if (object.handle != handle)
                     continue;
                 ++matches;
-                if (!dxfW->writeRawDxfObject(&object))
+                if (!writeDxfRenderPreset(object))
                     return;
             }
             if (matches != 1u
@@ -2116,6 +2120,21 @@ private:
     bool prepareDxfMaterialSources(DRW::Version version);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DxfRenderPresetWriteSource {
+        DRW_RenderSettings live;
+        DRW_RawDxfObject output;
+        std::shared_ptr<const DRW_RawDxfObject> original;
+    };
+    std::map<std::uint32_t, DxfRenderPresetWriteSource> m_dxfRenderPresetSources;
+    const dx_data* m_dxfRenderPresetOwner{nullptr};
+    std::uint64_t m_dxfRenderPresetGeneration{0};
+    std::size_t m_dxfRenderPresetCount{0}, m_dxfRenderPresetBytes{0};
+    std::size_t m_dxfRenderPresetByteLimit{64u * 1024u * 1024u};
+    std::size_t m_dxfRenderPresetRecordLimit{100000u};
+    bool m_dxfRenderPresetInspected{false};
+    bool prepareDxfRenderPresetSources(DRW::Version version, bool binary) noexcept;
+    bool hasUnchangedDxfRenderPresetSources() const noexcept;
+    bool writeDxfRenderPreset(DRW_RawDxfObject& raw);
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     struct DxfShadeConsumerSource {
         enum Kind { PlotSettings, Layout, Viewport } kind{PlotSettings};

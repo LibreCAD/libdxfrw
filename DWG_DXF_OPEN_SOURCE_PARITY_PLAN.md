@@ -134437,3 +134437,133 @@ rendering/document/native semantic qualification remains incomplete. J256/J260/
 J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and
 independent ACIS/ACDS semantic/kernel evidence remain **NOT_RUN**. The full
 objective remains active; no remote mutation.
+
+## Implementation progress — RPP-5fz edited preset bodies and frozen output (2026-10-27)
+
+A valid named-only RapidRT description edit is refused by the parent adapter,
+which only replays the immutable raw preset. Implement fixed-schema typed edits
+for the ten independently profiled source forms, while retaining original
+source evidence and the common/reference carrier transaction.
+
+- [x] Reconcile named-only, vector-only and coherent dual edits against immutable
+  input. Refuse conflicting dual edits, nonfinite doubles, short overflow,
+  unsupported common metadata edits, preset renaming, class revision changes
+  and optional-field/schema changes. Those refusals preserve explicit remaining
+  obligations rather than silently discarding requested values.
+- [x] Use the existing canonical production writer for typed body scalars in a
+  private bounded sink. Reinsert by scalar-code occurrence into independently
+  profiled original primary slots. Retain the source RapidRT derived predefined
+  placement and non-body application/reactor/xDict/XDATA carriers. Original
+  audits remain immutable; edited output is not recertified as original input.
+- [x] Encode newly synthesized body text losslessly even when unrelated export
+  carriers use compatible policy. Preserve Unicode, literal CIF/MIF prefixes and
+  caret text across ASCII/binary transport; refuse unsafe ASCII record text.
+  Keep public writer policy and untouched raw replay outside this route.
+- [x] Freeze typed and raw state before callbacks, check before preset emission,
+  at staged inspection and finalization, and compare actual edited output fields
+  plus retained dictionaries before publication. Preserve direct codec users
+  without a facade plan and the no-preset2D path. Scan the whole frozen plan once
+  per phase, avoiding a new full-plan scan per preset.
+- [x] Cap retained rows at100000 and logical allowance at64MiB, including copy,
+  node and pessimistic text-quoting allowances. Exact/one-under controls exercise
+  both record and byte limits. These bounds do not qualify allocator capacity,
+  peak RSS or controlled throughput.
+
+Authored controls and review:
+
+- [x]60 positive profiles cover the ten source forms, both encodings and
+  named/vector/coherent edits. Independently compare2094 literal body fields,
+  read back edited arrays/aliases, preserve caller models and immutable source
+  reports, then restore and re-export on the same adapter. Feed real staged
+  output and698 single-field corruptions into the actual output inspector;
+  every selected corruption refuses and corrected views pass.
+- [x]26 invalid/conflicting edits, eight callback mutations, eight budget
+  boundaries and four unsafe-text attempts preserve sentinel destinations.
+  Callback positions include header, temporary emission/restoration, after
+  OBJECTS and actual finalization. All106 corrected same-adapter retries pass.
+  Replace former blanket body-edit refusals in the older source controls with
+  genuinely unrepresentable edits, retaining their100 rollback controls.
+- [x] Reach107 preparation-helper allocation faults, then111 corrected real
+  exports, including four unreached offsets. This schedule invokes the actual
+  bounded helper directly; it is not a whole-file allocation-failure claim.
+  Reach four faults inside the real frozen-state helper during actual
+  finalization; four unreached offsets and all eight corrected finalizations
+  pass. Stop schedules after two consecutive unreached offsets, bounded by1024
+  for preparation and256 for finalization per encoding.
+- [x] Eight text/policy/input-output encoding profiles and six other-version
+  AC1021/AC1024/AC1032 text profiles pass. Two selected metadata/collision
+  profiles independently check application-local5, translated330/340/360,
+  reactor, xDict, registered APPID, layer name, XDATA1000/1005/1070 and actual
+  remapped preset identity. This retains existing raw reference policy; it is
+  not independent native semantic proof for arbitrary application references.
+- [x] Preserve development failures: strict compilation caught misleading test
+  indentation; the literal RapidRT expectation initially omitted its derived
+  predefined alias; the metadata expectation initially treated translated
+  application references as literal. Correct the tests from actual layouts and
+  existing role policy. Review then reproduces an under-budget named-only text
+  edit: quoting was charged only to positional strings. Bound all named aliases
+  before normalization, add four large vector/named edit boundaries and readbacks,
+  preserve pre-correction builds/archives separately and rebuild final inputs
+  before runtime qualification. No stale-binary result after failed compilation
+  is used.
+
+Final qualification:
+
+- [x] Build all12 owning targets against frozen inputs: normal
+  71.23s and qualified Debug/-O1/ASan
+  274.11s. Keep strict warnings/-Werror; LibreCAD_3 compile
+  compatibility passes. Core production sources and installed headers remain
+  unchanged. Original Debug/O0 ASan remains its own configuration.
+- [x]123 selected affected tests pass in normal (194.11s),
+  then ASan (110.12s), with exact matching test
+  names/order/labels/timeouts and no selected failures/skips/disabled tests.
+  Focused UCS/VIEWPORT controls pass. All29 counter lines agree across builds;
+  all28 previous lines remain unchanged. This is one affected shared-change
+  checkpoint, not a repeated full suite or native CAD/kernel qualification.
+- [x] Freeze all590 listed build/release inputs through both runtimes. Regenerate
+  gzip/bzip2 source archives and verify every listed byte. The first tarballs
+  contained macOS AppleDouble metadata and were correctly refused. Preserve
+  them, regenerate with COPYFILE_DISABLE=1 and retain the strict member guard.
+  No new extracted-source compile/distcheck, formal ABI/native application or
+  controlled memory/performance claim is made; prior checkpoints remain scoped.
+
+The [receipt](docs/research/rpp5fz-render-preset-body-edits-and-frozen-output-2026-10-27.json)
+pins source/build/test/archive evidence, failed attempts and limits. All new
+controls are authored source recipes; no external drawing payload, conversion
+or derivative is committed.
+
+Next implementation-ready sequence retains the complete objective:
+
+1. [ ] Complete preset name/schema transactions and remaining rendering profiles.
+   For renaming, normalize aliases before root indexing, atomically bind the
+   edited preset name to its dictionary key/target, and reject conflicting names
+   or collisions without inventing native collation. For optional-presence or
+   schema changes, reconstruct only independently admitted subclass slots and
+   prove actual output/reparse while retaining unknown carriers. Add positive,
+   callback/rollback and corrected-retry controls. Keep absent/duplicate/alias/
+   extension and active/global/environment/background/live-section/sun profiles
+   separate. Obtain independent VIEWPORT shade4/5 wire evidence and resolve the
+   published-table discrepancy before semantic promotion; bind335/343/344/91.
+2. [ ] Complete common/full-VisualStyle and entity/material/reactor/IMAGE/document/
+   control/name/application/XDATA/HEADER CEPSNID/CEPSNTYPE and native-collation
+   dependencies, arbitrary remaps/collisions and recursive/coupled/whole-document
+   ownership. Selected edited bodies and scalar bindings do not close emitted
+   dictionary/document eligibility or native semantic support.
+3. [ ] Finish TABLE Values/multiple-content/linked-data ownership and qualified
+   formatting/units/borders, plus native B2b/B3/C bit/schema/owner/version/corpus
+   evidence. Do not guess date epochs, point counts or General semantics.
+4. [ ] Complete pending platform/package/native consumer and formal ABI/application
+   checks, controlled RSS/performance, native Linux/Windows FreeCAD and independent
+   ACIS/ACDS semantic/kernel qualification. The Linux GCC release job stays
+   NOT_RUN here; local archive equality does not qualify native applications.
+5. [ ] Reuse targets and fast owning selectors, broadening only for shared changes
+   or failures. Freeze inputs and finish builds before runtimes, retain failed
+   evidence/caps, self-unblock, update/commit/report each coherent slice and
+   continue ready work without external drawing payloads/derivatives.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Full rendering/document/native semantic qualification
+remains incomplete. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**;
+native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
+remain **NOT_RUN**. The full objective remains active; no remote mutation.

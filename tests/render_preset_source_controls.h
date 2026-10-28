@@ -132,10 +132,10 @@ bool tests(const std::filesystem::path& dir) {
                 &&value.m_hasPredefinedPresent==model.m_hasPredefinedPresent&&value.m_hasPredefined==model.m_hasPredefined;};
         if(!reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!verify())return fail(__LINE__);++exports;
         for(unsigned fault=0u;fault<5u;++fault){const auto original=data.renderSettings.front();auto& value=data.renderSettings.front();
-            if(fault==0u)value.m_fogEnabled=!value.m_fogEnabled;
-            if(fault==1u)value.m_longs.back()+=1;
-            if(fault==2u)value.m_strings.back()="edited scalar";
-            if(fault==3u)value.m_bools.back()=!value.m_bools.back();
+            if(fault==0u)value.m_fogColorR=17;
+            if(fault==1u)value.m_longs.push_back(17);
+            if(fault==2u)value.m_strings[0]="unsupported preset rename";
+            if(fault==3u)value.m_bools.push_back(true);
             if(fault==4u)value.m_hasPredefinedPresent=!value.m_hasPredefinedPresent;
             {std::ofstream sentinel(output,std::ios::binary);sentinel<<"KEEP_PRESET_DESTINATION";}
             if(reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
