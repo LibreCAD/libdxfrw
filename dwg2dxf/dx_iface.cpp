@@ -16072,12 +16072,12 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
 // Selected count edits require contiguous 49/62/6 tuples and the final
 // tuple ending the core body. No suffix is guessed away.
 bool mlineRemovalTuples(const DRW_RawDxfObject& raw,std::size_t expected,
-        std::array<std::array<std::size_t,3>,4>& tuples,std::size_t& countIndex) {
-    if (expected!=2u && expected!=4u) return false;
+        std::array<std::array<std::size_t,3>,UINT8_MAX>& tuples,std::size_t& countIndex) {
+    if (expected<2u || expected>UINT8_MAX) return false;
     DRW_RawDxfObject selected;MlineSlots slots;MlineElementSlots colors,offsets;
     std::size_t insertion=0u;std::vector<std::size_t> texts;
     if (!mlineBodyFields(raw,selected,slots,insertion,&texts,&colors,&offsets)) return false;
-    std::array<std::size_t,4> types{{noScaleSlot,noScaleSlot,noScaleSlot,noScaleSlot}};std::size_t n=0u;
+    std::array<std::size_t,UINT8_MAX> types{};std::size_t n=0u;
     for (const auto index:texts) if (raw.groups[index].code()==6) {
         if (n>=expected) return false;types[n++]=index;
     }
@@ -16336,7 +16336,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
     if (!cData) return false;
     if (cData->sourceFormat!=dx_source_format::DXF || m_extensionMLineStyleHandles.empty()) return true;
     try {
-        std::size_t bytes=0u;
+        std::size_t bytes=0u,removalWork=0u;
         if (!prepareDxfNamedResourceState(m_dxfMLineStyleState,version,binary,bytes)) return false;
         const std::unordered_set<std::uint32_t> handles(m_extensionMLineStyleHandles.begin(),m_extensionMLineStyleHandles.end());
         if (handles.size()!=m_extensionMLineStyleHandles.size()) return false;
@@ -16407,8 +16407,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 && value.elements.size()>original.elements.size()
                 && value.elements.size()<=UINT8_MAX;
             const bool remove=version>=DRW::AC1021 && context.m_version==version
-                && ((original.elements.size()==2u && value.elements.size()==1u)
-                    || (original.elements.size()==4u && value.elements.size()==2u));
+                && original.elements.size()>=2u && original.elements.size()<=UINT8_MAX
+                && !value.elements.empty() && value.elements.size()<original.elements.size();
             bool removeFirst=false;
             if (append) {
                 // Charge the prefix snapshot, expanded projection and all
@@ -16444,12 +16444,15 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 // only an exact match to exactly one original element and
                 // retain exact original raw tuple values and spellings.
                 std::size_t originalTyped=0u,originalItems=0u;
-                if (!estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
+                const auto work=2u*original.elements.size();
+                if (removalWork>kMaxAdapterBasicTableItems || work>kMaxAdapterBasicTableItems-removalWork
+                    || !estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
                     || !chargeNamedResourceBytes(bytes,originalBytes)
                     || !chargeNamedResourceBytes(bytes,retained)
                     || !chargeNamedResourceBytes(bytes,retained)
                     || !chargeNamedResourceBytes(bytes,originalTyped)
                     || !chargeNamedResourceBytes(bytes,originalTyped)) return false;
+                removalWork+=work;
                 DRW_MLineStyle prefix=original;prefix.elements.resize(value.elements.size());
                 const bool keepsFirst=mlineFieldsEqual(value,prefix,false,false,false,true,true,true);
                 if (original.elements.size()==2u) {
@@ -16458,19 +16461,28 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     if (keepsFirst==keepsLast) return false;
                     removeFirst=keepsLast;
                 } else {
-                    // A selected four-to-two tail removal has a uniquely
-                    // identifiable unchanged prefix. Repeated wire tuples
-                    // cannot identify which original values survived.
+                    // The requested survivors must be the unchanged prefix
+                    // and have exactly one ordered embedding in the original.
+                    // The prefix is the earliest embedding. A backwards greedy
+                    // scan finds the latest in linear time, including duplicate
+                    // tuples where removal identity would be ambiguous.
                     if (!keepsFirst) return false;
-                    for (std::size_t i=0u;i<original.elements.size();++i)
-                        for (std::size_t j=i+1u;j<original.elements.size();++j) {
-                            const auto& a=original.elements[i];const auto& b=original.elements[j];
-                            if (retainedDoubleEqual(a.offset,b.offset) && a.color==b.color
-                                && a.linetype==b.linetype) return false;
-                        }
+                    const auto sameElement=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                        return retainedDoubleEqual(a.offset,b.offset) && a.color==b.color
+                            && a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
+                            && a.colorName==b.colorName && a.colorBookName==b.colorBookName
+                            && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
+                            && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
+                    };
+                    std::size_t cursor=original.elements.size();
+                    for (std::size_t i=value.elements.size();i>0u;--i) {
+                        while (cursor>0u && !sameElement(original.elements[cursor-1u],value.elements[i-1u])) --cursor;
+                        if (!cursor || cursor-1u!=i-1u) return false;
+                        --cursor;
+                    }
                 }
                 bool originalReactor=false,rawReactor=false;
-                std::array<std::array<std::size_t,3>,4> before{},current{};
+                std::array<std::array<std::size_t,3>,UINT8_MAX> before{},current{};
                 std::size_t beforeCount=0u,currentCount=0u;
                 if (parsed.elements.size()!=original.elements.size()
                     || !mlineRetargetCoreBody(context,originalReactor)
@@ -16699,13 +16711,13 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     value.elements.begin()+static_cast<std::ptrdiff_t>(original.elements.size()),value.elements.end());
             }
             if (remove) {
-                std::array<std::array<std::size_t,3>,4> tuples{};
+                std::array<std::array<std::size_t,3>,UINT8_MAX> tuples{};
                 std::size_t countIndex=0u;
                 if (!mlineRemovalTuples(source.output,original.elements.size(),tuples,countIndex)
                     || !source.stringOverrides.empty()
                     || !encoded.writeInt16(71,static_cast<int>(value.elements.size()))
                     || !replace(countIndex,encoded.groups.back())) return false;
-                const auto removed=original.elements.size()==4u?2u:(removeFirst?0u:1u);
+                const auto removed=removeFirst?0u:value.elements.size();
                 const auto removedCount=original.elements.size()-value.elements.size();
                 const auto first=tuples[removed][0];const auto after=tuples[removed+removedCount-1u][2]+1u;
                 source.output.groups.erase(source.output.groups.begin()+static_cast<std::ptrdiff_t>(first),
@@ -20615,8 +20627,7 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                     || !decodeMlineBody(*baseline,*saved->second,original,slots,insertion)) return false;
             }
             const bool removed=style.second.countChanged && original.elements.size()>elements.size();
-            if (removed && !((original.elements.size()==2u && elements.size()==1u)
-                || (original.elements.size()==4u && elements.size()==2u))) return false;
+            if (removed && (original.elements.size()>UINT8_MAX || elements.empty())) return false;
             const std::size_t references=elements.size()+(removed?original.elements.size():0u);
             if (!visit(references) || !chargeNamedResourceBytes(bytes,references*sizeof(std::uint32_t))) return false;
             std::vector<std::uint32_t> selected;selected.reserve(references);bool complete=true;
