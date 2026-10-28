@@ -16402,31 +16402,39 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || parsed.name!=original.name) return false;
             const bool append=version>=DRW::AC1021 && context.m_version==version
                 && !original.elements.empty() && original.elements.size()<UINT8_MAX
-                && value.elements.size()==original.elements.size()+1u;
+                && value.elements.size()>original.elements.size()
+                && value.elements.size()<=UINT8_MAX;
             const bool remove=version>=DRW::AC1021 && context.m_version==version
                 && original.elements.size()==2u && value.elements.size()==1u;
             bool removeFirst=false;
             if (append) {
-                // Charge the additional prefix snapshot and generated tuple
-                // before allocating either; the usual retained typed/raw
-                // allowances cover the existing projections only.
-                std::size_t extra=3u*(sizeof(DRW_Variant)+sizeof(UTF8STRING));
-                if (!addAssociativeRetainedBytes(value.elements.back().linetype.size()+1u,extra)
+                // Charge the prefix snapshot, expanded projection and all
+                // generated fields and spellings before allocating them.
+                const std::size_t addedCount=value.elements.size()-original.elements.size();
+                std::size_t extra=0u;
+                if (!addAssociativeSlotBytes(addedCount,12u*sizeof(DRW_Variant)
+                        +6u*sizeof(UTF8STRING)+256u,extra)) return false;
+                for (std::size_t i=original.elements.size();i<value.elements.size();++i)
+                    for (unsigned copy=0u;copy<4u;++copy)
+                        if (!addStringPayloadBytes(value.elements[i].linetype,extra)) return false;
+                if (!chargeNamedResourceBytes(bytes,typed)
                     || !chargeNamedResourceBytes(bytes,typed)
                     || !chargeNamedResourceBytes(bytes,extra)) return false;
                 DRW_MLineStyle prefix=value;
-                prefix.elements.pop_back();
+                prefix.elements.resize(original.elements.size());
                 bool originalReactor=false,rawReactor=false;
-                const auto& added=value.elements.back();
                 if (!mlineFieldsEqual(prefix,original,false,false,false,false,false,false)
                     || parsed.elements.size()!=original.elements.size()
                     || !mlineRetargetCoreBody(context,originalReactor)
-                    || !mlineRetargetCoreBody(raw,rawReactor) || originalReactor!=rawReactor
-                    || !std::isfinite(added.offset) || added.color<0 || added.color>256
-                    || added.color24!=-1 || added.colorMethod || added.colorFlags
-                    || !added.colorName.empty() || !added.colorBookName.empty() || added.colorDwgIndex
-                    || added.linetypeIndex!=-1 || added.linetypeHandle
-                    || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
+                    || !mlineRetargetCoreBody(raw,rawReactor) || originalReactor!=rawReactor) return false;
+                for (std::size_t i=original.elements.size();i<value.elements.size();++i) {
+                    const auto& added=value.elements[i];
+                    if (!std::isfinite(added.offset) || added.color<0 || added.color>256
+                        || added.color24!=-1 || added.colorMethod || added.colorFlags
+                        || !added.colorName.empty() || !added.colorBookName.empty() || added.colorDwgIndex
+                        || added.linetypeIndex!=-1 || added.linetypeHandle
+                        || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
+                }
             } else if (remove) {
                 // Without per-element identities, a changed surviving tuple
                 // can represent either deletion combined with an edit. Admit
@@ -16639,7 +16647,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             if (element!=target.elements.size()) return false;
             if (append) {
                 // Core-body admission above excludes ambiguous application or
-                // extension payloads. Insert the complete tuple immediately
+                // extension payloads. Insert complete tuples immediately
                 // after the final element's owning group 6, keeping raw ASCII
                 // spellings aligned with their semantic fields.
                 std::size_t countIndex=noScaleSlot,lastType=noScaleSlot;
@@ -16653,13 +16661,15 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 if (countIndex==noScaleSlot || lastType==noScaleSlot
                     || !encoded.writeInt16(71,static_cast<int>(value.elements.size()))
                     || !replace(countIndex,encoded.groups.back())) return false;
-                const auto& added=value.elements.back();
                 const auto first=encoded.groups.size();
-                if (!encoded.writeDouble(49,added.offset)
-                    || !encoded.writeInt16(62,added.color)
-                    || !encoded.writeUtf8String(6,added.linetype)) return false;
+                for (std::size_t i=original.elements.size();i<value.elements.size();++i) {
+                    const auto& added=value.elements[i];
+                    if (!encoded.writeDouble(49,added.offset)
+                        || !encoded.writeInt16(62,added.color)
+                        || !encoded.writeUtf8String(6,added.linetype)) return false;
+                }
                 std::vector<DRW_Variant> tuple(encoded.groups.begin()+static_cast<std::ptrdiff_t>(first),encoded.groups.end());
-                if (tuple.size()!=3u) return false;
+                if (tuple.size()!=3u*(value.elements.size()-original.elements.size())) return false;
                 source.output.groups.insert(source.output.groups.begin()+static_cast<std::ptrdiff_t>(lastType+1u),tuple.begin(),tuple.end());
                 if (source.output.hasRawValues && !binary) {
                     std::vector<std::string> spellings;
@@ -16669,7 +16679,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     }
                     source.output.rawValues.insert(source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(lastType+1u),spellings.begin(),spellings.end());
                 }
-                target.elements.push_back(added);
+                target.elements.insert(target.elements.end(),
+                    value.elements.begin()+static_cast<std::ptrdiff_t>(original.elements.size()),value.elements.end());
             }
             if (remove) {
                 std::array<std::array<std::size_t,3>,2> tuples{};
