@@ -28946,6 +28946,7 @@ void testScaleBodyTransactions(TestContext& t) {
 namespace mlineLtypeProviderControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeDefaultFlagControls {bool run(const std::filesystem::path& dir);}
+namespace mlineLtypeReferencedFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
 using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
@@ -29282,6 +29283,7 @@ bool run(const std::filesystem::path& dir) {
     std::size_t textProfiles=0u,textReadbacks=0u,textInsertions=0u,textCallbacks=0u,textShadows=0u,textSpellings=0u,textAppScopes=0u,textLateNames=0u;
     std::size_t aciProfiles=0u,aciReadbacks=0u,aciConflicts=0u,aciInvalid=0u,aciCallbacks=0u,aciInsertions=0u,aciScopes=0u,aciTransports=0u,aciCorruptions=0u,aciBoundary=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    if(!mlineLtypeReferencedFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeDefaultFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeEditControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeProviderControls::run(dir))return fail(__LINE__);
@@ -30420,7 +30422,7 @@ bool sameProvider(const DRW_LType& a,const DRW_LType& b) {
     }
     return true;
 }
-bool providerProof(const std::filesystem::path& path,bool binary,const std::string& description="source EditDash") {
+bool providerProof(const std::filesystem::path& path,bool binary,const std::string& description="source EditDash",int flags=0) {
     const auto rows=mlineStyleAuthorityControls::records(path,binary);const mlineStyleAuthorityControls::Row* selected=nullptr;
     const auto fields=[](const auto& row,int code){std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;};
     for(const auto& row:rows)if(row.type=="LTYPE"&&fields(row,2)==std::vector<std::string>{"EditDash"}) {
@@ -30433,10 +30435,10 @@ bool providerProof(const std::filesystem::path& path,bool binary,const std::stri
     }
     const auto nums=[&](int code,const std::vector<double>& wanted){const auto actual=fields(*selected,code);
         if(actual.size()!=wanted.size())return false;for(std::size_t i=0u;i<wanted.size();++i)if(std::stod(actual[i])!=wanted[i])return false;return true;};
-    if(owners!=1u||!nums(70,{0})||!nums(72,{65})||!nums(73,{2})||!nums(40,{1.5})||!nums(49,{1,-.5})||!nums(74,{0,0}))return false;
+    if(owners!=1u||!nums(70,{double(flags)})||!nums(72,{65})||!nums(73,{2})||!nums(40,{1.5})||!nums(49,{1,-.5})||!nums(74,{0,0}))return false;
     dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false))return false;unsigned matches=0u;
     for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
-        if(value.desc!=description||value.alignment!=65||value.size!=2||value.length!=1.5
+        if(value.flags!=flags||value.desc!=description||value.alignment!=65||value.size!=2||value.length!=1.5
             ||value.path!=std::vector<double>{1,-.5}||value.segments.size()!=2u)return false;++matches;
     }
     return matches==1u;
@@ -30705,8 +30707,8 @@ template<class Lines>bool caller(dx_data& data,const DRW_MLineStyle& style,const
         &&data.lineTypes.size()==lines.size()&&std::equal(data.lineTypes.begin(),data.lineTypes.end(),lines.begin(),mlineLtypeProviderControls::sameProvider)
         &&mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE");
 }
-bool complete(const std::filesystem::path& path,bool binary,const Names& names,int fill=256) {
-    if(!mlineLtypeProviderControls::providerProof(path,binary)
+bool complete(const std::filesystem::path& path,bool binary,const Names& names,int fill=256,int flags=0) {
+    if(!mlineLtypeProviderControls::providerProof(path,binary,"source EditDash",flags)
         ||!mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",names[0],names[1],fill))return false;
     dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u)return false;
     const auto& style=actual.mLineStyles.front();
@@ -31030,6 +31032,169 @@ bool run(const std::filesystem::path& dir) {
         <<"; late="<<late<<"; retries="<<retries<<"; importRefusals="<<importRefusals<<"; exportRefusals="<<exportRefusals<<"; importKinds=";
     for(auto count:importKinds)std::cout<<count<<',';std::cout<<"; exportKinds=";for(auto count:exportKinds)std::cout<<count<<',';std::cout<<'\n';
     return profiles==12u&&readbacks==78u&&edits==24u&&copied==8u&&late==16u&&retries==42u&&importRefusals+exportRefusals==18u;
+}
+}
+
+
+namespace mlineLtypeReferencedFlagControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+Tags withFlags(Tags fields,const std::string& handle,int flags) {
+    bool selected=false;unsigned changed=0u;
+    for(auto& field:fields) {
+        if(field.first==0)selected=false;if(field==std::make_pair(5,handle))selected=true;
+        if(selected&&field.first==70){field.second=std::to_string(flags);++changed;}
+    }
+    if(changed!=1u)throw std::runtime_error("LTYPE referenced source flag missing");return fields;
+}
+Tags recipe(bool binary,int flags=64) {return withFlags(mlineLtypeEditControls::recipe(binary),"103",flags);}
+bool sourceFlags(const Tags& fields,const std::string& handle,int expected) {
+    bool selected=false;unsigned found=0u;
+    for(const auto& field:fields) {
+        if(field.first==0)selected=false;if(field==std::make_pair(5,handle))selected=true;
+        if(selected&&field.first==70){if(field.second!=std::to_string(expected))return false;++found;}
+    }
+    return found==1u;
+}
+struct Copied:dx_iface {
+    bool active=true;int flags=0;
+    void writeLTypes()override {
+        for(const auto& value:cData->lineTypes) {
+            auto output=value;if(active&&value.name=="EditDash")output.flags=flags;dxfW->writeLineType(&output);
+        }
+    }
+};
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u,flag=fields.size();
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==0&&fields[i].text=="SECTION"&&fields[i+1u].text=="TABLES") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);bool selected=false;
+        for(std::size_t i=0u;i<fields.size();++i) {
+            if(fields[i].code==0)selected=false;
+            if(fields[i].code==2&&fields[i].text=="EditDash"&&fields[i].begin>=begin&&fields[i].begin<end)selected=true;
+            if(selected&&fields[i].code==70){if(flag!=fields.size())return false;flag=i;}
+        }
+        if(flag==fields.size())return false;const auto& field=fields[flag];std::int64_t original=0;
+        if(binary){if(field.end-field.value!=2u)return false;
+            original=static_cast<unsigned char>(bytes[field.value])|(std::int64_t(static_cast<unsigned char>(bytes[field.value+1u]))<<8u);}
+        else if(!dx_raster_output::integer(field.text,original))return false;
+        if(original!=64)return false;
+        dxfRW::DxfTablesWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::mlineLinetypesReplay(*this,view))return false;
+        for(int flags:{0,32,128}) {
+            auto changed=body;
+            if(binary){if(field.end-field.value!=2u)return false;changed.at(field.value-begin)=static_cast<char>(flags&255);
+                changed.at(field.value-begin+1u)=static_cast<char>((flags>>8)&255);}
+            else changed.replace(field.value-begin,field.end-field.value,std::to_string(flags)+"\n");
+            auto bad=view;bad.bytes=changed;if(A::mlineLinetypesReplay(*this,bad)||!A::mlineLinetypesReplay(*this,view))return false;++corruptions;
+        }
+        return corruptions==3u&&dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"ltype-referenced-flag-input.dxf",output=dir/"ltype-referenced-flag-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,edits=0u,copied=0u,late=0u,unqualified=0u,canonical=0u,retries=0u,corruptions=0u,composition=0u;
+    const auto fail=[&](int line){std::cerr<<"MLINE LTYPE referenced-flag line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+        <<" edits="<<edits<<" copied="<<copied<<" late="<<late<<" unqualified="<<unqualified<<" canonical="<<canonical<<'\n';return false;};
+    const auto complete=[&](bool binary,const mlineLtypeEditControls::Names& names) {
+        return mlineLtypeEditControls::complete(output,binary,names,256,64);
+    };
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
+        if(!sourceFlags(fields,"103",64)||!write(input,fields,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||mlineLtypeProviderControls::provider(data).flags!=64||data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+            ||data.mLineStyles.front().elements[0].linetype!="ByLayer")return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(binary,{{"ByLayer","Continuous"}}))return fail(__LINE__);++readbacks;
+        for(unsigned mode=0u;mode<3u;++mode) {
+            data.mLineStyles=typed;data.rawNamedResourceObjects=raws;
+            if(mode!=1u)data.mLineStyles.front().elements[0].linetype="EditDash";
+            if(mode!=0u)mlineLtypeEditControls::rawName(data,0u,"EditDash");
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+                ||!complete(binary,{{"EditDash","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++edits;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(int flags:{0,32,128}) {
+        Copied adapter;adapter.flags=flags;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++copied;
+        adapter.active=false;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!complete(binary,{{"EditDash","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(int flags:{0,32,128}) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        adapter.change=[&]{mlineLtypeProviderControls::provider(data).flags=flags;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||mlineLtypeProviderControls::provider(data).flags!=flags)return fail(__LINE__);++late;
+        adapter.active=false;data.lineTypes=lines;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!complete(binary,{{"EditDash","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(int flags:{16,32,128}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(binary,flags);
+        if(!sourceFlags(fields,"103",flags)||!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}},256,flags))return fail(__LINE__);++readbacks;
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++unqualified;
+        data.mLineStyles.front().elements[0].linetype="ByLayer";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}},256,flags))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(bool byLayer:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=withFlags(mlineLtypeEditControls::recipe(binary),byLayer?"101":"102",64);
+        if(!sourceFlags(fields,byLayer?"101":"102",64)||!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        const auto check=[&] {
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofAbsent(adapter)
+                ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return false;
+            ++readbacks;return true;
+        };
+        if(!check())return fail(__LINE__);
+        for(bool rawEdit:{false,true}) {
+            const auto element=byLayer?1u:0u;const std::string name=byLayer?"ByLayer":"Continuous";
+            if(rawEdit)mlineLtypeEditControls::rawName(data,element,name);else data.mLineStyles.front().elements[element].linetype=name;
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++canonical;
+            data.mLineStyles=typed;data.rawNamedResourceObjects=raws;if(!check())return fail(__LINE__);++retries;
+        }
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"ltype-referenced-flag-proof-bin.dxf":"ltype-referenced-flag-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(replay,0x103u)
+            ||!complete(binary,{{"EditDash","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;corruptions+=replay.corruptions;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=withFlags(mlineLtypeDefaultFlagControls::recipe(false,3u),"103",64);
+        if(!mlineLtypeDefaultFlagControls::sourceLiteral(fields,3u,false)||!sourceFlags(fields,"103",64)
+            ||!write(input,fields,false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!mlineLtypeDefaultFlagControls::sourceModel(data))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!complete(binary,{{"EditDash","Continuous"}}))return fail(__LINE__);++readbacks;
+        mlineLtypeEditControls::rawName(data,1u,"EditDash");const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!complete(binary,{{"EditDash","EditDash"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++edits;++composition;
+    }
+    std::cout<<"MLINE LTYPE referenced flag profiles="<<profiles<<"; readbacks="<<readbacks<<"; edits="<<edits<<"; copied="<<copied
+        <<"; late="<<late<<"; unqualified="<<unqualified<<"; canonical="<<canonical<<"; retries="<<retries
+        <<"; corruptions="<<corruptions<<"; composition="<<composition<<'\n';
+    return profiles==4u&&readbacks==76u&&edits==14u&&copied==6u&&late==24u&&unqualified==6u&&canonical==8u
+        &&retries==44u&&corruptions==6u&&composition==2u;
 }
 }
 

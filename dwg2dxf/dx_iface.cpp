@@ -19724,7 +19724,7 @@ struct MlineLinetypeShape {
 };
 
 bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
-    if (value.flags!=0 || value.alignment!=65 || value.size<0
+    if ((value.flags!=0 && value.flags!=64) || value.alignment!=65 || value.size<0
         || static_cast<std::size_t>(value.size)!=value.path.size()
         || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
         || value.synchronizedLengthCount()!=value.path.size()
@@ -19739,8 +19739,11 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
             || segment.xOffset!=0.0 || segment.yOffset!=0.0 || segment.rotation!=0.0 || segment.scale!=1.0) return false;
     }
     const auto key=layoutSymbolKey(value.name);
+    // Custom bit64 bookkeeping is retained; fixed canonical rows emit flags0
+    // and need their own source-to-output normalization qualification.
     if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
-        && (!value.path.empty() || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
+        && (value.flags!=0 || !value.path.empty()
+            || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
     // Omitted source flags mean zero. Actual output uses the strict default
     // policy so this writer's explicit fields remain independently checked.
     MlineLinetypeShape shape(true);
