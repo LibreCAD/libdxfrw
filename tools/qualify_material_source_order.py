@@ -8,6 +8,8 @@ metadata, material and geometry round trips. Native rendering and arbitrary
 source ordering remain unqualified.
 Optional SCALE checks use authored generic tags and independent projections;
 ezdxf has no typed annotation-scale implementation for this profile.
+Optional MLINESTYLE checks use its typed producer/parser for descriptions and
+unchanged field/element tuples; actual MLINE rendering remains unqualified.
 All drawings are created from scratch in the requested empty output directory.
 """
 import argparse
@@ -28,15 +30,15 @@ PEER_VARIABLE_EDIT = r"edited peer_Ω^A\U+1234" + chr(1)
 PEER_SCALE_KEY = "A0"
 PEER_SCALE_EDIT = {70: 9, 300: r"edited peer café^A\U+1234",
                    140: 2.5, 141: 7.5, 290: 0}
+PEER_MLINE_STYLE_NAME = "PeerMline"
+PEER_MLINE_STYLE_EDIT = r"edited peer café^A\U+1234"
 
 
-def physical_scale_projection(ezdxf, path, binary, expected, source_recipe=False):
-    """Inspect the actual file through low-level tags before document setup."""
+def selected_physical_records(path, binary):
+    """Load selected-source tags without constructing or repairing a document."""
     from ezdxf.filemanagement import dxf_file_info
-    from ezdxf.lldxf.extendedtags import ExtendedTags
     from ezdxf.lldxf.tagger import ascii_tags_loader, binary_tags_loader, tag_compiler
     from ezdxf.lldxf.tags import group_tags
-    from ezdxf.tools.text import caret_decode
 
     if binary:
         tags = list(tag_compiler(binary_tags_loader(path.read_bytes(), errors="strict")))
@@ -53,35 +55,86 @@ def physical_scale_projection(ezdxf, path, binary, expected, source_recipe=False
             section = None
         else:
             records.append((section, record))
+    return records
+
+
+def selected_dictionary_entries(xtags):
+    result, pending = {}, None
+    for code, value in xtags.get_subclass("AcDbDictionary"):
+        if code == 3:
+            assert pending is None, "physical dictionary missing pointer"
+            pending = value
+        elif code in (350, 360):
+            assert pending is not None and pending not in result, "physical dictionary key"
+            result[pending] = {"handle": value, "role": code}
+            pending = None
+    assert pending is None, "physical dictionary dangling key"
+    return result
+
+
+def selected_physical_controls(records, source_recipe=False):
+    """The shared authored LINE/null-material controls for resource probes."""
+    layers = []
+    for scope, record in records:
+        if scope != "TABLES" or record[0].value != "LAYER":
+            continue
+        handles = [t.value for t in record if t.code == 347]
+        assert len(handles) <= 1, "physical LAYER material multiplicity"
+        assert not handles or int(handles[0], 16) == 0, "physical LAYER dangling/non-null material"
+        layers.append({"name": record.get_first_value(2),
+                       "materialHandlePresent": bool(handles),
+                       "materialHandle": handles[0] if handles else None,
+                       "selectedEffectiveBinding": "null"})
+    assert len(layers) == 2 and {row["name"].upper() for row in layers} == {"0", "DEFPOINTS"}, "physical LAYER census"
+    lines = [r for scope, r in records if scope == "ENTITIES" and r[0].value == "LINE"]
+    assert len(lines) == 1, "physical LINE census"
+    assert tuple(lines[0].get_first_value(10)) == (1, 2, 3), "physical LINE start"
+    assert tuple(lines[0].get_first_value(11)) == (4, 5, 6), "physical LINE end"
+    materials = [{"handle": r.get_first_value(5), "name": r.get_first_value(1)}
+                 for scope, r in records if scope == "OBJECTS" and r[0].value == "MATERIAL"]
+    if source_recipe:
+        assert not materials, "selected source unexpectedly contains MATERIAL bodies"
+    return {"layerMaterialBindings": layers, "materialObjects": materials,
+            "lineCount": len(lines), "beforeDocumentSetup": True,
+            "beforeExplicitAuditOrRecovery": True}
+
+
+def author_null_material_bindings(doc):
+    """Author null bindings before omitting unused defaults; keep the lineage."""
+    bindings = []
+    for layer in doc.layers:
+        bindings.append({"name": layer.dxf.name,
+                         "originalMaterialHandle": layer.dxf.get("material_handle"),
+                         "selectedMaterialHandle": "0"})
+        layer.dxf.material_handle = "0"
+    omitted = [{"name": key, "handle": obj.dxf.handle} for key, obj in doc.materials]
+    for row in omitted:
+        doc.materials.delete(row["name"])
+    return bindings, omitted
+
+
+def physical_scale_projection(ezdxf, path, binary, expected, source_recipe=False):
+    """Inspect the actual file through low-level tags before document setup."""
+    from ezdxf.lldxf.extendedtags import ExtendedTags
+    from ezdxf.tools.text import caret_decode
+
+    records = selected_physical_records(path, binary)
+    controls = selected_physical_controls(records, source_recipe)
     objects = [record for scope, record in records if scope == "OBJECTS"]
     dictionaries = [ExtendedTags(record) for record in objects
                     if record[0].value == "DICTIONARY"]
-
-    def entries(xtags):
-        result, pending = {}, None
-        for code, value in xtags.get_subclass("AcDbDictionary"):
-            if code == 3:
-                assert pending is None, "physical dictionary missing pointer"
-                pending = value
-            elif code in (350, 360):
-                assert pending is not None and pending not in result, "physical dictionary key"
-                result[pending] = {"handle": value, "role": code}
-                pending = None
-        assert pending is None, "physical dictionary dangling key"
-        return result
-
     roots = [d for d in dictionaries
              if int(d.subclasses[0].get_first_value(330, "0"), 16) == 0]
     assert len(roots) == 1, "physical root dictionary census"
     root = roots[0]
     root_handle = root.subclasses[0].get_first_value(5)
-    dictionary_handle = entries(root)["ACAD_SCALELIST"]["handle"]
+    dictionary_handle = selected_dictionary_entries(root)["ACAD_SCALELIST"]["handle"]
     selected = [d for d in dictionaries
                 if d.subclasses[0].get_first_value(5) == dictionary_handle]
     assert len(selected) == 1, "physical SCALE dictionary target"
     dictionary = selected[0]
     assert dictionary.subclasses[0].get_first_value(330) == root_handle, "physical dictionary owner"
-    targets = entries(dictionary)
+    targets = selected_dictionary_entries(dictionary)
     assert list(targets) == [PEER_SCALE_KEY], "physical SCALE dictionary keys"
     scales = [ExtendedTags(record) for record in objects if record[0].value == "SCALE"]
     assert len(scales) == 1, "physical SCALE census"
@@ -100,35 +153,13 @@ def physical_scale_projection(ezdxf, path, binary, expected, source_recipe=False
     if not binary:
         fields[300] = caret_decode(fields[300])
     assert fields == expected, "physical SCALE fields: %r != %r" % (fields, expected)
-    layers = []
-    for scope, record in records:
-        if scope != "TABLES" or record[0].value != "LAYER":
-            continue
-        handles = [t.value for t in record if t.code == 347]
-        assert len(handles) <= 1, "physical LAYER material multiplicity"
-        assert not handles or int(handles[0], 16) == 0, "physical LAYER dangling/non-null material"
-        layers.append({"name": record.get_first_value(2),
-                       "materialHandlePresent": bool(handles),
-                       "materialHandle": handles[0] if handles else None,
-                       "selectedEffectiveBinding": "null"})
-    assert len(layers) == 2 and {row["name"].upper() for row in layers} == {"0", "DEFPOINTS"}, "physical LAYER census"
-    lines = [r for scope, r in records if scope == "ENTITIES" and r[0].value == "LINE"]
-    assert len(lines) == 1, "physical LINE census"
-    assert tuple(lines[0].get_first_value(10)) == (1, 2, 3), "physical LINE start"
-    assert tuple(lines[0].get_first_value(11)) == (4, 5, 6), "physical LINE end"
     classes = [r for scope, r in records if scope == "CLASSES" and r[0].value == "CLASS"
                and r.get_first_value(1) == "SCALE"]
     assert len(classes) == 1 and classes[0].get_first_value(2) == "AcDbScale", "physical SCALE class"
-    materials = [{"handle": r.get_first_value(5), "name": r.get_first_value(1)}
-                 for r in objects if r[0].value == "MATERIAL"]
-    if source_recipe:
-        assert not materials, "selected source unexpectedly contains MATERIAL bodies"
     return {"fields": fields, "key": PEER_SCALE_KEY, "scaleHandle": scale_handle,
             "dictionaryHandle": dictionary_handle, "rootHandle": root_handle,
             "dictionaryPointerRole": targets[PEER_SCALE_KEY]["role"],
-            "layerMaterialBindings": layers, "materialObjects": materials,
-            "scaleCount": len(scales), "lineCount": len(lines),
-            "beforeDocumentSetup": True, "beforeExplicitAuditOrRecovery": True}
+            "scaleCount": len(scales), **controls}
 
 
 def selected_scale_projection(ezdxf, path, binary, expected, source_recipe=False):
@@ -203,17 +234,8 @@ def qualify_scales(ezdxf, probe, converter, output):
         # then omit the unused defaults. Deleting them first leaves modern
         # LAYER347 dangling; ordinary peer document setup can hide that defect
         # by creating new defaults. The physical pre-setup check forbids it.
-        null_layer_bindings = []
-        for layer in doc.layers:
-            null_layer_bindings.append({"name": layer.dxf.name,
-                                        "originalMaterialHandle": layer.dxf.get("material_handle"),
-                                        "selectedMaterialHandle": "0"})
-            layer.dxf.material_handle = "0"
-        omitted_material_handles = [{"name": key, "handle": obj.dxf.handle}
-                                    for key, obj in doc.materials]
+        null_layer_bindings, omitted_material_handles = author_null_material_bindings(doc)
         omitted_materials = [row["name"] for row in omitted_material_handles]
-        for key in omitted_materials:
-            doc.materials.delete(key)
         dictionary = doc.rootdict.get_required_dict("ACAD_SCALELIST")
         handle = doc.entitydb.next_handle()
         tags = ExtendedTags.from_text(
@@ -243,36 +265,197 @@ def qualify_scales(ezdxf, probe, converter, output):
             except Exception as error:
                 original["mismatch"] = str(error)
             inputs.append(original)
-            for target_format in ("asc", "bin"):
-                for edit in (False, True):
-                    target = output / (("edit-" if edit else "out-")
-                                       + stem + "-" + target_format + ".dxf")
-                    if edit:
-                        command = [str(probe), "--scale-edit-probe", str(source),
-                                   str(target), target_format]
-                    else:
-                        command = [str(converter), str(source), "-y", "-v" + version[1:]]
-                        if target_format == "bin":
-                            command.append("-b")
-                        command.append(str(target))
-                    row = {"version": doc.dxfversion, "page": page, "input": fmt,
-                           "output": target_format, "sourceSha256": original["sha256"],
-                           "path": target.name, "command": command, "matched": False}
-                    try:
-                        run = subprocess.run(command, capture_output=True, text=True, timeout=60)
-                        row.update({"exitCode": run.returncode, "stdout": run.stdout,
-                                    "stderr": run.stderr})
-                        if run.returncode == 0:
-                            row["sha256"] = digest(target)
-                            row["observations"] = selected_scale_projection(
-                                ezdxf, target, target_format == "bin",
-                                PEER_SCALE_EDIT if edit else expected)
-                            row["matched"] = original["matched"]
-                    except subprocess.TimeoutExpired:
-                        row.update({"exitCode": 124, "mismatch": "SCALE process timeout (60s)"})
-                    except Exception as error:
-                        row["mismatch"] = str(error)
-                    (edits if edit else round_trips).append(row)
+            unchanged, edited = selected_resource_outputs(
+                ezdxf, probe, converter, source, version, page, fmt, original,
+                "--scale-edit-probe", selected_scale_projection, expected, PEER_SCALE_EDIT)
+            round_trips.extend(unchanged)
+            edits.extend(edited)
+    return inputs, round_trips, edits
+
+
+def selected_resource_outputs(ezdxf, probe, converter, source, version, page, fmt,
+                              original, selector, projection, expected, edited_expected):
+    """Reuse the same bounded CLI/edit invocation for the selected resources."""
+    round_trips, edits = [], []
+    for target_format in ("asc", "bin"):
+        for edit in (False, True):
+            target = source.parent / (("edit-" if edit else "out-")
+                                      + source.stem + "-" + target_format + ".dxf")
+            if edit:
+                command = [str(probe), selector, str(source), str(target), target_format]
+            else:
+                command = [str(converter), str(source), "-y", "-v" + version[1:]]
+                if target_format == "bin":
+                    command.append("-b")
+                command.append(str(target))
+            row = {"version": original["version"], "page": page, "input": fmt,
+                   "output": target_format, "sourceSha256": original["sha256"],
+                   "path": target.name, "command": command, "matched": False}
+            try:
+                run = subprocess.run(command, capture_output=True, text=True, timeout=60)
+                row.update({"exitCode": run.returncode, "stdout": run.stdout,
+                            "stderr": run.stderr})
+                if run.returncode == 0:
+                    row["sha256"] = digest(target)
+                    row["observations"] = projection(
+                        ezdxf, target, target_format == "bin", edited_expected if edit else expected)
+                    row["matched"] = original["matched"]
+            except subprocess.TimeoutExpired:
+                row.update({"exitCode": 124, "mismatch": "Selected resource process timeout (60s)"})
+            except Exception as error:
+                row["mismatch"] = str(error)
+            (edits if edit else round_trips).append(row)
+    return round_trips, edits
+
+
+def mline_style_values(style):
+    return {"name": style.dxf.name, "flags": style.dxf.flags,
+            "description": style.dxf.description, "fillColor": style.dxf.fill_color,
+            "startAngle": style.dxf.start_angle, "endAngle": style.dxf.end_angle,
+            "elements": [(e.offset, e.color, e.linetype) for e in style.elements]}
+
+
+def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False):
+    """Check every selected style and its ordered element tuples before setup."""
+    from ezdxf.lldxf.extendedtags import ExtendedTags
+    from ezdxf.tools.text import caret_decode
+
+    records = selected_physical_records(path, binary)
+    controls = selected_physical_controls(records, source_recipe)
+    objects = [ExtendedTags(record) for scope, record in records if scope == "OBJECTS"]
+    dictionaries = [r for r in objects if r.dxftype() == "DICTIONARY"]
+    roots = [d for d in dictionaries
+             if int(d.subclasses[0].get_first_value(330, "0"), 16) == 0]
+    assert len(roots) == 1, "physical MLINESTYLE root census"
+    root = roots[0]
+    root_handle = root.subclasses[0].get_first_value(5)
+    dictionary_handle = selected_dictionary_entries(root)["ACAD_MLINESTYLE"]["handle"]
+    selected = [d for d in dictionaries
+                if d.subclasses[0].get_first_value(5) == dictionary_handle]
+    assert len(selected) == 1, "physical MLINESTYLE dictionary target"
+    dictionary = selected[0]
+    assert dictionary.subclasses[0].get_first_value(330) == root_handle, "physical MLINESTYLE dictionary owner"
+    targets = selected_dictionary_entries(dictionary)
+    assert set(targets) == set(expected), "physical MLINESTYLE keys"
+    styles = [r for r in objects if r.dxftype() == "MLINESTYLE"]
+    assert len(styles) == len(expected), "physical MLINESTYLE census"
+    observations = {}
+    for key, target in targets.items():
+        candidates = [r for r in styles if r.subclasses[0].get_first_value(5) == target["handle"]]
+        assert len(candidates) == 1, "physical MLINESTYLE target identity"
+        style = candidates[0]
+        assert style.subclasses[0].get_first_value(330) == dictionary_handle, "physical MLINESTYLE owner"
+        body = style.get_subclass("AcDbMlineStyle")
+        counts = [i for i, tag in enumerate(body) if tag.code == 71]
+        assert len(counts) == 1, "physical MLINESTYLE element count presence"
+        prefix, tail = body[:counts[0]], body[counts[0] + 1:]
+        values, presence = {}, {}
+        for name, code, default in (("name", 2, "Standard"), ("flags", 70, 0),
+                                    ("description", 3, ""), ("fillColor", 62, 256),
+                                    ("startAngle", 51, 90.0), ("endAngle", 52, 90.0)):
+            filed = [t.value for t in prefix if t.code == code]
+            assert len(filed) <= 1, "physical MLINESTYLE duplicate field %d" % code
+            presence[code] = bool(filed)
+            value = filed[0] if filed else default
+            if name in ("name", "description"):
+                value = ezdxf.decode_dxf_unicode(value)
+                if not binary:
+                    value = caret_decode(value)
+            values[name] = value
+        assert values["name"] == key, "physical MLINESTYLE dictionary/body name binding"
+        assert len(values["description"]) <= 255, "physical MLINESTYLE description characters"
+        elements, current = [], None
+        for code, value in tail:
+            if code == 49:
+                if current is not None:
+                    elements.append((current[49], current.get(62, 0), current.get(6, "BYLAYER")))
+                current = {49: value}
+            elif code in (62, 6):
+                assert current is not None and code not in current, "physical MLINESTYLE tuple field"
+                current[code] = value
+            else:
+                raise AssertionError("unexpected selected MLINESTYLE tuple code %d" % code)
+        if current is not None:
+            elements.append((current[49], current.get(62, 0), current.get(6, "BYLAYER")))
+        assert len(elements) == body[counts[0]].value, "physical MLINESTYLE declared/actual elements"
+        values["elements"] = elements
+        assert values == expected[key], "physical MLINESTYLE %s: %r != %r" % (key, values, expected[key])
+        observations[key] = {"fields": values, "handle": target["handle"],
+                             "owner": dictionary_handle, "pointerRole": target["role"],
+                             "fieldPresence": presence, "elementCount": len(elements)}
+    return {"styles": observations, "styleCount": len(styles), "rootHandle": root_handle,
+            "dictionaryHandle": dictionary_handle, **controls}
+
+
+def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False):
+    from ezdxf.tools.text import caret_decode
+
+    physical = physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe)
+    doc = ezdxf.readfile(path)
+    dictionary = doc.rootdict["ACAD_MLINESTYLE"]
+    assert dictionary.dxf.owner == doc.rootdict.dxf.handle, "MLINESTYLE dictionary owner after setup"
+    assert set(dictionary.keys()) == set(expected), "MLINESTYLE keys after setup"
+    styles = [e for e in doc.objects if e.dxftype() == "MLINESTYLE"]
+    assert len(styles) == len(expected), "MLINESTYLE census after setup"
+    for name, wanted in expected.items():
+        style = dictionary[name]
+        assert style in styles and style.dxf.owner == dictionary.dxf.handle, "MLINESTYLE typed owner"
+        values = mline_style_values(style)
+        for key in ("name", "description"):
+            values[key] = ezdxf.decode_dxf_unicode(values[key])
+            if not binary:
+                values[key] = caret_decode(values[key])
+        assert values == wanted, "MLINESTYLE typed fields %s" % name
+    original_materials = {row["handle"] for row in physical["materialObjects"]}
+    added_materials = [{"handle": e.dxf.handle, "name": e.dxf.name}
+                       for e in doc.objects if e.dxftype() == "MATERIAL"
+                       and e.dxf.handle not in original_materials]
+    return {"physicalBeforeDocumentSetup": physical, "ordinaryReadAfterDocumentSetup": True,
+            "explicitAuditOrRecoveryRun": False, "documentSetupAddedMaterials": added_materials,
+            "documentSetupAddedMaterialCount": len(added_materials),
+            "typedStylesMatched": len(styles), "nativeMlineConsumerQualified": False}
+
+
+def qualify_mline_styles(ezdxf, probe, converter, output):
+    inputs, round_trips, edits = [], [], []
+    profiles = (("R2000", "cp1252", "Peer café mline"),
+                ("R2000", "cp932", "Peer 表タ mline"),
+                ("R2007", "utf-8", "Peer Ω mline"),
+                ("R2018", "utf-8", "Peer café Ω mline"))
+    for version, page, description in profiles:
+        doc = ezdxf.new(version)
+        if version == "R2000":
+            doc.encoding = page
+        null_bindings, omitted = author_null_material_bindings(doc)
+        style = doc.mline_styles.new(PEER_MLINE_STYLE_NAME)
+        style.dxf.update({"description": description, "flags": 3, "fill_color": 4,
+                          "start_angle": 37.5, "end_angle": 142.5})
+        style.elements.append(1.25, 3, "CONTINUOUS")
+        style.elements.append(-0.75, 5, "BYLAYER")
+        doc.modelspace().add_line((1, 2, 3), (4, 5, 6))
+        expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
+        edited_expected = {name: dict(value) for name, value in expected.items()}
+        edited_expected[PEER_MLINE_STYLE_NAME]["description"] = PEER_MLINE_STYLE_EDIT
+        for fmt in ("asc", "bin"):
+            source = output / ("mline-style-" + doc.dxfversion + "-" + page + "-" + fmt + ".dxf")
+            doc.saveas(source, fmt=fmt)
+            original = {"version": doc.dxfversion, "page": page, "format": fmt,
+                        "path": source.name, "sha256": digest(source), "matched": False,
+                        "selectedNullLayerBindings": null_bindings,
+                        "omittedDefaultMaterialHandles": omitted,
+                        "bindingIntent": "Typed MLINESTYLE definitions and LINE; no MLINE consumer or default MATERIAL qualification"}
+            try:
+                original["observations"] = selected_mline_style_projection(
+                    ezdxf, source, fmt == "bin", expected, source_recipe=True)
+                original["matched"] = True
+            except Exception as error:
+                original["mismatch"] = str(error)
+            inputs.append(original)
+            unchanged, edited = selected_resource_outputs(
+                ezdxf, probe, converter, source, version, page, fmt, original,
+                "--mline-style-edit-probe", selected_mline_style_projection, expected, edited_expected)
+            round_trips.extend(unchanged)
+            edits.extend(edited)
     return inputs, round_trips, edits
 
 
@@ -329,11 +512,19 @@ def main():
                         help="also check authored generic SCALE tags with independent selected projections")
     parser.add_argument("--scale-only", action="store_true",
                         help="run only SCALE projections, actual CLI round trips and adapter edits")
+    parser.add_argument("--mline-style-probe", action="store_true",
+                        help="also check typed MLINESTYLE definitions and selected description edits")
+    parser.add_argument("--mline-style-only", action="store_true",
+                        help="run only MLINESTYLE projections, actual CLI round trips and description edits")
     args = parser.parse_args()
-    if (args.scale_probe or args.scale_only) and not args.converter:
-        parser.error("SCALE qualification requires --converter for unchanged actual CLI output")
-    if args.scale_only and (args.edit_variables or args.legacy_variables):
-        parser.error("--scale-only cannot be combined with variable qualification flags")
+    selected_only = args.scale_only or args.mline_style_only
+    if (args.scale_probe or args.scale_only or args.mline_style_probe or args.mline_style_only) and not args.converter:
+        parser.error("selected resource qualification requires --converter for unchanged actual CLI output")
+    if selected_only and (args.edit_variables or args.legacy_variables):
+        parser.error("resource-only qualification cannot be combined with variable qualification flags")
+    if (args.scale_only and (args.mline_style_only or args.mline_style_probe)
+            or args.mline_style_only and args.scale_probe):
+        parser.error("resource-only flags cannot select another resource lane")
     import ezdxf
     from ezdxf.math import Matrix44
 
@@ -350,7 +541,7 @@ def main():
     variable_edits = []
     legacy_inputs, legacy_round_trips, legacy_edits = [], [], []
     source = None
-    for version in (() if args.scale_only else ("R2007", "R2010", "R2013", "R2018")):
+    for version in (() if selected_only else ("R2007", "R2010", "R2013", "R2018")):
         doc = ezdxf.new(version)
         material = doc.materials.new("PeerSurface")
         material.dxf.update({
@@ -472,6 +663,10 @@ def main():
     if args.scale_probe or args.scale_only:
         scale_inputs, scale_round_trips, scale_edits = qualify_scales(
             ezdxf, probe, converter, output)
+    mline_inputs, mline_round_trips, mline_edits = [], [], []
+    if args.mline_style_probe or args.mline_style_only:
+        mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
+            ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
         "schema": "libdxfrw.material-peer-source-order.v1",
@@ -514,14 +709,36 @@ def main():
                 "entities/dxfentity.py", "entities/factory.py", "sections/classes.py", "sections/objects.py",
                 "lldxf/tagger.py", "lldxf/validator.py", "lldxf/tags.py", "lldxf/extendedtags.py")},
         },
+        "mlineStyleInputs": mline_inputs,
+        "mlineStyleInputsMatched": sum(row["matched"] for row in mline_inputs),
+        "mlineStyleRoundTrips": mline_round_trips,
+        "mlineStyleRoundTripsMatched": sum(row["matched"] for row in mline_round_trips),
+        "mlineStyleEdits": mline_edits,
+        "mlineStyleEditsMatched": sum(row["matched"] for row in mline_edits),
+        "mlineStyleRecipe": {
+            "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
+            "producerTypedMlineStyleImplementation": True,
+            "editedStyle": PEER_MLINE_STYLE_NAME, "editedDescription": PEER_MLINE_STYLE_EDIT,
+            "descriptionMaxCharacters": 255, "angleWireUnits": "degrees",
+            "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
+            "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+            "materialBindingRecipe": "Shared authored null LAYER bindings before omitting unused defaults; setup-created MATERIALs disclosed",
+            "normalization": {"allFormats": ["ezdxf.decode_dxf_unicode once"],
+                              "asciiOnly": ["ezdxf.tools.text.caret_decode once"]},
+            "nativeMlineConsumerQualified": False, "defaultMaterialProfileQualified": False,
+            "modules": {name: digest(Path(ezdxf.__file__).parent / name) for name in (
+                "entities/mline.py", "entities/objectcollection.py", "entities/dxfentity.py",
+                "entities/factory.py", "sections/objects.py", "lldxf/tagger.py",
+                "lldxf/validator.py", "lldxf/tags.py", "lldxf/extendedtags.py")},
+        },
         "qualificationScriptSha256": digest(Path(__file__)),
         "converterSha256": digest(converter) if converter else None,
         "nativeRenderingQualified": False, "fullObjectiveComplete": False,
     }
     (output / "qualification.json").write_text(json.dumps(report, indent=2) + "\n")
-    if not args.scale_only:
+    if not selected_only:
         print("Independent MATERIAL selected body matches: %d/%d" % (passed, len(rows)))
-    if converter and not args.scale_only:
+    if converter and not selected_only:
         print("Independent selected document round trips: %d/%d" % (
             report["roundTripsMatched"], len(round_trips)))
     if args.edit_variables:
@@ -536,9 +753,15 @@ def main():
             report["scaleInputsMatched"], len(scale_inputs),
             report["scaleRoundTripsMatched"], len(scale_round_trips),
             report["scaleEditsMatched"], len(scale_edits)))
+    if args.mline_style_probe or args.mline_style_only:
+        print("Independent MLINESTYLE source/unchanged/edit projections: %d/%d, %d/%d, %d/%d" % (
+            report["mlineStyleInputsMatched"], len(mline_inputs),
+            report["mlineStyleRoundTripsMatched"], len(mline_round_trips),
+            report["mlineStyleEditsMatched"], len(mline_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
-        + scale_inputs + scale_round_trips + scale_edits) else 1
+        + scale_inputs + scale_round_trips + scale_edits
+        + mline_inputs + mline_round_trips + mline_edits) else 1
 
 
 if __name__ == "__main__":

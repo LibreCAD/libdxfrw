@@ -1156,7 +1156,8 @@ public:
             return;
 
         if (!hasUnchangedAcdsDxfHistorySources() || !hasUnchangedDxfMaterialSources()
-            || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()) {
+            || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
+            || !hasUnchangedDxfMLineStyles()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
@@ -1491,6 +1492,15 @@ public:
             return name == "MLINESTYLE";
         };
         for (std::uint32_t handle : m_extensionMLineStyleHandles) {
+            if (cData->sourceFormat == dx_source_format::DXF) {
+                const auto source=m_dxfMLineStyles.find(handle);
+                if (source==m_dxfMLineStyles.end()) { dxfW->writeRawDxfObject(nullptr); return; }
+                auto& plan=source->second;
+                if (plan.stringOverrides.empty()
+                    ? !dxfW->writeRawDxfObject(&plan.output)
+                    : !dxfW->writeRawDxfObjectWithStringOverrides(&plan.output,plan.stringOverrides)) return;
+                continue;
+            }
             std::size_t rawMatches = 0;
             std::size_t typedMatches = 0;
             DRW_RawDxfObject* rawStyle = nullptr;
@@ -2158,6 +2168,17 @@ private:
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfDictionaryVars() const noexcept;
     bool inspectDxfDictionaryVars(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DxfNamedResourceState {
+        const dx_data* owner{nullptr};
+        std::uint64_t generation{0u};
+        DRW::Version version{DRW::UNKNOWNV};
+        UTF8STRING codePage, declaration;
+        bool declarationPresent{false}, binary{false}, nodPresent{false};
+        std::unordered_map<std::uint32_t,DRW_Dictionary> dictionaries;
+    };
+    bool prepareDxfNamedResourceState(DxfNamedResourceState&, DRW::Version,
+        bool binary, std::size_t& chargedBytes);
+    bool hasUnchangedDxfNamedResourceState(const DxfNamedResourceState&) const noexcept;
     struct DxfScaleSource {
         DRW_Scale model, projection;
         DRW_RawDxfObject raw, output;
@@ -2165,18 +2186,26 @@ private:
         std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
     };
     std::unordered_map<std::uint32_t,DxfScaleSource> m_dxfScales;
-    std::unordered_map<std::uint32_t,DRW_Dictionary> m_dxfScaleDictionaries;
-    bool m_dxfScaleNodPresent{false};
-    const dx_data* m_dxfScaleOwner{nullptr};
-    std::uint64_t m_dxfScaleGeneration{0};
+    DxfNamedResourceState m_dxfScaleState;
     bool m_dxfScalesInspected{false};
-    DRW::Version m_dxfScaleOutputVersion{DRW::UNKNOWNV};
-    UTF8STRING m_dxfScaleOutputPage, m_dxfScaleOutputDeclaration;
-    bool m_dxfScaleDeclarationPresent{false}, m_dxfScaleOutputBinary{false};
     bool prepareDxfScales(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfScales() const noexcept;
     bool inspectDxfScales(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DxfMLineStyleSource {
+        DRW_MLineStyle model, projection;
+        DRW_RawDxfObject raw, output;
+        std::shared_ptr<const DRW_RawDxfObject> baseline;
+        std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
+        bool geometryChanged{false};
+    };
+    std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;
+    DxfNamedResourceState m_dxfMLineStyleState;
+    bool m_dxfMLineStylesInspected{false};
+    bool prepareDxfMLineStyles(DRW::Version version, bool binary,
+        DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
+    bool hasUnchangedDxfMLineStyles() const noexcept;
+    bool inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
     dx_materialImportReceipt m_dxfMaterialWriteReceipt;
     bool m_dxfMaterialWriteInspected{false};

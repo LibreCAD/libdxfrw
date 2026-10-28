@@ -15596,6 +15596,83 @@ namespace {
 constexpr std::array<int,5> scaleBodyCodes{{70,300,140,141,290}};
 constexpr std::size_t noScaleSlot = (std::numeric_limits<std::size_t>::max)();
 
+bool chargeNamedResourceBytes(std::size_t& bytes,std::size_t amount) noexcept {
+    if (bytes>kMaxAdapterRawNamedResourceRetainedBytes
+        || amount>(kMaxAdapterRawNamedResourceRetainedBytes-bytes)/64u) return false;
+    bytes+=64u*amount; return true;
+}
+
+// Common output proof for named resource bodies. Each family owns its grammar
+// and semantic projection; dictionary/key/handle admission is shared once.
+template<class State,class Sources,class Visitor>
+bool inspectNamedResourceOutput(dxfRW& writer,const dxfRW::DxfObjectsWriteView& view,
+        const State& state,const Sources& sources,std::string_view family,Visitor&& visit) {
+    if (view.version!=state.version || view.binary!=state.binary
+        || (view.version>=DRW::AC1021 ? std::string_view("UTF-8") : view.codePage)!=state.codePage) return false;
+    std::map<std::uint32_t,const typename Sources::mapped_type*> expected;
+    for (const auto& row:sources)
+        if (!expected.emplace(writer.remapHandle(row.first),&row.second).second) return false;
+    std::map<std::uint32_t,const DRW_Dictionary*> owners;
+    for (const auto& row:sources) {
+        const auto owner=state.dictionaries.find(row.second.raw.parentHandle);
+        if (owner==state.dictionaries.end()) return false;
+        owners.emplace(writer.remapHandle(owner->first),&owner->second);
+    }
+    const auto map=[&writer](std::uint32_t key,std::uint32_t& actual) {
+        actual=writer.remapHandle(key);
+        const auto* context=writer.getWritingContext();
+        if (!context || context->ambiguousSourceHandles.count(key)) return false;
+        // A dictionary's parent can be a successfully emitted table row.
+        // remapHandle alone only knows structural/block replacements.
+        bool bound=actual!=key;
+        for (const auto* aliases:{&context->sourceHandleToWrittenTableMap,
+                &context->sourceHandleToWrittenObjectMap,&context->sourceHandleToMintedMap}) {
+            const auto found=aliases->find(key);
+            if (found==aliases->end()) continue;
+            if (bound && actual!=found->second) return false;
+            actual=found->second; bound=true;
+        }
+        return key==0u || (actual!=0u && actual!=DRW::NoHandle);
+    };
+    std::unordered_set<std::uint32_t> seen,seenOwners; bool namesMatch=true;
+    const bool good=dx_standard_output::inspectSelected(view,[&](std::string_view name,std::uint32_t handle) {
+        if ((expected.count(handle) && !asciiIdentifierEquals(name,family))
+            || (owners.count(handle) && !asciiIdentifierEquals(name,"DICTIONARY"))) namesMatch=false;
+        return expected.count(handle)!=0u || owners.count(handle)!=0u;
+    },[&](const auto& shape,std::string_view body) {
+        if (owners.count(shape.handle)) {
+            if (!seenOwners.insert(shape.handle).second) return false;
+            const auto& source=*owners.at(shape.handle);
+            dx_standard_output::Decoder decoder(view);
+            return decoder.decodeRecord<DRW_Dictionary>(body,[&](const auto& actual) {
+                std::uint32_t parent=0u;
+                if (!map(source.parentHandle,parent) || actual.parentHandle!=parent
+                    || actual.hardOwner!=source.hardOwner || actual.cloning!=source.cloning) return false;
+                std::unordered_map<UTF8STRING,const DRW_Dictionary::Entry*> entries;
+                for (const auto& entry:actual.m_entries)
+                    if (!entries.emplace(entry.m_name,&entry).second) return false;
+                std::size_t bindings=0u;
+                for (const auto& entry:source.m_entries) if (sources.count(entry.m_handle)) {
+                    const auto found=entries.find(entry.m_name);
+                    using Role=DRW_Dictionary::Entry::DxfHandleCode;
+                    const auto role=entry.m_dxfHandleCode==Role::Unspecified
+                        ? (source.hardOwner ? Role::HardOwner : Role::SoftOwner) : entry.m_dxfHandleCode;
+                    if (found==entries.end() || found->second->m_handle!=writer.remapHandle(entry.m_handle)
+                        || found->second->m_dxfHandleCode!=role) return false;
+                    ++bindings;
+                }
+                return bindings!=0u;
+            });
+        }
+        if (!seen.insert(shape.handle).second) return false;
+        const auto& source=*expected.at(shape.handle);
+        return dx_standard_output::rawScalarTransportEqual(source.output.groups,body,view,map,false,
+                DRW::kMaxDxfBinaryPayloadBytes,false,dx_standard_output::RawHandleTransport::ObjectScopes)
+            && visit(source,body);
+    });
+    return good && namesMatch && seen.size()==expected.size() && seenOwners.size()==owners.size();
+}
+
 bool scaleFieldsEqual(const DRW_Scale& a, const DRW_Scale& b) noexcept {
     return a.flag == b.flag && a.name == b.name
         && retainedDoubleEqual(a.paperUnits,b.paperUnits)
@@ -15669,51 +15746,83 @@ template<class Context> bool decodeScaleBody(const DRW_RawDxfObject& raw,
 }
 } // namespace
 
+bool dx_iface::prepareDxfNamedResourceState(DxfNamedResourceState& state,
+        DRW::Version version,bool binary,std::size_t& bytes) {
+    state={};
+    if (!cData->hasSingleSuccessfulNamedResourceImport()
+        || version!=cData->sourceVersion || version<DRW::AC1014) return false;
+    std::string_view declaration="ANSI_1252";
+    auto page=cData->headerC.vars.find("$DWGCODEPAGE");
+    if (page==cData->headerC.vars.end()) page=cData->headerC.vars.find("DWGCODEPAGE");
+    if (page!=cData->headerC.vars.end()) {
+        if (!page->second || page->second->type()!=DRW_Variant::STRING || !page->second->content.s) return false;
+        declaration=*page->second->content.s;
+    }
+    if (declaration.size()>128u) return false;
+    state.declarationPresent=page!=cData->headerC.vars.end();
+    state.declaration=declaration;
+    DRW_TextCodec outputCodec; outputCodec.setVersion(version,true);
+    outputCodec.setCodePage(std::string(declaration),true);
+    state.codePage=version>=DRW::AC1021 ? "UTF-8" : outputCodec.getCodePage();
+    state.version=version; state.binary=binary;
+    const auto charge=[&](std::size_t amount) { return chargeNamedResourceBytes(bytes,amount); };
+    // Freeze already admitted dictionary providers before any callbacks.
+    // Reuse graph selection and the existing dictionary equality contract.
+    const auto captureDictionary=[&](const DRW_Dictionary& dictionary) {
+        std::size_t retained=0u,items=0u;
+        return estimateDictionaryTypedBytes(dictionary,retained,items) && charge(retained)
+            && state.dictionaries.emplace(dictionary.handle,dictionary).second;
+    };
+    state.nodPresent=cData->hasNamedObjectDictionary;
+    if (state.nodPresent && !captureDictionary(cData->namedObjectDictionary)) return false;
+    const std::unordered_set<std::uint32_t> dictionaries(
+        m_extensionDictionaryHandles.begin(),m_extensionDictionaryHandles.end());
+    for (const auto& dictionary:cData->dictionaries)
+        if (dictionaries.count(dictionary.handle) && !captureDictionary(dictionary)) return false;
+    state.owner=cData; state.generation=cData->importGeneration;
+    return true;
+}
+
+bool dx_iface::hasUnchangedDxfNamedResourceState(const DxfNamedResourceState& state) const noexcept {
+    if (!cData || cData!=state.owner || cData->sourceFormat!=dx_source_format::DXF
+        || cData->importGeneration!=state.generation || cData->sourceVersion!=state.version) return false;
+    try {
+        auto page=cData->headerC.vars.find("$DWGCODEPAGE");
+        if (page==cData->headerC.vars.end()) page=cData->headerC.vars.find("DWGCODEPAGE");
+        if ((page!=cData->headerC.vars.end())!=state.declarationPresent) return false;
+        if (page!=cData->headerC.vars.end() && (!page->second
+            || page->second->type()!=DRW_Variant::STRING || !page->second->content.s
+            || *page->second->content.s!=state.declaration)) return false;
+        if (!cData->hasSingleSuccessfulNamedResourceImport()) return false;
+        if (cData->hasNamedObjectDictionary!=state.nodPresent) return false;
+        std::unordered_set<std::uint32_t> dictionaryIds;
+        const auto dictionaryUnchanged=[&](const DRW_Dictionary& dictionary) {
+            const auto source=state.dictionaries.find(dictionary.handle);
+            return source!=state.dictionaries.end() && dictionaryIds.insert(dictionary.handle).second
+                && standardDwgModelsEqual(source->second,dictionary,cData->sourceVersion,dwgObjType::DICTIONARY);
+        };
+        if (state.nodPresent && !dictionaryUnchanged(cData->namedObjectDictionary)) return false;
+        for (const auto& dictionary:cData->dictionaries)
+            if (state.dictionaries.count(dictionary.handle) && !dictionaryUnchanged(dictionary)) return false;
+        if (dictionaryIds.size()!=state.dictionaries.size()) return false;
+        return true;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::prepareDxfScales(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy) noexcept {
-    m_dxfScales.clear(); m_dxfScaleDictionaries.clear(); m_dxfScaleOwner=nullptr; m_dxfScalesInspected=false;
+    m_dxfScales.clear(); m_dxfScaleState.dictionaries.clear(); m_dxfScaleState.owner=nullptr; m_dxfScalesInspected=false;
     if (!cData) return false;
     if (cData->sourceFormat!=dx_source_format::DXF || m_extensionScaleHandles.empty()) return true;
     try {
-        if (!cData->hasSingleSuccessfulNamedResourceImport()
-            || version!=cData->sourceVersion || version<DRW::AC1014) return false;
-        std::string_view declaration="ANSI_1252";
-        auto page=cData->headerC.vars.find("$DWGCODEPAGE");
-        if (page==cData->headerC.vars.end()) page=cData->headerC.vars.find("DWGCODEPAGE");
-        if (page!=cData->headerC.vars.end()) {
-            if (!page->second || page->second->type()!=DRW_Variant::STRING || !page->second->content.s) return false;
-            declaration=*page->second->content.s;
-        }
-        if (declaration.size()>128u) return false;
-        m_dxfScaleDeclarationPresent=page!=cData->headerC.vars.end();
-        m_dxfScaleOutputDeclaration=declaration;
-        DRW_TextCodec outputCodec; outputCodec.setVersion(version,true);
-        outputCodec.setCodePage(std::string(declaration),true);
-        m_dxfScaleOutputPage=version>=DRW::AC1021 ? "UTF-8" : outputCodec.getCodePage();
-        m_dxfScaleOutputVersion=version; m_dxfScaleOutputBinary=binary;
+        std::size_t bytes=0u;
+        if (!prepareDxfNamedResourceState(m_dxfScaleState,version,binary,bytes)) return false;
         const std::unordered_set<std::uint32_t> handles(m_extensionScaleHandles.begin(),m_extensionScaleHandles.end());
         if (handles.size()!=m_extensionScaleHandles.size()) return false;
         std::unordered_map<std::uint32_t,const DRW_RawDxfObject*> raws;
         for (const auto& raw:cData->rawNamedResourceObjects) if (handles.count(raw.handle))
             if (!raws.emplace(raw.handle,&raw).second) return false;
-        std::size_t bytes=0u;
-        const auto charge=[&](std::size_t amount) {
-            if (amount>(kMaxAdapterRawNamedResourceRetainedBytes-bytes)/64u) return false;
-            bytes+=64u*amount; return true;
-        };
-        // Freeze already admitted dictionary providers before any callbacks.
-        // Reuse graph selection and the existing dictionary equality contract.
-        const auto captureDictionary=[&](const DRW_Dictionary& dictionary) {
-            std::size_t retained=0u,items=0u;
-            return estimateDictionaryTypedBytes(dictionary,retained,items) && charge(retained)
-                && m_dxfScaleDictionaries.emplace(dictionary.handle,dictionary).second;
-        };
-        m_dxfScaleNodPresent=cData->hasNamedObjectDictionary;
-        if (m_dxfScaleNodPresent && !captureDictionary(cData->namedObjectDictionary)) return false;
-        const std::unordered_set<std::uint32_t> dictionaries(
-            m_extensionDictionaryHandles.begin(),m_extensionDictionaryHandles.end());
-        for (const auto& dictionary:cData->dictionaries)
-            if (dictionaries.count(dictionary.handle) && !captureDictionary(dictionary)) return false;
+        const auto charge=[&](std::size_t amount) { return chargeNamedResourceBytes(bytes,amount); };
         for (const auto& value:cData->scales) {
             if (!handles.count(value.handle)) continue;
             const auto found=raws.find(value.handle);
@@ -15749,14 +15858,14 @@ bool dx_iface::prepareDxfScales(DRW::Version version, bool binary,
                 || !choose(original.isUnitScale,value.isUnitScale,parsed.isUnitScale,target.isUnitScale)
                 || !std::isfinite(target.paperUnits) || target.paperUnits<=0.0
                 || !std::isfinite(target.drawingUnits) || target.drawingUnits<=0.0) return false;
-            dx_material_body::BodyWriter encoded(binary,version,m_dxfScaleOutputPage);
+            dx_material_body::BodyWriter encoded(binary,version,m_dxfScaleState.codePage);
             const int flag=binary && target.flag>INT16_MAX ? static_cast<int>(target.flag)-65536 : target.flag;
             if (!encoded.writeInt16(70,flag) || !encoded.writeUtf8String(300,target.name)
                 || !encoded.writeDouble(140,target.paperUnits) || !encoded.writeDouble(141,target.drawingUnits)
                 || !encoded.writeBool(290,target.isUnitScale) || encoded.groups.size()!=5u) return false;
             const bool sourceBinary=!context.hasRawValues;
             const auto sourcePage=version>=DRW::AC1021 ? std::string_view("UTF-8") : std::string_view(context.codePage);
-            const bool pageChanged=sourcePage!=m_dxfScaleOutputPage;
+            const bool pageChanged=sourcePage!=m_dxfScaleState.codePage;
             if (pageChanged) for (std::size_t i=0u;i<raw.groups.size();++i) {
                 const auto& field=raw.groups[i];
                 if (i!=slots[1] && field.type()==DRW_Variant::STRING && field.content.s)
@@ -15810,39 +15919,20 @@ bool dx_iface::prepareDxfScales(DRW::Version version, bool binary,
             }
             if (binary) { source.output.hasRawValues=false; source.output.rawValues.clear(); }
             DRW_Scale projected;
-            if (!dx_material_body::decodeRecord(source.output,projected,binary,m_dxfScaleOutputPage)
+            if (!dx_material_body::decodeRecord(source.output,projected,binary,m_dxfScaleState.codePage)
                 || !scaleFieldsEqual(projected,target)
                 || !m_dxfScales.emplace(value.handle,std::move(source)).second) return false;
         }
         if (m_dxfScales.size()!=handles.size()) return false;
-        m_dxfScaleOwner=cData; m_dxfScaleGeneration=cData->importGeneration;
+        m_dxfScaleState.owner=cData; m_dxfScaleState.generation=cData->importGeneration;
         return hasUnchangedDxfScales();
     } catch (...) { return false; }
 }
 
 bool dx_iface::hasUnchangedDxfScales() const noexcept {
     if (m_dxfScales.empty()) return true;
-    if (!cData || cData!=m_dxfScaleOwner || cData->sourceFormat!=dx_source_format::DXF
-        || cData->importGeneration!=m_dxfScaleGeneration) return false;
+    if (!hasUnchangedDxfNamedResourceState(m_dxfScaleState)) return false;
     try {
-        auto page=cData->headerC.vars.find("$DWGCODEPAGE");
-        if (page==cData->headerC.vars.end()) page=cData->headerC.vars.find("DWGCODEPAGE");
-        if ((page!=cData->headerC.vars.end())!=m_dxfScaleDeclarationPresent) return false;
-        if (page!=cData->headerC.vars.end() && (!page->second
-            || page->second->type()!=DRW_Variant::STRING || !page->second->content.s
-            || *page->second->content.s!=m_dxfScaleOutputDeclaration)) return false;
-        if (!cData->hasSingleSuccessfulNamedResourceImport()) return false;
-        if (cData->hasNamedObjectDictionary!=m_dxfScaleNodPresent) return false;
-        std::unordered_set<std::uint32_t> dictionaryIds;
-        const auto dictionaryUnchanged=[&](const DRW_Dictionary& dictionary) {
-            const auto source=m_dxfScaleDictionaries.find(dictionary.handle);
-            return source!=m_dxfScaleDictionaries.end() && dictionaryIds.insert(dictionary.handle).second
-                && standardDwgModelsEqual(source->second,dictionary,cData->sourceVersion,dwgObjType::DICTIONARY);
-        };
-        if (m_dxfScaleNodPresent && !dictionaryUnchanged(cData->namedObjectDictionary)) return false;
-        for (const auto& dictionary:cData->dictionaries)
-            if (m_dxfScaleDictionaries.count(dictionary.handle) && !dictionaryUnchanged(dictionary)) return false;
-        if (dictionaryIds.size()!=m_dxfScaleDictionaries.size()) return false;
         std::unordered_set<std::uint32_t> typed,raws;
         for (const auto& value:cData->scales) {
             const auto found=m_dxfScales.find(value.handle); if (found==m_dxfScales.end()) continue;
@@ -15867,76 +15957,262 @@ bool dx_iface::hasUnchangedDxfScales() const noexcept {
 
 bool dx_iface::inspectDxfScales(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (m_dxfScales.empty()) return true;
-    if (m_dxfScalesInspected || !hasUnchangedDxfScales() || view.version!=m_dxfScaleOutputVersion
-        || view.binary!=m_dxfScaleOutputBinary
-        || (view.version>=DRW::AC1021 ? std::string_view("UTF-8") : view.codePage)!=m_dxfScaleOutputPage) return false;
+    if (!dxfW || m_dxfScalesInspected || !hasUnchangedDxfScales()) return false;
     try {
-        std::map<std::uint32_t,const DxfScaleSource*> expected;
-        for (const auto& row:m_dxfScales)
-            if (!expected.emplace(dxfW->remapHandle(row.first),&row.second).second) return false;
-        std::map<std::uint32_t,const DRW_Dictionary*> owners;
-        for (const auto& row:m_dxfScales) {
-            const auto owner=m_dxfScaleDictionaries.find(row.second.raw.parentHandle);
-            if (owner==m_dxfScaleDictionaries.end()) return false;
-            owners.emplace(dxfW->remapHandle(owner->first),&owner->second);
-        }
-        const auto map=[this](std::uint32_t key,std::uint32_t& actual) {
-            actual=dxfW->remapHandle(key);
-            const auto* context=dxfW->getWritingContext();
-            if (!context || context->ambiguousSourceHandles.count(key)) return false;
-            // A dictionary's parent can be a successfully emitted table row.
-            // remapHandle alone only knows structural/block replacements.
-            bool bound=actual!=key;
-            for (const auto* aliases:{&context->sourceHandleToWrittenTableMap,
-                    &context->sourceHandleToWrittenObjectMap,&context->sourceHandleToMintedMap}) {
-                const auto found=aliases->find(key);
-                if (found==aliases->end()) continue;
-                if (bound && actual!=found->second) return false;
-                actual=found->second; bound=true;
-            }
-            return key==0u || (actual!=0u && actual!=DRW::NoHandle);
-        };
-        std::unordered_set<std::uint32_t> seen,seenOwners; bool namesMatch=true;
-        const bool good=dx_standard_output::inspectSelected(view,[&](std::string_view name,std::uint32_t handle) {
-            if ((expected.count(handle) && !asciiIdentifierEquals(name,"SCALE"))
-                || (owners.count(handle) && !asciiIdentifierEquals(name,"DICTIONARY"))) namesMatch=false;
-            return expected.count(handle)!=0u || owners.count(handle)!=0u;
-        },[&](const auto& shape,std::string_view body) {
-            if (owners.count(shape.handle)) {
-                if (!seenOwners.insert(shape.handle).second) return false;
-                const auto& source=*owners.at(shape.handle);
+        m_dxfScalesInspected=inspectNamedResourceOutput(*dxfW,view,m_dxfScaleState,m_dxfScales,"SCALE",
+            [&](const auto& source,std::string_view body) {
                 dx_standard_output::Decoder decoder(view);
-                return decoder.decodeRecord<DRW_Dictionary>(body,[&](const auto& actual) {
-                    std::uint32_t parent=0u;
-                    if (!map(source.parentHandle,parent) || actual.parentHandle!=parent
-                        || actual.hardOwner!=source.hardOwner || actual.cloning!=source.cloning) return false;
-                    std::unordered_map<UTF8STRING,const DRW_Dictionary::Entry*> entries;
-                    for (const auto& entry:actual.m_entries)
-                        if (!entries.emplace(entry.m_name,&entry).second) return false;
-                    std::size_t bindings=0u;
-                    for (const auto& entry:source.m_entries) if (m_dxfScales.count(entry.m_handle)) {
-                        const auto found=entries.find(entry.m_name);
-                        using Role=DRW_Dictionary::Entry::DxfHandleCode;
-                        const auto role=entry.m_dxfHandleCode==Role::Unspecified
-                            ? (source.hardOwner ? Role::HardOwner : Role::SoftOwner) : entry.m_dxfHandleCode;
-                        if (found==entries.end() || found->second->m_handle!=dxfW->remapHandle(entry.m_handle)
-                            || found->second->m_dxfHandleCode!=role) return false;
-                        ++bindings;
-                    }
-                    return bindings!=0u;
-                });
-            }
-            if (!seen.insert(shape.handle).second) return false;
-            const auto& source=*expected.at(shape.handle);
-            dx_standard_output::Decoder decoder(view);
-            return dx_standard_output::rawScalarTransportEqual(source.output.groups,body,view,map,false,
-                    DRW::kMaxDxfBinaryPayloadBytes,false,dx_standard_output::RawHandleTransport::ObjectScopes)
-                && decoder.decodeRecord<DRW_Scale>(body,[&](const auto& value) {
+                return decoder.decodeRecord<DRW_Scale>(body,[&](const auto& value) {
                     return scaleFieldsEqual(value,source.projection);
                 });
-        });
-        m_dxfScalesInspected=good && namesMatch && seen.size()==expected.size() && seenOwners.size()==owners.size();
+            });
         return m_dxfScalesInspected;
+    } catch (...) { return false; }
+}
+
+namespace {
+bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
+        bool description=true) noexcept {
+    if (a.name!=b.name || a.flags!=b.flags || (description && a.description!=b.description)
+        || !retainedDoubleEqual(a.startAngle,b.startAngle) || !retainedDoubleEqual(a.endAngle,b.endAngle)
+        || a.fillColor!=b.fillColor || a.fillColor24!=b.fillColor24
+        || a.fillColorMethod!=b.fillColorMethod || a.fillColorFlags!=b.fillColorFlags
+        || a.fillColorName!=b.fillColorName || a.fillColorBookName!=b.fillColorBookName
+        || a.fillColorDwgIndex!=b.fillColorDwgIndex || a.elements.size()!=b.elements.size()) return false;
+    for (std::size_t i=0u;i<a.elements.size();++i) {
+        const auto& x=a.elements[i];const auto& y=b.elements[i];
+        if (!retainedDoubleEqual(x.offset,y.offset) || x.color!=y.color || x.color24!=y.color24
+            || x.colorMethod!=y.colorMethod || x.colorFlags!=y.colorFlags
+            || x.colorName!=y.colorName || x.colorBookName!=y.colorBookName
+            || x.colorDwgIndex!=y.colorDwgIndex || x.linetype!=y.linetype
+            || x.linetypeIndex!=y.linetypeIndex || x.linetypeHandle!=y.linetypeHandle) return false;
+    }
+    return true;
+}
+
+// Validate owning physical roles before decoding. Header angles may legally
+// follow elements; repeated62 belongs to fill before49, then to each element.
+bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
+        std::size_t& descriptionSlot,std::size_t& insertion) {
+    descriptionSlot=noScaleSlot;insertion=raw.groups.size();
+    selected.m_version=raw.m_version; selected.hasRawValues=raw.hasRawValues;
+    unsigned depth=0u,markers=0u,elements=0u;
+    bool body=false,xdata=false;std::set<int> headers;
+    for (std::size_t i=0u;i<raw.groups.size();++i) {
+        const auto& field=raw.groups[i];const int code=field.code();
+        if (code==102) {
+            if (field.type()!=DRW_Variant::STRING || !field.content.s) return false;
+            if (*field.content.s=="}") { if (!depth) return false;--depth; }
+            else if (!field.content.s->empty() && field.content.s->front()=='{') {
+                if (++depth>DRW::kMaxDxfApplicationGroupNesting) return false;
+            } else return false;
+            continue;
+        }
+        if (depth) continue;
+        if (code>=1000) { insertion=(std::min)(insertion,i);xdata=true;body=false;continue; }
+        if (xdata) return false;
+        if (code==100) {
+            if (field.type()!=DRW_Variant::STRING || !field.content.s) return false;
+            if (body) insertion=(std::min)(insertion,i);
+            body=*field.content.s=="AcDbMlineStyle";
+            if (body && ++markers!=1u) return false;
+            continue;
+        }
+        const bool text=code==2 || code==3 || code==6;
+        const bool number=code==49 || code==51 || code==52;
+        const bool integer=code==70 || code==71 || code==62;
+        if (!text && !number && !integer) continue;
+        if (!body) return false;
+        if (code==2 || code==3 || code==70 || code==71 || code==51 || code==52
+            || (code==62 && elements==0u)) if (!headers.insert(code).second) return false;
+        if (text && (field.type()!=DRW_Variant::STRING || !field.content.s)) return false;
+        if (number && (field.type()!=DRW_Variant::DOUBLE || !std::isfinite(field.d_val()))) return false;
+        if (integer && (field.type()!=DRW_Variant::INTEGER
+            || field.i_val()<INT16_MIN || field.i_val()>UINT16_MAX)) return false;
+        if (code==3) descriptionSlot=i;
+        if (code==49 || code==71) insertion=(std::min)(insertion,i);
+        if (code==49 && ++elements>UINT8_MAX) return false;
+        selected.groups.push_back(field);
+    }
+    return depth==0u && markers==1u;
+}
+
+template<class Context> bool decodeMlineBody(const DRW_RawDxfObject& raw,
+        const Context& context,DRW_MLineStyle& result,std::size_t& slot,std::size_t& insertion) {
+    DRW_RawDxfObject selected;
+    if (!mlineBodyFields(raw,selected,slot,insertion)
+        || !dx_material_body::decodeRecord(raw,result,!raw.hasRawValues,
+            context.codePage,context.encoding,context.policy,context.compatibility)
+        || !result.validateDxfRecord()) return false;
+    DRW_MLineStyle payload;
+    return dx_material_body::decodeRecord(selected,payload,!raw.hasRawValues,
+            context.codePage,context.encoding,context.policy,context.compatibility)
+        && payload.validateDxfRecord() && mlineFieldsEqual(result,payload);
+}
+} // namespace
+
+bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
+        DRW::DxfTextWritePolicy policy) noexcept {
+    m_dxfMLineStyles.clear();m_dxfMLineStyleState={};m_dxfMLineStylesInspected=false;
+    if (!cData) return false;
+    if (cData->sourceFormat!=dx_source_format::DXF || m_extensionMLineStyleHandles.empty()) return true;
+    try {
+        std::size_t bytes=0u;
+        if (!prepareDxfNamedResourceState(m_dxfMLineStyleState,version,binary,bytes)) return false;
+        const std::unordered_set<std::uint32_t> handles(m_extensionMLineStyleHandles.begin(),m_extensionMLineStyleHandles.end());
+        if (handles.size()!=m_extensionMLineStyleHandles.size()) return false;
+        std::unordered_map<std::uint32_t,const DRW_RawDxfObject*> raws;
+        for (const auto& raw:cData->rawNamedResourceObjects) if (handles.count(raw.handle))
+            if (!raws.emplace(raw.handle,&raw).second) return false;
+        // The snapshot allowance covers this borrowed-entry index as well as
+        // retained dictionaries. Join once; a common style dictionary can
+        // contain the entire resource set.
+        std::unordered_multimap<std::uint64_t,const DRW_Dictionary::Entry*> names;
+        for (const auto& dictionary:m_dxfMLineStyleState.dictionaries)
+            for (const auto& entry:dictionary.second.m_entries) if (handles.count(entry.m_handle))
+                names.emplace((static_cast<std::uint64_t>(dictionary.first)<<32u)|entry.m_handle,&entry);
+        for (const auto& value:cData->mLineStyles) {
+            if (!handles.count(value.handle)) continue;
+            const auto found=raws.find(value.handle);const auto baseline=cData->m_mlineStyleBodyBaselines.find(value.handle);
+            if (found==raws.end() || baseline==cData->m_mlineStyleBodyBaselines.end() || !baseline->second) return false;
+            const auto& raw=*found->second;const auto& context=*baseline->second;
+            std::size_t retained=0u,typed=0u,items=0u,originalBytes=0u;
+            if (!estimateRawDxfObjectBytes(raw,retained) || !estimateMLineStyleTypedBytes(value,typed,items)
+                || !estimateRawDxfObjectBytes(context,originalBytes)
+                || !chargeNamedResourceBytes(bytes,retained) || !chargeNamedResourceBytes(bytes,typed)
+                || !chargeNamedResourceBytes(bytes,originalBytes)) return false;
+            if (!asciiIdentifierEquals(raw.name,"MLINESTYLE") || raw.m_version!=version
+                || context.handle!=raw.handle || context.m_version!=raw.m_version
+                || context.hasRawValues!=raw.hasRawValues
+                || (raw.hasRawValues && raw.rawValues.size()!=raw.groups.size())) return false;
+            DRW_TextCodec sourceCodec;sourceCodec.setVersion(version,true);
+            if (sourceCodec.getVersion()!=static_cast<int>(context.codecVersion)) return false;
+            DRW_MLineStyle original,parsed;std::size_t oldSlot=0u,oldInsertion=0u,slot=0u,insertion=0u;
+            if (!decodeMlineBody(context,context,original,oldSlot,oldInsertion)
+                || !decodeMlineBody(raw,context,parsed,slot,insertion)
+                || !standardDwgCommonEqual(value,parsed,version,false)
+                || !mlineFieldsEqual(value,original,false) || parsed.name!=original.name) return false;
+            // The current slice has no renamed dictionary or LTYPE provider.
+            // Keep their reference meanings unchanged while other raw fields
+            // remain authoritative and receive exact output transport proof.
+            if (parsed.elements.size()==original.elements.size()) {
+                for (std::size_t i=0u;i<parsed.elements.size();++i)
+                    if (parsed.elements[i].linetype!=original.elements[i].linetype
+                        || parsed.elements[i].linetypeIndex!=original.elements[i].linetypeIndex
+                        || parsed.elements[i].linetypeHandle!=original.elements[i].linetypeHandle) return false;
+            } else return false;
+            const auto owner=m_dxfMLineStyleState.dictionaries.find(raw.parentHandle);
+            if (owner==m_dxfMLineStyleState.dictionaries.end()) return false;
+            const auto key=(static_cast<std::uint64_t>(raw.parentHandle)<<32u)|value.handle;
+            const auto range=names.equal_range(key);
+            if (range.first==range.second) return false;
+            const auto name=layoutSymbolKey(original.name);
+            for (auto entry=range.first;entry!=range.second;++entry)
+                if (layoutSymbolKey(entry->second->m_name)!=name) return false;
+            UTF8STRING text;
+            if (value.description!=original.description && parsed.description!=original.description
+                && value.description!=parsed.description) return false;
+            text=value.description!=original.description ? value.description : parsed.description;
+            // Count Unicode scalar starts; BodyWriter below validates UTF-8.
+            // This is the documented255-character description boundary, not
+            // a limit on encoded CIF/codepage byte length or a memory claim.
+            if (std::count_if(text.begin(),text.end(),[](unsigned char c){return (c&0xC0u)!=0x80u;})>255) return false;
+            DxfMLineStyleSource source;source.model=value;source.projection=parsed;
+            source.projection.description=text;source.raw=raw;source.output=raw;source.baseline=baseline->second;
+            for (std::size_t i=0u;i<parsed.elements.size();++i)
+                source.geometryChanged=source.geometryChanged || !retainedDoubleEqual(parsed.elements[i].offset,original.elements[i].offset);
+            const auto sourcePage=version>=DRW::AC1021 ? std::string_view("UTF-8") : std::string_view(context.codePage);
+            const bool pageChanged=sourcePage!=m_dxfMLineStyleState.codePage;
+            if (pageChanged) for (std::size_t i=0u;i<raw.groups.size();++i) {
+                const auto& field=raw.groups[i];
+                if (i!=slot && field.type()==DRW_Variant::STRING && field.content.s)
+                    for (unsigned char c:*field.content.s) if (c>=128u) return false;
+            }
+            dx_material_body::BodyWriter encoded(binary,version,m_dxfMLineStyleState.codePage);
+            if (!encoded.writeUtf8String(3,text) || encoded.groups.size()!=1u) return false;
+            const bool sourceBinary=!context.hasRawValues;
+            const bool edit=text!=parsed.description || ((sourceBinary!=binary || pageChanged) && slot!=noScaleSlot);
+            const auto replace=[&](std::size_t index) {
+                source.output.groups[index]=encoded.groups[0];
+                if (source.output.hasRawValues && !binary) {
+                    std::string spelling;if (!dx_material_body::spelling(encoded.groups[0],spelling)) return false;
+                    source.output.rawValues.at(index)=std::move(spelling);
+                }
+                return true;
+            };
+            if (edit) {
+                if (slot==noScaleSlot) {
+                    slot=insertion;source.output.groups.insert(source.output.groups.begin()+insertion,encoded.groups[0]);
+                    if (source.output.hasRawValues && !binary) {
+                        std::string spelling;if (!dx_material_body::spelling(encoded.groups[0],spelling)) return false;
+                        source.output.rawValues.insert(source.output.rawValues.begin()+insertion,std::move(spelling));
+                    }
+                } else if (!replace(slot)) return false;
+            }
+            if (policy==DRW::DxfTextWritePolicy::RequireLossless && version<DRW::AC1021 && slot<source.output.groups.size()) {
+                const auto& field=source.output.groups[slot];
+                if (field.type()==DRW_Variant::STRING && field.content.s
+                    && std::any_of(field.content.s->begin(),field.content.s->end(),[](unsigned char c){return c>=128u;})) {
+                    if (!replace(slot)) return false;source.stringOverrides.emplace_back(slot,text);
+                }
+            }
+            if (binary) { source.output.hasRawValues=false;source.output.rawValues.clear(); }
+            DRW_MLineStyle projected;
+            if (!dx_material_body::decodeRecord(source.output,projected,binary,m_dxfMLineStyleState.codePage)
+                || !projected.validateDxfRecord() || !mlineFieldsEqual(projected,source.projection)
+                || !m_dxfMLineStyles.emplace(value.handle,std::move(source)).second) return false;
+        }
+        return m_dxfMLineStyles.size()==handles.size() && hasUnchangedDxfMLineStyles();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
+    if (m_dxfMLineStyles.empty()) return true;
+    if (!hasUnchangedDxfNamedResourceState(m_dxfMLineStyleState)) return false;
+    try {
+        std::unordered_set<std::uint32_t> typed,raws;
+        for (const auto& value:cData->mLineStyles) {
+            const auto found=m_dxfMLineStyles.find(value.handle);if (found==m_dxfMLineStyles.end()) continue;
+            const auto baseline=cData->m_mlineStyleBodyBaselines.find(value.handle);
+            if (baseline==cData->m_mlineStyleBodyBaselines.end() || baseline->second!=found->second.baseline
+                || !typed.insert(value.handle).second || !mlineFieldsEqual(value,found->second.model)
+                || !standardDwgCommonEqual(value,found->second.model,cData->sourceVersion)) return false;
+        }
+        for (const auto& raw:cData->rawNamedResourceObjects) {
+            const auto found=m_dxfMLineStyles.find(raw.handle);if (found==m_dxfMLineStyles.end()) continue;
+            const auto& old=found->second.raw;
+            if (!raws.insert(raw.handle).second || old.name!=raw.name || old.handle!=raw.handle || old.parentHandle!=raw.parentHandle
+                || old.m_version!=raw.m_version || old.hasRawValues!=raw.hasRawValues || old.rawValues!=raw.rawValues
+                || old.groups.size()!=raw.groups.size()) return false;
+            for (std::size_t i=0u;i<raw.groups.size();++i) if (!retainedVariantEqual(old.groups[i],raw.groups[i])) return false;
+        }
+        const auto consumersUnchanged=[&](const dx_ifaceBlock* block) {
+            if (!block) return true;
+            for (const auto* entity:block->ent) if (entity && entity->eType==DRW::MLINE) {
+                const auto* mline=dynamic_cast<const DRW_MLine*>(entity);if (!mline) return false;
+                const auto source=m_dxfMLineStyles.find(mline->styleHandle);
+                if (source!=m_dxfMLineStyles.end() && source->second.geometryChanged) return false;
+            }
+            return true;
+        };
+        if (!consumersUnchanged(cData->mBlock)) return false;
+        for (const auto* block:cData->blocks) if (!consumersUnchanged(block)) return false;
+        return typed.size()==m_dxfMLineStyles.size() && raws.size()==typed.size();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_dxfMLineStyles.empty()) return true;
+    if (!dxfW || m_dxfMLineStylesInspected || !hasUnchangedDxfMLineStyles()) return false;
+    try {
+        m_dxfMLineStylesInspected=inspectNamedResourceOutput(*dxfW,view,m_dxfMLineStyleState,m_dxfMLineStyles,"MLINESTYLE",
+            [&](const auto& source,std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeRecord<DRW_MLineStyle>(body,[&](const auto& value) {
+                    return value.validateDxfRecord() && mlineFieldsEqual(value,source.projection);
+                });
+            });
+        return m_dxfMLineStylesInspected;
     } catch (...) { return false; }
 }
 
@@ -25714,9 +25990,11 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         const bool captureBaseline = trackedImport && cData->importGeneration == 1u
             && data.m_version >= DRW::AC1014
             && (asciiIdentifierEquals(normalizedName, "DICTIONARYVAR")
-                || asciiIdentifierEquals(normalizedName, "SCALE"));
+                || asciiIdentifierEquals(normalizedName, "SCALE")
+                || asciiIdentifierEquals(normalizedName, "MLINESTYLE"));
         auto& bodyBaselines = asciiIdentifierEquals(normalizedName, "SCALE")
-            ? cData->m_scaleBodyBaselines : cData->m_dictionaryVarBodyBaselines;
+            ? cData->m_scaleBodyBaselines : asciiIdentifierEquals(normalizedName, "MLINESTYLE")
+                ? cData->m_mlineStyleBodyBaselines : cData->m_dictionaryVarBodyBaselines;
         dxfRW::DxfReadContext sourceContext;
         if (captureBaseline && (!cData->m_tableDxfSource.entitiesReadInput
             || !cData->m_tableDxfSource.entitiesReadInput->getDxfReadContext(sourceContext)
@@ -29419,6 +29697,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if (!hasUnchangedDxfMLineStyles() || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)) return false;
     if (!hasUnchangedDxfScales() || (!m_dxfScales.empty() && !m_dxfScalesInspected)) return false;
     if(!hasUnchangedDxfDictionaryVars()||(!m_dxfDictionaryVars.empty()&&!m_dxfDictionaryVarsInspected))return false;
     if(!finalizeDxfHeaderMaterial()||!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
@@ -30386,7 +30665,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dxfMaterialHandles.clear();
     m_dxfMaterialWriteSources.clear();
     m_customDxfDictionaryVarHandles.clear();m_dxfDictionaryVars.clear();m_dxfDictionaryVarOwner=nullptr;m_dxfDictionaryVarsInspected=false;
-    m_dxfScales.clear(); m_dxfScaleDictionaries.clear(); m_dxfScaleOwner=nullptr; m_dxfScalesInspected=false;
+    m_dxfScales.clear(); m_dxfScaleState.dictionaries.clear(); m_dxfScaleState.owner=nullptr; m_dxfScalesInspected=false;
+    m_dxfMLineStyles.clear(); m_dxfMLineStyleState={}; m_dxfMLineStylesInspected=false;
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
     m_dxfMaterialWriteInspected = false;
@@ -31186,6 +31466,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDxfScales(v,binary,targetTextPolicy)) {
         reportPreflightFailure("SCALE current source/body transaction");
+        return false;
+    }
+    if (!prepareDxfMLineStyles(v,binary,targetTextPolicy)) {
+        reportPreflightFailure("MLINESTYLE current source/body transaction");
         return false;
     }
     if (hasAdmittedSpatialFilters) {
@@ -33092,7 +33376,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     const bool needsRenderingOutput = !cData->renderSettings.empty();
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_acdsDxfHistoryObjects.empty()
-            || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty())
+            || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty() || !m_dxfMLineStyles.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput](const auto& view) {
             return hasUnchangedXrecordWriteSources()
                 && (!needsShadeOutput || inspectDxfShadeConsumers(view, "OBJECTS"))
@@ -33100,6 +33384,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && inspectDxfMaterialOutput(view)
                 && inspectDxfDictionaryVars(view)
                 && inspectDxfScales(view)
+                && inspectDxfMLineStyles(view)
                 && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))
