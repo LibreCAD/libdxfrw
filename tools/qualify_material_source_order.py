@@ -1265,6 +1265,61 @@ def qualify_mline_style_retarget(ezdxf, probe, converter, output):
     return [original], edits
 
 
+def qualify_mline_style_unused_offsets(ezdxf, probe, converter, output, original):
+    """Reuse the original three-style source; edit only its unused definition."""
+    source = output / original["path"]
+    assert digest(source) == original["sha256"], "reused unused-offset source binding"
+    expected = original["expectedStyles"]
+    consumers = original["expectedConsumers"]
+    elements = expected[PEER_MLINE_STYLE_RETARGET]["elements"]
+    assert [element[0] for element in elements] == [1.25, -0.75], "selected original offset census"
+    assert set(original["expectedSourceStyleKeys"].values()) == {PEER_MLINE_STYLE_NAME}, "unused source style target census"
+    reused = {"version": original["version"], "page": original["page"],
+              "format": original["format"], "path": original["path"],
+              "sha256": original["sha256"], "matched": original["matched"],
+              "reusedSourceLane": "mlineStyleRetargetInputs",
+              "sourcePhysicalAndOrdinaryTypedProjectionReused": original["matched"],
+              "additionalSourcesGenerated": 0,
+              "selectedUnusedStyle": PEER_MLINE_STYLE_RETARGET,
+              "originalOffsets": [element[0] for element in elements],
+              "expectedConsumerStyleKeys": original["expectedSourceStyleKeys"]}
+    if original["matched"]:
+        physical = original["observations"]["physicalBeforeDocumentSetup"]
+        target = physical["styles"][PEER_MLINE_STYLE_RETARGET]["handle"]
+        assert all(int(row["styleHandle"], 16) != int(target, 16)
+                   for row in physical["mlineConsumers"]["consumers"].values()), "selected source style is consumed"
+        reused["unusedOriginalStyleHandle"] = target
+    edits = []
+    for mode in ("typed", "raw", "both"):
+        offsets = [1.75, -1.25 if mode == "both" else elements[1][0]]
+        changed = {key: dict(value) for key, value in expected.items()}
+        changed[PEER_MLINE_STYLE_RETARGET]["elements"] = [
+            (offset, color, linetype)
+            for offset, (_, color, linetype) in zip(offsets, elements)]
+
+        def projection(module, path, binary, wanted, source_recipe=False):
+            return selected_mline_style_projection(
+                module, path, binary, wanted, source_recipe=source_recipe,
+                consumer_expected=consumers, consumer_style_key=PEER_MLINE_STYLE_NAME,
+                linetype_expected=original["expectedLinetypes"] if source_recipe
+                else original["expectedEmittedLinetypes"])
+
+        _, edited = selected_resource_outputs(
+            ezdxf, probe, converter, source, "R2013", "utf-8", "asc", original,
+            "--mline-style-unused-offset-probe", projection, expected, changed,
+            modes=(True,), edit_prefix="unused-offset-" + mode + "-", edit_arguments=(mode,))
+        for row in edited:
+            row.update({"editMode": mode, "selectedUnusedStyle": PEER_MLINE_STYLE_RETARGET,
+                        "expectedOffsets": offsets,
+                        "reusedSourceLane": "mlineStyleRetargetInputs",
+                        "onlyUnusedStyleOffsetsChanged": row["matched"],
+                        "allConsumerStyleKeysAndGeometryPreserved": row["matched"],
+                        "geometryRegenerated": False})
+        edits.extend(edited)
+        assert digest(source) == original["sha256"], "unused-offset operation changed source bytes"
+    return [reused], edits
+
+
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
     before, after = ezdxf.readfile(source), ezdxf.readfile(output)
     expected, actual = before.rootdict["EZDXF_META"], after.rootdict["EZDXF_META"]
@@ -1479,6 +1534,7 @@ def main():
     mline_omitted_ltype_flag_inputs, mline_omitted_ltype_flag_edits = [], []
     mline_referenced_ltype_flag_inputs, mline_referenced_ltype_flag_edits = [], []
     mline_retarget_inputs, mline_retarget_edits = [], []
+    mline_unused_offset_inputs, mline_unused_offset_edits = [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
@@ -1500,6 +1556,8 @@ def main():
             ezdxf, probe, converter, output)
         mline_retarget_inputs, mline_retarget_edits = qualify_mline_style_retarget(
             ezdxf, probe, converter, output)
+        mline_unused_offset_inputs, mline_unused_offset_edits = qualify_mline_style_unused_offsets(
+            ezdxf, probe, converter, output, mline_retarget_inputs[0])
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
         "schema": "libdxfrw.material-peer-source-order.v1",
@@ -1590,6 +1648,10 @@ def main():
         "mlineStyleRetargetInputsMatched": sum(row["matched"] for row in mline_retarget_inputs),
         "mlineStyleRetargetEdits": mline_retarget_edits,
         "mlineStyleRetargetEditsMatched": sum(row["matched"] for row in mline_retarget_edits),
+        "mlineStyleUnusedOffsetInputs": mline_unused_offset_inputs,
+        "mlineStyleUnusedOffsetInputsMatched": sum(row["matched"] for row in mline_unused_offset_inputs),
+        "mlineStyleUnusedOffsetEdits": mline_unused_offset_edits,
+        "mlineStyleUnusedOffsetEditsMatched": sum(row["matched"] for row in mline_unused_offset_edits),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -1697,6 +1759,21 @@ def main():
                 "nativeMlineRetargetSemanticsQualified": False,
                 "incompatibleGeometryOrGeneralRetargetingQualified": False,
             },
+            "unusedOffsetScope": {
+                "reusedSourceLane": "mlineStyleRetargetInputs", "reusedSources": 1,
+                "additionalSourcesGenerated": 0, "additionalUnchangedCliRuns": 0,
+                "sourceVersionFormat": "AC1027/UTF-8/ASCII", "editOutputs": 6,
+                "selectedUnusedStyle": PEER_MLINE_STYLE_RETARGET,
+                "consumerStyleKey": PEER_MLINE_STYLE_NAME,
+                "probe": "--mline-style-unused-offset-probe input output asc|bin typed|raw|both",
+                "edits": {"typed": [1.75, -0.75], "raw": [1.75, -0.75],
+                          "both": [1.75, -1.25]},
+                "combinedOperation": "Typed first offset and raw second offset are disjoint tuple edits",
+                "projection": "Reuse original pre-setup and ordinary typed source evidence; only unused PeerRetarget ordered49 values change. All other fields of every style, dictionary/provider/self/owner identities, both consumer340 targets, redundant names and full ENTITIES/BLOCKS geometry remain checked by the existing comparator",
+                "noSourcePostMutationOrGeometryRegeneration": True,
+                "consumedStyleGeometryQualified": False, "countChangesQualified": False,
+                "nativeMlineSemanticsQualified": False,
+            },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
             "currentPrimaryReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -1770,6 +1847,9 @@ def main():
         print("Independent MLINESTYLE retarget source/scoped340 edits: %d/%d, %d/%d" % (
             report["mlineStyleRetargetInputsMatched"], len(mline_retarget_inputs),
             report["mlineStyleRetargetEditsMatched"], len(mline_retarget_edits)))
+        print("Independent MLINESTYLE reused unused-offset source/typed/raw/combined edits: %d/%d, %d/%d" % (
+            report["mlineStyleUnusedOffsetInputsMatched"], len(mline_unused_offset_inputs),
+            report["mlineStyleUnusedOffsetEditsMatched"], len(mline_unused_offset_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
@@ -1782,7 +1862,8 @@ def main():
         + mline_element_ltype_inputs + mline_element_ltype_edits
         + mline_omitted_ltype_flag_inputs + mline_omitted_ltype_flag_edits
         + mline_referenced_ltype_flag_inputs + mline_referenced_ltype_flag_edits
-        + mline_retarget_inputs + mline_retarget_edits) else 1
+        + mline_retarget_inputs + mline_retarget_edits
+        + mline_unused_offset_inputs + mline_unused_offset_edits) else 1
 
 
 if __name__ == "__main__":

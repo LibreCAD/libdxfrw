@@ -142,6 +142,9 @@ public:
         }
         return mlineLinetypeProofBound(value,0x101u)&&mlineLinetypeProofBound(value,0x102u);
     }
+    static bool mlineStyleGeometryChanged(const dx_iface& value,std::uint32_t handle){
+        const auto row=value.m_dxfMLineStyles.find(handle);return row!=value.m_dxfMLineStyles.end()&&row->second.geometryChanged;
+    }
     static std::function<void()> misbindMLineLinetypeName(dx_data& value);
     static bool prepareScales(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfScales(value.cData->sourceVersion,binary);}
     static bool scalesUnchanged(const dx_iface& value){return value.hasUnchangedDxfScales()&&value.m_dxfScalesInspected;}
@@ -28962,6 +28965,7 @@ namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeDefaultFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeReferencedFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineRetargetControls {bool run(const std::filesystem::path& dir);}
+namespace mlineUnusedOffsetControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
 using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
@@ -29020,6 +29024,9 @@ void rawElementColor(dx_data& data,std::size_t element,int color) {
     auto& record=raw(data);const auto slots=elementColorSlots(record);if(element>=slots.size())throw std::runtime_error("ACI element missing");
     record.groups[slots[element]]=DRW_Variant(62,std::int32_t(color));if(record.hasRawValues)record.rawValues[slots[element]]=std::to_string(color);
 }
+bool sameDoubleRepresentation(double a,double b) {
+    std::uint64_t x=0u,y=0u;std::memcpy(&x,&a,sizeof(x));std::memcpy(&y,&b,sizeof(y));return x==y;
+}
 bool aciRawUnchanged(const DRW_RawDxfObject& a,const DRW_RawDxfObject& b) {
     if(a.name!=b.name||a.handle!=b.handle||a.parentHandle!=b.parentHandle||a.m_version!=b.m_version
         ||a.hasRawValues!=b.hasRawValues||a.rawValues!=b.rawValues||a.groups.size()!=b.groups.size())return false;
@@ -29027,7 +29034,7 @@ bool aciRawUnchanged(const DRW_RawDxfObject& a,const DRW_RawDxfObject& b) {
         const auto& x=a.groups[i];const auto& y=b.groups[i];if(x.code()!=y.code()||x.type()!=y.type())return false;
         if(x.type()==DRW_Variant::STRING){if(!x.content.s||!y.content.s||*x.content.s!=*y.content.s)return false;}
         else if(x.type()==DRW_Variant::INTEGER){if(x.i_val()!=y.i_val())return false;}
-        else if(x.type()==DRW_Variant::DOUBLE){if(x.d_val()!=y.d_val()||std::signbit(x.d_val())!=std::signbit(y.d_val()))return false;}
+        else if(x.type()==DRW_Variant::DOUBLE){if(!sameDoubleRepresentation(x.d_val(),y.d_val()))return false;}
         else return false;
     }
     return true;
@@ -29298,6 +29305,7 @@ bool run(const std::filesystem::path& dir) {
     std::size_t textProfiles=0u,textReadbacks=0u,textInsertions=0u,textCallbacks=0u,textShadows=0u,textSpellings=0u,textAppScopes=0u,textLateNames=0u;
     std::size_t aciProfiles=0u,aciReadbacks=0u,aciConflicts=0u,aciInvalid=0u,aciCallbacks=0u,aciInsertions=0u,aciScopes=0u,aciTransports=0u,aciCorruptions=0u,aciBoundary=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    if(!mlineUnusedOffsetControls::run(dir))return fail(__LINE__);
     if(!mlineRetargetControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeReferencedFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeDefaultFlagControls::run(dir))return fail(__LINE__);
@@ -29497,6 +29505,10 @@ bool run(const std::filesystem::path& dir) {
             ++readbacks;++aciReadbacks;
         } else if(kind==9u) {
             if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!ltypeBasicProof(output,binary,{{"Continuous","Continuous"}}))return fail(__LINE__);++readbacks;
+        } else if(kind==7u) {
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!proof(output,binary,"AC1027",initialDescription,true,90,true,"opaque-mline-tail",.75)
+                ||!values(output,initialDescription,90,90,.75))return fail(__LINE__);++readbacks;
         } else {
             sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++unsupported;
         }
@@ -29748,7 +29760,7 @@ bool run(const std::filesystem::path& dir) {
         <<"; aciProfiles="<<aciProfiles<<"; aciReadbacks="<<aciReadbacks<<"; aciConflicts="<<aciConflicts<<"; aciInvalid="<<aciInvalid
         <<"; aciCallbacks="<<aciCallbacks<<"; aciInsertions="<<aciInsertions<<"; aciScopes="<<aciScopes<<"; aciTransports="<<aciTransports
         <<"; aciCorruptions="<<aciCorruptions<<"; aciBoundary="<<aciBoundary<<'\n';
-    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==26u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
+    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==24u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
         &&textProfiles==16u&&textReadbacks==48u&&textInsertions==16u&&textCallbacks==32u&&textShadows==4u&&textSpellings==2u&&textAppScopes==4u&&textLateNames==2u
         &&aciProfiles==4u&&aciReadbacks==127u&&aciConflicts==8u&&aciInvalid==32u&&aciCallbacks==32u&&aciInsertions==4u
         &&aciScopes==2u&&aciTransports==4u&&aciCorruptions==4u&&aciBoundary==1u;
@@ -30711,7 +30723,7 @@ bool sameStyle(const DRW_MLineStyle& a,const DRW_MLineStyle& b) {
         ||a.fillColorBookName!=b.fillColorBookName||a.fillColorDwgIndex!=b.fillColorDwgIndex||a.elements.size()!=b.elements.size())return false;
     for(std::size_t i=0u;i<a.elements.size();++i) {
         const auto& x=a.elements[i];const auto& y=b.elements[i];
-        if(x.offset!=y.offset||x.color!=y.color||x.color24!=y.color24||x.colorMethod!=y.colorMethod||x.colorFlags!=y.colorFlags
+        if(!mlineStyleBodyTransactionControls::sameDoubleRepresentation(x.offset,y.offset)||x.color!=y.color||x.color24!=y.color24||x.colorMethod!=y.colorMethod||x.colorFlags!=y.colorFlags
             ||x.colorName!=y.colorName||x.colorBookName!=y.colorBookName||x.colorDwgIndex!=y.colorDwgIndex
             ||x.linetype!=y.linetype||x.linetypeIndex!=y.linetypeIndex||x.linetypeHandle!=y.linetypeHandle)return false;
     }
@@ -31319,7 +31331,8 @@ struct Snapshot {
         for(std::size_t i=0u;i<values.size();++i)*values[i]=consumers[i];data.mLineStyles=styles;data.rawNamedResourceObjects=raws;data.lineTypes=lines;data.dictionaries=dictionaries;
     }
 };
-bool proof(const std::filesystem::path& path,bool binary,unsigned mask) {
+bool proof(const std::filesystem::path& path,bool binary,unsigned mask,
+        const std::array<double,2>& originalOffsets={{.5,-.25}},const std::array<double,2>& targetOffsets={{.5,-.25}},bool offsetApplication=false) {
     using Row=mlineStyleAuthorityControls::Row;const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto fields=[](const Row& row,int code){std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;};
     std::map<std::string,const Row*> ids;const Row* root=nullptr;std::array<const Row*,2> styles{{nullptr,nullptr}};
@@ -31340,14 +31353,24 @@ bool proof(const std::filesystem::path& path,bool binary,unsigned mask) {
     if(!owner||owner->type!="DICTIONARY"||owner->owner!=root->id||entry(*owner,"EFFECTIVE_STYLE")!=styles[0]
         ||entry(*owner,"RETARGET_STYLE")!=styles[1])return false;
     for(unsigned i=0u;i<2u;++i) {
-        const auto& row=*styles[i];if(row.owner!=owner->id||fields(row,330)!=std::vector<std::string>{owner->id,owner->id}
+        auto row=*styles[i];
+        if(offsetApplication&&i==1u) {
+            unsigned opaque=0u;
+            for(std::size_t j=0u;j<row.fields.size();++j)if(row.fields[j]==std::make_pair(102,std::string("{OFFSET_META"))) {
+                if(j+2u>=row.fields.size()||row.fields[j+1u].first!=49||std::stod(row.fields[j+1u].second)!=123.5
+                    ||row.fields[j+2u]!=std::make_pair(102,std::string("}")))return false;
+                row.fields.erase(row.fields.begin()+j,row.fields.begin()+j+3u);++opaque;--j;
+            }
+            if(opaque!=1u)return false;
+        }
+        if(row.owner!=owner->id||fields(row,330)!=std::vector<std::string>{owner->id,owner->id}
             ||fields(row,102)!=std::vector<std::string>{"{ACAD_REACTORS","}"}||fields(row,100)!=std::vector<std::string>{"AcDbMlineStyle"}
             ||fields(row,3)!=std::vector<std::string>{materialBodyControls::encodedText(i?"retarget description":mlineStyleBodyTransactionControls::initialDescription,"AC1027",binary)}
             ||fields(row,6)!=std::vector<std::string>{"ByLayer","Continuous"}||!fields(row,301).empty())return false;
         const auto nums=[&](int code,const std::vector<double>& expected){const auto actual=fields(row,code);if(actual.size()!=expected.size())return false;
             for(std::size_t j=0u;j<actual.size();++j)if(std::stod(actual[j])!=expected[j])return false;return true;};
         if(!nums(70,{0})||!nums(62,i?std::vector<double>{6,5,7}:std::vector<double>{256,1,3})||!nums(51,{90})||!nums(52,{90})
-            ||!nums(71,{2})||!nums(49,{.5,-.25}))return false;
+            ||!nums(71,{2})||!nums(49,i?std::vector<double>{targetOffsets[0],targetOffsets[1]}:std::vector<double>{originalOffsets[0],originalOffsets[1]}))return false;
     }
     for(const std::string name:{"ByLayer","Continuous"}) {
         const Row* provider=nullptr;for(const auto& row:rows)if(row.type=="LTYPE"&&fields(row,2)==std::vector<std::string>{name}){if(provider)return false;provider=&row;}
@@ -31607,6 +31630,240 @@ bool run(const std::filesystem::path& dir) {
         <<"; retries="<<retries<<"; corruptions="<<corruptions<<"; ordinary="<<ordinary<<"; faults="<<faults<<"; unreached="<<unreached<<'\n';
     return profiles==4u&&readbacks==136u&&invalid==22u&&profileRefusals+importRefusals+transportRefusals==34u&&late==40u&&copied==6u&&retries==110u
         &&corruptions==32u&&ordinary==8u&&faults>0u&&faults+unreached==8u;
+}
+}
+
+
+namespace mlineUnusedOffsetControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+using Offsets=std::array<double,2>;
+const Offsets original{{.5,-.25}};
+bool equal(double a,double b){return mlineStyleBodyTransactionControls::sameDoubleRepresentation(a,b);}
+std::vector<std::size_t> slots(const DRW_RawDxfObject& raw) {
+    std::vector<std::size_t> found;unsigned depth=0u;bool body=false;
+    for(std::size_t i=0u;i<raw.groups.size();++i) {
+        const auto& field=raw.groups[i];if(field.code()==102){if(!field.content.s)throw std::runtime_error("offset application marker");
+            if(*field.content.s=="}"){if(!depth)throw std::runtime_error("offset application depth");--depth;}else ++depth;continue;}
+        if(depth)continue;if(field.code()==100){body=field.content.s&&*field.content.s=="AcDbMlineStyle";continue;}
+        if(body&&field.code()==49)found.push_back(i);
+    }
+    if(depth)throw std::runtime_error("offset application boundary");return found;
+}
+void rawOffset(DRW_RawDxfObject& raw,std::size_t element,double value) {
+    const auto found=slots(raw);if(element>=found.size())throw std::runtime_error("offset tuple missing");
+    raw.groups[found[element]]=DRW_Variant(49,value);if(raw.hasRawValues)raw.rawValues[found[element]]=std::to_string(value);
+}
+void rawOffset(dx_data& data,std::uint32_t handle,std::size_t element,double value){rawOffset(mlineRetargetControls::raw(data,handle),element,value);}
+bool literal(const std::filesystem::path& path,bool binary,const std::string& name,const std::vector<double>& wanted) {
+    unsigned records=0u;for(const auto& row:mlineStyleAuthorityControls::records(path,binary))if(row.type=="MLINESTYLE") {
+        bool selected=false,body=false;unsigned depth=0u;std::vector<double> actual;unsigned counts=0u;std::size_t declared=0u;
+        for(const auto& field:row.fields) {
+            if(field.first==102){if(field.second=="}"){if(!depth)return false;--depth;}else ++depth;continue;}
+            if(depth)continue;if(field.first==100){body=field.second=="AcDbMlineStyle";continue;}
+            if(body&&field.first==2)selected=field.second==name;
+            if(body&&field.first==71){declared=std::stoul(field.second);++counts;}
+            if(body&&field.first==49)actual.push_back(std::stod(field.second));
+        }
+        if(selected){if(depth||counts!=1u||declared!=wanted.size()||actual.size()!=wanted.size())return false;
+            for(std::size_t i=0u;i<wanted.size();++i)if(!equal(actual[i],wanted[i]))return false;++records;}
+    }
+    return records==1u;
+}
+bool proof(const std::filesystem::path& path,bool binary,const Offsets& wanted,bool application=false,unsigned consumerMask=0u,const Offsets& old=original) {
+    if(!mlineRetargetControls::proof(path,binary,consumerMask,old,wanted,application)
+        ||!literal(path,binary,"RETARGET_BODY",{wanted[0],wanted[1]})||!literal(path,binary,"OLD_BODY_NAME",{old[0],old[1]}))return false;
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;unsigned matched=0u;
+    for(const auto& value:data.mLineStyles) {
+        const auto* expected=value.name=="RETARGET_BODY"?&wanted:value.name=="OLD_BODY_NAME"?&old:nullptr;
+        if(!expected||value.elements.size()!=2u)return false;
+        for(unsigned i=0u;i<2u;++i)if(!equal(value.elements[i].offset,(*expected)[i]))return false;++matched;
+    }
+    return matched==2u;
+}
+Tags recipe(bool binary,bool application=false,unsigned consumers=0u) {
+    auto fields=mlineRetargetControls::recipe(binary);
+    if(consumers){bool mline=false;unsigned which=0u;
+        for(auto& field:fields){if(field.first==0)mline=field.second=="MLINE";if(mline&&field.first==5)which=field.second=="D100"?1u:field.second=="D101"?2u:0u;
+            if(mline&&field.first==340&&(consumers&which))field.second="D2";}}
+    if(application) {
+        bool selected=false,element=false;unsigned removed=0u;
+        for(auto it=fields.begin();it!=fields.end();) {
+            if(it->first==0){selected=false;element=false;}if(*it==std::make_pair(5,std::string("D2")))selected=true;
+            if(selected&&it->first==49)element=true;
+            if(selected&&!element&&(it->first==3||it->first==62)){it=fields.erase(it);++removed;}else ++it;
+        }
+        if(removed!=2u)throw std::runtime_error("offset insertion source headers");selected=false;
+        for(auto it=fields.begin();it!=fields.end();++it){if(it->first==0)selected=false;if(*it==std::make_pair(5,std::string("D2")))selected=true;
+            if(selected&&it->first==49){fields.insert(it+1,{{102,"{OFFSET_META"},{49,"123.5"},{102,"}"}});return fields;}}
+        throw std::runtime_error("offset application source tuple");
+    }
+    return fields;
+}
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary,std::string_view mode) {
+    if(mode!="typed"&&mode!="raw"&&mode!="both")return false;dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;
+    DRW_MLineStyle* selected=nullptr;for(const auto& dictionary:data.dictionaries)for(const auto& entry:dictionary.m_entries)if(entry.m_name=="PeerRetarget")
+        for(auto& value:data.mLineStyles)if(value.handle==entry.m_handle&&value.parentHandle==dictionary.handle){if(selected)return false;selected=&value;}
+    if(!selected||selected->elements.size()!=2u||selected->elements[0].offset!=1.25||selected->elements[1].offset!=-.75)return false;
+    unsigned consumers=0u;const auto check=[&](const dx_ifaceBlock* block){if(block)for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_MLine*>(entity)){
+        if(value->styleHandle==selected->handle)return false;++consumers;}return true;};
+    if(!check(data.mBlock))return false;for(const auto* block:data.blocks)if(!check(block))return false;if(consumers!=2u)return false;
+    if(mode=="typed"||mode=="both")selected->elements[0].offset=1.75;
+    if(mode=="raw")rawOffset(data,selected->handle,0u,1.75);if(mode=="both")rawOffset(data,selected->handle,1u,-1.25);
+    return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(input)),{});
+        std::size_t begin=0u,end=0u;for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==0&&fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS"){
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;}
+        if(end<=begin)return false;bool selected=false;std::vector<std::size_t> offsets;
+        for(std::size_t i=0u;i<fields.size();++i){if(fields[i].code==0)selected=false;
+            if(fields[i].code==2&&fields[i].text=="RETARGET_BODY"&&fields[i].begin>=begin&&fields[i].begin<end)selected=true;
+            if(selected&&fields[i].code==49)offsets.push_back(i);}
+        if(offsets.size()!=2u)return false;const auto body=bytes.substr(begin,end-begin);
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};if(!A::mlineStylesReplay(*this,view))return false;
+        for(unsigned mode=0u;mode<3u;++mode) {
+            auto changed=body;
+            if(mode<2u){const auto& field=fields[offsets[mode]];std::ostringstream output(std::ios::out|std::ios::binary);
+                std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+                writer->setVersion("AC1027",true);if(!writer->writeDouble(49,mode==0u?0.0:-.5)||writer->hasWriteError())return false;
+                changed.replace(field.begin-begin,field.end-field.begin,output.str());
+            } else {const auto& a=fields[offsets[0]];const auto& b=fields[offsets[1]];
+                const auto first=body.substr(a.begin-begin,a.end-a.begin),last=body.substr(b.begin-begin,b.end-b.begin);
+                changed.replace(b.begin-begin,b.end-b.begin,first);changed.replace(a.begin-begin,a.end-a.begin,last);}
+            auto bad=view;bad.bytes=changed;if(A::mlineStylesReplay(*this,bad)||!A::mlineStylesReplay(*this,view))return false;++corruptions;
+        }
+        return corruptions==3u&&dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"mline-unused-offset-input.dxf",output=dir/"mline-unused-offset-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,conflicts=0u,invalid=0u,affected=0u,late=0u,retries=0u,scopes=0u,boundaries=0u,away=0u,zeros=0u,legacy=0u,corruptions=0u,faults=0u,unreached=0u;
+    const auto fail=[&](int line){std::cerr<<"MLINE unused offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" conflicts="<<conflicts<<" invalid="<<invalid
+        <<" affected="<<affected<<" late="<<late<<" scopes="<<scopes<<" boundaries="<<boundaries<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot originalState(data);
+        const auto check=[&](const Offsets& wanted){const mlineRetargetControls::Snapshot caller(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineRetargetProofBound(adapter,0u)
+                ||!A::mlineStyleGeometryChanged(adapter,0xD2u)||!proof(output,binary,wanted)||!caller.same(data))return false;++readbacks;return true;};
+        for(unsigned mode=0u;mode<6u;++mode) {
+            originalState.restore(data);auto& target=mlineRetargetControls::style(data,0xD2u);Offsets wanted=original;
+            if(mode==0u||mode==2u||mode==3u){target.elements[0].offset=.75;wanted[0]=.75;}
+            if(mode==1u||mode==2u){rawOffset(data,0xD2u,0u,.75);wanted[0]=.75;}
+            if(mode==3u||mode==5u){rawOffset(data,0xD2u,1u,-.625);wanted[1]=-.625;}
+            if(mode==4u){target.elements[1].offset=-.625;wanted[1]=-.625;}
+            if(!check(wanted))return fail(__LINE__);
+        }
+        for(bool zero:{false,true}) {
+            originalState.restore(data);auto& target=mlineRetargetControls::style(data,0xD2u);target.elements[0].offset=zero?0.0:.75;rawOffset(data,0xD2u,0u,zero?-0.0:1.0);
+            const mlineRetargetControls::Snapshot caller(data);sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);++conflicts;
+            if(zero){target.elements[0].offset=-0.0;if(!check({{-0.0,-.25}}))return fail(__LINE__);++zeros;}
+            else{rawOffset(data,0xD2u,0u,.75);if(!check({{.75,-.25}}))return fail(__LINE__);}++retries;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot originalState(data);auto& target=mlineRetargetControls::style(data,0xD2u);target.elements[0].offset=.75;
+        if(kind<6u){const double value=kind%3u==0u?std::numeric_limits<double>::quiet_NaN():kind%3u==1u?std::numeric_limits<double>::infinity():-std::numeric_limits<double>::infinity();
+            if(kind<3u)target.elements[0].offset=value;else{target.elements[0].offset=.5;rawOffset(data,0xD2u,0u,value);}}
+        if(kind==6u)target.elements.push_back(target.elements.front());if(kind==7u)target.elements[0].color24=0x123456;
+        if(kind==8u)target.elements[0].linetypeIndex=0;if(kind==9u)target.elements[0].linetypeHandle=0xDEADu;
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);++invalid;
+        originalState.restore(data);mlineRetargetControls::style(data,0xD2u).elements[0].offset=.75;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,{{.75,-.25}})||!corrected.same(data))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned consumers=1u;consumers<=3u;++consumers)for(unsigned mode=0u;mode<3u;++mode) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary,false,consumers),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot originalState(data);if(mode!=1u)mlineRetargetControls::style(data,0xD2u).elements[0].offset=.75;
+        if(mode!=0u)rawOffset(data,0xD2u,0u,.75);const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);++affected;
+        originalState.restore(data);if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,original,false,consumers)||!originalState.same(data))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<4u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        mlineRetargetControls::style(data,0xD2u).elements[0].offset=.75;const mlineRetargetControls::Snapshot caller(data);
+        adapter.change=[&]{if(kind==0u)mlineRetargetControls::style(data,0xD2u).elements[0].offset=1.25;if(kind==1u)rawOffset(data,0xD2u,0u,1.25);
+            if(kind==2u)mlineStyleAuthorityControls::consumers(data).front()->styleHandle=0xD2u;
+            if(kind==3u)mlineStyleAuthorityControls::consumers(data).front()->vertlist[0].segParms[0][0]+=.125;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++late;
+        adapter.active=false;caller.restore(data);if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,{{.75,-.25}})||!caller.same(data))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary,true),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& target=mlineRetargetControls::style(data,0xD2u);target.description="retarget description";target.fillColor=6;target.elements[0].offset=.75;rawOffset(data,0xD2u,1u,-.625);
+        const mlineRetargetControls::Snapshot caller(data);if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,{{.75,-.625}},true)||!caller.same(data))return fail(__LINE__);++readbacks;++scopes;
+    }
+    for(bool binary:{false,true})for(bool raw:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const double changed=raw?.875:.75;if(raw)rawOffset(data,0xDu,0u,changed);else mlineRetargetControls::style(data,0xDu).elements[0].offset=changed;
+        mlineRetargetControls::request(data,3u);const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineRetargetProofBound(adapter,3u)
+            ||!proof(output,binary,original,false,3u,{{changed,-.25}})||!caller.same(data))return fail(__LINE__);++readbacks;++away;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe(binary);bool target=false,changed=false;for(auto& field:fields){if(field.first==0)target=false;if(field==std::make_pair(5,std::string("D2")))target=true;
+            if(target&&field.first==49&&!changed){field.second="-0";changed=true;}}
+        dx_iface adapter;dx_data data;if(!changed||!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!equal(mlineRetargetControls::style(data,0xD2u).elements[0].offset,-0.0))return fail(__LINE__);
+        mlineRetargetControls::style(data,0xD2u).elements[0].offset=0.0;const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineStyleGeometryChanged(adapter,0xD2u)
+            ||!proof(output,binary,{{0.0,-.25}})||!caller.same(data))return fail(__LINE__);++readbacks;++zeros;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe(false);std::size_t count=fields.size(),first=fields.size(),end=fields.size();bool target=false;
+        for(std::size_t i=0u;i<fields.size();++i){if(fields[i].first==0){if(target){end=i;break;}target=false;}if(fields[i]==std::make_pair(5,std::string("D2")))target=true;
+            if(target&&fields[i].first==71)count=i;if(target&&fields[i].first==49&&first==fields.size())first=i;}
+        if(count==fields.size()||first==fields.size()||end==fields.size())return fail(__LINE__);fields[count].second="255";
+        fields.erase(fields.begin()+first,fields.begin()+end);Tags tuples;std::vector<double> originalOffsets;
+        for(unsigned i=0u;i<255u;++i){const double offset=double(i)/16;originalOffsets.push_back(offset);tuples.insert(tuples.end(),{{49,std::to_string(offset)},{62,std::to_string(i%7u+1u)},{6,i%2u?"Continuous":"ByLayer"}});}
+        fields.insert(fields.begin()+first,tuples.begin(),tuples.end());dx_iface adapter;dx_data data;
+        if(!write(input,fields,false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||mlineRetargetControls::style(data,0xD2u).elements.size()!=255u)return fail(__LINE__);
+        const mlineRetargetControls::Snapshot baseline(data);
+        for(bool all:{false,true}) {
+            baseline.restore(data);auto wanted=originalOffsets;auto& value=mlineRetargetControls::style(data,0xD2u);
+            if(all)for(std::size_t i=0u;i<255u;++i){wanted[i]+=.125;value.elements[i].offset=wanted[i];}else{wanted.back()=-4.25;value.elements.back().offset=-4.25;}
+            const mlineRetargetControls::Snapshot caller(data);if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineRetargetProofBound(adapter,0u)
+                ||!literal(output,binary,"RETARGET_BODY",wanted)||!caller.same(data))return fail(__LINE__);
+            dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false))return fail(__LINE__);unsigned matched=0u;
+            for(const auto& model:actual.mLineStyles)if(model.name=="RETARGET_BODY") {
+                if(model.elements.size()!=255u)return fail(__LINE__);for(std::size_t i=0u;i<255u;++i)if(!equal(model.elements[i].offset,wanted[i])||model.elements[i].color!=int(i%7u+1u)
+                    ||model.elements[i].linetype!=(i%2u?"Continuous":"ByLayer"))return fail(__LINE__);++matched;
+            }
+            const auto consumers=mlineStyleAuthorityControls::consumers(actual);if(matched!=1u||consumers.size()!=2u||!mlineStyleAuthorityControls::geometry(*consumers[0],1)||!mlineStyleAuthorityControls::geometry(*consumers[1],4))return fail(__LINE__);
+            ++readbacks;++boundaries;
+        }
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& target=mlineRetargetControls::style(data,0xD2u);target.elements[0].offset=-0.0;target.elements[1].offset=-.625;const mlineRetargetControls::Snapshot caller(data);
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"mline-offset-proof-bin.dxf":"mline-offset-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,{{-0.0,-.625}})||!caller.same(data))return fail(__LINE__);corruptions+=replay.corruptions;++readbacks;
+        for(long offset:{0L,32L,128L}) {
+            sentinel(output);const auto before=materialFailedAllocations;const bool prepared=A::prepareMLineStyles(adapter,offset,binary),injected=materialFailedAllocations!=before;
+            if(prepared==injected||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);if(injected)++faults;else ++unreached;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,{{-0.0,-.625}})||!caller.same(data))return fail(__LINE__);++readbacks;++retries;
+        }
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,mlineStyleBodyTransactionControls::recipe("AC1015",binary),binary,"AC1015")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=.75;const auto typed=data.mLineStyles;const auto raw=mlineStyleBodyTransactionControls::raw(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!mlineLtypeEditControls::sameStyle(data.mLineStyles.front(),typed.front())||!mlineStyleBodyTransactionControls::aciRawUnchanged(raw,mlineStyleBodyTransactionControls::raw(data)))return fail(__LINE__);++legacy;
+        data.mLineStyles.front().elements[0].offset=.5;mlineStyleBodyTransactionControls::rawValue(data,49,"0.75",binary,"AC1015");
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+            ||!mlineStyleBodyTransactionControls::proof(output,binary,"AC1015",mlineStyleBodyTransactionControls::initialDescription,true,90,true,"opaque-mline-tail",.75)
+            ||!mlineStyleBodyTransactionControls::values(output,mlineStyleBodyTransactionControls::initialDescription,90,90,.75))return fail(__LINE__);++readbacks;++retries;
+    }
+    std::cout<<"MLINE unused offset profiles="<<profiles<<"; readbacks="<<readbacks<<"; conflicts="<<conflicts<<"; invalid="<<invalid<<"; affected="<<affected<<"; late="<<late
+        <<"; retries="<<retries<<"; scopes="<<scopes<<"; boundaries="<<boundaries<<"; away="<<away<<"; zeros="<<zeros<<"; legacy="<<legacy<<"; corruptions="<<corruptions<<"; faults="<<faults<<"; unreached="<<unreached<<'\n';
+    return profiles==4u&&readbacks==124u&&conflicts==8u&&invalid==20u&&affected==18u&&late==32u&&retries==86u&&scopes==2u&&boundaries==4u&&away==4u&&zeros==6u&&legacy==2u&&corruptions==6u&&faults>0u&&faults+unreached==6u;
 }
 }
 
@@ -39742,6 +39999,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-scalar-probe") {
         return mlineStyleBodyTransactionControls::scalarPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 6 && std::string(argv[1]) == "--mline-style-unused-offset-probe") {
+        return mlineUnusedOffsetControls::peer(argv[2],argv[3],std::string(argv[4])=="bin",argv[5]) ? 0 : 1;
     }
     if (argc == 6 && std::string(argv[1]) == "--mline-style-retarget-probe") {
         return mlineRetargetControls::peer(argv[2],argv[3],std::string(argv[4])=="bin",argv[5]) ? 0 : 1;
