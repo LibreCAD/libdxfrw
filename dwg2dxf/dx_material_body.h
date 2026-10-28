@@ -127,9 +127,9 @@ inline bool canonical(const DRW_Material& value,Groups& groups,Slots& roles,bool
     if(!dxfMaterial::writeBody(writer,value,true))return false;
     groups=std::move(writer.groups);std::size_t end=0;return slots(groups,roles,end);
 }
-// Decode physical values through the owning MATERIAL parser in their captured
+// Decode physical values through the owning record parser in their captured
 // wire format. Binary strings must not acquire ASCII-only caret semantics.
-inline bool decode(const DRW_RawDxfObject& raw,DRW_Material& result,bool binary) {
+template<class Record> inline bool decodeRecord(const DRW_RawDxfObject& raw,Record& result,bool binary) {
     std::ostringstream bytes;
     std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&bytes)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&bytes));
     writer->setVersion("AC1027",true);
@@ -145,9 +145,12 @@ inline bool decode(const DRW_RawDxfObject& raw,DRW_Material& result,bool binary)
     const std::string storage=bytes.str();
     const dxfRW::DxfObjectsWriteView view{storage,raw.m_version,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
     dx_standard_output::Decoder reader(view,true);
-    return reader.decodeRecord<DRW_Material>(storage,[&](const DRW_Material& value){
-        if(!value.hasCompleteDxfMapTransforms())return false;result=value;return true;
+    return reader.decodeRecord<Record>(storage,[&](const Record& value){
+        result=value;return true;
     });
+}
+inline bool decode(const DRW_RawDxfObject& raw,DRW_Material& result,bool binary) {
+    return decodeRecord(raw,result,binary)&&result.hasCompleteDxfMapTransforms();
 }
 inline bool spelling(const DRW_Variant& value,std::string& result) {
     std::ostringstream stream;dxfWriterAscii writer(&stream);const auto code=value.code();bool good=false;

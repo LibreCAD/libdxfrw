@@ -6680,6 +6680,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionPlaceholderHandles.clear();
     m_extensionXRecordHandles.clear();
     m_extensionDictionaryVarHandles.clear();
+    m_customDxfDictionaryVarHandles.clear();
     m_extensionScaleHandles.clear();
     m_extensionMLineStyleHandles.clear();
     m_extensionMLeaderStyleHandles.clear();
@@ -6703,6 +6704,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_extensionPlaceholderHandles.clear();
         m_extensionXRecordHandles.clear();
         m_extensionDictionaryVarHandles.clear();
+        m_customDxfDictionaryVarHandles.clear();
         m_extensionScaleHandles.clear();
         m_extensionMLineStyleHandles.clear();
         m_extensionMLeaderStyleHandles.clear();
@@ -7837,6 +7839,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> visitedDictionariesWithDefault;
         std::unordered_set<std::uint32_t> visitedXRecords;
         std::unordered_set<std::uint32_t> visitedDictionaryVars;
+        // Count actual dictionary-entry roles separately from reactor visits.
+        // A custom DXF variable needs one containing entry, not just a reachable
+        // owner or an unrelated reference to the variable object.
+        std::unordered_map<std::uint32_t, unsigned> dictionaryVarMemberships;
         std::unordered_set<std::uint32_t> visitedScales;
         std::unordered_set<std::uint32_t> visitedMLineStyles;
         std::unordered_set<std::uint32_t> visitedMLeaderStyles;
@@ -8508,6 +8514,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (targetOwner != frame.handle)
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "dictionary entry target does not name its containing dictionary as owner");
+                        if (data->sourceFormat == dx_source_format::DXF
+                            && dictionaryVars.count(child) != 0u) {
+                            auto& count = dictionaryVarMemberships[child];
+                            if (count < 2u)
+                                ++count;
+                        }
                         if (!queueTarget(child, false))
                             return false;
                     } else {
@@ -8761,12 +8773,6 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         return reject(ExtensionGraphFailure::InvalidGraph,
                             "AcDbVariableDictionary NOD entry must uniquely target a NOD-owned DICTIONARY");
                     variableDictionaryRootHandle = entry.m_handle;
-                    for (const auto& variable : dictionaryVars) {
-                        if (variable.second->parentHandle
-                            != variableDictionaryRootHandle)
-                            return reject(ExtensionGraphFailure::InvalidGraph,
-                                "DICTIONARYVAR owner is not the NOD's AcDbVariableDictionary");
-                    }
                 }
                 if (key == "ACAD_BACKGROUND"
                     && (!data->backgrounds.empty()
@@ -8875,13 +8881,34 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 }
             }
         }
-        if (!dictionaryVars.empty()
-            && (!includeNamedObjectRoot
-                || !data->hasNamedObjectDictionary
-                || variableDictionaryRootCount != 1u
-                || variableDictionaryRootHandle == 0u))
-            return reject(ExtensionGraphFailure::InvalidGraph,
-                "DICTIONARYVAR records require the NOD AcDbVariableDictionary route");
+        if (!dictionaryVars.empty()) {
+            if (!includeNamedObjectRoot || !data->hasNamedObjectDictionary)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "DICTIONARYVAR records require the NOD AcDbVariableDictionary route");
+            for (const auto& variable : dictionaryVars) {
+                const auto owner = variable.second->parentHandle;
+                const bool systemVariable = variableDictionaryRootCount == 1u
+                    && owner == variableDictionaryRootHandle;
+                const auto membership = dictionaryVarMemberships.find(variable.first);
+                // Preserve imported application data (for example EZDXF_META)
+                // as an owned DXF graph. This does not give custom keys setvar/
+                // getvar semantics or qualify a new native DWG owner profile.
+                const bool customDxfVariable = data->sourceFormat == dx_source_format::DXF
+                    && owner != data->namedObjectDictionary.handle
+                    && dictionaries.count(owner) != 0u
+                    && visitedDictionaries.count(owner) != 0u
+                    && visitedDictionaryVars.count(variable.first) != 0u
+                    && membership != dictionaryVarMemberships.end()
+                    && membership->second == 1u;
+                if (!systemVariable && !customDxfVariable)
+                    return reject(ExtensionGraphFailure::InvalidGraph,
+                        variableDictionaryRootCount == 1u
+                            ? "DICTIONARYVAR owner is not the NOD's AcDbVariableDictionary"
+                            : "DICTIONARYVAR records require the NOD AcDbVariableDictionary route");
+                if (!systemVariable)
+                    m_customDxfDictionaryVarHandles.insert(variable.first);
+            }
+        }
         for (std::uint32_t handle : m_extensionDictionaryHandles) {
             const DRW_Dictionary* dictionary = dictionaries.at(handle);
             if (!examineEdge())
@@ -15380,7 +15407,7 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
             [](const auto& row) { return row.second && row.second->preset.complete() && row.second->namedTarget; });
         // Preset dictionaries also need a pre-callback snapshot when no XRECORD
         // happens to be present. Reuse the existing bounded dictionary capture.
-        if (count == 0u && !presetDictionaries) return true;
+        if (count == 0u && !presetDictionaries && m_customDxfDictionaryVars.empty()) return true;
         const auto dictionaries = m_extensionDictionaryHandles.size();
         if (dictionaries > kMaxAdapterDictionaryTypedRecords) return false;
         if (count > m_xrecordWriteSourceByteLimit / (sizeof(DRW_XRecord) + sizeof(std::uint32_t))) return false;
@@ -15563,6 +15590,163 @@ bool dx_iface::writeDxfMaterialSource(std::uint32_t handle) {
     for(auto& source:m_dxfMaterialWriteSources)if(source.raw.handle==handle)
         return dxfW->writeRawDxfObject(&source.output);
     return false;
+}
+
+bool dx_iface::prepareCustomDxfDictionaryVars(bool binary) noexcept {
+    m_customDxfDictionaryVars.clear();
+    m_customDxfDictionaryVarOwner = nullptr;
+    m_customDxfDictionaryVarsInspected = false;
+    if (m_customDxfDictionaryVarHandles.empty()) return true;
+    if (!cData || cData->sourceFormat != dx_source_format::DXF
+        || cData->sourceVersion < DRW::AC1021
+        || !cData->hasSingleSuccessfulNamedResourceImport()) return false;
+    try {
+        std::size_t bytes = 0u;
+        std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> raws;
+        for (const auto& raw : cData->rawNamedResourceObjects) {
+            if (m_customDxfDictionaryVarHandles.count(raw.handle)
+                && !raws.emplace(raw.handle, &raw).second) return false;
+        }
+        for (const auto& value : cData->dictionaryVars) {
+            if (!m_customDxfDictionaryVarHandles.count(value.handle)) continue;
+            const auto found = raws.find(value.handle);
+            if (found == raws.end()) return false;
+            const auto& raw = *found->second;
+            std::size_t retained = 0u, typed = 0u;
+            // Charge temporary decoding and both retained raw copies before
+            // allocating them. This logical allowance is not an RSS bound.
+            if (!estimateRawDxfObjectBytes(raw, retained)
+                || !estimateNamedResourceTypedBytes(value, typed)
+                || retained > (kMaxAdapterRawNamedResourceRetainedBytes - bytes) / 64u)
+                return false;
+            bytes += 64u * retained;
+            if (typed > kMaxAdapterRawNamedResourceRetainedBytes - bytes) return false;
+            bytes += typed;
+            DRW_DictionaryVar parsed;
+            if (!dx_material_body::decodeRecord(raw, parsed, !raw.hasRawValues)
+                || value.m_schema != parsed.m_schema || value.m_value != parsed.m_value
+                || !standardDwgCommonEqual(value, parsed, cData->sourceVersion)) return false;
+
+            std::size_t slot = raw.groups.size();
+            unsigned depth = 0u, markers = 0u, schemas = 0u;
+            bool body = false;
+            for (std::size_t i = 0; i < raw.groups.size(); ++i) {
+                const auto& field = raw.groups[i];
+                const auto code = field.code();
+                if (code == 102) {
+                    if (field.type() != DRW_Variant::STRING || !field.content.s) return false;
+                    if (*field.content.s == "}") {
+                        if (!depth) return false;
+                        --depth;
+                    } else if (!field.content.s->empty() && field.content.s->front() == '{') {
+                        ++depth;
+                    } else return false;
+                    continue;
+                }
+                if (depth) continue;
+                if (code >= 1000) break;
+                if (code == 100) {
+                    body = field.type() == DRW_Variant::STRING && field.content.s
+                        && *field.content.s == "DictionaryVariables";
+                    if (body) ++markers;
+                    continue;
+                }
+                if (code == 1) {
+                    if (!body || slot != raw.groups.size()) return false;
+                    slot = i;
+                }
+                if (code == 280 && (!body || ++schemas != 1u)) return false;
+            }
+            if (depth || markers != 1u || schemas != 1u || slot == raw.groups.size()) return false;
+            CustomDxfDictionaryVarSource source;
+            source.model = value;
+            source.raw = raw;
+            source.output = raw;
+            if ((!raw.hasRawValues) != binary) {
+                dx_material_body::BodyWriter encoded(binary);
+                if (!encoded.writeUtf8String(1, value.m_value) || encoded.groups.size() != 1u) return false;
+                source.output.groups[slot] = encoded.groups.front();
+                if (source.output.hasRawValues && !binary) {
+                    std::string text;
+                    if (!dx_material_body::spelling(encoded.groups.front(), text)) return false;
+                    source.output.rawValues.at(slot) = std::move(text);
+                }
+            }
+            if (binary) {
+                source.output.hasRawValues = false;
+                source.output.rawValues.clear();
+            }
+            DRW_DictionaryVar projected;
+            if (!dx_material_body::decodeRecord(source.output, projected, binary)
+                || projected.m_schema != value.m_schema || projected.m_value != value.m_value
+                || !m_customDxfDictionaryVars.emplace(value.handle, std::move(source)).second) return false;
+        }
+        if (m_customDxfDictionaryVars.size() != m_customDxfDictionaryVarHandles.size()) return false;
+        m_customDxfDictionaryVarOwner = cData;
+        m_customDxfDictionaryVarGeneration = cData->importGeneration;
+        return hasUnchangedCustomDxfDictionaryVars();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedCustomDxfDictionaryVars() const noexcept {
+    if (m_customDxfDictionaryVars.empty()) return true;
+    if (!cData || cData != m_customDxfDictionaryVarOwner
+        || cData->sourceFormat != dx_source_format::DXF
+        || cData->importGeneration != m_customDxfDictionaryVarGeneration) return false;
+    try {
+        if (!cData->hasSingleSuccessfulNamedResourceImport()) return false;
+        std::unordered_set<std::uint32_t> typed, raws;
+        for (const auto& value : cData->dictionaryVars) {
+            const auto found = m_customDxfDictionaryVars.find(value.handle);
+            if (found == m_customDxfDictionaryVars.end()) continue;
+            const auto& source = found->second.model;
+            if (!typed.insert(value.handle).second
+                || source.m_schema != value.m_schema || source.m_value != value.m_value
+                || !standardDwgCommonEqual(source, value, cData->sourceVersion)) return false;
+        }
+        for (const auto& value : cData->rawNamedResourceObjects) {
+            const auto found = m_customDxfDictionaryVars.find(value.handle);
+            if (found == m_customDxfDictionaryVars.end()) continue;
+            const auto& source = found->second.raw;
+            if (!raws.insert(value.handle).second
+                || source.name != value.name || source.parentHandle != value.parentHandle
+                || source.m_version != value.m_version || source.hasRawValues != value.hasRawValues
+                || source.rawValues != value.rawValues || source.groups.size() != value.groups.size()) return false;
+            for (std::size_t i = 0; i < value.groups.size(); ++i)
+                if (!retainedVariantEqual(source.groups[i], value.groups[i])) return false;
+        }
+        return typed.size() == m_customDxfDictionaryVars.size() && raws.size() == typed.size();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectCustomDxfDictionaryVars(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_customDxfDictionaryVars.empty()) return true;
+    if (m_customDxfDictionaryVarsInspected || !hasUnchangedCustomDxfDictionaryVars()) return false;
+    try {
+        std::map<std::uint32_t, const CustomDxfDictionaryVarSource*> expected;
+        for (const auto& row : m_customDxfDictionaryVars)
+            if (!expected.emplace(dxfW->remapHandle(row.first), &row.second).second) return false;
+        std::unordered_set<std::uint32_t> seen;
+        const auto map = [this](std::uint32_t key, std::uint32_t& actual) {
+            actual = dxfW->remapHandle(key);
+            return key == 0u || (actual != 0u && actual != DRW::NoHandle);
+        };
+        bool namesMatch = true;
+        const bool ok = dx_standard_output::inspectSelected(view, [&](std::string_view name, std::uint32_t handle) {
+            if (expected.count(handle) && !asciiIdentifierEquals(name, "DICTIONARYVAR")) namesMatch = false;
+            return expected.count(handle) != 0u;
+        }, [&](const auto& shape, std::string_view body) {
+            if (!seen.insert(shape.handle).second) return false;
+            const auto& source = *expected.at(shape.handle);
+            dx_standard_output::Decoder decoder(view);
+            return dx_standard_output::rawScalarTransportEqual(source.output.groups, body, view, map, true)
+                && decoder.decodeRecord<DRW_DictionaryVar>(body, [&](const auto& value) {
+                    return value.m_schema == source.model.m_schema && value.m_value == source.model.m_value;
+                });
+        });
+        m_customDxfDictionaryVarsInspected = ok && namesMatch && seen.size() == expected.size();
+        return m_customDxfDictionaryVarsInspected;
+    } catch (...) { return false; }
 }
 
 bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
@@ -28730,6 +28914,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if(!hasUnchangedCustomDxfDictionaryVars()||(!m_customDxfDictionaryVars.empty()&&!m_customDxfDictionaryVarsInspected))return false;
     if(!finalizeDxfHeaderMaterial()||!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
     if (!hasUnchangedDxfRenderPresetSources()
         || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
@@ -29694,6 +29879,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_acdsMaterialHandles.clear();
     m_dxfMaterialHandles.clear();
     m_dxfMaterialWriteSources.clear();
+    m_customDxfDictionaryVarHandles.clear();m_customDxfDictionaryVars.clear();m_customDxfDictionaryVarOwner=nullptr;m_customDxfDictionaryVarsInspected=false;
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
     m_dxfMaterialWriteInspected = false;
@@ -30485,6 +30671,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << m_extensionGraphStats.inspectedXRecordPayloadSlots
                       << " detail=" << extensionGraphFailureDetail() << '\n';
         }
+        return false;
+    }
+    if(!prepareCustomDxfDictionaryVars(binary)) {
+        reportPreflightFailure("custom DICTIONARYVAR current source/body correlation");
         return false;
     }
     if (hasAdmittedSpatialFilters) {
@@ -31917,6 +32107,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    // Reserve named-resource source identities before collision replacements
+    // or generated records advance the allocator. A peer's metadata variable
+    // can otherwise share the replacement selected for an earlier dictionary.
+    for (const auto* handles : {&m_extensionDictionaryVarHandles, &m_extensionScaleHandles}) {
+        for (const auto handle : *handles) {
+            if (!dxfW->reserveHandle(handle)) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
+        }
+    }
     for (const DRW_SortEntsTable& table : cData->sortEntsTables) {
         if (!dxfW->reserveHandle(table.handle)) {
             delete dxfW;
@@ -32384,6 +32586,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && (!needsShadeOutput || inspectDxfShadeConsumers(view, "OBJECTS"))
                 && inspectDxfRenderSettingsOutput(view)
                 && inspectDxfMaterialOutput(view)
+                && inspectCustomDxfDictionaryVars(view)
                 && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))

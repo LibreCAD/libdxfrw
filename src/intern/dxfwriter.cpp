@@ -319,6 +319,14 @@ bool dxfWriter::finalizeRecordInventory() noexcept {
     for (std::size_t index = 1; index < m_emittedRecords.size(); ++index) {
         if (m_emittedRecords[index - 1u].handle
             == m_emittedRecords[index].handle) {
+            DRW_DBG("DXF duplicate emitted handle: ");
+            DRW_DBGH(m_emittedRecords[index].handle);
+            for (const auto at : {index - 1u, index}) {
+                if (const auto* name = recordInventoryName(m_emittedRecords[at].recordName)) {
+                    DRW_DBG(" "); DRW_DBG(*name);
+                }
+            }
+            DRW_DBG("\n");
             m_recordInventoryFailure = true;
             return false;
         }

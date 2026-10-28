@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5gh observed MATERIAL source order (2026-10-28; selected scope verified):** pinned ezdxf 1.4.5 independently reproduces normal-method-before-strength input and late physical fields. The reader/reconciler now retain selected values after a complete refraction prefix and an already-bound corresponding bump role. All 23 affected normal/ASan checks and eight independent body probes per configuration pass. Whole-document peer export still refuses the EZDXF_META/DICTIONARYVAR ownership profile; resolve that producer/specification distinction next. [Implementation and remaining work](#implementation-progress-rpp-5gh-observed-material-source-order-2026-10-28) · [receipt](docs/research/rpp5gh-material-observed-source-order-2026-10-28.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gi application DICTIONARYVAR preservation (2026-10-28; selected modern DXF scope verified):** reachable application child dictionaries now preserve matching typed/raw variable bodies through frozen output, actual field/reference proof and corrected retries. Selected source handles are reserved before generated allocation. All 33 affected normal/ASan checks, eight independent body probes and 16 independent selected full-file round trips per configuration pass. The former EZDXF_META refusal is resolved for these profiles; native semantics and full document/support gates remain open. [Implementation and next work](#implementation-progress-rpp-5gi-application-dictionaryvar-preservation-2026-10-28) · [receipt](docs/research/rpp5gi-application-dictionaryvar-output-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5gh observed MATERIAL source order (2026-10-28; selected scope verified):** pinned ezdxf 1.4.5 independently reproduces normal-method-before-strength input and late physical fields. The reader/reconciler now retain selected values after a complete refraction prefix and an already-bound corresponding bump role. All 23 affected normal/ASan checks and eight independent body probes per configuration pass. At that checkpoint, whole-document peer export refused EZDXF_META/DICTIONARYVAR ownership; RPP-5gi above resolves the selected profiles. [Implementation and remaining work](#implementation-progress-rpp-5gh-observed-material-source-order-2026-10-28) · [receipt](docs/research/rpp5gh-material-observed-source-order-2026-10-28.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5gg MATERIAL alternate normal boundary (2026-10-28; selected modern DXF scope verified):** supplied group 465 now supports represented mode/method edits without group 464. Coherent luminance removal relocates the strength boundary while preserving its unchanged value/spelling. All 22 affected normal/ASan checks pass; independent source/native/schema and full-document gates remain open. [Implementation and remaining work](#implementation-progress-rpp-5gg-material-alternate-normal-boundary-2026-10-28) · [receipt](docs/research/rpp5gg-material-alternate-normal-boundary-2026-10-28.json). No support gate is promoted.
 
@@ -135518,7 +135520,7 @@ and native Linux GCC release remain **NOT_RUN**. The full goal stays active.
   Regenerated gzip/bzip2 archives contain every listed byte, including the optional
   harness. No extracted-source compile/distcheck, native CAD/kernel, formal ABI/
   application or controlled RSS/performance run is claimed.
-- [ ] **Whole-document peer export remains refused.** Actual import now passes,
+- [x] **Historical whole-document peer export refusal; selected profiles resolved by RPP-5gi below.** At this checkpoint actual import passes,
   but conversion reports `DICTIONARYVAR records require the NOD
   AcDbVariableDictionary route` (19 nodes, 53 edges, 34 source records).
   The CLI already requests resolved-owner/NOD validation. The peer owns its two
@@ -135575,3 +135577,115 @@ Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger st
 outputEligible=false. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and
 nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel
 and native Linux GCC release remain **NOT_RUN**. The full goal remains active.
+
+## Implementation progress — RPP-5gi application DICTIONARYVAR preservation (2026-10-28)
+
+- [x] Resolve the actual RPP-5gh NOD-child metadata refusal. The
+  [Autodesk table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm)
+  names the system-variable owner, while the
+  [producer's primary documentation](https://ezdxf.readthedocs.io/en/stable/tutorials/custom_data.html)
+  documents application dictionary strings and the NOD `EZDXF_META` child.
+  Preserve this as a separate modern DXF transport profile, requiring one real
+  containing dictionary entry, a reachable ordinary child owner and matching
+  owner identity. Reactor-only reachability is insufficient. Keep the canonical
+  variable-root uniqueness and alias refusals, missing-root/dangling/direct-NOD refusals and
+  prior DWG ownership rule. Reported native behavior in peer documentation is
+  advisory; no local native qualification is inferred.
+- [x] Require the selected current raw body to match the owning parser's schema,
+  value and common metadata before writer creation. Freeze typed/raw/planned
+  output plus current data/generation; recheck unique identities and contents
+  through callbacks/finalization. Snapshot containing dictionaries even without
+  XRECORDs. The unique subclass/schema/value slots are represented; unknown fields
+  remain opaque. This is current-container consistency, not an immutable original
+  producer certificate. Standard DXF variable bodies remain a distinct next item.
+- [x] Transcode modeled value 1 between ASCII/Binary contexts and owning-decode the
+  planned projection. Before copying/decoding, charge 64 times the existing raw
+  logical estimate plus typed size against the named-resource allowance. This
+  logical accounting does not establish RSS/performance. Inspect actual staged
+  OBJECTS record type, unique mapped identities and every retained field/reference,
+  then owning-decode schema/value before publication. No installed headers,
+  callbacks/pure virtuals or DWG byte-layout parser changed; private adapter users
+  must recompile for its added state.
+- [x] Reproduce and fix an actual source handle 33 collision with generated
+  dictionary/replacement allocation. Reserve selected DICTIONARYVAR and SCALE
+  identities first. Add debug-only duplicate inventory handle/record diagnostics.
+- [x] Pass 128 four-version/input/output/nesting/canonical-coexistence/hard-soft
+  profiles with exact root/entry/owner/field proof and owning readback. Pass 24
+  malformed current-source preflight refusals and 40 real callback refusals,
+  preserving sentinel destinations, followed by 64 corrected same-adapter retries.
+  Four high-handle profiles and 12 text-context controls pass. During review,
+  replace count-only snapshot checks with unique per-handle checks: 16 callback
+  controls reject replacement of one typed/raw member by a duplicate of another.
+  Twenty-six corruptions of replayed completed OBJECTS views are refused and
+  corrected views pass; these are inspector replay tests, not filesystem fault
+  injections. Retain the baseline ownership, early numeric-proof correction,
+  silently ignored typed divergence and later allocation failures separately.
+- [x] Extend the optional pinned ezdxf 1.4.5 recipe with `--converter`: eight
+  original locally generated documents pass body probes and 16 selected full-file
+  conversions pass independent readback in each normal/ASan configuration. Check
+  metadata keys/strings/owners, eight material attributes, four complete matrices,
+  one 3D LINE's endpoints and its actual MATERIAL link. The peer specular-method1
+  recipe constraint remains explicit; arbitrary/full producer semantics, default
+  specular conflict and native rendering are not qualified. All drawing files and
+  package/code payloads remain ignored scratch data; no fixtures enter Git.
+- [x] Freeze all 593 released input bytes across ten normal/ASan build targets,
+  matching 33 affected test registrations/counters, the writer-output-property
+  selector, independent probes/round trips and both regenerated source archives.
+  Normal 33/33 pass in 33.72s; ASan 33/33 pass in 22.06s, with
+  `halt_on_error=1:detect_leaks=0`. LibreCAD_3 compile checks pass. Gzip/bzip2 byte
+  checks cover 593 files; no extracted-source compile/distcheck, full-project suite,
+  formal ABI/application or controlled RSS/performance run is claimed.
+
+The [receipt](docs/research/rpp5gi-application-dictionaryvar-output-2026-10-28.json)
+records exact source/archive/runtime hashes, all selected counters, independent
+observations, retained failures and remaining gates. Reproduce the optional peer
+checks with a new empty scratch directory and isolated Python with ezdxf 1.4.5:
+
+```sh
+/path/to/isolated/python -B tools/qualify_material_source_order.py \
+  --probe build/libdxfrw_dxf_fixture_tests \
+  --converter build/dwg2dxf/dwg2dxf --output-dir /tmp/new-variable-peer-run
+```
+
+### Next implementation-ready sequence
+
+1. [ ] **Complete standard DXF variable body transactions.** Code review shows
+   the canonical DXF route still replays its raw body; typed-only body edits can
+   be ignored. Reproduce that baseline with a canonical-only local recipe, then
+   reuse the owning decoder/source snapshot/output proof for standard modern DXF
+   variables. Define coherent typed/raw edit reconciliation without rewriting
+   unknown fields; preserve lexical/encoding distinctions and existing DWG typed
+   value edits. Verify real callback/identity mutations, late source changes,
+   emitted fields, sentinel preservation and corrected retries. Extend logical
+   budgets and selected legacy/presence profiles deliberately. Apply the same
+   evidence-driven audit to SCALE/other named-resource bodies afterward.
+2. [ ] **Finish MATERIAL source/schema qualification.** Resolve absent/ambiguous
+   refraction/bump evidence, repeated values, boundary omissions, source specular
+   conflicts and represented versus opaque subclass/procedure edits. Obtain actual
+   independent native producer/renderer evidence; retain unchanged replay and
+   output/failure/retry checks. The successful selected peer documents do not
+   remove those schema/semantic requirements.
+3. [ ] **Complete primary/common/dependency/document closure.** Retain ATTDEF's
+   unmatched original body requirement; finish material/full/face/edge and native
+   LAYER/HEADER/common 348 profiles, IMAGE/reactor/document/control/name/application/
+   XDATA/CEPSNID/CEPSNTYPE roles, arbitrary remaps/collisions and complete recursive/
+   coupled ownership with actual emitted-output joins. Custom child transport
+   does not certify arbitrary original dictionaries or a complete document.
+4. [ ] **Finish rendering and TABLE.** Cover remaining engine/schema/optional/
+   absent/duplicate/alias/extension providers, active/global/environment/background/
+   live-section/sun and independent VIEWPORT shade modes 4/5 and references 335/343/344/91 plus native
+   dictionary collation. Complete TABLE Values/multiple-content/linked-data
+   ownership, formatting/units/borders and independent native B2b/B3/C evidence.
+5. [ ] **Complete platform, consumers and external semantics.** Run native Linux
+   GCC release, Linux/Windows FreeCAD, formal ABI/application and controlled RSS/
+   performance work. Obtain independent ACIS/ACDS semantic/kernel evidence. Reuse
+   configured targets and the smallest affected fast cohort; broaden for actual
+   risks/failures. Freeze inputs, retain failures, self-unblock, and update/commit/
+   report each verified slice without external drawing payloads in Git.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false; the support ledger
+stays **CLOSED**. Full ownerTargetsResolved=false, recursiveClosureMatched=false,
+outputEligible=false and fullObjectiveComplete=false. All six
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**, nonpromoting. Native
+Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel and native Linux GCC
+release stay **NOT_RUN**. The full implementation goal remains active.

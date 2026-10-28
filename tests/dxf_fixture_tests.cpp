@@ -70,6 +70,11 @@ public:
         const auto saved=value.m_dxfMaterialWriteInspected;value.m_dxfMaterialWriteInspected=false;
         const bool good=value.inspectDxfMaterialOutput(view);value.m_dxfMaterialWriteInspected=saved;return good;
     }
+    static bool customVariableUnchanged(const dx_iface& value){return value.hasUnchangedCustomDxfDictionaryVars();}
+    static bool customVariableReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
+        const auto saved=value.m_customDxfDictionaryVarsInspected;value.m_customDxfDictionaryVarsInspected=false;
+        const bool good=value.inspectCustomDxfDictionaryVars(view);value.m_customDxfDictionaryVarsInspected=saved;return good;
+    }
     static auto size(const dx_iface& value){return std::make_pair(value.m_dxfMaterialReferenceState.sources.size(),value.m_dxfMaterialReferenceState.bytes);}
     static void limit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfMaterialReferenceState.recordLimit=records;value.m_dxfMaterialReferenceState.byteLimit=bytes;}
     static bool finalize(const dx_iface& value){return value.finalizeDxfCommonReferences(347,value.m_dxfMaterialReferenceState);}
@@ -28057,6 +28062,152 @@ void testMaterialSourceOrder(TestContext& t) {
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MATERIAL source-order evidence: "<<dir<<'\n';
 }
 
+namespace customDictionaryVarControls {
+using namespace materialConsumerControls;
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u;
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::customVariableReplay(*this,view))return false;bool variable=false;
+        for(const auto& field:fields) {
+            if(field.code==0)variable=field.text=="DICTIONARYVAR";
+            if(!variable||field.begin<begin||field.begin>=end)continue;
+            auto changed=body;auto at=field.value-begin;
+            if(binary)changed.at(at)^=1;
+            else{while(changed.at(at)==' '||changed.at(at)=='\t')++at;changed.at(at)=changed.at(at)=='F'?'E':'F';}
+            auto bad=view;bad.bytes=changed;if(A::customVariableReplay(*this,bad)||!A::customVariableReplay(*this,view))return false;++corruptions;
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+Tags recipe(const std::string& version,bool nested,bool canonical,bool hard) {
+    const int role=hard?360:350;
+    Tags result{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"OBJECTS"},{0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
+        {3,"CUSTOM_META"},{350,"A"}};
+    if(canonical)result.insert(result.end(),{{3,"AcDbVariableDictionary"},{350,"21"}});
+    result.insert(result.end(),{{0,"DICTIONARY"},{5,"A"},{330,"C"},{100,"AcDbDictionary"},{280,hard?"1":"0"},{281,"1"}});
+    if(nested)result.insert(result.end(),{{3,"SUBMETA"},{role,"B"},{0,"DICTIONARY"},{5,"B"},{330,"A"},{100,"AcDbDictionary"},{280,hard?"1":"0"},{281,"1"}});
+    result.insert(result.end(),{{3,"DATA_Ω"},{role,"D"},{3,"OTHER"},{role,"E"},
+        {0,"DICTIONARYVAR"},{5,"D"},{330,nested?"B":"A"},{100,"DictionaryVariables"},{280,"0"},{1,"custom-Ω"},{300,"opaque-variable-tag"},
+        {0,"DICTIONARYVAR"},{5,"E"},{330,nested?"B":"A"},{100,"DictionaryVariables"},{280,"0"},{1,"second"}});
+    if(canonical)result.insert(result.end(),{{0,"DICTIONARY"},{5,"21"},{330,"C"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
+        {3,"CANONICAL_VALUE"},{350,"F"},{0,"DICTIONARYVAR"},{5,"F"},{330,"21"},{100,"DictionaryVariables"},{280,"0"},{1,"system-like"}});
+    result.insert(result.end(),{{0,"ENDSEC"},{0,"EOF"}});return result;
+}
+struct Row {std::string type,id,owner;Tags fields;};
+bool proof(const std::filesystem::path& path,bool binary,bool nested,bool canonical,bool hard,const std::string& first="custom-Ω") {
+    std::vector<Row> rows;
+    for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
+        if(field.first==0){rows.push_back({field.second,{},{},{}});continue;}
+        if(rows.empty())continue;auto& row=rows.back();row.fields.push_back(field);
+        if(field.first==5)row.id=field.second;if(field.first==330)row.owner=field.second;
+    }
+    const auto find=[&](const std::string& id)->const Row*{const Row* result=nullptr;for(const auto& row:rows)if(row.id==id){if(result)return nullptr;result=&row;}return result;};
+    const auto entry=[&](const Row& row,const std::string& key,int role)->const Row* {
+        const Row* result=nullptr;
+        for(std::size_t i=0u;i+1u<row.fields.size();++i)if(row.fields[i]==std::make_pair(3,key)) {
+            if(result||row.fields[i+1u].first!=role)return nullptr;result=find(row.fields[i+1u].second);
+        }
+        return result;
+    };
+    const Row* root=nullptr;for(const auto& row:rows)if(row.type=="DICTIONARY"&&row.owner=="0"){if(root)return false;root=&row;}
+    if(!root)return false;const auto* custom=entry(*root,"CUSTOM_META",350);if(!custom||custom->type!="DICTIONARY"||custom->owner!=root->id)return false;
+    const auto* leaf=nested?entry(*custom,"SUBMETA",hard?360:350):custom;
+    if(!leaf||leaf->type!="DICTIONARY"||(nested&&leaf->owner!=custom->id))return false;
+    for(const auto& value:std::vector<std::pair<std::string,std::string>>{{"DATA_Ω",first},{"OTHER","second"}}) {
+        const auto* variable=entry(*leaf,value.first,hard?360:350);
+        if(!variable||variable->type!="DICTIONARYVAR"||variable->owner!=leaf->id)return false;
+        std::vector<int> schemas;std::vector<std::string> values,opaque;
+        for(const auto& field:variable->fields){if(field.first==280)schemas.push_back(std::stoi(field.second));if(field.first==1)values.push_back(field.second);if(field.first==300)opaque.push_back(field.second);}
+        if(schemas!=std::vector<int>{0}||values!=std::vector<std::string>{materialBodyControls::encodedText(value.second,"AC1027",binary)}
+            ||opaque!=(value.first=="DATA_Ω"?std::vector<std::string>{"opaque-variable-tag"}:std::vector<std::string>{}))return false;
+    }
+    if(canonical){const auto* dictionary=entry(*root,"AcDbVariableDictionary",350);if(!dictionary||dictionary->type!="DICTIONARY"||dictionary->owner!=root->id)return false;
+        const auto* variable=entry(*dictionary,"CANONICAL_VALUE",350);if(!variable||variable->type!="DICTIONARYVAR"||variable->owner!=dictionary->id)return false;}
+    return true;
+}
+bool readback(const std::filesystem::path& path,bool canonical,const std::string& first="custom-Ω") {
+    dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||data.dictionaryVars.size()!=(canonical?3u:2u))return false;
+    std::set<std::string> values;for(const auto& value:data.dictionaryVars){if(value.m_schema!=0)return false;values.insert(value.m_value);}
+    auto expected=std::set<std::string>{first,"second"};if(canonical)expected.insert("system-like");return values==expected;
+}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,refusals=0u,retries=0u,callbacks=0u,highHandles=0u,textProfiles=0u,corruptions=0u,identityGuards=0u;
+    const auto fail=[&](int line){std::cerr<<"Custom DICTIONARYVAR line="<<line<<" profiles="<<profiles<<" refusals="<<refusals<<" callbacks="<<callbacks<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool nested:{false,true})for(bool canonical:{false,true})for(bool hard:{false,true}) {
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface adapter;dx_data data;if(!write(input,recipe(version,nested,canonical,hard),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),v,binary,&data,false,true)||!proof(output,binary,nested,canonical,hard)||!readback(output,canonical))return fail(__LINE__);++profiles;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        auto fields=recipe("AC1027",true,false,false);
+        for(auto& field:fields)if((field.first==5||field.first==350)&&field.second=="D")field.second="33";
+        dx_iface adapter;dx_data data;if(!write(input,fields,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,true,false,false)||!readback(output,false))return fail(__LINE__);++highHandles;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(const std::string text:std::vector<std::string>{"literal^A_Ω",std::string("control")+char(1)+"_Ω","literal\\U+1234_Ω"}) {
+        auto fields=recipe("AC1027",true,false,false);
+        for(auto& field:fields)if(field.first==1&&field.second=="custom-Ω")field.second=materialBodyControls::encodedText(text,"AC1027",sourceBinary);
+        dx_iface adapter;dx_data data;if(!write(input,fields,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,true,false,false,text)||!readback(output,false,text))return fail(__LINE__);++textProfiles;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",true,true,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto variables=data.dictionaryVars;const auto dictionaries=data.dictionaries;const auto root=data.namedObjectDictionary;const auto raw=data.rawNamedResourceObjects;
+        for(unsigned kind=0u;kind<12u;++kind) {
+            if(kind==0u)data.dictionaryVars.front().parentHandle=0xEA01u;
+            if(kind==1u)data.dictionaryVars.front().m_value="unmatched-value";
+            if(kind==2u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.m_entries.erase(dictionary.m_entries.begin());
+            if(kind==3u)data.namedObjectDictionary.m_entries.erase(data.namedObjectDictionary.m_entries.begin());
+            if(kind==4u)data.dictionaryVars.push_back(data.dictionaryVars.front());
+            if(kind==5u)data.rawNamedResourceObjects.pop_back();
+            if(kind==6u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.m_entries.front().m_handle=0xEA02u;
+            if(kind==7u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.parentHandle=0xEA03u;
+            if(kind==8u)data.hasNamedObjectDictionary=false;
+            if(kind==9u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu){auto alias=dictionary.m_entries.front();alias.m_name="ALIAS";dictionary.m_entries.push_back(std::move(alias));}
+            if(kind==10u){auto& carrier=data.rawNamedResourceObjects.front();for(std::size_t i=0u;i<carrier.groups.size();++i)if(carrier.groups[i].code()==1){carrier.groups[i]=DRW_Variant(1,UTF8STRING("raw-only-value"));if(carrier.hasRawValues)carrier.rawValues[i]="raw-only-value";break;}}
+            if(kind==11u)data.dictionaryVars.front().m_schema=1;
+            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!kept(output))return fail(__LINE__);++refusals;
+            data.dictionaryVars=variables;data.dictionaries=dictionaries;data.namedObjectDictionary=root;data.rawNamedResourceObjects=raw;data.hasNamedObjectDictionary=true;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,true,true,false)||!readback(output,true))return fail(__LINE__);++retries;
+        }
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<5u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe("AC1027",true,false,true),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto dictionaries=data.dictionaries;const auto variables=data.dictionaryVars;const auto raws=data.rawNamedResourceObjects;bool identityGuard=true;
+        adapter.change=[&]{if(kind==0u)data.dictionaryVars.front().m_value="late-value";if(kind==1u)data.dictionaryVars.front().parentHandle=0xEA04u;
+            if(kind==2u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.m_entries.front().m_handle=0xEA05u;
+            if(kind==3u)data.dictionaryVars.back()=data.dictionaryVars.front();
+            if(kind==4u)data.rawNamedResourceObjects.back()=data.rawNamedResourceObjects.front();
+            if(kind>=3u){identityGuard=!A::customVariableUnchanged(adapter);if(identityGuard)++identityGuards;}
+        };sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!kept(output)||!identityGuard)return fail(__LINE__);++callbacks;
+        adapter.active=false;data.dictionaryVars=variables;data.rawNamedResourceObjects=raws;data.dictionaries=dictionaries;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,true,false,true)||!readback(output,false))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true}) {
+        Replay adapter;adapter.binary=binary;adapter.previous=dir/(binary?"previous-bin.dxf":"previous-asc.dxf");dx_data data;
+        if(!write(input,recipe("AC1027",true,false,true),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        dx_iface initial;if(!initial.fileExport(adapter.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);corruptions+=adapter.corruptions;
+    }
+    std::cout<<"Custom DICTIONARYVAR profiles="<<profiles<<"; refusals="<<refusals<<"; callbacks="<<callbacks<<"; retries="<<retries<<"; highHandles="<<highHandles<<"; textProfiles="<<textProfiles<<"; corruptions="<<corruptions<<"; identityGuards="<<identityGuards<<'\n';return true;
+}
+}
+void testCustomDictionaryVarOwners(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-custom-dictionaryvar-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=customDictionaryVarControls::run(dir);t.expect(passed,"custom DICTIONARYVAR owners preserve graph and values");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"Custom DICTIONARYVAR evidence: "<<dir<<'\n';
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -36129,6 +36280,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 3 && std::string(argv[1]) == "--material-source-order-probe") {
         return materialSourceOrderControls::peer(argv[2]) ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-custom-owners") {
+        TestContext context;testCustomDictionaryVarOwners(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--header-material-bindings") {
         TestContext context;testHeaderMaterialBindings(context);return context.failures == 0 ? 0 : 1;
