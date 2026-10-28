@@ -43,7 +43,7 @@ runs separately.
 | --- | --- | --- | --- |
 | P2 | SELECT WITNESS, THEN IMPLEMENT | Remaining count operations, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Current unsupported operation, original authority and actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
-| P4 | SELECTED PROFILE READY | P4a: equal embedded host alignment, then remaining original profiles; P4b: compose document closure | Centered no-280 source and exact competing spans; dual-280 remains separate |
+| P4 | SELECT MISSING LAYER | P4a: embedded dual-280 and remaining original profiles; P4b: compose document closure | Exact original fields, roles and expected output; dual-280 remains separate |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -61,14 +61,14 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P4a — qualify equal embedded host alignment | Centered AC1032 ACadSharp original and compatible output, current profile auditor and compound proofs | Accept only matching finite Text/Attribute triples with identical component presence in the witnessed embedded no-280 profile; retain both spans and test actual output, conflicts and ownership |
+| P4a — classify embedded dual-280 | Retained AC1032 ATTDEF `796` and ATTRIB `79D`, classic dual-280 and equal-alignment receipts | Bind version and lock roles in the embedded source and actual output; identify any missing representation before changing the guard |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused first/multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
 Select the next local packet from a current exact witness and its missing layer.
-The selected embedded no-280 profile is ready for bounded source/compound proof;
-independent native meaning remains unqualified. P2 and P3's remaining operations
+The selected embedded equal-alignment source/compound profile is qualified within
+its receipt; independent native meaning remains unqualified. P2 and P3's remaining operations
 need concrete witnesses;
 secondary `AcDbXrecord` remains a separate source/meaning search. Reuse existing
 source-bound refusals and projections before authoring another source.
@@ -199,38 +199,23 @@ The writer's normalized single lock-`280` output does not preserve the original
 dual-`280` byte form. Other-version, ordering, nested and secondary-profile
 semantics remain separately qualified; retain existing single-`280` compatibility.
 
-**Next P4a candidate — equal embedded host alignment.** The
-independent [ACadSharp producer receipt](docs/research/rpp5hj-acadsharp-attribute-profile-2026-10-28.json)
-shows equal host Text/Attribute alignments and distinct embedded insertion for
-authored AC1032 ATTDEF and ATTRIB records. Its no-280 profile and embedded
-MTEXT group `73=0` do not qualify the retained dual-280 source; the ordinary
-peer normalizes that value. A separate [centered source receipt](docs/research/rpp5hl-attribute-embedded-equal-alignment-2026-10-28.json)
-sets `73=1` before first save and shows matching Text/Attribute alignment and a
-distinct embedded insertion in original and compatible ASCII/binary output.
-The current source auditor refuses the second host triple as `DuplicateField`;
-raw/typed pair and replay match, while compound profile/space proof is still open.
-For this no-280 embedded profile, retain both scoped spans and admit the second
-triple only when component presence and finite values match exactly, including
-signed-zero policy; require the embedded marker and the selected attribute type.
-Protect unequal, partial, missing-component and nonembedded controls, source
-ownership, actual output, caller state and retry. Do not extend this evidence to
-embedded dual-280 ordering or arbitrary distinct host values.
-The retained AC1032 source in the [versioned readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
+The [equal-alignment receipt](docs/research/rpp5hn-embedded-equal-alignment-qualified-2026-10-28.json)
+qualifies the selected AC1032 embedded source and compound profile, including
+writer-normalized single-lock output. Its source-specific failed-write/retry
+contract and native meaning remain open. Do not infer independent lock-1 or
+dual-280 semantics from compatible transport.
+
+**Next P4a candidate — embedded dual-280 roles.** The retained AC1032 source in
+the [versioned readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
 has ATTDEF `796` / owner `77F` at `[75957,76505)` and ATTRIB `79D` / owner `79C`
 at `[210468,211002)`. Each has a later embedded MTEXT marker after its dual pair.
 Its Text `11/21/31`, Attribute `11/21/31` and MTEXT insertion `10/20/30` values
-are equal. The current model shares `secPoint` for the first two alignment roles;
-the current audit reaches `DuplicateField` before the late embedded-dual guard.
-Equal values cannot establish independent roles or faithful representation, and
-the independent producer's alignment interpretation is itself uncertain.
-
-Implement only the missing profile/compound proof for this exact source; do not
-suppress the duplicate check or remove the embedded dual-280 guard generally.
-Keep selected classic and single-280
-compatibility, scalar/compound membership, ownership, actual normalized output
-and caller/refusal behavior protected. If this meaning remains unavailable,
-continue a separately witnessed local operation instead of inventing an alignment
-schema or waiting on native evidence.
+are equal. Reproduce the current rejection against the new equal-alignment
+auditor, then bind both 280 spans to version/lock roles using the retained
+classic evidence and a distinguishing embedded producer or specification.
+Keep selected classic and single-280 compatibility, scalar/compound membership,
+ownership, actual normalized output and caller/refusal behavior protected. If the
+roles remain ambiguous, continue another witnessed local operation.
 
 The [attribute receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
 covers selected earlier-version subclass alignment and tolerated embedded input.
