@@ -16069,6 +16069,30 @@ bool mlineBodyFields(const DRW_RawDxfObject& raw,DRW_RawDxfObject& selected,
     return depth==0u && markers==1u;
 }
 
+// Selected 2->1 count edit: both original elements have contiguous 49/62/6
+// tuples and the last tuple ends the core body. No suffix is guessed away.
+bool mlineTwoElementTuples(const DRW_RawDxfObject& raw,
+        std::array<std::array<std::size_t,3>,2>& tuples,std::size_t& countIndex) {
+    DRW_RawDxfObject selected;MlineSlots slots;MlineElementSlots colors,offsets;
+    std::size_t insertion=0u;std::vector<std::size_t> texts;
+    if (!mlineBodyFields(raw,selected,slots,insertion,&texts,&colors,&offsets)) return false;
+    std::array<std::size_t,2> types{{noScaleSlot,noScaleSlot}};std::size_t n=0u;
+    for (const auto index:texts) if (raw.groups[index].code()==6) {
+        if (n>=types.size()) return false;types[n++]=index;
+    }
+    if (n!=2u) return false;
+    for (std::size_t i=0u;i<2u;++i) {
+        if (offsets[i]==noScaleSlot || colors[i]!=offsets[i]+1u || types[i]!=offsets[i]+2u) return false;
+        tuples[i]={{offsets[i],colors[i],types[i]}};
+    }
+    if (tuples[0][2]+1u!=tuples[1][0] || tuples[1][2]+1u!=raw.groups.size()) return false;
+    countIndex=noScaleSlot;
+    for (std::size_t i=0u;i<raw.groups.size();++i) if (raw.groups[i].code()==71) {
+        if (countIndex!=noScaleSlot) return false;countIndex=i;
+    }
+    return countIndex!=noScaleSlot;
+}
+
 template<class Context> bool decodeMlineBody(const DRW_RawDxfObject& raw,
         const Context& context,DRW_MLineStyle& result,MlineSlots& slots,std::size_t& insertion,
         std::vector<std::size_t>* textSlots=nullptr) {
@@ -16379,6 +16403,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             const bool append=version>=DRW::AC1021 && context.m_version==version
                 && !original.elements.empty() && original.elements.size()<UINT8_MAX
                 && value.elements.size()==original.elements.size()+1u;
+            const bool remove=version>=DRW::AC1021 && context.m_version==version
+                && original.elements.size()==2u && value.elements.size()==1u;
             if (append) {
                 // Charge the additional prefix snapshot and generated tuple
                 // before allocating either; the usual retained typed/raw
@@ -16400,6 +16426,35 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     || !added.colorName.empty() || !added.colorBookName.empty() || added.colorDwgIndex
                     || added.linetypeIndex!=-1 || added.linetypeHandle
                     || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
+            } else if (remove) {
+                // Without per-element identities, a changed retained prefix
+                // can be either a first-element deletion or a last deletion
+                // combined with an edit. Admit only the distinguishing,
+                // untouched prefix and exact original raw element tuples.
+                std::size_t originalTyped=0u,originalItems=0u;
+                if (!estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
+                    || !chargeNamedResourceBytes(bytes,originalBytes)
+                    || !chargeNamedResourceBytes(bytes,retained)
+                    || !chargeNamedResourceBytes(bytes,retained)
+                    || !chargeNamedResourceBytes(bytes,originalTyped)
+                    || !chargeNamedResourceBytes(bytes,originalTyped)) return false;
+                DRW_MLineStyle prefix=original;prefix.elements.pop_back();
+                DRW_MLineStyle droppedFirst=original;droppedFirst.elements.erase(droppedFirst.elements.begin());
+                bool originalReactor=false,rawReactor=false;
+                std::array<std::array<std::size_t,3>,2> before{},current{};
+                std::size_t beforeCount=0u,currentCount=0u;
+                if (!mlineFieldsEqual(value,prefix,false,false,false,true,true,true)
+                    || mlineFieldsEqual(value,droppedFirst,false,false,false,true,true,true)
+                    || parsed.elements.size()!=original.elements.size()
+                    || !mlineRetargetCoreBody(context,originalReactor)
+                    || !mlineRetargetCoreBody(raw,rawReactor) || originalReactor!=rawReactor
+                    || !mlineTwoElementTuples(context,before,beforeCount)
+                    || !mlineTwoElementTuples(raw,current,currentCount)
+                    || (context.hasRawValues && context.rawValues.size()!=context.groups.size())) return false;
+                for (std::size_t i=0u;i<before.size();++i) for (std::size_t j=0u;j<before[i].size();++j) {
+                    if (!retainedVariantEqual(context.groups[before[i][j]],raw.groups[current[i][j]])
+                        || (raw.hasRawValues && context.rawValues[before[i][j]]!=raw.rawValues[current[i][j]])) return false;
+                }
             } else if (!mlineFieldsEqual(value,original,false,false,false,false,false,false)) return false;
             // Reconcile DXF names below; DWG index/handle mirrors retain their
             // original meaning and cannot authorize a DXF reference edit.
@@ -16435,7 +16490,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 for (auto entry=range.first;entry!=range.second;++entry)
                     if (layoutSymbolKey(entry->second->m_name)!=name) return false;
             }
-            if (append && !dictionaryOrigin) return false;
+            if ((append || remove) && !dictionaryOrigin) return false;
             const auto effective=range.first->second->m_name;
             if (!m_mlineStyleNamesToWrite.emplace(value.handle,effective).second) return false;
             UTF8STRING text;
@@ -16447,7 +16502,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             // a limit on encoded CIF/codepage byte length or a memory claim.
             if (std::count_if(text.begin(),text.end(),[](unsigned char c){return (c&0xC0u)!=0x80u;})>255) return false;
             DxfMLineStyleSource source;source.model=value;source.projection=parsed;source.dictionaryOrigin=std::move(dictionaryOrigin);
-            source.countChanged=append;
+            source.countChanged=append || remove;
             auto& target=source.projection;
             target.description=text;
             const auto choose=[](const auto& old,const auto& typed,const auto& rawValue,auto& result,const auto& equal) {
@@ -16462,7 +16517,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || !choose(original.endAngle,value.endAngle,parsed.endAngle,target.endAngle,retainedDoubleEqual)
                 || target.fillColor<0 || target.fillColor>256
                 || !std::isfinite(target.startAngle) || !std::isfinite(target.endAngle)) return false;
-            for (std::size_t i=0u;i<target.elements.size();++i) {
+            const std::size_t reconciledElements=remove?value.elements.size():target.elements.size();
+            for (std::size_t i=0u;i<reconciledElements;++i) {
                 // Earlier source/target routes retain their existing raw-only
                 // behavior until typed offset authority is qualified there.
                 if ((version<DRW::AC1021 || context.m_version<DRW::AC1021)
@@ -16487,7 +16543,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             // when the change came only from the typed model.
             for (std::size_t i=0u;i<target.elements.size();++i)
                 source.geometryChanged=source.geometryChanged || !retainedDoubleEqual(target.elements[i].offset,original.elements[i].offset);
-            if (append) {source.geometryChanged=true;source.referencesChanged=true;}
+            if (append || remove) {source.geometryChanged=true;source.referencesChanged=true;}
             const auto sourcePage=version>=DRW::AC1021 ? std::string_view("UTF-8") : std::string_view(context.codePage);
             const bool pageChanged=sourcePage!=m_dxfMLineStyleState.codePage;
             if (pageChanged) for (std::size_t i=0u;i<raw.groups.size();++i) {
@@ -16609,6 +16665,20 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     source.output.rawValues.insert(source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(lastType+1u),spellings.begin(),spellings.end());
                 }
                 target.elements.push_back(added);
+            }
+            if (remove) {
+                std::array<std::array<std::size_t,3>,2> tuples{};
+                std::size_t countIndex=0u;
+                if (!mlineTwoElementTuples(source.output,tuples,countIndex)
+                    || !encoded.writeInt16(71,static_cast<int>(value.elements.size()))
+                    || !replace(countIndex,encoded.groups.back())) return false;
+                const auto first=tuples[1][0];const auto after=tuples[1][2]+1u;
+                source.output.groups.erase(source.output.groups.begin()+static_cast<std::ptrdiff_t>(first),
+                    source.output.groups.begin()+static_cast<std::ptrdiff_t>(after));
+                if (source.output.hasRawValues && !binary)
+                    source.output.rawValues.erase(source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(first),
+                        source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(after));
+                target.elements.pop_back();
             }
             std::sort(source.stringOverrides.begin(),source.stringOverrides.end(),
                 [](const auto& a,const auto& b){return a.first<b.first;});
@@ -20490,9 +20560,31 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
             style.second.linetypesBound=false;
             if (!style.second.dictionaryOrigin) continue;
             const auto& elements=style.second.projection.elements;
-            if (!visit(elements.size()) || !chargeNamedResourceBytes(bytes,elements.size()*sizeof(std::uint32_t))) return false;
-            std::vector<std::uint32_t> selected;selected.reserve(elements.size());bool complete=true;
-            for (const auto& element:elements) {
+            // A selected 2->1 removal must prove the original removed
+            // linetype target too, not only the surviving output reference.
+            // The frozen baseline is the original source, independent of
+            // the caller's edited projection.
+            const bool removed=style.second.countChanged && elements.size()==1u;
+            DRW_MLineStyle original;
+            if (removed) {
+                const auto& baseline=style.second.baseline;
+                const auto saved=cData->m_mlineStyleBodyBaselines.find(style.first);
+                std::size_t rawBytes=0u;
+                MlineSlots slots;std::size_t insertion=0u;
+                if (!baseline || saved==cData->m_mlineStyleBodyBaselines.end() || !saved->second
+                    || baseline.get()!=saved->second.get() || baseline.owner_before(saved->second)
+                    || saved->second.owner_before(baseline) || baseline->handle!=style.first
+                    || baseline->m_version!=cData->sourceVersion
+                    || !estimateRawDxfObjectBytes(*baseline,rawBytes)
+                    || !visit(baseline->groups.size()) || !chargeNamedResourceBytes(bytes,rawBytes)
+                    || !decodeMlineBody(*baseline,*saved->second,original,slots,insertion)
+                    || original.elements.size()!=2u) return false;
+            }
+            const std::size_t references=elements.size()+(removed?1u:0u);
+            if (!visit(references) || !chargeNamedResourceBytes(bytes,references*sizeof(std::uint32_t))) return false;
+            std::vector<std::uint32_t> selected;selected.reserve(references);bool complete=true;
+            for (std::size_t index=0u;index<references;++index) {
+                const auto& element=index<elements.size()?elements[index]:original.elements.back();
                 std::string key;
                 if (!dx_symbol_output::nameKey(element.linetype,key)) {complete=false;break;}
                 const auto named=source.resourceNames.find({F::LineType,key});

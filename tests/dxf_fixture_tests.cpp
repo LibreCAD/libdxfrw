@@ -128,6 +128,7 @@ public:
         value.m_dxfMLineLinetypes=std::move(saved);value.m_dxfMLineLinetypesInspected=inspected;return good;
     }
     static std::function<void()> removeMLineLinetypeOrigin(dx_data& value,std::uint32_t handle);
+    static std::function<void()> unqualifyMLineLinetypeOrigin(dx_data& value,std::uint32_t handle);
     static std::function<void()> removeMLineDictionaryOrigin(dx_data& value,std::uint32_t handle);
     static std::function<void()> removeMLineConsumerEvidence(dx_data& value,bool block);
     static bool mlineRetargetProofBound(const dx_iface& value,unsigned mask){
@@ -31995,7 +31996,7 @@ struct Replay:dx_iface {
 // The selected count edit is a single complete typed tuple appended to an
 // unused style. Compare physical tuple ordering and identities before any
 // reader can synthesize a default record.
-bool appendProof(const std::filesystem::path& path,bool binary,bool empty=false) {
+bool appendProof(const std::filesystem::path& path,bool binary,bool empty=false,bool removed=false) {
     using Row=mlineStyleAuthorityControls::Row;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto fields=[](const Row& row,int code) {
@@ -32032,14 +32033,14 @@ bool appendProof(const std::filesystem::path& path,bool binary,bool empty=false)
         if(field.first==102){if(field.second=="}"){if(!depth)return false;--depth;}else ++depth;continue;}
         if(depth)continue;if(field.first==100){body=field.second=="AcDbMlineStyle";continue;}
         if(!body)continue;
-        if(field.first==71){if(std::stoi(field.second)!=3)return false;++count;}
+        if(field.first==71){if(std::stoi(field.second)!=(removed?1:3))return false;++count;}
         if(field.first==49)started=true;
         if(started&&(field.first==49||field.first==62||field.first==6))tuples.push_back(field);
     }
-    if(count!=1u||tuples.size()!=9u)return false;
-    const std::array<double,3> offsets{{.5,-.25,.875}};
-    const std::array<int,3> colors{{5,7,4}};
-    const std::array<std::string,3> types{{"ByLayer","Continuous","ByLayer"}};
+    if(count!=1u||tuples.size()!=(removed?3u:9u))return false;
+    const std::vector<double> offsets=removed?std::vector<double>{.5}:std::vector<double>{.5,-.25,.875};
+    const std::vector<int> colors=removed?std::vector<int>{5}:std::vector<int>{5,7,4};
+    const std::vector<std::string> types=removed?std::vector<std::string>{"ByLayer"}:std::vector<std::string>{"ByLayer","Continuous","ByLayer"};
     for(std::size_t i=0u;i<offsets.size();++i)
         if(tuples[3u*i].first!=49||!equal(std::stod(tuples[3u*i].second),offsets[i])
             ||tuples[3u*i+1u].first!=62||std::stoi(tuples[3u*i+1u].second)!=colors[i]
@@ -32069,7 +32070,7 @@ bool appendProof(const std::filesystem::path& path,bool binary,bool empty=false)
     if(!reader.fileImport(path.string(),&data,false))return false;
     unsigned found=0u;
     for(const auto& value:data.mLineStyles)if(value.name=="RETARGET_BODY") {
-        if(value.elements.size()!=3u)return false;
+        if(value.elements.size()!=offsets.size())return false;
         for(std::size_t i=0u;i<offsets.size();++i)
             if(!equal(value.elements[i].offset,offsets[i])||value.elements[i].color!=colors[i]
                 ||value.elements[i].linetype!=types[i])return false;
@@ -32281,12 +32282,140 @@ bool appendControls(const std::filesystem::path& dir) {
     return profiles==4u&&readbacks==40u&&refusals==10u&&late==8u&&detached==6u&&evidence==4u
         &&empty==4u&&injected==4u&&boundary==4u&&retries==34u;
 }
+bool removeControls(const std::filesystem::path& dir) {
+    const auto input=dir/"mline-remove-input.dxf",output=dir/"mline-remove-output.dxf";
+    unsigned profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,empty=0u,injected=0u,zero=0u;
+    const auto fail=[&](int line){std::cerr<<"MLINE remove line="<<line<<" profiles="<<profiles
+        <<" readbacks="<<readbacks<<" refusals="<<refusals<<" late="<<late
+        <<" empty="<<empty<<" injected="<<injected<<" zero="<<zero<<" evidence="<<dir<<'\n';return false;};
+    const auto remove=[](dx_data& data){mlineRetargetControls::style(data,0xD2u).elements.pop_back();};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        remove(data);const mlineRetargetControls::Snapshot caller(data);
+        const bool exported=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true);
+        const bool bound=exported&&A::mlineRetargetProofBound(adapter,0u);
+        const bool matched=exported&&appendProof(output,binary,false,true);
+        const bool unchanged=caller.same(data);
+        if(!exported||!bound||!matched||!unchanged) {
+            std::cerr<<"MLINE remove sourceBinary="<<sourceBinary<<" binary="<<binary<<" exported="<<exported
+                <<" bound="<<bound<<" matched="<<matched<<" unchanged="<<unchanged<<'\n';return fail(__LINE__);
+        }
+        ++profiles;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
+        dx_iface adapter;dx_data data;
+        auto source=recipe(binary);
+        if(kind==9u) {
+            bool style=false,old=false;unsigned oldNames=0u,continuous=0u;
+            for(auto& field:source) {
+                if(field.first==0){style=field.second=="MLINESTYLE";old=false;}
+                if(style&&field==std::make_pair(5,std::string("D")))old=true;
+                if(style&&old&&field.first==6){++oldNames;if(field.second=="Continuous")field.second="ByLayer";}
+            }
+            if(oldNames!=2u)return fail(__LINE__);style=false;old=false;
+            for(const auto& field:source) {
+                if(field.first==0){style=field.second=="MLINESTYLE";old=false;}
+                if(style&&field==std::make_pair(5,std::string("D2")))old=true;
+                if(style&&field.first==6&&field.second=="Continuous") {if(!old)return fail(__LINE__);++continuous;}
+            }
+            if(continuous!=1u)return fail(__LINE__);
+        }
+        if(!write(input,source,binary,"AC1027"))return fail(__LINE__);
+        if(kind==9u) {
+            unsigned styles=0u;
+            for(const auto& row:mlineStyleAuthorityControls::records(input,binary))if(row.type=="MLINESTYLE"&&(row.id=="D"||row.id=="D2")) {
+                std::vector<std::string> types;for(const auto& field:row.fields)if(field.first==6)types.push_back(field.second);
+                if(types!=(row.id=="D"?std::vector<std::string>{"ByLayer","ByLayer"}
+                                      :std::vector<std::string>{"ByLayer","Continuous"}))return fail(__LINE__);
+                ++styles;
+            }
+            if(styles!=2u)return fail(__LINE__);
+        }
+        if(!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot before(data);remove(data);const mlineRetargetControls::Snapshot correct(data);
+        std::function<void()> restore;
+        if(kind==0u)rawOffset(data,0xD2u,1u,-.625);
+        if(kind==1u)mlineRetargetControls::rawValue(data,0xD2u,62,"8",2u);
+        if(kind==2u)mlineRetargetControls::rawValue(data,0xD2u,6,"ByLayer",1u);
+        if(kind==3u)mlineRetargetControls::request(data,1u);
+        if(kind==4u)mlineRetargetControls::request(data,2u);
+        if(kind==5u)restore=A::removeMLineConsumerEvidence(data,false);
+        if(kind==6u)restore=A::removeMLineConsumerEvidence(data,true);
+        if(kind==7u){before.restore(data);auto& elements=mlineRetargetControls::style(data,0xD2u).elements;elements.erase(elements.begin());}
+        if(kind==8u){before.restore(data);mlineRetargetControls::style(data,0xD2u).elements.clear();}
+        if(kind==9u)restore=A::unqualifyMLineLinetypeOrigin(data,0x102u);
+        if((kind==5u||kind==6u||kind==9u)&&!restore)return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        const bool refused=!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            &&dictionaryVarTransactionControls::keptWithoutTemporary(output)&&caller.same(data);
+        if(restore)restore();if(!refused)return fail(__LINE__);++refusals;correct.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!appendProof(output,binary,false,true)||!correct.same(data))return fail(__LINE__);
+        ++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        remove(data);const mlineRetargetControls::Snapshot caller(data);bool hit=false;
+        adapter.change=[&]{hit=true;mlineRetargetControls::style(data,0xD2u).elements.front().offset+=.125;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;adapter.active=false;caller.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!appendProof(output,binary,false,true)||!caller.same(data))return fail(__LINE__);
+        ++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface sourceReader;dx_data source;
+        if(!write(input,recipe(binary),binary,"AC1027")||!sourceReader.fileImport(input.string(),&source,false))return fail(__LINE__);
+        const auto consumers=mlineStyleAuthorityControls::consumers(source);if(consumers.size()!=2u)return fail(__LINE__);
+        const DRW_MLine injectedModel=*consumers.front();
+        if(!write(input,noConsumers(binary),binary,"AC1027"))return fail(__LINE__);
+        for(bool block:{false,true}) {
+            InjectedMLine adapter;adapter.block=block;adapter.injected=injectedModel;dx_data data;
+            if(!adapter.fileImport(input.string(),&data,false)||!mlineStyleAuthorityControls::consumers(data).empty())return fail(__LINE__);
+            remove(data);const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!adapter.reached||!adapter.written||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+                ||!caller.same(data))return fail(__LINE__);
+            ++injected;adapter.active=false;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!appendProof(output,binary,true,true)||!caller.same(data))return fail(__LINE__);
+            ++empty;++readbacks;++retries;
+        }
+        // Independently author an original one-element style; deleting its
+        // last element remains unsupported, and retry preserves that source.
+        auto one=recipe(false);bool selected=false;std::size_t count=one.size(),second=one.size(),end=one.size();unsigned seen=0u;
+        for(std::size_t i=0u;i<one.size();++i) {
+            if(one[i].first==0){if(selected){end=i;break;}selected=false;}
+            if(one[i]==std::make_pair(5,std::string("D2")))selected=true;
+            if(selected&&one[i].first==71)count=i;
+            if(selected&&one[i].first==49&&++seen==2u)second=i;
+        }
+        if(count==one.size()||second==one.size()||end==one.size())return fail(__LINE__);
+        one[count].second="1";one.erase(one.begin()+static_cast<std::ptrdiff_t>(second),one.begin()+static_cast<std::ptrdiff_t>(end));
+        dx_iface adapter;dx_data data;
+        if(!write(input,one,false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||mlineRetargetControls::style(data,0xD2u).elements.size()!=1u)return fail(__LINE__);
+        const mlineRetargetControls::Snapshot original(data);remove(data);const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++zero;original.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!appendProof(output,binary,false,true)||!original.same(data))return fail(__LINE__);
+        ++readbacks;++retries;
+    }
+    std::cout<<"MLINE unused remove profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; empty="<<empty<<"; injected="<<injected<<"; zero="<<zero<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==38u&&refusals==20u&&late==8u&&empty==4u&&injected==4u&&zero==2u&&retries==34u;
+}
 bool run(const std::filesystem::path& dir) {
     const auto input=dir/"mline-unused-offset-input.dxf",output=dir/"mline-unused-offset-output.dxf";
     std::size_t profiles=0u,readbacks=0u,conflicts=0u,invalid=0u,affected=0u,late=0u,retries=0u,scopes=0u,boundaries=0u,away=0u,zeros=0u,legacy=0u,corruptions=0u,faults=0u,unreached=0u;
     const auto fail=[&](int line){std::cerr<<"MLINE unused offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" conflicts="<<conflicts<<" invalid="<<invalid
         <<" affected="<<affected<<" late="<<late<<" scopes="<<scopes<<" boundaries="<<boundaries<<'\n';return false;};
-    if(!appendControls(dir))return fail(__LINE__);
+    if(!appendControls(dir)||!removeControls(dir))return fail(__LINE__);
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
         const mlineRetargetControls::Snapshot originalState(data);
@@ -40485,6 +40614,16 @@ std::function<void()> DxIfaceMaterialReferenceTestAccess::removeMLineLinetypeOri
     auto& source=DxIfaceTableSourceTestAccess::rendering(value);auto& audit=source.resourceOriginAudits.at(handle);
     auto saved=audit;audit.reset();
     return [&value,handle,saved]{DxIfaceTableSourceTestAccess::rendering(value).resourceOriginAudits.at(handle)=saved;};
+}
+std::function<void()> DxIfaceMaterialReferenceTestAccess::unqualifyMLineLinetypeOrigin(dx_data& value,std::uint32_t handle) {
+    auto& source=DxIfaceTableSourceTestAccess::rendering(value);auto& audit=source.resourceOriginAudits.at(handle);
+    const auto saved=audit;if(!saved||saved->index>=source.resourceOriginAuditOwners.size()
+        ||source.resourceOriginAuditOwners[saved->index]!=saved)return {};
+    using Audit=std::remove_cv_t<std::remove_reference_t<decltype(*saved)>>;
+    auto replacement=std::make_shared<Audit>(*saved);replacement->originBound=false;
+    audit=replacement;source.resourceOriginAuditOwners[saved->index]=replacement;
+    return [&value,handle,saved]{auto& current=DxIfaceTableSourceTestAccess::rendering(value);
+        current.resourceOriginAudits.at(handle)=saved;current.resourceOriginAuditOwners.at(saved->index)=saved;};
 }
 std::function<void()> DxIfaceMaterialReferenceTestAccess::removeMLineDictionaryOrigin(dx_data& value,std::uint32_t handle) {
     auto& source=DxIfaceTableSourceTestAccess::rendering(value);auto& audit=source.structuralAudits.at(handle);
