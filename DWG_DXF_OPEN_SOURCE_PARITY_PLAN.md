@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5gi application DICTIONARYVAR preservation (2026-10-28; selected modern DXF scope verified):** reachable application child dictionaries now preserve matching typed/raw variable bodies through frozen output, actual field/reference proof and corrected retries. Selected source handles are reserved before generated allocation. All 33 affected normal/ASan checks, eight independent body probes and 16 independent selected full-file round trips per configuration pass. The former EZDXF_META refusal is resolved for these profiles; native semantics and full document/support gates remain open. [Implementation and next work](#implementation-progress-rpp-5gi-application-dictionaryvar-preservation-2026-10-28) · [receipt](docs/research/rpp5gi-application-dictionaryvar-output-2026-10-28.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gj modern DICTIONARYVAR body transactions (2026-10-28; selected scope verified):** standard and application DXF variables now reconcile represented typed/raw edits against immutable import baselines, preserve absent/unchanged/opaque fields, freeze projected output and verify actual emission. Allocation probing exposed and fixed an abort outside the exception boundary. All 34 affected normal/ASan checks, eight independent body probes, 16 unchanged peer round trips and 16 independently decoded metadata edits pass per configuration. Legacy/resource/native/full-document work remains open. [Implementation and next work](#implementation-progress-rpp-5gj-modern-dictionaryvar-body-transactions-2026-10-28) · [receipt](docs/research/rpp5gj-dictionaryvar-body-transactions-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5gi application DICTIONARYVAR preservation (2026-10-28; selected modern DXF scope verified):** reachable application child dictionaries now preserve matching typed/raw variable bodies through frozen output, actual field/reference proof and corrected retries. Selected source handles are reserved before generated allocation. All 33 affected normal/ASan checks, eight independent body probes and 16 independent selected full-file round trips per configuration pass. The former EZDXF_META refusal is resolved for these profiles; native semantics and full document/support gates remain open. [Implementation and next work](#implementation-progress-rpp-5gi-application-dictionaryvar-preservation-2026-10-28) · [receipt](docs/research/rpp5gi-application-dictionaryvar-output-2026-10-28.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5gh observed MATERIAL source order (2026-10-28; selected scope verified):** pinned ezdxf 1.4.5 independently reproduces normal-method-before-strength input and late physical fields. The reader/reconciler now retain selected values after a complete refraction prefix and an already-bound corresponding bump role. All 23 affected normal/ASan checks and eight independent body probes per configuration pass. At that checkpoint, whole-document peer export refused EZDXF_META/DICTIONARYVAR ownership; RPP-5gi above resolves the selected profiles. [Implementation and remaining work](#implementation-progress-rpp-5gh-observed-material-source-order-2026-10-28) · [receipt](docs/research/rpp5gh-material-observed-source-order-2026-10-28.json). No support gate is promoted.
 
@@ -135649,6 +135651,10 @@ checks with a new empty scratch directory and isolated Python with ezdxf 1.4.5:
 
 ### Next implementation-ready sequence
 
+Historical readiness: RPP-5gj below implements the modern standard/application
+body transaction sub-plan. Legacy variable profiles and other named-resource
+bodies remain open; use the newer sequence for current priorities.
+
 1. [ ] **Complete standard DXF variable body transactions.** Code review shows
    the canonical DXF route still replays its raw body; typed-only body edits can
    be ignored. Reproduce that baseline with a canonical-only local recipe, then
@@ -135689,3 +135695,123 @@ outputEligible=false and fullObjectiveComplete=false. All six
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**, nonpromoting. Native
 Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel and native Linux GCC
 release stay **NOT_RUN**. The full implementation goal remains active.
+
+## Implementation progress — RPP-5gj modern DICTIONARYVAR body transactions (2026-10-28)
+
+- [x] Reproduce the canonical DXF bug with a locally authored source: a typed
+  value edit exports successfully while the actual file and readback retain the
+  old value. Retain source/output hashes and exact observed variable fields.
+- [x] Capture first-import modern variable raw bodies as private immutable callback
+  baselines, with a separate private container-lifetime logical allowance before
+  copies. Roll back an inserted baseline if the raw companion insertion fails;
+  keep public raw callback accounting and sticky failure semantics. This baseline
+  is not an independent certificate of the original producer or native semantics.
+- [x] Use the same modern transaction for standard and application owners. Owning-
+  decode original/current raw bodies in the captured source format, then reconcile
+  schema 280 and value 1 independently: typed-only and raw-only edits survive,
+  disjoint changes compose, equal same-field edits agree, and disagreements refuse.
+  Require current raw/common metadata agreement. Preserve DWG typed output and
+  canonical/custom graph restrictions. Legacy canonical raw replay remains a
+  separate unresolved edit route; legacy custom owners still refuse.
+- [x] Preserve unknown raw fields, unchanged numeric spelling and absent default
+  schema/value slots. Rewrite only edited represented slots and existing text that
+  changes format; insert edited omitted fields at the body boundary. Ambiguous/
+  repeated represented slots refuse. Numeric schemas 0..255 are transport values;
+  native meanings beyond the documented current schema 0 are not qualified.
+  Precharge 64 times both original/current raw estimates plus twice typed logical
+  size before decoding/copying. This is not an RSS/performance guarantee.
+- [x] Freeze immutable baseline identity, current typed/raw sources and reconciled
+  projected fields, including standard dictionaries without XRECORDs. Require
+  unchanged sources and actual emitted identity/owner/field/reference proof plus
+  owning-decoded schema/value before publication. Private dx_data/dx_iface users
+  must rebuild; no installed library header, callback/pure virtual or DWG parser
+  byte layout changes.
+- [x] Pass 32 four-version/source/output/owner transaction profiles, 32 presence
+  profiles, two exact lexical controls and 422 owning readbacks. Pass 72 preflight
+  refusals and 40 real standard-route callback refusals, sentinel/temporary checks
+  and 132 corrected retries. Retain the existing application ownership controls,
+  adjusted to test true same-field conflicts, duplicate values and invalid schema
+  after raw-only/typed-only edits become supported. Twenty-six corruptions of
+  replayed edited standard OBJECTS views refuse; restored views pass.
+- [x] Probe 20 sparse preparation allocation offsets, reaching 16 actual failures.
+  The first reproduced abort occurs through the noexcept preparation method;
+  direct LLDB evidence confirms it. Move its allocating provenance check inside
+  the try block. All reached failures now return refusal, all sentinels remain,
+  and all 20 following normal exports/readbacks succeed. This is preparation fault
+  coverage, not exhaustive whole-export or filesystem-fault qualification.
+- [x] Independently decode 16 actual peer metadata edits per configuration using
+  the optional pinned ezdxf 1.4.5 recipe/probe. The value includes UTF-8, a literal
+  caret, literal Unicode-escape-looking text and control character 1. Regular peer
+  readfile intentionally leaves Unicode escapes encoded: use its documented
+  decode_dxf_unicode once for both formats and caret_decode only for ASCII. The
+  initial binary mismatch is retained; no production weakening or easier specimen
+  replaces it. Also verify metadata owner links, material values/four matrices and
+  3D LINE geometry/material references. Existing eight body probes and 16 unchanged
+  selected full-file round trips pass per configuration. Native behavior and
+  arbitrary full-document semantics remain unqualified.
+- [x] Freeze all 593 release inputs across ten normal/ASan targets, matching 34
+  affected registrations/counters, writer-output-property checks, independent
+  probes/round trips/edits and both source archives. Normal 34/34 pass in
+  35.90s; ASan 34/34 pass in 23.75s with
+  `halt_on_error=1:detect_leaks=0`. LibreCAD_3 compile checks pass. Both gzip/bzip2
+  archives match every released byte. No full suite, extracted-source compile/
+  distcheck, formal ABI/application, controlled RSS/performance or native CAD/
+  kernel/platform qualification is claimed. All generated/peer drawings and
+  external packages stay in ignored scratch data; no fixture enters Git.
+
+The [receipt](docs/research/rpp5gj-dictionaryvar-body-transactions-2026-10-28.json)
+retains exact source/runtime/archive hashes, counters, failures and qualifications.
+Normative [ASCII control escaping](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm)
+and the peer's documented [Unicode decoder](https://ezdxf.readthedocs.io/en/stable/low_level_tools/dxf_unicode_decoder.html)
+and [caret decoder](https://ezdxf.readthedocs.io/en/stable/tools/text.html) support
+the independent normalization distinction. Reproduce with an isolated Python
+containing ezdxf 1.4.5 and a new empty output directory:
+
+```sh
+/path/to/isolated/python -B tools/qualify_material_source_order.py \
+  --probe build/libdxfrw_dxf_fixture_tests \
+  --converter build/dwg2dxf/dwg2dxf --edit-variables \
+  --output-dir /tmp/new-variable-transactions-peer-run
+```
+
+### Next implementation-ready sequence
+
+1. [ ] **Complete legacy variables and other resource body transactions.** Retain
+   legacy pre-AC1021 canonical variable typed-edit/presence/codepage work; start
+   with an actual failing authored/independent source and preserve unchanged
+   legacy replay. Audit SCALE's current raw-authoritative body, then MLINESTYLE/
+   MLEADERSTYLE nested bodies. Reuse immutable callback baselines, bounded owning
+   decoding and per-field reconciliation; define exact field/presence/unknown-
+   group roles before edits. Verify output identities/owners/fields, actual late
+   callbacks, conflicting edits, allocation refusal, destination/temporary rollback
+   and corrected retries. Keep original-producer/native qualification distinct.
+2. [ ] **Finish MATERIAL source/schema qualification.** Resolve absent/ambiguous
+   refraction/bump evidence, repeated values, omitted boundaries, peer specular
+   conflicts and represented versus opaque subclass/procedure edits. Obtain actual
+   independent native producer/renderer evidence. Selected peer metadata/body
+   success does not qualify arbitrary MATERIAL/native semantics.
+3. [ ] **Complete original primary/common/dependency/document closure.** Retain
+   ATTDEF's unmatched original body requirement; finish material/full/face/edge and
+   native LAYER/HEADER/common 348 profiles, IMAGE/reactor/document/control/name/
+   application/XDATA/CEPSNID/CEPSNTYPE roles, arbitrary remaps/collisions, complete
+   recursive/coupled ownership and actual emitted-output joins. Transported current
+   child dictionaries do not certify arbitrary original dictionaries/documents.
+4. [ ] **Finish rendering and TABLE.** Cover remaining engine/schema/optional/
+   absent/duplicate/alias/extension providers, active/global/environment/background/
+   live-section/sun and independent VIEWPORT shade modes 4/5 and references
+   335/343/344/91 plus native dictionary collation. Complete TABLE Values/multiple
+   contents/linked-data ownership, formatting/units/borders and independent native
+   B2b/B3/C evidence.
+5. [ ] **Complete platform, consumer and external qualification.** Run native Linux
+   GCC release, Linux/Windows FreeCAD, formal ABI/application and controlled RSS/
+   performance work; obtain independent ACIS/ACDS semantic/kernel evidence. Reuse
+   configured targets and small affected fast cohorts, broadening for actual risks/
+   failures. Freeze inputs, retain failures, self-unblock, then update/commit/report
+   every verified slice without external drawing payloads in Git.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false; the support ledger
+stays **CLOSED**. Full ownerTargetsResolved=false, recursiveClosureMatched=false,
+outputEligible=false and fullObjectiveComplete=false. All six
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL** and nonpromoting. Native
+Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel and native Linux GCC
+release remain **NOT_RUN**. The full implementation objective remains active.

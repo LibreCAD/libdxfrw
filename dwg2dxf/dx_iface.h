@@ -1156,7 +1156,7 @@ public:
             return;
 
         if (!hasUnchangedAcdsDxfHistorySources() || !hasUnchangedDxfMaterialSources()
-            || !hasUnchangedCustomDxfDictionaryVars()) {
+            || !hasUnchangedDxfDictionaryVars()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
@@ -1423,9 +1423,9 @@ public:
                     || typedVar == nullptr
                     || !dxfW->writeDictionaryVar(typedVar))
                     return;
-            } else if (m_customDxfDictionaryVars.count(handle) != 0u) {
-                if (!hasUnchangedCustomDxfDictionaryVars()
-                    || !dxfW->writeRawDxfObject(&m_customDxfDictionaryVars.at(handle).output))
+            } else if (m_dxfDictionaryVars.count(handle) != 0u) {
+                if (!hasUnchangedDxfDictionaryVars()
+                    || !dxfW->writeRawDxfObject(&m_dxfDictionaryVars.at(handle).output))
                     return;
             } else if (rawMatches != 1u || typedMatches != 1u
                        || rawVar == nullptr
@@ -2123,18 +2123,21 @@ private:
         UTF8STRING outputName;
     };
     std::vector<DxfMaterialWriteSource> m_dxfMaterialWriteSources;
-    struct CustomDxfDictionaryVarSource {
+    struct DxfDictionaryVarSource {
         DRW_DictionaryVar model;
         DRW_RawDxfObject raw, output;
+        std::shared_ptr<const DRW_RawDxfObject> baseline;
+        int schema{0};
+        UTF8STRING value;
     };
     std::unordered_set<std::uint32_t> m_customDxfDictionaryVarHandles;
-    std::unordered_map<std::uint32_t,CustomDxfDictionaryVarSource> m_customDxfDictionaryVars;
-    const dx_data* m_customDxfDictionaryVarOwner{nullptr};
-    std::uint64_t m_customDxfDictionaryVarGeneration{0};
-    bool m_customDxfDictionaryVarsInspected{false};
-    bool prepareCustomDxfDictionaryVars(bool binary) noexcept;
-    bool hasUnchangedCustomDxfDictionaryVars() const noexcept;
-    bool inspectCustomDxfDictionaryVars(const dxfRW::DxfObjectsWriteView&) noexcept;
+    std::unordered_map<std::uint32_t,DxfDictionaryVarSource> m_dxfDictionaryVars;
+    const dx_data* m_dxfDictionaryVarOwner{nullptr};
+    std::uint64_t m_dxfDictionaryVarGeneration{0};
+    bool m_dxfDictionaryVarsInspected{false};
+    bool prepareDxfDictionaryVars(bool binary) noexcept;
+    bool hasUnchangedDxfDictionaryVars() const noexcept;
+    bool inspectDxfDictionaryVars(const dxfRW::DxfObjectsWriteView&) noexcept;
     std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
     dx_materialImportReceipt m_dxfMaterialWriteReceipt;
     bool m_dxfMaterialWriteInspected{false};

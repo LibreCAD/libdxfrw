@@ -70,10 +70,11 @@ public:
         const auto saved=value.m_dxfMaterialWriteInspected;value.m_dxfMaterialWriteInspected=false;
         const bool good=value.inspectDxfMaterialOutput(view);value.m_dxfMaterialWriteInspected=saved;return good;
     }
-    static bool customVariableUnchanged(const dx_iface& value){return value.hasUnchangedCustomDxfDictionaryVars();}
+    static bool prepareVariables(dx_iface& value,long offset,bool binary){MaterialAllocationFailure injection(offset);return value.prepareDxfDictionaryVars(binary);}
+    static bool customVariableUnchanged(const dx_iface& value){return value.hasUnchangedDxfDictionaryVars();}
     static bool customVariableReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
-        const auto saved=value.m_customDxfDictionaryVarsInspected;value.m_customDxfDictionaryVarsInspected=false;
-        const bool good=value.inspectCustomDxfDictionaryVars(view);value.m_customDxfDictionaryVarsInspected=saved;return good;
+        const auto saved=value.m_dxfDictionaryVarsInspected;value.m_dxfDictionaryVarsInspected=false;
+        const bool good=value.inspectDxfDictionaryVars(view);value.m_dxfDictionaryVarsInspected=saved;return good;
     }
     static auto size(const dx_iface& value){return std::make_pair(value.m_dxfMaterialReferenceState.sources.size(),value.m_dxfMaterialReferenceState.bytes);}
     static void limit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfMaterialReferenceState.recordLimit=records;value.m_dxfMaterialReferenceState.byteLimit=bytes;}
@@ -28163,7 +28164,8 @@ bool run(const std::filesystem::path& dir) {
         const auto variables=data.dictionaryVars;const auto dictionaries=data.dictionaries;const auto root=data.namedObjectDictionary;const auto raw=data.rawNamedResourceObjects;
         for(unsigned kind=0u;kind<12u;++kind) {
             if(kind==0u)data.dictionaryVars.front().parentHandle=0xEA01u;
-            if(kind==1u)data.dictionaryVars.front().m_value="unmatched-value";
+            if(kind==1u){data.dictionaryVars.front().m_value="unmatched-value";auto& carrier=data.rawNamedResourceObjects.front();
+                for(std::size_t i=0u;i<carrier.groups.size();++i)if(carrier.groups[i].code()==1){carrier.groups[i]=DRW_Variant(1,UTF8STRING("conflicting-raw-value"));if(carrier.hasRawValues)carrier.rawValues[i]="conflicting-raw-value";break;}}
             if(kind==2u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.m_entries.erase(dictionary.m_entries.begin());
             if(kind==3u)data.namedObjectDictionary.m_entries.erase(data.namedObjectDictionary.m_entries.begin());
             if(kind==4u)data.dictionaryVars.push_back(data.dictionaryVars.front());
@@ -28172,8 +28174,8 @@ bool run(const std::filesystem::path& dir) {
             if(kind==7u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu)dictionary.parentHandle=0xEA03u;
             if(kind==8u)data.hasNamedObjectDictionary=false;
             if(kind==9u)for(auto& dictionary:data.dictionaries)if(dictionary.handle==0xBu){auto alias=dictionary.m_entries.front();alias.m_name="ALIAS";dictionary.m_entries.push_back(std::move(alias));}
-            if(kind==10u){auto& carrier=data.rawNamedResourceObjects.front();for(std::size_t i=0u;i<carrier.groups.size();++i)if(carrier.groups[i].code()==1){carrier.groups[i]=DRW_Variant(1,UTF8STRING("raw-only-value"));if(carrier.hasRawValues)carrier.rawValues[i]="raw-only-value";break;}}
-            if(kind==11u)data.dictionaryVars.front().m_schema=1;
+            if(kind==10u){auto& carrier=data.rawNamedResourceObjects.front();carrier.groups.emplace_back(1,UTF8STRING("duplicate-value"));if(carrier.hasRawValues)carrier.rawValues.push_back("duplicate-value");}
+            if(kind==11u)data.dictionaryVars.front().m_schema=256;
             sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!kept(output))return fail(__LINE__);++refusals;
             data.dictionaryVars=variables;data.dictionaries=dictionaries;data.namedObjectDictionary=root;data.rawNamedResourceObjects=raw;data.hasNamedObjectDictionary=true;
             if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,true,true,false)||!readback(output,true))return fail(__LINE__);++retries;
@@ -28206,6 +28208,161 @@ void testCustomDictionaryVarOwners(TestContext& t) {
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-custom-dictionaryvar-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
     const bool passed=customDictionaryVarControls::run(dir);t.expect(passed,"custom DICTIONARYVAR owners preserve graph and values");
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"Custom DICTIONARYVAR evidence: "<<dir<<'\n';
+}
+
+namespace dictionaryVarTransactionControls {
+using namespace customDictionaryVarControls;
+Tags recipe(const std::string& version,bool custom,bool hard) {
+    auto fields=customDictionaryVarControls::recipe(version,false,false,hard);
+    if(!custom)for(auto& field:fields)if(field.first==3&&field.second=="CUSTOM_META")field.second="AcDbVariableDictionary";
+    return fields;
+}
+bool values(const std::filesystem::path& output,int schema,const std::string& value) {
+    dx_iface reader;dx_data data;if(!reader.fileImport(output.string(),&data,false)||data.dictionaryVars.size()!=2u)return false;
+    const auto found=std::find_if(data.dictionaryVars.begin(),data.dictionaryVars.end(),[&](const auto& row){return row.m_value==value;});
+    if(found==data.dictionaryVars.end()||found->m_schema!=schema)return false;
+    const auto dictionary=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& row){return row.handle==found->parentHandle;});
+    if(dictionary==data.dictionaries.end()||dictionary->parentHandle!=data.namedObjectDictionary.handle)return false;
+    return std::any_of(dictionary->m_entries.begin(),dictionary->m_entries.end(),[&](const auto& row){return row.m_name=="DATA_Ω"&&row.m_handle==found->handle;});
+}
+bool proof(const std::filesystem::path& output,bool binary,int schema,const std::string& value,bool schemaPresent=true,bool valuePresent=true,const std::string& opaqueExpected="opaque-variable-tag") {
+    const auto fields=materialBodyControls::physicalTags(output,binary);std::vector<int> schemas;std::vector<std::string> strings;bool selected=false,opaque=false;
+    for(std::size_t i=0;i<fields.size();++i) {
+        if(fields[i].first==0) {
+            if(opaque)break;selected=fields[i].second=="DICTIONARYVAR";schemas.clear();strings.clear();
+        }
+        if(!selected)continue;
+        if(fields[i].first==280)schemas.push_back(std::stoi(fields[i].second));
+        if(fields[i].first==1)strings.push_back(fields[i].second);
+        if(fields[i]==std::make_pair(300,opaqueExpected))opaque=true;
+    }
+    return opaque&&schemas==(schemaPresent?std::vector<int>{schema}:std::vector<int>{})
+        &&strings==(valuePresent?std::vector<std::string>{materialBodyControls::encodedText(value,"AC1027",binary)}:std::vector<std::string>{});
+}
+void rawValue(dx_data& data,int code,const std::string& text,bool binary) {
+    auto& raw=data.rawNamedResourceObjects.front();
+    for(std::size_t i=0;i<raw.groups.size();++i)if(raw.groups[i].code()==code) {
+        raw.groups[i]=(code==1||code==300)?DRW_Variant(code,UTF8STRING(materialBodyControls::encodedText(text,"AC1027",binary))):DRW_Variant(code,std::int32_t(std::stoi(text)));
+        if(raw.hasRawValues)raw.rawValues[i]=(code==1||code==300)?materialBodyControls::encodedText(text,"AC1027",binary):text;return;
+    }
+    throw std::runtime_error("missing transaction raw slot");
+}
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary) {
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;
+    std::uint32_t owner=0u,target=0u;
+    for(const auto& entry:data.namedObjectDictionary.m_entries)if(entry.m_name=="EZDXF_META") {
+        if(owner)return false;owner=entry.m_handle;
+    }
+    for(const auto& dictionary:data.dictionaries)if(dictionary.handle==owner)
+        for(const auto& entry:dictionary.m_entries)if(entry.m_name=="CREATED_BY_EZDXF") {
+            if(target)return false;target=entry.m_handle;
+        }
+    unsigned edited=0u;
+    for(auto& variable:data.dictionaryVars)if(variable.handle==target&&variable.parentHandle==owner) {
+        variable.m_value=UTF8STRING("edited peer_Ω^A\\U+1234")+char(1);++edited;
+    }
+    return edited==1u&&adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true);
+}
+bool keptWithoutTemporary(const std::filesystem::path& output) {
+    if(!kept(output))return false;
+    for(const auto& row:std::filesystem::directory_iterator(output.parent_path()))
+        if(row.path().filename().string().find(".libdxfrw-")!=std::string::npos)return false;
+    return true;
+}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,presence=0u,lexical=0u,prepFaults=0u,corruptions=0u;
+    const auto fail=[&](int line){std::cerr<<"DICTIONARYVAR transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool custom:{false,true}) {
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface adapter;dx_data data;if(!write(input,recipe(version,custom,true),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.dictionaryVars;const auto raw=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.dictionaryVars=typed;data.rawNamedResourceObjects=raw;};
+        const auto check=[&](int schema,const std::string& text,const std::string& opaqueExpected="opaque-variable-tag"){
+            const bool ok=adapter.fileExport(output.string(),v,binary,&data,false,true)&&proof(output,binary,schema,text,true,true,opaqueExpected)&&values(output,schema,text);if(ok)++readbacks;return ok;};
+        if(!check(0,"custom-Ω"))return fail(__LINE__);
+        data.dictionaryVars.front().m_value="edited_Ω^A";
+        if(!check(0,"edited_Ω^A"))return fail(__LINE__);
+        data.dictionaryVars.front().m_schema=7;if(!check(7,"edited_Ω^A"))return fail(__LINE__);
+        reset();rawValue(data,1,"raw_Ω^A",sourceBinary);if(!check(0,"raw_Ω^A"))return fail(__LINE__);
+        reset();rawValue(data,280,"003",sourceBinary);data.dictionaryVars.front().m_value="disjoint_Ω";
+        if(!check(3,"disjoint_Ω"))return fail(__LINE__);
+        reset();rawValue(data,280,"005",sourceBinary);data.dictionaryVars.front().m_schema=5;
+        rawValue(data,1,"agreed_Ω",sourceBinary);data.dictionaryVars.front().m_value="agreed_Ω";
+        if(!check(5,"agreed_Ω"))return fail(__LINE__);
+        for(unsigned kind=0u;kind<2u;++kind) {
+            reset();if(kind==0u){rawValue(data,1,"raw-conflict",sourceBinary);data.dictionaryVars.front().m_value="typed-conflict";}
+            else{rawValue(data,280,"3",sourceBinary);data.dictionaryVars.front().m_schema=4;}
+            sentinel(output);if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+            if(kind==0u)data.dictionaryVars.front().m_value="raw-conflict";else data.dictionaryVars.front().m_schema=3;
+            if(!check(kind==0u?0:3,kind==0u?"raw-conflict":"custom-Ω"))return fail(__LINE__);++retries;
+        }
+        reset();rawValue(data,300,"opaque-edited-tag",sourceBinary);
+        if(!check(0,"custom-Ω","opaque-edited-tag"))return fail(__LINE__);
+        ++profiles;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool custom:{false,true})for(unsigned mask=0u;mask<4u;++mask) {
+        auto fields=recipe("AC1027",custom,false);unsigned variable=0u;
+        fields.erase(std::remove_if(fields.begin(),fields.end(),[&](const auto& field){
+            if(field.first==0&&field.second=="DICTIONARYVAR")++variable;
+            return variable==1u&&((field.first==280&&!(mask&1u))||(field.first==1&&!(mask&2u)));}),fields.end());
+        dx_iface adapter;dx_data data;if(!write(input,fields,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const std::string old=(mask&2u)?"custom-Ω":"";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!proof(output,binary,0,old,bool(mask&1u),bool(mask&2u))||!values(output,0,old))return fail(__LINE__);++readbacks;
+        data.dictionaryVars.front().m_schema=9;data.dictionaryVars.front().m_value="inserted_Ω";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,9,"inserted_Ω")||!values(output,9,"inserted_Ω"))return fail(__LINE__);
+        ++readbacks;++presence;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<5u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe("AC1027",false,true),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_value="planned-edit";const auto typed=data.dictionaryVars;const auto raw=data.rawNamedResourceObjects;const auto dictionaries=data.dictionaries;
+        adapter.change=[&]{if(kind==0u)data.dictionaryVars.front().m_value="late-value";if(kind==1u)rawValue(data,1,"late-raw",binary);
+            if(kind==2u)data.dictionaryVars.back()=data.dictionaryVars.front();if(kind==3u)data.rawNamedResourceObjects.back()=data.rawNamedResourceObjects.front();
+            if(kind==4u)data.dictionaries.front().m_entries.front().m_handle=0xEA09u;};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.dictionaryVars=typed;data.rawNamedResourceObjects=raw;data.dictionaries=dictionaries;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,0,"planned-edit")||!values(output,0,"planned-edit"))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool binary:{false,true})for(bool custom:{false,true})for(int invalid:{-1,256}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",custom,false),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_schema=invalid;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+        data.dictionaryVars.front().m_schema=0;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,0,"custom-Ω")||!values(output,0,"custom-Ω"))return fail(__LINE__);++retries;++readbacks;
+    }
+    for(bool custom:{false,true}) {
+        auto fields=recipe("AC1027",custom,false);for(auto& field:fields)if(field.first==280)field.second=" 0000 ";
+        {std::ofstream file(input,std::ios::binary);for(const auto& field:fields)file<<field.first<<'\n'<<field.second<<'\n';if(!file)return fail(__LINE__);}
+        dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_value="lexical-edit";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)||!values(output,0,"lexical-edit"))return fail(__LINE__);
+        bool variable=false;unsigned matched=0u;for(const auto& field:materialBodyControls::physicalTags(output,false)) {
+            if(field.first==0)variable=field.second=="DICTIONARYVAR";
+            if(variable&&field.first==280){if(field.second!=" 0000 ")return fail(__LINE__);++matched;}
+        }
+        if(matched!=2u)return fail(__LINE__);++lexical;++readbacks;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe("AC1027",false,true),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.dictionaryVars.front().m_value="fault-edit";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);
+        for(long offset:{0L,1L,2L,4L,8L,16L,32L,64L,128L,256L}) {
+            sentinel(output);const auto before=materialFailedAllocations;const bool prepared=A::prepareVariables(adapter,offset,binary);const bool injected=materialFailedAllocations!=before;
+            if(prepared==injected||!keptWithoutTemporary(output))return fail(__LINE__);if(injected)++prepFaults;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(output,binary,0,"fault-edit")||!values(output,0,"fault-edit"))return fail(__LINE__);++retries;++readbacks;
+        }
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"canonical-proof-bin.dxf":"canonical-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true))return fail(__LINE__);corruptions+=replay.corruptions;
+    }
+    std::cout<<"DICTIONARYVAR transaction profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals<<"; retries="<<retries<<"; callbacks="<<callbacks<<"; presence="<<presence<<"; lexical="<<lexical<<"; prepFaults="<<prepFaults<<"; corruptions="<<corruptions<<'\n';return true;
+}
+}
+void testDictionaryVarTransactions(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-dictionaryvar-transactions-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    const bool passed=dictionaryVarTransactionControls::run(dir);t.expect(passed,"DICTIONARYVAR body transactions preserve represented edits");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"DICTIONARYVAR transaction evidence: "<<dir<<'\n';
 }
 
 namespace headerMaterialControls {
@@ -36280,6 +36437,12 @@ int main(int argc, char** argv) {
     }
     if (argc == 3 && std::string(argv[1]) == "--material-source-order-probe") {
         return materialSourceOrderControls::peer(argv[2]) ? 0 : 1;
+    }
+    if (argc == 5 && std::string(argv[1]) == "--dictionaryvar-edit-probe") {
+        return dictionaryVarTransactionControls::peer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-transactions") {
+        TestContext context;testDictionaryVarTransactions(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--dictionaryvar-custom-owners") {
         TestContext context;testCustomDictionaryVarOwners(context);return context.failures == 0 ? 0 : 1;

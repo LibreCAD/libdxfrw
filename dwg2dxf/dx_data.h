@@ -1010,6 +1010,10 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    // Original DXF variable bodies for represented three-way edits. Retention
+    // has a private lifetime allowance independent of mutable import receipts.
+    std::map<std::uint32_t,std::shared_ptr<const DRW_RawDxfObject>> m_dictionaryVarBodyBaselines;
+    std::size_t m_dictionaryVarBaselineBytes{0u};
     // Immutable-by-API callback baselines for three-way MATERIAL body edits.
     // These do not certify original producers or native rendering semantics.
     std::map<std::uint32_t,std::shared_ptr<const DRW_RawDxfObject>> m_materialBodyBaselines;

@@ -22,11 +22,26 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def selected_round_trip(ezdxf, source, output):
+PEER_VARIABLE_EDIT = r"edited peer_Ω^A\U+1234" + chr(1)
+
+
+def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False):
     before, after = ezdxf.readfile(source), ezdxf.readfile(output)
     expected, actual = before.rootdict["EZDXF_META"], after.rootdict["EZDXF_META"]
-    assert {k: v.dxf.value for k, v in expected.items()} == {
-        k: v.dxf.value for k, v in actual.items()}, "metadata values"
+    expected_values = {k: v.dxf.value for k, v in expected.items()}
+    actual_values = {k: v.dxf.value for k, v in actual.items()}
+    if metadata_updates:
+        from ezdxf.tools.text import caret_decode
+        assert set(metadata_updates) <= set(expected_values), "missing metadata key"
+        expected_values.update(metadata_updates)
+        # The regular peer loader intentionally leaves DXF escapes encoded.
+        # Unicode escapes apply to both formats; caret escapes are ASCII-only.
+        actual_values = {k: ezdxf.decode_dxf_unicode(v)
+                         for k, v in actual_values.items()}
+        if not target_binary:
+            actual_values = {k: caret_decode(v) for k, v in actual_values.items()}
+    assert expected_values == actual_values, "metadata values: %r != %r" % (
+        expected_values, actual_values)
     assert actual.dxf.owner == after.rootdict.dxf.handle, "metadata dictionary owner"
     assert all(v.dxftype() == "DICTIONARYVAR" and v.dxf.owner == actual.dxf.handle
                for _, v in actual.items()), "variable owners"
@@ -51,6 +66,8 @@ def main():
     parser.add_argument("--probe", required=True, type=Path)
     parser.add_argument("--converter", type=Path,
                         help="also convert each source to ASCII/Binary and verify selected values")
+    parser.add_argument("--edit-variables", action="store_true",
+                        help="also edit peer metadata with the C++ adapter and independently decode it")
     args = parser.parse_args()
     import ezdxf
     from ezdxf.math import Matrix44
@@ -65,6 +82,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     rows = []
     round_trips = []
+    variable_edits = []
     source = None
     for version in ("R2007", "R2010", "R2013", "R2018"):
         doc = ezdxf.new(version)
@@ -120,6 +138,24 @@ def main():
                         except Exception as error:
                             row["mismatch"] = str(error)
                     round_trips.append(row)
+            if args.edit_variables:
+                for target_format in ("asc", "bin"):
+                    target = output / ("edit-" + doc.dxfversion + "-" + fmt + "-" + target_format + ".dxf")
+                    command = [str(probe), "--dictionaryvar-edit-probe", str(path), str(target), target_format]
+                    edited = subprocess.run(command, capture_output=True, text=True)
+                    row = {"version": doc.dxfversion, "input": fmt, "output": target_format,
+                           "exitCode": edited.returncode, "stdout": edited.stdout,
+                           "stderr": edited.stderr, "matched": False}
+                    if edited.returncode == 0:
+                        row["sha256"] = digest(target)
+                        try:
+                            row["observations"] = selected_round_trip(
+                                ezdxf, path, target, {"CREATED_BY_EZDXF": PEER_VARIABLE_EDIT},
+                                target_binary=target_format == "bin")
+                            row["matched"] = True
+                        except Exception as error:
+                            row["mismatch"] = str(error)
+                    variable_edits.append(row)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
         "schema": "libdxfrw.material-peer-source-order.v1",
@@ -131,6 +167,10 @@ def main():
         "probeSha256": digest(probe), "generated": len(rows), "passed": passed,
         "results": rows, "wholeDocumentExportQualified": False,
         "roundTrips": round_trips,
+        "variableEdits": variable_edits,
+        "variableEditsMatched": sum(row["matched"] for row in variable_edits),
+        "variableEditNormalization": {"allFormats": ["ezdxf.decode_dxf_unicode"],
+                                      "asciiOnly": ["ezdxf.tools.text.caret_decode"]},
         "roundTripsMatched": sum(row["matched"] for row in round_trips),
         "nativeRenderingQualified": False, "fullObjectiveComplete": False,
     }
@@ -139,7 +179,11 @@ def main():
     if converter:
         print("Independent selected document round trips: %d/%d" % (
             report["roundTripsMatched"], len(round_trips)))
-    return 0 if passed == len(rows) and all(row["matched"] for row in round_trips) else 1
+    if args.edit_variables:
+        print("Independent edited metadata round trips: %d/%d" % (
+            report["variableEditsMatched"], len(variable_edits)))
+    return 0 if passed == len(rows) and all(
+        row["matched"] for row in round_trips + variable_edits) else 1
 
 
 if __name__ == "__main__":
