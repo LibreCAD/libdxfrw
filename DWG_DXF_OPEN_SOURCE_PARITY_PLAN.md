@@ -294,10 +294,11 @@ profiles, arbitrary remaps/collisions and composed output closure.
 
 **TABLE.** Complete Values, multiple contents, linked-data/DATALINK ownership,
 TABLESTYLE/CELLSTYLEMAP dependencies, formatting, units, margins and borders.
-Qualify AC1018 nonzero cell-override output and native meanings with a
-distinguishing source; retain atomic refusal until supported. The selected group
-177 input fix preserves its 16-bit pattern but does not qualify that output; see
-[the source and focused validation receipt](docs/research/rpp5hu-table-legacy-177-flags-2026-10-28.json).
+Qualify remaining AC1018 cell-override masks, companion fields and native meanings
+from distinguishing sources; retain atomic refusal until each profile is supported.
+The selected `0x20` positive text-height output is limited to the
+[source and field evidence](docs/research/rpp5hw-ac1018-table-height-2026-10-28.json);
+it does not establish other masks, full original TABLE output or native rendering.
 Bind original source bodies, nested scopes and referenced resources before actual
 output comparison. Finish independent native B2b/B3/C evidence; a default cell or
 style example does not qualify every table schema.
