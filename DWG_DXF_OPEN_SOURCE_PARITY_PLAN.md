@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: text transcoding | MLINESTYLE owning name/LTYPE text first; coupled rename, nested edits and MLEADERSTYLE follow | Existing scalar/default helpers and original source bindings |
+| P2 | READY: dictionary authority | Preserve redundant MLINESTYLE/MLINE names, then dictionary-key rename, nested edits and MLEADERSTYLE | Existing text/scalar helpers and immutable original dictionary bindings |
 | P3 | READY: regression hardening | Canonical/malformed specular pair; then ambiguous Normal Map and remaining variants | Current parser already rejects the producer defect |
 | P4 | LOCAL WORK + EVIDENCE | P4a: one missing original profile/role provider; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,11 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.1 — text transport | `writeRawDxfGroups` override validation/emission; `writeRawDxfObjectWithStringOverrides` comment; MLINESTYLE preparation in `dx_iface.cpp`; existing four role-2/6 codec refusal controls | Same semantic names/references survive required transcoding; exact emitted fields, unchanged opaque roles and failure/retry controls agree |
+| P2.2 — dictionary authority | `prepareDxfMLineStyles`, original `StructuralAudit`, MLINE validation/emission and existing entity-section inspector | Valid distinct dictionary/body/entity names survive unchanged; dictionary-key-only rename preserves redundant group 2 and actual 340 joins in ENTITIES/BLOCKS |
 | P3.1 — producer regression | `materialSourceOrderControls`; existing `libdxfrw_material_source_order` selector | Canonical 73=3/76=0 preserves distinct roles; malformed 73=0 refuses, preserves destination and succeeds after correction |
 | P4a — next missing provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | One required unmatched profile/role gains exact source spans and dependency facts, or a precise retained unsupported disposition; no composite gate is flipped from partial proof |
 
-Implement P2.1 first. P3.1 recipes/research and P4a gap classification can run in
+Implement P2.2 first. P3.1 recipes/research and P4a gap classification can run in
 parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -74,46 +74,51 @@ local dependency instead of waiting for unrelated native evidence.
 
 ## P2 — nested named-resource bodies: next implementation packet
 
-Reuse the [MLINESTYLE defaults/scalar receipt](docs/research/rpp5gn-mline-style-dxf-defaults-scalars-2026-10-28.json),
+Reuse the [MLINESTYLE text-transport receipt](docs/research/rpp5go-mline-style-name-ltype-text-transport-2026-10-28.json),
 shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Keep only the residual work below; refused fields are not implemented
 editing support.
 
-1. **Transcode owning text (2/6) without renaming.** Extend both explicit indexed
-   string-override admission/emission branches and their API comment to include
-   MLINESTYLE name (2) and per-element LTYPE (6). Keep existing signatures and callbacks.
-   Collect only physically scoped owning slots; rebuild/sort final indices after
-   scalar insertions. Encode already decoded semantic values when format/page
-   changes require it, preserve untouched spelling otherwise, and keep unknown
-   text opaque. Compare the full decoded output projection. Turn existing 2/6
-   refusal controls into positive transcoding cases with caret/CIF/Unicode,
-   codepage, mutation, failure and retry boundaries. Keep dictionary keys and
-   LTYPE identities unchanged in this slice; rename and reference edits follow.
-2. **Couple names to dictionaries and MLINE consumers.** Honor
-   [the naming contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
-   dictionary key (3) is authoritative, body name (2) redundant. Obtain original owner/key
+1. **P2.2: honor dictionary/handle authority before renaming.** Honor
+   [the naming contract](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
+   dictionary key (3) and MLINE handle (340) are authoritative; both group-2 names
+   are redundant and must retain their original semantic values. Begin with an
+   authored AC1027 ASCII/binary source whose dictionary key, body name and entity
+   name are all distinct, with valid 340 targets in ENTITIES and a named BLOCK.
+   Remove the current key/body-name and MLINE/body-name equality requirements;
+   stop replacing copied MLINE group 2 from `m_mlineStyleNamesToWrite`. Use an
+   effective dictionary-name index for lookup/diagnostics instead.
+   Obtain original owner/key
    evidence from `m_tableDxfSource.structuralAudits[ownerHandle]`, requiring
    `originBound`, matched/complete body/state and input container/generation/
-   context binding; pair it with `m_mlineStyleBodyBaselines`. Reconcile original,
-   typed-name, raw-name and dictionary-key requests, refusing conflicts, ambiguous
-   ownership/aliases and duplicate folded keys. Preserve frozen caller snapshots;
-   stage bounded projected dictionaries and emit each owner once. Existing
-   MATERIAL dictionary code validates/copies keys; it does not generate renames.
-   Feed projected names into `m_mlineStyleNamesToWrite` before consumer validation;
-   use copied MLINE output rather than mutating caller models. Prove actual 2/340,
-   identity and owner joins in ENTITIES/BLOCKS as well as OBJECTS. Keep native
-   collation/original key-body mismatch qualification explicit.
-3. **Complete CMC, references and nested/consumer edits in two stages.** First
+   context binding; pair it with `m_mlineStyleBodyBaselines`. Then admit only
+   dictionary-entry key edits with unchanged owner, target, pointer role and
+   unrelated fields. Refuse aliases, duplicate folded keys and semantic edits to
+   redundant body/entity names. `DxfNamedResourceState.dictionaries` already
+   freezes requested keys: reuse it and the sole dictionary emitter instead of
+   adding another projected dictionary copy. Keep original-key evidence separate
+   from this requested snapshot. Reuse/add a bounded immutable original MLINE
+   2/340/owner source join from actual ENTITIES/BLOCKS producers: a preflight
+   consumer snapshot cannot detect redundant-name edits made before preflight.
+   Extend the existing entity-section inspector to
+   prove actual redundant 2 values, remapped 340 targets and owner joins in both
+   ENTITIES/BLOCKS; freeze consumer fields for late mutation and corrected retry.
+   Original structural source admission currently covers AC1021–AC1032. Preserve
+   earlier-version behavior and extend original-key proof before qualifying its
+   rename path. Keep native collation and rendered MLINE acceptance separate.
+2. **Complete CMC, references and nested/consumer edits in two stages.** First
    resolve element 6 as an emitted LTYPE name, separately from DWG index/handle
    mirrors, then reconcile in-place tuple color/reference edits while preserving
    count and offsets. Prove ordered 49/62/6 fields, CMC, omission/defaults and
    repeated values; keep unknown extensions intact. Separately implement shape
-   changes: count 71 and offset edits require qualified updates to affected MLINE
-   vertex parameters. Retain atomic refusal until that operation exists. Confirm
+   changes: count 71, offset edits and MLINE 340 retargeting require qualified
+   updates/compatibility checks for affected MLINE vertex parameters. Preserve
+   redundant group-2 values when retargeting. Retain atomic refusal until that
+   operation exists. Confirm
    omitted 62/6 grammar with producer evidence; the current 255-element cap/strict
    masks are admission policies, not universal format proof. Reuse owner/key,
    mutation, allocation, corruption and corrected-retry controls in both stages.
-4. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
+3. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
    then cover complete contexts/defaults/repeated values and STYLE/LTYPE/
    BLOCK_RECORD references with the same shared helpers. Preserve source order,
    version-specific grammars and unsupported extensions. Obtain independent
@@ -325,7 +330,7 @@ open/insert, native-platform or independent-kernel run.
 | Composed integration / PR | Union of affected cohorts once, compatibility probes and required CI | Broad shared classifier/numeric/allocator changes or release obligations |
 | Release / promotion | Required full/native/package/ABI/corpus and claim checks on the exact binding | Explicit qualified support/release deliverable |
 
-For P2.1/P3.1, build `libdxfrw_dxf_fixture_tests` once after editing and use the
+For P2.2/P3.1, build `libdxfrw_dxf_fixture_tests` once after editing and use the
 exact owning selector during development:
 
 ```sh
@@ -334,15 +339,16 @@ ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on
 ctest --test-dir build -R '^libdxfrw_material_source_order$' --output-on-failure
 ```
 
-At P2.1 readiness, run the affected DICTIONARYVAR legacy/current, SCALE and
-MLINESTYLE name/owner cohort because the override hook is shared. Rebuild
-`libdxfrw_hardening_tests` for `libdxfrw_dxf_mline_style_name_owner_budget`;
-if decoding/reset changes, also rebuild `libdxfrw_wave1_tests` and include defaults.
-Run the affected ASan cohort once on frozen sources.
-Build `dwg2dxf` and run only the MLINESTYLE peer lane for the independent serializer
-checkpoint. For P3.1, add MATERIAL normal-boundary/body cohorts only if production
-parser/provider behavior changes. Do not repeat the previous 26-test cohort or a
-full version matrix solely because a new narrow regression was added.
+At P2.2 readiness, select the affected dictionary-origin/effective-owner,
+MLINESTYLE name/owner and MLINE vector/consumer controls. Rebuild every executable
+owning those selectors, including `libdxfrw_hardening_tests` for the name/owner
+budget test; include `libdxfrw_wave1_tests` only if decoding/reset changes.
+Run the affected ASan cohort once on frozen sources. Build `dwg2dxf` for the
+independent serializer checkpoint; extend the existing MLINESTYLE peer lane for
+the new authority contract. Repeat DICTIONARYVAR/SCALE only if their shared hooks
+change. For P3.1, add MATERIAL normal-boundary/body cohorts only if production
+parser/provider behavior changes. A previous cohort size or full version matrix
+does not determine validation for a new slice.
 
 1. Keep current configured normal/ASan builds, shared adapter objects and pinned
    comparator environments. Rebuild every selected executable affected by static
