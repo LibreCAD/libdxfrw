@@ -264,8 +264,9 @@ qualifies selected opt-in begin/end field profiles and replay. Default legacy
 consumers remain opted out; BLOCK_RECORD, original membership, dependencies
 and output remain separate gates.
 The [BLOCK_RECORD observation](docs/research/rpp5ii-ac1018-block-record-observation-2026-10-28.json)
-tests captured-raw replay with the legacy codec but does not qualify the adapter's
-original-source proof or owner graph.
+tests captured-raw replay with the legacy codec. The [opt-in adapter replay](docs/research/rpp5ij-ac1018-block-record-adapter-replay-2026-10-28.json)
+binds the actual source and context without qualifying the original-source proof,
+owner graph or output.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
@@ -339,7 +340,10 @@ geometry and complete original output remain open; explicit zero group 177 may
 be omitted. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
 reject excess cell descriptors and bound sparse-grid range allocation; a
 [writer guard](docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json)
-also refuses unoccupied zero spans it would otherwise normalize. For its `0x4460` top-border profile, distinguish absent
+also refuses unoccupied zero spans it would otherwise normalize. A further
+[explicit-anchor guard](docs/research/rpp5im-ac1018-table-explicit-merge-review-2026-10-28.json)
+rejects out-of-bounds and overlapping ranges before output. For its `0x4460`
+top-border profile, distinguish absent
 group 289 from an explicit value before changing output. The paired DWG and DXF
 observations do not yet establish equivalent visibility or common save state.
 Bind original source bodies, nested scopes and referenced resources before actual
