@@ -1795,6 +1795,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "table_profile_controls.h"
 #include "table_value_scope_controls.h"
 #include "table_export_reuse_controls.h"
+#include "table_legacy_height_controls.h"
 #include "table_value_payload_controls.h"
 #include "table_value_profile_controls.h"
 #include "table_reference_controls.h"
@@ -3308,6 +3309,15 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--legacy-table-height") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-legacy-table-height-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;
+        const bool ok=legacyTableTextHeightTests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';
+        return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--legacy-table-177") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
