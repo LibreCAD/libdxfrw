@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Opt-in classic ATTDEF and selected BLOCK endpoint profiles; real 6F8 and 705 with `AcDbAttr` XDATA | Bind BLOCK_RECORD and original scope, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
+| P4a — AC1018 attribute provenance | Opt-in ATTDEF, BLOCK endpoint and selected BLOCK_RECORD field profiles; real 6F8/6F2 and ATTRIB 705 | Bind original scope and BLOCK_RECORD targets, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused 1→0, simultaneous retained-element edit, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -264,12 +264,13 @@ and non-ASCII name qualification also remain open.
 
 The [AC1018 BLOCK endpoint receipt](docs/research/rpp5ih-ac1018-block-endpoint-profile-2026-10-28.json)
 qualifies selected opt-in begin/end field profiles and replay. Default legacy
-consumers remain opted out; BLOCK_RECORD, original membership, dependencies
-and output remain separate gates.
-The [BLOCK_RECORD observation](docs/research/rpp5ii-ac1018-block-record-observation-2026-10-28.json)
-tests captured-raw replay with the legacy codec. The [opt-in adapter replay](docs/research/rpp5ij-ac1018-block-record-adapter-replay-2026-10-28.json)
-binds the actual source and context without qualifying the original-source proof,
-owner graph or output.
+consumers remain opted out; original membership, dependencies and output remain
+separate gates. The [BLOCK_RECORD field-profile receipt](docs/research/rpp5ik-ac1018-block-record-source-profile-2026-10-28.json)
+qualifies only the opted-in, witnessed 6F2-shaped source inventory after replay.
+Its explicit null layout, XDICTIONARY, BLKREFS and APPID fields are source
+roles, not resolved targets. Other layouts, preview data, ordering, and XDATA
+forms remain separate profiles. Bind original identity/scope and target types
+before owner or output claims; profile completion does not change those gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
