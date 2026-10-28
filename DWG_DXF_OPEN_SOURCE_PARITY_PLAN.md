@@ -62,6 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
+| P4a — AC1018 classic attribute source | Existing AC1018 original ATTDEF/ATTRIB, `AcDbAttr` XDATA and owner/layer roles | Bind source bytes, ANSI-1252 context, original and compound ownership and dependency roles; separately qualify capture, output and failure/retry before admission |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -222,6 +223,15 @@ embedded MTEXT witness. Those remain separate source/meaning searches. The full
 B2b/B3/C objective remains; selected records or a mutable live container cannot
 substitute for original-source completeness.
 
+The selected AC1018 classic ATTDEF/ATTRIB source is a next profile, not a
+qualified capture. The adapter opts out of pre-AC1021 ATTDEF, BLOCK, child and
+ENTITIES source capture, and profile/context checks also constrain codec and
+legacy proxy fields. Bind the original bytes, codepage, record and compound
+owners, APPID/XDATA and LAYER roles before enabling it; do not just lower a
+version gate. Test authored binary and legacy-codepage boundaries, malformed
+ownership and retry, and actual output separately. Selected copied-field output
+does not establish original closure, full-document export or native semantics.
+
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
    OBJECTCONTEXTDATA, PLOTSETTINGS, FIELD and GEODATA bodies. ATTDEF already has
@@ -277,6 +287,10 @@ profiles, arbitrary remaps/collisions and composed output closure.
 
 **TABLE.** Complete Values, multiple contents, linked-data/DATALINK ownership,
 TABLESTYLE/CELLSTYLEMAP dependencies, formatting, units, margins and borders.
+Qualify AC1018 nonzero cell-override output and native meanings with a
+distinguishing source; retain atomic refusal until supported. The selected group
+177 input fix preserves its 16-bit pattern but does not qualify that output; see
+[the source and focused validation receipt](docs/research/rpp5hu-table-legacy-177-flags-2026-10-28.json).
 Bind original source bodies, nested scopes and referenced resources before actual
 output comparison. Finish independent native B2b/B3/C evidence; a default cell or
 style example does not qualify every table schema.
