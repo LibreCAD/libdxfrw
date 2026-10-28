@@ -201,6 +201,7 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
 
 bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir);
 bool legacyTableMergeUnoccupiedSpanTests(const std::filesystem::path& dir);
+bool explicitTableMergeRangeValidationTests(const std::filesystem::path& dir);
 // Emitted field and topology controls are for the selected AC1018 profile;
 // the inferred source grammar is not a native rendering certificate.
 bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
@@ -327,7 +328,8 @@ bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE merge writer profiles="<<profiles<<" refusals="<<refusals
         <<" corrected retries="<<retries<<" explicit-anchor controls="<<explicitControls<<" incomplete projections="<<fallbacks<<'\n';
     return profiles==8u&&refusals==92u&&retries==96u&&explicitControls==8u&&fallbacks==4u
-        &&legacyTableMergeOverrideComposition(dir)&&legacyTableMergeUnoccupiedSpanTests(dir);
+        &&legacyTableMergeOverrideComposition(dir)&&legacyTableMergeUnoccupiedSpanTests(dir)
+        &&explicitTableMergeRangeValidationTests(dir);
 }
 // Composition of the already admitted legacy merge and text override profiles.
 // Raw field correspondence is tested; no native appearance is claimed.
@@ -466,4 +468,68 @@ bool legacyTableMergeUnoccupiedSpanTests(const std::filesystem::path& dir) {
     }
     std::cout<<"legacy TABLE merge unoccupied spans="<<positives<<" zero-span refusals="<<refusals<<" retries="<<retries<<'\n';
     return positives==8u&&refusals==16u&&retries==16u;
+}
+
+// The explicit-anchor compatibility spelling must also reject malformed
+// live rectangles before writing, and preserve the caller for retry.
+bool explicitTableMergeRangeValidationTests(const std::filesystem::path& dir) {
+    const auto input=dir/"explicit-merge-range-source.dxf", output=dir/"explicit-merge-range-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"explicit TABLE merge ranges: "<<why<<'\n';return false;};
+    unsigned positives=0u,refusals=0u,retries=0u;
+    for(bool inputBinary:{false,true}) {
+        const auto tags=legacyMergeDocument("AC1018",3,3);dx_iface importer;dx_data source;
+        if(!write(input,tags,inputBinary)||!importer.fileImport(input.string(),&source,false)
+            ||source.tables.size()!=1u||!source.tables.front().m_semanticContentComplete)return fail("source");
+        for(bool binary:{false,true})for(bool strict:{false,true}) {
+            dx_data data;dx_iface writer;writer.cData=&data;writer.currentBlock=data.mBlock;
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";data.blockRecords.push_back(modelSpace);
+            DRW_Table selected(source.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
+            for(auto& row:selected.m_content.m_rows)for(auto& cell:row.m_cells) {
+                cell.m_isMerged=false;cell.m_mergedWidth=1;cell.m_mergedHeight=1;
+            }
+            selected.m_content.m_rows[0].m_cells[0].m_isMerged=true;
+            selected.m_content.m_rows[0].m_cells[0].m_mergedWidth=2;
+            selected.m_content.m_mergedRanges={{0,0,0,1}};writer.addTable(selected);
+            auto& table=data.tables.front();const DRW_Table baseline(table);const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data after;
+                return reader.fileImport(output.string(),&after,false)&&after.tables.size()==1u
+                    &&after.tables.front().m_semanticContentComplete
+                    &&legacyMergeRanges(after.tables.front(),{{0,0,0,1}});
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check())return fail("baseline");
+            ++positives;
+            // No-merge tables retain the established unmerged output path.
+            table.m_content.m_mergedRanges.clear();
+            table.m_content.m_rows[0].m_cells[0].m_isMerged=false;
+            table.m_content.m_rows[0].m_cells[0].m_mergedWidth=1;
+            dx_iface unmergedReader;dx_data unmerged;
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)
+                ||!unmergedReader.fileImport(output.string(),&unmerged,false)
+                ||unmerged.tables.size()!=1u||!unmerged.tables.front().m_semanticContentComplete
+                ||!unmerged.tables.front().m_content.m_mergedRanges.empty())return fail("unmerged baseline");
+            table=baseline;
+            for(unsigned fault=0u;fault<8u;++fault) {
+                auto& cells=table.m_content.m_rows[0].m_cells;
+                if(fault==0u) { cells[0].m_isMerged=false;cells[0].m_mergedWidth=1;cells[1].m_isMerged=true;cells[1].m_mergedWidth=3;table.m_content.m_mergedRanges={{0,1,0,3}}; }
+                if(fault==1u) { cells[0].m_isMerged=false;cells[0].m_mergedWidth=1;auto& anchor=table.m_content.m_rows[1].m_cells[0];anchor.m_isMerged=true;anchor.m_mergedHeight=3;table.m_content.m_mergedRanges={{1,0,3,0}}; }
+                if(fault==2u) { cells[1].m_isMerged=true;cells[1].m_mergedWidth=2;table.m_content.m_mergedRanges.push_back({0,1,0,2}); }
+                if(fault==3u) { cells[2].m_isMerged=true;table.m_content.m_mergedRanges.push_back({0,0,0,1}); }
+                if(fault==4u) table.m_content.m_mergedRanges[0].m_leftColumn=-1;
+                if(fault==5u) table.m_content.m_mergedRanges[0].m_rightColumn=0;
+                if(fault==6u) cells[2].m_mergedWidth=0;
+                if(fault==7u) cells[2].m_mergedHeight=0;
+                const DRW_Table invalid(table);const auto saved=tableExportIdentities(data);
+                if(!tableExportSentinel(output,true)||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)
+                    ||!tableExportSentinel(output)||saved!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(invalid,table))return fail("invalid geometry escaped/changed caller "+std::to_string(fault));
+                ++refusals;table=baseline;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("corrected retry");
+                ++retries;
+            }
+        }
+    }
+    std::cout<<"explicit TABLE merge baselines="<<positives<<" invalid="<<refusals<<" retries="<<retries<<'\n';
+    return positives==8u&&refusals==64u&&retries==64u;
 }

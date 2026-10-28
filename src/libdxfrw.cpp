@@ -9465,30 +9465,51 @@ bool dxfRW::writeTable(DRW_Table *ent){
             }
         }
     }
-    if (!legacyCoveredMerge && mergedCellCount != ent->m_content.m_mergedRanges.size())
-        return failDxfWrite();
-    for (std::size_t rowIndex = 0; !legacyCoveredMerge && rowIndex < rows; ++rowIndex) {
-        for (std::size_t columnIndex = 0; columnIndex < columns; ++columnIndex) {
-            const DRW_TableCell& cell =
-                ent->m_content.m_rows[rowIndex].m_cells[columnIndex];
-            if (!cell.m_isMerged)
-                continue;
-            const int bottom = static_cast<int>(rowIndex)
-                + cell.m_mergedHeight - 1;
-            const int right = static_cast<int>(columnIndex)
-                + cell.m_mergedWidth - 1;
-            const auto matches = std::count_if(
-                ent->m_content.m_mergedRanges.begin(),
-                ent->m_content.m_mergedRanges.end(),
-                [rowIndex, columnIndex, bottom, right](
-                    const DRW_TableMergedRange& range) {
-                    return range.m_topRow == static_cast<int>(rowIndex)
-                        && range.m_leftColumn == static_cast<int>(columnIndex)
-                        && range.m_bottomRow == bottom
-                        && range.m_rightColumn == right;
-                });
-            if (matches != 1)
-                return failDxfWrite();
+    if (!legacyCoveredMerge) {
+        if (mergedCellCount != ent->m_content.m_mergedRanges.size()
+            || mergedCellCount > rows * columns)
+            return failDxfWrite();
+        // Explicit-anchor ranges must fit the live grid and cannot overlap.
+        // Iterate occupied cells once: overlap fails immediately, bounding the
+        // work and allocation by the already validated grid size.
+        try {
+            std::vector<std::uint8_t> occupancy(mergedCellCount == 0u ? 0u : rows * columns, 0u);
+            for (const DRW_TableMergedRange& range : ent->m_content.m_mergedRanges) {
+                if (range.m_topRow < 0 || range.m_leftColumn < 0
+                    || range.m_bottomRow < range.m_topRow
+                    || range.m_rightColumn < range.m_leftColumn
+                    || static_cast<std::size_t>(range.m_bottomRow) >= rows
+                    || static_cast<std::size_t>(range.m_rightColumn) >= columns)
+                    return failDxfWrite();
+                const std::size_t top = static_cast<std::size_t>(range.m_topRow);
+                const std::size_t left = static_cast<std::size_t>(range.m_leftColumn);
+                const std::size_t bottom = static_cast<std::size_t>(range.m_bottomRow);
+                const std::size_t right = static_cast<std::size_t>(range.m_rightColumn);
+                const DRW_TableCell& anchor = ent->m_content.m_rows[top].m_cells[left];
+                if (!anchor.m_isMerged
+                    || anchor.m_mergedWidth != static_cast<int>(right - left + 1u)
+                    || anchor.m_mergedHeight != static_cast<int>(bottom - top + 1u))
+                    return failDxfWrite();
+                for (std::size_t row = top; row <= bottom; ++row) {
+                    for (std::size_t column = left; column <= right; ++column) {
+                        const std::size_t index = row * columns + column;
+                        if (occupancy[index] != 0u)
+                            return failDxfWrite();
+                        occupancy[index] = 1u;
+                    }
+                }
+            }
+            // Non-anchor spans are emitted as one, so do not silently alter
+            // a retained zero or other non-unit descriptor on merged grids.
+            if (mergedCellCount != 0u) {
+                for (const DRW_TableRow& row : ent->m_content.m_rows)
+                    for (const DRW_TableCell& cell : row.m_cells)
+                        if (!cell.m_isMerged
+                            && (cell.m_mergedWidth != 1 || cell.m_mergedHeight != 1))
+                            return failDxfWrite();
+            }
+        } catch (...) {
+            return failDxfWrite();
         }
     }
     for (std::size_t column = 0; column < columns; ++column) {
