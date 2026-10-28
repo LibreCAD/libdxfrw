@@ -754,6 +754,92 @@ public:
 #include "attdef_equal_alignment_controls.h"
 #include "attdef_embedded_dual280_controls.h"
 
+// Observational transport only: deliberately opts into the reader's existing
+// optional facet. It does not change the adapter's AC1018 opt-in or certify
+// a profile, owner graph, APPID target, output closure, or native semantics.
+bool legacyAttdefObservationTests(const std::filesystem::path& path) {
+    struct Observer final:dx_iface {
+        dxfRW* reader=nullptr;bool selected=true,live=false;unsigned depth=0u;
+        DRW_RawDxfObject source;DRW_Attdef sourceModel,typedModel;
+        DRW_DxfAttdefSourceContext context{};DRW::Version sourceVersion=DRW::UNKNOWNV,codecVersion=DRW::UNKNOWNV;
+        std::string page,declaration;bool declared=false,binary=false,extrusion=false;
+        unsigned sourceCalls=0u,typedCalls=0u;
+        void addHeader(const DRW_Header*)override {}
+        void addBlock(const DRW_Block&)override {++depth;}
+        void endBlock()override {--depth;}
+        void addBlockRecord(const DRW_Block_Record&)override {}
+        bool wantsDxfAttdefSource()const override{return selected;}
+        void addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
+                                const DRW_DxfAttdefSourceContext& current)override {
+            ++sourceCalls;source=raw;sourceModel=value;context=current;dxfRW::DxfReadContext c;
+            live=reader&&reader->getDxfReadContext(c);
+            if(live) {sourceVersion=c.sourceVersion;codecVersion=c.codecVersion;page=std::string(c.codecCodePage);
+                declaration=std::string(c.declaration);declared=c.hasDeclaration;binary=c.binary;extrusion=c.applyExtrusion;}
+        }
+        void addAttDef(const DRW_Attdef& value)override{++typedCalls;typedModel=value;}
+    };
+    // The two non-ASCII bytes are authored directly in Windows-1252; XDATA
+    // includes an APPID name and values, but no APPID target is claimed.
+    const Tags row{{5,"A1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+        {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,std::string("caf\xE9",4u)},
+        {100,"AcDbAttributeDefinition"},{3,std::string("prom\xE9",5u)},{2,"ATTINFO"},{70,"0"},
+        {1001,"AcDbAttr"},{1070,"0"},{1070,"1"}};
+    unsigned originals=0u,spans=0u,optouts=0u,retries=0u;
+    for(bool binary:{false,true})for(bool block:{false,true})for(bool extrusion:{false,true}) {
+        auto tags=document("AC1018",row,block);tags.insert(tags.begin()+4,{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});
+        if(!write(path,tags,binary))return false;dxfRW reader(path.string().c_str());Observer selected;selected.reader=&reader;
+        if(!check(reader.read(&selected,extrusion)&&selected.depth==0u&&selected.sourceCalls==1u&&selected.typedCalls==1u
+            &&selected.live&&selected.sourceVersion==DRW::AC1018&&selected.codecVersion==DRW::AC1015
+            &&selected.declared&&selected.declaration=="ANSI_1252"&&selected.page=="ANSI_1252"
+            &&selected.binary==binary&&selected.extrusion==extrusion&&selected.context.inBlock==block
+            &&selected.context.applyExtrusion==extrusion,"legacy source callback and live codec context"))return false;
+        const auto& raw=selected.source;const auto& model=selected.sourceModel;
+        if(!check(raw.name=="ATTDEF"&&raw.handle==0xA1u&&raw.parentHandle==0xB0u
+            &&raw.m_version==DRW::AC1018&&raw.hasRawValues!=binary&&raw.groups.size()==row.size()
+            &&raw.rawValues.size()==row.size()&&snapshot(model)==snapshot(selected.typedModel)
+            &&model.text=="caf\xC3\xA9"&&model.prompt=="prom\xC3\xA9"&&model.tag=="ATTINFO"
+            &&model.extData.size()==3u&&model.extData[0]&&model.extData[1]&&model.extData[2]
+            &&model.extData[0]->code()==1001&&std::string(model.extData[0]->c_str())=="AcDbAttr"
+            &&model.extData[1]->code()==1070&&model.extData[1]->i_val()==0
+            &&model.extData[2]->code()==1070&&model.extData[2]->i_val()==1,
+            "legacy typed capture, source model and XDATA values"))return false;
+        const auto wire=attdefWireTags(path,binary);std::size_t first=wire.size();
+        for(std::size_t i=0u;i<wire.size();++i)if(wire[i].code==0&&wire[i].text=="ATTDEF")first=i+1u;
+        if(first+row.size()>wire.size())return false;
+        for(std::size_t i=0u;i<row.size();++i) {
+            const auto& field=raw.groups[i];const auto& physical=wire[first+i];
+            if(!check(field.code()==row[i].code&&physical.code==row[i].code&&physical.begin<physical.valueBegin
+                &&physical.valueBegin<physical.end&&(!i||wire[first+i-1u].end==physical.begin)
+                &&(binary?raw.rawValues[i].empty():raw.rawValues[i]==row[i].value),"legacy exact physical field/span"))return false;
+            if(physical.kind==AttdefWireTag::String&&physical.text!=row[i].value)return false;
+            if(physical.kind==AttdefWireTag::Integer&&physical.integer!=std::stoll(row[i].value))return false;
+            if(physical.kind==AttdefWireTag::Real&&physical.real!=std::stod(row[i].value))return false;
+            ++spans;
+        }
+        if(!check(replayMatches(row,"AC1018",snapshot(model),extrusion),
+            "legacy authored raw replay matches captured typed model"))return false;
+        const auto gated=dx_attdef_source::audit(raw);
+        if(!check(!gated.complete()&&gated.spans.empty()&&gated.reason==dx_attdef_source::Reason::Revision
+            &&gated.rejectedGroup==0u,"legacy source audit remains gated"))return false;
+        Observer optout;optout.reader=&reader;optout.selected=false;
+        if(!check(reader.read(&optout,extrusion)&&optout.sourceCalls==0u&&optout.typedCalls==1u
+            &&snapshot(optout.typedModel)==snapshot(selected.typedModel),"legacy source opt-out preserves typed callback"))return false;
+        ++optouts;
+        auto bad=row;bad.erase(std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==40;}));
+        auto badTags=document("AC1018",bad,block);badTags.insert(badTags.begin()+4,{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});
+        if(!write(path,badTags,binary))return false;Observer rejected;rejected.reader=&reader;
+        if(!check(!reader.read(&rejected,extrusion)&&rejected.sourceCalls==0u&&rejected.typedCalls==0u
+            &&rejected.depth==0u,"legacy malformed source is not published"))return false;
+        if(!write(path,tags,binary))return false;Observer retry;retry.reader=&reader;
+        if(!check(reader.read(&retry,extrusion)&&retry.sourceCalls==1u&&retry.typedCalls==1u
+            &&snapshot(retry.sourceModel)==snapshot(selected.sourceModel),"legacy corrected read on same facade"))return false;
+        ++retries;++originals;
+    }
+    std::cout<<"AC1018 observational ATTDEF sources="<<originals<<" raw spans="<<spans
+        <<" opt-outs="<<optouts<<" malformed/retries="<<retries<<'\n';
+    return originals==8u&&spans==136u&&optouts==8u&&retries==8u;
+}
+
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
     if(!attdefDual280ProfileTests(path))return false;
@@ -1147,6 +1233,7 @@ int main(int argc,char** argv) {
     const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
+    const bool legacyObservation=argc==2&&std::string(argv[1])=="--legacy-observation";
     const bool equalAlignment=argc==2&&std::string(argv[1])=="--equal-alignment";
     const bool dualEmbedded=argc==2&&std::string(argv[1])=="--embedded-dual280";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
@@ -1168,7 +1255,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1195,6 +1282,7 @@ int main(int argc,char** argv) {
         blocks?blockSourceTests(scratch/"generated.dxf"):
         dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):
+        legacyObservation?legacyAttdefObservationTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):
         budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))

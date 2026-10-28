@@ -508,6 +508,9 @@ set_tests_properties(libdxfrw_attdef_immutable_capture PROPERTIES
     LABELS "fast;dxf;attdef;source;resource-budget;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_attdef_source_profile
     COMMAND libdxfrw_attdef_source_tests --source-profile)
+add_test(NAME libdxfrw_attdef_legacy_observation
+    COMMAND libdxfrw_attdef_source_tests --legacy-observation)
+set_tests_properties(libdxfrw_attdef_legacy_observation PROPERTIES LABELS "dxf;adapter;fast")
 set_tests_properties(libdxfrw_attdef_source_profile PROPERTIES
     LABELS "fast;dxf;attdef;source;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_attdef_embedded_equal_alignment
