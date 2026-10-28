@@ -514,6 +514,9 @@ set_tests_properties(libdxfrw_attdef_legacy_observation PROPERTIES LABELS "dxf;a
 add_test(NAME libdxfrw_attdef_legacy_adapter_capture
     COMMAND libdxfrw_attdef_source_tests --legacy-adapter-capture)
 set_tests_properties(libdxfrw_attdef_legacy_adapter_capture PROPERTIES LABELS "dxf;adapter;fast")
+add_test(NAME libdxfrw_block_legacy_capture
+    COMMAND libdxfrw_attdef_source_tests --legacy-block-capture)
+set_tests_properties(libdxfrw_block_legacy_capture PROPERTIES LABELS "dxf;adapter;fast")
 set_tests_properties(libdxfrw_attdef_source_profile PROPERTIES
     LABELS "fast;dxf;attdef;source;independent;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_attdef_embedded_equal_alignment

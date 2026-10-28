@@ -21933,8 +21933,10 @@ void dx_iface::addDxfBlockEndSource(const DRW_Block& value,const DRW_RawDxfObjec
 
 void dx_iface::captureDxfBlockReadContext(AttdefOriginBlock& row) noexcept {
     auto& s=cData->m_tableDxfSource;dxfRW::DxfReadContext live;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021
-        ||live.sourceVersion>DRW::AC1032||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u)return;
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)
+        ||(live.sourceVersion==DRW::AC1018?live.codecVersion!=DRW::AC1015:
+            (live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032||live.codecVersion!=DRW::AC1021))
+        ||live.codecCodePage.size()>128u)return;
     using C=dx_data::TableDxfSourceCapture::EntitiesReadContext;
     std::size_t bytes=sizeof(C)+8u*sizeof(void*);
     if(!addAssociativeRetainedBytes(live.codecCodePage.size(),bytes)||!addAssociativeRetainedBytes(live.declaration.size(),bytes)
@@ -22022,7 +22024,7 @@ void dx_iface::retainDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObjec
         ||!asciiIdentifierEquals(raw.name,footer?"ENDBLK":"BLOCK")
         ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle
         ||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
-        ||raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032
+        ||(raw.m_version!=DRW::AC1018&&raw.m_version<DRW::AC1021)||raw.m_version>DRW::AC1032
         ||raw.rawValues.size()!=raw.groups.size()) {fail();return;}
     if(!footer&&(source.blockSourceActive||source.blockSources.count(value.handle)
         ||source.blockSources.size()>=source.maxBlockSourceRecords)) {fail();return;}
@@ -23538,8 +23540,8 @@ void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject
         ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle
         ||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
         // AC1018 remains opt-out by default. An explicit derived optional
-        // source handler may request bounded capture/replay only; the legacy
-        // source profile, origin graph and output gates remain closed.
+        // source handler may request bounded capture/replay only; origin
+        // graph and output gates remain closed.
         ||(raw.m_version!=DRW::AC1018&&raw.m_version<DRW::AC1021)
         ||raw.m_version>DRW::AC1032||!dxfAttdef::Decoder::hasNoNativeWriteBindings(value)
         // fileImport's actual DXF read option is false, not inferred from

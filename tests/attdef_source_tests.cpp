@@ -740,6 +740,7 @@ public:
 
 #include "attdef_source_profile_controls.h"
 #include "block_source_controls.h"
+#include "block_legacy_capture_controls.h"
 #include "block_source_proof_controls.h"
 #include "block_children_source_controls.h"
 #include "raw_application_scope_controls.h"
@@ -1451,6 +1452,7 @@ int main(int argc,char** argv) {
     const bool dualEmbedded=argc==2&&std::string(argv[1])=="--embedded-dual280";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
+    const bool legacyBlockCapture=argc==2&&std::string(argv[1])=="--legacy-block-capture";
     const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
     const bool rawIdentity=argc==2&&std::string(argv[1])=="--raw-identity";
     const bool rawMissing=argc==2&&std::string(argv[1])=="--raw-identity-missing";
@@ -1468,7 +1470,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1492,6 +1494,7 @@ int main(int argc,char** argv) {
         proxyScope?rawProxyScopeTests(scratch/"generated.dxf"):
         blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
+        legacyBlockCapture?legacyBlockCaptureTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
         dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):
