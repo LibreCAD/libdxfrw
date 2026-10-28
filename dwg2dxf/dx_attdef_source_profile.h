@@ -167,6 +167,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                 field=Field::Subclass;
                 if(string=="AcDbXrecord")return reject(Reason::UnmodeledSecondary,i);
                 if(string=="Embedded Object") {
+                    // A later embedded body must not inherit the classic
+                    // dual-280 qualification selected before this marker.
+                    if(dualAttribute280)return reject(Reason::AmbiguousVersion,i);
                     if(nested||!hostText||(stage!=Text&&stage!=Attribute))return reject(Reason::Subclass,i);
                     // Earlier versions remain accepted by plain consumers, but
                     // compatibility parsing is not a documented multiline profile.
@@ -189,13 +192,14 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                 auto& slots=seen[stage==Common?0u:stage==Text?2u:stage==Attribute?3u:1u];
                 if(code<0||code>=static_cast<int>(slots.size()))return reject(Reason::UnknownField,i);
                 if(slots[code]) {
-                    // The witnessed AC1027 ATTDEF grammar has a version-zero
+                    // The witnessed classic attribute grammar has a version-zero
                     // prefix immediately after the subclass marker and a
                     // separate lock flag after the required attribute fields.
-                    if(code!=280||stage!=Attribute||!definition||nested||raw.m_version!=DRW::AC1027
+                    if(code!=280||stage!=Attribute||nested
+                        ||(raw.m_version!=DRW::AC1024&&raw.m_version!=DRW::AC1027&&raw.m_version!=DRW::AC1032)
                         ||dualAttribute280||firstAttribute280!=attributeMarker+1u
                         ||firstAttribute280>=out.spans.size()||!integer(raw.groups[firstAttribute280],0,0)
-                        ||!seen[3][2]||!seen[3][3]||!seen[3][70]||!integer(value,0,1))
+                        ||!seen[3][2]||(definition&&!seen[3][3])||!seen[3][70]||!integer(value,0,1))
                         return reject(code==280?Reason::AmbiguousVersion:Reason::DuplicateField,i);
                     out.spans[firstAttribute280].field=Field::ReservedDefault;
                     dualAttribute280=true;

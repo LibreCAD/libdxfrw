@@ -69,7 +69,7 @@ bool attdefRoleWire(const std::vector<AttdefWireTag>& wire,const Physical& p,con
         if(span.ignoredComment)continue;
         if(tag.code==102){if(tag.text=="}"){if(!application)return false;--application;}else ++application;continue;}
         if(application)continue;
-        if(tag.code==100){attribute=tag.text=="AcDbAttributeDefinition";if(attribute)marker=i;}
+        if(tag.code==100){attribute=tag.text=="AcDbAttributeDefinition"||tag.text=="AcDbAttribute";if(attribute)marker=i;}
         if(attribute&&tag.code==280)attribute280.push_back(i);
     }
     const bool dual=attribute280.size()==2u;
@@ -115,8 +115,8 @@ std::array<std::size_t,2> attdefDualRoleSlots(const Tags& tags,const char* id) {
     }
     if(count!=2u)throw std::runtime_error("dual280 role source slots");return found;
 }
-Tags attdefDualRoleDocument(bool blocks,bool lock,bool binary) {
-    auto tags=attdefRoleDocument("AC1027",blocks,0u);
+Tags attdefDualRoleDocument(const std::string& version,bool blocks,bool lock,bool binary) {
+    auto tags=attdefRoleDocument(version,blocks,0u);
     for(const char* id:{"501","502"}) {
         const auto begin=slot(tags,5,id);std::size_t marker=tags.size(),last=tags.size();unsigned depth=0u;bool attribute=false;
         for(std::size_t i=begin;i<tags.size()&&(i==begin||tags[i].code!=0);++i) {
@@ -129,9 +129,18 @@ Tags attdefDualRoleDocument(bool blocks,bool lock,bool binary) {
         tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+1u),{280,"0"});
         tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+2u),{{102,"{VERSION_SHADOW"},{280,"7"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"15"},{102,"}"}});
     }
+    // The enclosing source contains a genuine INSERT/ATTRIB/SEQEND chain.
+    // Its ATTRIB has no prompt; its opaque shadows cannot provide required fields.
+    const char* child=blocks?"207":"E101";
+    auto marker=blockField(tags,child,100);while(tags[marker].value!="AcDbAttribute")++marker;
+    auto end=marker+1u;while(tags[end].code!=0)++end;
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),{280,lock?"1":"0"});
+    if(!binary)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),{999,"original ATTRIB lock span"});
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+1u),{{280,"0"},{102,"{ATTR_VERSION_SHADOW"},
+        {280,"7"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"15"},{102,"}"}});
     return tags;
 }
-bool attdefDualRoleWriter(const std::filesystem::path& path,bool binary,bool lock) {
+bool attdefDualRoleWriter(const std::filesystem::path& path,DRW::Version version,bool binary,bool lock) {
     // Canonical writer normalization only: this clean authored model is not a
     // conversion/closure certificate for the original role fixture document.
     struct Output final:dx_iface {
@@ -140,7 +149,7 @@ bool attdefDualRoleWriter(const std::filesystem::path& path,bool binary,bool loc
             value.height=1;value.basePoint={1,2,3};value.attVersion=0;value.lockPosition=locked;}
         void writeEntities()override{(void)dxfW->writeAttdef(&value,DRW::DxfModelSpaceBlockRecordHandle);}
     } output(lock);
-    dxfRW writer(path.string().c_str());output.dxfW=&writer;if(!writer.write(&output,DRW::AC1027,binary)||output.value.attVersion!=0||output.value.lockPosition!=lock) { return false; }
+    dxfRW writer(path.string().c_str());output.dxfW=&writer;if(!writer.write(&output,version,binary)||output.value.attVersion!=0||output.value.lockPosition!=lock) { return false; }
     const auto wire=attdefWireTags(path,binary);bool selected=false,attribute=false;unsigned fields=0u,records=0u,owners=0u;
     for(const auto& field:wire){if(field.code==0){selected=field.text=="ATTDEF";attribute=false;if(selected)++records;continue;}if(!selected)continue;
         if(field.code==100)attribute=field.text=="AcDbAttributeDefinition";
@@ -154,17 +163,17 @@ bool attdefDualRoleWriter(const std::filesystem::path& path,bool binary,bool loc
 }
 bool attdefDual280RoleTests(const std::filesystem::path& dir) {
     using A=DxIfaceTableSourceTestAccess;using namespace dx_attdef_source;
-    const auto path=dir/"attdef-dual280-roles.dxf";unsigned profiles=0u,corruptions=0u,refusals=0u,retries=0u,writerForms=0u;std::size_t spans=0u;
-    const auto ready=[&](bool binary,bool blocks,bool lock,AttdefRoleProbe& reader,dx_data& data) {
+    const auto path=dir/"attdef-dual280-roles.dxf";unsigned profiles=0u,corruptions=0u,refusals=0u,retries=0u,writerForms=0u,compoundChildren=0u;std::size_t spans=0u;
+    const auto ready=[&](const std::string& version,bool binary,bool blocks,bool lock,AttdefRoleProbe& reader,dx_data& data) {
         const auto failed=[&](const char* stage,std::uint32_t id=0u){
-            std::cerr<<"ATTDEF dual280 role stage="<<stage<<" binary="<<binary<<" blocks="<<blocks<<" lock="<<lock<<" id="<<id
+            std::cerr<<"ATTDEF dual280 role stage="<<stage<<" version="<<version<<" binary="<<binary<<" blocks="<<blocks<<" lock="<<lock<<" id="<<id
                 <<" B="<<static_cast<int>(dx_iface::blockRoleReport(data).state)<<" E="<<static_cast<int>(dx_iface::entitiesRoleReport(data).state)<<'\n';
             for(const auto& item:A::resources(data))if(item.first==0x501u||item.first==0x502u){const auto& r=item.second;
                 std::cerr<<" resource="<<item.first<<" pair="<<r.attdefPairMatched<<" fields="<<r.attdefFieldsMatched<<" profile="<<static_cast<int>(r.attdefProfile.reason)
                     <<" rejected="<<r.attdefProfile.rejectedGroup<<" lock="<<(r.attdefModel?r.attdefModel->lockPosition:false)<<'\n';}
             return false;
         };
-        if(!write(path,attdefDualRoleDocument(blocks,lock,binary),binary))return failed("authoring");
+        if(!write(path,attdefDualRoleDocument(version,blocks,lock,binary),binary))return failed("authoring");
         if(!reader.fileImport(path.string(),&data,false))return failed("ordinary import");
         if(!attdefRolesReady(data,blocks))return failed("enclosing role report");
         const auto wire=attdefWireTags(path,binary);
@@ -206,22 +215,66 @@ bool attdefDual280RoleTests(const std::filesystem::path& dir) {
             }
             if(!found)return failed("missing enclosing body proof",id);
         }
-        unsigned ordinary=0u;const auto live=[&](const dx_ifaceBlock* block){
+        const std::uint32_t parent=blocks?0x206u:0xE100u,child=blocks?0x207u:0xE101u,footer=blocks?0x208u:0xE102u;
+        const auto inspectChild=[&](const auto& physical,const auto& profile,const auto& member,const auto& parentMember,const auto& footerMember) {
+            if(physical.name!="ATTRIB"||member.self!=child||member.owner!=parent||member.role!=dx_block_membership::Role::Attribute
+                ||parentMember.self!=parent||footerMember.self!=footer||footerMember.owner!=parent||footerMember.role!=dx_block_membership::Role::SequenceEnd
+                ||member.parent!=parentMember.parent||footerMember.parent!=parentMember.parent||member.dispatch!=parentMember.dispatch||footerMember.dispatch!=parentMember.dispatch
+                ||member.reason!=dx_block_membership::Reason::Matched||parentMember.reason!=dx_block_membership::Reason::Matched||footerMember.reason!=dx_block_membership::Reason::Matched
+                ||!profile.complete()||!attdefRoleWire(wire,physical,profile,spans))return failed("original INSERT/ATTRIB/SEQEND membership and wire",child);
+            unsigned versions=0u,locks=0u;for(const auto& field:profile.spans)if(field.code==280&&field.scope==Scope::Host) {
+                if(field.field==Field::ReservedDefault){if(physical.groups[field.groupIndex].i_val()!=0)return failed("ATTRIB version literal",child);++versions;}
+                else if(field.field==Field::Attribute){if(physical.groups[field.groupIndex].i_val()!=int(lock))return failed("ATTRIB lock literal",child);++locks;}
+            }
+            if(versions!=1u||locks!=1u)return failed("ATTRIB exact ordered dual roles",child);
+            for(const auto field:{Field::ReservedDefault,Field::Attribute}) {
+                auto changed=profile;bool found=false;for(auto& span:changed.spans)if(span.code==280&&span.field==field){span.field=field==Field::Attribute?Field::ReservedDefault:Field::Attribute;found=true;break;}
+                std::size_t ignored=0u;if(!found||attdefRoleWire(wire,physical,changed,ignored))return failed("ATTRIB same-code role corruption sensitivity",child);
+                ++corruptions;
+            }
+            return true;
+        };
+        bool childFound=false;
+        if(blocks)for(const auto& source:A::blockSources(data))for(const auto& item:source.second.compoundBodies) {
+            const auto& body=*item.second;const auto* model=dynamic_cast<const DRW_Insert*>(body.model.get());if(!model||model->handle!=parent)continue;
+            const auto range=body.membership->ranges[item.first];
+            if(childFound||body.state!=decltype(body.state)::ModeledReplayMatched||!body.profilesComplete||body.profiles.size()!=3u||range.next-range.first!=3u||model->attlist.size()!=1u||!model->attlist[0]
+                ||model->attlist[0]->handle!=child||model->attlist[0]->parentHandle!=parent||model->attlist[0]->lockPosition!=lock||model->attlist[0]->attVersion!=0
+                ||!model->seqEndEntity||model->seqEndEntity->handle!=footer||model->seqEndEntity->parentHandle!=parent
+                ||!inspectChild(body.membership->children->records[range.first+1u],body.profiles[1],body.membership->members[range.first+1u],
+                    body.membership->members[range.first],body.membership->members[range.first+2u]))return failed("frozen BLOCKS attribute compound",child);
+            childFound=true;
+        }
+        else for(const auto& audit:A::entitiesAudits(data))for(const auto& body:audit->proofs)if(audit->members[body.first].self==parent) {
+            if(childFound||!body.compound||!body.modeledMatched||!body.profilesMatched||body.profiles.size()!=3u||body.next-body.first!=3u
+                ||!inspectChild(audit->physical->records[body.first+1u],body.profiles[1],audit->members[body.first+1u],audit->members[body.first],audit->members[body.first+2u]))
+                return failed("frozen ENTITIES attribute compound",child);
+            childFound=true;
+        }
+        if(!childFound)return failed("missing original attribute compound",child);
+        ++compoundChildren;
+        unsigned ordinary=0u,ordinaryChildren=0u;const auto live=[&](const dx_ifaceBlock* block){
             if(block)for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity)) {
                 if(value->handle==0x501u||value->handle==0x502u){if(value->attVersion!=0||value->lockPosition!=lock) return false;++ordinary;}
+            }
+            if(block)for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_Insert*>(entity))if(value->handle==parent) {
+                if(value->attlist.size()!=1u||!value->attlist[0]||value->attlist[0]->handle!=child||value->attlist[0]->parentHandle!=parent
+                    ||value->attlist[0]->attVersion!=0||value->attlist[0]->lockPosition!=lock||!value->seqEndEntity||value->seqEndEntity->handle!=footer
+                    ||value->seqEndEntity->parentHandle!=parent)return false;
+                ++ordinaryChildren;
             }
             return true;
         };
         if(!live(data.mBlock)) { return false; }for(const auto* block:data.blocks)if(!live(block)) { return false; }
-        return ordinary==2u||failed("ordinary retained callback count");
+        return (ordinary==2u&&ordinaryChildren==1u)||failed("ordinary retained callback count");
     };
-    for(bool binary:{false,true})for(bool blocks:{false,true})for(bool lock:{false,true}) {
-        AttdefRoleProbe reader;dx_data data;if(!ready(binary,blocks,lock,reader,data)) { return false; }++profiles;
+    for(const std::string version:{"AC1024","AC1027","AC1032"})for(bool binary:{false,true})for(bool blocks:{false,true})for(bool lock:{false,true}) {
+        AttdefRoleProbe reader;dx_data data;if(!ready(version,binary,blocks,lock,reader,data)) { return false; }++profiles;
     }
     // Count mutation sensitivity once per positive source, not again on retries.
     const auto positiveCorruptions=corruptions;
-    for(bool binary:{false,true})for(bool blocks:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
-        auto tags=attdefDualRoleDocument(blocks,true,binary);const auto at=attdefDualRoleSlots(tags,"501");
+    for(const std::string version:{"AC1024","AC1027","AC1032"})for(bool binary:{false,true})for(bool blocks:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
+        auto tags=attdefDualRoleDocument(version,blocks,true,binary);const auto at=attdefDualRoleSlots(tags,"501");
         if(kind==0u)tags[at[0]].value="1";if(kind==1u)tags[at[0]].value="-1";if(kind==2u)tags[at[1]].value="2";
         if(kind==3u){const auto version=tags[at[0]];tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at[0]));
             unsigned depth=0u;std::size_t prompt=tags.size();const auto first=slot(tags,5,"501");
@@ -234,19 +287,19 @@ bool attdefDual280RoleTests(const std::filesystem::path& dir) {
             if(!depth&&tags[i].code==70){tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(i));break;}}}
         if(kind==7u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[1]),{{100,"AcDbXrecord"},{280,"0"}});
         if(kind==8u){tags[at[0]].value="1";tags[at[1]].value="0";}
-        if(kind==9u)tags[slot(tags,9,"$ACADVER")+1u].value="AC1032";
+        if(kind==9u)tags[slot(tags,9,"$ACADVER")+1u].value="AC1021";
         if(!write(path,tags,binary)) { return false; }AttdefRoleProbe reader;dx_data data;(void)reader.fileImport(path.string(),&data,false);
         if(attdefRolesReady(data,blocks)){std::cerr<<"ATTDEF dual280 malformed role accepted kind="<<kind<<" binary="<<binary<<" blocks="<<blocks<<'\n';return false;}
         ++refusals;reader.clearFaults();dx_data corrected;
-        if(!ready(binary,blocks,true,reader,corrected)) { return false; }++retries;
+        if(!ready(version,binary,blocks,true,reader,corrected)) { return false; }++retries;
     }
-    for(bool binary:{false,true})for(bool lock:{false,true}) {
-        if(!attdefDualRoleWriter(dir/"attdef-dual280-canonical-output.dxf",binary,lock)){std::cerr<<"ATTDEF canonical writer form failed binary="<<binary<<" lock="<<lock<<'\n';return false;}
+    for(const auto version:{DRW::AC1024,DRW::AC1027,DRW::AC1032})for(bool binary:{false,true})for(bool lock:{false,true}) {
+        if(!attdefDualRoleWriter(dir/"attdef-dual280-canonical-output.dxf",version,binary,lock)){std::cerr<<"ATTDEF canonical writer form failed binary="<<binary<<" lock="<<lock<<'\n';return false;}
         ++writerForms;
     }
     std::cout<<"ATTDEF dual280 roles profiles="<<profiles<<"; independent scalar spans="<<spans<<"; positive role corruptions="<<positiveCorruptions
-        <<"; malformed/retries="<<refusals<<'/'<<retries<<"; canonical single-lock writer forms="<<writerForms<<'\n';
-    return profiles==8u&&positiveCorruptions==32u&&refusals==40u&&retries==40u&&writerForms==4u;
+        <<"; original compound children="<<compoundChildren<<"; malformed/retries="<<refusals<<'/'<<retries<<"; canonical single-lock writer forms="<<writerForms<<'\n';
+    return profiles==24u&&positiveCorruptions==144u&&compoundChildren==144u&&refusals==120u&&retries==120u&&writerForms==12u;
 }
 
 bool attdefRoleTests(const std::filesystem::path& dir) {
