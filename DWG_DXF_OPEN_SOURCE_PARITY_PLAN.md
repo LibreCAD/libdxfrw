@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: fixed-shape edits | Element ACI, then LTYPE edits; coupled geometry and MLEADERSTYLE separately | Existing immutable dictionary/consumer, arity and actual-output bindings |
+| P2 | READY: LTYPE output proof, then edits | Extend emitted LTYPE identity/field proof, then group-6 reconciliation; coupled geometry and MLEADERSTYLE separately | Existing original LTYPE, dictionary/consumer and arity bindings |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,11 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.3b — element ACI edits | `mlineFieldsEqual`, `mlineBodyFields`, `prepareDxfMLineStyles`, `inspectDxfMLineStyles`; body-transaction selector | One fixed-size tuple's color changes independently; conflicting edits refuse; exact output, unchanged geometry and corrected retry pass |
-| P2.3c — element LTYPE edits | Same planner/output hooks plus existing LTYPE provider/index; body-transaction and authority selectors | Group-6 edits resolve to actual emitted providers with exact roles; count, offsets, redundant names and consumer 340 remain stable |
+| P2.3c1 — emitted LTYPE proof | Original resource/origin indexes, `dx_symbol_output` TABLES observer and writer source-LTYPE target map | Source → planned → actual LTYPE self/owner/name/simple-pattern fields match; wrong/missing target or field fails and corrected retry succeeds |
+| P2.3c2 — element LTYPE edits | `prepareDxfMLineStyles`/`inspectDxfMLineStyles`, final tuple slots and c1 provider proof; body-transaction/authority selectors | Group-6 edits resolve to actual emitted providers; conflicts refuse; count, offsets, ACI, redundant names, consumer 340 and geometry remain stable |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 
-Implement P2.3b/c first. P4a gap classification and the next source
+Implement P2.3c1/c2 first. P4a gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -75,25 +75,36 @@ local dependency instead of waiting for unrelated native evidence.
 ## P2 — nested named-resource bodies: next implementation packet
 
 Reuse the [MLINESTYLE authority receipt](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json)
-and [style/consumer arity controls](docs/research/rpp5gr-mline-style-element-arity-2026-10-28.json),
+and [element transaction receipt](docs/research/rpp5gs-mline-style-element-aci-transactions-2026-10-28.json),
 shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Keep only the residual work below; refused fields are not implemented
 editing support.
 
-1. **P2.3b: fixed-shape element ACI edits.** Reconcile original/typed/raw `62`
-   independently per ordered `49` tuple. Admit one-sided and agreeing edits;
-   refuse conflicting edits. Keep count, offsets, group 6, dictionary authority,
-   consumer 340 and geometry unchanged. Reuse scalar reconciliation, BodyWriter
-   and final slot census; preserve opaque extensions and unaffected spellings.
-   Prove exact owning output fields, late mutation, output corruption and retry
-   in the existing transaction controls.
-2. **P2.3c: fixed-shape LTYPE edits.** Treat DXF element `6` as a name, separately
-   from DWG index/handle mirrors. Reuse the emitted LTYPE provider/index and strict
-   codec helpers; establish required built-in-name behavior from the actual
-   profile. Reconcile per tuple and prove the selected table target's original
-   identity, planned name/self/owner and actual emitted definition. Refuse missing,
-   ambiguous or incompatible providers. Extend the existing independent projection
-   for one nondefault LTYPE edit; preserve count/offset/340 and redundant group 2.
+1. **P2.3c1: complete emitted LTYPE proof.** Reuse
+   `m_tableDxfSource.resources/resourceNames`, `resourceOriginAudits` and
+   `resourceOriginReport`; require unambiguous matched original name/body/context
+   facts and freeze live providers with `lineTypeSourceEqual`. Extend the existing
+   `dx_symbol_output` TABLES observer: its `Kind` currently covers LAYER/APPID only.
+   Generic emitted-source-table queries also exclude LTYPE. Reuse
+   `recordSourceLinetypeTarget`/`m_sourceLinetypeTargetsByHandle` for a safe source
+   target query, paired with actual staged record type/count/owner and literal
+   TABLES fields. Name-map agreement or `remapObjectHandle` alone is insufficient;
+   canonical ByBlock/ByLayer/Continuous can map to fixed 0x14/0x15/0x16 without generic
+   aliases. Begin with one original simple custom LTYPE and exact dash-pattern
+   output. Preserve built-in identities and refuse unresolved complex STYLE/
+   XDATA/application dependencies until their own source roles close. Add no
+   second capture/index engine; batch necessary query/header changes once.
+2. **P2.3c2: fixed-shape LTYPE edits.** Reuse the AC1027 authority recipe with a
+   simple custom `EditDash` provider; change one element from ByLayer to EditDash.
+   Both typed and raw-only edits currently refuse at explicit separate guards.
+   Reconcile original/typed/raw DXF `6` names per ordered tuple using strict codec
+   helpers and c1 proof. Keep DXF mirrors `linetypeIndex=-1`/`linetypeHandle=0`
+   separate from DWG meanings. Prove required names' original identities and actual
+   emitted definitions; refuse missing, ambiguous or incompatible providers.
+   Extend the existing independent projection to compare the selected custom
+   pattern, not just its name/handle. Preserve count/offset/ACI/340, redundant
+   group 2, full consumer geometry, opaque payloads and corrected retry behavior.
+   Earlier-version original LTYPE admission remains a separate qualification.
 3. **P2.4: coupled geometry operations.** Implement count `71`, offset edits and
    MLINE `340` retargeting as separate operations after fixed-shape edits. Enumerate
    all affected consumers, qualify per-vertex segment/fill parameter compatibility
@@ -338,7 +349,7 @@ and run only the relevant owning selector during development:
 
 ```sh
 cmake --build build --target libdxfrw_dxf_fixture_tests
-# P2.3b/c
+# P2.3c consumer transaction loop
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
 
@@ -351,6 +362,15 @@ MATERIAL, SCALE or DICTIONARYVAR lanes. Rebuild each selected test's owning
 executable; include `libdxfrw_wave1_tests` only for decoding/reset changes.
 Run affected ASan once on frozen ownership/bounds/lifetime changes. A previous
 14-test cohort or full version matrix does not prescribe the next checkpoint.
+
+For c1, add `libdxfrw_symbol_original_publications` for original provider pinning.
+An extension to TABLES/name observation also needs
+`libdxfrw_dxf_tables_write_inspection`/`libdxfrw_symbol_name_wire_inspection`;
+source-table query changes need `libdxfrw_dxf_source_table_identities`. Add
+`libdxfrw_ltype_mirror_authority`/`libdxfrw_linetype_extension_graph` only when those
+hooks change. Build their actual owning targets, then run the frozen affected union
+once in normal/ASan. Reuse the peer's source projections and add only the new
+reference-edit/pattern check; no unrelated corpus or package rerun is implied.
 
 1. Keep current configured normal/ASan builds, shared adapter objects and pinned
    comparator environments. Rebuild every selected executable affected by static
