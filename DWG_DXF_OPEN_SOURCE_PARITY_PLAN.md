@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: count fix, then fixed-shape edits | Refuse reproduced MLINE/style arity mismatch; element ACI, then LTYPE edits; coupled geometry and MLEADERSTYLE separately | Existing immutable dictionary/consumer and actual-output bindings |
+| P2 | READY: fixed-shape edits | Element ACI, then LTYPE edits; coupled geometry and MLEADERSTYLE separately | Existing immutable dictionary/consumer, arity and actual-output bindings |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,12 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.3a — MLINE arity fix | `validateMLineEntities`, `DRW_MLine::validateDxfRecord`; `libdxfrw_mline_style_authority` | Refuse the reproduced internally consistent one-element MLINE referencing a two-element style; prove destination/caller preservation and corrected ENTITIES/BLOCK retry |
 | P2.3b — element ACI edits | `mlineFieldsEqual`, `mlineBodyFields`, `prepareDxfMLineStyles`, `inspectDxfMLineStyles`; body-transaction selector | One fixed-size tuple's color changes independently; conflicting edits refuse; exact output, unchanged geometry and corrected retry pass |
 | P2.3c — element LTYPE edits | Same planner/output hooks plus existing LTYPE provider/index; body-transaction and authority selectors | Group-6 edits resolve to actual emitted providers with exact roles; count, offsets, redundant names and consumer 340 remain stable |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 
-Implement P2.3a–c first. P4a gap classification and the next source
+Implement P2.3b/c first. P4a gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -75,50 +74,48 @@ local dependency instead of waiting for unrelated native evidence.
 
 ## P2 — nested named-resource bodies: next implementation packet
 
-Reuse the [MLINESTYLE authority receipt](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json),
+Reuse the [MLINESTYLE authority receipt](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json)
+and [style/consumer arity controls](docs/research/rpp5gr-mline-style-element-arity-2026-10-28.json),
 shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Keep only the residual work below; refused fields are not implemented
 editing support.
 
-1. **P2.3a: enforce cross-record element-count validity.** Authored ENTITIES and
-   named-BLOCK witnesses currently export `73=1` against a two-element style.
-   Enforce the count relationship using the existing rooted style index and
-   preserve atomic refusal/corrected retry. Cover ENTITIES and a named BLOCK, selected
-   original DXF and the applicable direct-model route. Audit group-71 flags versus
-   vertex counts separately; do not change DWG flags or regenerate geometry from
-   an unverified DXF assumption.
-2. **P2.3b: fixed-shape element ACI edits.** Reconcile original/typed/raw `62`
+1. **P2.3b: fixed-shape element ACI edits.** Reconcile original/typed/raw `62`
    independently per ordered `49` tuple. Admit one-sided and agreeing edits;
    refuse conflicting edits. Keep count, offsets, group 6, dictionary authority,
    consumer 340 and geometry unchanged. Reuse scalar reconciliation, BodyWriter
    and final slot census; preserve opaque extensions and unaffected spellings.
    Prove exact owning output fields, late mutation, output corruption and retry
    in the existing transaction controls.
-3. **P2.3c: fixed-shape LTYPE edits.** Treat DXF element `6` as a name, separately
+2. **P2.3c: fixed-shape LTYPE edits.** Treat DXF element `6` as a name, separately
    from DWG index/handle mirrors. Reuse the emitted LTYPE provider/index and strict
    codec helpers; establish required built-in-name behavior from the actual
    profile. Reconcile per tuple and prove the selected table target's original
    identity, planned name/self/owner and actual emitted definition. Refuse missing,
    ambiguous or incompatible providers. Extend the existing independent projection
    for one nondefault LTYPE edit; preserve count/offset/340 and redundant group 2.
-4. **P2.4: coupled geometry operations.** Implement count `71`, offset edits and
+3. **P2.4: coupled geometry operations.** Implement count `71`, offset edits and
    MLINE `340` retargeting as separate operations after fixed-shape edits. Enumerate
    all affected consumers, qualify per-vertex segment/fill parameter compatibility
    or recalculation, and prove actual geometry in ENTITIES/BLOCKS. Same-arity
    retargeting does not by itself prove offset/parameter compatibility. Preserve
-   redundant group-2 values and refuse unsupported operations atomically.
-5. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
+   redundant group-2 values and refuse unsupported operations atomically. Bind
+   consumer arity to the reconciled style that will actually be emitted, including
+   raw-only edits; a stale typed count cannot authorize a changed output style.
+4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;
    reuse the modern owner/key/output machinery, not another capture engine.
    Keep existing legacy behavior until this provider is qualified.
-6. **Route-specific grammar and color evidence.** Confirm omitted/repeated `62/6`
+5. **Route-specific grammar and color evidence.** Confirm omitted/repeated `62/6`
    grammar with producer evidence. The current 255-element cap/strict masks remain
    admission policies. Fill and element CMC/truecolor mirrors are DWG-only model
    fields today: obtain a route-specific witness/specification before assigning
    DXF codes or advertising CMC edits. Keep native collation, flag meanings,
    Unicode counting and rendered MLINE acceptance as distinct evidence tasks.
-7. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
+   Audit MLINE group-71 flags versus group-72 vertex counts separately; preserve
+   DWG flags and geometry until their actual route semantics are verified.
+6. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
    then cover complete contexts/defaults/repeated values and STYLE/LTYPE/
    BLOCK_RECORD references with the same shared helpers. Preserve source order,
    version-specific grammars and unsupported extensions. Obtain independent
@@ -341,8 +338,6 @@ and run only the relevant owning selector during development:
 
 ```sh
 cmake --build build --target libdxfrw_dxf_fixture_tests
-# P2.3a
-ctest --test-dir build -R '^libdxfrw_mline_style_authority$' --output-on-failure
 # P2.3b/c
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
