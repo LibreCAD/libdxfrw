@@ -174,8 +174,9 @@ and broader producer behavior remain unqualified.
    normal tuple without 464/465. The [normal-blend edit](docs/research/rpp5ie-material-unmarked-normal-blend-2026-10-28.json)
    qualifies only isolated typed blend, [projection](docs/research/rpp5ig-material-unmarked-normal-projection-2026-10-28.json)
    and [tiling](docs/research/rpp5ii-material-unmarked-normal-tiling-2026-10-28.json)
-   edits on that captured source. Simultaneous edits and other normal-map fields
-   require separate source and output evidence; its
+   edits on that captured source. Their [composition](docs/research/rpp5ij-material-unmarked-normal-composition-2026-10-28.json)
+   is also qualified for the selected source; other normal-map fields and
+   source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
    keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
    refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
@@ -338,8 +339,9 @@ forms bounded nonoverlapping ranges from the observed anchor/covered pattern.
 The [selected output receipt](docs/research/rpp5ik-ac1018-table-merge-output-2026-10-28.json)
 qualifies the matching AC1018 modeled write path and selected override compositions.
 Polarity remains inferred, the original record remains incomplete, and native
-geometry and complete original output remain open; explicit zero group 177 may
-be omitted. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
+geometry and complete original output remain open. The [selected zero-presence path](docs/research/rpp5in-ac1018-table-zero-presence-2026-10-28.json)
+preserves explicit group 177 zero for its source-bound AC1018 profile; broader
+presence cases remain open. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
 reject excess cell descriptors and bound sparse-grid range allocation; a
 [writer guard](docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json)
 also refuses unoccupied zero spans it would otherwise normalize. A further

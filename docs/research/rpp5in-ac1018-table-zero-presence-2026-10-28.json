@@ -1,0 +1,60 @@
+{
+  "schema": "ac1018-table-zero-presence-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "supportClaimsPromoted": false,
+  "scope": "Selected source-bound AC1018 TABLE cells preserve explicit group 177=0 with immediate group 178=0, separately from cells with neither group. Bare typed/manual and nonselected routes retain the pre-existing spelling; no default equivalence is assumed.",
+  "priorEvidence": [
+    "docs/research/rpp5ik-ac1018-table-merge-output-2026-10-28.json",
+    "docs/research/rpp5im-ac1018-table-explicit-merge-review-2026-10-28.json"
+  ],
+  "implementation": "Capture validates the actual source callback and re-decodes its raw body with source codec, codepage policy and bounded work/memory before comparing typed source model. The adapter joins selected captured source and live TABLE models before writing. A separate nonvirtual writer method takes per-cell presence; the original writeTable signature remains unchanged. Existing rich TABLE graph is not required. Source re-key ambiguity, stale complete/incomplete models, duplicate/malformed presence and capture failure are refused transactionally. Deletion with no unmatched live TABLE remains allowed; a missing selected source plus unmatched live TABLE is refused as deletion-vs-rekey ambiguous. Linked ATTRIB/SEQEND on this profile remain refused pending separate proof.",
+  "bindings": {
+    "src/libdxfrw.h": "8f62fda4bc9ffda329ce0a56f81b9972600c4ed0ff3da1405d98837e1300c405",
+    "src/libdxfrw.cpp": "dd18c40873412bc8501e48292395b8976609cc719688a2de115304ba12d506ac",
+    "dwg2dxf/dx_iface.cpp": "a37e8fc3e04b972cb9fe9338273b950d6fbf5fa6cc7eecee1d7d125b303fe79b",
+    "tests/table_content_dxf_tests.cpp": "ee31276d679be2e4d5a2ab4ab9b862bbe725f5203d130838164f575e3233e42f",
+    "tests/table_legacy_merge_controls.h": "22d3fe9e0fc1ab8262e6fd0e784a2239872a26856ed851fc9f2367e29b4a1139",
+    "codeCommit": "ca271fed1002e016c7c92a8e24e2d28f1f4b76b5"
+  },
+  "independentOutput": {
+    "report": "build/table-merge-writer-review/presence-independent.json",
+    "reportSha256": "8833bc870874f18a525c2c0d27c090e34d5f754b1a652e8853762bdf002e3610",
+    "observer": "ezdxf raw ACAD_TABLE tags; report binds executable version",
+    "observerSourceSha256": "599e32de434ccd37e7b22fb2042fae51d272a02136ad7db9a33bb86d22720346",
+    "producerSourceSha256": "fb8e23c22da626cdb612f96b189e8844f98094539f3f963dc56c2c641926b161",
+    "producerExecutableSha256": "a81295f3859262e1434a49f8232285474d23e9161be2d4454b50ad4f4e8b7462",
+    "sourceSha256": "d85b0dec90f1604c975e1085cd0d239b42de22310f28106be834f3de688870ad",
+    "libraryAtLinkSha256": "037d1e3e04781f7c778117318a0b9c3bcdad5baf1066932062aa7477de480b43",
+    "adapterAtLinkSha256": "b6cb7072e63f4e055b7c5c2ee2d87b4dfb460bda940e47809d7a7d4948156f69",
+    "result": "For a locally authored ANSI_1252 AC1018 1x3 table, both actual ASCII and binary outputs match source cell fields 171/173/175/176 and 177/178 presence: explicit zero pair, absent pair, explicit zero pair. Probe also confirms pre-forward callback mutation is refused and destination sentinel preserved.",
+    "probeLogSha256": "2423665559a7552d24853ae0f14a51b3e33cdfcff010587f7c56dd0fa10e89d3"
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles)$' --output-on-failure",
+    "result": "Final revised-budget cohort 4/4 passed as reported; no retained log hash asserted.",
+    "testExecutableSha256": "7b6a6e644cb889626ad06ff7d3b06320f4bded95ab1ef406202cb14086571984",
+    "controls": "Source and target ASCII/binary, strict/compatible, codepage and owner, stale body/incomplete/rekey refusal with corrected retry, duplicate/missing/reordered/nonzero 178 refusal and fresh import retry, callback mutation detection, and direct method input/target rejection. Cumulative one-table exact work budget, one-below refusal and two-table cumulative exhaustion are covered."
+  },
+  "budget": "Source retention precharged before replay; two profile scans, conservative repeated raw/model walks and actual reader decode work charged cumulatively. Replay peak bounded against remaining retained-byte budget; no-zero profiles allocate no cell vector. Per-export aggregate preflight bounds both planning and dispatch scans plus model comparisons.",
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "Final four-selector cohort 4/4 passed as reported; no retained test-log hash asserted.",
+    "testExecutableSha256": "35268b1f48856a5dc4261dc8b047d739a4b5f0070840d3b6179c8199e30fc8ab",
+    "librarySha256": "a03ad77600aa122b59ef18793c4b9a1713225d4b9f62ab89f1ddb32853605fe9",
+    "adapterObjectSha256": "0295e32b2157e1f1fa0cdd1501a1ab20794f9ce9d0a5dbedfcbe60f9ac913f2b"
+  },
+  "simultaneousWork": {
+    "materialHeaderSha256": "22c8a25ff8c69ab11248a30bb140155f4320c6a7b968846f9c8903d534a3b924",
+    "materialTestSha256": "81a0bcd3ebf5fd001b68c47a10662dd4081f67b5fae4234ecb5215278a911e27",
+    "chronology": "MATERIAL header and test were frozen and uncommitted during final normal and ASan builds; separate commit 81bdb407 followed the TABLE code commit.",
+    "subsequentCommit": "81bdb407"
+  },
+  "limitations": [
+    "Independent observer retains raw tags and establishes physical field correspondence only; native rendering and absent-vs-zero equivalence remain unknown.",
+    "No full TABLE, complete document, LibreCAD/LibreCAD_3, FreeCAD or broader DWG/DXF support claim is established.",
+    "New nonvirtual method changes exported symbols; consumer rebuild and ABI/API qualification remain required. Prior DRW_Table layout change also requires rebuild.",
+    "Authored source, outputs and observers remain in ignored scratch; no external fixture is committed."
+  ]
+}
