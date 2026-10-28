@@ -26039,6 +26039,18 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             in.legacyBlockRecordReplayMatched=decoded&&reader->recordCount()==row.raw->groups.size()
                 &&decoder.finish(row.raw->m_version)&&dxfBlockRecord::Decoder::observeCommonState(parsed)==state
                 &&blockRecordSourceEqual(parsed,static_cast<const DRW_Block_Record&>(*row.model),row.raw->m_version);
+            if(in.legacyBlockRecordReplayMatched) {
+                // Charge the separate field inventory before any vector
+                // allocation or inspection; refusal is not graph authority.
+                std::size_t profileBytes=8u*sizeof(void*),profileWork=1024u;
+                if(!addAssociativeSlotBytes(row.raw->groups.size(),sizeof(dx_legacy_block_record_source::Span),profileBytes)
+                    ||!addAssociativeSlotBytes(rawBytes,4u,profileWork)
+                    ||!addAssociativeSlotBytes(row.raw->groups.size(),64u,profileWork)
+                    ||s.structuralBytes>s.maxStructuralBytes||profileBytes>s.maxStructuralBytes-s.structuralBytes
+                    ||s.structuralWork>s.maxStructuralWork||profileWork>s.maxStructuralWork-s.structuralWork) {fail();return;}
+                s.structuralBytes+=profileBytes;s.structuralWork+=profileWork;
+                in.legacyBlockRecordProfile=dx_legacy_block_record_source::audit(*row.raw);
+            }
         }
         in.index=s.structuralInputOwners.size();
         auto input=std::make_shared<const dx_data::TableDxfSourceCapture::StructuralInput>(std::move(in));

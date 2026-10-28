@@ -168,13 +168,38 @@ bool legacyBlockRecordAdapterTests(const std::filesystem::path& path) {
         if(!check(selected.fileImport(path.string(),&data,false)&&!A::structuralFailed(data)&&unqualified(data),
             "legacy block record opt-in import remains unqualified"))return false;
         const auto* input=A::structuralRecord(data);const auto* resource=A::resource(data);
-        if(!check(input&&resource&&input->paired&&input->legacyBlockRecordReplayMatched&&input->model==resource->model
+        if(!check(input&&resource&&input->paired&&input->legacyBlockRecordReplayMatched
+            &&input->legacyBlockRecordProfile.complete()&&input->model==resource->model
             &&input->raw==resource->raw&&input->context&&input->context->captured
             &&input->context->sourceVersion==DRW::AC1018&&input->context->codecVersion==DRW::AC1015
             &&input->context->codecCodePage=="ANSI_1252"&&input->context->hasDeclaration
             &&input->context->declaration=="ANSI_1252"&&input->context->binary==binary&&!input->context->applyExtrusion
             &&!input->originalState.first&&!input->originalState.second,
             "legacy block record adapter captured replay and context"))return false;
+        using namespace dx_legacy_block_record_source;
+        const auto& profile=input->legacyBlockRecordProfile;
+        const std::array<Field,18> fields{{Field::Identity,Field::Application,Field::Application,Field::Application,
+            Field::Identity,Field::Subclass,Field::Subclass,Field::Name,Field::Layout,Field::Application,
+            Field::Application,Field::Application,Field::Xdata,Field::Xdata,Field::Xdata,Field::Xdata,Field::Xdata,Field::Xdata}};
+        const std::array<Role,18> roles{{Role::Self,Role::None,Role::ExtensionDictionary,Role::None,Role::Owner,
+            Role::None,Role::None,Role::BlockName,Role::Layout,Role::None,Role::BlockInsert,Role::None,
+            Role::AppIdName,Role::None,Role::None,Role::None,Role::None,Role::None}};
+        const auto wire=attdefWireTags(path,binary);std::size_t start=wire.size();
+        for(std::size_t i=0;i<wire.size();++i)if(wire[i].code==0&&wire[i].text=="BLOCK_RECORD")start=i+1u;
+        if(!check(profile.spans.size()==row.size()&&start+row.size()<=wire.size(),"legacy block record profile/wire counts"))return false;
+        for(std::size_t i=0;i<row.size();++i) {
+            const auto& span=profile.spans[i];const auto& physical=wire[start+i];const auto& value=input->raw->groups[i];
+            const std::uint32_t handle=i==0?0xA1u:i==2?0xD0u:i==4?0xB0u:i==10?0xE0u:0u;
+            if(!check(span.index==i&&span.code==row[i].code&&span.field==fields[i]&&span.role==roles[i]
+                &&span.handle==handle&&physical.code==row[i].code&&physical.begin<physical.valueBegin
+                &&physical.valueBegin<physical.end&&(!i||wire[start+i-1u].end==physical.begin),
+                "legacy block record independent physical span and role"))return false;
+            if(physical.kind==AttdefWireTag::String&&(physical.text!=row[i].value||value.type()!=DRW_Variant::STRING
+                ||!value.content.s||*value.content.s!=physical.text))return false;
+            if(physical.kind==AttdefWireTag::Integer&&(value.type()!=DRW_Variant::INTEGER
+                ||value.i_val()!=physical.integer||physical.integer!=std::stoll(row[i].value)))return false;
+        }
+        if(!legacyBlockRecordProfileDirectControls(*input->raw))return false;
         ++captures;
         for(unsigned fault:{1u,2u,3u,4u}) {
             Probe broken;broken.selected=true;broken.fault=fault;dx_data bad;
@@ -184,7 +209,8 @@ bool legacyBlockRecordAdapterTests(const std::filesystem::path& path) {
                 "legacy block record raw/model/context mutation refuses replay"))return false;
             broken.fault=0u;dx_data retry;
             if(!check(broken.fileImport(path.string(),&retry,false)&&!A::structuralFailed(retry)
-                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched&&unqualified(retry),
+                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched
+                &&A::structuralRecord(retry)->legacyBlockRecordProfile.complete()&&unqualified(retry),
                 "legacy block record mutation corrected fresh-destination retry"))return false;
             ++refusals;++retries;
         }
@@ -192,13 +218,15 @@ bool legacyBlockRecordAdapterTests(const std::filesystem::path& path) {
         for(unsigned kind=0u;kind<usage.size();++kind) {
             dx_data exact;A::structuralLimit(exact,kind,usage[kind]);
             if(!check(selected.fileImport(path.string(),&exact,false)&&!A::structuralFailed(exact)
-                &&A::structuralRecord(exact)&&A::structuralRecord(exact)->legacyBlockRecordReplayMatched,
+                &&A::structuralRecord(exact)&&A::structuralRecord(exact)->legacyBlockRecordReplayMatched
+                &&A::structuralRecord(exact)->legacyBlockRecordProfile.complete(),
                 "legacy block record exact structural budget"))return false;
             dx_data below;A::structuralLimit(below,kind,usage[kind]-1u);
             if(!check(selected.fileImport(path.string(),&below,false)&&A::structuralFailed(below)&&unqualified(below),
                 "legacy block record one-below structural budget"))return false;
             dx_data retry;if(!check(selected.fileImport(path.string(),&retry,false)&&!A::structuralFailed(retry)
-                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched,
+                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched
+                &&A::structuralRecord(retry)->legacyBlockRecordProfile.complete(),
                 "legacy block record budget corrected retry"))return false;
             ++quotas;++retries;
         }
@@ -206,7 +234,10 @@ bool legacyBlockRecordAdapterTests(const std::filesystem::path& path) {
         extra.insert(pos,{300,"unmodeled"});if(!write(path,extra,binary))return false;
         dx_data unsupported;
         if(!check(selected.fileImport(path.string(),&unsupported,false)&&A::structuralRecord(unsupported)
-            &&A::structuralRecord(unsupported)->legacyBlockRecordReplayMatched&&unqualified(unsupported),
+            &&A::structuralRecord(unsupported)->legacyBlockRecordReplayMatched
+            &&!A::structuralRecord(unsupported)->legacyBlockRecordProfile.complete()
+            &&A::structuralRecord(unsupported)->legacyBlockRecordProfile.reason==Reason::Xdata
+            &&A::structuralRecord(unsupported)->legacyBlockRecordProfile.rejectedGroup==12u&&unqualified(unsupported),
             "legacy modeled replay alone does not qualify unknown source fields"))return false;
         ++unknowns;
     }

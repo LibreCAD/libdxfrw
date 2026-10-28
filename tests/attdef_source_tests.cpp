@@ -829,6 +829,7 @@ LegacyCapturedReplay legacyCapturedReplay(const DRW_RawDxfObject& raw,const DRW_
     return result;
 }
 
+#include "block_legacy_record_profile_controls.h"
 #include "block_legacy_record_observation.h"
 
 // Observational transport only: deliberately opts into the reader's existing

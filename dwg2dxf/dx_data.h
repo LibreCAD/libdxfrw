@@ -23,6 +23,7 @@
 #include "intern/dxflayout.h"
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
+#include "dx_legacy_block_record_source_profile.h"
 #include "dx_block_membership.h"
 #include "dx_compound_source_profile.h"
 #include "dx_table_source_profile.h"
@@ -1406,6 +1407,8 @@ private:
             // AC1018 opt-in captured-field replay diagnostic only: it does
             // not qualify the resource, its graph, or output eligibility.
             bool legacyBlockRecordReplayMatched{false};
+            // Diagnostic inventory only; all owner and output gates remain separate.
+            dx_legacy_block_record_source::Audit legacyBlockRecordProfile;
         };
         struct StructuralPending {
             StructuralInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};
