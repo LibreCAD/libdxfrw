@@ -17,7 +17,7 @@ namespace {
 
 bool author(const std::filesystem::path& path, bool binary, bool boundary,
             bool partial, bool incompleteNormal = false,
-            bool procedural = false, unsigned malformed = 0) {
+            bool procedural = false, unsigned malformed = 0, int orphanProcedure = 0) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) return false;
     if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
@@ -84,6 +84,12 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
         && writer->writeInt16(73, 4)
         && writer->writeInt16(74, 3);
     if (!incompleteNormal && malformed != 2) ok = ok && writer->writeInt16(75, 4);
+    if (orphanProcedure == 291) ok = ok && writer->writeBool(291, true);
+    if (orphanProcedure == 301) ok = ok && writer->writeString(301, "orphan-procedure");
+    if (orphanProcedure == 469) ok = ok && writer->writeDouble(469, 2.0);
+    if (orphanProcedure == 62) ok = ok && writer->writeInt16(62, 7);
+    if (orphanProcedure == 420) ok = ok && writer->writeInt32(420, 0x123456);
+    if (orphanProcedure == 430) ok = ok && writer->writeString(430, "book$color");
     ok = ok && writer->writeString(0, "ENDSEC")
         && writer->writeString(0, "SECTION")
         && writer->writeString(2, "ENTITIES")
@@ -180,6 +186,32 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
         && strengths == (boundary ? 1u : 0u);
 }
 
+bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream) return false;
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool material = false, selected = false, matched = false;
+    unsigned count = 0; int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const auto type = reader->getString();
+            if (material && selected) break;
+            material = type == "MATERIAL"; selected = false;
+        } else if (material && code == 1) selected = reader->getString() == "PeerMaterial";
+        else if (material && selected && code == wanted) {
+            ++count;
+            if (code == 301) matched = reader->getString() == "orphan-procedure";
+            else if (code == 430) matched = reader->getString() == "book$color";
+            else if (code == 469) matched = reader->getDouble() == 2.0;
+            else matched = reader->getInt32() == (code == 291 ? 1 : code == 62 ? 7 : 0x123456);
+        }
+    }
+    return selected && count == 1u && matched;
+}
+
 struct LateMaterialEdit final : dx_iface {
     bool active = true, hit = false; unsigned phase = 0;
     void mutate() {
@@ -199,6 +231,31 @@ struct LateMaterialEdit final : dx_iface {
 bool run(const std::filesystem::path& dir) {
     const auto input = dir / "input.dxf", output = dir / "output.dxf";
     for (bool sourceBinary : {false, true}) {
+        // These uniquely procedural host codes do not acquire a qualified
+        // role merely because a malformed source omitted its 300/292 markers.
+        // Unchanged replay stays available; the selected edit refuses and a
+        // same-facade retry succeeds after restoring the original model.
+        for (bool outputBinary : {false, true}) for (int code : {291, 301, 469, 62, 420, 430}) {
+            if (!author(input, sourceBinary, false, false, false, false, 0, code)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected || !adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+            selected->m_normalMapBlendFactor = 0.875;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)) {
+                std::cerr << "unqualified procedural code " << code << " accepted\n"; return false;
+            }
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+            if (savedBytes != "keep destination"
+                || !typed(source, false, 0.875)) return false;
+            selected->m_normalMapBlendFactor = 0.75;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+        }
         // The complete unmarked source already has distinct typed diffuse and
         // normal roles. Edit only the second owning group 42, preserve the
         // first, and verify the actual output and readback in both encodings.
@@ -238,7 +295,8 @@ bool run(const std::filesystem::path& dir) {
                 { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
                 if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)) return false;
                 std::ifstream saved(output, std::ios::binary);
-                if (std::string(std::istreambuf_iterator<char>(saved), {}) != "keep destination"
+                const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+                if (savedBytes != "keep destination"
                     || selected->m_normalMapBlendFactor != failedNormal || selected->m_diffuseMapBlendFactor != failedDiffuse) return false;
                 raw = originalRaw; selected->m_diffuseMapBlendFactor = 0.25; selected->m_normalMapBlendFactor = 0.875;
                 if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
@@ -256,7 +314,8 @@ bool run(const std::filesystem::path& dir) {
             { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
             if (adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true) || !adapter.hit) return false;
             std::ifstream saved(output, std::ios::binary);
-            if (std::string(std::istreambuf_iterator<char>(saved), {}) != "keep destination") return false;
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+            if (savedBytes != "keep destination") return false;
             adapter.active = false; selected->m_normalMapBlendFactor = 0.875;
             if (!adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true)
                 || !physical(output, sourceBinary, false, false, 0.875) || !typed(source, false, 0.875)) return false;

@@ -228,7 +228,13 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                     continue;
                 }
                 if(!body)continue;
-                if(code==464||code==465||code==300||code==292){ok=false;break;}
+                // No procedural-table source profile has been qualified for
+                // this edit. Reject both its delimiters and its exclusively
+                // procedural value codes even when a malformed producer
+                // omitted the table's opening or closing marker. The reused
+                // group 271 remains scoped by the owning MATERIAL decoder.
+                if(code==464||code==465||code==300||code==291||code==301
+                    ||code==469||code==292||code==62||code==420||code==430){ok=false;break;}
                 if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
             }
             if(ok&&!depth&&markers==1u&&count==2u
