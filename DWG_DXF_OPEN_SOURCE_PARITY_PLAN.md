@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: custom referenced LTYPE flag | Admit original custom group-70 flag 64 with exact actual-output proof; other profiles, coupled geometry and MLEADERSTYLE separately | Existing tuple transactions and original/provider/output bindings |
+| P2 | READY: MLINE style retargeting | Admit geometry-compatible original-style targets; remaining LTYPE profiles, geometry recalculation and MLEADERSTYLE separately | Original style/provider/consumer authority and actual-output bindings |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,11 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.3c4 — custom LTYPE flag 64 | `simpleMlineLinetype`, retained original custom-64 source/refusal, existing provider/tuple planners and full-pattern projector | Custom original flag 64 binds and supports reference edits; actual flags/pattern/identities/geometry match; xref/unknown and canonical nonzero profiles remain unqualified; failures and corrected retry preserve caller/destination |
+| P2.4a — MLINE style retargeting | `prepareDxfMLineConsumers` original-binding guard, original style baselines/planned projections, retained two-style retarget refusal | Qualified original target with matching geometry fields can replace consumer 340; original common fields, redundant group 2 and complete geometry remain stable; incompatible/unknown targets refuse and retry recovers |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement P2.3c4 first. P4a/P3 gap classification and the next source
+Implement P2.4a first. P4a/P3 gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -77,39 +77,47 @@ local dependency instead of waiting for unrelated native evidence.
 Reuse the [MLINESTYLE authority](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json),
 [element ACI transactions](docs/research/rpp5gs-mline-style-element-aci-transactions-2026-10-28.json),
 [original simple-LTYPE output proof](docs/research/rpp5gt-mline-linetype-source-output-proof-2026-10-28.json),
-[element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json)
-and [default-flag source admission](docs/research/rpp5gv-mline-linetype-default-flags-source-admission-2026-10-28.json).
+[element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json),
+[default-flag source admission](docs/research/rpp5gv-mline-linetype-default-flags-source-admission-2026-10-28.json)
+and [custom referenced flags / retarget readiness](docs/research/rpp5gw-mline-linetype-referenced-flag-source-admission-2026-10-28.json).
 Use shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Refused fields are not implemented editing support.
 
-1. **P2.3c4: custom referenced flag — ready to implement.** Reuse the retained
-   custom PeerDash source with `70=64`, and the EditDash recipe for local controls.
-   Independent source and unchanged-output projections retain the complete
-   literal flags/pattern; a typed reference edit currently refuses. The parser,
-   original roles and custom writer already preserve 64; only selected provider
-   admission is missing. [Autodesk defines bit 64 as reference bookkeeping](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm).
-   Allow custom flags exactly 0 or 64 in `simpleMlineLinetype`, retaining exact
-   original/live/actual flag equality. Keep xref bits 16/32 and unknown bits
-   unqualified. Explicitly keep canonical ByLayer/ByBlock/Continuous nonzero flags
-   outside this admission: their fixed writer rows emit `70=0`, so they need a
-   separate planned-normalization profile rather than accidental proof activation.
-   Check unchanged canonical-64 advisory transport and refusal when an edit needs
-   that unqualified provider; reuse one omitted-`74` source as a composition check.
-   Author the flag before import/first save, then cover typed/raw reference edits,
-   original provider binding and literal emitted `70=64`, full pattern, owners,
-   dictionary/`340` and geometry. Add copied/late/output flag corruptions and
-   corrected retries with caller/destination preservation. Reuse the peer helper
-   and full-pattern projector; avoid new parser/API/header/capture work. Start
-   with AC1027 ASCII/binary; the AC1021–AC1032 gate is not per-version evidence.
+1. **P2.4a: geometry-compatible MLINE `340` retargeting — ready to implement.**
+   Reuse the retained source with original PeerMline and PeerRetarget definitions:
+   original/target dictionary, body and provider authority plus both actual
+   consumers qualify; independent source/unchanged-output projections pass; an
+   ENTITIES `340` change still refuses at the original-reference guard. Target
+   ACI/fill/description differ while count, ordered offsets, flags, cap angles and
+   linetype references match. Start with that documented core profile.
+   In `prepareDxfMLineConsumers`, admit only a qualified original target whose
+   planned geometry matches the **original** source-style baseline. Decode/cache
+   each old style once with precharged storage/work; do not use a mutable current
+   old style as geometry authority or add another capture engine. Require old and
+   target original dictionary/body/provider proof and an explicit qualified core
+   body grammar; unknown body/extension/application/XDATA meanings remain
+   unqualified for retarget. Retain the established standard owner-reactor links.
+   Relax only the admitted requested handle: original physical `340` decoding
+   stays strict, and the retargeted consumer's common fields, redundant group `2`
+   and complete original vertex/segment/fill geometry stay unchanged. Preserve
+   existing behavior for consumers without this new operation. Reuse planned
+   snapshots, actual remapped `340`/owner/geometry inspection and final identity.
+   Cover one/both ENTITIES/BLOCKS retargets, wrong/missing/ambiguous targets,
+   same-arity mismatched offsets, coordinated old-style/raw geometry tampering,
+   unknown target extensions, late changes, actual `340` corruption, sparse newly
+   charged allocations, rollback and corrected retries. Extend the existing peer
+   projector with an explicit target key per scope. Differing geometry and
+   recalculation remain in P2.4; native acceptance remains a separate gate.
 2. **Remaining LTYPE provider profiles.** Qualify alternate field
-   ordering/header presence, other flags and metadata/application/XDATA profiles
+   ordering/header presence, canonical-64 normalization, other flags and
+   metadata/application/XDATA profiles
    separately from the selected simple grammar. Complex STYLE/text/shape
    dependencies need original providers and actual output roles; earlier versions
    need source/context/codec evidence. Native units, font identity, collation,
    ByLayer/ByBlock inheritance and rendering remain separate evidence. Start with
    one witnessed unsupported profile; retain advisory transport until qualified.
-3. **P2.4: coupled geometry operations.** Implement count `71`, offset edits and
-   MLINE `340` retargeting as separate operations after fixed-shape edits. Enumerate
+3. **P2.4: remaining coupled geometry operations.** Implement count `71`, offset
+   edits and geometry-changing MLINE `340` retargeting as separate operations. Enumerate
    all affected consumers, qualify per-vertex segment/fill parameter compatibility
    or recalculation, and prove actual geometry in ENTITIES/BLOCKS. Same-arity
    retargeting does not by itself prove offset/parameter compatibility. Preserve
@@ -365,11 +373,11 @@ cmake --build build --target libdxfrw_dxf_fixture_tests
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
 
-For P2.3c4 readiness, the default owning cohort is body transactions plus
+For P2.4a readiness, the default owning cohort is body transactions plus
 `libdxfrw_mline_style_authority`, rebuilt from the final adapter/fixture sources.
 Build `dwg2dxf` for the actual serializer/independent checkpoint and extend the
-existing `--mline-style-only` peer lane with custom-64 source and emitted flag
-expectations. Reuse the reference-edit/pattern/geometry proof. Keep unrelated
+existing `--mline-style-only` peer lane with original target styles and explicit
+per-scope target expectations. Reuse reference/pattern/full-geometry proof. Keep unrelated
 MATERIAL/SCALE/DICTIONARYVAR lanes cached.
 
 Add tests according to changed hooks, rather than inheriting the prior 11-test
@@ -428,8 +436,12 @@ corpus or package rerun is implied by selected provider admission.
    projections across relevant slices; add a new oracle or matrix dimension only
    for an unresolved operation or actual grammar/platform distinction. Review
    later receipts and current symbols before acting on an older `next` list.
-   The selected LTYPE default checkpoint took about 10–14 seconds for its incremental
-   normal build, 96 seconds for ASan, 8–13 seconds per two-test cohort and 5–6 seconds
+   A small baseline probe can link source-matching adapter objects and library
+   instead of rebuilding the fixture executable; bind its source, compiler
+   command, objects/library and inputs in the receipt. This does not replace the
+   final owning tests. The retarget baseline used this path in about 3 seconds.
+   The selected LTYPE checkpoint took about 12 seconds for its incremental
+   normal build, 100 seconds for ASan, 9–16 seconds per two-test cohort and 4–7 seconds
    per selected peer run on this machine. These are planning observations, not
    portable performance claims: batch necessary header edits, use normal focused
    checks in the edit loop, and pay the affected ASan build once at readiness.
