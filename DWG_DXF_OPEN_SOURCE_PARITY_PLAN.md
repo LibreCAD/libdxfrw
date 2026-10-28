@@ -172,8 +172,10 @@ and broader producer behavior remain unqualified.
 1. The [selected omitted-boundary receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
    covers one unique complete diffuse/refraction tuple followed by a complete
    normal tuple without 464/465. The [normal-blend edit](docs/research/rpp5ie-material-unmarked-normal-blend-2026-10-28.json)
-   qualifies only isolated typed blend and [projection](docs/research/rpp5ig-material-unmarked-normal-projection-2026-10-28.json)
-   edits on that captured source; its
+   qualifies only isolated typed blend, [projection](docs/research/rpp5ig-material-unmarked-normal-projection-2026-10-28.json)
+   and [tiling](docs/research/rpp5ii-material-unmarked-normal-tiling-2026-10-28.json)
+   edits on that captured source. Simultaneous edits and other normal-map fields
+   require separate source and output evidence; its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
    keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
    refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
