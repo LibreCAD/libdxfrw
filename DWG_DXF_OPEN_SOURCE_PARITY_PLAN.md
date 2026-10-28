@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: element LTYPE edits | Reconcile group-6 names using existing original-provider and actual-output proof; coupled geometry and MLEADERSTYLE separately | Original LTYPE, dictionary/consumer, arity and selected output bindings |
+| P2 | READY: omitted LTYPE dash flags | Admit omitted default-zero source group 74 while retaining strict actual-output proof; other profiles, coupled geometry and MLEADERSTYLE separately | Existing tuple transactions and original/provider/output bindings |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,11 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.3c2 — element LTYPE edits | `prepareDxfMLineStyles`, `prepareDxfMLineLinetypes`, final tuple slots and existing TABLES/final-record proof; body-transaction/authority selectors | Original/typed/raw group-6 edits agree and resolve to proven actual providers; unsupported or conflicting edits refuse atomically; count, offsets, ACI, redundant names, consumer 340 and geometry remain stable |
+| P2.3c3 — omitted source group 74 | `MlineLinetypeShape`/`simpleMlineLinetype`, current omitted-74 refusal recipe, existing provider/tuple planners and peer pattern projector | Original simple default-zero providers bind with first/last/both flags omitted; edits succeed; actual output retains explicit flags, exact pattern, identities and geometry; malformed fields refuse and retry recovers |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement P2.3c2 first. P4a/P3 gap classification and the next source
+Implement P2.3c3 first. P4a/P3 gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -74,53 +74,32 @@ local dependency instead of waiting for unrelated native evidence.
 
 ## P2 — nested named-resource bodies: next implementation packet
 
-Reuse the [MLINESTYLE authority receipt](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json)
-and [element transaction receipt](docs/research/rpp5gs-mline-style-element-aci-transactions-2026-10-28.json),
-plus the [original simple-LTYPE source/output proof](docs/research/rpp5gt-mline-linetype-source-output-proof-2026-10-28.json),
-shared baseline/profile/dictionary snapshots, indexed joins and actual-output
-proof. Keep only the residual work below; refused fields are not implemented
-editing support.
+Reuse the [MLINESTYLE authority](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json),
+[element ACI transactions](docs/research/rpp5gs-mline-style-element-aci-transactions-2026-10-28.json),
+[original simple-LTYPE output proof](docs/research/rpp5gt-mline-linetype-source-output-proof-2026-10-28.json)
+and [element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json).
+Use shared baseline/profile/dictionary snapshots, indexed joins and actual-output
+proof. Refused fields are not implemented editing support.
 
-1. **P2.3c2: fixed-shape LTYPE edits — ready to implement.** Start with AC1027
-   ASCII/binary on the same-version original simple-provider route. The existing
-   AC1021–AC1032 admission gate is not per-version qualification. Batch
-   the following guard, projection, encoding and admission changes together;
-   never commit a relaxed reference guard without its provider gate.
-
-   - In `mlineFieldsEqual`'s typed/original check and the separate parsed/original
-     loop, allow only the element's semantic `linetype` name to differ. Preserve
-     count, offsets, CMC and DXF mirrors `linetypeIndex=-1`/`linetypeHandle=0`;
-     keep the comparator strict by default for all other callers.
-   - Reuse the existing per-tuple original/typed/raw choice: accept a one-sided
-     edit or agreeing edits, compose edits to different tuples, and refuse
-     competing edits to the same tuple. Validate strict UTF-8 with existing codec
-     helpers and place the selected names in `source.projection` before
-     `prepareDxfMLineLinetypes` resolves them. Do not add a second name registry.
-   - Track whether each style's references changed. After provider preparation,
-     require `linetypesBound=true` for every changed style. Initial unavailable,
-     unsupported or legacy provider evidence may retain unchanged advisory
-     transport, but must refuse semantic reference edits. Reuse the selected
-     original audit/model/name joins, tentative target query, literal TABLES
-     pattern inspection and final record inventory without replacing them.
-   - Reuse the final owning `textSlots` census after scalar insertion. Rewrite
-     each owning group `6` when the selected name differs from the parsed name,
-     as well as for format/codepage changes; preserve untouched spelling,
-     application/opaque payloads, style/entity group `2` and dictionary authority.
-   - Reuse one authored AC1027 source with both ByLayer and custom `EditDash`
-     providers present before import, with the source style still on ByLayer.
-     Then edit the style to EditDash. Cover typed-only, raw-only, agreeing and
-     disjoint tuple edits; conflicts; missing/ambiguous/wrong providers; late
-     changes; actual output corruption; destination/caller preservation and
-     corrected retries. Exercise ASCII/binary transport and actual ENTITIES and
-     BLOCKS consumers. Use sparse allocation controls only for newly charged work.
-   - Extend the existing independent full-pattern projector and authority recipe
-     with edited outputs; retain pre-setup source facts and exact pattern,
-     dictionary, redundant-name, `340` and consumer geometry comparisons. Exit
-     only when the new edits succeed, each decisive corruption refuses and
-     existing unchanged/advisory/2D behavior remains intact. Name matching alone
-     or an unchanged custom-provider source does not prove edit support.
-
-2. **Remaining LTYPE provider profiles.** Qualify omitted `74`, alternate field
+1. **P2.3c3: omitted default-zero source flags — ready to implement.** Reuse the
+   current omitted-`74` refusal recipe: original EditDash handle `103` retains
+   `73=2`, `40=1.5` and ordered `49=[1,-0.5]`. The parser and original reference
+   roles already accept the default; the missing layer is selected source shape
+   admission. [Autodesk specifies group 74's zero default](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm).
+   Add source-only optional-flag handling to `MlineLinetypeShape`, enabled by
+   `simpleMlineLinetype`: a pending dash can close at the next `49` or record end
+   with implicit zero. Keep orphan/duplicate flags and unsupported complex roles
+   refused. Keep actual-output inspection strict because this writer emits `74`
+   explicitly; source omission must not hide a missing emitted field.
+   Cover first, last and both flags omitted, original provider binding, typed/raw
+   edits, exact explicit-zero output patterns, unchanged consumers, rollback and
+   corrected retry. Add first/last/both emitted-`74` deletion controls and corrected
+   replay; retain nonzero/complex and owner/count/length corruption controls.
+   In the peer recipe, author omitted tags before first save
+   and freeze source versus emitted pattern expectations separately with the
+   existing projector. No parser/API/header/capture changes are needed. Start
+   with AC1027 ASCII/binary; the AC1021–AC1032 gate is not per-version evidence.
+2. **Remaining LTYPE provider profiles.** Qualify alternate field
    ordering/header presence, nonzero flags and metadata/application/XDATA profiles
    separately from the selected explicit simple grammar. Complex STYLE/text/shape
    dependencies need original providers and actual output roles; earlier versions
@@ -173,6 +152,9 @@ Normal Map or qualify an earlier adapter route.
    refraction/bump, repeated fields, omitted normal/luminance and represented/
    opaque subclass or procedural variants as later, separately witnessed slices;
    do not multiply the initial matrix by every optional combination.
+   Correcting the producer's specular `73` to `76` does not identify its later
+   Normal Map roles; require a distinguishing producer/specification witness
+   before changing those ambiguous roles. Retain unqualified replay otherwise.
 2. Complete remaining original/common/full/face/edge material providers and native
    LAYER/HEADER/common348 profiles. Extend existing planners/inspectors rather
    than reimplementing verified transport binders.
@@ -381,11 +363,12 @@ cmake --build build --target libdxfrw_dxf_fixture_tests
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
 
-For P2.3c2 readiness, the default owning cohort is body transactions plus
+For P2.3c3 readiness, the default owning cohort is body transactions plus
 `libdxfrw_mline_style_authority`, rebuilt from the final adapter/fixture sources.
 Build `dwg2dxf` for the actual serializer/independent checkpoint and extend the
-existing `--mline-style-only` peer lane with reference-edit outputs and its full
-pattern projector. Keep unrelated MATERIAL/SCALE/DICTIONARYVAR lanes cached.
+existing `--mline-style-only` peer lane with omitted-flag source expectations and
+explicit emitted patterns. Reuse the reference-edit/geometry proof. Keep unrelated
+MATERIAL/SCALE/DICTIONARYVAR lanes cached.
 
 Add tests according to changed hooks, rather than inheriting the prior 11-test
 or 14-test checkpoint:
@@ -393,7 +376,7 @@ or 14-test checkpoint:
 | Changed hook | Additional focused validation |
 | --- | --- |
 | Original resource publication/pinning | `libdxfrw_symbol_original_publications` |
-| TABLES observer / symbol names | `libdxfrw_dxf_tables_write_inspection`, `libdxfrw_symbol_name_wire_inspection` |
+| Shared core TABLES observer / symbol names | `libdxfrw_dxf_tables_write_inspection`, `libdxfrw_symbol_name_wire_inspection` |
 | Writer source-target query / registry | `libdxfrw_dxf_source_table_identities` |
 | LTYPE mirror / extension dependency hooks | `libdxfrw_ltype_mirror_authority`, `libdxfrw_linetype_extension_graph` as affected |
 | Accounting / name-owner admission | Existing budget and name/owner selectors for the changed allowance |
@@ -404,7 +387,7 @@ unchanged test source does not make an old linked executable current. Build
 `libdxfrw_wave1_tests` only when its selected controls are affected. Run the final
 affected union once in normal/ASan for changed ownership/bounds/lifetime behavior.
 Reuse established query/observer proof when those hooks are unchanged; no full
-corpus or package rerun is implied by a group-6 edit.
+corpus or package rerun is implied by selected provider admission.
 
 1. Keep current configured normal/ASan builds, shared adapter objects and pinned
    comparator environments. Rebuild every selected executable affected by static
@@ -443,8 +426,8 @@ corpus or package rerun is implied by a group-6 edit.
    projections across relevant slices; add a new oracle or matrix dimension only
    for an unresolved operation or actual grammar/platform distinction. Review
    later receipts and current symbols before acting on an older `next` list.
-   The selected LTYPE checkpoint took about 9 seconds for its final incremental
-   normal build, 146 seconds for ASan, 12 seconds per 11-test cohort and 3–5 seconds
+   The selected LTYPE edit checkpoint took about 12 seconds for its incremental
+   normal build, 95 seconds for ASan, 7–11 seconds per two-test cohort and 4–6 seconds
    per selected peer run on this machine. These are planning observations, not
    portable performance claims: batch necessary header edits, use normal focused
    checks in the edit loop, and pay the affected ASan build once at readiness.
