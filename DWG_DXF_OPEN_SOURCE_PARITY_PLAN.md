@@ -43,7 +43,7 @@ runs separately.
 | --- | --- | --- | --- |
 | P2 | SELECT WITNESS, THEN IMPLEMENT | Remaining count operations, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Current unsupported operation, original authority and actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
-| P4 | SELECT MISSING LAYER | P4a: embedded dual-280 and remaining original profiles; P4b: compose document closure | Exact original fields, roles and expected output; dual-280 remains separate |
+| P4 | SELECTED PROFILE READY | P4a: embedded dual-280 and remaining original profiles; P4b: compose document closure | Retained distinct version-zero/lock-one spans and selected normalized output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -61,8 +61,8 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P4a — classify embedded dual-280 | Retained AC1032 ATTDEF `796` and ATTRIB `79D`, classic dual-280 and equal-alignment receipts | Bind version and lock roles in the embedded source and actual output; identify any missing representation before changing the guard |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused first/multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
+| P4a — qualify embedded dual-280 | Retained AC1032 ATTDEF `796` and ATTRIB `79D`, classic dual-280, equal-alignment and readiness receipts | Preserve scoped version/lock spans and qualified compound/owner roles, with normalized single-lock output and exact refusal controls |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -116,10 +116,11 @@ proof. Refused fields are not implemented editing support.
    redundant group-2 values and refuse unsupported operations atomically. Bind
    consumer arity to the reconciled style that will actually be emitted, including
    raw-only edits; a stale typed count cannot authorize a changed output style.
-   Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json)
-   and [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
+   Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json),
+   [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
+   and [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
    receipts and their original/live ordinary MLINE census. They do not qualify
-   first/multiple-element removal, simultaneous retained-element edits, 1→0,
+   multiple-element removal, simultaneous retained-element edits, 1→0,
    consumed geometry, earlier versions, proxy or unknown dependencies. Continue
    to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
@@ -205,14 +206,17 @@ writer-normalized single-lock output. Its source-specific failed-write/retry
 contract and native meaning remain open. Do not infer independent lock-1 or
 dual-280 semantics from compatible transport.
 
-**Next P4a candidate — embedded dual-280 roles.** The retained AC1032 source in
-the [versioned readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
-has ATTDEF `796` / owner `77F` at `[75957,76505)` and ATTRIB `79D` / owner `79C`
+**Next P4a candidate — embedded dual-280 roles.** The [readiness receipt](docs/research/rpp5ho-embedded-dual280-source-readiness-2026-10-28.json)
+binds the retained AC1032 source from the pinned ACadSharp sample repository.
+It has ATTDEF `796` / owner `77F` at `[75957,76505)` and ATTRIB `79D` / owner `79C`
 at `[210468,211002)`. Each has a later embedded MTEXT marker after its dual pair.
 Its Text `11/21/31`, Attribute `11/21/31` and MTEXT insertion `10/20/30` values
-are equal. Reproduce the current rejection against the new equal-alignment
-auditor, then bind both 280 spans to version/lock roles using the retained
-classic evidence and a distinguishing embedded producer or specification.
+are equal. The current auditor rejects at the embedded marker. The immediate
+version-zero prefix and later lock-one field match the documented roles and
+selected classic evidence; selected output emits one lock-one field. Admit only
+that source/role ordering, retain both spans, and test exact values, owner chains,
+normalized output and malformed refusal controls. This is source/transport
+evidence, not native semantic qualification.
 Keep selected classic and single-280 compatibility, scalar/compound membership,
 ownership, actual normalized output and caller/refusal behavior protected. If the
 roles remain ambiguous, continue another witnessed local operation.
