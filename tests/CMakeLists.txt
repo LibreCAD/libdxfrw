@@ -564,6 +564,9 @@ target_include_directories(libdxfrw_table_content_dxf_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(libdxfrw_table_content_dxf_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_table_content_dxf_projection COMMAND libdxfrw_table_content_dxf_tests)
+add_test(NAME libdxfrw_table_legacy_override_177
+    COMMAND libdxfrw_table_content_dxf_tests --legacy-table-177)
+set_tests_properties(libdxfrw_table_legacy_override_177 PROPERTIES LABELS "dxf;table")
 set_tests_properties(libdxfrw_table_content_dxf_projection PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_table_compound_source

@@ -935,6 +935,112 @@ bool tests(const std::filesystem::path& dir) {
              <<refusals<<" atomic export refusals/readbacks; "<<values<<" primitive value routes; byte/node refusal/recovery\n";
     return routes==16u && fallbacks==288u && refusals==32u && values==20u;
 }
+// Autodesk's TABLE DXF description places group 177 on pre-2007 cells;
+// the group-code type table assigns 170-179 two-byte integers. These locally
+// authored inputs exercise representation only, not individual flag meaning.
+void tableExportReuseDrawing(dx_iface& writer,dx_data& data,unsigned shape,bool block);
+bool tableExportReadback(const std::filesystem::path& path,bool binary,unsigned shape,bool block);
+bool legacyTableOverride177Tests(const std::filesystem::path& dir) {
+    const auto input=dir/"legacy-table.dxf", output=dir/"legacy-output.dxf";
+    const auto fail=[](const std::string& why) {std::cerr<<"legacy 177: "<<why<<'\n';return false;};
+    const auto sourceFor=[](const std::string& value) {
+        return Tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"ENTITIES"},{0,"ACAD_TABLE"},{5,"4F2"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockReference"},{2,"*T1"},
+            {10,"1"},{20,"2"},{30,"3"},{100,"AcDbTable"},{90,"2"},{91,"1"},{92,"1"},
+            {141,"8"},{142,"20"},{171,"1"},{177,value},
+            {0,"ENDSEC"},{0,"EOF"}};
+    };
+    struct Sample {const char* value; std::uint32_t bits;};
+    const Sample samples[]={{"-32768",0x8000u},{"-4384",0xeee0u},{"-1",0xffffu},
+        {"0",0u},{"32767",0x7fffu},{"32768",0x8000u},{"61152",0xeee0u},{"65535",0xffffu}};
+    unsigned imports=0u,refusals=0u,retries=0u,counterfactuals=0u;
+    for(const auto& sample:samples) for(bool binary:{false,true}) {
+        if(!write(input,sourceFor(sample.value),binary)) return fail("fixture write");
+        Probe importer;dx_data data;
+        if(!importer.fileImport(input.string(),&data,false))
+            return fail(std::string("import ")+sample.value+" binary="+std::to_string(binary));
+        if(data.sourceVersion!=DRW::AC1018 || data.tables.size()!=1u)
+            return fail("source version or TABLE callback");
+        const auto& table=data.tables.front();
+        if(table.m_content.m_rows.size()!=1u || table.m_content.m_rows[0].m_cells.size()!=1u
+            || table.m_content.m_rows[0].m_cells[0].m_overrideFlags!=sample.bits)
+            return fail(std::string("cell bits ")+sample.value+" binary="+std::to_string(binary));
+        ++imports;
+        // A zero mask is already writable in the legacy target. Only nonzero
+        // override patterns are unsupported by that writer's current grammar.
+        if(sample.bits==0u)continue;
+        for(bool outputBinary:{false,true}) for(bool strict:{false,true}) {
+            {std::ofstream sentinel(output,std::ios::binary);sentinel<<"keep destination";}
+            dx_iface exporter;
+            if(exporter.fileExport(output.string(),data.sourceVersion,outputBinary,&data,false,strict))
+                return fail("unqualified TABLE unexpectedly exported");
+            std::ifstream saved(output,std::ios::binary);
+            if(std::string(std::istreambuf_iterator<char>(saved),{})!="keep destination")
+                return fail("refusal changed destination");
+            if(data.tables.front().m_content.m_rows[0].m_cells[0].m_overrideFlags!=sample.bits)
+                return fail("refusal changed caller model");
+            ++refusals;
+            dx_data clean;DRW_Line line;line.basePoint={1,2,3};line.secPoint={4,5,6};
+            importer.cData=&clean;importer.currentBlock=clean.mBlock;importer.addLine(line);
+            if(!exporter.fileExport(output.string(),data.sourceVersion,outputBinary,&clean,false,strict))
+                return fail("same exporter retry");
+            dx_iface verifier;dx_data restored;
+            if(!verifier.fileImport(output.string(),&restored,false) || restored.mBlock->ent.size()!=1u)
+                return fail("retry readback");
+            const auto* parsed=dynamic_cast<const DRW_Line*>(restored.mBlock->ent.front());
+            if(!parsed || parsed->basePoint.x!=1 || parsed->secPoint.z!=6)
+                return fail("retry line mismatch");
+            ++retries;
+
+            // Isolate the mask from the minimal imported source's other
+            // missing dependencies: this same fully authored TABLE exports
+            // with zero, refuses the imported bits, then succeeds at zero.
+            dx_data qualified;dx_iface qualifiedWriter;
+            tableExportReuseDrawing(qualifiedWriter,qualified,0u,false);
+            // The authored TABLE uses explicit parent 0x1f. Supply its
+            // source BLOCK_RECORD so strict ownership resolution can map it.
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";
+            qualified.blockRecords.push_back(modelSpace);
+            auto& mask=qualified.tables.front().m_content.m_rows[0].m_cells[0].m_overrideFlags;
+            if(mask!=0u || !qualifiedWriter.fileExport(output.string(),DRW::AC1018,outputBinary,&qualified,false,strict)
+                || !tableExportReadback(output,outputBinary,0u,false))
+                return fail("zero-mask TABLE baseline");
+            mask=sample.bits;
+            {std::ofstream sentinel(output,std::ios::binary);sentinel<<"keep destination";}
+            if(qualifiedWriter.fileExport(output.string(),DRW::AC1018,outputBinary,&qualified,false,strict))
+                return fail("nonzero-mask TABLE unexpectedly exported");
+            std::ifstream blocked(output,std::ios::binary);
+            if(std::string(std::istreambuf_iterator<char>(blocked),{})!="keep destination" || mask!=sample.bits)
+                return fail("nonzero-mask refusal changed destination or caller");
+            mask=0u;
+            if(!qualifiedWriter.fileExport(output.string(),DRW::AC1018,outputBinary,&qualified,false,strict)
+                || !tableExportReadback(output,outputBinary,0u,false))
+                return fail("same TABLE corrected retry");
+            ++counterfactuals;
+        }
+    }
+    // ASCII can spell values outside the two-byte domain; binary cannot.
+    // Failure must not poison the same import facade for a corrected source.
+    for(const char* invalid:{"-32769","65536"}) {
+        if(!write(input,sourceFor(invalid),false))return fail("invalid fixture write");
+        Probe importer;dx_data rejected;
+        if(importer.fileImport(input.string(),&rejected,false) || !rejected.tables.empty())
+            return fail(std::string("out-of-range accepted: ")+invalid);
+        if(!write(input,sourceFor("61152"),false))return fail("retry fixture write");
+        dx_data corrected;
+        if(!importer.fileImport(input.string(),&corrected,false) || corrected.tables.size()!=1u
+            || corrected.tables.front().m_content.m_rows.size()!=1u
+            || corrected.tables.front().m_content.m_rows[0].m_cells.size()!=1u
+            || corrected.tables.front().m_content.m_rows[0].m_cells[0].m_overrideFlags!=0xeee0u)
+            return fail("same importer corrected retry");
+        ++retries;
+    }
+    std::cout<<"legacy TABLE 177 imports="<<imports<<" refusals="<<refusals<<" retries="<<retries
+        <<" zero/nonzero/reset counterfactuals="<<counterfactuals<<'\n';
+    return imports==16u && refusals==56u && retries==58u && counterfactuals==56u;
+}
+
 Tags compoundSource(const std::string& version,bool aliases) {
     Tags result{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{0,"ENDSEC"},
         {0,"SECTION"},{2,"ENTITIES"},{0,"ACAD_TABLE"},{5,"4F2"},
@@ -3202,6 +3308,15 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--legacy-table-177") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-legacy-table-177-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;
+        const bool ok=legacyTableOverride177Tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';
+        return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--full-style-carriers") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

@@ -11601,10 +11601,14 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 177: {
         int value = 0;
-        if (!readDxfIntInRange(reader, 0, std::numeric_limits<int>::max(), value))
+        // Legacy TABLE cell overrides use a 16-bit flag field. Binary DXF
+        // reads its high bit as a signed short, while ASCII may spell the
+        // same two-byte pattern as a positive unsigned value.
+        if (!readDxfIntInRange(reader, std::numeric_limits<std::int16_t>::min(),
+                               std::numeric_limits<std::uint16_t>::max(), value))
             return false;
         if (DRW_TableCell *cell = currentCell())
-            cell->m_overrideFlags = static_cast<std::uint32_t>(value);
+            cell->m_overrideFlags = static_cast<std::uint16_t>(value);
         else
             markIncomplete();
         break;
