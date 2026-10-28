@@ -43,7 +43,7 @@ runs separately.
 | --- | --- | --- | --- |
 | P2 | SELECT WITNESS, THEN IMPLEMENT | Remaining count operations, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Current unsupported operation, original authority and actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
-| P4 | SELECTED PROFILE READY | P4a: embedded dual-280 and remaining original profiles; P4b: compose document closure | Retained distinct version-zero/lock-one spans and selected normalized output |
+| P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -61,7 +61,7 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P4a — qualify embedded dual-280 | Retained AC1032 ATTDEF `796` and ATTRIB `79D`, classic dual-280, equal-alignment and readiness receipts | Preserve scoped version/lock spans and qualified compound/owner roles, with normalized single-lock output and exact refusal controls |
+| P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -206,20 +206,12 @@ writer-normalized single-lock output. Its source-specific failed-write/retry
 contract and native meaning remain open. Do not infer independent lock-1 or
 dual-280 semantics from compatible transport.
 
-**Next P4a candidate — embedded dual-280 roles.** The [readiness receipt](docs/research/rpp5ho-embedded-dual280-source-readiness-2026-10-28.json)
-binds the retained AC1032 source from the pinned ACadSharp sample repository.
-It has ATTDEF `796` / owner `77F` at `[75957,76505)` and ATTRIB `79D` / owner `79C`
-at `[210468,211002)`. Each has a later embedded MTEXT marker after its dual pair.
-Its Text `11/21/31`, Attribute `11/21/31` and MTEXT insertion `10/20/30` values
-are equal. The current auditor rejects at the embedded marker. The immediate
-version-zero prefix and later lock-one field match the documented roles and
-selected classic evidence; selected output emits one lock-one field. Admit only
-that source/role ordering, retain both spans, and test exact values, owner chains,
-normalized output and malformed refusal controls. This is source/transport
-evidence, not native semantic qualification.
-Keep selected classic and single-280 compatibility, scalar/compound membership,
-ownership, actual normalized output and caller/refusal behavior protected. If the
-roles remain ambiguous, continue another witnessed local operation.
+The [embedded dual-280 receipt](docs/research/rpp5hq-embedded-dual280-qualified-2026-10-28.json)
+qualifies the selected AC1032 version-zero/lock pair, equal-host profile and
+compound source roles; compatible output normalizes to one lock field. It does
+not qualify native semantics, arbitrary producer order, other versions, distinct
+host alignment values or complete-document conversion. Select a current
+unmatched profile and name its actual missing layer before extending admission.
 
 The [attribute receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
 covers selected earlier-version subclass alignment and tolerated embedded input.
