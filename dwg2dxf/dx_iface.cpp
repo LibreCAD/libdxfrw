@@ -16405,6 +16405,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 && value.elements.size()==original.elements.size()+1u;
             const bool remove=version>=DRW::AC1021 && context.m_version==version
                 && original.elements.size()==2u && value.elements.size()==1u;
+            bool removeFirst=false;
             if (append) {
                 // Charge the additional prefix snapshot and generated tuple
                 // before allocating either; the usual retained typed/raw
@@ -16427,10 +16428,10 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     || added.linetypeIndex!=-1 || added.linetypeHandle
                     || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
             } else if (remove) {
-                // Without per-element identities, a changed retained prefix
-                // can be either a first-element deletion or a last deletion
-                // combined with an edit. Admit only the distinguishing,
-                // untouched prefix and exact original raw element tuples.
+                // Without per-element identities, a changed surviving tuple
+                // can represent either deletion combined with an edit. Admit
+                // only an exact match to exactly one original element and
+                // retain exact original raw tuple values and spellings.
                 std::size_t originalTyped=0u,originalItems=0u;
                 if (!estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
                     || !chargeNamedResourceBytes(bytes,originalBytes)
@@ -16440,12 +16441,14 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     || !chargeNamedResourceBytes(bytes,originalTyped)) return false;
                 DRW_MLineStyle prefix=original;prefix.elements.pop_back();
                 DRW_MLineStyle droppedFirst=original;droppedFirst.elements.erase(droppedFirst.elements.begin());
+                const bool keepsFirst=mlineFieldsEqual(value,prefix,false,false,false,true,true,true);
+                const bool keepsLast=mlineFieldsEqual(value,droppedFirst,false,false,false,true,true,true);
+                if (keepsFirst==keepsLast) return false;
+                removeFirst=keepsLast;
                 bool originalReactor=false,rawReactor=false;
                 std::array<std::array<std::size_t,3>,2> before{},current{};
                 std::size_t beforeCount=0u,currentCount=0u;
-                if (!mlineFieldsEqual(value,prefix,false,false,false,true,true,true)
-                    || mlineFieldsEqual(value,droppedFirst,false,false,false,true,true,true)
-                    || parsed.elements.size()!=original.elements.size()
+                if (parsed.elements.size()!=original.elements.size()
                     || !mlineRetargetCoreBody(context,originalReactor)
                     || !mlineRetargetCoreBody(raw,rawReactor) || originalReactor!=rawReactor
                     || !mlineTwoElementTuples(context,before,beforeCount)
@@ -16517,7 +16520,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || !choose(original.endAngle,value.endAngle,parsed.endAngle,target.endAngle,retainedDoubleEqual)
                 || target.fillColor<0 || target.fillColor>256
                 || !std::isfinite(target.startAngle) || !std::isfinite(target.endAngle)) return false;
-            const std::size_t reconciledElements=remove?value.elements.size():target.elements.size();
+            // Removal already proves both raw tuples and the surviving typed
+            // tuple unchanged; neither original element needs reconciliation.
+            const std::size_t reconciledElements=remove?0u:target.elements.size();
             for (std::size_t i=0u;i<reconciledElements;++i) {
                 // Earlier source/target routes retain their existing raw-only
                 // behavior until typed offset authority is qualified there.
@@ -16670,15 +16675,17 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 std::array<std::array<std::size_t,3>,2> tuples{};
                 std::size_t countIndex=0u;
                 if (!mlineTwoElementTuples(source.output,tuples,countIndex)
+                    || !source.stringOverrides.empty()
                     || !encoded.writeInt16(71,static_cast<int>(value.elements.size()))
                     || !replace(countIndex,encoded.groups.back())) return false;
-                const auto first=tuples[1][0];const auto after=tuples[1][2]+1u;
+                const auto removed=removeFirst?0u:1u;
+                const auto first=tuples[removed][0];const auto after=tuples[removed][2]+1u;
                 source.output.groups.erase(source.output.groups.begin()+static_cast<std::ptrdiff_t>(first),
                     source.output.groups.begin()+static_cast<std::ptrdiff_t>(after));
                 if (source.output.hasRawValues && !binary)
                     source.output.rawValues.erase(source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(first),
                         source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(after));
-                target.elements.pop_back();
+                target.elements.erase(target.elements.begin()+static_cast<std::ptrdiff_t>(removed));
             }
             std::sort(source.stringOverrides.begin(),source.stringOverrides.end(),
                 [](const auto& a,const auto& b){return a.first<b.first;});
@@ -20560,8 +20567,8 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
             style.second.linetypesBound=false;
             if (!style.second.dictionaryOrigin) continue;
             const auto& elements=style.second.projection.elements;
-            // A selected 2->1 removal must prove the original removed
-            // linetype target too, not only the surviving output reference.
+            // A selected 2->1 removal must prove both original linetype
+            // targets, including the removed reference, not only the survivor.
             // The frozen baseline is the original source, independent of
             // the caller's edited projection.
             const bool removed=style.second.countChanged && elements.size()==1u;
@@ -20580,11 +20587,11 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                     || !decodeMlineBody(*baseline,*saved->second,original,slots,insertion)
                     || original.elements.size()!=2u) return false;
             }
-            const std::size_t references=elements.size()+(removed?1u:0u);
+            const std::size_t references=elements.size()+(removed?original.elements.size():0u);
             if (!visit(references) || !chargeNamedResourceBytes(bytes,references*sizeof(std::uint32_t))) return false;
             std::vector<std::uint32_t> selected;selected.reserve(references);bool complete=true;
             for (std::size_t index=0u;index<references;++index) {
-                const auto& element=index<elements.size()?elements[index]:original.elements.back();
+                const auto& element=index<elements.size()?elements[index]:original.elements[index-elements.size()];
                 std::string key;
                 if (!dx_symbol_output::nameKey(element.linetype,key)) {complete=false;break;}
                 const auto named=source.resourceNames.find({F::LineType,key});
