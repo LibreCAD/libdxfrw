@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: reproduce description loss | MLINESTYLE, then MLEADERSTYLE nested body transactions | Reuse scalar baselines; honor family-specific key/consumer contracts |
+| P2 | READY: defaults/scalars | MLINESTYLE omitted-angle defaults and scalar transactions, then coupled nested work/MLEADERSTYLE | Reuse named-resource helpers; honor source/consumer contracts |
 | P3 | READY: classified producer defect | Canonical/malformed specular regression pair; resolve ambiguous Normal Map and remaining variants | Retained source/specification evidence |
 | P4 | LOCAL WORK + EVIDENCE | P4a source/role capture now; P4b composed document closure later | P4a is independent; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -58,38 +58,50 @@ external searches or a broad audit with no current failing witness.
 
 ## P2 — nested named-resource bodies: next implementation packet
 
-Use the [SCALE transaction receipt](docs/research/rpp5gl-scale-body-transactions-2026-10-28.json)
-and shared scalar baseline/profile/owner snapshots as implementation references.
-Start MLINESTYLE with an authored description edit: the current DXF adapter
-replays its raw body. Capture a failed literal-output/readback witness before
-changing code; then proceed to MLEADERSTYLE after its own witnessed field loss.
+Reuse the [MLINESTYLE description transaction receipt](docs/research/rpp5gm-mline-style-description-transactions-2026-10-28.json),
+`NamedResourceBodyBaseline`, shared profile/dictionary snapshots, indexed name
+joins and emitted-body/owner proof. Keep only the residual work below; unsupported
+typed fields currently refuse and do not count as implemented editing support.
 
-1. Extend the existing `NamedResourceBodyBaseline` capture and lifetime allowance.
-   Scope MLINESTYLE roles to `AcDbMlineStyle`: name2, derived flags70,
-   description3, first62/fill, angles51/52, count71, ordered49/62/6 elements.
-   Reuse owning decoding and `validateDxfRecord()`. The derived `flags` shadows
-   base flags. Inventory complete nested contexts/CMC/presence/unknown fields.
-2. Implement description3 reconciliation first, with conflicts, literal/independent
-   output, late callbacks, allocation refusal, destination cleanup and retries.
-   Expand the same planner per represented field/schema; add a focused selector
-   to the existing fixture executable, not another target or graph engine.
-3. Honor [MLINESTYLE's documented naming contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
-   dictionary group3 is authoritative and body2 is redundant. Rename must couple
-   dictionary/body and MLINE340 consumers; SCALE's independent display-name
-   policy does not apply. Existing string overrides admit1/3/300; extend2/6 only
-   with owning-role admission and legacy-codec controls.
-4. Resolve element6 as a LTYPE name, separately from DWG index/handle mirrors.
-   Element count/offset edits require affected MLINE geometry updates or explicit
-   refusal; current style-name/handle joins cannot certify stale vertex parameters.
-   Qualify omitted/default62/6 tuples against a producer witness before broadening
-   the parser's currently strict tuple masks.
-5. Complete MLEADERSTYLE contexts, defaults, repeated values and STYLE/LTYPE/
-   BLOCK_RECORD references. Preserve source order, version-specific grammars and
-   unsupported extensions. Prove exact emitted roles and independent selected
-   meaning; malformed counts, partial tails and coupled references remain gates.
+1. **Correct omitted DXF angle defaults.** Primary MLINESTYLE51/52 defaults are
+   90 degrees; current DXF/model initialization yields0. Preserve constructor/
+   `reset()` behavior for API-created and DWG models. Add a protected nonvirtual
+   DXF reset helper and use it in `dxfRW::processMLineStyle`, the owning
+   `dx_standard_output::Probe<DRW_MLineStyle>` and the Wave1 DXF probe. Prove
+   missing51, missing52, both missing, explicit0, reordered fields and reuse;
+   retain physical omission during description replay. Add one independent
+   omitted-field projection. Keep existing DWG explicit-angle controls separate;
+   read the ODA chapter and trace a source before changing any DWG unit behavior.
+2. **Reconcile represented scalars.** Extend the existing scoped census/planner
+   for derived flags70, first62/fill and finite degree angles51/52. Three-way
+   merge per field, retain unchanged presence/spelling and insert actual edits.
+   Use bitwise finite-double equality for edit detection. Keep unrepresented
+   CMC fields under explicit refusal until their provider exists. Reuse the
+   focused fixture selector and small affected cohorts, not another executable.
+3. **Complete naming/text/reference coupling.** Honor
+   [the documented MLINESTYLE contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
+   dictionary3 is authoritative and body2 redundant. Rename must update the
+   dictionary/body and MLINE340/name projections together. Extend semantic string
+   overrides for owning2/6 roles with codec and failure controls; resolve element6
+   as an emitted LTYPE name, separately from DWG index/handle mirrors. Independently
+   qualify dictionary collation, original key/body mismatches and native naming.
+4. **Complete nested/consumer edits.** Cover ordered49/62/6 tuples, count71,
+   defaults, repeated fields, CMC, presence and unknown extensions. Offset/count
+   edits need qualified updates to affected MLINE vertex parameters; retain
+   atomic refusal until that operation exists. Validate omitted/default62/6
+   grammar against producer evidence; the current255-element cap and strict
+   masks are admission policies, not universal format proof. Extend exact field,
+   owner/key, mutation, allocation, output-corruption and corrected-retry controls.
+5. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
+   then cover complete contexts/defaults/repeated values and STYLE/LTYPE/
+   BLOCK_RECORD references with the same shared helpers. Preserve source order,
+   version-specific grammars and unsupported extensions. Obtain independent
+   selected and native/source-version/annotation evidence for the actual scope.
 
-Reuse existing source contexts, budgets, graph selection and output inspectors.
-DWG byte-layout changes require the relevant ODA chapter and observed profile.
+Do not append completed description work to this queue. Native MLINE acceptance,
+all Unicode counting conventions, original/full document closure and remaining
+consumer contracts stay separate gates. DWG byte-layout changes require the
+relevant ODA chapter and an observed source profile.
 
 ## P3 — MATERIAL source/schema and legacy producer failure
 
