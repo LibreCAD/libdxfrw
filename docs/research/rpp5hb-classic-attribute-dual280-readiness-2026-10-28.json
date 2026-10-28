@@ -1,0 +1,281 @@
+{
+  "schema": "classic-attribute-dual280-version-readiness-v1",
+  "date": "2026-10-28",
+  "state": "READY_SELECTED_CLASSIC_ORIGINAL_VERSIONED_ATTRIBUTE_ROLES",
+  "parentCommit": "f1bca19593e9046a0b165661ba73fe3ee4538aa8",
+  "previousSlice": "docs/research/rpp5gz-attdef-dual-280-source-roles-2026-10-28.json",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm"
+  ],
+  "repositoryProvenance": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "head": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "sampleLastChange": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "note": "Repository provenance is not verification of the original CAD producer."
+  },
+  "samples": {
+    "AC1021": {
+      "hash": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+      "attdef": [
+        75756,
+        75935
+      ],
+      "prefix": null,
+      "lock": [
+        75924,
+        75935
+      ],
+      "attdefCount": 5,
+      "attribCount": 4,
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1021_ascii.dxf"
+    },
+    "AC1024": {
+      "hash": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+      "attdef": [
+        75044,
+        75234
+      ],
+      "prefix": [
+        75171,
+        75182
+      ],
+      "lock": [
+        75223,
+        75234
+      ],
+      "attrib": [
+        204675,
+        204880
+      ],
+      "attribPrefix": [
+        204835,
+        204846
+      ],
+      "attribLock": [
+        204869,
+        204880
+      ],
+      "insert": [
+        204456,
+        204675
+      ],
+      "footer": [
+        204880,
+        204933
+      ],
+      "attdefCount": 5,
+      "attribCount": 4,
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf"
+    },
+    "AC1027": {
+      "hash": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+      "attdef": [
+        75050,
+        75240
+      ],
+      "prefix": [
+        75177,
+        75188
+      ],
+      "lock": [
+        75229,
+        75240
+      ],
+      "attrib": [
+        204681,
+        204886
+      ],
+      "attribPrefix": [
+        204841,
+        204852
+      ],
+      "attribLock": [
+        204875,
+        204886
+      ],
+      "insert": [
+        204462,
+        204681
+      ],
+      "footer": [
+        204886,
+        204939
+      ],
+      "attdefCount": 5,
+      "attribCount": 4,
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf"
+    },
+    "AC1032": {
+      "hash": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+      "attdef": [
+        75013,
+        75203
+      ],
+      "prefix": [
+        75140,
+        75151
+      ],
+      "lock": [
+        75192,
+        75203
+      ],
+      "attrib": [
+        204829,
+        205034
+      ],
+      "attribPrefix": [
+        204989,
+        205000
+      ],
+      "attribLock": [
+        205023,
+        205034
+      ],
+      "insert": [
+        204610,
+        204829
+      ],
+      "footer": [
+        205034,
+        205087
+      ],
+      "attdefCount": 5,
+      "attribCount": 4,
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf"
+    }
+  },
+  "sourceObjectBinding": {
+    "sourceManifestSha256": "5bbc99ee62a8bdd27aa358fd91ae217059e5849a6b49663f5f8f3c24c041d58f",
+    "adapterObjectSha256": "1454fd4fa84dc34a86cb2d826d31e3c092f1d5d17fd871effd377a659dcd4abe",
+    "librarySha256": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae",
+    "auditHeaderSha256": "5f4ca4bb37f4ee9dd644db4ddf6ebec7a4803e8b97ab3dd7a75b78877252f273"
+  },
+  "compileTemplate": [
+    "/usr/bin/clang++",
+    "-std=c++17",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I.",
+    "-Isrc",
+    "-Ibuild",
+    "PROBE_SOURCE",
+    "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+    "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+    "-o",
+    "PROBE_EXECUTABLE"
+  ],
+  "probes": [
+    {
+      "kind": "ATTDEF",
+      "version": "AC1024",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gz-evidence/next-versions/ac1024-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf"
+      ],
+      "exitCode": 0,
+      "stdout": "groups=16; rejectedGroup=15; ambiguous=1; callbackCount=1; lockPosition=1; version=0\n",
+      "stderr": "",
+      "sourceSha256": "36df31568321224bb913a71e9205a67299568422519f57541246ccf72aeac309",
+      "executableSha256": "9b4b32bbdcb021545e6a06b52847817134d134d29a1ad1ca11f8f0f41cc965e7",
+      "source": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_attdef_source_profile.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstdint>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <string>\nint main(int argc,char** argv) {\n    if(argc!=2)return 2;\n    std::ifstream input(argv[1],std::ios::binary);if(!input)return 2;\n    input.seekg(75044);std::string bytes(190,'\\0');input.read(&bytes[0],190);\n    if(input.gcount()!=190)return 2;\n    std::istringstream stream(bytes);std::string codeText,value;DRW_RawDxfObject raw;\n    raw.name=\"ATTDEF\";raw.handle=0x6f8u;raw.parentHandle=0x6f2u;raw.m_version=DRW::AC1024;\n    while(std::getline(stream,codeText)&&std::getline(stream,value)) {\n        const int code=std::stoi(codeText);if(code==0)continue;\n        if(code==10||code==20||code==30||code==40)raw.groups.emplace_back(code,std::stod(value));\n        else if(code==70||code==280)raw.groups.emplace_back(code,static_cast<std::int32_t>(std::stoi(value)));\n        else raw.groups.emplace_back(code,value);\n    }\n    if(raw.groups.size()!=16u||raw.groups[11].code()!=280||raw.groups[11].i_val()!=0\n        ||raw.groups[15].code()!=280||raw.groups[15].i_val()!=1)return 2;\n    const auto audit=dx_attdef_source::audit(raw);\n    dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    unsigned count=0;bool lock=false;int version=-1;\n    for(const auto* block:data.blocks)if(block)for(const auto* entity:block->ent)\n        if(entity&&entity->handle==0x6f8u) {\n            const auto* attdef=dynamic_cast<const DRW_Attdef*>(entity);if(!attdef)return 2;\n            ++count;lock=attdef->lockPosition;version=attdef->attVersion;\n        }\n    std::cout<<\"groups=\"<<raw.groups.size()<<\"; rejectedGroup=\"<<audit.rejectedGroup\n        <<\"; ambiguous=\"<<(audit.reason==dx_attdef_source::Reason::AmbiguousVersion)\n        <<\"; callbackCount=\"<<count<<\"; lockPosition=\"<<lock<<\"; version=\"<<version<<'\\n';\n    return audit.reason==dx_attdef_source::Reason::AmbiguousVersion&&audit.rejectedGroup==15u\n        &&count==1u&&lock&&version==0?0:1;\n}\n"
+    },
+    {
+      "kind": "ATTDEF",
+      "version": "AC1032",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gz-evidence/next-versions/ac1032-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf"
+      ],
+      "exitCode": 0,
+      "stdout": "groups=16; rejectedGroup=15; ambiguous=1; callbackCount=1; lockPosition=1; version=0\n",
+      "stderr": "",
+      "sourceSha256": "0088ba004d1191116e8aa5723bf46bf1e811bf697d0f43093102522f001cdfb7",
+      "executableSha256": "7d45b3241b311f36dbaa025e2dd393fd3a06911ea44c258a69cb96ee10a59143",
+      "source": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_attdef_source_profile.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstdint>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <string>\nint main(int argc,char** argv) {\n    if(argc!=2)return 2;\n    std::ifstream input(argv[1],std::ios::binary);if(!input)return 2;\n    input.seekg(75013);std::string bytes(190,'\\0');input.read(&bytes[0],190);\n    if(input.gcount()!=190)return 2;\n    std::istringstream stream(bytes);std::string codeText,value;DRW_RawDxfObject raw;\n    raw.name=\"ATTDEF\";raw.handle=0x6f8u;raw.parentHandle=0x6f2u;raw.m_version=DRW::AC1032;\n    while(std::getline(stream,codeText)&&std::getline(stream,value)) {\n        const int code=std::stoi(codeText);if(code==0)continue;\n        if(code==10||code==20||code==30||code==40)raw.groups.emplace_back(code,std::stod(value));\n        else if(code==70||code==280)raw.groups.emplace_back(code,static_cast<std::int32_t>(std::stoi(value)));\n        else raw.groups.emplace_back(code,value);\n    }\n    if(raw.groups.size()!=16u||raw.groups[11].code()!=280||raw.groups[11].i_val()!=0\n        ||raw.groups[15].code()!=280||raw.groups[15].i_val()!=1)return 2;\n    const auto audit=dx_attdef_source::audit(raw);\n    dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    unsigned count=0;bool lock=false;int version=-1;\n    for(const auto* block:data.blocks)if(block)for(const auto* entity:block->ent)\n        if(entity&&entity->handle==0x6f8u) {\n            const auto* attdef=dynamic_cast<const DRW_Attdef*>(entity);if(!attdef)return 2;\n            ++count;lock=attdef->lockPosition;version=attdef->attVersion;\n        }\n    std::cout<<\"groups=\"<<raw.groups.size()<<\"; rejectedGroup=\"<<audit.rejectedGroup\n        <<\"; ambiguous=\"<<(audit.reason==dx_attdef_source::Reason::AmbiguousVersion)\n        <<\"; callbackCount=\"<<count<<\"; lockPosition=\"<<lock<<\"; version=\"<<version<<'\\n';\n    return audit.reason==dx_attdef_source::Reason::AmbiguousVersion&&audit.rejectedGroup==15u\n        &&count==1u&&lock&&version==0?0:1;\n}\n"
+    },
+    {
+      "kind": "ATTRIB",
+      "version": "AC1024",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gz-evidence/next-versions/attrib-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+        "1024",
+        "204675"
+      ],
+      "exitCode": 0,
+      "stdout": "groups=15; rejectedGroup=14; ambiguous=1; parents=1; children=1; footer=1; lock=1; version=0\n",
+      "stderr": "",
+      "executableSha256": "cb195a74c05701d0d7bf4b3aea74912112bd976b638f213be2f14b84b253fc01"
+    },
+    {
+      "kind": "ATTRIB",
+      "version": "AC1027",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gz-evidence/next-versions/attrib-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+        "1027",
+        "204681"
+      ],
+      "exitCode": 0,
+      "stdout": "groups=15; rejectedGroup=14; ambiguous=1; parents=1; children=1; footer=1; lock=1; version=0\n",
+      "stderr": "",
+      "executableSha256": "cb195a74c05701d0d7bf4b3aea74912112bd976b638f213be2f14b84b253fc01"
+    },
+    {
+      "kind": "ATTRIB",
+      "version": "AC1032",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gz-evidence/next-versions/attrib-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+        "1032",
+        "204829"
+      ],
+      "exitCode": 0,
+      "stdout": "groups=15; rejectedGroup=14; ambiguous=1; parents=1; children=1; footer=1; lock=1; version=0\n",
+      "stderr": "",
+      "executableSha256": "cb195a74c05701d0d7bf4b3aea74912112bd976b638f213be2f14b84b253fc01"
+    }
+  ],
+  "attribProbeSource": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_attdef_source_profile.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstdint>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <string>\nint main(int argc,char** argv) {\n    if(argc!=4)return 2;const auto version=std::string(argv[2])==\"1024\"?DRW::AC1024:std::string(argv[2])==\"1027\"?DRW::AC1027:DRW::AC1032;\n    std::ifstream input(argv[1],std::ios::binary);if(!input)return 2;input.seekg(std::stoll(argv[3]));std::string bytes(205,'\\0');input.read(&bytes[0],205);if(input.gcount()!=205)return 2;\n    std::istringstream stream(bytes);std::string codeText,value;DRW_RawDxfObject raw;raw.name=\"ATTRIB\";raw.handle=0x705u;raw.parentHandle=0x704u;raw.m_version=version;\n    while(std::getline(stream,codeText)&&std::getline(stream,value)) {\n        const int code=std::stoi(codeText);if(code==0)continue;\n        if(code==10||code==20||code==30||code==40)raw.groups.emplace_back(code,std::stod(value));\n        else if(code==70||code==280)raw.groups.emplace_back(code,static_cast<std::int32_t>(std::stoi(value)));\n        else raw.groups.emplace_back(code,value);\n    }\n    if(raw.groups.size()!=15u||raw.groups[11].code()!=280||raw.groups[11].i_val()!=0||raw.groups[14].code()!=280||raw.groups[14].i_val()!=1)return 2;\n    const auto audit=dx_attdef_source::audit(raw,false);dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    unsigned parents=0u,children=0u;bool lock=false,footer=false;int attVersion=-1;\n    const auto inspect=[&](const dx_ifaceBlock* block) {if(block)for(const auto* entity:block->ent)if(entity&&entity->handle==0x704u) {\n        const auto* insert=dynamic_cast<const DRW_Insert*>(entity);if(!insert)continue;++parents;footer=insert->seqEndEntity&&insert->seqEndEntity->handle==0x706u;\n        for(const auto& a:insert->attlist)if(a&&a->handle==0x705u){++children;lock=a->lockPosition;attVersion=a->attVersion;}\n    }};\n    inspect(data.mBlock);for(const auto* block:data.blocks)inspect(block);\n    std::cout<<\"groups=\"<<raw.groups.size()<<\"; rejectedGroup=\"<<audit.rejectedGroup<<\"; ambiguous=\"<<(audit.reason==dx_attdef_source::Reason::AmbiguousVersion)\n        <<\"; parents=\"<<parents<<\"; children=\"<<children<<\"; footer=\"<<footer<<\"; lock=\"<<lock<<\"; version=\"<<attVersion<<'\\n';\n    return audit.reason==dx_attdef_source::Reason::AmbiguousVersion&&audit.rejectedGroup==14u&&parents==1u&&children==1u&&footer&&lock&&attVersion==0?0:1;\n}\n",
+  "attribProbeSourceSha256": "15c4e74bd577b5aea54647cbe4923a0e0baf1c1f32c7aa4a8740d01a3780cc28",
+  "originalCensus": "Per version: five ATTDEF and four ATTRIB. AC1021 has single280; AC1024/27 classic records have dual280; AC1032 has four classic dual ATTDEFs and three classic dual ATTRIBs plus one embedded dual of each. No AcDbXrecord or column-bearing embedded MTEXT in the 36 originals.",
+  "packet": {
+    "operation": "Qualify original classic dual280 source roles for ATTDEF and ATTRIB on AC1024, AC1027, AC1032, keeping AC1021 single-lock behavior.",
+    "expected": "Version zero immediately following the owning subclass is ReservedDefault; the later lock boolean is Attribute, with original span/owner/membership and modeled replay bound. ATTRIB has no mandatory prompt and belongs to an INSERT/SEQEND compound.",
+    "entryPoints": [
+      "dx_attdef_source::audit",
+      "dx_compound_source_profile",
+      "attdef original role ledger",
+      "compound original membership/replay"
+    ],
+    "selectors": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_compound_body_replay",
+      "libdxfrw_entities_compound_source"
+    ],
+    "safety": "After accepting a dual profile, explicitly refuse a later Embedded Object transition; checking only !nested at the second280 is insufficient because embedded MTEXT may follow. Reject nonzero prefix, reversed/misplaced/third fields and cross-scope shadows. Preserve existing single280 behavior. Preserve exact parent/child/footer identities, ownership and membership independently of callback counts.",
+    "validation": "Add local-from-scratch same-profile positives across selected versions, ASCII/binary and both lock values, full ordered roles and genuine INSERT/ATTRIB/SEQEND plus ENTITIES/BLOCKS membership; retain distinct malformed controls and verify canonical single-lock writer output/ordinary readback. Run one affected normal/ASan union after source freeze.",
+    "scope": "Classic means the existing admitted rest-of-record grammar; additional field placements remain unqualified."
+  },
+  "limits": [
+    "Current probes establish the original byte sequence, rejected source audit and ordinary library model/INSERT/footer only. They do not prove an independent source producer, native semantics, output preservation or complete document closure.",
+    "The observed attVersion=0 is the current parser model default, not an independently decoded version field.",
+    "AC1032 embedded dual profiles, AcDbXrecord, extra alignment/columns and other secondary bodies remain unqualified.",
+    "Input drawings remain scratch-only; committed tests use eligible existing repository fixtures or authored local recipes."
+  ],
+  "gates": {
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

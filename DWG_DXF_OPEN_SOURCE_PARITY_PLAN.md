@@ -43,7 +43,7 @@ runs separately.
 | --- | --- | --- | --- |
 | P2 | SELECT WITNESS, THEN IMPLEMENT | Consumed geometry/count, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | One current unsupported operation with original source authority and an explicit actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
-| P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: one still-unmatched original profile/role; P4b: compose document closure | Current source census and original captures; P4b consumes P2/P3/P5/P7 providers |
+| P4 | READY: classic attribute dual-280 roles | P4a: extend selected original ATTDEF/ATTRIB profiles across AC1024/27/32; P4b: compose document closure | Source-bound refusal/replay, original compound membership and focused role controls |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -61,15 +61,14 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P4a — choose next original provider | Current physical census, source profiles, original capture/replay and role reports | Name one still-unmatched original record/profile with digest, physical span, expected role and missing layer before implementation readiness; retain full-family/document gates |
+| P4a — classic ATTDEF/ATTRIB version roles | Original AC1024/27/32 classic records, source-bound refusals, `dx_attdef_source::audit`, compound/role ledgers | Classify version-zero prefix and lock boolean with exact original roles and modeled replay; retain unsupported nested/secondary profiles and AC1021 single-lock behavior |
 | P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Choose the next P4a/P2/P3 packet from a current exact witness; no adjacent slice
-implies broader readiness. Start P4a selection with the retained secondary
-`AcDbXrecord` refusal control and current original census, and confirm a concrete
-original profile before proposing representation or semantic changes. Reuse
-existing source-bound refusals and projections before authoring another source.
+Implement the witnessed classic attribute packet in P4a first. No adjacent slice
+implies broader readiness. P2/P3 still need concrete witnesses; secondary
+`AcDbXrecord` remains a separate source/meaning search. Reuse existing
+source-bound refusals and projections before authoring another source.
 Gap classification and the next source recipe/projection can run in parallel,
 but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
@@ -192,17 +191,41 @@ The writer's normalized single lock-`280` output does not preserve the original
 dual-`280` byte form. Other-version, ordering, nested and secondary-profile
 semantics remain separately qualified; retain existing single-`280` compatibility.
 
-**Next witness selection.** The existing `attdefProfileFaults` secondary-section
-control in `tests/attdef_source_profile_controls.h` reaches the explicit
-`AcDbXrecord` / `UnmodeledSecondary` boundary. Use that current refusal and the
-retained original census to locate one required original secondary record with
-exact input digest, byte span, cloning/repeated-70/secondary-340 roles and expected
-modeled result. This identifies the next boundary to investigate, not an
-implementation-ready semantic profile. If no original witness and required
-meaning are available, record the missing condition and select another concrete
-local operation in P2/P3/P4/P5 instead of inventing a schema or waiting on native
-evidence. Keep the complete B2b/B3/C objective; a selected ENTITIES subset or live
-mutable container cannot substitute for original-source completeness.
+**Next P4a packet — classic dual-`280` version roles.** The [source-bound
+readiness receipt](docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json)
+records original ATTDEF `6F8` / owner `6F2` on AC1024 and AC1032, and original
+ATTRIB `705` / INSERT `704` / SEQEND `706` on AC1024, AC1027 and AC1032.
+The exact input digests, physical spans and source-matching probes confirm that
+current audit rejects the second field while ordinary import retains lock true
+and reports default `attVersion=0`; that model value alone does not prove an
+independent version decode. AC1021 originals have only the lock field. The Autodesk
+[ATTDEF](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm)
+and [ATTRIB](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm)
+references distinguish version zero from the later lock flag.
+
+Extend the existing source-role audit for **classic** ATTDEF/ATTRIB on AC1024,
+AC1027 and AC1032 within the already admitted rest-of-record grammar; do not
+expand other field placements merely because the DXF reference lists them. Preserve the immediate subclass-prefix requirement, exact
+version zero, trailing boolean, mandatory tag/flags and ATTDEF prompt, source
+span/role provenance and all existing single-`280` behavior. For ATTRIB, bind the
+actual INSERT/child/SEQEND identities, ownership and membership and replay; do
+not require an ATTDEF prompt.
+Explicitly reject an Embedded Object transition *after* accepting a dual pair:
+checking `!nested` only at the second field does not prevent a later embedded
+MTEXT. Keep nonzero/misplaced/reversed/third fields, application shadows, unknown
+versions, secondary `AcDbXrecord`, embedded dual profiles and columns unqualified.
+Use locally authored input for lock 0/1, relevant versions and encodings; cover
+physical roles, both consumer scopes, compound ownership, corruption and retries,
+plus canonical single-lock writer output and ordinary readback. Reuse the
+ATTDEF/compound/ENTITIES owning selectors and run one affected normal/ASan
+cohort after sources freeze. Single-lock output does not preserve dual-field bytes.
+
+The 36 retained attribute records contain no secondary `AcDbXrecord` or
+column-bearing embedded MTEXT witness. Retain those as separate source/meaning
+searches and select another witnessed local operation rather than inventing a
+schema or waiting on native evidence. The complete B2b/B3/C objective remains;
+a selected ENTITIES subset or live mutable container cannot substitute for
+original-source completeness.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
