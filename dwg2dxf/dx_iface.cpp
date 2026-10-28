@@ -23528,8 +23528,11 @@ void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject
     if(value.eType!=DRW::ATTDEF||!asciiIdentifierEquals(raw.name,"ATTDEF")
         ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle
         ||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
-        ||raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032
-        ||!dxfAttdef::Decoder::hasNoNativeWriteBindings(value)
+        // AC1018 remains opt-out by default. An explicit derived optional
+        // source handler may request bounded capture/replay only; the legacy
+        // source profile, origin graph and output gates remain closed.
+        ||(raw.m_version!=DRW::AC1018&&raw.m_version<DRW::AC1021)
+        ||raw.m_version>DRW::AC1032||!dxfAttdef::Decoder::hasNoNativeWriteBindings(value)
         // fileImport's actual DXF read option is false, not inferred from
         // TEXT's currently no-op extrusion implementation.
         ||context.applyExtrusion||!currentBlock

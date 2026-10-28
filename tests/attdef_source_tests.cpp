@@ -697,14 +697,16 @@ bool tests(const std::filesystem::path& path) {
 namespace {
 class CaptureProbe final:public dx_iface {
 public:
-    bool selected=true,skipSource=false,skipTyped=false,duplicateSource=false,duplicateTyped=false,throwSource=false;
+    bool selected=true,legacyOptIn=false,skipSource=false,skipTyped=false,duplicateSource=false,duplicateTyped=false,throwSource=false;
     unsigned sourceCalls=0u,typedCalls=0u;
     long failSourceAllocation=-1,sourceAllocations=0,failTypedAllocation=-1,typedAllocations=0;
     std::function<void(DRW_Attdef&)> alterTyped;
     std::function<void(DRW_RawDxfObject&)> alterRaw;
     std::function<void(DRW_DxfAttdefSourceContext&)> alterContext;
     DRW_RawDxfObject mutableRawAlias;
-    bool wantsDxfAttdefSource() const override {return selected&&dx_iface::wantsDxfAttdefSource();}
+    // Explicit AC1018 opt-in uses the already existing source facet; the
+    // concrete adapter's default opt-out remains unchanged.
+    bool wantsDxfAttdefSource() const override {return selected&&(legacyOptIn||dx_iface::wantsDxfAttdefSource());}
     void addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
                            const DRW_DxfAttdefSourceContext& context) override {
         ++sourceCalls;
@@ -914,6 +916,93 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
         <<" opt-outs="<<optouts<<" malformed/retries="<<retries<<" full-replays="<<full
         <<" wrong-page="<<pages<<" raw-mutations="<<mutations<<'\n';
     return originals==8u&&spans==144u&&optouts==8u&&retries==8u&&full==8u&&pages==8u&&mutations==16u;
+}
+
+// Adapter-owned capture/replay is opt-in via the existing optional source
+// facet. AC1018 profiles and enclosing graph/output authority stay gated.
+bool legacyAttdefAdapterCaptureTests(const std::filesystem::path& path) {
+    using A=DxIfaceTableSourceTestAccess;using namespace dx_attdef_source;
+    const Tags row{{5,"A1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+        {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,std::string("caf\xE9",4u)},
+        {100,"AcDbAttributeDefinition"},{3,std::string("prom\xE9",5u)},{2,"ATTINFO"},{70,"0"},
+        {1001,"AcDbAttr"},{1000,std::string("caf\xE9",4u)},{1070,"0"},{1070,"1"}};
+    unsigned captures=0u,defaults=0u,mutations=0u,quotas=0u,retries=0u;
+    const auto definition=[](const dx_data& data)->const DRW_Attdef* {
+        const auto inBlock=[](const dx_ifaceBlock* block)->const DRW_Attdef* {
+            if(block)for(const auto* entity:block->ent)
+                if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity))if(value->handle==0xA1u)return value;
+            return nullptr;
+        };
+        if(const auto* value=inBlock(data.mBlock))return value;
+        for(const auto* block:data.blocks)if(const auto* value=inBlock(block))return value;
+        return nullptr;
+    };
+    for(bool binary:{false,true})for(bool block:{false,true}) {
+        auto tags=document("AC1018",row,block);tags.insert(tags.begin()+4,{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});
+        if(!write(path,tags,binary))return false;
+        CaptureProbe defaultReader;dx_data baseline;
+        if(!check(defaultReader.fileImport(path.string(),&baseline,false)&&defaultReader.sourceCalls==0u
+            &&defaultReader.typedCalls==1u&&definition(baseline),"legacy adapter default opt-out retains 2D import"))return false;
+        const auto expected=snapshot(*definition(baseline));++defaults;
+        CaptureProbe reader;reader.legacyOptIn=true;dx_data data;
+        if(!check(reader.fileImport(path.string(),&data,false)&&reader.sourceCalls==1u&&reader.typedCalls==1u
+            &&!A::failed(data)&&definition(data)&&snapshot(*definition(data))==expected,"legacy explicit adapter opt-in"))return false;
+        const auto* value=A::resource(data);
+        if(!check(value&&value->raw&&value->attdefModel&&value->attdefReadContext
+            &&value->attdefReadContext->captured&&value->attdefReadContext->sourceVersion==DRW::AC1018
+            &&value->attdefReadContext->codecVersion==DRW::AC1015&&value->attdefReadContext->codecCodePage=="ANSI_1252"
+            &&value->attdefReadContext->hasDeclaration&&value->attdefReadContext->declaration=="ANSI_1252"
+            &&value->attdefReadContext->binary==binary&&!value->attdefReadContext->applyExtrusion
+            &&value->attdefPairMatched&&value->attdefFieldsMatched&&!value->attdefFieldMismatch
+            &&!value->rawTypedMatched&&!value->attdefOrigin&&!value->attdefProfile.complete()
+            &&value->attdefProfile.reason==Reason::Revision&&value->attdefProfile.rejectedGroup==0u
+            &&value->raw->m_version==DRW::AC1018&&value->raw->hasRawValues!=binary
+            &&value->raw->groups.size()==row.size()&&value->attdefContext.inBlock==block,
+            "legacy adapter owns raw/context and complete replay but no profile or origin"))return false;
+        ++captures;
+        for(unsigned fault=0u;fault<3u;++fault) {
+            CaptureProbe faulty;faulty.legacyOptIn=true;
+            if(fault==0u)faulty.alterRaw=[](DRW_RawDxfObject& r) {
+                for(auto& field:r.groups)if(field.code()==1){field=DRW_Variant(1,std::string("changed"));return;}
+            };
+            if(fault==1u)faulty.alterTyped=[](DRW_Attdef& d){d.tag="CHANGED";};
+            if(fault==2u)faulty.alterContext=[](DRW_DxfAttdefSourceContext& c){c.applyExtrusion=true;};
+            dx_data corrupt;
+            if(!faulty.fileImport(path.string(),&corrupt,false))return false;
+            const auto* refused=A::resource(corrupt);
+            if(!check(A::failed(corrupt)||!refused||!refused->attdefPairMatched||!refused->attdefFieldsMatched,
+                "legacy mutated callback cannot certify a captured pair"))return false;
+            if(refused&&(!check(!refused->rawTypedMatched&&!refused->attdefProfile.complete()&&!refused->attdefOrigin,
+                "legacy failed callback has no qualified profile or origin")))return false;
+            faulty.alterRaw={};faulty.alterTyped={};faulty.alterContext={};dx_data recovered;
+            if(!check(faulty.fileImport(path.string(),&recovered,false)&&!A::failed(recovered)
+                &&A::resource(recovered)&&A::resource(recovered)->attdefFieldsMatched,
+                "legacy same-adapter fresh-destination corrected capture"))return false;
+            ++mutations;++retries;
+        }
+        CaptureProbe limited;limited.legacyOptIn=true;dx_data constrained;A::limits(constrained,3u,0u);
+        if(!check(limited.fileImport(path.string(),&constrained,false)&&A::failed(constrained)
+            &&definition(constrained)&&snapshot(*definition(constrained))==expected,
+            "legacy bounded adapter proof failure remains unqualified"))return false;
+        const auto* unavailable=A::resource(constrained);
+        if(unavailable&&(!check(!unavailable->rawTypedMatched&&!unavailable->attdefProfile.complete(),
+            "legacy quota failure has no source authority")))return false;
+        ++quotas;
+        // A fresh destination under the ordinary default opt-out does not pay
+        // the optional capture budget, even if that budget is zero.
+        CaptureProbe noCapture;dx_data uncaptured;A::limits(uncaptured,3u,0u);
+        if(!check(noCapture.fileImport(path.string(),&uncaptured,false)&&!A::failed(uncaptured)
+            &&noCapture.sourceCalls==0u&&definition(uncaptured)&&snapshot(*definition(uncaptured))==expected,
+            "legacy default 2D path survives zero optional capture quota"))return false;
+        limited.legacyOptIn=false;dx_data restored;
+        if(!check(limited.fileImport(path.string(),&restored,false)&&!A::failed(restored)
+            &&definition(restored)&&snapshot(*definition(restored))==expected,
+            "legacy same adapter can return to default opt-out"))return false;
+        ++retries;
+    }
+    std::cout<<"AC1018 adapter opt-in captures="<<captures<<" default="<<defaults<<" mutations="<<mutations
+        <<" proof-quotas="<<quotas<<" retries="<<retries<<'\n';
+    return captures==4u&&defaults==4u&&mutations==12u&&quotas==4u&&retries==16u;
 }
 
 bool sourceProfileTests(const std::filesystem::path& path) {
@@ -1310,6 +1399,7 @@ int main(int argc,char** argv) {
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
     const bool legacyObservation=argc==2&&std::string(argv[1])=="--legacy-observation";
+    const bool legacyAdapterCapture=argc==2&&std::string(argv[1])=="--legacy-adapter-capture";
     const bool equalAlignment=argc==2&&std::string(argv[1])=="--equal-alignment";
     const bool dualEmbedded=argc==2&&std::string(argv[1])=="--embedded-dual280";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
@@ -1331,7 +1421,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1358,6 +1448,7 @@ int main(int argc,char** argv) {
         blocks?blockSourceTests(scratch/"generated.dxf"):
         dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):
+        legacyAdapterCapture?legacyAttdefAdapterCaptureTests(scratch/"generated.dxf"):
         legacyObservation?legacyAttdefObservationTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):
