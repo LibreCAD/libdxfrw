@@ -63,6 +63,22 @@ struct AttdefRoleProbe final:dx_iface {
 template<class Physical>
 bool attdefRoleWire(const std::vector<AttdefWireTag>& wire,const Physical& p,const dx_attdef_source::Audit& profile,std::size_t& spans) {
     using namespace dx_attdef_source;if(!profile.complete()||p.groups.size()!=profile.spans.size())return false;
+    std::vector<std::size_t> attribute280;std::size_t marker=p.groups.size();unsigned application=0u;bool attribute=false;
+    for(std::size_t i=0u;i<p.groups.size();++i) {
+        const auto& span=p.spans[i];if(!span.ordinal||span.ordinal>wire.size())return false;const auto& tag=wire[span.ordinal-1u];
+        if(span.ignoredComment)continue;
+        if(tag.code==102){if(tag.text=="}"){if(!application)return false;--application;}else ++application;continue;}
+        if(application)continue;
+        if(tag.code==100){attribute=tag.text=="AcDbAttributeDefinition";if(attribute)marker=i;}
+        if(attribute&&tag.code==280)attribute280.push_back(i);
+    }
+    const bool dual=attribute280.size()==2u;
+    if(dual) {
+        const auto first=attribute280[0],last=attribute280[1];auto next=marker+1u;
+        while(next<p.spans.size()&&p.spans[next].ignoredComment)++next;
+        const auto& version=wire[p.spans[first].ordinal-1u];const auto& lock=wire[p.spans[last].ordinal-1u];
+        if(first!=next||version.kind!=AttdefWireTag::Integer||version.integer!=0||lock.kind!=AttdefWireTag::Integer||lock.integer<0||lock.integer>1)return false;
+    }
     bool nested=false;unsigned depth=0u;
     for(std::size_t i=0;i<p.groups.size();++i){const auto& s=p.spans[i];const auto& v=p.groups[i];const auto& a=profile.spans[i];
         if(!s.ordinal||s.ordinal>wire.size())return false;const auto& w=wire[s.ordinal-1u];
@@ -82,12 +98,160 @@ bool attdefRoleWire(const std::vector<AttdefWireTag>& wire,const Physical& p,con
             case 1003:role=Role::XdataLayerName;break;case 1005:role=Role::XdataObjectId;break;default:break;}
         }
         if(a.scope!=(nested?Scope::Nested:Scope::Host)||a.role!=role)return false;
+        if(w.code==280&&!depth&&a.scope==Scope::Host) {
+            const auto expected=dual&&i==attribute280.front()?Field::ReservedDefault:Field::Attribute;
+            if(a.field!=expected)return false;
+        }
         if(role==Role::Self||role==Role::Owner||role==Role::OpaqueHandle||role==Role::XdataObjectId)if(a.handle!=std::stoull(w.text,nullptr,16))return false;
         ++spans;
     }return depth==0u;
 }
+std::array<std::size_t,2> attdefDualRoleSlots(const Tags& tags,const char* id) {
+    const auto begin=slot(tags,5,id);unsigned depth=0u;bool attribute=false;std::array<std::size_t,2> found{{tags.size(),tags.size()}};unsigned count=0u;
+    for(std::size_t i=begin;i<tags.size()&&(i==begin||tags[i].code!=0);++i) {
+        const auto& field=tags[i];if(field.code==102){if(field.value=="}"){if(!depth)throw std::runtime_error("dual280 role application depth");--depth;}else ++depth;continue;}
+        if(depth)continue;if(field.code==100)attribute=field.value=="AcDbAttributeDefinition";
+        if(attribute&&field.code==280){if(count==2u)throw std::runtime_error("dual280 role source count");found[count++]=i;}
+    }
+    if(count!=2u)throw std::runtime_error("dual280 role source slots");return found;
+}
+Tags attdefDualRoleDocument(bool blocks,bool lock,bool binary) {
+    auto tags=attdefRoleDocument("AC1027",blocks,0u);
+    for(const char* id:{"501","502"}) {
+        const auto begin=slot(tags,5,id);std::size_t marker=tags.size(),last=tags.size();unsigned depth=0u;bool attribute=false;
+        for(std::size_t i=begin;i<tags.size()&&(i==begin||tags[i].code!=0);++i) {
+            const auto& field=tags[i];if(field.code==102){if(field.value=="}")--depth;else ++depth;continue;}if(depth)continue;
+            if(field.code==100){attribute=field.value=="AcDbAttributeDefinition";if(attribute)marker=i;}
+            if(attribute&&field.code==280)last=i;
+        }
+        if(marker==tags.size()||last==tags.size())throw std::runtime_error("dual280 role authored body");tags[last].value=lock?"1":"0";
+        if(!binary)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(last),{999,"ignored original lock-span boundary"});
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+1u),{280,"0"});
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+2u),{{102,"{VERSION_SHADOW"},{280,"7"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"15"},{102,"}"}});
+    }
+    return tags;
+}
+bool attdefDualRoleWriter(const std::filesystem::path& path,bool binary,bool lock) {
+    // Canonical writer normalization only: this clean authored model is not a
+    // conversion/closure certificate for the original role fixture document.
+    struct Output final:dx_iface {
+        dx_data data;DRW_Attdef value;
+        explicit Output(bool locked){cData=&data;currentBlock=data.mBlock;value.handle=0xBEEFu;value.tag="DUAL_TAG";value.prompt="version zero";value.text="default";
+            value.height=1;value.basePoint={1,2,3};value.attVersion=0;value.lockPosition=locked;}
+        void writeEntities()override{(void)dxfW->writeAttdef(&value,DRW::DxfModelSpaceBlockRecordHandle);}
+    } output(lock);
+    dxfRW writer(path.string().c_str());output.dxfW=&writer;if(!writer.write(&output,DRW::AC1027,binary)||output.value.attVersion!=0||output.value.lockPosition!=lock) { return false; }
+    const auto wire=attdefWireTags(path,binary);bool selected=false,attribute=false;unsigned fields=0u,records=0u,owners=0u;
+    for(const auto& field:wire){if(field.code==0){selected=field.text=="ATTDEF";attribute=false;if(selected)++records;continue;}if(!selected)continue;
+        if(field.code==100)attribute=field.text=="AcDbAttributeDefinition";
+        if(field.code==330){if(std::stoul(field.text,nullptr,16)!=DRW::DxfModelSpaceBlockRecordHandle) { return false; }++owners;}
+        if(field.code==280){if(!attribute||field.kind!=AttdefWireTag::Integer||field.integer!=int(lock)) { return false; }++fields;}}
+    if(records!=1u||owners!=1u||fields!=1u) { return false; }dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)) { return false; }unsigned matched=0u;
+    for(const auto* entity:actual.mBlock->ent)if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity)) {
+        if(value->attVersion!=0||value->lockPosition!=lock||value->tag!="DUAL_TAG"||value->prompt!="version zero") { return false; }++matched;
+    }
+    return matched==1u;
+}
+bool attdefDual280RoleTests(const std::filesystem::path& dir) {
+    using A=DxIfaceTableSourceTestAccess;using namespace dx_attdef_source;
+    const auto path=dir/"attdef-dual280-roles.dxf";unsigned profiles=0u,corruptions=0u,refusals=0u,retries=0u,writerForms=0u;std::size_t spans=0u;
+    const auto ready=[&](bool binary,bool blocks,bool lock,AttdefRoleProbe& reader,dx_data& data) {
+        const auto failed=[&](const char* stage,std::uint32_t id=0u){
+            std::cerr<<"ATTDEF dual280 role stage="<<stage<<" binary="<<binary<<" blocks="<<blocks<<" lock="<<lock<<" id="<<id
+                <<" B="<<static_cast<int>(dx_iface::blockRoleReport(data).state)<<" E="<<static_cast<int>(dx_iface::entitiesRoleReport(data).state)<<'\n';
+            for(const auto& item:A::resources(data))if(item.first==0x501u||item.first==0x502u){const auto& r=item.second;
+                std::cerr<<" resource="<<item.first<<" pair="<<r.attdefPairMatched<<" fields="<<r.attdefFieldsMatched<<" profile="<<static_cast<int>(r.attdefProfile.reason)
+                    <<" rejected="<<r.attdefProfile.rejectedGroup<<" lock="<<(r.attdefModel?r.attdefModel->lockPosition:false)<<'\n';}
+            return false;
+        };
+        if(!write(path,attdefDualRoleDocument(blocks,lock,binary),binary))return failed("authoring");
+        if(!reader.fileImport(path.string(),&data,false))return failed("ordinary import");
+        if(!attdefRolesReady(data,blocks))return failed("enclosing role report");
+        const auto wire=attdefWireTags(path,binary);
+        for(auto id:{0x501u,0x502u}) {
+            const auto& r=A::mapResource(data,id);
+            if(!r.attdefPairMatched||!r.attdefFieldsMatched||r.attdefFieldMismatch||r.rawTypedMatched||!r.attdefModel||r.attdefModel->attVersion!=0
+                ||r.attdefModel->lockPosition!=lock||r.attdefModel->mtext||!r.attdefState.attributeSubclass)return failed("original pair/model",id);
+            // The generic resource profile deliberately refuses owning layout410.
+            // The enclosing physical role audit qualifies that separate context.
+            if(id==0x501u){if(!r.attdefProfile.complete()||r.attdefProfile.form!=Form::Classic)return failed("strict model-space resource profile",id);}
+            else if(r.attdefProfile.complete()||r.attdefProfile.reason!=Reason::UnknownField||!r.attdefProfile.spans.empty()
+                ||!r.raw||r.attdefProfile.rejectedGroup>=r.raw->groups.size()||r.raw->groups[r.attdefProfile.rejectedGroup].code()!=410)
+                return failed("strict paper-space resource boundary",id);
+            const auto inspect=[&](const auto& physical,const auto& audit) {
+                if(!audit.complete()||audit.form!=Form::Classic)return failed("layout-qualified physical profile",id);
+                unsigned versions=0u,locks=0u;for(const auto& field:audit.spans)if(field.code==280&&field.scope==Scope::Host) {
+                    if(field.groupIndex>=physical.groups.size())return failed("physical field index",id);
+                    if(field.field==Field::ReservedDefault){if(physical.groups[field.groupIndex].i_val()!=0)return failed("version literal",id);++versions;}
+                    else if(field.field==Field::Attribute){if(physical.groups[field.groupIndex].i_val()!=int(lock))return failed("lock literal",id);++locks;}
+                }
+                if(versions!=1u||locks!=1u)return failed("physical dual280 field census",id);
+                if(!attdefRoleWire(wire,physical,audit,spans))return failed("independent original wire spans",id);
+                for(const auto field:{Field::ReservedDefault,Field::Attribute}) {
+                    auto changed=audit;bool found=false;for(auto& tag:changed.spans)if(tag.code==280&&tag.field==field){tag.field=field==Field::Attribute?Field::ReservedDefault:Field::Attribute;found=true;break;}
+                    std::size_t ignored=0u;if(!found||attdefRoleWire(wire,physical,changed,ignored))return failed("independent role mutation sensitivity",id);
+                    ++corruptions;
+                }
+                return true;
+            };
+            bool found=false;
+            if(blocks)for(const auto& source:A::blockSources(data))for(const auto& item:source.second.compoundBodies) {
+                const auto& body=*item.second;if(body.model->handle!=id)continue;
+                const auto range=body.membership->ranges[item.first];if(found||!body.profilesComplete||body.profiles.size()!=1u||body.attdef.model!=r.attdefModel
+                    ||!inspect(body.membership->children->records[range.first],body.profiles.front())) { return false; }found=true;
+            }
+            else for(const auto& audit:A::entitiesAudits(data))for(const auto& body:audit->proofs)if(audit->members[body.first].self==id) {
+                if(found||!body.attributeDefinition||!body.modeledMatched||!body.profilesMatched||body.profiles.size()!=1u||body.attdef.model!=r.attdefModel
+                    ||!inspect(audit->physical->records[body.first],body.profiles.front())) { return false; }found=true;
+            }
+            if(!found)return failed("missing enclosing body proof",id);
+        }
+        unsigned ordinary=0u;const auto live=[&](const dx_ifaceBlock* block){
+            if(block)for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity)) {
+                if(value->handle==0x501u||value->handle==0x502u){if(value->attVersion!=0||value->lockPosition!=lock) return false;++ordinary;}
+            }
+            return true;
+        };
+        if(!live(data.mBlock)) { return false; }for(const auto* block:data.blocks)if(!live(block)) { return false; }
+        return ordinary==2u||failed("ordinary retained callback count");
+    };
+    for(bool binary:{false,true})for(bool blocks:{false,true})for(bool lock:{false,true}) {
+        AttdefRoleProbe reader;dx_data data;if(!ready(binary,blocks,lock,reader,data)) { return false; }++profiles;
+    }
+    // Count mutation sensitivity once per positive source, not again on retries.
+    const auto positiveCorruptions=corruptions;
+    for(bool binary:{false,true})for(bool blocks:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
+        auto tags=attdefDualRoleDocument(blocks,true,binary);const auto at=attdefDualRoleSlots(tags,"501");
+        if(kind==0u)tags[at[0]].value="1";if(kind==1u)tags[at[0]].value="-1";if(kind==2u)tags[at[1]].value="2";
+        if(kind==3u){const auto version=tags[at[0]];tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at[0]));
+            unsigned depth=0u;std::size_t prompt=tags.size();const auto first=slot(tags,5,"501");
+            for(std::size_t i=first;i<tags.size()&&(i==first||tags[i].code!=0);++i){if(tags[i].code==102){depth=tags[i].value=="}"?depth-1u:depth+1u;continue;}
+                if(!depth&&tags[i].code==3){prompt=i;break;}}
+            if(prompt==tags.size())throw std::runtime_error("dual280 owning prompt missing");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(prompt+1u),version);}
+        if(kind==4u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[0]+1u),{280,"0"});
+        if(kind==5u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[1]+1u),{280,"1"});
+        if(kind==6u){unsigned depth=0u;const auto first=slot(tags,5,"501");for(std::size_t i=first;i<tags.size()&&(i==first||tags[i].code!=0);++i){if(tags[i].code==102){depth=tags[i].value=="}"?depth-1u:depth+1u;continue;}
+            if(!depth&&tags[i].code==70){tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(i));break;}}}
+        if(kind==7u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[1]),{{100,"AcDbXrecord"},{280,"0"}});
+        if(kind==8u){tags[at[0]].value="1";tags[at[1]].value="0";}
+        if(kind==9u)tags[slot(tags,9,"$ACADVER")+1u].value="AC1032";
+        if(!write(path,tags,binary)) { return false; }AttdefRoleProbe reader;dx_data data;(void)reader.fileImport(path.string(),&data,false);
+        if(attdefRolesReady(data,blocks)){std::cerr<<"ATTDEF dual280 malformed role accepted kind="<<kind<<" binary="<<binary<<" blocks="<<blocks<<'\n';return false;}
+        ++refusals;reader.clearFaults();dx_data corrected;
+        if(!ready(binary,blocks,true,reader,corrected)) { return false; }++retries;
+    }
+    for(bool binary:{false,true})for(bool lock:{false,true}) {
+        if(!attdefDualRoleWriter(dir/"attdef-dual280-canonical-output.dxf",binary,lock)){std::cerr<<"ATTDEF canonical writer form failed binary="<<binary<<" lock="<<lock<<'\n';return false;}
+        ++writerForms;
+    }
+    std::cout<<"ATTDEF dual280 roles profiles="<<profiles<<"; independent scalar spans="<<spans<<"; positive role corruptions="<<positiveCorruptions
+        <<"; malformed/retries="<<refusals<<'/'<<retries<<"; canonical single-lock writer forms="<<writerForms<<'\n';
+    return profiles==8u&&positiveCorruptions==32u&&refusals==40u&&retries==40u&&writerForms==4u;
+}
+
 bool attdefRoleTests(const std::filesystem::path& dir) {
     using A=DxIfaceTableSourceTestAccess;struct Stage{const char* value="profiles";bool done=false;~Stage(){if(!done)std::cerr<<"ATTDEF roles stage="<<value<<'\n';}}stage;
+    if(!attdefDual280RoleTests(dir))return false;
     const auto path=dir/"attdef-roles.dxf";unsigned profiles=0u,qualified=0u,revisions=0u,variants=0u,mutations=0u,pairs=0u,contexts=0u,quotas=0u,failures=0u,allocations=0u,liveCopyFailures=0u,destinationGuards=0u;std::size_t spans=0u;
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned mode=0u;mode<3u;++mode){
         if(!writeBlockBinding(path,attdefRoleDocument(version,blocks,mode),encoding))return false;dx_iface reader;dx_data data;

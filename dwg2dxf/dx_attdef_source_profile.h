@@ -91,6 +91,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     std::array<std::size_t,2> proxyBytes{};
     std::array<std::string_view,DRW::kMaxDxfApplicationGroupNesting> applications{};
     std::size_t depth=0u,xdepth=0u;
+    std::size_t attributeMarker=raw.groups.size(),firstAttribute280=raw.groups.size();
+    bool dualAttribute280=false;
     int pointCode=0,pointNext=0;
     int attributeType=1;
     bool nestedText=false;
@@ -175,7 +177,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                 else if(string=="AcDbEntity"&&!entity&&stage==Header) {entity=true;stage=Common;scope=Scope::Host;}
                 else if(string=="AcDbText"&&entity&&!hostText&&stage==Common) {hostText=true;stage=Text;scope=Scope::Host;}
                 else if(string==(definition?"AcDbAttributeDefinition":"AcDbAttribute")&&hostText&&!attribute&&(stage==Text||stage==Embedded)) {
-                    attribute=true;stage=Attribute;scope=Scope::Host;
+                    attribute=true;stage=Attribute;scope=Scope::Host;attributeMarker=i;
                 } else return reject(Reason::Subclass,i);
             } else if(stage==Header) {
                 field=Field::Identity;scope=Scope::Host;
@@ -186,7 +188,18 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
             } else {
                 auto& slots=seen[stage==Common?0u:stage==Text?2u:stage==Attribute?3u:1u];
                 if(code<0||code>=static_cast<int>(slots.size()))return reject(Reason::UnknownField,i);
-                if(slots[code])return reject(code==280?Reason::AmbiguousVersion:Reason::DuplicateField,i);
+                if(slots[code]) {
+                    // The witnessed AC1027 ATTDEF grammar has a version-zero
+                    // prefix immediately after the subclass marker and a
+                    // separate lock flag after the required attribute fields.
+                    if(code!=280||stage!=Attribute||!definition||nested||raw.m_version!=DRW::AC1027
+                        ||dualAttribute280||firstAttribute280!=attributeMarker+1u
+                        ||firstAttribute280>=out.spans.size()||!integer(raw.groups[firstAttribute280],0,0)
+                        ||!seen[3][2]||!seen[3][3]||!seen[3][70]||!integer(value,0,1))
+                        return reject(code==280?Reason::AmbiguousVersion:Reason::DuplicateField,i);
+                    out.spans[firstAttribute280].field=Field::ReservedDefault;
+                    dualAttribute280=true;
+                } else if(stage==Attribute&&code==280) firstAttribute280=i;
                 slots[code]=true;
                 if(stage==Attribute) {
                     scope=Scope::Host;field=Field::Attribute;

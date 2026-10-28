@@ -754,6 +754,7 @@ public:
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
+    if(!attdefDual280ProfileTests(path))return false;
     unsigned tails=0u,attribTails=0u;
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
      for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u}) {

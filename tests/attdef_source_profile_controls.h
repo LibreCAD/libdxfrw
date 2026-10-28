@@ -165,3 +165,101 @@ std::vector<AttdefProfileFault> attdefProfileFaults() {
     faults.push_back({"missing nested insertion Y",[=](Tags& tags){tags.erase(locate(tags,20,"20"));},R::IncompletePoint,true});
     return faults;
 }
+
+AttdefLedger attdefDual280Ledger(bool lock,bool application=true) {
+    using S=dx_attdef_source::Scope;using F=dx_attdef_source::Field;using R=dx_attdef_source::Role;
+    auto ledger=attdefLedger(0u,false);
+    const auto at=std::find_if(ledger.tags.begin(),ledger.tags.end(),[](const Tag& t){return t.code==100&&t.value=="AcDbAttributeDefinition";});
+    if(at==ledger.tags.end())throw std::runtime_error("dual280 authored attribute subclass");
+    const auto first=static_cast<std::size_t>(at-ledger.tags.begin())+1u;
+    ledger.tags.insert(ledger.tags.begin()+static_cast<std::ptrdiff_t>(first),{280,"0"});
+    ledger.expected.insert(ledger.expected.begin()+static_cast<std::ptrdiff_t>(first),{first,280,S::Host,F::ReservedDefault,R::None,0u});
+    if(application) {
+        const Tags fields{{102,"{VERSION_META"},{280,"7"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"15"},{102,"}"}};
+        ledger.tags.insert(ledger.tags.begin()+static_cast<std::ptrdiff_t>(first+1u),fields.begin(),fields.end());
+        std::vector<dx_attdef_source::Span> expected;for(const auto& field:fields)expected.push_back({0u,field.code,S::Host,F::Application,R::None,0u});
+        ledger.expected.insert(ledger.expected.begin()+static_cast<std::ptrdiff_t>(first+1u),expected.begin(),expected.end());
+    }
+    for(std::size_t i=0u;i<ledger.expected.size();++i) {
+        ledger.expected[i].groupIndex=i;
+        if(ledger.expected[i].field==F::Attribute&&ledger.expected[i].code==280)ledger.tags[i].value=lock?"1":"0";
+    }
+    return ledger;
+}
+bool attdefDual280ProfileTests(const std::filesystem::path& path) {
+    using A=DxIfaceTableSourceTestAccess;using namespace dx_attdef_source;
+    unsigned profiles=0u,roleCorruptions=0u,refusals=0u,retries=0u,singles=0u,versionRefusals=0u,attributeRefusals=0u;std::size_t spans=0u;
+    const auto positions=[](const AttdefLedger& ledger){std::array<std::size_t,2> out{{ledger.tags.size(),ledger.tags.size()}};
+        for(std::size_t i=0u;i<ledger.expected.size();++i){const auto& s=ledger.expected[i];if(s.code==280&&s.field==Field::ReservedDefault)out[0]=i;if(s.code==280&&s.field==Field::Attribute)out[1]=i;}
+        if(out[0]>=out[1]||out[1]>=ledger.tags.size())throw std::runtime_error("dual280 authored roles");return out;};
+    const auto positive=[&](const AttdefLedger& ledger,bool binary,bool block,CaptureProbe& reader,dx_data& data){
+        const auto tags=document("AC1027",ledger.tags,block);
+        if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false)||A::failed(data))return false;
+        const auto* row=A::resource(data);if(!row||!row->attdefModel||!row->attdefPairMatched||!row->attdefFieldsMatched||row->attdefFieldMismatch
+            ||row->rawTypedMatched||!row->attdefProfile.complete()||row->attdefModel->attVersion!=0||row->attdefModel->mtext
+            ||row->attdefContext.inBlock!=block||!row->attdefReadContext||row->attdefReadContext->binary!=binary)return false;
+        if(!attdefOriginalSpans(path,binary,tags,ledger,row->attdefProfile,spans)
+            ||!replayMatches(ledger.tags,"AC1027",snapshot(*row->attdefModel),false))return false;
+        const auto* editable=static_cast<const DRW_Attdef*>(nullptr);const auto find=[&](const dx_ifaceBlock* owner){if(owner)for(const auto* entity:owner->ent)
+            if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity)){if(editable)throw std::runtime_error("dual280 editable alias");editable=value;}};
+        find(data.mBlock);for(const auto* owner:data.blocks)find(owner);
+        return editable&&editable->lockPosition==row->attdefModel->lockPosition&&editable->attVersion==0&&editable->prompt=="prompt-é"&&editable->tag=="TAG";
+    };
+    for(bool binary:{false,true})for(bool block:{false,true})for(bool lock:{false,true}) {
+        const auto ledger=attdefDual280Ledger(lock);CaptureProbe reader;dx_data data;
+        if(!check(positive(ledger,binary,block,reader,data),"dual280 original capture and independently positioned field roles"))return false;
+        const auto* row=A::resource(data);const auto role=positions(ledger);
+        if(!check(row->attdefModel->lockPosition==lock&&row->raw->groups[role[0]].i_val()==0&&row->raw->groups[role[1]].i_val()==int(lock)
+            &&row->attdefProfile.spans[role[0]].field==Field::ReservedDefault&&row->attdefProfile.spans[role[1]].field==Field::Attribute,
+            "zero version prefix and boolean lock retain distinct original roles"))return false;
+        for(unsigned which=0u;which<4u;++which) {
+            auto corrupted=row->attdefProfile;
+            if(which==0u)corrupted.spans[role[0]].field=Field::Attribute;
+            if(which==1u)corrupted.spans[role[1]].field=Field::ReservedDefault;
+            if(which==2u)std::swap(corrupted.spans[role[0]].groupIndex,corrupted.spans[role[1]].groupIndex);
+            if(which==3u)corrupted.spans[role[0]].scope=Scope::Nested;
+            std::size_t ignored=0u;if(!check(!attdefOriginalSpans(path,binary,document("AC1027",ledger.tags,block),ledger,corrupted,ignored,true),
+                "independent dual280 span observer detects same-code role/index/scope corruption"))return false;
+            ++roleCorruptions;
+        }
+        // The same scalar geometry/text has no revision-specific proxy count
+        // when testing whether the dual role itself is gated to AC1027.
+        for(const auto version:{DRW::AC1021,DRW::AC1024,DRW::AC1032}) {
+            auto raw=*row->raw;raw.m_version=version;
+            raw.groups.erase(std::remove_if(raw.groups.begin(),raw.groups.end(),[](const DRW_Variant& v){return v.code()==160||v.code()==310;}),raw.groups.end());
+            const auto audit=dx_attdef_source::audit(raw);if(!check(!audit.complete()&&audit.spans.empty(),"other revisions do not inherit dual280 qualification"))return false;++versionRefusals;
+        }
+        auto raw=*row->raw;raw.name="ATTRIB";
+        for(auto& value:raw.groups)if(value.code()==100&&value.type()==DRW_Variant::STRING&&*value.content.s=="AcDbAttributeDefinition")value=DRW_Variant(100,UTF8STRING("AcDbAttribute"));
+        // Remove only the owning prompt; opaque application prompt shadows stay opaque.
+        raw.groups.erase(raw.groups.begin()+static_cast<std::ptrdiff_t>(role[0]+1u+(ledger.tags[role[0]+1u].code==102?6u:0u)));
+        const auto audit=dx_attdef_source::audit(raw,false);if(!check(!audit.complete()&&audit.spans.empty(),"ATTRIB does not acquire ATTDEF dual280 roles"))return false;++attributeRefusals;
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(bool block:{false,true}) {
+        auto single=attdefDual280Ledger(false,false);const auto role=positions(single);
+        single.tags.erase(single.tags.begin()+static_cast<std::ptrdiff_t>(role[1]));single.expected.erase(single.expected.begin()+static_cast<std::ptrdiff_t>(role[1]));
+        single.expected[role[0]].field=Field::Attribute;for(std::size_t i=0u;i<single.expected.size();++i)single.expected[i].groupIndex=i;
+        CaptureProbe reader;dx_data data;if(!check(positive(single,binary,block,reader,data)&&!A::resource(data)->attdefModel->lockPosition,
+            "existing single leading zero stays an attribute lock, not a version certificate"))return false;
+        ++singles;
+        for(unsigned kind=0u;kind<10u;++kind) {
+            auto ledger=attdefDual280Ledger(true,false);const auto role=positions(ledger);auto bad=ledger.tags;
+            if(kind==0u)bad[role[0]].value="1";if(kind==1u)bad[role[0]].value="-1";if(kind==2u)bad[role[1]].value="2";
+            if(kind==3u){bad[role[0]].value="1";bad[role[1]].value="0";}
+            if(kind==4u){const auto version=bad[role[0]];bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(role[0]));bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[0]+1u),version);}
+            if(kind==5u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[1]+1u),{280,"1"});
+            if(kind==6u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[0]+1u),{280,"0"});
+            if(kind==7u){const auto at=std::find_if(bad.begin()+static_cast<std::ptrdiff_t>(role[0]+1u),bad.end(),[](const Tag& t){return t.code==70;});
+                const auto flags=*at;bad.erase(at);bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[1]),flags);}
+            if(kind==8u){bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(role[0]+1u));bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[0]+1u),{{102,"{SHADOW"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"7"},{102,"}"}});}
+            if(kind==9u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(role[1]),{{100,"AcDbXrecord"},{280,"0"}});
+            if(!write(path,document("AC1027",bad,block),binary))return false;CaptureProbe failed;dx_data rejected;(void)failed.fileImport(path.string(),&rejected,false);
+            const auto* row=A::resource(rejected);if(!check(!row||(!row->attdefProfile.complete()&&row->attdefProfile.spans.empty()),"malformed dual280 source cannot publish a partial or complete profile"))return false;++refusals;
+            failed.skipSource=failed.skipTyped=false;dx_data corrected;if(!positive(ledger,binary,block,failed,corrected)||!A::resource(corrected)->attdefModel->lockPosition)return false;++retries;
+        }
+    }
+    std::cout<<"ATTDEF dual280 profiles="<<profiles<<"; independent spans="<<spans<<"; role corruptions="<<roleCorruptions<<"; malformed/retries="<<refusals<<'/'<<retries
+        <<"; single compatibility="<<singles<<"; revision refusals="<<versionRefusals<<"; ATTRIB refusals="<<attributeRefusals<<'\n';
+    return profiles==8u&&roleCorruptions==32u&&refusals==40u&&retries==40u&&singles==4u&&versionRefusals==24u&&attributeRefusals==8u;
+}
