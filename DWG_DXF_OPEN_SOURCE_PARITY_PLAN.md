@@ -40,9 +40,9 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: defaults/scalars | MLINESTYLE omitted-angle defaults and scalar transactions, then coupled nested work/MLEADERSTYLE | Reuse named-resource helpers; honor source/consumer contracts |
-| P3 | READY: classified producer defect | Canonical/malformed specular regression pair; resolve ambiguous Normal Map and remaining variants | Retained source/specification evidence |
-| P4 | LOCAL WORK + EVIDENCE | P4a source/role capture now; P4b composed document closure later | P4a is independent; P4b consumes P2/P3/P5/P7 providers |
+| P2 | READY: text transcoding | MLINESTYLE owning name/LTYPE text first; coupled rename, nested edits and MLEADERSTYLE follow | Existing scalar/default helpers and original source bindings |
+| P3 | READY: regression hardening | Canonical/malformed specular pair; then ambiguous Normal Map and remaining variants | Current parser already rejects the producer defect |
+| P4 | LOCAL WORK + EVIDENCE | P4a: one missing original profile/role provider; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -56,66 +56,89 @@ another tracking framework. Split large packets by one independently verifiable
 field/schema family per slice. A ready local packet takes precedence over repeated
 external searches or a broad audit with no current failing witness.
 
+### Immediate slices and shared work
+
+| Slice | Entry points / existing control | Exit condition |
+| --- | --- | --- |
+| P2.1 — text transport | `writeRawDxfGroups` override validation/emission; `writeRawDxfObjectWithStringOverrides` comment; MLINESTYLE preparation in `dx_iface.cpp`; existing four role-2/6 codec refusal controls | Same semantic names/references survive required transcoding; exact emitted fields, unchanged opaque roles and failure/retry controls agree |
+| P3.1 — producer regression | `materialSourceOrderControls`; existing `libdxfrw_material_source_order` selector | Canonical 73=3/76=0 preserves distinct roles; malformed 73=0 refuses, preserves destination and succeeds after correction |
+| P4a — next missing provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | One required unmatched profile/role gains exact source spans and dependency facts, or a precise retained unsupported disposition; no composite gate is flipped from partial proof |
+
+Implement P2.1 first. P3.1 recipes/research and P4a gap classification can run in
+parallel, but assign one owner to shared `dx_iface.cpp` and
+`tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
+private-state change for a slice before compiling. Share one build/test checkpoint
+after its sources freeze, rather than letting workers rebuild the same adapter.
+Each slice closes only its stated result; follow immediately with its next ready
+local dependency instead of waiting for unrelated native evidence.
+
 ## P2 — nested named-resource bodies: next implementation packet
 
-Reuse the [MLINESTYLE description transaction receipt](docs/research/rpp5gm-mline-style-description-transactions-2026-10-28.json),
-`NamedResourceBodyBaseline`, shared profile/dictionary snapshots, indexed name
-joins and emitted-body/owner proof. Keep only the residual work below; unsupported
-typed fields currently refuse and do not count as implemented editing support.
+Reuse the [MLINESTYLE defaults/scalar receipt](docs/research/rpp5gn-mline-style-dxf-defaults-scalars-2026-10-28.json),
+shared baseline/profile/dictionary snapshots, indexed joins and actual-output
+proof. Keep only the residual work below; refused fields are not implemented
+editing support.
 
-1. **Correct omitted DXF angle defaults.** Primary MLINESTYLE51/52 defaults are
-   90 degrees; current DXF/model initialization yields0. Preserve constructor/
-   `reset()` behavior for API-created and DWG models. Add a protected nonvirtual
-   DXF reset helper and use it in `dxfRW::processMLineStyle`, the owning
-   `dx_standard_output::Probe<DRW_MLineStyle>` and the Wave1 DXF probe. Prove
-   missing51, missing52, both missing, explicit0, reordered fields and reuse;
-   retain physical omission during description replay. Add one independent
-   omitted-field projection. Keep existing DWG explicit-angle controls separate;
-   read the ODA chapter and trace a source before changing any DWG unit behavior.
-2. **Reconcile represented scalars.** Extend the existing scoped census/planner
-   for derived flags70, first62/fill and finite degree angles51/52. Three-way
-   merge per field, retain unchanged presence/spelling and insert actual edits.
-   Use bitwise finite-double equality for edit detection. Keep unrepresented
-   CMC fields under explicit refusal until their provider exists. Reuse the
-   focused fixture selector and small affected cohorts, not another executable.
-3. **Complete naming/text/reference coupling.** Honor
-   [the documented MLINESTYLE contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
-   dictionary3 is authoritative and body2 redundant. Rename must update the
-   dictionary/body and MLINE340/name projections together. Extend semantic string
-   overrides for owning2/6 roles with codec and failure controls; resolve element6
-   as an emitted LTYPE name, separately from DWG index/handle mirrors. Independently
-   qualify dictionary collation, original key/body mismatches and native naming.
-4. **Complete nested/consumer edits.** Cover ordered49/62/6 tuples, count71,
-   defaults, repeated fields, CMC, presence and unknown extensions. Offset/count
-   edits need qualified updates to affected MLINE vertex parameters; retain
-   atomic refusal until that operation exists. Validate omitted/default62/6
-   grammar against producer evidence; the current255-element cap and strict
-   masks are admission policies, not universal format proof. Extend exact field,
-   owner/key, mutation, allocation, output-corruption and corrected-retry controls.
-5. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
+1. **Transcode owning text (2/6) without renaming.** Extend both explicit indexed
+   string-override admission/emission branches and their API comment to include
+   MLINESTYLE name (2) and per-element LTYPE (6). Keep existing signatures and callbacks.
+   Collect only physically scoped owning slots; rebuild/sort final indices after
+   scalar insertions. Encode already decoded semantic values when format/page
+   changes require it, preserve untouched spelling otherwise, and keep unknown
+   text opaque. Compare the full decoded output projection. Turn existing 2/6
+   refusal controls into positive transcoding cases with caret/CIF/Unicode,
+   codepage, mutation, failure and retry boundaries. Keep dictionary keys and
+   LTYPE identities unchanged in this slice; rename and reference edits follow.
+2. **Couple names to dictionaries and MLINE consumers.** Honor
+   [the naming contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
+   dictionary key (3) is authoritative, body name (2) redundant. Obtain original owner/key
+   evidence from `m_tableDxfSource.structuralAudits[ownerHandle]`, requiring
+   `originBound`, matched/complete body/state and input container/generation/
+   context binding; pair it with `m_mlineStyleBodyBaselines`. Reconcile original,
+   typed-name, raw-name and dictionary-key requests, refusing conflicts, ambiguous
+   ownership/aliases and duplicate folded keys. Preserve frozen caller snapshots;
+   stage bounded projected dictionaries and emit each owner once. Existing
+   MATERIAL dictionary code validates/copies keys; it does not generate renames.
+   Feed projected names into `m_mlineStyleNamesToWrite` before consumer validation;
+   use copied MLINE output rather than mutating caller models. Prove actual 2/340,
+   identity and owner joins in ENTITIES/BLOCKS as well as OBJECTS. Keep native
+   collation/original key-body mismatch qualification explicit.
+3. **Complete CMC, references and nested/consumer edits in two stages.** First
+   resolve element 6 as an emitted LTYPE name, separately from DWG index/handle
+   mirrors, then reconcile in-place tuple color/reference edits while preserving
+   count and offsets. Prove ordered 49/62/6 fields, CMC, omission/defaults and
+   repeated values; keep unknown extensions intact. Separately implement shape
+   changes: count 71 and offset edits require qualified updates to affected MLINE
+   vertex parameters. Retain atomic refusal until that operation exists. Confirm
+   omitted 62/6 grammar with producer evidence; the current 255-element cap/strict
+   masks are admission policies, not universal format proof. Reuse owner/key,
+   mutation, allocation, corruption and corrected-retry controls in both stages.
+4. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
    then cover complete contexts/defaults/repeated values and STYLE/LTYPE/
    BLOCK_RECORD references with the same shared helpers. Preserve source order,
    version-specific grammars and unsupported extensions. Obtain independent
    selected and native/source-version/annotation evidence for the actual scope.
 
-Do not append completed description work to this queue. Native MLINE acceptance,
-all Unicode counting conventions, original/full document closure and remaining
-consumer contracts stay separate gates. DWG byte-layout changes require the
-relevant ODA chapter and an observed source profile.
+Native MLINE behavior, all flag-bit meanings, Unicode counting conventions, original/full document
+closure and remaining consumer contracts stay separate gates. Read the relevant
+ODA chapter and trace a source before changing DWG byte layouts or angular units.
 
-## P3 — MATERIAL source/schema and legacy producer failure
+## P3 — MATERIAL source/schema and producer regression
 
 The [retained failure](docs/research/rpp5gk-legacy-dictionaryvar-codec-transactions-2026-10-28.json)
 and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json)
-identify pinned ezdxf1.4.5's specular field73 as a producer defect: canonical
-specular method is76;73 remains diffuse projection. Keep that validation intact.
-Correcting this code alone does not resolve its separate ambiguous Normal Map.
+identify pinned ezdxf 1.4.5's specular field 73 as a producer defect: canonical
+specular method is 76; 73 remains diffuse projection. Keep that validation intact.
+Correcting the producer's group code alone does not resolve its ambiguous Normal Map.
 
-1. Add one decisive canonical73=3/76=0 body and an otherwise-identical malformed
-   specular73=0 control to the existing MATERIAL selector. Check distinct typed
-   fields, literal output roles, refusal, unchanged destination and corrected retry.
+1. Add one decisive canonical 73=3/76=0 body and an otherwise-identical malformed
+   specular 73=0 control to `materialSourceOrderControls`. This hardens an already
+   correct parser distinction; change production only if the new witness exposes
+   a real gap. Check distinct typed fields, literal output roles, refusal,
+   unchanged destination and corrected retry. Begin with ASCII/binary at the
+   justified AC1018 boundary; expand versions only for a grammar difference.
    Preserve original producer artifacts; label authored corrections separately.
-2. Resolve the later reused42/72/3/73/74/75 Normal Map set without464/465 or a
+2. Resolve the later reused 42/72/3/73/74/75 Normal Map set without 464/465 or a
    complete refraction boundary. Complete absent/ambiguous refraction/bump,
    repeated fields, omitted normal/luminance and represented/opaque subclass or
    procedural profiles. Retain exact replay and actual output proof.
@@ -139,11 +162,16 @@ This split lets family providers advance without a dependency cycle.
 These requirements retain the full B2b/B3/C objective. A selected ENTITIES subset
 or a live mutable container cannot substitute for original-source completeness.
 
-1. **Original coverage.** Finish ATTDEF, TABLE and all remaining required primary,
-   BLOCKS/LAYOUT and object-body providers, including remaining MLEADER,
-   OBJECTCONTEXTDATA, PLOTSETTINGS, FIELD and GEODATA profiles. Include definitions, children,
-   terminators, unsupported/dropped original records and unused definitions in
-   the source census. Establish exact field/presence/reference roles.
+1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
+   primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
+   OBJECTCONTEXTDATA, PLOTSETTINGS, FIELD and GEODATA bodies. ATTDEF already has
+   immutable capture, modeled replay, physical spans, original pair/origin joins
+   and selected dependency-source roles; reuse these. Classify one witnessed
+   unmatched profile at a time: secondary `AcDbXrecord`, dual-280 grammar,
+   unmodeled columns or earlier-version multiline qualification remain distinct
+   from the admitted profiles. Keep explicit refusal until required representation
+   and evidence exist. Include children, terminators, unsupported/dropped original
+   records and unused definitions in the census; establish exact presence/roles.
 2. **Dependency roles.** Complete STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    material/style, IMAGE/IMAGEDEF/reactor, document/control/name/application,
    XDATA/EED and CEPSNID/CEPSNTYPE dependencies. Preserve actual 350/360 and
@@ -163,17 +191,23 @@ or a live mutable container cannot substitute for original-source completeness.
 
 Reuse existing source observers, scoped field maps, bounded census/indexes,
 transactional record scopes and emitted-byte inspectors. Add providers, not a
-second graph engine. Run one composed strict CLI checkpoint after its actual
+second graph engine. P4a owns original source/context/role providers; P5 owns TABLE
+schema/edit/emission work; P4b consumes both. Do not build parallel TABLE capture
+paths. Run one composed strict CLI checkpoint after its actual
 prerequisites close; a process exit or record count alone does not close it.
 
 ## P5 — rendering and TABLE
 
-**Rendering.** Complete remaining engine/class-revision/schema and
-optional/absent/duplicate/alias/extension profiles; active/global/environment,
+**Rendering.** Use the residuals in the
+[latest preset receipt](docs/research/rpp5ga-preset-name-optional-slot-and-application-replay-2026-10-27.json),
+not superseded generic edit/rename TODOs. Complete remaining engine/class-revision/
+schema and optional/absent/duplicate/alias/extension profiles; active/global/environment,
 background/live-section/sun relationships; native dictionary collation and layer
 style overrides. Independently qualify VIEWPORT shade modes 4/5 and references
 335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers
-with existing planners/snapshots/output hooks.
+with existing planners/snapshots/output hooks. Extend the selected
+PLOTSETTINGS/LAYOUT/VIEWPORT consumer-to-provider transport only for missing
+profiles, arbitrary remaps/collisions and composed output closure.
 
 **TABLE.** Complete Values, multiple contents, linked-data/DATALINK ownership,
 TABLESTYLE/CELLSTYLEMAP dependencies, formatting, units, margins and borders.
@@ -183,7 +217,9 @@ style example does not qualify every table schema.
 
 Implement one bounded schema family at a time. Share codec, CMC, name, reference
 and budget helpers; use authored sentinels that distinguish order, presence and
-non-default values. Keep rendering/native acceptance as explicit evidence tasks.
+non-default values. Start each new family with one reproduced unsupported/change
+witness, its owning selector and literal output expectation. Reuse P4a's original
+provider rather than recapturing TABLE bodies. Keep native acceptance separate.
 
 ## P6 — residual semantic and version audit
 
@@ -248,6 +284,9 @@ a wrapper around the same parser is not an independent oracle.
   required CI/release gates. Verify advertised claims against the actual receipts;
   source parity and successful packaging do not advertise format support.
 
+Reuse [the macOS extracted-build checkpoint](docs/research/rpp5fx-source-release-inventory-and-extracted-builds-2026-10-27.json)
+as historical static/shared/CMake/distcheck evidence. Refresh its affected binding
+at a package checkpoint; repairing the old inventory gap is no longer open work.
 Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel and native
 Linux GCC release remain **NOT_RUN**. Existing macOS/local/compile evidence cannot
 substitute for those runs.
@@ -271,6 +310,11 @@ local implementation.
 An external process completing, an unavailable test being skipped, or advisory
 agreement never changes a support claim automatically.
 
+Share P7/P8/P9 executions only when exact input bytes, route/operation,
+executable/modules, configuration and platform match. Store one execution receipt
+with separate claim/lineage bindings; an ordinary-read run cannot stand in for an
+open/insert, native-platform or independent-kernel run.
+
 ## Fast implementation and validation rules
 
 | Stage | Default validation | Escalation trigger |
@@ -281,8 +325,28 @@ agreement never changes a support claim automatically.
 | Composed integration / PR | Union of affected cohorts once, compatibility probes and required CI | Broad shared classifier/numeric/allocator changes or release obligations |
 | Release / promotion | Required full/native/package/ABI/corpus and claim checks on the exact binding | Explicit qualified support/release deliverable |
 
+For P2.1/P3.1, build `libdxfrw_dxf_fixture_tests` once after editing and use the
+exact owning selector during development:
+
+```sh
+cmake --build build --target libdxfrw_dxf_fixture_tests
+ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
+ctest --test-dir build -R '^libdxfrw_material_source_order$' --output-on-failure
+```
+
+At P2.1 readiness, run the affected DICTIONARYVAR legacy/current, SCALE and
+MLINESTYLE name/owner cohort because the override hook is shared. Rebuild
+`libdxfrw_hardening_tests` for `libdxfrw_dxf_mline_style_name_owner_budget`;
+if decoding/reset changes, also rebuild `libdxfrw_wave1_tests` and include defaults.
+Run the affected ASan cohort once on frozen sources.
+Build `dwg2dxf` and run only the MLINESTYLE peer lane for the independent serializer
+checkpoint. For P3.1, add MATERIAL normal-boundary/body cohorts only if production
+parser/provider behavior changes. Do not repeat the previous 26-test cohort or a
+full version matrix solely because a new narrow regression was added.
+
 1. Keep current configured normal/ASan builds, shared adapter objects and pinned
-   comparator environments. Build only needed targets. Prefer `.cpp` changes and
+   comparator environments. Rebuild every selected executable affected by static
+   library or adapter changes before running it. Prefer `.cpp` changes and
    existing helpers; batch necessary private state declarations instead of causing
    repeated header-wide recompilation for individual fields.
 2. Begin with one discriminating source plus a boundary version/encoding. Expand
@@ -307,6 +371,11 @@ agreement never changes a support claim automatically.
    and finish all qualifying processes before further edits to those bindings.
    Keep code and unrelated plan-only cleanup in separate commits; do not rebuild
    or rerun a passed cohort solely for excluded documentation changes.
+8. Use the existing receipts' measured build/runtime costs to choose the smallest
+   sufficient checkpoint. Reuse source recipes and independent physical/typed
+   projections across relevant slices; add a new oracle or matrix dimension only
+   for an unresolved operation or actual grammar/platform distinction. Review
+   later receipts and current symbols before acting on an older `next` list.
 
 ## Self-updating execution contract
 
