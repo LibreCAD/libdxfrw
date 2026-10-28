@@ -9225,6 +9225,69 @@ bool dxfRW::writeTable(DRW_Table *ent){
         return failDxfWrite();
     }
 
+    bool legacyCoveredMerge = false;
+    for (const DRW_TableRow& row : ent->m_content.m_rows) {
+        if (row.m_cells.size() != columns)
+            return failDxfWrite();
+        for (const DRW_TableCell& cell : row.m_cells) {
+            if (!cell.m_isMerged && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1))
+                legacyCoveredMerge = true;
+        }
+    }
+    if (legacyCoveredMerge) {
+        // The selected AC1018 spelling uses 173=0 on the spanning anchor and
+        // 173=1 with unit spans on each covered cell. Validate the live model
+        // against every stored rectangle before emitting any record bytes.
+        if (version != DRW::AC1018 || ent->m_content.m_mergedRanges.empty()
+            || ent->m_content.m_mergedRanges.size() > (rows * columns) / 2u)
+            return failDxfWrite();
+        try {
+            std::vector<std::uint8_t> occupancy(rows * columns, 0u);
+            for (const DRW_TableMergedRange& range : ent->m_content.m_mergedRanges) {
+                if (range.m_topRow < 0 || range.m_leftColumn < 0
+                    || range.m_bottomRow < range.m_topRow
+                    || range.m_rightColumn < range.m_leftColumn
+                    || static_cast<std::size_t>(range.m_bottomRow) >= rows
+                    || static_cast<std::size_t>(range.m_rightColumn) >= columns)
+                    return failDxfWrite();
+                const std::size_t top = static_cast<std::size_t>(range.m_topRow);
+                const std::size_t left = static_cast<std::size_t>(range.m_leftColumn);
+                const std::size_t bottom = static_cast<std::size_t>(range.m_bottomRow);
+                const std::size_t right = static_cast<std::size_t>(range.m_rightColumn);
+                if (top == bottom && left == right)
+                    return failDxfWrite();
+                const DRW_TableCell& anchor = ent->m_content.m_rows[top].m_cells[left];
+                if (anchor.m_isMerged
+                    || anchor.m_mergedWidth != static_cast<int>(right - left + 1u)
+                    || anchor.m_mergedHeight != static_cast<int>(bottom - top + 1u))
+                    return failDxfWrite();
+                for (std::size_t row = top; row <= bottom; ++row) {
+                    for (std::size_t column = left; column <= right; ++column) {
+                        const std::size_t index = row * columns + column;
+                        const bool isAnchor = row == top && column == left;
+                        const DRW_TableCell& cell = ent->m_content.m_rows[row].m_cells[column];
+                        if (occupancy[index] != 0u || (!isAnchor
+                            && (!cell.m_isMerged || cell.m_mergedWidth != 1
+                                || cell.m_mergedHeight != 1)))
+                            return failDxfWrite();
+                        occupancy[index] = isAnchor ? 1u : 2u;
+                    }
+                }
+            }
+            for (std::size_t row = 0u; row < rows; ++row) {
+                for (std::size_t column = 0u; column < columns; ++column) {
+                    const DRW_TableCell& cell = ent->m_content.m_rows[row].m_cells[column];
+                    if (occupancy[row * columns + column] == 0u
+                        && (cell.m_isMerged || cell.m_mergedWidth < 0 || cell.m_mergedWidth > 1
+                            || cell.m_mergedHeight < 0 || cell.m_mergedHeight > 1))
+                        return failDxfWrite();
+                }
+            }
+        } catch (...) {
+            return failDxfWrite();
+        }
+    }
+
     std::size_t mergedCellCount = 0;
     for (std::size_t rowIndex = 0; rowIndex < rows; ++rowIndex) {
         const DRW_TableRow& row = ent->m_content.m_rows[rowIndex];
@@ -9322,14 +9385,14 @@ bool dxfRW::writeTable(DRW_Table *ent){
                         || cell.m_textColorRgb >= 0
                         || cell.m_fillColorRgb >= 0
                         || cell.m_backgroundEnabled))
-                || (!cell.m_isMerged
+                || (!legacyCoveredMerge && !cell.m_isMerged
                     && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1))
                 || (cell.m_isMerged
                     && (cell.m_mergedWidth <= 0 || cell.m_mergedHeight <= 0
                         || cell.m_mergedWidth > static_cast<int>(columns)
                         || cell.m_mergedHeight > static_cast<int>(rows)
                         || rowIndex + static_cast<std::size_t>(cell.m_mergedHeight) > rows))
-                || (!cell.m_isMerged
+                || (!legacyCoveredMerge && !cell.m_isMerged
                     && (!ent->m_content.m_mergedRanges.empty()
                         && cell.m_mergedWidth > 1))) {
                 return failDxfWrite();
@@ -9402,9 +9465,9 @@ bool dxfRW::writeTable(DRW_Table *ent){
             }
         }
     }
-    if (mergedCellCount != ent->m_content.m_mergedRanges.size())
+    if (!legacyCoveredMerge && mergedCellCount != ent->m_content.m_mergedRanges.size())
         return failDxfWrite();
-    for (std::size_t rowIndex = 0; rowIndex < rows; ++rowIndex) {
+    for (std::size_t rowIndex = 0; !legacyCoveredMerge && rowIndex < rows; ++rowIndex) {
         for (std::size_t columnIndex = 0; columnIndex < columns; ++columnIndex) {
             const DRW_TableCell& cell =
                 ent->m_content.m_rows[rowIndex].m_cells[columnIndex];
@@ -9550,8 +9613,10 @@ bool dxfRW::writeTable(DRW_Table *ent){
             writer->writeInt16(172, cell->m_edgeFlags);
             writer->writeInt16(173, cell->m_isMerged ? 1 : 0);
             writer->writeInt16(174, cell->m_autoFit ? 1 : 0);
-            writer->writeInt16(175, cell->m_isMerged ? cell->m_mergedWidth : 1);
-            writer->writeInt16(176, cell->m_isMerged ? cell->m_mergedHeight : 1);
+            const bool hasSpan = cell->m_isMerged
+                || (legacyCoveredMerge && (cell->m_mergedWidth > 1 || cell->m_mergedHeight > 1));
+            writer->writeInt16(175, hasSpan ? cell->m_mergedWidth : 1);
+            writer->writeInt16(176, hasSpan ? cell->m_mergedHeight : 1);
             if (version >= DRW::AC1021) {
                 writer->writeInt32(91, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, cell->m_virtualEdgeFlags);

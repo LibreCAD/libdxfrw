@@ -90,6 +90,7 @@ bool legacyMergeSparseAllocation(const std::filesystem::path& path,bool binary) 
     return symbolFailedAllocations==before&&model.m_semanticContentComplete
         &&legacyMergeRanges(model,{{0,0,0,999}});
 }
+bool legacyTableMergeWriteTests(const std::filesystem::path& dir);
 bool legacyTableMergeTests(const std::filesystem::path& dir) {
     const auto path=dir/"legacy-merge.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE merge: "<<reason<<'\n';return false;};
@@ -194,5 +195,220 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE merge positives="<<positives<<" malformed="<<refusals
         <<" retries="<<retries<<" modern="<<modern<<" boundaries="<<boundaries
         <<" reached finalization allocation retries="<<allocationRetries<<" sparse allocation="<<sparse<<'\n';
-    return positives==2u&&refusals==46u&&retries==46u&&modern==4u&&boundaries==4u&&allocationRetries==2u&&sparse==2u;
+    return positives==2u&&refusals==46u&&retries==46u&&modern==4u&&boundaries==4u&&allocationRetries==2u&&sparse==2u
+        &&legacyTableMergeWriteTests(dir);
+}
+
+bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir);
+// Emitted field and topology controls are for the selected AC1018 profile;
+// the inferred source grammar is not a native rendering certificate.
+bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-merge-write-source.dxf",output=dir/"legacy-merge-write-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE merge writer: "<<why<<'\n';return false;};
+    const std::vector<DRW_TableMergedRange> ranges{{0,0,0,2},{1,0,2,2}};
+    unsigned profiles=0u,refusals=0u,retries=0u,explicitControls=0u,fallbacks=0u;
+    for(bool inputBinary:{false,true}) {
+        const auto tags=legacyMergeDocument("AC1018",3,3);dx_iface importer;dx_data input;
+        if(!write(source,tags,inputBinary)||!importer.fileImport(source.string(),&input,false)
+            ||input.tables.size()!=1u||!input.tables.front().m_semanticContentComplete
+            ||!legacyMergeRanges(input.tables.front(),ranges))return fail("source import");
+        for(bool binary:{false,true})for(bool strict:{false,true}) {
+            dx_data data;dx_iface writer;writer.cData=&data;writer.currentBlock=data.mBlock;
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";
+            data.blockRecords.push_back(modelSpace);
+            DRW_Table selected(input.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
+            writer.addTable(selected);
+            auto& table=data.tables.front();const DRW_Table baseline(table);const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data readback;
+                if(!reader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u
+                    ||!readback.tables.front().m_semanticContentComplete
+                    ||!legacyMergeRanges(readback.tables.front(),ranges))return false;
+                const auto& actual=readback.tables.front();
+                if(actual.m_content.m_rows.size()!=3u)return false;
+                for(std::size_t row=0u;row<3u;++row) {
+                    if(actual.m_content.m_rows[row].m_cells.size()!=3u)return false;
+                    for(std::size_t column=0u;column<3u;++column) {
+                        const auto& c=actual.m_content.m_rows[row].m_cells[column];
+                        const bool anchor=column==0u&&(row==0u||row==1u);
+                        if(c.m_isMerged==anchor||c.m_mergedWidth!=(anchor?3:1)
+                            ||c.m_mergedHeight!=(anchor&&row==1u?2:1))return false;
+                    }
+                }
+                const auto wire=attdefWireTags(output,binary);
+                bool tableBody=false;unsigned tables=0u;std::vector<std::array<int,3>> descriptors;
+                for(const auto& tag:wire) {
+                    if(tag.code==0){tableBody=tag.text=="ACAD_TABLE";if(tableBody)++tables;continue;}
+                    if(!tableBody)continue;
+                    if(tag.code==171)descriptors.push_back({{-1,-1,-1}});
+                    else if(!descriptors.empty()&&(tag.code==173||tag.code==175||tag.code==176)) {
+                        if(tag.kind!=AttdefWireTag::Integer)return false;
+                        const unsigned field=tag.code==173?0u:(tag.code==175?1u:2u);
+                        if(descriptors.back()[field]!=-1)return false;
+                        descriptors.back()[field]=static_cast<int>(tag.integer);
+                    }
+                }
+                if(tables!=1u||descriptors.size()!=9u)return false;
+                for(std::size_t i=0u;i<descriptors.size();++i) {
+                    const bool anchor=i==0u||i==3u;
+                    const std::array<int,3> expected{{anchor?0:1,anchor?3:1,i==3u?2:1}};
+                    if(descriptors[i]!=expected)return false;
+                }
+                return true;
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                return fail("selected output/readback");
+            ++profiles;
+            for(unsigned fault=0u;fault<12u;++fault) {
+                if(fault==0u)table.m_content.m_mergedRanges.clear();
+                if(fault==1u)table.m_content.m_mergedRanges.pop_back();
+                if(fault==2u){const auto range=table.m_content.m_mergedRanges.front();table.m_content.m_mergedRanges.push_back(range);}
+                if(fault==3u)--table.m_content.m_mergedRanges[0].m_rightColumn;
+                if(fault==4u)table.m_content.m_mergedRanges[0].m_rightColumn=3;
+                if(fault==5u)table.m_content.m_rows[0].m_cells[1].m_isMerged=false;
+                if(fault==6u)table.m_content.m_rows[0].m_cells[1].m_mergedWidth=2;
+                if(fault==7u)table.m_content.m_rows[0].m_cells[0].m_mergedWidth=0;
+                if(fault==8u)table.m_semanticContentComplete=false;
+                if(fault==9u)table.m_content.m_rows[0].m_cells[0].m_overrideFlags=0x4000u;
+                if(fault==10u)table.m_content.m_rows[0].m_cells[0].m_borders[0].m_visible=false;
+                const DRW_Table invalid(table);const auto invalidIdentities=tableExportIdentities(data);
+                const DRW::Version target=fault==11u?DRW::AC1021:DRW::AC1018;
+                if(!tableExportSentinel(output,true))return fail("sentinel creation");
+                const bool exported=writer.fileExport(output.string(),target,binary,&data,false,strict);
+                if(invalidIdentities!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(invalid,table))
+                    return fail("invalid profile changed caller "+std::to_string(fault));
+                if(fault==8u) {
+                    // The adapter intentionally retains its historical INSERT
+                    // projection for an incomplete TABLE snapshot.
+                    if(strict) {
+                        // This authored projection has no corresponding block;
+                        // strict ownership mode rejects the unresolved target.
+                        if(exported||!tableExportSentinel(output))return fail("strict incomplete TABLE target");
+                        ++refusals;
+                    } else {
+                        if(!exported)return fail("incomplete TABLE projection failed");
+                        const auto wire=attdefWireTags(output,binary);unsigned tables=0u,projections=0u;
+                        bool insert=false;
+                        for(const auto& tag:wire) {
+                            if(tag.code==0){insert=tag.text=="INSERT";if(tag.text=="ACAD_TABLE")++tables;}
+                            else if(insert&&tag.code==2&&tag.text=="*T500")++projections;
+                        }
+                        if(tables!=0u||projections!=1u)return fail("incomplete TABLE projection output");
+                        ++fallbacks;
+                    }
+                } else {
+                    if(exported||!tableExportSentinel(output))
+                        return fail("invalid profile or target escaped "+std::to_string(fault));
+                    ++refusals;
+                }
+                table=baseline;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                    return fail("same-writer corrected retry "+std::to_string(fault));
+                ++retries;
+            }
+            // Existing AC1018 explicit-anchor representation remains writable.
+            DRW_Table previous(baseline);previous.m_content.m_mergedRanges={{0,0,0,1}};
+            for(std::size_t row=0u;row<3u;++row)for(std::size_t column=0u;column<3u;++column) {
+                auto& cell=previous.m_content.m_rows[row].m_cells[column];const bool anchor=row==0u&&column==0u;
+                cell.m_isMerged=anchor;cell.m_mergedWidth=anchor?2:1;cell.m_mergedHeight=1;
+            }
+            table=previous;
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict))return fail("explicit-anchor output");
+            dx_iface reader;dx_data readback;
+            if(!reader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u
+                ||!legacyMergeRanges(readback.tables.front(),{{0,0,0,1}}))return fail("explicit-anchor readback");
+            ++explicitControls;
+        }
+    }
+    std::cout<<"legacy TABLE merge writer profiles="<<profiles<<" refusals="<<refusals
+        <<" corrected retries="<<retries<<" explicit-anchor controls="<<explicitControls<<" incomplete projections="<<fallbacks<<'\n';
+    return profiles==8u&&refusals==92u&&retries==96u&&explicitControls==8u&&fallbacks==4u
+        &&legacyTableMergeOverrideComposition(dir);
+}
+// Composition of the already admitted legacy merge and text override profiles.
+// Raw field correspondence is tested; no native appearance is claimed.
+bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir) {
+    const auto inputPath=dir/"legacy-merge-composition-source.dxf",output=dir/"legacy-merge-composition-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE merge composition: "<<why<<'\n';return false;};
+    const std::vector<DRW_TableMergedRange> ranges{{0,0,0,2},{1,0,2,2}};
+    unsigned positives=0u,refusals=0u,retries=0u;
+    for(bool inputBinary:{false,true}) {
+        auto tags=legacyMergeDocument("AC1018",3,3);
+        // Insert in reverse cell order to keep each physical source slot stable.
+        for(unsigned index:{3u,1u,0u}) {
+            const int mask=index==0u?32:33;
+            tags[legacyMergeCellField(tags,index,177)].value=std::to_string(mask);
+            const auto text=legacyMergeCellField(tags,index,1);
+            Tags extra;
+            if(index!=0u)extra.push_back({170,index==1u?"5":"9"});
+            extra.push_back({140,index==3u?"3":"4"});
+            tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(text+1u),extra.begin(),extra.end());
+        }
+        dx_iface importer;dx_data source;
+        if(!write(inputPath,tags,inputBinary)||!importer.fileImport(inputPath.string(),&source,false)
+            ||source.tables.size()!=1u||!source.tables.front().m_semanticContentComplete
+            ||!legacyMergeRanges(source.tables.front(),ranges))return fail("source import");
+        for(bool binary:{false,true})for(bool strict:{false,true}) {
+            dx_data data;dx_iface writer;writer.cData=&data;writer.currentBlock=data.mBlock;
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";
+            data.blockRecords.push_back(modelSpace);
+            DRW_Table selected(source.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
+            writer.addTable(selected);auto& table=data.tables.front();
+            const DRW_Table baseline(table);const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data readback;
+                if(!reader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u
+                    ||!readback.tables.front().m_semanticContentComplete||!legacyMergeRanges(readback.tables.front(),ranges))return false;
+                const auto& actual=readback.tables.front();
+                if(actual.m_content.m_rows.size()!=3u)return false;
+                const auto& a=actual.m_content.m_rows[0].m_cells[0];const auto& b=actual.m_content.m_rows[0].m_cells[1];
+                const auto& c=actual.m_content.m_rows[1].m_cells[0];
+                if(a.m_overrideFlags!=0x20u||a.m_textHeight!=4.0||a.m_textAlignment!=0
+                    ||b.m_overrideFlags!=0x21u||b.m_textHeight!=4.0||b.m_textAlignment!=5
+                    ||c.m_overrideFlags!=0x21u||c.m_textHeight!=3.0||c.m_textAlignment!=9)return false;
+                struct Fields{int mask=-1,alignment=-1;double height=-1.0;};
+                std::vector<Fields> fields;bool inTable=false;unsigned tables=0u;
+                for(const auto& tag:attdefWireTags(output,binary)) {
+                    if(tag.code==0){inTable=tag.text=="ACAD_TABLE";if(inTable)++tables;continue;}
+                    if(!inTable)continue;
+                    if(tag.code==171)fields.push_back({});
+                    else if(!fields.empty()&&tag.code==177){if(fields.back().mask!=-1)return false;fields.back().mask=static_cast<int>(tag.integer);}
+                    else if(!fields.empty()&&tag.code==170){if(fields.back().alignment!=-1)return false;fields.back().alignment=static_cast<int>(tag.integer);}
+                    else if(!fields.empty()&&tag.code==140){if(fields.back().height!=-1.0)return false;fields.back().height=tag.real;}
+                }
+                if(tables!=1u||fields.size()!=9u)return false;
+                for(std::size_t i=0u;i<fields.size();++i) {
+                    const int mask=i==0u?32:((i==1u||i==3u)?33:-1);
+                    const int alignment=i==1u?5:(i==3u?9:-1);
+                    const double height=i==3u?3.0:((i==0u||i==1u)?4.0:-1.0);
+                    if(fields[i].mask!=mask||fields[i].alignment!=alignment||fields[i].height!=height)return false;
+                }
+                return true;
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                return fail("combined output/readback");
+            ++positives;
+            for(unsigned fault=0u;fault<4u;++fault) {
+                if(fault==0u)table.m_content.m_rows[0].m_cells[1].m_textHeight=0.0;
+                if(fault==1u)table.m_content.m_rows[0].m_cells[1].m_textAlignment=0;
+                if(fault==2u)table.m_content.m_rows[0].m_cells[0].m_textHeight=0.0;
+                if(fault==3u)table.m_content.m_rows[0].m_cells[0].m_overrideFlags|=0x4000u;
+                const DRW_Table invalid(table);const auto saved=tableExportIdentities(data);
+                if(!tableExportSentinel(output,true)||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)
+                    ||!tableExportSentinel(output)||saved!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(invalid,table))return fail("invalid override escaped "+std::to_string(fault));
+                ++refusals;table=baseline;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                    return fail("corrected retry "+std::to_string(fault));
+                ++retries;
+            }
+        }
+    }
+    std::cout<<"legacy TABLE merge/override compositions="<<positives<<" refusals="<<refusals<<" retries="<<retries<<'\n';
+    return positives==8u&&refusals==32u&&retries==32u;
 }
