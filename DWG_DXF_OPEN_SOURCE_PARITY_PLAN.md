@@ -312,6 +312,15 @@ combined, are limited to their [height](docs/research/rpp5hw-ac1018-table-height
 and [alignment](docs/research/rpp5ic-ac1018-table-alignment-2026-10-28.json)
 field evidence. The alignment masks are inferred profiles; neither establishes
 other masks, full original TABLE output or native rendering.
+For the [AC1018 TABLE 528 residual](docs/research/rpp5ie-ac1018-table-merge-visibility-2026-10-28.json),
+investigate the source's apparent anchor/covered merge layout at grid scope.
+The current parser constructs singleton merged ranges for covered cells and leaves
+the record incomplete. Establish the anchor polarity and preserved geometry with
+independent source/consumer evidence, then implement bounded nonoverlapping range
+construction and actual-output proof; do not remove the unmerged-span refusal
+without that work. For its `0x4460` top-border profile, distinguish absent
+group 289 from an explicit value before changing output. The paired DWG and DXF
+observations do not yet establish equivalent visibility or common save state.
 Bind original source bodies, nested scopes and referenced resources before actual
 output comparison. Finish independent native B2b/B3/C evidence; a default cell or
 style example does not qualify every table schema.
