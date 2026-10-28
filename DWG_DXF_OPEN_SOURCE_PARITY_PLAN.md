@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -118,7 +118,8 @@ proof. Refused fields are not implemented editing support.
    raw-only edits; a stale typed count cannot authorize a changed output style.
    Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json),
    [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
-   and [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
+   [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
+   and [multi-element append](docs/research/rpp5ht-mline-multi-append-2026-10-28.json)
    receipts and their original/live ordinary MLINE census. They do not qualify
    multiple-element removal, simultaneous retained-element edits, 1→0,
    consumed geometry, earlier versions, proxy or unknown dependencies. Continue
