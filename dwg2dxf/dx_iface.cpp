@@ -15566,7 +15566,10 @@ bool dx_iface::prepareDxfMaterialSources(DRW::Version version,bool binary) {
             if(baseline==cData->m_materialBodyBaselines.end()||!baseline->second
                 ||baseline->second->m_version!=version||material.hasDwgRawData())return false;
             DxfMaterialWriteSource plan;plan.baseline=baseline->second;plan.raw=raw;plan.common=material;
-            if(!dx_material_body::reconcile(*plan.baseline,raw,material,plan.output,plan.outputName,binary))return false;
+            if(!dx_material_body::reconcile(*plan.baseline,raw,material,plan.output,plan.outputName,binary,
+                [](const DRW_Material& original,const DRW_Material& current,DRW::Version sourceVersion) {
+                    return standardDwgCommonEqual(original,current,sourceVersion);
+                }))return false;
             if(!names.emplace(raw.handle,plan.outputName).second)return false;
             m_dxfMaterialWriteSources.push_back(std::move(plan));
         }

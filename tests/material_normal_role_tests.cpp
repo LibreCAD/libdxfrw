@@ -18,7 +18,7 @@ namespace {
 bool author(const std::filesystem::path& path, bool binary, bool boundary,
             bool partial, bool incompleteNormal = false,
             bool procedural = false, unsigned malformed = 0, int orphanProcedure = 0,
-            int normalProjection = 4) {
+            int normalProjection = 4, bool sourceCommon = false) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) return false;
     if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
@@ -30,8 +30,15 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
         && writer->writeString(2, "HEADER")
         && writer->writeString(9, "$ACADVER")
         && writer->writeString(1, "AC1027")
-        && writer->writeString(0, "ENDSEC")
-        && writer->writeString(0, "SECTION")
+        && writer->writeString(0, "ENDSEC");
+    if (sourceCommon) ok = ok && writer->writeString(0, "SECTION") && writer->writeString(2, "TABLES")
+        && writer->writeString(0, "TABLE") && writer->writeString(2, "APPID")
+        && writer->writeString(5, "A1") && writer->writeInt16(70, 1)
+        && writer->writeString(0, "APPID") && writer->writeString(5, "A2") && writer->writeString(330, "A1")
+        && writer->writeString(100, "AcDbSymbolTableRecord") && writer->writeString(100, "AcDbRegAppTableRecord")
+        && writer->writeString(2, "REVIEW_APP") && writer->writeInt16(70, 0)
+        && writer->writeString(0, "ENDTAB") && writer->writeString(0, "ENDSEC");
+    ok = ok && writer->writeString(0, "SECTION")
         && writer->writeString(2, "OBJECTS")
         && writer->writeString(0, "DICTIONARY")
         && writer->writeString(5, "C")
@@ -51,8 +58,10 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
         && writer->writeString(350, "2")
         && writer->writeString(0, "MATERIAL")
         && writer->writeString(5, "2")
-        && writer->writeString(330, "1")
-        && writer->writeString(100, "AcDbMaterial")
+        && writer->writeString(330, "1");
+    if (sourceCommon) ok = ok && writer->writeString(102, "{REVIEW_APP")
+        && writer->writeString(1, "original-application") && writer->writeString(102, "}");
+    ok = ok && writer->writeString(100, "AcDbMaterial")
         && writer->writeString(1, "PeerMaterial")
         && writer->writeDouble(42, 0.25);
     // First refraction marker before the diffuse tuple is complete, followed
@@ -91,6 +100,8 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
     if (orphanProcedure == 62) ok = ok && writer->writeInt16(62, 7);
     if (orphanProcedure == 420) ok = ok && writer->writeInt32(420, 0x123456);
     if (orphanProcedure == 430) ok = ok && writer->writeString(430, "book$color");
+    if (sourceCommon) ok = ok && writer->writeString(1001, "REVIEW_APP")
+        && writer->writeString(1000, "original-xdata");
     ok = ok && writer->writeString(0, "ENDSEC")
         && writer->writeString(0, "SECTION")
         && writer->writeString(2, "ENTITIES")
@@ -116,6 +127,22 @@ const DRW_Material* target(const dx_data& data) {
         result = &m;
     }
     return result;
+}
+
+bool originalCommon(const DRW_Material& value) {
+    if (value.appData.size() != 1u || value.extData.size() != 2u) return false;
+    const auto& app = value.appData.front();
+    if (app.size() != 3u) return false;
+    auto field = app.begin();
+    if (field->code() != 102 || !field->content.s || *field->content.s != "REVIEW_APP") return false;
+    ++field;
+    if (field->code() != 1 || !field->content.s || *field->content.s != "original-application") return false;
+    ++field;
+    if (field->code() != 102 || !field->content.s || *field->content.s != "}") return false;
+    return value.extData[0] && value.extData[0]->code() == 1001 && value.extData[0]->content.s
+        && *value.extData[0]->content.s == "REVIEW_APP" && value.extData[1]
+        && value.extData[1]->code() == 1000 && value.extData[1]->content.s
+        && *value.extData[1]->content.s == "original-xdata";
 }
 
 bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int normalProjection = 4) {
@@ -234,6 +261,64 @@ struct LateMaterialEdit final : dx_iface {
 bool run(const std::filesystem::path& dir) {
     const auto input = dir / "input.dxf", output = dir / "output.dxf";
     for (bool sourceBinary : {false, true}) {
+        for (bool outputBinary : {false, true}) for (unsigned mode = 0; mode != 3; ++mode) {
+            if (!author(input, sourceBinary, false, false, false, false, 0, 0, 4, true)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected || !originalCommon(*selected)) return false;
+            if (mode == 1) selected->m_normalMapBlendFactor = 0.875;
+            if (mode == 2) selected->m_normalMapProjection = 1;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !originalCommon(*selected)
+                || !physical(output, outputBinary, false, false, mode == 1 ? 0.875 : 0.75, mode == 2 ? 1 : 4)) return false;
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !typed(readback, false, mode == 1 ? 0.875 : 0.75, mode == 2 ? 1 : 4)) return false;
+            const auto* result = target(readback);
+            if (!result || !originalCommon(*result)) return false;
+        }
+        // A live MATERIAL's common carrier must agree with its immutable raw
+        // baseline even when its body is untouched or has a selected edit.
+        // Otherwise replay would silently drop typed application data, XDATA,
+        // or other common fields that the body-only comparison cannot see.
+        for (bool outputBinary : {false, true}) for (unsigned mode = 0; mode != 3; ++mode)
+            for (unsigned fault = 0; fault != 6; ++fault) {
+                if (!author(input, sourceBinary, false, false)) return false;
+                dx_data source; dx_iface adapter;
+                if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+                DRW_Material* selected = nullptr;
+                for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+                if (!selected) return false;
+                if (mode == 1) selected->m_normalMapBlendFactor = 0.875;
+                if (mode == 2) selected->m_normalMapProjection = 1;
+                const DRW_Material corrected = *selected;
+                if (fault == 0) selected->appData.push_back({DRW_Variant(102, std::string("REVIEW_APP")),
+                    DRW_Variant(1, std::string("application-value")), DRW_Variant(102, std::string("}"))});
+                if (fault == 1 && (!selected->addExtData(std::make_unique<DRW_Variant>(1001, std::string("REVIEW_APP")))
+                    || !selected->addExtData(std::make_unique<DRW_Variant>(1000, std::string("xdata-value"))))) return false;
+                if (fault == 2) selected->flags = 1;
+                if (fault == 3) selected->name = "changed-base-name";
+                if (fault == 4) selected->reactorHandles.push_back(0x1234u);
+                if (fault == 5) selected->xDictHandle = 0x1234u;
+                const DRW_Material caller = *selected;
+                { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+                if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)) {
+                    std::cerr << "MATERIAL common edit silently accepted mode=" << mode << " fault=" << fault << '\n'; return false;
+                }
+                std::ifstream saved(output, std::ios::binary);
+                const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+                if (savedBytes != "keep destination" || selected->flags != caller.flags || selected->name != caller.name
+                    || selected->appData.size() != caller.appData.size() || selected->extData.size() != caller.extData.size()
+                    || selected->reactorHandles != caller.reactorHandles || selected->xDictHandle != caller.xDictHandle
+                    || selected->m_normalMapBlendFactor != caller.m_normalMapBlendFactor
+                    || selected->m_normalMapProjection != caller.m_normalMapProjection) return false;
+                *selected = corrected;
+                if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                    || !physical(output, outputBinary, false, false, mode == 1 ? 0.875 : 0.75, mode == 2 ? 1 : 4)
+                    || !typed(source, false, mode == 1 ? 0.875 : 0.75, mode == 2 ? 1 : 4)) return false;
+            }
         // These uniquely procedural host codes do not acquire a qualified
         // role merely because a malformed source omitted its 300/292 markers.
         // Unchanged replay stays available; the selected edit refuses and a

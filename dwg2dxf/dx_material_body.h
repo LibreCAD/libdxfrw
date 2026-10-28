@@ -173,11 +173,14 @@ inline bool spelling(const DRW_Variant& value,std::string& result) {
 // Reconcile each represented field against an immutable import baseline.
 // Disjoint raw/typed edits compose; a same-field disagreement refuses. A raw
 // edit owns unknown groups. Only changed represented slots are rewritten.
+template<class CommonEqual>
 inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& raw,
-        const DRW_Material& typed,DRW_RawDxfObject& output,UTF8STRING& name,bool binary) {
+        const DRW_Material& typed,DRW_RawDxfObject& output,UTF8STRING& name,bool binary,
+        const CommonEqual& commonEqual) {
     const bool sourceBinary=!baseline.hasRawValues;
     DRW_Material original,parsed;
-    if(!decode(baseline,original,sourceBinary)||!decode(raw,parsed,sourceBinary))return false;
+    if(!decode(baseline,original,sourceBinary)||!decode(raw,parsed,sourceBinary)
+        ||!commonEqual(original,typed,baseline.m_version))return false;
     bool unchanged=baseline.name==raw.name&&baseline.handle==raw.handle
         &&baseline.parentHandle==raw.parentHandle&&baseline.m_version==raw.m_version
         &&baseline.hasRawValues==raw.hasRawValues&&baseline.rawValues==raw.rawValues
