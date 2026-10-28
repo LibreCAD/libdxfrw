@@ -752,6 +752,7 @@ public:
 #include "block_origin_controls.h"
 #include "block_empty_polyline_controls.h"
 #include "attdef_equal_alignment_controls.h"
+#include "attdef_embedded_dual280_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1147,6 +1148,7 @@ int main(int argc,char** argv) {
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
     const bool equalAlignment=argc==2&&std::string(argv[1])=="--equal-alignment";
+    const bool dualEmbedded=argc==2&&std::string(argv[1])=="--embedded-dual280";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
     const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
@@ -1166,7 +1168,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!equalAlignment&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1191,6 +1193,7 @@ int main(int argc,char** argv) {
         blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
+        dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):

@@ -93,6 +93,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     std::size_t depth=0u,xdepth=0u;
     std::size_t attributeMarker=raw.groups.size(),firstAttribute280=raw.groups.size();
     bool dualAttribute280=false,qualifiedSingleLock280=false,verticalAfterLock280=false;
+    bool qualifiedEmbeddedDualLock=false,verticalAfterEmbeddedDualLock=false;
+    bool invalidEmbeddedDualSequence=false;
     std::array<std::size_t,3> textAlignment{{raw.groups.size(),raw.groups.size(),raw.groups.size()}};
     bool redundantHostAlignment=false;
     int pointCode=0,pointNext=0;
@@ -169,9 +171,13 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                 field=Field::Subclass;
                 if(string=="AcDbXrecord")return reject(Reason::UnmodeledSecondary,i);
                 if(string=="Embedded Object") {
-                    // A later embedded body must not inherit the classic
-                    // dual-280 qualification selected before this marker.
-                    if(dualAttribute280)return reject(Reason::AmbiguousVersion,i);
+                    // The selected embedded extension of the classic dual
+                    // grammar requires the witnessed equal-host alignment,
+                    // type and 101 marker. Other dual bodies remain refused.
+                    if(dualAttribute280&&(code!=101||!redundantHostAlignment
+                        ||!qualifiedEmbeddedDualLock||verticalAfterEmbeddedDualLock||invalidEmbeddedDualSequence
+                        ||!seen[3][72]
+                        ||attributeType!=(definition?4:2)))return reject(Reason::AmbiguousVersion,i);
                     if(nested||!hostText||(stage!=Text&&stage!=Attribute))return reject(Reason::Subclass,i);
                     // Earlier versions remain accepted by plain consumers, but
                     // compatibility parsing is not a documented multiline profile.
@@ -205,6 +211,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                         return reject(code==280?Reason::AmbiguousVersion:Reason::DuplicateField,i);
                     out.spans[firstAttribute280].field=Field::ReservedDefault;
                     dualAttribute280=true;
+                    qualifiedEmbeddedDualLock=!seen[3][71]&&!seen[3][72]
+                        &&!seen[3][11]&&!seen[3][21]&&!seen[3][31];
                 } else if(stage==Attribute&&code==280) {
                     firstAttribute280=i;
                     // A single flag after the required attribute fields is
@@ -225,19 +233,26 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                     case 74:
                         if(!integer(value,0,3))return reject(Reason::InvalidValue,i);
                         if(seen[3][280])verticalAfterLock280=true;
+                        if(dualAttribute280)verticalAfterEmbeddedDualLock=true;
                         break;
                     case 280:if(!integer(value,0,1))return reject(Reason::InvalidValue,i);break;
                     case 71:
                         if(raw.m_version!=DRW::AC1032)return reject(Reason::Revision,i);
+                        if(dualAttribute280&&(seen[3][72]||seen[3][11]||seen[3][21]||seen[3][31]))
+                            invalidEmbeddedDualSequence=true;
                         if(nested||(!integer(value,1,1)&&!integer(value,definition?4:2,definition?4:2)))return reject(Reason::UnknownField,i);
                         attributeType=value.i_val();
                         break;
                     case 72:
                         if(raw.m_version!=DRW::AC1032)return reject(Reason::Revision,i);
+                        if(dualAttribute280&&(!seen[3][71]||seen[3][11]||seen[3][21]||seen[3][31]))
+                            invalidEmbeddedDualSequence=true;
                         if(nested||!integer(value,0,0))return reject(Reason::UnknownField,i);
                         field=Field::ReservedDefault;break;
                     case 11:case 21:case 31:
                         if(nested)return reject(Reason::DuplicateField,i);
+                        if(dualAttribute280&&(!seen[3][71]||!seen[3][72]))
+                            invalidEmbeddedDualSequence=true;
                         if(seen[2][code]) {
                             const auto index=static_cast<std::size_t>((code-11)/10);
                             if(raw.m_version!=DRW::AC1032 || textAlignment[index]>=raw.groups.size()
@@ -334,7 +349,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     if(attributeType!=1&&!nested)return reject(Reason::InvalidValue,end);
     if(redundantHostAlignment) {
         if(!nested||out.form!=Form::Embedded101||attributeType!=(definition?4:2)
-            ||(seen[3][280]&&(!qualifiedSingleLock280||dualAttribute280||verticalAfterLock280)))
+            ||(seen[3][280]&&!dualAttribute280&&(!qualifiedSingleLock280||verticalAfterLock280)))
             return reject(Reason::AmbiguousVersion,end);
         for(const int code:{11,21,31})
             if(seen[2][code]!=seen[3][code])return reject(Reason::IncompletePoint,end);

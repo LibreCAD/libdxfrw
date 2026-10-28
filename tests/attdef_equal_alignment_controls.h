@@ -257,9 +257,9 @@ bool equalAlignmentRefusals(const DRW_RawDxfObject& original,const AttdefLedger&
             auto marker=std::find_if(raw.groups.begin(),raw.groups.end(),[&](const DRW_Variant& v){return v.code()==100&&v.type()==DRW_Variant::STRING&&v.content.s&&*v.content.s==(definition?"AcDbAttributeDefinition":"AcDbAttribute");});
             if(marker==raw.groups.end())return false;raw.groups.insert(marker+1,DRW_Variant(280,0));
             auto embedded=std::find_if(raw.groups.begin(),raw.groups.end(),[](const DRW_Variant& v){return v.code()==101&&v.type()==DRW_Variant::STRING&&v.content.s&&*v.content.s=="Embedded Object";});
-            if(embedded==raw.groups.end())return false;raw.groups.insert(embedded,DRW_Variant(280,1));
+            if(embedded==raw.groups.end())return false;raw.groups.insert(embedded,DRW_Variant(280,2));
             embedded=std::find_if(raw.groups.begin(),raw.groups.end(),[](const DRW_Variant& v){return v.code()==101&&v.type()==DRW_Variant::STRING&&v.content.s&&*v.content.s=="Embedded Object";});
-            at=static_cast<std::size_t>(embedded-raw.groups.begin());reason=Reason::AmbiguousVersion;
+            at=static_cast<std::size_t>(embedded-raw.groups.begin()-1);reason=Reason::AmbiguousVersion;
         }
         if(fault==9u) {at=position(Field::EmbeddedMarker,101);raw.groups[at]=DRW_Variant(100,"Embedded Object");reason=Reason::AmbiguousVersion;}
         if(fault==10u) {
