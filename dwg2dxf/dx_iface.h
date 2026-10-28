@@ -991,7 +991,7 @@ public:
     bool finalizeDxfWrite() override;
 
     virtual void writeBlocks() override{
-        if(!hasUnchangedDxfFullStyles()){dxfW->writeRawDxfEntity(nullptr);return;}
+        if(!hasUnchangedDxfFullStyles()||!hasUnchangedDxfCommonReferences(347,m_dxfMaterialReferenceState)){dxfW->writeRawDxfEntity(nullptr);return;}
         //write each block
         for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it){
             dx_ifaceBlock* bk = *it;
@@ -1094,7 +1094,7 @@ public:
     }
     //write entities of model space and first paper_space
     virtual void writeEntities() override{
-        if(!hasUnchangedDxfFullStyles()){dxfW->writeRawDxfEntity(nullptr);return;}
+        if(!hasUnchangedDxfFullStyles()||!hasUnchangedDxfCommonReferences(347,m_dxfMaterialReferenceState)){dxfW->writeRawDxfEntity(nullptr);return;}
         m_hatchOwnerContext.clear();
         if (!writeEntitySequence(cData->mBlock))
             return;
@@ -1901,6 +1901,7 @@ private:
     friend class DxIfaceExtensionGraphTestAccess;
     friend class DxIfaceStandardDwgCaptureTestAccess;
     friend class DxIfaceTableSourceTestAccess;
+    friend class DxIfaceMaterialReferenceTestAccess;
     void rejectStandardDwgObjectCapture() noexcept;
     void retainStandardDwgObjectFrame(const DRW_UnsupportedObject& data);
     void finishStandardDwgObjectCapture(bool successfulRead) noexcept;
@@ -2140,7 +2141,7 @@ private:
     bool hasUnchangedDxfRenderPresetSources() const noexcept;
     bool writeDxfRenderPreset(DRW_RawDxfObject& raw);
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
-    struct DxfFullStyleSource {
+    struct DxfCommonReferenceSource {
         enum Kind { Entity, Child, BlockBegin, BlockEnd, Raw } kind{Entity};
         const DRW_Entity* entity{nullptr};
         const DRW_RawDxfObject* raw{nullptr};
@@ -2152,21 +2153,40 @@ private:
         bool blocks{false}, inspected{false};
         std::uint32_t emitted{0}, emittedOwner{0};
     };
-    std::vector<DxfFullStyleSource> m_dxfFullStyles;
-    std::unordered_map<const DRW_Entity*,std::size_t> m_dxfFullStyleEntities;
-    struct DxfFullStyleProvider {std::uint32_t owner{0};bool observed{false};};
-    std::unordered_map<std::uint32_t,DxfFullStyleProvider> m_dxfFullStyleProviders;
-    std::size_t m_dxfFullStyleObservedFields{0};
-    const dx_data* m_dxfFullStyleOwner{nullptr};
-    std::uint64_t m_dxfFullStyleGeneration{0};
-    std::size_t m_dxfFullStyleBytes{0}, m_dxfFullStyleByteLimit{64u*1024u*1024u}, m_dxfFullStyleRecordLimit{100000u};
-    unsigned m_dxfFullStyleSections{0};
-    bool visitDxfFullStyles(const dx_data& data,const std::function<bool(DxfFullStyleSource&&)>& visit) const noexcept;
-    bool prepareDxfFullStyles(DRW::Version version) noexcept;
-    bool hasUnchangedDxfFullStyles() const noexcept;
-    bool inspectDxfFullStyles(const dxfRW::DxfObjectsWriteView& view,std::string_view section) noexcept;
-    bool finalizeDxfFullStyles() const noexcept;
-    bool checkDxfFullStyleEntity(const DRW_Entity* entity) const noexcept;
+    struct DxfCommonReferenceState {
+        std::vector<DxfCommonReferenceSource> sources;
+        std::unordered_map<const DRW_Entity*,std::size_t> entities;
+        struct Provider {std::uint32_t owner{0};bool observed{false};};
+        std::unordered_map<std::uint32_t,Provider> providers;
+        std::size_t observedFields{0};
+        const dx_data* owner{nullptr};std::uint64_t generation{0};
+        dx_source_format sourceFormat{dx_source_format::Unknown};DRW::Version sourceVersion{DRW::UNKNOWNV};
+        std::size_t bytes{0},byteLimit{64u*1024u*1024u},recordLimit{100000u};
+        unsigned sections{0};
+        void clear() noexcept {
+            decltype(sources){}.swap(sources);decltype(entities){}.swap(entities);decltype(providers){}.swap(providers);
+            observedFields=0u;owner=nullptr;generation=0u;bytes=0u;sections=0u;sourceFormat=dx_source_format::Unknown;sourceVersion=DRW::UNKNOWNV;
+        }
+    } m_dxfFullStyleState,m_dxfMaterialReferenceState;
+    bool visitDxfCommonReferences(const dx_data&,int,const DxfCommonReferenceState&,
+        const std::function<bool(DxfCommonReferenceSource&&)>&) const noexcept;
+    bool prepareDxfCommonReferences(DRW::Version,int,DxfCommonReferenceState&) noexcept;
+    bool hasUnchangedDxfCommonReferences(int,const DxfCommonReferenceState&) const noexcept;
+    bool inspectDxfCommonReferences(const dxfRW::DxfObjectsWriteView&,std::string_view,int,DxfCommonReferenceState&) noexcept;
+    bool finalizeDxfCommonReferences(int,const DxfCommonReferenceState&) const noexcept;
+    bool checkDxfCommonEntity(const DRW_Entity*,int,const DxfCommonReferenceState&) const noexcept;
+    bool visitDxfFullStyles(const dx_data& data,const std::function<bool(DxfCommonReferenceSource&&)>& visitor) const noexcept {
+        return visitDxfCommonReferences(data,348,m_dxfFullStyleState,visitor);
+    }
+    bool prepareDxfFullStyles(DRW::Version version) noexcept {return prepareDxfCommonReferences(version,348,m_dxfFullStyleState);}
+    bool hasUnchangedDxfFullStyles() const noexcept {return hasUnchangedDxfCommonReferences(348,m_dxfFullStyleState);}
+    bool inspectDxfFullStyles(const dxfRW::DxfObjectsWriteView& view,std::string_view section) noexcept {
+        return inspectDxfCommonReferences(view,section,348,m_dxfFullStyleState);
+    }
+    bool finalizeDxfFullStyles() const noexcept {return finalizeDxfCommonReferences(348,m_dxfFullStyleState);}
+    bool checkDxfCommonEntity(const DRW_Entity* entity) const noexcept {
+        return checkDxfCommonEntity(entity,348,m_dxfFullStyleState)&&checkDxfCommonEntity(entity,347,m_dxfMaterialReferenceState);
+    }
     struct DxfShadeConsumerSource {
         enum Kind { PlotSettings, Layout, Viewport } kind{PlotSettings};
         std::uint32_t handle{0}, owner{0}, target{0}, visualStyle{0};

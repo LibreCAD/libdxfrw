@@ -93,21 +93,21 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
-    static auto fullStyleSize(const dx_iface& writer){return std::make_pair(writer.m_dxfFullStyles.size(),writer.m_dxfFullStyleBytes);}
-    static void fullStyleLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfFullStyleRecordLimit=records;writer.m_dxfFullStyleByteLimit=bytes;}
+    static auto fullStyleSize(const dx_iface& writer){return std::make_pair(writer.m_dxfFullStyleState.sources.size(),writer.m_dxfFullStyleState.bytes);}
+    static void fullStyleLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfFullStyleState.recordLimit=records;writer.m_dxfFullStyleState.byteLimit=bytes;}
     static bool fullStyleOutput(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view,std::string_view section){return writer.inspectDxfFullStyles(view,section);}
     static bool fullStyleFinalize(const dx_iface& writer){return writer.finalizeDxfFullStyles();}
     static bool prepareFullStyle(dx_iface& writer,dx_data& data){writer.cData=&data;return writer.prepareDxfFullStyles(DRW::AC1027);}
     static bool replayFullStyle(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view,std::string_view section){
-        auto rows=writer.m_dxfFullStyles;auto providers=writer.m_dxfFullStyleProviders;
-        const auto sections=writer.m_dxfFullStyleSections;const auto count=writer.m_dxfFullStyleObservedFields;
-        writer.m_dxfFullStyleSections&=~(section=="BLOCKS"?1u:2u);writer.m_dxfFullStyleObservedFields=0u;
-        for(auto& row:writer.m_dxfFullStyles)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
+        auto rows=writer.m_dxfFullStyleState.sources;auto providers=writer.m_dxfFullStyleState.providers;
+        const auto sections=writer.m_dxfFullStyleState.sections;const auto count=writer.m_dxfFullStyleState.observedFields;
+        writer.m_dxfFullStyleState.sections&=~(section=="BLOCKS"?1u:2u);writer.m_dxfFullStyleState.observedFields=0u;
+        for(auto& row:writer.m_dxfFullStyleState.sources)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
         const bool result=writer.inspectDxfFullStyles(view,section);
-        writer.m_dxfFullStyles=std::move(rows);writer.m_dxfFullStyleProviders=std::move(providers);
-        writer.m_dxfFullStyleSections=sections;writer.m_dxfFullStyleObservedFields=count;return result;
+        writer.m_dxfFullStyleState.sources=std::move(rows);writer.m_dxfFullStyleState.providers=std::move(providers);
+        writer.m_dxfFullStyleState.sections=sections;writer.m_dxfFullStyleState.observedFields=count;return result;
     }
-    static bool fullStyleFast(const dx_iface& writer){return writer.m_dxfFullStyles.empty()&&writer.m_dxfFullStyleSections==0u&&writer.dxfW
+    static bool fullStyleFast(const dx_iface& writer){return writer.m_dxfFullStyleState.sources.empty()&&writer.m_dxfFullStyleState.sections==0u&&writer.dxfW
         &&writer.dxfW->dxfWriteRecordHandleCount(writer.dxfW->remapEntityHandle(0xE801u))==0u;}
     static auto shadeSize(const dx_iface& writer){return std::make_pair(writer.m_dxfShadeConsumers.size(),writer.m_dxfShadeConsumerBytes);}
     static void shadeLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfShadeConsumerRecordLimit=records;writer.m_dxfShadeConsumerByteLimit=bytes;}

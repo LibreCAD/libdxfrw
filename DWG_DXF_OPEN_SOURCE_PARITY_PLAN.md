@@ -134841,3 +134841,129 @@ proof; native common348 semantics and full rendering/document eligibility remain
 unqualified. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence remain
 **NOT_RUN**. The full objective remains active; no remote mutation.
+
+## Implementation progress — RPP-5gc material consumers and shared reference proof (2026-10-27)
+
+The parent fails a new material consumer callback/refusal-destination invariant
+in both encodings. Preflight inspected only primary entity material references,
+while BLOCK/compound consumers and post-preflight consumer values lacked output
+proof. Selected MATERIAL replay was frozen only when unrelated full-root work
+was enabled. Close the admitted DXF consumer transaction without imposing full
+NOD qualification on tolerant callers or promoting native material semantics.
+
+- [x] Reuse the common348 traversal/snapshot/output/finalization implementation
+  with independent347/348 state. Check primary, POLYLINE/INSERT children and
+  SEQEND, BLOCK/ENDBLK and scoped raw material references against the existing
+  paired/rooted MATERIAL inventory. Freeze identities, owners, targets/provider
+  owners and source generation/format/version; prevent callback route switching.
+- [x] Inspect actual consumer type/self/owner/common347, actual compound parent/
+  BLOCK_RECORD ownership, and actual MATERIAL type/owner at finalization. Bind
+  nonzero provided IDs to actual output; current/API identifiers are not original
+  wire evidence. Anonymous order and generated-provider checks retain their
+  limited scope; complete dictionary/document eligibility remains open.
+- [x] Emit the previously omitted remapped BLOCK material field. Extend narrow
+  raw replay only for scoped primary347, with separate duplicate counters beside
+  348 and existing lexical/version/application/foreign-handle refusals. Standalone
+  codecs keep graph responsibility; the facade owns automatic publication checks.
+- [x] Freeze paired raw MATERIAL/dictionary replay for tolerant material exports
+  too, while preserving the full-root predicate. Only the selected material graph
+  is required; unrelated unsupported NOD entries keep existing omission behavior.
+  The exact-source-version DXF MATERIAL replay policy remains. DWG/Unknown source
+  material projection and native material body semantics receive no qualification.
+- [x] Keep inactive2D streaming without new staged sections/record inventory.
+  Each reference state retains100000-row/64MiB logical and200000-provider/parent
+  bounds, with pre-copy admission. The two-state retained allowance is bounded
+  at128MiB; this is not a whole-operation or allocator-capacity/RSS claim. Reuse
+  indexed per-entity checks and section/finalization visits, avoiding per-block
+  complete-plan scans. No installed public header or DWG parser/layout change.
+
+Authored controls:
+
+- [x]64 output/readback profiles cover AC1021/AC1024/AC1027/AC1032, both input/
+  output encodings including cross conversion, anonymous/identified and material-
+  only/coupled347+348 records. Independently inspect4992 literal type/identity/
+  owner/target relationships across13 material carriers: five primaries including
+  3DLINE, five compound children, two block markers and one raw record. Source
+  IDs2/3 exercise reserved-handle remapping. Two valid pre-export rebindings pass.
+- [x]50 header/temporary-emission/after-ENTITIES/finalization callback attempts
+  refuse. Four exact/one-under and18 other attempts preserve sentinel output:
+  four bad/wrong-type targets, two dangling extras, two inactive2D introductions,
+  two raw-provider body changes and eight unqualified raw references. All72
+  corrected same-adapter retries pass. Two ordinary inactive2D and two rooted
+  generated-extra controls retain their separate limited scopes.
+- [x] Feed completed same-input export section bytes and104 selected record-name/
+  self/owner/common347 corruptions into the real inspector while another export
+  finalizes. All selected corruptions refuse and corrected views pass; restore
+  probe state. Coupled348 is checked separately by the shared prior verifier.
+- [x] Reach12 faults in the actual347 frozen-state helper during actual finalization;
+  four unreached offsets and all16 corrected real finalizations pass. Stop after
+  two consecutive unreached offsets, bounded by1024 per encoding. The fixture
+  allocator hook is off elsewhere. This is finite helper, not whole-file coverage.
+- [x] Preserve and rerun the older footer assertions with a real authored rooted
+  material provider instead of347->BLOCK_RECORD. Raw provider body callback edits
+  refuse even without consumer entities; corrected payload-factor readback passes.
+  Two tolerant root cases export and reparse without the unrelated unresolved key.
+  General typed/raw material body edit reconciliation remains a named obligation.
+- [x] Retain generator failures: generic ASCII reading stopped at unsigned
+  MATERIAL colors without its scoped context; use independent line pairs and
+  explicit color-bit emission instead. An owner0 raw carrier is correctly
+  refused; give the authored carrier its explicit logical model-space owner.
+  No production parser weakening or external payload/derivative is introduced.
+
+Qualification:
+
+- [x] Build all14 affected targets against frozen final inputs: normal
+  49.31s and qualified Debug/-O1/ASan
+  321.92s. Keep strict warnings/-Werror and the
+  LibreCAD_3 compile guard. The private CLI adapter layout is rebuilt consistently;
+  installed interfaces and all DWG parse/layout code remain unchanged.
+- [x]134 selected tests pass in normal
+  (135.84s), then ASan
+  (71.16s), with identical exact registrations,
+  labels/timeouts and no selected failure/skip/disabled case. All32 tracked counter
+  lines agree; all31 prior tracked lines remain unchanged. Cover material replay,
+  references/compound/footer, prior348, rendering/TABLE/source/metadata, CLI and
+  consumer contracts. This is one shared-change checkpoint, not a full-suite or
+  native CAD/kernel qualification; CLI contracts are not native FreeCAD evidence.
+- [x] Freeze all590 release/build inputs through both runtimes, finish both builds
+  and archive checks first, regenerate gzip/bzip2 with COPYFILE_DISABLE=1 and
+  compare every listed byte. No new extracted-source compile/distcheck, formal
+  ABI/application or controlled RSS/performance run is claimed. New controls are
+  source recipes/API models authored locally; no drawing fixture file is added.
+
+The [receipt](docs/research/rpp5gc-material-consumer-output-and-callback-closure-2026-10-27.json)
+pins baseline limitations, source reference, frozen builds/tests/counters/archives,
+retained failures and the separate remaining gates.
+
+Next implementation-ready sequence retains the complete objective:
+
+1. [ ] Complete remaining common material/full/face/edge producer/source/version
+   profiles, material LAYER/HEADER $CMATERIAL, reactor/IMAGE/document/control/name/
+   application/XDATA/HEADER CEPSNID/CEPSNTYPE and recursive/coupled/whole-document
+   ownership. Obtain independent native common348 evidence. Selected provided-
+   identity/output bindings do not close original-source or full document gates.
+2. [ ] Complete MATERIAL typed/raw body edit reconciliation, schema/unknown-field
+   fidelity and native body/rendering evidence. Continue rendering class-revision/
+   engine/schema-family/absent/duplicate/alias/extension profiles and active/global/
+   environment/background/live-section/sun. Research actual source/version deltas
+   before projecting defaults; preserve field/reference/readback/refusal/retry
+   evidence. Resolve independent VIEWPORT shade4/5 witnesses and table discrepancy,
+   bind335/343/344/91 and retain native dictionary collation as its own gate.
+3. [ ] Finish TABLE Values/multiple-content/linked-data ownership, formatting/
+   units/borders and native B2b/B3/C bit/schema/owner/version/corpus evidence.
+   Do not guess date epochs, point counts or General semantics.
+4. [ ] Complete platform/package/native consumers, formal ABI/application checks,
+   controlled RSS/performance, native Linux/Windows FreeCAD and independent ACIS/
+   ACDS semantic/kernel evidence. Native Linux GCC release remains NOT_RUN here.
+5. [ ] Reuse targets and fast owning checks, broaden for actual shared changes or
+   failures, freeze inputs and finish builds before runtimes. Retain failures/caps,
+   self-unblock, update/commit/report each verified slice and continue ready work
+   without importing external drawing payloads or derivatives.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Selected DXF material consumer output is now checked;
+full material/rendering/native/document qualification remains incomplete. J256/
+J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD
+and independent ACIS/ACDS semantic/kernel evidence remain **NOT_RUN**. The full
+objective remains active; no remote mutation.

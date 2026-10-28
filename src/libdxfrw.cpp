@@ -13129,6 +13129,8 @@ bool dxfRW::writeBlock(DRW_Block *bk){
         && bk->shadow != DRW::CastAndReceieveShadows) {
         writer->writeInt16(284, static_cast<int>(bk->shadow));
     }
+    if (version > DRW::AC1018 && bk->material != DRW::MaterialByLayer)
+        writer->writeUtf8String(347, toHexStr(remapObjectHandle(bk->material)));
     if (version > DRW::AC1018 && bk->fullVisualStyleHandle != 0)
         writer->writeUtf8String(348,
             toHexStr(remapObjectHandle(bk->fullVisualStyleHandle)));
@@ -23694,13 +23696,13 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
              + std::to_string(entity->parentHandle) + " output="
              + std::to_string(ownerOverride)).c_str());
     }
-    // Retain the existing common348 carrier with the same remapping as typed
+    // Retain common material347 and the existing348 carrier with the same remapping as typed
     // entities. The facade checks its rooted provider and actual output before
     // publication. This is transport, not native semantics for custom bodies;
     // every other unqualified translated reference remains refused here.
     int referenceApplicationDepth = 0;
     bool referenceInXdata = false, referenceCommonEntity = false;
-    unsigned commonStyleFields = 0u;
+    unsigned commonReferenceFields[2] = {0u,0u};
     for (std::size_t index = 0; index < entity->groups.size(); ++index) {
         const DRW_Variant& group = entity->groups[index];
         if (group.code() == 102) {
@@ -23726,13 +23728,13 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
             referenceCommonEntity = group.type() == DRW_Variant::STRING
                 && group.content.s != nullptr && *group.content.s == "AcDbEntity";
         }
-        if (referenceCommonEntity && group.code() == 348) {
+        if (referenceCommonEntity && (group.code() == 347 || group.code() == 348)) {
             std::uint64_t target = 0u;
-            if (++commonStyleFields != 1u || version <= DRW::AC1018
+            if (++commonReferenceFields[group.code()-347] != 1u || version <= DRW::AC1018
                 || group.type() != DRW_Variant::STRING || group.c_str() == nullptr
                 || !parseRawDxfHandleLexeme(group.c_str(), target)
                 || target > std::numeric_limits<std::uint32_t>::max())
-                return rejectRawEntity("raw common348 carrier is ambiguous or invalid");
+                return rejectRawEntity("raw common material/style reference is ambiguous or invalid");
             continue;
         }
         if (index != selfHandleIndex && index != ownerGroupIndex

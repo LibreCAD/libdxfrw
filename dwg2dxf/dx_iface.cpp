@@ -9209,7 +9209,7 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
     };
 
     bool hasVisualStyleReference = false;
-    if(!visitDxfFullStyles(data,[&](DxfFullStyleSource&&){hasVisualStyleReference=true;return true;}))
+    if(!visitDxfFullStyles(data,[&](DxfCommonReferenceSource&&){hasVisualStyleReference=true;return true;}))
         return reject("common VisualStyle carrier target is missing or ambiguous");
     for (const char* name : dxfHeaderVisualStyleReferenceNames) {
         std::uint32_t handle = 0;
@@ -9353,7 +9353,7 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
         if (block != nullptr && !validateViewportTargets(block->ent))
             return reject("VIEWPORT code-348 target is missing or wrongly typed");
     }
-    if(!visitDxfFullStyles(data,[&](DxfFullStyleSource&& source){return targetIsRooted(source.target);}))
+    if(!visitDxfFullStyles(data,[&](DxfCommonReferenceSource&& source){return targetIsRooted(source.target);}))
         return reject("common VisualStyle carrier is not a rooted VISUALSTYLE");
     return true;
 }
@@ -15585,9 +15585,10 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
 }
 
 namespace {
-// These are the existing converter's common348 carriers. The generic Autodesk
-// entity table omits348: do not turn transport checks into native semantics.
-const char* fullStyleRecordName(const DRW_Entity& value) noexcept {
+// Record names shared by material347 and the existing348 carrier checks.
+// Autodesk documents347 but omits348 from the generic entity table; selected
+//348 transport checks must not be advertised as universal native semantics.
+const char* commonReferenceRecordName(const DRW_Entity& value) noexcept {
     switch(value.eType){
     case DRW::POINT:return "POINT";case DRW::LINE:return "LINE";case DRW::THREEDLINE:return "3DLINE";
     case DRW::RAY:return "RAY";case DRW::XLINE:return "XLINE";case DRW::CIRCLE:return "CIRCLE";case DRW::ARC:return "ARC";
@@ -15607,7 +15608,7 @@ const char* fullStyleRecordName(const DRW_Entity& value) noexcept {
     default:return nullptr;
     }
 }
-bool rawFullStyle(const DRW_RawDxfObject& raw,std::uint32_t& target,int& space) noexcept {
+bool rawCommonReference(const DRW_RawDxfObject& raw,std::uint32_t& target,int& space,int referenceCode) noexcept {
     unsigned depth=0u,fields=0u;bool common=false,xdata=false;target=0u;space=0;
     for(const auto& group:raw.groups){const int code=group.code();
         if(code==102){const auto* text=group.content.s;if(group.type()!=DRW_Variant::STRING||!text)return false;
@@ -15616,121 +15617,134 @@ bool rawFullStyle(const DRW_RawDxfObject& raw,std::uint32_t& target,int& space) 
             else return false;continue;}
         if(depth)continue;if(code>=1000){xdata=true;continue;}if(xdata)return false;
         if(code==100){if(group.type()!=DRW_Variant::STRING||!group.content.s)return false;common=*group.content.s=="AcDbEntity";}
-        else if(common&&code==348){std::uint64_t handle=0u;if(++fields!=1u||!dx_standard_output::handleValue(group,handle)||handle>UINT32_MAX)return false;target=static_cast<std::uint32_t>(handle);}
+        else if(common&&code==referenceCode){std::uint64_t handle=0u;if(++fields!=1u||!dx_standard_output::handleValue(group,handle)||handle>UINT32_MAX)return false;target=static_cast<std::uint32_t>(handle);}
         else if(common&&code==67){if(group.type()!=DRW_Variant::INTEGER||group.i_val()<0||group.i_val()>1)return false;space=group.i_val();}
     }
     return !depth;
 }
 }
 
-bool dx_iface::visitDxfFullStyles(const dx_data& data,const std::function<bool(DxfFullStyleSource&&)>& visit) const noexcept {
+bool dx_iface::visitDxfCommonReferences(const dx_data& data,int code,const DxfCommonReferenceState& state,
+        const std::function<bool(DxfCommonReferenceSource&&)>& visit) const noexcept {
+    if(code==347&&data.sourceFormat!=dx_source_format::DXF)return true;
     try {
         std::unordered_map<std::uint32_t,std::uint32_t> providers;bool indexed=false;
         std::size_t rows=0u,bytes=0u;
+        const auto providerCount=code==347?data.materials.size():data.visualStyles.size();
+        const auto providersEach=[&](const auto& visitor){
+            if(code==347){for(const auto& value:data.materials)if(!visitor(value))return false;}
+            else{for(const auto& value:data.visualStyles)if(!visitor(value))return false;}return true;
+        };
         // Preflight and frozen-state visits must obey the same logical bounds
         // before copying borrowed names or allocating the provider index.
         const auto admit=[&](std::string_view name,std::string_view owner,std::string_view parent){
-            if(rows>=m_dxfFullStyleRecordLimit)return false;
-            std::size_t charge=sizeof(DxfFullStyleSource)+24u*sizeof(void*);
+            if(rows>=state.recordLimit)return false;
+            std::size_t charge=sizeof(DxfCommonReferenceSource)+24u*sizeof(void*);
             for(const auto text:{name,owner,parent})if(text.size()==std::numeric_limits<std::size_t>::max()
                 ||!addAssociativeRetainedBytes(text.size()+1u,charge))return false;
-            if(bytes>m_dxfFullStyleByteLimit||charge>m_dxfFullStyleByteLimit-bytes)return false;
+            if(bytes>state.byteLimit||charge>state.byteLimit-bytes)return false;
             bytes+=charge;++rows;return true;
         };
-        const auto deliver=[&](DxfFullStyleSource source){
+        const auto deliver=[&](DxfCommonReferenceSource source){
             if(!indexed){
-                constexpr auto slot=sizeof(std::pair<const std::uint32_t,DxfFullStyleProvider>)+8u*sizeof(void*);
-                if(data.visualStyles.size()>200000u||!addAssociativeSlotBytes(data.visualStyles.size(),slot,bytes)
-                    ||bytes>m_dxfFullStyleByteLimit)return false;
-                providers.reserve(data.visualStyles.size());
-                for(const auto& style:data.visualStyles)if(!providers.emplace(style.handle,style.parentHandle).second)return false;indexed=true;}
+                constexpr auto slot=sizeof(std::pair<const std::uint32_t,DxfCommonReferenceState::Provider>)+8u*sizeof(void*);
+                if(providerCount>200000u||!addAssociativeSlotBytes(providerCount,slot,bytes)
+                    ||bytes>state.byteLimit)return false;
+                providers.reserve(providerCount);
+                if(!providersEach([&](const auto& value){return providers.emplace(value.handle,value.parentHandle).second;}))return false;indexed=true;}
             const auto found=providers.find(source.target);if(found==providers.end()||!source.target||source.target==DRW::NoHandle)return false;
             source.targetOwner=found->second;return visit(std::move(source));
         };
         const auto container=[&](const dx_ifaceBlock* block){if(!block)return true;
             const bool blocks=block!=data.mBlock&&!isFixedSpaceBlock(block);
-            const auto typed=[&](const DRW_Entity* value,const DRW_Entity* parent,DxfFullStyleSource::Kind kind,const char* name){
-                if(!value||!value->fullVisualStyleHandle)return true;
+            const auto typed=[&](const DRW_Entity* value,const DRW_Entity* parent,DxfCommonReferenceSource::Kind kind,const char* name){
+                if(!value||!(code==347?value->material:value->fullVisualStyleHandle))return true;
                 if(!name)return false;
-                const auto* parentName=parent?fullStyleRecordName(*parent):"";if(!parentName)return false;
+                const auto* parentName=parent?commonReferenceRecordName(*parent):"";if(!parentName)return false;
                 const auto space=parent?parent->space:value->space;
                 const std::string_view ownerName=block==data.mBlock?(space==DRW::PaperSpace?std::string_view("*PAPER_SPACE"):std::string_view("*MODEL_SPACE")):std::string_view(block->name);
                 if(!admit(name,ownerName,parentName))return false;
-                DxfFullStyleSource source;source.kind=kind;source.entity=value;source.parent=parent;source.block=block;
-                source.handle=value->handle;source.owner=value->parentHandle;source.target=value->fullVisualStyleHandle;source.space=value->space;source.name=name;
+                DxfCommonReferenceSource source;source.kind=kind;source.entity=value;source.parent=parent;source.block=block;
+                source.handle=value->handle;source.owner=value->parentHandle;source.target=(code==347?value->material:value->fullVisualStyleHandle);source.space=value->space;source.name=name;
                 source.parentHandle=parent?parent->handle:0u;source.parentName=parentName;
-                source.blocks=kind==DxfFullStyleSource::BlockBegin||kind==DxfFullStyleSource::BlockEnd||blocks;
+                source.blocks=kind==DxfCommonReferenceSource::BlockBegin||kind==DxfCommonReferenceSource::BlockEnd||blocks;
                 source.ownerName=ownerName;
                 return deliver(std::move(source));
             };
-            if(block!=data.mBlock&&!typed(block,nullptr,DxfFullStyleSource::BlockBegin,"BLOCK"))return false;
+            if(block!=data.mBlock&&!typed(block,nullptr,DxfCommonReferenceSource::BlockBegin,"BLOCK"))return false;
             for(const auto* value:block->ent){if(!value)return false;
-                if(!typed(value,nullptr,DxfFullStyleSource::Entity,fullStyleRecordName(*value)))return false;
+                if(!typed(value,nullptr,DxfCommonReferenceSource::Entity,commonReferenceRecordName(*value)))return false;
                 if(const auto* polyline=dynamic_cast<const DRW_Polyline*>(value)){
-                    for(const auto& child:polyline->vertlist)if(!child||!typed(child.get(),value,DxfFullStyleSource::Child,"VERTEX"))return false;
-                    if(!typed(polyline->seqEndEntity.get(),value,DxfFullStyleSource::Child,"SEQEND"))return false;
+                    for(const auto& child:polyline->vertlist)if(!child||!typed(child.get(),value,DxfCommonReferenceSource::Child,"VERTEX"))return false;
+                    if(!typed(polyline->seqEndEntity.get(),value,DxfCommonReferenceSource::Child,"SEQEND"))return false;
                 }
                 if(const auto* insert=dynamic_cast<const DRW_Insert*>(value)){
-                    for(const auto& child:insert->attlist)if(!child||!typed(child.get(),value,DxfFullStyleSource::Child,"ATTRIB"))return false;
-                    if(!typed(insert->seqEndEntity.get(),value,DxfFullStyleSource::Child,"SEQEND"))return false;
+                    for(const auto& child:insert->attlist)if(!child||!typed(child.get(),value,DxfCommonReferenceSource::Child,"ATTRIB"))return false;
+                    if(!typed(insert->seqEndEntity.get(),value,DxfCommonReferenceSource::Child,"SEQEND"))return false;
                 }
             }
-            for(const auto& event:block->rawEntities){std::uint32_t target=0u;int space=0;if(!rawFullStyle(event.record,target,space))return false;if(!target)continue;
+            for(const auto& event:block->rawEntities){std::uint32_t target=0u;int space=0;if(!rawCommonReference(event.record,target,space,code))return false;if(!target)continue;
                 const std::string_view ownerName=block==data.mBlock?(space==DRW::PaperSpace?std::string_view("*PAPER_SPACE"):std::string_view("*MODEL_SPACE")):std::string_view(block->name);
                 if(!admit(event.record.name,ownerName,{}))return false;
-                DxfFullStyleSource source;source.kind=DxfFullStyleSource::Raw;source.raw=&event.record;source.block=block;source.handle=event.record.handle;
+                DxfCommonReferenceSource source;source.kind=DxfCommonReferenceSource::Raw;source.raw=&event.record;source.block=block;source.handle=event.record.handle;
                 source.owner=event.record.parentHandle;source.target=target;source.space=space;source.name=event.record.name;source.blocks=blocks;
                 source.ownerName=ownerName;if(!deliver(std::move(source)))return false;
             }
-            return block==data.mBlock||!block->hasEndBlockData||typed(&block->endBlockData,nullptr,DxfFullStyleSource::BlockEnd,"ENDBLK");
+            return block==data.mBlock||!block->hasEndBlockData||typed(&block->endBlockData,nullptr,DxfCommonReferenceSource::BlockEnd,"ENDBLK");
         };
         if(!container(data.mBlock))return false;for(const auto* block:data.blocks)if(!container(block))return false;return true;
     }catch(...){return false;}
 }
 
-bool dx_iface::prepareDxfFullStyles(DRW::Version version) noexcept {
+bool dx_iface::prepareDxfCommonReferences(DRW::Version version,int code,DxfCommonReferenceState& state) noexcept {
+    if(code==347&&cData&&cData->sourceFormat!=dx_source_format::DXF)return true;
     if(!cData)return false;
     try{
-        if(!visitDxfFullStyles(*cData,[&](DxfFullStyleSource&& source){
-            if(version<=DRW::AC1018||m_dxfFullStyles.size()>=m_dxfFullStyleRecordLimit)return false;
+        if(!visitDxfCommonReferences(*cData,code,state,[&](DxfCommonReferenceSource&& source){
+            if(version<=DRW::AC1018||state.sources.size()>=state.recordLimit)return false;
             std::size_t charge=sizeof(source)+24u*sizeof(void*);
             if(!addStringPayloadBytes(source.name,charge)||!addStringPayloadBytes(source.ownerName,charge)||!addStringPayloadBytes(source.parentName,charge)
-                ||m_dxfFullStyleBytes>m_dxfFullStyleByteLimit||charge>m_dxfFullStyleByteLimit-m_dxfFullStyleBytes)return false;
-            const auto index=m_dxfFullStyles.size();
-            if(source.entity&&!m_dxfFullStyleEntities.emplace(source.entity,index).second)return false;
-            m_dxfFullStyles.push_back(std::move(source));m_dxfFullStyleBytes+=charge;return true;
+                ||state.bytes>state.byteLimit||charge>state.byteLimit-state.bytes)return false;
+            const auto index=state.sources.size();
+            if(source.entity&&!state.entities.emplace(source.entity,index).second)return false;
+            state.sources.push_back(std::move(source));state.bytes+=charge;return true;
         }))return false;
-        if(!m_dxfFullStyles.empty()){
-            constexpr auto slot=sizeof(std::pair<const std::uint32_t,DxfFullStyleProvider>)+8u*sizeof(void*);
-            if(cData->visualStyles.size()>200000u||!addAssociativeSlotBytes(cData->visualStyles.size(),slot,m_dxfFullStyleBytes)||m_dxfFullStyleBytes>m_dxfFullStyleByteLimit)return false;
-            for(const auto& style:cData->visualStyles)if(!m_dxfFullStyleProviders.emplace(style.handle,DxfFullStyleProvider{style.parentHandle,false}).second)return false;
+        if(!state.sources.empty()){
+            constexpr auto slot=sizeof(std::pair<const std::uint32_t,DxfCommonReferenceState::Provider>)+8u*sizeof(void*);
+            const auto count=code==347?cData->materials.size():cData->visualStyles.size();
+            if(count>200000u||!addAssociativeSlotBytes(count,slot,state.bytes)||state.bytes>state.byteLimit)return false;
+            const auto add=[&](const auto& value){return state.providers.emplace(value.handle,DxfCommonReferenceState::Provider{value.parentHandle,false}).second;};
+            if(code==347){for(const auto& value:cData->materials)if(!add(value))return false;}
+            else{for(const auto& value:cData->visualStyles)if(!add(value))return false;}
         }
-        m_dxfFullStyleOwner=cData;m_dxfFullStyleGeneration=cData->importGeneration;return hasUnchangedDxfFullStyles();
+        state.owner=cData;state.generation=cData->importGeneration;state.sourceFormat=cData->sourceFormat;state.sourceVersion=cData->sourceVersion;return hasUnchangedDxfCommonReferences(code,state);
     }catch(...){return false;}
 }
 
-bool dx_iface::hasUnchangedDxfFullStyles() const noexcept {
-    if(!m_dxfFullStyleOwner)return true;
-    if(cData!=m_dxfFullStyleOwner||cData->importGeneration!=m_dxfFullStyleGeneration)return false;
+bool dx_iface::hasUnchangedDxfCommonReferences(int code,const DxfCommonReferenceState& state) const noexcept {
+    if(!state.owner)return true;
+    if(cData!=state.owner||cData->importGeneration!=state.generation||cData->sourceFormat!=state.sourceFormat||cData->sourceVersion!=state.sourceVersion)return false;
     std::size_t index=0u;
-    const bool same=visitDxfFullStyles(*cData,[&](DxfFullStyleSource&& value){
-        if(index==m_dxfFullStyles.size())return false;const auto& row=m_dxfFullStyles[index++];
+    const bool same=visitDxfCommonReferences(*cData,code,state,[&](DxfCommonReferenceSource&& value){
+        if(index==state.sources.size())return false;const auto& row=state.sources[index++];
         return std::tie(value.kind,value.entity,value.raw,value.parent,value.block,value.handle,value.owner,value.target,value.targetOwner,value.parentHandle,value.space,value.name,value.ownerName,value.parentName,value.blocks)
             ==std::tie(row.kind,row.entity,row.raw,row.parent,row.block,row.handle,row.owner,row.target,row.targetOwner,row.parentHandle,row.space,row.name,row.ownerName,row.parentName,row.blocks);
     });
-    if(!same||index!=m_dxfFullStyles.size())return false;
-    if(!m_dxfFullStyles.empty()){
-        if(m_dxfFullStyleProviders.size()!=cData->visualStyles.size())return false;
-        for(const auto& style:cData->visualStyles){const auto found=m_dxfFullStyleProviders.find(style.handle);if(found==m_dxfFullStyleProviders.end()||found->second.owner!=style.parentHandle)return false;}
+    if(!same||index!=state.sources.size())return false;
+    if(!state.sources.empty()){
+        if(state.providers.size()!=(code==347?cData->materials.size():cData->visualStyles.size()))return false;
+        const auto sameProvider=[&](const auto& value){const auto found=state.providers.find(value.handle);return found!=state.providers.end()&&found->second.owner==value.parentHandle;};
+        if(code==347){for(const auto& value:cData->materials)if(!sameProvider(value))return false;}
+        else{for(const auto& value:cData->visualStyles)if(!sameProvider(value))return false;}
     }
     return true;
 }
 
-bool dx_iface::checkDxfFullStyleEntity(const DRW_Entity* entity) const noexcept {
-    if(!m_dxfFullStyleOwner)return true;if(!entity)return false;
-    const auto check=[&](const DRW_Entity* value){if(!value)return true;const auto found=m_dxfFullStyleEntities.find(value);
-        if(found==m_dxfFullStyleEntities.end())return value->fullVisualStyleHandle==0u;const auto& row=m_dxfFullStyles[found->second];
-        return value->fullVisualStyleHandle==row.target&&value->handle==row.handle&&value->parentHandle==row.owner&&value->space==row.space;};
+bool dx_iface::checkDxfCommonEntity(const DRW_Entity* entity,int code,const DxfCommonReferenceState& state) const noexcept {
+    if(!state.owner)return true;if(!entity)return false;
+    const auto check=[&](const DRW_Entity* value){if(!value)return true;const auto found=state.entities.find(value);
+        if(found==state.entities.end())return (code==347?value->material:value->fullVisualStyleHandle)==0u;const auto& row=state.sources[found->second];
+        return (code==347?value->material:value->fullVisualStyleHandle)==row.target&&value->handle==row.handle&&value->parentHandle==row.owner&&value->space==row.space;};
     if(!check(entity))return false;
     if(const auto* polyline=dynamic_cast<const DRW_Polyline*>(entity)){
         for(const auto& child:polyline->vertlist)if(!child||!check(child.get()))return false;if(!check(polyline->seqEndEntity.get()))return false;
@@ -15741,25 +15755,25 @@ bool dx_iface::checkDxfFullStyleEntity(const DRW_Entity* entity) const noexcept 
     return true;
 }
 
-bool dx_iface::inspectDxfFullStyles(const dxfRW::DxfObjectsWriteView& view,std::string_view section) noexcept {
-    if(!hasUnchangedDxfFullStyles()||!dxfW)return false;if(m_dxfFullStyles.empty())return true;
-    const unsigned bit=section=="BLOCKS"?1u:section=="ENTITIES"?2u:0u;if(!bit||(m_dxfFullStyleSections&bit))return false;m_dxfFullStyleSections|=bit;
+bool dx_iface::inspectDxfCommonReferences(const dxfRW::DxfObjectsWriteView& view,std::string_view section,int code,DxfCommonReferenceState& state) noexcept {
+    if(!hasUnchangedDxfCommonReferences(code,state)||!dxfW)return false;if(state.sources.empty())return true;
+    const unsigned bit=section=="BLOCKS"?1u:section=="ENTITIES"?2u:0u;if(!bit||(state.sections&bit))return false;state.sections|=bit;
     try{
         std::map<std::uint32_t,std::size_t> identified;
         using Key=std::pair<std::string,std::uint32_t>;std::map<Key,std::vector<std::size_t>> anonymous;std::map<Key,std::size_t> next;
-        const auto blockOwner=[&](const DxfFullStyleSource& row){const auto name=layoutSymbolKey(row.ownerName);
+        const auto blockOwner=[&](const DxfCommonReferenceSource& row){const auto name=layoutSymbolKey(row.ownerName);
             return name=="*MODEL_SPACE"?DRW::DxfModelSpaceBlockRecordHandle:name=="*PAPER_SPACE"?DRW::DxfPaperSpaceBlockRecordHandle:dxfW->getBlockRecordHandleToWrite(row.ownerName);};
-        for(std::size_t i=0u;i<m_dxfFullStyles.size();++i){const auto& row=m_dxfFullStyles[i];if(row.blocks!=(bit==1u))continue;
+        for(std::size_t i=0u;i<state.sources.size();++i){const auto& row=state.sources[i];if(row.blocks!=(bit==1u))continue;
             const auto end=dxfW->getBlockEndHandleToWrite(row.ownerName);
-            auto emitted=row.kind==DxfFullStyleSource::BlockBegin?(end&&end!=DRW::NoHandle?end-1u:DRW::NoHandle)
-                :row.kind==DxfFullStyleSource::BlockEnd?dxfW->getBlockEndHandleToWrite(row.ownerName)
+            auto emitted=row.kind==DxfCommonReferenceSource::BlockBegin?(end&&end!=DRW::NoHandle?end-1u:DRW::NoHandle)
+                :row.kind==DxfCommonReferenceSource::BlockEnd?dxfW->getBlockEndHandleToWrite(row.ownerName)
                 :(row.handle&&row.handle!=DRW::NoHandle)?dxfW->remapEntityHandle(row.handle):0u;
             if(emitted){if(emitted==DRW::NoHandle||!identified.emplace(emitted,i).second)return false;}
             else{const auto owner=blockOwner(row);if(!owner||owner==DRW::NoHandle)return false;anonymous[{row.name,owner}].push_back(i);}
         }
         struct Parent {std::uint32_t owner;std::string name;};std::unordered_map<std::uint32_t,Parent> parents;
         std::unordered_map<std::uint32_t,std::uint32_t> targets;
-        for(const auto& source:m_dxfFullStyleProviders){const auto target=dxfW->remapHandle(source.first);if(!target||target==DRW::NoHandle||!targets.emplace(target,source.first).second)return false;}
+        for(const auto& source:state.providers){const auto target=dxfW->remapHandle(source.first);if(!target||target==DRW::NoHandle||!targets.emplace(target,source.first).second)return false;}
         std::string selectedName;
         const bool good=view.bytes.empty()?identified.empty()&&anonymous.empty():dx_standard_output::inspectSelected(view,
             [&](std::string_view name,std::uint32_t){selectedName=std::string(name);return true;},
@@ -15775,45 +15789,45 @@ bool dx_iface::inspectDxfFullStyles(const dxfRW::DxfObjectsWriteView& view,std::
                     if(depth)continue;if(token.code>=1000){xdata=true;continue;}
                     if(token.code==100){common=token.text=="AcDbEntity";header=false;}
                     else if(header&&token.code==330){if(++owners!=1u||!handle(token.text,owner))return false;}
-                    else if(common&&token.code==348){if(++styles!=1u||!handle(token.text,target))return false;}
+                    else if(common&&token.code==code){if(++styles!=1u||!handle(token.text,target))return false;}
                 }
                 if(depth)return false;
                 if(selectedName=="INSERT"||selectedName=="POLYLINE"||selectedName=="ACAD_TABLE"){
                     if(parents.size()>=200000u||!parents.emplace(shape.handle,Parent{owner,selectedName}).second)return false;
                 }
-                auto found=identified.find(shape.handle);std::size_t index=m_dxfFullStyles.size();
+                auto found=identified.find(shape.handle);std::size_t index=state.sources.size();
                 if(found!=identified.end())index=found->second;
-                if(!target&&index==m_dxfFullStyles.size())return true;
+                if(!target&&index==state.sources.size())return true;
                 if(styles!=1u||owners!=1u||!target||!shape.handle||shape.handle==DRW::NoHandle||!targets.count(target))return false;
-                if(m_dxfFullStyleObservedFields>=m_dxfFullStyleRecordLimit)return false;
-                ++m_dxfFullStyleObservedFields;m_dxfFullStyleProviders.at(targets.at(target)).observed=true;
+                if(state.observedFields>=state.recordLimit)return false;
+                ++state.observedFields;state.providers.at(targets.at(target)).observed=true;
                 const auto parent=parents.find(owner);const auto rootOwner=parent==parents.end()?owner:parent->second.owner;
-                if(index==m_dxfFullStyles.size()){
+                if(index==state.sources.size()){
                     Key key{selectedName,rootOwner};const auto bucket=anonymous.find(key);
                     if(bucket==anonymous.end())return true; // Generated/direct extra: actual provider binding only, no original-source certificate.
                     auto& ordinal=next[key];if(ordinal==bucket->second.size())return true;index=bucket->second[ordinal++];
                 }
-                auto& row=m_dxfFullStyles[index];if(row.inspected||row.name!=selectedName||target!=dxfW->remapHandle(row.target))return false;
+                auto& row=state.sources[index];if(row.inspected||row.name!=selectedName||target!=dxfW->remapHandle(row.target))return false;
                 const auto expectedOwner=blockOwner(row);
                 if(row.parent){if(parent==parents.end()||parent->second.owner!=expectedOwner||parent->second.name!=row.parentName
                         ||(row.parentHandle&&row.parentHandle!=DRW::NoHandle&&owner!=dxfW->remapEntityHandle(row.parentHandle)))return false;}
                 else if(owner!=(row.raw?rawEntityOwnerToWrite(*row.raw,row.block):expectedOwner))return false;
                 row.inspected=true;row.emitted=shape.handle;row.emittedOwner=owner;return true;
             });
-        if(!good)return false;for(const auto& row:m_dxfFullStyles)if(row.blocks==(bit==1u)&&!row.inspected)return false;return true;
+        if(!good)return false;for(const auto& row:state.sources)if(row.blocks==(bit==1u)&&!row.inspected)return false;return true;
     }catch(...){return false;}
 }
 
-bool dx_iface::finalizeDxfFullStyles() const noexcept {
-    if(!m_dxfFullStyleOwner)return true;if(!hasUnchangedDxfFullStyles()||!dxfW)return false;if(m_dxfFullStyles.empty())return true;
-    if(m_dxfFullStyleSections!=3u)return false;
+bool dx_iface::finalizeDxfCommonReferences(int code,const DxfCommonReferenceState& state) const noexcept {
+    if(!state.owner)return true;if(!hasUnchangedDxfCommonReferences(code,state)||!dxfW)return false;if(state.sources.empty())return true;
+    if(state.sections!=3u)return false;
     try{
-        for(const auto& source:m_dxfFullStyleProviders)if(source.second.observed){
-            const auto target=dxfW->remapHandle(source.first);if(!dxfW->dxfWriteRecordHasIdentity(target,"VISUALSTYLE","OBJECTS")||!dxfW->dxfWriteRecordHasOwner(target,dxfW->remapHandle(source.second.owner)))return false;}
-        for(const auto& row:m_dxfFullStyles){const auto section=row.blocks?"BLOCKS":"ENTITIES";
+        for(const auto& source:state.providers)if(source.second.observed){
+            const auto target=dxfW->remapHandle(source.first);if(!dxfW->dxfWriteRecordHasIdentity(target,code==347?"MATERIAL":"VISUALSTYLE","OBJECTS")||!dxfW->dxfWriteRecordHasOwner(target,dxfW->remapHandle(source.second.owner)))return false;}
+        for(const auto& row:state.sources){const auto section=row.blocks?"BLOCKS":"ENTITIES";
             if(!row.inspected||!dxfW->dxfWriteRecordHasIdentity(row.emitted,row.name,section)||!dxfW->dxfWriteRecordHasOwner(row.emitted,row.emittedOwner))return false;
             if(!row.parent&&!dxfW->dxfWriteRecordHasIdentity(row.emittedOwner,"BLOCK_RECORD","TABLES"))return false;
-            if(row.kind!=DxfFullStyleSource::BlockBegin&&row.kind!=DxfFullStyleSource::BlockEnd&&row.handle&&row.handle!=DRW::NoHandle
+            if(row.kind!=DxfCommonReferenceSource::BlockBegin&&row.kind!=DxfCommonReferenceSource::BlockEnd&&row.handle&&row.handle!=DRW::NoHandle
                 &&!dxfW->dxfWriteSourceEntityHasIdentity(row.handle,row.emitted,row.name,section,row.emittedOwner))return false;
         }
         return true;
@@ -28430,7 +28444,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
-    if(!finalizeDxfFullStyles())return false;
+    if(!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
     if (!hasUnchangedDxfRenderPresetSources()
         || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
     if (!finalizeDxfShadeConsumers()) return false;
@@ -29273,13 +29287,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
-    m_dxfFullStyles.clear();m_dxfFullStyleEntities.clear();m_dxfFullStyleProviders.clear();m_dxfFullStyleObservedFields=0u;
-    m_dxfFullStyleOwner=nullptr;m_dxfFullStyleBytes=0u;m_dxfFullStyleSections=0u;
-    struct FullStyleScope {dx_iface& owner;~FullStyleScope(){
-        decltype(owner.m_dxfFullStyles){}.swap(owner.m_dxfFullStyles);decltype(owner.m_dxfFullStyleEntities){}.swap(owner.m_dxfFullStyleEntities);
-        decltype(owner.m_dxfFullStyleProviders){}.swap(owner.m_dxfFullStyleProviders);owner.m_dxfFullStyleObservedFields=0u;
-        owner.m_dxfFullStyleOwner=nullptr;owner.m_dxfFullStyleGeneration=0u;owner.m_dxfFullStyleBytes=0u;owner.m_dxfFullStyleSections=0u;
-    }} fullStyleScope{*this};
+    m_dxfFullStyleState.clear();m_dxfMaterialReferenceState.clear();
+    struct CommonReferenceScope {dx_iface& owner;~CommonReferenceScope(){
+        owner.m_dxfFullStyleState.clear();owner.m_dxfMaterialReferenceState.clear();
+    }} commonReferenceScope{*this};
     m_dxfRenderPresetSources.clear(); m_dxfRenderPresetOwner = nullptr;
     m_dxfRenderPresetCount = 0u; m_dxfRenderPresetBytes = 0u; m_dxfRenderPresetInspected = false;
     struct RenderPresetScope {
@@ -30043,7 +30054,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     const auto hasVisualStyleEdges = [this]() {
-        bool full=false;if(!visitDxfFullStyles(*cData,[&](DxfFullStyleSource&&){full=true;return true;})||full)return true;
+        bool full=false;if(!visitDxfFullStyles(*cData,[&](DxfCommonReferenceSource&&){full=true;return true;})||full)return true;
         if (hasDxfHeaderVisualStyleReference(cData->headerC))
             return true;
         for (const DRW_Vport& vport : cData->VPorts) {
@@ -30163,7 +30174,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure("selected raw ACSH source/role closure");
         return false;
     }
-    if (includeNamedObjectRoot && !prepareDxfMaterialSources(v)) {
+    // Freeze the selected MATERIAL replay even for tolerant exports that keep
+    // only its rooted dictionary. Do not force unrelated NOD keys into the
+    // complete extension graph just to protect this already-admitted route.
+    const bool hasDxfMaterials=cData->sourceFormat==dx_source_format::DXF
+        &&(!cData->materials.empty()||!cData->rawMaterialObjects.empty());
+    if ((includeNamedObjectRoot||hasDxfMaterials) && !prepareDxfMaterialSources(v)) {
         reportPreflightFailure("MATERIAL source/owner replay closure");
         return false;
     }
@@ -30818,8 +30834,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                                    : "standalone PLOTSETTINGS graph closure");
         return false;
     }
-    if(!prepareDxfFullStyles(v)){
-        reportPreflightFailure("common VisualStyle carrier capture incomplete, wrong-version or over budget");return false;
+    if(!prepareDxfFullStyles(v)||!prepareDxfCommonReferences(v,347,m_dxfMaterialReferenceState)){
+        reportPreflightFailure("common material/style carrier capture incomplete, wrong-version or over budget");return false;
     }
     if (!prepareDxfShadeConsumers(v)) {
         reportPreflightFailure("shade consumer binding capture incomplete or over budget");
@@ -32052,7 +32068,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
-        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyles.empty());
+        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty());
     const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
@@ -32079,10 +32095,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         delete dxfW; dxfW = nullptr; return false;
     }
     const bool needsShadeEntities = m_dxfShadeConsumerEntities;
-    const bool needsFullStyles=!m_dxfFullStyles.empty();
-    if ((needsRasterOutput || needsShadeEntities || needsFullStyles)
-        && !dxfW->setDxfEntitySectionsWriteInspector([this, needsRasterOutput, needsShadeEntities, needsFullStyles](const auto& view, auto section) {
+    const bool needsFullStyles=!m_dxfFullStyleState.sources.empty();
+    const bool needsMaterialReferences=!m_dxfMaterialReferenceState.sources.empty();
+    if ((needsRasterOutput || needsShadeEntities || needsFullStyles || needsMaterialReferences)
+        && !dxfW->setDxfEntitySectionsWriteInspector([this, needsRasterOutput, needsShadeEntities, needsFullStyles, needsMaterialReferences](const auto& view, auto section) {
             return (!needsFullStyles || inspectDxfFullStyles(view,section))
+                && (!needsMaterialReferences || inspectDxfCommonReferences(view,section,347,m_dxfMaterialReferenceState))
                 && (!needsRasterOutput || inspectRasterImageEdges(view, section))
                 && (!needsShadeEntities || inspectDxfShadeConsumers(view, section));
         })) {
@@ -32647,7 +32665,7 @@ bool dx_iface::planLeaderAnnotationHandles() {
 }
 
 void dx_iface::writeEntity(DRW_Entity* e){
-    if(!checkDxfFullStyleEntity(e)){dxfW->writeRawDxfEntity(nullptr);return;}
+    if(!checkDxfCommonEntity(e)){dxfW->writeRawDxfEntity(nullptr);return;}
     if (e == nullptr) {
         failHatchPublication();
         return;

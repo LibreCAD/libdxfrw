@@ -1,4 +1,7 @@
 #include <cstddef>
+#include <cstdlib>
+#include <new>
+#include "intern/dxfcode.h"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -40,6 +43,35 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "libdwgr.h"
+
+namespace {
+long materialAllocationCountdown=-1;std::size_t materialFailedAllocations=0u;
+struct MaterialAllocationFailure {explicit MaterialAllocationFailure(long value){materialAllocationCountdown=value;}~MaterialAllocationFailure(){materialAllocationCountdown=-1;}};
+}
+void* operator new(std::size_t size){
+    if(materialAllocationCountdown==0){++materialFailedAllocations;throw std::bad_alloc();}
+    if(materialAllocationCountdown>0)--materialAllocationCountdown;
+    if(void* value=std::malloc(size?size:1u))return value;throw std::bad_alloc();
+}
+void* operator new[](std::size_t size){return ::operator new(size);}
+void operator delete(void* value)noexcept{std::free(value);}
+void operator delete[](void* value)noexcept{std::free(value);}
+void operator delete(void* value,std::size_t)noexcept{std::free(value);}
+void operator delete[](void* value,std::size_t)noexcept{std::free(value);}
+class DxIfaceMaterialReferenceTestAccess {
+public:
+    static auto size(const dx_iface& value){return std::make_pair(value.m_dxfMaterialReferenceState.sources.size(),value.m_dxfMaterialReferenceState.bytes);}
+    static void limit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfMaterialReferenceState.recordLimit=records;value.m_dxfMaterialReferenceState.byteLimit=bytes;}
+    static bool finalize(const dx_iface& value){return value.finalizeDxfCommonReferences(347,value.m_dxfMaterialReferenceState);}
+    static bool replay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view,std::string_view section){
+        auto& state=value.m_dxfMaterialReferenceState;auto saved=state;
+        state.sections&=~(section=="BLOCKS"?1u:2u);state.observedFields=0u;
+        for(auto& row:state.sources)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
+        const bool result=value.inspectDxfCommonReferences(view,section,347,state);state=std::move(saved);return result;
+    }
+    static bool inactive(const dx_iface& value){return value.m_dxfMaterialReferenceState.sources.empty()&&value.m_dxfMaterialReferenceState.sections==0u&&value.dxfW
+        &&value.dxfW->dxfWriteRecordHandleCount(value.dxfW->remapEntityHandle(0xE801u))==0u;}
+};
 
 class DxfDimensionDstyleTestAccess {
 public:
@@ -15997,6 +16029,26 @@ bool readXrefBlockWireSnapshot(const std::filesystem::path& path, bool binary,
     return false;
 }
 
+bool writeMaterialRawCaptureControl(const std::filesystem::path& path,
+                                    bool binary,
+                                    bool invalidDiffuseProjection,
+                                    bool omitLuminanceDelimiter,
+                                    int diffuseMapperValueCount,
+                                    int specularFault,
+                                    int specularMapFault,
+                                    int specularMapperValueCount,
+                                    int reflectionFault,
+                                    int reflectionMapperValueCount,
+                                    int opacityFault,
+                                    int opacityMapperValueCount,
+                                    int bumpFault,
+                                    int bumpMapperValueCount,
+                                    int refractionFault,
+                                    int refractionMapperValueCount,
+                                    int normalFault,
+                                    int normalMapperValueCount,
+                                    bool addGenProcTail);
+
 void testBlockXrefPathRoundTrip(TestContext& t) {
     constexpr const char* xrefPath = "../external/references/plant.dwg";
     constexpr const char* description = "Locally authored XREF description";
@@ -16248,6 +16300,29 @@ void testBlockXrefPathRoundTrip(TestContext& t) {
         source.replace(styleOffset, std::strlen("348\nA1\n"), "348\nC02\n");styleOffset += std::strlen("348\nC02\n");
     }
 
+    const auto materialPath=directory/("libdxfrw-footer-material-"+suffix+".dxf");temporaryPaths.push_back(materialPath);
+    if(!writeMaterialRawCaptureControl(materialPath,false,false,false,16,0,0,16,0,16,0,16,0,16,0,16,0,16,false)){
+        t.expect(false,"authored footer material source is available");return;
+    }
+    std::ifstream materialFile(materialPath);dxfReaderAscii materialReader(&materialFile);materialReader.setVersion("AC1027",true);
+    std::ostringstream materialObjects;std::vector<std::pair<int,std::string>> materialRecord;int materialCode=0;
+    const auto appendMaterial=[&](){
+        std::string self;for(const auto& field:materialRecord)if(field.first==5)self=field.second;
+        if(self!="1"&&self!="2")return;
+        for(const auto& field:materialRecord){auto value=field.second;
+            if(field.first==5||field.first==330||field.first==350){if(value=="C")value="C00";else if(value=="1")value="C03";else if(value=="2")value="C04";}
+            materialObjects<<field.first<<'\n'<<value<<'\n';}
+    };
+    while(materialReader.readRec(&materialCode)){if(materialCode==0){appendMaterial();materialRecord.clear();}materialRecord.emplace_back(materialCode,materialReader.getRawValue());}
+    appendMaterial();
+    const auto styleDictionaryAt=source.find("0\nDICTIONARY\n5\nC01\n");
+    if(styleDictionaryAt==std::string::npos){t.expect(false,"footer NOD material insertion point exists");return;}
+    source.insert(styleDictionaryAt,"3\nACAD_MATERIAL\n350\nC03\n");
+    const auto objectEnd=source.rfind("0\nENDSEC\n0\nEOF\n");
+    if(objectEnd==std::string::npos){t.expect(false,"footer MATERIAL object insertion point exists");return;}
+    source.insert(objectEnd,materialObjects.str());
+    std::size_t materialOffset=0u;
+    while((materialOffset=source.find("347\nA1\n",materialOffset))!=std::string::npos){source.replace(materialOffset,7u,"347\nC04\n");materialOffset+=8u;}
     {
         std::ofstream output(inputPath, std::ios::binary | std::ios::trunc);
         output << source;
@@ -26700,6 +26775,200 @@ void testMaterialColorLexemes(TestContext& t, bool strict = false) {
               << " output refusals/" << outputRetries << " corrected output readbacks\n";
 }
 
+namespace materialConsumerControls {
+using Tags=std::vector<std::pair<int,std::string>>;using A=DxIfaceMaterialReferenceTestAccess;
+Tags tags(const std::filesystem::path& path,bool binary=false){
+    Tags result;if(!binary){std::ifstream file(path,std::ios::binary);std::string code,value;while(std::getline(file,code)&&std::getline(file,value)){if(!value.empty()&&value.back()=='\r')value.pop_back();result.emplace_back(std::stoi(code),value);}return result;}
+    std::ifstream file(path,std::ios::binary);file.seekg(22);dxfReaderBinary reader(&file);reader.setVersion("AC1027",true);int code=0;while(reader.readRec(&code))result.emplace_back(code,reader.getRawValue());return result;
+}
+bool write(const std::filesystem::path& path,const Tags& fields,bool binary,const std::string& version){
+    std::ofstream file(path,std::ios::binary);if(binary)file.write("AutoCAD Binary DXF\r\n\x1a\0",22);
+    std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&file)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&file));writer->setVersion(version,true);
+    for(const auto& field:fields){bool good=false;const auto code=field.first;const auto& text=field.second;
+        switch(dxfValueKindForCode(code)){
+        case DxfValueKind::Str:good=writer->writeString(code,text);break;
+        case DxfValueKind::I16:good=writer->writeInt16(code,std::stoi(text));break;
+        case DxfValueKind::I32:{const auto number=std::stoll(text);if(number<INT32_MIN||number>UINT32_MAX)return false;
+            const auto bits=static_cast<std::uint32_t>(number);std::int32_t value=0;std::memcpy(&value,&bits,sizeof(value));good=number>INT32_MAX?writeMaterialColorValue(*writer,code,bits,binary):writer->writeInt32(code,value);break;}
+        case DxfValueKind::I64:good=writer->writeInt64(code,std::stoll(text));break;
+        case DxfValueKind::Dbl:{std::istringstream input(text);input.imbue(std::locale::classic());double value=0;input>>value;good=!input.fail()&&writer->writeDouble(code,value);break;}
+        case DxfValueKind::Bln:good=writer->writeBool(code,std::stoi(text)!=0);break;
+        default:return false;}
+        if(!good)return false;
+    }
+    return file.good()&&!writer->hasWriteError();
+}
+Tags recipe(const std::filesystem::path& dir,const std::string& version,bool coupled){
+    const auto seed=dir/"seed.dxf";if(!writeMaterialRawCaptureControl(seed,false))throw std::runtime_error("material seed failed");auto result=tags(seed);
+    for(std::size_t i=0u;i+1u<result.size();++i)if(result[i]==std::make_pair(0,std::string("SECTION"))&&result[i+1u]==std::make_pair(2,std::string("ENTITIES"))){auto end=i+2u;while(end<result.size()&&result[end]!=std::make_pair(0,std::string("ENDSEC")))++end;result.erase(result.begin()+static_cast<std::ptrdiff_t>(i),result.begin()+static_cast<std::ptrdiff_t>(end+1u));break;}
+    std::size_t first=0u,end=0u;for(std::size_t i=0u;i<result.size();++i)if(result[i]==std::make_pair(0,std::string("MATERIAL"))){first=i;end=i+1u;while(result[end].first!=0)++end;break;}
+    if(!first)throw std::runtime_error("material seed body missing");Tags second(result.begin()+static_cast<std::ptrdiff_t>(first),result.begin()+static_cast<std::ptrdiff_t>(end));
+    for(auto& field:second){if(field.first==5)field.second="3";if(field.first==1&&field.second=="Paint")field.second="OtherPaint";}
+    result.insert(result.begin()+static_cast<std::ptrdiff_t>(end),second.begin(),second.end());
+    result.insert(result.begin()+static_cast<std::ptrdiff_t>(first),{{3,"OtherPaint"},{350,"3"}});
+    for(auto& field:result)if(field.first==1&&field.second=="AC1027")field.second=version;
+    if(coupled){const auto style=dir/"style-seed.dxf";if(!writeVisualStyleRetentionControl(style,false,true,"701"))throw std::runtime_error("style seed failed");const auto source=tags(style);
+        Tags body;bool selected=false;for(std::size_t i=0u;i<source.size();++i){if(source[i]==std::make_pair(0,std::string("DICTIONARY"))&&i+1u<source.size()&&source[i+1u].second=="700")selected=true;
+            if(selected){if(source[i]==std::make_pair(0,std::string("ENDSEC")))break;auto field=source[i];if(field.first==330&&field.second=="B0")field.second="C";body.push_back(std::move(field));}}
+        auto rootEnd=std::find(result.begin(),result.end(),std::make_pair(5,std::string("1")))-1;
+        result.insert(rootEnd,{{3,"ACAD_VISUALSTYLE"},{350,"700"}});result.insert(result.end()-2,body.begin(),body.end());}
+    return result;
+}
+std::string hex(std::uint32_t value){std::ostringstream out;out<<std::uppercase<<std::hex<<value;return out.str();}
+dx_ifaceBlock* block(dx_data& data){for(auto* value:data.blocks)if(value&&value->name=="MaterialBlock")return value;throw std::runtime_error("missing material block");}
+void models(dx_data& data,bool anonymous,bool coupled){
+    std::uint32_t next=0xE801u;const auto full=coupled?data.visualStyles.front().handle:0u;
+    const auto identify=[&](DRW_Entity* value){value->handle=anonymous?0u:next++;value->material=2u;value->fullVisualStyleHandle=full;};
+    auto* named=new dx_ifaceBlock;named->name="MaterialBlock";named->handle=0xE700u;named->parentHandle=0xE701u;named->material=2u;named->fullVisualStyleHandle=full;
+    named->hasEndBlockData=true;named->endBlockData.setIsEnd(true);named->endBlockData.handle=0xE702u;named->endBlockData.parentHandle=0xE701u;named->endBlockData.material=3u;named->endBlockData.fullVisualStyleHandle=full;data.blocks.push_back(named);
+    DRW_Block_Record record;record.name="MaterialBlock";record.handle=0xE701u;data.blockRecords.push_back(record);
+    auto* line=new DRW_Line;line->basePoint=DRW_Coord(1,2,3);line->secPoint=DRW_Coord(4,5,6);identify(line);data.mBlock->ent.push_back(line);
+    auto* three=new DRW_3DLine;three->basePoint=DRW_Coord(2,3,4);three->secPoint=DRW_Coord(5,6,7);identify(three);data.mBlock->ent.push_back(three);
+    auto* poly=new DRW_Polyline;identify(poly);for(unsigned i=0u;i<2u;++i){auto child=std::make_shared<DRW_Vertex>();child->basePoint=DRW_Coord(i,i,0);identify(child.get());poly->vertlist.push_back(child);}poly->seqEndEntity=std::make_shared<DRW_SeqEnd>();identify(poly->seqEndEntity.get());data.mBlock->ent.push_back(poly);
+    auto* insert=new DRW_Insert;identify(insert);insert->name="MaterialBlock";auto child=std::make_shared<DRW_Attrib>();child->tag="A";child->text="authored";child->height=1;identify(child.get());insert->attlist.push_back(child);insert->seqEndEntity=std::make_shared<DRW_SeqEnd>();identify(insert->seqEndEntity.get());data.mBlock->ent.push_back(insert);
+    auto* point=new DRW_Point;point->basePoint=DRW_Coord(2,3,4);identify(point);named->ent.push_back(point);
+    dx_ifaceRawEntityEvent raw;raw.typedEntityIndex=0u;raw.record.name="AUTHORED_MATERIAL_CARRIER";raw.record.handle=0xE8F0u;raw.record.parentHandle=DRW::DxfModelSpaceBlockRecordHandle;raw.record.m_version=data.sourceVersion;
+    raw.record.groups={DRW_Variant(5,UTF8STRING("E8F0")),DRW_Variant(330,UTF8STRING("1F")),DRW_Variant(100,UTF8STRING("AcDbEntity")),DRW_Variant(8,UTF8STRING("0")),DRW_Variant(347,UTF8STRING("2"))};
+    if(coupled)raw.record.groups.emplace_back(348,hex(full));raw.record.groups.emplace_back(100,UTF8STRING("AuthoredMaterialCarrier"));raw.record.groups.emplace_back(1,UTF8STRING("authored body"));data.mBlock->rawEntities.push_back(std::move(raw));
+}
+struct Wire {int code;std::string text;std::size_t begin,value,end;};
+std::vector<Wire> wire(const std::filesystem::path& path,bool binary){
+    std::vector<Wire> fields;std::ifstream file(path,std::ios::binary);
+    if(!binary){std::string code,text;for(;;){const auto begin=static_cast<std::size_t>(file.tellg());if(!std::getline(file,code))break;const auto value=static_cast<std::size_t>(file.tellg());if(!std::getline(file,text))break;if(!text.empty()&&text.back()=='\r')text.pop_back();fields.push_back({std::stoi(code),text,begin,value,static_cast<std::size_t>(file.tellg())});}return fields;}
+    file.seekg(22);dxfReaderBinary reader(&file);reader.setVersion("AC1027",true);int code=0;
+    for(;;){const auto begin=static_cast<std::size_t>(file.tellg());if(!reader.readRec(&code))break;fields.push_back({code,reader.getRawValue(),begin,begin+2u,static_cast<std::size_t>(file.tellg())});}return fields;
+}
+struct Record {std::string name,id,owner,material,full,label;unsigned materialFields=0u;};
+std::vector<Record> records(const std::vector<Wire>& fields){std::vector<Record> result;std::string scope;unsigned depth=0;
+    for(const auto& field:fields){if(field.code==0){result.push_back({field.text,{},{},{},{},{},0u});scope.clear();continue;}if(result.empty())continue;
+        if(field.code==102){if(field.text=="}")--depth;else ++depth;continue;}if(depth)continue;auto& row=result.back();
+        if(field.code==100){scope=field.text;continue;}if(field.code==5&&scope.empty())row.id=field.text;if(field.code==330&&scope.empty())row.owner=field.text;
+        if(field.code==347&&scope=="AcDbEntity"){row.material=field.text;++row.materialFields;}if(field.code==348&&scope=="AcDbEntity")row.full=field.text;
+        if((field.code==1&&scope=="AcDbMaterial")||(field.code==2&&scope=="AcDbVisualStyle"))row.label=field.text;}
+    return result;}
+bool proof(const std::vector<Wire>& fields,bool coupled,std::size_t& count,bool rebound=false){const auto rows=records(fields);std::map<std::string,const Record*> ids;std::string first,second,style;
+    for(const auto& row:rows)if(!row.id.empty()){if(!ids.emplace(row.id,&row).second)return false;if(row.name=="MATERIAL"){if(row.label=="Paint")first=row.id;if(row.label=="OtherPaint")second=row.id;}if(row.name=="VISUALSTYLE")style=row.id;}
+    if(first.empty()||second.empty()||first==second||(coupled&&style.empty()))return false;unsigned seen=0u,children=0u,markers=0u,threes=0u;
+    for(const auto& row:rows)if(!row.material.empty()&&row.material!="0"){
+        const auto expected=row.name=="ENDBLK"||(rebound&&row.name=="LINE")?second:first;if(row.materialFields!=1u||row.material!=expected||row.id.empty())return false;
+        const auto owner=ids.find(row.owner),provider=ids.find(row.material);if(owner==ids.end()||provider==ids.end()||provider->second->name!="MATERIAL")return false;
+        const auto dictionary=ids.find(provider->second->owner);if(dictionary==ids.end()||dictionary->second->name!="DICTIONARY")return false;
+        if(row.name=="VERTEX"||row.name=="ATTRIB"||row.name=="SEQEND"){if(owner->second->name!="INSERT"&&owner->second->name!="POLYLINE")return false;const auto root=ids.find(owner->second->owner);if(root==ids.end()||root->second->name!="BLOCK_RECORD")return false;++children;}
+        else if(owner->second->name!="BLOCK_RECORD")return false;
+        if(coupled){if(row.full!=style)return false;count+=2u;}
+        if(row.name=="BLOCK"||row.name=="ENDBLK")++markers;if(row.name=="3DLINE")++threes;++seen;count+=5u;}
+    return seen==13u&&children==5u&&markers==2u&&threes==1u;
+}
+void sentinel(const std::filesystem::path& path){std::ofstream file(path,std::ios::binary);file<<"KEEP_MATERIAL_CONSUMER";}
+bool kept(const std::filesystem::path& path){std::ifstream file(path,std::ios::binary);return std::string((std::istreambuf_iterator<char>(file)),{})=="KEEP_MATERIAL_CONSUMER";}
+struct EditingWriter:dx_iface{
+    unsigned phase=0u,what=0u;bool active=true;long allocation=-1;std::pair<std::size_t,std::size_t> size;
+    void change(){
+        if(what==0u)cData->mBlock->ent.front()->material=3u;
+        if(what==1u)dynamic_cast<DRW_Polyline*>(*std::next(cData->mBlock->ent.begin(),2))->vertlist.front()->material=3u;
+        if(what==2u)block(*cData)->material=3u;
+        if(what==3u)block(*cData)->endBlockData.material=2u;
+        if(what==4u)for(auto& field:cData->mBlock->rawEntities.front().record.groups)if(field.code()==347)field=DRW_Variant(347,UTF8STRING("3"));
+        if(what==5u)cData->materials.front().parentHandle=0xEBADu;
+        if(what==6u)cData->mBlock->ent.front()->material=0u;
+        if(what==7u)cData->sourceFormat=dx_source_format::DWG;
+    }
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);size=A::size(*this);if(active&&phase==0u)change();}
+    void writeEntities()override{if(active&&phase==1u){const auto old=cData->mBlock->ent.front()->material;change();dx_iface::writeEntities();cData->mBlock->ent.front()->material=old;}else{dx_iface::writeEntities();if(active&&phase==2u)change();}}
+    bool finalizeDxfWrite()override{if(active&&phase==3u)change();if(allocation>=0){MaterialAllocationFailure injection(allocation);if(!A::finalize(*this))return false;}return dx_iface::finalizeDxfWrite();}
+};
+struct ExtraWriter:dx_iface{bool invalid=false;void writeEntities()override{dx_iface::writeEntities();DRW_Line extra;extra.material=invalid?0xEBADu:2u;extra.secPoint=DRW_Coord(1,2,3);dxfW->writeLine(&extra);}};
+struct FastWriter:dx_iface{bool invalid=false,observed=false;void writeEntities()override{observed=A::inactive(*this);if(invalid)cData->mBlock->ent.front()->material=0xEBADu;dx_iface::writeEntities();}};
+struct ProviderEditing:dx_iface{bool active=true;void writeObjects()override{
+    if(!active){dx_iface::writeObjects();return;}auto& raw=cData->rawMaterialObjects.front();const auto saved=raw;
+    for(auto& field:raw.groups)if(field.code()==40){field=DRW_Variant(40,.25);break;}raw.hasRawValues=false;raw.rawValues.clear();dx_iface::writeObjects();raw=saved;
+}};
+struct ReplayWriter:dx_iface{
+    std::filesystem::path previous;bool binary=false;std::size_t mutations=0u;
+    bool finalizeDxfWrite()override{
+        const auto fields=wire(previous,binary);std::ifstream file(previous,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+        for(const std::string section:{"BLOCKS","ENTITIES"}){std::size_t begin=0,end=0;
+            for(std::size_t i=0;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text==section){begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;}
+            if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            if(!A::replay(*this,view,section))return false;bool selected=false;std::string scope;
+            for(std::size_t i=0;i<fields.size();++i){const auto& field=fields[i];if(field.begin<begin||field.begin>=end)continue;
+                if(field.code==0){selected=false;scope.clear();for(auto j=i+1u;j<fields.size()&&fields[j].code!=0;++j)if(fields[j].code==347){selected=true;break;}}
+                if(field.code==100)scope=field.text;
+                if(!selected||(field.code!=0&&field.code!=5&&field.code!=330&&!(field.code==347&&scope=="AcDbEntity")))continue;
+                auto changed=body;auto offset=field.value-begin;if(binary)changed.at(offset)^=1;else{while(changed.at(offset)==' '||changed.at(offset)=='\t')++offset;changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
+                auto bad=view;bad.bytes=changed;if(A::replay(*this,bad,section)||!A::replay(*this,view,section))return false;++mutations;
+            }
+        }return dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir){
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";std::size_t profiles=0u,fields=0u,readbacks=0u,callbacks=0u,retries=0u,limits=0u,refusals=0u,mutations=0u,reached=0u,unreached=0u,corrected=0u,extras=0u,fast=0u,body=0u,rawRefusals=0u,tolerant=0u;
+    const auto fail=[&](int line){std::cerr<<"Material binding line="<<line<<" profiles="<<profiles<<" callbacks="<<callbacks<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool inputBinary:{false,true})for(bool binary:{false,true})for(bool coupled:{false,true})for(bool anonymous:{false,true}){
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface writer;dx_data data;if(!write(input,recipe(dir,version,coupled),inputBinary,version)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,anonymous,coupled);
+        if(!writer.fileExport(output.string(),v,binary,&data,false)||!proof(wire(output,binary),coupled,fields))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.materials.size()!=2u)return fail(__LINE__);
+        unsigned materialEntities=0u;for(const auto* value:reopened.mBlock->ent)if(value->material)++materialEntities;
+        if(materialEntities!=4u||block(reopened)->endBlockData.material==0u)return fail(__LINE__);++readbacks;++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned what=0u;what<8u;++what){
+        if(phase==1u&&what!=0u)continue;EditingWriter writer;writer.phase=phase;writer.what=what;dx_data data;
+        if(!write(input,recipe(dir,"AC1027",true),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false,true);
+        const auto owner=data.materials.front().parentHandle;sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        writer.active=false;data.sourceFormat=dx_source_format::DXF;data.mBlock->ent.front()->material=2u;dynamic_cast<DRW_Polyline*>(*std::next(data.mBlock->ent.begin(),2))->vertlist.front()->material=2u;
+        block(data)->material=2u;block(data)->endBlockData.material=3u;data.materials.front().parentHandle=owner;
+        for(auto& field:data.mBlock->rawEntities.front().record.groups)if(field.code()==347)field=DRW_Variant(347,UTF8STRING("2"));
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true}){
+        EditingWriter writer;writer.active=false;dx_data data;if(!write(input,recipe(dir,"AC1027",true),binary,"AC1027")||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false,true);
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||writer.size.first!=13u)return fail(__LINE__);const auto exact=writer.size;
+        for(bool recordLimit:{false,true}){A::limit(writer,exact.first-(recordLimit?1u:0u),exact.second-(recordLimit?0u:1u));sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++limits;A::limit(writer,exact.first,exact.second);
+            if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;}
+        for(const auto target:{0xEBADu,0x701u}){data.mBlock->ent.front()->material=target;sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;data.mBlock->ent.front()->material=2u;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;}
+        data.mBlock->ent.front()->material=3u;std::size_t selected=0u;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!proof(wire(output,binary),true,selected,true))return fail(__LINE__);data.mBlock->ent.front()->material=2u;
+        unsigned untouched=0u;for(long offset=0;offset<1024&&untouched<2u;++offset){writer.allocation=offset;const auto before=materialFailedAllocations;sentinel(output);const bool ok=writer.fileExport(output.string(),DRW::AC1027,binary,&data,false);
+            if(materialFailedAllocations!=before){if(ok||!kept(output))return fail(__LINE__);++reached;untouched=0u;}else{if(!ok)return fail(__LINE__);++unreached;++untouched;}
+            writer.allocation=-1;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++corrected;}if(untouched!=2u)return fail(__LINE__);
+        ExtraWriter extra;if(!extra.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++extras;extra.invalid=true;sentinel(output);
+        if(extra.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;extra.invalid=false;if(!extra.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        for(unsigned fault=0u;fault<4u;++fault){auto& raw=data.mBlock->rawEntities.front().record;const auto saved=raw;
+            if(fault==0u)raw.groups.emplace_back(349,UTF8STRING("2"));
+            if(fault==1u){raw.groups.emplace_back(100,UTF8STRING("ForeignSubclass"));raw.groups.emplace_back(347,UTF8STRING("2"));}
+            if(fault==2u){raw.groups.emplace_back(100,UTF8STRING("AcDbEntity"));raw.groups.emplace_back(347,UTF8STRING("2"));}
+            if(fault==3u){raw.groups.emplace_back(102,UTF8STRING("{AUTHORED"));raw.groups.emplace_back(347,UTF8STRING("2"));raw.groups.emplace_back(102,UTF8STRING("}"));}
+            sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;++rawRefusals;
+            raw=saved;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;}
+        FastWriter plain;dx_data ordinary;const Tags empty{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},{0,"EOF"}};
+        if(!write(input,empty,binary,"AC1027")||!plain.fileImport(input.string(),&ordinary,false))return fail(__LINE__);auto* line=new DRW_Line;line->handle=0xE801u;line->secPoint=DRW_Coord(1,2,3);ordinary.mBlock->ent.push_back(line);
+        if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!plain.observed)return fail(__LINE__);++fast;plain.invalid=true;sentinel(output);
+        if(plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false)||!kept(output))return fail(__LINE__);++refusals;plain.invalid=false;line->material=0u;if(!plain.fileExport(output.string(),DRW::AC1027,binary,&ordinary,false))return fail(__LINE__);++retries;
+        ProviderEditing provider;dx_data providerData;
+        if(!write(input,recipe(dir,"AC1027",false),binary,"AC1027")||!provider.fileImport(input.string(),&providerData,false))return fail(__LINE__);sentinel(output);
+        if(provider.fileExport(output.string(),DRW::AC1027,binary,&providerData,false)||!kept(output))return fail(__LINE__);++body;++refusals;
+        provider.active=false;if(!provider.fileExport(output.string(),DRW::AC1027,binary,&providerData,false))return fail(__LINE__);++retries;
+        dx_iface bodyReader;dx_data bodyReadback;if(!bodyReader.fileImport(output.string(),&bodyReadback,false)||bodyReadback.materials.size()!=2u||bodyReadback.materials.front().m_ambientColorFactor!=.8)return fail(__LINE__);
+        providerData.namedObjectDictionary.m_entries.push_back({"UNSUPPORTED_MATERIAL_TEST",0xEBADu});
+        if(!provider.fileExport(output.string(),DRW::AC1027,binary,&providerData,false))return fail(__LINE__);
+        dx_iface tolerantReader;dx_data tolerantData;if(!tolerantReader.fileImport(output.string(),&tolerantData,false)||tolerantData.materials.size()!=2u
+            ||std::any_of(tolerantData.namedObjectDictionary.m_entries.begin(),tolerantData.namedObjectDictionary.m_entries.end(),[](const auto& entry){return entry.m_name=="UNSUPPORTED_MATERIAL_TEST";}))return fail(__LINE__);++tolerant;
+        const auto previous=dir/(binary?"captured-binary.dxf":"captured-ascii.dxf");if(!writer.fileExport(previous.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        ReplayWriter replay;replay.previous=previous;replay.binary=binary;if(!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);mutations+=replay.mutations;
+    }
+    std::cout<<"Material consumer profiles="<<profiles<<"; independent fields="<<fields<<"; readbacks="<<readbacks<<"; callback rollbacks="<<callbacks<<"; corrected retries="<<retries<<"; exact/one-under limits="<<limits
+        <<"; invalid target rollbacks="<<refusals<<"; staged field refusals="<<mutations<<"; reached finalizer faults="<<reached<<"; unreached offsets="<<unreached<<"; corrected finalizations="<<corrected<<"; extra rooted profiles="<<extras<<"; inactive2D profiles="<<fast<<"; raw provider body rollbacks="<<body<<"; unqualified raw rollbacks="<<rawRefusals<<"; tolerant root profiles="<<tolerant<<'\n';
+    return profiles==64u&&readbacks==64u&&callbacks==50u&&retries==72u&&limits==4u&&refusals==18u&&mutations==104u&&reached&&unreached==4u&&corrected==reached+unreached&&extras==2u&&fast==2u&&body==2u&&rawRefusals==8u&&tolerant==2u;
+}
+}
+void testMaterialConsumerBindings(TestContext& t){
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-material-bindings-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);
+    struct Cleanup{std::filesystem::path path;~Cleanup(){std::error_code error;std::filesystem::remove_all(path,error);}}cleanup{dir};
+    const bool passed=materialConsumerControls::run(dir);if(!passed){std::cerr<<"Material evidence: "<<dir<<'\n';cleanup.path.clear();}
+    t.expect(passed,"common material consumer bindings and failure/retry controls");
+}
+
 void testMaterialRawCapture(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
@@ -34575,10 +34844,10 @@ void testProxyGraphicsReplayProvenance(TestContext& t) {
 
 int main(int argc, char** argv) {
     if(argc==2&&std::string(argv[1])=="--visual-style-properties") {
-        TestContext context;visualStylePropertyControls::run(context);return context.failures==0?0:1;
+        TestContext context;visualStylePropertyControls::run(context);return context.failures == 0 ? 0 : 1;
     }
     if(argc==2&&std::string(argv[1])=="--rendering-model-replay") {
-        TestContext context;renderingModelControls::run(context);return context.failures==0?0:1;
+        TestContext context;renderingModelControls::run(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--rendering-publications") {
         TestContext context;
@@ -34595,6 +34864,9 @@ int main(int argc, char** argv) {
         testDxfConsumerFinalization(focused);
         std::cout << "DXF consumer finalization: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--material-consumer-bindings") {
+        TestContext context;testMaterialConsumerBindings(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--material-object-order") {
         TestContext context;
