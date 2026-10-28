@@ -196,18 +196,24 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // complete diffuse tuple and refraction prefix make the second group 42
     // unambiguous. The general canonical writer deliberately does not emit
     // markerless normal maps. For this captured, unchanged source only, allow
-    // an isolated typed edit of that one proven field without synthesizing a
-    // luminance or strength marker or opening the general writer grammar.
+    // an isolated typed edit of its blend or projection without synthesizing
+    // a luminance or strength marker or opening the general writer grammar.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
         &&original.m_hasNormalMapSource&&original.m_hasNormalMapFileName
         &&original.m_hasNormalMapProjection&&original.m_hasNormalMapTiling
-        &&original.m_hasNormalMapAutoTransform&&std::isfinite(typed.m_normalMapBlendFactor)
-        &&!dxfMaterial::sameValue(original.m_normalMapBlendFactor,typed.m_normalMapBlendFactor)) {
-        DRW_Material desired=original;desired.m_normalMapBlendFactor=typed.m_normalMapBlendFactor;
+        &&original.m_hasNormalMapAutoTransform&&std::isfinite(typed.m_normalMapBlendFactor)) {
+        const bool blendEdit=!dxfMaterial::sameValue(original.m_normalMapBlendFactor,typed.m_normalMapBlendFactor);
+        const bool projectionEdit=original.m_normalMapProjection!=typed.m_normalMapProjection;
+        DRW_Material desired=original;
+        if(blendEdit)desired.m_normalMapBlendFactor=typed.m_normalMapBlendFactor;
+        if(projectionEdit)desired.m_normalMapProjection=typed.m_normalMapProjection;
+        if(blendEdit==projectionEdit || (projectionEdit&&(typed.m_normalMapProjection<1u||typed.m_normalMapProjection>4u)))
+            return false;
         if(dxfMaterial::sameState(desired,typed)) {
             bool body=false,xdata=false,ok=true;unsigned depth=0u,markers=0u;
             std::array<std::size_t,2> blends{};std::size_t count=0u;
+            std::array<std::size_t,2> projections{};std::size_t projectionCount=0u;
             for(std::size_t i=0u;i<raw.groups.size()&&ok;++i) {
                 const auto& field=raw.groups[i];const int code=field.code();
                 if(code==102) {
@@ -236,15 +242,24 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 if(code==464||code==465||code==300||code==291||code==301
                     ||code==469||code==292||code==62||code==420||code==430){ok=false;break;}
                 if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
+                if(projectionEdit&&code==73){if(projectionCount==projections.size()||field.type()!=DRW_Variant::INTEGER){ok=false;break;}
+                    projections[projectionCount++]=i;}
             }
             if(ok&&!depth&&markers==1u&&count==2u
                 &&dxfMaterial::sameValue(raw.groups[blends[0]].d_val(),original.m_diffuseMapBlendFactor)
-                &&dxfMaterial::sameValue(raw.groups[blends[1]].d_val(),original.m_normalMapBlendFactor)) {
-                output=raw;output.groups[blends[1]]=DRW_Variant(42,typed.m_normalMapBlendFactor);
+                &&dxfMaterial::sameValue(raw.groups[blends[1]].d_val(),original.m_normalMapBlendFactor)
+                &&(!projectionEdit||(projectionCount==2u&&original.m_hasDiffuseMapProjection
+                    &&projections[0]<blends[1]&&projections[1]>blends[1]
+                    &&raw.groups[projections[0]].i_val()==original.m_diffuseMapProjection
+                    &&raw.groups[projections[1]].i_val()==original.m_normalMapProjection))) {
+                const auto index=blendEdit?blends[1]:projections[1];
+                output=raw;
+                output.groups[index]=blendEdit?DRW_Variant(42,typed.m_normalMapBlendFactor)
+                    :DRW_Variant(73,static_cast<std::int32_t>(typed.m_normalMapProjection));
                 if(output.hasRawValues&&!binary) {
                     if(output.rawValues.size()!=output.groups.size())return false;
-                    std::string text;if(!spelling(output.groups[blends[1]],text))return false;
-                    output.rawValues[blends[1]]=std::move(text);
+                    std::string text;if(!spelling(output.groups[index],text))return false;
+                    output.rawValues[index]=std::move(text);
                 } else if(binary) {output.hasRawValues=false;output.rawValues.clear();}
                 DRW_Material actual;
                 if(!decode(output,actual,binary)||!dxfMaterial::sameState(actual,desired))return false;
