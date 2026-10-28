@@ -40,6 +40,8 @@ PEER_MLINE_STYLE_SCALAR_EDIT = {"flags": 273, "fillColor": 6,
                                 "description": PEER_MLINE_STYLE_EDIT}
 PEER_MLINE_STYLE_ELEMENT_ACI_EDIT = (0, 256)
 PEER_MLINE_STYLE_SIMPLE_LTYPE = "PeerDash"
+PEER_MLINE_STYLE_SIMPLE_LTYPE_PATTERN = [
+    (72, 65), (73, 2), (40, 1.5), (49, 1.0), (74, 0), (49, -0.5), (74, 0)]
 
 
 def selected_physical_records(path, binary):
@@ -906,7 +908,8 @@ def qualify_mline_style_text_boundaries(ezdxf, probe, converter, output):
 
 
 def author_mline_style_authority_profile(ezdxf, simple_linetype=False,
-                                       linetype_edit_source=False):
+                                       linetype_edit_source=False,
+                                       omitted_linetype_flags=()):
     """Author styles/providers before generating the unchanged MLINE geometry."""
     doc, style, _, null_bindings, omitted = author_mline_style_profile(
         ezdxf, "R2013", "utf-8", "Dictionary authority boundary",
@@ -915,6 +918,18 @@ def author_mline_style_authority_profile(ezdxf, simple_linetype=False,
         provider = doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE)
         provider.dxf.description = "Authored simple dash and gap"
         provider.setup_pattern([1.5, 1.0, -0.5])
+        if omitted_linetype_flags:
+            tags = provider.pattern_tags.tags
+            slots = [index for index, tag in enumerate(tags) if tag.code == 74]
+            assert len(slots) == 2 and all(tags[index].value == 0 for index in slots), "authored simple LTYPE flags"
+            assert set(omitted_linetype_flags) <= {0, 1}, "selected source flag ordinals"
+            # The producer stores/exports these tags verbatim. Author omissions
+            # before MLINE geometry, expectations or the first save; never edit
+            # an input file or ask its reader to repair the omitted fields.
+            for index in sorted({slots[ordinal] for ordinal in omitted_linetype_flags}, reverse=True):
+                del tags[index]
+    else:
+        assert not omitted_linetype_flags, "flag omission needs an authored provider"
     if linetype_edit_source:
         assert simple_linetype, "linetype edit source needs its original provider"
         # This is typed source authoring before any MLINE geometry is generated.
@@ -1013,8 +1028,7 @@ def qualify_mline_style_simple_linetype(ezdxf, probe, converter, output):
         ezdxf, simple_linetype=True)
     linetypes = {PEER_MLINE_STYLE_SIMPLE_LTYPE: simple_linetype_values(
         doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE))}
-    assert linetypes[PEER_MLINE_STYLE_SIMPLE_LTYPE]["pattern"] == [
-        (72, 65), (73, 2), (40, 1.5), (49, 1.0), (74, 0), (49, -0.5), (74, 0)], "authored simple LTYPE expectation"
+    assert linetypes[PEER_MLINE_STYLE_SIMPLE_LTYPE]["pattern"] == PEER_MLINE_STYLE_SIMPLE_LTYPE_PATTERN, "authored simple LTYPE expectation"
 
     def projection(module, path, binary, wanted, source_recipe=False):
         return selected_mline_style_projection(
@@ -1042,13 +1056,25 @@ def qualify_mline_style_simple_linetype(ezdxf, probe, converter, output):
     return [original], unchanged
 
 
-def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
-    """Reuse one original provider/geometry recipe for six group-6 edits."""
+def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output,
+                                     omitted_flags=(), edit_modes=("typed", "raw", "both")):
+    """Reuse one original provider/geometry recipe for selected group-6 edits."""
     doc, _, expected, consumers, null_bindings, omitted = author_mline_style_authority_profile(
-        ezdxf, simple_linetype=True, linetype_edit_source=True)
+        ezdxf, simple_linetype=True, linetype_edit_source=True,
+        omitted_linetype_flags=omitted_flags)
     assert doc.linetypes.get("BYLAYER").dxf.name == "ByLayer", "selected original ByLayer name"
     linetypes = {entry.dxf.name: simple_linetype_values(entry) for entry in (
         doc.linetypes.get("BYLAYER"), doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE))}
+    flag_slots = [index for index, (code, _) in enumerate(PEER_MLINE_STYLE_SIMPLE_LTYPE_PATTERN) if code == 74]
+    removed = {flag_slots[ordinal] for ordinal in omitted_flags}
+    literal_pattern = [tag for index, tag in enumerate(PEER_MLINE_STYLE_SIMPLE_LTYPE_PATTERN) if index not in removed]
+    assert linetypes[PEER_MLINE_STYLE_SIMPLE_LTYPE]["pattern"] == literal_pattern, "authored literal LTYPE pattern/omissions"
+    emitted_linetypes = linetypes
+    if omitted_flags:
+        emitted_linetypes = {name: dict(value) for name, value in linetypes.items()}
+        # This explicit output contract is independent of the literal omitted
+        # source pattern. Missing/nonzero/reordered output74 remains a mismatch.
+        emitted_linetypes[PEER_MLINE_STYLE_SIMPLE_LTYPE]["pattern"] = list(PEER_MLINE_STYLE_SIMPLE_LTYPE_PATTERN)
     elements = expected[PEER_MLINE_STYLE_NAME]["elements"]
     assert elements[0][2] == "BYLAYER", "source group-6 edit must begin on ByLayer"
     assert PEER_MLINE_STYLE_SIMPLE_LTYPE in linetypes, "target LTYPE must preexist in source"
@@ -1057,9 +1083,11 @@ def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
         return selected_mline_style_projection(
             module, path, binary, wanted, source_recipe=source_recipe,
             consumer_expected=consumers, consumer_style_key=PEER_MLINE_STYLE_NAME,
-            linetype_expected=linetypes)
+            linetype_expected=linetypes if source_recipe else emitted_linetypes)
 
-    source = output / "mline-style-element-ltype-AC1027-asc.dxf"
+    omitted_mask = sum(1 << ordinal for ordinal in omitted_flags)
+    suffix = "-omit74-" + str(omitted_mask) if omitted_flags else ""
+    source = output / ("mline-style-element-ltype" + suffix + "-AC1027-asc.dxf")
     doc.saveas(source, fmt="asc")
     original = {"version": doc.dxfversion, "page": "utf-8", "format": "asc",
                 "path": source.name, "sha256": digest(source), "matched": False,
@@ -1068,6 +1096,12 @@ def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
                 "expectedConsumers": consumers,
                 "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation",
                 "nativeLinetypeSemanticsQualified": False}
+    if omitted_flags:
+        original.update({"omittedSourceFlagOrdinals": list(omitted_flags),
+                         "omittedSourceFlagMask": omitted_mask,
+                         "expectedEmittedLinetypes": emitted_linetypes,
+                         "ordinaryTypedPatternTagsPreserveOmissions": True,
+                         "authoring": original["authoring"] + "; selected zero74 tags omitted in the typed producer pattern_tags before geometry and first save"})
     try:
         original["observations"] = projection(ezdxf, source, False, expected, source_recipe=True)
         original["matched"] = True
@@ -1078,7 +1112,7 @@ def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
         (offset, color, PEER_MLINE_STYLE_SIMPLE_LTYPE if index == 0 else linetype)
         for index, (offset, color, linetype) in enumerate(elements)]
     edits = []
-    for mode in ("typed", "raw", "both"):
+    for mode in edit_modes:
         _, edited = selected_resource_outputs(
             ezdxf, probe, converter, source, "R2013", "utf-8", "asc", original,
             "--mline-style-ltype-probe", projection, expected, edited_expected,
@@ -1090,8 +1124,23 @@ def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
                         "selectedLinetype": PEER_MLINE_STYLE_SIMPLE_LTYPE,
                         "onlyElementLinetypeChanged": row["matched"],
                         "providerPreexistsInOriginalSource": True})
+            if omitted_flags:
+                row.update({"omittedSourceFlagMask": omitted_mask,
+                            "expectedExplicitOutputFlagCount": 2})
         edits.extend(edited)
     return [original], edits
+
+
+def qualify_mline_style_omitted_linetype_flags(ezdxf, probe, converter, output):
+    """First, last and both zero74 omissions; typed/raw edits, two outputs."""
+    inputs, edits = [], []
+    for omitted_flags in ((0,), (1,), (0, 1)):
+        original, edited = qualify_mline_style_linetype_edits(
+            ezdxf, probe, converter, output, omitted_flags=omitted_flags,
+            edit_modes=("typed", "raw"))
+        inputs.extend(original)
+        edits.extend(edited)
+    return inputs, edits
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -1305,6 +1354,7 @@ def main():
     mline_element_aci_edits = []
     mline_simple_ltype_inputs, mline_simple_ltype_round_trips = [], []
     mline_element_ltype_inputs, mline_element_ltype_edits = [], []
+    mline_omitted_ltype_flag_inputs, mline_omitted_ltype_flag_edits = [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
@@ -1319,6 +1369,8 @@ def main():
         mline_simple_ltype_inputs, mline_simple_ltype_round_trips = qualify_mline_style_simple_linetype(
             ezdxf, probe, converter, output)
         mline_element_ltype_inputs, mline_element_ltype_edits = qualify_mline_style_linetype_edits(
+            ezdxf, probe, converter, output)
+        mline_omitted_ltype_flag_inputs, mline_omitted_ltype_flag_edits = qualify_mline_style_omitted_linetype_flags(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -1398,6 +1450,10 @@ def main():
         "mlineStyleElementLtypeInputsMatched": sum(row["matched"] for row in mline_element_ltype_inputs),
         "mlineStyleElementLtypeEdits": mline_element_ltype_edits,
         "mlineStyleElementLtypeEditsMatched": sum(row["matched"] for row in mline_element_ltype_edits),
+        "mlineStyleOmittedLtypeFlagInputs": mline_omitted_ltype_flag_inputs,
+        "mlineStyleOmittedLtypeFlagInputsMatched": sum(row["matched"] for row in mline_omitted_ltype_flag_inputs),
+        "mlineStyleOmittedLtypeFlagEdits": mline_omitted_ltype_flag_edits,
+        "mlineStyleOmittedLtypeFlagEditsMatched": sum(row["matched"] for row in mline_omitted_ltype_flag_edits),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -1461,6 +1517,21 @@ def main():
                 "editModes": ["typed", "raw", "both"],
                 "nativeLinetypeSemanticsQualified": False,
                 "otherVersionOrComplexProviderProfilesQualified": False,
+            },
+            "omittedLinetypeFlagScope": {
+                "sources": 3, "editOutputs": 12,
+                "sourceVersionFormat": "AC1027/UTF-8/ASCII",
+                "omittedSourceFlagMasks": [1, 2, 3],
+                "sourceRecipe": "Reuse original ByLayer style and original PeerDash provider; delete first, last or both zero74 tags inside typed pattern_tags before geometry, expectations and first save",
+                "editModes": ["typed", "raw"], "outputFormats": ["asc", "bin"],
+                "projection": "Exact omitted source tags before setup and in ordinary stored pattern_tags; separate explicit zero74 output contract. Preserve all other complete provider/style/dictionary/consumer/340/geometry fields with the existing projector",
+                "expectedExplicitOutputFlagCount": 2,
+                "typedParserScope": "Pinned ezdxf Linetype stores and exports pattern_tags verbatim; tag agreement does not independently qualify default semantics or native rendering",
+                "agreeingEditModeReusedFrom": "mlineStyleElementLtypeEdits",
+                "additionalUnchangedCliRuns": 0,
+                "noSourcePostMutationOrGeometryRegeneration": True,
+                "nativeLinetypeSemanticsQualified": False,
+                "complexProviderOrGeneralGrammarQualified": False,
             },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -1526,6 +1597,9 @@ def main():
         print("Independent MLINESTYLE element LTYPE source/typed/raw/both edits: %d/%d, %d/%d" % (
             report["mlineStyleElementLtypeInputsMatched"], len(mline_element_ltype_inputs),
             report["mlineStyleElementLtypeEditsMatched"], len(mline_element_ltype_edits)))
+        print("Independent MLINESTYLE omitted LTYPE flags source/typed/raw edits: %d/%d, %d/%d" % (
+            report["mlineStyleOmittedLtypeFlagInputsMatched"], len(mline_omitted_ltype_flag_inputs),
+            report["mlineStyleOmittedLtypeFlagEditsMatched"], len(mline_omitted_ltype_flag_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
@@ -1535,7 +1609,8 @@ def main():
         + mline_text_transcodes + mline_key_inputs + mline_key_round_trips
         + mline_key_edits + mline_element_aci_edits
         + mline_simple_ltype_inputs + mline_simple_ltype_round_trips
-        + mline_element_ltype_inputs + mline_element_ltype_edits) else 1
+        + mline_element_ltype_inputs + mline_element_ltype_edits
+        + mline_omitted_ltype_flag_inputs + mline_omitted_ltype_flag_edits) else 1
 
 
 if __name__ == "__main__":

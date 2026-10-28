@@ -80,6 +80,15 @@ public:
         for(const auto& style:value.m_dxfMLineStyles)if(style.second.linetypesBound)return false;
         return true;
     }
+    static bool mlineLinetypeProofBound(const dx_iface& value,std::uint32_t source){
+        const auto row=value.m_dxfMLineLinetypes.find(source);
+        if(row==value.m_dxfMLineLinetypes.end()||!value.m_dxfMLineLinetypesInspected
+            ||!row->second.live||row->second.model.handle!=source||!row->second.emitted||row->second.table!=5u
+            ||!row->second.origin||!row->second.origin->bodyMatched||!row->second.origin->stateComplete||!row->second.origin->originBound
+            ||value.m_dxfMLineStyles.empty())return false;
+        for(const auto& style:value.m_dxfMLineStyles)if(!style.second.linetypesBound)return false;
+        return true;
+    }
     static void limitMLineBlockSource(dx_iface& value);
     static bool mlineBlockSourceCaptureFailed(const dx_data& value);
     struct MLineBlockModelSwap {
@@ -28936,6 +28945,7 @@ void testScaleBodyTransactions(TestContext& t) {
 
 namespace mlineLtypeProviderControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
+namespace mlineLtypeDefaultFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
 using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
@@ -29272,6 +29282,7 @@ bool run(const std::filesystem::path& dir) {
     std::size_t textProfiles=0u,textReadbacks=0u,textInsertions=0u,textCallbacks=0u,textShadows=0u,textSpellings=0u,textAppScopes=0u,textLateNames=0u;
     std::size_t aciProfiles=0u,aciReadbacks=0u,aciConflicts=0u,aciInvalid=0u,aciCallbacks=0u,aciInsertions=0u,aciScopes=0u,aciTransports=0u,aciCorruptions=0u,aciBoundary=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    if(!mlineLtypeDefaultFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeEditControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeProviderControls::run(dir))return fail(__LINE__);
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
@@ -30465,10 +30476,11 @@ struct Replay:dx_iface {
         const auto rejected=[&](const std::string& changed){auto bad=view;bad.bytes=changed;
             const bool accepted=A::mlineLinetypesReplay(*this,bad),recovered=A::mlineLinetypesReplay(*this,view);
             return !accepted&&recovered;};
-        if(!A::mlineLinetypesReplay(*this,view))return false;std::vector<std::size_t> dashes;
+        if(!A::mlineLinetypesReplay(*this,view))return false;std::vector<std::size_t> dashes,flags;
         for(std::size_t i=first;i<last;++i) {
             const auto& field=fields[i];const int code=field.code;
             if(code==49)dashes.push_back(i);
+            if(code==74)flags.push_back(i);
             if(code!=0&&code!=5&&code!=330&&code!=100&&code!=2&&code!=3&&code!=70&&code!=72&&code!=73&&code!=40&&code!=49&&code!=74)continue;
             auto changed=body;const auto at=field.value-begin;
             if(code==40||code==49) {
@@ -30491,7 +30503,17 @@ struct Replay:dx_iface {
         auto swapped=body;const auto x=body.substr(a.value-begin,a.end-a.value),y=body.substr(b.value-begin,b.end-b.value);
         swapped.replace(b.value-begin,b.end-b.value,x);swapped.replace(a.value-begin,a.end-a.value,y);
         if(!rejected(swapped))return false;++corruptions;
-        return corruptions==16u&&dx_iface::finalizeDxfWrite();
+        if(flags.size()!=2u)return false;
+        // The admitted source default does not relax the actual writer profile:
+        // both emitted flags must still be explicit and inspected.
+        for(unsigned omitted=1u;omitted<=3u;++omitted) {
+            auto changed=body;
+            for(unsigned j=2u;j--;)if(omitted&(1u<<j)) {
+                const auto& flag=fields[flags[j]];changed.erase(flag.begin-begin,flag.end-flag.begin);
+            }
+            if(!rejected(changed))return false;++corruptions;
+        }
+        return corruptions==19u&&dx_iface::finalizeDxfWrite();
     }
 };
 bool run(const std::filesystem::path& dir) {
@@ -30635,7 +30657,7 @@ bool run(const std::filesystem::path& dir) {
         <<"; corruptions="<<corruptions<<"; compatibility="<<compatibility<<"; sourceIndexRefusals="<<sourceIndexRefusals
         <<"; plannerFaults="<<plannerFaults<<"; plannerUnreached="<<plannerUnreached<<"; normalizedAdvisory="<<normalizedAdvisory<<'\n';
     return profiles==4u&&readbacks==93u&&copyRefusals==16u&&preflightRefusals==16u&&lateRefusals==40u
-        &&retries==82u&&corruptions==32u&&compatibility==4u&&sourceIndexRefusals==2u
+        &&retries==82u&&corruptions==38u&&compatibility==4u&&sourceIndexRefusals==2u
         &&plannerFaults>0u&&plannerFaults+plannerUnreached==8u&&normalizedAdvisory==1u;
 }
 }
@@ -30786,7 +30808,7 @@ bool run(const std::filesystem::path& dir) {
         data.mLineStyles=typed;data.rawNamedResourceObjects=raws;data.mLineStyles.front().elements[0].linetype="EditDash";
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","Continuous"}}))return fail(__LINE__);++readbacks;++retries;
     }
-    for(bool binary:{false,true})for(unsigned kind=0u;kind<6u;++kind) {
+    for(bool binary:{false,true})for(unsigned kind:{0u,1u,2u,3u,5u}) {
         auto fields=recipe(binary);std::size_t first=fields.size(),end=fields.size();
         for(std::size_t i=0u;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))&&i+1u<fields.size()&&fields[i+1u]==std::make_pair(5,std::string("103"))) {
             first=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
@@ -30795,7 +30817,6 @@ bool run(const std::filesystem::path& dir) {
         if(kind==0u)fields.erase(fields.begin()+first,fields.begin()+end);
         if(kind==1u){Tags duplicate(fields.begin()+first,fields.begin()+end);for(auto& field:duplicate)if(field.first==5)field.second="104";fields.insert(fields.begin()+end,duplicate.begin(),duplicate.end());}
         if(kind==2u||kind==3u)for(auto i=first;i<end;++i)if(fields[i].first==(kind==2u?70:40))fields[i].second=kind==2u?"16":"99";
-        if(kind==4u)for(auto i=end;i-->first;)if(fields[i].first==74)fields.erase(fields.begin()+i);
         if(kind==5u)fields.insert(fields.begin()+first+2u,{{102,"{LTYPE_META"},{1,"opaque"},{102,"}"}});
         dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
@@ -30878,8 +30899,137 @@ bool run(const std::filesystem::path& dir) {
     std::cout<<"MLINE LTYPE edit profiles="<<profiles<<"; readbacks="<<readbacks<<"; conflicts="<<conflicts<<"; invalid="<<invalid
         <<"; unqualified="<<unqualified<<"; legacy="<<legacy<<"; late="<<late<<"; copied="<<copied<<"; retries="<<retries
         <<"; corruptions="<<corruptions<<"; scopes="<<scopes<<"; insertions="<<insertions<<"; faults="<<faults<<"; unreached="<<unreached<<'\n';
-    return profiles==4u&&conflicts==8u&&invalid==18u&&unqualified==12u&&legacy==2u&&late==24u&&copied==8u
+    return profiles==4u&&conflicts==8u&&invalid==18u&&unqualified==10u&&legacy==2u&&late==24u&&copied==8u
         &&corruptions==6u&&scopes==2u&&insertions==2u&&faults>0u&&faults+unreached==6u;
+}
+}
+
+
+namespace mlineLtypeDefaultFlagControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+Tags recipe(bool binary,unsigned omitted) {
+    auto fields=mlineLtypeProviderControls::recipe(binary);bool selected=false;std::vector<std::size_t> flags;std::size_t firstDash=fields.size();
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i].first==0)selected=false;
+        if(fields[i]==std::make_pair(5,std::string("103")))selected=true;
+        if(selected&&fields[i].first==49&&firstDash==fields.size())firstDash=i;
+        if(selected&&fields[i].first==74)flags.push_back(i);
+    }
+    if(flags.size()!=2u||firstDash==fields.size()||omitted<1u||omitted>3u)throw std::runtime_error("LTYPE default source profile missing");
+    for(unsigned j=2u;j--;)if(omitted&(1u<<j))fields.erase(fields.begin()+flags[j]);
+    // Binary DXF omits comment group999; retain its scope control in ASCII.
+    if(!binary)fields.insert(fields.begin()+firstDash+1u,{999,"omitted dash flag has default zero"});return fields;
+}
+bool sourceModel(dx_data& data) {
+    const auto& value=mlineLtypeProviderControls::provider(data);
+    if(value.size!=2||value.length!=1.5||value.path!=std::vector<double>{1,-.5}||value.segments.size()!=2u)return false;
+    for(std::size_t i=0u;i<2u;++i)if(value.segments[i].shapeFlags!=0||value.segments[i].complexShapeCode!=0
+        ||value.segments[i].length!=value.path[i]||value.segments[i].styleHandle.ref!=0u
+        ||value.segments[i].styleHandle.ref64!=0u||!value.segments[i].text.empty())return false;
+    return true;
+}
+bool sourceLiteral(const Tags& fields,unsigned omitted,bool binary) {
+    bool selected=false;unsigned flags=0u,flagMask=0u,dashes=0u,counts=0u,lengths=0u,comments=0u;
+    for(const auto& field:fields) {
+        if(field.first==0)selected=false;if(field==std::make_pair(5,std::string("103")))selected=true;if(!selected)continue;
+        if(field.first==73){if(field.second!="2")return false;++counts;}
+        if(field.first==40){if(field.second!="1.5")return false;++lengths;}
+        if(field.first==49){if(field.second!=(dashes?"-0.5":"1"))return false;++dashes;}
+        if(field.first==74){if(field.second!="0"||!dashes||dashes>2u||(flagMask&(1u<<(dashes-1u))))return false;
+            flagMask|=1u<<(dashes-1u);++flags;}
+        if(field==std::make_pair(999,std::string("omitted dash flag has default zero")))++comments;
+    }
+    return counts==1u&&lengths==1u&&dashes==2u&&flags==(omitted==3u?0u:1u)&&flagMask==(3u^omitted)&&comments==(binary?0u:1u);
+}
+Tags malformed(bool binary,unsigned kind) {
+    auto fields=mlineLtypeProviderControls::recipe(binary);std::size_t first=fields.size(),end=fields.size(),dash=fields.size(),flag=fields.size();
+    for(std::size_t i=0u;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))&&i+1u<fields.size()&&fields[i+1u]==std::make_pair(5,std::string("103"))) {
+        first=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
+    }
+    if(first==fields.size())throw std::runtime_error("LTYPE negative source row missing");
+    for(auto i=first;i<end;++i){if(fields[i].first==49&&dash==fields.size())dash=i;if(fields[i].first==74&&flag==fields.size())flag=i;}
+    if(dash==fields.size()||flag==fields.size())throw std::runtime_error("LTYPE negative source dash missing");
+    if(kind==0u)fields.insert(fields.begin()+dash,{74,"0"});
+    if(kind==1u)fields.insert(fields.begin()+flag+1u,{74,"0"});
+    if(kind==2u)fields[flag].second="1";
+    if(kind==3u)fields.insert(fields.begin()+dash+1u,{75,"65"});
+    if(kind==4u)fields.insert(fields.begin()+dash+1u,{340,"1E1"});
+    if(kind==5u)fields.insert(fields.begin()+dash+1u,{9,"unqualified glyph"});
+    if(kind>=6u)for(auto i=first;i<end;++i) {
+        if(kind==6u&&fields[i].first==330)fields[i].second="1E0";
+        if(kind==7u&&fields[i].first==73)fields[i].second="3";
+        if(kind==8u&&fields[i].first==40)fields[i].second="99";
+    }
+    return fields;
+}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"ltype-default-flags-input.dxf",output=dir/"ltype-default-flags-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,edits=0u,copied=0u,late=0u,retries=0u,importRefusals=0u,exportRefusals=0u;
+    std::array<std::size_t,9> importKinds{},exportKinds{};
+    const auto fail=[&](int line){std::cerr<<"MLINE LTYPE default-flags line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+        <<" edits="<<edits<<" copied="<<copied<<" late="<<late<<" importRefusals="<<importRefusals<<" exportRefusals="<<exportRefusals<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(unsigned omitted=1u;omitted<=3u;++omitted) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary,omitted);
+        if(!sourceLiteral(fields,omitted,sourceBinary)||!write(input,fields,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!sourceModel(data)||data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+            ||data.mLineStyles.front().elements[0].linetype!="EditDash"||data.mLineStyles.front().elements[1].linetype!="Continuous")return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        const auto check=[&](const mlineLtypeEditControls::Names& names) {
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+                ||!mlineLtypeEditControls::complete(output,binary,names)||!mlineLtypeEditControls::caller(data,style,raw,lines))return false;
+            ++readbacks;return true;
+        };
+        if(!check({{"EditDash","Continuous"}}))return fail(__LINE__);
+        for(bool rawEdit:{false,true}) {
+            data.mLineStyles=typed;data.rawNamedResourceObjects=raws;
+            if(rawEdit)mlineLtypeEditControls::rawName(data,1u,"EditDash");else data.mLineStyles.front().elements[1].linetype="EditDash";
+            if(!check({{"EditDash","EditDash"}}))return fail(__LINE__);++edits;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned mode=0u;mode<4u;++mode) {
+        mlineLtypeProviderControls::Corrupt adapter;adapter.mode=mode;dx_data data;
+        if(!write(input,recipe(binary,3u),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!sourceModel(data))return fail(__LINE__);
+        data.mLineStyles.front().elements[1].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++copied;
+        adapter.active=false;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!mlineLtypeEditControls::complete(output,binary,{{"EditDash","EditDash"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<2u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe(binary,3u),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!sourceModel(data))return fail(__LINE__);
+        data.mLineStyles.front().elements[1].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        std::function<void()> restore;
+        adapter.change=[&]{if(kind==0u)mlineLtypeProviderControls::provider(data).segments[0].shapeFlags=1;
+            else restore=A::removeMLineLinetypeOrigin(data,0x103u);};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++late;
+        adapter.active=false;if(restore)restore();data.lineTypes=lines;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!mlineLtypeEditControls::complete(output,binary,{{"EditDash","EditDash"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<9u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,malformed(binary,kind),binary,"AC1027"))return fail(__LINE__);
+        const bool imported=adapter.fileImport(input.string(),&data,false);
+        if(!imported){++importRefusals;++importKinds[kind];}
+        else {
+            if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return fail(__LINE__);
+            data.mLineStyles.front().elements[1].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++exportRefusals;++exportKinds[kind];
+        }
+        dx_data corrected;if(!write(input,recipe(binary,3u),binary,"AC1027")||!adapter.fileImport(input.string(),&corrected,false)||!sourceModel(corrected))return fail(__LINE__);
+        corrected.mLineStyles.front().elements[1].linetype="EditDash";const auto style=corrected.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(corrected);const auto lines=corrected.lineTypes;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&corrected,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!mlineLtypeEditControls::complete(output,binary,{{"EditDash","EditDash"}})||!mlineLtypeEditControls::caller(corrected,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    std::cout<<"MLINE LTYPE omitted flag profiles="<<profiles<<"; readbacks="<<readbacks<<"; edits="<<edits<<"; copied="<<copied
+        <<"; late="<<late<<"; retries="<<retries<<"; importRefusals="<<importRefusals<<"; exportRefusals="<<exportRefusals<<"; importKinds=";
+    for(auto count:importKinds)std::cout<<count<<',';std::cout<<"; exportKinds=";for(auto count:exportKinds)std::cout<<count<<',';std::cout<<'\n';
+    return profiles==12u&&readbacks==78u&&edits==24u&&copied==8u&&late==16u&&retries==42u&&importRefusals+exportRefusals==18u;
 }
 }
 

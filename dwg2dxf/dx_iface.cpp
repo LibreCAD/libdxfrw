@@ -19691,9 +19691,11 @@ bool lineTypeSourceEqual(const DRW_LType& a,const DRW_LType& b,DRW::Version vers
 }
 
 struct MlineLinetypeShape {
+    explicit MlineLinetypeShape(bool sourceDefaults=false):allowOmittedDashFlags(sourceDefaults) {}
     unsigned classes{0u},selves{0u},owners{0u},dashes{0u};
     std::array<bool,6> headers{};
     bool pending{false};
+    bool allowOmittedDashFlags{false};
     bool field(int code,std::string_view text={}) {
         if (code==999) return true;
         if (code==5) return classes==0u && ++selves==1u;
@@ -19711,12 +19713,12 @@ struct MlineLinetypeShape {
             if (seen) return false;
             seen=true;return true;
         }
-        if (code==49) {if (pending) return false;pending=true;++dashes;return true;}
+        if (code==49) {if (pending && !allowOmittedDashFlags) return false;pending=true;++dashes;return true;}
         if (code==74 && pending) {pending=false;return true;}
         return false;
     }
     bool complete(std::size_t count) const {
-        return classes==2u && selves==1u && owners==1u && !pending && dashes==count
+        return classes==2u && selves==1u && owners==1u && (!pending || allowOmittedDashFlags) && dashes==count
             && std::all_of(headers.begin(),headers.end(),[](bool v){return v;});
     }
 };
@@ -19739,7 +19741,9 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
     const auto key=layoutSymbolKey(value.name);
     if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
         && (!value.path.empty() || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
-    MlineLinetypeShape shape;
+    // Omitted source flags mean zero. Actual output uses the strict default
+    // policy so this writer's explicit fields remain independently checked.
+    MlineLinetypeShape shape(true);
     for (const auto& field:raw.groups) {
         const auto text=field.type()==DRW_Variant::STRING && field.content.s
             ? std::string_view(*field.content.s) : std::string_view{};
