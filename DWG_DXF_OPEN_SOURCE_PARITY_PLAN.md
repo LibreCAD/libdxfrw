@@ -40,8 +40,8 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P3 | READY: regression only | Canonical/malformed specular pair; then ambiguous Normal Map and remaining variants | Current parser already rejects the producer defect |
-| P2 | READY: fixed-shape edits; count audit first | Reproduce MLINE/style arity boundary; element ACI, then LTYPE edits; coupled geometry and MLEADERSTYLE separately | Existing immutable dictionary/consumer and actual-output bindings |
+| P2 | READY: count fix, then fixed-shape edits | Refuse reproduced MLINE/style arity mismatch; element ACI, then LTYPE edits; coupled geometry and MLEADERSTYLE separately | Existing immutable dictionary/consumer and actual-output bindings |
+| P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
@@ -60,13 +60,12 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P3.1 — producer regression | `materialSourceOrderControls`; existing `libdxfrw_material_source_order` selector | Canonical 73=3/76=0 preserves distinct roles; malformed 73=0 refuses, preserves destination and succeeds after correction |
-| P2.3a — MLINE arity audit | `validateMLineEntities`, `DRW_MLine::validateDxfRecord`; `libdxfrw_mline_style_authority` | Reproduce an internally consistent one-element MLINE referencing a two-element style; fix only a demonstrated gap, then prove refusal and corrected ENTITIES/BLOCK retry |
+| P2.3a — MLINE arity fix | `validateMLineEntities`, `DRW_MLine::validateDxfRecord`; `libdxfrw_mline_style_authority` | Refuse the reproduced internally consistent one-element MLINE referencing a two-element style; prove destination/caller preservation and corrected ENTITIES/BLOCK retry |
 | P2.3b — element ACI edits | `mlineFieldsEqual`, `mlineBodyFields`, `prepareDxfMLineStyles`, `inspectDxfMLineStyles`; body-transaction selector | One fixed-size tuple's color changes independently; conflicting edits refuse; exact output, unchanged geometry and corrected retry pass |
 | P2.3c — element LTYPE edits | Same planner/output hooks plus existing LTYPE provider/index; body-transaction and authority selectors | Group-6 edits resolve to actual emitted providers with exact roles; count, offsets, redundant names and consumer 340 remain stable |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 
-Implement P3.1 first, then P2.3a–c. P4a gap classification and the next source
+Implement P2.3a–c first. P4a gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -81,13 +80,10 @@ shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Keep only the residual work below; refused fields are not implemented
 editing support.
 
-1. **P2.3a: reproduce cross-record element-count validity.** Current adapter
-   validation checks the rooted style target; core validation checks each MLINE's
-   arrays against its own `numLines`. Neither source inspection alone nor valid
-   positive fixtures establishes style/consumer arity correctness. Author the
-   mismatched pair in the queue before assigning a defect. If it exports, enforce
-   the justified count relationship using the existing style index and preserve
-   atomic refusal/corrected retry. Cover ENTITIES and a named BLOCK, selected
+1. **P2.3a: enforce cross-record element-count validity.** Authored ENTITIES and
+   named-BLOCK witnesses currently export `73=1` against a two-element style.
+   Enforce the count relationship using the existing rooted style index and
+   preserve atomic refusal/corrected retry. Cover ENTITIES and a named BLOCK, selected
    original DXF and the applicable direct-model route. Audit group-71 flags versus
    vertex counts separately; do not change DWG flags or regenerate geometry from
    an unverified DXF assumption.
@@ -134,28 +130,21 @@ layouts or angular units.
 
 ## P3 — MATERIAL source/schema and producer regression
 
-The [retained failure](docs/research/rpp5gk-legacy-dictionaryvar-codec-transactions-2026-10-28.json)
-and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json)
-identify pinned ezdxf 1.4.5's specular field 73 as a producer defect: canonical
-specular method is 76; 73 remains diffuse projection. Keep that validation intact.
-Correcting the producer's group code alone does not resolve its ambiguous Normal Map.
+Reuse the [field-role regression receipt](docs/research/rpp5gq-material-specular-role-regression-2026-10-28.json)
+and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json).
+Correcting the producer's specular group code alone does not resolve its ambiguous
+Normal Map or qualify an earlier adapter route.
 
-1. Add one decisive canonical 73=3/76=0 body and an otherwise-identical malformed
-   specular 73=0 control to `materialSourceOrderControls`. This hardens an already
-   correct parser distinction; change production only if the new witness exposes
-   a real gap. Check distinct typed fields, literal output roles, refusal,
-   unchanged destination and corrected retry. Begin with ASCII/binary at the
-   justified AC1018 boundary; expand versions only for a grammar difference.
-   Change only the intended specular field's code in the negative pair; retain
-   surrounding diffuse/specular sentinels. Use the existing selector and normal
-   build. Preserve original producer artifacts; label authored corrections separately.
-2. Resolve the later reused 42/72/3/73/74/75 Normal Map set without 464/465 or a
+1. Resolve the later reused 42/72/3/73/74/75 Normal Map set without 464/465 or a
    complete refraction boundary. Complete absent/ambiguous refraction/bump,
    repeated fields, omitted normal/luminance and represented/opaque subclass or
    procedural profiles. Retain exact replay and actual output proof.
-3. Complete remaining original/common/full/face/edge material providers and native
+2. Complete remaining original/common/full/face/edge material providers and native
    LAYER/HEADER/common348 profiles. Extend existing planners/inspectors rather
    than reimplementing verified transport binders.
+3. Earlier adapter replay remains restricted to exact AC1021–AC1032 source/target
+   profiles. Qualify original source/owner/output providers before extending this
+   route; AC1018 field parsing or low-level write grammar is not that proof.
 4. Obtain independent producer/renderer evidence for each actual claimed profile.
    Keep source validity, preserved bytes, version validity and native rendering
    separate; an AC1015 peer source is not a native MATERIAL version certificate.
@@ -352,17 +341,13 @@ and run only the relevant owning selector during development:
 
 ```sh
 cmake --build build --target libdxfrw_dxf_fixture_tests
-# P3.1
-ctest --test-dir build -R '^libdxfrw_material_source_order$' --output-on-failure
 # P2.3a
 ctest --test-dir build -R '^libdxfrw_mline_style_authority$' --output-on-failure
 # P2.3b/c
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
 
-P3.1 needs its normal selector; add MATERIAL boundary/body selectors only if
-production parser/provider code changes. Do not inherit an ASan/peer matrix for
-a fixture-only regression. At P2.3 readiness, run body transactions plus authority
+At P2.3 readiness, run body transactions plus authority
 and validation controls; add name/owner budgets for changed accounting, vector
 controls for geometry changes and original-source controls for capture changes.
 Build `dwg2dxf` only for an actual serializer/independent checkpoint. Extend the
