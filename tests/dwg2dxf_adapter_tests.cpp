@@ -3801,6 +3801,7 @@ bool rasterObserverProfiles(bool faultsOnly = false) {
 
 bool rasterFiniteRealControls() {
     const std::vector<std::pair<std::string,double>> values{{"0",0.0},{"-0",-0.0},{" \t+1.25",1.25},{".5",0.5},{"-.5",-0.5},{"1.",1.0},
+        {"1.0 ",1.0},{" \t+1.25 \t",1.25},{"\v\f -0 \r",-0.0},
         {"2.2250738585072014e-308",(std::numeric_limits<double>::min)()},{"-2.2250738585072014e-308",-(std::numeric_limits<double>::min)()},
         {"1.7976931348623157e+308",(std::numeric_limits<double>::max)()},{"-1.7976931348623157e+308",-(std::numeric_limits<double>::max)()},
         {"4.9406564584124654e-324",std::numeric_limits<double>::denorm_min()},{"-4.9406564584124654e-324",-std::numeric_limits<double>::denorm_min()}};
@@ -3825,7 +3826,7 @@ bool rasterFiniteRealControls() {
         }
         ++cells;
     }
-    const std::vector<std::string> invalid{"","+","-",".","+.","--1","+-1","1.0 ","1x","4.9406564584124654e-324x", "4.9406564584124654e-324e+",
+    const std::vector<std::string> invalid{"","+","-",".","+.","--1","+-1","1.0 x","1. 0","1e 2"," \t ","1x","4.9406564584124654e-324x", "4.9406564584124654e-324e+",
         "4.9406564584124654e-324-1","4.9406564584124654e-324.1","4.9406564584124654e-324e1","1e","1e+","1e-","nan","NaN","inf","infinity","+INF","-INF",
         "1e309","-1e309","1e-9999","-1e-9999",std::string(129u,'0'),std::string("1\0junk",6u)};
     for (const auto& value : invalid) {
@@ -3840,7 +3841,7 @@ bool rasterFiniteRealControls() {
         if (cursor.next(token)) return fail("independent finite-real observer accepted nonfinite binary bits");
         ++nonfinite;
     }
-    if (cells != 96u || malformed != 29u || nonfinite != 12u || truncated == 0u) return fail("independent finite-real matrix skipped a case");
+    if (cells != 120u || malformed != 32u || nonfinite != 12u || truncated == 0u) return fail("independent finite-real matrix skipped a case");
     std::cout << "Independent finite-real cells=" << cells << " malformed ASCII refusals=" << malformed << " nonfinite binary refusals=" << nonfinite
         << " partial-token refusals=" << truncated << '\n';
     return true;
@@ -21773,6 +21774,9 @@ bool materialTypedCaptureLimitsFailClosed() {
     source.name = "generated-material";
     source.m_name = "generated material name";
     source.m_description = "generated material description";
+    source.m_diffuseMapFileName="diffuse.png";source.m_specularMapFileName="specular.png";
+    source.m_reflectionMapFileName="reflection.png";source.m_opacityMapFileName="opacity.png";
+    source.m_bumpMapFileName="bump.png";source.m_refractionMapFileName="refraction.png";source.m_normalMapFileName="normal.png";
     source.reactorHandles.push_back(0xA774u);
     if (!source.setDwgRawData({0x13u, 0x37u, 0xA5u}, 24u,
                               DRW::AC1027))
@@ -21782,6 +21786,8 @@ bool materialTypedCaptureLimitsFailClosed() {
         + source.reactorHandles.size() * sizeof(std::uint32_t)
         + source.m_name.size() + 1u
         + source.m_description.size() + 1u
+        + source.m_diffuseMapFileName.size()+source.m_specularMapFileName.size()+source.m_reflectionMapFileName.size()
+        + source.m_opacityMapFileName.size()+source.m_bumpMapFileName.size()+source.m_refractionMapFileName.size()+source.m_normalMapFileName.size()+7u
         + source.dwgRawData().size()
         + 2u * sizeof(void*);
 

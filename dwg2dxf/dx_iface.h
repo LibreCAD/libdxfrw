@@ -1743,22 +1743,9 @@ public:
                 }
             }
         }
-        std::unordered_set<std::uint32_t> materialHandles;
         for (const std::uint32_t handle : m_dxfMaterialHandles) {
-            std::size_t matches = 0;
-            for (DRW_RawDxfObject& object : cData->rawMaterialObjects) {
-                if (object.handle != handle)
-                    continue;
-                ++matches;
-                if (!materialHandles.insert(handle).second
-                    || !dxfW->writeRawDxfObject(&object)) {
-                    dxfW->writeRawDxfObject(nullptr);
-                    return;
-                }
-            }
-            if (matches != 1u) {
-                dxfW->writeRawDxfObject(nullptr);
-                return;
+            if(!writeDxfMaterialSource(handle)) {
+                dxfW->writeRawDxfObject(nullptr);return;
             }
         }
         // The bounded typed EvaluationGraph writer is independently usable
@@ -2124,15 +2111,19 @@ private:
     std::vector<std::uint32_t> m_acdsMaterialHandles;
     std::vector<std::uint32_t> m_dxfMaterialHandles;
     struct DxfMaterialWriteSource {
+        std::shared_ptr<const DRW_RawDxfObject> baseline;
         DRW_RawDxfObject raw;
         DRW_Material common;
+        DRW_RawDxfObject output;
+        UTF8STRING outputName;
     };
     std::vector<DxfMaterialWriteSource> m_dxfMaterialWriteSources;
     std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
     dx_materialImportReceipt m_dxfMaterialWriteReceipt;
     bool m_dxfMaterialWriteInspected{false};
     bool m_dxfMaterialWriteRequired{false};
-    bool prepareDxfMaterialSources(DRW::Version version);
+    bool prepareDxfMaterialSources(DRW::Version version,bool binary);
+    bool writeDxfMaterialSource(std::uint32_t handle);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     struct DxfHeaderMaterialState {

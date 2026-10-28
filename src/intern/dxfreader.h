@@ -640,6 +640,11 @@ public:
     std::string getUtf8String() {
         return decodeSemanticText(strData, m_currentCode, true);
     }
+    // A record-specific field can reuse a normally structural code, such as
+    // MATERIAL's refraction filename9. Keep its actual observation location.
+    std::string getSemanticUtf8String() {
+        return decodeSemanticText(strData, m_currentCode, true, true);
+    }
     // Version/page metadata keeps its historical decode behavior but is not
     // a document semantic-text observation.
     std::string getMetadataUtf8String() { return decoder.toUtf8(strData); }
@@ -744,6 +749,8 @@ protected:
 private:
     std::string decodeSemanticText(std::string_view text, int sourceCode,
                                    bool physicalRecord);
+    std::string decodeSemanticText(std::string_view text, int sourceCode,
+                                  bool physicalRecord, bool forceSemantic);
     DRW_DxfTextReadObservations m_textReadObservations;
     DRW_TextCodec decoder;
     bool m_bIgnoreComments {false};

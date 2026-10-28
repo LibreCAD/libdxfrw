@@ -32,6 +32,7 @@
 #include <unordered_set>
 #include "dx_iface.h"
 #include "dx_standard_output.h"
+#include "dx_material_body.h"
 #include "dx_raster_output.h"
 #include "dx_symbol_output.h"
 #include "dx_symbol_name_key.h"
@@ -5140,7 +5141,8 @@ bool configureDxfMaterialDictionary(
     const dx_data& data, DRW::Version targetVersion,
     std::vector<DRW_Dictionary>& namedDictionaries,
     std::vector<std::pair<std::string, std::string>>& rootEntries,
-    std::vector<std::uint32_t>& materialHandles, std::string& failure) {
+    std::vector<std::uint32_t>& materialHandles, std::string& failure,
+    const std::map<std::uint32_t,UTF8STRING>* outputNames=nullptr) {
     const auto reject = [&failure](const char* reason) {
         failure = reason;
         return false;
@@ -5384,7 +5386,8 @@ bool configureDxfMaterialDictionary(
                 || !dictionaryNames.insert(key).second
                 || !dictionaryTargets.insert(entry.m_handle).second
                 || material == materialsByHandle.end()
-                || normalizedObjectName(material->second->m_name) != key)
+                || normalizedObjectName(outputNames && outputNames->count(entry.m_handle)
+                    ? outputNames->at(entry.m_handle) : material->second->m_name) != key)
                 return reject("ACAD_MATERIAL entry is empty, duplicated, or does not resolve to one typed MATERIAL");
         }
 
@@ -11703,6 +11706,13 @@ bool estimateMaterialTypedBytes(
     return addTableEntryRetainedBytes(material, estimate)
         && addStringPayloadBytes(material.m_name, estimate)
         && addStringPayloadBytes(material.m_description, estimate)
+        && addStringPayloadBytes(material.m_diffuseMapFileName, estimate)
+        && addStringPayloadBytes(material.m_specularMapFileName, estimate)
+        && addStringPayloadBytes(material.m_reflectionMapFileName, estimate)
+        && addStringPayloadBytes(material.m_opacityMapFileName, estimate)
+        && addStringPayloadBytes(material.m_bumpMapFileName, estimate)
+        && addStringPayloadBytes(material.m_refractionMapFileName, estimate)
+        && addStringPayloadBytes(material.m_normalMapFileName, estimate)
         && addVectorPayloadBytes(material.dwgRawData(), estimate)
         && estimate <= kMaxAdapterMaterialTypedRetainedBytes;
 }
@@ -15441,19 +15451,27 @@ bool dx_iface::hasUnchangedXrecordWriteSources() const noexcept {
     return next == m_xrecordWriteDictionaries.size();
 }
 
-bool dx_iface::prepareDxfMaterialSources(DRW::Version version) {
+bool dx_iface::prepareDxfMaterialSources(DRW::Version version,bool binary) {
     if (!cData || cData->sourceFormat != dx_source_format::DXF) return true;
     m_dxfMaterialWriteRequired = true;
     if (cData->materials.empty() && cData->rawMaterialObjects.empty()) return true;
+    if (cData->m_materialBodyBaselines.size()!=cData->rawMaterialObjects.size()) return false;
     if (cData->materials.size() > kMaxAdapterMaterialRecords
         || cData->rawMaterialObjects.size() > kMaxAdapterMaterialRecords) return false;
     std::size_t bytes = 0u, groups = 0u;
+    // Reserve a conservative logical allowance before copying either the live
+    // or immutable body: decoded models, escaped text, canonical fields, slot
+    // maps and the output overlay coexist. This is not an RSS measurement.
     for (const auto& raw : cData->rawMaterialObjects) {
-        std::size_t retained = 0u;
+        std::size_t retained = 0u, baselineBytes=0u;
+        const auto baseline=cData->m_materialBodyBaselines.find(raw.handle);
         if (raw.groups.size() > kMaxAdapterMaterialRawGroups - groups
             || !estimateRawDxfObjectBytes(raw, retained)
-            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
-        groups += raw.groups.size(); bytes += retained;
+            || baseline==cData->m_materialBodyBaselines.end()||!baseline->second
+            || !estimateRawDxfObjectBytes(*baseline->second,baselineBytes)
+            || !addAssociativeRetainedBytes(baselineBytes,retained)
+            || retained > (kMaxAdapterMaterialRetainedBytes - bytes)/64u) return false;
+        groups += raw.groups.size(); bytes += 64u*retained;
         for (const auto& value : raw.groups)
             if (value.type() != DRW_Variant::STRING && value.type() != DRW_Variant::INTEGER
                 && value.type() != DRW_Variant::INTEGER64 && value.type() != DRW_Variant::DOUBLE) return false;
@@ -15461,8 +15479,8 @@ bool dx_iface::prepareDxfMaterialSources(DRW::Version version) {
     for (const auto& material : cData->materials) {
         std::size_t retained = 0u;
         if (!estimateMaterialTypedBytes(material, retained)
-            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
-        bytes += retained;
+            || retained > (kMaxAdapterMaterialRetainedBytes - bytes)/64u) return false;
+        bytes += 64u*retained;
     }
     if (cData->dictionaries.size() > kMaxAdapterDictionaryTypedRecords
         || cData->namedObjectDictionary.m_entries.size() > DRW_Dictionary::kMaxEntries) return false;
@@ -15479,20 +15497,10 @@ bool dx_iface::prepareDxfMaterialSources(DRW::Version version) {
             || retained > kMaxAdapterMaterialRetainedBytes - bytes - dictionaryBytes) return false;
         dictionaryBytes += retained;
     }
-    std::vector<std::pair<std::string, std::string>> roots;
-    std::vector<std::uint32_t> handles;
-    std::string failure;
-    if (!configureDxfMaterialDictionary(*cData, version, m_dxfMaterialWriteDictionaries,
-            roots, handles, failure)) return false;
-    for (const auto& dictionary : m_dxfMaterialWriteDictionaries) {
-        std::size_t retained = 0u, slots = 0u;
-        if (!estimateDictionaryTypedBytes(dictionary, retained, slots)
-            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
-        bytes += retained;
-    }
     try {
         std::unordered_map<std::uint32_t, const DRW_Material*> typed;
         for (const auto& material : cData->materials) typed.emplace(material.handle, &material);
+        std::map<std::uint32_t,UTF8STRING> names;
         m_dxfMaterialWriteSources.reserve(cData->rawMaterialObjects.size());
         for (const auto& raw : cData->rawMaterialObjects) {
             const auto found = typed.find(raw.handle);
@@ -15526,11 +15534,35 @@ bool dx_iface::prepareDxfMaterialSources(DRW::Version version) {
                 }
             }
             if (depth || (!reactors && !material.reactorHandles.empty()) || (!extensions && material.xDictHandle)) return false;
-            m_dxfMaterialWriteSources.push_back({raw, *found->second});
+            const auto baseline=cData->m_materialBodyBaselines.find(raw.handle);
+            if(baseline==cData->m_materialBodyBaselines.end()||!baseline->second
+                ||baseline->second->m_version!=version||material.hasDwgRawData())return false;
+            DxfMaterialWriteSource plan;plan.baseline=baseline->second;plan.raw=raw;plan.common=material;
+            if(!dx_material_body::reconcile(*plan.baseline,raw,material,plan.output,plan.outputName,binary))return false;
+            if(!names.emplace(raw.handle,plan.outputName).second)return false;
+            m_dxfMaterialWriteSources.push_back(std::move(plan));
+        }
+        std::vector<std::pair<std::string, std::string>> roots;
+        std::vector<std::uint32_t> handles;
+        std::string failure;
+        if (!configureDxfMaterialDictionary(*cData, version, m_dxfMaterialWriteDictionaries,
+                roots, handles, failure, &names)) return false;
+        for (const auto& dictionary : m_dxfMaterialWriteDictionaries) {
+            std::size_t retained = 0u, slots = 0u;
+            if (!estimateDictionaryTypedBytes(dictionary, retained, slots)
+                || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
+            bytes += retained;
         }
         m_dxfMaterialWriteReceipt = cData->materialImport;
         return true;
     } catch (...) { return false; }
+}
+
+bool dx_iface::writeDxfMaterialSource(std::uint32_t handle) {
+    if(!dxfW||!hasUnchangedDxfMaterialSources())return false;
+    for(auto& source:m_dxfMaterialWriteSources)if(source.raw.handle==handle)
+        return dxfW->writeRawDxfObject(&source.output);
+    return false;
 }
 
 bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
@@ -15554,6 +15586,8 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
         auto raw = cData->rawMaterialObjects.begin();
         for (const auto& frozen : m_dxfMaterialWriteSources) {
             const auto& source = frozen.raw;
+            const auto baseline=cData->m_materialBodyBaselines.find(source.handle);
+            if(baseline==cData->m_materialBodyBaselines.end()||baseline->second!=frozen.baseline)return false;
             if (raw->name != source.name || raw->handle != source.handle || raw->parentHandle != source.parentHandle
                 || raw->m_version != source.m_version || raw->hasRawValues != source.hasRawValues
                 || raw->rawValues != source.rawValues || raw->groups.size() != source.groups.size()) return false;
@@ -15562,7 +15596,8 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
             const auto found = typed.find(source.handle);
             if (found == typed.end()) return false;
             const auto& current = *found->second;
-            if (current.parentHandle != frozen.common.parentHandle || current.m_name != frozen.common.m_name
+            if (!dxfMaterial::sameState(current,frozen.common)
+                || current.parentHandle != frozen.common.parentHandle || current.m_name != frozen.common.m_name
                 || current.xDictHandle != frozen.common.xDictHandle
                 || current.reactorHandles != frozen.common.reactorHandles
                 || !retainedVariantListsEqual(current.appData, frozen.common.appData)
@@ -16653,7 +16688,7 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
     try {
         std::map<std::uint32_t, const DRW_RawDxfObject*> expected;
         for (const auto& frozen : m_dxfMaterialWriteSources)
-            if (!expected.emplace(dxfW->remapHandle(frozen.raw.handle), &frozen.raw).second) return false;
+            if (!expected.emplace(dxfW->remapHandle(frozen.raw.handle), &frozen.output).second) return false;
         std::map<std::uint32_t, const DRW_Dictionary*> dictionaries;
         for (const auto& source : m_dxfMaterialWriteDictionaries)
             if (expected.count(dxfW->remapHandle(source.handle)) != 0u
@@ -24676,6 +24711,7 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     }
     if (asciiIdentifierEquals(normalizedName, "MATERIAL")) {
         dx_materialImportReceipt& receipt = cData->materialImport;
+        if(receipt.captureFailed||receipt.resourceLimitExceeded)return;
         if (receipt.generation != cData->importGeneration
             || cData->sourceFormat != dx_source_format::DXF) {
             receipt.captureFailed = true;
@@ -24686,7 +24722,8 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
             return;
         }
         ++receipt.rawCallbacks;
-        if (data.groups.size()
+        if (receipt.rawGroupCount > kMaxAdapterMaterialRawGroups
+            || data.groups.size()
             > kMaxAdapterMaterialRawGroups - receipt.rawGroupCount) {
             receipt.resourceLimitExceeded = true;
             return;
@@ -24695,14 +24732,25 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         std::size_t estimatedBytes = 0;
         if (!estimateRawDxfObjectListNodeBytes(data, estimatedBytes)
             || receipt.retainedBytes > kMaxAdapterMaterialRetainedBytes
-            || estimatedBytes > kMaxAdapterMaterialRetainedBytes
-                                   - receipt.retainedBytes) {
+            || kMaxAdapterMaterialRetainedBytes-receipt.retainedBytes < 8u*sizeof(void*)
+            || estimatedBytes > (kMaxAdapterMaterialRetainedBytes
+                                   - receipt.retainedBytes-8u*sizeof(void*)) / 2u
+            || cData->m_materialRawRetainedBytes > kMaxAdapterMaterialRetainedBytes
+            || kMaxAdapterMaterialRetainedBytes-cData->m_materialRawRetainedBytes < 8u*sizeof(void*)
+            || estimatedBytes > (kMaxAdapterMaterialRetainedBytes
+                                   - cData->m_materialRawRetainedBytes-8u*sizeof(void*)) / 2u) {
             receipt.resourceLimitExceeded = true;
             return;
         }
         try {
-            cData->rawMaterialObjects.push_back(data);
-            receipt.retainedBytes += estimatedBytes;
+            bool inserted=false;
+            if(cData->importGeneration==1u&&!cData->m_materialBodyBaselines.count(data.handle))
+                inserted=cData->m_materialBodyBaselines.emplace(data.handle,
+                    std::make_shared<const DRW_RawDxfObject>(data)).second;
+            try {cData->rawMaterialObjects.push_back(data);}
+            catch (...) {if(inserted)cData->m_materialBodyBaselines.erase(data.handle);throw;}
+            receipt.retainedBytes += 2u*estimatedBytes+8u*sizeof(void*);
+            cData->m_materialRawRetainedBytes += 2u*estimatedBytes+8u*sizeof(void*);
         } catch (...) {
             receipt.captureFailed = true;
         }
@@ -30421,8 +30469,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     // complete extension graph just to protect this already-admitted route.
     const bool hasDxfMaterials=cData->sourceFormat==dx_source_format::DXF
         &&(!cData->materials.empty()||!cData->rawMaterialObjects.empty());
-    if ((includeNamedObjectRoot||hasDxfMaterials) && !prepareDxfMaterialSources(v)) {
-        reportPreflightFailure("MATERIAL source/owner replay closure");
+    if ((includeNamedObjectRoot||hasDxfMaterials) && !prepareDxfMaterialSources(v,binary)) {
+        reportPreflightFailure("MATERIAL source/body/owner reconciliation: incomplete profile or conflicting edits");
         return false;
     }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
@@ -31535,9 +31583,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     std::vector<std::pair<std::string, std::string>> materialRootEntries;
     if (cData->sourceFormat == dx_source_format::DXF) {
         std::string materialGraphFailure;
+        std::map<std::uint32_t,UTF8STRING> materialNames;
+        for(const auto& source:m_dxfMaterialWriteSources)materialNames.emplace(source.raw.handle,source.outputName);
         if (!configureDxfMaterialDictionary(
                 *cData, v, materialDictionaries, materialRootEntries,
-                m_dxfMaterialHandles, materialGraphFailure)) {
+                m_dxfMaterialHandles, materialGraphFailure, &materialNames)) {
             reportPreflightFailure(
                 "ACAD_MATERIAL graph closure: " + materialGraphFailure);
             delete dxfW;

@@ -31,6 +31,7 @@
 #include "drw_objects.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
+#include "src/intern/dxfmaterial.h"
 #include "dwg2dxf/dx_raster_output.h"
 #include "dxf_entity_identity_test_helpers.h"
 #include "intern/dxfreader.h"
@@ -60,6 +61,15 @@ void operator delete(void* value,std::size_t)noexcept{std::free(value);}
 void operator delete[](void* value,std::size_t)noexcept{std::free(value);}
 class DxIfaceMaterialReferenceTestAccess {
 public:
+    static bool prepareBody(dx_iface& value,long offset,bool binary){
+        value.m_dxfMaterialWriteSources.clear();value.m_dxfMaterialWriteDictionaries.clear();
+        value.m_dxfMaterialWriteInspected=false;value.m_dxfMaterialWriteRequired=false;
+        MaterialAllocationFailure injection(offset);return value.prepareDxfMaterialSources(DRW::AC1027,binary);
+    }
+    static bool materialReplay(dx_iface& value,const dxfRW::DxfObjectsWriteView& view){
+        const auto saved=value.m_dxfMaterialWriteInspected;value.m_dxfMaterialWriteInspected=false;
+        const bool good=value.inspectDxfMaterialOutput(view);value.m_dxfMaterialWriteInspected=saved;return good;
+    }
     static auto size(const dx_iface& value){return std::make_pair(value.m_dxfMaterialReferenceState.sources.size(),value.m_dxfMaterialReferenceState.bytes);}
     static void limit(dx_iface& value,std::size_t records,std::size_t bytes){value.m_dxfMaterialReferenceState.recordLimit=records;value.m_dxfMaterialReferenceState.byteLimit=bytes;}
     static bool finalize(const dx_iface& value){return value.finalizeDxfCommonReferences(347,value.m_dxfMaterialReferenceState);}
@@ -27165,6 +27175,599 @@ void testLayerMaterialBindings(TestContext& t){
     t.expect(passed,"LAYER material output, closure and failure recovery");
 }
 
+namespace materialBodyControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+struct Editing:dx_iface {
+    bool active=true;unsigned phase=0u;std::function<void()> change;
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);if(active&&phase==0u)change();}
+    void writeEntities()override{dx_iface::writeEntities();if(active&&phase==1u)change();}
+    void writeObjects()override{if(active&&phase==2u)change();dx_iface::writeObjects();}
+    bool finalizeDxfWrite()override{if(active&&phase==3u)change();return dx_iface::finalizeDxfWrite();}
+};
+struct OutputReplay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u;
+        for(std::size_t i=0;i+1u<fields.size();++i)if(fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::materialReplay(*this,view))return false;
+        bool material=false;
+        for(const auto& field:fields) {
+            if(field.code==0)material=field.text=="MATERIAL";
+            if(!material||field.begin<begin||field.begin>=end||field.code==0)continue;
+            auto changed=body;auto offset=field.value-begin;
+            if(binary)changed.at(offset)^=1;
+            else {while(changed.at(offset)==' '||changed.at(offset)=='\t')++offset;changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
+            auto bad=view;bad.bytes=changed;
+            if(A::materialReplay(*this,bad)||!A::materialReplay(*this,view))return false;++corruptions;
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+using Edit=std::pair<const char*,std::function<void(DRW_Material&)>>;
+std::vector<Edit> edits(){
+    std::vector<Edit> result{
+        {"description",[](auto& m){m.m_description="edited-description-Ω \\U+1234";}},
+        {"ambient-method",[](auto& m){m.m_ambientColorMethod=0u;}},
+        {"ambient-factor",[](auto& m){m.m_ambientColorFactor=.125;}},
+        {"ambient-color",[](auto& m){m.m_ambientColorValue=0xF12345ABu;}},
+        {"diffuse-method",[](auto& m){m.m_diffuseColorMethod=0u;}},
+        {"diffuse-factor",[](auto& m){m.m_diffuseColorFactor=.125;}},
+        {"diffuse-color",[](auto& m){m.m_diffuseColorValue=0xE12345ABu;}},
+        {"specular-gloss",[](auto& m){m.m_specularGlossFactor=.125;}},
+        {"specular-method",[](auto& m){m.m_specularColorMethod=0u;}},
+        {"specular-factor",[](auto& m){m.m_specularColorFactor=.125;}},
+        {"specular-color",[](auto& m){m.m_specularColorValue=0xD12345ABu;}},
+        {"opacity",[](auto& m){m.m_opacityPercent=.125;}},
+        {"refraction",[](auto& m){m.m_refractionIndex=1.5;}},
+        {"bleed",[](auto& m){m.m_colorBleedScale=.125;}},
+        {"dump",[](auto& m){m.m_indirectDumpScale=.125;}},
+        {"reflectance",[](auto& m){m.m_reflectanceScale=.125;}},
+        {"transmittance",[](auto& m){m.m_transmittanceScale=.125;}},
+        {"two-sided",[](auto& m){m.m_twoSidedMaterial=false;}},
+        {"luminance",[](auto& m){m.m_luminance=.125;}},
+        {"luminance-mode",[](auto& m){m.m_luminanceMode=7;}},
+        {"normal-method",[](auto& m){m.m_normalMapMethod=7;}},
+        {"normal-strength",[](auto& m){m.m_normalMapStrength=.125;}},
+        {"anonymous",[](auto& m){m.m_materialsAnonymous=false;}},
+        {"GI",[](auto& m){m.m_globalIlluminationMode=7;}},
+        {"FG",[](auto& m){m.m_finalGatherMode=7;}},
+        {"end",[](auto& m){m.m_genProcTableEnd=false;}},
+        {"utile",[](auto& m){m.m_mapUTile=7;}},
+        {"translucence",[](auto& m){m.m_translucence=.125;}},
+        {"reflectivity",[](auto& m){m.m_reflectivity=.125;}},
+        {"illumination",[](auto& m){m.m_illuminationModel=-17;}},
+        {"channels",[](auto& m){m.m_channelFlags=-33;}}
+    };
+    result.push_back({"diffuse-BlendFactor",[](auto& m){m.m_diffuseMapBlendFactor=.125;}});
+    result.push_back({"diffuse-Source",[](auto& m){m.m_diffuseMapSource=0u;}});
+    result.push_back({"diffuse-FileName",[](auto& m){m.m_diffuseMapFileName="edited-diffuse-Ω \\U+1234.png";}});
+    result.push_back({"diffuse-Projection",[](auto& m){m.m_diffuseMapProjection=1u;}});
+    result.push_back({"diffuse-Tiling",[](auto& m){m.m_diffuseMapTiling=1u;}});
+    result.push_back({"diffuse-AutoTransform",[](auto& m){m.m_diffuseMapAutoTransform=0u;}});
+    result.push_back({"diffuse-matrix-0",[](auto& m){m.m_diffuseMapTransform[0]=9876.5+0;}});
+    result.push_back({"diffuse-matrix-1",[](auto& m){m.m_diffuseMapTransform[1]=9876.5+1;}});
+    result.push_back({"diffuse-matrix-2",[](auto& m){m.m_diffuseMapTransform[2]=9876.5+2;}});
+    result.push_back({"diffuse-matrix-3",[](auto& m){m.m_diffuseMapTransform[3]=9876.5+3;}});
+    result.push_back({"diffuse-matrix-4",[](auto& m){m.m_diffuseMapTransform[4]=9876.5+4;}});
+    result.push_back({"diffuse-matrix-5",[](auto& m){m.m_diffuseMapTransform[5]=9876.5+5;}});
+    result.push_back({"diffuse-matrix-6",[](auto& m){m.m_diffuseMapTransform[6]=9876.5+6;}});
+    result.push_back({"diffuse-matrix-7",[](auto& m){m.m_diffuseMapTransform[7]=9876.5+7;}});
+    result.push_back({"diffuse-matrix-8",[](auto& m){m.m_diffuseMapTransform[8]=9876.5+8;}});
+    result.push_back({"diffuse-matrix-9",[](auto& m){m.m_diffuseMapTransform[9]=9876.5+9;}});
+    result.push_back({"diffuse-matrix-10",[](auto& m){m.m_diffuseMapTransform[10]=9876.5+10;}});
+    result.push_back({"diffuse-matrix-11",[](auto& m){m.m_diffuseMapTransform[11]=9876.5+11;}});
+    result.push_back({"diffuse-matrix-12",[](auto& m){m.m_diffuseMapTransform[12]=9876.5+12;}});
+    result.push_back({"diffuse-matrix-13",[](auto& m){m.m_diffuseMapTransform[13]=9876.5+13;}});
+    result.push_back({"diffuse-matrix-14",[](auto& m){m.m_diffuseMapTransform[14]=9876.5+14;}});
+    result.push_back({"diffuse-matrix-15",[](auto& m){m.m_diffuseMapTransform[15]=9876.5+15;}});
+    result.push_back({"specular-BlendFactor",[](auto& m){m.m_specularMapBlendFactor=.125;}});
+    result.push_back({"specular-Source",[](auto& m){m.m_specularMapSource=0u;}});
+    result.push_back({"specular-FileName",[](auto& m){m.m_specularMapFileName="edited-specular-Ω \\U+1234.png";}});
+    result.push_back({"specular-Projection",[](auto& m){m.m_specularMapProjection=1u;}});
+    result.push_back({"specular-Tiling",[](auto& m){m.m_specularMapTiling=1u;}});
+    result.push_back({"specular-AutoTransform",[](auto& m){m.m_specularMapAutoTransform=0u;}});
+    result.push_back({"specular-matrix-0",[](auto& m){m.m_specularMapTransform[0]=9876.5+0;}});
+    result.push_back({"specular-matrix-1",[](auto& m){m.m_specularMapTransform[1]=9876.5+1;}});
+    result.push_back({"specular-matrix-2",[](auto& m){m.m_specularMapTransform[2]=9876.5+2;}});
+    result.push_back({"specular-matrix-3",[](auto& m){m.m_specularMapTransform[3]=9876.5+3;}});
+    result.push_back({"specular-matrix-4",[](auto& m){m.m_specularMapTransform[4]=9876.5+4;}});
+    result.push_back({"specular-matrix-5",[](auto& m){m.m_specularMapTransform[5]=9876.5+5;}});
+    result.push_back({"specular-matrix-6",[](auto& m){m.m_specularMapTransform[6]=9876.5+6;}});
+    result.push_back({"specular-matrix-7",[](auto& m){m.m_specularMapTransform[7]=9876.5+7;}});
+    result.push_back({"specular-matrix-8",[](auto& m){m.m_specularMapTransform[8]=9876.5+8;}});
+    result.push_back({"specular-matrix-9",[](auto& m){m.m_specularMapTransform[9]=9876.5+9;}});
+    result.push_back({"specular-matrix-10",[](auto& m){m.m_specularMapTransform[10]=9876.5+10;}});
+    result.push_back({"specular-matrix-11",[](auto& m){m.m_specularMapTransform[11]=9876.5+11;}});
+    result.push_back({"specular-matrix-12",[](auto& m){m.m_specularMapTransform[12]=9876.5+12;}});
+    result.push_back({"specular-matrix-13",[](auto& m){m.m_specularMapTransform[13]=9876.5+13;}});
+    result.push_back({"specular-matrix-14",[](auto& m){m.m_specularMapTransform[14]=9876.5+14;}});
+    result.push_back({"specular-matrix-15",[](auto& m){m.m_specularMapTransform[15]=9876.5+15;}});
+    result.push_back({"reflection-BlendFactor",[](auto& m){m.m_reflectionMapBlendFactor=.125;}});
+    result.push_back({"reflection-Source",[](auto& m){m.m_reflectionMapSource=0u;}});
+    result.push_back({"reflection-FileName",[](auto& m){m.m_reflectionMapFileName="edited-reflection-Ω \\U+1234.png";}});
+    result.push_back({"reflection-Projection",[](auto& m){m.m_reflectionMapProjection=1u;}});
+    result.push_back({"reflection-Tiling",[](auto& m){m.m_reflectionMapTiling=1u;}});
+    result.push_back({"reflection-AutoTransform",[](auto& m){m.m_reflectionMapAutoTransform=0u;}});
+    result.push_back({"reflection-matrix-0",[](auto& m){m.m_reflectionMapTransform[0]=9876.5+0;}});
+    result.push_back({"reflection-matrix-1",[](auto& m){m.m_reflectionMapTransform[1]=9876.5+1;}});
+    result.push_back({"reflection-matrix-2",[](auto& m){m.m_reflectionMapTransform[2]=9876.5+2;}});
+    result.push_back({"reflection-matrix-3",[](auto& m){m.m_reflectionMapTransform[3]=9876.5+3;}});
+    result.push_back({"reflection-matrix-4",[](auto& m){m.m_reflectionMapTransform[4]=9876.5+4;}});
+    result.push_back({"reflection-matrix-5",[](auto& m){m.m_reflectionMapTransform[5]=9876.5+5;}});
+    result.push_back({"reflection-matrix-6",[](auto& m){m.m_reflectionMapTransform[6]=9876.5+6;}});
+    result.push_back({"reflection-matrix-7",[](auto& m){m.m_reflectionMapTransform[7]=9876.5+7;}});
+    result.push_back({"reflection-matrix-8",[](auto& m){m.m_reflectionMapTransform[8]=9876.5+8;}});
+    result.push_back({"reflection-matrix-9",[](auto& m){m.m_reflectionMapTransform[9]=9876.5+9;}});
+    result.push_back({"reflection-matrix-10",[](auto& m){m.m_reflectionMapTransform[10]=9876.5+10;}});
+    result.push_back({"reflection-matrix-11",[](auto& m){m.m_reflectionMapTransform[11]=9876.5+11;}});
+    result.push_back({"reflection-matrix-12",[](auto& m){m.m_reflectionMapTransform[12]=9876.5+12;}});
+    result.push_back({"reflection-matrix-13",[](auto& m){m.m_reflectionMapTransform[13]=9876.5+13;}});
+    result.push_back({"reflection-matrix-14",[](auto& m){m.m_reflectionMapTransform[14]=9876.5+14;}});
+    result.push_back({"reflection-matrix-15",[](auto& m){m.m_reflectionMapTransform[15]=9876.5+15;}});
+    result.push_back({"opacity-BlendFactor",[](auto& m){m.m_opacityMapBlendFactor=.125;}});
+    result.push_back({"opacity-Source",[](auto& m){m.m_opacityMapSource=0u;}});
+    result.push_back({"opacity-FileName",[](auto& m){m.m_opacityMapFileName="edited-opacity-Ω \\U+1234.png";}});
+    result.push_back({"opacity-Projection",[](auto& m){m.m_opacityMapProjection=1u;}});
+    result.push_back({"opacity-Tiling",[](auto& m){m.m_opacityMapTiling=1u;}});
+    result.push_back({"opacity-AutoTransform",[](auto& m){m.m_opacityMapAutoTransform=0u;}});
+    result.push_back({"opacity-matrix-0",[](auto& m){m.m_opacityMapTransform[0]=9876.5+0;}});
+    result.push_back({"opacity-matrix-1",[](auto& m){m.m_opacityMapTransform[1]=9876.5+1;}});
+    result.push_back({"opacity-matrix-2",[](auto& m){m.m_opacityMapTransform[2]=9876.5+2;}});
+    result.push_back({"opacity-matrix-3",[](auto& m){m.m_opacityMapTransform[3]=9876.5+3;}});
+    result.push_back({"opacity-matrix-4",[](auto& m){m.m_opacityMapTransform[4]=9876.5+4;}});
+    result.push_back({"opacity-matrix-5",[](auto& m){m.m_opacityMapTransform[5]=9876.5+5;}});
+    result.push_back({"opacity-matrix-6",[](auto& m){m.m_opacityMapTransform[6]=9876.5+6;}});
+    result.push_back({"opacity-matrix-7",[](auto& m){m.m_opacityMapTransform[7]=9876.5+7;}});
+    result.push_back({"opacity-matrix-8",[](auto& m){m.m_opacityMapTransform[8]=9876.5+8;}});
+    result.push_back({"opacity-matrix-9",[](auto& m){m.m_opacityMapTransform[9]=9876.5+9;}});
+    result.push_back({"opacity-matrix-10",[](auto& m){m.m_opacityMapTransform[10]=9876.5+10;}});
+    result.push_back({"opacity-matrix-11",[](auto& m){m.m_opacityMapTransform[11]=9876.5+11;}});
+    result.push_back({"opacity-matrix-12",[](auto& m){m.m_opacityMapTransform[12]=9876.5+12;}});
+    result.push_back({"opacity-matrix-13",[](auto& m){m.m_opacityMapTransform[13]=9876.5+13;}});
+    result.push_back({"opacity-matrix-14",[](auto& m){m.m_opacityMapTransform[14]=9876.5+14;}});
+    result.push_back({"opacity-matrix-15",[](auto& m){m.m_opacityMapTransform[15]=9876.5+15;}});
+    result.push_back({"bump-BlendFactor",[](auto& m){m.m_bumpMapBlendFactor=.125;}});
+    result.push_back({"bump-Source",[](auto& m){m.m_bumpMapSource=0u;}});
+    result.push_back({"bump-FileName",[](auto& m){m.m_bumpMapFileName="edited-bump-Ω \\U+1234.png";}});
+    result.push_back({"bump-Projection",[](auto& m){m.m_bumpMapProjection=1u;}});
+    result.push_back({"bump-Tiling",[](auto& m){m.m_bumpMapTiling=1u;}});
+    result.push_back({"bump-AutoTransform",[](auto& m){m.m_bumpMapAutoTransform=0u;}});
+    result.push_back({"bump-matrix-0",[](auto& m){m.m_bumpMapTransform[0]=9876.5+0;}});
+    result.push_back({"bump-matrix-1",[](auto& m){m.m_bumpMapTransform[1]=9876.5+1;}});
+    result.push_back({"bump-matrix-2",[](auto& m){m.m_bumpMapTransform[2]=9876.5+2;}});
+    result.push_back({"bump-matrix-3",[](auto& m){m.m_bumpMapTransform[3]=9876.5+3;}});
+    result.push_back({"bump-matrix-4",[](auto& m){m.m_bumpMapTransform[4]=9876.5+4;}});
+    result.push_back({"bump-matrix-5",[](auto& m){m.m_bumpMapTransform[5]=9876.5+5;}});
+    result.push_back({"bump-matrix-6",[](auto& m){m.m_bumpMapTransform[6]=9876.5+6;}});
+    result.push_back({"bump-matrix-7",[](auto& m){m.m_bumpMapTransform[7]=9876.5+7;}});
+    result.push_back({"bump-matrix-8",[](auto& m){m.m_bumpMapTransform[8]=9876.5+8;}});
+    result.push_back({"bump-matrix-9",[](auto& m){m.m_bumpMapTransform[9]=9876.5+9;}});
+    result.push_back({"bump-matrix-10",[](auto& m){m.m_bumpMapTransform[10]=9876.5+10;}});
+    result.push_back({"bump-matrix-11",[](auto& m){m.m_bumpMapTransform[11]=9876.5+11;}});
+    result.push_back({"bump-matrix-12",[](auto& m){m.m_bumpMapTransform[12]=9876.5+12;}});
+    result.push_back({"bump-matrix-13",[](auto& m){m.m_bumpMapTransform[13]=9876.5+13;}});
+    result.push_back({"bump-matrix-14",[](auto& m){m.m_bumpMapTransform[14]=9876.5+14;}});
+    result.push_back({"bump-matrix-15",[](auto& m){m.m_bumpMapTransform[15]=9876.5+15;}});
+    result.push_back({"refraction-BlendFactor",[](auto& m){m.m_refractionMapBlendFactor=.125;}});
+    result.push_back({"refraction-Source",[](auto& m){m.m_refractionMapSource=0u;}});
+    result.push_back({"refraction-FileName",[](auto& m){m.m_refractionMapFileName="edited-refraction-Ω \\U+1234.png";}});
+    result.push_back({"refraction-Projection",[](auto& m){m.m_refractionMapProjection=1u;}});
+    result.push_back({"refraction-Tiling",[](auto& m){m.m_refractionMapTiling=1u;}});
+    result.push_back({"refraction-AutoTransform",[](auto& m){m.m_refractionMapAutoTransform=0u;}});
+    result.push_back({"refraction-matrix-0",[](auto& m){m.m_refractionMapTransform[0]=9876.5+0;}});
+    result.push_back({"refraction-matrix-1",[](auto& m){m.m_refractionMapTransform[1]=9876.5+1;}});
+    result.push_back({"refraction-matrix-2",[](auto& m){m.m_refractionMapTransform[2]=9876.5+2;}});
+    result.push_back({"refraction-matrix-3",[](auto& m){m.m_refractionMapTransform[3]=9876.5+3;}});
+    result.push_back({"refraction-matrix-4",[](auto& m){m.m_refractionMapTransform[4]=9876.5+4;}});
+    result.push_back({"refraction-matrix-5",[](auto& m){m.m_refractionMapTransform[5]=9876.5+5;}});
+    result.push_back({"refraction-matrix-6",[](auto& m){m.m_refractionMapTransform[6]=9876.5+6;}});
+    result.push_back({"refraction-matrix-7",[](auto& m){m.m_refractionMapTransform[7]=9876.5+7;}});
+    result.push_back({"refraction-matrix-8",[](auto& m){m.m_refractionMapTransform[8]=9876.5+8;}});
+    result.push_back({"refraction-matrix-9",[](auto& m){m.m_refractionMapTransform[9]=9876.5+9;}});
+    result.push_back({"refraction-matrix-10",[](auto& m){m.m_refractionMapTransform[10]=9876.5+10;}});
+    result.push_back({"refraction-matrix-11",[](auto& m){m.m_refractionMapTransform[11]=9876.5+11;}});
+    result.push_back({"refraction-matrix-12",[](auto& m){m.m_refractionMapTransform[12]=9876.5+12;}});
+    result.push_back({"refraction-matrix-13",[](auto& m){m.m_refractionMapTransform[13]=9876.5+13;}});
+    result.push_back({"refraction-matrix-14",[](auto& m){m.m_refractionMapTransform[14]=9876.5+14;}});
+    result.push_back({"refraction-matrix-15",[](auto& m){m.m_refractionMapTransform[15]=9876.5+15;}});
+    result.push_back({"normal-BlendFactor",[](auto& m){m.m_normalMapBlendFactor=.125;}});
+    result.push_back({"normal-Source",[](auto& m){m.m_normalMapSource=1u;}});
+    result.push_back({"normal-FileName",[](auto& m){m.m_normalMapFileName="edited-normal-Ω \\U+1234.png";}});
+    result.push_back({"normal-Projection",[](auto& m){m.m_normalMapProjection=1u;}});
+    result.push_back({"normal-Tiling",[](auto& m){m.m_normalMapTiling=1u;}});
+    result.push_back({"normal-AutoTransform",[](auto& m){m.m_normalMapAutoTransform=0u;}});
+    result.push_back({"normal-matrix-0",[](auto& m){m.m_normalMapTransform[0]=9876.5+0;}});
+    result.push_back({"normal-matrix-1",[](auto& m){m.m_normalMapTransform[1]=9876.5+1;}});
+    result.push_back({"normal-matrix-2",[](auto& m){m.m_normalMapTransform[2]=9876.5+2;}});
+    result.push_back({"normal-matrix-3",[](auto& m){m.m_normalMapTransform[3]=9876.5+3;}});
+    result.push_back({"normal-matrix-4",[](auto& m){m.m_normalMapTransform[4]=9876.5+4;}});
+    result.push_back({"normal-matrix-5",[](auto& m){m.m_normalMapTransform[5]=9876.5+5;}});
+    result.push_back({"normal-matrix-6",[](auto& m){m.m_normalMapTransform[6]=9876.5+6;}});
+    result.push_back({"normal-matrix-7",[](auto& m){m.m_normalMapTransform[7]=9876.5+7;}});
+    result.push_back({"normal-matrix-8",[](auto& m){m.m_normalMapTransform[8]=9876.5+8;}});
+    result.push_back({"normal-matrix-9",[](auto& m){m.m_normalMapTransform[9]=9876.5+9;}});
+    result.push_back({"normal-matrix-10",[](auto& m){m.m_normalMapTransform[10]=9876.5+10;}});
+    result.push_back({"normal-matrix-11",[](auto& m){m.m_normalMapTransform[11]=9876.5+11;}});
+    result.push_back({"normal-matrix-12",[](auto& m){m.m_normalMapTransform[12]=9876.5+12;}});
+    result.push_back({"normal-matrix-13",[](auto& m){m.m_normalMapTransform[13]=9876.5+13;}});
+    result.push_back({"normal-matrix-14",[](auto& m){m.m_normalMapTransform[14]=9876.5+14;}});
+    result.push_back({"normal-matrix-15",[](auto& m){m.m_normalMapTransform[15]=9876.5+15;}});
+    return result;
+}
+Tags fullRecipe(const std::filesystem::path& dir,const std::string& version) {
+    auto result=recipe(dir,version,false);Tags tail{{293,"1"},{272,"2"},{273,"3"},{300,"opaque-procedure"},
+        {291,"1"},{271,"123"},{469,"0.875"},{301,"opaque-text"},{62,"5"},{420,"1122867"},{430,"GeneratedBook$Azure"},
+        {292,"1"},{270,"4"},{148,"0.33"},{90,"123456789"},{468,"0.77"},{93,"17"},{94,"1056816"},{309,"opaque-extension"}};
+    std::vector<std::size_t> ends;
+    for(std::size_t i=0;i<result.size();++i)if(result[i]==std::make_pair(0,std::string("MATERIAL"))){
+        auto end=i+1u;while(end<result.size()&&result[end].first!=0)++end;ends.push_back(end);i=end-1u;
+    }
+    for(auto i=ends.rbegin();i!=ends.rend();++i)result.insert(result.begin()+static_cast<std::ptrdiff_t>(*i),tail.begin(),tail.end());
+    return result;
+}
+Tags physicalTags(const std::filesystem::path& path,bool binary) {
+    if(!binary)return tags(path);
+    std::ifstream file(path,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+    Tags result;
+    for(const auto& field:wire(path,true)) {
+        const auto little=[&](unsigned width){std::uint64_t value=0u;for(unsigned i=0;i<width;++i)value|=static_cast<std::uint64_t>(static_cast<unsigned char>(bytes.at(field.value+i)))<<(i*8u);return value;};
+        std::string text=field.text;
+        switch(dxfValueKindForCode(field.code)) {
+        case DxfValueKind::Dbl:{const auto bits=little(8u);double value=0;std::memcpy(&value,&bits,sizeof(value));text=std::to_string(value);break;}
+        case DxfValueKind::I16:text=std::to_string(static_cast<std::int16_t>(little(2u)));break;
+        case DxfValueKind::I32:text=std::to_string(static_cast<std::int32_t>(little(4u)));break;
+        case DxfValueKind::I64:text=std::to_string(static_cast<std::int64_t>(little(8u)));break;
+        case DxfValueKind::Bln:text=std::to_string(little(1u));break;
+        default:break;
+        }
+        result.emplace_back(field.code,std::move(text));
+    }
+    return result;
+}
+std::string encodedText(const std::string& text,const std::string& version,bool binary) {
+    std::ostringstream stream;std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion(version,true);writer->setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+    if(!writer->writeUtf8String(1,text))throw std::runtime_error("material text recipe encoding failed");
+    const auto value=stream.str();if(binary)return value.substr(2u,value.size()-3u);
+    const auto begin=value.find('\n');return value.substr(begin+1u,value.size()-begin-2u);
+}
+DRW_RawDxfObject& raw(dx_data& data){return data.rawMaterialObjects.front();}
+void clearSpelling(DRW_RawDxfObject& value){value.hasRawValues=false;value.rawValues.clear();}
+void rawFactor(dx_data& data,double value){auto& record=raw(data);for(auto& field:record.groups)if(field.code()==40){field=DRW_Variant(40,value);break;}clearSpelling(record);}
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,values=0u,presence=0u,compositions=0u,refusals=0u,retries=0u,callbacks=0u,lexical=0u,corruptions=0u,signedZeros=0u,opaqueReplays=0u,allocationFaults=0u,baselineSwaps=0u,textProfiles=0u;
+    const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MATERIAL body line="<<line<<" profiles="<<profiles<<" values="<<values<<" presence="<<presence<<" callbacks="<<callbacks<<'\n';return false;};
+    const auto all=edits();
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        dx_iface adapter;dx_data data;
+        if(!write(input,fullRecipe(dir,version),sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        for(const auto& edit:all)edit.second(data.materials.front());
+        if(!adapter.fileExport(output.string(),v,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false))return fail(__LINE__);
+        const auto& m=actual.materials.front();
+        if(m.m_ambientColorFactor!=.125||m.m_ambientColorValue!=0xF12345ABu||m.m_diffuseColorValue!=0xE12345ABu||m.m_specularColorValue!=0xD12345ABu
+            ||m.m_description!="edited-description-Ω \\U+1234"||m.m_illuminationModel!=-17||m.m_channelFlags!=-33
+            ||m.m_finalGatherMode!=7||m.m_normalMapMethod!=7||m.m_mapUTile!=7)return fail(__LINE__);
+        if(m.m_diffuseMapFileName!="edited-diffuse-Ω \\U+1234.png"||m.m_diffuseMapBlendFactor!=.125||m.m_diffuseMapProjection!=1u||m.m_diffuseMapTiling!=1u||m.m_diffuseMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_diffuseMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_specularMapFileName!="edited-specular-Ω \\U+1234.png"||m.m_specularMapBlendFactor!=.125||m.m_specularMapProjection!=1u||m.m_specularMapTiling!=1u||m.m_specularMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_specularMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_reflectionMapFileName!="edited-reflection-Ω \\U+1234.png"||m.m_reflectionMapBlendFactor!=.125||m.m_reflectionMapProjection!=1u||m.m_reflectionMapTiling!=1u||m.m_reflectionMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_reflectionMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_opacityMapFileName!="edited-opacity-Ω \\U+1234.png"||m.m_opacityMapBlendFactor!=.125||m.m_opacityMapProjection!=1u||m.m_opacityMapTiling!=1u||m.m_opacityMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_opacityMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_bumpMapFileName!="edited-bump-Ω \\U+1234.png"||m.m_bumpMapBlendFactor!=.125||m.m_bumpMapProjection!=1u||m.m_bumpMapTiling!=1u||m.m_bumpMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_bumpMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_refractionMapFileName!="edited-refraction-Ω \\U+1234.png"||m.m_refractionMapBlendFactor!=.125||m.m_refractionMapProjection!=1u||m.m_refractionMapTiling!=1u||m.m_refractionMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_refractionMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        if(m.m_normalMapFileName!="edited-normal-Ω \\U+1234.png"||m.m_normalMapBlendFactor!=.125||m.m_normalMapProjection!=1u||m.m_normalMapTiling!=1u||m.m_normalMapAutoTransform!=0u)return fail(__LINE__);
+        for(std::size_t i=0;i<16u;++i)if(m.m_normalMapTransform[i]!=9876.5+i)return fail(__LINE__);
+        // Independent wire checks constrain reused 3/43/270/271 and opaque
+        // procedure roles without asking the owning parser to prove itself.
+        const auto fields=physicalTags(output,binary);bool selected=false;std::map<int,std::vector<std::string>> body;
+        for(const auto& field:fields){if(field.first==0){if(selected)break;selected=field.second=="MATERIAL";continue;}if(selected)body[field.first].push_back(field.second);}
+        if(body[3].size()!=2u||body[43].size()!=32u||body[270].size()!=3u||body[271].size()!=3u
+            ||body[300]!=std::vector<std::string>{"opaque-procedure"}||body[301]!=std::vector<std::string>{"opaque-text"}
+            ||body[469].size()!=1u||std::stod(body[469][0])!=.875||std::stoll(body[271][2])!=123
+            ||std::stoll(body[90].back())!=123456789||std::stod(body[43][7])!=9883.5||std::stod(body[43][23])!=9883.5)return fail(__LINE__);
+        values+=all.size();++profiles;++readbacks;
+    }
+    // Semantic strings have distinct ASCII caret and binary byte contracts.
+    // Exercise all nine represented text fields in both directions, with and
+    // without edits, rather than treating source binary text as ASCII tokens.
+    const std::vector<std::string> textValues{"literal^A_Ω\\U+1234",std::string("control")+char(1)+"_value","carets^^?^_Ω"};
+    const std::vector<UTF8STRING DRW_Material::*> textFiles{&DRW_Material::m_diffuseMapFileName,&DRW_Material::m_specularMapFileName,&DRW_Material::m_reflectionMapFileName,
+        &DRW_Material::m_opacityMapFileName,&DRW_Material::m_bumpMapFileName,&DRW_Material::m_refractionMapFileName,&DRW_Material::m_normalMapFileName};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool edit:{false,true})for(const auto& text:textValues) {
+        auto fields=fullRecipe(dir,version);const std::string name="Caret^A_Ω",fileName=text+".png";
+        const auto nameWire=encodedText(name,version,sourceBinary),textWire=encodedText(text,version,sourceBinary),fileWire=encodedText(fileName,version,sourceBinary);
+        bool selected=false;unsigned materials=0u;
+        const std::set<std::string> oldFiles{"diffuse-map.png","specular-map.hdr","reflection-map.exr","opacity-map.png","bump-map.png","refraction-map.exr","normal-map.png"};
+        for(auto& field:fields){
+            if(field.first==0){if(field.second=="MATERIAL")selected=++materials==1u;else selected=false;}
+            if(field.first==3&&field.second=="Paint")field.second=nameWire;
+            if(selected){if(field.first==1)field.second=nameWire;else if(field.first==2)field.second=textWire;else if(oldFiles.count(field.second))field.second=fileWire;}
+        }
+        dx_iface adapter;dx_data data;if(!write(input,fields,sourceBinary,version)||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& material=data.materials.front();if(material.m_name!=name||material.m_description!=text)return fail(__LINE__);
+        for(auto field:textFiles)if(material.*field!=fileName)return fail(__LINE__);
+        const std::string wantedName=edit?"Edited^A_Ω":name,wantedText=edit?"edited-"+text:text,wantedFile=edit?"edited-"+fileName:fileName;
+        if(edit){material.m_name=wantedName;material.m_description=wantedText;for(auto field:textFiles)material.*field=wantedFile;
+            for(auto& dict:data.dictionaries)for(auto& entry:dict.m_entries)if(entry.m_handle==2u)entry.m_name=wantedName;}
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        if(!adapter.fileExport(output.string(),v,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.materials.front().m_name!=wantedName||actual.materials.front().m_description!=wantedText)return fail(__LINE__);
+        for(auto field:textFiles)if(actual.materials.front().*field!=wantedFile)return fail(__LINE__);
+        ++readbacks;++textProfiles;
+    }
+    // Each represented scalar/map/matrix edit is also isolated, so a missing
+    // writer branch cannot hide behind another field's changed boundary.
+    for(bool binary:{false,true})for(const auto& edit:all){
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit.second(data.materials.front());
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)){std::cerr<<edit.first<<'\n';return fail(__LINE__);}
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false))return fail(__LINE__);
+        auto expected=actual.materials.front();edit.second(expected);
+        // Test the active value through the individual edit's idempotence;
+        // the combined profiles above supply independent literal wire proof.
+        if(!dxfMaterial::sameState(expected,actual.materials.front()))return fail(__LINE__);
+        ++values;++readbacks;
+    }
+    const std::vector<bool DRW_Material::*> flags={
+        &DRW_Material::m_hasAmbientColorMethod,
+        &DRW_Material::m_hasAmbientColorFactor,
+        &DRW_Material::m_hasAmbientColorValue,
+        &DRW_Material::m_hasDiffuseColorMethod,
+        &DRW_Material::m_hasDiffuseColorFactor,
+        &DRW_Material::m_hasDiffuseColorValue,
+        &DRW_Material::m_hasDiffuseMapBlendFactor,
+        &DRW_Material::m_hasDiffuseMapSource,
+        &DRW_Material::m_hasDiffuseMapFileName,
+        &DRW_Material::m_hasDiffuseMapProjection,
+        &DRW_Material::m_hasDiffuseMapTiling,
+        &DRW_Material::m_hasDiffuseMapAutoTransform,
+        &DRW_Material::m_hasDiffuseMapTransform,
+        &DRW_Material::m_hasSpecularGlossFactor,
+        &DRW_Material::m_hasSpecularColorMethod,
+        &DRW_Material::m_hasSpecularColorFactor,
+        &DRW_Material::m_hasSpecularColorValue,
+        &DRW_Material::m_hasSpecularMapBlendFactor,
+        &DRW_Material::m_hasSpecularMapSource,
+        &DRW_Material::m_hasSpecularMapFileName,
+        &DRW_Material::m_hasSpecularMapProjection,
+        &DRW_Material::m_hasSpecularMapTiling,
+        &DRW_Material::m_hasSpecularMapAutoTransform,
+        &DRW_Material::m_hasSpecularMapTransform,
+        &DRW_Material::m_hasReflectionMapBlendFactor,
+        &DRW_Material::m_hasReflectionMapSource,
+        &DRW_Material::m_hasReflectionMapFileName,
+        &DRW_Material::m_hasReflectionMapProjection,
+        &DRW_Material::m_hasReflectionMapTiling,
+        &DRW_Material::m_hasReflectionMapAutoTransform,
+        &DRW_Material::m_hasReflectionMapTransform,
+        &DRW_Material::m_hasOpacityPercent,
+        &DRW_Material::m_hasOpacityMapBlendFactor,
+        &DRW_Material::m_hasOpacityMapSource,
+        &DRW_Material::m_hasOpacityMapFileName,
+        &DRW_Material::m_hasOpacityMapProjection,
+        &DRW_Material::m_hasOpacityMapTiling,
+        &DRW_Material::m_hasOpacityMapAutoTransform,
+        &DRW_Material::m_hasOpacityMapTransform,
+        &DRW_Material::m_hasBumpMapBlendFactor,
+        &DRW_Material::m_hasBumpMapSource,
+        &DRW_Material::m_hasBumpMapFileName,
+        &DRW_Material::m_hasBumpMapProjection,
+        &DRW_Material::m_hasBumpMapTiling,
+        &DRW_Material::m_hasBumpMapAutoTransform,
+        &DRW_Material::m_hasBumpMapTransform,
+        &DRW_Material::m_hasRefractionIndex,
+        &DRW_Material::m_hasRefractionMapBlendFactor,
+        &DRW_Material::m_hasRefractionMapSource,
+        &DRW_Material::m_hasRefractionMapFileName,
+        &DRW_Material::m_hasRefractionMapProjection,
+        &DRW_Material::m_hasRefractionMapTiling,
+        &DRW_Material::m_hasRefractionMapAutoTransform,
+        &DRW_Material::m_hasRefractionMapTransform,
+        &DRW_Material::m_hasColorBleedScale,
+        &DRW_Material::m_hasIndirectDumpScale,
+        &DRW_Material::m_hasReflectanceScale,
+        &DRW_Material::m_hasTransmittanceScale,
+        &DRW_Material::m_hasTwoSidedMaterial,
+        &DRW_Material::m_hasMaterialsAnonymous,
+        &DRW_Material::m_hasLuminance,
+        &DRW_Material::m_hasLuminanceMode,
+        &DRW_Material::m_hasNormalMapMethod,
+        &DRW_Material::m_hasNormalMapStrength,
+        &DRW_Material::m_hasNormalMapBlendFactor,
+        &DRW_Material::m_hasNormalMapSource,
+        &DRW_Material::m_hasNormalMapFileName,
+        &DRW_Material::m_hasNormalMapProjection,
+        &DRW_Material::m_hasNormalMapTiling,
+        &DRW_Material::m_hasNormalMapAutoTransform,
+        &DRW_Material::m_hasNormalMapTransform,
+        &DRW_Material::m_hasGlobalIlluminationMode,
+        &DRW_Material::m_hasFinalGatherMode,
+        &DRW_Material::m_hasGenProcTableEnd,
+        &DRW_Material::m_hasMapUTile,
+        &DRW_Material::m_hasTranslucence,
+        &DRW_Material::m_hasReflectivity,
+        &DRW_Material::m_hasIlluminationModel,
+        &DRW_Material::m_hasChannelFlags
+    };
+    for(bool binary:{false,true})for(auto flag:flags){
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& material=data.materials.front();material.*flag=false;sentinel(output);
+        const bool dependent=flag==&DRW_Material::m_hasLuminance||flag==&DRW_Material::m_hasGenProcTableEnd;
+        const bool exported=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false);
+        if(dependent){if(exported||!kept(output))return fail(__LINE__);++refusals;}
+        else {dx_iface reader;dx_data actual;if(!exported||!reader.fileImport(output.string(),&actual,false)||actual.materials.front().*flag)return fail(__LINE__);++readbacks;++presence;}
+        material.*flag=true;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+    }
+    // Start with genuinely absent optional source fields, then synthesize them
+    // at their semantic boundary. New matrices use all16 explicit typed values.
+    auto minimal=fullRecipe(dir,"AC1027");bool selected=false;
+    minimal.erase(std::remove_if(minimal.begin(),minimal.end(),[&](const auto& field){
+        if(field.first==0){selected=field.second=="MATERIAL";return false;}
+        return selected&&field.first!=5&&field.first!=330&&field.first!=100&&field.first!=1&&field.first!=2;
+    }),minimal.end());
+    for(bool binary:{false,true})for(auto flag:flags) {
+        dx_iface adapter;dx_data data;if(!write(input,minimal,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& material=data.materials.front();material.*flag=true;
+        if(flag==&DRW_Material::m_hasLuminanceMode||flag==&DRW_Material::m_hasNormalMapMethod
+            ||flag==&DRW_Material::m_hasNormalMapBlendFactor||flag==&DRW_Material::m_hasNormalMapSource
+            ||flag==&DRW_Material::m_hasNormalMapFileName||flag==&DRW_Material::m_hasNormalMapProjection
+            ||flag==&DRW_Material::m_hasNormalMapTiling||flag==&DRW_Material::m_hasNormalMapAutoTransform
+            ||flag==&DRW_Material::m_hasNormalMapTransform||flag==&DRW_Material::m_hasGlobalIlluminationMode
+            ||flag==&DRW_Material::m_hasFinalGatherMode||flag==&DRW_Material::m_hasMapUTile)material.m_hasLuminance=true;
+        if(flag==&DRW_Material::m_hasMapUTile||flag==&DRW_Material::m_hasTranslucence
+            ||flag==&DRW_Material::m_hasReflectivity||flag==&DRW_Material::m_hasIlluminationModel
+            ||flag==&DRW_Material::m_hasChannelFlags)material.m_hasGenProcTableEnd=true;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||!(actual.materials.front().*flag))return fail(__LINE__);
+        ++presence;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned mode=0u;mode<8u;++mode){
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto saved=raw(data);
+        rawFactor(data,.25);if(mode==1u)data.materials.front().m_reflectivity=.625;
+        if(mode==2u)data.materials.front().m_ambientColorFactor=.25;
+        if(mode==3u)data.materials.front().m_ambientColorFactor=.5;
+        if(mode==4u){data.materials.front().m_name="Renamed";for(auto& dict:data.dictionaries)for(auto& entry:dict.m_entries)if(entry.m_handle==2u)entry.m_name="Renamed";}
+        if(mode==5u){for(auto& field:raw(data).groups)if(field.code()==1)field=DRW_Variant(1,UTF8STRING("RawRenamed"));for(auto& dict:data.dictionaries)for(auto& entry:dict.m_entries)if(entry.m_handle==2u)entry.m_name="RawRenamed";}
+        if(mode==6u){data.materials.front().m_description="TypedDescription";for(auto& field:raw(data).groups)if(field.code()==301)field=DRW_Variant(301,UTF8STRING("RawProcedureText"));}
+        if(mode==7u){auto& groups=raw(data).groups;groups.erase(std::remove_if(groups.begin(),groups.end(),[](const auto& field){return field.code()==40;}),groups.end());data.materials.front().m_ambientColorFactor=.5;}
+        sentinel(output);const bool exported=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false);
+        if(mode==3u||mode==7u){if(exported||!kept(output))return fail(__LINE__);++refusals;data.materials.front().m_ambientColorFactor=.25;if(mode==7u){raw(data)=saved;rawFactor(data,.25);}}
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.materials.front().m_ambientColorFactor!=.25
+            ||(mode==1u&&actual.materials.front().m_reflectivity!=.625)||(mode==4u&&actual.materials.front().m_name!="Renamed")
+            ||(mode==5u&&actual.materials.front().m_name!="RawRenamed")||(mode==6u&&actual.materials.front().m_description!="TypedDescription"))return fail(__LINE__);
+        ++compositions;++retries;++readbacks;
+    }
+    for(bool binary:{false,true})for(unsigned mode=0u;mode<13u;++mode) {
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& material=data.materials.front();const auto saved=material;
+        if(mode==0u)material.m_ambientColorFactor=std::numeric_limits<double>::quiet_NaN();
+        if(mode==1u)material.m_diffuseMapAutoTransform=8u;
+        if(mode==2u)material.m_normalMapSource=2u;
+        if(mode==3u)material.m_normalMapFileName=std::string("nul\0file",8u);
+        if(mode==4u)material.m_refractionMapTransform[3]=std::numeric_limits<double>::infinity();
+        if(mode==5u)material.m_name="UncoupledRename";
+        const std::vector<UTF8STRING DRW_Material::*> files{&DRW_Material::m_diffuseMapFileName,&DRW_Material::m_specularMapFileName,&DRW_Material::m_reflectionMapFileName,
+            &DRW_Material::m_opacityMapFileName,&DRW_Material::m_bumpMapFileName,&DRW_Material::m_refractionMapFileName,&DRW_Material::m_normalMapFileName};
+        if(mode>=6u)(material.*files[mode-6u]).assign(DRW::kMaxDxfBinaryPayloadBytes/64u,'x');
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+        material=saved;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned mode=0u;mode<8u;++mode){
+        Editing adapter;adapter.phase=phase;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto saved=data.materials.front();const auto source=raw(data);
+        adapter.change=[&]{auto& m=data.materials.front();if(mode==0u)m.m_reflectivity=.125;if(mode==1u)m.m_normalMapFileName="late";
+            if(mode==2u)m.m_diffuseMapTransform[15]=9000;if(mode==3u)m.m_hasChannelFlags=false;if(mode==4u)m.m_ambientColorValue=0u;
+            if(mode==5u)m.m_opacityMapBlendFactor=.125;if(mode==6u)m.m_reflectionMapProjection=1u;if(mode==7u)rawFactor(data,.125);};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        adapter.active=false;data.materials.front()=saved;raw(data)=source;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0;phase<4u;++phase) {
+        Editing adapter;adapter.phase=phase;dx_data data,other;dx_iface importer;
+        if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto alternate=fullRecipe(dir,"AC1027");bool selected=false,changed=false;
+        for(auto& field:alternate){if(field.first==0)selected=field.second=="MATERIAL";if(selected&&!changed&&field.first==40){field.second=".125";changed=true;}}
+        if(!write(input,alternate,binary,"AC1027")||!importer.fileImport(input.string(),&other,false))return fail(__LINE__);
+        data.materials.front().m_ambientColorFactor=.125;
+        other.materials=data.materials;other.rawMaterialObjects=data.rawMaterialObjects;other.materialImport=data.materialImport;
+        adapter.change=[&]{
+            // Keep the original owned block pointers while assigning the rest
+            // of a real imported container. Public material snapshots match;
+            // the new immutable import baseline gives those edits new meaning.
+            auto* root=data.mBlock;auto blocks=std::move(data.blocks);
+            data=other;data.mBlock=root;data.blocks=std::move(blocks);
+        };
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);
+        ++callbacks;++baselineSwaps;adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.materials.front().m_ambientColorFactor!=.8)return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool binary:{false,true})for(bool negative:{false,true}) {
+        auto fields=fullRecipe(dir,"AC1027");for(auto& field:fields)if(field.first==465)field.second=negative?"-0":"0";
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(std::signbit(data.materials.front().m_normalMapStrength)!=negative)return fail(__LINE__);
+        data.materials.front().m_normalMapStrength=negative?0.0:-0.0;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||std::signbit(actual.materials.front().m_normalMapStrength)==negative)return fail(__LINE__);
+        ++signedZeros;++readbacks;++values;
+    }
+    for(bool binary:{false,true})for(unsigned mode=0;mode<2u;++mode) {
+        auto fields=recipe(dir,"AC1027",false);std::vector<std::size_t> ends;
+        for(std::size_t i=0;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("MATERIAL"))){auto end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;ends.push_back(end);i=end-1u;}
+        const Tags extra=mode?Tags{{100,"AcDbFutureMaterial"},{309,"opaque-extension"}}:Tags{{300,"opaque-unrepresented-tail"}};
+        for(auto i=ends.rbegin();i!=ends.rend();++i)fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(*i),extra.begin(),extra.end());
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false))return fail(__LINE__);++opaqueReplays;++readbacks;
+        const auto saved=data.materials.front();data.materials.front().m_ambientColorFactor=.125;sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+        data.materials.front()=saved;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+    }
+    // Preserve an unusual source numeric spelling while changing another field.
+    auto fields=fullRecipe(dir,"AC1027");for(auto& field:fields)if(field.first==40)field.second=" +8.0000000000000004e-1 ";
+    {std::ofstream file(input,std::ios::binary);for(const auto& field:fields)file<<field.first<<'\n'<<field.second<<'\n';if(!file)return fail(__LINE__);}
+    {dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.materials.front().m_reflectivity=.125;if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false))return fail(__LINE__);
+        bool selected=false;for(const auto& field:tags(output)){
+            if(field.first==0)selected=field.second=="MATERIAL";
+            if(selected&&field.first==40){if(field.second!=" +8.0000000000000004e-1 ")return fail(__LINE__);++lexical;}
+        }
+    }
+    for(bool binary:{false,true}) {
+        OutputReplay adapter;adapter.binary=binary;adapter.previous=dir/(binary?"proof-binary.dxf":"proof-ascii.dxf");dx_data data;
+        if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.materials.front().m_ambientColorFactor=.125;
+        dx_iface initial;if(!initial.fileExport(adapter.previous.string(),DRW::AC1027,binary,&data,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        corruptions+=adapter.corruptions;
+    }
+    // Persistent failure in the actual facade preparation helper, before any
+    // writer is active. Each failure is followed by a complete corrected export
+    // and readback through the same adapter. This is a capped allocation prefix.
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,fullRecipe(dir,"AC1027"),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.materials.front().m_reflectivity=.125;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        for(long offset=0;offset<128;++offset) {
+            const auto before=materialFailedAllocations;sentinel(output);
+            if(A::prepareBody(adapter,offset,binary)||materialFailedAllocations==before||!kept(output))return fail(__LINE__);++allocationFaults;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+            dx_iface reader;dx_data actual;if(!reader.fileImport(output.string(),&actual,false)||actual.materials.front().m_reflectivity!=.125)return fail(__LINE__);
+            ++retries;++readbacks;
+        }
+    }
+    std::cout<<"MATERIAL body profiles="<<profiles<<"; values="<<values<<"; presence="<<presence<<"; readbacks="<<readbacks
+        <<"; compositions="<<compositions<<"; refusals="<<refusals<<"; callbacks="<<callbacks<<"; retries="<<retries<<"; lexical="<<lexical<<"; corruptions="<<corruptions
+        <<"; signedZeros="<<signedZeros<<"; opaqueReplays="<<opaqueReplays<<"; allocationFaults="<<allocationFaults<<"; baselineSwaps="<<baselineSwaps<<"; textProfiles="<<textProfiles<<'\n';
+    return true;
+}
+}
+
+void testMaterialBodyTransactions(TestContext& t) {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-material-body-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);bool passed=false;
+    try {passed=materialBodyControls::run(dir);}catch(const std::exception& error){std::cerr<<"MATERIAL control error: "<<error.what()<<'\n';}
+    t.expect(passed,"MATERIAL typed body edits survive export");
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MATERIAL body evidence: "<<dir<<'\n';
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -35225,6 +35828,9 @@ int main(int argc, char** argv) {
         testDxfConsumerFinalization(focused);
         std::cout << "DXF consumer finalization: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--material-body-transactions") {
+        TestContext context;testMaterialBodyTransactions(context);return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--header-material-bindings") {
         TestContext context;testHeaderMaterialBindings(context);return context.failures == 0 ? 0 : 1;

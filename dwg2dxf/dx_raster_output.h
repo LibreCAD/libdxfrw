@@ -73,6 +73,11 @@ struct Token {
 };
 inline bool finiteReal(std::string_view text, double& value) {
     if (text.size() > 128u) return false;
+    // Preserve the token's borrowed spelling, but validate decimal syntax
+    // after surrounding ASCII whitespace, as the ordinary DXF reader does.
+    const auto space=[](char c){return c==' '||c=='\t'||c=='\r'||c=='\v'||c=='\f';};
+    while(!text.empty()&&space(text.front()))text.remove_prefix(1);
+    while(!text.empty()&&space(text.back()))text.remove_suffix(1);
     std::size_t at = 0u;
     while (at < text.size() && (text[at] == ' ' || text[at] == '\t' || text[at] == '\r' || text[at] == '\v' || text[at] == '\f')) ++at;
     if (at < text.size() && (text[at] == '+' || text[at] == '-')) ++at;

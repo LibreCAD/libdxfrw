@@ -91,6 +91,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxffield.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfidentitysource.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxflayout.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfmaterial.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfnumber.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfobjectphysicalsource.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfparserlimits.h"

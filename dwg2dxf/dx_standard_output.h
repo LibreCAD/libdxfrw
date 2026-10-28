@@ -320,9 +320,11 @@ public:
 // parsers may consume several tokens; hence the separate physical shape pass.
 class Decoder final {
 public:
-    explicit Decoder(const dxfRW::DxfObjectsWriteView& profile)
+    explicit Decoder(const dxfRW::DxfObjectsWriteView& profile, bool materialColors=false)
         : input(&buffer), budget(std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes)),
-          reader(readerFor(input, profile, budget)) {}
+          reader(readerFor(input, profile, budget)) {
+        if(reader)reader->setMaterialUnsignedColorValues(materialColors);
+    }
     bool good() const noexcept { return reader != nullptr; }
     template <class Record, class Visitor> bool decodeRecord(
             std::string_view bytes, Visitor&& visit) {

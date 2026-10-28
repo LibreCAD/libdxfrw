@@ -20,6 +20,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_iface.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_layout_source_profile.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_material_body.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_plotstyle_source.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_raster_dwg_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_raster_output.h"

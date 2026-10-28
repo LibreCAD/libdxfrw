@@ -1010,6 +1010,12 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    // Immutable-by-API callback baselines for three-way MATERIAL body edits.
+    // These do not certify original producers or native rendering semantics.
+    std::map<std::uint32_t,std::shared_ptr<const DRW_RawDxfObject>> m_materialBodyBaselines;
+    // Lifetime allowance: an appended import cannot reset retained raw/baseline
+    // storage by replacing its public per-import receipt counters.
+    std::size_t m_materialRawRetainedBytes{0u};
     // Proof identity is not an address (which can be reused) and is not copied
     // or assigned with another container's retained import evidence.
     struct EntitiesContainerIdentity {

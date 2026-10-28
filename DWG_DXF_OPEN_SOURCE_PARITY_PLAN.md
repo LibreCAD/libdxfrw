@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ge HEADER material and allocation-safe output (2026-10-28; selected scope verified):** supplied modern `$CMATERIAL` now remaps once and binds actual MATERIAL output, with staged HEADER proof and correct HANDSEED relocation. Persistent allocation tests exposed and fixed an atomic rollback abort; 128 reached offsets preserve destinations, remove owned temporaries and allow corrected retries. All 145 selected normal/ASan checks pass. Consumers must rebuild for the added `dxfRW` inspector state; native/material-body/document/ABI qualification remains open. [Implementation and remaining work](#implementation-progress-rpp-5ge-header-material-and-allocation-safe-output-2026-10-28) · [receipt](docs/research/rpp5ge-header-material-and-allocation-safe-output-2026-10-28.json). No support gate is promoted.
+**Newest implementation checkpoint — RPP-5gf MATERIAL body transactions (2026-10-28; selected modern DXF scope verified):** typed/raw body edits now reconcile against a pinned immutable callback baseline, with full public body freezing, contextual text encoding and planned actual-output proof. All 151 selected normal/ASan checks pass. Independent producer/native MATERIAL evidence, broader schema variants, complete document ownership and platform qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gf-material-body-transactions-2026-10-28) · [receipt](docs/research/rpp5gf-material-body-transactions-2026-10-28.json). No support gate is promoted.
+
+**Previous implementation checkpoint — RPP-5ge HEADER material and allocation-safe output (2026-10-28; selected scope verified):** supplied modern `$CMATERIAL` now remaps once and binds actual MATERIAL output, with staged HEADER proof and correct HANDSEED relocation. Persistent allocation tests exposed and fixed an atomic rollback abort; 128 reached offsets preserve destinations, remove owned temporaries and allow corrected retries. All 145 selected normal/ASan checks pass. Consumers must rebuild for the added `dxfRW` inspector state; native/material-body/document/ABI qualification remains open. [Implementation and remaining work](#implementation-progress-rpp-5ge-header-material-and-allocation-safe-output-2026-10-28) · [receipt](docs/research/rpp5ge-header-material-and-allocation-safe-output-2026-10-28.json). No support gate is promoted.
 
 **Previous implementation checkpoint — RPP-5gd LAYER material transport (2026-10-27; selected scope verified):** supplied modern LAYER 347 values now retain absence/null distinctions, object remapping and actual type/owner/output proof. 32 authored profiles, 82 callback refusals, 108 corrected retries and 135 selected normal/ASan checks pass. Ordinary2D and legacy non-DXF projection controls pass; HEADER $CMATERIAL, material body/native and full-document qualification remain open. [Implementation and remaining work](#implementation-progress-rpp-5gd-layer-material-transport-and-output-closure-2026-10-27) · [receipt](docs/research/rpp5gd-layer-material-transport-and-output-closure-2026-10-27.json). No support gate is promoted.
 
@@ -135199,18 +135201,12 @@ frozen builds/tests/counters/archives and separate remaining gates.
 
 ### Next implementation-ready sequence
 
-1. [ ] **MATERIAL body transactions (RPP-5gf).** First reproduce a typed scalar,
-   filename/transform and presence edit that current raw replay can ignore. The
-   existing DxfMaterialWriteSource.common already copies the typed model, while
-   hasUnchangedDxfMaterialSources compares only common metadata: inspect complete
-   byte accounting, retain full body equality and bind an independently decoded
-   raw baseline. Distinguish unchanged replay, typed-only edits, raw-only edits
-   and conflicting edits. Reuse bounded raw overlays/typed serialization and the
-   existing RenderSettings transaction pattern where applicable; preserve repeated
-   group roles, unknown/generic-procedure tails, unsigned color bits and source
-   spelling. Support representable complete profiles and refuse unrepresented
-   changes explicitly. Verify actual output/readback, ownership, late edits,
-   rollback/retries and source/version/encoding variants before promotion.
+1. [x] **MATERIAL body transactions (RPP-5gf, selected modern DXF scope).**
+   Implement typed/raw reconciliation, full public body freezing, bounded copies,
+   optional-field insertion/removal, exact unchanged opaque replay and planned
+   actual-output proof. The dated RPP-5gf checkpoint below qualifies authored
+   current-model profiles only. Alternate boundaries, independent producer/native
+   source profiles and complete MATERIAL/schema/rendering support remain open.
 2. [ ] **Complete common/dependency/document closure.** Finish remaining material/
    full/face/edge producer/source/version profiles and native LAYER/HEADER/common 348
    evidence. Retain reactor/IMAGE/document/control/name/application/XDATA/CEPSNID/
@@ -135244,6 +135240,152 @@ frozen builds/tests/counters/archives and separate remaining gates.
 Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger
 stays **CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false
 and outputEligible=false. Full material/rendering/native/document eligibility
+remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**
+and nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/
+kernel and native Linux GCC release remain **NOT_RUN**. The full goal stays active.
+
+
+## Implementation progress — RPP-5gf MATERIAL body transactions (2026-10-28)
+
+The parent silently ignores eight authored typed scalar, filename, matrix and
+presence edits across ASCII and binary output. Close the selected modern DXF
+current-model transaction gap while retaining opaque replay and keeping native,
+producer/source, rendering and complete-document eligibility separate.
+
+- [x] Retain immutable-by-API first-import raw callback baselines; distinguish
+  unchanged replay, typed-only edits, raw-only edits, equal/disjoint dual edits
+  and same-field value/presence conflicts. These baselines do not certify an
+  original producer. Preserve appended/duplicate raw callback delivery and the
+  existing multi-generation export refusal. Charge copies before allocation,
+  erase a newly inserted baseline if the raw copy fails, and retain a private
+  lifetime raw budget across appended imports.
+- [x] Account all seven dynamic map filenames, including inactive payloads.
+  Recompute live and immutable sizes before copying. Reserve conservative logical
+  allowances for decoded models, text quoting, canonical fields, slot maps and
+  overlays; refuse over-budget inputs before those copies. This is not a measured
+  RSS ceiling or a complete aggregate-memory qualification.
+- [x] Share internal stateless body validation/serialization with the direct
+  writer. Freeze all 160 public body values/flags/matrices plus opaque DWG state
+  against callback edits. Pin the immutable baseline identity too, so a source
+  container assignment cannot change edit meaning behind an equal visible model.
+  No installed DRW_Material state, new virtual callback,
+  DWG parser or byte-layout change. Private adapter/data layouts are rebuilt;
+  formal ABI/application qualification remains open.
+- [x] Decode raw baselines separately from editable typed state with the owning
+  MATERIAL parser. Assign contextual field roles separately, so base/normal map
+  codes, procedural values and post-table fields cannot be pooled by code alone.
+  The decoder is not an independent implementation; literal wire checks constrain
+  selected emitted roles. Native semantic/producer evidence is still required.
+- [x] Rewrite only changed represented slots, including absent-to-present and
+  present-to-absent fields. Preserve unknown/procedural values, unsigned color
+  bits, untouched source spellings and literal UTF-8/escape-looking text. Keep
+  floating-point bit equality so signed-zero edits are not ignored. Decode the
+  complete planned body and compare actual emitted bytes against that output.
+- [x] Preserve the captured ASCII/binary source text distinction when decoding,
+  encode canonical text for the actual target, and transcode known caret-bearing
+  text fields across wire formats. Binary output drops ASCII lexical arrays.
+  All 96 text profiles pass across nine represented fields, versions, input/output
+  formats and edited/unchanged models, including caret literals, control bytes and
+  Unicode/escape-looking text. Unknown opaque semantic transcoding stays open.
+- [x] Treat MATERIAL refraction filename 9 as semantic text explicitly, with its
+  actual observation location; retain structural HEADER 9 behavior and the prior
+  decoder symbol via an overload. No reader instance or virtual state is added.
+- [x] Couple effective output names to emitted dictionary keys, including typed-
+  only and raw-only renames, without rewriting caller-owned models. Exact unchanged
+  opaque procedural tails and extension subclasses replay; unrepresented body
+  edits refuse. Do not synthesize boundary/default values to hide missing schema.
+  Alternate 465-only mode/method ordering and remaining presence transactions stay
+  open, including the selected boundary-dependent removal cases.
+- [x] Fix the observed code 75 empty-bitset reader/writer mismatch consistently
+  with other mapper bitsets, retaining range/mask guards. Fix the independent
+  generated-root scanner's rejection of trailing whitespace in an unrelated
+  MATERIAL decimal; preserve the lexical token, length cap and malformed,
+  overflow/underflow-to-zero and nonfinite guards. No native transform semantics
+  are inferred from either transport correction.
+- [x] Authored controls pass 16 modern version/input/output profiles, 3334 value
+  checks, 312 presence transactions and 1082 readbacks. They exercise all seven map
+  families and 112 isolated matrix components; 16 raw/typed compositions include
+  raw-only names and opaque procedure text. Four signed-zero directions and four
+  unchanged opaque profiles pass. This is locally authored evidence, not a native
+  producer corpus or renderer witness.
+- [x] 38 invalid/conflicting/over-budget/unsupported cases and 72 actual late
+  callback attempts refuse while preserving sentinel destinations. 532 corrected/
+  restored same-adapter writes pass. 800 mutated completed OBJECTS views refuse
+  through the actual material inspector during another real export; corrected
+  views pass. These replay controls are not 800 filesystem-corruption attempts.
+- [x] All 256 tested persistent preparation allocation offsets are reached
+  (0–127 per encoding), return false and leave sentinels intact. Each is followed
+  by a complete corrected export/readback through the same adapter. The helper is
+  exercised before a writer is active; this capped prefix is not exhaustive
+  whole-export allocation, temporary-file or RSS qualification. Existing actual
+  HEADER allocation/rollback controls also pass in the shared checkpoint.
+- [x] The independent finite-decimal owner passes 120 exact-bit/span cells,
+  32 malformed ASCII, 12 nonfinite binary and 1582 partial-token refusals.
+- [x] Eight imported-container assignment attempts with identical visible raw/
+  typed state and receipt now refuse during callbacks; fresh same-adapter writes
+  reconcile the new baseline correctly. Retain the initially green 150-test shared
+  checkpoint and the follow-up probe that exposed this source-identity gap. The
+  final checkpoint below uses the corrected pinned sources.
+- [x] Preserve development failures and corrections: integer-width/unsigned
+  temporary transport, appended callback delivery, binary numeric proof/ASCII-
+  only comment recipe, lexical record selection, the whitespace scanner, captured wire-format text, refraction 9 decoding, opaque
+  replay and signed-zero review. No failing case is relabeled as qualification.
+- [x] Verify all 16 affected targets normally using the current cache and rebuild
+  under the qualified Debug/-O1/ASan configuration (387.74s), with
+  strict warnings/-Werror and LibreCAD_3. Retain the development normal rebuilds;
+  the final cached target-check timing is not a cold-build performance claim.
+- [x] 151 selected tests pass normally (133.47s), then under ASan
+  (82.17s), with matching registrations/labels/timeouts and no
+  selected failure/skip/disabled test. All 36 tracked counter lines agree; all 34
+  prior lines are unchanged. The existing writer-output-property selector also
+  passes in both configurations. This is an affected checkpoint, not a full suite.
+- [x] Freeze all 592 release inputs across builds, archive checks and runtimes.
+  Regenerate gzip/bzip2 with COPYFILE_DISABLE=1 and verify every listed byte.
+  No fresh extracted-source compile/distcheck, native CAD/kernel, formal ABI/
+  application or controlled RSS/performance run is claimed. All drawing controls
+  are locally authored source recipes/runtime models; no external payload,
+  derivative or new drawing fixture is committed.
+
+The [receipt](docs/research/rpp5gf-material-body-transactions-2026-10-28.json)
+records actual source/output/failure controls, retained development failures,
+frozen builds/tests/counters/archives and the separate remaining gates.
+
+### Next implementation-ready sequence
+
+1. [ ] **MATERIAL schema/source readiness.** Qualify alternate 465-only normal
+   boundary/mode/method profiles and design optional boundary changes without
+   invented defaults. Define represented versus opaque subclass/procedure edits
+   from primary specifications and independent producer/source/version evidence.
+   Preserve exact unchanged replay, add actual output/readback/conflict/late-edit/
+   failure/retry controls, and retain unqualified native/rendering gates.
+2. [ ] **Complete common/dependency/document closure.** Finish remaining material/
+   full/face/edge producer/source/version profiles and native LAYER/HEADER/common 348
+   evidence. Retain reactor/IMAGE/document/control/name/application/XDATA/CEPSNID/
+   CEPSNTYPE roles, arbitrary remaps/collisions and recursive/coupled/full ownership.
+   Current supplied identities/transport do not certify original dictionaries or
+   complete documents.
+3. [ ] **Rendering and TABLE completeness.** Finish engine/schema/optional/absent/
+   duplicate/alias/extension/active/global/environment/background/live-section/sun
+   providers, independent VIEWPORT shade 4/5 and 335/343/344/91 and native dictionary
+   collation. Finish TABLE Values/multiple-content/linked-data ownership,
+   formatting/units/borders and native B2b/B3/C schema/bit/owner/version/corpus
+   evidence; do not infer epochs, counts or semantics from self-roundtrip alone.
+4. [ ] **Qualification.** Complete package/platform/native consumers, formal ABI/
+   application and controlled RSS/performance, native Linux GCC release, native
+   Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence.
+5. [ ] **Build reuse readiness.** Match compiler/configuration, definitions,
+   sanitizer/PIC, resolved includes and preprocessed tokens before sharing any of
+   the distinct adapter object profiles. Measure cold/incremental build counts/
+   time before claiming a gain; preserve strict warnings and test/CLI boundaries.
+6. [ ] Reuse fast owning controls, run public-header macro hygiene early for
+   relevant header changes, and broaden for actual shared risks/failures. Finish
+   builds/archive checks before runtimes, freeze inputs, retain failures/caps,
+   self-unblock, update/commit/report every verified slice and continue ready work
+   without external drawing payloads or derivatives.
+
+Resource families stay nine; ATTDEF rawTypedMatched=false; the support ledger
+stays **CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false
+and outputEligible=false. Full MATERIAL/rendering/native/document eligibility
 remains unqualified. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**
 and nonpromoting. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/
 kernel and native Linux GCC release remain **NOT_RUN**. The full goal stays active.

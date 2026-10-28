@@ -13659,7 +13659,7 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         if (!m_dxfPastPreNormalMapFields) {
             if (!replaceDxfRetainedStringField(
                     reader, m_dxfRetainedRefractionMapFileNameBytes,
-                    m_refractionMapFileName, reader->getUtf8String()))
+                    m_refractionMapFileName, reader->getSemanticUtf8String()))
                 return false;
             m_hasRefractionMapFileName = true;
         }
@@ -14153,7 +14153,7 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 74:
     case 75: {
         int value = 0;
-        const int minimum = code == 72 ? 0 : 1;
+        const int minimum = (code == 72 || code == 75) ? 0 : 1;
         const int maximum = code == 72 ? 1 : code == 73 ? 4
             : code == 74 ? 3 : 7;
         if (!readDxfIntInRange(reader, minimum, maximum, value))

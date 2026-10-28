@@ -52,6 +52,7 @@ dwg2dxf/dx_dwg_class_wire.h
 dwg2dxf/dx_iface.cpp
 dwg2dxf/dx_iface.h
 dwg2dxf/dx_layout_source_profile.h
+dwg2dxf/dx_material_body.h
 dwg2dxf/dx_plotstyle_source.h
 dwg2dxf/dx_raster_dwg_wire.h
 dwg2dxf/dx_raster_output.h
@@ -289,6 +290,7 @@ src/intern/dxfentitiessource.h
 src/intern/dxffield.h
 src/intern/dxfidentitysource.h
 src/intern/dxflayout.h
+src/intern/dxfmaterial.h
 src/intern/dxfnumber.h
 src/intern/dxfobjectphysicalsource.h
 src/intern/dxfparserlimits.h

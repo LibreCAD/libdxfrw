@@ -103,6 +103,7 @@ dist_noinst_HEADERS = \
     intern/dxffield.h \
     intern/dxfidentitysource.h \
     intern/dxflayout.h \
+    intern/dxfmaterial.h \
     intern/dxfnumber.h \
     intern/dxfobjectphysicalsource.h \
     intern/dxfparserlimits.h \
