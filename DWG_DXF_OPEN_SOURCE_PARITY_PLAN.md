@@ -63,7 +63,7 @@ external searches or a broad audit with no current failing witness.
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 classic attribute source | Opt-in callback and captured-raw replay observed; real 6F8/705 and `AcDbAttr` XDATA | Bind adapter-owned capture to original and compound ownership and APPID/LAYER dependency roles; qualify output and failure/retry separately |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused non-tail removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -121,9 +121,9 @@ proof. Refused fields are not implemented editing support.
    [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
    [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
    [multi-element append](docs/research/rpp5ht-mline-multi-append-2026-10-28.json)
-   and [selected 4→2 tail removal](docs/research/rpp5hy-mline-unused-two-tail-removal-2026-10-28.json)
+   and [bounded unused-style tail removal](docs/research/rpp5ib-mline-unused-tail-removal-2026-10-28.json)
    receipts and their original/live ordinary MLINE census. They do not qualify
-   other multiple-element removals, simultaneous retained-element edits, 1→0,
+   non-tail multiple-element removals, simultaneous retained-element edits, 1→0,
    consumed geometry, earlier versions, proxy or unknown dependencies. Continue
    to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
@@ -305,9 +305,11 @@ profiles, arbitrary remaps/collisions and composed output closure.
 TABLESTYLE/CELLSTYLEMAP dependencies, formatting, units, margins and borders.
 Qualify remaining AC1018 cell-override masks, companion fields and native meanings
 from distinguishing sources; retain atomic refusal until each profile is supported.
-The selected `0x20` positive text-height output is limited to the
-[source and field evidence](docs/research/rpp5hw-ac1018-table-height-2026-10-28.json);
-it does not establish other masks, full original TABLE output or native rendering.
+Selected `0x20` positive text-height and `0x01` alignment outputs, alone or
+combined, are limited to their [height](docs/research/rpp5hw-ac1018-table-height-2026-10-28.json)
+and [alignment](docs/research/rpp5ic-ac1018-table-alignment-2026-10-28.json)
+field evidence. The alignment masks are inferred profiles; neither establishes
+other masks, full original TABLE output or native rendering.
 Bind original source bodies, nested scopes and referenced resources before actual
 output comparison. Finish independent native B2b/B3/C evidence; a default cell or
 style example does not qualify every table schema.
