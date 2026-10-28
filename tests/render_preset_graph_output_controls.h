@@ -562,3 +562,268 @@ bool tests(const std::filesystem::path& dir) {
     return profiles==38u&&fields==588u&&mutations==120u&&edits==22u&&rollbacks==152u&&limits==4u&&reached&&unreached==4u&&corrections==reached+unreached&&retries==156u&&streaming==4u;
 }
 }
+
+namespace fullStyleCarrierControls {
+struct DirectWriter:dx_iface {
+    dx_data data;dxfRW& output;DRW_Line line;bool wrote=false;
+    DirectWriter(dxfRW& writer):output(writer){cData=&data;currentBlock=data.mBlock;line.handle=0xE801u;line.fullVisualStyleHandle=0xEA01u;line.secPoint=DRW_Coord(1,2,3);}
+    void writeHeader(DRW_Header& header)override{header.vars.clear();}
+    void writeBlocks()override{}void writeBlockRecords()override{}
+    void writeEntities()override{wrote=output.writeLine(&line);}
+    void writeLTypes()override{}void writeLayers()override{}void writeTextstyles()override{}
+    void writeVports()override{}void writeDimstyles()override{}void writeAppId()override{}void writeObjects()override{}
+};
+using A=DxIfaceTableSourceTestAccess;
+Tags base(const std::string& version,bool collision){
+    Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B7"},{100,"AcDbSymbolTable"},{70,"2"},
+        {0,"BLOCK_RECORD"},{5,"B1"},{330,"B7"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"FullBlock"},{70,"0"},
+        {0,"BLOCK_RECORD"},{5,"B3"},{330,"B7"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*Model_Space"},{70,"0"},{0,"ENDTAB"},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},{5,"B0"},{330,"B1"},{100,"AcDbEntity"},{8,"0"},{348,"EA01"},{100,"AcDbBlockBegin"},{2,"FullBlock"},{70,"0"},{10,"0"},{20,"0"},{3,"FullBlock"},{1,""},
+        {0,"ENDBLK"},{5,"B2"},{330,"B1"},{100,"AcDbEntity"},{8,"0"},{348,"EA02"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"OBJECTS"},{0,"DICTIONARY"},{5,"40"},{330,"0"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},{3,"ACAD_VISUALSTYLE"},{350,"EB00"},
+        {0,"DICTIONARY"},{5,"EB00"},{330,"40"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},{3,"AuthoredStyle"},{350,"EA01"},{3,"SecondStyle"},{350,"EA02"},
+        {0,"DICTIONARY"},{5,"EB10"},{330,"EA01"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {0,"DICTIONARY"},{5,"EB11"},{330,"EA02"},{100,"AcDbDictionary"},{280,"1"},{281,"1"}};
+    auto first=renderingSourceStyle(false);const auto xdata=slot(first,1001,"REGISTERED_APP");first.erase(first.begin()+static_cast<std::ptrdiff_t>(xdata),first.end());
+    const auto reactors=slot(first,102,"{ACAD_REACTORS");first.erase(first.begin()+static_cast<std::ptrdiff_t>(reactors),first.begin()+static_cast<std::ptrdiff_t>(reactors+3u));
+    auto second=first;for(auto& tag:second){if(tag.value=="EA01")tag.value="EA02";if(tag.value=="EB10")tag.value="EB11";if(tag.value=="authored-style")tag.value="second-style";}
+    tags.insert(tags.end(),first.begin(),first.end());tags.insert(tags.end(),second.begin(),second.end());tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
+    if(collision)for(auto& tag:tags){if(tag.value=="EA01")tag.value="1F";else if(tag.value=="EA02")tag.value="1C";}
+    return tags;
+}
+std::uint32_t style(const dx_data& data,bool second=false){auto at=data.visualStyles.begin();if(second)++at;return at->handle;}
+std::string hex(std::uint32_t value){std::ostringstream out;out<<std::uppercase<<std::hex<<value;return out.str();}
+dx_ifaceBlock* named(dx_data& data){for(auto* block:data.blocks)if(block&&block->name=="FullBlock")return block;return nullptr;}
+void models(dx_data& data,bool anonymous){
+    std::uint32_t next=0xE801u;const auto target=style(data);const auto identify=[&](DRW_Entity* value){value->handle=anonymous?0u:next++;value->fullVisualStyleHandle=target;return value;};
+    const auto add=[&](DRW_Entity* value){data.mBlock->ent.push_back(identify(value));};
+    auto* point=new DRW_Point;point->basePoint=DRW_Coord(1,2,3);add(point);
+    auto* line=new DRW_Line;line->basePoint=DRW_Coord(1,2,3);line->secPoint=DRW_Coord(4,5,6);add(line);
+    auto* ray=new DRW_Ray;ray->secPoint=DRW_Coord(1,2,3);add(ray);
+    auto* xline=new DRW_Xline;xline->secPoint=DRW_Coord(1,2,3);add(xline);
+    auto* circle=new DRW_Circle;circle->radious=3;add(circle);
+    auto* arc=new DRW_Arc;arc->radious=2;arc->staangle=.2;arc->endangle=.8;add(arc);
+    auto* ellipse=new DRW_Ellipse;ellipse->secPoint=DRW_Coord(2,0,0);ellipse->ratio=.5;ellipse->endparam=6.283185307179586;add(ellipse);
+    auto* trace=new DRW_Trace;trace->secPoint=DRW_Coord(1,0,0);trace->thirdPoint=DRW_Coord(0,1,0);trace->fourPoint=DRW_Coord(1,1,0);add(trace);
+    auto* solid=new DRW_Solid;solid->secPoint=DRW_Coord(1,0,0);solid->thirdPoint=DRW_Coord(0,1,0);solid->fourPoint=DRW_Coord(1,1,0);add(solid);
+    auto* face=new DRW_3Dface;face->secPoint=DRW_Coord(1,0,0);face->thirdPoint=DRW_Coord(0,1,1);face->fourPoint=DRW_Coord(1,1,1);add(face);
+    auto* light=new DRW_LWPolyline;light->vertlist.push_back(std::make_shared<DRW_Vertex2D>(0,0,0));light->vertlist.push_back(std::make_shared<DRW_Vertex2D>(1,2,0));add(light);
+    auto* polyline=new DRW_Polyline;for(unsigned i=0;i<2u;++i){auto vertex=std::make_shared<DRW_Vertex>();vertex->basePoint=DRW_Coord(i,i,0);identify(vertex.get());polyline->vertlist.push_back(vertex);}
+    polyline->seqEndEntity=std::make_shared<DRW_SeqEnd>();identify(polyline->seqEndEntity.get());add(polyline);
+    auto* insert=new DRW_Insert;insert->name="FullBlock";auto attribute=std::make_shared<DRW_Attrib>();attribute->tag="A";attribute->text="authored attribute";attribute->height=1;identify(attribute.get());insert->attlist.push_back(attribute);
+    insert->seqEndEntity=std::make_shared<DRW_SeqEnd>();identify(insert->seqEndEntity.get());add(insert);
+    auto* definition=new DRW_Attdef;definition->tag="D";definition->text="authored definition";definition->height=1;add(definition);
+    auto* text=new DRW_Text;text->text="authored text";text->height=1;add(text);
+    auto* mtext=new DRW_MText;mtext->text="authored mtext";mtext->height=1;add(mtext);
+    auto* viewport=new DRW_Viewport;viewport->pswidth=20;viewport->psheight=10;viewport->vpstatus=1;viewport->vpID=2;viewport->visualStyleHandle=style(data,true);named(data)->ent.push_back(identify(viewport));
+    auto* blockPoint=new DRW_Point;blockPoint->basePoint=DRW_Coord(2,3,4);named(data)->ent.push_back(identify(blockPoint));
+    dx_ifaceRawEntityEvent raw;raw.typedEntityIndex=0u;raw.record.name="AUTHORED_FULL_CARRIER";raw.record.handle=0xE8F0u;raw.record.parentHandle=0xB3u;raw.record.m_version=data.sourceVersion;
+    raw.record.groups={DRW_Variant(5,UTF8STRING("E8F0")),DRW_Variant(330,UTF8STRING("B3")),DRW_Variant(100,UTF8STRING("AcDbEntity")),DRW_Variant(8,UTF8STRING("0")),
+        DRW_Variant(348,hex(target)),DRW_Variant(100,UTF8STRING("AuthoredCarrier")),DRW_Variant(1,UTF8STRING("authored raw carrier"))};data.mBlock->rawEntities.push_back(std::move(raw));
+}
+struct Record{std::string name,section,id,owner,full,viewport,description;unsigned fullFields=0u;};
+std::vector<Record> records(const std::vector<AttdefWireTag>& wire){
+    std::vector<Record> out;std::string section,scope;unsigned depth=0u;
+    for(std::size_t i=0u;i<wire.size();++i){const auto& field=wire[i];
+        if(field.code==0){scope.clear();depth=0u;if(field.text=="SECTION"){section=i+1u<wire.size()?wire[i+1u].text:"";continue;}if(field.text=="ENDSEC"){section.clear();continue;}
+            out.push_back({field.text,section,{},{},{},{},{},0u});continue;}
+        if(out.empty())continue;auto& row=out.back();
+        if(field.code==102){if(field.text=="}"){if(!depth)throw std::runtime_error("unbalanced source app");--depth;}else++depth;continue;}if(depth)continue;
+        if(field.code==100){scope=field.text;continue;}
+        if(field.code==5&&scope.empty())row.id=field.text;
+        if(field.code==330&&scope.empty())row.owner=field.text;
+        if(field.code==348&&scope=="AcDbEntity"){row.full=field.text;++row.fullFields;}
+        if(field.code==348&&scope=="AcDbViewport")row.viewport=field.text;
+        if(field.code==2&&(scope=="AcDbVisualStyle"||scope=="AcDbBlockTableRecord"))row.description=field.text;
+    }
+    return out;
+}
+bool proof(const std::vector<Record>& rows,std::size_t& fields){
+    std::map<std::string,const Record*> byId;std::string first,second;unsigned seen=0u,viewports=0u,children=0u,blocks=0u,raw=0u;
+    for(const auto& row:rows)if(!row.id.empty()){if(!byId.emplace(row.id,&row).second)return false;
+        if(row.name=="VISUALSTYLE"){if(row.owner!="EB00")return false;if(row.description=="authored-style")first=row.id;if(row.description=="second-style")second=row.id;}}
+    if(first.empty()||second.empty()||first==second)return false;
+    for(const auto& row:rows){if(row.full.empty()||row.full=="0")continue;
+        if(row.fullFields!=1u||row.full!=(row.name=="ENDBLK"?second:first)||row.id.empty()||row.owner.empty())return false;
+        const auto owner=byId.find(row.owner);if(owner==byId.end())return false;
+        if(row.name=="VERTEX"||row.name=="ATTRIB"||row.name=="SEQEND"){
+            if(owner->second->name!="POLYLINE"&&owner->second->name!="INSERT")return false;
+            const auto root=byId.find(owner->second->owner);if(root==byId.end()||root->second->name!="BLOCK_RECORD")return false;++children;
+        }else if(owner->second->name!="BLOCK_RECORD")return false;
+        if(row.name=="VIEWPORT"){if(row.full!=first||row.viewport!=second||row.full==row.viewport)return false;++viewports;fields+=2u;}
+        if(row.name=="BLOCK"||row.name=="ENDBLK")++blocks;if(row.name=="AUTHORED_FULL_CARRIER")++raw;
+        fields+=5u;++seen;
+    }
+    return seen==26u&&children==5u&&viewports==1u&&blocks==2u&&raw==1u;
+}
+void sentinel(const std::filesystem::path& path){std::ofstream file(path,std::ios::binary);file<<"KEEP_FULL_STYLE_DESTINATION";}
+bool kept(const std::filesystem::path& path){std::ifstream file(path,std::ios::binary);return std::string((std::istreambuf_iterator<char>(file)),{})=="KEEP_FULL_STYLE_DESTINATION";}
+struct BudgetWriter:dx_iface{std::pair<std::size_t,std::size_t> size;void writeObjects()override{size=A::fullStyleSize(*this);dx_iface::writeObjects();}};
+struct EditingWriter:dx_iface{
+    unsigned when=0u,what=0u;bool enabled=true;long allocation=-1;
+    void change(){auto target=style(*cData,true);
+        if(what==0u)cData->mBlock->ent.front()->fullVisualStyleHandle=target;
+        if(what==1u){auto* value=dynamic_cast<DRW_Polyline*>(*std::next(cData->mBlock->ent.begin(),11));value->vertlist.front()->fullVisualStyleHandle=target;}
+        if(what==2u)named(*cData)->fullVisualStyleHandle=target;
+        if(what==3u)named(*cData)->endBlockData.fullVisualStyleHandle=style(*cData);
+        if(what==4u)for(auto& group:cData->mBlock->rawEntities.front().record.groups)if(group.code()==348){group=DRW_Variant(348,hex(target));break;}
+        if(what==5u)cData->visualStyles.front().parentHandle=0xEEADu;
+        if(what==6u){cData->mBlock->ent.front()->fullVisualStyleHandle=0u;}
+    }
+    void writeHeader(DRW_Header& header)override{dx_iface::writeHeader(header);if(enabled&&when==0u)change();}
+    void writeEntities()override{
+        if(enabled&&when==1u){auto* value=cData->mBlock->ent.front();const auto old=value->fullVisualStyleHandle;value->fullVisualStyleHandle=style(*cData,true);dx_iface::writeEntities();value->fullVisualStyleHandle=old;}
+        else{dx_iface::writeEntities();if(enabled&&when==2u)change();}
+    }
+    bool finalizeDxfWrite()override{
+        if(enabled&&when==3u)change();
+        if(allocation>=0){SymbolAllocationFailure injection(allocation);if(!A::fullStyleFinalize(*this))return false;}
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+struct ExtraWriter:dx_iface{
+    bool invalid=false;
+    void writeEntities()override{dx_iface::writeEntities();DRW_Line value;value.secPoint=DRW_Coord(1,2,3);value.fullVisualStyleHandle=invalid?0xEBADu:style(*cData);dxfW->writeLine(&value);}
+};
+struct ReplayWriter:dx_iface{
+    std::filesystem::path previous;bool binary=false;std::size_t mutations=0u;
+    bool finalizeDxfWrite()override{
+        const auto wire=attdefWireTags(previous,binary);std::ifstream file(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+        for(const std::string section:{"BLOCKS","ENTITIES"}){
+            std::size_t begin=0u,end=0u;for(std::size_t i=0u;i+1u<wire.size();++i)if(wire[i].text=="SECTION"&&wire[i+1u].text==section){
+                begin=wire[i+1u].end;for(auto j=i+2u;j<wire.size();++j)if(wire[j].code==0&&wire[j].text=="ENDSEC"){end=wire[j].begin;break;}break;}
+            if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+            const dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            if(!A::replayFullStyle(*this,view,section))return false;
+            bool active=false;std::size_t record=0u;std::string scope;
+            for(std::size_t i=0u;i<wire.size();++i){const auto& field=wire[i];if(field.begin<begin||field.begin>=end)continue;
+                if(field.code==0){record=i;active=false;scope.clear();for(auto j=i+1u;j<wire.size()&&wire[j].code!=0;++j)
+                    if(wire[j].code==348&&wire[j].text!="0"){active=true;break;}}
+                if(field.code==100)scope=field.text;
+                if(!active||(field.code!=0&&field.code!=5&&field.code!=330&&!(field.code==348&&scope=="AcDbEntity")))continue;
+                // Actual bytes, including record name, self, owner and each348.
+                auto changed=body;auto offset=field.valueBegin-begin;
+                if(binary)changed.at(offset)^=1;
+                else{while(offset<changed.size()&&(changed[offset]==' '||changed[offset]=='\t'))++offset;
+                    if(offset==changed.size())return false;changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
+                const dxfRW::DxfObjectsWriteView bad{changed,view.version,view.binary,view.codePage,view.compatibilityProfile};
+                if(A::replayFullStyle(*this,bad,section)||!A::replayFullStyle(*this,view,section)){
+                    std::cerr<<"Common field corruption accepted record="<<wire[record].text<<" code="<<field.code<<'\n';return false;}
+                ++mutations;
+            }
+        }
+        return dx_iface::finalizeDxfWrite();
+    }
+};
+struct FastWriter:dx_iface{bool observed=false,bad=false;void writeEntities()override{observed=A::fullStyleFast(*this);if(bad)cData->mBlock->ent.front()->fullVisualStyleHandle=0xEBADu;dx_iface::writeEntities();}};
+bool tests(const std::filesystem::path& dir){
+    const auto input=dir/"full-input.dxf",output=dir/"full-output.dxf";
+    std::size_t direct=0u,scopes=0u,profiles=0u,fields=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,limits=0u,reached=0u,unreached=0u,corrected=0u,extras=0u,fast=0u,nulls=0u,mutations=0u,rawRefusals=0u;
+    const auto fail=[&](int line){std::cerr<<"Full style line="<<line<<" profiles="<<profiles<<" scopes="<<scopes<<" callbacks="<<callbacks<<'\n';return false;};
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}){
+        dxfRW target(output.string().c_str());target.setHandleRemap({{0xEA01u,0xEA11u}});DirectWriter writer(target);
+        const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
+        if(!target.write(&writer,v,binary)||!writer.wrote)return fail(__LINE__);bool matched=false;
+        for(const auto& row:records(attdefWireTags(output,binary)))if(row.name=="LINE")matched=row.full=="EA11";
+        if(!matched)return fail(__LINE__);++direct;
+    }
+    for(unsigned encoding:{0u,2u})for(unsigned shape=0u;shape<6u;++shape){
+        Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"},
+            {0,"VIEWPORT"},{5,"E801"},{330,"1E"},{100,"AcDbEntity"},{67,"1"},{8,"0"}};
+        if(shape!=1u&&shape!=5u)tags.push_back({348,shape==3u?"0":"EA01"});
+        tags.insert(tags.end(),{{102,"{AUTHORED_SCOPE"},{100,"AcDbEntity"},{348,"EBAD"},{102,"}"},{100,"AcDbViewport"},{10,"1"},{20,"2"},{40,"20"},{41,"10"},{68,"1"},{69,"2"}});
+        if(shape!=2u)tags.push_back({348,"EA02"});if(shape>=4u)tags.insert(tags.end(),{{100,"ForeignSubclass"},{348,"EBAD"}});
+        tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});dx_iface reader;dx_data data;
+        if(!writeBlockBinding(input,tags,encoding)||!reader.fileImport(input.string(),&data,false)||data.mBlock->ent.size()!=1u)return fail(__LINE__);
+        const auto* value=dynamic_cast<const DRW_Viewport*>(data.mBlock->ent.front());
+        const auto expected=shape==1u||shape==5u?0xEA02u:shape==3u?0u:0xEA01u;
+        if(!value||value->fullVisualStyleHandle!=expected||value->visualStyleHandle!=(shape==2u?0u:0xEA02u))return fail(__LINE__);++scopes;
+    }
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding:{0u,2u})for(bool binary:{false,true})for(unsigned variant=0u;variant<3u;++variant){
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,base(version,variant==1u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,variant==2u);
+        if(!writer.fileExport(output.string(),data.sourceVersion,binary,&data,false))return fail(__LINE__);
+        const auto rows=records(attdefWireTags(output,binary));if(!proof(rows,fields))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false))return fail(__LINE__);auto* block=named(reopened);if(!block)return fail(__LINE__);
+        const auto found=std::find_if(block->ent.begin(),block->ent.end(),[](const auto* e){return e->eType==DRW::VIEWPORT;});if(found==block->ent.end())return fail(__LINE__);
+        const auto* viewport=dynamic_cast<const DRW_Viewport*>(*found);if(!viewport||viewport->fullVisualStyleHandle!=style(reopened)||viewport->visualStyleHandle!=style(reopened,true))return fail(__LINE__);
+        ++readbacks;++profiles;
+    }
+    for(unsigned encoding:{0u,2u})for(bool binary:{false,true}){
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
+        auto* viewport=dynamic_cast<DRW_Viewport*>(named(data)->ent.front());viewport->fullVisualStyleHandle=0u;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false))return fail(__LINE__);
+        const auto* actual=dynamic_cast<const DRW_Viewport*>(named(reopened)->ent.front());
+        if(!actual||actual->fullVisualStyleHandle!=0u||actual->visualStyleHandle!=style(reopened,true))return fail(__LINE__);++nulls;
+    }
+    for(bool binary:{false,true}){
+        ReplayWriter writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),binary?2u:0u)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
+        const auto previous=dir/(binary?"full-captured-binary.dxf":"full-captured-ascii.dxf");dx_iface capture;
+        if(!capture.fileExport(previous.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        writer.previous=previous;writer.binary=binary;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);mutations+=writer.mutations;
+        for(unsigned fault=0u;fault<4u;++fault){auto& raw=data.mBlock->rawEntities.front().record;const auto saved=raw;
+            if(fault==0u)raw.groups.emplace_back(349,hex(style(data)));
+            if(fault==1u){raw.groups.emplace_back(100,UTF8STRING("ForeignSubclass"));raw.groups.emplace_back(348,hex(style(data)));}
+            if(fault==2u){raw.groups.emplace_back(100,UTF8STRING("AcDbEntity"));raw.groups.emplace_back(348,hex(style(data)));}
+            if(fault==3u){raw.groups.emplace_back(102,UTF8STRING("{AUTHORED_SCOPE"));raw.groups.emplace_back(348,hex(style(data)));raw.groups.emplace_back(102,UTF8STRING("}"));}
+            sentinel(output);if(writer.fileExport(output.string(),DRW::AC1027,binary,&data,false)||!kept(output))return fail(__LINE__);++rawRefusals;
+            raw=saved;if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;
+        }
+    }
+    for(unsigned encoding:{0u,2u})for(unsigned when=0u;when<4u;++when)for(unsigned what=0u;what<7u;++what){
+        if(when==1u&&what!=0u)continue;EditingWriter writer;writer.when=when;writer.what=what;dx_data data;
+        if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
+        const auto target=style(data);const auto other=style(data,true);const auto owner=data.visualStyles.front().parentHandle;sentinel(output);
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        writer.enabled=false;
+        data.mBlock->ent.front()->fullVisualStyleHandle=target;
+        dynamic_cast<DRW_Polyline*>(*std::next(data.mBlock->ent.begin(),11))->vertlist.front()->fullVisualStyleHandle=target;
+        named(data)->fullVisualStyleHandle=target;named(data)->endBlockData.fullVisualStyleHandle=other;data.visualStyles.front().parentHandle=owner;
+        for(auto& group:data.mBlock->rawEntities.front().record.groups)if(group.code()==348)group=DRW_Variant(348,hex(target));
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+    }
+    for(unsigned encoding:{0u,2u}){
+        BudgetWriter writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||writer.size.first!=26u)return fail(__LINE__);const auto exact=writer.size;
+        A::fullStyleLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        for(bool records:{false,true}){A::fullStyleLimit(writer,exact.first-(records?1u:0u),exact.second-(records?0u:1u));sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++limits;
+            A::fullStyleLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
+        for(bool dangling:{false,true}){const auto original=data.mBlock->ent.front()->fullVisualStyleHandle;data.mBlock->ent.front()->fullVisualStyleHandle=dangling?0xEBADu:0xEB00u;sentinel(output);
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+            data.mBlock->ent.front()->fullVisualStyleHandle=original;if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
+        EditingWriter faults;faults.enabled=false;unsigned untouched=0u;
+        for(long offset=0;offset<1024&&untouched<2u;++offset){faults.allocation=offset;const auto before=symbolFailedAllocations;sentinel(output);
+            const bool ok=faults.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false);
+            if(symbolFailedAllocations!=before){if(ok||!kept(output))return fail(__LINE__);++reached;untouched=0u;}else{if(!ok)return fail(__LINE__);++unreached;++untouched;}
+            faults.allocation=-1;if(!faults.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++corrected;
+        }
+        if(untouched!=2u)return fail(__LINE__);
+        ExtraWriter extra;if(!extra.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++extras;
+        extra.invalid=true;sentinel(output);if(extra.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+        extra.invalid=false;if(!extra.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        FastWriter plain;dx_data ordinary;auto* line=new DRW_Line;line->handle=0xE801u;line->secPoint=DRW_Coord(1,2,3);ordinary.mBlock->ent.push_back(line);
+        if(!plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false)||!plain.observed)return fail(__LINE__);++fast;
+        plain.bad=true;sentinel(output);if(plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false)||!kept(output))return fail(__LINE__);++refusals;
+        plain.bad=false;line->fullVisualStyleHandle=0u;if(!plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false))return fail(__LINE__);++retries;
+    }
+    unsigned preCopy=0u;
+    for(unsigned encoding:{0u,2u}){
+        dx_iface writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        named(data)->name=std::string(512u,'N');A::fullStyleLimit(writer,100000u,128u);
+        const auto before=symbolFailedAllocations;bool ready=false;
+        {SymbolLargeAllocationFailure allocation(256u);ready=A::prepareFullStyle(writer,data);}
+        if(ready||symbolFailedAllocations!=before){std::cerr<<"Pre-copy ready="<<ready<<" faults="<<(symbolFailedAllocations-before)<<" size="<<symbolLastFailedAllocationSize<<'\n';return fail(__LINE__);}
+        ++preCopy;
+    }
+    std::cout<<"Common style direct remaps="<<direct<<"; scoped reads="<<scopes<<"; output profiles="<<profiles<<"; independent fields="<<fields
+        <<"; readbacks="<<readbacks<<"; callback rollbacks="<<callbacks<<"; invalid target rollbacks="<<refusals<<"; exact/one-under limits="<<limits
+        <<"; reached finalizer faults="<<reached<<"; unreached offsets="<<unreached<<"; corrected finalizations="<<corrected<<"; corrected retries="<<retries
+        <<"; null common readbacks="<<nulls<<"; staged field refusals="<<mutations<<"; unqualified raw refusals="<<rawRefusals
+        <<"; pre-copy large-allocation refusals="<<preCopy<<"; extra rooted output profiles="<<extras<<"; inactive2D profiles="<<fast<<'\n';
+    return direct==8u&&scopes==12u&&profiles==48u&&readbacks==48u&&callbacks==44u&&refusals==8u&&limits==4u&&reached&&unreached==4u&&corrected==reached+unreached&&retries==64u&&extras==2u&&fast==2u&&nulls==4u&&mutations==208u&&rawRefusals==8u&&preCopy==2u;
+}
+}

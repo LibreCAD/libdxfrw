@@ -4936,9 +4936,15 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
         writer->writeUtf8String(347,
                                 toHexStr(remapObjectHandle(ent->material)));
     }
-    if (version > DRW::AC1018 && ent->fullVisualStyleHandle != 0) {
+    const auto* styleViewport = ent->eType == DRW::VIEWPORT
+        ? dynamic_cast<const DRW_Viewport*>(ent) : nullptr;
+    // A viewport's explicit null common carrier must survive beside a nonnull
+    // subclass style; otherwise the markerless/derived-only read fallback would
+    // replace that null with the unrelated subclass handle on readback.
+    if (version > DRW::AC1018 && (ent->fullVisualStyleHandle != 0
+            || (styleViewport != nullptr && styleViewport->visualStyleHandle != 0))) {
         writer->writeUtf8String(348,
-                                toHexStr(ent->fullVisualStyleHandle));
+                                toHexStr(remapObjectHandle(ent->fullVisualStyleHandle)));
     }
     if (version > DRW::AC1014) {
         writer->writeInt16(370, DRW_LW_Conv::lineWidth2dxfInt(ent->lWeight));
@@ -13123,6 +13129,9 @@ bool dxfRW::writeBlock(DRW_Block *bk){
         && bk->shadow != DRW::CastAndReceieveShadows) {
         writer->writeInt16(284, static_cast<int>(bk->shadow));
     }
+    if (version > DRW::AC1018 && bk->fullVisualStyleHandle != 0)
+        writer->writeUtf8String(348,
+            toHexStr(remapObjectHandle(bk->fullVisualStyleHandle)));
     if (version > DRW::AC1014)
         writer->writeInt16(370,
                            DRW_LW_Conv::lineWidth2dxfInt(bk->lWeight));
@@ -23685,11 +23694,13 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
              + std::to_string(entity->parentHandle) + " output="
              + std::to_string(ownerOverride)).c_str());
     }
-    // This narrow raw-entity writer only replays identities and the logical
-    // owner. Other pointer-like references need a closed source-to-emitted
-    // graph, which the adapter has not qualified for arbitrary custom records.
+    // Retain the existing common348 carrier with the same remapping as typed
+    // entities. The facade checks its rooted provider and actual output before
+    // publication. This is transport, not native semantics for custom bodies;
+    // every other unqualified translated reference remains refused here.
     int referenceApplicationDepth = 0;
-    bool referenceInXdata = false;
+    bool referenceInXdata = false, referenceCommonEntity = false;
+    unsigned commonStyleFields = 0u;
     for (std::size_t index = 0; index < entity->groups.size(); ++index) {
         const DRW_Variant& group = entity->groups[index];
         if (group.code() == 102) {
@@ -23711,6 +23722,19 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
         else if (referenceInXdata
                  && (group.code() < 1000 || group.code() > 1071))
             referenceInXdata = false;
+        if (group.code() == 100) {
+            referenceCommonEntity = group.type() == DRW_Variant::STRING
+                && group.content.s != nullptr && *group.content.s == "AcDbEntity";
+        }
+        if (referenceCommonEntity && group.code() == 348) {
+            std::uint64_t target = 0u;
+            if (++commonStyleFields != 1u || version <= DRW::AC1018
+                || group.type() != DRW_Variant::STRING || group.c_str() == nullptr
+                || !parseRawDxfHandleLexeme(group.c_str(), target)
+                || target > std::numeric_limits<std::uint32_t>::max())
+                return rejectRawEntity("raw common348 carrier is ambiguous or invalid");
+            continue;
+        }
         if (index != selfHandleIndex && index != ownerGroupIndex
             && isDxfTranslatedHandleCode(group.code())
             && !(referenceInXdata && group.code() == 1005))

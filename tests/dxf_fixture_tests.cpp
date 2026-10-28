@@ -16217,6 +16217,37 @@ void testBlockXrefPathRoundTrip(TestContext& t) {
             }
         }
     } cleanup{temporaryPaths};
+    // Add the locally authored provider recipe to every re-import of source.
+    // The old348->A1 links named a BLOCK_RECORD, not a VisualStyle.
+    const auto providerPath = directory / ("libdxfrw-footer-provider-" + suffix + ".dxf");
+    temporaryPaths.push_back(providerPath);
+    if (!writeVisualStyleRetentionControl(providerPath, false, true, "C02")) {
+        t.expect(false, "authored footer provider recipe is available");return;
+    }
+    std::ifstream providerFile(providerPath, std::ios::binary);
+    std::string providerText((std::istreambuf_iterator<char>(providerFile)), {});
+    // dxfWriterAscii pads numeric group codes; normalize through its reader.
+    std::istringstream providerStream(providerText);
+    dxfReaderAscii providerReader(&providerStream);providerReader.setVersion("AC1027", true);
+    std::ostringstream objects;bool inObjects = false;int providerCode = 0;
+    while (providerReader.readRec(&providerCode)) {
+        const auto text = providerReader.getRawValue();
+        if (providerCode == 2 && text == "OBJECTS") {inObjects = true;objects << "0\nSECTION\n2\nOBJECTS\n";continue;}
+        if (!inObjects) continue;
+        if (providerCode == 0 && text == "EOF") break;
+        auto value = text;
+        if ((providerCode == 5 || providerCode == 330 || providerCode == 350) && text == "B0") value = "C00";
+        if ((providerCode == 5 || providerCode == 330 || providerCode == 350) && text == "700") value = "C01";
+        objects << providerCode << '\n' << value << '\n';
+    }
+    const auto eof = source.rfind("0\nEOF\n");
+    if (eof == std::string::npos || !inObjects) {t.expect(false, "authored footer provider section is complete");return;}
+    source.insert(eof, objects.str());
+    std::size_t styleOffset = 0u;
+    while ((styleOffset = source.find("348\nA1\n", styleOffset)) != std::string::npos) {
+        source.replace(styleOffset, std::strlen("348\nA1\n"), "348\nC02\n");styleOffset += std::strlen("348\nC02\n");
+    }
+
     {
         std::ofstream output(inputPath, std::ios::binary | std::ios::trunc);
         output << source;
@@ -16428,6 +16459,21 @@ void testBlockXrefPathRoundTrip(TestContext& t) {
              "source ENDBLK appData retains typed reactor and xDictionary handles");
     if (!sourceAppDataReferencesRetained)
         return;
+
+    // The old authored footer348 pointed to BLOCK_RECORD A1. Retain that
+    // wrong-kind negative case, then supply an actual rooted carrier provider.
+    const auto wrongStylePath = directory / ("libdxfrw-footer-wrong-style-" + suffix + ".dxf");
+    temporaryPaths.push_back(wrongStylePath);
+    {std::ofstream saved(wrongStylePath);saved << "KEEP_WRONG_FOOTER_STYLE";}
+    for (auto* block : inputData.blocks) if (block && block->hasEndBlockData && block->endBlockData.fullVisualStyleHandle)
+        block->endBlockData.fullVisualStyleHandle = 0xA1u;
+    dx_iface wrongStyleExporter;
+    const bool wrongStyleExported = wrongStyleExporter.fileExport(wrongStylePath.string(), DRW::AC1021, false, &inputData, false);
+    std::ifstream wrongStyleFile(wrongStylePath);
+    t.expect(!wrongStyleExported && std::string((std::istreambuf_iterator<char>(wrongStyleFile)), {}) == "KEEP_WRONG_FOOTER_STYLE",
+             "wrong-kind common footer style is refused before destination publication");
+    for (auto* block : inputData.blocks) if (block && block->hasEndBlockData && block->endBlockData.fullVisualStyleHandle)
+        block->endBlockData.fullVisualStyleHandle = 0xC02u;
 
     const std::filesystem::path appDataReferencePath = directory
         / ("libdxfrw-xref-appdata-reference-remap-" + suffix + ".dxf");

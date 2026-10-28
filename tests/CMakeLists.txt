@@ -1142,6 +1142,10 @@ add_test(NAME libdxfrw_render_preset_edits
     COMMAND libdxfrw_table_content_dxf_tests --render-preset-edits)
 set_tests_properties(libdxfrw_render_preset_edits PROPERTIES
     LABELS "fast;dxf;render;writer;graph;physical" TIMEOUT 60)
+add_test(NAME libdxfrw_full_style_carriers
+    COMMAND libdxfrw_table_content_dxf_tests --full-style-carriers)
+set_tests_properties(libdxfrw_full_style_carriers PROPERTIES
+    LABELS "fast;dxf;render;writer;graph;physical" TIMEOUT 120)
 add_test(NAME libdxfrw_shade_consumer_output
     COMMAND libdxfrw_table_content_dxf_tests --shade-consumer-output)
 set_tests_properties(libdxfrw_shade_consumer_output PROPERTIES

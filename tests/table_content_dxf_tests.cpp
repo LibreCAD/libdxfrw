@@ -30,13 +30,19 @@
 namespace {
 long symbolAllocationsBeforeFailure=-1;
 std::size_t symbolFailedAllocations=0u;
+std::size_t symbolMaxSingleAllocation=0u;
+std::size_t symbolLastFailedAllocationSize=0u;
+struct SymbolLargeAllocationFailure {
+    explicit SymbolLargeAllocationFailure(std::size_t maximum){symbolMaxSingleAllocation=maximum;}
+    ~SymbolLargeAllocationFailure(){symbolMaxSingleAllocation=0u;}
+};
 struct SymbolAllocationFailure {
     explicit SymbolAllocationFailure(long count){symbolAllocationsBeforeFailure=count;}
     ~SymbolAllocationFailure(){symbolAllocationsBeforeFailure=-1;}
 };
 }
 void* operator new(std::size_t size) {
-    if(symbolAllocationsBeforeFailure==0){++symbolFailedAllocations;throw std::bad_alloc();}
+    if(symbolAllocationsBeforeFailure==0||(symbolMaxSingleAllocation&&size>symbolMaxSingleAllocation)){++symbolFailedAllocations;symbolLastFailedAllocationSize=size;throw std::bad_alloc();}
     if(symbolAllocationsBeforeFailure>0)--symbolAllocationsBeforeFailure;
     if(void* value=std::malloc(size?size:1u))return value;
     throw std::bad_alloc();
@@ -87,6 +93,22 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    static auto fullStyleSize(const dx_iface& writer){return std::make_pair(writer.m_dxfFullStyles.size(),writer.m_dxfFullStyleBytes);}
+    static void fullStyleLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfFullStyleRecordLimit=records;writer.m_dxfFullStyleByteLimit=bytes;}
+    static bool fullStyleOutput(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view,std::string_view section){return writer.inspectDxfFullStyles(view,section);}
+    static bool fullStyleFinalize(const dx_iface& writer){return writer.finalizeDxfFullStyles();}
+    static bool prepareFullStyle(dx_iface& writer,dx_data& data){writer.cData=&data;return writer.prepareDxfFullStyles(DRW::AC1027);}
+    static bool replayFullStyle(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view,std::string_view section){
+        auto rows=writer.m_dxfFullStyles;auto providers=writer.m_dxfFullStyleProviders;
+        const auto sections=writer.m_dxfFullStyleSections;const auto count=writer.m_dxfFullStyleObservedFields;
+        writer.m_dxfFullStyleSections&=~(section=="BLOCKS"?1u:2u);writer.m_dxfFullStyleObservedFields=0u;
+        for(auto& row:writer.m_dxfFullStyles)if(row.blocks==(section=="BLOCKS"))row.inspected=false;
+        const bool result=writer.inspectDxfFullStyles(view,section);
+        writer.m_dxfFullStyles=std::move(rows);writer.m_dxfFullStyleProviders=std::move(providers);
+        writer.m_dxfFullStyleSections=sections;writer.m_dxfFullStyleObservedFields=count;return result;
+    }
+    static bool fullStyleFast(const dx_iface& writer){return writer.m_dxfFullStyles.empty()&&writer.m_dxfFullStyleSections==0u&&writer.dxfW
+        &&writer.dxfW->dxfWriteRecordHandleCount(writer.dxfW->remapEntityHandle(0xE801u))==0u;}
     static auto shadeSize(const dx_iface& writer){return std::make_pair(writer.m_dxfShadeConsumers.size(),writer.m_dxfShadeConsumerBytes);}
     static void shadeLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfShadeConsumerRecordLimit=records;writer.m_dxfShadeConsumerByteLimit=bytes;}
     static bool finalizeShade(const dx_iface& writer){return writer.finalizeDxfShadeConsumers();}
@@ -3180,6 +3202,13 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--full-style-carriers") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-full-style-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;const bool ok=fullStyleCarrierControls::tests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--render-preset-transactions") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

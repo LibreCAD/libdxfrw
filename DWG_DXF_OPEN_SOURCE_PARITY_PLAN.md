@@ -134694,3 +134694,150 @@ outputEligible=false. Full rendering/document/native semantic qualification
 remains incomplete. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**;
 native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
 remain **NOT_RUN**. The full objective remains active; no remote mutation.
+
+## Implementation progress — RPP-5gb common style carriers and bounded visits (2026-10-27)
+
+At ec0bc8ba, a direct common348 handle remap remains unchanged and an explicit
+AcDbEntity348 followed by a different AcDbViewport348 loses the common value.
+Repair the existing carrier transport, retain separate subclass fields and close
+the selected facade publication transaction. This does not qualify universal
+native common348 semantics: Autodesk's generic common entity table omits348,
+while its VIEWPORT table documents348 in AcDbViewport. Preserve that distinction.
+
+- [x] Remap typed common348, retain it on BLOCK begin and keep ENDBLK remapping.
+  Track common/viewport/foreign subclass scope in the shared internal live/replay
+  DXF decoder. Keep markerless/derived-only fallback. An explicit common null
+  remains null beside a nonnull viewport style; emit the explicit zero required
+  to preserve that distinction on readback. Application-local markers/348 do not
+  replace primary fields. No installed model/public callback or DWG layout change.
+- [x] Capture active common carriers from selected typed primaries, POLYLINE and
+  INSERT children/SEQEND, block markers and scoped raw records. Require unique
+  rooted VISUALSTYLE targets. Freeze current identity/owner/container/target and
+  provider owner; recheck live lists/generation safely before sections, at actual
+  inspection and finalization. Per-entity guards use a frozen pointer index;
+  avoid a complete document scan per block.
+- [x] Inspect actual emitted record type/self/owner/common348 in BLOCKS and
+  ENTITIES, compound parent and BLOCK_RECORD ownership, then actual provider
+  type/owner in the completed inventory. Identified nonzero source entities also
+  require actual source-to-emitted binding. Anonymous active order gets actual
+  emitted identity/owner/fields, not an original-source certificate. Generated/
+  direct extras get provider binding only; do not promote their complete owner
+  semantics or full document eligibility.
+- [x] Admit only the scoped primary common348 exception in narrow raw replay,
+  validating its32-bit lexical value and translating it. Keep duplicate/malformed,
+  foreign-body, application and other unqualified handle refusals. Standalone
+  low-level codec users retain graph responsibility, as with typed writers;
+  the facade owns the automatic provider/output transaction. Existing2D/direct
+  routes remain usable; inactive2D needs no new staged sections/record inventory.
+- [x] Cap active rows at100000 and retained logical row/name/index allowance at
+  64MiB; bound provider/transient-parent indexes at200000. Review finds that
+  capture-time accounting alone permits earlier preflight name copies. Admit
+  row/name/provider allowances before copying/indexing; replace the old fixed-
+  space classifier copy with equivalent borrowed length/ASCII comparison.
+  These are logical bounds, not allocator-capacity, peak RSS or controlled
+  throughput qualification.
+
+Authored controls and failures:
+
+- [x] Eight direct remap profiles and12 scoped reads cover explicit distinct,
+  absent, derived-only, common-only, explicit-null and foreign/application fields.
+  Forty-eight output/readback profiles cover AC1021/AC1024/AC1027/AC1032, both
+  input/output encodings including cross conversion, reserved-ID collisions and
+  anonymous sources. Independently inspect6336 fields across26 active carriers:
+  18 primaries, five compound children, two block markers and one authored raw
+  record. Four additional explicit-null readbacks pass.
+- [x] Feed actual section bytes from a completed same-input export into the real
+  inspector while another export finalizes. All208 selected record-name/self/
+  owner/common348 mutations refuse and corrected views pass; restore probe state
+  after every attempt. Keep AcDbViewport348 in its separate shade-consumer proof.
+- [x] Forty-four callback, eight invalid-target/extra/inactive2D, four exact/one-
+  under and eight unqualified-raw failures preserve sentinel destinations. All64
+  corrected exports reuse the same adapter. Cover header, temporary emission/
+  restoration, after ENTITIES and actual finalization, including primary/child/
+  block/footer/raw target, provider-owner and active-target removal changes.
+- [x] Reach six faults in the actual frozen-state helper during real finalization;
+  four unreached offsets and all ten corrected real finalizations pass. Stop
+  after two consecutive unreached offsets, bounded by1024 per encoding. Two
+  preparation-helper controls with512-character owner names and128-byte logical
+  allowance refuse before an allocator rejecting allocations larger than256
+  bytes is reached. Small bookkeeping allocations are allowed; neither control
+  claims whole-file or allocation-free behavior.
+- [x] Preserve the older footer regression rather than discard its assertions.
+  Its authored348->A1 named a BLOCK_RECORD. Keep that wrong-kind edge as a
+  destination-preserving negative and add a real rooted authored provider to
+  every positive source re-import. Existing XREF/fixed-footer remapping, common
+  metadata, repeated conversions and failure/retry checks pass. No fixture file
+  or external drawing payload/conversion/derivative is added to Git.
+- [x] Retain failed development evidence: nonexistent begin-handle getter, raw
+  blanket refusal, zero-valued NoHandle comparison, overbroad viewport mutation
+  selection and a manually joined provider with the wrong source version. The
+  first budget control overconstrains allocations; the size-focused diagnostic
+  locates a520-byte classifier copy before admission. Correct the helper and
+  controls. A singular --viewport-source invocation exits2 and is excluded;
+  actual --viewport-sources passes. A driver invoked before ASan completion
+  refuses its missing build prerequisite; it contributes no runtime evidence.
+
+Two explicitly separate qualification checkpoints:
+
+- [x] For shared writer/decoder risk, build14 owning targets: normal
+  49.58s and Debug/-O1/ASan
+  384.91s, retaining strict warnings/-Werror and
+  the LibreCAD_3 compile guard. Run133 selected affected tests in normal
+  (145.87s), then ASan
+  (87.95s). Exact registrations and all31
+  tracked counter lines agree; all30 previous tracked lines remain unchanged.
+- [x] After the local pre-copy/classifier correction, rebuild only three owning
+  targets: normal 10.93s and ASan
+  135.19s. Run12 focused carrier/rendering/viewport/
+  compound/block-owner/footer tests in normal
+  (9.51s), then ASan
+  (6.04s). All eight tracked lines agree;
+  the seven previous selected lines remain unchanged. Do not describe the older
+  133-test checkpoint as a rerun against this later correction or claim a fresh
+  CLI rebuild. The changed local helper and its callers receive focused evidence.
+- [x] Freeze all590 listed build/release inputs independently for each checkpoint;
+  finish both builds and archive checks before each runtime phase. Regenerate
+  gzip/bzip2 with COPYFILE_DISABLE=1 and compare every listed byte, preserving
+  both archive pairs and snapshots. No fresh extracted-source compile/distcheck,
+  formal ABI/native application or controlled RSS/performance claim is made.
+  FreeCAD CLI contracts retain their shared-checkpoint scope; native Linux/
+  Windows FreeCAD and independent ACIS/ACDS kernel semantics are not qualified.
+
+The [receipt](docs/research/rpp5gb-common-style-carrier-output-and-bounded-visits-2026-10-27.json)
+pins source references, baseline/development failures, both frozen qualification
+phases, selected counters, archives and remaining limits. Only locally authored
+source recipes and existing repository controls are used for new drawing cases.
+
+Next implementation-ready sequence retains the complete objective:
+
+1. [ ] Extend selected common-carrier transport to remaining typed/raw producer,
+   source and version profiles and obtain independent native common348 evidence.
+   Complete face/edge/material/reactor/IMAGE/document/control/name/application/
+   XDATA/HEADER CEPSNID/CEPSNTYPE dependencies, arbitrary remaps/collisions and
+   recursive/coupled/whole-document ownership. Selected scalar/provider proof
+   does not close full emitted dictionaries or document eligibility.
+2. [ ] Complete remaining class-revision/engine/schema-family and absent/duplicate/
+   alias/extension rendering profiles and active/global/environment/background/
+   live-section/sun providers. Research actual source/version differences before
+   projecting defaults or translating engines; retain metadata, actual reference
+   proof, readback, rollback and retry. Obtain independent VIEWPORT shade4/5
+   witnesses and resolve the table discrepancy; bind335/343/344/91 and keep
+   native dictionary collation as its own gate.
+3. [ ] Finish TABLE Values/multiple-content/linked-data ownership, formatting/
+   units/borders and native B2b/B3/C bit/schema/owner/version/corpus evidence.
+   Do not guess date epochs, point counts or General semantics.
+4. [ ] Complete platform/package/native consumer and formal ABI/application checks,
+   controlled RSS/performance, native Linux/Windows FreeCAD and independent ACIS/
+   ACDS semantic/kernel evidence. Native Linux GCC release remains NOT_RUN here.
+5. [ ] Continue target reuse and fast owning checks, broadening for actual shared
+   risks or failures. Freeze inputs and finish builds before runtimes; retain
+   failures/caps, self-unblock, update/commit/report every verified slice and
+   continue ready work without external drawing payloads/derivatives.
+
+Resource families remain nine; ATTDEF rawTypedMatched=false, support ledger
+**CLOSED**, full ownerTargetsResolved=false, recursiveClosureMatched=false and
+outputEligible=false. Selected existing common348 transport now has actual output
+proof; native common348 semantics and full rendering/document eligibility remain
+unqualified. J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**; native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence remain
+**NOT_RUN**. The full objective remains active; no remote mutation.

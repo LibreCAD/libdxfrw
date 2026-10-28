@@ -13,6 +13,8 @@ class Decoder {
     enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line,Definition,Viewport};
     DRW_Entity* value;Kind kind;unsigned fields{0u};
     std::optional<dxfAttdef::Decoder> definition;
+    enum class ViewportScope { Markerless, Common, Viewport, Other } viewportScope{ViewportScope::Markerless};
+    bool viewportCommonStyleSeen{false};
     enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u,EndX=32u,EndY=64u};
 public:
     explicit Decoder(DRW_Polyline& v):value(&v),kind(Kind::Polyline){}
@@ -29,6 +31,21 @@ public:
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
         if(kind==Kind::Definition)return code==102?definition->parseApplication(reader):definition->parseCode(code,reader);
+        if(kind==Kind::Viewport){
+            if(code==100){const auto name=reader->getStringView();
+                viewportScope=name=="AcDbEntity"?ViewportScope::Common:name=="AcDbViewport"?ViewportScope::Viewport:ViewportScope::Other;
+            }else if(code==348){
+                if(viewportScope==ViewportScope::Common){viewportCommonStyleSeen=true;return value->DRW_Entity::parseCode(code,reader);}
+                if(viewportScope==ViewportScope::Other)return true;
+                // Retain the historical markerless/derived-only fallback while
+                // keeping an explicit common carrier separate from the legal
+                // AcDbViewport field. Application groups are consumed whole.
+                const auto common=value->fullVisualStyleHandle;
+                const bool result=parseEntity(*value,code,reader);
+                if(viewportCommonStyleSeen)value->fullVisualStyleHandle=common;
+                return result;
+            }
+        }
         if(code==1)fields|=Text;if(code==2)fields|=Tag;if(code==10)fields|=X;
         if(code==20)fields|=Y;if(code==40)fields|=Height;
         if(code==11)fields|=EndX;if(code==21)fields|=EndY;

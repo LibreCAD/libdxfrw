@@ -991,6 +991,7 @@ public:
     bool finalizeDxfWrite() override;
 
     virtual void writeBlocks() override{
+        if(!hasUnchangedDxfFullStyles()){dxfW->writeRawDxfEntity(nullptr);return;}
         //write each block
         for (std::list<dx_ifaceBlock*>::iterator it=cData->blocks.begin(); it != cData->blocks.end(); ++it){
             dx_ifaceBlock* bk = *it;
@@ -1093,6 +1094,7 @@ public:
     }
     //write entities of model space and first paper_space
     virtual void writeEntities() override{
+        if(!hasUnchangedDxfFullStyles()){dxfW->writeRawDxfEntity(nullptr);return;}
         m_hatchOwnerContext.clear();
         if (!writeEntitySequence(cData->mBlock))
             return;
@@ -2138,6 +2140,33 @@ private:
     bool hasUnchangedDxfRenderPresetSources() const noexcept;
     bool writeDxfRenderPreset(DRW_RawDxfObject& raw);
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DxfFullStyleSource {
+        enum Kind { Entity, Child, BlockBegin, BlockEnd, Raw } kind{Entity};
+        const DRW_Entity* entity{nullptr};
+        const DRW_RawDxfObject* raw{nullptr};
+        const DRW_Entity* parent{nullptr};
+        const dx_ifaceBlock* block{nullptr};
+        std::uint32_t handle{0}, owner{0}, target{0}, targetOwner{0}, parentHandle{0};
+        int space{0};
+        std::string name, ownerName, parentName;
+        bool blocks{false}, inspected{false};
+        std::uint32_t emitted{0}, emittedOwner{0};
+    };
+    std::vector<DxfFullStyleSource> m_dxfFullStyles;
+    std::unordered_map<const DRW_Entity*,std::size_t> m_dxfFullStyleEntities;
+    struct DxfFullStyleProvider {std::uint32_t owner{0};bool observed{false};};
+    std::unordered_map<std::uint32_t,DxfFullStyleProvider> m_dxfFullStyleProviders;
+    std::size_t m_dxfFullStyleObservedFields{0};
+    const dx_data* m_dxfFullStyleOwner{nullptr};
+    std::uint64_t m_dxfFullStyleGeneration{0};
+    std::size_t m_dxfFullStyleBytes{0}, m_dxfFullStyleByteLimit{64u*1024u*1024u}, m_dxfFullStyleRecordLimit{100000u};
+    unsigned m_dxfFullStyleSections{0};
+    bool visitDxfFullStyles(const dx_data& data,const std::function<bool(DxfFullStyleSource&&)>& visit) const noexcept;
+    bool prepareDxfFullStyles(DRW::Version version) noexcept;
+    bool hasUnchangedDxfFullStyles() const noexcept;
+    bool inspectDxfFullStyles(const dxfRW::DxfObjectsWriteView& view,std::string_view section) noexcept;
+    bool finalizeDxfFullStyles() const noexcept;
+    bool checkDxfFullStyleEntity(const DRW_Entity* entity) const noexcept;
     struct DxfShadeConsumerSource {
         enum Kind { PlotSettings, Layout, Viewport } kind{PlotSettings};
         std::uint32_t handle{0}, owner{0}, target{0}, visualStyle{0};
@@ -2222,12 +2251,16 @@ private:
             return false;
         // DWG producers also use the uppercase reserved spellings. Match
         // only these ASCII names, without locale-dependent UTF-8 casing.
-        std::string name = block->name;
-        for (char& ch : name) {
-            if (ch >= 'a' && ch <= 'z')
-                ch = static_cast<char>(ch - 'a' + 'A');
-        }
-        return name == "*MODEL_SPACE" || name == "*PAPER_SPACE";
+        const auto equal = [block](std::string_view expected) noexcept {
+            if (block->name.size() != expected.size()) return false;
+            for (std::size_t i = 0u; i < expected.size(); ++i) {
+                char ch = block->name[i];
+                if (ch >= 'a' && ch <= 'z') ch = static_cast<char>(ch - 'a' + 'A');
+                if (ch != expected[i]) return false;
+            }
+            return true;
+        };
+        return equal("*MODEL_SPACE") || equal("*PAPER_SPACE");
     }
 };
 
