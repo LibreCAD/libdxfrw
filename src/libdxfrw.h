@@ -239,6 +239,15 @@ public:
      * preallocateTableRecordHandle(), this requires a completed row encoder.
      * Tentative until final validation/publication; no semantic name proof. */
     std::uint32_t dxfWriteEmittedSourceTableHandle(std::uint32_t sourceHandle) const noexcept;
+    /** During an admitted write, return the existing source LTYPE writer's
+     * registered target, or zero for an absent/ambiguous/conflicting mapping.
+     * This registry can be populated before its row encoder commits; it is
+     * only a tentative target, never completed-row, name or semantic proof.
+     * Canonical targets are BYBLOCK 0x14, BYLAYER 0x15 and CONTINUOUS 0x16.
+     * Verify actual TABLES bytes separately, then record type/count/owner at
+     * finalization. Outside the write attempt (including after failure or
+     * publication), return zero. No new virtual or model layout change. */
+    std::uint32_t dxfWriteSourceLinetypeTargetHandle(std::uint32_t sourceHandle) const noexcept;
     /** During finalizeDxfWrite(), additionally require one actual TABLES
      * record of the requested type/optional owner. Preallocation, a raw row
      * without a registered source writer, or a conflicting identity cannot

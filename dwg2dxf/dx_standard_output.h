@@ -7,6 +7,7 @@
 // and ignored unknown groups cannot become preservation evidence.
 #include <algorithm>
 #include <charconv>
+#include <cmath>
 #include <cstring>
 #include <istream>
 #include <iterator>
@@ -333,6 +334,19 @@ public:
         // physical-field observer separately rejects duplicate/shadow names.
         if (code==2) styleName=reader->toUtf8String(styleName,2);
         return true;
+    }
+};
+
+template <> class Probe<DRW_LType> final : public DRW_LType {
+public:
+    using DRW_LType::parseCode;
+    bool complete() {
+        // update() synchronizes dash mirrors and recomputes length. Output
+        // proof must not silently repair a wrong literal count or length.
+        const int suppliedCount=size;
+        const double suppliedLength=length;
+        return update() && validateDxf() && suppliedCount==size
+            && suppliedLength==length && std::signbit(suppliedLength)==std::signbit(length);
     }
 };
 

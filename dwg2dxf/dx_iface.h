@@ -2199,6 +2199,7 @@ private:
         std::shared_ptr<const dx_data::TableDxfSourceCapture::StructuralAudit> dictionaryOrigin;
         std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
         bool geometryChanged{false};
+        bool linetypesBound{false};
     };
     std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;
     DxfNamedResourceState m_dxfMLineStyleState;
@@ -2207,6 +2208,18 @@ private:
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLineStyles() const noexcept;
     bool inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DxfMLineLinetypeSource {
+        const DRW_LType* live{nullptr};
+        DRW_LType model;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
+        std::uint32_t emitted{0},table{0};
+    };
+    std::map<std::uint32_t,DxfMLineLinetypeSource> m_dxfMLineLinetypes;
+    bool m_dxfMLineLinetypesInspected{false};
+    std::size_t m_dxfMLineLinetypeCount{0u};
+    bool prepareDxfMLineLinetypes(std::size_t chargedBytes=0u) noexcept;
+    bool hasUnchangedDxfMLineLinetypes() const noexcept;
+    bool inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView&) noexcept;
     struct DxfMLineConsumerSource {
         const DRW_MLine* live{nullptr};
         const dx_ifaceBlock* block{nullptr};

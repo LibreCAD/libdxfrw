@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <map>
 #include <sstream>
@@ -390,17 +391,132 @@ void testDxfSourceTableIdentities(TestContext& t) {
     std::cout << "Source table identity cells=" << cells << " atomic refusal/retries=" << refusals << " no-inventory controls=2\n";
 }
 
+void testDxfSourceLinetypeTargets(TestContext& t) {
+    class Interface final : public dx_iface {
+    public:
+        Interface(TestContext& test) : test(test) { cData = &data; currentBlock = data.mBlock; }
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+            for (const auto source : {0xC410u, 0xC411u, 0xC412u, 0xC413u, 0xC414u})
+                test.expect(dxfW->dxfWriteSourceLinetypeTargetHandle(source) == 0u,
+                            "Source LTYPE target requires this attempt's writer registration");
+            const auto forward = dxfW->preallocateEntityHandle(0xC414u);
+            test.expect(forward != 0u && dxfW->dxfWriteSourceLinetypeTargetHandle(0xC414u) == 0u,
+                        "A generic forward alias cannot invent a source LTYPE target");
+        }
+        void writeLTypes() override {
+            const std::pair<std::uint32_t, const char*> canonical[] = {
+                {0xC410u, "ByBlock"}, {0xC411u, "ByLayer"}, {0xC412u, "Continuous"}};
+            for (const auto& source : canonical) {
+                DRW_LType row; row.handle = source.first; row.name = source.second;
+                test.expect(dxfW->writeLineType(&row)
+                    && dxfW->dxfWriteSourceLinetypeTargetHandle(source.first) == 0x14u + source.first - 0xC410u,
+                    "Registered canonical LTYPE targets use their fixed builtin identities");
+            }
+            DRW_LType custom; custom.handle = 0xC413u; custom.name = "CustomDash"; custom.path = {.5, -.25};
+            test.expect(dxfW->writeLineType(&custom), "Custom source LTYPE writer succeeds");
+            customTarget = dxfW->dxfWriteSourceLinetypeTargetHandle(custom.handle);
+            test.expect(customTarget != 0u && customTarget == dxfW->remapEntityHandle(custom.handle)
+                && dxfW->dxfWriteEmittedSourceTableHandle(custom.handle) == 0u
+                && dxfW->dxfWriteSourceLinetypeTargetHandle(0xC414u) == 0u,
+                "Source LTYPE registry target is distinct from a generic table-emission receipt");
+            if (fault == 1u) { custom.name = "SecondDash"; (void)dxfW->writeLineType(&custom); }
+            if (fault == 2u) { custom.name = "BYLAYER"; (void)dxfW->writeLineType(&custom); }
+            if (fault == 3u) {
+                custom.handle = 0xC415u; custom.path = {std::numeric_limits<double>::quiet_NaN()};
+                (void)dxfW->writeLineType(&custom);
+            }
+            if (fault >= 1u && fault <= 3u)
+                test.expect(dxfW->dxfWriteSourceLinetypeTargetHandle(0xC413u) == 0u,
+                            "Sticky encoder failure cannot publish a source LTYPE target");
+        }
+        void writeObjects() override { if (fault == 5u) (void)dxfW->writeXRecord(nullptr); }
+        bool finalizeDxfWrite() override {
+            if (!dx_iface::finalizeDxfWrite() || fault == 6u) return false;
+            for (const auto source : {0xC410u, 0xC411u, 0xC412u, 0xC413u}) {
+                const auto target = dxfW->dxfWriteSourceLinetypeTargetHandle(source);
+                test.expect(target != 0u && dxfW->dxfWriteRecordHasIdentity(target, "LTYPE", "TABLES") == inventory
+                    && dxfW->dxfWriteRecordHasOwner(target, 5u) == (inventory && dxfW->getVersion() > DRW::AC1012),
+                    "Tentative LTYPE target needs separate actual record/type/owner evidence");
+            }
+            return true;
+        }
+        TestContext& test; dx_data data; unsigned fault{0u};
+        std::uint32_t customTarget{0u}; bool inventory{true};
+    } iface(t);
+    const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-linetype-target-"
+        + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); } } cleanup{path};
+    dxfRW codec(path.string().c_str()); iface.dxfW = &codec;
+    unsigned cells = 0u, refusals = 0u;
+    for (const auto version : {DRW::AC1014, DRW::AC1027}) for (const bool binary : {false, true}) {
+        codec.setDxfWriteRecordInventoryEnabled(true);
+        unsigned lineTypes = 0u;
+        codec.setDxfTablesWriteInspector([&](const auto& view) {
+            return dx_symbol_output::inspect(view, [&](const auto& row) {
+                if (row.type == dx_symbol_output::Kind::LineType) { ++lineTypes; return row.qualified; }
+                return true;
+            }) && lineTypes == 4u;
+        });
+        const auto before = codec.dxfWriteSourceLinetypeTargetHandle(0xC413u);
+        const bool wrote = codec.write(&iface, version, binary);
+        const auto after = codec.dxfWriteSourceLinetypeTargetHandle(0xC413u);
+        if (before != 0u || !wrote || lineTypes != 4u || after != 0u)
+            std::cerr << "Source LTYPE target version=" << static_cast<int>(version)
+                << " binary=" << binary << " before=" << before << " wrote=" << wrote
+                << " observed=" << lineTypes << " after=" << after << '\n';
+        t.expect(before == 0u && wrote && lineTypes == 4u && after == 0u,
+            "Source LTYPE target exists only within an admitted write attempt");
+        ++cells;
+    }
+    for (const bool binary : {false, true}) {
+        iface.inventory = false; codec.setDxfWriteRecordInventoryEnabled(false); codec.setDxfTablesWriteInspector({});
+        t.expect(codec.write(&iface, DRW::AC1027, binary), "Source target registry does not fabricate disabled record inventory");
+        iface.inventory = true; codec.setDxfWriteRecordInventoryEnabled(true);
+        for (unsigned fault = 1u; fault <= 10u; ++fault) {
+            const std::string sentinel = "SOURCE_LTYPE_TARGET_DESTINATION_UNCHANGED";
+            { std::ofstream prior(path, std::ios::binary); prior << sentinel; }
+            iface.fault = fault;
+            codec.setDxfTablesWriteInspector([&](const auto&) {
+                auto* context = codec.getWritingContext();
+                if (fault == 7u) context->ambiguousSourceHandles.insert(0xC413u);
+                if (fault == 8u) context->sourceHandleToMintedMap[0xC413u] = iface.customTarget + 1u;
+                if (fault == 9u) context->sourceHandleToWrittenObjectMap[0xC413u] = iface.customTarget;
+                if (fault == 10u) context->sourceHandleToWrittenTableMap[0xC413u] = iface.customTarget;
+                if (fault >= 7u)
+                    t.expect(codec.dxfWriteSourceLinetypeTargetHandle(0xC413u) == 0u,
+                             "Ambiguous, conflicting or wrong-kind source aliases cannot qualify an LTYPE target");
+                return fault != 4u && fault < 7u;
+            });
+            const bool wrote = codec.write(&iface, DRW::AC1027, binary);
+            std::ifstream input(path, std::ios::binary);
+            const std::string retained((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+            t.expect(!wrote && retained == sentinel && codec.dxfWriteSourceLinetypeTargetHandle(0xC413u) == 0u,
+                     "LTYPE writer/inspection/later failure retracts query scope and preserves destination");
+            iface.fault = 0u; codec.setDxfTablesWriteInspector({});
+            t.expect(codec.write(&iface, DRW::AC1027, binary)
+                && codec.dxfWriteSourceLinetypeTargetHandle(0xC413u) == 0u,
+                "Corrected same-codec retry rebuilds source LTYPE target registry");
+            ++refusals;
+        }
+    }
+    std::cout << "Source LTYPE target cells=" << cells << " atomic refusal/retries=" << refusals << " no-inventory controls=2\n";
+}
+
 void testSymbolNameWireInspection(TestContext& t) {
     unsigned cells = 0u, limitsChecked = 0u;
-    for (const auto version : {DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
-      for (const auto type : {dx_symbol_output::Kind::Layer, dx_symbol_output::Kind::AppId}) {
-       const std::string table = type == dx_symbol_output::Kind::Layer ? "LAYER" : "APPID";
+    for (const auto version : {DRW::AC1014, DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
+      for (const auto type : {dx_symbol_output::Kind::Layer, dx_symbol_output::Kind::AppId,
+              dx_symbol_output::Kind::LineType}) {
+       if (version == DRW::AC1014 && type != dx_symbol_output::Kind::LineType) continue;
+       const std::string table = type == dx_symbol_output::Kind::Layer ? "LAYER"
+            : type == dx_symbol_output::Kind::AppId ? "APPID" : "LTYPE";
        for (unsigned fault = 0u; fault < 45u; ++fault) {
         std::ostringstream stream(std::ios::out | std::ios::binary);
         std::unique_ptr<dxfWriter> writer;
         if (binary) writer = std::make_unique<dxfWriterBinary>(&stream);
         else writer = std::make_unique<dxfWriterAscii>(&stream);
-        writer->setVersion(version == DRW::AC1018 ? "AC1018" : "AC1032", true);
+        writer->setVersion(version == DRW::AC1014 ? "AC1014" : version == DRW::AC1018 ? "AC1018" : "AC1032", true);
         writer->setCodePage("ANSI_1252");
         const auto emitHeader = [&]() {
             writer->writeString(0, "TABLE");
@@ -433,7 +549,8 @@ void testSymbolNameWireInspection(TestContext& t) {
             if (fault == 10u) writer->writeString(330, "A500");
             if (fault == 17u) writer->writeUtf8String(2, "caf\xC3\xA9");
             if (fault != 11u) writer->writeString(100, "AcDbSymbolTableRecord");
-            const std::string leaf = type == dx_symbol_output::Kind::Layer ? "AcDbLayerTableRecord" : "AcDbRegAppTableRecord";
+            const std::string leaf = type == dx_symbol_output::Kind::Layer ? "AcDbLayerTableRecord"
+                : type == dx_symbol_output::Kind::AppId ? "AcDbRegAppTableRecord" : "AcDbLinetypeTableRecord";
             writer->writeString(100, fault == 12u ? "WrongLeaf" : leaf);
             if (fault == 13u) writer->writeString(100, leaf);
             if (fault != 14u && fault != 21u && fault != 17u) {
@@ -507,8 +624,10 @@ int main(int argc, char** argv) {
         testDxfTablesWriteInspection(context);
     if (argc == 1 || (argc == 2 && std::string(argv[1]) == "--symbol-name-wire-inspection"))
         testSymbolNameWireInspection(context);
-    if (argc == 1 || (argc == 2 && std::string(argv[1]) == "--source-table-identities"))
+    if (argc == 1 || (argc == 2 && std::string(argv[1]) == "--source-table-identities")) {
         testDxfSourceTableIdentities(context);
+        testDxfSourceLinetypeTargets(context);
+    }
     if (argc == 1 || (argc == 2 && std::string(argv[1]) == "--symbol-unicode-keys"))
         testSymbolUnicodeKeys(context);
     if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--dxf-tables-write-inspection"

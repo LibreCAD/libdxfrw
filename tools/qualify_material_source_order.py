@@ -39,6 +39,7 @@ PEER_MLINE_STYLE_SCALAR_EDIT = {"flags": 273, "fillColor": 6,
                                 "startAngle": 22.5, "endAngle": 157.5,
                                 "description": PEER_MLINE_STYLE_EDIT}
 PEER_MLINE_STYLE_ELEMENT_ACI_EDIT = (0, 256)
+PEER_MLINE_STYLE_SIMPLE_LTYPE = "PeerDash"
 
 
 def selected_physical_records(path, binary):
@@ -324,6 +325,13 @@ def mline_style_values(style):
             "elements": [(e.offset, e.color, e.linetype) for e in style.elements]}
 
 
+def simple_linetype_values(linetype):
+    """Freeze typed producer/parser tags without compiling or repairing a pattern."""
+    return {"name": linetype.dxf.name, "flags": linetype.dxf.flags,
+            "description": linetype.dxf.description,
+            "pattern": [(tag.code, tag.value) for tag in linetype.pattern_tags.tags]}
+
+
 def selected_semantic_text(ezdxf, value, binary):
     """Decode each transport layer once, including names and reference names."""
     from ezdxf.tools.text import caret_decode
@@ -461,7 +469,8 @@ def physical_mline_consumers(ezdxf, records, binary, style_handle, expected):
 
 def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
                                     expected_presence=None, require_linetypes=False,
-                                    consumer_expected=None, consumer_style_key=None):
+                                    consumer_expected=None, consumer_style_key=None,
+                                    linetype_expected=None):
     """Check every selected style and its ordered element tuples before setup."""
     from ezdxf.lldxf.extendedtags import ExtendedTags
     records = selected_physical_records(path, binary)
@@ -484,6 +493,7 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
                for key, value in raw_targets.items()}
     assert len(targets) == len(raw_targets), "physical MLINESTYLE decoded key collision"
     assert set(targets) == set(expected), "physical MLINESTYLE keys"
+    require_linetypes = require_linetypes or linetype_expected is not None
     linetypes, linetype_control = {}, None
     if require_linetypes:
         table_controls = [record for scope, record in records
@@ -511,7 +521,21 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
             name = selected_semantic_text(ezdxf, wire_name, binary)
             assert name not in linetypes, "physical LTYPE decoded name collision"
             linetypes[name] = {"handle": handles[0], "owner": owners[0], "wireName": wire_name}
+            if linetype_expected is not None and name in linetype_expected:
+                body = ExtendedTags(record).get_subclass("AcDbLinetypeTableRecord")
+                values = {}
+                for field, code in (("name", 2), ("flags", 70), ("description", 3)):
+                    found = [tag.value for tag in body if tag.code == code]
+                    assert len(found) == 1, "physical simple LTYPE field presence %d" % code
+                    values[field] = (selected_semantic_text(ezdxf, found[0], binary)
+                                     if code in (2, 3) else found[0])
+                values["pattern"] = [(tag.code, tag.value) for tag in body
+                                     if tag.code not in (100, 2, 70, 3)]
+                assert values == linetype_expected[name], "physical simple LTYPE complete pattern %s" % name
+                linetypes[name]["fields"] = values
             linetype_control["recordCount"] += 1
+        if linetype_expected is not None:
+            assert set(linetype_expected) <= set(linetypes), "physical simple LTYPE provider census"
     styles = [r for r in objects if r.dxftype() == "MLINESTYLE"]
     assert len(styles) == len(expected), "physical MLINESTYLE census"
     observations = {}
@@ -581,10 +605,12 @@ def physical_mline_style_projection(ezdxf, path, binary, expected, source_recipe
 
 def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe=False,
                                    expected_presence=None, require_linetypes=False,
-                                   consumer_expected=None, consumer_style_key=None):
+                                   consumer_expected=None, consumer_style_key=None,
+                                   linetype_expected=None):
+    require_linetypes = require_linetypes or linetype_expected is not None
     physical = physical_mline_style_projection(
         ezdxf, path, binary, expected, source_recipe, expected_presence, require_linetypes,
-        consumer_expected, consumer_style_key)
+        consumer_expected, consumer_style_key, linetype_expected)
     doc = ezdxf.readfile(path)
     dictionary = doc.rootdict["ACAD_MLINESTYLE"]
     assert dictionary.dxf.owner == doc.rootdict.dxf.handle, "MLINESTYLE dictionary owner after setup"
@@ -613,6 +639,15 @@ def selected_mline_style_projection(ezdxf, path, binary, expected, source_recipe
                     target = typed_linetypes[reference["name"]]
                     assert target.dxf.handle == reference["handle"], "typed LTYPE target identity"
                     assert target.dxf.owner == reference["owner"], "typed LTYPE target owner"
+        if linetype_expected is not None:
+            for name, wanted in linetype_expected.items():
+                target = typed_linetypes[name]
+                values = simple_linetype_values(target)
+                for field in ("name", "description"):
+                    values[field] = selected_semantic_text(ezdxf, values[field], binary)
+                assert values == wanted, "typed simple LTYPE complete pattern %s" % name
+                row = physical["linetypeDefinitions"][name]
+                assert target.dxf.handle == row["handle"] and target.dxf.owner == row["owner"], "typed simple LTYPE identity/owner"
     if consumer_expected is not None:
         target = named_styles[consumer_style_key]
         typed_consumers = {}
@@ -870,35 +905,46 @@ def qualify_mline_style_text_boundaries(ezdxf, probe, converter, output):
     return inputs, round_trips, transcoded
 
 
+def author_mline_style_authority_profile(ezdxf, simple_linetype=False):
+    """Author styles/providers before generating the unchanged MLINE geometry."""
+    doc, style, _, null_bindings, omitted = author_mline_style_profile(
+        ezdxf, "R2013", "utf-8", "Dictionary authority boundary",
+        linetype_name=PEER_MLINE_STYLE_SIMPLE_LTYPE if simple_linetype else "CONTINUOUS")
+    if simple_linetype:
+        provider = doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE)
+        provider.dxf.description = "Authored simple dash and gap"
+        provider.setup_pattern([1.5, 1.0, -0.5])
+    block = doc.blocks.new("PeerMlineBlock")
+    model_line = doc.modelspace().add_mline(
+        [(1, 2, 3), (5, 2, 3), (5, 2, 8)],
+        dxfattribs={"style_name": PEER_MLINE_STYLE_NAME, "scale_factor": 1.25,
+                    "justification": 1, "extrusion": (0, 1, 0)})
+    block_line = block.add_mline(
+        [(10, 20, 30), (10, 24, 30), (10, 24, 35)],
+        dxfattribs={"style_name": PEER_MLINE_STYLE_NAME, "scale_factor": 2.5,
+                    "justification": 2, "extrusion": (1, 0, 0)})
+    # ezdxf's export_entity() unconditionally adds HAS_VERTICES. Author the
+    # applicable flag now, before freezing expectations, rather than
+    # comparing a pre-export flag=0 snapshot to its emitted flag=1 body.
+    for entity in (model_line, block_line):
+        entity.set_flag_state(entity.HAS_VERTICES, True)
+    # Set these redundant fields only after the typed independent producer
+    # has computed vertices, miters and line/fill parameters. Saving does
+    # not regenerate MLINE geometry; no source file is modified afterward.
+    style.dxf.name = "RedundantBody"
+    model_line.dxf.style_name = "Model_café_Ω"
+    block_line.dxf.style_name = "Block_表_Ω"
+    expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
+    consumers = {"ENTITIES:*Model_Space": mline_consumer_values(model_line),
+                 "BLOCKS:PeerMlineBlock": mline_consumer_values(block_line)}
+    return doc, style, expected, consumers, null_bindings, omitted
+
+
 def qualify_mline_style_key_authority(ezdxf, probe, converter, output):
     """Reuse real MLINE sources for independent dictionary-key and ACI edits."""
     inputs, round_trips, edits, aci_edits = [], [], [], []
     for fmt in ("asc", "bin"):
-        doc, style, _, null_bindings, omitted = author_mline_style_profile(
-            ezdxf, "R2013", "utf-8", "Dictionary authority boundary")
-        block = doc.blocks.new("PeerMlineBlock")
-        model_line = doc.modelspace().add_mline(
-            [(1, 2, 3), (5, 2, 3), (5, 2, 8)],
-            dxfattribs={"style_name": PEER_MLINE_STYLE_NAME, "scale_factor": 1.25,
-                        "justification": 1, "extrusion": (0, 1, 0)})
-        block_line = block.add_mline(
-            [(10, 20, 30), (10, 24, 30), (10, 24, 35)],
-            dxfattribs={"style_name": PEER_MLINE_STYLE_NAME, "scale_factor": 2.5,
-                        "justification": 2, "extrusion": (1, 0, 0)})
-        # ezdxf's export_entity() unconditionally adds HAS_VERTICES. Author the
-        # applicable flag now, before freezing expectations, rather than
-        # comparing a pre-export flag=0 snapshot to its emitted flag=1 body.
-        for entity in (model_line, block_line):
-            entity.set_flag_state(entity.HAS_VERTICES, True)
-        # Set these redundant fields only after the typed independent producer
-        # has computed vertices, miters and line/fill parameters. Saving does
-        # not regenerate MLINE geometry; no source file is modified afterward.
-        style.dxf.name = "RedundantBody"
-        model_line.dxf.style_name = "Model_café_Ω"
-        block_line.dxf.style_name = "Block_表_Ω"
-        expected = {name: mline_style_values(value) for name, value in doc.mline_styles}
-        consumers = {"ENTITIES:*Model_Space": mline_consumer_values(model_line),
-                     "BLOCKS:PeerMlineBlock": mline_consumer_values(block_line)}
+        doc, style, expected, consumers, null_bindings, omitted = author_mline_style_authority_profile(ezdxf)
 
         def projection(module, path, binary, wanted, source_recipe=False):
             keys = [key for key in wanted if key != "Standard"]
@@ -918,7 +964,7 @@ def qualify_mline_style_key_authority(ezdxf, probe, converter, output):
                     "path": source.name, "sha256": digest(source), "matched": False,
                     "selectedNullLayerBindings": null_bindings, "omittedDefaultMaterialHandles": omitted,
                     "dictionaryKey": PEER_MLINE_STYLE_NAME, "redundantBodyName": style.dxf.name,
-                    "redundantConsumerNames": [model_line.dxf.style_name, block_line.dxf.style_name],
+                    "redundantConsumerNames": [value["styleName"] for value in consumers.values()],
                     "authoring": "Typed MLINE geometry and applicable HAS_VERTICES flag authored first in two WCS planes; distinct redundant group-2 values with nonASCII consumer names assigned before first save; no post-generation file mutation",
                     "expectedConsumers": consumers, "nativeMlineConsumerQualified": False}
         try:
@@ -952,6 +998,41 @@ def qualify_mline_style_key_authority(ezdxf, probe, converter, output):
             row["onlyElementAciChanged"] = row["matched"]
         aci_edits.extend(edited_aci)
     return inputs, round_trips, edits, aci_edits
+
+
+def qualify_mline_style_simple_linetype(ezdxf, probe, converter, output):
+    """One modern source, two unchanged outputs; no group-6 editing claim."""
+    doc, _, expected, consumers, null_bindings, omitted = author_mline_style_authority_profile(
+        ezdxf, simple_linetype=True)
+    linetypes = {PEER_MLINE_STYLE_SIMPLE_LTYPE: simple_linetype_values(
+        doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE))}
+    assert linetypes[PEER_MLINE_STYLE_SIMPLE_LTYPE]["pattern"] == [
+        (72, 65), (73, 2), (40, 1.5), (49, 1.0), (74, 0), (49, -0.5), (74, 0)], "authored simple LTYPE expectation"
+
+    def projection(module, path, binary, wanted, source_recipe=False):
+        return selected_mline_style_projection(
+            module, path, binary, wanted, source_recipe=source_recipe,
+            consumer_expected=consumers, consumer_style_key=PEER_MLINE_STYLE_NAME,
+            linetype_expected=linetypes)
+
+    source = output / "mline-style-simple-ltype-AC1027-asc.dxf"
+    doc.saveas(source, fmt="asc")
+    original = {"version": doc.dxfversion, "page": "utf-8", "format": "asc",
+                "path": source.name, "sha256": digest(source), "matched": False,
+                "selectedNullLayerBindings": null_bindings, "omittedDefaultMaterialHandles": omitted,
+                "expectedLinetypes": linetypes, "expectedStyles": expected,
+                "expectedConsumers": consumers,
+                "authoring": "Typed PeerDash pattern [1,-0.5], length1.5 authored before typed MLINE generation; all style/provider/consumer expectations frozen before first save; no source postmutation",
+                "nativeLinetypeSemanticsQualified": False}
+    try:
+        original["observations"] = projection(ezdxf, source, False, expected, source_recipe=True)
+        original["matched"] = True
+    except Exception as error:
+        original["mismatch"] = str(error)
+    unchanged, _ = selected_resource_outputs(
+        ezdxf, probe, converter, source, "R2013", "utf-8", "asc", original,
+        "", projection, expected, expected, modes=(False,))
+    return [original], unchanged
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -1163,6 +1244,7 @@ def main():
     mline_text_inputs, mline_text_round_trips, mline_text_transcodes = [], [], []
     mline_key_inputs, mline_key_round_trips, mline_key_edits = [], [], []
     mline_element_aci_edits = []
+    mline_simple_ltype_inputs, mline_simple_ltype_round_trips = [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
@@ -1173,6 +1255,8 @@ def main():
             ezdxf, probe, converter, output)
         (mline_key_inputs, mline_key_round_trips, mline_key_edits,
          mline_element_aci_edits) = qualify_mline_style_key_authority(
+            ezdxf, probe, converter, output)
+        mline_simple_ltype_inputs, mline_simple_ltype_round_trips = qualify_mline_style_simple_linetype(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -1244,6 +1328,10 @@ def main():
         "mlineStyleKeyEditsMatched": sum(row["matched"] for row in mline_key_edits),
         "mlineStyleElementAciEdits": mline_element_aci_edits,
         "mlineStyleElementAciEditsMatched": sum(row["matched"] for row in mline_element_aci_edits),
+        "mlineStyleSimpleLtypeInputs": mline_simple_ltype_inputs,
+        "mlineStyleSimpleLtypeInputsMatched": sum(row["matched"] for row in mline_simple_ltype_inputs),
+        "mlineStyleSimpleLtypeRoundTrips": mline_simple_ltype_round_trips,
+        "mlineStyleSimpleLtypeRoundTripsMatched": sum(row["matched"] for row in mline_simple_ltype_round_trips),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -1285,6 +1373,14 @@ def main():
                 "noSourcePostMutationOrGeometryRegeneration": True,
                 "nativeByBlockByLayerSemanticsQualified": False,
                 "otherVersionOrCmcProfilesQualified": False,
+            },
+            "simpleLinetypeScope": {
+                "sources": 1, "unchangedCliOutputs": 2, "sourceVersionFormat": "AC1027/UTF-8/ASCII",
+                "providerName": PEER_MLINE_STYLE_SIMPLE_LTYPE,
+                "providerPattern": [1.0, -0.5], "providerPatternLength": 1.5,
+                "projection": "Original low-level physical and ordinary typed LTYPE name/description/flags, exact ordered72/73/40/49/74 pattern, unique self/table-control/owner joins; all selected style and consumer fields/340/geometry checked by the existing comparator",
+                "authoring": "Provider and style authored before MLINE geometry generation; expectations frozen before first save; no postgeneration file mutation or output repair/regeneration",
+                "group6EditsQualified": False, "nativeLinetypeSemanticsQualified": False,
             },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -1344,6 +1440,9 @@ def main():
             report["mlineStyleKeyEditsMatched"], len(mline_key_edits)))
         print("Independent MLINESTYLE element ACI edits on reused authority sources: %d/%d" % (
             report["mlineStyleElementAciEditsMatched"], len(mline_element_aci_edits)))
+        print("Independent MLINESTYLE simple LTYPE source/unchanged projections: %d/%d, %d/%d" % (
+            report["mlineStyleSimpleLtypeInputsMatched"], len(mline_simple_ltype_inputs),
+            report["mlineStyleSimpleLtypeRoundTripsMatched"], len(mline_simple_ltype_round_trips)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
@@ -1351,7 +1450,8 @@ def main():
         + mline_boundary_inputs + mline_boundary_round_trips + mline_boundary_edits
         + mline_scalar_edits + mline_text_inputs + mline_text_round_trips
         + mline_text_transcodes + mline_key_inputs + mline_key_round_trips
-        + mline_key_edits + mline_element_aci_edits) else 1
+        + mline_key_edits + mline_element_aci_edits
+        + mline_simple_ltype_inputs + mline_simple_ltype_round_trips) else 1
 
 
 if __name__ == "__main__":

@@ -7,9 +7,10 @@
 
 namespace dx_symbol_output {
 
-enum class Kind { Other, Layer, AppId };
+enum class Kind { Other, Layer, AppId, LineType };
 inline Kind kind(std::string_view name) noexcept {
-    return name == "LAYER" ? Kind::Layer : name == "APPID" ? Kind::AppId : Kind::Other;
+    return name == "LAYER" ? Kind::Layer : name == "APPID" ? Kind::AppId
+        : name == "LTYPE" ? Kind::LineType : Kind::Other;
 }
 
 struct NameRecord {
@@ -29,6 +30,9 @@ struct Limits {
 // The visitor runs before another row is decoded. It must copy/charge any
 // values it retains; neither a section-sized copy nor a row inventory is made.
 // A false result invalidates ALL tentative observations made by this call.
+// All known kinds reach the visitor; select an explicit kind rather than
+// interpreting every non-Layer row as AppId. LineType is name/scope evidence,
+// not a qualification of its dash pattern or recursive dependencies.
 template <class Visitor> bool inspect(
         const dxfRW::DxfTablesWriteView& view, Visitor&& visit,
         Limits limits = {}) {
@@ -47,22 +51,27 @@ template <class Visitor> bool inspect(
     std::size_t records = 0u;
     std::uint32_t tableHandle = 0u, handle = 0u, owner = 0u;
     bool active = false, valid = true, xdata = false, tableQualified = false;
-    bool sawLayer = false, sawAppId = false;
+    bool sawLayer = false, sawAppId = false, sawLineType = false;
     const auto finish = [&]() {
         if (depth != 0u) return false;
         if (mode == Mode::Header) {
             if (names != 1u || tableName.empty()) return false;
             const auto type = kind(tableName);
-            if ((type == Kind::Layer && sawLayer) || (type == Kind::AppId && sawAppId)) return false;
+            if ((type == Kind::Layer && sawLayer) || (type == Kind::AppId && sawAppId)
+                || (type == Kind::LineType && sawLineType)) return false;
             sawLayer = sawLayer || type == Kind::Layer;
             sawAppId = sawAppId || type == Kind::AppId;
+            sawLineType = sawLineType || type == Kind::LineType;
             tableHandle = handle;
+            const bool hasOwner = type == Kind::LineType ? view.version >= DRW::AC1014
+                : view.version > DRW::AC1014;
             tableQualified = valid && handles == 1u && handle != 0u
                 && subclasses == 1u && capacity == 1u
-                && owners == (view.version > DRW::AC1014 ? 1u : 0u) && owner == 0u;
+                && owners == (hasOwner ? 1u : 0u) && owner == 0u;
         } else if (mode == Mode::Row && row.type != Kind::Other) {
             row.handle = handle; row.owner = owner; row.tableHandle = tableHandle;
-            const bool hasOwner = row.type == Kind::Layer || view.version > DRW::AC1014;
+            const bool hasOwner = row.type == Kind::Layer || row.type == Kind::LineType
+                || view.version > DRW::AC1014;
             row.qualified = tableQualified && valid && handles == 1u && handle != 0u
                 && names == 1u && !row.name.empty() && subclasses == 2u && flags == 1u
                 && owners == (hasOwner ? 1u : 0u)
@@ -142,7 +151,8 @@ template <class Visitor> bool inspect(
             } else if (row.type != Kind::Other) {
                 if ((subclasses == 1u && marker != "AcDbSymbolTableRecord")
                     || (subclasses == 2u && marker != (row.type == Kind::Layer
-                        ? "AcDbLayerTableRecord" : "AcDbRegAppTableRecord"))
+                        ? "AcDbLayerTableRecord" : row.type == Kind::AppId
+                            ? "AcDbRegAppTableRecord" : "AcDbLinetypeTableRecord"))
                     || subclasses > 2u) valid = false;
             }
         } else if (code == 70) {

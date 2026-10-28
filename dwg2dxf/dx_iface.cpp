@@ -15168,6 +15168,7 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
             }
         }
         if (!dx_symbol_output::inspect(view, [&](const dx_symbol_output::NameRecord& row) {
+            if (row.type==dx_symbol_output::Kind::LineType) return true;
             const bool layer = row.type == dx_symbol_output::Kind::Layer;
             std::string nameKey;
             if (!dx_symbol_output::nameKey(row.name, nameKey)) return false;
@@ -16185,6 +16186,7 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
         DRW::DxfTextWritePolicy policy) noexcept {
     m_dxfMLineStyles.clear();m_dxfMLineStyleState={};m_dxfMLineStylesInspected=false;
+    m_dxfMLineLinetypes.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_mlineStyleNamesToWrite.clear();m_dxfMLineConsumers.clear();m_dxfMLineConsumerInspected=0u;
     if (!cData) return false;
     if (cData->sourceFormat!=dx_source_format::DXF || m_extensionMLineStyleHandles.empty()) return true;
@@ -16415,7 +16417,8 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || !projected.validateDxfRecord() || !mlineFieldsEqual(projected,source.projection,true,true,true)
                 || !m_dxfMLineStyles.emplace(value.handle,std::move(source)).second) return false;
         }
-        return m_dxfMLineStyles.size()==handles.size() && hasUnchangedDxfMLineStyles();
+        return m_dxfMLineStyles.size()==handles.size() && hasUnchangedDxfMLineStyles()
+            && prepareDxfMLineLinetypes(bytes);
     } catch (...) { return false; }
 }
 
@@ -16469,6 +16472,7 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
 bool dx_iface::inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (m_dxfMLineStyles.empty()) return true;
     if (!dxfW || m_dxfMLineStylesInspected || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
+        || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineConsumers.empty() && m_dxfMLineConsumerInspected!=3u)) return false;
     try {
         m_dxfMLineStylesInspected=inspectNamedResourceOutput(*dxfW,view,m_dxfMLineStyleState,m_dxfMLineStyles,"MLINESTYLE",
@@ -19673,6 +19677,68 @@ bool lineTypeSourceEqual(const DRW_LType& a,const DRW_LType& b,DRW::Version vers
     return true;
 }
 
+struct MlineLinetypeShape {
+    unsigned classes{0u},selves{0u},owners{0u},dashes{0u};
+    std::array<bool,6> headers{};
+    bool pending{false};
+    bool field(int code,std::string_view text={}) {
+        if (code==999) return true;
+        if (code==5) return classes==0u && ++selves==1u;
+        if (code==330) return classes==0u && ++owners==1u;
+        if (code==100) {
+            ++classes;
+            return (classes==1u && text=="AcDbSymbolTableRecord")
+                || (classes==2u && text=="AcDbLinetypeTableRecord");
+        }
+        if (classes!=2u) return false;
+        constexpr std::array<int,6> codes{{2,70,3,72,73,40}};
+        const auto at=std::find(codes.begin(),codes.end(),code);
+        if (at!=codes.end()) {
+            auto& seen=headers[static_cast<std::size_t>(at-codes.begin())];
+            if (seen) return false;
+            seen=true;return true;
+        }
+        if (code==49) {if (pending) return false;pending=true;++dashes;return true;}
+        if (code==74 && pending) {pending=false;return true;}
+        return false;
+    }
+    bool complete(std::size_t count) const {
+        return classes==2u && selves==1u && owners==1u && !pending && dashes==count
+            && std::all_of(headers.begin(),headers.end(),[](bool v){return v;});
+    }
+};
+
+bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
+    if (value.flags!=0 || value.alignment!=65 || value.size<0
+        || static_cast<std::size_t>(value.size)!=value.path.size()
+        || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
+        || value.synchronizedLengthCount()!=value.path.size()
+        || value.retainedSegmentTextCount()!=value.path.size()
+        || !value.appData.empty() || !value.extData.empty() || !value.reactorHandles.empty()
+        || value.xDictHandle!=0u || value.xrefBlockHandle.ref!=0u || value.xrefBlockHandle.ref64!=0u) return false;
+    for (std::size_t i=0u;i<value.path.size();++i) {
+        const auto& segment=value.segments[i];
+        if (!retainedDoubleEqual(segment.length,value.path[i]) || segment.shapeFlags!=0
+            || segment.complexShapeCode!=0 || !segment.text.empty()
+            || segment.styleHandle.ref!=0u || segment.styleHandle.ref64!=0u
+            || segment.xOffset!=0.0 || segment.yOffset!=0.0 || segment.rotation!=0.0 || segment.scale!=1.0) return false;
+    }
+    const auto key=layoutSymbolKey(value.name);
+    if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
+        && (!value.path.empty() || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
+    MlineLinetypeShape shape;
+    for (const auto& field:raw.groups) {
+        const auto text=field.type()==DRW_Variant::STRING && field.content.s
+            ? std::string_view(*field.content.s) : std::string_view{};
+        if (!shape.field(field.code(),text)) return false;
+        // Both source readers synchronize/recompute these fields. Compare the
+        // actual original declarations before accepting their model mirrors.
+        if (field.code()==40 && (field.type()!=DRW_Variant::DOUBLE || !retainedDoubleEqual(field.d_val(),value.length))) return false;
+        if (field.code()==73 && (field.type()!=DRW_Variant::INTEGER || field.i_val()!=value.size)) return false;
+    }
+    return shape.complete(value.path.size());
+}
+
 bool layerSourceEqual(const DRW_Layer& a,const DRW_Layer& b,DRW::Version version) {
     return standardDwgCommonEqual(a,b,version)&&a.lineType==b.lineType&&a.color==b.color&&a.color24==b.color24&&a.colorName==b.colorName
         &&a.plotF==b.plotF&&a.lWeight==b.lWeight&&a.handlePlotS==b.handlePlotS&&a.handleMaterialS==b.handleMaterialS
@@ -19939,6 +20005,166 @@ bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,s
 }
 
 } // namespace
+
+bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
+    m_dxfMLineLinetypes.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
+    if (!cData) return false;
+    if (m_dxfMLineStyles.empty() || cData->sourceFormat!=dx_source_format::DXF
+        || cData->sourceVersion<DRW::AC1021) return true;
+    try {
+        const auto report=resourceOriginReport(*cData);
+        // This is additional provider evidence for selected original profiles.
+        // Existing unchanged transport remains advisory outside those profiles.
+        if (report.state!=ResourceOriginState::OriginsBound && report.state!=ResourceOriginState::Unqualified) return true;
+        using F=dx_tableResourceFamily;using K=dxfRW::DxfResourceSourceView::Kind;
+        const auto& source=cData->m_tableDxfSource;
+        std::map<std::uint32_t,const DRW_LType*> candidates;
+        std::size_t work=0u;
+        const auto visit=[&](std::size_t amount) {
+            if (work>kMaxAdapterBasicTableItems || amount>kMaxAdapterBasicTableItems-work) return false;
+            work+=amount;return true;
+        };
+        for (auto& style:m_dxfMLineStyles) {
+            style.second.linetypesBound=false;
+            if (!style.second.dictionaryOrigin) continue;
+            const auto& elements=style.second.projection.elements;
+            if (!visit(elements.size()) || !chargeNamedResourceBytes(bytes,elements.size()*sizeof(std::uint32_t))) return false;
+            std::vector<std::uint32_t> selected;selected.reserve(elements.size());bool complete=true;
+            for (const auto& element:elements) {
+                std::string key;
+                if (!dx_symbol_output::nameKey(element.linetype,key)) {complete=false;break;}
+                const auto named=source.resourceNames.find({F::LineType,key});
+                if (named==source.resourceNames.end()) {complete=false;break;}
+                const auto handle=named->second;
+                auto candidate=candidates.find(handle);
+                if (candidate==candidates.end()) {
+                    if (!chargeNamedResourceBytes(bytes,sizeof(DxfMLineLinetypeSource)+16u*sizeof(void*))) return false;
+                    const auto resource=source.resources.find(handle);const auto origin=source.resourceOriginAudits.find(handle);
+                    const DRW_LType* model=nullptr;
+                    if (resource!=source.resources.end() && origin!=source.resourceOriginAudits.end()) {
+                        const auto& r=resource->second;const auto& a=origin->second;
+                        if (r.family==F::LineType && !r.awaitingSymbol && !r.invalidName && !r.ambiguousName
+                            && r.rawTypedMatched && !r.rawTypedMismatch && r.raw && r.model
+                            && a && a->input && a->bodyMatched && a->stateComplete && a->originBound
+                            && a->input->paired && a->input->kind==K::LineType
+                            && a->input->context && a->input->context->captured
+                            && a->input->context->sourceVersion==cData->sourceVersion)
+                            model=dynamic_cast<const DRW_LType*>(r.model.get());
+                        if (model) {
+                            std::size_t typed=0u,items=0u,raw=0u;
+                            if (!estimateLTypeTypedBytes(*model,typed,items) || !estimateRawDxfObjectBytes(*r.raw,raw)
+                                || !visit(items) || !visit(r.raw->groups.size())
+                                || !chargeNamedResourceBytes(bytes,typed) || !chargeNamedResourceBytes(bytes,raw)) return false;
+                            if (!model->handle || model->handle!=handle || !simpleMlineLinetype(*model,*r.raw)) model=nullptr;
+                        }
+                    }
+                    candidate=candidates.emplace(handle,model).first;
+                }
+                if (!candidate->second) {complete=false;break;}
+                std::string modelKey;
+                if (!dx_symbol_output::nameKey(candidate->second->name,modelKey) || modelKey!=key) return false;
+                selected.push_back(handle);
+            }
+            if (!complete) continue;
+            for (const auto handle:selected) if (!m_dxfMLineLinetypes.count(handle)) {
+                DxfMLineLinetypeSource row;row.model=*candidates.at(handle);row.origin=source.resourceOriginAudits.at(handle);
+                m_dxfMLineLinetypes.emplace(handle,std::move(row));
+            }
+            style.second.linetypesBound=true;
+        }
+        if (m_dxfMLineLinetypes.empty()) return true;
+        if (cData->lineTypes.size()>kMaxAdapterBasicTableRecords || !visit(cData->lineTypes.size())) return false;
+        m_dxfMLineLinetypeCount=cData->lineTypes.size();
+        for (const auto& value:cData->lineTypes) {
+            const auto found=m_dxfMLineLinetypes.find(value.handle);if (found==m_dxfMLineLinetypes.end()) continue;
+            if (found->second.live || !lineTypeSourceEqual(value,found->second.model,cData->sourceVersion)) return false;
+            found->second.live=&value;
+        }
+        for (const auto& row:m_dxfMLineLinetypes) if (!row.second.live) return false;
+        return hasUnchangedDxfMLineLinetypes();
+    } catch (...) {return false;}
+}
+
+bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
+    if (m_dxfMLineLinetypes.empty()) return true;
+    if (!cData || cData->lineTypes.size()!=m_dxfMLineLinetypeCount
+        || !hasUnchangedDxfNamedResourceState(m_dxfMLineStyleState)) return false;
+    try {
+        const auto report=resourceOriginReport(*cData);
+        if (report.state!=ResourceOriginState::OriginsBound && report.state!=ResourceOriginState::Unqualified) return false;
+        const auto& origins=cData->m_tableDxfSource.resourceOriginAudits;
+        for (const auto& row:m_dxfMLineLinetypes) {
+            const auto origin=origins.find(row.first);
+            if (origin==origins.end() || origin->second!=row.second.origin
+                || origin->second.owner_before(row.second.origin) || row.second.origin.owner_before(origin->second)) return false;
+            std::string key;if (!dx_symbol_output::nameKey(row.second.model.name,key)) return false;
+            const auto named=cData->m_tableDxfSource.resourceNames.find({dx_tableResourceFamily::LineType,key});
+            if (named==cData->m_tableDxfSource.resourceNames.end() || named->second!=row.first) return false;
+        }
+        std::size_t found=0u;
+        for (const auto& value:cData->lineTypes) {
+            const auto row=m_dxfMLineLinetypes.find(value.handle);if (row==m_dxfMLineLinetypes.end()) continue;
+            if (&value!=row->second.live || !lineTypeSourceEqual(value,row->second.model,cData->sourceVersion)) return false;
+            ++found;
+        }
+        return found==m_dxfMLineLinetypes.size();
+    } catch (...) {return false;}
+}
+
+bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) noexcept {
+    if (m_dxfMLineLinetypes.empty()) return true;
+    if (!dxfW || m_dxfMLineLinetypesInspected || !hasUnchangedDxfMLineLinetypes()
+        || view.version!=m_dxfMLineStyleState.version || view.binary!=m_dxfMLineStyleState.binary
+        || (view.version>=DRW::AC1021?std::string_view("UTF-8"):view.codePage)!=m_dxfMLineStyleState.codePage) return false;
+    try {
+        std::map<std::uint32_t,DxfMLineLinetypeSource*> emitted;
+        std::map<std::string,DxfMLineLinetypeSource*> names;
+        std::map<std::uint32_t,unsigned> nameRows,handleRows,bodyRows;
+        for (auto& item:m_dxfMLineLinetypes) {
+            auto& row=item.second;row.emitted=dxfW->dxfWriteSourceLinetypeTargetHandle(item.first);row.table=0u;
+            std::string key;
+            if (!row.emitted || !dx_symbol_output::nameKey(row.model.name,key)
+                || !emitted.emplace(row.emitted,&row).second || !names.emplace(key,&row).second) return false;
+        }
+        if (!dx_symbol_output::inspect(view,[&](const auto& actual) {
+            if (actual.type!=dx_symbol_output::Kind::LineType) return true;
+            std::string key;if (!dx_symbol_output::nameKey(actual.name,key)) return false;
+            const auto named=names.find(key);const auto handled=emitted.find(actual.handle);
+            if (named!=names.end()) ++nameRows[named->second->model.handle];
+            if (handled==emitted.end()) return true;
+            auto& row=*handled->second;++handleRows[row.model.handle];
+            if (named==names.end() || named->second!=&row || !actual.qualified
+                || actual.tableHandle!=0x5u || actual.owner!=0x5u) return false;
+            const auto canonical=layoutSymbolKey(row.model.name);
+            const auto expected=canonical=="BYBLOCK"?std::string("ByBlock"):canonical=="BYLAYER"?std::string("ByLayer"):
+                canonical=="CONTINUOUS"?std::string("Continuous"):row.model.name;
+            if (actual.name!=expected) return false;
+            row.table=actual.tableHandle;return true;
+        })) return false;
+        if (!dx_standard_output::inspectSelected(view,[&](std::string_view name,std::uint32_t handle) {
+                return name=="LTYPE" && emitted.count(handle);
+            },[&](const auto& shape,std::string_view body) {
+                const auto found=emitted.find(shape.handle);if (found==emitted.end()) return false;
+                auto& row=*found->second;++bodyRows[row.model.handle];
+                MlineLinetypeShape physical;dx_standard_output::RecordCursor cursor(body,view);
+                dx_standard_output::RecordCursor::Token token;
+                while (!cursor.done()) if (!cursor.next(token) || !physical.field(token.code,token.text)) return false;
+                if (!physical.complete(row.model.path.size())) return false;
+                auto expected=row.model;expected.handle=row.emitted;expected.parentHandle=row.table;
+                const auto canonical=layoutSymbolKey(expected.name);
+                if (canonical=="BYBLOCK") expected.name="ByBlock";
+                else if (canonical=="BYLAYER") expected.name="ByLayer";
+                else if (canonical=="CONTINUOUS") {expected.name="Continuous";expected.desc="Solid line";}
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeRecord<DRW_LType>(body,[&](const auto& actual) {
+                    return lineTypeSourceEqual(actual,expected,view.version);
+                });
+            })) return false;
+        for (const auto& row:m_dxfMLineLinetypes) if (row.second.table!=0x5u
+            || nameRows[row.first]!=1u || handleRows[row.first]!=1u || bodyRows[row.first]!=1u) return false;
+        m_dxfMLineLinetypesInspected=true;return true;
+    } catch (...) {return false;}
+}
 
 dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noexcept {
     TableSourceReport report;
@@ -30268,8 +30494,17 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 
 bool dx_iface::finalizeDxfWrite() {
     if (!hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
+        || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (!m_dxfMLineConsumers.empty() && m_dxfMLineConsumerInspected!=3u)) return false;
+    for (const auto& row:m_dxfMLineLinetypes) {
+        if (!dxfW || !row.second.emitted || row.second.table!=0x5u
+            || dxfW->dxfWriteSourceLinetypeTargetHandle(row.first)!=row.second.emitted
+            || dxfW->dxfWriteRecordHandleCount(row.second.emitted)!=1u
+            || !dxfW->dxfWriteRecordHasIdentity(row.second.emitted,"LTYPE","TABLES")
+            || !dxfW->dxfWriteRecordHasOwner(row.second.emitted,row.second.table)
+            || !dxfW->dxfWriteRecordHasIdentity(row.second.table,"TABLE","TABLES")) return false;
+    }
     for (const auto& entry:m_dxfMLineConsumers) {
         if (!dxfW) return false;
         const auto& source=entry.second;const auto emitted=dxfW->remapEntityHandle(entry.first);
@@ -31250,6 +31485,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_customDxfDictionaryVarHandles.clear();m_dxfDictionaryVars.clear();m_dxfDictionaryVarOwner=nullptr;m_dxfDictionaryVarsInspected=false;
     m_dxfScales.clear(); m_dxfScaleState.dictionaries.clear(); m_dxfScaleState.owner=nullptr; m_dxfScalesInspected=false;
     m_dxfMLineStyles.clear(); m_dxfMLineStyleState={}; m_dxfMLineStylesInspected=false;
+    m_dxfMLineLinetypes.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
     m_dxfMaterialWriteInspected = false;
@@ -33944,7 +34180,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
-        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active);
+        || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
+        || !m_dxfMLineLinetypes.empty());
     if (m_dxfHeaderMaterialState.active && !dxfW->setDxfHeaderWriteInspector([this](const auto& view) {
             return inspectDxfHeaderMaterial(view);
         })) {
@@ -33954,8 +34191,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
         });
-    if ((needsStandardNames || m_dxfLayerMaterialState.active) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames](const auto& view) {
-            return inspectDxfLayerMaterials(view) && (!needsStandardNames || inspectStandardDwgTablesOutput(view));
+    if ((needsStandardNames || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames](const auto& view) {
+            return inspectDxfLayerMaterials(view) && inspectDxfMLineLinetypes(view)
+                && (!needsStandardNames || inspectStandardDwgTablesOutput(view));
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }

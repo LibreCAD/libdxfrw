@@ -3250,6 +3250,28 @@ std::uint32_t dxfRW::dxfWriteEmittedSourceTableHandle(std::uint32_t sourceHandle
     return bound ? found->second : 0u;
 }
 
+std::uint32_t dxfRW::dxfWriteSourceLinetypeTargetHandle(std::uint32_t sourceHandle) const noexcept {
+    if (!m_dxfWriteAttemptActive || writer == nullptr || m_writeError || writer->hasWriteError()
+        || sourceHandle == 0u || sourceHandle == DRW::NoHandle
+        || m_writingContext.ambiguousSourceHandles.count(sourceHandle) != 0u
+        || m_writingContext.writtenSourceEntityHandles.count(sourceHandle) != 0u
+        || m_writingContext.sourceHandleToWrittenTableMap.count(sourceHandle) != 0u
+        || m_writingContext.sourceHandleToWrittenObjectMap.count(sourceHandle) != 0u) return 0u;
+    const auto found = m_sourceLinetypeTargetsByHandle.find(sourceHandle);
+    if (found == m_sourceLinetypeTargetsByHandle.end() || found->second.name.empty()
+        || found->second.emittedHandle == 0u) return 0u;
+    const auto& target = found->second;
+    const std::uint32_t canonical = target.name == "BYBLOCK" ? 0x14u
+        : target.name == "BYLAYER" ? 0x15u : target.name == "CONTINUOUS" ? 0x16u : 0u;
+    const auto minted = m_writingContext.sourceHandleToMintedMap.find(sourceHandle);
+    if ((canonical != 0u && target.emittedHandle != canonical)
+        || (canonical == 0u && (isDxfFixedOutputHandle(target.emittedHandle)
+            || minted == m_writingContext.sourceHandleToMintedMap.end()))
+        || (minted != m_writingContext.sourceHandleToMintedMap.end()
+            && minted->second != target.emittedHandle)) return 0u;
+    return target.emittedHandle;
+}
+
 bool dxfRW::dxfWriteSourceTableHasIdentity(std::uint32_t sourceHandle,
         std::uint32_t emittedHandle, const std::string& recordName,
         std::uint32_t expectedOwnerHandle) const {

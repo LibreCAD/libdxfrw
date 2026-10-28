@@ -1,0 +1,449 @@
+{
+  "schema": "mline-linetype-source-output-evidence-v1",
+  "slice": "RPP-5gt",
+  "date": "2026-10-28",
+  "parentCommit": "07278632b40b7814ee907ddcbfb1dff6617b5fbc",
+  "state": "IMPLEMENTED_SELECTED_ORIGINAL_SIMPLE_LTYPE_SOURCE_TO_ACTUAL_OUTPUT_PROOF; NORMAL_ASAN_AND_INDEPENDENT_PROJECTIONS_PASS",
+  "scope": "P2.3c1 selected modern original simple LTYPE providers referenced by original MLINESTYLE bodies. Tentative writer source-target mappings are joined to actual TABLES name/self/owner/fields/pattern and final record inventory. Group6 semantic edits remain refused and are not implemented by this packet.",
+  "fileSha256": {
+    "src/libdxfrw.h": "3c859ca2c1c7c3fef2dd1ce67536c6c86ae142c73345af2968d5774346808e95",
+    "src/libdxfrw.cpp": "6dc6315472c4ae72716c8550d94c1f2861a743aed3b5970a6cc0d1bb30ff2d98",
+    "dwg2dxf/dx_symbol_output.h": "bc53af488344a35f16e234e6af866efda2ab749a534a15f924c19eaef7fa915e",
+    "dwg2dxf/dx_standard_output.h": "9e8381df9e1e336b0a68b420bc6cefbc07a085ca4e7c12c6cbe8126d54a130e1",
+    "dwg2dxf/dx_iface.h": "469ff90f9ab72ba7ed9c7cde244f65603624ae01d03af35ba63422788a44b33e",
+    "dwg2dxf/dx_iface.cpp": "aa756c5561d10e77da1d177412ccb05ff87a22328b3301d18530cecb6cee9a0f",
+    "tests/dxf_fixture_tests.cpp": "8276d0b6ea7092e547848be7c49271f21c1d6f4f5649bd882f1e2af624cec7c3",
+    "tests/dxf_symbol_output_tests.cpp": "13fcab2d56fe052bd2684371d7bfa25466663358e4bd8bc4e1ea03f2b8726ff3",
+    "tools/qualify_material_source_order.py": "c2d7d2138d2c7edf20c38fb9d656ebf8662ca8f7f4f784faf2c8dbe85690d51d"
+  },
+  "baseline": {
+    "parentCommit": "07278632b40b7814ee907ddcbfb1dff6617b5fbc",
+    "fileSha256": {
+      "src/libdxfrw.h": "83a17ee9b8d457ef27cf5b4db332d310f3f30c0a8067bbeffb99f46ee066337c",
+      "src/libdxfrw.cpp": "50db01ec960af0f915e4af04470ed6dc22df73fd46ebf1b84d3fe44c81d57360",
+      "dwg2dxf/dx_iface.h": "ff3473e7ecaca74fc114aa5212cf0552912fd1887cf9ed8f75dc7a3a8e28db34",
+      "dwg2dxf/dx_iface.cpp": "1e06dfd059537d11dd5db702d7db06bbe6b403eddc8482edc62bb92579165038",
+      "dwg2dxf/dx_symbol_output.h": "a0ddd1ec7f67dba3247165fa4af7967f63b3344df838a849ccf884acf988e942",
+      "dwg2dxf/dx_standard_output.h": "c151df105b5e28ccfc964219028910837dcccdcbb389cc6a182157f167dc4d9b",
+      "tests/dxf_fixture_tests.cpp": "8511059ae549d244ad70670e806c214d0285f84eaa6d8cc5caf43c829550226d"
+    },
+    "sourceManifestSha256": "3533f6f930f3ce80a2e83d52b9bd9ab52a7d480233268defcfec2fbc5d7cdebc",
+    "buildExitCode": 0,
+    "buildSeconds": 8.927848624996841,
+    "probeSha256": "20aab1784668b4082deefe563c199a3d58fb0d4ca4c17546612d163112f2cc96",
+    "ctestExitCode": 8,
+    "ctestLogSha256": "390436eb0bb5927aeff18daf88af25be1e335aa757368b4b3fb4636e1736538b",
+    "artifacts": [
+      {
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-body-transactions-156211633808958/ltype-input.dxf",
+        "sha256": "1d58863d3e1561f8ce1188ae850db648669c5593a9ae19509b5cd57a6ff8cfa6"
+      },
+      {
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-body-transactions-156211633808958/ltype-output.dxf",
+        "sha256": "13837faf8280b58b0e0a3b36ce01480f1f46232a3740bdfb6c9af151e5836b80"
+      }
+    ],
+    "failingControl": "Valid source EditDash remains in caller; writeLTypes emits a copied provider description corruption, old export accepted=1",
+    "reportSha256": "5d7b96a7a9144f4c28c4c1c9a701c28ec291c99f0367208b3f646e5838b343cb"
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "basis": "LTYPE alignment72,count73,total length40,ordered49/74 and complex STYLE/text/shape dependencies. Current source qualification uses an explicit simple profile, not every valid omission/order/flag variant."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "basis": "Per-element MLINESTYLE6 is a linetype name; redundant style/entity2 and dictionary/340 authority remain separate."
+    }
+  ],
+  "implementation": [
+    "Add nonvirtual dxfWriteSourceLinetypeTargetHandle using the existing writer registry and alias authorities. It reports tentative targets only; absent/ambiguous/conflicting/sticky-error/wrong-kind cases return0, and outside an admitted write attempt it returns0. Canonical mappings0x14/0x15/0x16 are explicit; custom targets require matching minted authority. This API alone supplies no completed-record/name/semantic evidence.",
+    "Extend existing dx_symbol_output TABLES observer with LineType, qualified common/header/leaf ownership and duplicate-control checks. Preserve Layer/AppId policies and explicitly ignore the new kind in the standard-DWG AppId/Layer consumer. Match the existing R14 LTYPE control-owner boundary rather than applying APPID rules.",
+    "Select each required original provider through existing resourceNames/resources/resourceOriginAudits, paired body/context/identity-owner evidence and normalized requested-to-original-model name agreement. Global unrelated Unqualified rows do not erase qualified selected rows. Pin original audit control blocks and freeze live selected models/pointers plus current LTYPE-list count; recheck the selected name-index edge.",
+    "Admit the selected source profile only when original physical count73/length40 match model values and original simple fields/ordered dash flags have complete owning scope. Model update() can normalize40; its success is not original literal proof. Initial unsupported/missing/legacy original profiles retain advisory unchanged transport, with linetypesBoundfalse; no new edit can rely on them. Once a selected proof activates, mutations, missing/duplicate models, anchor/index replacement and planning failure refuse the transaction.",
+    "Reuse the named-resource logical allowance before selected model/map/scratch copies and bound selected work/items/raw groups plus live inventory. Cache provider eligibility by original handle and scan current LTYPE rows once. No second source capture or graph engine.",
+    "Compose the existing TABLES inspector with source-target query, unique actual name/handle rows, table5 owner/type, exact simple body/description/flags/count/length/dashes and terminal modeled decode. Probe<DRW_LType> checks supplied count/length before update() can normalize output. Final global record inventory confirms actual LTYPE/TABLE identities, owners and source-target continuity.",
+    "Explicitly model existing canonical writer projection: ByBlock/ByLayer/Continuous names and fixed handles, zero patterns, and Continuous description Solid line (sourceemptydescription is normalized). Other builtin metadata, nonzero flags, omitted74, alternate-order and complex/dependency profiles are not newly qualified.",
+    "No DWG parser/byte-layout/unit change, public model/layout/vtable change or new callback. The library API addition is nonvirtual; CLI-private adapter state is extended. Formal ABI/native application qualification remains separate."
+  ],
+  "controls": {
+    "providerProfiles": 4,
+    "providerReadbacks": 93,
+    "copiedOutputRefusals": 16,
+    "preflightLiveRefusals": 16,
+    "lateRefusals": 40,
+    "correctedRetries": 82,
+    "borrowedActualFieldCorruptions": 32,
+    "unchangedLegacyPlain2DCompatibility": 4,
+    "sourceIndexTamperingRefusals": 2,
+    "reachedPlannerFaults": 4,
+    "unreachedSparseOffsets": 4,
+    "raw40NormalizationAdvisoryBoundary": 1,
+    "sourceLinetypeTargetProfiles": 4,
+    "sourceLinetypeTargetFailureRetries": 20,
+    "sourceLinetypeTargetNoInventoryControls": 2,
+    "symbolWireCells": 630,
+    "symbolWireBoundChecks": 56,
+    "description": "Locally authored custom EditDash plus actual ENTITIES/BLOCKS MLINE consumers, source/output ASCII/binary; actual TABLES same-count swaps and owner/name/self/field corruption, destination/caller preservation and corrected retries. Sparse planner offsets0/4/16/64 only; no exhaustive allocation/RSS claim."
+  },
+  "qualification": {
+    "builds": [
+      {
+        "configuration": "normal",
+        "build": "build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "dwg2dxf"
+        ],
+        "exitCode": 0,
+        "seconds": 8.9554299589945,
+        "cmakeCacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+        "buildNinjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3"
+      },
+      {
+        "configuration": "asan",
+        "build": "build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "dwg2dxf"
+        ],
+        "exitCode": 0,
+        "seconds": 145.89235933299642,
+        "cmakeCacheSha256": "8bc37f0495b8307a133bbf938c4eb8bfb5a39acf2929438001abf401bfd6cd31",
+        "buildNinjaSha256": "3eb8b95588305bf5f3156e9995c7d2f9339b5d807fa2e78bbfff2d2cfb717418"
+      }
+    ],
+    "selected": [
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_style_authority",
+      "libdxfrw_symbol_original_publications",
+      "libdxfrw_symbol_name_wire_inspection",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_layer_material_bindings",
+      "dwg2dxf_standard_dwg_appid_dependencies",
+      "dwg2dxf_standard_dwg_layer_dependencies",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_public_header_hygiene"
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "sourceManifestSha256": "aef7aa3c52744439f62d06cbbe37af3b63c803a4e0992a7e42696175840d73e2",
+    "results": [
+      {
+        "configuration": "normal",
+        "ctestExitCode": 0,
+        "ctestSeconds": 11.58213287498802,
+        "passed": 11,
+        "logSha256": "db8880c2dc357dae8cdad9bb9142f13d6eaf96dc7189dbb7cdaf48daa9a4850a",
+        "registrationsSha256": "33847e12a923f13a3e1502959418166cee7101c322eb8ccfd3e91b46e1357798",
+        "counters": [
+          "MLINESTYLE authority profiles=4; readbacks=174; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2; aritySourceRefusals=8; arityTypedRefusals=8; arityRetries=16",
+          "Symbol-name wire cells=630 bounded refusals=56",
+          "Source table identity cells=28 atomic refusal/retries=24 no-inventory controls=2",
+          "Source LTYPE target cells=4 atomic refusal/retries=20 no-inventory controls=2",
+          "MLINE LTYPE provider profiles=4; readbacks=93; copyRefusals=16; preflightRefusals=16; lateRefusals=40; retries=82; corruptions=32; compatibility=4; sourceIndexRefusals=2; plannerFaults=4; plannerUnreached=4; normalizedAdvisory=1",
+          "MLINESTYLE transaction profiles=8; readbacks=559; refusals=148; retries=328; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=28; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1"
+        ],
+        "executableSha256": {
+          "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests": "76f5f0fdebb9221acef9fadc3e2b2a6a08c58055d43e661e94a671576ecb4770",
+          "/Users/dli/dev/libdxfrw/build/libdxfrw_symbol_output_tests": "06a863eccb9f3ce7895a7670f180e2484f23dd66374e5bf41078e48a06fbb6f8",
+          "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_table_content_dxf_tests": "9e4ba6f25da2863c092066676fae2a6bb9f75f8285be3f5f9ee18c14ca275eef",
+          "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_dwg2dxf_adapter_tests": "829f97637a2dc916a582e54ab1ef80076d498fdea5fc46097e1f4a22529ef952",
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf": "c1ba11f438782592e2db8a6c0bcc78e032dc8006fb7a666575f390012e995b1d"
+        },
+        "toolSha256": "c2d7d2138d2c7edf20c38fb9d656ebf8662ca8f7f4f784faf2c8dbe85690d51d",
+        "peer": {
+          "exitCode": 0,
+          "seconds": 4.898379582999041,
+          "logSha256": "969391f35f39cea0f764fe453cc0cb7501ad8b92638ac1308e37ff52c84d124c",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gt-evidence/normal-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "mlineStyleElementAciEditsMatched": 4,
+          "mlineStyleSimpleLtypeInputsMatched": 1,
+          "mlineStyleSimpleLtypeRoundTripsMatched": 2,
+          "reportSha256": "0dc7f44ace03f8378a590afb01b17b5b12d6b7f3a9f4d103ea278fcc47998997"
+        }
+      },
+      {
+        "configuration": "asan",
+        "ctestExitCode": 0,
+        "ctestSeconds": 12.012476915988373,
+        "passed": 11,
+        "logSha256": "cf69c4a0ee70b67a0dc9ffc998722f7a54cd004f45e3fc8752df8c87eb5194c9",
+        "registrationsSha256": "1e05d469b5eaa2f12a898112a478e9233be0b9c7ff0c2ad2846d39169bea7c94",
+        "counters": [
+          "MLINESTYLE authority profiles=4; readbacks=174; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2; aritySourceRefusals=8; arityTypedRefusals=8; arityRetries=16",
+          "Symbol-name wire cells=630 bounded refusals=56",
+          "Source table identity cells=28 atomic refusal/retries=24 no-inventory controls=2",
+          "Source LTYPE target cells=4 atomic refusal/retries=20 no-inventory controls=2",
+          "MLINE LTYPE provider profiles=4; readbacks=93; copyRefusals=16; preflightRefusals=16; lateRefusals=40; retries=82; corruptions=32; compatibility=4; sourceIndexRefusals=2; plannerFaults=4; plannerUnreached=4; normalizedAdvisory=1",
+          "MLINESTYLE transaction profiles=8; readbacks=559; refusals=148; retries=328; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=28; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1"
+        ],
+        "executableSha256": {
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests": "f5fa6696fee386ad230daf1b436bb586fdb7c0ef35f64a2949ce1cf637b58fb6",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_symbol_output_tests": "13ebb146c8876bac07bed40c7c15f03f14e7361d0db12f4e7f41be5009e109b8",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests": "47bb42a0333c3e544eedf980362113a459a4f02beab09f4ff6fb4e7b52dd386a",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_dwg2dxf_adapter_tests": "331e7bdb329935525e9d3bf20880b34f19cb49a3e240e6a125a2e4f0ba6c1768",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/dwg2dxf/dwg2dxf": "d7e21ccf454c6d0ee1a22c115ee997c50bb9d4fadfb34df73d073c6f68dd73c3"
+        },
+        "toolSha256": "c2d7d2138d2c7edf20c38fb9d656ebf8662ca8f7f4f784faf2c8dbe85690d51d",
+        "peer": {
+          "exitCode": 0,
+          "seconds": 3.4550581249932293,
+          "logSha256": "969391f35f39cea0f764fe453cc0cb7501ad8b92638ac1308e37ff52c84d124c",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gt-evidence/asan-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "mlineStyleElementAciEditsMatched": 4,
+          "mlineStyleSimpleLtypeInputsMatched": 1,
+          "mlineStyleSimpleLtypeRoundTripsMatched": 2,
+          "reportSha256": "6e81c4ffc4059fc29daeace0c6f3ed0650ef2b48c0dc7a25f83de91b84605be0"
+        }
+      }
+    ],
+    "bothFinalBuildsBeforeQualificationRuntime": false,
+    "normalQualifiedBeforeIndependentAsanBuild": true,
+    "sourceInputsUnchanged": 593,
+    "registrationScopesMatch": true,
+    "configurationDifferences": [
+      "header hygiene configured Python3.12 vs Python3, and system version/processor/config empty in normal vs27.0.0/arm64/Debug in ASan; original commands retained"
+    ],
+    "countersMatch": true,
+    "normalResultsReusedAfterIndependentAsanBuild": true,
+    "reportSha256": "adf478f8f8eb0534986eedea9262ca312ef8389fe7505041f3891cf15e3197d3",
+    "qualifierSha256": "dcd2bf03b5e5c4a1d14d104d80cdb9df229b85c0a62919d95106c54aa995c424",
+    "normalReuseContract": "Frozen593source/tool binding and all normal executable digests are checked before and after independent ASan build/qualification; normal cohort and peer outputs are reused rather than repeated solely because the other configuration built later.",
+    "sourceArchiveOrNativeReleaseRun": false
+  },
+  "independentPeer": {
+    "runtime": "build/rpp5gh-evidence/peer/bin/python",
+    "version": "ezdxf1.4.5",
+    "bindings": {
+      "normal": {
+        "reportSha256": "0dc7f44ace03f8378a590afb01b17b5b12d6b7f3a9f4d103ea278fcc47998997",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        },
+        "probeSha256": "76f5f0fdebb9221acef9fadc3e2b2a6a08c58055d43e661e94a671576ecb4770",
+        "converterSha256": "c1ba11f438782592e2db8a6c0bcc78e032dc8006fb7a666575f390012e995b1d",
+        "qualificationScriptSha256": "c2d7d2138d2c7edf20c38fb9d656ebf8662ca8f7f4f784faf2c8dbe85690d51d"
+      },
+      "asan": {
+        "reportSha256": "6e81c4ffc4059fc29daeace0c6f3ed0650ef2b48c0dc7a25f83de91b84605be0",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        },
+        "probeSha256": "f5fa6696fee386ad230daf1b436bb586fdb7c0ef35f64a2949ce1cf637b58fb6",
+        "converterSha256": "d7e21ccf454c6d0ee1a22c115ee997c50bb9d4fadfb34df73d073c6f68dd73c3",
+        "qualificationScriptSha256": "c2d7d2138d2c7edf20c38fb9d656ebf8662ca8f7f4f784faf2c8dbe85690d51d"
+      }
+    },
+    "newCountsPerConfiguration": {
+      "authoredSource": 1,
+      "unchangedCliOutputs": 2,
+      "referenceEdits": 0
+    },
+    "inputs": [
+      {
+        "version": "AC1027",
+        "page": "utf-8",
+        "format": "asc",
+        "path": "mline-style-simple-ltype-AC1027-asc.dxf",
+        "sha256": "d23af559e5a7d5ba12f8b91d297f8b67ca49778c2756a5441ad7b838b5d4f985",
+        "matched": true,
+        "expectedLinetypes": {
+          "PeerDash": {
+            "name": "PeerDash",
+            "flags": 0,
+            "description": "Authored simple dash and gap",
+            "pattern": [
+              [
+                72,
+                65
+              ],
+              [
+                73,
+                2
+              ],
+              [
+                40,
+                1.5
+              ],
+              [
+                49,
+                1.0
+              ],
+              [
+                74,
+                0
+              ],
+              [
+                49,
+                -0.5
+              ],
+              [
+                74,
+                0
+              ]
+            ]
+          }
+        },
+        "authoring": "Typed PeerDash pattern [1,-0.5], length1.5 authored before typed MLINE generation; all style/provider/consumer expectations frozen before first save; no source postmutation",
+        "selectedNullLayerBindings": [
+          {
+            "name": "0",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          },
+          {
+            "name": "Defpoints",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          }
+        ],
+        "omittedDefaultMaterialHandles": [
+          {
+            "name": "ByBlock",
+            "handle": "1F"
+          },
+          {
+            "name": "ByLayer",
+            "handle": "20"
+          },
+          {
+            "name": "Global",
+            "handle": "21"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "version": "AC1027",
+        "page": "utf-8",
+        "input": "asc",
+        "output": "asc",
+        "sourceSha256": "d23af559e5a7d5ba12f8b91d297f8b67ca49778c2756a5441ad7b838b5d4f985",
+        "path": "out-mline-style-simple-ltype-AC1027-asc-asc.dxf",
+        "sha256": "d644c072b3288e06233632d7c350f4603414c2e92a7fbc099b04109149616648",
+        "matched": true,
+        "exitCode": 0
+      },
+      {
+        "version": "AC1027",
+        "page": "utf-8",
+        "input": "asc",
+        "output": "bin",
+        "sourceSha256": "d23af559e5a7d5ba12f8b91d297f8b67ca49778c2756a5441ad7b838b5d4f985",
+        "path": "out-mline-style-simple-ltype-AC1027-asc-bin.dxf",
+        "sha256": "97bdc88fd8b61096076dbf47c9013bba06e46622370d68d453528ac88ac2003f",
+        "matched": true,
+        "exitCode": 0
+      }
+    ],
+    "projection": "Full selected LTYPE name/description/flags/alignment/count/total length and ordered49/74 pattern plus control/self/owner joins before document setup; ordinary typed read checked separately. Existing exact MLINESTYLE fields/dictionary/redundant names/340 and complete ENTITIES/BLOCKS consumer geometry remain checked.",
+    "disclosure": "Typed authored PeerDash and consumer geometry frozen before first save; no input postmutation,audit/recovery or geometry regeneration. Selected null layer-material/default-MATERIAL omission and setup-created materials remain disclosed. No native LTYPE rendering/inheritance/complex-font or whole-document qualification."
+  },
+  "development": {
+    "initialFailureLogSha256": "1dbdc0ef22709383810a8cc8c4c013701863eca39a195095edebc3bda763eafe",
+    "classification": "Fast tests exposed the newly extended observer using APPID control-owner threshold for R14 LTYPE and a fixture assuming uppercase source keys. Corrected the LTYPE boundary and fixture normalization; all assertions retained.",
+    "normalBeforeFaultControlsLogSha256": "e1bf087639255c34fb61be5d4ce1f53a4a06910ba09638d7fb91a8b7b5111ed1",
+    "registrationComparison": "Header hygiene configuration differences are explicitly retained: Python3.12 vs Python3 and system-version/processor/config fields. No C++source/binary changes were required for that checker adjustment."
+  },
+  "remaining": [
+    "P2.3c2 original/typed/raw group6 name reconciliation and exact encoded slot updates, conditional on complete selected provider proof.",
+    "Broader LTYPE source/default/order/flags/application/XDATA/STYLE/text/shape/legacy profiles, semantic units/font identity and independent native evidence; unchanged advisory transport is not editing or full-provider qualification.",
+    "MLINESTYLE count/offset/340 geometry operations, broader original authority, CMC/collation/native MLINE behavior and MLEADERSTYLE transactions.",
+    "Full original document/recursive closure, native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel, native Linux GCC source release, formal ABI/platform/RSS/performance and six external dispositions."
+  ],
+  "limitations": [
+    "Same-version AC1021-AC1032 source-provider gate; selected generated sources are AC1027, while R14 is tested for the additive query/observer boundary only.",
+    "Source eligibility is separate from aggregate resource/document support and format validity. Selected source facts retain their captured codec/context/policy; no new general source-text/native collation certificate.",
+    "Unknown required dependency profiles and normalized source declarations stay unqualified; no fallback, dropped field or supported-subset count promotes a claim.",
+    "ASan halt_on_error=1:detect_leaks=0; no leak-sanitizer claim. No full suite/native/package/release/ABI/performance run."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "nativeLinetypeSemanticsQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Existing eligible repository material and embedded original local-from-scratch recipes only. No generated/downloaded drawing payload committed; scratch paths/hashes and recipes supply the evidence."
+}
