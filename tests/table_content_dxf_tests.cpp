@@ -82,12 +82,16 @@ public:
         t.m_dxfInCellValue=s.inValue;t.m_dxfDataVersionRead=s.dataVersion;t.m_dxfTablePropertiesStarted=s.properties;t.m_dxfUnsupportedData=s.unsupported;
         t.m_dxfStructuredCellValue=s.structuredValue;t.m_dxfValueFields=s.valueFields;
         t.m_dxfAttributesExpected=s.attributesExpected;t.m_dxfAttributesRead=s.attributesRead;t.m_dxfAttributesContentIndex=s.attributesContent;
+        t.m_dxfMergeSourceVersion=s.mergeVersion;t.m_dxfMergeCheckedCells=s.mergeChecked;t.m_dxfMergeCurrentFields=s.mergeFields;
+        t.m_dxfMergeSourceKnown=s.mergeSourceKnown;t.m_dxfMergeFieldsInvalid=s.mergeInvalid;t.m_dxfMergeFinalized=s.mergeFinalized;
     }
     static auto tableCursor(const DRW_Table& t) noexcept {
         return std::make_tuple(static_cast<unsigned>(t.m_dxfSubclass),t.m_dxfRowsExpected,t.m_dxfColumnsExpected,
             t.m_dxfRowHeightsRead,t.m_dxfColumnWidthsRead,t.m_dxfNextCell,t.m_dxfCurrentCell,t.m_dxfInCellValue,
             t.m_dxfDataVersionRead,t.m_dxfTablePropertiesStarted,t.m_dxfUnsupportedData,t.m_dxfAttributesExpected,
-            t.m_dxfAttributesRead,t.m_dxfAttributesContentIndex,t.m_dxfStructuredCellValue,t.m_dxfValueFields);
+            t.m_dxfAttributesRead,t.m_dxfAttributesContentIndex,t.m_dxfStructuredCellValue,t.m_dxfValueFields,
+            t.m_dxfMergeSourceVersion,t.m_dxfMergeCheckedCells,t.m_dxfMergeCurrentFields,t.m_dxfMergeSourceKnown,
+            t.m_dxfMergeFieldsInvalid,t.m_dxfMergeFinalized);
     }
 };
 
@@ -1796,6 +1800,7 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "table_value_scope_controls.h"
 #include "table_export_reuse_controls.h"
 #include "table_legacy_height_controls.h"
+#include "table_legacy_merge_controls.h"
 #include "table_value_payload_controls.h"
 #include "table_value_profile_controls.h"
 #include "table_reference_controls.h"
@@ -3309,6 +3314,15 @@ int inspect(const char* path) {
 }
 } // namespace
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--legacy-table-merge") {
+        std::error_code error;
+        const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
+            "libdxfrw-legacy-table-merge-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
+        if(dir.empty())return 1;
+        const bool ok=legacyTableMergeTests(dir);
+        if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';
+        return ok?0:1;
+    }
     if(argc==2&&std::string(argv[1])=="--legacy-table-height") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),

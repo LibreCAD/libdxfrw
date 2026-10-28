@@ -576,6 +576,9 @@ set_tests_properties(libdxfrw_table_legacy_override_177 PROPERTIES LABELS "dxf;t
 add_test(NAME libdxfrw_table_legacy_text_height
     COMMAND libdxfrw_table_content_dxf_tests --legacy-table-height)
 set_tests_properties(libdxfrw_table_legacy_text_height PROPERTIES LABELS "dxf;table")
+add_test(NAME libdxfrw_table_legacy_merge
+    COMMAND libdxfrw_table_content_dxf_tests --legacy-table-merge)
+set_tests_properties(libdxfrw_table_legacy_merge PROPERTIES LABELS "fast;dxf;table;generated" TIMEOUT 60)
 set_tests_properties(libdxfrw_table_content_dxf_projection PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_table_compound_source

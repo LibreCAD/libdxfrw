@@ -16,9 +16,11 @@ struct SourceState {
     bool inValue{false},dataVersion{false},properties{false},unsupported{false};
     bool structuredValue{false};unsigned valueFields{0u};
     int attributesExpected{-1},attributesRead{0},attributesContent{-1};
+    DRW::Version mergeVersion{DRW::UNKNOWNV};std::size_t mergeChecked{0u};
+    unsigned mergeFields{0u};bool mergeSourceKnown{false},mergeInvalid{false},mergeFinalized{false};
     bool operator==(const SourceState& b) const noexcept {
-        return common==b.common&&std::tie(subclass,rows,columns,currentCell,rowHeights,columnWidths,nextCell,inValue,dataVersion,properties,unsupported,attributesExpected,attributesRead,attributesContent,structuredValue,valueFields)
-            ==std::tie(b.subclass,b.rows,b.columns,b.currentCell,b.rowHeights,b.columnWidths,b.nextCell,b.inValue,b.dataVersion,b.properties,b.unsupported,b.attributesExpected,b.attributesRead,b.attributesContent,b.structuredValue,b.valueFields);
+        return common==b.common&&std::tie(subclass,rows,columns,currentCell,rowHeights,columnWidths,nextCell,inValue,dataVersion,properties,unsupported,attributesExpected,attributesRead,attributesContent,structuredValue,valueFields,mergeVersion,mergeChecked,mergeFields,mergeSourceKnown,mergeInvalid,mergeFinalized)
+            ==std::tie(b.subclass,b.rows,b.columns,b.currentCell,b.rowHeights,b.columnWidths,b.nextCell,b.inValue,b.dataVersion,b.properties,b.unsupported,b.attributesExpected,b.attributesRead,b.attributesContent,b.structuredValue,b.valueFields,b.mergeVersion,b.mergeChecked,b.mergeFields,b.mergeSourceKnown,b.mergeInvalid,b.mergeFinalized);
     }
     bool hasNoPendingXdata() const noexcept{return common.hasNoPendingXdata();}
 };
@@ -40,7 +42,9 @@ public:
         s.rowHeights=v.m_dxfRowHeightsRead;s.columnWidths=v.m_dxfColumnWidthsRead;s.nextCell=v.m_dxfNextCell;
         s.inValue=v.m_dxfInCellValue;s.dataVersion=v.m_dxfDataVersionRead;s.properties=v.m_dxfTablePropertiesStarted;s.unsupported=v.m_dxfUnsupportedData;
         s.structuredValue=v.m_dxfStructuredCellValue;s.valueFields=v.m_dxfValueFields;
-        s.attributesExpected=v.m_dxfAttributesExpected;s.attributesRead=v.m_dxfAttributesRead;s.attributesContent=v.m_dxfAttributesContentIndex;return s;
+        s.attributesExpected=v.m_dxfAttributesExpected;s.attributesRead=v.m_dxfAttributesRead;s.attributesContent=v.m_dxfAttributesContentIndex;
+        s.mergeVersion=v.m_dxfMergeSourceVersion;s.mergeChecked=v.m_dxfMergeCheckedCells;s.mergeFields=v.m_dxfMergeCurrentFields;
+        s.mergeSourceKnown=v.m_dxfMergeSourceKnown;s.mergeInvalid=v.m_dxfMergeFieldsInvalid;s.mergeFinalized=v.m_dxfMergeFinalized;return s;
     }
     // Exact modeled equality only: no scalar inventory, target resolution or
     // output admission. Private parser state is compared separately, pre-copy.

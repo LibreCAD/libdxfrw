@@ -11105,6 +11105,10 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     };
 
     auto syncMergedRange = [this, &currentCell, &markIncomplete]() {
+        // The selected AC1018 producer uses a grid-level anchor/covered
+        // spelling. Defer its ranges until all cell descriptors are known.
+        if (m_dxfMergeSourceKnown && m_dxfMergeSourceVersion == DRW::AC1018)
+            return;
         DRW_TableCell *cell = currentCell();
         if (cell == nullptr)
             return;
@@ -11341,9 +11345,12 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         bool value = false;
         if (!readDxfBool(reader, value))
             return false;
-        if (DRW_TableCell *cell = currentCell())
+        if (DRW_TableCell *cell = currentCell()) {
+            if ((m_dxfMergeCurrentFields & 1u) != 0u)
+                m_dxfMergeFieldsInvalid = true;
+            m_dxfMergeCurrentFields |= 1u;
             cell->m_isMerged = value;
-        else
+        } else
             markIncomplete();
         syncMergedRange();
         break;
@@ -11364,6 +11371,10 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (!readDxfIntInRange(reader, 0, static_cast<int>(kMaxTableColumns), value))
             return false;
         if (DRW_TableCell *cell = currentCell()) {
+            const unsigned bit = code == 175 ? 2u : 4u;
+            if ((m_dxfMergeCurrentFields & bit) != 0u)
+                m_dxfMergeFieldsInvalid = true;
+            m_dxfMergeCurrentFields |= bit;
             if (code == 175)
                 cell->m_mergedWidth = value;
             else
@@ -11410,6 +11421,19 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 171:
         m_dxfStructuredCellValue=false;m_dxfValueFields=0u;
+        if (m_dxfCurrentCell >= 0) {
+            if (m_dxfMergeCurrentFields != 7u)
+                m_dxfMergeFieldsInvalid = true;
+            ++m_dxfMergeCheckedCells;
+        }
+        m_dxfMergeCurrentFields = 0u;
+        if (m_dxfNextCell == 0u) {
+            m_dxfMergeSourceKnown = reader->hasSourceVersion();
+            m_dxfMergeSourceVersion = reader->getSourceVersion();
+        } else if (m_dxfMergeSourceKnown != reader->hasSourceVersion()
+                   || m_dxfMergeSourceVersion != reader->getSourceVersion()) {
+            m_dxfMergeFieldsInvalid = true;
+        }
         if (!ensureGrid())
             return false;
         if (m_dxfAttributesExpected >= 0
@@ -11431,6 +11455,8 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         } else {
             m_dxfCurrentCell = -1;
             reader->getInt32();
+            if (m_dxfMergeSourceKnown && m_dxfMergeSourceVersion == DRW::AC1018)
+                markIncomplete();
         }
         m_dxfInCellValue = false;
         m_dxfAttributesExpected = -1;
@@ -11733,6 +11759,14 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 }
 
 void DRW_Table::finalizeDxfParse() noexcept {
+    if (m_dxfMergeFinalized)
+        return;
+    m_dxfMergeFinalized = true;
+    if (m_dxfCurrentCell >= 0) {
+        if (m_dxfMergeCurrentFields != 7u)
+            m_dxfMergeFieldsInvalid = true;
+        ++m_dxfMergeCheckedCells;
+    }
     if (!m_hasSemanticContent)
         return;
     if (m_dxfUnsupportedData || m_dxfInCellValue || m_dxfRowsExpected < 0
@@ -11755,6 +11789,121 @@ void DRW_Table::finalizeDxfParse() noexcept {
                 m_semanticContentComplete = false;
             }
         }
+    }
+
+    // AC1018 also has an observed spelling where the top-left anchor has
+    // 173=0 and the other cells have 173=1 with unit spans. Classify only a
+    // complete grid with explicit, unique descriptors; the established
+    // 173=1 spanning-anchor spelling remains a separate compatibility path.
+    bool inferredAnchor = false;
+    bool anyExplicitAnchor = false;
+    for (const DRW_TableRow& row : m_content.m_rows) {
+        for (const DRW_TableCell& cell : row.m_cells) {
+            if (!cell.m_isMerged && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1))
+                inferredAnchor = true;
+            if (cell.m_isMerged)
+                anyExplicitAnchor = true;
+        }
+    }
+    const bool legacy = m_dxfMergeSourceKnown
+        && m_dxfMergeSourceVersion == DRW::AC1018;
+    if (!legacy && !inferredAnchor)
+        return;
+
+    const auto failMerge = [this]() noexcept {
+        m_content.m_mergedRanges.clear();
+        m_dxfUnsupportedData = true;
+        m_semanticContentComplete = false;
+    };
+    if (inferredAnchor && (!legacy || m_dxfMergeFieldsInvalid
+                           || m_dxfMergeCheckedCells != m_dxfNextCell)) {
+        failMerge();
+        return;
+    }
+    if (!inferredAnchor && !anyExplicitAnchor)
+        return;
+
+    const std::size_t rows = m_content.m_rows.size();
+    const std::size_t columns = m_content.m_columns.size();
+    if (rows == 0u || columns == 0u || rows > kMaxTableRows
+        || columns > kMaxTableColumns || rows > kMaxTableCells / columns
+        || (inferredAnchor && (m_dxfRowsExpected < 0 || m_dxfColumnsExpected < 0
+            || m_dxfNextCell != rows * columns))) {
+        failMerge();
+        return;
+    }
+    for (const DRW_TableRow& row : m_content.m_rows) {
+        if (row.m_cells.size() != columns) {
+            failMerge();
+            return;
+        }
+    }
+
+    try {
+        const std::size_t cells = rows * columns;
+        // These are bounded by kMaxTableCells and kMaxTableItems. Each cell
+        // is occupied once; a collision terminates the pass immediately.
+        std::vector<std::uint8_t> occupancy(cells, 0u);
+        std::vector<DRW_TableMergedRange> ranges;
+        ranges.reserve(std::min<std::size_t>(
+            inferredAnchor ? cells / 2u : cells, kMaxTableItems));
+        for (std::size_t row = 0u; row < rows; ++row) {
+            for (std::size_t column = 0u; column < columns; ++column) {
+                const DRW_TableCell& cell = m_content.m_rows[row].m_cells[column];
+                const bool anchor = inferredAnchor
+                    ? (!cell.m_isMerged && (cell.m_mergedWidth > 1 || cell.m_mergedHeight > 1))
+                    : cell.m_isMerged;
+                if (!anchor)
+                    continue;
+                if (cell.m_mergedWidth <= 0 || cell.m_mergedHeight <= 0
+                    || static_cast<std::size_t>(cell.m_mergedWidth) > columns - column
+                    || static_cast<std::size_t>(cell.m_mergedHeight) > rows - row
+                    || ranges.size() >= kMaxTableItems) {
+                    failMerge();
+                    return;
+                }
+                const std::size_t right = column + static_cast<std::size_t>(cell.m_mergedWidth) - 1u;
+                const std::size_t bottom = row + static_cast<std::size_t>(cell.m_mergedHeight) - 1u;
+                for (std::size_t r = row; r <= bottom; ++r) {
+                    for (std::size_t c = column; c <= right; ++c) {
+                        const std::size_t index = r * columns + c;
+                        const bool isAnchor = r == row && c == column;
+                        const DRW_TableCell& member = m_content.m_rows[r].m_cells[c];
+                        if (occupancy[index] != 0u
+                            || (inferredAnchor && !isAnchor
+                                && (!member.m_isMerged || member.m_mergedWidth != 1
+                                    || member.m_mergedHeight != 1))) {
+                            failMerge();
+                            return;
+                        }
+                        occupancy[index] = isAnchor ? 1u : 2u;
+                    }
+                }
+                DRW_TableMergedRange range;
+                range.m_topRow = static_cast<int>(row);
+                range.m_leftColumn = static_cast<int>(column);
+                range.m_bottomRow = static_cast<int>(bottom);
+                range.m_rightColumn = static_cast<int>(right);
+                ranges.push_back(range);
+            }
+        }
+        if (inferredAnchor) {
+            for (std::size_t row = 0u; row < rows; ++row) {
+                for (std::size_t column = 0u; column < columns; ++column) {
+                    const DRW_TableCell& cell = m_content.m_rows[row].m_cells[column];
+                    const std::uint8_t role = occupancy[row * columns + column];
+                    if ((cell.m_isMerged && role != 2u)
+                        || (!cell.m_isMerged && role == 0u
+                            && (cell.m_mergedWidth != 1 || cell.m_mergedHeight != 1))) {
+                        failMerge();
+                        return;
+                    }
+                }
+            }
+        }
+        m_content.m_mergedRanges.swap(ranges);
+    } catch (...) {
+        failMerge();
     }
 }
 

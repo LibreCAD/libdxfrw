@@ -2040,6 +2040,14 @@ private:
     int m_dxfAttributesExpected = -1;
     int m_dxfAttributesRead = 0;
     int m_dxfAttributesContentIndex = -1;
+    // TABLE merge-field observation is fixed-size: each completed cell must
+    // have exactly one 173/175/176 in the selected AC1018 source profile.
+    DRW::Version m_dxfMergeSourceVersion = DRW::UNKNOWNV;
+    std::size_t m_dxfMergeCheckedCells = 0u;
+    unsigned m_dxfMergeCurrentFields = 0u;
+    bool m_dxfMergeSourceKnown = false;
+    bool m_dxfMergeFieldsInvalid = false;
+    bool m_dxfMergeFinalized = false;
 
     void finalizeDxfParse() noexcept;
     DRW_TableCellContent* dxfValueContent() noexcept;
@@ -2068,6 +2076,12 @@ private:
         m_dxfAttributesExpected = -1;
         m_dxfAttributesRead = 0;
         m_dxfAttributesContentIndex = -1;
+        m_dxfMergeSourceVersion = DRW::UNKNOWNV;
+        m_dxfMergeCheckedCells = 0u;
+        m_dxfMergeCurrentFields = 0u;
+        m_dxfMergeSourceKnown = false;
+        m_dxfMergeFieldsInvalid = false;
+        m_dxfMergeFinalized = false;
     }
 };
 
