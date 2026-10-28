@@ -24700,7 +24700,15 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
             return LegacyZeroPresence::None;
         // Avoid allocating a cell vector for the common no-zero profile.
         bool candidate = false, scanningTable = false;
+        std::size_t applicationDepth = 0u;
         for (const auto& group : raw.groups) {
+            if (group.code()==102 && group.type()==DRW_Variant::STRING && group.content.s) {
+                const auto& value=*group.content.s;
+                if (!value.empty() && value.front()=='{') ++applicationDepth;
+                else if (!value.empty() && value.front()=='}' && applicationDepth!=0u) --applicationDepth;
+                continue;
+            }
+            if (applicationDepth!=0u) continue;
             if (group.code()==100 && group.type()==DRW_Variant::STRING && group.content.s)
                 scanningTable = *group.content.s == "AcDbTable";
             else if (scanningTable && group.code()==177 && group.type()==DRW_Variant::INTEGER
@@ -24710,23 +24718,30 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
         const std::size_t rows = table.m_content.m_rows.size(), columns = table.m_content.m_columns.size();
         if (!rows || !columns || rows > 10000u || columns > 1000u || rows > 200000u / columns)
             return LegacyZeroPresence::Invalid;
-        bool inTable = false, inApp = false, sawZero = false, invalid = false;
+        bool inTable = false, sawZero = false, invalid = false;
+        std::size_t qualificationDepth = 0u;
         bool rowCountSeen = false, columnCountSeen = false;
         std::size_t cell = 0u; bool hasCell = false, flagSeen = false, edgeSeen = false;
         int prior = -1; std::vector<std::uint8_t> found; found.reserve(rows * columns);
         for (const auto& group : raw.groups) {
             const int code = group.code();
+            if (code == 102 && group.type() == DRW_Variant::STRING && group.content.s) {
+                if (inTable) return LegacyZeroPresence::Invalid;
+                const auto& value=*group.content.s;
+                if (!value.empty() && value.front()=='{') ++qualificationDepth;
+                else if (!value.empty() && value.front()=='}' && qualificationDepth!=0u) --qualificationDepth;
+                continue;
+            }
+            if (qualificationDepth != 0u) continue;
             if (code == 100 && group.type() == DRW_Variant::STRING && group.content.s) {
                 inTable = *group.content.s == "AcDbTable";
                 if (!inTable) hasCell = false;
                 prior = code; continue;
             }
             if (!inTable) continue;
-            if (code == 102) { inApp = true; invalid = true; prior = code; continue; }
-            if (code == 1001) { inApp = true; invalid = true; prior = code; continue; }
+            if (code == 1001) return LegacyZeroPresence::Invalid;
             if (code == 177 && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
                 sawZero = true;
-            if (inApp) { prior = code; continue; }
             if (!hasCell && (code == 91 || code == 92)) {
                 bool& seen = code == 91 ? rowCountSeen : columnCountSeen;
                 const auto expected = code == 91 ? rows : columns;

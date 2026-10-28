@@ -91,6 +91,7 @@ bool legacyMergeSparseAllocation(const std::filesystem::path& path,bool binary) 
         &&legacyMergeRanges(model,{{0,0,0,999}});
 }
 bool legacyTableMergeWriteTests(const std::filesystem::path& dir);
+bool legacyTableNestedPresenceTests(const std::filesystem::path& dir);
 bool legacyTableMergeTests(const std::filesystem::path& dir) {
     const auto path=dir/"legacy-merge.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE merge: "<<reason<<'\n';return false;};
@@ -196,7 +197,7 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
         <<" retries="<<retries<<" modern="<<modern<<" boundaries="<<boundaries
         <<" reached finalization allocation retries="<<allocationRetries<<" sparse allocation="<<sparse<<'\n';
     return positives==2u&&refusals==46u&&retries==46u&&modern==4u&&boundaries==4u&&allocationRetries==2u&&sparse==2u
-        &&legacyTableMergeWriteTests(dir);
+        &&legacyTableMergeWriteTests(dir)&&legacyTableNestedPresenceTests(dir);
 }
 
 bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir);
@@ -708,4 +709,49 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
         }
     }
     return positives==8u&&refusals==24u&&retries==24u;
+}
+
+// Application groups may reuse 100 and 177 for their own payload. Only host
+// fields select the source-presence path.
+bool legacyTableNestedPresenceTests(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-nested-source.dxf",output=dir/"legacy-nested-output.dxf";
+    const auto fail=[](const char* why){std::cerr<<"legacy TABLE nested presence: "<<why<<'\n';return false;};
+    unsigned accepted=0u,refused=0u,retries=0u;
+    for(bool inputBinary:{false,true})for(bool outputBinary:{false,true})for(bool strict:{false,true}) {
+        auto make=[](bool hostZero) {
+            auto tags=legacyMergeDocument("AC1018",1,1);
+            const auto handle=slot(tags,5,"4F2");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(handle+1u),{330,"1F"});
+            const auto table=slot(tags,100,"AcDbTable");
+            const Tags app=hostZero?Tags{{102,"{APP_SCOPE"},{100,"VendorSubtype"},{102,"}"}}
+                :Tags{{102,"{APP_SCOPE"},{177,"0"},{102,"}"}};
+            tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(table+1u),app.begin(),app.end());
+            const auto flag=legacyMergeCellField(tags,0u,177);tags[flag].value=hostZero?"0":"32";
+            if(!hostZero) {const auto text=legacyMergeCellField(tags,0u,1);tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(text+1u),{140,"4"});}
+            return tags;
+        };
+        const auto good=make(false),bad=make(true);dx_iface io;dx_data data;
+        if(!write(source,good,inputBinary)||!io.fileImport(source.string(),&data,false)||data.tables.size()!=1u
+            ||!data.tables.front().m_semanticContentComplete)return fail("nonzero host import");
+        DRW_Block_Record record;record.handle=0x1fu;record.name="*Model_Space";data.blockRecords.push_back(record);
+        if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict))return fail("nested zero treated as host");
+        dx_iface check;dx_data result;
+        if(!check.fileImport(output.string(),&result,false)||result.tables.size()!=1u
+            ||result.tables.front().m_content.m_rows[0].m_cells[0].m_overrideFlags!=32u
+            ||result.tables.front().m_content.m_rows[0].m_cells[0].m_textHeight!=4.0)return fail("nonzero host readback");
+        ++accepted;
+        dx_data invalid;
+        if(!write(source,bad,inputBinary)||!io.fileImport(source.string(),&invalid,false)||invalid.tables.size()!=1u)
+            return fail("nested subtype import");
+        invalid.blockRecords.push_back(record);const auto ids=tableExportIdentities(invalid);const DRW_Table baseline(invalid.tables.front());
+        if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&invalid,false,strict)
+            ||!tableExportSentinel(output)||ids!=tableExportIdentities(invalid)
+            ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,invalid.tables.front()))return fail("hidden host zero escaped");
+        ++refused;dx_data retry;
+        if(!write(source,good,inputBinary)||!io.fileImport(source.string(),&retry,false)||retry.tables.size()!=1u)return fail("retry import");
+        retry.blockRecords.push_back(record);
+        if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&retry,false,strict))return fail("retry export");
+        ++retries;
+    }
+    std::cout<<"legacy TABLE nested accepted="<<accepted<<" refused="<<refused<<" retries="<<retries<<'\n';
+    return accepted==8u&&refused==8u&&retries==8u;
 }
