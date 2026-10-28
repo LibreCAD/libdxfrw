@@ -2199,6 +2199,7 @@ private:
         std::shared_ptr<const dx_data::TableDxfSourceCapture::StructuralAudit> dictionaryOrigin;
         std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
         bool geometryChanged{false};
+        bool referencesChanged{false};
         bool linetypesBound{false};
     };
     std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;

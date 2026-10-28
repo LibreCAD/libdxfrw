@@ -15981,7 +15981,8 @@ using MlineSlots=std::array<std::size_t,5>;
 using MlineElementSlots=std::array<std::size_t,UINT8_MAX>;
 constexpr std::array<int,5> mlineScalarCodes{{70,3,62,51,52}};
 bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
-        bool description=true,bool scalars=true,bool flagBits=false,bool elementAci=true) noexcept {
+        bool description=true,bool scalars=true,bool flagBits=false,bool elementAci=true,
+        bool elementLinetype=true) noexcept {
     if (a.name!=b.name || (description && a.description!=b.description)
         || (scalars && (!(flagBits ? mlineFlagBitsEqual(a.flags,b.flags) : a.flags==b.flags)
             || !retainedDoubleEqual(a.startAngle,b.startAngle) || !retainedDoubleEqual(a.endAngle,b.endAngle)
@@ -15994,7 +15995,7 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
         if (!retainedDoubleEqual(x.offset,y.offset) || (elementAci && x.color!=y.color) || x.color24!=y.color24
             || x.colorMethod!=y.colorMethod || x.colorFlags!=y.colorFlags
             || x.colorName!=y.colorName || x.colorBookName!=y.colorBookName
-            || x.colorDwgIndex!=y.colorDwgIndex || x.linetype!=y.linetype
+            || x.colorDwgIndex!=y.colorDwgIndex || (elementLinetype && x.linetype!=y.linetype)
             || x.linetypeIndex!=y.linetypeIndex || x.linetypeHandle!=y.linetypeHandle) return false;
     }
     return true;
@@ -16256,13 +16257,12 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             if (!decodeMlineBody(context,context,original,oldSlots,oldInsertion)
                 || !decodeMlineBody(raw,context,parsed,slots,insertion,&textSlots)
                 || !standardDwgCommonEqual(value,parsed,version,false)
-                || !mlineFieldsEqual(value,original,false,false,false,false) || parsed.name!=original.name) return false;
-            // LTYPE edits require their own provider proof. Keep those reference
-            // meanings unchanged while reconciling the represented ACI fields.
+                || !mlineFieldsEqual(value,original,false,false,false,false,false) || parsed.name!=original.name) return false;
+            // Reconcile DXF names below; DWG index/handle mirrors retain their
+            // original meaning and cannot authorize a DXF reference edit.
             if (parsed.elements.size()==original.elements.size()) {
                 for (std::size_t i=0u;i<parsed.elements.size();++i)
-                    if (parsed.elements[i].linetype!=original.elements[i].linetype
-                        || parsed.elements[i].linetypeIndex!=original.elements[i].linetypeIndex
+                    if (parsed.elements[i].linetypeIndex!=original.elements[i].linetypeIndex
                         || parsed.elements[i].linetypeHandle!=original.elements[i].linetypeHandle) return false;
             } else return false;
             const auto owner=m_dxfMLineStyleState.dictionaries.find(raw.parentHandle);
@@ -16322,6 +16322,12 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 const bool edited=typedColor!=old || rawColor!=old;
                 if (!choose(old,typedColor,rawColor,target.elements[i].color,[](int a,int b){return a==b;})
                     || (edited && (target.elements[i].color<0 || target.elements[i].color>256))) return false;
+                if (!choose(original.elements[i].linetype,value.elements[i].linetype,parsed.elements[i].linetype,
+                        target.elements[i].linetype,[](const auto& a,const auto& b){return a==b;})) return false;
+                const bool referenceEdit=target.elements[i].linetype!=original.elements[i].linetype;
+                if (referenceEdit && (target.elements[i].linetype.empty()
+                    || !DRW_TextCodec::isUtf8ScalarText(target.elements[i].linetype))) return false;
+                source.referencesChanged=source.referencesChanged || referenceEdit;
             }
             source.raw=raw;source.output=raw;source.baseline=baseline->second;
             for (std::size_t i=0u;i<parsed.elements.size();++i)
@@ -16405,8 +16411,10 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             for (const auto index:textSlots) {
                 const bool nameField=source.output.groups[index].code()==2;
                 if (!nameField && element>=target.elements.size()) return false;
-                const auto& semantic=nameField ? target.name : target.elements[element++].linetype;
-                if (!transcode(index,semantic,sourceBinary!=binary || pageChanged)) return false;
+                const auto& semantic=nameField ? target.name : target.elements[element].linetype;
+                const bool referenceEdit=!nameField && semantic!=parsed.elements[element].linetype;
+                if (!transcode(index,semantic,referenceEdit || sourceBinary!=binary || pageChanged)) return false;
+                if (!nameField) ++element;
             }
             if (element!=target.elements.size()) return false;
             std::sort(source.stringOverrides.begin(),source.stringOverrides.end(),
@@ -16417,8 +16425,13 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 || !projected.validateDxfRecord() || !mlineFieldsEqual(projected,source.projection,true,true,true)
                 || !m_dxfMLineStyles.emplace(value.handle,std::move(source)).second) return false;
         }
-        return m_dxfMLineStyles.size()==handles.size() && hasUnchangedDxfMLineStyles()
-            && prepareDxfMLineLinetypes(bytes);
+        if (m_dxfMLineStyles.size()!=handles.size() || !hasUnchangedDxfMLineStyles()
+            || !prepareDxfMLineLinetypes(bytes)) return false;
+        // Unsupported original profiles may keep their unchanged advisory
+        // transport, but cannot authorize a newly selected reference.
+        return std::all_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),[](const auto& style) {
+            return !style.second.referencesChanged || style.second.linetypesBound;
+        });
     } catch (...) { return false; }
 }
 

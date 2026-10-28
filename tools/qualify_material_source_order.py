@@ -905,7 +905,8 @@ def qualify_mline_style_text_boundaries(ezdxf, probe, converter, output):
     return inputs, round_trips, transcoded
 
 
-def author_mline_style_authority_profile(ezdxf, simple_linetype=False):
+def author_mline_style_authority_profile(ezdxf, simple_linetype=False,
+                                       linetype_edit_source=False):
     """Author styles/providers before generating the unchanged MLINE geometry."""
     doc, style, _, null_bindings, omitted = author_mline_style_profile(
         ezdxf, "R2013", "utf-8", "Dictionary authority boundary",
@@ -914,6 +915,12 @@ def author_mline_style_authority_profile(ezdxf, simple_linetype=False):
         provider = doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE)
         provider.dxf.description = "Authored simple dash and gap"
         provider.setup_pattern([1.5, 1.0, -0.5])
+    if linetype_edit_source:
+        assert simple_linetype, "linetype edit source needs its original provider"
+        # This is typed source authoring before any MLINE geometry is generated.
+        # Keep PeerDash in the original document, but start the consumer style
+        # on ByLayer so the later probe exercises an actual reference edit.
+        style.elements.elements[0] = style.elements[0]._replace(linetype="BYLAYER")
     block = doc.blocks.new("PeerMlineBlock")
     model_line = doc.modelspace().add_mline(
         [(1, 2, 3), (5, 2, 3), (5, 2, 8)],
@@ -1033,6 +1040,58 @@ def qualify_mline_style_simple_linetype(ezdxf, probe, converter, output):
         ezdxf, probe, converter, source, "R2013", "utf-8", "asc", original,
         "", projection, expected, expected, modes=(False,))
     return [original], unchanged
+
+
+def qualify_mline_style_linetype_edits(ezdxf, probe, converter, output):
+    """Reuse one original provider/geometry recipe for six group-6 edits."""
+    doc, _, expected, consumers, null_bindings, omitted = author_mline_style_authority_profile(
+        ezdxf, simple_linetype=True, linetype_edit_source=True)
+    assert doc.linetypes.get("BYLAYER").dxf.name == "ByLayer", "selected original ByLayer name"
+    linetypes = {entry.dxf.name: simple_linetype_values(entry) for entry in (
+        doc.linetypes.get("BYLAYER"), doc.linetypes.get(PEER_MLINE_STYLE_SIMPLE_LTYPE))}
+    elements = expected[PEER_MLINE_STYLE_NAME]["elements"]
+    assert elements[0][2] == "BYLAYER", "source group-6 edit must begin on ByLayer"
+    assert PEER_MLINE_STYLE_SIMPLE_LTYPE in linetypes, "target LTYPE must preexist in source"
+
+    def projection(module, path, binary, wanted, source_recipe=False):
+        return selected_mline_style_projection(
+            module, path, binary, wanted, source_recipe=source_recipe,
+            consumer_expected=consumers, consumer_style_key=PEER_MLINE_STYLE_NAME,
+            linetype_expected=linetypes)
+
+    source = output / "mline-style-element-ltype-AC1027-asc.dxf"
+    doc.saveas(source, fmt="asc")
+    original = {"version": doc.dxfversion, "page": "utf-8", "format": "asc",
+                "path": source.name, "sha256": digest(source), "matched": False,
+                "selectedNullLayerBindings": null_bindings, "omittedDefaultMaterialHandles": omitted,
+                "expectedLinetypes": linetypes, "expectedStyles": expected,
+                "expectedConsumers": consumers,
+                "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation",
+                "nativeLinetypeSemanticsQualified": False}
+    try:
+        original["observations"] = projection(ezdxf, source, False, expected, source_recipe=True)
+        original["matched"] = True
+    except Exception as error:
+        original["mismatch"] = str(error)
+    edited_expected = {key: dict(value) for key, value in expected.items()}
+    edited_expected[PEER_MLINE_STYLE_NAME]["elements"] = [
+        (offset, color, PEER_MLINE_STYLE_SIMPLE_LTYPE if index == 0 else linetype)
+        for index, (offset, color, linetype) in enumerate(elements)]
+    edits = []
+    for mode in ("typed", "raw", "both"):
+        _, edited = selected_resource_outputs(
+            ezdxf, probe, converter, source, "R2013", "utf-8", "asc", original,
+            "--mline-style-ltype-probe", projection, expected, edited_expected,
+            modes=(True,), edit_prefix="element-ltype-" + mode + "-",
+            edit_arguments=(mode,))
+        for row in edited:
+            row.update({"editMode": mode, "editedTuple": 0,
+                        "originalLinetype": elements[0][2],
+                        "selectedLinetype": PEER_MLINE_STYLE_SIMPLE_LTYPE,
+                        "onlyElementLinetypeChanged": row["matched"],
+                        "providerPreexistsInOriginalSource": True})
+        edits.extend(edited)
+    return [original], edits
 
 
 def selected_round_trip(ezdxf, source, output, metadata_updates=None, target_binary=False, legacy=False):
@@ -1245,6 +1304,7 @@ def main():
     mline_key_inputs, mline_key_round_trips, mline_key_edits = [], [], []
     mline_element_aci_edits = []
     mline_simple_ltype_inputs, mline_simple_ltype_round_trips = [], []
+    mline_element_ltype_inputs, mline_element_ltype_edits = [], []
     if args.mline_style_probe or args.mline_style_only:
         mline_inputs, mline_round_trips, mline_edits = qualify_mline_styles(
             ezdxf, probe, converter, output)
@@ -1257,6 +1317,8 @@ def main():
          mline_element_aci_edits) = qualify_mline_style_key_authority(
             ezdxf, probe, converter, output)
         mline_simple_ltype_inputs, mline_simple_ltype_round_trips = qualify_mline_style_simple_linetype(
+            ezdxf, probe, converter, output)
+        mline_element_ltype_inputs, mline_element_ltype_edits = qualify_mline_style_linetype_edits(
             ezdxf, probe, converter, output)
     passed = sum(row["exitCode"] == 0 for row in rows)
     report = {
@@ -1332,6 +1394,10 @@ def main():
         "mlineStyleSimpleLtypeInputsMatched": sum(row["matched"] for row in mline_simple_ltype_inputs),
         "mlineStyleSimpleLtypeRoundTrips": mline_simple_ltype_round_trips,
         "mlineStyleSimpleLtypeRoundTripsMatched": sum(row["matched"] for row in mline_simple_ltype_round_trips),
+        "mlineStyleElementLtypeInputs": mline_element_ltype_inputs,
+        "mlineStyleElementLtypeInputsMatched": sum(row["matched"] for row in mline_element_ltype_inputs),
+        "mlineStyleElementLtypeEdits": mline_element_ltype_edits,
+        "mlineStyleElementLtypeEditsMatched": sum(row["matched"] for row in mline_element_ltype_edits),
         "mlineStyleRecipe": {
             "source": "Authored typed ezdxf 1.4.5 MLINESTYLE definitions, Standard and PeerMline, plus LINE",
             "producerTypedMlineStyleImplementation": True,
@@ -1381,6 +1447,20 @@ def main():
                 "projection": "Original low-level physical and ordinary typed LTYPE name/description/flags, exact ordered72/73/40/49/74 pattern, unique self/table-control/owner joins; all selected style and consumer fields/340/geometry checked by the existing comparator",
                 "authoring": "Provider and style authored before MLINE geometry generation; expectations frozen before first save; no postgeneration file mutation or output repair/regeneration",
                 "group6EditsQualified": False, "nativeLinetypeSemanticsQualified": False,
+            },
+            "elementLinetypeScope": {
+                "sources": 1, "editOutputs": 6,
+                "sourceVersionFormat": "AC1027/UTF-8/ASCII",
+                "additionalUnchangedCliRuns": 0,
+                "probe": "--mline-style-ltype-probe input output asc|bin typed|raw|both",
+                "editedDictionaryKey": PEER_MLINE_STYLE_NAME, "editedTuple": 0,
+                "originalLinetype": "BYLAYER", "selectedLinetype": PEER_MLINE_STYLE_SIMPLE_LTYPE,
+                "authoring": "Reuse the typed authority/simple-provider recipe; both original providers exist and ByLayer style is selected before geometry generation, expectations and first save",
+                "projection": "Physical source ByLayer and PeerDash bodies/control/self/owner plus exact complete patterns before setup; typed ordinary read separately. Only first ordered group-6 name changes; all other style fields, dictionary/body/consumer names, 340 targets and complete ENTITIES/BLOCKS MLINE geometry stay fixed",
+                "noSourcePostMutationOrGeometryRegeneration": True,
+                "editModes": ["typed", "raw", "both"],
+                "nativeLinetypeSemanticsQualified": False,
+                "otherVersionOrComplexProviderProfilesQualified": False,
             },
             "projection": "All selected style definitions, dictionary/owner/name joins, base fields and ordered 49/62/6 tuples before setup; typed ordinary read separately",
             "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
@@ -1443,6 +1523,9 @@ def main():
         print("Independent MLINESTYLE simple LTYPE source/unchanged projections: %d/%d, %d/%d" % (
             report["mlineStyleSimpleLtypeInputsMatched"], len(mline_simple_ltype_inputs),
             report["mlineStyleSimpleLtypeRoundTripsMatched"], len(mline_simple_ltype_round_trips)))
+        print("Independent MLINESTYLE element LTYPE source/typed/raw/both edits: %d/%d, %d/%d" % (
+            report["mlineStyleElementLtypeInputsMatched"], len(mline_element_ltype_inputs),
+            report["mlineStyleElementLtypeEditsMatched"], len(mline_element_ltype_edits)))
     return 0 if passed == len(rows) and all(
         row["matched"] for row in round_trips + variable_edits + legacy_round_trips + legacy_edits
         + scale_inputs + scale_round_trips + scale_edits
@@ -1451,7 +1534,8 @@ def main():
         + mline_scalar_edits + mline_text_inputs + mline_text_round_trips
         + mline_text_transcodes + mline_key_inputs + mline_key_round_trips
         + mline_key_edits + mline_element_aci_edits
-        + mline_simple_ltype_inputs + mline_simple_ltype_round_trips) else 1
+        + mline_simple_ltype_inputs + mline_simple_ltype_round_trips
+        + mline_element_ltype_inputs + mline_element_ltype_edits) else 1
 
 
 if __name__ == "__main__":

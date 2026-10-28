@@ -28935,6 +28935,7 @@ void testScaleBodyTransactions(TestContext& t) {
 }
 
 namespace mlineLtypeProviderControls {bool run(const std::filesystem::path& dir);}
+namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
 using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
@@ -28942,6 +28943,7 @@ const std::string initialDescription="source description café^A\\U+1234";
 const std::string editedDescription="edited description café^A\\U+1234";
 struct Scalars {int flags=0,fill=256;double start=90.0,end=90.0;};
 using AciColors=std::array<int,2>;
+using LtypeNames=std::array<std::string,2>;
 void setScalars(dx_data& data,const Scalars& value) {
     auto& style=data.mLineStyles.front();style.flags=value.flags;style.fillColor=value.fill;style.startAngle=value.start;style.endAngle=value.end;
 }
@@ -29004,19 +29006,19 @@ bool aciRawUnchanged(const DRW_RawDxfObject& a,const DRW_RawDxfObject& b) {
     }
     return true;
 }
-bool modelValues(const dx_data& data,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}}) {
+bool modelValues(const dx_data& data,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}},const LtypeNames& names=LtypeNames{{"ByLayer","Continuous"}}) {
     if(data.mLineStyles.size()!=1u)return false;
     const auto& value=data.mLineStyles.front();
     return value.name=="BODY_STYLE"&&value.description==description&&static_cast<std::uint16_t>(value.flags)==static_cast<std::uint16_t>(flags)&&value.fillColor==fill
         &&value.startAngle==start&&value.endAngle==end
         &&std::signbit(value.startAngle)==std::signbit(start)&&std::signbit(value.endAngle)==std::signbit(end)&&value.elements.size()==2u
-        &&value.elements[0].offset==firstOffset&&value.elements[0].color==colors[0]&&value.elements[0].linetype=="ByLayer"
-        &&value.elements[1].offset==-.25&&value.elements[1].color==colors[1]&&value.elements[1].linetype=="Continuous";
+        &&value.elements[0].offset==firstOffset&&value.elements[0].color==colors[0]&&value.elements[0].linetype==names[0]
+        &&value.elements[1].offset==-.25&&value.elements[1].color==colors[1]&&value.elements[1].linetype==names[1];
 }
-bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}}) {
-    dx_iface reader;dx_data data;return reader.fileImport(path.string(),&data,false)&&modelValues(data,description,start,end,firstOffset,flags,fill,colors);
+bool values(const std::filesystem::path& path,const std::string& description,double start=90.0,double end=90.0,double firstOffset=.5,int flags=0,int fill=256,const AciColors& colors=AciColors{{1,3}},const LtypeNames& names=LtypeNames{{"ByLayer","Continuous"}}) {
+    dx_iface reader;dx_data data;return reader.fileImport(path.string(),&data,false)&&modelValues(data,description,start,end,firstOffset,flags,fill,colors,names);
 }
-bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5,double end=90.0,int flags=0,int fill=256,unsigned scalarMask=15u,const AciColors& colors=AciColors{{1,3}}) {
+bool proof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,bool descriptionPresent=true,double start=90.0,bool angles=true,const std::string& opaque="opaque-mline-tail",double firstOffset=.5,double end=90.0,int flags=0,int fill=256,unsigned scalarMask=15u,const AciColors& colors=AciColors{{1,3}},const LtypeNames& names=LtypeNames{{"ByLayer","Continuous"}}) {
     using Row=customDictionaryVarControls::Row;std::vector<Row> rows;
     for(const auto& field:materialBodyControls::physicalTags(path,binary)) {
         if(field.first==0){rows.push_back({field.second,{},{},{}});continue;}
@@ -29040,7 +29042,7 @@ bool proof(const std::filesystem::path& path,bool binary,const std::string& vers
     return fields[2]==std::vector<std::string>{"BODY_STYLE"}&&fields[3]==(descriptionPresent?std::vector<std::string>{materialBodyControls::encodedText(description,version,binary,"ANSI_1252")}:std::vector<std::string>{})
         &&flagMatched&&nums(62,(scalarMask&2u)?std::vector<double>{double(fill),double(colors[0]),double(colors[1])}:std::vector<double>{double(colors[0]),double(colors[1])})
         &&nums(51,(angles&&(scalarMask&4u))?std::vector<double>{start}:std::vector<double>{})&&nums(52,(angles&&(scalarMask&8u))?std::vector<double>{end}:std::vector<double>{})
-        &&nums(71,{2})&&nums(49,{firstOffset,-.25})&&fields[6]==std::vector<std::string>{"ByLayer","Continuous"}&&fields[301]==std::vector<std::string>{opaque};
+        &&nums(71,{2})&&nums(49,{firstOffset,-.25})&&fields[6]==std::vector<std::string>{names[0],names[1]}&&fields[301]==std::vector<std::string>{opaque};
 }
 bool aciLiteral(const std::filesystem::path& path,bool binary,const AciColors& colors,int fill=256) {
     std::vector<std::pair<int,std::string>> selected;bool style=false,body=false;unsigned depth=0u,styles=0u;
@@ -29064,6 +29066,10 @@ bool aciLiteral(const std::filesystem::path& path,bool binary,const AciColors& c
 bool aciProof(const std::filesystem::path& path,bool binary,const AciColors& colors,const std::string& description=initialDescription,int fill=256) {
     return proof(path,binary,"AC1027",description,true,90,true,"opaque-mline-tail",.5,90,0,fill,15u,colors)
         &&values(path,description,90,90,.5,0,fill,colors)&&aciLiteral(path,binary,colors,fill);
+}
+bool ltypeBasicProof(const std::filesystem::path& path,bool binary,const LtypeNames& names) {
+    return proof(path,binary,"AC1027",initialDescription,true,90,true,"opaque-mline-tail",.5,90,0,256,15u,{{1,3}},names)
+        &&values(path,initialDescription,90,90,.5,0,256,{{1,3}},names);
 }
 bool scalarProof(const std::filesystem::path& path,bool binary,const std::string& version,const std::string& description,const Scalars& wanted,unsigned mask=15u) {
     return proof(path,binary,version,description,true,wanted.start,true,"opaque-mline-tail",.5,wanted.end,wanted.flags,wanted.fill,mask)
@@ -29266,6 +29272,7 @@ bool run(const std::filesystem::path& dir) {
     std::size_t textProfiles=0u,textReadbacks=0u,textInsertions=0u,textCallbacks=0u,textShadows=0u,textSpellings=0u,textAppScopes=0u,textLateNames=0u;
     std::size_t aciProfiles=0u,aciReadbacks=0u,aciConflicts=0u,aciInvalid=0u,aciCallbacks=0u,aciInsertions=0u,aciScopes=0u,aciTransports=0u,aciCorruptions=0u,aciBoundary=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
+    if(!mlineLtypeEditControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeProviderControls::run(dir))return fail(__LINE__);
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -29431,8 +29438,12 @@ bool run(const std::filesystem::path& dir) {
         if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
         data.mLineStyles.front().description="raw conflict";if(!check("raw conflict"))return fail(__LINE__);++retries;
         for(int code:{2,6}) {
-            reset();rawValue(data,code,code==2?"OTHER_STYLE":"Continuous",sourceBinary,version);sentinel(output);
-            if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+            reset();rawValue(data,code,code==2?"OTHER_STYLE":"Continuous",sourceBinary,version);
+            if(code==6&&version=="AC1027") {
+                if(!adapter.fileExport(output.string(),v,binary,&data,false,true)||!ltypeBasicProof(output,binary,{{"Continuous","Continuous"}}))return fail(__LINE__);++readbacks;
+            } else {
+                sentinel(output);if(adapter.fileExport(output.string(),v,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;
+            }
             reset();if(!check(initialDescription))return fail(__LINE__);++retries;
         }
         ++profiles;
@@ -29455,6 +29466,8 @@ bool run(const std::filesystem::path& dir) {
         if(kind==8u) {
             if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!aciProof(output,binary,{{5,3}}))return fail(__LINE__);
             ++readbacks;++aciReadbacks;
+        } else if(kind==9u) {
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!ltypeBasicProof(output,binary,{{"Continuous","Continuous"}}))return fail(__LINE__);++readbacks;
         } else {
             sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++refusals;++unsupported;
         }
@@ -29706,7 +29719,7 @@ bool run(const std::filesystem::path& dir) {
         <<"; aciProfiles="<<aciProfiles<<"; aciReadbacks="<<aciReadbacks<<"; aciConflicts="<<aciConflicts<<"; aciInvalid="<<aciInvalid
         <<"; aciCallbacks="<<aciCallbacks<<"; aciInsertions="<<aciInsertions<<"; aciScopes="<<aciScopes<<"; aciTransports="<<aciTransports
         <<"; aciCorruptions="<<aciCorruptions<<"; aciBoundary="<<aciBoundary<<'\n';
-    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==28u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
+    return profiles==8u&&presence==4u&&callbacks==88u&&prepFaults>0u&&lengthRefusals==2u&&lengthBoundaries==2u&&unsupported==26u&&scopeControls==4u&&encodingRefusals==6u&&corruptions>0u&&geometryGuards==2u&&scalarReadbacks==72u&&scalarConflicts==34u&&scalarPresence==10u&&invalidScalars==20u&&signedZeros==4u
         &&textProfiles==16u&&textReadbacks==48u&&textInsertions==16u&&textCallbacks==32u&&textShadows==4u&&textSpellings==2u&&textAppScopes==4u&&textLateNames==2u
         &&aciProfiles==4u&&aciReadbacks==127u&&aciConflicts==8u&&aciInvalid==32u&&aciCallbacks==32u&&aciInsertions==4u
         &&aciScopes==2u&&aciTransports==4u&&aciCorruptions==4u&&aciBoundary==1u;
@@ -29939,7 +29952,8 @@ std::vector<Row> records(const std::filesystem::path& path,bool binary) {
     return result;
 }
 bool proof(const std::filesystem::path& path,bool binary,const std::string& expected,bool paper=false,bool emptyFinal=false,
-        const std::string& version="AC1027",const std::string& entityName="OLD_ENTITY_NAME",const std::string& firstLinetype="ByLayer") {
+        const std::string& version="AC1027",const std::string& entityName="OLD_ENTITY_NAME",const std::string& firstLinetype="ByLayer",
+        const std::string& secondLinetype="Continuous",int fill=256,const std::string& description=mlineStyleBodyTransactionControls::initialDescription) {
     const auto rows=records(path,binary);std::map<std::string,const Row*> ids;const Row* root=nullptr;const Row* style=nullptr;
     for(const auto& row:rows) {
         if(!row.id.empty()&&!ids.emplace(row.id,&row).second)return false;
@@ -29964,10 +29978,17 @@ bool proof(const std::filesystem::path& path,bool binary,const std::string& expe
         const auto actual=fields(*style,code);if(actual.size()!=values.size())return false;
         for(std::size_t i=0u;i<values.size();++i)if(std::stod(actual[i])!=values[i])return false;return true;
     };
-    if(fields(*style,3)!=std::vector<std::string>{materialBodyControls::encodedText(mlineStyleBodyTransactionControls::initialDescription,version,binary)}
-        ||fields(*style,6)!=std::vector<std::string>{firstLinetype,"Continuous"}
+    std::vector<std::string> styleLinetypes;unsigned styleDepth=0u;bool styleBody=false;
+    for(const auto& field:style->fields) {
+        if(field.first==102){if(field.second=="}"){if(!styleDepth)return false;--styleDepth;}else ++styleDepth;continue;}
+        if(styleDepth)continue;if(field.first==100){styleBody=field.second=="AcDbMlineStyle";continue;}
+        if(styleBody&&field.first==6)styleLinetypes.push_back(field.second);
+    }
+    if(styleDepth)return false;
+    if(fields(*style,3)!=std::vector<std::string>{materialBodyControls::encodedText(description,version,binary)}
+        ||styleLinetypes!=std::vector<std::string>{firstLinetype,secondLinetype}
         ||fields(*style,301)!=std::vector<std::string>{"opaque-mline-tail"}
-        ||!styleNumbers(70,{0})||!styleNumbers(62,{256,1,3})||!styleNumbers(51,{90})
+        ||!styleNumbers(70,{0})||!styleNumbers(62,{double(fill),1,3})||!styleNumbers(51,{90})
         ||!styleNumbers(52,{90})||!styleNumbers(71,{2})||!styleNumbers(49,{.5,-.25}))return false;
     unsigned model=0u,named=0u;
     for(const auto& row:rows)if(row.type=="MLINE") {
@@ -30324,7 +30345,7 @@ void testMLineStyleAuthority(TestContext& t) {
 
 namespace mlineLtypeProviderControls {
 using namespace materialConsumerControls;
-Tags withProvider(Tags fields) {
+Tags withProvider(Tags fields,bool select=true) {
     bool table=false,style=false,first=false;
     auto at=fields.end();
     for(auto it=fields.begin();it!=fields.end();++it) {
@@ -30341,7 +30362,7 @@ Tags withProvider(Tags fields) {
         {2,"EditDash"},{70,"0"},{3,"source EditDash"},{72,"65"},{73,"2"},{40,"1.5"},{49,"1"},{74,"0"},{49,"-0.5"},{74,"0"}});
     for(auto& field:fields) {
         if(field.first==0)style=field.second=="MLINESTYLE";
-        if(style&&field.first==6&&!first){field.second="EditDash";first=true;}
+        if(style&&field.first==6&&!first){if(select)field.second="EditDash";first=true;}
     }
     if(!first)throw std::runtime_error("MLINE custom LTYPE reference missing");return fields;
 }
@@ -30618,6 +30639,250 @@ bool run(const std::filesystem::path& dir) {
         &&plannerFaults>0u&&plannerFaults+plannerUnreached==8u&&normalizedAdvisory==1u;
 }
 }
+
+
+namespace mlineLtypeEditControls {
+using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
+using Names=mlineStyleBodyTransactionControls::LtypeNames;
+const Names originalNames{{"ByLayer","Continuous"}};
+Tags recipe(bool binary) {return mlineLtypeProviderControls::withProvider(mlineStyleAuthorityControls::recipe(binary),false);}
+std::vector<std::size_t> nameSlots(const DRW_RawDxfObject& record) {
+    std::vector<std::size_t> result;unsigned depth=0u,elements=0u;bool body=false;
+    for(std::size_t i=0u;i<record.groups.size();++i) {
+        const auto& field=record.groups[i];const auto code=field.code();
+        if(code==102){if(field.type()!=DRW_Variant::STRING||!field.content.s)throw std::runtime_error("LTYPE application marker");
+            if(*field.content.s=="}"){if(!depth)throw std::runtime_error("LTYPE application depth");--depth;}else ++depth;continue;}
+        if(depth)continue;if(code==100){body=field.type()==DRW_Variant::STRING&&field.content.s&&*field.content.s=="AcDbMlineStyle";continue;}
+        if(!body)continue;if(code==49)++elements;
+        if(code==6){if(!elements||result.size()!=elements-1u)throw std::runtime_error("LTYPE tuple name count");result.push_back(i);}
+    }
+    if(depth||result.size()!=elements)throw std::runtime_error("LTYPE tuple name scope");return result;
+}
+void rawName(DRW_RawDxfObject& record,std::size_t element,const std::string& text) {
+    const auto slots=nameSlots(record);if(element>=slots.size())throw std::runtime_error("LTYPE element missing");
+    record.groups[slots[element]]=DRW_Variant(6,UTF8STRING(text));if(record.hasRawValues)record.rawValues[slots[element]]=text;
+}
+void rawName(dx_data& data,std::size_t element,const std::string& text){rawName(mlineStyleBodyTransactionControls::raw(data),element,text);}
+bool sameStyle(const DRW_MLineStyle& a,const DRW_MLineStyle& b) {
+    if(a.handle!=b.handle||a.parentHandle!=b.parentHandle||a.name!=b.name||a.description!=b.description||a.flags!=b.flags
+        ||a.startAngle!=b.startAngle||a.endAngle!=b.endAngle||a.fillColor!=b.fillColor||a.fillColor24!=b.fillColor24
+        ||a.fillColorMethod!=b.fillColorMethod||a.fillColorFlags!=b.fillColorFlags||a.fillColorName!=b.fillColorName
+        ||a.fillColorBookName!=b.fillColorBookName||a.fillColorDwgIndex!=b.fillColorDwgIndex||a.elements.size()!=b.elements.size())return false;
+    for(std::size_t i=0u;i<a.elements.size();++i) {
+        const auto& x=a.elements[i];const auto& y=b.elements[i];
+        if(x.offset!=y.offset||x.color!=y.color||x.color24!=y.color24||x.colorMethod!=y.colorMethod||x.colorFlags!=y.colorFlags
+            ||x.colorName!=y.colorName||x.colorBookName!=y.colorBookName||x.colorDwgIndex!=y.colorDwgIndex
+            ||x.linetype!=y.linetype||x.linetypeIndex!=y.linetypeIndex||x.linetypeHandle!=y.linetypeHandle)return false;
+    }
+    return true;
+}
+template<class Lines>bool caller(dx_data& data,const DRW_MLineStyle& style,const DRW_RawDxfObject& raw,const Lines& lines) {
+    return data.mLineStyles.size()==1u&&sameStyle(data.mLineStyles.front(),style)
+        &&mlineStyleBodyTransactionControls::aciRawUnchanged(raw,mlineStyleBodyTransactionControls::raw(data))
+        &&data.lineTypes.size()==lines.size()&&std::equal(data.lineTypes.begin(),data.lineTypes.end(),lines.begin(),mlineLtypeProviderControls::sameProvider)
+        &&mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE");
+}
+bool complete(const std::filesystem::path& path,bool binary,const Names& names,int fill=256) {
+    if(!mlineLtypeProviderControls::providerProof(path,binary)
+        ||!mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",names[0],names[1],fill))return false;
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u)return false;
+    const auto& style=actual.mLineStyles.front();
+    return style.elements.size()==2u&&style.elements[0].linetype==names[0]&&style.elements[1].linetype==names[1]
+        &&style.elements[0].linetypeIndex==-1&&style.elements[1].linetypeIndex==-1
+        &&style.elements[0].linetypeHandle==0u&&style.elements[1].linetypeHandle==0u;
+}
+bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary,std::string_view mode) {
+    if(mode!="typed"&&mode!="raw"&&mode!="both")return false;
+    dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;DRW_MLineStyle* selected=nullptr;
+    for(const auto& dictionary:data.dictionaries)for(const auto& entry:dictionary.m_entries)if(entry.m_name=="PeerMline")
+        for(auto& style:data.mLineStyles)if(style.handle==entry.m_handle&&style.parentHandle==dictionary.handle) {
+            if(selected)return false;selected=&style;
+        }
+    if(!selected||selected->elements.size()!=2u)return false;
+    if(mode=="typed"||mode=="both")selected->elements[0].linetype="PeerDash";
+    if(mode=="raw"||mode=="both") {
+        DRW_RawDxfObject* raw=nullptr;for(auto& row:data.rawNamedResourceObjects)if(row.handle==selected->handle){if(raw)return false;raw=&row;}
+        if(!raw)return false;rawName(*raw,0u,"PeerDash");
+    }
+    return adapter.fileExport(output.string(),data.sourceVersion,binary,&data,false,true,
+        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);
+}
+struct Replay:dx_iface {
+    std::filesystem::path previous;bool binary=false;std::size_t corruptions=0u;
+    bool finalizeDxfWrite()override {
+        const auto fields=wire(previous,binary);std::ifstream input(previous,std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)),{});std::size_t begin=0u,end=0u;std::vector<std::size_t> names;
+        for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i].code==0&&fields[i].text=="SECTION"&&fields[i+1u].text=="OBJECTS") {
+            begin=fields[i+1u].end;for(auto j=i+2u;j<fields.size();++j)if(fields[j].code==0&&fields[j].text=="ENDSEC"){end=fields[j].begin;break;}break;
+        }
+        if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);bool selected=false;
+        for(std::size_t i=0u;i<fields.size();++i) {
+            if(fields[i].code==0)selected=fields[i].text=="MLINESTYLE";
+            if(selected&&fields[i].code==6&&fields[i].begin>=begin&&fields[i].begin<end)names.push_back(i);
+        }
+        if(names.size()!=2u||fields[names[0]].text!="EditDash"||fields[names[1]].text!="Continuous")return false;
+        dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        if(!A::mlineStylesReplay(*this,view))return false;
+        for(unsigned mode=0u;mode<3u;++mode) {
+            auto changed=body;
+            for(unsigned j=2u;j--;)if(mode==j||mode==2u) {
+                const auto& field=fields[names[j]];std::string replacement=j?"EditDash":"Continuous";replacement.push_back(binary?'\0':'\n');
+                changed.replace(field.value-begin,field.end-field.value,replacement);
+            }
+            auto bad=view;bad.bytes=changed;
+            if(A::mlineStylesReplay(*this,bad)||!A::mlineStylesReplay(*this,view))return false;++corruptions;
+        }
+        return corruptions==3u&&dx_iface::finalizeDxfWrite();
+    }
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"ltype-edit-input.dxf",output=dir/"ltype-edit-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,conflicts=0u,invalid=0u,unqualified=0u,legacy=0u,late=0u,copied=0u,retries=0u,corruptions=0u,scopes=0u,insertions=0u,faults=0u,unreached=0u;
+    const auto fail=[&](int line){std::cerr<<"MLINE LTYPE edit line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+        <<" conflicts="<<conflicts<<" invalid="<<invalid<<" unqualified="<<unqualified<<" late="<<late<<" copied="<<copied<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+            ||data.mLineStyles.front().elements[0].linetype!="ByLayer")return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
+        const auto reset=[&]{data.mLineStyles=typed;data.rawNamedResourceObjects=raws;};
+        const auto check=[&](const Names& names) {
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,names)||!caller(data,style,raw,lines))return false;
+            ++readbacks;return true;
+        };
+        if(!check(originalNames))return fail(__LINE__);
+        for(unsigned element=0u;element<2u;++element)for(unsigned mode=0u;mode<3u;++mode) {
+            reset();Names wanted=originalNames;wanted[element]="EditDash";
+            if(mode!=1u)data.mLineStyles.front().elements[element].linetype="EditDash";
+            if(mode!=0u)rawName(data,element,"EditDash");
+            if(!check(wanted))return fail(__LINE__);
+        }
+        reset();data.mLineStyles.front().elements[0].linetype="EditDash";rawName(data,1u,"EditDash");
+        if(!check({{"EditDash","EditDash"}}))return fail(__LINE__);
+        for(unsigned element=0u;element<2u;++element) {
+            reset();data.mLineStyles.front().elements[element].linetype="EditDash";rawName(data,element,element?"ByLayer":"Continuous");
+            const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller(data,style,raw,lines))return fail(__LINE__);++conflicts;
+            rawName(data,element,"EditDash");Names wanted=originalNames;wanted[element]="EditDash";
+            if(!check(wanted))return fail(__LINE__);++retries;
+        }
+        ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<9u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;auto& style=data.mLineStyles.front();style.elements[0].linetype="EditDash";
+        if(kind==0u)style.elements[0].linetype="MissingDash";if(kind==1u){style.elements[0].linetype="ByLayer";rawName(data,0u,"MissingDash");}
+        if(kind==2u)style.elements[0].linetype.clear();if(kind==3u)style.elements[0].linetype=std::string("\xC3(",2u);
+        if(kind==4u)style.elements[0].linetypeIndex=0;if(kind==5u)style.elements[0].linetypeHandle=0x103u;
+        if(kind==6u)style.elements[0].offset=.75;if(kind==7u)style.elements[0].color24=0x123456;
+        if(kind==8u)style.elements.push_back(style.elements.front());
+        const auto edited=style;const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller(data,edited,raw,lines))return fail(__LINE__);++invalid;
+        data.mLineStyles=typed;data.rawNamedResourceObjects=raws;data.mLineStyles.front().elements[0].linetype="EditDash";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","Continuous"}}))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<6u;++kind) {
+        auto fields=recipe(binary);std::size_t first=fields.size(),end=fields.size();
+        for(std::size_t i=0u;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))&&i+1u<fields.size()&&fields[i+1u]==std::make_pair(5,std::string("103"))) {
+            first=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
+        }
+        if(first==fields.size())return fail(__LINE__);
+        if(kind==0u)fields.erase(fields.begin()+first,fields.begin()+end);
+        if(kind==1u){Tags duplicate(fields.begin()+first,fields.begin()+end);for(auto& field:duplicate)if(field.first==5)field.second="104";fields.insert(fields.begin()+end,duplicate.begin(),duplicate.end());}
+        if(kind==2u||kind==3u)for(auto i=first;i<end;++i)if(fields[i].first==(kind==2u?70:40))fields[i].second=kind==2u?"16":"99";
+        if(kind==4u)for(auto i=end;i-->first;)if(fields[i].first==74)fields.erase(fields.begin()+i);
+        if(kind==5u)fields.insert(fields.begin()+first+2u,{{102,"{LTYPE_META"},{1,"opaque"},{102,"}"}});
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!mlineStyleAuthorityControls::proof(output,binary,"EFFECTIVE_STYLE"))return fail(__LINE__);++readbacks;
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller(data,style,raw,lines))return fail(__LINE__);++unqualified;
+        data.mLineStyles.front().elements[0].linetype="ByLayer";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!mlineStyleAuthorityControls::proof(output,binary,"EFFECTIVE_STYLE"))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=mlineLtypeProviderControls::withProvider(mlineStyleAuthorityControls::legacyConsumerRecipe(binary),false);
+        if(!write(input,fields,binary,"AC1015")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+            ||!mlineStyleAuthorityControls::proof(output,binary,"OLD_BODY_NAME",false,false,"AC1015","OLD_BODY_NAME"))return fail(__LINE__);++readbacks;
+        data.mLineStyles.front().elements[0].linetype="EditDash";sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++legacy;
+        data.mLineStyles.front().elements[0].linetype="ByLayer";
+        if(!adapter.fileExport(output.string(),DRW::AC1015,binary,&data,false,true)
+            ||!mlineStyleAuthorityControls::proof(output,binary,"OLD_BODY_NAME",false,false,"AC1015","OLD_BODY_NAME"))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(unsigned kind=0u;kind<3u;++kind) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;const auto lines=data.lineTypes;
+        adapter.change=[&]{if(kind==0u)data.mLineStyles.front().elements[0].linetype="ByLayer";if(kind==1u)rawName(data,0u,"Continuous");
+            if(kind==2u)mlineLtypeProviderControls::provider(data).desc="late provider description";};
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++late;
+        adapter.active=false;data.mLineStyles=typed;data.rawNamedResourceObjects=raws;data.lineTypes=lines;
+        const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","Continuous"}})
+            ||!caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true})for(unsigned mode=0u;mode<4u;++mode) {
+        mlineLtypeProviderControls::Corrupt adapter;adapter.mode=mode;dx_data data;
+        if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller(data,style,raw,lines))return fail(__LINE__);++copied;
+        adapter.active=false;if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!complete(output,binary,{{"EditDash","Continuous"}})||!caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++retries;
+    }
+    for(bool binary:{false,true}) {
+        auto fields=recipe(binary);bool style=false,element=false;
+        for(auto it=fields.begin();it!=fields.end();) {
+            if(it->first==0){style=it->second=="MLINESTYLE";element=false;}
+            if(style&&it->first==49)element=true;
+            if(style&&!element&&(it->first==3||it->first==62))it=fields.erase(it);else ++it;
+        }
+        const auto where=std::find(fields.begin(),fields.end(),std::make_pair(49,std::string("0.5")));
+        if(where==fields.end())return fail(__LINE__);fields.insert(where+1,{{102,"{LTYPE_EDIT_META"},{6,"opaque-reference"},{102,"}"}});
+        dx_iface adapter;dx_data data;if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";rawName(data,1u,"EditDash");
+        data.mLineStyles.front().description=mlineStyleBodyTransactionControls::initialDescription;data.mLineStyles.front().fillColor=6;
+        const auto saved=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","EditDash"}},6)
+            ||!caller(data,saved,raw,lines))return fail(__LINE__);unsigned opaque=0u;
+        const auto actual=materialBodyControls::physicalTags(output,binary);
+        for(std::size_t i=0u;i+2u<actual.size();++i)if(actual[i]==std::make_pair(102,std::string("{LTYPE_EDIT_META"))) {
+            if(actual[i+1u]!=std::make_pair(6,std::string("opaque-reference"))||actual[i+2u]!=std::make_pair(102,std::string("}")))return fail(__LINE__);++opaque;
+        }
+        if(opaque!=1u)return fail(__LINE__);++readbacks;++scopes;++insertions;
+    }
+    for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;if(!write(input,recipe(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].linetype="EditDash";const auto saved=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
+        Replay replay;replay.binary=binary;replay.previous=dir/(binary?"ltype-edit-proof-bin.dxf":"ltype-edit-proof-asc.dxf");
+        if(!adapter.fileExport(replay.previous.string(),DRW::AC1027,binary,&data,false,true)
+            ||!replay.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","Continuous"}})
+            ||!caller(data,saved,raw,lines))return fail(__LINE__);corruptions+=replay.corruptions;++readbacks;
+        for(long offset:{0L,16L,64L}) {
+            sentinel(output);const auto before=materialFailedAllocations;const bool prepared=A::prepareMLineStyles(adapter,offset,binary),injected=materialFailedAllocations!=before;
+            if(prepared==injected||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller(data,saved,raw,lines))return fail(__LINE__);
+            if(injected)++faults;else ++unreached;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!complete(output,binary,{{"EditDash","Continuous"}})
+                ||!caller(data,saved,raw,lines))return fail(__LINE__);++readbacks;++retries;
+        }
+    }
+    std::cout<<"MLINE LTYPE edit profiles="<<profiles<<"; readbacks="<<readbacks<<"; conflicts="<<conflicts<<"; invalid="<<invalid
+        <<"; unqualified="<<unqualified<<"; legacy="<<legacy<<"; late="<<late<<"; copied="<<copied<<"; retries="<<retries
+        <<"; corruptions="<<corruptions<<"; scopes="<<scopes<<"; insertions="<<insertions<<"; faults="<<faults<<"; unreached="<<unreached<<'\n';
+    return profiles==4u&&conflicts==8u&&invalid==18u&&unqualified==12u&&legacy==2u&&late==24u&&copied==8u
+        &&corruptions==6u&&scopes==2u&&insertions==2u&&faults>0u&&faults+unreached==6u;
+}
+}
+
 
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
@@ -38745,6 +39010,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-scalar-probe") {
         return mlineStyleBodyTransactionControls::scalarPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
+    }
+    if (argc == 6 && std::string(argv[1]) == "--mline-style-ltype-probe") {
+        return mlineLtypeEditControls::peer(argv[2],argv[3],std::string(argv[4])=="bin",argv[5]) ? 0 : 1;
     }
     if (argc == 5 && std::string(argv[1]) == "--mline-style-aci-probe") {
         return mlineStyleBodyTransactionControls::aciPeer(argv[2],argv[3],std::string(argv[4])=="bin") ? 0 : 1;
