@@ -32602,6 +32602,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     const auto style = styles.find(mline->styleHandle);
                     if (style == styles.end()
                         || reachableStyles.count(mline->styleHandle) != 1u
+                        || mline->numLines != style->second->elements.size()
                         || (style->second->name.empty() && !m_mlineStyleNamesToWrite.count(mline->styleHandle)))
                         return false;
                     const auto source=m_dxfMLineStyles.find(mline->styleHandle);
@@ -32617,14 +32618,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if ((cData->mBlock != nullptr
                  && !validateMLineEntities(cData->mBlock->ent))) {
                 reportPreflightFailure(
-                    "MLINE code-340 style target/name is not uniquely rooted");
+                    "MLINE code-340 style target/name or element count is invalid");
                 return false;
             }
             for (const dx_ifaceBlock* block : cData->blocks) {
                 if (block != nullptr
                     && !validateMLineEntities(block->ent)) {
                     reportPreflightFailure(
-                        "MLINE code-340 style target/name is not uniquely rooted");
+                        "MLINE code-340 style target/name or element count is invalid");
                     return false;
                 }
             }

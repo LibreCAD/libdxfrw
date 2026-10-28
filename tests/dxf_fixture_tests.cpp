@@ -29500,6 +29500,27 @@ Tags recipe(bool binary) {
     if(objects==fields.end())throw std::runtime_error("authority OBJECTS boundary missing");
     blocks.insert(blocks.end(),entities.begin(),entities.end());fields.insert(objects,blocks.begin(),blocks.end());return fields;
 }
+Tags arityRecipe(bool binary,bool named) {
+    const auto source=recipe(binary);Tags result;bool mline=false,selected=false;
+    unsigned element=0u,counts=0u,removed=0u;
+    for(std::size_t i=0u;i<source.size();++i) {
+        auto field=source[i];
+        if(field.first==0){mline=field.second=="MLINE";selected=false;}
+        if(mline&&field.first==5)selected=field.second==(named?"D101":"D100");
+        if(selected) {
+            if(field.first==73){field.second="1";++counts;}
+            if(field.first==11)element=0u;
+            if(field.first==74&&++element==2u) {
+                if(i+2u>=source.size()||field.second!="1"
+                    ||source[i+1u]!=std::make_pair(41,std::string("-0.25"))
+                    ||source[i+2u]!=std::make_pair(75,std::string("0")))throw std::runtime_error("arity tuple missing");
+                i+=2u;++removed;continue;
+            }
+        }
+        result.push_back(std::move(field));
+    }
+    if(counts!=1u||removed!=2u)throw std::runtime_error("arity consumer missing");return result;
+}
 Tags fixedSpaceRecipe(bool binary,bool paper) {
     auto fields=recipe(binary);std::size_t first=fields.size(),end=fields.size();bool entities=false;
     for(std::size_t i=0u;i<fields.size();++i) {
@@ -29612,6 +29633,28 @@ bool callerUnchanged(dx_data& data,const std::string& expected,bool emptyFinal=f
     const auto values=consumers(data);if(values.size()!=2u)return false;
     for(unsigned i=0u;i<2u;++i)if(values[i]->styleName!=entityName||values[i]->styleHandle!=0xDu
         ||!geometry(*values[i],i?4:1,emptyFinal))return false;
+    return true;
+}
+bool arityCallerUnchanged(dx_data& data,bool named) {
+    if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+        ||data.mLineStyles.front().name!="OLD_BODY_NAME"||key(data).m_name!="EFFECTIVE_STYLE")return false;
+    const auto values=consumers(data);if(values.size()!=2u)return false;
+    for(unsigned i=0u;i<2u;++i) {
+        const auto& value=*values[i];
+        if(value.styleName!="OLD_ENTITY_NAME"||value.styleHandle!=0xDu
+            ||value.handle!=(i?0xD101u:0xD100u)||value.parentHandle!=(i?0x203u:0x201u)
+            ||!value.validateDxfRecord())return false;
+        auto restored=value;
+        if(i==static_cast<unsigned>(named)) {
+            if(value.numLines!=1u)return false;
+            restored.numLines=2u;
+            for(auto& vertex:restored.vertlist) {
+                if(vertex.segParms.size()!=1u||vertex.areaFillParms.size()!=1u)return false;
+                vertex.segParms.push_back({-.25});vertex.areaFillParms.emplace_back();
+            }
+        }
+        if(!geometry(restored,i?4:1))return false;
+    }
     return true;
 }
 struct Row {std::string type,section,id,owner;std::vector<std::pair<int,std::string>> fields;};
@@ -29770,6 +29813,7 @@ bool run(const std::filesystem::path& dir) {
     const auto input=dir/"input.dxf",output=dir/"output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,callbacks=0u,allocations=0u,corruptions=0u,fixedProfiles=0u,pendingRefusals=0u,legacyRefusals=0u,legacyConsumerProfiles=0u,legacyConsumerRefusals=0u;
     std::size_t consumerPlannerFaults=0u,consumerPlannerUnreached=0u,sourceQuotaRefusals=0u,modelOwnerRefusals=0u;
+    std::size_t aritySourceRefusals=0u,arityTypedRefusals=0u,arityRetries=0u;
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE authority line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -29782,6 +29826,34 @@ bool run(const std::filesystem::path& dir) {
                 ||!proof(output,binary,requested)||!callerUnchanged(data,requested))return fail(__LINE__);++readbacks;
         }
         ++profiles;
+    }
+    // Each record remains locally valid: only the joined style/consumer count
+    // disagrees. Check both original-source and direct public-model edits.
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool named:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,arityRecipe(sourceBinary,named),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!arityCallerUnchanged(data,named))return fail(__LINE__);
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!arityCallerUnchanged(data,named))return fail(__LINE__);
+        ++aritySourceRefusals;
+        dx_data corrected;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&corrected,false)
+            ||!adapter.fileExport(output.string(),DRW::AC1027,binary,&corrected,false,true)
+            ||!proof(output,binary,"EFFECTIVE_STYLE")||!callerUnchanged(corrected,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        ++arityRetries;++readbacks;
+        const auto values=consumers(corrected);if(values.size()!=2u)return fail(__LINE__);
+        auto* value=values[named?1u:0u];const auto saved=*value;
+        value->numLines=1u;
+        for(auto& vertex:value->vertlist){vertex.segParms.resize(1u);vertex.areaFillParms.resize(1u);}
+        if(!arityCallerUnchanged(corrected,named))return fail(__LINE__);
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&corrected,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!arityCallerUnchanged(corrected,named))return fail(__LINE__);
+        ++arityTypedRefusals;*value=saved;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&corrected,false,true)
+            ||!proof(output,binary,"EFFECTIVE_STYLE")||!callerUnchanged(corrected,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        ++arityRetries;++readbacks;
     }
     for(bool binary:{false,true})for(unsigned kind=0u;kind<16u;++kind) {
         dx_iface adapter;dx_data data;
@@ -29968,10 +30040,12 @@ bool run(const std::filesystem::path& dir) {
         <<"; fixedProfiles="<<fixedProfiles<<"; pendingRefusals="<<pendingRefusals<<"; legacyRefusals="<<legacyRefusals
         <<"; legacyConsumerProfiles="<<legacyConsumerProfiles<<"; legacyConsumerRefusals="<<legacyConsumerRefusals
         <<"; consumerPlannerFaults="<<consumerPlannerFaults<<"; consumerPlannerUnreached="<<consumerPlannerUnreached
-        <<"; sourceQuotaRefusals="<<sourceQuotaRefusals<<"; modelOwnerRefusals="<<modelOwnerRefusals<<'\n';
+        <<"; sourceQuotaRefusals="<<sourceQuotaRefusals<<"; modelOwnerRefusals="<<modelOwnerRefusals
+        <<"; aritySourceRefusals="<<aritySourceRefusals<<"; arityTypedRefusals="<<arityTypedRefusals<<"; arityRetries="<<arityRetries<<'\n';
     return profiles==4u&&refusals==32u&&callbacks==64u&&allocations>0u&&corruptions>0u
         &&fixedProfiles==8u&&pendingRefusals==8u&&legacyRefusals==4u&&legacyConsumerProfiles==2u&&legacyConsumerRefusals==4u
-        &&consumerPlannerFaults>0u&&consumerPlannerFaults+consumerPlannerUnreached==12u&&sourceQuotaRefusals==2u&&modelOwnerRefusals==2u;
+        &&consumerPlannerFaults>0u&&consumerPlannerFaults+consumerPlannerUnreached==12u&&sourceQuotaRefusals==2u&&modelOwnerRefusals==2u
+        &&aritySourceRefusals==8u&&arityTypedRefusals==8u&&arityRetries==16u;
 }
 }
 void testMLineStyleAuthority(TestContext& t) {
