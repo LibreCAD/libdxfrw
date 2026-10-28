@@ -45,7 +45,7 @@ runs separately.
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT MISSING LAYER, THEN IMPLEMENT | P4a: remaining original profile/representation/role evidence; P4b: compose document closure | One current distinguishing witness; embedded equal-value alignment is not implementation-ready |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
-| P6 | READY: embedded attribute alignment writer | Preserve host alignment and embedded insertion independently in AC1032 selected writer/readback; other residual boundaries remain open | Source-bound distinct-coordinate witness and focused serializer controls |
+| P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries, including the retained whole-adapter DIMSTYLE refusal | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
 | P8 | PLATFORM / INTEGRATION | Consumer, packaging, ABI and native qualification | A composed source-stable candidate |
 | P9 | DEFERRED_EXTERNAL | Resolve the six J dispositions without weakening claim policy | Independent eligible evidence and native execution |
@@ -61,14 +61,15 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P6 — embedded attribute alignment | `writeAttributeR2018Features`, `DRW_Attrib::parseCode`, selected distinct-coordinate source/writer witness | Host alignment and nested insertion survive ATTDEF and INSERT/ATTRIB writes/readback in both encodings, including zero/default and refusal/retry controls |
+| P6 — classify next current refusal | Retained authored source's whole-adapter DIMSTYLE TABLES refusal and existing TABLES/writer diagnostics | Reproduce on current binding, name the exact offending source record/field/owner or normalization rule and smallest owning selector before marking a fix READY |
 | P4a — classify next original profile | Retained AC1032 ATTDEF `796` / ATTRIB `79D`, alignment collisions and existing source/role/model reports | Establish separate Text/Attribute/MTEXT alignment meanings and representation with a distinguishing source before changing the grammar; otherwise select another witnessed local operation |
 | P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement the source-bound P6 writer/readback packet first. Embedded source-profile
-classification and independent native meaning remain separate and unqualified;
-no adjacent slice implies their readiness. P2/P3 still need concrete witnesses;
+Select the next local packet from a current exact witness and its missing layer.
+Embedded source-profile classification and independent native meaning remain
+separate and unqualified; selected writer consistency does not establish their
+readiness. P2/P3 still need concrete witnesses;
 secondary `AcDbXrecord` remains a separate source/meaning search. Reuse existing
 source-bound refusals and projections before authoring another source.
 Gap classification and the next source recipe/projection can run in parallel,
@@ -291,32 +292,25 @@ expansion and composed closure must not be bundled into one unbounded slice.
 
 ## P6 — residual semantic and version audit
 
-**Next packet — embedded attribute alignment writer.** The [source-bound
-readiness receipt](docs/research/rpp5hd-embedded-attribute-alignment-writer-readiness-2026-10-28.json)
-records an original locally authored AC1032 ATTDEF and INSERT/ATTRIB/SEQEND with
-host alignment A and embedded insertion C, A≠C. Original Text/Attribute/nested
-triples are A/A/C; both selected writer outputs are A/C/C and ordinary reimport
-changes host A to C. The source/model/replay and selected physical outputs are
-bound independently; the full imported-document export separately refuses at
-DIMSTYLE TABLES, and successful direct writer calls mutate handles.
+Reuse [the selected embedded attribute writer receipt](docs/research/rpp5he-embedded-attribute-alignment-writer-2026-10-28.json)
+without reopening its completed host/nested field fix. Original embedded source
+roles, arbitrary distinct Text/Attribute alignment, native semantics and full
+document closure remain separate evidence tasks. Preserve the direct writer's
+existing successful identity mutation contract; selected field preservation is
+not whole borrowed-caller immutability.
 
-In `writeAttributeR2018Features`, emit the outer Attribute 11/21/31 from the
-host `secPoint`, and keep nested MTEXT insertion from `mtext->basePoint`.
-Do not infer an unset value from host zero. Existing text/point preflight already
-checks finite host coordinates; retain current write failure and rollback policy.
-Extend `testMTextColumnObjectScope` with a focused authored ATTDEF plus real
-INSERT/ATTRIB/SEQEND: ASCII/binary input × output, distinct host/nested coordinates,
-physical Text/Attribute/nested tuple scopes, reimported A/C, owner/footer and
-geometry. Cover explicit host zero, equal A/C, nondefault and default justification,
-classic 2D controls, nonfinite refusal and late-failure corrected retry. Reuse the
-existing downlevel/XDATA/legacy-marker controls. Build affected executables once
-and run `libdxfrw_mtext_column_object_scope` and the affected consumer-finalization
-control in normal/ASan. Preserve the frozen wrong-output baseline, then rerun its
-source recipe with a new probe expecting the corrected A/C readback.
-The direct writer's existing successful handle mutation is a separate contract.
-Neither this writer fix nor the observed model default qualifies embedded source
-roles, arbitrary distinct original Text/Attribute alignment fields, native
-semantics, full imported-document export or document closure.
+**Next P6 witness selection.** The unchanged authored input in the retained
+[readiness receipt](docs/research/rpp5hd-embedded-attribute-alignment-writer-readiness-2026-10-28.json)
+also has a whole-adapter export refusal at default DIMSTYLE TABLES emission,
+before selected entities are written. Reproduce that exact operation on the
+current binding, retain the first diagnostic and input digest, and identify its
+offending source record/field, target policy and minimal owning selector. Decide
+whether it is a valid missing writer route, a producer/default normalization
+boundary or unqualified input before proposing a fix. The selected clean writer
+callbacks bypass this route and provide no evidence that it has been resolved.
+Do not mark this investigation READY until that exact classification and expected
+output/refusal contract exist. Continue another witnessed local packet if it
+does not yet identify an implementable gap.
 
 The rows below are remaining verification/qualification boundaries, not assertions
 that historical local fixes are still absent. For each row, check current code and
