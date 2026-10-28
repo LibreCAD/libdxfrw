@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Selected legacy TABLE text-height override. Inputs here are authored from
 // scratch; independent original records only identify the field-role profile.
+bool legacyTableAlignmentTests(const std::filesystem::path& dir);
 bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     const auto source=dir/"legacy-height-source.dxf", output=dir/"legacy-height-output.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE height: "<<reason<<'\n';return false;};
@@ -79,5 +80,98 @@ bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     }
     std::cout<<"legacy TABLE height source routes="<<sourceRoutes<<" outputs="<<successes
         <<" atomic refusals="<<refusals<<" corrected retries="<<retries<<'\n';
-    return sourceRoutes==2u&&successes==8u&&refusals==72u&&retries==72u;
+    return sourceRoutes==2u&&successes==8u&&refusals==72u&&retries==72u
+        &&legacyTableAlignmentTests(dir);
+}
+
+// Autodesk specifies the nine alignment values for table cells. The selected
+// bit combinations are inferred from independent flag layouts and an original
+// composite-mask cell, not claimed as native-producer or renderer evidence.
+bool legacyTableAlignmentTests(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-alignment-source.dxf",output=dir/"legacy-alignment-output.dxf";
+    const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE alignment: "<<reason<<'\n';return false;};
+    const auto sourceFor=[](std::uint32_t mask,int alignment) {
+        Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"ENTITIES"},{0,"ACAD_TABLE"},{5,"4F2"},{100,"AcDbEntity"},{8,"0"},
+            {100,"AcDbBlockReference"},{2,"*T1"},{10,"1"},{20,"2"},{30,"3"},{100,"AcDbTable"},
+            {90,"2"},{91,"1"},{92,"1"},{141,"8"},{142,"20"},{171,"1"},{172,"0"},{173,"0"},
+            {174,"0"},{175,"1"},{176,"1"},{177,std::to_string(mask)},{178,"0"},{145,"0"},
+            {1,"source-text"},{170,std::to_string(alignment)}};
+        if(mask&0x20u)tags.push_back({140,"4"});
+        tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});return tags;
+    };
+    unsigned inputs=0u,outputs=0u,refusals=0u,retries=0u;
+    for(bool inputBinary:{false,true})for(std::uint32_t mask:{0x01u,0x21u})for(int alignment=1;alignment<=9;++alignment) {
+        if(!write(source,sourceFor(mask,alignment),inputBinary))return fail("source write");
+        dx_iface sourceReader;dx_data imported;
+        if(!sourceReader.fileImport(source.string(),&imported,false)||imported.tables.size()!=1u
+            ||imported.tables.front().m_content.m_rows.size()!=1u
+            ||imported.tables.front().m_content.m_rows[0].m_cells.size()!=1u)return fail("source import");
+        const auto& observed=imported.tables.front().m_content.m_rows[0].m_cells[0];
+        const double height=mask&0x20u?4.0:0.0;
+        if(observed.m_overrideFlags!=mask||observed.m_textAlignment!=alignment||observed.m_textHeight!=height)
+            return fail("source fields");
+        ++inputs;
+        for(bool binary:{false,true})for(bool strict:{false,true}) {
+            dx_data data;dx_iface writer;tableExportReuseDrawing(writer,data,0u,false);
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";
+            data.blockRecords.push_back(modelSpace);
+            auto& cell=data.tables.front().m_content.m_rows[0].m_cells[0];
+            cell.m_overrideFlags=mask;cell.m_textAlignment=alignment;cell.m_textHeight=height;
+            const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data readback;
+                if(!reader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u
+                    ||readback.tables.front().m_content.m_rows.size()!=1u
+                    ||readback.tables.front().m_content.m_rows[0].m_cells.size()!=1u)return false;
+                const auto& actual=readback.tables.front().m_content.m_rows[0].m_cells[0];
+                if(actual.m_overrideFlags!=mask||actual.m_textAlignment!=alignment||actual.m_textHeight!=height
+                    ||actual.m_contents.size()!=1u||actual.m_contents[0].m_text!="reused-table")return false;
+                const auto wire=attdefWireTags(output,binary);
+                bool inTable=false,inCell=false;std::vector<int> codes;unsigned tableCount=0u;
+                for(const auto& tag:wire) {
+                    if(tag.code==0){inTable=tag.text=="ACAD_TABLE";inCell=false;if(inTable)++tableCount;continue;}
+                    if(!inTable)continue;
+                    if(tag.code==171)inCell=true;
+                    if(!inCell)continue;
+                    codes.push_back(tag.code);
+                    if(tag.code==177&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=mask))return false;
+                    if(tag.code==170&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=alignment))return false;
+                    if(tag.code==140&&(tag.kind!=AttdefWireTag::Real||tag.real!=height))return false;
+                }
+                std::vector<int> expected{171,172,173,174,175,176,177,178,145,1,170};
+                if(mask&0x20u)expected.push_back(140);
+                return tableCount==1u&&codes==expected;
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data))return fail("output/readback");
+            ++outputs;
+            // Repeat negative controls only once per route, not for every enum.
+            if(alignment!=5)continue;
+            for(unsigned fault=0u;fault<8u;++fault) {
+                if(fault==0u)cell.m_textAlignment=0;
+                if(fault==1u)cell.m_textAlignment=10;
+                if(fault==2u)cell.m_textAlignment=-1;
+                if(fault==3u)cell.m_overrideFlags|=0x04u;
+                if(fault==4u)cell.m_overrideFlags=0u;
+                if(fault==5u)cell.m_textHeight=mask&0x20u?0.0:4.0;
+                if(fault==6u)cell.m_backgroundEnabled=true;
+                if(fault==7u)cell.m_borders[0].m_lineWeight=1;
+                const auto flags=cell.m_overrideFlags;const auto value=cell.m_textAlignment;const auto invalidHeight=cell.m_textHeight;
+                if(!tableExportSentinel(output,true)||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)
+                    ||!tableExportSentinel(output)||identities!=tableExportIdentities(data)
+                    ||cell.m_overrideFlags!=flags||cell.m_textAlignment!=value||cell.m_textHeight!=invalidHeight)
+                    return fail("refusal/caller preservation "+std::to_string(fault));
+                ++refusals;
+                cell.m_overrideFlags=mask;cell.m_textAlignment=alignment;cell.m_textHeight=height;
+                cell.m_backgroundEnabled=false;cell.m_borders[0].m_lineWeight=0;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data))return fail("corrected retry "+std::to_string(fault));
+                ++retries;
+            }
+        }
+    }
+    std::cout<<"legacy TABLE alignment sources="<<inputs<<" outputs="<<outputs
+        <<" atomic refusals="<<refusals<<" corrected retries="<<retries<<'\n';
+    return inputs==36u&&outputs==144u&&refusals==128u&&retries==128u;
 }

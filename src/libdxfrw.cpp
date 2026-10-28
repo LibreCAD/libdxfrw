@@ -9238,12 +9238,20 @@ bool dxfRW::writeTable(DRW_Table *ent){
         for (const DRW_TableCell& cell : row.m_cells) {
             const bool textCell = cell.m_type == 1;
             const bool blockCell = cell.m_type == 2;
-            // AC1018 represents a selected cell text-height override with
-            // group 177 bit 0x20 and an accompanying group 140. Do not admit
-            // other flags or a height whose presence cannot be established.
+            // AC1018 cell alignment and text-height overrides use group 177
+            // bits 0x01 and 0x20, with groups 170 and 140 respectively.
+            // Other flags and missing companion values remain unsupported.
             const bool legacyTextHeight = version == DRW::AC1018 && textCell
-                && cell.m_overrideFlags == 0x20u
+                && (cell.m_overrideFlags & 0x20u) != 0u
                 && std::isfinite(cell.m_textHeight) && cell.m_textHeight > 0.0;
+            const bool legacyAlignment = version == DRW::AC1018 && textCell
+                && (cell.m_overrideFlags & 0x01u) != 0u
+                && cell.m_textAlignment >= 1 && cell.m_textAlignment <= 9;
+            const bool legacyOverrides = version == DRW::AC1018 && textCell
+                && cell.m_overrideFlags != 0u
+                && (cell.m_overrideFlags & ~0x21u) == 0u
+                && ((cell.m_overrideFlags & 0x20u) == 0u || legacyTextHeight)
+                && ((cell.m_overrideFlags & 0x01u) == 0u || legacyAlignment);
             const bool cellContentMatches = cell.m_contents.size() == 1u
                 && ((textCell && cell.m_contents.front().m_type == 1)
                     || (blockCell && cell.m_contents.front().m_type == 4
@@ -9306,11 +9314,11 @@ bool dxfRW::writeTable(DRW_Table *ent){
                 || cell.m_overrideFlags > static_cast<std::uint32_t>(INT_MAX)
                 || cell.m_virtualEdgeFlags < 0 || cell.m_virtualEdgeFlags > 0xFF
                 || (version < DRW::AC1021
-                    && ((cell.m_overrideFlags != 0u && !legacyTextHeight)
+                    && ((cell.m_overrideFlags != 0u && !legacyOverrides)
                         || cell.m_virtualEdgeFlags != 0 || cell.m_flags != 0
                         || !cell.m_textStyleName.empty()
                         || (cell.m_textHeight != 0.0 && !legacyTextHeight)
-                        || cell.m_textAlignment != 0
+                        || (cell.m_textAlignment != 0 && !legacyAlignment)
                         || cell.m_textColorRgb >= 0
                         || cell.m_fillColorRgb >= 0
                         || cell.m_backgroundEnabled))
@@ -9548,8 +9556,8 @@ bool dxfRW::writeTable(DRW_Table *ent){
                 writer->writeInt32(91, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, cell->m_virtualEdgeFlags);
                 writer->writeInt32(92, cell->m_flags);
-            } else if (cell->m_overrideFlags == 0x20u) {
-                writer->writeInt16(177, 0x20);
+            } else if (cell->m_overrideFlags != 0u) {
+                writer->writeInt16(177, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, 0);
             }
             writer->writeDouble(145, cell->m_rotation);
@@ -9615,8 +9623,12 @@ bool dxfRW::writeTable(DRW_Table *ent){
             } else if (!writer->writeUtf8Chunks(text, 2, 1, 250u)) {
                 return false;
             }
-            if (version == DRW::AC1018 && cell->m_overrideFlags == 0x20u)
-                writer->writeDouble(140, cell->m_textHeight);
+            if (version == DRW::AC1018) {
+                if ((cell->m_overrideFlags & 0x01u) != 0u)
+                    writer->writeInt16(170, cell->m_textAlignment);
+                if ((cell->m_overrideFlags & 0x20u) != 0u)
+                    writer->writeDouble(140, cell->m_textHeight);
+            }
         }
     }
 
