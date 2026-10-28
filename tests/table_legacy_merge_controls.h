@@ -200,6 +200,7 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
 }
 
 bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir);
+bool legacyTableMergeUnoccupiedSpanTests(const std::filesystem::path& dir);
 // Emitted field and topology controls are for the selected AC1018 profile;
 // the inferred source grammar is not a native rendering certificate.
 bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
@@ -326,7 +327,7 @@ bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE merge writer profiles="<<profiles<<" refusals="<<refusals
         <<" corrected retries="<<retries<<" explicit-anchor controls="<<explicitControls<<" incomplete projections="<<fallbacks<<'\n';
     return profiles==8u&&refusals==92u&&retries==96u&&explicitControls==8u&&fallbacks==4u
-        &&legacyTableMergeOverrideComposition(dir);
+        &&legacyTableMergeOverrideComposition(dir)&&legacyTableMergeUnoccupiedSpanTests(dir);
 }
 // Composition of the already admitted legacy merge and text override profiles.
 // Raw field correspondence is tested; no native appearance is claimed.
@@ -411,4 +412,58 @@ bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir) {
     }
     std::cout<<"legacy TABLE merge/override compositions="<<positives<<" refusals="<<refusals<<" retries="<<retries<<'\n';
     return positives==8u&&refusals==32u&&retries==32u;
+}
+
+// An unoccupied cell in the inferred AC1018 profile must already have unit
+// spans; otherwise emitting 175/176 as 1 would silently alter its typed values.
+bool legacyTableMergeUnoccupiedSpanTests(const std::filesystem::path& dir) {
+    const auto inputPath=dir/"legacy-merge-unoccupied-source.dxf",output=dir/"legacy-merge-unoccupied-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE merge unoccupied span: "<<why<<'\n';return false;};
+    unsigned positives=0u,refusals=0u,retries=0u;
+    for(bool inputBinary:{false,true}) {
+        auto tags=legacyMergeDocument("AC1018",1,3);
+        tags[legacyMergeCellField(tags,0u,175)].value="2";
+        tags[legacyMergeCellField(tags,2u,173)].value="0";
+        dx_iface importer;dx_data source;
+        if(!write(inputPath,tags,inputBinary)||!importer.fileImport(inputPath.string(),&source,false)
+            ||source.tables.size()!=1u||!source.tables.front().m_semanticContentComplete
+            ||!legacyMergeRanges(source.tables.front(),{{0,0,0,1}}))return fail("source import");
+        for(bool binary:{false,true})for(bool strict:{false,true}) {
+            dx_data data;dx_iface writer;writer.cData=&data;writer.currentBlock=data.mBlock;
+            DRW_Block_Record modelSpace;modelSpace.handle=0x1fu;modelSpace.name="*Model_Space";
+            data.blockRecords.push_back(modelSpace);
+            DRW_Table selected(source.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
+            writer.addTable(selected);auto& table=data.tables.front();const DRW_Table baseline(table);
+            const auto identities=tableExportIdentities(data);
+            const auto check=[&]() {
+                dx_iface reader;dx_data after;
+                if(!reader.fileImport(output.string(),&after,false)||after.tables.size()!=1u
+                    ||!after.tables.front().m_semanticContentComplete
+                    ||!legacyMergeRanges(after.tables.front(),{{0,0,0,1}})
+                    ||after.tables.front().m_content.m_rows.size()!=1u
+                    ||after.tables.front().m_content.m_rows[0].m_cells.size()!=3u)return false;
+                const auto& cell=after.tables.front().m_content.m_rows[0].m_cells[2];
+                return !cell.m_isMerged&&cell.m_mergedWidth==1&&cell.m_mergedHeight==1;
+            };
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                return fail("unit-span baseline");
+            ++positives;
+            for(bool width:{false,true}) {
+                auto& cell=table.m_content.m_rows[0].m_cells[2];
+                if(width)cell.m_mergedWidth=0;else cell.m_mergedHeight=0;
+                const DRW_Table invalid(table);const auto saved=tableExportIdentities(data);
+                if(!tableExportSentinel(output,true)||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)
+                    ||!tableExportSentinel(output)||saved!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(invalid,table))return fail("zero span escaped or changed caller");
+                ++refusals;table=baseline;
+                if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,strict)||!check()
+                    ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))
+                    return fail("corrected retry");
+                ++retries;
+            }
+        }
+    }
+    std::cout<<"legacy TABLE merge unoccupied spans="<<positives<<" zero-span refusals="<<refusals<<" retries="<<retries<<'\n';
+    return positives==8u&&refusals==16u&&retries==16u;
 }

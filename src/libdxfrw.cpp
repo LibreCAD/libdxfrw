@@ -9278,8 +9278,8 @@ bool dxfRW::writeTable(DRW_Table *ent){
                 for (std::size_t column = 0u; column < columns; ++column) {
                     const DRW_TableCell& cell = ent->m_content.m_rows[row].m_cells[column];
                     if (occupancy[row * columns + column] == 0u
-                        && (cell.m_isMerged || cell.m_mergedWidth < 0 || cell.m_mergedWidth > 1
-                            || cell.m_mergedHeight < 0 || cell.m_mergedHeight > 1))
+                        && (cell.m_isMerged || cell.m_mergedWidth != 1
+                            || cell.m_mergedHeight != 1))
                         return failDxfWrite();
                 }
             }
