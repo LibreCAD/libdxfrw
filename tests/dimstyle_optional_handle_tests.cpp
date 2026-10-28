@@ -149,36 +149,54 @@ bool resourceRemap(const std::filesystem::path& directory) {
         return stream.good();
     };
     const auto check = [](const auto& path, bool modern, bool moved,
-                          bool nulls = false, int badCode = 0, std::uint32_t badRef = 0u) {
+                          bool nulls = false, int badCode = 0, std::uint32_t badRef = 0u,
+                          const std::string& textTarget = "RESOURCE_TEXT", bool missingText = false,
+                          bool literalTextName = false, bool owners = false) {
         std::ifstream stream(path, std::ios::binary); char magic[22]{}; stream.read(magic, 22);
         const bool binary = std::string(magic,22) == std::string("AutoCAD Binary DXF\r\n\x1a\0",22);
         stream.clear(); stream.seekg(binary ? 22 : 0);
         std::unique_ptr<dxfReader> reader = binary ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
             : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+        reader->setAllowDimstyleNames(literalTextName);
         std::map<std::string,std::uint32_t> targets, bodies;
+        std::map<std::string,std::uint32_t> controls, styleOwners;
+        std::map<std::string,unsigned> styleCounts;
         std::map<int,std::uint32_t> references;
         std::string type, name; std::uint32_t handle = 0u, owner = 0u;
+        std::uint32_t dimensionHandle = 0u, dimensionOwner = 0u;
+        const auto finish = [&] {
+            if (type == "TABLE") controls[name] = handle;
+            else if (type == "STYLE") { styleOwners[name] = owner; ++styleCounts[name]; }
+            else if (type == "DIMSTYLE" && name == "RESOURCE_DIMS") { dimensionHandle = handle; dimensionOwner = owner; }
+        };
         int code = 0; bool eof = false;
         while (reader->readRec(&code)) {
-            if (code == 0) { type = reader->getString(); name.clear(); handle = owner = 0u; eof = type == "EOF"; }
-            else if (code == 5 && reader->isValidHandleString()) handle = reader->getHandleString();
+            if (code == 0) { finish(); type = reader->getString(); name.clear(); handle = owner = 0u; eof = type == "EOF"; }
+            else if ((code == 5 || (type == "DIMSTYLE" && code == 105)) && reader->isValidHandleString()) handle = reader->getHandleString();
             else if (code == 330 && reader->isValidHandleString()) owner = reader->getHandleString();
             else if (code == 2) {
                 name = reader->getString();
                 if (type == "STYLE" || type == "LTYPE" || type == "BLOCK_RECORD") targets[type+":"+name] = handle;
                 if (type == "BLOCK") bodies[name] = owner;
             } else if (type == "DIMSTYLE" && name == "RESOURCE_DIMS" && code >= 340 && code <= 347) {
-                if (!reader->isValidHandleString() || !references.emplace(code,reader->getHandleString()).second) return false;
+                if (code == 340 && literalTextName) {
+                    if (reader->getString() != textTarget || !references.emplace(code,0u).second) return false;
+                } else if (!reader->isValidHandleString() || !references.emplace(code,reader->getHandleString()).second) return false;
             }
         }
-        if (!eof || references.size() != (modern ? 8u : 5u)) return false;
+        if (!eof || references.size() != (modern ? 8u : 5u) - (missingText ? 1u : 0u)
+            || (missingText && references.count(340))) return false;
+        if (owners && (!dimensionHandle || !controls["DIMSTYLE"] || dimensionOwner != controls["DIMSTYLE"]
+            || !controls["STYLE"] || styleCounts[textTarget] != 1u || styleOwners[textTarget] != controls["STYLE"])) return false;
         for (int c = 340; c <= (modern ? 347 : 344); ++c) {
+            if (c == 340 && (missingText || literalTextName)) continue;
             if (nulls && c >= 341) { if (references[c] != 0u) return false; continue; }
             if (c == badCode) { if (references[c] != badRef) return false; continue; }
-            const auto kind = c == 340 ? "STYLE:RESOURCE_TEXT" : c <= 344 ? "BLOCK_RECORD:ARROW_"+std::to_string(c)
+            const auto kind = c == 340 ? "STYLE:"+textTarget : c <= 344 ? "BLOCK_RECORD:ARROW_"+std::to_string(c)
                 : "LTYPE:LTYPE_"+std::to_string(c);
             if (!targets.count(kind) || !targets.at(kind) || references[c] != targets.at(kind)
-                || (moved && references[c] == std::stoul("A"+std::to_string(c),nullptr,16))) return false;
+                || (moved && references[c] == (c == 340 && textTarget == "Standard" ? 0xA339u
+                    : std::stoul("A"+std::to_string(c),nullptr,16)))) return false;
             if (c >= 341 && c <= 344 && bodies["ARROW_"+std::to_string(c)] != references[c]) return false;
         }
         return true;
@@ -275,10 +293,157 @@ bool resourceRemap(const std::filesystem::path& directory) {
             ++nullRoutes;
         }
     }
+    // The omitted group-340 source becomes a logical default name in vars.
+    // Keep that name distinct from explicit zero/hex reference transport.
+    const auto namedSource = [&](const std::string& token, const char* revision, bool modern) {
+        auto tags = sourceTags(revision,modern);
+        std::vector<Tag> result;
+        std::string type, table;
+        for (auto tag : tags) {
+            if (tag.code == 0) type = tag.value;
+            if (type == "TABLE" && tag.code == 2) table = tag.value;
+            if (type == "ENDTAB" && tag.code == 0 && table == "STYLE") {
+                for (const auto& entry : {std::pair<const char*,const char*>{"A337","A9"},
+                                         std::pair<const char*,const char*>{"A338","100000000"},
+                                         std::pair<const char*,const char*>{"A336","10000000000000000"}})
+                    result.insert(result.end(), {{0,"STYLE"},{5,entry.first},{330,"A301"},
+                        {100,"AcDbSymbolTableRecord"},{100,"AcDbTextStyleTableRecord"},
+                        {2,entry.second},{70,"0"},{3,"txt"}});
+            }
+            if (type == "DIMSTYLE" && tag.code == 340) {
+                if (token.empty()) continue;
+                tag.value = token;
+            }
+            if (type == "TABLE" && table == "STYLE" && tag.code == 70) tag.value = "5";
+            result.push_back(tag);
+            if (type == "TABLE" && tag.code == 2 && (table == "STYLE" || table == "DIMSTYLE"))
+                result.insert(result.end(), {{5,table == "STYLE" ? "A301" : "A302"},
+                    {330,"0"},{100,"AcDbSymbolTable"}});
+            else if (type == "STYLE" && tag.code == 5) result.push_back({330,"A301"});
+            else if (type == "DIMSTYLE" && tag.code == 105) result.push_back({330,"A302"});
+        }
+        return result;
+    };
+    const auto textCheck = [&](const auto& path, const std::string& target,
+                               bool moved, bool missing = false, bool literal = false,
+                               int rawReference = -1) {
+        return check(path,true,moved,false,rawReference < 0 ? 0 : 340,
+            rawReference < 0 ? 0u : static_cast<std::uint32_t>(rawReference),
+            target,missing,literal,true);
+    };
+    unsigned namedInputs = 0u, defaultRoutes = 0u, namedRoutes = 0u,
+        dynamicRoutes = 0u, literalRoutes = 0u, wideRoutes = 0u, nameRefusals = 0u, nameRetries = 0u;
+    for (bool inputBinary : {false,true}) for (unsigned mode = 0u; mode != 4u; ++mode) {
+        const std::string token = mode == 0u ? "" : mode == 1u ? "RESOURCE_TEXT" : mode == 2u ? "0" : "A9";
+        const std::string target = mode == 1u ? "RESOURCE_TEXT" : "Standard";
+        const int rawReference = mode == 2u ? 0 : mode == 3u ? 0xA9 : -1;
+        const auto input = directory / "named-source.dxf";
+        if (!write(input,namedSource(token,"AC1032",true),inputBinary)
+            || !textCheck(input,target,false,mode == 0u,mode == 1u,rawReference))
+            return fail("literal DIMSTYLE name/default source differs from authored fields or owners");
+        const auto inputBefore = bytes(input);
+        dx_data namedData; dx_iface namedImporter;
+        if (!namedImporter.fileImport(input.string(),&namedData,false) || namedData.dimStyles.size() != 1u)
+            return fail("DIMSTYLE name/default source import failed");
+        auto& namedStyle = namedData.dimStyles.front();
+        DRW_Variant* textVariable = nullptr;
+        for (auto& item : namedStyle.vars) if (item.second && item.second->code() == 340) {
+            if (textVariable) return fail("DIMSTYLE synthesized duplicate text-style variable");
+            textVariable = item.second;
+        }
+        if (!textVariable || textVariable->type() != DRW_Variant::STRING
+            || !textVariable->c_str() || std::string(textVariable->c_str()) != (mode == 0u ? "Standard" : token)
+            || namedStyle.dimtxsty != (mode == 0u ? "Standard" : token))
+            return fail("DIMSTYLE source/default name was not retained in POD and dynamic field");
+        if (mode <= 1u && (namedStyle.dimtxstyH.code != 0u || namedStyle.dimtxstyH.ref != 0u
+            || namedStyle.dimtxstyH.ref64 != 0u)) return fail("logical DIMSTYLE name acquired a fabricated source handle");
+        if (mode >= 2u && (namedStyle.dimtxstyH.code != 5u
+            || namedStyle.dimtxstyH.ref != static_cast<std::uint32_t>(rawReference)))
+            return fail("explicit zero/hex DIMSTYLE source handle lost its role");
+        const auto before = referenceState(namedData); ++namedInputs;
+        for (bool binary : {false,true}) {
+            const auto first = directory / "named-first.dxf", second = directory / "named-second.dxf";
+            dx_iface namedExporter, namedReader, namedReplay; dx_data namedActual;
+            if (!namedExporter.fileExport(first.string(),DRW::AC1032,binary,&namedData,false)
+                || !textCheck(first,target,true,false,false,rawReference)
+                || !namedReader.fileImport(first.string(),&namedActual,false)
+                || !namedReplay.fileExport(second.string(),DRW::AC1032,!binary,&namedActual,false)
+                || !textCheck(second,target,true,false,false,rawReference)
+                || referenceState(namedData) != before || bytes(input) != inputBefore)
+                return fail("DIMSTYLE name/default output, owner, repeated readback or source immutability differs");
+            if (mode == 0u) ++defaultRoutes;
+            else if (mode == 1u) ++namedRoutes;
+            else ++literalRoutes;
+            if (mode != 0u) continue;
+            // The dynamic request deliberately differs from the POD default,
+            // matching the existing strict writer's dynamic-name precedence.
+            *textVariable = DRW_Variant(340,std::string("RESOURCE_TEXT"));
+            const auto overridden = referenceState(namedData);
+            if (!namedExporter.fileExport(first.string(),DRW::AC1032,binary,&namedData,false)
+                || !textCheck(first,"RESOURCE_TEXT",true) || namedStyle.dimtxsty != "Standard"
+                || referenceState(namedData) != overridden)
+                return fail("compatible DIMSTYLE dynamic name did not override the POD name without mutation");
+            ++dynamicRoutes;
+            *textVariable = DRW_Variant(340,std::string("MISSING_TEXT_STYLE"));
+            const auto badBefore = referenceState(namedData);
+            { std::ofstream destination(first,std::ios::binary); destination << sentinel; }
+            if (namedExporter.fileExport(first.string(),DRW::AC1032,binary,&namedData,false)
+                || bytes(first) != sentinel || referenceState(namedData) != badBefore)
+                return fail("missing DIMSTYLE name changed destination/source or succeeded");
+            ++nameRefusals;
+            *textVariable = DRW_Variant(340,std::string("Standard"));
+            if (!namedExporter.fileExport(first.string(),DRW::AC1032,binary,&namedData,false)
+                || !textCheck(first,"Standard",true) || referenceState(namedData) != before)
+                return fail("same-facade DIMSTYLE name/default corrected retry failed");
+            ++nameRetries;
+            for (const std::string& hex : {std::string("100000000"),std::string("10000000000000000")}) {
+                *textVariable = DRW_Variant(340,hex);
+                const auto hexBefore = referenceState(namedData);
+                if (!namedExporter.fileExport(first.string(),DRW::AC1032,binary,&namedData,false)
+                    || !textCheck(first,hex,true,false,true)
+                    || referenceState(namedData) != hexBefore)
+                    return fail("over-wide hexadecimal token was not retained as a literal");
+                ++wideRoutes;
+            }
+            *textVariable = DRW_Variant(340,std::string("Standard"));
+        }
+    }
+    unsigned earlierRoutes = 0u;
+    for (bool inputBinary : {false,true}) {
+        const auto input = directory / "earlier-default-source.dxf";
+        if (!write(input,namedSource("","AC1015",false),inputBinary)
+            || !check(input,false,false,false,0,0,"Standard",true,false,true))
+            return fail("earlier DIMSTYLE source did not omit group 340");
+        dx_data earlier; dx_iface reader;
+        if (!reader.fileImport(input.string(),&earlier,false))
+            return fail("earlier DIMSTYLE default import failed");
+        const auto before = referenceState(earlier);
+        for (bool binary : {false,true}) {
+            const auto first = directory / "earlier-default-first.dxf";
+            const auto second = directory / "earlier-default-second.dxf";
+            dx_iface writer, readback, replay; dx_data actual;
+            if (!writer.fileExport(first.string(),DRW::AC1015,binary,&earlier,false)
+                || !check(first,false,true,false,0,0,"Standard",false,false,true)
+                || !readback.fileImport(first.string(),&actual,false)
+                || !replay.fileExport(second.string(),DRW::AC1015,!binary,&actual,false)
+                || !check(second,false,true,false,0,0,"Standard",false,false,true)
+                || referenceState(earlier) != before)
+                return fail("earlier DIMSTYLE default output or readback differs");
+            ++earlierRoutes;
+        }
+    }
     std::cout << "DIMSTYLE resources: " << routes << " two-pass compatible routes and strict readbacks; "
               << compatibleUnknowns << " compatible unresolved controls; " << refusals << " atomic refusals/"
-              << retries << " corrected readbacks; " << nullRoutes << " explicit-null routes\n";
-    return routes == 24u && compatibleUnknowns == 32u && refusals == 48u && retries == 48u && nullRoutes == 4u;
+              << retries << " corrected readbacks; " << nullRoutes << " explicit-null routes; "
+              << namedInputs << " named/default/zero/hex sources; " << defaultRoutes << " default routes; "
+              << namedRoutes << " explicit-name routes; " << dynamicRoutes << " dynamic-name overrides; "
+              << literalRoutes << " zero/hex routes; " << wideRoutes << " over-wide literal routes; "
+              << nameRefusals << " named refusals/" << nameRetries << " retries; "
+              << earlierRoutes << " earlier-version default routes\n";
+    return routes == 24u && compatibleUnknowns == 32u && refusals == 48u && retries == 48u && nullRoutes == 4u
+        && namedInputs == 8u && defaultRoutes == 4u && namedRoutes == 4u && dynamicRoutes == 4u
+        && literalRoutes == 8u && wideRoutes == 8u && nameRefusals == 4u && nameRetries == 4u
+        && earlierRoutes == 4u;
 }
 
 } // namespace

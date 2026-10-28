@@ -6429,6 +6429,33 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             const bool matchingHandle = parseRawDxfHandleLexeme(token, lexicalHandle)
                 && lexicalHandle == source.ref;
             if (source.ref == 0u) {
+                if (code == 340 && source.code == 0 && !token.empty()) {
+                    // Compatible DIMSTYLE input can contain a modeled STYLE
+                    // name, including the default synthesized by import. A
+                    // hexadecimal token remains a literal handle, even if a
+                    // STYLE with that spelling exists. Test the syntax rather
+                    // than the bounded handle parser so an over-wide hex
+                    // token cannot accidentally become a name.
+                    const bool hexToken = std::all_of(token.begin(), token.end(),
+                        [](char c) {
+                            return (c >= '0' && c <= '9')
+                                || (c >= 'A' && c <= 'F')
+                                || (c >= 'a' && c <= 'f');
+                        });
+                    if (!hexToken) {
+                        const auto row = textStyleMap.find(dxfSymbolNameKey(token));
+                        if (row == textStyleMap.end()) {
+                            recordOperationDiagnostic(DRW::OperationPhase::Tables,
+                                DRW::OperationCause::ValidationFailure,
+                                "unresolved-dimstyle-text-style",
+                                "DIMSTYLE group-340 name has no emitted STYLE row", 0,
+                                false, ent->handle, ent->handle != DRW::NoHandle);
+                            return failDxfWrite();
+                        }
+                        emittedDimTextStyleHandle = row->second;
+                        hasEmittedDimTextStyleHandle = true;
+                    }
+                }
                 if (code >= 341 && source.code == 5 && (token.empty() || matchingHandle)) {
                     if (code <= 344) emittedArrowBlockHandles[code] = 0u;
                     else emittedLinetypeHandles[code] = 0u;
