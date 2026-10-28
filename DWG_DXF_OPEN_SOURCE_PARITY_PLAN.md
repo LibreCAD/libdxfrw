@@ -40,10 +40,9 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P1 | READY: reproduce first | SCALE body edits survive actual output and readback | Reuse variable transaction infrastructure |
-| P2 | READY: reuse transaction pattern | MLINESTYLE/MLEADERSTYLE nested body transactions | Per-family field/owner specifications |
-| P3 | READY: retained failure | Resolve default legacy MATERIAL/specular/version profile and remaining MATERIAL variants | Source/specification classification |
-| P4 | LOCAL WORK + EVIDENCE | P4a source/role capture now; P4b composed document closure later | P4a is independent; P4b consumes P1–P3/P5/P7 providers |
+| P2 | READY: reproduce description loss | MLINESTYLE, then MLEADERSTYLE nested body transactions | Reuse scalar baselines; honor family-specific key/consumer contracts |
+| P3 | READY: classified producer defect | Canonical/malformed specular regression pair; resolve ambiguous Normal Map and remaining variants | Retained source/specification evidence |
+| P4 | LOCAL WORK + EVIDENCE | P4a source/role capture now; P4b composed document closure later | P4a is independent; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -57,82 +56,69 @@ another tracking framework. Split large packets by one independently verifiable
 field/schema family per slice. A ready local packet takes precedence over repeated
 external searches or a broad audit with no current failing witness.
 
-## P1 — SCALE transactions: next implementation packet
+## P2 — nested named-resource bodies: next implementation packet
 
-**Reproducer.** In the existing fixture target, add a locally authored SCALE under
-its real `ACAD_SCALELIST` owner. Demonstrate the current typed-edit/raw-replay gap
-with a literal output check and a second reader. Keep the failed baseline.
+Use the [SCALE transaction receipt](docs/research/rpp5gl-scale-body-transactions-2026-10-28.json)
+and shared scalar baseline/profile/owner snapshots as implementation references.
+Start MLINESTYLE with an authored description edit: the current DXF adapter
+replays its raw body. Capture a failed literal-output/readback witness before
+changing code; then proceed to MLEADERSTYLE after its own witnessed field loss.
 
-**Implementation sequence.**
+1. Extend the existing `NamedResourceBodyBaseline` capture and lifetime allowance.
+   Scope MLINESTYLE roles to `AcDbMlineStyle`: name2, derived flags70,
+   description3, first62/fill, angles51/52, count71, ordered49/62/6 elements.
+   Reuse owning decoding and `validateDxfRecord()`. The derived `flags` shadows
+   base flags. Inventory complete nested contexts/CMC/presence/unknown fields.
+2. Implement description3 reconciliation first, with conflicts, literal/independent
+   output, late callbacks, allocation refusal, destination cleanup and retries.
+   Expand the same planner per represented field/schema; add a focused selector
+   to the existing fixture executable, not another target or graph engine.
+3. Honor [MLINESTYLE's documented naming contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm):
+   dictionary group3 is authoritative and body2 is redundant. Rename must couple
+   dictionary/body and MLINE340 consumers; SCALE's independent display-name
+   policy does not apply. Existing string overrides admit1/3/300; extend2/6 only
+   with owning-role admission and legacy-codec controls.
+4. Resolve element6 as a LTYPE name, separately from DWG index/handle mirrors.
+   Element count/offset edits require affected MLINE geometry updates or explicit
+   refusal; current style-name/handle joins cannot certify stale vertex parameters.
+   Qualify omitted/default62/6 tuples against a producer witness before broadening
+   the parser's currently strict tuple masks.
+5. Complete MLEADERSTYLE contexts, defaults, repeated values and STYLE/LTYPE/
+   BLOCK_RECORD references. Preserve source order, version-specific grammars and
+   unsupported extensions. Prove exact emitted roles and independent selected
+   meaning; malformed counts, partial tails and coupled references remain gates.
 
-1. Read the applicable SCALE specification and capture the original body and live
-   codec context through the existing named-resource callback. Reuse bounded
-   immutable baseline storage; key identities by family/handle where necessary.
-2. Define roles and presence for name 300, flag 70, paper units 140, drawing units
-   141 and unit flag 290. Establish dictionary key versus object-name semantics
-   from producer evidence; do not assume every key must equal the display name.
-3. Reconcile typed-only, raw-only and disjoint edits against the original baseline;
-   agree on equal edits and refuse conflicting edits. Preserve unknown fields,
-   unchanged spelling, absence and the existing version contract.
-4. Use existing semantic string overrides for known names and current codec
-   planning. Keep unknown text opaque. Validate finite/unit/ratio rules from the
-   actual format contract before allocation, remapping or emission.
-5. Freeze the current model/raw/profile/owner tuple. Inspect actual output fields,
-   mapped identities and owner/key links before publication; then read it back.
-
-**Reuse.** `dwg2dxf/dx_data.h`, `dx_iface.cpp`, `dx_material_body.h`,
-`dx_standard_output.h`, existing indexed string overrides and
-`tests/dxf_fixture_tests.cpp`. Extend the existing executable with a focused
-`--scale-body-transactions` selector; avoid another test executable or framework.
-Extract a shared resource-body helper only where the second family needs it.
-
-**Exit.** A small version/encoding boundary matrix covers unchanged and edited
-output, typed/raw conflicts, invalid fields, late callbacks, allocation refusal,
-unchanged destinations, temporary cleanup and corrected same-adapter retries.
-At least one independent selected projection verifies meaning before any broader
-claim. Update only affected route evidence.
-
-## P2 — nested named-resource bodies
-
-Apply the P1 transaction contract to MLINESTYLE, then MLEADERSTYLE. Start with one
-reproduced field loss per family and add the minimum additional grammar needed.
-
-- Inventory complete nested elements/contexts, defaults, repeated fields, CMC/text
-  values and STYLE/LTYPE/BLOCK_RECORD references. Separate common metadata from
-  family payload, application groups and XDATA.
-- Preserve typed/raw edit authority, nested order, source presence and unknown
-  extensions. Add version gates from primary layouts and real producer traces.
-- Reuse source contexts, logical budgets, graph traversal, snapshot guards and
-  output inspection. Avoid copying a separate planner for every scalar field.
-- Prove exact output roles and independent selected values, plus malformed-count,
-  partial-tail, mutation, rollback and retry cases. DWG byte-layout changes require
-  the relevant ODA chapter and an observed source profile first.
+Reuse existing source contexts, budgets, graph selection and output inspectors.
+DWG byte-layout changes require the relevant ODA chapter and observed profile.
 
 ## P3 — MATERIAL source/schema and legacy producer failure
 
-Keep [the retained original producer failure](docs/research/rpp5gk-legacy-dictionaryvar-codec-transactions-2026-10-28.json) actionable: default legacy documents
-fail at the known MATERIAL 73=0/specular conflict before variable processing.
-The selected variable/LINE recipe omits three unused defaults before generation;
-its success does not resolve or qualify the default MATERIAL document.
+The [retained failure](docs/research/rpp5gk-legacy-dictionaryvar-codec-transactions-2026-10-28.json)
+and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json)
+identify pinned ezdxf1.4.5's specular field73 as a producer defect: canonical
+specular method is76;73 remains diffuse projection. Keep that validation intact.
+Correcting this code alone does not resolve its separate ambiguous Normal Map.
 
-1. Use the existing pinned ezdxf 1.4.5 runtime and retained default source/debug
-   trace. Locate the first divergent field and establish whether it is a producer
-   defect, a supported alternative grammar, or a version-invalid object.
-2. Resolve group 73/76/specular roles and applicable legacy object/version rules
-   against primary references. Choose a justified parser/preservation/refusal
-   policy; never globally relax projection validation to admit one sample.
-3. Complete absent/ambiguous refraction/bump evidence, repeated fields, omitted
-   normal/luminance boundaries, and represented versus opaque subclass/procedure
-   edits. Retain exact unchanged replay and actual output proof.
-4. Complete remaining original/common/full/face/edge material providers and native
-   LAYER/HEADER/common-348 profiles. Extend existing reference planners and
-   inspectors; do not reimplement already verified transport binders.
-5. Add independent producer/renderer evidence for the actual claimed profile.
-   Keep source validity, preserved bytes and native rendering separate.
+1. Add one decisive canonical73=3/76=0 body and an otherwise-identical malformed
+   specular73=0 control to the existing MATERIAL selector. Check distinct typed
+   fields, literal output roles, refusal, unchanged destination and corrected retry.
+   Preserve original producer artifacts; label authored corrections separately.
+2. Resolve the later reused42/72/3/73/74/75 Normal Map set without464/465 or a
+   complete refraction boundary. Complete absent/ambiguous refraction/bump,
+   repeated fields, omitted normal/luminance and represented/opaque subclass or
+   procedural profiles. Retain exact replay and actual output proof.
+3. Complete remaining original/common/full/face/edge material providers and native
+   LAYER/HEADER/common348 profiles. Extend existing planners/inspectors rather
+   than reimplementing verified transport binders.
+4. Obtain independent producer/renderer evidence for each actual claimed profile.
+   Keep source validity, preserved bytes, version validity and native rendering
+   separate; an AC1015 peer source is not a native MATERIAL version certificate.
 
-Use one decisive source and its corrected/failure controls before expanding the
-matrix. Reuse `tools/qualify_material_source_order.py`; keep the default failure
-and the selected successful recipe separately identified.
+Reuse `tools/qualify_material_source_order.py` and its pinned runtime. Selected
+SCALE sources explicitly null layer material bindings before omitting defaults;
+original dangling-binding failures stay retained. Compare physical source tags
+before document setup and disclose oracle-created default objects. Neither that
+selected recipe nor variable/LINE success qualifies default MATERIAL documents.
 
 ## P4 — original bodies and complete document closure
 
@@ -201,12 +187,12 @@ closed local action while retaining any genuinely missing consumer evidence.
 | HATCH/MPOLYGON/MESH | Resolve witnessed zero-fit/producer layout disagreements, extended CMC meanings and unrepresented overrides; qualify geometry/annotation behavior beyond local framing |
 | Text/annotation/coordinates | Independent MTEXT columns/linked contexts, attributes, DIMENSION/DIMARC/large-radial placement, DSTYLE/picture graphs, SHAPE glyph/font identity, LEADER/MLEADER annotation and derived-R12 appearance |
 | Geometry and clipping | Independent SPLINE/NURBS/ELLIPSE/OCS/polyface/mesh meanings, completed-pool/domain validation and SPATIAL_FILTER/clipping behavior beyond local field checks |
-| Units and inheritance | Remaining LTYPE units/group-9 profiles, UCS base relationships, transparency/ByLayer/ByBlock meanings and Template description/survey policies |
+| Units and inheritance | Remaining LTYPE units/group-9 profiles, UCS base relationships, transparency/ByLayer/ByBlock meanings, SCALE native annotation/version and direct-writer API boundaries, and Template description/survey policies |
 | Text and identity boundaries | Additional codepage/alias/recovery/header-order/opaque-text profiles; checked wide-identity rejection and an additive API design before widening; explicit AC1012 DXF-output scope decision |
 | Unknown/proxy/associative data | Version/edit/cache safety, unknown nested tables and associative replay; additional proxy primitive types require independent semantics, not cache-byte agreement |
 | Safety and caller state | Residual copy/assembly/work/allocator bounds, declared diagnostics, rollback after published prefixes, source lifetime, platform numeric/string policy and scoped concurrency |
 | CLI and batch contracts | Preserve exact option/overwrite admission, bounded aggregate batch results, correct output kinds, namespace/collision checks and useful partial-read diagnostics; investigate only reproduced residuals |
-| Oracle trust | Pre-audit projections, repair/skip/mask/configuration reporting, MINSERT/raw-load sensitivity and independent route lineage; ordinary read and recovery remain separate |
+| Oracle trust | Pre-setup physical projections, implicit default creation and repair/skip/mask/configuration reporting, MINSERT/raw-load sensitivity and independent route lineage; ordinary read and recovery remain separate |
 
 Run a tiny current-state audit per row, then retain only its real residuals. Do
 not regenerate broad corpora or reopen a corrected parser from an old finding.
