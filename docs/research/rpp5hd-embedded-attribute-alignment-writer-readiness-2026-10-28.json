@@ -1,0 +1,2924 @@
+{
+  "schema": "embedded-attribute-alignment-writer-readiness-v1",
+  "date": "2026-10-28",
+  "state": "READY_SELECTED_AC1032_EMBEDDED_WRITER_ALIGNMENT_ROUNDTRIP",
+  "parentCommit": "7961d61704a72ca3b7571179ef249c31c990fb50",
+  "previousReceipt": "docs/research/rpp5hc-classic-attribute-dual280-source-roles-2026-10-28.json",
+  "analysis": {
+    "schema": "embedded-attribute-independent-source-output-discrepancy-analysis-v1",
+    "discrepancyReproduced": true,
+    "parserWideningReady": false,
+    "nativeMeaning": "unknown",
+    "supportClaimsPromoted": false,
+    "qualificationEligible": false,
+    "source": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/original-AC1032.dxf",
+      "sha256": "c0800a1c9b7532e6047492b3b36d174cb15c41d09f1bf49aca5a6b2451c24b21",
+      "bytes": 15073,
+      "selected": [
+        {
+          "kind": "ATTDEF",
+          "handle": "32",
+          "owner": "2F",
+          "span": [
+            11030,
+            11375
+          ],
+          "triples": [
+            {
+              "scope": "AcDbText",
+              "firstIndex": 11,
+              "firstCode": 11,
+              "values": [
+                11.0,
+                12.0,
+                13.0
+              ]
+            },
+            {
+              "scope": "AcDbAttributeDefinition",
+              "firstIndex": 22,
+              "firstCode": 11,
+              "values": [
+                11.0,
+                12.0,
+                13.0
+              ]
+            },
+            {
+              "scope": "Embedded Object",
+              "firstIndex": 26,
+              "firstCode": 10,
+              "values": [
+                21.0,
+                22.0,
+                23.0
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "35",
+          "owner": "33",
+          "span": [
+            11590,
+            11918
+          ],
+          "triples": [
+            {
+              "scope": "AcDbText",
+              "firstIndex": 11,
+              "firstCode": 11,
+              "values": [
+                31.0,
+                32.0,
+                33.0
+              ]
+            },
+            {
+              "scope": "AcDbAttribute",
+              "firstIndex": 21,
+              "firstCode": 11,
+              "values": [
+                31.0,
+                32.0,
+                33.0
+              ]
+            },
+            {
+              "scope": "Embedded Object",
+              "firstIndex": 25,
+              "firstCode": 10,
+              "values": [
+                41.0,
+                42.0,
+                43.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output-asc.dxf",
+        "sha256": "16ef81ac519e657e199ad937ab91e51fa13c50f9a09abf3630cc33d7a6d95b07",
+        "binary": false,
+        "bytes": 11520,
+        "triples": [
+          {
+            "kind": "ATTDEF",
+            "handle": "36",
+            "owner": "30",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  11.0,
+                  12.0,
+                  13.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "firstIndex": 34,
+                "firstCode": 11,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 38,
+                "firstCode": 10,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "38",
+            "owner": "37",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  31.0,
+                  32.0,
+                  33.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "firstIndex": 33,
+                "firstCode": 11,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 37,
+                "firstCode": 10,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output-bin.dxf",
+        "sha256": "af04f42723c61972b31ca92b98b4ffbede2413c55b417eea0e491ed4702c33d5",
+        "binary": true,
+        "bytes": 9672,
+        "triples": [
+          {
+            "kind": "ATTDEF",
+            "handle": "36",
+            "owner": "30",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  11.0,
+                  12.0,
+                  13.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "firstIndex": 34,
+                "firstCode": 11,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 38,
+                "firstCode": 10,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "38",
+            "owner": "37",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  31.0,
+                  32.0,
+                  33.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "firstIndex": 33,
+                "firstCode": 11,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 37,
+                "firstCode": 10,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "boundReport": {
+      "path": "build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/experiment.json",
+      "sha256": "492910378326eb4756546b4374bac6a045fe4613f423f52d21b52bf3f3df645f"
+    },
+    "observedContract": "Original typed producer emits TextAlign=A, AttributeAlign=A, EmbeddedInsert=C. Current ordinary imported models retain A/C, original same-decoder replay agrees. Direct production selected writer emits A/C/C; reimport changes host secPoint from A to C in ASCII and Binary.",
+    "originalProof": {
+      "stage": "original-proof",
+      "definitionPair": 1,
+      "definitionReplay": 1,
+      "definitionProfileReason": 6,
+      "definitionRejectedGroup": 21,
+      "selectedCompounds": 1,
+      "compoundModeled": 1,
+      "compoundProfiles": 0,
+      "compoundSpace": 0,
+      "compoundState": 13,
+      "childProfileReason": 6,
+      "childRejectedGroup": 20
+    },
+    "sourceModelBefore": {
+      "stage": "original-import",
+      "definitionHandle": 50,
+      "definitionOwner": 47,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 51,
+      "childHandle": 53,
+      "childOwner": 51,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 52,
+      "footerOwner": 51
+    },
+    "sourceModelAfter": {
+      "stage": "source-model-after-both-exports",
+      "definitionHandle": 54,
+      "definitionOwner": 47,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 55,
+      "childHandle": 56,
+      "childOwner": 51,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 52,
+      "footerOwner": 51
+    },
+    "ordinaryReimports": [
+      {
+        "stage": "ascii-reimport",
+        "definitionHandle": 54,
+        "definitionOwner": 48,
+        "definitionAlign": [
+          21,
+          22,
+          23
+        ],
+        "definitionEmbeddedInsertion": [
+          21,
+          22,
+          23
+        ],
+        "definitionType": 4,
+        "definitionVersion": 1,
+        "parentHandle": 55,
+        "childHandle": 56,
+        "childOwner": 55,
+        "childAlign": [
+          41,
+          42,
+          43
+        ],
+        "childEmbeddedInsertion": [
+          41,
+          42,
+          43
+        ],
+        "childType": 2,
+        "childVersion": 1,
+        "footerHandle": 57,
+        "footerOwner": 55
+      },
+      {
+        "stage": "binary-reimport",
+        "definitionHandle": 54,
+        "definitionOwner": 48,
+        "definitionAlign": [
+          21,
+          22,
+          23
+        ],
+        "definitionEmbeddedInsertion": [
+          21,
+          22,
+          23
+        ],
+        "definitionType": 4,
+        "definitionVersion": 1,
+        "parentHandle": 55,
+        "childHandle": 56,
+        "childOwner": 55,
+        "childAlign": [
+          41,
+          42,
+          43
+        ],
+        "childEmbeddedInsertion": [
+          41,
+          42,
+          43
+        ],
+        "childType": 2,
+        "childVersion": 1,
+        "footerHandle": 57,
+        "footerOwner": 55
+      }
+    ],
+    "scopeCaveats": [
+      "Direct writer mutates source model handle fields; coordinates remain unchanged. These temporary imported models are not claimed immutable and their pre-export proof is not reused after output.",
+      "Full compatible adapter export of the original is independently blocked at default DIMSTYLE TABLES emission; direct selected callbacks bypass that unrelated source document route.",
+      "Initial ezdxf-created child layout ownership failure was retained; a separate original used take_ownership before first save. No saved source was modified.",
+      "Pinned ezdxf exporter explicitly questions why the redundant Attribute alignment exists. Autodesk/ODA establish ordinary Text alignment and embedded insertion but not which original triple aliases the redundant Attribute triple.",
+      "The equal-coordinate retained AC1032 sample cannot distinguish A/A/C from A/C/C contracts; no native semantic claim follows."
+    ],
+    "smallestCandidate": "A bounded writer/readback consistency fix for currently imported typed fields could emit the redundant Attribute triple from the host alignment, matching the independent producer and preserving secPoint A. Keep source-profile admission/semantic role promotion deferred until additional role evidence or a deliberately bounded equality contract exists.",
+    "bindings": {
+      "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "6735547aab668c1f2ca0abcac2b2f7f2c5855f5c463fe26deb59d8e59d7522bc",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe.cpp": "7efe5d3c6993626261538fa679ff552a4fed91fe243758397a99a443c6e64066",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/run.py": "6ebdb70ca7a8e517bb207dc8ae659c5577e34e922b2217960c27271c3c86df59",
+      "/Users/dli/dev/libdxfrw/src/drw_entities.cpp": "8898650466dd9a381769921e97814aa88634e8b9b689bfde4b7e038467dbf933",
+      "/Users/dli/dev/libdxfrw/src/libdxfrw.cpp": "6dc6315472c4ae72716c8550d94c1f2861a743aed3b5970a6cc0d1bb30ff2d98",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_attdef_source_profile.h": "651d438f08f18b09289b15ac47441829ea92e05bdc95ed8029aaaf5459af4931",
+      "/Users/dli/dev/libdxfrw/src/intern/dxfattdef.h": "5e9a16a7d55e84c4f477084cc321dc00ce0746ef0d402187038e1177ee0e69b5"
+    },
+    "probeSha256": "302372ef5daede8c060d1a7748a701c194570bdc42889c71f4564a3341f02b02"
+  },
+  "analysisReportSha256": "32cabcde21eb5f5dc20f48a7f0221f3f92af2a23d550c4ce19ad6079287466a0",
+  "actualExperiment": {
+    "schema": "embedded-attribute-selected-writer-discrepancy-readiness-v1",
+    "qualificationEligible": false,
+    "supportClaimsPromoted": false,
+    "nativeMeaning": "unknown",
+    "original": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/original-AC1032.dxf",
+      "sha256": "c0800a1c9b7532e6047492b3b36d174cb15c41d09f1bf49aca5a6b2451c24b21",
+      "bytes": 15073,
+      "binary": false,
+      "selected": [
+        {
+          "kind": "ATTDEF",
+          "handle": "32",
+          "owner": "2F",
+          "triples": [
+            {
+              "scope": "AcDbText",
+              "firstIndex": 11,
+              "firstCode": 11,
+              "values": [
+                11.0,
+                12.0,
+                13.0
+              ]
+            },
+            {
+              "scope": "AcDbAttributeDefinition",
+              "firstIndex": 22,
+              "firstCode": 11,
+              "values": [
+                11.0,
+                12.0,
+                13.0
+              ]
+            },
+            {
+              "scope": "Embedded Object",
+              "firstIndex": 26,
+              "firstCode": 10,
+              "values": [
+                21.0,
+                22.0,
+                23.0
+              ]
+            }
+          ],
+          "literalTags": [
+            [
+              0,
+              "ATTDEF"
+            ],
+            [
+              5,
+              "32"
+            ],
+            [
+              330,
+              "2F"
+            ],
+            [
+              100,
+              "AcDbEntity"
+            ],
+            [
+              8,
+              "0"
+            ],
+            [
+              100,
+              "AcDbText"
+            ],
+            [
+              10,
+              "21.0"
+            ],
+            [
+              20,
+              "22.0"
+            ],
+            [
+              30,
+              "23.0"
+            ],
+            [
+              40,
+              "1.0"
+            ],
+            [
+              1,
+              "definition MTEXT"
+            ],
+            [
+              11,
+              "11.0"
+            ],
+            [
+              21,
+              "12.0"
+            ],
+            [
+              31,
+              "13.0"
+            ],
+            [
+              100,
+              "AcDbAttributeDefinition"
+            ],
+            [
+              3,
+              ""
+            ],
+            [
+              2,
+              "PEER"
+            ],
+            [
+              70,
+              "0"
+            ],
+            [
+              74,
+              "3"
+            ],
+            [
+              280,
+              "1"
+            ],
+            [
+              71,
+              "4"
+            ],
+            [
+              72,
+              "0"
+            ],
+            [
+              11,
+              "11.0"
+            ],
+            [
+              21,
+              "12.0"
+            ],
+            [
+              31,
+              "13.0"
+            ],
+            [
+              101,
+              "Embedded Object"
+            ],
+            [
+              10,
+              "21.0"
+            ],
+            [
+              20,
+              "22.0"
+            ],
+            [
+              30,
+              "23.0"
+            ],
+            [
+              40,
+              "1.0"
+            ],
+            [
+              41,
+              "5.0"
+            ],
+            [
+              46,
+              "0.0"
+            ],
+            [
+              71,
+              "1"
+            ],
+            [
+              72,
+              "5"
+            ],
+            [
+              1,
+              "definition MTEXT"
+            ]
+          ],
+          "rawSpans": {
+            "kind": "ATTDEF",
+            "begin": 11030,
+            "fields": [
+              {
+                "code": 5,
+                "value": "32",
+                "begin": 11041,
+                "end": 11048
+              },
+              {
+                "code": 330,
+                "value": "2F",
+                "begin": 11048,
+                "end": 11055
+              },
+              {
+                "code": 100,
+                "value": "AcDbEntity",
+                "begin": 11055,
+                "end": 11070
+              },
+              {
+                "code": 8,
+                "value": "0",
+                "begin": 11070,
+                "end": 11076
+              },
+              {
+                "code": 100,
+                "value": "AcDbText",
+                "begin": 11076,
+                "end": 11089
+              },
+              {
+                "code": 10,
+                "value": "21.0",
+                "begin": 11089,
+                "end": 11098
+              },
+              {
+                "code": 20,
+                "value": "22.0",
+                "begin": 11098,
+                "end": 11107
+              },
+              {
+                "code": 30,
+                "value": "23.0",
+                "begin": 11107,
+                "end": 11116
+              },
+              {
+                "code": 40,
+                "value": "1.0",
+                "begin": 11116,
+                "end": 11124
+              },
+              {
+                "code": 1,
+                "value": "definition MTEXT",
+                "begin": 11124,
+                "end": 11145
+              },
+              {
+                "code": 11,
+                "value": "11.0",
+                "begin": 11145,
+                "end": 11154
+              },
+              {
+                "code": 21,
+                "value": "12.0",
+                "begin": 11154,
+                "end": 11163
+              },
+              {
+                "code": 31,
+                "value": "13.0",
+                "begin": 11163,
+                "end": 11172
+              },
+              {
+                "code": 100,
+                "value": "AcDbAttributeDefinition",
+                "begin": 11172,
+                "end": 11200
+              },
+              {
+                "code": 3,
+                "value": "",
+                "begin": 11200,
+                "end": 11205
+              },
+              {
+                "code": 2,
+                "value": "PEER",
+                "begin": 11205,
+                "end": 11214
+              },
+              {
+                "code": 70,
+                "value": "0",
+                "begin": 11214,
+                "end": 11220
+              },
+              {
+                "code": 74,
+                "value": "3",
+                "begin": 11220,
+                "end": 11226
+              },
+              {
+                "code": 280,
+                "value": "1",
+                "begin": 11226,
+                "end": 11232
+              },
+              {
+                "code": 71,
+                "value": "4",
+                "begin": 11232,
+                "end": 11238
+              },
+              {
+                "code": 72,
+                "value": "0",
+                "begin": 11238,
+                "end": 11244
+              },
+              {
+                "code": 11,
+                "value": "11.0",
+                "begin": 11244,
+                "end": 11253
+              },
+              {
+                "code": 21,
+                "value": "12.0",
+                "begin": 11253,
+                "end": 11262
+              },
+              {
+                "code": 31,
+                "value": "13.0",
+                "begin": 11262,
+                "end": 11271
+              },
+              {
+                "code": 101,
+                "value": "Embedded Object",
+                "begin": 11271,
+                "end": 11291
+              },
+              {
+                "code": 10,
+                "value": "21.0",
+                "begin": 11291,
+                "end": 11300
+              },
+              {
+                "code": 20,
+                "value": "22.0",
+                "begin": 11300,
+                "end": 11309
+              },
+              {
+                "code": 30,
+                "value": "23.0",
+                "begin": 11309,
+                "end": 11318
+              },
+              {
+                "code": 40,
+                "value": "1.0",
+                "begin": 11318,
+                "end": 11326
+              },
+              {
+                "code": 41,
+                "value": "5.0",
+                "begin": 11326,
+                "end": 11334
+              },
+              {
+                "code": 46,
+                "value": "0.0",
+                "begin": 11334,
+                "end": 11342
+              },
+              {
+                "code": 71,
+                "value": "1",
+                "begin": 11342,
+                "end": 11348
+              },
+              {
+                "code": 72,
+                "value": "5",
+                "begin": 11348,
+                "end": 11354
+              },
+              {
+                "code": 1,
+                "value": "definition MTEXT",
+                "begin": 11354,
+                "end": 11375
+              }
+            ],
+            "end": 11375
+          }
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "35",
+          "owner": "33",
+          "triples": [
+            {
+              "scope": "AcDbText",
+              "firstIndex": 11,
+              "firstCode": 11,
+              "values": [
+                31.0,
+                32.0,
+                33.0
+              ]
+            },
+            {
+              "scope": "AcDbAttribute",
+              "firstIndex": 21,
+              "firstCode": 11,
+              "values": [
+                31.0,
+                32.0,
+                33.0
+              ]
+            },
+            {
+              "scope": "Embedded Object",
+              "firstIndex": 25,
+              "firstCode": 10,
+              "values": [
+                41.0,
+                42.0,
+                43.0
+              ]
+            }
+          ],
+          "literalTags": [
+            [
+              0,
+              "ATTRIB"
+            ],
+            [
+              5,
+              "35"
+            ],
+            [
+              330,
+              "33"
+            ],
+            [
+              100,
+              "AcDbEntity"
+            ],
+            [
+              8,
+              "0"
+            ],
+            [
+              100,
+              "AcDbText"
+            ],
+            [
+              10,
+              "41.0"
+            ],
+            [
+              20,
+              "42.0"
+            ],
+            [
+              30,
+              "43.0"
+            ],
+            [
+              40,
+              "1.0"
+            ],
+            [
+              1,
+              "attribute MTEXT"
+            ],
+            [
+              11,
+              "31.0"
+            ],
+            [
+              21,
+              "32.0"
+            ],
+            [
+              31,
+              "33.0"
+            ],
+            [
+              100,
+              "AcDbAttribute"
+            ],
+            [
+              2,
+              "PEER"
+            ],
+            [
+              70,
+              "0"
+            ],
+            [
+              74,
+              "3"
+            ],
+            [
+              280,
+              "1"
+            ],
+            [
+              71,
+              "2"
+            ],
+            [
+              72,
+              "0"
+            ],
+            [
+              11,
+              "31.0"
+            ],
+            [
+              21,
+              "32.0"
+            ],
+            [
+              31,
+              "33.0"
+            ],
+            [
+              101,
+              "Embedded Object"
+            ],
+            [
+              10,
+              "41.0"
+            ],
+            [
+              20,
+              "42.0"
+            ],
+            [
+              30,
+              "43.0"
+            ],
+            [
+              40,
+              "1.0"
+            ],
+            [
+              41,
+              "5.0"
+            ],
+            [
+              46,
+              "0.0"
+            ],
+            [
+              71,
+              "1"
+            ],
+            [
+              72,
+              "5"
+            ],
+            [
+              1,
+              "attribute MTEXT"
+            ]
+          ],
+          "rawSpans": {
+            "kind": "ATTRIB",
+            "begin": 11590,
+            "fields": [
+              {
+                "code": 5,
+                "value": "35",
+                "begin": 11601,
+                "end": 11608
+              },
+              {
+                "code": 330,
+                "value": "33",
+                "begin": 11608,
+                "end": 11615
+              },
+              {
+                "code": 100,
+                "value": "AcDbEntity",
+                "begin": 11615,
+                "end": 11630
+              },
+              {
+                "code": 8,
+                "value": "0",
+                "begin": 11630,
+                "end": 11636
+              },
+              {
+                "code": 100,
+                "value": "AcDbText",
+                "begin": 11636,
+                "end": 11649
+              },
+              {
+                "code": 10,
+                "value": "41.0",
+                "begin": 11649,
+                "end": 11658
+              },
+              {
+                "code": 20,
+                "value": "42.0",
+                "begin": 11658,
+                "end": 11667
+              },
+              {
+                "code": 30,
+                "value": "43.0",
+                "begin": 11667,
+                "end": 11676
+              },
+              {
+                "code": 40,
+                "value": "1.0",
+                "begin": 11676,
+                "end": 11684
+              },
+              {
+                "code": 1,
+                "value": "attribute MTEXT",
+                "begin": 11684,
+                "end": 11704
+              },
+              {
+                "code": 11,
+                "value": "31.0",
+                "begin": 11704,
+                "end": 11713
+              },
+              {
+                "code": 21,
+                "value": "32.0",
+                "begin": 11713,
+                "end": 11722
+              },
+              {
+                "code": 31,
+                "value": "33.0",
+                "begin": 11722,
+                "end": 11731
+              },
+              {
+                "code": 100,
+                "value": "AcDbAttribute",
+                "begin": 11731,
+                "end": 11749
+              },
+              {
+                "code": 2,
+                "value": "PEER",
+                "begin": 11749,
+                "end": 11758
+              },
+              {
+                "code": 70,
+                "value": "0",
+                "begin": 11758,
+                "end": 11764
+              },
+              {
+                "code": 74,
+                "value": "3",
+                "begin": 11764,
+                "end": 11770
+              },
+              {
+                "code": 280,
+                "value": "1",
+                "begin": 11770,
+                "end": 11776
+              },
+              {
+                "code": 71,
+                "value": "2",
+                "begin": 11776,
+                "end": 11782
+              },
+              {
+                "code": 72,
+                "value": "0",
+                "begin": 11782,
+                "end": 11788
+              },
+              {
+                "code": 11,
+                "value": "31.0",
+                "begin": 11788,
+                "end": 11797
+              },
+              {
+                "code": 21,
+                "value": "32.0",
+                "begin": 11797,
+                "end": 11806
+              },
+              {
+                "code": 31,
+                "value": "33.0",
+                "begin": 11806,
+                "end": 11815
+              },
+              {
+                "code": 101,
+                "value": "Embedded Object",
+                "begin": 11815,
+                "end": 11835
+              },
+              {
+                "code": 10,
+                "value": "41.0",
+                "begin": 11835,
+                "end": 11844
+              },
+              {
+                "code": 20,
+                "value": "42.0",
+                "begin": 11844,
+                "end": 11853
+              },
+              {
+                "code": 30,
+                "value": "43.0",
+                "begin": 11853,
+                "end": 11862
+              },
+              {
+                "code": 40,
+                "value": "1.0",
+                "begin": 11862,
+                "end": 11870
+              },
+              {
+                "code": 41,
+                "value": "5.0",
+                "begin": 11870,
+                "end": 11878
+              },
+              {
+                "code": 46,
+                "value": "0.0",
+                "begin": 11878,
+                "end": 11886
+              },
+              {
+                "code": 71,
+                "value": "1",
+                "begin": 11886,
+                "end": 11892
+              },
+              {
+                "code": 72,
+                "value": "5",
+                "begin": 11892,
+                "end": 11898
+              },
+              {
+                "code": 1,
+                "value": "attribute MTEXT",
+                "begin": 11898,
+                "end": 11918
+              }
+            ],
+            "end": 11918
+          }
+        }
+      ],
+      "beforeOrdinaryReadback": true
+    },
+    "intent": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/intent-before-first-save.json",
+      "sha256": "903f080d5becbb655d956f9563faa3487fa5064a05d1a5d05c472ab1261038a4"
+    },
+    "sourceLineage": {
+      "previousReport": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/experiment.json",
+      "previousSha256": "0c771cb8ede029c0d9fbd9d88169e2ac6b5d6e4c70a5c4c6f246464923280cc4",
+      "previousWholeAdapterExportExit": 6,
+      "previousWholeAdapterExportFailure": "TABLES/default DIMSTYLE emission; did not reach selected entity output",
+      "originalSourceReusedUnchanged": true,
+      "initialWrongCompoundOwnerReport": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/experiment.json",
+      "initialWrongCompoundOwnerReportSha256": "effd722031f1cbbe0484c9fd2284f8c9166bb04b20c6e552028e20619c84c25f"
+    },
+    "selectedWriterScope": "Direct production dxfRW writer of actual imported ATTDEF and INSERT models; clean callbacks declare matching BLOCK_RECORD/BLOCK and emit real ATTRIB/SEQEND. This is not whole original document export or semantic closure.",
+    "sourcePostSaveMutation": false,
+    "trackedEdits": false,
+    "qualificationTargetBuilds": false,
+    "bindingsBefore": {
+      "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "6735547aab668c1f2ca0abcac2b2f7f2c5855f5c463fe26deb59d8e59d7522bc",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe.cpp": "7efe5d3c6993626261538fa679ff552a4fed91fe243758397a99a443c6e64066",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/run.py": "6ebdb70ca7a8e517bb207dc8ae659c5577e34e922b2217960c27271c3c86df59",
+      "/Users/dli/dev/libdxfrw/src/drw_entities.cpp": "8898650466dd9a381769921e97814aa88634e8b9b689bfde4b7e038467dbf933",
+      "/Users/dli/dev/libdxfrw/src/libdxfrw.cpp": "6dc6315472c4ae72716c8550d94c1f2861a743aed3b5970a6cc0d1bb30ff2d98",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_attdef_source_profile.h": "651d438f08f18b09289b15ac47441829ea92e05bdc95ed8029aaaf5459af4931",
+      "/Users/dli/dev/libdxfrw/src/intern/dxfattdef.h": "5e9a16a7d55e84c4f477084cc321dc00ce0746ef0d402187038e1177ee0e69b5"
+    },
+    "compile": {
+      "argv": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I.",
+        "-Isrc",
+        "-Ibuild",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe.cpp",
+        "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+        "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+        "-o",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe"
+      ],
+      "exitCode": 0,
+      "seconds": 2.986984457995277,
+      "stdout": "",
+      "stderr": ""
+    },
+    "probeSha256": "302372ef5daede8c060d1a7748a701c194570bdc42889c71f4564a3341f02b02",
+    "write": {
+      "argv": [
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/original-AC1032.dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output",
+        "write"
+      ],
+      "exitCode": 0,
+      "seconds": 0.4399893340014387,
+      "stdout": "{\"stage\":\"original-import\",\"definitionHandle\":50,\"definitionOwner\":47,\"definitionAlign\":[11,12,13],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":51,\"childHandle\":53,\"childOwner\":51,\"childAlign\":[31,32,33],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":52,\"footerOwner\":51}\n{\"stage\":\"original-proof\",\"definitionPair\":1,\"definitionReplay\":1,\"definitionProfileReason\":6,\"definitionRejectedGroup\":21,\"selectedCompounds\":1,\"compoundModeled\":1,\"compoundProfiles\":0,\"compoundSpace\":0,\"compoundState\":13,\"childProfileReason\":6,\"childRejectedGroup\":20}\n{\"stage\":\"source-model-after-both-exports\",\"definitionHandle\":54,\"definitionOwner\":47,\"definitionAlign\":[11,12,13],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":55,\"childHandle\":56,\"childOwner\":51,\"childAlign\":[31,32,33],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":52,\"footerOwner\":51}\n",
+      "stderr": ""
+    },
+    "outputsBeforeOrdinaryReimport": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output-asc.dxf",
+        "sha256": "16ef81ac519e657e199ad937ab91e51fa13c50f9a09abf3630cc33d7a6d95b07",
+        "bytes": 11520,
+        "binary": false,
+        "selected": [
+          {
+            "kind": "ATTDEF",
+            "handle": "36",
+            "owner": "30",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  11.0,
+                  12.0,
+                  13.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "firstIndex": 34,
+                "firstCode": 11,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 38,
+                "firstCode": 10,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              }
+            ],
+            "literalTags": [
+              [
+                0,
+                "ATTDEF"
+              ],
+              [
+                5,
+                "36"
+              ],
+              [
+                330,
+                "30"
+              ],
+              [
+                100,
+                "AcDbEntity"
+              ],
+              [
+                8,
+                "0"
+              ],
+              [
+                6,
+                "BYLAYER"
+              ],
+              [
+                62,
+                "  256"
+              ],
+              [
+                370,
+                "   -1"
+              ],
+              [
+                100,
+                "AcDbText"
+              ],
+              [
+                10,
+                "21"
+              ],
+              [
+                20,
+                "22"
+              ],
+              [
+                30,
+                "23"
+              ],
+              [
+                40,
+                "1"
+              ],
+              [
+                1,
+                "definition MTEXT"
+              ],
+              [
+                50,
+                "0"
+              ],
+              [
+                41,
+                "1"
+              ],
+              [
+                51,
+                "0"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                71,
+                "    0"
+              ],
+              [
+                11,
+                "11"
+              ],
+              [
+                21,
+                "12"
+              ],
+              [
+                31,
+                "13"
+              ],
+              [
+                210,
+                "0"
+              ],
+              [
+                220,
+                "0"
+              ],
+              [
+                230,
+                "1"
+              ],
+              [
+                100,
+                "AcDbAttributeDefinition"
+              ],
+              [
+                2,
+                "PEER"
+              ],
+              [
+                3,
+                ""
+              ],
+              [
+                70,
+                "    0"
+              ],
+              [
+                73,
+                "    0"
+              ],
+              [
+                74,
+                "    3"
+              ],
+              [
+                280,
+                "    1"
+              ],
+              [
+                71,
+                "    4"
+              ],
+              [
+                72,
+                "    0"
+              ],
+              [
+                11,
+                "21"
+              ],
+              [
+                21,
+                "22"
+              ],
+              [
+                31,
+                "23"
+              ],
+              [
+                101,
+                "Embedded Object"
+              ],
+              [
+                10,
+                "21"
+              ],
+              [
+                20,
+                "22"
+              ],
+              [
+                30,
+                "23"
+              ],
+              [
+                40,
+                "1"
+              ],
+              [
+                41,
+                "5"
+              ],
+              [
+                46,
+                "0"
+              ],
+              [
+                71,
+                "    1"
+              ],
+              [
+                72,
+                "    5"
+              ],
+              [
+                1,
+                "definition MTEXT"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                73,
+                "    1"
+              ],
+              [
+                44,
+                "1"
+              ]
+            ],
+            "rawSpans": {
+              "kind": "ATTDEF",
+              "begin": 9997,
+              "fields": [
+                {
+                  "code": 5,
+                  "value": "36",
+                  "begin": 10008,
+                  "end": 10015
+                },
+                {
+                  "code": 330,
+                  "value": "30",
+                  "begin": 10015,
+                  "end": 10022
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbEntity",
+                  "begin": 10022,
+                  "end": 10037
+                },
+                {
+                  "code": 8,
+                  "value": "0",
+                  "begin": 10037,
+                  "end": 10043
+                },
+                {
+                  "code": 6,
+                  "value": "BYLAYER",
+                  "begin": 10043,
+                  "end": 10055
+                },
+                {
+                  "code": 62,
+                  "value": "  256",
+                  "begin": 10055,
+                  "end": 10065
+                },
+                {
+                  "code": 370,
+                  "value": "   -1",
+                  "begin": 10065,
+                  "end": 10075
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbText",
+                  "begin": 10075,
+                  "end": 10088
+                },
+                {
+                  "code": 10,
+                  "value": "21",
+                  "begin": 10088,
+                  "end": 10095
+                },
+                {
+                  "code": 20,
+                  "value": "22",
+                  "begin": 10095,
+                  "end": 10102
+                },
+                {
+                  "code": 30,
+                  "value": "23",
+                  "begin": 10102,
+                  "end": 10109
+                },
+                {
+                  "code": 40,
+                  "value": "1",
+                  "begin": 10109,
+                  "end": 10115
+                },
+                {
+                  "code": 1,
+                  "value": "definition MTEXT",
+                  "begin": 10115,
+                  "end": 10136
+                },
+                {
+                  "code": 50,
+                  "value": "0",
+                  "begin": 10136,
+                  "end": 10142
+                },
+                {
+                  "code": 41,
+                  "value": "1",
+                  "begin": 10142,
+                  "end": 10148
+                },
+                {
+                  "code": 51,
+                  "value": "0",
+                  "begin": 10148,
+                  "end": 10154
+                },
+                {
+                  "code": 7,
+                  "value": "STANDARD",
+                  "begin": 10154,
+                  "end": 10167
+                },
+                {
+                  "code": 71,
+                  "value": "    0",
+                  "begin": 10167,
+                  "end": 10177
+                },
+                {
+                  "code": 11,
+                  "value": "11",
+                  "begin": 10177,
+                  "end": 10184
+                },
+                {
+                  "code": 21,
+                  "value": "12",
+                  "begin": 10184,
+                  "end": 10191
+                },
+                {
+                  "code": 31,
+                  "value": "13",
+                  "begin": 10191,
+                  "end": 10198
+                },
+                {
+                  "code": 210,
+                  "value": "0",
+                  "begin": 10198,
+                  "end": 10204
+                },
+                {
+                  "code": 220,
+                  "value": "0",
+                  "begin": 10204,
+                  "end": 10210
+                },
+                {
+                  "code": 230,
+                  "value": "1",
+                  "begin": 10210,
+                  "end": 10216
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbAttributeDefinition",
+                  "begin": 10216,
+                  "end": 10244
+                },
+                {
+                  "code": 2,
+                  "value": "PEER",
+                  "begin": 10244,
+                  "end": 10253
+                },
+                {
+                  "code": 3,
+                  "value": "",
+                  "begin": 10253,
+                  "end": 10258
+                },
+                {
+                  "code": 70,
+                  "value": "    0",
+                  "begin": 10258,
+                  "end": 10268
+                },
+                {
+                  "code": 73,
+                  "value": "    0",
+                  "begin": 10268,
+                  "end": 10278
+                },
+                {
+                  "code": 74,
+                  "value": "    3",
+                  "begin": 10278,
+                  "end": 10288
+                },
+                {
+                  "code": 280,
+                  "value": "    1",
+                  "begin": 10288,
+                  "end": 10298
+                },
+                {
+                  "code": 71,
+                  "value": "    4",
+                  "begin": 10298,
+                  "end": 10308
+                },
+                {
+                  "code": 72,
+                  "value": "    0",
+                  "begin": 10308,
+                  "end": 10318
+                },
+                {
+                  "code": 11,
+                  "value": "21",
+                  "begin": 10318,
+                  "end": 10325
+                },
+                {
+                  "code": 21,
+                  "value": "22",
+                  "begin": 10325,
+                  "end": 10332
+                },
+                {
+                  "code": 31,
+                  "value": "23",
+                  "begin": 10332,
+                  "end": 10339
+                },
+                {
+                  "code": 101,
+                  "value": "Embedded Object",
+                  "begin": 10339,
+                  "end": 10359
+                },
+                {
+                  "code": 10,
+                  "value": "21",
+                  "begin": 10359,
+                  "end": 10366
+                },
+                {
+                  "code": 20,
+                  "value": "22",
+                  "begin": 10366,
+                  "end": 10373
+                },
+                {
+                  "code": 30,
+                  "value": "23",
+                  "begin": 10373,
+                  "end": 10380
+                },
+                {
+                  "code": 40,
+                  "value": "1",
+                  "begin": 10380,
+                  "end": 10386
+                },
+                {
+                  "code": 41,
+                  "value": "5",
+                  "begin": 10386,
+                  "end": 10392
+                },
+                {
+                  "code": 46,
+                  "value": "0",
+                  "begin": 10392,
+                  "end": 10398
+                },
+                {
+                  "code": 71,
+                  "value": "    1",
+                  "begin": 10398,
+                  "end": 10408
+                },
+                {
+                  "code": 72,
+                  "value": "    5",
+                  "begin": 10408,
+                  "end": 10418
+                },
+                {
+                  "code": 1,
+                  "value": "definition MTEXT",
+                  "begin": 10418,
+                  "end": 10439
+                },
+                {
+                  "code": 7,
+                  "value": "STANDARD",
+                  "begin": 10439,
+                  "end": 10452
+                },
+                {
+                  "code": 73,
+                  "value": "    1",
+                  "begin": 10452,
+                  "end": 10462
+                },
+                {
+                  "code": 44,
+                  "value": "1",
+                  "begin": 10462,
+                  "end": 10468
+                }
+              ],
+              "end": 10468
+            }
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "38",
+            "owner": "37",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  31.0,
+                  32.0,
+                  33.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "firstIndex": 33,
+                "firstCode": 11,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 37,
+                "firstCode": 10,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              }
+            ],
+            "literalTags": [
+              [
+                0,
+                "ATTRIB"
+              ],
+              [
+                5,
+                "38"
+              ],
+              [
+                330,
+                "37"
+              ],
+              [
+                100,
+                "AcDbEntity"
+              ],
+              [
+                8,
+                "0"
+              ],
+              [
+                6,
+                "BYLAYER"
+              ],
+              [
+                62,
+                "  256"
+              ],
+              [
+                370,
+                "   -1"
+              ],
+              [
+                100,
+                "AcDbText"
+              ],
+              [
+                10,
+                "41"
+              ],
+              [
+                20,
+                "42"
+              ],
+              [
+                30,
+                "43"
+              ],
+              [
+                40,
+                "1"
+              ],
+              [
+                1,
+                "attribute MTEXT"
+              ],
+              [
+                50,
+                "0"
+              ],
+              [
+                41,
+                "1"
+              ],
+              [
+                51,
+                "0"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                71,
+                "    0"
+              ],
+              [
+                11,
+                "31"
+              ],
+              [
+                21,
+                "32"
+              ],
+              [
+                31,
+                "33"
+              ],
+              [
+                210,
+                "0"
+              ],
+              [
+                220,
+                "0"
+              ],
+              [
+                230,
+                "1"
+              ],
+              [
+                100,
+                "AcDbAttribute"
+              ],
+              [
+                2,
+                "PEER"
+              ],
+              [
+                70,
+                "    0"
+              ],
+              [
+                73,
+                "    0"
+              ],
+              [
+                74,
+                "    3"
+              ],
+              [
+                280,
+                "    1"
+              ],
+              [
+                71,
+                "    2"
+              ],
+              [
+                72,
+                "    0"
+              ],
+              [
+                11,
+                "41"
+              ],
+              [
+                21,
+                "42"
+              ],
+              [
+                31,
+                "43"
+              ],
+              [
+                101,
+                "Embedded Object"
+              ],
+              [
+                10,
+                "41"
+              ],
+              [
+                20,
+                "42"
+              ],
+              [
+                30,
+                "43"
+              ],
+              [
+                40,
+                "1"
+              ],
+              [
+                41,
+                "5"
+              ],
+              [
+                46,
+                "0"
+              ],
+              [
+                71,
+                "    1"
+              ],
+              [
+                72,
+                "    5"
+              ],
+              [
+                1,
+                "attribute MTEXT"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                73,
+                "    1"
+              ],
+              [
+                44,
+                "1"
+              ]
+            ],
+            "rawSpans": {
+              "kind": "ATTRIB",
+              "begin": 10801,
+              "fields": [
+                {
+                  "code": 5,
+                  "value": "38",
+                  "begin": 10812,
+                  "end": 10819
+                },
+                {
+                  "code": 330,
+                  "value": "37",
+                  "begin": 10819,
+                  "end": 10826
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbEntity",
+                  "begin": 10826,
+                  "end": 10841
+                },
+                {
+                  "code": 8,
+                  "value": "0",
+                  "begin": 10841,
+                  "end": 10847
+                },
+                {
+                  "code": 6,
+                  "value": "BYLAYER",
+                  "begin": 10847,
+                  "end": 10859
+                },
+                {
+                  "code": 62,
+                  "value": "  256",
+                  "begin": 10859,
+                  "end": 10869
+                },
+                {
+                  "code": 370,
+                  "value": "   -1",
+                  "begin": 10869,
+                  "end": 10879
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbText",
+                  "begin": 10879,
+                  "end": 10892
+                },
+                {
+                  "code": 10,
+                  "value": "41",
+                  "begin": 10892,
+                  "end": 10899
+                },
+                {
+                  "code": 20,
+                  "value": "42",
+                  "begin": 10899,
+                  "end": 10906
+                },
+                {
+                  "code": 30,
+                  "value": "43",
+                  "begin": 10906,
+                  "end": 10913
+                },
+                {
+                  "code": 40,
+                  "value": "1",
+                  "begin": 10913,
+                  "end": 10919
+                },
+                {
+                  "code": 1,
+                  "value": "attribute MTEXT",
+                  "begin": 10919,
+                  "end": 10939
+                },
+                {
+                  "code": 50,
+                  "value": "0",
+                  "begin": 10939,
+                  "end": 10945
+                },
+                {
+                  "code": 41,
+                  "value": "1",
+                  "begin": 10945,
+                  "end": 10951
+                },
+                {
+                  "code": 51,
+                  "value": "0",
+                  "begin": 10951,
+                  "end": 10957
+                },
+                {
+                  "code": 7,
+                  "value": "STANDARD",
+                  "begin": 10957,
+                  "end": 10970
+                },
+                {
+                  "code": 71,
+                  "value": "    0",
+                  "begin": 10970,
+                  "end": 10980
+                },
+                {
+                  "code": 11,
+                  "value": "31",
+                  "begin": 10980,
+                  "end": 10987
+                },
+                {
+                  "code": 21,
+                  "value": "32",
+                  "begin": 10987,
+                  "end": 10994
+                },
+                {
+                  "code": 31,
+                  "value": "33",
+                  "begin": 10994,
+                  "end": 11001
+                },
+                {
+                  "code": 210,
+                  "value": "0",
+                  "begin": 11001,
+                  "end": 11007
+                },
+                {
+                  "code": 220,
+                  "value": "0",
+                  "begin": 11007,
+                  "end": 11013
+                },
+                {
+                  "code": 230,
+                  "value": "1",
+                  "begin": 11013,
+                  "end": 11019
+                },
+                {
+                  "code": 100,
+                  "value": "AcDbAttribute",
+                  "begin": 11019,
+                  "end": 11037
+                },
+                {
+                  "code": 2,
+                  "value": "PEER",
+                  "begin": 11037,
+                  "end": 11046
+                },
+                {
+                  "code": 70,
+                  "value": "    0",
+                  "begin": 11046,
+                  "end": 11056
+                },
+                {
+                  "code": 73,
+                  "value": "    0",
+                  "begin": 11056,
+                  "end": 11066
+                },
+                {
+                  "code": 74,
+                  "value": "    3",
+                  "begin": 11066,
+                  "end": 11076
+                },
+                {
+                  "code": 280,
+                  "value": "    1",
+                  "begin": 11076,
+                  "end": 11086
+                },
+                {
+                  "code": 71,
+                  "value": "    2",
+                  "begin": 11086,
+                  "end": 11096
+                },
+                {
+                  "code": 72,
+                  "value": "    0",
+                  "begin": 11096,
+                  "end": 11106
+                },
+                {
+                  "code": 11,
+                  "value": "41",
+                  "begin": 11106,
+                  "end": 11113
+                },
+                {
+                  "code": 21,
+                  "value": "42",
+                  "begin": 11113,
+                  "end": 11120
+                },
+                {
+                  "code": 31,
+                  "value": "43",
+                  "begin": 11120,
+                  "end": 11127
+                },
+                {
+                  "code": 101,
+                  "value": "Embedded Object",
+                  "begin": 11127,
+                  "end": 11147
+                },
+                {
+                  "code": 10,
+                  "value": "41",
+                  "begin": 11147,
+                  "end": 11154
+                },
+                {
+                  "code": 20,
+                  "value": "42",
+                  "begin": 11154,
+                  "end": 11161
+                },
+                {
+                  "code": 30,
+                  "value": "43",
+                  "begin": 11161,
+                  "end": 11168
+                },
+                {
+                  "code": 40,
+                  "value": "1",
+                  "begin": 11168,
+                  "end": 11174
+                },
+                {
+                  "code": 41,
+                  "value": "5",
+                  "begin": 11174,
+                  "end": 11180
+                },
+                {
+                  "code": 46,
+                  "value": "0",
+                  "begin": 11180,
+                  "end": 11186
+                },
+                {
+                  "code": 71,
+                  "value": "    1",
+                  "begin": 11186,
+                  "end": 11196
+                },
+                {
+                  "code": 72,
+                  "value": "    5",
+                  "begin": 11196,
+                  "end": 11206
+                },
+                {
+                  "code": 1,
+                  "value": "attribute MTEXT",
+                  "begin": 11206,
+                  "end": 11226
+                },
+                {
+                  "code": 7,
+                  "value": "STANDARD",
+                  "begin": 11226,
+                  "end": 11239
+                },
+                {
+                  "code": 73,
+                  "value": "    1",
+                  "begin": 11239,
+                  "end": 11249
+                },
+                {
+                  "code": 44,
+                  "value": "1",
+                  "begin": 11249,
+                  "end": 11255
+                }
+              ],
+              "end": 11255
+            }
+          }
+        ],
+        "beforeOrdinaryReadback": true
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output-bin.dxf",
+        "sha256": "af04f42723c61972b31ca92b98b4ffbede2413c55b417eea0e491ed4702c33d5",
+        "bytes": 9672,
+        "binary": true,
+        "selected": [
+          {
+            "kind": "ATTDEF",
+            "handle": "36",
+            "owner": "30",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  11.0,
+                  12.0,
+                  13.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "firstIndex": 34,
+                "firstCode": 11,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 38,
+                "firstCode": 10,
+                "values": [
+                  21.0,
+                  22.0,
+                  23.0
+                ]
+              }
+            ],
+            "literalTags": [
+              [
+                0,
+                "ATTDEF"
+              ],
+              [
+                5,
+                "36"
+              ],
+              [
+                330,
+                "30"
+              ],
+              [
+                100,
+                "AcDbEntity"
+              ],
+              [
+                8,
+                "0"
+              ],
+              [
+                6,
+                "BYLAYER"
+              ],
+              [
+                62,
+                256
+              ],
+              [
+                370,
+                -1
+              ],
+              [
+                100,
+                "AcDbText"
+              ],
+              [
+                10,
+                21.0
+              ],
+              [
+                20,
+                22.0
+              ],
+              [
+                30,
+                23.0
+              ],
+              [
+                40,
+                1.0
+              ],
+              [
+                1,
+                "definition MTEXT"
+              ],
+              [
+                50,
+                0.0
+              ],
+              [
+                41,
+                1.0
+              ],
+              [
+                51,
+                0.0
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                71,
+                0
+              ],
+              [
+                11,
+                11.0
+              ],
+              [
+                21,
+                12.0
+              ],
+              [
+                31,
+                13.0
+              ],
+              [
+                210,
+                0.0
+              ],
+              [
+                220,
+                0.0
+              ],
+              [
+                230,
+                1.0
+              ],
+              [
+                100,
+                "AcDbAttributeDefinition"
+              ],
+              [
+                2,
+                "PEER"
+              ],
+              [
+                3,
+                ""
+              ],
+              [
+                70,
+                0
+              ],
+              [
+                73,
+                0
+              ],
+              [
+                74,
+                3
+              ],
+              [
+                280,
+                1
+              ],
+              [
+                71,
+                4
+              ],
+              [
+                72,
+                0
+              ],
+              [
+                11,
+                21.0
+              ],
+              [
+                21,
+                22.0
+              ],
+              [
+                31,
+                23.0
+              ],
+              [
+                101,
+                "Embedded Object"
+              ],
+              [
+                10,
+                21.0
+              ],
+              [
+                20,
+                22.0
+              ],
+              [
+                30,
+                23.0
+              ],
+              [
+                40,
+                1.0
+              ],
+              [
+                41,
+                5.0
+              ],
+              [
+                46,
+                0.0
+              ],
+              [
+                71,
+                1
+              ],
+              [
+                72,
+                5
+              ],
+              [
+                1,
+                "definition MTEXT"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                73,
+                1
+              ],
+              [
+                44,
+                1.0
+              ]
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "38",
+            "owner": "37",
+            "triples": [
+              {
+                "scope": "AcDbText",
+                "firstIndex": 19,
+                "firstCode": 11,
+                "values": [
+                  31.0,
+                  32.0,
+                  33.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "firstIndex": 33,
+                "firstCode": 11,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "firstIndex": 37,
+                "firstCode": 10,
+                "values": [
+                  41.0,
+                  42.0,
+                  43.0
+                ]
+              }
+            ],
+            "literalTags": [
+              [
+                0,
+                "ATTRIB"
+              ],
+              [
+                5,
+                "38"
+              ],
+              [
+                330,
+                "37"
+              ],
+              [
+                100,
+                "AcDbEntity"
+              ],
+              [
+                8,
+                "0"
+              ],
+              [
+                6,
+                "BYLAYER"
+              ],
+              [
+                62,
+                256
+              ],
+              [
+                370,
+                -1
+              ],
+              [
+                100,
+                "AcDbText"
+              ],
+              [
+                10,
+                41.0
+              ],
+              [
+                20,
+                42.0
+              ],
+              [
+                30,
+                43.0
+              ],
+              [
+                40,
+                1.0
+              ],
+              [
+                1,
+                "attribute MTEXT"
+              ],
+              [
+                50,
+                0.0
+              ],
+              [
+                41,
+                1.0
+              ],
+              [
+                51,
+                0.0
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                71,
+                0
+              ],
+              [
+                11,
+                31.0
+              ],
+              [
+                21,
+                32.0
+              ],
+              [
+                31,
+                33.0
+              ],
+              [
+                210,
+                0.0
+              ],
+              [
+                220,
+                0.0
+              ],
+              [
+                230,
+                1.0
+              ],
+              [
+                100,
+                "AcDbAttribute"
+              ],
+              [
+                2,
+                "PEER"
+              ],
+              [
+                70,
+                0
+              ],
+              [
+                73,
+                0
+              ],
+              [
+                74,
+                3
+              ],
+              [
+                280,
+                1
+              ],
+              [
+                71,
+                2
+              ],
+              [
+                72,
+                0
+              ],
+              [
+                11,
+                41.0
+              ],
+              [
+                21,
+                42.0
+              ],
+              [
+                31,
+                43.0
+              ],
+              [
+                101,
+                "Embedded Object"
+              ],
+              [
+                10,
+                41.0
+              ],
+              [
+                20,
+                42.0
+              ],
+              [
+                30,
+                43.0
+              ],
+              [
+                40,
+                1.0
+              ],
+              [
+                41,
+                5.0
+              ],
+              [
+                46,
+                0.0
+              ],
+              [
+                71,
+                1
+              ],
+              [
+                72,
+                5
+              ],
+              [
+                1,
+                "attribute MTEXT"
+              ],
+              [
+                7,
+                "STANDARD"
+              ],
+              [
+                73,
+                1
+              ],
+              [
+                44,
+                1.0
+              ]
+            ]
+          }
+        ],
+        "beforeOrdinaryReadback": true
+      }
+    ],
+    "read": {
+      "argv": [
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/original-AC1032.dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/actual-selected-output",
+        "read"
+      ],
+      "exitCode": 0,
+      "seconds": 0.04025833299965598,
+      "stdout": "{\"stage\":\"ascii-reimport\",\"definitionHandle\":54,\"definitionOwner\":48,\"definitionAlign\":[21,22,23],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":55,\"childHandle\":56,\"childOwner\":55,\"childAlign\":[41,42,43],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":57,\"footerOwner\":55}\n{\"stage\":\"binary-reimport\",\"definitionHandle\":54,\"definitionOwner\":48,\"definitionAlign\":[21,22,23],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":55,\"childHandle\":56,\"childOwner\":55,\"childAlign\":[41,42,43],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":57,\"footerOwner\":55}\n",
+      "stderr": ""
+    },
+    "bindingsAfter": {
+      "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "6735547aab668c1f2ca0abcac2b2f7f2c5855f5c463fe26deb59d8e59d7522bc",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/source-output-probe.cpp": "7efe5d3c6993626261538fa679ff552a4fed91fe243758397a99a443c6e64066",
+      "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/next-embedded-readiness/original-owner-authored/selected-writer-only/run.py": "6ebdb70ca7a8e517bb207dc8ae659c5577e34e922b2217960c27271c3c86df59",
+      "/Users/dli/dev/libdxfrw/src/drw_entities.cpp": "8898650466dd9a381769921e97814aa88634e8b9b689bfde4b7e038467dbf933",
+      "/Users/dli/dev/libdxfrw/src/libdxfrw.cpp": "6dc6315472c4ae72716c8550d94c1f2861a743aed3b5970a6cc0d1bb30ff2d98",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_attdef_source_profile.h": "651d438f08f18b09289b15ac47441829ea92e05bdc95ed8029aaaf5459af4931",
+      "/Users/dli/dev/libdxfrw/src/intern/dxfattdef.h": "5e9a16a7d55e84c4f477084cc321dc00ce0746ef0d402187038e1177ee0e69b5"
+    },
+    "bindingsStable": true,
+    "sourceUnchanged": true
+  },
+  "experimentReportSha256": "492910378326eb4756546b4374bac6a045fe4613f423f52d21b52bf3f3df645f",
+  "authoringRecipeSource": "\"\"\"Original typed A!=C profile and selected source/output discrepancy baseline.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nimport time\n\nroot = Path.cwd()\nout = Path(__file__).resolve().parent\nsys.pycache_prefix = str(out / \"absent-bytecode-cache\")\nassert not Path(sys.pycache_prefix).exists()\nsys.dont_write_bytecode = True\nsys.path.insert(0, str(root / \"tools\"))\nimport ezdxf\nfrom ezdxf.entities import MText\nfrom ezdxf.lldxf.tagger import ascii_tags_loader, binary_tags_loader\nfrom ezdxf.lldxf.tags import group_tags\nfrom bounded_process import run_bounded\nfrom qualify_material_source_order import author_null_material_bindings\n\n\ndef sha(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\n\ndef physical(path, binary=False):\n    if binary:\n        records = list(group_tags(binary_tags_loader(path.read_bytes(), errors=\"strict\")))\n    else:\n        with path.open(encoding=\"utf-8\", errors=\"strict\") as stream:\n            records = list(group_tags(ascii_tags_loader(stream)))\n    selected = []\n    for record in records:\n        if record[0].value not in (\"ATTDEF\", \"ATTRIB\") or record.get_first_value(2, None) != \"PEER\":\n            continue\n        scope = \"header\"\n        triples = []\n        pending = None\n        for i, tag in enumerate(record):\n            if tag.code in (100, 101):\n                scope = str(tag.value)\n            if tag.code == 11 or (tag.code == 10 and scope == \"Embedded Object\"):\n                pending = dict(scope=scope, firstIndex=i, firstCode=tag.code,\n                               values=[float(tag.value)])\n                triples.append(pending)\n            elif pending and tag.code == pending[\"firstCode\"] + 10 * len(pending[\"values\"]):\n                pending[\"values\"].append(float(tag.value))\n                if len(pending[\"values\"]) == 3:\n                    pending = None\n        assert len(triples) == 3 and all(len(t[\"values\"]) == 3 for t in triples)\n        selected.append(dict(kind=record[0].value, handle=record.get_first_value(5),\n            owner=record.get_first_value(330, None), triples=triples,\n            literalTags=[[tag.code, tag.value] for tag in record]))\n    assert len(selected) == 2 and {r[\"kind\"] for r in selected} == {\"ATTDEF\", \"ATTRIB\"}\n    result = dict(path=str(path), sha256=sha(path), bytes=path.stat().st_size,\n                  binary=binary, selected=selected, beforeOrdinaryReadback=True)\n    if not binary:\n        # Exact raw source/output record byte spans, without coordinate-role inference.\n        data = path.read_bytes()\n        lines = data.splitlines(keepends=True)\n        offset, current, spans = 0, None, []\n        for i in range(0, len(lines), 2):\n            code = int(lines[i].strip())\n            value = lines[i + 1].rstrip(b\"\\r\\n\").decode(\"utf-8\", \"strict\")\n            end = offset + len(lines[i]) + len(lines[i + 1])\n            if code == 0:\n                if current:\n                    current[\"end\"] = offset\n                    spans.append(current)\n                current = dict(kind=value, begin=offset, fields=[])\n            elif current is not None:\n                current[\"fields\"].append(dict(code=code, value=value, begin=offset, end=end))\n            offset = end\n        for row in selected:\n            matches = [r for r in spans if r[\"kind\"] == row[\"kind\"]\n                       and any(t[\"code\"] == 5 and t[\"value\"] == row[\"handle\"] for t in r[\"fields\"])]\n            assert len(matches) == 1\n            row[\"rawSpans\"] = matches[0]\n    return result\n\n\ndef run(argv, timeout=30):\n    start = time.monotonic()\n    result = run_bounded(argv, timeout=timeout, output_limit=65536)\n    return dict(argv=argv, exitCode=result.returncode, seconds=time.monotonic()-start,\n        stdout=result.stdout.decode(\"utf-8\", \"replace\"), stderr=result.stderr.decode(\"utf-8\", \"replace\"))\n\n\nassert ezdxf.__version__ == \"1.4.5\"\nsource = out / \"original-AC1032.dxf\"\nassert not source.exists()\ndoc = ezdxf.new(\"R2018\")\nnull_bindings, omitted_materials = author_null_material_bindings(doc)\nblock = doc.blocks.new(\"PeerEmbedded\")\ndefinition = block.add_attdef(\"PEER\", insert=(0,0), text=\"fallback\", dxfattribs={\"height\":1})\nparent = doc.modelspace().add_blockref(\"PeerEmbedded\", (0,0,0))\nchild = parent.add_attrib(\"PEER\", \"fallback\", insert=(0,0), dxfattribs={\"height\":1})\nparent.take_ownership()  # genuine compound ownership authored before first save\nassert child.dxf.owner == parent.dxf.handle\nassert parent.seqend.dxf.owner == parent.dxf.handle\nintent = []\nfor entity, align, insertion, text in (\n        (definition, (11,12,13), (21,22,23), \"definition MTEXT\"),\n        (child, (31,32,33), (41,42,43), \"attribute MTEXT\")):\n    mtext = MText.new(dxfattribs=dict(insert=insertion, char_height=1, width=5,\n                                     attachment_point=1, text=text))\n    entity.set_mtext(mtext)\n    # Deliberately author an independent, meaningful fallback alignment before save.\n    # This is a public typed field; no saved-source tag mutation is used.\n    entity.dxf.align_point = align\n    entity.dxf.lock_position = 1\n    assert tuple(entity.virtual_mtext_entity().dxf.insert) == insertion\n    assert tuple(entity.dxf.align_point) == align\n    assert entity.dxf.valign == 3\n    intent.append(dict(kind=entity.dxftype(), handle=entity.dxf.handle,\n        owner=entity.dxf.owner, fallbackAlign=list(align), embeddedInsertion=list(insertion),\n        attributeType=entity.dxf.attribute_type, lock=1, verticalAlignment=3,\n        expectedSourceTriples=[list(align),list(align),list(insertion)]))\nintent_path = out / \"intent-before-first-save.json\"\nintent_path.write_text(json.dumps(dict(version=\"AC1032\", intent=intent,\n    nullLayerMaterialBindings=null_bindings, omittedUnusedDefaultMaterials=omitted_materials,\n    authoring=\"parent.take_ownership then set_mtext and public dxf.align_point before first save; no schema adapter\",\n    nativeMeaning=\"unknown; pinned producer export comment questions duplicated alignment role\"),indent=2)+\"\\n\")\ndoc.saveas(source, fmt=\"asc\")\nreport = dict(schema=\"embedded-attribute-A-not-C-source-output-readiness-v1\",\n    qualificationEligible=False, nativeSemanticClaim=False, supportClaimsPromoted=False,\n    trackedEdits=False, qualificationTargetRebuilds=False, inputPostSaveMutation=False,\n    intent=dict(path=str(intent_path),sha256=sha(intent_path)), original=physical(source),\n    producer=dict(name=\"ezdxf\",version=ezdxf.__version__,executable=sys.executable,\n                  executableSha256=sha(sys.executable)),\n    sequence=[\"typed intent before first save\", \"source literal tags before production import\"])\nfor row in report[\"original\"][\"selected\"]:\n    wanted = next(r for r in intent if r[\"kind\"] == row[\"kind\"])\n    assert [triple[\"values\"] for triple in row[\"triples\"]] == wanted[\"expectedSourceTriples\"]\nobj = root / \"build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o\"\nlib = root / \"build/libdxfrw.a\"\ncpp = out / \"source-output-probe.cpp\"\nexe = out / \"source-output-probe\"\nbindings = [obj,lib,cpp,Path(__file__),root/\"src/drw_entities.cpp\",root/\"src/libdxfrw.cpp\",\n            root/\"dwg2dxf/dx_attdef_source_profile.h\",root/\"src/intern/dxfattdef.h\"]\nreport[\"bindingsBefore\"] = {str(path):sha(path) for path in bindings}\nreport[\"compile\"] = run([\"/usr/bin/clang++\",\"-std=c++17\",\"-Wall\",\"-Wextra\",\"-Werror\",\n    \"-I.\",\"-Isrc\",\"-Ibuild\",str(cpp),str(obj),str(lib),\"-o\",str(exe)])\nif report[\"compile\"][\"exitCode\"] == 0:\n    report[\"probeSha256\"] = sha(exe)\n    prefix = out / \"actual-selected-output\"\n    report[\"write\"] = run([str(exe),str(source),str(prefix),\"write\"])\n    report[\"sequence\"].append(\"ordinary production import, original replay observations, actual ASC/BIN exports\")\n    if report[\"write\"][\"exitCode\"] == 0:\n        report[\"outputsBeforeReimport\"] = [physical(Path(str(prefix)+suffix), binary)\n            for suffix,binary in ((\"-asc.dxf\",False),(\"-bin.dxf\",True))]\n        report[\"sequence\"].append(\"independent literal actual output tags before production reimport\")\n        report[\"read\"] = run([str(exe),str(source),str(prefix),\"read\"])\n        report[\"sequence\"].append(\"separate production reimport of actual outputs\")\nreport[\"bindingsAfter\"] = {str(path):sha(path) for path in bindings}\nreport[\"bindingsStable\"] = report[\"bindingsBefore\"] == report[\"bindingsAfter\"]\nassert sha(source) == report[\"original\"][\"sha256\"]\nreport[\"sourceUnchanged\"] = True\nreport[\"loadedEzdxfModules\"] = {\n    name:dict(path=str(Path(module.__file__).resolve()),sha256=sha(module.__file__))\n    for name,module in sorted(sys.modules.items()) if name.startswith(\"ezdxf\")\n    and getattr(module,\"__file__\",None) and Path(module.__file__).is_file()}\npath = out / \"experiment.json\"\npath.write_text(json.dumps(report,indent=2)+\"\\n\")\nprint(json.dumps(dict(report=str(path),sha256=sha(path),bindingsStable=report[\"bindingsStable\"],\n    compile=report[\"compile\"],write=report.get(\"write\"),read=report.get(\"read\")),indent=2))\n",
+  "authoringRecipeSha256": "e833cc7a2ef74b59d2454537935fe29eb8ac5ce127321faecc7b6466c6c197b2",
+  "probeSource": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <iostream>\n#include <string>\n\nstruct Selected {\n    const DRW_Attdef* definition=nullptr;\n    const DRW_Insert* parent=nullptr;\n    const DRW_Attrib* child=nullptr;\n};\nSelected select(const dx_data& data) {\n    Selected out;\n    for(const auto* block:data.blocks)if(block&&block->name==\"PeerEmbedded\")\n        for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity))\n            if(value->tag==\"PEER\") {if(out.definition)return {};out.definition=value;}\n    if(data.mBlock)for(const auto* entity:data.mBlock->ent)\n        if(const auto* parent=dynamic_cast<const DRW_Insert*>(entity))if(parent->name==\"PeerEmbedded\") {\n            if(out.parent)return {};out.parent=parent;\n            for(const auto& value:parent->attlist)if(value&&value->tag==\"PEER\") {\n                if(out.child)return {};out.child=value.get();\n            }\n        }\n    return out;\n}\nclass DxIfaceTableSourceTestAccess {\npublic:\n    static void proof(const dx_data& data,const Selected& selected) {\n        bool pair=false,replay=false;int reason=-1;std::size_t rejected=0u;\n        const auto found=data.m_tableDxfSource.resources.find(selected.definition->handle);\n        if(found!=data.m_tableDxfSource.resources.end()) {\n            const auto& r=found->second;pair=r.attdefPairMatched;\n            replay=r.attdefFieldsMatched&&!r.attdefFieldMismatch;\n            reason=static_cast<int>(r.attdefProfile.reason);rejected=r.attdefProfile.rejectedGroup;\n        }\n        unsigned compounds=0u;bool modeled=false,profiles=false,space=false;int state=-1,childReason=-1;\n        std::size_t childRejected=0u;\n        for(const auto& owner:data.m_tableDxfSource.entitiesCompoundAudits)if(owner&&owner->physical)\n            for(const auto& p:owner->proofs)if(p.compound&&p.first<owner->members.size()\n                &&owner->members[p.first].self==selected.parent->handle) {\n                ++compounds;modeled=p.modeledMatched;profiles=p.profilesMatched;space=p.spaceMatched;\n                state=static_cast<int>(p.state);\n                for(std::size_t i=p.first;i<p.next&&i<owner->members.size();++i)\n                    if(owner->members[i].self==selected.child->handle&&i-p.first<p.profiles.size()) {\n                        childReason=static_cast<int>(p.profiles[i-p.first].reason);\n                        childRejected=p.profiles[i-p.first].rejectedGroup;\n                    }\n            }\n        std::cout<<\"{\\\"stage\\\":\\\"original-proof\\\",\\\"definitionPair\\\":\"<<pair\n            <<\",\\\"definitionReplay\\\":\"<<replay<<\",\\\"definitionProfileReason\\\":\"<<reason\n            <<\",\\\"definitionRejectedGroup\\\":\"<<rejected<<\",\\\"selectedCompounds\\\":\"<<compounds\n            <<\",\\\"compoundModeled\\\":\"<<modeled<<\",\\\"compoundProfiles\\\":\"<<profiles\n            <<\",\\\"compoundSpace\\\":\"<<space<<\",\\\"compoundState\\\":\"<<state\n            <<\",\\\"childProfileReason\\\":\"<<childReason<<\",\\\"childRejectedGroup\\\":\"<<childRejected<<\"}\\n\";\n    }\n};\nvoid point(const DRW_Coord& p) {std::cout<<'['<<p.x<<','<<p.y<<','<<p.z<<']';}\nvoid observe(const char* stage,const Selected& s) {\n    std::cout<<\"{\\\"stage\\\":\\\"\"<<stage<<\"\\\",\\\"definitionHandle\\\":\"<<s.definition->handle\n        <<\",\\\"definitionOwner\\\":\"<<s.definition->parentHandle<<\",\\\"definitionAlign\\\":\";\n    point(s.definition->secPoint);std::cout<<\",\\\"definitionEmbeddedInsertion\\\":\";point(s.definition->mtext->basePoint);\n    std::cout<<\",\\\"definitionType\\\":\"<<static_cast<unsigned>(s.definition->m_attributeType)\n        <<\",\\\"definitionVersion\\\":\"<<static_cast<unsigned>(s.definition->attVersion)\n        <<\",\\\"parentHandle\\\":\"<<s.parent->handle<<\",\\\"childHandle\\\":\"<<s.child->handle\n        <<\",\\\"childOwner\\\":\"<<s.child->parentHandle<<\",\\\"childAlign\\\":\";\n    point(s.child->secPoint);std::cout<<\",\\\"childEmbeddedInsertion\\\":\";point(s.child->mtext->basePoint);\n    std::cout<<\",\\\"childType\\\":\"<<static_cast<unsigned>(s.child->m_attributeType)\n        <<\",\\\"childVersion\\\":\"<<static_cast<unsigned>(s.child->attVersion)\n        <<\",\\\"footerHandle\\\":\"<<s.parent->seqEndEntity->handle\n        <<\",\\\"footerOwner\\\":\"<<s.parent->seqEndEntity->parentHandle<<\"}\\n\";\n}\nbool ready(const Selected& s) {\n    return s.definition&&s.parent&&s.child&&s.definition->mtext&&s.child->mtext\n        &&s.parent->attlist.size()==1u&&s.parent->seqEndEntity;\n}\nbool equal(const DRW_Coord& p,double x,double y,double z) {return p.x==x&&p.y==y&&p.z==z;}\nstruct SelectedWriter final:dx_iface {\n    dx_data empty;Selected selected;bool good=true;\n    explicit SelectedWriter(Selected value):selected(value) {cData=&empty;currentBlock=empty.mBlock;}\n    void writeBlockRecords() override {good=good&&dxfW->writeBlockRecord(\"PeerEmbedded\");}\n    void writeBlocks() override {\n        DRW_Block block;block.name=\"PeerEmbedded\";\n        good=good&&dxfW->writeBlock(&block);\n        const auto owner=dxfW->getBlockRecordHandleToWrite(\"PeerEmbedded\");\n        good=good&&dxfW->writeAttdef(const_cast<DRW_Attdef*>(selected.definition),owner);\n        good=good&&dxfW->writeBlockEnd();\n    }\n    void writeEntities() override {good=good&&dxfW->writeInsert(const_cast<DRW_Insert*>(selected.parent));}\n};\nint main(int argc,char** argv) {\n    if(argc!=4)return 2;\n    if(std::string(argv[3])==\"read\") {\n        for(bool binary:{false,true}) {\n            const std::string path=std::string(argv[2])+(binary?\"-bin.dxf\":\"-asc.dxf\");\n            dx_iface reader;dx_data result;if(!reader.fileImport(path,&result,false))return 8;\n            const auto selected=select(result);if(!ready(selected))return 9;\n            observe(binary?\"binary-reimport\":\"ascii-reimport\",selected);\n            // This is a source/output discrepancy baseline, not correct behavior.\n            if(!equal(selected.definition->secPoint,21,22,23)||!equal(selected.child->secPoint,41,42,43)\n                ||!equal(selected.definition->mtext->basePoint,21,22,23)||!equal(selected.child->mtext->basePoint,41,42,43))return 10;\n        }\n        return 0;\n    }\n    if(std::string(argv[3])!=\"write\")return 2;\n    dx_iface input;dx_data source;if(!input.fileImport(argv[1],&source,false))return 3;\n    const auto original=select(source);if(!ready(original))return 4;\n    observe(\"original-import\",original);DxIfaceTableSourceTestAccess::proof(source,original);\n    if(!equal(original.definition->secPoint,11,12,13)||!equal(original.definition->mtext->basePoint,21,22,23)\n        ||!equal(original.child->secPoint,31,32,33)||!equal(original.child->mtext->basePoint,41,42,43))return 5;\n    for(bool binary:{false,true}) {\n        const std::string path=std::string(argv[2])+(binary?\"-bin.dxf\":\"-asc.dxf\");\n        SelectedWriter output(original);dxfRW writer(path.c_str());output.dxfW=&writer;\n        if(!writer.write(&output,DRW::AC1032,binary)||!output.good)return 6;\n        if(!equal(original.definition->secPoint,11,12,13)||!equal(original.child->secPoint,31,32,33))return 7;\n    }\n    observe(\"source-model-after-both-exports\",original);\n    return 0;\n}\n",
+  "probeSourceSha256": "7efe5d3c6993626261538fa679ff552a4fed91fe243758397a99a443c6e64066",
+  "probeDriverSource": "\"\"\"Isolate actual imported entity writer fields; preserve whole-export refusal.\"\"\"\nimport ast\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nimport time\n\nroot=Path.cwd()\nout=Path(__file__).resolve().parent\nprevious=out.parent\nsys.pycache_prefix=str(out/\"absent-bytecode-cache\")\nassert not Path(sys.pycache_prefix).exists()\nsys.dont_write_bytecode=True\nsys.path.insert(0,str(root/\"tools\"))\nfrom bounded_process import run_bounded\nfrom ezdxf.lldxf.tagger import ascii_tags_loader,binary_tags_loader\nfrom ezdxf.lldxf.tags import group_tags\n\n# Reuse the exact retained literal observer and bounded runner, without authoring.\nmodule=ast.parse((previous/\"experiment.py\").read_text())\nfunctions=ast.Module(body=[node for node in module.body if isinstance(node,ast.FunctionDef)\n    and node.name in (\"sha\",\"physical\",\"run\")],type_ignores=[])\nexec(compile(functions,str(previous/\"experiment.py\"),\"exec\"),globals())\nprior_path=previous/\"experiment.json\"\nprior=json.loads(prior_path.read_text())\nsource=Path(prior[\"original\"][\"path\"])\nassert sha(source)==prior[\"original\"][\"sha256\"]\nobj=root/\"build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o\"\nlib=root/\"build/libdxfrw.a\"\ncpp=out/\"source-output-probe.cpp\"\nexe=out/\"source-output-probe\"\nbindings=[obj,lib,cpp,Path(__file__),root/\"src/drw_entities.cpp\",root/\"src/libdxfrw.cpp\",\n          root/\"dwg2dxf/dx_attdef_source_profile.h\",root/\"src/intern/dxfattdef.h\"]\nreport=dict(schema=\"embedded-attribute-selected-writer-discrepancy-readiness-v1\",\n    qualificationEligible=False,supportClaimsPromoted=False,nativeMeaning=\"unknown\",\n    original=prior[\"original\"],intent=prior[\"intent\"],\n    sourceLineage=dict(previousReport=str(prior_path),previousSha256=sha(prior_path),\n        previousWholeAdapterExportExit=prior[\"write\"][\"exitCode\"],\n        previousWholeAdapterExportFailure=\"TABLES/default DIMSTYLE emission; did not reach selected entity output\",\n        originalSourceReusedUnchanged=True,\n        initialWrongCompoundOwnerReport=str(previous.parent/\"experiment.json\"),\n        initialWrongCompoundOwnerReportSha256=sha(previous.parent/\"experiment.json\")),\n    selectedWriterScope=\"Direct production dxfRW writer of actual imported ATTDEF and INSERT models; clean callbacks declare matching BLOCK_RECORD/BLOCK and emit real ATTRIB/SEQEND. This is not whole original document export or semantic closure.\",\n    sourcePostSaveMutation=False,trackedEdits=False,qualificationTargetBuilds=False,\n    bindingsBefore={str(p):sha(p) for p in bindings})\nreport[\"compile\"]=run([\"/usr/bin/clang++\",\"-std=c++17\",\"-Wall\",\"-Wextra\",\"-Werror\",\"-I.\",\"-Isrc\",\"-Ibuild\",\n    str(cpp),str(obj),str(lib),\"-o\",str(exe)])\nif report[\"compile\"][\"exitCode\"]==0:\n    report[\"probeSha256\"]=sha(exe)\n    prefix=out/\"actual-selected-output\"\n    report[\"write\"]=run([str(exe),str(source),str(prefix),\"write\"])\n    if report[\"write\"][\"exitCode\"]==0:\n        report[\"outputsBeforeOrdinaryReimport\"]=[physical(Path(str(prefix)+suffix),binary)\n            for suffix,binary in ((\"-asc.dxf\",False),(\"-bin.dxf\",True))]\n        report[\"read\"]=run([str(exe),str(source),str(prefix),\"read\"])\nreport[\"bindingsAfter\"]={str(p):sha(p) for p in bindings}\nreport[\"bindingsStable\"]=report[\"bindingsBefore\"]==report[\"bindingsAfter\"]\nreport[\"sourceUnchanged\"]=sha(source)==report[\"original\"][\"sha256\"]\npath=out/\"experiment.json\"\npath.write_text(json.dumps(report,indent=2)+\"\\n\")\nprint(json.dumps(dict(report=str(path),sha256=sha(path),bindingsStable=report[\"bindingsStable\"],\n    compile=report[\"compile\"],write=report.get(\"write\"),read=report.get(\"read\")),indent=2))\n",
+  "probeDriverSha256": "6ebdb70ca7a8e517bb207dc8ae659c5577e34e922b2217960c27271c3c86df59",
+  "executionBrief": {
+    "operation": "Preserve distinct host alignment and embedded MTEXT insertion in selected AC1032 ATTRIB/ATTDEF writer/readback.",
+    "entryPoints": [
+      "dxfRW::writeAttributeR2018Features",
+      "dxfRW::writeAttrib",
+      "dxfRW::writeAttdef",
+      "DRW_Attrib::parseCode"
+    ],
+    "expected": "Use host secPoint for the Attribute 11/21/31 output while keeping embedded MTEXT 10/20/30 from its own basePoint. For the witnessed source, preserve Text/Attribute/embedded triples A/A/C and ordinary model A/C. Explicit host zero is a value, never an unset sentinel.",
+    "controls": "ASCII/binary, ATTDEF plus genuine INSERT/ATTRIB/SEQEND, distinct host/nested values including zero, text and ownership/geometry, output and reimport, ordinary classic/2D, pre-2018 refusal, nonfinite and failed write/retry as relevant. Verify exact current owning selector and run its affected normal/ASan checkpoint plus selected original producer/probe.",
+    "scope": "Selected writer/readback consistency only. Do not broaden source-profile audit or assert native meaning; independent producer notes uncertainty over redundant Attribute alignment. No arbitrary distinct Text/Attribute model or complete original-document closure is established."
+  },
+  "limitations": [
+    "Direct writer mutates source model handle fields; coordinates remain unchanged. These temporary imported models are not claimed immutable and their pre-export proof is not reused after output.",
+    "Full compatible adapter export of the original is independently blocked at default DIMSTYLE TABLES emission; direct selected callbacks bypass that unrelated source document route.",
+    "Initial ezdxf-created child layout ownership failure was retained; a separate original used take_ownership before first save. No saved source was modified.",
+    "Pinned ezdxf exporter explicitly questions why the redundant Attribute alignment exists. Autodesk/ODA establish ordinary Text alignment and embedded insertion but not which original triple aliases the redundant Attribute triple.",
+    "The equal-coordinate retained AC1032 sample cannot distinguish A/A/C from A/C/C contracts; no native semantic claim follows.",
+    "The core writer is shared: rebuild affected executables and run meaningful selected serializer/reader checks; qualify compatibility beyond the selected routes separately.",
+    "No source drawing or output artifact is committed."
+  ],
+  "gates": {
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "nativeEmbeddedAttributeSemanticsQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}
