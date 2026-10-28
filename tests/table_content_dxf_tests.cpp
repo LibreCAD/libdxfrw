@@ -137,6 +137,8 @@ public:
     using Ownership=dx_data::TableDxfSourceCapture::DependencyAudit::Ownership;
     using DependencyRow=dx_data::TableDxfSourceCapture::DependencyAudit::Row;
     static std::size_t emittedTables(const dx_iface& writer){return writer.m_emittedTableHandles.size();}
+    static std::size_t tableSourceWork(const dx_data& data){return data.m_tableDxfSource.selectionWork;}
+    static void markTableEmitted(dx_iface& writer,std::uint32_t handle){writer.m_emittedTableHandles.insert(handle);}
     static void limits(dx_data& data, std::size_t records, std::size_t groups,
                        std::size_t bytes, std::size_t work=4000000u) {
         auto& source=data.m_tableDxfSource;

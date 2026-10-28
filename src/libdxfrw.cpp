@@ -9194,6 +9194,10 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
 }
 
 bool dxfRW::writeTable(DRW_Table *ent){
+    return writeTableWithLegacyZeroOverrides(ent, {});
+}
+
+bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<std::uint8_t>& legacyZeroOverrides){
     if (!preflightEntity(ent)
         || (ent != nullptr && ent->seqEndEntity != nullptr
             && !preflightEntity(ent->seqEndEntity.get())))
@@ -9223,6 +9227,22 @@ bool dxfRW::writeTable(DRW_Table *ent){
         || !ent->m_content.m_fieldHandles.empty()
         || !ent->m_content.m_subrecordRanges.empty()) {
         return failDxfWrite();
+    }
+
+    if (!legacyZeroOverrides.empty()) {
+        if (version != DRW::AC1018 || legacyZeroOverrides.size() != rows * columns)
+            return failDxfWrite();
+        for (std::size_t row = 0u; row < rows; ++row) {
+            if (ent->m_content.m_rows[row].m_cells.size() != columns)
+                return failDxfWrite();
+            for (std::size_t column = 0u; column < columns; ++column) {
+                const auto spelling = legacyZeroOverrides[row * columns + column];
+                if (spelling > 1u || (spelling != 0u
+                    && (ent->m_content.m_rows[row].m_cells[column].m_overrideFlags != 0u
+                        || ent->m_content.m_rows[row].m_cells[column].m_virtualEdgeFlags != 0)))
+                    return failDxfWrite();
+            }
+        }
     }
 
     bool legacyCoveredMerge = false;
@@ -9642,7 +9662,9 @@ bool dxfRW::writeTable(DRW_Table *ent){
                 writer->writeInt32(91, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, cell->m_virtualEdgeFlags);
                 writer->writeInt32(92, cell->m_flags);
-            } else if (cell->m_overrideFlags != 0u) {
+            } else if (cell->m_overrideFlags != 0u
+                       || (!legacyZeroOverrides.empty()
+                           && legacyZeroOverrides[row * columns + column] != 0u)) {
                 writer->writeInt16(177, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, 0);
             }

@@ -452,6 +452,9 @@ public:
                                        const DRW_Block *paperSpaceFooter);
     bool writeInsert(DRW_Insert *ent);
     bool writeTable(DRW_Table *ent);
+    // Optional AC1018 source-presence spelling; one entry per cell, in row order.
+    // The ordinary overload remains source-agnostic.
+    bool writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<std::uint8_t>& legacyZeroOverrides);
     /// Emits the bounded AC1021+ typed TABLESTYLE profile. DXF-origin
     /// TABLESTYLE records continue to use exact raw replay through the
     /// adapter; this typed path is for supported DWG-origin style snapshots.

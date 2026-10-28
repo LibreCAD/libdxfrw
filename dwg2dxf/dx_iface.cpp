@@ -24689,6 +24689,89 @@ bool dx_iface::chargeTableSource(
     return true;
 }
 
+namespace {
+// Qualify only the observed AC1018 cell spelling. This is physical field
+// preservation; it does not establish native semantics of absent values.
+enum class LegacyZeroPresence { None, Selected, Invalid };
+LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
+        const DRW_Table& table, std::vector<std::uint8_t>& presence) noexcept {
+    try {
+        if (raw.m_version != DRW::AC1018 || raw.groups.size() > 4000000u)
+            return LegacyZeroPresence::None;
+        // Avoid allocating a cell vector for the common no-zero profile.
+        bool candidate = false, scanningTable = false;
+        for (const auto& group : raw.groups) {
+            if (group.code()==100 && group.type()==DRW_Variant::STRING && group.content.s)
+                scanningTable = *group.content.s == "AcDbTable";
+            else if (scanningTable && group.code()==177 && group.type()==DRW_Variant::INTEGER
+                     && group.content.i==0) candidate = true;
+        }
+        if (!candidate) return LegacyZeroPresence::None;
+        const std::size_t rows = table.m_content.m_rows.size(), columns = table.m_content.m_columns.size();
+        if (!rows || !columns || rows > 10000u || columns > 1000u || rows > 200000u / columns)
+            return LegacyZeroPresence::Invalid;
+        bool inTable = false, inApp = false, sawZero = false, invalid = false;
+        bool rowCountSeen = false, columnCountSeen = false;
+        std::size_t cell = 0u; bool hasCell = false, flagSeen = false, edgeSeen = false;
+        int prior = -1; std::vector<std::uint8_t> found; found.reserve(rows * columns);
+        for (const auto& group : raw.groups) {
+            const int code = group.code();
+            if (code == 100 && group.type() == DRW_Variant::STRING && group.content.s) {
+                inTable = *group.content.s == "AcDbTable";
+                if (!inTable) hasCell = false;
+                prior = code; continue;
+            }
+            if (!inTable) continue;
+            if (code == 102) { inApp = true; invalid = true; prior = code; continue; }
+            if (code == 1001) { inApp = true; invalid = true; prior = code; continue; }
+            if (code == 177 && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
+                sawZero = true;
+            if (inApp) { prior = code; continue; }
+            if (!hasCell && (code == 91 || code == 92)) {
+                bool& seen = code == 91 ? rowCountSeen : columnCountSeen;
+                const auto expected = code == 91 ? rows : columns;
+                if (seen || group.type() != DRW_Variant::INTEGER || group.content.i < 0
+                    || static_cast<std::size_t>(group.content.i) != expected) invalid = true;
+                seen = true;
+            }
+            if (code == 171) {
+                if (hasCell && flagSeen != edgeSeen) invalid = true;
+                if (cell >= rows * columns) return LegacyZeroPresence::Invalid;
+                hasCell = true; flagSeen = edgeSeen = false; ++cell; found.push_back(0u);
+            } else if (code == 177) {
+                if (!hasCell || flagSeen || group.type() != DRW_Variant::INTEGER || prior != 176)
+                    invalid = true;
+                flagSeen = true;
+                if (hasCell && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
+                    found.back() = 1u;
+            } else if (code == 178) {
+                if (!hasCell || !flagSeen || edgeSeen || prior != 177
+                    || group.type() != DRW_Variant::INTEGER || group.content.i != 0)
+                    invalid = true;
+                edgeSeen = true;
+            }
+            prior = code;
+        }
+        if (!sawZero) return LegacyZeroPresence::None;
+        if (hasCell && flagSeen != edgeSeen) invalid = true;
+        if (!rowCountSeen || !columnCountSeen || cell != rows * columns || found.size() != cell) invalid = true;
+        if (!invalid) {
+            for (std::size_t row = 0u; row < rows; ++row) {
+                if (table.m_content.m_rows[row].m_cells.size() != columns) { invalid = true; break; }
+                for (std::size_t col = 0u; col < columns; ++col) {
+                    const auto& value = table.m_content.m_rows[row].m_cells[col];
+                    if (found[row * columns + col] && (value.m_overrideFlags != 0u || value.m_virtualEdgeFlags != 0))
+                        invalid = true;
+                }
+            }
+        }
+        if (invalid) return LegacyZeroPresence::Invalid;
+        presence.swap(found); return LegacyZeroPresence::Selected;
+    } catch (...) { return LegacyZeroPresence::Invalid; }
+}
+}
+
+
 void dx_iface::addDxfTableSource(const DRW_Table& table,
                                 const DRW_RawDxfObject& raw) {
     captureTableInput(table,&raw,false);
@@ -24702,11 +24785,93 @@ void dx_iface::addDxfTableSource(const DRW_Table& table,
     std::size_t bytes = 0u, rawBytes = 0u;
     if (!estimateTypedEntityRetainedBytes(table, sizeof(DRW_Table), bytes)
         || !estimateRawDxfObjectBytes(raw, rawBytes)
-        || !addAssociativeRetainedBytes(rawBytes, bytes)) {
-        source.failed = true;
-        return;
+        || !addAssociativeRetainedBytes(rawBytes, bytes)
+        || !chargeTableSource(bytes, raw.groups.size(), 2u)) {
+        source.failed = true; return;
     }
-    if (!chargeTableSource(bytes, raw.groups.size(), 2u)) return;
+    if (raw.m_version == DRW::AC1018) {
+        if (source.selectionWork > source.maxWork
+            || raw.groups.size() > (source.maxWork - source.selectionWork) / 2u) {
+            source.failed = true; return;
+        }
+        source.selectionWork += 2u * raw.groups.size();
+        dxfRW::DxfTableSourceView view;
+        if (!source.entitiesReadInput || !source.entitiesReadInput->getDxfTableSourceView(view)
+            || view.phase != dxfRW::DxfTableSourceView::Phase::Source
+            || view.model != &table || view.source != &raw || !currentBlock
+            || view.inBlock != (currentBlock != cData->mBlock)
+            || raw.handle != table.handle || raw.parentHandle != table.parentHandle) {
+            source.contextFailed = true; return;
+        }
+        // Authenticate selected field presence against a bounded independent
+        // decode before accepting any user-overridable callback's model copy.
+        std::vector<std::uint8_t> presence;
+        const auto profile = legacyTableZeroPresence(raw,table,presence);
+        if (profile != LegacyZeroPresence::None) {
+            if (profile == LegacyZeroPresence::Invalid || !table.attlist.empty() || table.seqEndEntity) {
+                source.failed = true; return;
+            }
+            // Source-body reconstruction and scalar verification walk groups
+            // repeatedly; the replay/model comparison also walks retained
+            // payload. Charge a conservative aggregate before either begins.
+            std::size_t additionalWork = 0u;
+            if (!addAssociativeSlotBytes(raw.groups.size(),8u,additionalWork)
+                || !addAssociativeSlotBytes(bytes,4u,additionalWork)
+                || source.selectionWork > source.maxWork
+                || additionalWork > source.maxWork - source.selectionWork) {
+                source.failed = true; return;
+            }
+            source.selectionWork += additionalWork;
+            try {
+                dxfRW::DxfReadContext live;
+                if (!source.entitiesReadInput->getDxfReadContext(live)
+                    || live.sourceVersion != DRW::AC1018 || live.applyExtrusion
+                    || live.binary == raw.hasRawValues || live.codecCodePage.size() > 128u) {
+                    source.failed = true; return;
+                }
+                std::size_t replayBytes = 0u;
+                if (source.bytes > source.maxBytes
+                    || !addAssociativeSlotBytes(rawBytes,3u,replayBytes)
+                    || !addAssociativeSlotBytes(bytes,2u,replayBytes)
+                    || !addAssociativeSlotBytes(raw.groups.size(),sizeof(DRW_TableCellContent)+sizeof(DRW_TableCellAttribute)+sizeof(DRW_Variant)+128u,replayBytes)
+                    || replayBytes > source.maxBytes - source.bytes) {
+                    source.failed = true; return;
+                }
+                const std::size_t replayCap = source.maxBytes - source.bytes;
+                std::string wire;
+                if (!tableResourceSourceBody(raw,replayCap,wire) || wire.size() > replayCap - replayBytes) { source.failed = true; return; }
+                dxfRW::DxfObjectsWriteView replay{};
+                replay.bytes=wire;replay.version=live.sourceVersion;replay.binary=live.binary;
+                replay.codePage=live.codecCodePage;replay.compatibilityProfile=live.compatibilityProfile;
+                dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);
+                auto budget=std::make_shared<DxfReadRetainedBudget>(replayCap - replayBytes - wire.size());
+                auto reader=dx_standard_output::readerFor(input,replay,budget);
+                if (!reader || reader->getSourceVersion()!=live.sourceVersion
+                    || static_cast<DRW::Version>(reader->getVersion())!=live.codecVersion
+                    || reader->codePageView()!=live.codecCodePage) { source.failed = true; return; }
+                reader->setDxfCodePagePolicy(live.codePagePolicy);reader->setDxfTextEncoding(live.textEncoding);
+                reader->setSemanticStringMode(true);reader->setRecordBudget(raw.groups.size());
+                reader->setTypedVariantNodeBudget(raw.groups.size());reader->setDecodeWorkBudget(source.maxWork - source.selectionWork);
+                DRW_Table parsed;dxfTable::Decoder decoder(parsed);int code=0;
+                while(buffer.position()<wire.size()) {
+                    if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)) {
+                        source.failed = true; return;
+                    }
+                }
+                decoder.finish();
+                if (reader->decodeWorkCount() > source.maxWork - source.selectionWork) {
+                    source.failed = true; return;
+                }
+                source.selectionWork += reader->decodeWorkCount();
+                if (budget->exceeded() || reader->recordBudgetExceeded() || reader->tokenByteBudgetExceeded()
+                    || reader->inputByteBudgetExceeded() || reader->decodeWorkBudgetExceeded()
+                    || reader->typedVariantNodeBudgetExceeded() || reader->recordCount()!=raw.groups.size()
+                    || !sameTableBodyModel(parsed,table,live.sourceVersion)) {
+                    source.failed = true; return;
+                }
+            } catch (...) { source.failed = true; return; }
+        }
+    }
     try {
         if (!source.tables.try_emplace(table.handle, table, raw).second)
             source.failed = true;
@@ -31369,6 +31534,7 @@ dx_dxfSourceTextAdmission dx_iface::admitDxfSourceText(const dx_data& data) noex
     return {Status::Admitted, mask};
 }
 
+
 bool dx_iface::prepareTableFallbackGraph(dx_data& data,
                                          DRW::Version targetVersion) {
     m_tableFallbacks.clear();
@@ -31521,6 +31687,59 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
             if (table.m_tableStyleHandle == DRW::NoHandle)
                 return false;
             requestedStyleHandles.insert(table.m_tableStyleHandle);
+        }
+    }
+    // Join captured selected sources once to live complete TABLE identities.
+    // A missing source with no unmatched live table is an ordinary deletion;
+    // an unmatched live table makes a deleted-versus-rekeyed identity ambiguous.
+    if (targetVersion == DRW::AC1018 && data.sourceFormat == dx_source_format::DXF
+        && data.sourceVersion == DRW::AC1018) {
+        const auto& source = data.m_tableDxfSource;
+        // A failed source capture cannot establish whether a live TABLE had
+        // an explicit zero. Do not silently emit a presence-dropping record.
+        if (!data.tables.empty() && (source.failed || source.contextFailed))
+            return false;
+        std::size_t scanWork = 0u;
+        if (data.tables.size() > source.maxWork) return false;
+        scanWork += data.tables.size();
+        for (const auto& item : source.tables) {
+            if (scanWork > source.maxWork
+                || item.second.raw.groups.size() > (source.maxWork - scanWork) / 4u)
+                return false;
+            // Each profile scans its groups twice at planning and at dispatch.
+            scanWork += 4u * item.second.raw.groups.size();
+        }
+        bool unmatchedLive = false, duplicateLive = false;
+        std::unordered_set<std::uint32_t> liveHandles;
+        for (const auto& table : data.tables) {
+            if (!liveHandles.insert(table.handle).second) duplicateLive = true;
+            if (source.tables.count(table.handle) == 0u) unmatchedLive = true;
+        }
+        for (const auto& item : source.tables) {
+            if (!item.second.typed.m_hasSemanticContent || !item.second.typed.m_semanticContentComplete)
+                continue;
+            std::vector<std::uint8_t> presence;
+            const auto profile = legacyTableZeroPresence(item.second.raw,item.second.typed,presence);
+            if (profile == LegacyZeroPresence::None) continue;
+            std::size_t modelBytes = 0u;
+            if (!estimateTypedEntityRetainedBytes(item.second.typed,sizeof(DRW_Table),modelBytes)
+                || scanWork > source.maxWork || modelBytes > (source.maxWork - scanWork) / 2u)
+                return false;
+            // Live-vs-source model reconciliation and per-cell validation.
+            scanWork += 2u * modelBytes;
+            if (profile == LegacyZeroPresence::Invalid || duplicateLive || !source.closed || !source.successful
+                || source.failed || source.contextFailed || source.generation != 1u
+                || source.generation != data.importGeneration || source.version != DRW::AC1018)
+                return false;
+            const auto live = m_tableFallbacks.find(item.first);
+            if (live == m_tableFallbacks.end()) {
+                if (liveHandles.count(item.first) != 0u || unmatchedLive) return false;
+                continue;
+            }
+            if (!live->second || live->second->handle != item.second.typed.handle
+                || live->second->parentHandle != item.second.typed.parentHandle
+                || !sameTableBodyModel(*live->second,item.second.typed,DRW::AC1018))
+                return false;
         }
     }
     if (requestedStyleHandles.empty())
@@ -35599,9 +35818,20 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::INSERT:
         written = dxfW->writeInsert(static_cast<DRW_Insert*>(e));
         break;
-    case DRW::TABLE:
-        written = dxfW->writeTable(dynamic_cast<DRW_Table*>(e));
+    case DRW::TABLE: {
+        auto* table = dynamic_cast<DRW_Table*>(e);
+        const auto& source = cData->m_tableDxfSource;
+        const auto found = source.tables.find(e->handle);
+        if (dxfW->getVersion() == DRW::AC1018 && cData->sourceFormat == dx_source_format::DXF
+            && cData->sourceVersion == DRW::AC1018 && found != source.tables.end()) {
+            std::vector<std::uint8_t> presence;
+            const auto profile = legacyTableZeroPresence(found->second.raw,found->second.typed,presence);
+            if (profile == LegacyZeroPresence::Invalid) written = dxfW->writeTable(nullptr);
+            else if (profile == LegacyZeroPresence::Selected) written = dxfW->writeTableWithLegacyZeroOverrides(table,presence);
+            else written = dxfW->writeTable(table);
+        } else written = dxfW->writeTable(table);
         break;
+    }
     case DRW::ATTDEF:
         written = dxfW->writeAttdef(static_cast<DRW_Attdef*>(e));
         break;

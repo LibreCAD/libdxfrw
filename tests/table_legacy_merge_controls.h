@@ -202,6 +202,7 @@ bool legacyTableMergeTests(const std::filesystem::path& dir) {
 bool legacyTableMergeOverrideComposition(const std::filesystem::path& dir);
 bool legacyTableMergeUnoccupiedSpanTests(const std::filesystem::path& dir);
 bool explicitTableMergeRangeValidationTests(const std::filesystem::path& dir);
+bool tableLegacyPresenceControls(const std::filesystem::path& dir);
 // Emitted field and topology controls are for the selected AC1018 profile;
 // the inferred source grammar is not a native rendering certificate.
 bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
@@ -329,7 +330,7 @@ bool legacyTableMergeWriteTests(const std::filesystem::path& dir) {
         <<" corrected retries="<<retries<<" explicit-anchor controls="<<explicitControls<<" incomplete projections="<<fallbacks<<'\n';
     return profiles==8u&&refusals==92u&&retries==96u&&explicitControls==8u&&fallbacks==4u
         &&legacyTableMergeOverrideComposition(dir)&&legacyTableMergeUnoccupiedSpanTests(dir)
-        &&explicitTableMergeRangeValidationTests(dir);
+        &&explicitTableMergeRangeValidationTests(dir)&&tableLegacyPresenceControls(dir);
 }
 // Composition of the already admitted legacy merge and text override profiles.
 // Raw field correspondence is tested; no native appearance is claimed.
@@ -532,4 +533,179 @@ bool explicitTableMergeRangeValidationTests(const std::filesystem::path& dir) {
     }
     std::cout<<"explicit TABLE merge baselines="<<positives<<" invalid="<<refusals<<" retries="<<retries<<'\n';
     return positives==8u&&refusals==64u&&retries==64u;
+}
+
+// Authored source-presence controls; no native rendering semantics are inferred.
+struct TableLegacyPresenceMutationProbe final:dx_iface {
+    bool mutate=false;
+    void addDxfTableSource(const DRW_Table& v,const DRW_RawDxfObject& raw) override {
+        if(mutate)const_cast<DRW_Table&>(v).m_content.m_rows[0].m_cells[0].m_contents.front().m_text+="X";
+        dx_iface::addDxfTableSource(v,raw);
+    }
+};
+struct TableLegacyDirectPresenceProbe final:dx_iface {
+    std::vector<std::uint8_t> spellings;
+    void writeEntities() override {
+        if(cData->tables.size()!=1u) { (void)dxfW->writeTable(nullptr); return; }
+        auto& table=cData->tables.front();const auto sourceHandle=table.handle;
+        if(dxfW->writeTableWithLegacyZeroOverrides(&table,spellings))
+            DxIfaceTableSourceTestAccess::markTableEmitted(*this,sourceHandle);
+    }
+};
+bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-presence-source.dxf", out=dir/"legacy-presence-out.dxf";
+    const auto fail=[](const char* why){std::cerr<<"legacy TABLE zero presence: "<<why<<'\n';return false;};
+    unsigned positives=0, refusals=0, retries=0;
+    for(bool sourceBinary:{false,true}) {
+        auto tags=legacyMergeDocument("AC1018",1,3);
+        tags[legacyMergeCellField(tags,0,175)].value="2";
+        tags[legacyMergeCellField(tags,2,173)].value="0";
+        tags[legacyMergeCellField(tags,0,1)].value=std::string("Caf")+char(0xE9);
+        const auto headerEnd=std::find_if(tags.begin(),tags.end(),[](const auto& t){return t.code==0&&t.value=="ENDSEC";});
+        if(headerEnd==tags.end())return fail("header end");
+        tags.insert(headerEnd,{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});
+        auto at=legacyMergeCellField(tags,1,177);
+        tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at),tags.begin()+static_cast<std::ptrdiff_t>(at+2));
+        const auto self=std::find_if(tags.begin(),tags.end(),[](const auto& t){return t.code==5&&t.value=="4F2";});
+        if(self==tags.end())return fail("source handle");
+        tags.insert(self+1,{330,"1F"});
+        if(!write(source,tags,sourceBinary))return fail("source output");
+        for(bool outputBinary:{false,true})for(bool strict:{false,true}) {
+            dx_iface io;dx_data data;
+            if(!io.fileImport(source.string(),&data,false)||data.tables.size()!=1u
+                ||!data.tables.front().m_semanticContentComplete)return fail("source import");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+            const auto identities=tableExportIdentities(data);auto& table=data.tables.front();const DRW_Table baseline(table);
+            const auto check=[&]() {
+                const auto wire=attdefWireTags(out,outputBinary);
+                bool body=false;unsigned current=0,tables=0,owners=0;std::vector<std::vector<int>> fields;
+                for(const auto& t:wire) {
+                    if(t.code==0){body=t.text=="ACAD_TABLE";if(body)++tables;continue;}
+                    if(!body)continue;
+                    if(t.code==330){if(t.text!="1F")return false;++owners;}
+                    if(t.code==171){fields.emplace_back();++current;}
+                    if(current&& (t.code==177||t.code==178)) {
+                        if(t.kind!=AttdefWireTag::Integer||t.integer!=0)return false;
+                        fields.back().push_back(t.code);
+                    }
+                }
+                dx_iface reader;dx_data back;
+                return tables==1u&&owners==1u&&fields.size()==3u&&fields[0]==std::vector<int>{177,178}
+                    &&fields[1].empty()&&fields[2]==std::vector<int>{177,178}
+                    &&reader.fileImport(out.string(),&back,false)&&back.tables.size()==1u
+                    &&back.tables.front().m_semanticContentComplete
+                    &&back.tables.front().m_content.m_rows[0].m_cells[0].m_contents.front().m_text
+                        ==baseline.m_content.m_rows[0].m_cells[0].m_contents.front().m_text
+                    &&legacyMergeRanges(back.tables.front(),{{0,0,0,1}});
+            };
+            if(!io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check()
+                ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("exact output");
+            ++positives;
+            // An identity-preserving body mutation cannot inherit stale source
+            // presence. Correcting it must permit the same io/data retry.
+            for(unsigned fault=0;fault<3u;++fault) {
+                if(fault==0)table.m_content.m_rows[0].m_cells[0].m_contents.front().m_text+="X";
+                if(fault==1)table.m_semanticContentComplete=false;
+                if(fault==2)++table.handle;
+                const DRW_Table changed(table);const auto saved=tableExportIdentities(data);
+                if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)
+                    ||!tableExportSentinel(out)||saved!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(changed,table))return fail("stale mutation");
+                ++refusals;table=baseline;
+                if(!io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("retry");
+                ++retries;
+            }
+        }
+        // Ambiguous or incomplete override spelling cannot be authenticated.
+        for(unsigned fault=0u;fault<4u;++fault) {
+            auto bad=tags;const auto flag=legacyMergeCellField(bad,0,177);
+            if(fault==0u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(flag),{177,"0"});
+            if(fault==1u)bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(flag+1u));
+            if(fault==2u)std::swap(bad[flag],bad[flag+1u]);
+            if(fault==3u)bad[flag+1u].value="1";
+            if(!write(source,bad,sourceBinary))return fail("invalid source output");
+            dx_iface io;dx_data broken;
+            if(!io.fileImport(source.string(),&broken,false)||broken.tables.size()!=1u)return fail("invalid source import");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";broken.blockRecords.push_back(model);
+            if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,sourceBinary,&broken,false,false)
+                ||!tableExportSentinel(out))return fail("invalid source escaped");
+            dx_data fixed;if(!write(source,tags,sourceBinary)||!io.fileImport(source.string(),&fixed,false)
+                ||fixed.tables.size()!=1u)return fail("invalid source retry import");
+            fixed.blockRecords.push_back(model);
+            if(!io.fileExport(out.string(),DRW::AC1018,sourceBinary,&fixed,false,false))return fail("invalid source retry export");
+        }
+        // The source-work limit is cumulative across selected TABLE records,
+        // rather than resetting the replay budget for each one.
+        if(!sourceBinary) {
+            using A=DxIfaceTableSourceTestAccess;dx_iface io;dx_data one;
+            if(!write(source,tags,false)||!io.fileImport(source.string(),&one,false))return fail("work baseline import");
+            const auto work=A::tableSourceWork(one);
+            if(!work||work>=4000000u)return fail("work baseline accounting");
+            dx_data oneLimited;A::limits(oneLimited,100000u,4000000u,64u*1024u*1024u,work);
+            if(!io.fileImport(source.string(),&oneLimited,false)
+                ||dx_iface::tableSourceReport(oneLimited).state==dx_iface::TableSourceState::CaptureFailed)
+                return fail("single table work budget");
+            dx_data oneBelow;A::limits(oneBelow,100000u,4000000u,64u*1024u*1024u,work-1u);
+            if(!io.fileImport(source.string(),&oneBelow,false)
+                ||dx_iface::tableSourceReport(oneBelow).state!=dx_iface::TableSourceState::CaptureFailed)
+                return fail("single table one-below work budget");
+            auto two=tags;const auto begin=slot(two,0,"ACAD_TABLE");
+            const auto last=std::find_if(two.begin()+static_cast<std::ptrdiff_t>(begin),two.end(),[](const auto& t){return t.code==0&&t.value=="ENDSEC";});
+            if(last==two.end())return fail("work source end");
+            const auto end=static_cast<std::size_t>(last-two.begin());
+            Tags second(two.begin()+static_cast<std::ptrdiff_t>(begin),last);
+            for(auto& field:second)if(field.code==5)field.value="4F3";else if(field.code==2)field.value="*T2";
+            two.insert(two.begin()+static_cast<std::ptrdiff_t>(end),second.begin(),second.end());
+            dx_data limited;A::limits(limited,100000u,4000000u,64u*1024u*1024u,work);
+            if(!write(source,two,false)||!io.fileImport(source.string(),&limited,false)
+                ||dx_iface::tableSourceReport(limited).state!=dx_iface::TableSourceState::CaptureFailed)return fail("cumulative work budget");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";limited.blockRecords.push_back(model);
+            if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,false,&limited,false,false)
+                ||!tableExportSentinel(out))return fail("work failure output");
+            dx_data fresh;if(!write(source,tags,false)||!io.fileImport(source.string(),&fresh,false))return fail("work retry import");
+            fresh.blockRecords.push_back(model);
+            if(!io.fileExport(out.string(),DRW::AC1018,false,&fresh,false,false))return fail("work retry export");
+        }
+        // A subclass can mutate the parser-owned model before forwarding the
+        // callback. Bounded source re-decode must detect it, and a fresh import
+        // through the same adapter must recover.
+        {
+            TableLegacyPresenceMutationProbe io;io.mutate=true;dx_data data;
+            if(!io.fileImport(source.string(),&data,false)||data.tables.size()!=1u)return fail("mutated import");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+            if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,false,&data,false,false)
+                ||!tableExportSentinel(out))return fail("source mutation escaped");
+            io.mutate=false;dx_data retry;
+            if(!io.fileImport(source.string(),&retry,false)||retry.tables.size()!=1u)return fail("source retry import");
+            retry.blockRecords.push_back(model);
+            if(!io.fileExport(out.string(),DRW::AC1018,false,&retry,false,false))return fail("source retry export");
+        }
+    }
+    // Direct callers receive ordinary transactional rejection for malformed
+    // vector length, values, nonzero flag conflicts and unsupported target.
+    {
+        auto tags=legacyMergeDocument("AC1018",1,3);
+        tags[legacyMergeCellField(tags,0,175)].value="2";
+        tags[legacyMergeCellField(tags,2,173)].value="0";
+        if(!write(source,tags,false))return fail("direct source");
+        dx_iface importer;dx_data input;if(!importer.fileImport(source.string(),&input,false)||input.tables.size()!=1u)return fail("direct import");
+        for(bool binary:{false,true}) {
+            TableLegacyDirectPresenceProbe direct;dx_data data;direct.cData=&data;direct.currentBlock=data.mBlock;
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+            DRW_Table selected(input.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
+            direct.addTable(selected);const DRW_Table baseline(data.tables.front());
+            for(unsigned fault=0u;fault<3u;++fault) {
+                direct.spellings=fault==0u?std::vector<std::uint8_t>{1u}:std::vector<std::uint8_t>{1u,0u,fault==1u?std::uint8_t{2u}:std::uint8_t{1u}};
+                if(fault==2u)data.tables.front().m_content.m_rows[0].m_cells[2].m_overrideFlags=1u;
+                if(!tableExportSentinel(out,true)||direct.fileExport(out.string(),DRW::AC1018,binary,&data,false,false)
+                    ||!tableExportSentinel(out))return fail("direct invalid escaped");
+                data.tables.front()=baseline;direct.spellings={1u,0u,1u};
+                if(!direct.fileExport(out.string(),DRW::AC1018,binary,&data,false,false))return fail("direct retry");
+            }
+            data.tables.front()=baseline;direct.spellings={1u,0u,1u};
+            if(!tableExportSentinel(out,true)||direct.fileExport(out.string(),DRW::AC1021,binary,&data,false,false)
+                ||!tableExportSentinel(out))return fail("direct wrong target");
+        }
+    }
+    return positives==8u&&refusals==24u&&retries==24u;
 }
