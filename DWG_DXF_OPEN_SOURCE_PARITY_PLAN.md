@@ -43,7 +43,7 @@ runs separately.
 | --- | --- | --- | --- |
 | P2 | SELECT WITNESS, THEN IMPLEMENT | Consumed geometry/count, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | One current unsupported operation with original source authority and an explicit actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
-| P4 | READY: ATTDEF dual-280 roles | P4a: qualify witnessed AC1027 version-zero/lock-position spans; P4b: compose document closure | Source-bound reproduced refusal, original capture and focused role controls |
+| P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: one still-unmatched original profile/role; P4b: compose document closure | Current source census and original captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -61,12 +61,14 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P4a — ATTDEF dual-280 source roles | Retained AC1027 BLOCKS ATTDEF `6F8`, source-bound failing audit and ordinary import, original source/role reports | Admit the witnessed version-zero prefix and trailing lock boolean with exact physical span/role and modeled replay; malformed/unknown variants remain refused |
+| P4a — choose next original provider | Current physical census, source profiles, original capture/replay and role reports | Name one still-unmatched original record/profile with digest, physical span, expected role and missing layer before implementation readiness; retain full-family/document gates |
 | P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement the source-bound P4a packet first; P2/P3 still require an exact witness.
-No adjacent slice implies broader readiness. Reuse
+Choose the next P4a/P2/P3 packet from a current exact witness; no adjacent slice
+implies broader readiness. Start P4a selection with the retained secondary
+`AcDbXrecord` refusal control and current original census, and confirm a concrete
+original profile before proposing representation or semantic changes. Reuse
 existing source-bound refusals and projections before authoring another source.
 Gap classification and the next source recipe/projection can run in parallel,
 but assign one owner to shared `dx_iface.cpp` and
@@ -144,7 +146,11 @@ layouts or angular units.
 Reuse the [field-role regression receipt](docs/research/rpp5gq-material-specular-role-regression-2026-10-28.json)
 and [source/specification classification](docs/research/material-producer-specular-role-2026-10-28.json).
 Correcting the producer's specular group code alone does not resolve its ambiguous
-Normal Map or qualify an earlier adapter route.
+Normal Map or qualify an earlier adapter route. The [ODA sentinel experiment](docs/research/rpp5ha-material-normal-role-oda-advisory-2026-10-28.json)
+used distinct diffuse/normal fields and an explicit-465 positive control; this
+selected conversion lost the diffuse tuple and 465, so it cannot disambiguate the
+omitted-boundary source. Do not repeat the same route without changed evidence;
+find a producer or reader that preserves both roles in the positive control.
 
 1. Select one retained source exposing the later reused 42/72/3/73/74/75 Normal
    Map set without 464/465 or a complete refraction boundary. Bind its physical
@@ -178,32 +184,33 @@ selected recipe nor variable/LINE success qualifies default MATERIAL documents.
 P4a is source/role capture (steps 1–2); P4b is composed closure (steps 3–5).
 This split lets family providers advance without a dependency cycle.
 
-**Next P4a witness — ready to implement.** The retained AC1027 ASCII
-ACadSharp sample in [the source receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json)
-has SHA-256 `4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6`.
-In BLOCKS/MyBlock, ATTDEF `6F8` (owner `6F2`) occupies bytes `[75050,75240)`;
-its `AcDbAttributeDefinition` has `280=0` at `[75177,75188)` and `280=1` at
-`[75229,75240)`. The [Autodesk ATTDEF specification](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm)
-assigns version and lock-position roles in that subclass. The source-bound probe
-in [the offset transaction receipt](docs/research/rpp5gy-mline-unused-style-offset-transactions-2026-10-28.json)
-confirms `AmbiguousVersion` at group 15 and ordinary import with lock=true and
-version=0. Reuse the existing physical span and role ledger to distinguish the
-witnessed version-zero prefix from the trailing boolean; retain rejection of misplaced, repeated, nonzero-version and secondary
-`AcDbXrecord` profiles. Rebuild and run `libdxfrw_attdef_source_profile` and
-`libdxfrw_original_attdef_roles`, with the decisive literal source/owner and
-negative controls. This is a narrow role-provider gap, not full ATTDEF,
-recursive closure or native semantic qualification. Keep the external sample in
-scratch; extend existing locally authored fixture recipes for committed tests.
-These requirements retain the full B2b/B3/C objective. A selected ENTITIES subset
-or a live mutable container cannot substitute for original-source completeness.
+Reuse the [selected ATTDEF source-role receipt](docs/research/rpp5gz-attdef-dual-280-source-roles-2026-10-28.json)
+and existing original capture/replay/span machinery. Remaining profile selection
+must distinguish a missing parser/model, provider/origin join and independent
+evidence; no broader ATTDEF or P4 closure follows from one admitted AC1027 source.
+The writer's normalized single lock-`280` output does not preserve the original
+dual-`280` byte form. Other-version, ordering, nested and secondary-profile
+semantics remain separately qualified; retain existing single-`280` compatibility.
+
+**Next witness selection.** The existing `attdefProfileFaults` secondary-section
+control in `tests/attdef_source_profile_controls.h` reaches the explicit
+`AcDbXrecord` / `UnmodeledSecondary` boundary. Use that current refusal and the
+retained original census to locate one required original secondary record with
+exact input digest, byte span, cloning/repeated-70/secondary-340 roles and expected
+modeled result. This identifies the next boundary to investigate, not an
+implementation-ready semantic profile. If no original witness and required
+meaning are available, record the missing condition and select another concrete
+local operation in P2/P3/P4/P5 instead of inventing a schema or waiting on native
+evidence. Keep the complete B2b/B3/C objective; a selected ENTITIES subset or live
+mutable container cannot substitute for original-source completeness.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
    OBJECTCONTEXTDATA, PLOTSETTINGS, FIELD and GEODATA bodies. ATTDEF already has
    immutable capture, modeled replay, physical spans, original pair/origin joins
    and selected dependency-source roles; reuse these. Classify one witnessed
-   unmatched profile at a time: secondary `AcDbXrecord`, dual-280 grammar,
-   unmodeled columns or earlier-version multiline qualification remain distinct
+   unmatched profile at a time: secondary `AcDbXrecord`, other-version/ordering
+   dual-280 profiles, unmodeled columns or earlier-version multiline qualification remain distinct
    from the admitted profiles. Keep explicit refusal until required representation
    and evidence exist. Include children, terminators, unsupported/dropped original
    records and unused definitions in the census; establish exact presence/roles.
