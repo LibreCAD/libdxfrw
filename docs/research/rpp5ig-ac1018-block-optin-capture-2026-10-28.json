@@ -1,0 +1,83 @@
+{
+  "schema": "ac1018-block-optin-endpoint-replay-v1",
+  "date": "2026-10-28",
+  "codeCommit": "844f126b24a812567272610a4553412331c2cb43",
+  "supportClaimsPromoted": false,
+  "scope": "Explicit derived-adapter opt-in to existing BLOCK source facet. Captured endpoints and bounded modeled-field replay only. Default AC1018 consumer capture remains disabled; endpoint profile, BLOCK_RECORD reconciliation, graph and output eligibility remain gated.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Independent repository sample; original native authoring is not independently certified.",
+    "version": "AC1018",
+    "encoding": "ASCII, declared ANSI_1252",
+    "selected": {
+      "block": "6F4",
+      "blockRecordOwner": "6F2",
+      "beginSpan": "[73768,73898)",
+      "beginGroups": 12,
+      "children": [
+        "LINE 6F5 [73898,74011)",
+        "LINE 6F6 [74011,74124)",
+        "CIRCLE 6F7 [74124,74220)",
+        "ATTDEF 6F8 [74220,74426)"
+      ],
+      "end": "6F9",
+      "endSpan": "[74426,74491)",
+      "endGroups": 5,
+      "note": "Physical ranges are census observations, not a qualified children, geometry or graph proof."
+    }
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "No BLOCK source row and no ATTDEF raw capture.",
+    "explicitOptIn": "BLOCK 6F4 and ENDBLK 6F9 paired and modeled replay true; same owner 6F2, original/effective name MyBlock. Both endpoint profiles Revision, reconciliation unmatched. Live AC1018/AC1015 codec context and declared ANSI_1252 are shared with ATTDEF 6F8; ATTDEF pair/replay/profile complete, origin absent, rawTypedMatched false.",
+    "sourceSha256": "6581964eaf4003b5f2530233f347ef306bc3374820370b3c322628ac33505ae8",
+    "binarySha256": "88c31b22c3f4aa567e2cbfa89591f8cbde52e1697f9ff9443b32a20ee63d588a",
+    "stdoutSha256": "3c95ace0125bbb13f782f75c5e62c551c330f3dd18dc66e68fa1053bdd5ee66e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts": "build/agent-attribute-profile/ac1018-block-capture/",
+    "adapterObjectSha256": "a4e81e4c1e9f05a25833339c4fc30d6978340731b97b0eb5bd4575219453bd66",
+    "librarySha256": "5c694af4e3c04aabba69ec01acf7adea5c0214d5864ec22bda72f45a214dc21b"
+  },
+  "bindings": {
+    "adapterSourceSha256": "a960cedfdc9090a254c47aaaf43cafbcdeb6654de973433bace65d4d87f55283",
+    "testSourceSha256": "c0bffde4fd0eab9d9d98fee4e7aab0c6b3f54f6f4999cd8e2c96c5c00e2b070d",
+    "testControlSha256": "8b13831fae48ddd3657fb22753c60002fb7fafc3de0e0e782a0678d544c378ed",
+    "testRegistrySha256": "c6fea814c1e8cb2df2ee430c4fa735d4c7088e39279bbec1bb063da379da2e4d",
+    "normalBinarySha256": "896c6688d0d9ef6d0e3931eb0d81f8e84dd79976a90b4c9b2c332d74e6ed1bf3",
+    "note": "The normal and ASan checkpoints ran while the TABLE merge guard and MATERIAL procedural guard were concurrent uncommitted work; those changes were then committed as 9fc36340 and 8367d77b before this BLOCK packet commit. Selected BLOCK source and focused test source hashes above match commit 844f126b. Source-specific probe used the normal adapter and library hashes recorded above."
+  },
+  "validation": {
+    "normal": {
+      "result": "PASS 8/8",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "logSha256": "afc529635d883580b828403d49bd6ae71dfce1fdda8923e410c05b4d8e47f7db",
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ]
+    },
+    "asan": {
+      "result": "PASS 8/8 same selectors",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "attdefBlockBinarySha256": "bf9eb6d70aba61b76c2886c2ab73d52afa76c5e337173d70db469792cefbe098",
+      "librarySha256": "701db9da0ff497c31e4b44ca601841b3021fe6e9405c055d7881b1b980ef21cb",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "logSha256": "854419acc9623245ecec07d687ddb1d0d20ff2b188afdbdffd508e3dd0effe31"
+    },
+    "focusedControls": "Locally authored ASCII and binary: 2 opt-in captures, 2 default opt-outs, 34 physical spans, 4 raw mutations, 2 proof-quota controls, 8 corrected retries including reader quota; ANSI_1252 non-ASCII path is local synthetic evidence. Focused cohort only."
+  },
+  "limitations": [
+    "Opt-in captures every eligible BLOCK endpoint in the source, and reader-level quota/allocation or invalid input may fail the opted-in read. Default legacy consumer path remains opted out.",
+    "Endpoint source profiles still reject AC1018 as Revision. BLOCK_RECORD replay/qualification, children and delivery provenance, compound and ATTRIB ownership, APPID/LAYER targets, output admission and failure/retry output contracts remain separately gated.",
+    "This is captured transport and modeled replay only; it establishes neither complete-document behavior nor native CAD semantics. No drawing fixtures were committed."
+  ]
+}

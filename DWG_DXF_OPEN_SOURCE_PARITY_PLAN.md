@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Opt-in classic ATTDEF source profile and replay; real 6F8 and 705 with `AcDbAttr` XDATA | Bind BLOCK/ENTITIES original scope and selected ATTDEF/ATTRIB compound ownership, then APPID/LAYER dependency roles; qualify actual output and failure/retry separately |
+| P4a — AC1018 attribute provenance | Opt-in classic ATTDEF and BLOCK endpoint capture/replay; real 6F8 and 705 with `AcDbAttr` XDATA | Qualify BLOCK endpoint profiles and original scope, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused 1→0, simultaneous retained-element edit, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -172,7 +172,9 @@ and broader producer behavior remain unqualified.
 1. The [selected omitted-boundary receipt](docs/research/rpp5hi-attribute-material-roles-2026-10-28.json)
    covers one unique complete diffuse/refraction tuple followed by a complete
    normal tuple without 464/465. The [normal-blend edit](docs/research/rpp5ie-material-unmarked-normal-blend-2026-10-28.json)
-   qualifies only an isolated typed edit on that captured source. Treat absent/ambiguous
+   qualifies only an isolated typed edit on that captured source; its
+   [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
+   keeps unqualified bodies out of that edit. Treat absent/ambiguous
    refraction/bump, repeated fields, omitted normal/luminance and represented/
    opaque subclass or procedural variants as later, separately witnessed slices;
    do not multiply the initial matrix by every optional combination.
@@ -248,12 +250,17 @@ The [AC1018 classic ATTDEF profile receipt](docs/research/rpp5ie-ac1018-attdef-c
 qualifies only the bounded opt-in source-field profile and replay, including
 real source 6F8. Default legacy consumers remain opted out; reader-level capture
 quotas or malformed source can fail an opted-in read. Profile completion does
-not establish origin or output authority; BLOCK, child and ENTITIES source
-capture remain gated below AC1021. Next bind original scope and compound
+not establish origin or output authority; default BLOCK capture and child and
+ENTITIES source capture remain gated below AC1021. Next bind original scope and compound
 ownership, then APPID/LAYER targets and output/failure behavior separately.
 AC1018 ATTRIB, proxy graphics, group 280, embedded/secondary and unsupported
 application or XDATA forms remain separate source-backed profiles; codec
 and non-ASCII name qualification also remain open.
+
+The [AC1018 BLOCK endpoint receipt](docs/research/rpp5ig-ac1018-block-optin-capture-2026-10-28.json)
+adds explicit opt-in capture and replay for begin/end records. Default legacy
+consumers remain opted out; endpoint profiles, original membership, dependencies
+and output remain separate gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
@@ -322,7 +329,8 @@ the [selected merge reconstruction](docs/research/rpp5ih-ac1018-table-merge-2026
 forms bounded nonoverlapping ranges from the observed anchor/covered pattern.
 Its polarity is inferred, the original record remains incomplete, and native
 geometry and actual-output proof remain open; do not remove the unmerged-span
-writer refusal without that work. For its `0x4460` top-border profile, distinguish absent
+writer refusal without that work. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
+reject excess cell descriptors and bound sparse-grid range allocation. For its `0x4460` top-border profile, distinguish absent
 group 289 from an explicit value before changing output. The paired DWG and DXF
 observations do not yet establish equivalent visibility or common save state.
 Bind original source bodies, nested scopes and referenced resources before actual

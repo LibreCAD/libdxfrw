@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 unmarked MATERIAL normal-blend edit procedural admission follow-up",
+  "date": "2026-10-28",
+  "codeCommit": "8367d77be8e12fc0590e95096b93cce86cc40894",
+  "parentMaterialCommit": "b983e03f7d2e34641aa4e99ac9e5792a5179691b",
+  "scope": "The captured-source unmarked-normal-blend edit must not treat exclusively procedural MATERIAL host fields as qualified when their procedural-table delimiters are missing. The ordinary unchanged replay route remains available.",
+  "contract": {
+    "rejectedHostCodes": [
+      291,
+      301,
+      469,
+      62,
+      420,
+      430,
+      300,
+      292
+    ],
+    "sharedCode": "271 has valid bump-tiling/normal-method roles and is retained subject to existing source parser gates.",
+    "scopeBoundary": "The guard applies only to AcDbMaterial host body, skips nested application groups and XDATA, and does not broaden output or consumer support.",
+    "atomicity": "Selected edit refuses with destination and caller state preserved; same-facade corrected retry after restoring the original typed value preserves the unqualified raw field."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "b45baf3dac9e6f5ebbde873bf5b66edeaf9971704dab4fd251d87ffbce197a39",
+    "materialTestsSha256": "3feeb523915ab49b54b7b34302d6f47c25aef9d6df2da8e57479c07b2f607045",
+    "adapterSourceSha256": "a960cedfdc9090a254c47aaaf43cafbcdeb6654de973433bace65d4d87f55283",
+    "entitiesSourceSha256": "cf2e2af4e1530bdee4f9bae534adb630593d08da4e2bca1ab3dff707d28b0368",
+    "entitiesHeaderSha256": "14fdf6d7179e16bd40dca2f80ab62cf77ebed44cd2173068efdb00b04623ed16",
+    "tableCodecHeaderSha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e",
+    "normalAdapterObjectSha256": "a4e81e4c1e9f05a25833339c4fc30d6978340731b97b0eb5bd4575219453bd66",
+    "normalLibrarySha256": "5c694af4e3c04aabba69ec01acf7adea5c0214d5864ec22bda72f45a214dc21b",
+    "normalTestExecutableSha256": "5cffde9862f61124b0de6e75b7c670d3f27f0669cc8645e86274c504752695f2",
+    "asanAdapterObjectSha256": "24975bf354234ff86e3d823563f4c2690341e801799cd48406055a0f5fff12ed",
+    "asanLibrarySha256": "701db9da0ff497c31e4b44ca601841b3021fe6e9405c055d7881b1b980ef21cb",
+    "asanTestExecutableSha256": "a97f9511a0893ceb162ffa43c9a9c51fa63730c9508d61c261a77d5506711149"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "8/8"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "8/8",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "controls": "Six uniquely procedural values in four ASCII/binary input/output combinations: original unchanged replay and literal field readback, edited source refusal with unchanged destination/caller, and corrected same-facade replay. Existing distinct normal/diffuse edit, explicit marker and partial/ambiguous controls remain.",
+    "note": "Results observed directly; concurrent CTest can overwrite the last-test log.",
+    "sourceChronology": "Both normal and ASan shared builds included the TABLE source later committed as 9fc363401961f85571924c58bb555f19b9cdf7d5 and the BLOCK adapter source later committed as 844f126b24a812567272610a4553412331c2cb43. The captured hashes bind this combined working state; the MATERIAL guard itself was committed as 8367d77be8e12fc0590e95096b93cce86cc40894."
+  },
+  "baselineWitness": {
+    "description": "Starting from the locally modified prior independent producer source, insert one orphan procedural host field after the complete normal tuple. On the parent MATERIAL implementation, each of 291, 301 and 469 imported and exported a selected blend edit successfully despite missing table delimiters.",
+    "inputs": [
+      {
+        "code": 291,
+        "sha256": "7ea22188d04f2f3238ea8992c842a09a6a1a70c0bf484d946176c95de7f16235"
+      },
+      {
+        "code": 301,
+        "sha256": "18f6c80da28d6c509835c5f2d4f25c6c557dbf882572512da65c7729c75db47e"
+      },
+      {
+        "code": 469,
+        "sha256": "63a59e016d894b8c641dfca2cc15ac24793931261631a7e6d98bd825839fd581"
+      }
+    ],
+    "probeSourceSha256": "bf6864e7d4048efa7e0c9b525db25ff3a2f76036bf56b62584d62c4f9bf2bc29",
+    "probeExecutableSha256": "bd6294c186705dc770c1c2118f44a6efa7f17bdb79e8a57f8c7e390f4e99457d",
+    "limitation": "This demonstrates admission outside the documented qualification boundary; it does not establish actual rendering corruption."
+  },
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "docs/research/rpp5ie-material-unmarked-normal-blend-2026-10-28.json"
+  ],
+  "limitations": [
+    "No native CAD procedural semantics, whole-document fidelity, unknown additional procedural roles or untested source profiles are qualified.",
+    "No drawing fixture is committed."
+  ],
+  "independentConfirmation": {
+    "reportPath": "build/p3-material-edit-peer/independent-final.json",
+    "reportSha256": "4516f6382388041e22390a8b5aa25635a2488735ae1701973d2183e200abb4d5",
+    "reportScriptSha256": "b7204c27ab15c3d758d086565301ab3fe9eb38d928edff7de8bc19083b6bba07",
+    "probeExecutableSha256": "8f560db2588791ce170ffaa76c29e1c8ae1d64b34b873d080e92042a272494a0",
+    "normalAdapterObjectSha256": "a4e81e4c1e9f05a25833339c4fc30d6978340731b97b0eb5bd4575219453bd66",
+    "observations": "With final adapter, the same previous orphan 291/301/469 witnesses now refuse during MATERIAL preflight; the valid producer-derived input still exports in ASCII and binary, preserving all 55 independently read host tags except the requested second group 42.",
+    "limitation": "The source is derived to remove unrelated metadata; physical-role evidence does not qualify original whole-document or native rendering."
+  }
+}
