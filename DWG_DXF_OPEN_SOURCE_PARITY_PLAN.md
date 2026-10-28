@@ -341,7 +341,12 @@ The [selected output receipt](docs/research/rpp5ik-ac1018-table-merge-output-202
 qualifies the matching AC1018 modeled write path and selected override compositions.
 Polarity remains inferred, the original record remains incomplete, and native
 geometry and complete original output remain open. The [selected zero-presence path](docs/research/rpp5in-ac1018-table-zero-presence-2026-10-28.json)
-preserves explicit group 177 zero for its source-bound AC1018 profile; broader
+preserves explicit group 177 zero for its source-bound AC1018 profile; the
+[application-scope fix](docs/research/rpp5io-ac1018-table-presence-app-scope-2026-10-28.json)
+prevents nested application fields from selecting or hiding that profile.
+The [block-cell alignment slice](docs/research/rpp5ip-ac1018-table-block-alignment-2026-10-28.json)
+adds the source-witnessed `0x01` and group 170 path, while explicit source
+`179=0` is omitted on output and its absence semantics remain open. Broader
 presence cases remain open. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
 reject excess cell descriptors and bound sparse-grid range allocation; a
 [writer guard](docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json)
