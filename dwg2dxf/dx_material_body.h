@@ -192,6 +192,60 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         output=raw;if(binary){output.hasRawValues=false;output.rawValues.clear();}
         name=original.m_name;return true;
     }
+    // The reader also accepts one unmarked normal-map profile, when a
+    // complete diffuse tuple and refraction prefix make the second group 42
+    // unambiguous. The general canonical writer deliberately does not emit
+    // markerless normal maps. For this captured, unchanged source only, allow
+    // an isolated typed edit of that one proven field without synthesizing a
+    // luminance or strength marker or opening the general writer grammar.
+    if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
+        &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
+        &&original.m_hasNormalMapSource&&original.m_hasNormalMapFileName
+        &&original.m_hasNormalMapProjection&&original.m_hasNormalMapTiling
+        &&original.m_hasNormalMapAutoTransform&&std::isfinite(typed.m_normalMapBlendFactor)
+        &&!dxfMaterial::sameValue(original.m_normalMapBlendFactor,typed.m_normalMapBlendFactor)) {
+        DRW_Material desired=original;desired.m_normalMapBlendFactor=typed.m_normalMapBlendFactor;
+        if(dxfMaterial::sameState(desired,typed)) {
+            bool body=false,xdata=false,ok=true;unsigned depth=0u,markers=0u;
+            std::array<std::size_t,2> blends{};std::size_t count=0u;
+            for(std::size_t i=0u;i<raw.groups.size()&&ok;++i) {
+                const auto& field=raw.groups[i];const int code=field.code();
+                if(code==102) {
+                    if(field.type()!=DRW_Variant::STRING||!field.content.s){ok=false;break;}
+                    const auto& marker=*field.content.s;
+                    if(marker=="}"){if(!depth){ok=false;break;}--depth;}
+                    else if(!marker.empty()&&marker.front()=='{')++depth;
+                    else ok=false;
+                    continue;
+                }
+                if(depth)continue;
+                if(code>=1000){xdata=true;continue;}
+                if(xdata){ok=false;break;}
+                if(code==100) {
+                    if(field.type()!=DRW_Variant::STRING||!field.content.s){ok=false;break;}
+                    if(*field.content.s=="AcDbMaterial"){if(++markers!=1u){ok=false;break;}body=true;}
+                    else if(body){ok=false;break;}
+                    continue;
+                }
+                if(!body)continue;
+                if(code==464||code==465||code==300||code==292){ok=false;break;}
+                if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
+            }
+            if(ok&&!depth&&markers==1u&&count==2u
+                &&dxfMaterial::sameValue(raw.groups[blends[0]].d_val(),original.m_diffuseMapBlendFactor)
+                &&dxfMaterial::sameValue(raw.groups[blends[1]].d_val(),original.m_normalMapBlendFactor)) {
+                output=raw;output.groups[blends[1]]=DRW_Variant(42,typed.m_normalMapBlendFactor);
+                if(output.hasRawValues&&!binary) {
+                    if(output.rawValues.size()!=output.groups.size())return false;
+                    std::string text;if(!spelling(output.groups[blends[1]],text))return false;
+                    output.rawValues[blends[1]]=std::move(text);
+                } else if(binary) {output.hasRawValues=false;output.rawValues.clear();}
+                DRW_Material actual;
+                if(!decode(output,actual,binary)||!dxfMaterial::sameState(actual,desired))return false;
+                name=actual.m_name;return true;
+            }
+        }
+    }
     Groups oldBody,typedBody,rawBody;Slots oldFields,typedFields,rawFields,physical;
     std::size_t bodyEnd=0,procedure=raw.groups.size();
     if(!canonical(original,oldBody,oldFields,binary)||!canonical(typed,typedBody,typedFields,binary)

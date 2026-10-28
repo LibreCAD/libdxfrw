@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -131,7 +132,7 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75) {
 }
 
 bool physical(const std::filesystem::path& path, bool binary, bool boundary,
-              bool duplicateNormalBlend = false) {
+              bool duplicateNormalBlend = false, double normalBlend = 0.75) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
     if (binary) stream.seekg(22);
@@ -169,7 +170,7 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
     (void)eof;
     const std::vector<double> expectedBlends = duplicateNormalBlend
         ? std::vector<double>{0.25, 0.75, 0.875}
-        : std::vector<double>{0.25, 0.75};
+        : std::vector<double>{0.25, normalBlend};
     return selected && blends == expectedBlends
         && sources == std::vector<int>{0, 1}
         && files == std::vector<std::string>{"diffuse-sentinel.png", "normal-sentinel.png"}
@@ -179,9 +180,87 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
         && strengths == (boundary ? 1u : 0u);
 }
 
+struct LateMaterialEdit final : dx_iface {
+    bool active = true, hit = false; unsigned phase = 0;
+    void mutate() {
+        if (!active || !cData) return;
+        for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
+            material.m_normalMapBlendFactor = 0.9375; hit = true;
+        }
+    }
+    void writeEntities() override { dx_iface::writeEntities(); if (phase == 0) mutate(); }
+    void writeObjects() override {
+        if (phase == 1) mutate();
+        dx_iface::writeObjects();
+        if (phase == 2) mutate();
+    }
+};
+
 bool run(const std::filesystem::path& dir) {
     const auto input = dir / "input.dxf", output = dir / "output.dxf";
     for (bool sourceBinary : {false, true}) {
+        // The complete unmarked source already has distinct typed diffuse and
+        // normal roles. Edit only the second owning group 42, preserve the
+        // first, and verify the actual output and readback in both encodings.
+        for (bool outputBinary : {false, true}) {
+            if (!author(input, sourceBinary, false, false)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials)
+                if (material.m_name == "PeerMaterial") { if (selected) return false; selected = &material; }
+            if (!selected) return false;
+            selected->m_normalMapBlendFactor = 0.875;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !physical(output, outputBinary, false, false, 0.875) || !typed(source, false, 0.875)) {
+                std::cerr << "unmarked normal-blend edit failed sourceBinary=" << sourceBinary
+                          << " outputBinary=" << outputBinary << '\n'; return false;
+            }
+            dx_data readback; dx_iface reader;
+            if (!reader.fileImport(output.string(), &readback, false) || !typed(readback, false, 0.875)) return false;
+            for (unsigned fault = 0; fault != 3; ++fault) {
+                // Additional typed edits, nonfinite values and conflicting raw
+                // edits remain refused; correct and retry the same adapter.
+                auto& raw = source.rawMaterialObjects.front();
+                const DRW_RawDxfObject originalRaw = raw;
+                if (fault == 0) selected->m_diffuseMapBlendFactor = 0.5;
+                if (fault == 1) selected->m_normalMapBlendFactor = std::numeric_limits<double>::infinity();
+                if (fault == 2) {
+                    unsigned count = 0;
+                    for (std::size_t i = 0; i < raw.groups.size(); ++i) if (raw.groups[i].code() == 42 && ++count == 2) {
+                        raw.groups[i] = DRW_Variant(42, 0.9375);
+                        if (raw.hasRawValues) raw.rawValues.at(i) = "0.9375";
+                    }
+                    if (count != 2) return false;
+                }
+                const double failedNormal = selected->m_normalMapBlendFactor;
+                const double failedDiffuse = selected->m_diffuseMapBlendFactor;
+                { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+                if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)) return false;
+                std::ifstream saved(output, std::ios::binary);
+                if (std::string(std::istreambuf_iterator<char>(saved), {}) != "keep destination"
+                    || selected->m_normalMapBlendFactor != failedNormal || selected->m_diffuseMapBlendFactor != failedDiffuse) return false;
+                raw = originalRaw; selected->m_diffuseMapBlendFactor = 0.25; selected->m_normalMapBlendFactor = 0.875;
+                if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                    || !physical(output, outputBinary, false, false, 0.875) || !typed(source, false, 0.875)) return false;
+            }
+        }
+        for (unsigned phase = 0; phase != 3; ++phase) {
+            if (!author(input, sourceBinary, false, false)) return false;
+            dx_data source; LateMaterialEdit adapter; adapter.phase = phase;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected) return false;
+            selected->m_normalMapBlendFactor = 0.875;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true) || !adapter.hit) return false;
+            std::ifstream saved(output, std::ios::binary);
+            if (std::string(std::istreambuf_iterator<char>(saved), {}) != "keep destination") return false;
+            adapter.active = false; selected->m_normalMapBlendFactor = 0.875;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true)
+                || !physical(output, sourceBinary, false, false, 0.875) || !typed(source, false, 0.875)) return false;
+        }
         if (!author(input, sourceBinary, true, false, false, false, 5)
             || !physical(input, sourceBinary, true, true)) return false;
         dx_data explicitSource; dx_iface explicitAdapter;
