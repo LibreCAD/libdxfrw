@@ -16409,7 +16409,7 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             const bool remove=version>=DRW::AC1021 && context.m_version==version
                 && original.elements.size()>=2u && original.elements.size()<=UINT8_MAX
                 && !value.elements.empty() && value.elements.size()<original.elements.size();
-            bool removeFirst=false;
+            std::array<std::size_t,UINT8_MAX> survivorIndices{};
             if (append) {
                 // Charge the prefix snapshot, expanded projection and all
                 // generated fields and spellings before allocating them.
@@ -16453,33 +16453,28 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     || !chargeNamedResourceBytes(bytes,originalTyped)
                     || !chargeNamedResourceBytes(bytes,originalTyped)) return false;
                 removalWork+=work;
-                DRW_MLineStyle prefix=original;prefix.elements.resize(value.elements.size());
-                const bool keepsFirst=mlineFieldsEqual(value,prefix,false,false,false,true,true,true);
-                if (original.elements.size()==2u) {
-                    DRW_MLineStyle droppedFirst=original;droppedFirst.elements.erase(droppedFirst.elements.begin());
-                    const bool keepsLast=mlineFieldsEqual(value,droppedFirst,false,false,false,true,true,true);
-                    if (keepsFirst==keepsLast) return false;
-                    removeFirst=keepsLast;
-                } else {
-                    // The requested survivors must be the unchanged prefix
-                    // and have exactly one ordered embedding in the original.
-                    // The prefix is the earliest embedding. A backwards greedy
-                    // scan finds the latest in linear time, including duplicate
-                    // tuples where removal identity would be ambiguous.
-                    if (!keepsFirst) return false;
-                    const auto sameElement=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
-                        return retainedDoubleEqual(a.offset,b.offset) && a.color==b.color
-                            && a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
-                            && a.colorName==b.colorName && a.colorBookName==b.colorBookName
-                            && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
-                            && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
-                    };
-                    std::size_t cursor=original.elements.size();
-                    for (std::size_t i=value.elements.size();i>0u;--i) {
-                        while (cursor>0u && !sameElement(original.elements[cursor-1u],value.elements[i-1u])) --cursor;
-                        if (!cursor || cursor-1u!=i-1u) return false;
-                        --cursor;
-                    }
+                // Compare the non-element carrier exactly as before; element
+                // identity is established by the unique ordered embedding.
+                DRW_MLineStyle shape=original;shape.elements=value.elements;
+                if (!mlineFieldsEqual(value,shape,false,false,false,true,true,true)) return false;
+                const auto sameElement=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                    return retainedDoubleEqual(a.offset,b.offset) && a.color==b.color
+                        && a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
+                        && a.colorName==b.colorName && a.colorBookName==b.colorBookName
+                        && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
+                        && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
+                };
+                std::size_t cursor=0u;
+                for (std::size_t i=0u;i<value.elements.size();++i) {
+                    while (cursor<original.elements.size() && !sameElement(original.elements[cursor],value.elements[i])) ++cursor;
+                    if (cursor==original.elements.size()) return false;
+                    survivorIndices[i]=cursor++;
+                }
+                cursor=original.elements.size();
+                for (std::size_t i=value.elements.size();i>0u;--i) {
+                    while (cursor>0u && !sameElement(original.elements[cursor-1u],value.elements[i-1u])) --cursor;
+                    if (!cursor || cursor-1u!=survivorIndices[i-1u]) return false;
+                    --cursor;
                 }
                 bool originalReactor=false,rawReactor=false;
                 std::array<std::array<std::size_t,3>,UINT8_MAX> before{},current{};
@@ -16717,16 +16712,30 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     || !source.stringOverrides.empty()
                     || !encoded.writeInt16(71,static_cast<int>(value.elements.size()))
                     || !replace(countIndex,encoded.groups.back())) return false;
-                const auto removed=removeFirst?0u:value.elements.size();
-                const auto removedCount=original.elements.size()-value.elements.size();
-                const auto first=tuples[removed][0];const auto after=tuples[removed+removedCount-1u][2]+1u;
-                source.output.groups.erase(source.output.groups.begin()+static_cast<std::ptrdiff_t>(first),
-                    source.output.groups.begin()+static_cast<std::ptrdiff_t>(after));
-                if (source.output.hasRawValues && !binary)
-                    source.output.rawValues.erase(source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(first),
-                        source.output.rawValues.begin()+static_cast<std::ptrdiff_t>(after));
-                target.elements.erase(target.elements.begin()+static_cast<std::ptrdiff_t>(removed),
-                    target.elements.begin()+static_cast<std::ptrdiff_t>(removed+removedCount));
+                // Compact the contiguous tuple span forward in one pass.
+                // Each chosen original index is at or after its destination,
+                // so no later source is overwritten and no extra snapshot or
+                // quadratic vector shifts are needed. The raw ASCII values
+                // travel with their owning fields.
+                std::size_t destination=tuples[0u][0];
+                for (std::size_t i=0u;i<value.elements.size();++i) {
+                    const auto index=survivorIndices[i];
+                    if (index<i || index>=original.elements.size()) return false;
+                    if (index!=i) target.elements[i]=std::move(target.elements[index]);
+                    for (std::size_t part=0u;part<3u;++part) {
+                        const auto field=tuples[index][part];
+                        if (field<destination) return false;
+                        if (field!=destination) {
+                            source.output.groups[destination]=std::move(source.output.groups[field]);
+                            if (source.output.hasRawValues && !binary)
+                                source.output.rawValues.at(destination)=std::move(source.output.rawValues.at(field));
+                        }
+                        ++destination;
+                    }
+                }
+                source.output.groups.resize(destination);
+                if (source.output.hasRawValues && !binary) source.output.rawValues.resize(destination);
+                target.elements.resize(value.elements.size());
             }
             std::sort(source.stringOverrides.begin(),source.stringOverrides.end(),
                 [](const auto& a,const auto& b){return a.first<b.first;});
