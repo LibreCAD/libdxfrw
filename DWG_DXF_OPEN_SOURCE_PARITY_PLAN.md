@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 classic attribute source | Opt-in callback and captured-raw replay observed; real 6F8/705 and `AcDbAttr` XDATA | Bind adapter-owned capture to original and compound ownership and APPID/LAYER dependency roles; qualify output and failure/retry separately |
+| P4a — AC1018 classic attribute source | Explicit opt-in adapter-owned ATTDEF capture and replay; real 6F8/705 and `AcDbAttr` XDATA | Qualify the legacy source profile, then original and compound ownership and APPID/LAYER dependency roles; qualify output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused non-tail removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -239,14 +239,16 @@ present; a clean integrated checkpoint remains. Reconstruction is test-local,
 not the adapter's production source-body admission, and no ownership, dependency
 or output closure follows.
 
-The selected AC1018 classic ATTDEF/ATTRIB source is a next profile, not a
-qualified capture. The adapter opts out of pre-AC1021 ATTDEF, BLOCK, child and
-ENTITIES source capture, and profile/context checks also constrain codec and
-legacy proxy fields. Bind the original bytes, codepage, record and compound
-owners, APPID/XDATA and LAYER roles before enabling it; do not just lower a
-version gate. Test authored binary and legacy-codepage boundaries, malformed
-ownership and retry, and actual output separately. Selected copied-field output
-does not establish original closure, full-document export or native semantics.
+The [AC1018 opt-in adapter capture receipt](docs/research/rpp5id-ac1018-attdef-optin-capture-2026-10-28.json)
+records bounded source pairing and production-field replay for an explicitly
+opted-in derived adapter, including real ATTDEF 6F8. Default legacy consumers
+remain opted out; reader-level capture quotas or malformed source can fail an
+opted-in read. The legacy attribute profile still returns Revision and no
+origin or output authority is established. BLOCK, child and ENTITIES source
+capture remain gated below AC1021; profile/context checks also constrain legacy
+proxy and codec fields. Qualify the original profile, owner and compound
+provenance, APPID/XDATA and LAYER roles, and output/failure behavior separately;
+do not infer them from the captured pair or copied-field output.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
