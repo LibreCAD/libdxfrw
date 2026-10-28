@@ -35,14 +35,15 @@ using that count as proof of completeness. Preserve the authorities in
 
 ## Execution queue
 
-Implement in this order. Dependencies apply to closure claims; they do not prevent
-independent work on a later ready packet. External qualification runs separately.
+Follow the immediate slice order below. Dependencies apply to closure claims; they
+do not prevent independent work on a later ready packet. External qualification
+runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: unused-style offset edits | Reconcile fixed-count typed/raw MLINESTYLE offsets; consumed geometry, richer retarget/LTYPE profiles and MLEADERSTYLE remain separate | Original body/owning-49 authority, reconciled geometry-change guard and actual output |
+| P2 | SELECT WITNESS, THEN IMPLEMENT | Consumed geometry/count, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | One current unsupported operation with original source authority and an explicit actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
-| P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
+| P4 | READY: ATTDEF dual-280 roles | P4a: qualify witnessed AC1027 version-zero/lock-position spans; P4b: compose document closure | Source-bound reproduced refusal, original capture and focused role controls |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
 | P6 | AUDIT / REPRODUCE | Residual version, semantic, safety and compatibility boundaries | Current code/receipts; no stale defect assumptions |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
@@ -60,12 +61,15 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.4b — unconsumed MLINESTYLE offsets | `mlineFieldsEqual`, `mlineBodyFields`, `prepareDxfMLineStyles` tuple reconciliation and `geometryChanged`; existing typed-refusal/raw-success pair | Fixed-count typed/raw offsets reconcile in owning 49 slots for an unconsumed style; conflicts/late or actual changes refuse and retry; any affected emitted MLINE still refuses |
-| P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
+| P4a — ATTDEF dual-280 source roles | Retained AC1027 BLOCKS ATTDEF `6F8`, source-bound failing audit and ordinary import, original source/role reports | Admit the witnessed version-zero prefix and trailing lock boolean with exact physical span/role and modeled replay; malformed/unknown variants remain refused |
+| P2 — choose next transaction | Existing style/consumer planners, original captures and residual refusal controls | Select one still-refused count, consumed-geometry, legacy or richer-profile operation; bind its exact original source, expected fields and focused selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement P2.4b first. P4a/P3 gap classification and the next source
-recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
+Implement the source-bound P4a packet first; P2/P3 still require an exact witness.
+No adjacent slice implies broader readiness. Reuse
+existing source-bound refusals and projections before authoring another source.
+Gap classification and the next source recipe/projection can run in parallel,
+but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
 after its sources freeze, rather than letting workers rebuild the same adapter.
@@ -80,43 +84,18 @@ Reuse the [MLINESTYLE authority](docs/research/rpp5gp-mline-style-dictionary-aut
 [element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json),
 [default-flag source admission](docs/research/rpp5gv-mline-linetype-default-flags-source-admission-2026-10-28.json),
 [custom referenced flags](docs/research/rpp5gw-mline-linetype-referenced-flag-source-admission-2026-10-28.json),
-and [compatible style retarget transactions](docs/research/rpp5gx-mline-compatible-style-retarget-transactions-2026-10-28.json).
+[compatible style retarget transactions](docs/research/rpp5gx-mline-compatible-style-retarget-transactions-2026-10-28.json),
+and [unused-style offset transactions](docs/research/rpp5gy-mline-unused-style-offset-transactions-2026-10-28.json).
 Use shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Refused fields are not implemented editing support.
 
-1. **P2.4b: fixed-count offsets for unconsumed styles — ready to implement.**
-   The current owning selector reproduces typed first-offset refusal while its
-   raw-only group-49 control succeeds without affected consumers. The source-matching
-   baseline in the retarget receipt independently verifies unused PeerRetarget
-   typed refusal/raw success in both outputs while real ENTITIES/BLOCKS consumers
-   remain on PeerMline. Reuse this source-bound asymmetry and the existing
-   original body/context/codec, tuple-slot, projection, snapshot and actual-output
-   helpers. In `prepareDxfMLineStyles`, relax offset
-   equality only at the typed/original edit gate; other callers stay strict.
-   Reconcile each original/typed/raw offset with finite and exact signed-double
-   conflict checks. Permit agreeing and disjoint tuple edits; reject conflicting
-   edits to one tuple. Rewrite only final owning `49` slots through the existing
-   body writer. Count, order, CMC/mirrors and other unsupported fields stay strict.
-   Calculate `geometryChanged` from the **reconciled target versus original**,
-   rather than parsed raw offsets alone, so a typed edit cannot bypass the
-   existing emitted-consumer guard. Keep source identity and late style/raw/
-   consumer snapshots, dictionary/provider proof and refusal/retry publication.
-   Use an original unused definition with real ENTITIES/BLOCKS consumers on
-   another style for the independent physical/ordinary-read comparison. Cover
-   typed/raw/agreeing/disjoint edits, conflicts, signed zero/nonfinite values,
-   application-scope `49` shadows, actual-output corruption, caller/destination
-   preservation and corrected retries. Use genuine original ENTITIES/BLOCKS
-   sources for affected-consumer refusals; retain ordinary edits on unaffected
-   styles. Reuse the passed retarget controls as regression coverage. Start with
-   authored AC1027 ASCII/binary; legacy/native and consumed geometry do not follow
-   from unused-definition success.
-2. **Richer compatible-retarget profiles.** Qualify additional original style and
+1. **Richer compatible-retarget profiles.** Qualify additional original style and
    consumer common/application/XDATA/proxy/unknown-subclass schemas, other flags
    and source versions separately. Bind their original meaning and actual output
    before expanding the selected core grammar. Retain strict original geometry,
    redundant group-2, owner and identity authority. Native rendering remains open;
    differing geometry belongs to the coupled operations below.
-3. **Remaining LTYPE provider profiles.** Qualify alternate field
+2. **Remaining LTYPE provider profiles.** Qualify alternate field
    ordering/header presence, canonical-64 normalization, other flags and
    metadata/application/XDATA profiles
    separately from the selected simple grammar. Complex STYLE/text/shape
@@ -124,7 +103,7 @@ proof. Refused fields are not implemented editing support.
    need source/context/codec evidence. Native units, font identity, collation,
    ByLayer/ByBlock inheritance and rendering remain separate evidence. Start with
    one witnessed unsupported profile; retain advisory transport until qualified.
-4. **P2.4: remaining geometry operations.** Implement count `71` changes
+3. **P2.4: remaining geometry operations.** Implement count `71` changes
    (including unused definitions), consumed-style offset edits and geometry-changing
    MLINE `340` retargeting as separate operations. Enumerate
    all affected consumers, qualify per-vertex segment/fill parameter compatibility
@@ -133,12 +112,16 @@ proof. Refused fields are not implemented editing support.
    redundant group-2 values and refuse unsupported operations atomically. Bind
    consumer arity to the reconciled style that will actually be emitted, including
    raw-only edits; a stale typed count cannot authorize a changed output style.
-5. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
+4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;
    reuse the modern owner/key/output machinery, not another capture engine.
-   Keep existing legacy behavior until this provider is qualified.
-6. **Route-specific grammar and color evidence.** Confirm omitted/repeated `62/6`
+   Keep existing legacy behavior until this provider is qualified. Pre-AC1021
+   typed offset edits remain refused; qualify their original/context/codec and
+   actual-output boundaries separately without removing established raw-only
+   legacy transport. Modern unused-definition evidence does not qualify an
+   earlier version or consumed geometry.
+5. **Route-specific grammar and color evidence.** Confirm omitted/repeated `62/6`
    grammar with producer evidence. The current 255-element cap/strict masks remain
    admission policies. Fill and element CMC/truecolor mirrors are DWG-only model
    fields today: obtain a route-specific witness/specification before assigning
@@ -146,7 +129,7 @@ proof. Refused fields are not implemented editing support.
    Unicode counting and rendered MLINE acceptance as distinct evidence tasks.
    Audit MLINE group-71 flags versus group-72 vertex counts separately; preserve
    DWG flags and geometry until their actual route semantics are verified.
-7. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
+6. **Implement MLEADERSTYLE transactions.** Capture its own failing field witness,
    then cover complete contexts/defaults/repeated values and STYLE/LTYPE/
    BLOCK_RECORD references with the same shared helpers. Preserve source order,
    version-specific grammars and unsupported extensions. Obtain independent
@@ -194,6 +177,23 @@ selected recipe nor variable/LINE success qualifies default MATERIAL documents.
 
 P4a is source/role capture (steps 1–2); P4b is composed closure (steps 3–5).
 This split lets family providers advance without a dependency cycle.
+
+**Next P4a witness — ready to implement.** The retained AC1027 ASCII
+ACadSharp sample in [the source receipt](docs/research/rpp5fa-observed-table-value-forms-and-proof-recovery-2026-10-26.json)
+has SHA-256 `4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6`.
+In BLOCKS/MyBlock, ATTDEF `6F8` (owner `6F2`) occupies bytes `[75050,75240)`;
+its `AcDbAttributeDefinition` has `280=0` at `[75177,75188)` and `280=1` at
+`[75229,75240)`. The [Autodesk ATTDEF specification](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm)
+assigns version and lock-position roles in that subclass. The source-bound probe
+in [the offset transaction receipt](docs/research/rpp5gy-mline-unused-style-offset-transactions-2026-10-28.json)
+confirms `AmbiguousVersion` at group 15 and ordinary import with lock=true and
+version=0. Reuse the existing physical span and role ledger to distinguish the
+witnessed version-zero prefix from the trailing boolean; retain rejection of misplaced, repeated, nonzero-version and secondary
+`AcDbXrecord` profiles. Rebuild and run `libdxfrw_attdef_source_profile` and
+`libdxfrw_original_attdef_roles`, with the decisive literal source/owner and
+negative controls. This is a narrow role-provider gap, not full ATTDEF,
+recursive closure or native semantic qualification. Keep the external sample in
+scratch; extend existing locally authored fixture recipes for committed tests.
 These requirements retain the full B2b/B3/C objective. A selected ENTITIES subset
 or a live mutable container cannot substitute for original-source completeness.
 
@@ -373,22 +373,14 @@ open/insert, native-platform or independent-kernel run.
 | Composed integration / PR | Union of affected cohorts once, compatibility probes and required CI | Broad shared classifier/numeric/allocator changes or release obligations |
 | Release / promotion | Required full/native/package/ABI/corpus and claim checks on the exact binding | Explicit qualified support/release deliverable |
 
-For the immediate slices, build `libdxfrw_dxf_fixture_tests` once after editing
-and run only the relevant owning selector during development:
-
-```sh
-cmake --build build --target libdxfrw_dxf_fixture_tests
-# P2.4b unused-style offset loop
-ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
-```
-
-For P2.4b readiness, the default owning cohort is body transactions plus
-`libdxfrw_mline_style_authority`, rebuilt from the final adapter/fixture sources.
-Build `dwg2dxf` for the actual serializer/independent checkpoint and extend the
-existing `--mline-style-only` peer lane with unused-definition typed/raw offsets
-and explicit final tuple expectations. Reuse existing retarget, provider, reference
-and full-geometry proof; do not add a new capture engine. Keep unrelated
-MATERIAL/SCALE/DICTIONARYVAR lanes cached.
+For the next packet, identify its owning selector from the exact failing witness
+before editing. Build the touched executable once and run that selector during
+development. At readiness, choose the smallest affected union from the actual
+changed hooks below; do not inherit a prior slice's cohort automatically. Reuse
+the source-bound MLINESTYLE/retarget/unused-offset peer lanes when their profiles
+apply, and build `dwg2dxf` for actual serializer/independent checkpoints. Extend
+existing projections only for the missing field/schema and explicit expected
+output. Keep unrelated MATERIAL/SCALE/DICTIONARYVAR lanes cached.
 
 Add tests according to changed hooks, rather than inheriting the prior 11-test
 or 14-test checkpoint:
