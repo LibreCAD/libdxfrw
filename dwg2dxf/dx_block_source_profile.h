@@ -11,7 +11,8 @@ using namespace dx_attdef_source;
 inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMatches,bool allowLayoutName=false) {
     Audit out;
     const auto reject=[&](Reason why,std::size_t at){out.reason=why;out.rejectedGroup=at;out.spans.clear();return std::move(out);};
-    if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
+    const bool legacy=raw.m_version==DRW::AC1018;
+    if(!legacy&&(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032))return reject(Reason::Revision,0u);
     if(raw.name!=(footer?"ENDBLK":"BLOCK")||!raw.handle)return reject(Reason::Identity,0u);
     out.spans.reserve(raw.groups.size());
     std::array<bool,1072> seen{};
@@ -21,9 +22,31 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMat
     unsigned reserved=0u;
     std::int64_t proxy=-1;
     bool xdata=false;
+    std::string_view legacyName;
     const auto integer=[](const DRW_Variant& v,int lo,int hi){return v.type()==DRW_Variant::INTEGER&&v.i_val()>=lo&&v.i_val()<=hi;};
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& v=raw.groups[i];const int code=v.code();const auto s=text(v);
+        if(legacy) {
+            // Narrow endpoint inventory: legacy proxy, application, XDATA and
+            // other roles require their own source-backed qualification.
+            if(code==92||code==160||code==310)return reject(Reason::ProxyGraphics,i);
+            if(code==102)return reject(Reason::Application,i);
+            switch(code) {
+            case 5:case 330:case 100:case 8:case 2:case 3:case 1:
+                if(v.type()!=DRW_Variant::STRING||!v.content.s)return reject(Reason::InvalidValue,i);
+                break;
+            case 10:case 20:case 30:
+                if(v.type()!=DRW_Variant::DOUBLE)return reject(Reason::InvalidValue,i);
+                break;
+            case 70:
+                if(v.type()!=DRW_Variant::INTEGER)return reject(Reason::InvalidValue,i);
+                break;
+            default:return reject(code>=1000?Reason::Xdata:Reason::UnknownField,i);
+            }
+            if(code==8||code==2||code==3)
+                for(const unsigned char c:s)if(c>=128u)return reject(Reason::InvalidValue,i);
+            if(code==1&&s.find('\0')!=std::string_view::npos)return reject(Reason::InvalidValue,i);
+        }
         Field field=Field::Common;Role role=Role::None;std::uint64_t handle=0u;
         if(v.type()==DRW_Variant::DOUBLE&&!std::isfinite(v.d_val()))return reject(Reason::InvalidValue,i);
         if(code==102) {
@@ -85,9 +108,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMat
                 if(stage==2&&!footer) {
                     field=Field::Block;block=true;
                     switch(code) {
-                    case 2:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::BlockName;break;
+                    case 2:if(!name(v))return reject(Reason::InvalidValue,i);if(legacy)legacyName=s;role=Role::BlockName;break;
                     case 3:
-                        if(!seen[2]||!redundantNameMatches)return reject(Reason::RedundantName,i);
+                        if(!seen[2]||!redundantNameMatches||(legacy&&s!=legacyName))return reject(Reason::RedundantName,i);
                         role=Role::RedundantBlockName;break;
                     case 1:role=Role::XrefPath;break;
                     case 4:case 10:case 20:case 30:case 39:case 50:case 210:case 220:case 230:break;
@@ -112,13 +135,15 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool footer,bool redundantNameMat
                         if(v.type()!=DRW_Variant::INTEGER||DRW_LW_Conv::lineWidth2dxfInt(DRW_LW_Conv::dxfInt2lineWidth(v.i_val()))!=v.i_val())return reject(Reason::InvalidValue,i);
                         break;
                     case 92:case 160:
-                        if(footer||(code==92)!=(raw.m_version==DRW::AC1021)||proxy!=-1)return reject(Reason::ProxyGraphics,i);
+                        if(footer||(code==92)!=(raw.m_version==DRW::AC1021)||proxy!=-1
+                            ||v.type()!=(code==92?DRW_Variant::INTEGER:DRW_Variant::INTEGER64))return reject(Reason::ProxyGraphics,i);
                         proxy=code==92?v.i_val():v.i64_val();
                         if(proxy<0||static_cast<std::uint64_t>(proxy)>DRW::kMaxDxfBinaryPayloadBytes)return reject(Reason::ProxyGraphics,i);
                         break;
                     case 310:
                         seen[code]=false;
-                        if(footer||proxy<0||!hexBytes(s)||s.size()>254u)return reject(Reason::ProxyGraphics,i);
+                        if(footer||proxy<0||v.type()!=DRW_Variant::STRING||!v.content.s
+                            ||!hexBytes(s)||s.size()>254u)return reject(Reason::ProxyGraphics,i);
                         proxyBytes+=s.size()/2u;
                         if(proxyBytes>static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,i);
                         break;

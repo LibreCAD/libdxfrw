@@ -32,12 +32,83 @@ bool legacyBlockCaptureTests(const std::filesystem::path& path) {
             &&block->context->codecCodePage=="ANSI_1252"&&block->context->hasDeclaration
             &&block->context->declaration=="ANSI_1252"&&block->context->binary==binary&&!block->context->applyExtrusion
             &&block->original->xrefPath=="caf\xC3\xA9"&&block->beginFieldsMatched&&block->footerFieldsMatched
-            &&block->beginProfile.reason==Reason::Revision&&block->endProfile.reason==Reason::Revision
-            &&block->beginProfile.spans.empty()&&block->endProfile.spans.empty()
+            &&block->beginProfile.complete()&&block->endProfile.complete()
             &&block->reconciliation!=A::BlockReconciliation::Matched&&!A::membershipMatched(data),
-            "legacy block replay is context-bound and does not certify profiles or provenance"))return false;
+            "legacy block replay/profile is context-bound and does not certify provenance"))return false;
         if(!check(blockOriginalWire(path,binary,f,*block->beginRaw,*block->endRaw,spans),
             "legacy block captured originals match physical scalar spans"))return false;
+        using namespace dx_attdef_source;
+        const auto ledger=[](bool footer) {
+            std::vector<Span> expected;
+            const auto add=[&](int code,Field field,Role role=Role::None,std::uint64_t handle=0u) {
+                expected.push_back({expected.size(),code,Scope::Host,field,role,handle});
+            };
+            add(5,Field::Identity,Role::Self,footer?0xB2u:0xB1u);add(330,Field::Identity,Role::Owner,0xB0u);
+            add(100,Field::Subclass);add(8,Field::Common,Role::LayerName);add(100,Field::Subclass);
+            if(!footer) {add(2,Field::Block,Role::BlockName);add(70,Field::Block);
+                for(const int code:{10,20,30})add(code,Field::Block);
+                add(3,Field::Block,Role::RedundantBlockName);add(1,Field::Block,Role::XrefPath);}
+            return expected;
+        };
+        for(bool footer:{false,true}) {
+            const auto& profile=footer?block->endProfile:block->beginProfile;const auto expected=ledger(footer);
+            if(!check(profile.spans.size()==expected.size(),"legacy endpoint full source span count"))return false;
+            for(std::size_t i=0;i<expected.size();++i) {
+                const auto& a=profile.spans[i];const auto& b=expected[i];
+                if(!check(a.groupIndex==b.groupIndex&&a.code==b.code&&a.scope==b.scope&&a.field==b.field
+                    &&a.role==b.role&&a.handle==b.handle,"legacy endpoint exact source field and reference role"))return false;
+            }
+            const auto& original=footer?*block->endRaw:*block->beginRaw;
+            const auto refusal=[&](std::size_t at,const DRW_Variant& field,Reason reason) {
+                auto raw=original;raw.groups.insert(raw.groups.begin()+static_cast<std::ptrdiff_t>(at),field);
+                const auto result=dx_block_source::audit(raw,footer,true);
+                return check(result.reason==reason&&result.rejectedGroup==at&&result.spans.empty(),
+                    "legacy endpoint exact unsupported-field refusal");
+            };
+            if(!refusal(4u,DRW_Variant(92,std::int32_t(1)),Reason::ProxyGraphics)
+                ||!refusal(4u,DRW_Variant(160,std::int64_t(1)),Reason::ProxyGraphics)
+                ||!refusal(4u,DRW_Variant(310,std::string("00")),Reason::ProxyGraphics)
+                ||!refusal(4u,DRW_Variant(102,std::string("{CUSTOM")),Reason::Application)
+                ||!refusal(4u,DRW_Variant(347,std::string("AB")),Reason::UnknownField)
+                ||!refusal(original.groups.size(),DRW_Variant(1001,std::string("APP")),Reason::Xdata))return false;
+            auto wrong=original;wrong.groups[3]=DRW_Variant(8,std::string("\xE9",1u));
+            auto result=dx_block_source::audit(wrong,footer,true);
+            if(!check(result.reason==Reason::InvalidValue&&result.rejectedGroup==3u&&result.spans.empty(),
+                "legacy endpoint non-ASCII role name refused"))return false;
+            wrong=original;wrong.groups[3]=DRW_Variant(8,std::int32_t(0));
+            result=dx_block_source::audit(wrong,footer,true);
+            if(!check(result.reason==Reason::InvalidValue&&result.rejectedGroup==3u&&result.spans.empty(),
+                "legacy endpoint incorrect variant refused"))return false;
+            wrong=original;wrong.groups.insert(wrong.groups.begin()+4,DRW_Variant(8,std::string("0")));
+            result=dx_block_source::audit(wrong,footer,true);
+            if(!check(result.reason==Reason::DuplicateField&&result.rejectedGroup==4u&&result.spans.empty(),
+                "legacy endpoint duplicate field refused"))return false;
+            wrong=original;wrong.groups.erase(wrong.groups.begin()+3);
+            result=dx_block_source::audit(wrong,footer,true);
+            if(!check(result.reason==Reason::Identity&&result.rejectedGroup==wrong.groups.size()&&result.spans.empty(),
+                "legacy endpoint missing layer refused"))return false;
+        }
+        auto changed=*block->beginRaw;changed.groups[10]=DRW_Variant(3,std::string("OTHER"));
+        const auto nameMismatch=dx_block_source::audit(changed,false,true);
+        if(!check(nameMismatch.reason==Reason::RedundantName&&nameMismatch.rejectedGroup==10u&&nameMismatch.spans.empty(),
+            "legacy endpoint mismatched redundant raw name refused even if caller agrees"))return false;
+        changed=*block->beginRaw;changed.groups[7]=DRW_Variant(10,std::string("1"));
+        const auto badCoordinate=dx_block_source::audit(changed,false,true);
+        if(!check(badCoordinate.reason==Reason::InvalidValue&&badCoordinate.rejectedGroup==7u&&badCoordinate.spans.empty(),
+            "legacy endpoint incorrect coordinate variant refused"))return false;
+        for(const auto version:{DRW::AC1021,DRW::AC1024}) {
+            auto modern=*block->beginRaw;modern.m_version=version;
+            const int code=version==DRW::AC1021?92:160;
+            modern.groups.insert(modern.groups.begin()+4,DRW_Variant(code,std::string("1")));
+            const auto badCount=dx_block_source::audit(modern,false,true);
+            if(!check(badCount.reason==Reason::ProxyGraphics&&badCount.rejectedGroup==4u&&badCount.spans.empty(),
+                "modern endpoint proxy wrong count variant refused"))return false;
+            modern.groups[4]=version==DRW::AC1021?DRW_Variant(92,std::int32_t(0)):DRW_Variant(160,std::int64_t(0));
+            modern.groups.insert(modern.groups.begin()+5,DRW_Variant(310,std::int32_t(0)));
+            const auto badChunk=dx_block_source::audit(modern,false,true);
+            if(!check(badChunk.reason==Reason::ProxyGraphics&&badChunk.rejectedGroup==5u&&badChunk.spans.empty(),
+                "modern endpoint proxy wrong chunk variant refused"))return false;
+        }
         ++captures;
         for(bool footer:{false,true}) {
             BlockSourceProbe altered;altered.forceTransport=true;
