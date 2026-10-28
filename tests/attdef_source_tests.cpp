@@ -896,8 +896,7 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
             ++mutations;
         }
         const auto gated=dx_attdef_source::audit(raw);
-        if(!check(!gated.complete()&&gated.spans.empty()&&gated.reason==dx_attdef_source::Reason::Revision
-            &&gated.rejectedGroup==0u,"legacy source audit remains gated"))return false;
+        if(!check(gated.complete()&&gated.spans.size()==row.size(),"legacy bounded classic source audit"))return false;
         Observer optout;optout.reader=&reader;optout.selected=false;
         if(!check(reader.read(&optout,extrusion)&&optout.sourceCalls==0u&&optout.typedCalls==1u
             &&snapshot(optout.typedModel)==snapshot(selected.typedModel),"legacy source opt-out preserves typed callback"))return false;
@@ -919,7 +918,7 @@ bool legacyAttdefObservationTests(const std::filesystem::path& path) {
 }
 
 // Adapter-owned capture/replay is opt-in via the existing optional source
-// facet. AC1018 profiles and enclosing graph/output authority stay gated.
+// facet. A bounded classic profile does not provide graph/output authority.
 bool legacyAttdefAdapterCaptureTests(const std::filesystem::path& path) {
     using A=DxIfaceTableSourceTestAccess;using namespace dx_attdef_source;
     const Tags row{{5,"A1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
@@ -954,11 +953,59 @@ bool legacyAttdefAdapterCaptureTests(const std::filesystem::path& path) {
             &&value->attdefReadContext->hasDeclaration&&value->attdefReadContext->declaration=="ANSI_1252"
             &&value->attdefReadContext->binary==binary&&!value->attdefReadContext->applyExtrusion
             &&value->attdefPairMatched&&value->attdefFieldsMatched&&!value->attdefFieldMismatch
-            &&!value->rawTypedMatched&&!value->attdefOrigin&&!value->attdefProfile.complete()
-            &&value->attdefProfile.reason==Reason::Revision&&value->attdefProfile.rejectedGroup==0u
+            &&!value->rawTypedMatched&&!value->attdefOrigin&&value->attdefProfile.complete()
+            &&value->attdefProfile.spans.size()==row.size()
             &&value->raw->m_version==DRW::AC1018&&value->raw->hasRawValues!=binary
             &&value->raw->groups.size()==row.size()&&value->attdefContext.inBlock==block,
-            "legacy adapter owns raw/context and complete replay but no profile or origin"))return false;
+            "legacy adapter owns raw/context and complete replay/profile but no origin"))return false;
+        const std::array<Field,18> fields{{Field::Identity,Field::Identity,Field::Subclass,Field::Common,
+            Field::Subclass,Field::Text,Field::Text,Field::Text,Field::Text,Field::Text,Field::Subclass,
+            Field::Attribute,Field::Attribute,Field::Attribute,Field::Xdata,Field::Xdata,Field::Xdata,Field::Xdata}};
+        const std::array<Role,18> roles{{Role::Self,Role::Owner,Role::None,Role::LayerName,Role::None,Role::None,
+            Role::None,Role::None,Role::None,Role::None,Role::None,Role::None,Role::None,Role::None,
+            Role::AppIdName,Role::None,Role::None,Role::None}};
+        for(std::size_t i=0;i<row.size();++i) {
+            const auto& span=value->attdefProfile.spans[i];
+            if(!check(span.groupIndex==i&&span.code==row[i].code&&span.scope==Scope::Host
+                &&span.field==fields[i]&&span.role==roles[i]
+                &&span.handle==(i==0?0xA1u:i==1?0xB0u:0u),"legacy exact profile field and role"))return false;
+        }
+        const auto refusal=[&](std::size_t at,const DRW_Variant& field,Reason reason) {
+            auto changed=*value->raw;changed.groups.insert(changed.groups.begin()+static_cast<std::ptrdiff_t>(at),field);
+            const auto result=audit(changed);
+            return check(!result.complete()&&result.spans.empty()&&result.reason==reason&&result.rejectedGroup==at,
+                "legacy unsupported profile exact refusal");
+        };
+        if(!refusal(4u,DRW_Variant(92,std::int32_t(1)),Reason::ProxyGraphics)
+            ||!refusal(4u,DRW_Variant(160,std::int64_t(1)),Reason::ProxyGraphics)
+            ||!refusal(4u,DRW_Variant(310,std::string("00")),Reason::ProxyGraphics)
+            ||!refusal(14u,DRW_Variant(280,std::int32_t(0)),Reason::AmbiguousVersion)
+            ||!refusal(14u,DRW_Variant(280,std::int32_t(1)),Reason::AmbiguousVersion)
+            ||!refusal(14u,DRW_Variant(101,std::string("Embedded Object")),Reason::Revision)
+            ||!refusal(14u,DRW_Variant(100,std::string("Embedded Object")),Reason::Revision)
+            ||!refusal(14u,DRW_Variant(100,std::string("AcDbXrecord")),Reason::UnmodeledSecondary)
+            ||!refusal(4u,DRW_Variant(102,std::string("{ACAD_XDICTIONARY")),Reason::Application)
+            ||!refusal(14u,DRW_Variant(71,std::int32_t(1)),Reason::UnknownField)
+            ||!refusal(15u,DRW_Variant(1003,std::string("LAYER")),Reason::Xdata))return false;
+        auto wrong=*value->raw;wrong.groups[5]=DRW_Variant(10,std::string("0"));
+        const auto badType=audit(wrong);
+        if(!check(badType.reason==Reason::InvalidValue&&badType.rejectedGroup==5u&&badType.spans.empty(),
+            "legacy wrong physical variant refused"))return false;
+        wrong=*value->raw;wrong.name="ATTRIB";
+        if(!check(audit(wrong,false).reason==Reason::Revision,"legacy ATTRIB profile remains gated"))return false;
+        for(const auto version:{DRW::AC1021,DRW::AC1024}) {
+            auto modern=*value->raw;modern.m_version=version;
+            const int code=version==DRW::AC1021?92:160;
+            modern.groups.insert(modern.groups.begin()+4,DRW_Variant(code,std::string("1")));
+            const auto badProxy=audit(modern);
+            if(!check(badProxy.reason==Reason::ProxyGraphics&&badProxy.rejectedGroup==4u&&badProxy.spans.empty(),
+                "proxy count wrong variant refused"))return false;
+            modern.groups[4]=version==DRW::AC1021?DRW_Variant(92,std::int32_t(0)):DRW_Variant(160,std::int64_t(0));
+            modern.groups.insert(modern.groups.begin()+5,DRW_Variant(310,std::int32_t(0)));
+            const auto badChunk=audit(modern);
+            if(!check(badChunk.reason==Reason::ProxyGraphics&&badChunk.rejectedGroup==5u&&badChunk.spans.empty(),
+                "proxy chunk wrong variant refused"))return false;
+        }
         ++captures;
         for(unsigned fault=0u;fault<3u;++fault) {
             CaptureProbe faulty;faulty.legacyOptIn=true;

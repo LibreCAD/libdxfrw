@@ -80,7 +80,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     const auto reject=[&](Reason reason,std::size_t at) {
         out.reason=reason;out.rejectedGroup=at;out.spans.clear();return std::move(out);
     };
-    if(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)return reject(Reason::Revision,0u);
+    const bool legacy=raw.m_version==DRW::AC1018;
+    if((legacy&&!definition)||(!legacy&&(raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032)))
+        return reject(Reason::Revision,0u);
     if(raw.name!=(definition?"ATTDEF":"ATTRIB")||!raw.handle)return reject(Reason::Identity,0u);
     out.spans.reserve(raw.groups.size()); // caller precharges the complete bound
     enum Stage { Header, Common, Text, Attribute, Embedded } stage=Header;
@@ -109,6 +111,28 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     };
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& value=raw.groups[i];const int code=value.code();const auto string=text(value);
+        if(legacy) {
+            // Source-bound classic ATTDEF only. Proxy graphics, extension
+            // applications and additional XDATA roles need separate evidence.
+            if(code==92||code==160||code==310)return reject(Reason::ProxyGraphics,i);
+            if(code==280)return reject(Reason::AmbiguousVersion,i);
+            if(code==101)return reject(Reason::Revision,i);
+            if(code==102)return reject(Reason::Application,i);
+            switch(code) {
+            case 5:case 330:case 100:case 8:case 1:case 3:case 2:case 1001:case 1000:
+                if(value.type()!=DRW_Variant::STRING||!value.content.s)return reject(Reason::InvalidValue,i);
+                break;
+            case 10:case 20:case 30:case 11:case 21:case 31:case 40:
+                if(value.type()!=DRW_Variant::DOUBLE)return reject(Reason::InvalidValue,i);
+                break;
+            case 70:case 74:case 1070:
+                if(value.type()!=DRW_Variant::INTEGER)return reject(Reason::InvalidValue,i);
+                break;
+            default:return reject(code>=1000?Reason::Xdata:Reason::UnknownField,i);
+            }
+            if(code==8||code==2||code==1001)
+                for(const unsigned char c:string)if(c>=128u)return reject(Reason::InvalidValue,i);
+        }
         Scope scope=nested?Scope::Nested:Scope::Host;
         Field field=Field::Common;Role role=Role::None;std::uint64_t handle=0u;
         const auto slot=scope==Scope::Host?0u:1u;
@@ -321,7 +345,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                     case 60:case 67:if(!integer(value,0,1))return reject(Reason::InvalidValue,i);break;
                     case 284:if(!integer(value,0,3))return reject(Reason::InvalidValue,i);break;
                     case 92:case 160:
-                        if((code==92)!=(raw.m_version==DRW::AC1021)||proxy[slot]!=-1)
+                        if((code==92)!=(raw.m_version==DRW::AC1021)||proxy[slot]!=-1
+                            ||value.type()!=(code==92?DRW_Variant::INTEGER:DRW_Variant::INTEGER64))
                             return reject(Reason::ProxyGraphics,i);
                         proxy[slot]=code==92?value.i_val():value.i64_val();
                         if(proxy[slot]<0||static_cast<std::uint64_t>(proxy[slot])>DRW::kMaxDxfBinaryPayloadBytes)
@@ -329,7 +354,8 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                         break;
                     case 310:
                         slots[code]=false;
-                        if(proxy[slot]<0||!hexBytes(string)||string.size()>254u)return reject(Reason::ProxyGraphics,i);
+                        if(proxy[slot]<0||value.type()!=DRW_Variant::STRING||!value.content.s
+                            ||!hexBytes(string)||string.size()>254u)return reject(Reason::ProxyGraphics,i);
                         proxyBytes[slot]+=string.size()/2u;
                         if(proxyBytes[slot]>static_cast<std::uint64_t>(proxy[slot]))return reject(Reason::ProxyGraphics,i);
                         break;
