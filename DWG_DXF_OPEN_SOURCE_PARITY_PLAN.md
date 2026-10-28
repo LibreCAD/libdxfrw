@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | PROVE CENSUS, THEN IMPLEMENT | Unused MLINESTYLE count change, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Original/live ordinary MLINE census including empty and dropped-consumer cases, then actual-output transaction proof |
+| P2 | SELECT WITNESS, THEN IMPLEMENT | Remaining count operations, consumed geometry, legacy offsets, richer retarget/LTYPE profiles and MLEADERSTYLE | Current unsupported operation, original authority and actual-output expectation |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER, THEN IMPLEMENT | P4a: remaining original profile/representation/role evidence; P4b: compose document closure | One current distinguishing witness; embedded equal-value alignment is not implementation-ready |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -62,15 +62,14 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — classify next original profile | Retained AC1032 ATTDEF `796` / ATTRIB `79D`, alignment collisions and existing source/role/model reports | Establish separate Text/Attribute/MTEXT alignment meanings and representation with a distinguishing source before changing the grammar; otherwise select another witnessed local operation |
-| P2 — prove unused-style census | Existing count-change refusal, ENTITIES delivery, BLOCKS membership and original physical captures | Bind all ordinary original MLINE targets to live consumers, including zero-live and dropped-record cases, before admitting one-element append |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused removal, multi-element count, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
 Select the next local packet from a current exact witness and its missing layer.
 Embedded source-profile classification and independent native meaning remain
 separate and unqualified; selected writer consistency does not establish their
-readiness. P2 has a witnessed count-change refusal but needs original-consumer
-closure; P3's remaining variants still need concrete witnesses;
+readiness. P2 and P3's remaining operations need concrete witnesses;
 secondary `AcDbXrecord` remains a separate source/meaning search. Reuse existing
 source-bound refusals and projections before authoring another source.
 Gap classification and the next source recipe/projection can run in parallel,
@@ -117,12 +116,10 @@ proof. Refused fields are not implemented editing support.
    redundant group-2 values and refuse unsupported operations atomically. Bind
    consumer arity to the reconciled style that will actually be emitted, including
    raw-only edits; a stale typed count cannot authorize a changed output style.
-   For an unused-style append, first compare every physical ENTITIES and BLOCKS
-   scope with captured delivery/membership and live models, including an empty
-   live set. Refuse omitted original consumers, missing or changed certificates,
-   ambiguous targets and later insertion/removal/retargeting. The live-only scan
-   cannot prove an original consumer was not dropped. Qualify ordinary MLINE
-   references separately from proxy and unknown dependencies.
+   Reuse the [selected unused-style append receipt](docs/research/rpp5hk-mline-unused-append-2026-10-28.json):
+   its original/live ordinary MLINE census and staged-output checks do not yet
+   qualify removals, multi-element changes, consumed geometry, earlier versions,
+   proxy or unknown dependencies. Continue to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;

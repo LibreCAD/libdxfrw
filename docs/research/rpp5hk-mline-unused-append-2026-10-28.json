@@ -1,0 +1,701 @@
+{
+  "schema": "p2-unused-mline-style-append-v1",
+  "date": "2026-10-28",
+  "codeCommit": "4ae383bf",
+  "supportClaimsPromoted": false,
+  "scope": "Same-version modern DXF typed append of exactly one complete tuple to an original unused MLINESTYLE, guarded by ordinary source/live MLINE census, source/provider binding and staged output inspection.",
+  "sourceBindings": {
+    "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+    "/Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp": "a4be8f6697e9f12186ccd1c62b389aebd199a60e88b729e1b7786d23743821a7",
+    "/Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.h": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca",
+    "/Users/dli/dev/libdxfrw/build/CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o": "45f1d45f950b23dddebd4ab284e734b40cf5a74733b8e63182d6e9655e63dd0c",
+    "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198",
+    "/Users/dli/dev/libdxfrw/build/agent-mline-append-peer/append-probe.cpp": "6ba8a6db2ff260b782064774d5d2603ec51f7609e5d7729fea68433b8f128353",
+    "/Users/dli/dev/libdxfrw/build/agent-mline-append-peer/append-probe": "87fe2665e0624a931da97227386d81174747222f95bcfeeeeebefd812d4ff5c7",
+    "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+    "/Users/dli/dev/libdxfrw/build/agent-mline-append-peer/qualify.py": "2a11929868de82da1ae3dd9c440380a52751e05f5732bb3e337391d4ad7f89a3"
+  },
+  "sourceManifest": {
+    "entries": 431,
+    "sha256": "bf4b567fac2efd496f780ab46c824deaf023ab03f899e3e7e16df8cf8238d4e3",
+    "sourceManifestPath": "build/agent-mline-append-peer/source-manifest.sha256"
+  },
+  "peer": {
+    "producer": "ezdxf 1.4.5",
+    "originalInput": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gy-evidence/normal-peer-mline-style/mline-style-retarget-AC1027-asc.dxf",
+      "sha256": "d696b92facab588ea9126892aaa29d80da2d75189e510405500c750c0613de7f"
+    },
+    "originalSourceSummary": {
+      "rootHandle": "A",
+      "dictionaryHandle": "10",
+      "style": {
+        "fields": {
+          "name": "PeerRetarget",
+          "flags": 3,
+          "description": "Original compatible retarget destination",
+          "fillColor": 6,
+          "startAngle": 37.5,
+          "endAngle": 142.5,
+          "elements": [
+            [
+              1.25,
+              6,
+              "CONTINUOUS"
+            ],
+            [
+              -0.75,
+              2,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "handle": "31",
+        "owner": "10",
+        "pointerRole": 350,
+        "wireDictionaryKey": "PeerRetarget",
+        "wireBodyName": "PeerRetarget",
+        "wireElementLinetypes": [
+          "CONTINUOUS",
+          "BYLAYER"
+        ],
+        "fieldPresence": {
+          "2": true,
+          "70": true,
+          "3": true,
+          "62": true,
+          "51": true,
+          "52": true
+        },
+        "elementCount": 2,
+        "linetypeReferences": [
+          {
+            "name": "CONTINUOUS",
+            "targetName": "Continuous",
+            "disposition": "defined",
+            "handle": "26",
+            "owner": "2",
+            "wireName": "Continuous",
+            "fields": {
+              "name": "Continuous",
+              "flags": 0,
+              "description": "",
+              "pattern": [
+                [
+                  72,
+                  65
+                ],
+                [
+                  73,
+                  0
+                ],
+                [
+                  40,
+                  0.0
+                ]
+              ]
+            }
+          },
+          {
+            "name": "BYLAYER",
+            "disposition": "inherited"
+          }
+        ]
+      },
+      "consumers": {
+        "BLOCKS:PeerMlineBlock": {
+          "handle": "36",
+          "owner": "32",
+          "styleHandle": "2F",
+          "blockRecord": "32",
+          "geometrySha256": "a9348c4b2f7784a1c1309811b8e355c38e6ff8715f59ab77d5d399178be1e723"
+        },
+        "ENTITIES:*Model_Space": {
+          "handle": "35",
+          "owner": "17",
+          "styleHandle": "2F",
+          "blockRecord": "17",
+          "geometrySha256": "e1b1c390e30aa9af9cf8e329e4b65e065552feb46156eda74a39c4db67294ff9"
+        }
+      },
+      "linetypeControl": {
+        "handle": "2",
+        "recordCount": 3
+      },
+      "linetypes": {
+        "ByBlock": {
+          "handle": "24",
+          "owner": "2",
+          "wireName": "ByBlock"
+        },
+        "ByLayer": {
+          "handle": "25",
+          "owner": "2",
+          "wireName": "ByLayer",
+          "fields": {
+            "name": "ByLayer",
+            "flags": 0,
+            "description": "",
+            "pattern": [
+              [
+                72,
+                65
+              ],
+              [
+                73,
+                0
+              ],
+              [
+                40,
+                0.0
+              ]
+            ]
+          }
+        },
+        "Continuous": {
+          "handle": "26",
+          "owner": "2",
+          "wireName": "Continuous",
+          "fields": {
+            "name": "Continuous",
+            "flags": 0,
+            "description": "",
+            "pattern": [
+              [
+                72,
+                65
+              ],
+              [
+                73,
+                0
+              ],
+              [
+                40,
+                0.0
+              ]
+            ]
+          }
+        }
+      },
+      "ordinaryReadAfterDocumentSetup": true,
+      "documentSetupAddedMaterials": [
+        {
+          "handle": "3A",
+          "name": "ByBlock"
+        },
+        {
+          "handle": "3B",
+          "name": "ByLayer"
+        },
+        {
+          "handle": "3C",
+          "name": "Global"
+        }
+      ],
+      "typedStylesMatched": 3
+    },
+    "priorReceipt": {
+      "path": "docs/research/rpp5gy-mline-unused-style-offset-transactions-2026-10-28.json",
+      "sha256": "65e2a91ef8da6e554b88fe6875d18371e28c126674d1f1b44dd34c0b3f15dfac"
+    },
+    "report": {
+      "path": "build/agent-mline-append-peer/qualification.json",
+      "sha256": "3c769f80feac3ccc71eed1b37f77ff64889afeaeb2dfaeb28d8cb2df9d9125d5"
+    },
+    "appendRequest": {
+      "offset": 2.25,
+      "color": 7,
+      "linetype": "CONTINUOUS"
+    },
+    "outputs": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/agent-mline-append-peer/append-asc.dxf",
+        "sha256": "f34cac4e73b6532f37d07d3c5810191cb0c28cd0dd8f58dbfee427bbb8ced9af",
+        "binary": false,
+        "summary": {
+          "rootHandle": "C",
+          "dictionaryHandle": "3B",
+          "style": {
+            "fields": {
+              "name": "PeerRetarget",
+              "flags": 3,
+              "description": "Original compatible retarget destination",
+              "fillColor": 6,
+              "startAngle": 37.5,
+              "endAngle": 142.5,
+              "elements": [
+                [
+                  1.25,
+                  6,
+                  "CONTINUOUS"
+                ],
+                [
+                  -0.75,
+                  2,
+                  "BYLAYER"
+                ],
+                [
+                  2.25,
+                  7,
+                  "CONTINUOUS"
+                ]
+              ]
+            },
+            "handle": "31",
+            "owner": "3B",
+            "pointerRole": 350,
+            "wireDictionaryKey": "PeerRetarget",
+            "wireBodyName": "PeerRetarget",
+            "wireElementLinetypes": [
+              "CONTINUOUS",
+              "BYLAYER",
+              "CONTINUOUS"
+            ],
+            "fieldPresence": {
+              "2": true,
+              "70": true,
+              "3": true,
+              "62": true,
+              "51": true,
+              "52": true
+            },
+            "elementCount": 3,
+            "linetypeReferences": [
+              {
+                "name": "CONTINUOUS",
+                "targetName": "Continuous",
+                "disposition": "defined",
+                "handle": "16",
+                "owner": "5",
+                "wireName": "Continuous",
+                "fields": {
+                  "name": "Continuous",
+                  "flags": 0,
+                  "description": "Solid line",
+                  "pattern": [
+                    [
+                      72,
+                      65
+                    ],
+                    [
+                      73,
+                      0
+                    ],
+                    [
+                      40,
+                      0.0
+                    ]
+                  ]
+                }
+              },
+              {
+                "name": "BYLAYER",
+                "disposition": "inherited"
+              },
+              {
+                "name": "CONTINUOUS",
+                "targetName": "Continuous",
+                "disposition": "defined",
+                "handle": "16",
+                "owner": "5",
+                "wireName": "Continuous",
+                "fields": {
+                  "name": "Continuous",
+                  "flags": 0,
+                  "description": "Solid line",
+                  "pattern": [
+                    [
+                      72,
+                      65
+                    ],
+                    [
+                      73,
+                      0
+                    ],
+                    [
+                      40,
+                      0.0
+                    ]
+                  ]
+                }
+              }
+            ]
+          },
+          "consumers": {
+            "BLOCKS:PeerMlineBlock": {
+              "handle": "4A",
+              "owner": "41",
+              "styleHandle": "2F",
+              "blockRecord": "41",
+              "geometrySha256": "a9348c4b2f7784a1c1309811b8e355c38e6ff8715f59ab77d5d399178be1e723"
+            },
+            "ENTITIES:*Model_Space": {
+              "handle": "4C",
+              "owner": "1F",
+              "styleHandle": "2F",
+              "blockRecord": "1F",
+              "geometrySha256": "e1b1c390e30aa9af9cf8e329e4b65e065552feb46156eda74a39c4db67294ff9"
+            }
+          },
+          "linetypeControl": {
+            "handle": "5",
+            "recordCount": 3
+          },
+          "linetypes": {
+            "ByBlock": {
+              "handle": "14",
+              "owner": "5",
+              "wireName": "ByBlock"
+            },
+            "ByLayer": {
+              "handle": "15",
+              "owner": "5",
+              "wireName": "ByLayer",
+              "fields": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              }
+            },
+            "Continuous": {
+              "handle": "16",
+              "owner": "5",
+              "wireName": "Continuous",
+              "fields": {
+                "name": "Continuous",
+                "flags": 0,
+                "description": "Solid line",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              }
+            }
+          },
+          "ordinaryReadAfterDocumentSetup": true,
+          "documentSetupAddedMaterials": [
+            {
+              "handle": "4D",
+              "name": "ByBlock"
+            },
+            {
+              "handle": "4E",
+              "name": "ByLayer"
+            },
+            {
+              "handle": "4F",
+              "name": "Global"
+            }
+          ],
+          "typedStylesMatched": 3
+        }
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/agent-mline-append-peer/append-bin.dxf",
+        "sha256": "1d82c5748cee56253b5036d76ff8da9327fd43d2f13e07295dd5bacfc343aef4",
+        "binary": true,
+        "summary": {
+          "rootHandle": "C",
+          "dictionaryHandle": "3B",
+          "style": {
+            "fields": {
+              "name": "PeerRetarget",
+              "flags": 3,
+              "description": "Original compatible retarget destination",
+              "fillColor": 6,
+              "startAngle": 37.5,
+              "endAngle": 142.5,
+              "elements": [
+                [
+                  1.25,
+                  6,
+                  "CONTINUOUS"
+                ],
+                [
+                  -0.75,
+                  2,
+                  "BYLAYER"
+                ],
+                [
+                  2.25,
+                  7,
+                  "CONTINUOUS"
+                ]
+              ]
+            },
+            "handle": "31",
+            "owner": "3B",
+            "pointerRole": 350,
+            "wireDictionaryKey": "PeerRetarget",
+            "wireBodyName": "PeerRetarget",
+            "wireElementLinetypes": [
+              "CONTINUOUS",
+              "BYLAYER",
+              "CONTINUOUS"
+            ],
+            "fieldPresence": {
+              "2": true,
+              "70": true,
+              "3": true,
+              "62": true,
+              "51": true,
+              "52": true
+            },
+            "elementCount": 3,
+            "linetypeReferences": [
+              {
+                "name": "CONTINUOUS",
+                "targetName": "Continuous",
+                "disposition": "defined",
+                "handle": "16",
+                "owner": "5",
+                "wireName": "Continuous",
+                "fields": {
+                  "name": "Continuous",
+                  "flags": 0,
+                  "description": "Solid line",
+                  "pattern": [
+                    [
+                      72,
+                      65
+                    ],
+                    [
+                      73,
+                      0
+                    ],
+                    [
+                      40,
+                      0.0
+                    ]
+                  ]
+                }
+              },
+              {
+                "name": "BYLAYER",
+                "disposition": "inherited"
+              },
+              {
+                "name": "CONTINUOUS",
+                "targetName": "Continuous",
+                "disposition": "defined",
+                "handle": "16",
+                "owner": "5",
+                "wireName": "Continuous",
+                "fields": {
+                  "name": "Continuous",
+                  "flags": 0,
+                  "description": "Solid line",
+                  "pattern": [
+                    [
+                      72,
+                      65
+                    ],
+                    [
+                      73,
+                      0
+                    ],
+                    [
+                      40,
+                      0.0
+                    ]
+                  ]
+                }
+              }
+            ]
+          },
+          "consumers": {
+            "BLOCKS:PeerMlineBlock": {
+              "handle": "4A",
+              "owner": "41",
+              "styleHandle": "2F",
+              "blockRecord": "41",
+              "geometrySha256": "a9348c4b2f7784a1c1309811b8e355c38e6ff8715f59ab77d5d399178be1e723"
+            },
+            "ENTITIES:*Model_Space": {
+              "handle": "4C",
+              "owner": "1F",
+              "styleHandle": "2F",
+              "blockRecord": "1F",
+              "geometrySha256": "e1b1c390e30aa9af9cf8e329e4b65e065552feb46156eda74a39c4db67294ff9"
+            }
+          },
+          "linetypeControl": {
+            "handle": "5",
+            "recordCount": 3
+          },
+          "linetypes": {
+            "ByBlock": {
+              "handle": "14",
+              "owner": "5",
+              "wireName": "ByBlock"
+            },
+            "ByLayer": {
+              "handle": "15",
+              "owner": "5",
+              "wireName": "ByLayer",
+              "fields": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              }
+            },
+            "Continuous": {
+              "handle": "16",
+              "owner": "5",
+              "wireName": "Continuous",
+              "fields": {
+                "name": "Continuous",
+                "flags": 0,
+                "description": "Solid line",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              }
+            }
+          },
+          "ordinaryReadAfterDocumentSetup": true,
+          "documentSetupAddedMaterials": [
+            {
+              "handle": "4D",
+              "name": "ByBlock"
+            },
+            {
+              "handle": "4E",
+              "name": "ByLayer"
+            },
+            {
+              "handle": "4F",
+              "name": "Global"
+            }
+          ],
+          "typedStylesMatched": 3
+        }
+      }
+    ],
+    "sourceBindingStableBeforeAfter": true,
+    "sourceAndOutputsUnchangedByOrdinaryRead": true,
+    "producerSourceRecipe": "tools/qualify_material_source_order.py author_mline_style_authority_profile and qualify_mline_style_retarget; original intent was frozen before first save.",
+    "authoringScope": "Selected authored MLINESTYLE sources; original layer material references were intentionally set to null before first save, and defaults omitted.",
+    "nativeRenderingQualified": false,
+    "loadedModuleManifest": {
+      "count": 203,
+      "sha256": "9aa496ec63148fc60ae60b111d34839a0cdb28657f2441dd2a075dbc70a7a783",
+      "fullInventoryInIndependentReport": true,
+      "representative": {
+        "ezdxf": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/__init__.py",
+          "sha256": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0"
+        },
+        "ezdxf.entities.mline": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mline.py",
+          "sha256": "eee46cda3d1d2e3fa053cf4478f0bc0ed8b3df8d856b38490b2c446f57bc6038"
+        },
+        "ezdxf.lldxf.extendedtags": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/extendedtags.py",
+          "sha256": "a93b50c5512a971f0dae18e66db2e027b12e6c1c7d3a0f0e806072a6b24178a9"
+        },
+        "ezdxf.lldxf.tagger": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tagger.py",
+          "sha256": "03c5eafad5f5e82570ab72815bb107e5a9ef404da36e046cdcc9742eb594e97d"
+        },
+        "ezdxf.lldxf.tags": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tags.py",
+          "sha256": "f53074f8eb651ca2ca797f6ff70f9532c98d3a2a38b6fc9f5cc25395a6fe5c2e"
+        }
+      }
+    }
+  },
+  "execution": {
+    "compileCommand": "/usr/bin/clang++ -std=c++17 -Wall -Wextra -Werror -I. -Isrc -Ibuild build/agent-mline-append-peer/append-probe.cpp build/CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o build/agent-mline-append-peer/append-probe",
+    "probeSource": "#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstring>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <stdexcept>\n\nclass DxIfaceMaterialReferenceTestAccess {\npublic:\n    static bool qualified(const dx_iface& adapter,std::uint32_t selected) {\n        const auto row=adapter.m_dxfMLineStyles.find(selected);\n        if (!adapter.m_dxfMLineStylesInspected || !adapter.m_dxfMLineLinetypesInspected\n            || adapter.m_dxfMLineConsumerInspected!=3u || adapter.m_dxfMLineConsumers.size()!=2u\n            || row==adapter.m_dxfMLineStyles.end() || !row->second.baseline\n            || !row->second.linetypesBound || !row->second.countChanged || !row->second.geometryChanged || !row->second.referencesChanged || !row->second.dictionaryOrigin\n            || !row->second.dictionaryOrigin->bodyMatched || !row->second.dictionaryOrigin->stateComplete\n            || !row->second.dictionaryOrigin->originBound) return false;\n        for (const auto& consumer:adapter.m_dxfMLineConsumers)\n            if (!consumer.second.original || consumer.second.model.styleHandle==selected\n                || consumer.second.original->styleHandle==selected) return false;\n        return true;\n    }\n};\n\nvoid text(std::ostream& out,const std::string& value) { out<<value.size()<<':'<<value; }\nvoid number(std::ostream& out,double value) {\n    std::uint64_t bits=0;static_assert(sizeof(bits)==sizeof(value),\"double bits\");\n    std::memcpy(&bits,&value,sizeof(bits));out<<bits<<';';\n}\nvoid variant(std::ostream& out,const DRW_Variant& value) {\n    out<<value.code()<<':'<<value.type()<<':';\n    switch(value.type()) {\n    case DRW_Variant::STRING: text(out,*value.content.s);break;\n    case DRW_Variant::INTEGER:out<<value.i_val();break;\n    case DRW_Variant::INTEGER64:out<<value.i64_val();break;\n    case DRW_Variant::DOUBLE:number(out,value.d_val());break;\n    case DRW_Variant::COORD:number(out,value.coord()->x);number(out,value.coord()->y);number(out,value.coord()->z);break;\n    case DRW_Variant::BINARY:out<<value.binary()->size()<<':';for(const auto byte:*value.binary())out<<static_cast<unsigned>(byte)<<',';break;\n    case DRW_Variant::INVALID:throw std::runtime_error(\"unexpected invalid source variant\");\n    }\n    out<<';';\n}\nstd::string snapshot(const DRW_MLineStyle& value,const DRW_RawDxfObject& raw) {\n    std::ostringstream out;\n    const auto& base=static_cast<const DRW_TableEntry&>(value);\n    out<<base.tType<<';'<<base.handle<<';'<<base.parentHandle<<';'<<base.flags<<';';text(out,base.name);\n    out<<base.xDictHandle<<';'<<base.hasDataStorageBinaryData()<<';';\n    for(const auto handle:base.reactorHandles)out<<handle<<',';\n    for(const auto* item:base.extData){if(!item)throw std::runtime_error(\"null xdata\");variant(out,*item);}\n    for(const auto& group:base.appData){out<<\"app;\";for(const auto& item:group)variant(out,item);}\n    out<<value.flags<<';'<<value.fillColor<<';'<<value.fillColor24<<';'\n        <<static_cast<unsigned>(value.fillColorMethod)<<';'<<static_cast<unsigned>(value.fillColorFlags)<<';'<<value.fillColorDwgIndex<<';';\n    text(out,value.description);text(out,value.fillColorName);text(out,value.fillColorBookName);\n    number(out,value.startAngle);number(out,value.endAngle);\n    out<<value.elements.size()<<';'<<value.validateDxfRecord()<<';';\n    for(const auto& item:value.elements) {\n        number(out,item.offset);out<<item.color<<';'<<item.color24<<';'<<static_cast<unsigned>(item.colorMethod)<<';'\n            <<static_cast<unsigned>(item.colorFlags)<<';'<<item.colorDwgIndex<<';'<<item.linetypeIndex<<';'<<item.linetypeHandle<<';';\n        text(out,item.colorName);text(out,item.colorBookName);text(out,item.linetype);\n    }\n    text(out,raw.name);out<<raw.handle<<';'<<raw.parentHandle<<';'<<raw.m_version<<';'<<raw.hasRawValues<<';'\n        <<raw.groups.size()<<';'<<raw.rawValues.size()<<';'<<raw.m_retainedTextLease.get()<<';';\n    for(const auto& field:raw.groups)variant(out,field);\n    for(const auto& spelling:raw.rawValues)text(out,spelling);\n    return out.str();\n}\nstd::string contents(const std::string& path) {\n    std::ifstream in(path,std::ios::binary);return {(std::istreambuf_iterator<char>(in)),{}};\n}\nint main(int argc,char** argv) {\n    if(argc!=5)return 2;\n    const std::string mode=argv[3],format=argv[4];\n    if(mode!=\"append\"||(format!=\"asc\"&&format!=\"bin\"))return 2;\n    dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    DRW_MLineStyle* selected=nullptr;\n    for(const auto& dictionary:data.dictionaries)for(const auto& entry:dictionary.m_entries)\n        if(entry.m_name==\"PeerRetarget\")for(auto& style:data.mLineStyles)\n            if(style.handle==entry.m_handle&&style.parentHandle==dictionary.handle){if(selected)return 2;selected=&style;}\n    if(!selected||selected->elements.size()!=2u||selected->elements[0].offset!=1.25)return 2;\n    DRW_RawDxfObject* raw=nullptr;\n    for(auto& object:data.rawNamedResourceObjects)if(object.handle==selected->handle&&object.name==\"MLINESTYLE\"){\n        if(raw)return 2;raw=&object;\n    }\n    if(!raw||!raw->hasRawValues||raw->groups.size()!=raw->rawValues.size())return 2;\n    std::size_t slot=raw->groups.size();\n    for(std::size_t index=0;index<raw->groups.size();++index)\n        if(raw->groups[index].code()==49){slot=index;break;}\n    if(slot==raw->groups.size()||raw->groups[slot].type()!=DRW_Variant::DOUBLE||raw->groups[slot].d_val()!=1.25)return 2;\n    unsigned consumers=0;\n    const auto visit=[&](const dx_ifaceBlock* block) {\n        if(!block)return true;\n        for(const auto* entity:block->ent)if(entity&&entity->eType==DRW::MLINE){\n            const auto* value=dynamic_cast<const DRW_MLine*>(entity);\n            if(!value||value->styleHandle==selected->handle)return false;\n            ++consumers;\n        }\n        return true;\n    };\n    if(!visit(data.mBlock))return 2;\n    for(const auto* block:data.blocks)if(!visit(block))return 2;\n    if(consumers!=2u)return 2;\n    auto element=selected->elements.front();element.offset=2.25;element.color=7;selected->elements.push_back(element);\n    const auto before=snapshot(*selected,*raw);\n    const std::string sentinel=\"UNUSED_STYLE_OFFSET_ATOMIC_DESTINATION\";\n    {std::ofstream out(argv[2],std::ios::binary);out<<sentinel;}\n    const bool accepted=adapter.fileExport(argv[2],data.sourceVersion,format==\"bin\",&data,false,true,\n        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);\n    const bool preserved=before==snapshot(*selected,*raw);\n    const bool sentinelPreserved=contents(argv[2])==sentinel;\n    const bool qualified=accepted&&DxIfaceMaterialReferenceTestAccess::qualified(adapter,selected->handle);\n    std::cout<<\"{\\\"mode\\\":\\\"\"<<mode<<\"\\\",\\\"format\\\":\\\"\"<<format<<\"\\\",\\\"accepted\\\":\"<<accepted\n        <<\",\\\"selectedCallerSnapshotPreserved\\\":\"<<preserved<<\",\\\"sentinelPreserved\\\":\"<<sentinelPreserved\n        <<\",\\\"selectedDefinitionAuthorityAndOutputQualified\\\":\"<<qualified\n        <<\",\\\"otherOriginalMlineConsumers\\\":\"<<consumers<<\",\\\"selectedTypedOffset\\\":\"<<selected->elements[0].offset\n        <<\",\\\"selectedRawOffset\\\":\"<<raw->groups[slot].d_val()<<\"}\\n\";\n    return preserved&&accepted&&qualified&&!sentinelPreserved?0:1;\n}\n",
+    "projectionSource": "import copy,hashlib,json,sys,traceback,subprocess\nfrom pathlib import Path\nroot=Path.cwd();sys.path.insert(0,str(root/'tools'));import ezdxf\nfrom qualify_material_source_order import selected_mline_style_projection\nbase=root/'build/agent-mline-append-peer'; prior=root/'build/rpp5gy-evidence/normal-peer-mline-style/qualification.json'\nsource=root/'build/rpp5gy-evidence/normal-peer-mline-style/mline-style-retarget-AC1027-asc.dxf'\ndef sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()\nj=json.loads(prior.read_text())['mlineStyleRetargetInputs'][0]\nassert sha(source)==j['sha256']=='d696b92facab588ea9126892aaa29d80da2d75189e510405500c750c0613de7f'\nstyles=copy.deepcopy(j['expectedStyles'])\nfor v in styles.values():v['elements']=[tuple(t) for t in v['elements']]\nconsumers=copy.deepcopy(j['expectedConsumers'])\nfor v in consumers.values():\n v['start']=tuple(v['start']);v['extrusion']=tuple(v['extrusion'])\n for point in v['vertices']:\n  for name in ('location','direction','miter'):point[name]=tuple(point[name])\n  for name in ('lineParameters','fillParameters'):point[name]=[tuple(x) for x in point[name]]\ndef lt(value):\n value=copy.deepcopy(value)\n for v in value.values():v['pattern']=[tuple(x) for x in v['pattern']]\n return value\nsource_lt=lt(j['expectedLinetypes']); out_lt=lt(j['expectedEmittedLinetypes'])\noutput=copy.deepcopy(styles);output['PeerRetarget']['elements'].append((2.25,7,'CONTINUOUS'))\nkeys=j['expectedSourceStyleKeys'];assert set(keys.values())=={'PeerMline'}\npaths=[root/'tools/qualify_material_source_order.py',root/'dwg2dxf/dx_iface.cpp',root/'dwg2dxf/dx_iface.h',root/'build/CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o',root/'build/libdxfrw.a',base/'append-probe.cpp',base/'append-probe',Path(sys.executable),Path(__file__)]\ndef manifest():\n names=subprocess.check_output(['git','ls-files','-z','--','src','dwg2dxf','tests','CMakeLists.txt','tools']).decode().split('\\0')[:-1]\n lines=[n+' '+sha(root/n) for n in sorted(names) if (root/n).is_file()]\n (base/'source-manifest.sha256').write_text('\\n'.join(lines)+'\\n')\n return dict(entries=len(lines),sha256=sha(base/'source-manifest.sha256'))\nsource_manifest=manifest()\nreport=dict(sourceManifest=source_manifest,scope='independent exact selected source-to-emitted-append proof; no native semantic or support claim', sourceBinding={str(p):sha(p) for p in paths}, input=dict(path=str(source),sha256=sha(source)),outputs=[])\ntry:\n report['original']=selected_mline_style_projection(ezdxf,source,False,styles,source_recipe=True,consumer_expected=consumers,consumer_style_keys=keys,linetype_expected=source_lt)\n for fmt in ('asc','bin'):\n  p=base/f'append-{fmt}.dxf';h=sha(p)\n  observation=selected_mline_style_projection(ezdxf,p,fmt=='bin',output,source_recipe=False,consumer_expected=consumers,consumer_style_keys=keys,linetype_expected=out_lt)\n  assert sha(p)==h\n  report['outputs'].append(dict(path=str(p),sha256=h,binary=fmt=='bin',observations=observation))\n assert sha(source)==j['sha256'];assert {str(p):sha(p) for p in paths}==report['sourceBinding'];assert manifest()==source_manifest\n report['passed']=True\nexcept Exception as e:\n report.update(passed=False,error=repr(e),traceback=traceback.format_exc())\nreport['limitations']=['Original input was authored from scratch by ezdxf before first save and reused byte-for-byte; unrelated default MATERIAL bindings were explicitly nulled before source save as documented in prior receipt.', 'Ordinary ezdxf read may normalize/setup document defaults; physical source and output projections were captured before read, and added MATERIAL objects are reported separately.', 'This is a selected exact field/owner/reference/geometry check, not native rendering, whole-document closure or support promotion.', 'No drawing fixtures are committed.']\nreport['loadedEzdxfModules']={n:dict(path=str(Path(m.__file__).resolve()),sha256=sha(m.__file__)) for n,m in sorted(sys.modules.items()) if n.startswith('ezdxf') and getattr(m,'__file__',None) and Path(m.__file__).is_file()}\np=base/'qualification.json';p.write_text(json.dumps(report,indent=2)+'\\n')\nprint(json.dumps(dict(passed=report['passed'],error=report.get('error'),report=str(p),sha256=sha(p),outputs=len(report['outputs'])),indent=2))\nif not report['passed']:print(report['traceback']);sys.exit(1)\n",
+    "results": "Both strict-compatible ASCII and binary exports accepted; selected caller model/raw snapshots unchanged; production dictionary/origin/LTYPE/output inspection, count-change proof and two unrelated original consumers bound."
+  },
+  "focusedValidation": {
+    "normalSelectors": [
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_style_authority",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_linetype_extension_graph"
+    ],
+    "normalResults": "4 passed; normal body-selector result observed in the working session; only the adjacent three-selector log remains saved.",
+    "normalAdjacentLog": {
+      "path": "build/Testing/Temporary/LastTest.log",
+      "sha256": "27a66faca2f5f7d89fb076a1a3d36a1c22e50f84b8aa3727af0b480014491a6d"
+    },
+    "normalBinarySha256": "070c1d8f514c68541637a419fc99144d392fbb19722b844d7bb3ba4c0e495a37",
+    "asanSelectors": [
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_style_authority",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_linetype_extension_graph"
+    ],
+    "asanResults": "4 passed",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "asanLog": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "f5e2efeb567a22492773e5b784462694cc251db33b5d9f6a3400d63b1187345e"
+    },
+    "asanBinarySha256": "477004136092a8d8385970ddd963e15e57821f347782b56149a1aa5bd6e5ffd7",
+    "asanAdapterObjectSha256": "30441ffeb13773f2002218920f668337362e188edf5a6dfa9f8d138893a2875b",
+    "asanLibrarySha256": "e61493677d7e8ce2f022613ea0624eb9a21de34e51078bedc7abae3aaf3d140d",
+    "selectorCounters": "MLINE unused append profiles=4; readbacks=40; refusals=10; late=8; detached=6; evidence=4; empty=4; injected=4; boundary=4; retries=34"
+  },
+  "limitations": [
+    "Ordinary original-to-live census covers source MLINE records only; unknown/proxy/custom dependencies are not qualified.",
+    "Count append refuses any original consumer of the edited style even if live model was retargeted; consumed-geometry changes, count deletion and other schema profiles remain open.",
+    "Zero-live and staged injection controls prove selected physical/callback behavior, not native rendering or universal document closure.",
+    "ezdxf ordinary setup created three default MATERIAL objects on each observed document; physical original and output tags were checked first.",
+    "No external or locally authored DXF/DWG drawing fixture is committed.",
+    "No full suite, native-platform, binary ABI or support claim promotion is implied."
+  ]
+}
