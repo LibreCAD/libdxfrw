@@ -40,7 +40,7 @@ independent work on a later ready packet. External qualification runs separately
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | READY: omitted LTYPE dash flags | Admit omitted default-zero source group 74 while retaining strict actual-output proof; other profiles, coupled geometry and MLEADERSTYLE separately | Existing tuple transactions and original/provider/output bindings |
+| P2 | READY: custom referenced LTYPE flag | Admit original custom group-70 flag 64 with exact actual-output proof; other profiles, coupled geometry and MLEADERSTYLE separately | Existing tuple transactions and original/provider/output bindings |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Ambiguous Normal Map and remaining variants; earlier adapter-route qualification | Current field-role parser and focused regression |
 | P4 | SELECT WITNESS, THEN IMPLEMENT | P4a: name one unmatched original profile/role; P4b: compose document closure | Reuse existing captures; P4b consumes P2/P3/P5/P7 providers |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -60,11 +60,11 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2.3c3 — omitted source group 74 | `MlineLinetypeShape`/`simpleMlineLinetype`, current omitted-74 refusal recipe, existing provider/tuple planners and peer pattern projector | Original simple default-zero providers bind with first/last/both flags omitted; edits succeed; actual output retains explicit flags, exact pattern, identities and geometry; malformed fields refuse and retry recovers |
+| P2.3c4 — custom LTYPE flag 64 | `simpleMlineLinetype`, retained original custom-64 source/refusal, existing provider/tuple planners and full-pattern projector | Custom original flag 64 binds and supports reference edits; actual flags/pattern/identities/geometry match; xref/unknown and canonical nonzero profiles remain unqualified; failures and corrected retry preserve caller/destination |
 | P4a — choose next provider | Existing physical census, `dx_attdef_source::audit`, original source/role reports | Name one unmatched profile, span/role, missing representation/provider, minimal consumer-to-target boundary and failing selector before marking implementation READY |
 | P3 — select one MATERIAL profile | Existing field-role receipt, physical projector and producer recipe | One current Normal Map/refraction ambiguity or missing earlier-route provider is reproduced with an exact expected field role; implement only its missing layer |
 
-Implement P2.3c3 first. P4a/P3 gap classification and the next source
+Implement P2.3c4 first. P4a/P3 gap classification and the next source
 recipe/projection can run in parallel, but assign one owner to shared `dx_iface.cpp` and
 `tests/dxf_fixture_tests.cpp`; serialize overlapping edits. Prepare the complete
 private-state change for a slice before compiling. Share one build/test checkpoint
@@ -76,32 +76,34 @@ local dependency instead of waiting for unrelated native evidence.
 
 Reuse the [MLINESTYLE authority](docs/research/rpp5gp-mline-style-dictionary-authority-2026-10-28.json),
 [element ACI transactions](docs/research/rpp5gs-mline-style-element-aci-transactions-2026-10-28.json),
-[original simple-LTYPE output proof](docs/research/rpp5gt-mline-linetype-source-output-proof-2026-10-28.json)
-and [element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json).
+[original simple-LTYPE output proof](docs/research/rpp5gt-mline-linetype-source-output-proof-2026-10-28.json),
+[element linetype transactions](docs/research/rpp5gu-mline-style-element-linetype-transactions-2026-10-28.json)
+and [default-flag source admission](docs/research/rpp5gv-mline-linetype-default-flags-source-admission-2026-10-28.json).
 Use shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Refused fields are not implemented editing support.
 
-1. **P2.3c3: omitted default-zero source flags — ready to implement.** Reuse the
-   current omitted-`74` refusal recipe: original EditDash handle `103` retains
-   `73=2`, `40=1.5` and ordered `49=[1,-0.5]`. The parser and original reference
-   roles already accept the default; the missing layer is selected source shape
-   admission. [Autodesk specifies group 74's zero default](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm).
-   Add source-only optional-flag handling to `MlineLinetypeShape`, enabled by
-   `simpleMlineLinetype`: a pending dash can close at the next `49` or record end
-   with implicit zero. Keep orphan/duplicate flags and unsupported complex roles
-   refused. Keep actual-output inspection strict because this writer emits `74`
-   explicitly; source omission must not hide a missing emitted field.
-   Cover first, last and both flags omitted, original provider binding, typed/raw
-   edits, exact explicit-zero output patterns, unchanged consumers, rollback and
-   corrected retry. Add first/last/both emitted-`74` deletion controls and corrected
-   replay; retain nonzero/complex and owner/count/length corruption controls.
-   In the peer recipe, author omitted tags before first save
-   and freeze source versus emitted pattern expectations separately with the
-   existing projector. No parser/API/header/capture changes are needed. Start
+1. **P2.3c4: custom referenced flag — ready to implement.** Reuse the retained
+   custom PeerDash source with `70=64`, and the EditDash recipe for local controls.
+   Independent source and unchanged-output projections retain the complete
+   literal flags/pattern; a typed reference edit currently refuses. The parser,
+   original roles and custom writer already preserve 64; only selected provider
+   admission is missing. [Autodesk defines bit 64 as reference bookkeeping](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm).
+   Allow custom flags exactly 0 or 64 in `simpleMlineLinetype`, retaining exact
+   original/live/actual flag equality. Keep xref bits 16/32 and unknown bits
+   unqualified. Explicitly keep canonical ByLayer/ByBlock/Continuous nonzero flags
+   outside this admission: their fixed writer rows emit `70=0`, so they need a
+   separate planned-normalization profile rather than accidental proof activation.
+   Check unchanged canonical-64 advisory transport and refusal when an edit needs
+   that unqualified provider; reuse one omitted-`74` source as a composition check.
+   Author the flag before import/first save, then cover typed/raw reference edits,
+   original provider binding and literal emitted `70=64`, full pattern, owners,
+   dictionary/`340` and geometry. Add copied/late/output flag corruptions and
+   corrected retries with caller/destination preservation. Reuse the peer helper
+   and full-pattern projector; avoid new parser/API/header/capture work. Start
    with AC1027 ASCII/binary; the AC1021–AC1032 gate is not per-version evidence.
 2. **Remaining LTYPE provider profiles.** Qualify alternate field
-   ordering/header presence, nonzero flags and metadata/application/XDATA profiles
-   separately from the selected explicit simple grammar. Complex STYLE/text/shape
+   ordering/header presence, other flags and metadata/application/XDATA profiles
+   separately from the selected simple grammar. Complex STYLE/text/shape
    dependencies need original providers and actual output roles; earlier versions
    need source/context/codec evidence. Native units, font identity, collation,
    ByLayer/ByBlock inheritance and rendering remain separate evidence. Start with
@@ -363,11 +365,11 @@ cmake --build build --target libdxfrw_dxf_fixture_tests
 ctest --test-dir build -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure
 ```
 
-For P2.3c3 readiness, the default owning cohort is body transactions plus
+For P2.3c4 readiness, the default owning cohort is body transactions plus
 `libdxfrw_mline_style_authority`, rebuilt from the final adapter/fixture sources.
 Build `dwg2dxf` for the actual serializer/independent checkpoint and extend the
-existing `--mline-style-only` peer lane with omitted-flag source expectations and
-explicit emitted patterns. Reuse the reference-edit/geometry proof. Keep unrelated
+existing `--mline-style-only` peer lane with custom-64 source and emitted flag
+expectations. Reuse the reference-edit/pattern/geometry proof. Keep unrelated
 MATERIAL/SCALE/DICTIONARYVAR lanes cached.
 
 Add tests according to changed hooks, rather than inheriting the prior 11-test
@@ -426,8 +428,8 @@ corpus or package rerun is implied by selected provider admission.
    projections across relevant slices; add a new oracle or matrix dimension only
    for an unresolved operation or actual grammar/platform distinction. Review
    later receipts and current symbols before acting on an older `next` list.
-   The selected LTYPE edit checkpoint took about 12 seconds for its incremental
-   normal build, 95 seconds for ASan, 7–11 seconds per two-test cohort and 4–6 seconds
+   The selected LTYPE default checkpoint took about 10–14 seconds for its incremental
+   normal build, 96 seconds for ASan, 8–13 seconds per two-test cohort and 5–6 seconds
    per selected peer run on this machine. These are planning observations, not
    portable performance claims: batch necessary header edits, use normal focused
    checks in the edit loop, and pay the affected ASan build once at readiness.
