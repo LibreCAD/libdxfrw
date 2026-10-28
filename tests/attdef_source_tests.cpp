@@ -59,6 +59,26 @@ public:
         const auto& s=data.m_tableDxfSource;
         return s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.contextFailed;
     }
+    static const auto* structuralRecord(const dx_data& data,std::uint32_t handle=0xA1u) {
+        const auto& values=data.m_tableDxfSource.structuralInputs;const auto at=values.find(handle);
+        return at==values.end()?nullptr:at->second.get();
+    }
+    static bool structuralFailed(const dx_data& data) {return data.m_tableDxfSource.structuralCaptureFailed;}
+    static const auto* structuralAudit(const dx_data& data,std::uint32_t handle=0xA1u) {
+        const auto& values=data.m_tableDxfSource.structuralAudits;const auto at=values.find(handle);
+        return at==values.end()?nullptr:at->second.get();
+    }
+    static void structuralLimit(dx_data& data,unsigned kind,std::size_t limit) {
+        auto& s=data.m_tableDxfSource;
+        if(kind==0u)s.maxStructuralRecords=limit;else if(kind==1u)s.maxStructuralBytes=limit;else s.maxStructuralWork=limit;
+    }
+    static std::array<std::size_t,3> structuralUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.structuralRecords,s.structuralBytes,s.structuralWork};
+    }
+    static void corruptStructuralContext(dx_data& data,std::uint32_t handle) {
+        auto& pending=data.m_tableDxfSource.structuralPending.at(handle);
+        const_cast<dx_data::TableDxfSourceCapture::EntitiesReadContext&>(*pending.input.context).codecCodePage="ANSI_1251";
+    }
     static std::size_t pending(const dx_data& data) {return data.m_tableDxfSource.attdefPending;}
     static const auto* block(const dx_data& data) {
         const auto& rows=data.m_tableDxfSource.blockSources;const auto at=rows.find(0xB1u);
@@ -1457,6 +1477,7 @@ int main(int argc,char** argv) {
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
     const bool legacyBlockCapture=argc==2&&std::string(argv[1])=="--legacy-block-capture";
     const bool legacyBlockRecord=argc==2&&std::string(argv[1])=="--legacy-block-record-observation";
+    const bool legacyBlockRecordAdapter=argc==2&&std::string(argv[1])=="--legacy-block-record-adapter";
     const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
     const bool rawIdentity=argc==2&&std::string(argv[1])=="--raw-identity";
     const bool rawMissing=argc==2&&std::string(argv[1])=="--raw-identity-missing";
@@ -1474,7 +1495,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!legacyBlockRecordAdapter&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1500,6 +1521,7 @@ int main(int argc,char** argv) {
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         legacyBlockCapture?legacyBlockCaptureTests(scratch/"generated.dxf"):
         legacyBlockRecord?legacyBlockRecordObservationTests(scratch/"generated.dxf"):
+        legacyBlockRecordAdapter?legacyBlockRecordAdapterTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
         dualEmbedded?embeddedDual280Tests(scratch/"generated.dxf"):
         equalAlignment?equalAlignmentTests(scratch/"generated.dxf"):

@@ -23617,7 +23617,12 @@ void dx_iface::addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_Raw
     if(!cData)return;
     if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
     retainTableResourceSource(raw,&row);
-    observeStructuralSource(row,true,&raw);
+    // Sample the existing explicit block-source opt-in once, outside the
+    // noexcept observer. Default legacy consumers do not pay this proof cost.
+    bool legacyOptIn=false;
+    try {legacyOptIn=raw.m_version==DRW::AC1018&&wantsDxfBlockSource();}
+    catch(...) {cData->m_tableDxfSource.structuralCaptureFailed=true;return;}
+    observeStructuralSource(row,true,&raw,legacyOptIn);
 }
 
 void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) {
@@ -25768,7 +25773,8 @@ void dx_iface::finishIdentitySourceAudit(dx_data& data) noexcept {
     }catch(...) {s.identityCaptureFailed=true;}
 }
 
-void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,const DRW_RawDxfObject* raw) noexcept {
+void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,const DRW_RawDxfObject* raw,
+                                       bool legacyBlockOptIn) noexcept {
     if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;
     if(s.structuralCaptureFailed)return;
     const auto fail=[&](){s.structuralCaptureFailed=true;};
@@ -25776,12 +25782,16 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
     if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfStructuralSourceView(view)) {
         if(source||s.structuralPending.count(value.handle))fail();return;
     }
-    if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
+    if(!s.entitiesReadInput->getDxfReadContext(live))return;
     const bool block=view.kind==V::Kind::BlockRecord;
+    const bool legacy=live.sourceVersion==DRW::AC1018&&block;
+    if(legacy) {
+        if(source?!legacyBlockOptIn:s.structuralPending.count(value.handle)==0u)return;
+    } else if(live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
     if(view.model!=&value||view.phase!=(source?V::Phase::Source:V::Phase::Typed)||(source&&view.source!=raw)
         ||!value.handle||!view.source||view.source->handle!=value.handle||view.source->parentHandle!=value.parentHandle
         ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
-        ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u
+        ||live.codecVersion!=(legacy?DRW::AC1015:DRW::AC1021)||live.codecCodePage.size()>128u
         ||(block?(typeid(value)!=typeid(DRW_Block_Record)||value.tType!=DRW::BLOCK_RECORD):
                    ((view.kind!=V::Kind::RootDictionary&&view.kind!=V::Kind::Dictionary)||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
     const bool first=block?source:!source;
@@ -25818,6 +25828,12 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         const auto found=s.structuralPending.find(value.handle);
         if(found==s.structuralPending.end()) {fail();return;}
         auto& pending=found->second;auto& in=pending.input;
+        if(legacy&&(!in.context||!in.context->captured
+            ||std::tie(in.context->sourceVersion,in.context->codecVersion,in.context->codecCodePage,in.context->declaration,
+                in.context->hasDeclaration,in.context->compatibilityProfile,in.context->textEncoding,in.context->codePagePolicy,
+                in.context->applyExtrusion,in.context->binary)
+              !=std::tie(live.sourceVersion,live.codecVersion,live.codecCodePage,live.declaration,live.hasDeclaration,
+                live.compatibilityProfile,live.textEncoding,live.codePagePolicy,live.applyExtrusion,live.binary))) {fail();return;}
         if(pending.model!=&value||pending.raw!=view.source||in.kind!=view.kind||in.originalState!=state||!row.model||!row.raw
             ||in.physicalStatus!=physical.status||in.physical.get()!=physical.physical.get()
             ||in.physical.owner_before(physical.physical)||physical.physical.owner_before(in.physical)
@@ -25831,6 +25847,34 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         in.paired=retainedRawDxfObjectsEqual(*row.raw,*view.source)&&dxfBlockRecord::Decoder::observeCommonState(value)==state
             &&(block?blockRecordSourceEqual(static_cast<const DRW_Block_Record&>(value),static_cast<const DRW_Block_Record&>(*row.model),live.sourceVersion):
                 standardDwgModelsEqual(value,*row.model,live.sourceVersion,dwgObjType::DICTIONARY));
+        if(legacy&&in.paired&&!state.first&&!state.second) {
+            // Precharge reconstruction, decoder model and per-record work.
+            std::size_t bytes=0u,work=8192u;
+            if(!addAssociativeSlotBytes(rawBytes,3u,bytes)||!addAssociativeRetainedBytes(modelBytes,bytes)
+                ||!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(row.raw->groups.size(),64u,work)
+                ||s.structuralBytes>s.maxStructuralBytes||bytes>s.maxStructuralBytes-s.structuralBytes
+                ||s.structuralWork>s.maxStructuralWork||work>s.maxStructuralWork-s.structuralWork) {fail();return;}
+            s.structuralBytes+=bytes;s.structuralWork+=work;
+            std::string body;if(!tableResourceSourceBody(*row.raw,s.maxStructuralBytes,body)){fail();return;}
+            dxfRW::DxfObjectsWriteView replayView{};replayView.bytes=body;replayView.version=row.raw->m_version;
+            replayView.binary=!row.raw->hasRawValues;replayView.codePage=in.context->codecCodePage;
+            replayView.compatibilityProfile=in.context->compatibilityProfile;
+            dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
+            auto budget=std::make_shared<DxfReadRetainedBudget>(s.maxStructuralBytes);
+            auto reader=dx_standard_output::readerFor(input,replayView,budget);if(!reader){fail();return;}
+            reader->setDxfTextEncoding(in.context->textEncoding);reader->setDxfCodePagePolicy(in.context->codePagePolicy);
+            reader->setSemanticStringMode(true);reader->setRecordBudget(row.raw->groups.size());
+            reader->setTypedVariantNodeBudget(row.raw->groups.size());reader->setDecodeWorkBudget(s.maxStructuralWork-s.structuralWork);
+            DRW_Block_Record parsed;dxfBlockRecord::Decoder decoder(parsed,reader);int code=0;bool decoded=true;
+            while(buffer.position()<body.size())
+                if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)){decoded=false;break;}
+            s.structuralWork+=reader->decodeWorkCount();
+            if(budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()
+                ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()) {fail();return;}
+            in.legacyBlockRecordReplayMatched=decoded&&reader->recordCount()==row.raw->groups.size()
+                &&decoder.finish(row.raw->m_version)&&dxfBlockRecord::Decoder::observeCommonState(parsed)==state
+                &&blockRecordSourceEqual(parsed,static_cast<const DRW_Block_Record&>(*row.model),row.raw->m_version);
+        }
         in.index=s.structuralInputOwners.size();
         auto input=std::make_shared<const dx_data::TableDxfSourceCapture::StructuralInput>(std::move(in));
         s.structuralInputs.emplace(value.handle,input);s.structuralInputOwners.push_back(std::move(input));s.structuralPending.erase(found);

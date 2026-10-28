@@ -1403,6 +1403,9 @@ private:
             std::shared_ptr<const DRW_DxfObjectPhysicalSource> physical,physicalOwner;
             DRW_DxfObjectPhysicalSource::Status physicalStatus{DRW_DxfObjectPhysicalSource::Status::NotCaptured};
             bool paired{false};
+            // AC1018 opt-in captured-field replay diagnostic only: it does
+            // not qualify the resource, its graph, or output eligibility.
+            bool legacyBlockRecordReplayMatched{false};
         };
         struct StructuralPending {
             StructuralInput input;const DRW_TableEntry* model{nullptr};const DRW_RawDxfObject* raw{nullptr};

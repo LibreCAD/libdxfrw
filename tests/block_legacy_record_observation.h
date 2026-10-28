@@ -120,3 +120,97 @@ bool legacyBlockRecordObservationTests(const std::filesystem::path& path) {
         <<" captured-replays="<<replays<<" wrong-pages="<<wrongPages<<" mutations="<<mutations<<'\n';
     return observations==2u&&optouts==2u&&replays==2u&&wrongPages==2u&&mutations==4u;
 }
+
+bool legacyBlockRecordAdapterTests(const std::filesystem::path& path) {
+    using A=DxIfaceTableSourceTestAccess;
+    struct Probe final:dx_iface {
+        bool selected=false;unsigned fault=0u;
+        bool wantsDxfBlockSource()const override {
+            if(fault==4u)throw std::runtime_error("legacy block source selection");return selected;
+        }
+        void addDxfBlockRecordSource(const DRW_Block_Record& value,const DRW_RawDxfObject& raw)override {
+            auto& mutableRaw=const_cast<DRW_RawDxfObject&>(raw);DRW_Variant saved;
+            std::size_t index=raw.groups.size();
+            if(fault==1u)for(std::size_t i=0;i<raw.groups.size();++i)if(raw.groups[i].code()==360) {
+                index=i;saved=raw.groups[i];mutableRaw.groups[i].addString(360,"D1");break;
+            }
+            dx_iface::addDxfBlockRecordSource(value,raw);
+            if(index<raw.groups.size())mutableRaw.groups[index]=saved;
+            if(fault==3u&&cData)A::corruptStructuralContext(*cData,value.handle);
+        }
+        void addBlockRecord(const DRW_Block_Record& value)override {
+            auto& mutableValue=const_cast<DRW_Block_Record&>(value);const auto saved=mutableValue.insUnits;
+            if(fault==2u)++mutableValue.insUnits;
+            dx_iface::addBlockRecord(value);mutableValue.insUnits=saved;
+        }
+    };
+    const Tags row{{5,"A1"},{102,"{ACAD_XDICTIONARY"},{360,"D0"},{102,"}"},{330,"B0"},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"MY_BLOCK"},{340,"0"},
+        {102,"{BLKREFS"},{331,"E0"},{102,"}"},{1001,"TEST_APP"},{1000,std::string("caf\xE9",4u)},
+        {1002,"{"},{1070,"1"},{1070,"4"},{1002,"}"}};
+    Tags document{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},
+        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B0"},
+        {100,"AcDbSymbolTable"},{70,"1"},{0,"BLOCK_RECORD"}};
+    document.insert(document.end(),row.begin(),row.end());document.insert(document.end(),{{0,"ENDTAB"},{0,"ENDSEC"},{0,"EOF"}});
+    unsigned captures=0u,defaults=0u,refusals=0u,quotas=0u,retries=0u,unknowns=0u;
+    const auto unqualified=[](const dx_data& data) {
+        const auto* row=A::resource(data);const auto* audit=A::structuralAudit(data);
+        return row&&!row->rawTypedMatched&&row->rawTypedMismatch
+            &&(!audit||(!audit->bodyMatched&&!audit->originBound));
+    };
+    for(bool binary:{false,true}) {
+        if(!write(path,document,binary))return false;
+        Probe normal;dx_data baseline;A::structuralLimit(baseline,0u,0u);A::structuralLimit(baseline,1u,0u);A::structuralLimit(baseline,2u,0u);
+        if(!check(normal.fileImport(path.string(),&baseline,false)&&!A::structuralFailed(baseline)
+            &&!A::structuralRecord(baseline)&&unqualified(baseline),"legacy block record default path avoids optional structural quota"))return false;
+        ++defaults;
+        Probe selected;selected.selected=true;dx_data data;
+        if(!check(selected.fileImport(path.string(),&data,false)&&!A::structuralFailed(data)&&unqualified(data),
+            "legacy block record opt-in import remains unqualified"))return false;
+        const auto* input=A::structuralRecord(data);const auto* resource=A::resource(data);
+        if(!check(input&&resource&&input->paired&&input->legacyBlockRecordReplayMatched&&input->model==resource->model
+            &&input->raw==resource->raw&&input->context&&input->context->captured
+            &&input->context->sourceVersion==DRW::AC1018&&input->context->codecVersion==DRW::AC1015
+            &&input->context->codecCodePage=="ANSI_1252"&&input->context->hasDeclaration
+            &&input->context->declaration=="ANSI_1252"&&input->context->binary==binary&&!input->context->applyExtrusion
+            &&!input->originalState.first&&!input->originalState.second,
+            "legacy block record adapter captured replay and context"))return false;
+        ++captures;
+        for(unsigned fault:{1u,2u,3u,4u}) {
+            Probe broken;broken.selected=true;broken.fault=fault;dx_data bad;
+            if(!check(broken.fileImport(path.string(),&bad,false)&&unqualified(bad)
+                &&(A::structuralFailed(bad)||!A::structuralRecord(bad)
+                   ||!A::structuralRecord(bad)->legacyBlockRecordReplayMatched),
+                "legacy block record raw/model/context mutation refuses replay"))return false;
+            broken.fault=0u;dx_data retry;
+            if(!check(broken.fileImport(path.string(),&retry,false)&&!A::structuralFailed(retry)
+                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched&&unqualified(retry),
+                "legacy block record mutation corrected fresh-destination retry"))return false;
+            ++refusals;++retries;
+        }
+        const auto usage=A::structuralUsage(data);
+        for(unsigned kind=0u;kind<usage.size();++kind) {
+            dx_data exact;A::structuralLimit(exact,kind,usage[kind]);
+            if(!check(selected.fileImport(path.string(),&exact,false)&&!A::structuralFailed(exact)
+                &&A::structuralRecord(exact)&&A::structuralRecord(exact)->legacyBlockRecordReplayMatched,
+                "legacy block record exact structural budget"))return false;
+            dx_data below;A::structuralLimit(below,kind,usage[kind]-1u);
+            if(!check(selected.fileImport(path.string(),&below,false)&&A::structuralFailed(below)&&unqualified(below),
+                "legacy block record one-below structural budget"))return false;
+            dx_data retry;if(!check(selected.fileImport(path.string(),&retry,false)&&!A::structuralFailed(retry)
+                &&A::structuralRecord(retry)&&A::structuralRecord(retry)->legacyBlockRecordReplayMatched,
+                "legacy block record budget corrected retry"))return false;
+            ++quotas;++retries;
+        }
+        auto extra=document;const auto pos=std::find_if(extra.begin(),extra.end(),[](const Tag& t){return t.code==1001;});
+        extra.insert(pos,{300,"unmodeled"});if(!write(path,extra,binary))return false;
+        dx_data unsupported;
+        if(!check(selected.fileImport(path.string(),&unsupported,false)&&A::structuralRecord(unsupported)
+            &&A::structuralRecord(unsupported)->legacyBlockRecordReplayMatched&&unqualified(unsupported),
+            "legacy modeled replay alone does not qualify unknown source fields"))return false;
+        ++unknowns;
+    }
+    std::cout<<"AC1018 BLOCK_RECORD adapter="<<captures<<" defaults="<<defaults<<" corruptions="<<refusals
+        <<" budgets="<<quotas<<" retries="<<retries<<" unmodeled="<<unknowns<<'\n';
+    return captures==2u&&defaults==2u&&refusals==8u&&quotas==6u&&retries==14u&&unknowns==2u;
+}
