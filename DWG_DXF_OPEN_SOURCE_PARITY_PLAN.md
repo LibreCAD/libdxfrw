@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 classic attribute source | Existing AC1018 original ATTDEF/ATTRIB, `AcDbAttr` XDATA and owner/layer roles | Bind source bytes, ANSI-1252 context, original and compound ownership and dependency roles; separately qualify capture, output and failure/retry before admission |
+| P4a — AC1018 classic attribute source | Observed opt-in callback/codec; real 6F8/705 source and `AcDbAttr` XDATA | Bind captured raw values and full replay/state, then original and compound ownership and APPID/LAYER dependency roles; qualify output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused multiple-element removal, 1→0, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -222,6 +222,13 @@ The 36 retained attributes supply no secondary `AcDbXrecord` or column-bearing
 embedded MTEXT witness. Those remain separate source/meaning searches. The full
 B2b/B3/C objective remains; selected records or a mutable live container cannot
 substitute for original-source completeness.
+
+The [AC1018 observational receipt](docs/research/rpp5hv-ac1018-attdef-callback-observation-2026-10-28.json)
+records locally authored classic ATTDEF callbacks and the live ANSI-1252 codec
+across ASCII/binary and BLOCKS/ENTITIES. These compare a partial typed snapshot
+and replay the authored row, not the captured raw values; neither adapter origin,
+owner/dependency joins nor output closure is established. The focused normal
+standalone run is bound to its actual adapter object; ASan remains unrun.
 
 The selected AC1018 classic ATTDEF/ATTRIB source is a next profile, not a
 qualified capture. The adapter opts out of pre-AC1021 ATTDEF, BLOCK, child and
