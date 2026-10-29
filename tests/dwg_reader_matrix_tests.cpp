@@ -4441,7 +4441,7 @@ public:
     std::vector<DRW_Line> lines;
 };
 
-class RawObjectRecordingSink final : public dx_iface {
+class RawObjectRecordingSink : public dx_iface {
 public:
     RawObjectRecordingSink() {
         cData = &data;
@@ -4455,6 +4455,16 @@ public:
 
     dx_data data;
     std::vector<DRW_UnsupportedObject> rawObjects;
+};
+
+class AssociativeObjectRecordingSink final : public RawObjectRecordingSink {
+public:
+    void addAssociativeObject(const DRW_AssociativeObject& value) override {
+        associativeObjects.push_back(value);
+        dx_iface::addAssociativeObject(value);
+    }
+
+    std::vector<DRW_AssociativeObject> associativeObjects;
 };
 
 class LayoutChainDispatchSink final : public ModelerDispatchSink {
@@ -10565,7 +10575,7 @@ private:
 void testPersistentManagerPrefixDispatch(TestContext& t) {
     using namespace persistent_manager_test;
     for (const std::uint16_t ordinal : {601u, 667u}) {
-        for (int mode = 0; mode < 6; ++mode) {
+        for (int mode = 0; mode < 7; ++mode) {
             Options source;
             source.classNumber = ordinal;
             if (mode == 1)
@@ -10576,8 +10586,14 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 source.steps.pop_back();
             else if (mode == 4)
                 source.associationSubentities = 1;
-            else if (mode == 5)
+            else if (mode == 5) {
                 source.version = DRW::AC1024;
+                source.associationStepCount = 2;
+                source.steps = {1, 2};
+            } else if (mode == 6) {
+                source.version = DRW::AC1024;
+                source.associationStepCount = 2;
+            }
             Options sentinel;
             sentinel.classNumber = ordinal;
             sentinel.version = source.version;
@@ -10628,13 +10644,37 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 [&sentinel](const DRW_DwgFramePublication& publication) {
                     return publication.m_handle == sentinel.handle;
                 });
-            const bool validPrefix = mode <= 1;
+            const bool validPrefix = mode <= 1 || mode == 5;
+            const bool expectedPartialPrefix = mode == 0 || mode == 5;
             const bool sourcePublicationMatches = validPrefix
                 ? sourcePublication != sink.publications.end()
-                    && sourcePublication->m_carrier == (mode == 0
+                    && sourcePublication->m_carrier == (expectedPartialPrefix
                         ? DRW_DwgFramePublication::Carrier::Raw
                         : DRW_DwgFramePublication::Carrier::TypedAndRaw)
                 : sourcePublication == sink.publications.end();
+            bool partialPrefixMatches = !expectedPartialPrefix;
+            if (expectedPartialPrefix && typedSource != sink.typed.end()) {
+                const UTF8STRING expectedVersion = mode == 5
+                    ? "AC1024" : "AC1021";
+                partialPrefixMatches = typedSource->m_classVersion == 2u
+                    && typedSource->m_persistentUnknown0 == 0u
+                    && typedSource->m_persistentUnknown2 == 2u
+                    && typedSource->m_persistentAssocStepCount
+                        == static_cast<std::uint32_t>(source.associationStepCount)
+                    && typedSource->m_persistentAssocSubentityCount == 0u
+                    && typedSource->m_persistentSteps.size() == 2u
+                    && typedSource->m_persistentSteps[0]
+                        == static_cast<std::uint32_t>(source.steps[0])
+                    && typedSource->m_persistentSteps[1]
+                        == static_cast<std::uint32_t>(source.steps[1])
+                    && typedSource->m_persistentSubentityIds.empty()
+                    && typedSource->m_prefixStatuses.size() == 1u
+                    && typedSource->m_prefixStatuses[0].m_status
+                        == DRW_AssociativePrefixStatus::ParseStatus::Partial
+                    && typedSource->m_prefixStatuses[0].m_decodedCountValue == -1
+                    && typedSource->m_prefixStatuses[0].m_sourceAssumption.find(
+                        expectedVersion) != UTF8STRING::npos;
+            }
             const bool matches = read && reader.objectFailures() == (validPrefix ? 0u : 1u)
                          && sink.typed.size() == (validPrefix ? 2u : 1u)
                          && sink.raw.size() == 2u
@@ -10650,9 +10690,10 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                          && sentinelPublication->m_carrier
                               == DRW_DwgFramePublication::Carrier::TypedAndRaw
                          && sink.publications.size() == (validPrefix ? 2u : 1u)
-                         && (typedSource != sink.typed.end()) == validPrefix;
+                         && (typedSource != sink.typed.end()) == validPrefix
+                         && partialPrefixMatches;
             t.expect(matches,
-                     "Partial-prefix raw validation stays false, bad frames remain failed, and following object publishes");
+                     "Only exact source profiles publish partial/raw records; bad frames stay failed and the following object publishes");
             if (!matches) {
                 std::cerr << "Persistent manager dispatch mode=" << mode
                           << " ordinal=" << ordinal << " read=" << read
@@ -10666,13 +10707,6 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 if (rawSentinel != sink.raw.end())
                     std::cerr << " sentinelRawValidated=" << rawSentinel->m_typedPayloadValidated;
                 std::cerr << '\n';
-            }
-            if (mode == 0 && typedSource != sink.typed.end()) {
-                t.expect(typedSource->m_prefixStatuses.size() == 1u
-                             && typedSource->m_prefixStatuses[0].m_status
-                                  == DRW_AssociativePrefixStatus::ParseStatus::Partial
-                             && typedSource->m_prefixStatuses[0].m_decodedCountValue == -1,
-                         "Dispatcher preserves explicit partial/missing-count evidence");
             }
         }
     }
@@ -13688,7 +13722,7 @@ int runDwgReadSample(const std::string& path) {
     return 0;
 }
 
-int runBlockLookupActionAc1024Sample(const std::string& path) {
+int runCustomObjectsAc1024Sample(const std::string& path) {
     std::ifstream sample(path, std::ios::binary);
     char version[6] = {};
     if (!sample.read(version, sizeof(version))
@@ -13696,9 +13730,9 @@ int runBlockLookupActionAc1024Sample(const std::string& path) {
         std::cerr << "BLOCKLOOKUPACTION sample is not AC1024\n";
         return 1;
     }
-    dx_data data;
-    dx_iface interface;
-    const bool imported = interface.fileImport(path, &data, false);
+    AssociativeObjectRecordingSink sink;
+    dx_data& data = sink.data;
+    const bool imported = sink.fileImport(path, &data, false);
     const auto object = std::find_if(
         data.dynamicBlockObjects.cbegin(), data.dynamicBlockObjects.cend(),
         [](const DRW_DynamicBlockObject& item) {
@@ -13722,17 +13756,69 @@ int runBlockLookupActionAc1024Sample(const std::string& path) {
             [](const std::vector<UTF8STRING>& names) {
                 return names.size() == 2u;
             });
+    const auto manager = std::find_if(
+        sink.associativeObjects.cbegin(), sink.associativeObjects.cend(),
+        [](const DRW_AssociativeObject& item) {
+            return item.handle == 363u
+                && item.m_recordName == "ACDBPERSSUBENTMANAGER";
+        });
+    const auto managerRaw = std::find_if(
+        sink.rawObjects.cbegin(), sink.rawObjects.cend(),
+        [](const DRW_UnsupportedObject& item) {
+            return item.m_handle == 363u
+                && item.m_recordName == "ACDBPERSSUBENTMANAGER";
+        });
+    const bool managerPrefixMatches =
+        manager != sink.associativeObjects.cend()
+        && manager->m_classVersion == 2u
+        && manager->m_persistentUnknown0 == 0u
+        && manager->m_persistentUnknown2 == 2u
+        && manager->m_persistentAssocStepCount == 2u
+        && manager->m_persistentAssocSubentityCount == 0u
+        && manager->m_persistentSteps.size() == 2u
+        && manager->m_persistentSteps[0] == 1u
+        && manager->m_persistentSteps[1] == 2u
+        && manager->m_persistentSubentityIds.empty()
+        && manager->parentHandle == 0xCu
+        && manager->reactorHandles == std::vector<std::uint32_t>{0xCu}
+        && manager->m_prefixStatuses.size() == 1u
+        && manager->m_prefixStatuses.front().m_kind
+            == DRW_AssociativePrefixStatus::Kind::AcDbAssocActionBody
+        && manager->m_prefixStatuses.front().m_startBit == 47u
+        && manager->m_prefixStatuses.front().m_bitSize == 64u
+        && manager->m_prefixStatuses.front().m_status
+            == DRW_AssociativePrefixStatus::ParseStatus::Partial
+        && manager->m_prefixStatuses.front().m_decodedValueCount == 2u
+        && manager->m_prefixStatuses.front().m_decodedCountValue == -1
+        && manager->m_prefixStatuses.front().m_sourceAssumption.find(
+            "AC1024") != UTF8STRING::npos
+        && managerRaw != sink.rawObjects.cend()
+        && managerRaw->m_version == DRW::AC1024
+        && managerRaw->m_objectType == 515
+        && managerRaw->m_recordName == "ACDBPERSSUBENTMANAGER"
+        && managerRaw->m_className == "AcDbPersSubentManager"
+        && managerRaw->m_isCustomClass
+        && managerRaw->m_hasClassDefinition
+        && !managerRaw->m_typedPayloadValidated
+        && managerRaw->m_rawBytes.size() == 18u
+        && managerRaw->m_objectSize == managerRaw->m_rawBytes.size()
+        && managerRaw->m_bodyBitSize > 0u
+        && managerRaw->m_bodyBitSize <= managerRaw->m_objectSize * 8u;
     if (!imported || data.sourceFormat != dx_source_format::DWG
+        || data.dwgReadOutcome.observations.objectParseFailures != 0u
         || object == data.dynamicBlockObjects.cend()
         || object->m_kind != DRW_DynamicBlockObject::Kind::LookupAction
         || !object->m_bodyFullyDecoded
         || object->m_lookupRowCount != 41
         || object->m_lookupColumnCount != 7
         || object->m_lookupExpressions.size() != 287u
-        || !columnsMatch) {
-        std::cerr << "AC1024 BLOCKLOOKUPACTION profile failed: import="
+        || !columnsMatch || !managerPrefixMatches) {
+        std::cerr << "AC1024 custom-object profiles failed: import="
                   << imported << " dynamicObjects="
-                  << data.dynamicBlockObjects.size();
+                  << data.dynamicBlockObjects.size()
+                  << " associativeObjects=" << sink.associativeObjects.size()
+                  << " objectParseFailures="
+                  << data.dwgReadOutcome.observations.objectParseFailures;
         if (object != data.dynamicBlockObjects.cend()) {
             std::cerr << " bodyFullyDecoded=" << object->m_bodyFullyDecoded
                       << " rows=" << object->m_lookupRowCount
@@ -13741,11 +13827,42 @@ int runBlockLookupActionAc1024Sample(const std::string& path) {
                       << " columnRecords="
                       << object->m_lookupConnectionCodes.size();
         }
+        if (manager != sink.associativeObjects.cend()) {
+            std::cerr << " managerSteps="
+                      << manager->m_persistentSteps.size()
+                      << " unknown=" << manager->m_persistentUnknown0
+                      << '/' << manager->m_persistentUnknown2
+                      << " assocCounts=" << manager->m_persistentAssocStepCount
+                      << '/' << manager->m_persistentAssocSubentityCount
+                      << " managerPrefixStatuses="
+                      << manager->m_prefixStatuses.size();
+            if (!manager->m_prefixStatuses.empty()) {
+                const DRW_AssociativePrefixStatus& status =
+                    manager->m_prefixStatuses.front();
+                std::cerr << " span=" << status.m_startBit << '+' << status.m_bitSize
+                          << " values=" << status.m_decodedValueCount
+                          << " count=" << status.m_decodedCountValue
+                          << " assumption=" << status.m_sourceAssumption;
+            }
+            std::cerr << " owner=" << manager->parentHandle
+                      << " reactors=" << manager->reactorHandles.size();
+            for (const std::uint32_t reactor : manager->reactorHandles)
+                std::cerr << ',' << reactor;
+        }
+        if (managerRaw != sink.rawObjects.cend())
+            std::cerr << " managerRawValidated="
+                      << managerRaw->m_typedPayloadValidated
+                      << " managerRawBytes=" << managerRaw->m_rawBytes.size()
+                      << " managerRawObjectSize=" << managerRaw->m_objectSize
+                      << " managerRawBodyBits=" << managerRaw->m_bodyBitSize
+                      << " managerRawType=" << managerRaw->m_objectType
+                      << " managerRawClass=" << managerRaw->m_className;
         std::cerr << '\n';
         return 1;
     }
-    std::cout << "AC1024 BLOCKLOOKUPACTION profile: PASS rows=41 columns=7"
-                 " expressions=287 per-column-codes=3 per-column-texts=2\n";
+    std::cout << "AC1024 custom-object profiles: PASS BLOCKLOOKUPACTION="
+                 "41x7/287 expressions; PERSUBENTMGR=partial steps [1,2]"
+                 " raw-only objectParseFailures=0\n";
     return 0;
 }
 
@@ -13862,36 +13979,42 @@ int runAcShFailedFrameRetention(const std::string& path) {
     return 0;
 }
 
-int runAssociativeFailedFrameRetention(const std::string& path) {
-    RawObjectRecordingSink sink;
+int runAssociativeRawCarrierRetention(const std::string& path) {
+    AssociativeObjectRecordingSink sink;
     const bool imported = sink.fileImport(path, &sink.data, false);
     const dx_dwgReadOutcome& outcome = sink.data.dwgReadOutcome;
     const DwgReadObservations& observations = outcome.observations;
-    const std::array<std::pair<std::uint32_t, std::uint32_t>, 2> expected{{
-        {559u, 528u}, // BLOCKLOOKUPACTION
-        {363u, 515u}  // PERSUBENTMGR
+    struct ExpectedCarrier {
+        std::uint32_t handle;
+        std::uint32_t type;
+        bool typedPayloadValidated;
+    };
+    const std::array<ExpectedCarrier, 2> expected{{
+        {559u, 528u, false}, // decoded BLOCKLOOKUPACTION; raw remains unvalidated
+        {363u, 515u, false} // partial PERSUBENTMGR prefix
     }};
     for (const auto& item : expected) {
         const auto raw = std::find_if(
             sink.rawObjects.cbegin(), sink.rawObjects.cend(),
             [&item](const DRW_UnsupportedObject& object) {
-                return object.m_handle == item.first
-                    && object.m_objectType == static_cast<int>(item.second);
+                return object.m_handle == item.handle
+                    && object.m_objectType == static_cast<int>(item.type);
             });
         if (raw == sink.rawObjects.cend()) {
             std::cerr << "Associative-family raw frame was not retained for "
-                      << "handle " << item.first << " type " << item.second
+                      << "handle " << item.handle << " type " << item.type
                       << '\n';
             return 1;
         }
         if (raw->m_version != DRW::AC1024 || raw->m_isEntity
             || !raw->m_isCustomClass || !raw->m_hasClassDefinition
-            || raw->m_typedPayloadValidated || raw->m_recordName.empty()
+            || raw->m_typedPayloadValidated != item.typedPayloadValidated
+            || raw->m_recordName.empty()
             || raw->m_className.empty() || raw->m_rawBytes.empty()
             || raw->m_objectSize != raw->m_rawBytes.size()
             || raw->m_bodyBitSize > raw->m_objectSize * 8u) {
             std::cerr << "Malformed associative-family raw frame for handle "
-                      << item.first << " type " << item.second
+                      << item.handle << " type " << item.type
                       << " record=" << raw->m_recordName
                       << " class=" << raw->m_className << '\n';
             return 1;
@@ -13902,17 +14025,17 @@ int runAssociativeFailedFrameRetention(const std::string& path) {
         || !outcome.attempted || !outcome.operationSucceeded
         || outcome.error != DRW::BAD_NONE
         || observations.entityParseFailures != 0u
-        || observations.objectParseFailures != expected.size()) {
-        std::cerr << "Associative raw-frame retention changed the partial "
+        || observations.objectParseFailures != 0u) {
+        std::cerr << "Associative raw-carrier retention changed the sample "
                   << "read disposition: import=" << imported
                   << " objectParseFailures="
                   << observations.objectParseFailures
-                  << " expected=" << expected.size() << '\n';
+                  << " expected=0\n";
         dx_iface::reportDwgReadOutcome(std::cerr, outcome);
         return 1;
     }
-    std::cout << "Associative failed-frame retention: PASS (opaque frames="
-              << expected.size() << ", typed failures remain visible)\n";
+    std::cout << "Associative custom-object carriers: PASS (complete lookup-action "
+                 "typed; manager prefix partial/raw-only; parse failures=0)\n";
     return 0;
 }
 
@@ -13948,13 +14071,13 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--acsh-failed-frame-retention")
         return runAcShFailedFrameRetention(argv[2]);
     if (argc == 3
-        && std::string(argv[1]) == "--associative-failed-frame-retention")
-        return runAssociativeFailedFrameRetention(argv[2]);
+        && std::string(argv[1]) == "--associative-custom-object-raw-retention")
+        return runAssociativeRawCarrierRetention(argv[2]);
     if (argc == 3 && std::string(argv[1]) == "--read-dwg-sample")
         return runDwgReadSample(argv[2]);
     if (argc == 3
-        && std::string(argv[1]) == "--blocklookupaction-ac1024-sample")
-        return runBlockLookupActionAc1024Sample(argv[2]);
+        && std::string(argv[1]) == "--custom-objects-ac1024-sample")
+        return runCustomObjectsAc1024Sample(argv[2]);
     if (argc == 3
         && std::string(argv[1]) == "--r2007-system-page-crc-diagnostic") {
         return runR2007SystemPageCrcDiagnostic(argv[2]);

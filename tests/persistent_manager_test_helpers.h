@@ -17,6 +17,7 @@ struct Options {
     std::int32_t classVersion = 2;
     std::int32_t unknown0 = 0;
     std::int32_t unknown2 = 2;
+    std::int32_t associationStepCount = 4;
     std::int32_t associationSubentities = 0;
     std::int32_t stepCount = 2;
     std::vector<std::int32_t> steps{3, 4};
@@ -43,9 +44,10 @@ inline dwgHandle reference(std::uint8_t code, std::uint32_t ref) {
     return result;
 }
 
-// Runtime-generated common OBJECT framing follows ODA section 20.1. The eight
-// scalar prefix is a literal reproduction of the paired AC1021 D63 source
-// record, not an inferred general persistent-manager body specification.
+// Runtime-generated common OBJECT framing follows ODA section 20.1. The
+// default scalar prefix reproduces paired AC1021 D63; an exact AC1024 variant
+// is used only to test the selected local partial-prefix admission. Neither is
+// a general persistent-manager body specification.
 inline bool makeFrame(const Options& options, Frame& frame) {
     if (options.version < DRW::AC1021)
         return false;
@@ -64,7 +66,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     object.putBitLong(options.classVersion);
     object.putBitLong(options.unknown0);
     object.putBitLong(options.unknown2);
-    object.putBitLong(4); // source numassocsteps scalar
+    object.putBitLong(options.associationStepCount);
     object.putBitLong(options.associationSubentities);
     object.putBitLong(options.stepCount);
     for (const auto step : options.steps)

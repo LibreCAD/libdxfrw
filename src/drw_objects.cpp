@@ -26214,13 +26214,27 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             }
             // The traced AC1021 class-version-2 record and its paired DXF
             // stop after the steps when the association-subentity scalar is
-            // zero. Preserve that exact prefix, but do not infer the missing
-            // count or label the undocumented suffix semantically complete.
-            const bool abbreviatedSourcePrefix = version == DRW::AC1021
+            // zero. A separate AC1024 handle-363 witness has the exact
+            // [1,2] step vector and the same absent final count. Preserve
+            // only these source profiles; do not infer the missing count or
+            // label the undocumented suffix semantically complete.
+            const bool abbreviatedAc1021Prefix = version == DRW::AC1021
                 && classVersion == 2 && unknown0 == 0 && unknown2 == 2
                 && m_persistentAssocSubentityCount == 0u
                 && hasAbsentStringFooter
                 && currentObjectDwgBit(buf) == bodyEndBit;
+            const bool abbreviatedAc1024Prefix = version == DRW::AC1024
+                && classVersion == 2 && unknown0 == 0 && unknown2 == 2
+                && m_persistentAssocStepCount == 2u
+                && m_persistentAssocSubentityCount == 0u
+                && stepCount == 2u
+                && m_persistentSteps.size() == 2u
+                && m_persistentSteps[0] == 1u
+                && m_persistentSteps[1] == 2u
+                && hasAbsentStringFooter
+                && currentObjectDwgBit(buf) == bodyEndBit;
+            const bool abbreviatedSourcePrefix = abbreviatedAc1021Prefix
+                || abbreviatedAc1024Prefix;
             if (!abbreviatedSourcePrefix
                 && (!readBodyCount(subentityCount)
                     || !readBodyVector(m_persistentSubentityIds, subentityCount)))
@@ -26235,9 +26249,9 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 m_persistentSteps.size() + m_persistentSubentityIds.size(),
                 abbreviatedSourcePrefix ? -1 : static_cast<std::int32_t>(subentityCount));
             if (abbreviatedSourcePrefix) {
-                m_prefixStatuses.back().m_sourceAssumption =
-                    "AC1021 class-version-2 source prefix ends before the string-presence bit; "
-                    "final subentity count is absent and not inferred";
+                m_prefixStatuses.back().m_sourceAssumption = abbreviatedAc1024Prefix
+                    ? "AC1024 class-version-2 source prefix with steps [1,2] ends before the string-presence bit; final subentity count is absent and not inferred"
+                    : "AC1021 class-version-2 source prefix ends before the string-presence bit; final subentity count is absent and not inferred";
             }
         }
         // The manager's num_subents is a scalar-vector count, not the

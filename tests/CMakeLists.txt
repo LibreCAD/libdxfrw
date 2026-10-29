@@ -3560,14 +3560,14 @@ add_test(NAME libdxfrw_persistent_manager_prefix_dispatch
 set_tests_properties(libdxfrw_persistent_manager_prefix_dispatch PROPERTIES
     LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
 
-set(_assoc_failed_sample
+set(_assoc_custom_sample
     "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
-if(EXISTS "${_assoc_failed_sample}")
+if(EXISTS "${_assoc_custom_sample}")
     add_test(
-        NAME dwg_associative_failed_frame_retention
+        NAME dwg_associative_custom_object_raw_retention
         COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
-            --associative-failed-frame-retention "${_assoc_failed_sample}")
-    set_tests_properties(dwg_associative_failed_frame_retention PROPERTIES
+            --associative-custom-object-raw-retention "${_assoc_custom_sample}")
+    set_tests_properties(dwg_associative_custom_object_raw_retention PROPERTIES
         LABELS "dwg_read;AC1024;sample;opaque;associative;fast" TIMEOUT 60)
 endif()
 
@@ -3599,17 +3599,17 @@ foreach(_ver IN LISTS _dwg_test_versions)
     endforeach()
 endforeach()
 
-# This bounded AC1024 dynamic-block profile uses a locally supplied sample;
-# no external DWG is vendored. It validates the selected handle's row-major
-# expression grid, per-column fields and exact stream-end admission when that
-# same existing evidence file is available in the checkout.
-set(_blocklookup_action_ac1024_sample
+# These bounded AC1024 custom-object profiles use a locally supplied sample;
+# no external DWG is vendored. They validate the selected BLOCKLOOKUPACTION
+# grid/column layout and the handle-363 PERSUBENTMGR partial prefix while
+# retaining the latter as an unvalidated raw carrier.
+set(_custom_objects_ac1024_sample
     "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
-if(EXISTS "${_blocklookup_action_ac1024_sample}")
-    add_test(NAME dwg_read_AC1024_blocklookupaction_profile
+if(EXISTS "${_custom_objects_ac1024_sample}")
+    add_test(NAME dwg_read_AC1024_selected_custom_object_profiles
         COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
-            --blocklookupaction-ac1024-sample
-            "${_blocklookup_action_ac1024_sample}")
-    set_tests_properties(dwg_read_AC1024_blocklookupaction_profile PROPERTIES
+            --custom-objects-ac1024-sample
+            "${_custom_objects_ac1024_sample}")
+    set_tests_properties(dwg_read_AC1024_selected_custom_object_profiles PROPERTIES
         LABELS "dwg_read;AC1024;sample;fast" TIMEOUT 60)
 endif()
