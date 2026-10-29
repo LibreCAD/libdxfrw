@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE offset-only style retarget with cap-suppression flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "ac6a2b96dcd703d20df7ec3d94dc8ee0be87aff9",
+  "scope": "Permit selected AC1027 MLINE group-340 style retargets where target style offsets change, start/end angles and element arity remain fixed, and MLINE group-71 open consumers optionally suppress start/end caps. Reproject each consumer's group-41 miter-distance parameters while preserving group-71 flags and existing endpoint/interior miter directions.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": {
+      "value1": "Has at least one vertex",
+      "value2": "Closed",
+      "value4": "Suppress start caps",
+      "value8": "Suppress end caps"
+    },
+    "group41": "Element parameters describe per-element segment intersections, starts and cuts. Cap suppression is carried separately in group 71.",
+    "interpretation": "Preserving documented cap flags while recalculating offset-dependent group-41 parameters is qualified for this selected offset-only retarget. Native cap rendering is not independently verified."
+  },
+  "contract": {
+    "admission": "AC1027 only. The selected route requires open, unfilled, uncut MLINE consumers; group-71 values 1, 5, 9 and 13 are admitted, where 5/9/13 mean start-cap suppression/end-cap suppression/both. Closed value 3 and unknown-bit value 17 refuse. The source and target MLINESTYLE geometry flags remain 2, angles remain 90/90, and the same two style elements remain in the same order. This does not enable cap flags for direct consumed-style edits, append, removal, other retarget geometry, or other versions.",
+    "projection": "Runtime-authored source styles have offsets [1.25,-0.75]; the target changes the first offset to 1.5 while preserving the second, flags and 90/90 angles. Two source-bound MLINE consumers (one ENTITIES and one BLOCKS) retain positions, vertex directions, miters, group-71 flags and the redundant group-2 name. The authoritative group-340 reference changes to the target style; group-41 values are recomputed from target offsets and original miter directions.",
+    "outputAndReadback": "Twelve positive combinations cover flags 5, 9 and 13 across ASCII/binary input and output. Physical output checks group 71, exact group-340 target references, target style offsets, redundant names, endpoint miter coordinates and group-41 values for both consumers. A fresh typed readback checks target style identity/offsets and consumer flags, geometry and references.",
+    "failureAndRetry": "Closed and unknown group-71 profiles each refuse for both ASCII and binary output while preserving a destination sentinel and caller state; the same writer then succeeds with a corrected flags-13 source. A late consumer-parameter mutation refuses atomically for both output encodings and succeeds on the same adapter after restoring caller state.",
+    "compatibility": "The nondefault group-71 admission is gated to AC1027 offset-only style retargets with unchanged angles, equal style flags and unchanged arity. Existing plain-open consumed-offset, angle-retarget, append and removal behavior remains separately gated. No drawing fixture was added; all sources are generated in the test temporary directory."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "retargetRecipe in tests/dxf_fixture_tests.cpp writes the MLINE and MLINESTYLE source records at runtime; output proof decodes physical records and freshly imports the serialized file.",
+    "implementationCommit": "ac6a2b96dcd703d20df7ec3d94dc8ee0be87aff9",
+    "dwg2dxf/dx_iface.cpp": "355f0d02314a618c1c7cd2cd192349854c30736c9cdf09ae42a8c519043c7949",
+    "tests/dxf_fixture_tests.cpp": "d542c251ea2444ada7164f2e5fe7f9b565b3942b9003639b83b943c5f205ae2e",
+    "tests/CMakeLists.txt": "ca09f55e826eee0a26cd045158b980ebc2bd8aff0b0bc4e4ecf801890c1aff34",
+    "fixtureTestExecutableSha256": "9875ee0fff2765de8f2c098b3716fce104f0854477e8829c7d39f679549bd561",
+    "dwg2dxfExecutableSha256": "691494e32591b0af5f9e22e9433dcd568b538f987c204bc141a9e4dfc7ec8fc5",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(consumed_offset_projection|retarget_offset_projection|retarget_angle_projection)$' --output-on-failure",
+      "summary": "3/3 passed in 1.51s. The retarget-offset selector covers 12 positive cap-flag encoding profiles, 4 closed/unknown refusals with corrected-source retry, and 2 late-mutation refusals with same-adapter retry; adjacent consumed-offset and angle-retarget selectors also pass."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds no new allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "Only AC1027 and the selected two-style, two-element, two-consumer offset-only retarget profile are covered.",
+    "Cap flags are preserved and read back, but native cap appearance and rendered geometry are not qualified.",
+    "Direct consumed-style edits with cap flags, cap-flag append/removal, changed angles, other flags, versions, complete-document closure and support claims remain outside this receipt."
+  ],
+  "next": "Select one current source-backed richer MLINE style/consumer schema or alternate LTYPE provider, identify its actual refusal/loss and owning dependency, and implement one bounded output/readback/refusal/retry profile."
+}
