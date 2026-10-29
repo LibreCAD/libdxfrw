@@ -1,0 +1,76 @@
+{
+  "id": "RPP-5uo",
+  "title": "MLINE-referenced simple LTYPE with a source-bound XDATA layer name",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "3c077b0c",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE, APPID and existing LAYER 0 records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "layer_provider": {
+      "name": "0",
+      "source_handle": "0x1E1",
+      "source_table": "0x1E0"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1003, "layer_name": "0" },
+      { "code": 1000, "value": "provider-owned-xdata" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "About Extended Data (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "relevant_rule": "XDATA code 1003 carries the name of the layer associated with the extended data."
+  },
+  "proof": {
+    "source": "The runtime-generated source contains the exact 1001/1003/1000 sequence. Original LTYPE capture records the code-1003 LayerName role at the matching physical group. Provider resolution binds the unique source LAYER record, complete raw/typed source proof, and captured origin to the decoded layer name.",
+    "output": "For all four ASCII/binary source/output combinations, physical XDATA order and values are checked and a fresh import verifies typed fields. Output inspection binds exactly one emitted LAYER row by source-remapped handle, exact name, and LAYER table owner; live source model changes invalidate the binding.",
+    "failure_retry": "Removing the referenced LAYER 0 from the live model refuses export and preserves the destination sentinel; restoring the provider succeeds on the same adapter.",
+    "slice_counts": {
+      "positive_profiles": 4,
+      "successful_readbacks": 8,
+      "refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    },
+    "cumulative_test_counts": {
+      "positive_profiles": 36,
+      "successful_readbacks": 79,
+      "refusals_with_destination_preservation": 43,
+      "same_adapter_retries": 43
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_ltype_appid_xdata|libdxfrw_xrecord_xdata_channels|libdxfrw_dxf_xdata_string_owner_budget|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_mixed_segments)$' --output-on-failure",
+    "focused_result": "PASS (5/5)",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+    "asan_build_result": "PASS",
+    "asan_command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "asan_result": "PASS (1/1)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=36; readbacks=79; refusals=43; retries=43",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies one AC1027 layer name (`0`) in one code-1003 position under one APPID. It does not qualify other layer names, repeated/multiple layer references, or other source versions and LTYPE schemas.",
+    "Code-1005 object-handle XDATA dependencies, coordinate tuples, APPID metadata, other XDATA compositions and broader dependency closure remain unqualified.",
+    "This receipt establishes transport and the selected LAYER dependency binding only. It does not establish application-specific XDATA meaning, MLINE rendering, native CAD semantics, recursive document closure, or broader LTYPE provider support."
+  ]
+}

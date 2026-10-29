@@ -171,8 +171,13 @@ proof. Refused fields are not implemented editing support.
    retry. The selected provider profile now admits each 1004 chunk only up to
    127 bytes. Other XDATA values/ranges and payload orders/compositions, other
    multi-chunk layouts, multiple list payloads, list compositions across
-   APPIDs, 1003/1005 dependency roles, coordinate tuples, three-or-more APPID
-   groups, APPID metadata, LTYPE schemas and versions remain open.
+   APPIDs. [RPP-5uo](docs/research/rpp5uo-mline-ltype-xdata-layer-name-2026-10-29.json)
+   qualifies one source-bound group-1003 layer name (`0`) between one APPID and
+   one group-1000 payload, with ASCII/binary input/output, exact physical and
+   typed readback, emitted LAYER identity binding, missing-layer atomic refusal
+   and same-adapter retry. Other layer-name values/profiles, group-1005 handle
+   dependencies, coordinate tuples, three-or-more APPID groups, APPID metadata,
+   LTYPE schemas and versions remain open.
    [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
    qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
    source group 340 binds its STYLE provider, exact output binds the remapped
