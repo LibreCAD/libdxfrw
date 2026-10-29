@@ -45483,6 +45483,9 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-one-from-thirteen-removal") {
         return mlineConsumedOffsetControls::runConsumedThirteenReductionTemporary(1u)?0:1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-two-from-thirteen-removal") {
+        return mlineConsumedOffsetControls::runConsumedThirteenReductionTemporary(2u)?0:1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
     }
