@@ -22,6 +22,28 @@ class DxIfaceTableSourceTestAccess {public:
   blockref_source_relation::Result out;const bool rejected=!dx_iface::legacyBlockRefSourceRelation(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,out);
   a.wholeInput=input;a.wholeInputOwner=owner;a.wholeSourceOwner=source;return rejected;
  }
+ static bool unknownCensusRow(dx_data& data) {
+  auto& s=data.m_tableDxfSource;const auto old=s.legacyIdentityObservation,oldOwner=s.legacyIdentityObservationOwner;
+  const auto oldSource=s.legacyIdentitySourceOwner;const auto it=s.legacyEntitiesCompoundJoins.find(0xE0u);
+  if(!old||!old->source||it==s.legacyEntitiesCompoundJoins.end()||!it->second)return false;const auto oldJoin=it->second;
+  auto forged=std::make_shared<DRW_DxfIdentitySource>(*old->source);auto found=std::find_if(forged->records.begin(),forged->records.end(),
+      [](const DRW_DxfIdentitySource::Record& row){return row.kind==DRW_DxfIdentitySource::Kind::TableRecord&&row.name=="BLOCK_RECORD";});
+  if(found==forged->records.end())return false;auto row=*found;row.name="UNRECOGNIZED";forged->records.push_back(std::move(row));
+  auto input=std::make_shared<dx_data::TableDxfSourceCapture::IdentityInput>(*old);input->source=forged;
+  auto join=std::make_shared<dx_data::TableDxfSourceCapture::LegacyEntitiesCompoundJoin>(*oldJoin);join->identity=input;
+  s.legacyIdentityObservation=input;s.legacyIdentityObservationOwner=input;s.legacyIdentitySourceOwner=forged;it->second=join;
+  blockref_source_relation::Result relation;const bool prior=dx_iface::legacyBlockRefSourceRelation(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,relation);
+  const bool refused=!dx_iface::legacyBlockRefUniqueSourceName(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u);
+  s.legacyIdentityObservation=old;s.legacyIdentityObservationOwner=oldOwner;s.legacyIdentitySourceOwner=oldSource;it->second=oldJoin;
+  return prior&&refused;
+ }
+ static bool uniqueContextFault(dx_data& data) {
+  auto& s=data.m_tableDxfSource;if(!s.wholeInput)return false;
+  auto& input=const_cast<dx_data::TableDxfSourceCapture::WholeSourceInput&>(*s.wholeInput);
+  input.context.binary=!input.context.binary;
+  const bool refused=!dx_iface::legacyBlockRefUniqueSourceName(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u);
+  input.context.binary=!input.context.binary;return refused;
+ }
  static bool contextFault(dx_data& data) {
   auto& s=data.m_tableDxfSource;if(!s.wholeInput)return false;
   auto& input=const_cast<dx_data::TableDxfSourceCapture::WholeSourceInput&>(*s.wholeInput);
@@ -35,6 +57,9 @@ class DxIfaceTableSourceTestAccess {public:
   s.entitiesSources.resize(4096u,sources.front());blockref_source_relation::Result out;
   const bool refused=!dx_iface::legacyBlockRefSourceRelation(data,0xB0u,0xE0u,1u,64u*1024u*1024u,out);
   s.entitiesSources=std::move(sources);s.entitiesDeliveries=std::move(deliveries);return refused;
+ }
+ static bool unique(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit) {
+  return dx_iface::legacyBlockRefUniqueSourceName(data,blockId,insertId,limit,bytesLimit);
  }
  static bool relation(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit) {
   blockref_source_relation::Result out;return dx_iface::legacyBlockRefSourceRelation(data,blockId,insertId,limit,bytesLimit,out)
@@ -64,12 +89,13 @@ public:
   if(spoof&&row.handle==blockId&&d&&d->getDxfStructuralSourceView(view)&&view.source)rewrite(row,*view.source,false);else dx_iface::addBlockRecord(row);}
  bool import(const std::string& path,dx_data& d){enableWholeDxfSourceObservation();accepted=fileImport(path,&d,false);return accepted;}
  bool relation(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::relation(d,blockId,insertId,joinWork,joinBytes);}
+ bool unique(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::unique(d,blockId,insertId,joinWork,joinBytes);}
 };
 static bool write(const std::filesystem::path& path,const Tags& tags,bool bin){std::ofstream out(path,std::ios::binary);const auto word=[&](std::uint64_t n,unsigned k){for(unsigned i=0;i<k;++i)out.put(static_cast<char>(n>>(i*8u)));};
  if(bin)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
  for(const auto& t:tags)if(!bin)out<<t.code<<'\n'<<t.value<<'\n';else {word(static_cast<unsigned>(t.code),2);if(t.code>=10&&t.code<=59){double v=std::stod(t.value);std::uint64_t bits=0;std::memcpy(&bits,&v,8);word(bits,8);}else if((t.code>=60&&t.code<=79)||t.code==1070)word(static_cast<std::uint16_t>(std::stoi(t.value)),2);else{out<<t.value;out.put('\0');}}
  return out.good();}
-int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data);std::cout<<"real same-read relation="<<matched<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof?0:31;}
+int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data),unique=real.unique(data);std::cout<<"real same-read relation="<<matched<<" unique="<<unique<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof&&unique==!real.spoof?0:31;}
  std::error_code ec;const auto dir=libdxfrw_test::reserveTestScratch(std::filesystem::temp_directory_path(),"same-read-blockref",ec);if(ec)return 1;struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};
  Tags doc={{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},
  {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},
@@ -86,7 +112,7 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
  auto tail=std::find_if(doc.begin(),doc.end(),[](const Tag& t){return t.code==1000&&t.value=="x";});
  if(tail==doc.end())return 25;doc.insert(tail+1,{999,"record tail"});
 
- unsigned checks=0;for(bool binary:{false,true}){const auto path=dir/(binary?"binary.dxf":"ascii.dxf");if(!write(path,doc,binary))return 2;Reader reader;reader.enableLegacyDxfIdentityObservation();dx_data good;if(!reader.import(path.string(),good)||!reader.relation(good))return 3;reader.joinWork=0;if(reader.relation(good))return 15;reader.joinWork=64u*1024u*1024u;if(!reader.relation(good))return 16;reader.joinBytes=0;if(reader.relation(good))return 17;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good)||!DxIfaceTableSourceTestAccess::contextFault(good)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::manySourceNoDelivery(good)||!reader.relation(good))return 18;
+ unsigned checks=0;for(bool binary:{false,true}){const auto path=dir/(binary?"binary.dxf":"ascii.dxf");if(!write(path,doc,binary))return 2;Reader reader;reader.enableLegacyDxfIdentityObservation();dx_data good;if(!reader.import(path.string(),good)||!reader.relation(good)||!reader.unique(good)||!DxIfaceTableSourceTestAccess::uniqueContextFault(good)||!reader.unique(good)||!DxIfaceTableSourceTestAccess::unknownCensusRow(good)||!reader.unique(good))return 3;reader.joinWork=0;if(reader.relation(good))return 15;reader.joinWork=64u*1024u*1024u;if(!reader.relation(good))return 16;reader.joinBytes=0;if(reader.relation(good))return 17;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good)||!DxIfaceTableSourceTestAccess::contextFault(good)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::manySourceNoDelivery(good)||!reader.relation(good))return 18;
   for(int dimension=0;dimension<2;++dimension){std::size_t lo=0,hi=64u*1024u*1024u;while(lo<hi){const auto mid=lo+(hi-lo)/2u;
     if(dimension==0)reader.joinWork=mid;else reader.joinBytes=mid;if(reader.relation(good))hi=mid;else lo=mid+1u;}
    if(!lo)return 26;if(dimension==0)reader.joinWork=lo;else reader.joinBytes=lo;if(!reader.relation(good))return 27;
@@ -95,6 +121,34 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
   ++checks;
   dx_data other;if(!reader.import(path.string(),other)||!reader.relation(other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::crossRead(good,other)||!reader.relation(good))return 4;++checks;
   for(int mode=1;mode<=4;++mode){Reader bad;bad.enableLegacyDxfIdentityObservation();bad.mode=mode;dx_data data;if(!bad.import(path.string(),data)||bad.relation(data))return 5;bad.mode=0;dx_data retry;if(!bad.import(path.string(),retry)||!bad.relation(retry))return 6;++checks;}
+  // Count every original BLOCK_RECORD, not just captured selected resources.
+  for(int variant=0;variant<4;++variant){auto extra=doc;auto end=std::find_if(extra.begin(),extra.end(),[](const Tag& t){return t.code==0&&t.value=="ENDTAB";});
+   if(end==extra.end())return 43;Tags row={{0,"BLOCK_RECORD"},{5,"B2"},{330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,variant==0?"TEST_BLOCK":variant==1?"test_block":variant==2?"bad name":"nonASCII-Ω"},{340,"0"}};
+   extra.insert(end,row.begin(),row.end());if(!write(path,extra,binary))return 44;Reader ambiguous;ambiguous.enableLegacyDxfIdentityObservation();dx_data duplicated;
+   if(!ambiguous.import(path.string(),duplicated)||!ambiguous.relation(duplicated)||ambiguous.unique(duplicated))return 45;
+   if(!write(path,doc,binary))return 46;dx_data fixed;if(!ambiguous.import(path.string(),fixed)||!ambiguous.unique(fixed))return 47;}
+  // Unknown table rows with target-like group 2 must not evade the census.
+  auto unknown=doc;auto endUnknown=std::find_if(unknown.begin(),unknown.end(),[](const Tag& t){return t.code==0&&t.value=="ENDTAB";});
+  if(endUnknown==unknown.end())return 60;Tags unknownRow={{0,"UNRECOGNIZED"},{5,"B2"},{330,"B9"},{100,"AcDbBlockTableRecord"},{2,"test_block"}};
+  unknown.insert(endUnknown,unknownRow.begin(),unknownRow.end());if(!write(path,unknown,binary))return 61;Reader unknownReader;unknownReader.enableLegacyDxfIdentityObservation();dx_data unknownData;
+  if(unknownReader.import(path.string(),unknownData)||unknownReader.unique(unknownData))return 62;
+  if(!write(path,doc,binary))return 63;dx_data correctedUnknown;if(!unknownReader.import(path.string(),correctedUnknown)||!unknownReader.unique(correctedUnknown))return 64;
+  // An unclassified BLOCK_RECORD outside TABLES cannot be ignored.
+  auto foreign=doc;auto ent=std::find_if(foreign.begin(),foreign.end(),[](const Tag& t){return t.code==2&&t.value=="ENTITIES";});
+  if(ent==foreign.end())return 55;Tags alien={{0,"BLOCK_RECORD"},{5,"B2"},{330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"OTHER"},{340,"0"}};
+  foreign.insert(ent+1,alien.begin(),alien.end());if(!write(path,foreign,binary))return 56;Reader foreignReader;foreignReader.enableLegacyDxfIdentityObservation();dx_data foreignData;
+  if(!foreignReader.import(path.string(),foreignData)||!foreignReader.relation(foreignData)||foreignReader.unique(foreignData))return 57;
+  if(!write(path,doc,binary))return 58;dx_data restored;if(!foreignReader.import(path.string(),restored)||!foreignReader.unique(restored))return 59;
+  // ASCII case comparison is intentional, independent native collation is not claimed.
+  auto mixed=doc;bool changed=false;for(std::size_t i=0;i+3u<mixed.size();++i)if(mixed[i].code==100&&mixed[i].value=="AcDbBlockReference"){
+   for(std::size_t j=i+1u;j<mixed.size()&&mixed[j].code!=0;++j)if(mixed[j].code==2){mixed[j].value="test_block";changed=true;break;}break;}
+  if(!changed||!write(path,mixed,binary))return 48;Reader caseReader;caseReader.enableLegacyDxfIdentityObservation();dx_data caseData;
+  if(!caseReader.import(path.string(),caseData)||!caseReader.unique(caseData))return 49;if(!write(path,doc,binary))return 50;
+  for(int dimension=0;dimension<2;++dimension){std::size_t lo=0,hi=64u*1024u*1024u;while(lo<hi){const auto mid=lo+(hi-lo)/2u;
+   if(dimension==0)reader.joinWork=mid;else reader.joinBytes=mid;if(reader.unique(good))hi=mid;else lo=mid+1u;}
+   if(!lo)return 51;if(dimension==0)reader.joinWork=lo;else reader.joinBytes=lo;if(!reader.unique(good))return 52;
+   if(dimension==0)reader.joinWork=lo-1u;else reader.joinBytes=lo-1u;if(reader.unique(good))return 53;
+   reader.joinWork=64u*1024u*1024u;reader.joinBytes=64u*1024u*1024u;if(!reader.unique(good))return 54;}
   auto altered=doc;for(auto& t:altered)if(t.code==331&&t.value=="E0")t.value="E3";if(!write(path,altered,binary))return 7;Reader attack;attack.enableLegacyDxfIdentityObservation();attack.spoof=true;dx_data rejected;if(!attack.import(path.string(),rejected)||!DxIfaceTableSourceTestAccess::spoofPriorPass(rejected)||attack.relation(rejected))return 8;++checks;
   if(!write(path,doc,binary))return 9;attack.spoof=false;dx_data retry;if(!attack.import(path.string(),retry)||!attack.relation(retry))return 10;++checks;
   Reader limited;limited.enableLegacyDxfIdentityObservation();limited.limits.fields=0;dx_data noFields;if(!limited.import(path.string(),noFields)||limited.relation(noFields))return 11;limited.limits={};dx_data recovered;if(!limited.import(path.string(),recovered)||!limited.relation(recovered))return 12;++checks;
