@@ -34286,6 +34286,161 @@ bool multiAppendOutputProof(const std::filesystem::path& path,bool binary,unsign
     }
     return true;
 }
+bool fourSourceAppendOutputProof(const std::filesystem::path& path,bool binary) {
+    const std::array<double,5> offsets{{1.25,-.75,-1.25,-2.0,-2.5}};
+    const std::array<int,5> colors{{1,3,4,5,6}};
+    const std::array<std::string,5> linetypes{{"ByLayer","Continuous","ByLayer","Continuous","ByLayer"}};
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
+        std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
+    };
+    const auto fail=[](int line) {std::cerr<<"four-source output mismatch line="<<line<<'\n';return false;};
+    const mlineStyleAuthorityControls::Row* style=nullptr;unsigned styles=0u,consumers=0u;
+    for(const auto& row:rows)if(row.type=="MLINESTYLE") {
+        style=&row;++styles;
+        const auto actualOffsets=values(row,49),actualColors=values(row,62),actualLinetypes=values(row,6);
+        const auto styleCounts=values(row,71);
+        if(values(row,2)!=std::vector<std::string>{"OLD_BODY_NAME"}
+            ||styleCounts.size()!=1u||std::stod(styleCounts.front())!=5.0
+            ||actualOffsets.size()!=offsets.size()||actualColors.size()!=offsets.size()+1u
+            ||actualLinetypes.size()!=offsets.size()||std::stoi(actualColors.front())!=256) {
+            std::cerr<<"style shape name="<<(values(row,2).empty()?"":values(row,2).front())
+                <<" count="<<(values(row,71).empty()?"":values(row,71).front())
+                <<" offsets="<<actualOffsets.size()<<" colors="<<actualColors.size()
+                <<" linetypes="<<actualLinetypes.size()<<" firstColor="<<(actualColors.empty()?"":actualColors.front())<<'\n';
+            return fail(__LINE__);
+        }
+        for(std::size_t i=0u;i<offsets.size();++i)
+            if(!close(std::stod(actualOffsets[i]),offsets[i])||std::stoi(actualColors[i+1u])!=colors[i]
+                ||actualLinetypes[i]!=linetypes[i])return fail(__LINE__);
+    }
+    if(styles!=1u||!style)return fail(__LINE__);
+    for(const std::string name:{"ByLayer","Continuous"}) {
+        const mlineStyleAuthorityControls::Row* provider=nullptr;
+        for(const auto& row:rows)if(row.type=="LTYPE"&&values(row,2)==std::vector<std::string>{name}) {
+            if(provider)return fail(__LINE__);provider=&row;
+        }
+        if(!provider||provider->section!="TABLES"||provider->id.empty()||values(*provider,5).size()!=1u
+            ||values(*provider,330).size()!=1u)return fail(__LINE__);
+        const auto table=std::find_if(rows.begin(),rows.end(),[&](const auto& row) {
+            return row.id==provider->owner&&row.type=="TABLE"&&values(row,2)==std::vector<std::string>{"LTYPE"};
+        });
+        if(table==rows.end())return fail(__LINE__);
+    }
+    const auto outputHandle=style->id;const double targetMinimum=*std::min_element(offsets.begin(),offsets.end());
+    for(const auto& row:rows)if(row.type=="MLINE") {
+        const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
+        const auto segmentCounts=values(row,74),fillCounts=values(row,75),parameters=values(row,41);
+        if(profile>1u||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
+            ||values(row,340)!=std::vector<std::string>{outputHandle}
+            ||values(row,73).size()!=1u||std::stod(values(row,73).front())!=5.0
+            ||segmentCounts.size()!=15u||fillCounts.size()!=15u||parameters.size()!=30u||!values(row,42).empty())return fail(__LINE__);
+        for(const auto& count:segmentCounts)if(std::stod(count)!=2.0)return fail(__LINE__);
+        for(const auto& count:fillCounts)if(std::stod(count)!=0.0)return fail(__LINE__);
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;std::size_t at=0u;
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(const double offset:offsets)
+            if(!close(std::stod(parameters[at++]),parameterForOffset(profile,vertex,offset,shift))
+                ||std::stod(parameters[at++])!=0.0)return fail(__LINE__);
+        ++consumers;
+    }
+    if(consumers!=2u)return fail(__LINE__);
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
+        ||actual.mLineStyles.front().elements.size()!=offsets.size())return fail(__LINE__);
+    for(std::size_t i=0u;i<offsets.size();++i)
+        if(!close(actual.mLineStyles.front().elements[i].offset,offsets[i])
+            ||actual.mLineStyles.front().elements[i].color!=colors[i]
+            ||actual.mLineStyles.front().elements[i].linetype!=linetypes[i])return fail(__LINE__);
+    const auto lines=mlineStyleAuthorityControls::consumers(actual);if(lines.size()!=2u)return fail(__LINE__);
+    for(const auto* line:lines) {
+        const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
+        const auto sameCoord=[](const DRW_Coord& value,const Vec& expected) {
+            return close(value.x,expected.x)&&close(value.y,expected.y)&&close(value.z,expected.z);
+        };
+        const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+        if(profile>1u||line->styleHandle!=std::stoul(outputHandle,nullptr,16)||line->numLines!=5u
+            ||line->numVerts!=3u||line->vertlist.size()!=3u||line->openClosed!=1u
+            ||!close(line->scale,scale(profile))||!sameCoord(line->basePoint,vertices.front().first)
+            ||!sameCoord(line->extPoint,ext))return fail(__LINE__);
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;
+        for(unsigned vertex=0u;vertex<3u;++vertex) {
+            const auto& point=line->vertlist[vertex];
+            if(point.segParms.size()!=offsets.size()||point.areaFillParms.size()!=offsets.size()
+                ||!sameCoord(point.position,vertices[vertex].first)
+                ||!sameCoord(point.vertexDir,vertices[vertex].second)
+                ||!sameCoord(point.miterDir,miter(profile,vertices,vertex)))return fail(__LINE__);
+            for(std::size_t element=0u;element<offsets.size();++element)
+                if(point.segParms[element].size()!=2u
+                    ||!close(point.segParms[element][0],parameterForOffset(profile,vertex,offsets[element],shift))
+                    ||point.segParms[element][1]!=0.0||!point.areaFillParms[element].empty())return fail(__LINE__);
+        }
+    }
+    return true;
+}
+bool runConsumedFourSourceAppend(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-four-source-append-input.dxf",output=dir/"consumed-four-source-append-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed four-source append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    const auto append=[](dx_data& data) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=4u)return false;
+        auto element=data.mLineStyles.front().elements.front();element.offset=-2.5;element.color=6;element.linetype="ByLayer";
+        data.mLineStyles.front().elements.push_back(std::move(element));return true;
+    };
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fourElementRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)) {
+            std::cerr<<"four-source append export failed sourceBinary="<<sourceBinary<<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+        }
+        if(!fourSourceAppendOutputProof(output,outputBinary)) {
+            std::cerr<<"four-source append output proof failed sourceBinary="<<sourceBinary<<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+        }
+        if(!caller.same(data)) {std::cerr<<"four-source append changed caller state\n";return fail(__LINE__);}
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
+        data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!fourSourceAppendOutputProof(output,outputBinary)||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!fourSourceAppendOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed four-source append profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runConsumedFourSourceAppendTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-four-source-append-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedFourSourceAppend(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed four-source append artifacts: "<<dir<<'\n';
+    return passed;
+}
 bool runConsumedAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-append-input.dxf",output=dir/"consumed-append-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
@@ -43385,6 +43540,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-append-range") {
         return mlineConsumedOffsetControls::runConsumedAppendRangeTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-four-source-append") {
+        return mlineConsumedOffsetControls::runConsumedFourSourceAppendTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
