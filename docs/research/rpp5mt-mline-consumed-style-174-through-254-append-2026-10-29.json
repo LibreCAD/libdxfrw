@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mt consumed MLINE append source counts 174 through 254",
+  "date": "2026-10-29",
+  "status": "SELECTED_SOURCE_COUNT_RANGE_QUALIFIED",
+  "codeCommit": "3d7c190b",
+  "scope": "Qualifies the authored AC1027 consumed-style one-element append profile for each source count 174 through 254, producing target counts 175 through 255. This extends existing source-count evidence without promoting general MLINE support or native/document semantic claims.",
+  "implementation": {
+    "change": "Decode the immutable captured physical group span directly. A counting-stream pass measures exact serialized size; before allocating output, the adapter charges two wire-size allowances, the typed parsed MLINE estimate, and fixed writer/decoder working storage against the existing 64 MiB budget. A fixed-size stream buffer writes the second deterministic pass into one pre-sized string. The source proof no longer clones DRW_RawDxfObject groups or rawValues.",
+    "limit": "The 64 MiB conservative named-resource budget is unchanged. The second pass checks the exact expected byte count and fails closed on size or writer mismatch.",
+    "compatibility": "No public API or DRW_Interface virtual changed. ASCII/binary and source/output cross-encoding routes remain supported by the selected profile.",
+    "supersedes": "RPP-5ms's source-count 174 to 175 refusal measured the former duplicate raw-carrier charge. This receipt supersedes that refusal for current code only; the earlier receipt remains historical evidence."
+  },
+  "contract": {
+    "positiveAdmission": "For each source count 174..254 inclusive, generate one AC1027 MLINESTYLE using the existing ordered offset/ACI/alternating ByLayer-Continuous recipe, append one tuple, preserve flags 2 and unchanged angles, and use two source-bound open, uncut and unfilled MLINE consumers.",
+    "geometryAndOutput": "Verify source and target group-41 minima, target group-71/group-73 counts, ordered style tuples, group-340 style identity, and consumer group-74/group-41/group-75 arrays. Fresh ASCII/binary readback verifies the style tuple and consumer data in model space and a named block.",
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "failureAndRetry": "Each count has unsupported-flags and late-live-consumer-mutation refusal controls in ASCII and binary output, sentinel destination and caller-state preservation, and corrected-state retry on the same adapter.",
+    "boundary": "Source count 254 to target count 255 is a successful consumed-style append in this exact profile. It does not qualify the separate 254 to 255 style-retarget operation, which remains refused by its existing aggregate retained-byte admission."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_source_count_append_(129_173|174_253|254_255)$' -j3 --output-on-failure",
+      "summary": "All source counts 129..254 passed, including exact output/readback, unsupported-flags refusal/retry, late-mutation refusal/retry, and all source/output encoding combinations. The 174..253 CTest took 53.62 seconds; the combined three-test CTest completed successfully."
+    },
+    "lowCountRegression": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_(style_append_range|selected_source_counts)$' -j2 --output-on-failure",
+      "summary": "The existing source-count-two append range and selected source counts 13, 16, 32, 64 and 128 passed with the direct physical-group path."
+    },
+    "asan": {
+      "result": "PASS",
+      "command": "build-asan-custom/libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 174 175",
+      "summary": "Both counts passed all encoding, output/readback, rollback, and retry controls with no AddressSanitizer diagnostics."
+    },
+    "diffCheck": "git diff --check; PASS before commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "3d7c190b",
+    "dwg2dxf/dx_iface.cpp": "7a043e85ecd81a624a4cff19709aae805c891496",
+    "dwg2dxf/dx_material_body.h": "66d7428baee9456e9bb49b5c9b26298dbb05a68f",
+    "tests/dxf_fixture_tests.cpp": "041fb4e2bf7e7f23dcadaa59164bcff4337e8157",
+    "tests/CMakeLists.txt": "2557b4060f49755fba1f22eb7417cc8291a1de83",
+    "fixturePolicy": "All DXF inputs and outputs are generated at runtime from the authored source recipe and removed on success. No testing DWG/DXF fixture was added to the repository.",
+    "testExecutableSha256": "0d28e10c87fecbdfd3000cd03b397ddcea7e1c75040627e7866ee56ce7c5d882"
+  },
+  "limits": [
+    "The result is limited to the selected generated AC1027 tuple, geometry, consumer and adapter profile.",
+    "No other append cardinality, changed flags, angle/offset combinations, carrier, version, producer, complete-document closure, LibreCAD/LibreCAD_3/FreeCAD native meaning, or 3D semantics follow from this slice.",
+    "The separate maximum-count retarget refusal is unchanged."
+  ],
+  "next": "Select and bind one distinct current P2 geometry/schema witness before editing. Prefer a local count-71 edit, additional angle/offset profile, non-two-source append/removal batch, or remaining MLEADERSTYLE field with a focused selector and exact expected output. Keep the maximum-count retarget refusal fail-closed unless a separately bounded representation and witness justify a change."
+}
