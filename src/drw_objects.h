@@ -2408,6 +2408,17 @@ public:
       shapeHandles;          /*!< DWG shapefile handles, one per dash */
   // Read-only counts let adapters account for parser-owned vectors that are
   // intentionally kept private, without exposing or mutating their contents.
+  // Narrow source/live admission for parsed DXF LTYPE records whose admitted
+  // grammar specifies no dash elements. This does not qualify other patterns.
+  [[nodiscard]] bool sameSelectedDxfEmptyPatternState(const DRW_LType& other) const noexcept {
+    const auto selected=[](const DRW_LType& v) noexcept {
+      return v.size==0 && v.pathIdx==0 && v.declaredSize==0 && v.hasSynchronizedLengths
+          && v.synchronizedLengths.empty() && v.m_dxfRetainedSegmentTextBytes.empty()
+          && v.path.empty() && v.segments.empty() && v.shapeHandles.empty();
+    };
+    return selected(*this) && selected(other)
+        && m_dxfRetainedDescBytes==other.m_dxfRetainedDescBytes;
+  }
   [[nodiscard]] std::size_t synchronizedLengthCount() const noexcept {
     return synchronizedLengths.size();
   }

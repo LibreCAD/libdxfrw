@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
 #include "dx_mline_layer_source_live.h"
+#include "dx_mline_ltype_source_live.h"
 #include "test_scratch.h"
 #include "intern/dxfwriter.h"
 #include <chrono>
@@ -22,6 +23,7 @@ public:
 class DxIfaceMlineDependencyTestAccess {
 public:
     static bool layers(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLayerSourceLiveProof(d,work,used);}
+    static bool ltypes(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLtypeSourceLiveProof(d,work,used);}
     static dx_mline_source_dependency::Proof qualify(const dx_iface& a,const dx_data& data,
             dx_mline_source_dependency::Limits limits={}) noexcept{return a.mlineDependencySourceProof(data,limits);}
 };
@@ -422,8 +424,258 @@ static int testMlineLayerLive() {
              : 25;
 }
 
+// Selected source/live LTYPE relation, not writer authorization.
+class LtypeSpoofConsumer final : public Consumer {
+public:
+  bool spoof = false;
+  void addDxfSymbolSource(const DRW_TableEntry &model,
+                          const DRW_RawDxfObject &raw) override {
+    if (spoof && model.handle == 0x102u) {
+      auto &type =
+          const_cast<DRW_LType &>(static_cast<const DRW_LType &>(model));
+      type.desc = "SPOOF";
+      auto &source = const_cast<DRW_RawDxfObject &>(raw);
+      for (std::size_t i = 0u; i < source.groups.size(); ++i)
+        if (source.groups[i].code() == 3) {
+          source.groups[i] = DRW_Variant(3, std::string("SPOOF"));
+          if (source.hasRawValues)
+            source.rawValues[i] = "SPOOF";
+        }
+    }
+    dx_iface::addDxfSymbolSource(model, raw);
+  }
+};
+static int testMlineLtypeLive() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-ltype-live", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  auto original = parseTags(sourceText());
+  for (const char *id : {"D100", "D101"})
+    original[field(original, record(original, "MLINE", id), 2)].second =
+        "EFFECTIVE_STYLE";
+  original[field(original, record(original, "MLINESTYLE", "D"), 2)].second =
+      "EFFECTIVE_STYLE";
+  original[field(original, record(original, "MLINESTYLE", "D2"), 2)].second =
+      "RETARGET_STYLE";
+  unsigned profiles = 0u, mutations = 0u, bodyTamper = 0u, retries = 0u,
+           limits = 0u;
+  for (bool binary : {false, true}) {
+    std::string bytes = serialize(original);
+    if (binary) {
+      std::string encoded;
+      if (!encodeBinary(bytes, encoded))
+        return 2;
+      bytes = std::move(encoded);
+    }
+    const auto path = dir / (binary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(path, bytes))
+      return 3;
+    for (bool spoof : {false, true}) {
+      LtypeSpoofConsumer adapter;
+      adapter.spoof = spoof;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(path.string(), data))
+        return 4;
+      const auto candidate =
+          DxIfaceMlineDependencyTestAccess::qualify(adapter, data);
+      auto &capture = DxWholeSourceTestAccess::capture(data);
+      const auto it = capture.resourceOriginAudits.find(0x102u);
+      if (candidate.result != Result::SourceCandidate ||
+          it == capture.resourceOriginAudits.end() || !it->second ||
+          !it->second->input || !it->second->input->raw ||
+          !it->second->input->sourceModel || !capture.wholeInput ||
+          !capture.identityInput || !capture.identityInput->source)
+        return 5;
+      const auto &audit = *it->second;
+      const auto &whole = *capture.wholeInput->source;
+      if (audit.physical >= capture.identityInput->source->records.size() ||
+          !audit.originBound || !audit.bodyMatched || !audit.stateComplete)
+        return 6;
+      const auto &physical =
+          capture.identityInput->source->records[audit.physical];
+      const auto body =
+          mline_ltype_relation::compare(whole, physical, *audit.input->raw);
+      if ((body.result == mline_ltype_relation::Result::Match) == spoof)
+        return 7;
+      std::size_t charged = 0u;
+      const auto check = [&](std::size_t work, std::size_t *used = nullptr) {
+        return DxIfaceMlineDependencyTestAccess::ltypes(adapter, data, work,
+                                                        used);
+      };
+      if (check(512u * 1024u * 1024u, &charged) == spoof)
+        return 8;
+      if (spoof) {
+        adapter.spoof = false;
+        dx_data fresh;
+        if (!adapter.import(path.string(), fresh) ||
+            !DxIfaceMlineDependencyTestAccess::ltypes(
+                adapter, fresh, 512u * 1024u * 1024u, nullptr))
+          return 9;
+        ++retries;
+        continue;
+      }
+      std::size_t refused = 123u;
+      if (!charged || check(charged - 1u, &refused) || refused ||
+          !check(charged))
+        return 10;
+      ++limits;
+      mline_ltype_relation::Limits limit;
+      limit.work = body.charged - 1u;
+      if (mline_ltype_relation::compare(whole, physical, *audit.input->raw,
+                                        limit)
+              .result != mline_ltype_relation::Result::Limit)
+        return 11;
+      limit.work = body.charged;
+      if (mline_ltype_relation::compare(whole, physical, *audit.input->raw,
+                                        limit)
+              .result != mline_ltype_relation::Result::Match)
+        return 12;
+      ++limits;
+      for (std::size_t i = 0u; i < audit.input->raw->groups.size(); ++i) {
+        auto altered = *audit.input->raw;
+        const auto &v = altered.groups[i];
+        const int code = v.code();
+        if (v.type() == DRW_Variant::STRING && v.content.s)
+          altered.groups[i] = DRW_Variant(code, *v.content.s + "X");
+        else if (v.type() == DRW_Variant::INTEGER)
+          altered.groups[i] = DRW_Variant(code, v.i_val() + 1);
+        else if (v.type() == DRW_Variant::INTEGER64)
+          altered.groups[i] = DRW_Variant(code, v.i64_val() + 1);
+        else if (v.type() == DRW_Variant::DOUBLE)
+          altered.groups[i] = DRW_Variant(code, v.d_val() + 1.0);
+        else
+          return 13;
+        if (mline_ltype_relation::compare(whole, physical, altered).result !=
+            mline_ltype_relation::Result::Refused)
+          return 14;
+        ++bodyTamper;
+        if (altered.hasRawValues) {
+          altered = *audit.input->raw;
+          altered.rawValues[i] += " ";
+          if (mline_ltype_relation::compare(whole, physical, altered).result !=
+              mline_ltype_relation::Result::Refused)
+            return 15;
+          ++bodyTamper;
+        }
+      }
+      auto first = data.lineTypes.begin();
+      if (first == data.lineTypes.end())
+        return 16;
+      auto second = std::next(first);
+      if (second == data.lineTypes.end())
+        return 16;
+      const auto saved = *second;
+      const auto change = [&](const auto &modify) {
+        modify(*second);
+        const bool rejected = !check(512u * 1024u * 1024u);
+        *second = saved;
+        if (!rejected || !check(charged))
+          return false;
+        ++mutations;
+        ++retries;
+        return true;
+      };
+      if (!change([](auto &v) { v.name = "OTHER"; }) ||
+          !change([](auto &v) { v.handle = 0x101u; }) ||
+          !change([](auto &v) { v.parentHandle = 0x101u; }) ||
+          !change([](auto &v) { v.flags ^= 1; }) ||
+          !change([](auto &v) { v.desc = "OTHER"; }) ||
+          !change([](auto &v) { v.size = 1; }) ||
+          !change([](auto &v) { v.length = 2.; }) ||
+          !change([](auto &v) { v.alignment = 66; }) ||
+          !change([](auto &v) { v.path.push_back(1.); }) ||
+          !change([](auto &v) { v.segments.emplace_back(); }) ||
+          !change([](auto &v) { v.shapeHandles.push_back(1); }) ||
+          !change([](auto &v) { v.xDictHandle = 0xDu; }) ||
+          !change([](auto &v) { v.reactorHandles.push_back(0xDu); }) ||
+          !change([](auto &v) {
+            v.appData.push_back({{102, std::string("{TEST_HIDDEN")},
+                                 {340, std::string("D")},
+                                 {102, std::string("}")}});
+          }))
+        return 17;
+      auto reset = saved;
+      reset.updateValues(saved.name, saved.desc, saved.size, saved.length,
+                         saved.path);
+      reset.handle = saved.handle;
+      reset.parentHandle = saved.parentHandle;
+      reset.flags = saved.flags;
+      if (reset.name != saved.name || reset.desc != saved.desc ||
+          reset.size != saved.size || reset.length != saved.length ||
+          reset.alignment != saved.alignment ||
+          saved.sameSelectedDxfEmptyPatternState(reset))
+        return 18;
+      *second = reset;
+      if (check(512u * 1024u * 1024u))
+        return 19;
+      *second = saved;
+      if (!check(charged))
+        return 20;
+      ++mutations;
+      ++retries;
+      second->handle = first->handle;
+      if (check(512u * 1024u * 1024u))
+        return 21;
+      *second = saved;
+      if (!check(charged))
+        return 22;
+      ++mutations;
+      ++retries;
+      data.lineTypes.erase(second);
+      if (check(512u * 1024u * 1024u))
+        return 23;
+      data.lineTypes.push_back(saved);
+      if (!check(charged))
+        return 24;
+      ++mutations;
+      ++retries;
+      auto extra = saved;
+      extra.handle = 0x103u;
+      extra.name = "THIRD";
+      data.lineTypes.push_back(extra);
+      if (check(512u * 1024u * 1024u))
+        return 25;
+      data.lineTypes.pop_back();
+      if (!check(charged))
+        return 26;
+      ++mutations;
+      ++retries;
+      ++profiles;
+    }
+    Consumer ordinary;
+    dx_data plain;
+    if (!ordinary.import(path.string(), plain) ||
+        DxIfaceMlineDependencyTestAccess::ltypes(ordinary, plain,
+                                                 512u * 1024u * 1024u, nullptr))
+      return 27;
+    const auto output =
+        dir / (binary ? "default-binary.dxf" : "default-ascii.dxf");
+    if (!ordinary.fileExport(output.string(), DRW::AC1027, binary, &plain,
+                             false, true))
+      return 28;
+  }
+  std::cout << "ltype source/live profiles=" << profiles
+            << " mutations=" << mutations << " body-tamper=" << bodyTamper
+            << " limits=" << limits << " retries=" << retries << '\n';
+  return profiles == 2u && mutations == 36u && limits == 4u && retries == 38u
+             ? 0
+             : 29;
+}
+
 int main(int argc,char** argv) {
     if(argc==2&&std::string(argv[1])=="--layer-source-live")return testMlineLayerLive();
+    if(argc==2&&std::string(argv[1])=="--ltype-source-live")return testMlineLtypeLive();
     if(argc!=1)return 26;
     const auto staleNames=parseTags(sourceText());auto original=staleNames;
     for(const char* id:{"D100","D101"})original[field(original,record(original,"MLINE",id),2)].second="EFFECTIVE_STYLE";
