@@ -31696,7 +31696,7 @@ constexpr const char* sourceStyleHandle="1F3";
 constexpr const char* textValue="DXF";
 using mlineLtypeTextStyleControls::numeric;
 
-Tags recipe(bool binary) {
+Tags recipe(bool binary,bool textFirst=false) {
     auto fields=mlineLtypeTextStyleControls::recipe(binary);
     std::size_t begin=fields.size(),dashBegin=fields.size(),end=fields.size();
     for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))
@@ -31710,8 +31710,17 @@ Tags recipe(bool binary) {
         if(fields[i].first==49){dashBegin=i;break;}
     }
     if(dashBegin==fields.size())throw std::runtime_error("mixed LTYPE first segment missing");
-    const Tags segments{{49,"1.5"},{74,"0"},{49,"0.5"},{74,"2"},{75,"0"},{340,sourceStyleHandle},
+    const Tags simple{{49,"1.5"},{74,"0"}};
+    const Tags text{{49,"0.5"},{74,"2"},{75,"0"},{340,sourceStyleHandle},
         {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},{9,textValue}};
+    Tags segments;
+    if(textFirst) {
+        segments=text;
+        segments.insert(segments.end(),simple.begin(),simple.end());
+    } else {
+        segments=simple;
+        segments.insert(segments.end(),text.begin(),text.end());
+    }
     fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(dashBegin),fields.begin()+static_cast<std::ptrdiff_t>(end));
     fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(dashBegin),segments.begin(),segments.end());
     return fields;
@@ -31731,7 +31740,7 @@ bool numberSequence(const Row& row,int code,const std::vector<double>& expected)
     catch(...) {return false;}
     return true;
 }
-bool proof(const std::filesystem::path& path,bool binary,bool output) {
+bool proof(const std::filesystem::path& path,bool binary,bool output,bool textFirst=false) {
     const auto rows=records(path,binary);const Row* style=nullptr;const Row* ltype=nullptr;
     for(const auto& row:rows) {
         if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName}){if(style)return false;style=&row;}
@@ -31745,8 +31754,13 @@ bool proof(const std::filesystem::path& path,bool binary,bool output) {
     if(!numeric(*ltype,72,65))return fail("LTYPE 72");
     if(!numeric(*ltype,73,2))return fail("LTYPE 73");
     if(!numeric(*ltype,40,2))return fail("LTYPE 40");
-    if(!numberSequence(*ltype,49,{1.5,.5}))return fail("LTYPE 49");
-    if(!integerSequence(*ltype,74,{0,2}))return fail("LTYPE 74");
+    if(textFirst) {
+        if(!numberSequence(*ltype,49,{.5,1.5}))return fail("LTYPE 49 order");
+        if(!integerSequence(*ltype,74,{2,0}))return fail("LTYPE 74 order");
+    } else {
+        if(!numberSequence(*ltype,49,{1.5,.5}))return fail("LTYPE 49 order");
+        if(!integerSequence(*ltype,74,{0,2}))return fail("LTYPE 74 order");
+    }
     if(!numeric(*ltype,75,0))return fail("LTYPE 75");
     if(values(*ltype,340)!=std::vector<std::string>{output?style->id:sourceStyleHandle})return fail("LTYPE 340");
     if(!numeric(*ltype,46,.75))return fail("LTYPE 46");
@@ -31756,30 +31770,36 @@ bool proof(const std::filesystem::path& path,bool binary,bool output) {
     if(values(*ltype,9)!=std::vector<std::string>{textValue})return fail("LTYPE 9");
     return true;
 }
-bool model(dx_data& data,std::uint32_t styleHandle) {
+bool model(dx_data& data,std::uint32_t styleHandle,bool textFirst=false) {
     const DRW_LType* ltype=nullptr;for(const auto& value:data.lineTypes)if(value.name==ltypeName){if(ltype)return false;ltype=&value;}
     const DRW_Textstyle* style=nullptr;for(const auto& value:data.textStyles)if(value.name==styleName){if(style)return false;style=&value;}
+    const std::vector<double> expectedPath=textFirst?std::vector<double>{.5,1.5}:std::vector<double>{1.5,.5};
     if(!ltype||!style||style->handle!=styleHandle||ltype->size!=2||ltype->length!=2
-        ||ltype->path!=std::vector<double>{1.5,.5}||ltype->segments.size()!=2u)return false;
-    const auto& plain=ltype->segments[0];const auto& text=ltype->segments[1];
-    return plain.length==1.5&&plain.shapeFlags==0&&plain.complexShapeCode==0
-        &&plain.styleHandle.ref==0&&plain.styleHandle.ref64==0&&plain.text.empty()
-        &&text.length==.5&&text.shapeFlags==2&&text.complexShapeCode==0
-        &&text.styleHandle.ref==styleHandle&&text.styleHandle.ref64==styleHandle
-        &&text.scale==.75&&std::abs(text.rotation-.25/ARAD)<1e-12
-        &&text.xOffset==.125&&text.yOffset==-.25&&text.text==textValue
+        ||ltype->path!=expectedPath||ltype->segments.size()!=2u)return false;
+    const auto& first=ltype->segments[0];const auto& second=ltype->segments[1];
+    const auto isSimple=[](const DRW_LTypeSegment& value) {
+        return value.length==1.5&&value.shapeFlags==0&&value.complexShapeCode==0
+            &&value.styleHandle.ref==0&&value.styleHandle.ref64==0&&value.text.empty();
+    };
+    const auto isText=[styleHandle](const DRW_LTypeSegment& value) {
+        return value.length==.5&&value.shapeFlags==2&&value.complexShapeCode==0
+            &&value.styleHandle.ref==styleHandle&&value.styleHandle.ref64==styleHandle
+            &&value.scale==.75&&std::abs(value.rotation-.25/ARAD)<1e-12
+            &&value.xOffset==.125&&value.yOffset==-.25&&value.text==textValue;
+    };
+    return (textFirst?isText(first)&&isSimple(second):isSimple(first)&&isText(second))
         &&data.mLineStyles.size()==1u&&data.mLineStyles.front().elements.size()==2u
         &&data.mLineStyles.front().elements.front().linetype==ltypeName
         &&mlineStyleAuthorityControls::consumers(data).size()==2u;
 }
-bool outputProof(const std::filesystem::path& path,bool binary) {
-    if(!proof(path,binary,true))return false;
+bool outputProof(const std::filesystem::path& path,bool binary,bool textFirst=false) {
+    if(!proof(path,binary,true,textFirst))return false;
     const auto rows=records(path,binary);const Row* style=nullptr;
     for(const auto& row:rows)if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName})style=&row;
     if(!style)return false;std::uint32_t handle=0;const auto parsed=std::from_chars(style->id.data(),style->id.data()+style->id.size(),handle,16);
     if(parsed.ec!=std::errc{}||parsed.ptr!=style->id.data()+style->id.size()||!handle)return false;
     dx_iface reader;dx_data actual;
-    return reader.fileImport(path.string(),&actual,false)&&model(actual,handle)
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,handle,textFirst)
         &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",ltypeName,"Continuous");
 }
 bool runTemporary() {
@@ -31787,16 +31807,18 @@ bool runTemporary() {
         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
     std::size_t profiles=0,readbacks=0,refusals=0,retries=0;
-    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true})for(bool textFirst:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary,textFirst);
         if(!write(input,fields,sourceBinary,"AC1027")){std::cerr<<"mixed segment source write failed\n";return false;}
-        if(!proof(input,sourceBinary,false)){std::cerr<<"mixed segment source proof failed binary="<<sourceBinary<<'\n';return false;}
+        if(!proof(input,sourceBinary,false,textFirst)){std::cerr<<"mixed segment source proof failed binary="<<sourceBinary<<" textFirst="<<textFirst<<'\n';return false;}
         if(!adapter.fileImport(input.string(),&data,false)){std::cerr<<"mixed segment import failed\n";return false;}
-        if(!model(data,0x1F3u)){std::cerr<<"mixed segment model failed\n";return false;}
+        if(!model(data,0x1F3u,textFirst)) {
+            std::cerr<<"mixed segment model failed textFirst="<<textFirst<<'\n';return false;
+        }
         if(!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment caller proof failed\n";return false;}
         const auto original=mlineLtypeProviderControls::provider(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)){std::cerr<<"mixed segment export failed\n";return false;}
-        if(!outputProof(output,outputBinary)){std::cerr<<"mixed segment output proof failed binary="<<outputBinary<<'\n';return false;}
+        if(!outputProof(output,outputBinary,textFirst)){std::cerr<<"mixed segment output proof failed binary="<<outputBinary<<" textFirst="<<textFirst<<'\n';return false;}
         if(!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)){std::cerr<<"mixed segment provider mutation\n";return false;}
         if(!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment caller mutated\n";return false;}
         ++profiles;++readbacks;const auto saved=data.textStyles;
@@ -31808,7 +31830,7 @@ bool runTemporary() {
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment missing-provider refusal failed\n";return false;}
         ++refusals;data.textStyles=saved;
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!outputProof(output,outputBinary)||!model(data,0x1F3u)
+            ||!outputProof(output,outputBinary,textFirst)||!model(data,0x1F3u,textFirst)
             ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment retry failed\n";return false;}
         ++readbacks;++retries;
@@ -31816,7 +31838,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE mixed simple/text LTYPE profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==4&&readbacks==8&&refusals==4&&retries==4;
+    return profiles==8&&readbacks==16&&refusals==8&&retries==8;
 }
 }
 
