@@ -313,7 +313,8 @@ proof. Refused fields are not implemented editing support.
    enum in {9, 10}, group-3 printable-ASCII `description` or group-300
    printable-ASCII `textDefault` string, or one existing Boolean-coded group
    290–298, or a group-340 `leaderLineTypeHandle` retarget to a unique
-   source-bound LTYPE provider.
+   source-bound LTYPE provider, or a group-342 `textStyleHandle` retarget to a
+   unique source-bound STYLE provider.
    [RPP-5li](docs/research/rpp5li-mleaderstyle-double-fields-transaction-2026-10-29.json)
    provides per-code authored input, exact emitted-field and typed-readback
    evidence, with the other twelve mapped doubles unchanged. Earlier group-45
@@ -363,15 +364,18 @@ proof. Refused fields are not implemented editing support.
    source LTYPE retarget, with exact remapped raw/typed output proof, wrong-kind
    and dangling-target refusals, rollback and same-adapter retry; see
    [RPP-5md](docs/research/rpp5md-mleaderstyle-linetype-handle-transaction-2026-10-29.json).
+   The group-342 `textStyleHandle` transaction qualifies the same bounded
+   source/output and failure/retry contract against a unique STYLE provider;
+   see [RPP-5me](docs/research/rpp5me-mleaderstyle-text-style-handle-transaction-2026-10-29.json).
    Autodesk documents groups 290–297 field roles and the 290–299 Boolean type
    range; group 298 `textExtended` is recognized by the local parser/writer, but
    its field-specific role is not listed in that Autodesk table.
    One field per record is still the limit; missing/repeated fields, multiple
    changes, non-AC1027 routes, and unlisted fields remain refused or on their
-   existing route. The group-340 result does not qualify group 341/342/343
-   handles. Remaining work includes contexts/defaults/repeated values, other
-   integer and handle fields, other string fields and non-ASCII/code-page
-   profiles, source-version grammars,
+   existing route. The selected group-340 and group-342 results do not qualify
+   group 341/343 handles. Remaining work includes contexts/defaults/repeated
+   values, other integer and handle fields, other string fields and
+   non-ASCII/code-page profiles, source-version grammars,
    CMC/unknown extensions, and STYLE/LTYPE/
    BLOCK_RECORD dependency edits. Preserve raw replay for untouched records.
    Autodesk's table identifies the DXF roles, but independently produced-source,
