@@ -315,6 +315,14 @@ records the default-off, private retained census with completion authentication;
 it provides no public report or namespace authority. Next bind its scoped
 records to the selected BLOCK_RECORD, ATTDEF and target bodies under explicit
 uniqueness, type and owner checks, while keeping graph and output gates closed.
+The [identity delivery receipt](docs/research/rpp5ix-ac1018-identity-delivery-authentication-2026-10-28.json)
+authenticates the retained census against a bounded codec-owned pre-callback
+freeze, including an altered-scope long-alias counterexample and callback-only
+cross-generation tickets. It does not qualify physical uniqueness or ownership.
+The 17-digit leading-zero alias is observed but its self-registration is Invalid;
+treat it as a potential physical collision, not an admitted typed duplicate.
+Charge candidate lexical work and selected-record lookups before joining, and
+reject unqualified repeated admissions rather than silently skipping them.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,

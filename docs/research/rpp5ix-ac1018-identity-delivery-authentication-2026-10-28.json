@@ -1,0 +1,62 @@
+{
+  "schema": "ac1018-identity-delivery-authentication-v1",
+  "date": "2026-10-28",
+  "codeCommit": "691af9a874d4632f81865026bb35ec68554beba4",
+  "scope": "Default-off codec-owned freeze of the complete original DXF identity census before the callback, plus exact authentication of the adapter-retained AC1018 callback copy after successful read. No identity uniqueness, namespace, owner, graph, output or native semantic claim.",
+  "delivery": {
+    "authority": "The codec privately freezes the census before its callback; exact live-publication access supplies an opaque owner-and-pointer-bound ticket. A completed read compares all source, section, record, candidate and physical span fields against the freeze. The codec does not expose its frozen source.",
+    "lifecycle": "Ticket issuance is unavailable outside the live callback; same-bytes rereads, different readers, forged owners, reentrant operations, partial reads and exceptions cannot authenticate an old ticket. Each admitted read invalidates the previous ticket. Dropped, copied, altered, duplicate or source-quota-failed adapter delivery leaves the legacy observation unqualified.",
+    "bounds": "The freeze precharges section/record/candidate counts, sizing scans, retained payload, ticket and copy/comparison work; allocation or quota failure is sticky for the evidence and does not by itself fail ordinary import."
+  },
+  "adversarial_alias": {
+    "source": "Locally authored ASCII and binary examples include a 17-digit leading-zero identity alias numerically equal to an existing handle. The parser observes its physical outer candidate but self-registration marks that candidate Invalid; this is not claimed as an admitted typed duplicate.",
+    "check": "Reclassifying that physical candidate as opaque before forwarding the callback makes the adapter reject the observation; an unchanged fresh-destination retry succeeds."
+  },
+  "validation": {
+    "selector": "libdxfrw_identity_source_namespace",
+    "normal": "PASS 1/1",
+    "asan": "PASS 1/1",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "commands": [
+      "ctest --test-dir build -R ^libdxfrw_identity_source_namespace$ --output-on-failure",
+      "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R ^libdxfrw_identity_source_namespace$ --output-on-failure"
+    ],
+    "normalExecutableSha256": "c2fd4026c654a1b7a649833d4e87bde5b7cb43281f23d841ac0d96168ce677c2",
+    "asanExecutableSha256": "1bb52be94dbfd898f40b9541fd1686eb8c5a88e583c51d204f1ee1f0135cb5ab",
+    "normalLibrarySha256": "3e771b88b7069039c9c75013cf25710f50570c53e7950ae45317ecde4dc1b67f",
+    "asanLibrarySha256": "01130f377d4b1aa36f9d9c2c2b239758d5fe1ea3eb0b62b1c285c858117f9bd7",
+    "normalDirectOutputSha256": "a08a427f33b1dae241233e0ffe64887ac5477314db07bd81b0212a1528dae819",
+    "asanDirectOutputSha256": "a08a427f33b1dae241233e0ffe64887ac5477314db07bd81b0212a1528dae819",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalCtestOutputSha256": "f25d657780059414676374911a66bf22fd9d1850daf98f52f42019efb46689d0",
+    "asanCtestOutputSha256": "699dbc1d00130825cf4434453843df40ae0c3f7ee0f16ce4faf9f7714975770c",
+    "controls": "ASCII/binary: two selected profiles, 136 scalar/span/vector mutation checks, 20 exact/one-under codec quota checks, ten injected freeze-allocation failures, no-handler, dropped callback, forged/cross-reader ticket, partial read, thrown callback, reentrant read and corrected retries; 12 adapter delivery-integrity checks include the hidden long alias."
+  },
+  "realSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "result": "PASS; default observation remains off, opted-in eight selected observations retained, no namespace/owner/output authority. Source native authoring and semantics are not certified.",
+    "probeSourceSha256": "25bafaf4dbdfd7d53a71e90d9e537a6dec4a4fad7b1df37781e97efd3d982839",
+    "probeExecutableSha256": "fe5f6287ede2021cfdc999c8717c6551f94d5b624cb3261f36fe212b96f433c4",
+    "probeOutputSha256": "a5df8123b2fb77889fceddce7ca22c289c5b86b0c40f1a696b63288ee82da286",
+    "adapterObjectSha256": "6754e48f9404f496254980b537973156bdf29f7d2ff5d4b41f32a75f0dbd324e"
+  },
+  "bindings": {
+    "src/libdxfrw.h": "d8e1c0a2cfc5dfb2e5a893f94fb4c3dab06ce36e24169f48661dfb001851a295",
+    "src/libdxfrw.cpp": "cbac394e5bea2288cef4472c359139b935830c770cd62d10d2e2aff530bb9705",
+    "dwg2dxf/dx_data.h": "4b168d013625e9f80e919032656b610a3c3ce55a835a5f8723e9045ff5a5419d",
+    "dwg2dxf/dx_iface.cpp": "1d99f81e853e6ea8cb03ad35cf9ec8c7f5ca223e24863bef0d2a69b9519dfc89",
+    "tests/identity_source_controls.h": "f3f9b61b0451872414fe2e5191915523f8d66d1fe1a6325e46a3e42ea673d273",
+    "tests/legacy_identity_controls.h": "a37d9700539fa45e15adc216c5f3f37537d148ee73214aed691092e693ae7234",
+    "tests/identity_delivery_ledger_controls.h": "9625c5cd14ea8d41d2c7b26a6414100f4d4581064ffd7e42ee854eea941fabcc",
+    "tests/table_content_dxf_tests.cpp": "b6e65aa850d1a2d78ed526cc12e52fd1db9aeeda233491dbff4673f2ffc1e492"
+  },
+  "limits": [
+    "Default consumers do not opt into this ledger. The public dxfRW class and adapter data layouts change; dependent binaries require rebuilding. No DRW_Interface virtual was added.",
+    "Authenticated delivery does not establish selected-handle uniqueness, valid target types, owner roles, original compound closure, output equivalence or native semantics. The 17-digit alias remains an explicit future uniqueness case.",
+    "Per-call quota limits are logical bounds rather than allocator RSS measurements. Full-suite, native-platform and ABI qualifications remain open.",
+    "No external or generated drawing fixtures were committed."
+  ]
+}
