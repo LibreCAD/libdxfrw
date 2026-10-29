@@ -63,7 +63,7 @@ external searches or a broad audit with no current failing witness.
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected source-scope join for ATTDEF 6F8 and BLOCK_RECORD 6F2; ATTRIB 705 remains separate | Bind remaining BLOCK_RECORD targets, ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused linetype edit, both-field edit on one survivor, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused both-field edit on one survivor, dense-budget case, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -124,21 +124,25 @@ proof. Refused fields are not implemented editing support.
    [bounded unused-style tail removal](docs/research/rpp5ib-mline-unused-tail-removal-2026-10-28.json),
    [bounded unique-subsequence removal](docs/research/rpp5id-mline-unique-subsequence-removal-2026-10-28.json),
    [removal with retained-element ACI edits](docs/research/rpp5iy-mline-removal-aci-2026-10-28.json),
-   and [removal with retained-element offset edits](docs/research/rpp5iz-mline-removal-offset-2026-10-28.json)
+   [removal with retained-element offset edits](docs/research/rpp5iz-mline-removal-offset-2026-10-28.json),
+   and [removal with retained-element LTYPE edits](docs/research/rpp5jb-mline-removal-ltype-2026-10-28.json)
    receipts and their original/live ordinary MLINE census. The selected route
    admits a nonempty ordered survivor subsequence from a qualified unused modern
-   style. ACI and offset edits can compose on different survivors when the union
-   of unchanged-offset and unchanged-ACI anchors yields exactly one original per
-   survivor. This tightens the earlier ACI-only route: A=(1,1), B=(2,2), and
-   survivor=(1,2) are now refused as ambiguous, although the unchanged-offset
-   anchor alone previously admitted the edit. Full-tuple exact matching remains
-   unchanged. The route preserves source tuple provenance and provider evidence
-   and leaves the destination and caller state unchanged on refusal. Comparison
-   scans precharge string-sensitive work; typed copies retain their separate
-   byte bound rather than a total CPU or RSS limit. Both-field edits on one
-   survivor without an independent anchor, linetype edits, 1→0, consumed
-   geometry, earlier versions, proxy or unknown dependencies and native
-   interpretation remain unqualified. Continue to refuse unsupported operations.
+   style. ACI, offset and LTYPE edits can compose on different survivors when
+   the union of unchanged pairs of those fields identifies exactly one original
+   per survivor. This further tightens earlier edits: A=(1,1,ByLayer),
+   B=(1,2,EditDash), survivor=(1,1,EditDash) is now refused because different
+   original tuples satisfy different pair anchors. Full-tuple exact matching
+   remains unchanged. The route preserves source tuple provenance, original and
+   output provider evidence, and destination/caller state on refusal. Comparison
+   and name-validation scans precharge string-sensitive work; encoded-name
+   copies have conservative checked byte charges rather than a total RSS bound.
+   A dense 255→254 edit of every survivor LTYPE refuses at the retained-byte
+   cap; 255→1 passes. A selected escaped provider requires RequireLossless
+   target output after Compatible output refuses. Other both-field edits without
+   a unique pair, 1→0, consumed geometry, earlier versions, unknown/proxy
+   dependencies, native interpretation and unrestricted dense edits remain
+   unqualified. Continue to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;

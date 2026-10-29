@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 unused MLINESTYLE removal with selected survivor LTYPE edit",
+  "date": "2026-10-28",
+  "codeCommit": "fc4805d80dcdbb4dcb2e06e05c784da38ffb37e8",
+  "scope": "Selected same-version AC1027 DXF, 2\u2013255 contiguous 49/62/6 tuples, rooted dictionary, original and output LTYPE provider proofs and an original/live/output ordinary-MLINE census. The edited definition is unused. ASCII/binary input and output are tested.",
+  "contract": {
+    "operation": "Remove elements while retaining a nonempty ordered survivor list and changing survivor LTYPE names. Different survivors can separately change offset, ACI or LTYPE when each has exactly one source candidate across the union of matching pairs of those three fields and all noneditable fields agree. The existing exact full-tuple subsequence remains the first path.",
+    "providerRoles": "The provider proof requires every original name, including removed and original-survivor names, and every output name. Tests independently invalidate original-survivor, removed-only and new-provider origin evidence, as well as mutating each provider at four callback phases; refusal preserves output and corrected same-adapter retry succeeds.",
+    "ambiguityRestriction": "No edit-history identity is inferred. The union must identify exactly one original per survivor, in order. This tightens earlier ACI/offset admission when an LTYPE-change anchor identifies another original: for A=(offset 1, ACI 1, ByLayer), B=(offset 1, ACI 2, EditDash), survivor=(offset 1, ACI 1, EditDash), the previous offset+LTYPE anchor could identify B, but the new offset+ACI anchor identifies A, so the edit is now refused. Other pairwise collisions are tested; full-tuple exact matching remains unchanged.",
+    "encodingAndBudgets": "Source-name comparison and requested-name validation are separately precharged with the byte-sensitive work helper, staged so failure leaves the prior work count unchanged. For admitted modern UTF-8 DXF, the encoder is identity for ordinary UTF-8 scalars, escapes ASCII controls to at most two bytes and may quote a backslash as seven bytes; a checked seven-byte-per-semantic-byte bound is charged for eight logical encoding/field/raw-spelling/projection/decode staging units, plus terminators and conservative variant/string overhead. These are logical charges, not an exact count of simultaneously live allocator capacity, total RSS or CPU. Existing typed/model copy paths retain separate byte bounds.",
+    "budgetLimit": "The selected 255\u2192254 case changing all surviving LTYPE names refuses atomically at the conservative retained-byte cap; source state and destination remain unchanged and a 255\u21921 corrected retry succeeds. The 255\u21921 case passes for all four encoding combinations. This does not qualify unrestricted dense edits.",
+    "escapedText": "For a qualified 3,000-byte provider name of repeated literal \\U+, the strict spelling is 9,000 bytes. Compatible target output fails in TABLES on this profile and preserves the destination and caller state; same-adapter retry with RequireLossless target text passes for all four source/target encoding combinations. This does not qualify general Compatible output or native symbol-name acceptance.",
+    "unqualified": "1\u21920, same-survivor changes without a uniquely matching pair anchor, consumed-style geometry, unknown/proxy dependencies, earlier versions, unrestricted retained-byte/work bounds, native rendering and whole-document semantics remain open."
+  },
+  "sourceBindings": {
+    "adapterCppSha256": "4da9f39e1c3fa6dad77f8234b2e5d18dc6174e5ef47548e4b11359b762fd1f6b",
+    "testSourceSha256": "ce469520f69e6d387b0be036be42b225142c3f3fd8e79b641f7d19b2b6bd2659",
+    "normalAdapterObjectSha256": "3b2b5933a52231a626039198c45432a46f3a779800d5916ca87b9e5c825d454b",
+    "normalTestExecutableSha256": "f0989e870e67142b7f3cd0835e8b375848d76e949a98fdcd6dd969d40476e3d6",
+    "normalLibrarySha256": "3e771b88b7069039c9c75013cf25710f50570c53e7950ae45317ecde4dc1b67f",
+    "asanAdapterObjectSha256": "e06ab1607ab0c411bae1ff0bb44a742ffad440d6151b384e1875223b7b8aebb4",
+    "asanTestExecutableSha256": "cfd03230112392a1e0ce95ad9fa93c6bda06d35d14ea082054db35226c49af98",
+    "asanLibrarySha256": "01130f377d4b1aa36f9d9c2c2b239758d5fe1ea3eb0b62b1c285c858117f9bd7"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "newControls": {
+      "profiles": 12,
+      "mixedCompositions": 4,
+      "refusals": 30,
+      "providerOriginRefusals": 6,
+      "lateSurvivorMutations": 8,
+      "lateProviderMutations": 24,
+      "crossProfileAmbiguities": 6,
+      "correctedRetries": 76,
+      "255ElementBoundaries": 8,
+      "denseBudgetRefusals": 4,
+      "escapedStrictNames": 4,
+      "escapedCompatibleRefusals": 4
+    },
+    "workQuotaControls": "The production work helper is tested for the combined original/requested-name passes at exact and one-below limits with long names; existing helper tests cover overflow and accumulated work. No configurable end-to-end retained-byte threshold is claimed.",
+    "logNote": "Results observed directly; concurrent CTest runs may overwrite LastTest.log."
+  },
+  "independentPeer": {
+    "program": "ezdxf 1.4.5",
+    "normalWitness": {
+      "sourceSha256": "7585e5f21620b018d399b71b94c4a532ba50902a980403dc7716a1f6bc42fe77",
+      "probeSourceSha256": "53e6b8ae4149878894c2599452e8dd612eaaeaf786eea5d5e0a823de9783676a",
+      "probeExecutableSha256": "b4d71ba6b67a14852f1b37ebc43de1b1ba4a3d56ca43de05b1403795706d8213",
+      "outputAsciiSha256": "39939d78031d72d12c45b815e848a8a16505fcf99ce1cd726de9383678eb58cc",
+      "outputBinarySha256": "767388c356d23d28e625de747a2acfb0b8362cd1c97bf8b0bca37331598a43ed",
+      "physicalReadbackReportSha256": "1f778449fa6126f5857b312666d5ba8f642a7a8e386319ad6304822a89ab34f8",
+      "physicalReadbackScriptSha256": "faf9bc46b31f31feff04809283805f6497974f948e87b6719f063d338587c9b0",
+      "auditReportSha256": "c5f39fd0eca21a79c4dcd792beb4c96ec5e2716adf96fabb57810abdeeb23522",
+      "auditScriptSha256": "bf77c6e3c9ad6b7605f87892d7ee2c8c349308b54c785f35302833d7664d656f",
+      "result": "The locally authored source and both actual outputs pass independent physical projection, ordinary reading and audit with zero errors/fixes. Original/final providers, dictionary association and untouched ENTITIES/BLOCKS consumer geometry are checked."
+    },
+    "escapedWitness": {
+      "evidenceExecutableSha256": "32d8f647347eb4c07ff76521c0bd230c4121d311d79b3ea2d79a54233934fcd2",
+      "physicalReadbackReportSha256": "1c3944f0b7b952dd15947ed0693b65cd6f02b83f891b0b787f08263280754184",
+      "physicalReadbackScriptSha256": "4db157a68fbfecfd9888db457a03ff094eb21be9f0720834527f14825fa977ba",
+      "result": "Physical source/output provider and style spellings, associations and untouched consumer geometry match across four encoding combinations. Default extrusion is normalized to (0,0,1). Ordinary ezdxf reading exposes the encoded spelling, so the report applies one explicit independent decode; it does not claim automatic semantic decoding or native interpretation."
+    }
+  },
+  "claimsPromoted": false,
+  "fixtures": "All generated drawings and probe artifacts remain in ignored scratch; no external fixture was committed."
+}
