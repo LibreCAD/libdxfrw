@@ -146,7 +146,7 @@ bool originalCommon(const DRW_Material& value) {
         && *value.extData[1]->content.s == "original-xdata";
 }
 
-bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3) {
+bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4) {
     const auto* m = target(data);
     return m && m->m_hasDiffuseMapBlendFactor && m->m_hasDiffuseMapSource
         && m->m_hasDiffuseMapFileName && m->m_hasDiffuseMapProjection
@@ -161,13 +161,13 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int no
         && m->m_normalMapBlendFactor == normalBlend && m->m_normalMapSource == 1
         && m->m_normalMapFileName == "normal-sentinel.png"
         && m->m_normalMapProjection == normalProjection && m->m_normalMapTiling == normalTiling
-        && m->m_normalMapAutoTransform == 4
+        && m->m_normalMapAutoTransform == normalAuto
         && m->m_hasNormalMapStrength == boundary
         && (!boundary || m->m_normalMapStrength == 0.625);
 }
 
 bool physical(const std::filesystem::path& path, bool binary, bool boundary,
-              bool duplicateNormalBlend = false, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3) {
+              bool duplicateNormalBlend = false, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
     if (binary) stream.seekg(22);
@@ -211,7 +211,7 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
         && files == std::vector<std::string>{"diffuse-sentinel.png", "normal-sentinel.png"}
         && projections == std::vector<int>{2, normalProjection}
         && tilings == std::vector<int>{2, normalTiling}
-        && transforms == std::vector<int>{2, 4}
+        && transforms == std::vector<int>{2, normalAuto}
         && strengths == (boundary ? 1u : 0u);
 }
 
@@ -242,11 +242,12 @@ bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
 }
 
 struct LateMaterialEdit final : dx_iface {
-    bool active = true, hit = false, projection = false, tiling = false; unsigned phase = 0;
+    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false; unsigned phase = 0;
     void mutate() {
         if (!active || !cData) return;
         for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
-            if (projection) material.m_normalMapProjection = 2;
+            if (autoTransform) material.m_normalMapAutoTransform = 3;
+            else if (projection) material.m_normalMapProjection = 2;
             else if (tiling) material.m_normalMapTiling = 2;
             else material.m_normalMapBlendFactor = 0.9375;
             hit = true;
@@ -369,6 +370,95 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapBlendFactor = 0.75; selected->m_normalMapProjection = 4; selected->m_normalMapTiling = 3;
             if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                 || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+        }
+        // Unmarked normal mapper 75 is source-bound after the second 42.
+        // The 0x07 mask is the existing writer admission policy, not native
+        // interpretation of the normal map's bit meanings.
+        for (bool outputBinary : {false, true}) for (int requested = 0; requested != 8; ++requested) {
+            if (requested == 4) continue;
+            if (!author(input, sourceBinary, false, false)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected) return false;
+            selected->m_normalMapAutoTransform = static_cast<std::uint8_t>(requested);
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !physical(output, outputBinary, false, false, .75, 4, 3, requested)
+                || !typed(source, false, .75, 4, 3, requested)) return false;
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !typed(readback, false, .75, 4, 3, requested)) return false;
+        }
+        for (bool outputBinary : {false, true}) {
+            if (!author(input, sourceBinary, false, false, false, false, 0, 0, 4, true)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected || !originalCommon(*selected)) return false;
+            selected->m_normalMapAutoTransform = 1; selected->m_normalMapBlendFactor = .875;
+            selected->m_normalMapProjection = 1; selected->m_normalMapTiling = 1;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !originalCommon(*selected) || !physical(output, outputBinary, false, false, .875, 1, 1, 1)
+                || !typed(source, false, .875, 1, 1, 1)) return false;
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !typed(readback, false, .875, 1, 1, 1) || !originalCommon(*target(readback))) return false;
+        }
+        for (bool outputBinary : {false, true}) for (unsigned fault = 0; fault != 5; ++fault) {
+            if (!author(input, sourceBinary, false, false)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected) return false;
+            auto& raw = source.rawMaterialObjects.front(); const auto originalRaw = raw;
+            selected->m_normalMapAutoTransform = 1;
+            if (fault == 0) selected->m_normalMapAutoTransform = 8;
+            if (fault == 1) selected->m_normalMapAutoTransform = 255;
+            if (fault == 2) selected->m_diffuseMapAutoTransform = 3;
+            if (fault == 3) selected->m_hasNormalMapAutoTransform = false;
+            if (fault == 4) {
+                unsigned count=0;
+                for (std::size_t i=0; i<raw.groups.size(); ++i) if (raw.groups[i].code()==75 && ++count==2) {
+                    raw.groups[i]=DRW_Variant(75,static_cast<std::int32_t>(3));
+                    if(raw.hasRawValues)raw.rawValues.at(i)="3";
+                }
+                if(count!=2) return false;
+            }
+            const auto failedAuto=selected->m_normalMapAutoTransform;
+            const auto failedDiffuse=selected->m_diffuseMapAutoTransform;
+            const auto failedPresent=selected->m_hasNormalMapAutoTransform;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)) return false;
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+            if (savedBytes != "keep destination" || selected->m_normalMapAutoTransform != failedAuto
+                || selected->m_diffuseMapAutoTransform != failedDiffuse || selected->m_hasNormalMapAutoTransform != failedPresent) return false;
+            raw=originalRaw; selected->m_normalMapAutoTransform=1;
+            selected->m_diffuseMapAutoTransform=2; selected->m_hasNormalMapAutoTransform=true;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
+                || !physical(output, outputBinary, false, false, .75, 4, 3, 1)
+                || !typed(source, false, .75, 4, 3, 1)) return false;
+        }
+        for (unsigned phase=0; phase!=3; ++phase) {
+            if (!author(input, sourceBinary, false, false)) return false;
+            dx_data source; LateMaterialEdit adapter; adapter.phase=phase; adapter.autoTransform=true;
+            if (!adapter.fileImport(input.string(), &source, false) || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials) if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected) return false;
+            selected->m_normalMapAutoTransform=1;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc); sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true) || !adapter.hit) return false;
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {}); saved.close();
+            if (savedBytes != "keep destination") return false;
+            adapter.active=false; selected->m_normalMapAutoTransform=1;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, sourceBinary, &source, false, true)
+                || !physical(output, sourceBinary, false, false, .75, 4, 3, 1)
+                || !typed(source, false, .75, 4, 3, 1)) return false;
         }
         // All nonempty subsets compose against the same immutable source;
         // the diffuse tuple remains unchanged in the physical output.

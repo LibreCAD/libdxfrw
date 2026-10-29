@@ -199,7 +199,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // complete diffuse tuple and refraction prefix make the second group 42
     // unambiguous. The general canonical writer deliberately does not emit
     // markerless normal maps. For this captured, unchanged source only, allow
-    // composed typed edits of its blend, projection and tiling without
+    // composed typed edits of its blend, projection, tiling and auto transform without
     // synthesizing a marker or opening the general writer grammar.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
@@ -209,19 +209,22 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const bool blendEdit=!dxfMaterial::sameValue(original.m_normalMapBlendFactor,typed.m_normalMapBlendFactor);
         const bool projectionEdit=original.m_normalMapProjection!=typed.m_normalMapProjection;
         const bool tilingEdit=original.m_normalMapTiling!=typed.m_normalMapTiling;
+        const bool autoEdit=original.m_normalMapAutoTransform!=typed.m_normalMapAutoTransform;
         DRW_Material desired=original;
         if(blendEdit)desired.m_normalMapBlendFactor=typed.m_normalMapBlendFactor;
         if(projectionEdit)desired.m_normalMapProjection=typed.m_normalMapProjection;
         if(tilingEdit)desired.m_normalMapTiling=typed.m_normalMapTiling;
-        if(!(blendEdit||projectionEdit||tilingEdit)
+        if(autoEdit)desired.m_normalMapAutoTransform=typed.m_normalMapAutoTransform;
+        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit)
             || (projectionEdit&&(typed.m_normalMapProjection<1u||typed.m_normalMapProjection>4u))
-            || (tilingEdit&&(typed.m_normalMapTiling<1u||typed.m_normalMapTiling>3u)))
+            || (tilingEdit&&(typed.m_normalMapTiling<1u||typed.m_normalMapTiling>3u))
+            || (autoEdit&&(typed.m_normalMapAutoTransform & ~7u)))
             return false;
         if(dxfMaterial::sameState(desired,typed)) {
             bool body=false,xdata=false,ok=true;unsigned depth=0u,markers=0u;
             std::array<std::size_t,2> blends{};std::size_t count=0u;
-            std::array<std::array<std::size_t,2>,2> maps{};
-            std::array<std::size_t,2> mapCount{};
+            std::array<std::array<std::size_t,2>,3> maps{};
+            std::array<std::size_t,3> mapCount{};
             for(std::size_t i=0u;i<raw.groups.size()&&ok;++i) {
                 const auto& field=raw.groups[i];const int code=field.code();
                 if(code==102) {
@@ -250,8 +253,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 if(code==464||code==465||code==300||code==291||code==301
                     ||code==469||code==292||code==62||code==420||code==430){ok=false;break;}
                 if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
-                if((projectionEdit&&code==73)||(tilingEdit&&code==74)) {
-                    const std::size_t role=code==73?0u:1u;
+                if((projectionEdit&&code==73)||(tilingEdit&&code==74)||(autoEdit&&code==75)) {
+                    const std::size_t role=code==73?0u:code==74?1u:2u;
                     if(mapCount[role]==maps[role].size()||field.type()!=DRW_Variant::INTEGER){ok=false;break;}
                     maps[role][mapCount[role]++]=i;
                 }
@@ -264,7 +267,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 &&dxfMaterial::sameValue(raw.groups[blends[0]].d_val(),original.m_diffuseMapBlendFactor)
                 &&dxfMaterial::sameValue(raw.groups[blends[1]].d_val(),original.m_normalMapBlendFactor)
                 &&bound(0u,projectionEdit,original.m_hasDiffuseMapProjection,original.m_diffuseMapProjection,original.m_normalMapProjection)
-                &&bound(1u,tilingEdit,original.m_hasDiffuseMapTiling,original.m_diffuseMapTiling,original.m_normalMapTiling)) {
+                &&bound(1u,tilingEdit,original.m_hasDiffuseMapTiling,original.m_diffuseMapTiling,original.m_normalMapTiling)
+                &&bound(2u,autoEdit,original.m_hasDiffuseMapAutoTransform,original.m_diffuseMapAutoTransform,original.m_normalMapAutoTransform)) {
                 output=raw;
                 const auto replace=[&](std::size_t index,DRW_Variant field) {
                     output.groups[index]=std::move(field);
@@ -277,7 +281,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 };
                 if((blendEdit&&!replace(blends[1],DRW_Variant(42,typed.m_normalMapBlendFactor)))
                     ||(projectionEdit&&!replace(maps[0][1],DRW_Variant(73,static_cast<std::int32_t>(typed.m_normalMapProjection))))
-                    ||(tilingEdit&&!replace(maps[1][1],DRW_Variant(74,static_cast<std::int32_t>(typed.m_normalMapTiling))))) return false;
+                    ||(tilingEdit&&!replace(maps[1][1],DRW_Variant(74,static_cast<std::int32_t>(typed.m_normalMapTiling))))
+                    ||(autoEdit&&!replace(maps[2][1],DRW_Variant(75,static_cast<std::int32_t>(typed.m_normalMapAutoTransform))))) return false;
                 if(binary){output.hasRawValues=false;output.rawValues.clear();}
                 DRW_Material actual;
                 if(!decode(output,actual,binary)||!dxfMaterial::sameState(actual,desired))return false;
