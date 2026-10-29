@@ -22054,7 +22054,7 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
                 || field->content.s->find('\0')!=std::string::npos
                 || (application && (depth!=0u || !hasPayload))) return false;
             appIdNames.emplace_back(*field->content.s);
-            if (appIdNames.size()>8u) return false;
+            if (appIdNames.size()>kMaxAdapterBasicTableItems) return false;
             application=true;hasPayload=false;continue;
         }
         if (!application) return false;
@@ -22812,17 +22812,19 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                 std::vector<const DRW_Entity*> entityModels;
                                 std::vector<std::uint32_t> entityOwners;
                                 if (!appIdNames.empty()) {
-                                    if (appIdNames.size()>8u || !visit(appIdNames.size())
+                                    if (appIdNames.size()>kMaxAdapterBasicTableItems
+                                        || !visit(appIdNames.size())
                                         || !chargeNamedResourceBytes(bytes,
                                             appIdNames.size()*(sizeof(std::uint32_t)
                                                 +sizeof(std::string_view)+512u)))
                                         return false;
-                                    std::array<std::size_t,8> referenceSlots{};
+                                    std::vector<std::size_t> referenceSlots(
+                                        appIdNames.size());
                                     std::size_t referenceCount=0u;
                                     for (const auto& reference:r.references) {
                                         if (reference.kind!=dx_tableResourceRole::AppIdName
                                             || reference.code!=1001) continue;
-                                        if (referenceCount==referenceSlots.size()) {
+                                        if (referenceCount>=referenceSlots.size()) {
                                             model=nullptr;break;
                                         }
                                         referenceSlots[referenceCount++]=reference.groupIndex;
@@ -23057,7 +23059,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
         std::map<std::uint32_t,DxfMLineXdataLineSource> entityOrigins;
         std::size_t entityOriginWork=0u,entityOriginBytes=0u;
         for (const auto& row:m_dxfMLineLinetypes) {
-            if (row.second.appIdHandles.size()>8u
+            if (row.second.appIdHandles.size()>kMaxAdapterBasicTableItems
                 || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()
                 || row.second.layerHandles.size()>2u
                 || layerReferenceCount>kMaxAdapterBasicTableItems-row.second.layerHandles.size()
@@ -23090,12 +23092,13 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                     || appIdNames.empty()
                     || appIdNames.size()!=row.second.appIdHandles.size()
                     || entityHandles!=row.second.xdataEntityHandles) return false;
-                std::array<std::string,8> appKeys{};
+                std::set<std::string> appKeys;
                 for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
-                    if (!dx_symbol_output::nameKey(appIdNames[i],appKeys[i])
-                        || (i!=0u && appKeys[i]==appKeys[0])) return false;
+                    std::string appKey;
+                    if (!dx_symbol_output::nameKey(appIdNames[i],appKey)
+                        || !appKeys.insert(appKey).second) return false;
                     const auto appName=cData->m_tableDxfSource.resourceNames.find(
-                        {dx_tableResourceFamily::AppId,appKeys[i]});
+                        {dx_tableResourceFamily::AppId,appKey});
                     if (appName==cData->m_tableDxfSource.resourceNames.end()
                         || appName->second!=row.second.appIdHandles[i]) return false;
                     referencedAppIds.push_back(row.second.appIdHandles[i]);

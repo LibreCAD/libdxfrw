@@ -30909,7 +30909,14 @@ bool providerProof(const std::filesystem::path& path,bool binary,const std::stri
     const auto nums=[&](int code,const std::vector<double>& wanted){const auto actual=fields(*selected,code);
         if(actual.size()!=wanted.size())return false;for(std::size_t i=0u;i<wanted.size();++i)if(std::stod(actual[i])!=wanted[i])return false;return true;};
     if(owners!=1u||!nums(70,{double(flags)})||!nums(72,{65})||!nums(73,{2})||!nums(40,{1.5})||!nums(49,{1,-.5})||!nums(74,{0,0}))return false;
-    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false))return false;unsigned matches=0u;
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)) {
+        if(actual.dxfReadOutcome.diagnosticAvailable)
+            std::cerr<<"provider proof readback failed: "
+                     <<actual.dxfReadOutcome.diagnostic.code<<" / "
+                     <<actual.dxfReadOutcome.diagnostic.message<<'\n';
+        return false;
+    }
+    unsigned matches=0u;
     for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
         if(value.flags!=flags||value.desc!=description||value.alignment!=65||value.size!=2||value.length!=1.5
             ||value.path!=std::vector<double>{1,-.5}||value.segments.size()!=2u)return false;++matches;
@@ -31549,6 +31556,87 @@ Tags sourceWithEightPairs(bool binary) {
     return fields;
 }
 
+std::pair<std::string,std::string> indexedAppIdPair(std::size_t index) {
+    switch(index) {
+    case 1u:return {appName,payload};
+    case 2u:return {secondAppName,secondPayload};
+    case 3u:return {thirdAppName,thirdPayload};
+    case 4u:return {fourthAppName,fourthPayload};
+    case 5u:return {fifthAppName,fifthPayload};
+    case 6u:return {sixthAppName,sixthPayload};
+    case 7u:return {seventhAppName,seventhPayload};
+    case 8u:return {eighthAppName,eighthPayload};
+    default:
+        return {"MLINE_LTYPE_XDATA_"+std::to_string(index),
+            "provider-"+std::to_string(index)+"-owned-xdata"};
+    }
+}
+
+std::uint32_t indexedAppIdHandle(std::size_t index) {
+    if(index==0u)throw std::runtime_error("APPID provider index must be nonzero");
+    return index<=8u
+        ? static_cast<std::uint32_t>(0x1F0u+index)
+        : static_cast<std::uint32_t>(0xD101u+index-8u);
+}
+
+std::vector<std::pair<std::string,std::string>> indexedAppIdPairs(
+        std::size_t count) {
+    std::vector<std::pair<std::string,std::string>> result;
+    result.reserve(count);
+    for(std::size_t index=1u;index<=count;++index)
+        result.push_back(indexedAppIdPair(index));
+    return result;
+}
+
+Tags sourceWithManyPairs(bool binary,std::size_t count) {
+    if(count<8u||count>64u)
+        throw std::runtime_error("many-pair LTYPE APPID count outside test generator range");
+    auto fields=sourceWithEightPairs(binary);
+    for(std::size_t index=9u;index<=count;++index) {
+        std::size_t appTable=fields.size(),appEnd=fields.size();
+        std::string tableHandle;bool tableCount=false;
+        for(std::size_t i=0u;i+1u<fields.size();++i) {
+            if(fields[i]!=std::make_pair(0,std::string("TABLE"))
+                ||fields[i+1u]!=std::make_pair(2,std::string("APPID")))continue;
+            appTable=i;bool header=true;
+            for(std::size_t j=i+2u;j<fields.size();++j) {
+                if(fields[j].first==0) {
+                    if(fields[j]==std::make_pair(0,std::string("ENDTAB"))) {
+                        appEnd=j;break;
+                    }
+                    header=false;continue;
+                }
+                if(header&&fields[j].first==5)tableHandle=fields[j].second;
+                if(header&&fields[j].first==70) {
+                    fields[j].second=std::to_string(std::stoi(fields[j].second)+1);
+                    tableCount=true;
+                }
+            }
+            break;
+        }
+        if(appTable==fields.size()||appEnd==fields.size()||tableHandle.empty()
+            ||!tableCount)
+            throw std::runtime_error("many-pair LTYPE APPID table missing");
+        const auto provider=indexedAppIdPair(index);
+        std::ostringstream handle;
+        handle<<std::uppercase<<std::hex<<indexedAppIdHandle(index);
+        const Tags record{{0,"APPID"},{5,handle.str()},{330,tableHandle},
+            {100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},
+            {2,provider.first},{70,"0"}};
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(appEnd),
+            record.begin(),record.end());
+        const auto previous=indexedAppIdPair(index-1u);
+        const Tags previousPair{{1001,previous.first},{1000,previous.second}};
+        const auto pair=std::search(fields.begin(),fields.end(),
+            previousPair.begin(),previousPair.end());
+        if(pair==fields.end())
+            throw std::runtime_error("previous LTYPE APPID XDATA pair missing");
+        const auto after=pair+static_cast<std::ptrdiff_t>(previousPair.size());
+        fields.insert(after,{{1001,provider.first},{1000,provider.second}});
+    }
+    return fields;
+}
+
 Tags sourceWithNestedXdata(bool binary) {
     auto fields=source(binary);
     const Tags ordinary{{1001,appName},{1000,payload}};
@@ -31960,7 +32048,7 @@ bool pairProviderProof(const std::filesystem::path& path,bool binary,
                        const std::vector<std::pair<std::string,std::string>>& expected,
                        const std::string& appOwner="9") {
     if(!providerProof(path,binary))return false;
-    if(expected.size()<2u||expected.size()>8u)return false;
+    if(expected.size()<2u)return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
     std::vector<const mlineStyleAuthorityControls::Row*> providers(
@@ -32413,6 +32501,21 @@ struct LateEighthAppIdMutation:dx_iface {
     }
 };
 
+struct LateNamedAppIdMutation:dx_iface {
+    explicit LateNamedAppIdMutation(std::string targetName)
+        : target(std::move(targetName)) {}
+    std::string target;
+    bool armed{true},mutated{false};
+    void writeAppId()override {
+        dx_iface::writeAppId();
+        if(!armed||!cData)return;
+        for(auto& app:cData->appIds)if(app.name==target) {
+            app.name="MUTATED_HIGH_CARDINALITY_LTYPE_APPID";
+            mutated=true;break;
+        }
+    }
+};
+
 struct LateXdataLineMutation:dx_iface {
     bool armed{true},mutated{false};
     std::uint32_t sourceHandle{static_cast<std::uint32_t>(
@@ -32796,6 +32899,73 @@ bool runTemporary() {
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
                                false,true)
             ||!eightPairProviderProof(output,outputBinary)||!bound())return false;
+        ++retries;++readbacks;
+    }
+    constexpr std::size_t manyProviderCount=16u;
+    const auto manyProviders=indexedAppIdPairs(manyProviderCount);
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithManyPairs(sourceBinary,manyProviderCount),
+                  sourceBinary,"AC1027")) {
+            std::cerr<<"16-provider source generation failed\n";return false;
+        }
+        if(!pairProviderProof(input,sourceBinary,manyProviders,"1F0")) {
+            std::cerr<<"16-provider source proof failed: "<<sourceBinary<<'\n';return false;
+        }
+        if(!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"16-provider source import failed: "<<sourceBinary<<'\n';return false;
+        }
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        const auto providerCount=std::count_if(data.appIds.begin(),data.appIds.end(),
+            [&](const auto& value) {
+                for(std::size_t i=1u;i<=manyProviderCount;++i) {
+                    const auto provider=indexedAppIdPair(i);
+                    if(value.name==provider.first
+                        &&value.handle==indexedAppIdHandle(i))return true;
+                }
+                return false;
+            });
+        if(sourceLine==data.lineTypes.end()
+            ||sourceLine->extData.size()!=manyProviderCount*2u
+            ||providerCount!=manyProviderCount)return false;
+        const auto bound=[&]() {
+            if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                    adapter,0x103u))return false;
+            for(std::size_t i=1u;i<=manyProviderCount;++i)
+                if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                        adapter,indexedAppIdHandle(i)))return false;
+            return true;
+        };
+        const auto savedAppIds=data.appIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)) {
+            std::cerr<<"16-provider export failed: "<<sourceBinary<<' '
+                     <<outputBinary<<'\n';return false;
+        }
+        if(!pairProviderProof(output,outputBinary,manyProviders)) {
+            std::cerr<<"16-provider output proof failed: "<<sourceBinary<<' '
+                     <<outputBinary<<'\n';return false;
+        }
+        if(!bound()) {
+            std::cerr<<"16-provider source binding lost after export: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        const auto lastHandle=indexedAppIdHandle(manyProviderCount);
+        data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),
+            [&](const auto& value){return value.handle==lastHandle;}),
+            data.appIds.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                              false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;data.appIds=savedAppIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)
+            ||!pairProviderProof(output,outputBinary,manyProviders)||!bound())
+            return false;
         ++retries;++readbacks;
     }
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
@@ -33308,6 +33478,32 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
+        const auto manyProviders=indexedAppIdPairs(manyProviderCount);
+        LateNamedAppIdMutation adapter(manyProviders.back().first);
+        dx_data data;
+        if(!write(input,sourceWithManyPairs(false,manyProviderCount),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;
+        for(auto& app:data.appIds)
+            if(app.name=="MUTATED_HIGH_CARDINALITY_LTYPE_APPID") {
+                app.name=manyProviders.back().first;break;
+            }
+        adapter.armed=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!pairProviderProof(output,false,manyProviders)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u))return false;
+        for(std::size_t i=1u;i<=manyProviderCount;++i)
+            if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                    adapter,indexedAppIdHandle(i)))return false;
+        ++retries;++readbacks;
+    }
+    {
         LateAppIdMutation adapter;dx_data data;
         if(!write(input,sourceWithNestedXdata(false),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return false;
@@ -33686,7 +33882,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==80u&&readbacks==174u&&refusals==95u&&retries==94u;
+    return profiles==84u&&readbacks==183u&&refusals==100u&&retries==99u;
 }
 }
 
