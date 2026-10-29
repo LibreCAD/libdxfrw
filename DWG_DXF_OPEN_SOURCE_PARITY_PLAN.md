@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | The selected source-only grammar refuses the hidden-340 witness; root and child ACAD_MLINESTYLE DICTIONARY and selected AC1027 ASCII/binary MLINESTYLE bodies have bounded source/live proofs. The selected AC1027 guard on the AC1021+ code path rejects deleted/moved original consumers of geometry-changed styles while preserving the no-opaque-reference unused-style route. Geometry edits require the codec no-raw receipt. For the selected opt-in profile, modern geometry edits also run the LAYER source/live guard at preflight and recheck it at finalization; authored hidden-340 and late-mutation controls refuse atomically. Remaining carriers, staged-output authentication, consumed geometry, count/legacy/retarget operations, broader LTYPE profiles and MLEADERSTYLE remain open | Bind remaining carriers/consumers through actual emitted output and geometry; independent ready slices can proceed |
+| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | The selected source-only grammar refuses the hidden-340 witness; root and child ACAD_MLINESTYLE DICTIONARY and selected AC1027 ASCII/binary MLINESTYLE bodies have bounded source/live proofs. The selected AC1027 guard on the AC1021+ code path rejects deleted/moved original consumers of geometry-changed styles while preserving the no-opaque-reference unused-style route. Geometry edits require the codec no-raw receipt. For the selected opt-in profile, modern geometry edits run LAYER plus root/child dictionary source/live guards at preflight and recheck them at finalization; hidden-carrier and late-mutation controls refuse atomically. Remaining carriers, staged-output authentication, consumed geometry, count/legacy/retarget operations, broader LTYPE profiles and MLEADERSTYLE remain open | Bind remaining carriers/consumers through actual emitted output and geometry; independent ready slices can proceed |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,7 +61,7 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json); [root DICTIONARY source/live proof](docs/research/rpp5jq-mline-root-dictionary-source-live-2026-10-29.json); [child ACAD_MLINESTYLE DICTIONARY source/live proof](docs/research/rpp5jr-mline-style-dictionary-source-live-2026-10-29.json); [selected MLINESTYLE body source/live proof](docs/research/rpp5js-mline-style-body-source-live-2026-10-29.json); [deleted/moved consumer guard](docs/research/rpp5jt-mline-deleted-consumer-geometry-guard-2026-10-29.json); [no-raw-section replay guard](docs/research/rpp5ju-mline-raw-section-geometry-guard-2026-10-29.json); [selected LAYER carrier geometry guard](docs/research/rpp5jv-mline-layer-carrier-geometry-guard-2026-10-29.json) | Bind remaining graph carriers and consumers, then authenticate actual staged output before considering consumed geometry. The selected source/live checks and codec replay guard do not close dependencies or prove emitted section contents |
+| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json); [root DICTIONARY source/live proof](docs/research/rpp5jq-mline-root-dictionary-source-live-2026-10-29.json); [child ACAD_MLINESTYLE DICTIONARY source/live proof](docs/research/rpp5jr-mline-style-dictionary-source-live-2026-10-29.json); [selected MLINESTYLE body source/live proof](docs/research/rpp5js-mline-style-body-source-live-2026-10-29.json); [deleted/moved consumer guard](docs/research/rpp5jt-mline-deleted-consumer-geometry-guard-2026-10-29.json); [no-raw-section replay guard](docs/research/rpp5ju-mline-raw-section-geometry-guard-2026-10-29.json); [selected LAYER carrier geometry guard](docs/research/rpp5jv-mline-layer-carrier-geometry-guard-2026-10-29.json); [selected dictionary carrier geometry guard](docs/research/rpp5jw-mline-dictionary-carrier-geometry-guard-2026-10-29.json) | Bind remaining graph carriers and consumers, then authenticate actual staged output before considering consumed geometry. The selected source/live checks and codec replay guard do not close dependencies or prove emitted section contents |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
@@ -73,9 +73,10 @@ The selected embedded equal-alignment source/compound profile is qualified withi
 its receipt; independent native meaning remains unqualified. The deleted-consumer bypass is closed for the selected AC1027 ordinary MLINE
 consumers of a style whose geometry changes on the AC1021+ code path, but the
 complete dependency guard, staged output and consumed-geometry proof remain open.
-A selected LAYER source/live check now gates opted-in modern geometry edits and
-is repeated during finalization; this closes only its admitted LAYER profile,
-not the dependency graph or emitted-output proof. Other P2 and P3 operations
+A selected LAYER source/live check and the selected root/child dictionary
+source/live proofs now gate opted-in modern geometry edits and are repeated
+during finalization. These close only their admitted source profiles, not the
+dependency graph or emitted-output proof. Other P2 and P3 operations
 need concrete witnesses;
 secondary `AcDbXrecord` remains a separate source/meaning search. Reuse existing
 source-bound refusals and projections before authoring another source.
@@ -196,9 +197,14 @@ proof. Refused fields are not implemented editing support.
    rejecting changed common/entry fields, hidden parser-private incomplete entry
    state, copied-body mismatch, extra dictionary-list members and insufficient
    logical work in ASCII and binary DXF; restored state succeeds on the same
-   adapter. Both checks remain proof-only and disconnected from export. The child
-   proof covers one dictionary relation, not other graph carriers, and neither
-   closes live consumers, output or geometry.
+   adapter. The [RPP-5jw dictionary-carrier guard](docs/research/rpp5jw-mline-dictionary-carrier-geometry-guard-2026-10-29.json)
+   now calls the child proof (which includes the root proof) at selected modern
+   geometry-edit preflight and repeats it during finalization. It refuses root
+   and child entry drift, including a finalization-time child mutation, in the
+   four ASCII/binary input/output combinations; same-adapter retries and
+   readback preserve the dictionary-to-style links. This gates only the selected
+   root/child dictionary relation; it does not cover other carriers or staged
+   output and does not enable consumed geometry.
 
    The [selected MLINESTYLE body source/live proof](docs/research/rpp5js-mline-style-body-source-live-2026-10-29.json)
    joins the AC1027 ASCII/binary source record and exact raw group sequence to
@@ -215,8 +221,8 @@ proof. Refused fields are not implemented editing support.
      record, field, reference and application-scope role. Preserve refusal for
      unknown/proxy/embedded/XDATA or unqualified dependencies; do not infer a
      complete dependency graph from recognized record names or group `340`.
-   - Extend the selected LAYER geometry guard and the root-DICTIONARY and
-     child-dictionary bindings to every other admitted live graph carrier,
+   - Extend the selected LAYER and root/child dictionary geometry guards to
+     every other admitted live graph carrier,
      starting with the selected MLINESTYLE body and then providers, blocks and
      entities. Check application data, XDATA and unknown metadata, and refuse
      newly added opaque objects or raw sections unless separately qualified.
