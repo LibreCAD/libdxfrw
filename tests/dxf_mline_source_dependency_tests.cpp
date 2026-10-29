@@ -30,6 +30,8 @@ public:
     static bool styleBodies(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineStyleBodiesSourceLiveProof(d,work,used);}
     static bool layers(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLayerSourceLiveProof(d,work,used);}
     static bool ltypes(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLtypeSourceLiveProof(d,work,used);}
+    static bool prepareGraph(dx_iface& a,dx_data* d,bool includeRoot) noexcept{return a.prepareExtensionObjectGraph(d,includeRoot);}
+    static bool prepareStyles(dx_iface& a,DRW::Version version,bool binary) noexcept{return a.prepareDxfMLineStyles(version,binary);}
     static dx_mline_source_dependency::Proof qualify(const dx_iface& a,const dx_data& data,
             dx_mline_source_dependency::Limits limits={}) noexcept{return a.mlineDependencySourceProof(data,limits);}
 };
@@ -102,6 +104,21 @@ public:
         injected=true;
         const bool result=dx_iface::finalizeDxfWrite();
         style->description=savedDescription;
+        return result;
+    }
+};
+class EntityAppDataMutationAtFinalizeConsumer final:public Consumer {
+public:
+    DRW_Entity* mutationTarget{nullptr};
+    bool injectAtFinalize{false},injected{false};
+    bool finalizeDxfWrite() override {
+        if(!injectAtFinalize)return dx_iface::finalizeDxfWrite();
+        if(!mutationTarget)return false;
+        mutationTarget->appData.push_back(
+            {{102,std::string("{TEST_HIDDEN")},{340,std::string("D2")},{102,std::string("}")}});
+        injected=true;
+        const bool result=dx_iface::finalizeDxfWrite();
+        mutationTarget->appData.pop_back();
         return result;
     }
 };
@@ -1600,6 +1617,7 @@ static int testMlineRawSectionGeometryGuard() {
       if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
               &data, false, true))
         return 8;
+      ++retries;
       Consumer verifier;
       dx_data readback;
       if (!verifier.import(output.string(), readback) || !readback.rawDxfSections.empty())
@@ -1612,7 +1630,6 @@ static int testMlineRawSectionGeometryGuard() {
           restoredStyle->elements.size() != 2u ||
           restoredStyle->elements.front().offset != expectedOffset)
         return 10;
-      ++retries;
       ++readbacks;
     }
   }
@@ -2071,7 +2088,223 @@ static int testMlineStyleBodyGeometryGuard() {
       ? 0 : 11;
 }
 
+static int testMlineEntityCarrierGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-entity-carrier-geometry-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, preflightRefusals = 0u, lateRefusals = 0u;
+  unsigned retries = 0u, readbacks = 0u;
+  for (bool sourceBinary : {false, true}) {
+    const auto text = selectedMlineSourceText();
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 2;
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      EntityAppDataMutationAtFinalizeConsumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data) || !data.mBlock)
+        return 4;
+      DRW_MLineStyle* style = nullptr;
+      for (auto& candidate : data.mLineStyles)
+        if (candidate.handle == 0xD2u) style = &candidate;
+      if (!style || style->elements.empty())
+        return 5;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      auto* line = new DRW_Line;
+      line->handle = 0xD300u;
+      line->parentHandle = 0x201u;
+      line->basePoint = DRW_Coord(17.0, 4.0, 0.0);
+      line->secPoint = DRW_Coord(18.0, 5.0, 0.0);
+      data.mBlock->ent.push_back(line);
+      adapter.mutationTarget = line;
+
+      const std::string sentinel = "MLINE_ENTITY_CARRIER_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 6;
+      line->appData.push_back(
+          {{102,std::string("{TEST_HIDDEN")},{340,std::string("D2")},{102,std::string("}")}});
+      const bool preflightExported = adapter.fileExport(output.string(), DRW::AC1027,
+          outputBinary, &data, false, true);
+      if (preflightExported || readFile(output) != sentinel || line->appData.size() != 1u ||
+          line->handle != 0xD300u || line->parentHandle != 0x201u ||
+          style->elements.front().offset != expectedOffset) {
+        std::cerr << "MLINE entity carrier preflight guard failure sourceBinary=" << sourceBinary
+                  << " outputBinary=" << outputBinary << " exported=" << preflightExported << '\n';
+        return 7;
+      }
+      ++preflightRefusals;
+      line->appData.clear();
+
+      const bool retryExported = adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true);
+      if (!retryExported)
+        return 8;
+      ++retries;
+      const auto refuseAndRetry = [&](auto&& inject, auto&& restore) {
+        if (!writeFile(output, sentinel))
+          return false;
+        inject();
+        const bool exportedWithCarrier = adapter.fileExport(output.string(), DRW::AC1027,
+            outputBinary, &data, false, true);
+        const bool preserved = readFile(output) == sentinel;
+        restore();
+        if (exportedWithCarrier || !preserved)
+          return false;
+        ++preflightRefusals;
+        if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                &data, false, true))
+          return false;
+        ++retries;
+        return true;
+      };
+      const auto lineExtDataSize = line->extData.size();
+      if (!refuseAndRetry(
+              [&] { line->extData.push_back(std::make_shared<DRW_Variant>(1005, std::string("D2"))); },
+              [&] { line->extData.resize(lineExtDataSize); }))
+        return 9;
+      const auto lineXDictHandle = line->xDictHandle;
+      if (!refuseAndRetry([&] { line->xDictHandle = 0xD2u; },
+              [&] { line->xDictHandle = lineXDictHandle; }))
+        return 10;
+      const auto lineReactorCount = line->reactorHandles.size();
+      if (!refuseAndRetry([&] { line->reactorHandles.push_back(0xD2u); },
+              [&] { line->reactorHandles.resize(lineReactorCount); }))
+        return 11;
+      const auto blockAppDataCount = data.mBlock->appData.size();
+      if (!refuseAndRetry(
+              [&] { data.mBlock->appData.push_back({{102,std::string("{TEST_HIDDEN")},
+                  {340,std::string("D2")},{102,std::string("}")}}); },
+              [&] { data.mBlock->appData.resize(blockAppDataCount); }))
+        return 12;
+      if (!writeFile(output, sentinel))
+        return 13;
+      adapter.injectAtFinalize = true;
+      const bool lateExported = adapter.fileExport(output.string(), DRW::AC1027,
+          outputBinary, &data, false, true);
+      if (lateExported || readFile(output) != sentinel || !adapter.injected ||
+          !line->appData.empty() || style->elements.front().offset != expectedOffset) {
+        std::cerr << "MLINE entity carrier finalization guard failure sourceBinary=" << sourceBinary
+                  << " outputBinary=" << outputBinary << " exported=" << lateExported
+                  << " injected=" << adapter.injected << '\n';
+        return 14;
+      }
+      ++lateRefusals;
+      adapter.injectAtFinalize = false;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 15;
+      ++retries;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback) || !readback.mBlock)
+        return 16;
+      bool foundLine = false;
+      for (const auto* entity : readback.mBlock->ent) {
+        const auto* restored = dynamic_cast<const DRW_Line*>(entity);
+        if (!restored || restored->eType != DRW::LINE ||
+            restored->basePoint.x != 17.0 || restored->secPoint.x != 18.0)
+          continue;
+        if (!restored->appData.empty())
+          return 17;
+        foundLine = true;
+      }
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) { return value.name == "RETARGET_STYLE"; });
+      if (!foundLine || restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.empty() ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 18;
+      ++profiles;
+      ++readbacks;
+    }
+  }
+  std::cout << "MLINE entity-carrier geometry guard profiles=" << profiles
+            << " preflight-refusals=" << preflightRefusals
+            << " late-refusals=" << lateRefusals << " retries=" << retries
+            << " readbacks=" << readbacks << '\n';
+  return profiles == 4u && preflightRefusals == 20u && lateRefusals == 4u &&
+      retries == 24u && readbacks == 4u
+      ? 0 : 19;
+}
+
+static int testMlineConsumerCensusBudgetGuard() {
+  const auto input = std::filesystem::temp_directory_path() /
+      ("mline-consumer-census-work-" +
+       std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+  const auto output = input.parent_path() / (input.stem().string() + "-output.dxf");
+  if (!writeFile(input, selectedMlineSourceText()))
+    return 1;
+  struct Cleanup {
+    std::filesystem::path input, output;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove(input, ignored);
+      std::filesystem::remove(output, ignored);
+    }
+  } cleanup{input, output};
+  Consumer adapter;
+  dx_data data;
+  if (!adapter.enableWholeDxfSourceObservation() ||
+      !adapter.enableLegacyDxfIdentityObservation() ||
+      !adapter.import(input.string(), data) || !data.mBlock)
+    return 2;
+  auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+      [](const auto &value) { return value.handle == 0xD2u; });
+  if (style == data.mLineStyles.end() || style->elements.empty())
+    return 3;
+  style->elements.front().offset += 0.25;
+  const auto expectedOffset = style->elements.front().offset;
+  if (!DxIfaceMlineDependencyTestAccess::prepareGraph(adapter, &data, true))
+    return 4;
+  constexpr std::size_t overBudget = 1000001u;
+  data.mBlock->ent.insert(data.mBlock->ent.end(), overBudget, nullptr);
+  const bool preparedOverBudget = DxIfaceMlineDependencyTestAccess::prepareStyles(
+      adapter, DRW::AC1027, false);
+  while (!data.mBlock->ent.empty() && data.mBlock->ent.back() == nullptr)
+    data.mBlock->ent.pop_back();
+  if (preparedOverBudget)
+    return 5;
+  if (!DxIfaceMlineDependencyTestAccess::prepareStyles(adapter, DRW::AC1027, false))
+    return 6;
+  const std::string sentinel = "MLINE_CONSUMER_CENSUS_DESTINATION";
+  if (!writeFile(output, sentinel))
+    return 7;
+  if (!adapter.fileExport(output.string(), DRW::AC1027, false, &data, false, true))
+    return 8;
+  Consumer verifier;
+  dx_data readback;
+  if (!verifier.import(output.string(), readback))
+    return 9;
+  const auto restored = std::find_if(readback.mLineStyles.begin(), readback.mLineStyles.end(),
+      [](const auto& value) { return value.name == "RETARGET_STYLE"; });
+  if (restored == readback.mLineStyles.end() || restored->elements.empty()
+      || restored->elements.front().offset != expectedOffset)
+    return 10;
+  std::cout << "MLINE consumer census budget guard over-budget-entities=" << overBudget
+            << " refused=1 same-adapter-retry=1 readback=1\n";
+  return 0;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-consumer-census-budget-guard")return testMlineConsumerCensusBudgetGuard();
+    if(argc==2&&std::string(argv[1])=="--mline-entity-carrier-geometry-guard")return testMlineEntityCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-style-body-geometry-guard")return testMlineStyleBodyGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-ltype-provider-geometry-guard")return testMlineLtypeProviderGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-dictionary-carrier-geometry-guard")return testMlineDictionaryCarrierGeometryGuard();

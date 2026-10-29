@@ -16925,8 +16925,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
 
 // Geometry/count edits must not infer "unused" from the live container alone:
 // a source MLINE can have been dropped, moved or duplicated, or an entire
-// source scope can be unavailable. This census covers ordinary MLINE records
-// only, not opaque/proxy semantics.
+// source scope can be unavailable. The selected geometry profile also checks
+// common handle carriers on admitted LINE/MLINE entities and block headers;
+// opaque entity bodies and proxy semantics remain outside this census.
 bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) const noexcept {
     if (!cData || !cData->hasSingleSuccessfulNamedResourceImport()) return false;
     try {
@@ -16951,23 +16952,89 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
             if (work>kMaxAdapterBasicTableItems || count>kMaxAdapterBasicTableItems-work) return false;
             work+=count;return true;
         };
-        std::unordered_set<std::uint32_t> geometryStyles;
-        if (!requireUnchangedModels) {
-            for (const auto& row:m_dxfMLineStyles) if (row.second.geometryChanged) {
-                if (!row.first || row.first==DRW::NoHandle || geometryStyles.size()>=kMaxAdapterBasicTableRecords
+        std::unordered_set<std::uint32_t> affectedStyles;
+        for (const auto& row:m_dxfMLineStyles)
+            if (row.second.geometryChanged||row.second.countChanged) {
+                if (!row.first || row.first==DRW::NoHandle || affectedStyles.size()>=kMaxAdapterBasicTableRecords
                     || !visit(1u) || !chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
-                    || !geometryStyles.insert(row.first).second) return false;
+                    || !affectedStyles.insert(row.first).second) return false;
             }
-            if (geometryStyles.empty()) return false;
-        }
+        if (affectedStyles.empty()) return false;
+        const auto safeHandleCarrier=[&](const DRW_Variant& field) noexcept {
+            const auto role=dxfHandleRoleForCode(field.code());
+            if(role==DxfHandleRole::None||role==DxfHandleRole::Self
+                ||role==DxfHandleRole::Arbitrary)return true;
+            std::uint64_t handle=0u;
+            return dx_standard_output::handleValue(field,handle)&&handle<=UINT32_MAX
+                &&!affectedStyles.count(static_cast<std::uint32_t>(handle));
+        };
+        const auto scanCommonHandleCarriers=[&](const auto& value) {
+            if(value.appData.size()>kMaxAdapterBasicTableItems||!visit(value.appData.size()))return false;
+            for(const auto& group:value.appData) {
+                if(group.size()>kMaxAdapterBasicTableItems||!visit(group.size()))return false;
+                for(const auto& field:group) {
+                    std::size_t fieldBytes=0u;
+                    if(!estimateAssociativeVariantBytes(&field,fieldBytes)
+                        ||!chargeNamedResourceBytes(bytes,fieldBytes)
+                        ||!safeHandleCarrier(field))return false;
+                }
+            }
+            if(value.extData.size()>kMaxAdapterBasicTableItems||!visit(value.extData.size()))return false;
+            for(const auto& field:value.extData) {
+                std::size_t fieldBytes=0u;
+                if(!field||!estimateAssociativeVariantBytes(field.get(),fieldBytes)
+                    ||!chargeNamedResourceBytes(bytes,fieldBytes)
+                    ||!safeHandleCarrier(*field))return false;
+            }
+            if(value.reactorHandles.size()>kMaxAdapterBasicTableItems
+                ||!visit(value.reactorHandles.size()))return false;
+            std::size_t handleBytes=0u;
+            if(!WholeSourceV2::product(value.reactorHandles.size(),sizeof(std::uint32_t),handleBytes)
+                ||!chargeNamedResourceBytes(bytes,handleBytes)
+                ||!visit(1u))return false;
+            if(affectedStyles.count(value.xDictHandle))return false;
+            for(const auto handle:value.reactorHandles)if(affectedStyles.count(handle))return false;
+            return true;
+        };
         const auto addLive=[&](const dx_ifaceBlock* block) {
             if (!block) return true;
-            for (const auto* entity:block->ent) if (entity && entity->eType==DRW::MLINE) {
-                const auto* value=dynamic_cast<const DRW_MLine*>(entity);
-                if (!value || typeid(*value)!=typeid(DRW_MLine) || !value->handle
-                    || value->handle==DRW::NoHandle || live.size()>=100000u || !visit(1u)
-                    || !chargeNamedResourceBytes(bytes,sizeof(Live)+sizeof(std::uint32_t)+16u*sizeof(void*))
-                    || !live.emplace(value->handle,Live{value,block}).second) return false;
+            std::size_t blockBytes=0u;
+            if(!visit(1u)||!estimateTypedBlockRetainedBytes(*block,true,blockBytes)
+                ||!chargeNamedResourceBytes(bytes,blockBytes)
+                ||!scanCommonHandleCarriers(*block))return false;
+            if(block->hasEndBlockData) {
+                std::size_t endBlockBytes=sizeof(DRW_Block)+4u*sizeof(void*),dynamicBytes=0u;
+                if(!visit(1u)||!estimateTypedBlockRetainedBytes(block->endBlockData,false,dynamicBytes)
+                    ||!addAssociativeRetainedBytes(dynamicBytes,endBlockBytes)
+                    ||!chargeNamedResourceBytes(bytes,endBlockBytes)
+                    ||!scanCommonHandleCarriers(block->endBlockData))return false;
+            }
+            if(block->rawEntities.size()>kMaxAdapterBasicTableItems
+                ||!visit(block->rawEntities.size()))return false;
+            std::size_t rawEventBytes=0u;
+            if(!WholeSourceV2::product(block->rawEntities.size(),sizeof(dx_ifaceRawEntityEvent),rawEventBytes)
+                ||!chargeNamedResourceBytes(bytes,rawEventBytes)||!block->rawEntities.empty())return false;
+            for(const auto* entity:block->ent) {
+                if(!visit(1u)||!chargeNamedResourceBytes(bytes,sizeof(DRW_Entity*)+2u*sizeof(void*)))return false;
+                if(!entity)continue;
+                if(!scanCommonHandleCarriers(*entity))return false;
+                if(entity->eType==DRW::MLINE) {
+                    const auto* value=dynamic_cast<const DRW_MLine*>(entity);
+                    std::size_t entityBytes=0u;
+                    if(!value||typeid(*value)!=typeid(DRW_MLine)||!value->handle
+                        ||value->handle==DRW::NoHandle||live.size()>=100000u||!visit(1u)
+                        ||!estimateTypedEntityRetainedBytes(*value,sizeof(DRW_MLine),entityBytes)
+                        ||!chargeNamedResourceBytes(bytes,entityBytes)
+                        ||!chargeNamedResourceBytes(bytes,sizeof(Live)+sizeof(std::uint32_t)+16u*sizeof(void*))
+                        ||!live.emplace(value->handle,Live{value,block}).second)return false;
+                } else if(entity->eType==DRW::LINE) {
+                    const auto* line=dynamic_cast<const DRW_Line*>(entity);
+                    std::size_t entityBytes=0u;
+                    if(!line||typeid(*line)!=typeid(DRW_Line)
+                        ||!estimateTypedEntityRetainedBytes(*line,sizeof(DRW_Line),entityBytes)
+                        ||!chargeNamedResourceBytes(bytes,entityBytes)
+                        ||line->numProxyGraph!=0||!line->proxyGraphics.empty())return false;
+                } else return false;
             }
             return true;
         };
@@ -16996,7 +17063,7 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
             // the edited style, but must preserve the existing unused-style
             // route when unrelated MLINEs are removed. Their own source and
             // consumer transactions remain governed by the normal planners.
-            if (!requireUnchangedModels && !geometryStyles.count(shape.target)) return true;
+            if (!requireUnchangedModels && !affectedStyles.count(shape.target)) return true;
             if (!chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
                 || !visited.insert(identity.self).second) return false;
             const auto changed=m_dxfMLineStyles.find(shape.target);
@@ -17112,6 +17179,10 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
                     || member.self!=event.handle || member.owner!=event.owner
                     || !accept(physical,model->second.get(),expected)) return false;
             }
+        }
+        if(!requireUnchangedModels) {
+            for(const auto& row:live)
+                if(affectedStyles.count(row.second.value->styleHandle)&&!visited.count(row.first))return false;
         }
         return requireUnchangedModels ? visited.size()==live.size() : true;
     } catch (...) {return false;}
