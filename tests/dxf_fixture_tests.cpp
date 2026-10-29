@@ -34704,9 +34704,11 @@ bool runRetargetAppendTemporary() {
     else std::cerr<<"MLINE retarget append artifacts: "<<dir<<'\n';
     return passed;
 }
-bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary) {
+bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary,
+        unsigned sourceCount,unsigned removedIndex) {
     using Row=mlineStyleAuthorityControls::Row;
     const auto bad=[](int line){std::cerr<<"MLINE retarget removal output proof line="<<line<<'\n';return false;};
+    if(sourceCount<3u||sourceCount>4u||removedIndex>=sourceCount)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34739,12 +34741,21 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary) {
     if(!owner||owner->type!="DICTIONARY"||owner->owner!=root->id
         ||oldStyle->owner!=owner->id||targetStyle->owner!=owner->id
         ||entry(*owner,"EFFECTIVE_STYLE")!=oldStyle||entry(*owner,"RETARGET_STYLE")!=targetStyle)return bad(__LINE__);
-    const std::vector<double> oldOffsets{beforeOffsets[0],beforeOffsets[1],retargetAppendSourceOffset(2u)};
-    const std::vector<int> oldColors{1,3,4};
-    const std::vector<std::string> oldLinetypes{"ByLayer","Continuous","ByLayer"};
-    const std::vector<double> targetOffsets{beforeOffsets[0],retargetAppendSourceOffset(2u)};
-    const std::vector<int> targetColors{5,4};
-    const std::vector<std::string> targetLinetypes{"ByLayer","ByLayer"};
+    std::vector<double> oldOffsets{beforeOffsets[0],beforeOffsets[1]};
+    std::vector<int> oldColors{1,3},targetColors{5,7};
+    std::vector<std::string> oldLinetypes{"ByLayer","Continuous"},targetLinetypes{"ByLayer","Continuous"};
+    for(unsigned element=2u;element<sourceCount;++element) {
+        const double offset=retargetAppendSourceOffset(element);
+        const int color=static_cast<int>(element)+2;
+        const std::string linetype=(element%2u)==0u?"ByLayer":"Continuous";
+        oldOffsets.push_back(offset);oldColors.push_back(color);oldLinetypes.push_back(linetype);
+        targetColors.push_back(color);targetLinetypes.push_back(linetype);
+    }
+    std::vector<double> targetOffsets=oldOffsets;
+    targetOffsets.erase(targetOffsets.begin()+static_cast<std::ptrdiff_t>(removedIndex));
+    targetColors.erase(targetColors.begin()+static_cast<std::ptrdiff_t>(removedIndex));
+    targetLinetypes.erase(targetLinetypes.begin()+static_cast<std::ptrdiff_t>(removedIndex));
+    const auto targetCount=static_cast<unsigned>(targetOffsets.size());
     const auto checkStyle=[&](const Row& style,const char* name,const std::vector<double>& offsets,
             const std::vector<int>& colors,const std::vector<std::string>& linetypes) {
         if(values(style,2)!=std::vector<std::string>{name}
@@ -34782,9 +34793,9 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary) {
             ||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{targetStyle->id}
             ||!number(row,70,justification(profile))||!number(row,71,1u)||!number(row,72,3u)
-            ||!number(row,73,2u)
-            ||values(row,74).size()!=6u||values(row,75).size()!=6u
-            ||values(row,41).size()!=12u||!values(row,42).empty()
+            ||!number(row,73,targetCount)
+            ||values(row,74).size()!=3u*targetCount||values(row,75).size()!=3u*targetCount
+            ||values(row,41).size()!=6u*targetCount||!values(row,42).empty()
             ||values(row,13).size()!=3u||values(row,23).size()!=3u||values(row,33).size()!=3u)return bad(__LINE__);
         for(const auto& count:values(row,74))if(std::stoul(count)!=2u)return bad(__LINE__);
         for(const auto& count:values(row,75))if(std::stoul(count)!=0u)return bad(__LINE__);
@@ -34813,8 +34824,8 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary) {
         if(style.handle==targetHandle&&style.name=="RETARGET_BODY")decodedTarget=&style;
         if(style.name=="OLD_BODY_NAME")decodedOld=&style;
     }
-    if(!decodedTarget||!decodedOld||decodedTarget->flags!=2||decodedTarget->elements.size()!=2u
-        ||decodedOld->elements.size()!=3u)return bad(__LINE__);
+    if(!decodedTarget||!decodedOld||decodedTarget->flags!=2||decodedTarget->elements.size()!=targetCount
+        ||decodedOld->elements.size()!=sourceCount)return bad(__LINE__);
     for(std::size_t i=0u;i<targetOffsets.size();++i)
         if(!close(decodedTarget->elements[i].offset,targetOffsets[i])||decodedTarget->elements[i].color!=targetColors[i]
             ||decodedTarget->elements[i].linetype!=targetLinetypes[i])return bad(__LINE__);
@@ -34828,16 +34839,16 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary) {
     for(const auto* line:lines) {
         const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
         if(profile>1u||line->styleHandle!=targetHandle||line->styleName!="OLD_ENTITY_NAME"
-            ||line->numLines!=2u||line->numVerts!=3u||line->vertlist.size()!=3u)return bad(__LINE__);
+            ||line->numLines!=targetCount||line->numVerts!=3u||line->vertlist.size()!=3u)return bad(__LINE__);
         const double minimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
         const double shift=justification(profile)==2u?-minimum:0.0;const auto vertices=geometry(profile);
         for(unsigned vertex=0u;vertex<3u;++vertex) {
             const auto& point=line->vertlist[vertex];
-            if(point.segParms.size()!=2u||point.areaFillParms.size()!=2u
+            if(point.segParms.size()!=targetCount||point.areaFillParms.size()!=targetCount
                 ||!sameCoord(point.position,vertices[vertex].first)
                 ||!sameCoord(point.vertexDir,vertices[vertex].second)
                 ||!sameCoord(point.miterDir,miter(profile,vertices,vertex,90.0,90.0)))return bad(__LINE__);
-            for(unsigned element=0u;element<2u;++element)
+            for(unsigned element=0u;element<targetCount;++element)
                 if(point.segParms[element].size()!=2u
                     ||!close(point.segParms[element][0],parameterForStyle(profile,vertex,targetOffsets[element],shift,90.0,90.0))
                     ||point.segParms[element][1]!=0.0||!point.areaFillParms[element].empty())return bad(__LINE__);
@@ -34852,26 +34863,29 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
         std::cerr<<"MLINE retarget removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
-    const auto prepare=[&](dx_iface& adapter,dx_data& data,bool sourceBinary) {
-        if(!write(input,retargetAppendRecipe(sourceBinary,3u),sourceBinary,"AC1027")
+    const auto prepare=[&](dx_iface& adapter,dx_data& data,bool sourceBinary,
+            unsigned sourceCount,unsigned removedIndex) {
+        if(!write(input,retargetAppendRecipe(sourceBinary,sourceCount),sourceBinary,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return false;
         mlineRetargetControls::request(data,3u);
         auto& target=mlineRetargetControls::style(data,0xD2u);
-        if(target.elements.size()!=3u)return false;
-        target.elements.erase(target.elements.begin()+1u);
+        if(target.elements.size()!=sourceCount||removedIndex>=sourceCount)return false;
+        target.elements.erase(target.elements.begin()+static_cast<std::ptrdiff_t>(removedIndex));
         return true;
     };
-    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+    const std::vector<std::pair<unsigned,unsigned>> selected{{3u,1u},{4u,0u},{4u,1u},{4u,2u},{4u,3u}};
+    for(const auto& selection:selected)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!prepare(adapter,data,sourceBinary))return fail(__LINE__);
+        if(!prepare(adapter,data,sourceBinary,selection.first,selection.second))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,selection.first,selection.second)
+            ||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<4u;++removedIndex)for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!prepare(adapter,data,false))return fail(__LINE__);
+        if(!prepare(adapter,data,false,4u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot correct(data);
         mlineRetargetControls::style(data,0xD2u).elements.front().offset+=.125;
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
@@ -34879,12 +34893,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
         ++refusals;correct.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary)||!correct.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,4u,removedIndex)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<4u;++removedIndex)for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
-        if(!prepare(adapter,data,false))return fail(__LINE__);
+        if(!prepare(adapter,data,false,4u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         const auto consumers=mlineStyleAuthorityControls::consumers(data);
         if(consumers.size()!=2u)return fail(__LINE__);
@@ -34894,12 +34908,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
         ++late;adapter.active=false;caller.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,4u,removedIndex)||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     std::cout<<"MLINE retarget removal profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+    return profiles==20u&&readbacks==36u&&refusals==8u&&late==8u&&retries==16u;
 }
 bool runRetargetRemovalTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
