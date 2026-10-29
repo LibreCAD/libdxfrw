@@ -1381,6 +1381,7 @@ private:
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::shared_ptr<const DRW_DxfIdentitySource> source;
             std::shared_ptr<const EntitiesReadContext> context;
+            dxfRW::DxfIdentityDeliveryTicketPtr deliveryTicket;
         };
         struct IdentityAudit {
             std::shared_ptr<const IdentityInput> input;

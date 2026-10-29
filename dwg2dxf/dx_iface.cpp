@@ -26015,7 +26015,8 @@ void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
             s.legacyIdentityReadInput=nullptr;
             s.legacyIdentityBytes=s.legacyIdentityWork=0u;
         };
-        if(s.legacyIdentityCaptureFailed||s.contextFailed||s.generation!=1u
+        const auto ticket=s.entitiesReadInput->dxfIdentityDeliveryTicket(value);
+        if(s.legacyIdentityCaptureFailed||s.contextFailed||!ticket||s.generation!=1u
             ||s.generation!=cData->importGeneration||s.legacyIdentityObservation
             ||s.entitiesReadInput->getDxfIdentitySourceView()!=&value
             ||value.status!=DRW_DxfIdentitySource::Status::Complete
@@ -26053,6 +26054,7 @@ void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
             auto snapshot=std::make_shared<const Context>(*context);
             auto input=std::make_shared<Input>();input->container=cData;input->generation=s.generation;
             input->containerId=cData->m_entitiesContainerIdentity.value;input->context=std::move(context);
+            input->deliveryTicket=ticket;
             input->source=std::make_shared<const DRW_DxfIdentitySource>(value);
             s.legacyIdentityBytes=bytes;s.legacyIdentityWork=work;
             s.legacyIdentityContextSnapshot=std::move(snapshot);
@@ -30435,6 +30437,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         tableSource.entitiesReadInput=&dxf;
         const std::size_t acdsBaselineStart = fData->m_acdsRawDxfSectionBaselines.size();
         (void)dxf.enableDxfAcdsSourceLedger();
+        if(m_legacyIdentityObservationEnabled)(void)dxf.enableDxfIdentityDeliveryLedger();
         dxf.setDxfCodePagePolicy(codePagePolicy);
         if (debug) {
             dxf.setDebug(DRW::DebugLevel::Debug);
@@ -30467,6 +30470,18 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dxfReadOutcome.readReturned = true;
         fData->dxfReadOutcome.operationSucceeded = success;
         snapshotDxfReadOutcome(*fData, dxf);
+        if(m_legacyIdentityObservationEnabled&&success&&dxf.getSourceVersion()==DRW::AC1018) {
+            const auto state=dxf.dxfIdentityDeliveryState();
+            const auto& captured=tableSource.legacyIdentityObservation;
+            if(!captured||!captured->source||!state.complete
+                ||!dxf.dxfIdentityDeliveryMatches(*captured->source,captured->deliveryTicket)) {
+                tableSource.legacyIdentityCaptureFailed=true;
+                tableSource.legacyIdentityObservation.reset();tableSource.legacyIdentityObservationOwner.reset();
+                tableSource.legacyIdentityContextSnapshot.reset();tableSource.legacyIdentitySourceOwner.reset();
+                tableSource.legacyIdentityReadInput=nullptr;
+                tableSource.legacyIdentityBytes=tableSource.legacyIdentityWork=0u;
+            }
+        }
         {
             const auto& ledger = dxf.dxfAcdsSourceLedger();
             bool valid = ledger.enabled && !ledger.failed

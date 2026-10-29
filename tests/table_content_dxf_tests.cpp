@@ -54,6 +54,18 @@ void operator delete[](void* value) noexcept {std::free(value);}
 void operator delete(void* value,std::size_t) noexcept {std::free(value);}
 void operator delete[](void* value,std::size_t) noexcept {std::free(value);}
 
+class DxIfaceStandardDwgCaptureTestAccess {
+public:
+    static bool identityCaptureAllocation(dxfRW& reader,const DRW_DxfIdentitySource& source,long failAfter) {
+        reader.beginDxfIdentityDelivery();
+        {SymbolAllocationFailure failure(failAfter);reader.captureDxfIdentityDelivery(source);}
+        const auto& ledger=reader.m_dxfIdentityDelivery;
+        if(ledger.state.failed)return !ledger.state.captured&&!ledger.ticket&&ledger.source.sections.empty()
+            &&ledger.source.records.empty()&&ledger.source.candidates.empty();
+        return ledger.state.captured&&ledger.ticket&&ledger.source.candidates.size()==source.candidates.size();
+    }
+};
+
 class DrwObjectEncodeTestAccess {
 public:
     static void commonMask(DRW_TableEntry& row,std::uint8_t value){row.currCoordMask=value;}

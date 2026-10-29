@@ -3422,6 +3422,90 @@ bool dxfRW::bindDxfWriteSourceObjectHandle(
     return true;
 }
 
+bool dxfRW::enableDxfIdentityDeliveryLedger(std::size_t sections,std::size_t records,
+        std::size_t candidates,std::size_t bytes,std::size_t work) noexcept {
+    if(m_wholeOperationActive)return false;
+    auto& s=m_dxfIdentityDelivery;s.maxSections=sections;s.maxRecords=records;s.maxCandidates=candidates;
+    s.maxBytes=bytes;s.maxWork=work;s.state={};s.state.enabled=true;s.source={};s.ticket.reset();return true;
+}
+void dxfRW::beginDxfIdentityDelivery() noexcept {
+    auto& s=m_dxfIdentityDelivery;const bool enabled=s.state.enabled;s.state={};s.state.enabled=enabled;s.source={};s.ticket.reset();
+    if(!enabled)return;
+    if(s.sequence==(std::numeric_limits<std::uint64_t>::max)()){s.state.failed=true;return;}
+    s.state.generation=++s.sequence;
+}
+void dxfRW::captureDxfIdentityDelivery(const DRW_DxfIdentitySource& value) noexcept {
+    auto& s=m_dxfIdentityDelivery;auto& state=s.state;
+    if(!state.enabled)return;
+    const auto fail=[&]() noexcept {state.failed=true;state.captured=false;s.source={};s.ticket.reset();};
+    if(state.failed||state.captured||!state.generation||value.status!=DRW_DxfIdentitySource::Status::Complete
+        ||value.sections.size()>s.maxSections||value.records.size()>s.maxRecords||value.candidates.size()>s.maxCandidates) {fail();return;}
+    std::size_t scan=0u;
+    const auto scanAdd=[&](std::size_t n) noexcept {if(scan>s.maxWork||n>s.maxWork-scan)return false;scan+=n;return true;};
+    if(!scanAdd(value.sections.size())||!scanAdd(value.records.size())||!scanAdd(value.candidates.size())){fail();return;}
+    std::size_t bytes=sizeof(DRW_DxfIdentitySource)+sizeof(DxfIdentityDeliveryTicket)+24u*sizeof(void*);
+    const auto charge=[&](std::size_t n) noexcept {if(bytes>s.maxBytes||n>s.maxBytes-bytes)return false;bytes+=n;return true;};
+    const auto slots=[&](std::size_t n,std::size_t size) noexcept {
+        if(size&&n>s.maxBytes/size)return false;return charge(n*size);
+    };
+    const auto text=[&](const std::string& v) noexcept {return charge(v.size())&&charge(1u);};
+    if(!slots(value.sections.size(),sizeof(DRW_DxfIdentitySource::SectionSource)+4u*sizeof(void*))
+        ||!slots(value.records.size(),sizeof(DRW_DxfIdentitySource::Record)+4u*sizeof(void*))
+        ||!slots(value.candidates.size(),sizeof(DRW_DxfIdentitySource::Candidate)+4u*sizeof(void*))) {fail();return;}
+    for(const auto& x:value.sections)if(!text(x.name)){fail();return;}
+    for(const auto& x:value.records)if(!text(x.name)||!text(x.tableName)){fail();return;}
+    for(const auto& x:value.candidates)if(!text(x.lexeme)||!text(x.rawValue)){fail();return;}
+    // Sizing scan is precharged above; copy and a bounded exact comparison are
+    // charged here before any producer-controlled allocation or full scan.
+    if(bytes>(s.maxWork-scan)/2u){fail();return;}
+    std::size_t work=scan+2u*bytes;
+    if(value.sections.size()>s.maxWork-work){fail();return;}work+=value.sections.size();
+    if(value.records.size()>s.maxWork-work){fail();return;}work+=value.records.size();
+    if(value.candidates.size()>s.maxWork-work){fail();return;}work+=value.candidates.size();
+    try {
+        DRW_DxfIdentitySource frozen=value;
+        DxfIdentityDeliveryTicketPtr ticket(new DxfIdentityDeliveryTicket(state.generation));
+        s.source=std::move(frozen);s.ticket=std::move(ticket);
+        state.sections=value.sections.size();state.records=value.records.size();state.candidates=value.candidates.size();
+        state.bytes=bytes;state.work=work;state.captured=true;
+    }catch(...){fail();}
+}
+dxfRW::DxfIdentityDeliveryState dxfRW::dxfIdentityDeliveryState() const noexcept {
+    if(m_wholeOperationActive) {DxfIdentityDeliveryState pending;pending.enabled=m_dxfIdentityDelivery.state.enabled;return pending;}
+    return m_dxfIdentityDelivery.state;
+}
+dxfRW::DxfIdentityDeliveryTicketPtr dxfRW::dxfIdentityDeliveryTicket(const DRW_DxfIdentitySource& value) const noexcept {
+    const auto& ledger=m_dxfIdentityDelivery;
+    if(!m_wholeOperationActive||!m_readTextObservationsActive||!reader||reader->m_identityPublication!=&value
+        ||!ledger.state.enabled||ledger.state.failed||!ledger.state.captured)return {};
+    return ledger.ticket;
+}
+bool dxfRW::dxfIdentityDeliveryMatches(const DRW_DxfIdentitySource& value,const DxfIdentityDeliveryTicketPtr& ticket) const noexcept {
+    const auto& ledger=m_dxfIdentityDelivery;const auto& state=ledger.state;
+    if(m_wholeOperationActive||!state.enabled||state.failed||!state.complete||!state.captured
+        ||!ticket||!ledger.ticket||ticket.get()!=ledger.ticket.get()
+        ||ticket.owner_before(ledger.ticket)||ledger.ticket.owner_before(ticket)||ticket->m_generation!=state.generation)return false;
+    const auto& original=ledger.source;
+    const auto span=[](const DRW_DxfPhysicalRecordSpan& a,const DRW_DxfPhysicalRecordSpan& b) noexcept {
+        return std::tie(a.ordinal,a.beginOffset,a.endOffset,a.ignoredComment)
+            ==std::tie(b.ordinal,b.beginOffset,b.endOffset,b.ignoredComment);
+    };
+    if(std::tie(original.status,original.version,original.binary,original.bytes,original.work,original.scalars,original.ignoredComments,original.unmatchedAdmissions)
+        !=std::tie(value.status,value.version,value.binary,value.bytes,value.work,value.scalars,value.ignoredComments,value.unmatchedAdmissions)
+        ||original.sections.size()!=value.sections.size()||original.records.size()!=value.records.size()
+        ||original.candidates.size()!=value.candidates.size()||!span(original.eofMarker,value.eofMarker))return false;
+    for(std::size_t i=0u;i<original.sections.size();++i){const auto& a=original.sections[i];const auto& b=value.sections[i];
+        if(a.kind!=b.kind||a.name!=b.name||!span(a.marker,b.marker)||!span(a.endMarker,b.endMarker))return false;}
+    for(std::size_t i=0u;i<original.records.size();++i){const auto& a=original.records[i];const auto& b=value.records[i];
+        if(std::tie(a.kind,a.name,a.tableName,a.section,a.table,a.firstCandidate,a.candidates)
+            !=std::tie(b.kind,b.name,b.tableName,b.section,b.table,b.firstCandidate,b.candidates)
+            ||!span(a.marker,b.marker)||!span(a.endMarker,b.endMarker))return false;}
+    for(std::size_t i=0u;i<original.candidates.size();++i){const auto& a=original.candidates[i];const auto& b=value.candidates[i];
+        if(std::tie(a.record,a.section,a.code,a.scope,a.admission,a.repeatedAdmissions,a.lexeme,a.rawValue)
+            !=std::tie(b.record,b.section,b.code,b.scope,b.admission,b.repeatedAdmissions,b.lexeme,b.rawValue)||!span(a.span,b.span))return false;}
+    return true;
+}
+
 bool dxfRW::enableDxfAcdsSourceLedger(std::size_t records, std::size_t groups,
                                         std::size_t bytes, std::size_t work) noexcept {
     if (m_wholeOperationActive) return false;
@@ -3484,6 +3568,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     if (!operation.admitted())
         return false;
     resetDxfAcdsSourceLedger();
+    beginDxfIdentityDelivery();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     m_textReadObservations = {};
     m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
@@ -3593,6 +3678,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     m_textReadObservations = reader->textReadObservations();
     m_readTextObservationsActive = false;
     if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
+    if (m_dxfIdentityDelivery.state.enabled)
+        m_dxfIdentityDelivery.state.complete = isOk && m_dxfIdentityDelivery.state.captured && !m_dxfIdentityDelivery.state.failed;
     reader.reset();
     return isOk;
 }
@@ -3603,6 +3690,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     if (!operation.admitted())
         return false;
     resetDxfAcdsSourceLedger();
+    beginDxfIdentityDelivery();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
@@ -3672,6 +3760,8 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_textReadObservations = reader->textReadObservations();
     m_readTextObservationsActive = false;
     if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
+    if (m_dxfIdentityDelivery.state.enabled)
+        m_dxfIdentityDelivery.state.complete = isOk && m_dxfIdentityDelivery.state.captured && !m_dxfIdentityDelivery.state.failed;
     reader.reset();
     return isOk;
 }
@@ -15162,7 +15252,9 @@ bool dxfRW::processDxf() {
     if(identitySelected)identitySource.start(identityHandler->dxfIdentitySourceLimits());
     const auto publishIdentity=[&]() {
         if(!identitySelected)return;
-        identitySource.finish();reader->m_identityPublication=&identitySource.source();
+        identitySource.finish();
+        if(m_dxfIdentityDelivery.state.enabled)captureDxfIdentityDelivery(identitySource.source());
+        reader->m_identityPublication=&identitySource.source();
         struct Clear {const DRW_DxfIdentitySource*& value;~Clear(){value=nullptr;}} clear{reader->m_identityPublication};
         identityHandler->addDxfIdentitySource(identitySource.source());
     };

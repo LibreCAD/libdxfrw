@@ -1005,6 +1005,30 @@ public:
     //! references must not guess which of multiple source entities it names.
     void markSourceHandleAmbiguous(std::uint32_t sourceHandle);
 
+    // Opt-in independent freeze of the final DXF identity census before the
+    // consumer callback. The census stays private; after a successful read a
+    // per-reader generation can authenticate the delivered copy exactly.
+    // This is delivery integrity, not a namespace/ownership/support claim.
+    class DxfIdentityDeliveryTicket {
+        friend class dxfRW;
+        explicit DxfIdentityDeliveryTicket(std::uint64_t generation) noexcept: m_generation(generation) {}
+        std::uint64_t m_generation;
+    };
+    using DxfIdentityDeliveryTicketPtr=std::shared_ptr<const DxfIdentityDeliveryTicket>;
+    struct DxfIdentityDeliveryState {
+        bool enabled{false},failed{false},complete{false},captured{false};
+        std::uint64_t generation{0};
+        std::size_t sections{0},records{0},candidates{0},bytes{0},work{0};
+    };
+    bool enableDxfIdentityDeliveryLedger(std::size_t sections=1024u,
+        std::size_t records=100000u,std::size_t candidates=400000u,
+        std::size_t bytes=64u*1024u*1024u,std::size_t work=128u*1024u*1024u) noexcept;
+    DxfIdentityDeliveryState dxfIdentityDeliveryState() const noexcept;
+    // The ticket is available only inside the exact source publication. It
+    // cannot authenticate another read even when that read has identical bytes.
+    DxfIdentityDeliveryTicketPtr dxfIdentityDeliveryTicket(const DRW_DxfIdentitySource&) const noexcept;
+    bool dxfIdentityDeliveryMatches(const DRW_DxfIdentitySource&,const DxfIdentityDeliveryTicketPtr&) const noexcept;
+
     // Opt-in, bounded original ACDSDATA section capture for import delivery
     // reconciliation. Default reads do not allocate this ledger. The active
     // source pointer is borrowed only during the raw-section callback.
@@ -1737,6 +1761,17 @@ private:
     std::uint64_t m_reservationFailureGeneration {0};
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
+    struct DxfIdentityDeliveryLedger {
+        DxfIdentityDeliveryState state;
+        std::size_t maxSections{1024u},maxRecords{100000u},maxCandidates{400000u};
+        std::size_t maxBytes{64u*1024u*1024u},maxWork{128u*1024u*1024u};
+        std::uint64_t sequence{0};
+        DRW_DxfIdentitySource source;
+        DxfIdentityDeliveryTicketPtr ticket;
+    };
+    DxfIdentityDeliveryLedger m_dxfIdentityDelivery;
+    void beginDxfIdentityDelivery() noexcept;
+    void captureDxfIdentityDelivery(const DRW_DxfIdentitySource&) noexcept;
     DxfAcdsSourceLedger m_dxfAcdsSourceLedger;
     const DRW_RawDxfSection* m_dxfAcdsActiveSource{nullptr};
     bool captureDxfAcdsSection(const DRW_RawDxfSection&) noexcept;

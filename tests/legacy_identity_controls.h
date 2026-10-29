@@ -3,12 +3,25 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
     using A=DxIfaceTableSourceTestAccess;
     using Source=DRW_DxfIdentitySource;
     struct Probe final:dx_iface {
-        bool copy=false,duplicate=false,duplicateTail=false,throwAfter=false,checkActive=false,reenter=false;
+        bool copy=false,duplicate=false,duplicateTail=false,throwAfter=false,checkActive=false,reenter=false,drop=false;
+        unsigned censusCorruption=0u;
         unsigned lateMutation=10u;long allocation=-1;std::filesystem::path inputPath;
         DRW_DxfIdentitySourceLimits limits;
         DRW_DxfIdentitySourceLimits dxfIdentitySourceLimits()const override{return limits;}
         void addDxfIdentitySource(const Source& source)override {
-            if(copy){auto other=source;dx_iface::addDxfIdentitySource(other);}
+            auto& physical=const_cast<Source&>(source);Source saved;
+            if(censusCorruption){saved=source;
+                auto at=std::find_if(physical.candidates.begin(),physical.candidates.end(),[&](const auto& c){
+                    return c.scope==Source::Scope::Outer&&(censusCorruption!=5u||c.lexeme=="00000000000000030");});
+                if(at==physical.candidates.end())throw std::runtime_error("no outer candidate");
+                if(censusCorruption==1u)at->scope=Source::Scope::Application;
+                if(censusCorruption==2u)at->lexeme="DEAD";
+                if(censusCorruption==3u)++at->span.endOffset;
+                if(censusCorruption==4u)++at->repeatedAdmissions;
+                if(censusCorruption==5u)at->scope=Source::Scope::OpaqueBody;
+            }
+            if(drop){}
+            else if(copy){auto other=source;dx_iface::addDxfIdentitySource(other);}
             else if(allocation>=0){SymbolAllocationFailure failure(allocation);dx_iface::addDxfIdentitySource(source);}
             else dx_iface::addDxfIdentitySource(source);
             if(duplicate)dx_iface::addDxfIdentitySource(source);
@@ -16,10 +29,11 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
             if(checkActive&&enableLegacyDxfIdentityObservation(false))throw std::runtime_error("active enable accepted");
             if(lateMutation<10u)A::mutateLegacyIdentity(*cData,lateMutation);
             if(reenter&&fileImport(inputPath.string(),cData,false))throw std::runtime_error("reentrant import accepted");
+            if(censusCorruption)physical=std::move(saved);
             if(throwAfter)throw std::runtime_error("legacy identity callback exception");
         }
     };
-    unsigned positive=0,defaults=0,quota=0,refusals=0,retries=0,late=0;
+    unsigned positive=0,defaults=0,quota=0,refusals=0,retries=0,late=0,integrity=0;
     const auto gated=[](const dx_data& data){return !A::identityInput(data)&&!A::identityAudit(data)
         &&dx_iface::identitySourceReport(data).state!=dx_iface::IdentitySourceState::NamespaceReady
         &&!dx_iface::identitySourceReport(data).outputEligible&&!dx_iface::identitySourceReport(data).ownerTargetsResolved;};
@@ -62,6 +76,31 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
             bad.copy=bad.duplicate=bad.duplicateTail=false;bad.allocation=-1;dx_data retry;
             if(!bad.fileImport(path.string(),&retry,false)||A::legacyIdentityFailed(retry)||!A::legacyIdentity(retry)||!gated(retry))return false;++retries;
         }
+        for(unsigned f=0u;f<5u;++f) {
+            Probe corrupted;if(!corrupted.enableLegacyDxfIdentityObservation())return false;
+            corrupted.drop=f==0u;corrupted.censusCorruption=f;dx_data rejected;
+            if(!corrupted.fileImport(path.string(),&rejected,false)||!A::legacyIdentityFailed(rejected)
+                ||A::legacyIdentity(rejected)||!gated(rejected))return false;
+            corrupted.drop=false;corrupted.censusCorruption=0u;dx_data corrected;
+            if(!corrupted.fileImport(path.string(),&corrected,false)||A::legacyIdentityFailed(corrected)
+                ||!A::legacyIdentity(corrected)||!gated(corrected))return false;
+            ++integrity;
+        }
+        {
+            auto aliases=document;
+            const auto at=std::find_if(aliases.begin(),aliases.end(),[](const auto& x){return x.code==0&&x.value=="LINE";});
+            if(at==aliases.end())return false;
+            aliases.insert(at,{{0,"POINT"},{5,"00000000000000030"},{330,"B1"},{100,"AcDbEntity"},{8,"0"},
+                {100,"AcDbPoint"},{10,"0"},{20,"0"},{30,"0"}});
+            if(!write(path,aliases,binary))return false;
+            Probe hidden;if(!hidden.enableLegacyDxfIdentityObservation())return false;hidden.censusCorruption=5u;dx_data rejected;
+            if(!hidden.fileImport(path.string(),&rejected,false)||!A::legacyIdentityFailed(rejected)||A::legacyIdentity(rejected)||!gated(rejected))return false;
+            hidden.censusCorruption=0u;dx_data accepted;
+            if(!hidden.fileImport(path.string(),&accepted,false)||A::legacyIdentityFailed(accepted)||!A::legacyIdentity(accepted)||!gated(accepted))return false;
+            bool observed=false;for(const auto& c:A::legacyIdentity(accepted)->source->candidates)
+                if(c.lexeme=="00000000000000030"&&c.scope==Source::Scope::Outer&&c.admission==Source::Admission::Invalid)observed=true;
+            if(!observed||!write(path,document,binary))return false;++integrity;
+        }
         Probe observerLimited;if(!observerLimited.enableLegacyDxfIdentityObservation())return false;
         observerLimited.limits.records=0u;dx_data limitedSource;
         if(!observerLimited.fileImport(path.string(),&limitedSource,false)||!A::legacyIdentityFailed(limitedSource)
@@ -97,6 +136,6 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
         if(!thrown.fileImport(path.string(),&clean,false)||A::legacyIdentity(clean)||!A::legacyIdentityFailed(clean)||!gated(clean))return false;
         if(!saved->source||saved->source->records.size()!=15u)return false; // snapshot remains alive, never authoritative
     }
-    std::cout<<"legacy identity observations="<<positive<<" defaults="<<defaults<<" quota="<<quota<<" refusals="<<refusals<<" retries="<<retries<<" late="<<late<<'\n';
-    return positive==2u&&defaults==2u&&quota==8u&&refusals==8u&&retries==12u&&late==22u;
+    std::cout<<"legacy identity observations="<<positive<<" defaults="<<defaults<<" quota="<<quota<<" refusals="<<refusals<<" retries="<<retries<<" late="<<late<<" integrity="<<integrity<<'\n';
+    return positive==2u&&defaults==2u&&quota==8u&&refusals==8u&&retries==12u&&late==22u&&integrity==12u;
 }
