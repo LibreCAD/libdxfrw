@@ -31589,7 +31589,7 @@ std::vector<std::pair<std::string,std::string>> indexedAppIdPairs(
 }
 
 Tags sourceWithManyPairs(bool binary,std::size_t count) {
-    if(count<8u||count>64u)
+    if(count<8u||count>2048u)
         throw std::runtime_error("many-pair LTYPE APPID count outside test generator range");
     auto fields=sourceWithEightPairs(binary);
     for(std::size_t index=9u;index<=count;++index) {
@@ -33883,6 +33883,52 @@ bool runTemporary() {
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
     return profiles==84u&&readbacks==183u&&refusals==100u&&retries==99u;
+}
+
+bool runBudgetTemporary() {
+    constexpr std::size_t budgetProviderCount=2048u;
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-ltype-appid-budget-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    dx_iface adapter;dx_data overBudget;
+    bool passed=write(input,sourceWithManyPairs(false,budgetProviderCount),false,
+                      "AC1027")
+        &&adapter.fileImport(input.string(),&overBudget,false);
+    const auto selected=std::find_if(overBudget.lineTypes.begin(),
+        overBudget.lineTypes.end(),[](const auto& value) {
+            return value.handle==0x103u;
+        });
+    const auto appCount=std::count_if(overBudget.appIds.begin(),
+        overBudget.appIds.end(),[](const auto& value) {
+            return value.name.rfind("MLINE_LTYPE_XDATA",0u)==0u;
+        });
+    passed=passed&&selected!=overBudget.lineTypes.end()
+        &&selected->extData.size()==budgetProviderCount*2u
+        &&appCount==budgetProviderCount;
+    if(passed) {
+        sentinel(output);
+        passed=!adapter.fileExport(output.string(),DRW::AC1027,false,
+                                   &overBudget,false,true)
+            &&dictionaryVarTransactionControls::keptWithoutTemporary(output);
+    }
+    if(passed) {
+        dx_data boundedRetry;
+        passed=write(input,sourceWithManyPairs(false,16u),false,"AC1027")
+            &&adapter.fileImport(input.string(),&boundedRetry,false)
+            &&adapter.fileExport(output.string(),DRW::AC1027,false,
+                                 &boundedRetry,false,true)
+            &&pairProviderProof(output,false,indexedAppIdPairs(16u));
+    }
+    if(passed) {
+        std::error_code error;std::filesystem::remove_all(dir,error);
+        std::cout<<"MLINE LTYPE APPID retained-byte budget refusal: 2048 providers; "
+                 <<"destination preserved; same-adapter 16-provider retry passed\n";
+    } else {
+        std::cerr<<"MLINE LTYPE APPID budget artifacts: "<<dir<<'\n';
+    }
+    return passed;
 }
 }
 
@@ -49195,6 +49241,8 @@ int main(int argc, char** argv) {
         return mlineLtypeProviderControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-appid-xdata")
         return mlineLtypeAppIdXdataControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-appid-budget")
+        return mlineLtypeAppIdXdataControls::runBudgetTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-style-xdata")
         return mlineStyleXdataControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-text-style-provider")
