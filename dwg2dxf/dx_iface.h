@@ -1847,6 +1847,10 @@ private:
     // Selected source-name uniqueness only; no BLOCK or output authority.
     static bool legacyBlockRefUniqueSourceName(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t) noexcept;
+    // Selected ATTDEF XDICTIONARY source-to-live-model binding only; no
+    // recursive graph or emitted-output authority.
+    static bool legacyAttdefExtensionDictionaryLiveSource(const dx_data&,
+        std::uint32_t) noexcept;
     // Selected original BLOCK/ENDBLK identities only; no geometry or output authority.
     static bool legacyBlockTargetSource(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t,std::array<std::uint32_t,2>&) noexcept;

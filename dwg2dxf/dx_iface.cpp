@@ -28627,6 +28627,100 @@ bool legacyAttdefEmptyExtensionDictionaryBodyMatches(const DRW_Dictionary& model
         &&raw.groups[3].type()==DRW_Variant::INTEGER&&raw.groups[3].i_val()==model.hardOwner
         &&raw.groups[4].type()==DRW_Variant::INTEGER&&raw.groups[4].i_val()==model.cloning;
 }
+
+bool legacyAttdefEmptyExtensionDictionaryModelMatches(const DRW_Dictionary& actual,
+        const DRW_Dictionary& expected,std::uint32_t handle,std::uint32_t owner) noexcept {
+    const auto selectedBody=[](const DRW_Dictionary& value,std::uint32_t self,std::uint32_t parent) noexcept {
+        return typeid(value)==typeid(DRW_Dictionary)&&value.tType==DRW::DICTIONARY
+            &&value.handle==self&&value.parentHandle==parent&&value.name.empty()&&value.flags==0
+            &&value.extData.empty()&&value.appData.empty()&&value.reactorHandles.empty()
+            &&value.xDictHandle==0u&&value.extensionDictionaryFlag()==0u&&value.reactorCount()==0
+            &&value.m_entries.empty()&&!value.countCap&&value.hardOwner==1&&value.cloning==1
+            &&value.hasCompleteDxfEntries();
+    };
+    return selectedBody(actual,handle,owner)&&selectedBody(expected,handle,owner)
+        &&actual.hasCompleteDwgEntries()==expected.hasCompleteDwgEntries()
+        &&actual.sameSelectedDxfEntryState(expected);
+}
+}
+
+bool dx_iface::legacyAttdefExtensionDictionaryLiveSource(const dx_data& data,
+        std::uint32_t attdefHandle) noexcept {
+    try {
+        const auto& source=data.m_tableDxfSource;
+        const auto same=[](const auto& a,const auto& b) noexcept {
+            return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+        };
+        const auto sameContext=[](const auto& a,const auto& b) noexcept {
+            return a.captured&&b.captured&&std::tie(a.sourceVersion,a.codecVersion,a.codecCodePage,
+                a.declaration,a.hasDeclaration,a.compatibilityProfile,a.textEncoding,a.codePagePolicy,
+                a.binary,a.applyExtrusion)==std::tie(b.sourceVersion,b.codecVersion,b.codecCodePage,
+                b.declaration,b.hasDeclaration,b.compatibilityProfile,b.textEncoding,b.codePagePolicy,
+                b.binary,b.applyExtrusion);
+        };
+        if(source.version!=DRW::AC1018||source.generation!=data.importGeneration
+            ||data.importGeneration!=1u||!source.successful||!source.closed||source.contextFailed
+            ||source.legacyIdentityCaptureFailed||source.legacyAttdefScopeFailed
+            ||source.resourceCaptureFailed||source.resourceProofCaptureFailed
+            ||source.structuralCaptureFailed||data.dictionaryCaptureFailed
+            ||data.dictionaries.size()>100000u||!source.legacyIdentityObservation
+            ||source.reader||source.entitiesReadInput||!source.legacyIdentityContextSnapshot
+            ||!same(source.legacyIdentityObservation,source.legacyIdentityObservationOwner)
+            ||!same(source.legacyIdentityObservation->source,source.legacyIdentitySourceOwner))return false;
+        const auto joined=source.legacyAttdefScopeJoins.find(attdefHandle);
+        if(joined==source.legacyAttdefScopeJoins.end()||!joined->second)return false;
+        const auto& join=*joined->second;
+        const auto& identity=source.legacyIdentityObservation;
+        if(!same(join.identity,identity)||!join.identity->source||!join.origin
+            ||!identity->context||!identity->deliveryTicket||identity->container!=&data
+            ||identity->generation!=source.generation||identity->containerId!=data.m_entitiesContainerIdentity.value
+            ||identity->context->sourceVersion!=DRW::AC1018||identity->context->codecVersion!=DRW::AC1015
+            ||identity->context->binary!=identity->source->binary
+            ||!sameContext(*identity->context,*source.legacyIdentityContextSnapshot)
+            ||join.origin->handle!=attdefHandle||!join.origin->blockRecord
+            ||!join.extensionDictionaryModel||!join.extensionDictionaryStructural)return false;
+        const auto handle=join.extensionDictionaryHandle;
+        const auto owner=join.origin->blockRecord;
+        if(!handle||join.extensionDictionary>=identity->source->records.size())return false;
+        const auto edge=source.legacyBlockRecordExtensionDictionaries.find(handle);
+        const auto structural=source.structuralInputs.find(handle);
+        const auto resource=source.resources.find(handle);
+        if(edge==source.legacyBlockRecordExtensionDictionaries.end()||edge->second!=owner
+            ||structural==source.structuralInputs.end()||!same(structural->second,join.extensionDictionaryStructural)
+            ||!structural->second||!structural->second->paired
+            ||structural->second->kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary
+            ||structural->second->physicalStatus!=DRW_DxfObjectPhysicalSource::Status::Complete
+            ||structural->second->container!=&data||structural->second->generation!=source.generation
+            ||structural->second->containerId!=identity->containerId||!structural->second->context
+            ||!sameContext(*structural->second->context,*identity->context)
+            ||structural->second->index>=source.structuralInputOwners.size()
+            ||!same(structural->second,source.structuralInputOwners[structural->second->index])
+            ||resource==source.resources.end()||resource->second.family!=dx_tableResourceFamily::Dictionary
+            ||!same(structural->second->model,resource->second.model)
+            ||!same(structural->second->raw,resource->second.raw)||!resource->second.raw)return false;
+        if(structural->second->raw->handle!=handle||structural->second->raw->parentHandle!=owner)return false;
+        const auto* structuralModel=dynamic_cast<const DRW_Dictionary*>(structural->second->model.get());
+        const auto* resourceModel=dynamic_cast<const DRW_Dictionary*>(resource->second.model.get());
+        const bool binary=identity->source->binary;
+        if(!structuralModel||!resourceModel
+            ||!legacyAttdefEmptyExtensionDictionaryBodyMatches(*join.extensionDictionaryModel,
+                *resource->second.raw,handle,owner,binary)
+            ||!legacyAttdefEmptyExtensionDictionaryModelMatches(*structuralModel,
+                *join.extensionDictionaryModel,handle,owner)
+            ||!legacyAttdefEmptyExtensionDictionaryModelMatches(*resourceModel,
+                *join.extensionDictionaryModel,handle,owner))return false;
+        const auto& physical=structural->second->physical;
+        if(!physical||!same(physical,structural->second->physicalOwner)
+            ||physical->version!=DRW::AC1018||physical->binary!=binary
+            ||physical->name!="DICTIONARY"||physical->fields.size()!=5u)return false;
+        std::size_t found=0u;
+        for(const auto& dictionary:data.dictionaries)if(dictionary.handle==handle) {
+            ++found;
+            if(!legacyAttdefEmptyExtensionDictionaryModelMatches(dictionary,
+                    *join.extensionDictionaryModel,handle,owner))return false;
+        }
+        return found==1u;
+    } catch(...) {return false;}
 }
 
 void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
@@ -28649,6 +28743,7 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
         ||!identity->containerId||identity->containerId!=data.m_entitiesContainerIdentity.value
         ||s.contextFailed||!s.successful||!s.closed||s.reader||s.entitiesReadInput
         ||s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.structuralCaptureFailed
+        ||data.dictionaryCaptureFailed
         ||s.blockSourceCaptureFailed||s.blockChildrenCaptureFailed||s.blockDeliveryCaptureFailed
         ||s.blockMembershipCaptureFailed||s.blockOriginCaptureFailed||s.attdefOriginCaptureFailed) {fail();return;}
     const auto& physical=*identity->source;
@@ -28659,10 +28754,13 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
         ||!addAssociativeSlotBytes(physical.records.size(),sizeof(std::uint8_t),bytes)
         ||!addAssociativeSlotBytes(physical.records.size(),128u,work)
         ||!addAssociativeSlotBytes(s.resources.size(),sizeof(Join)+16u*sizeof(void*),bytes)
+        ||!addAssociativeSlotBytes(data.dictionaries.size(),sizeof(std::pair<const std::uint32_t,const DRW_Dictionary*>)+6u*sizeof(void*),bytes)
         ||!addAssociativeSlotBytes(physical.candidates.size(),128u,work)
         ||!addAssociativeSlotBytes(s.resources.size(),1024u,work)
         ||work>s.maxLegacyAttdefScopeWork/depth||bytes>s.maxLegacyAttdefScopeBytes) {fail();return;}
     work*=depth;
+    if(!addAssociativeSlotBytes(data.dictionaries.size(),128u,work)
+        ||work>s.maxLegacyAttdefScopeWork) {fail();return;}
     // Precharge every producer-controlled lexeme before the indexer scans it;
     // long leading-zero aliases must be considered, not silently skipped.
     for(const auto& candidate:physical.candidates) {
@@ -28672,6 +28770,11 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
     try {
         dx_legacy_identity_join::Index index;
         if(!dx_legacy_identity_join::buildIndex(physical,index)){fail();return;}
+        std::map<std::uint32_t,const DRW_Dictionary*> liveDictionaries;
+        for(const auto& dictionary:data.dictionaries) {
+            const auto inserted=liveDictionaries.emplace(dictionary.handle,&dictionary);
+            if(!inserted.second)inserted.first->second=nullptr;
+        }
         for(const auto& item:s.resources){
             const auto& attr=item.second;if(attr.family!=dx_tableResourceFamily::AttributeDefinition||!attr.attdefOrigin)continue;
             const auto& origin=*attr.attdefOrigin;
@@ -28750,6 +28853,11 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
             const auto* extensionModel=dynamic_cast<const DRW_Dictionary*>(extensionResource->second.model.get());
             const auto& extensionRaw=extensionResource->second.raw;
             const auto& extensionPhysical=extensionInput.physical;
+            const DRW_Dictionary* liveExtensionModel=nullptr;std::size_t liveExtensionMatches=0u;
+            const auto liveExtension=liveDictionaries.find(extensionHandle);
+            if(liveExtension!=liveDictionaries.end()&&liveExtension->second) {
+                liveExtensionMatches=1u;liveExtensionModel=liveExtension->second;
+            } else if(liveExtension!=liveDictionaries.end())liveExtensionMatches=2u;
             // This selected source and the generated controls use the exact
             // empty, five-field dictionary body; other dictionary graphs and
             // entry schemas remain outside this private join.
@@ -28761,6 +28869,9 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
                 ||!extensionModel||!extensionRaw||!extensionPhysical
                 ||!legacyAttdefEmptyExtensionDictionaryBodyMatches(*extensionModel,*extensionRaw,extensionHandle,
                     origin.blockRecord,identity->source->binary)
+                ||liveExtensionMatches!=1u||!liveExtensionModel
+                ||!legacyAttdefEmptyExtensionDictionaryModelMatches(*liveExtensionModel,*extensionModel,
+                    extensionHandle,origin.blockRecord)
                 ||extensionPhysical->status!=DRW_DxfObjectPhysicalSource::Status::Complete
                 ||extensionPhysical->version!=DRW::AC1018||extensionPhysical->binary!=identity->source->binary
                 ||extensionPhysical->name!="DICTIONARY"||extensionPhysical->fields.size()!=5u
@@ -28818,12 +28929,16 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
                     ||row.endMarker.beginOffset!=child.endOffset) {exact=false;break;}
             }
             if(!exact)continue;
+            const auto snapshotBytes=sizeof(DRW_Dictionary)+4u*sizeof(void*);
+            if(bytes>s.maxLegacyAttdefScopeBytes||snapshotBytes>s.maxLegacyAttdefScopeBytes-bytes) {fail();return;}
+            bytes+=snapshotBytes;
             auto saved=std::make_shared<Join>();saved->identity=identity;saved->structural=structural->second;saved->origin=attr.attdefOrigin;
             saved->attdef=static_cast<std::size_t>(a-physical.records.data());saved->block=static_cast<std::size_t>(b-physical.records.data());
             saved->endblk=static_cast<std::size_t>(e-physical.records.data());saved->record=static_cast<std::size_t>(r-physical.records.data());
             saved->table=static_cast<std::size_t>(t-physical.records.data());
             saved->extensionDictionary=static_cast<std::size_t>(extensionRecord-physical.records.data());
             saved->extensionDictionaryHandle=extensionHandle;saved->extensionDictionaryStructural=extensionStructural->second;
+            saved->extensionDictionaryModel=std::make_shared<const DRW_Dictionary>(*liveExtensionModel);
             s.legacyAttdefScopeJoins.emplace(item.first,std::move(saved));
         }
         s.legacyAttdefScopeBytes=bytes;s.legacyAttdefScopeWork=work;

@@ -51,7 +51,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
         {0,"DICTIONARY"},{5,"D0"},{330,"B0"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
         {0,"ENDSEC"},{0,"EOF"}});
-    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u;
+    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u,liveModelFaults=0u;
     for(bool binary:{false,true}){
         if(!write(path,doc,binary))return false;
         Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent))return false;++defaults;
@@ -59,6 +59,19 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)||!A::legacyExtensionDictionaryBound(data)
             ||!A::legacyNoPromotion(data))return false;
         ++positives;
+        auto liveDictionary=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),
+            [](const DRW_Dictionary& value){return value.handle==0xD0u;});
+        if(liveDictionary==data.dictionaries.end())return false;
+        const auto ownerFlag=liveDictionary->hardOwner;liveDictionary->hardOwner=0;
+        if(A::legacyExtensionDictionaryBound(data))return false;
+        liveDictionary->hardOwner=ownerFlag;
+        if(!A::legacyExtensionDictionaryBound(data))return false;
+        ++liveModelFaults;
+        data.dictionaries.push_back(*liveDictionary);
+        if(A::legacyExtensionDictionaryBound(data))return false;
+        data.dictionaries.pop_back();
+        if(!A::legacyExtensionDictionaryBound(data))return false;
+        ++liveModelFaults;
         // Exercise the index directly as well as the independently authenticated
         // callback: mutated callback data is rejected before index construction.
         const auto* physical=A::legacyCensus(data);if(!physical)return false;
@@ -154,6 +167,6 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             ++dictionaryFaults;++retries;
         }
     }
-    std::cout<<"AC1018 selected origin join profiles="<<positives<<" default="<<defaults<<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases<<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
-    return positives==2u&&defaults==2u&&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u&&dictionaryFaults==6u&&retries==48u;
+    std::cout<<"AC1018 selected origin join profiles="<<positives<<" live-model-controls="<<liveModelFaults<<" default="<<defaults<<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases<<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
+    return positives==2u&&liveModelFaults==4u&&defaults==2u&&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u&&dictionaryFaults==6u&&retries==48u;
 }

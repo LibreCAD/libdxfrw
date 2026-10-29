@@ -1408,6 +1408,10 @@ private:
             std::shared_ptr<const IdentityInput> identity;
             std::shared_ptr<const StructuralInput> structural;
             std::shared_ptr<const StructuralInput> extensionDictionaryStructural;
+            // Copy of the uniquely delivered typed DICTIONARY callback. This
+            // binds the source child to the model actually retained by the
+            // importer; it is still not recursive graph or output authority.
+            std::shared_ptr<const DRW_Dictionary> extensionDictionaryModel;
             std::shared_ptr<const AttdefOrigin> origin;
             std::size_t attdef{DRW_DxfIdentitySource::NoIndex},block{DRW_DxfIdentitySource::NoIndex};
             std::size_t endblk{DRW_DxfIdentitySource::NoIndex},record{DRW_DxfIdentitySource::NoIndex},table{DRW_DxfIdentitySource::NoIndex};
