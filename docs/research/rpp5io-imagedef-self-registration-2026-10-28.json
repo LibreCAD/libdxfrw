@@ -1,0 +1,81 @@
+{
+  "schema": "imagedef-outer-self-registration-v1",
+  "date": "2026-10-28",
+  "codeCommit": "d5df439df5d639e141b41b5d9fc891d96b4218e9",
+  "supportClaimsPromoted": false,
+  "scope": "DXF IMAGEDEF outer group 5 now enters the existing global self-handle registry after validation. Valid image/definition callbacks, absent and null handles, and application-scope payload remain supported; duplicate malformed object handles are rejected consistently with strict object parsers.",
+  "originalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Independent repository sample; native authoring history not independently certified.",
+    "selected": "ASCII AC1018 IMAGEDEF 8C4 [390214,390425); group 5 [390227,390235).",
+    "before": "Existing source census classified IMAGEDEF outer self as Unobserved.",
+    "after": "Current observer Complete, IMAGEDEF 8C4 classified Outer/Accepted; legacy adapter identityInput remains absent."
+  },
+  "originalProbe": {
+    "path": "build/agent-attribute-profile/ac1018-imagedef-final/",
+    "sourceSha256": "aa09ae4e26e559304fa84fa7d4e240b7d2b8f5814f16e5e306551ad3b089f23d",
+    "binarySha256": "d745a5de09ba301fdb0d46b4f924f90ac30be12b69cf057c2248b0f410526980",
+    "stdoutSha256": "c635649a7e82d5a9981b49fa452da8ecb4372f9c91ca108defbdf6bab0d9c800",
+    "adapterObjectSha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9",
+    "librarySha256": "a4ae14f8257dcb8d037cc44721f769e64255006116b45390ef3bcca160417255"
+  },
+  "localCounterfactual": {
+    "provenance": "Locally authored AC1018 ASCII inputs in ignored build tree; no fixture committed.",
+    "duplicateImageFirstSha256": "b485184de4165d0bd5135eed7c76cd3f59ef1e0b711242d8c21954f86b3bcdce",
+    "duplicateImageLastSha256": "0faa0157562f8a22394448d25ccfd73dddfd5e5105c7318ebd49d5515a50fc88",
+    "uniqueImageFirstSha256": "9089ab2ab80950f2c9ea0743902e62bd0c8683abeb5c5cfbc48e6cb640378dd6",
+    "uniqueImageLastSha256": "4a08b8f31bdc589702e07b3d12112bb937ff687498a07878c1c13cdb750b82be",
+    "before": "IMAGEDEF and XRECORD sharing self handle 41 were both published in either order; IMAGEDEF candidate remained Unobserved.",
+    "after": "Duplicate object handles fail reading in both orders; distinct handle 42 controls read and IMAGEDEF is Outer/Accepted.",
+    "beforeBinarySha256": "84f377eef45b8986e7e2723aff653749e4b35c2a0826af810bebe85673f397c1",
+    "beforeStdoutSha256": "b01eab9cd2d5d2cb30b2e28647dfa25ca8a3c92d46b24046df819a2441fee1a6",
+    "afterBinarySha256": "20d37cec61d3f98aa40cd77df9e1163da4d65c3f94e5283992a3398e99d768ec",
+    "afterStdoutSha256": "f26cfa334238fff25685a164d838ec170bf3691fb3bec6e845714c7b45b2ee23",
+    "afterProbeSourceSha256": "97cbd57d7035e079a77b7c59be5d847759da505127b8e7c8bd5cf3ef7cc66fe6",
+    "chronology": "The prior binary also precedes the independent SORTENTSTABLE observer-scope change; the synthetic drawings contain no SORTENTSTABLE."
+  },
+  "bindings": {
+    "parserSourceSha256": "a38f6824145b30d94629a01f359f37c3126ccd9f976da94d61bf70a552dfabbd",
+    "controlSourceSha256": "4e229e5225174a0f59ac05e931a18415ab1874a0c33454cb33300c89cf4755bf",
+    "identityDriverSha256": "58c192ca3d2c6908652b15acf338d4670e1f2e9684cc5d4e38c450419c515f3a",
+    "normalTestBinarySha256": "20b8e81dc545a0d87e10a36ff27ad5edeb1ed09fee87fe8f11e16ac39f6de58b"
+  },
+  "validation": {
+    "identitySelectors": [
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_table_original_inputs"
+    ],
+    "normalIdentity": {
+      "result": "PASS 4/4",
+      "evidence": "Console observed; shared LastTest.log was overwritten by the subsequent image cohort."
+    },
+    "normalImage": {
+      "result": "PASS 2/2",
+      "selectors": [
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_rooted_custom_imagedef"
+      ],
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "07ba409e5ab9b63bb2f924bb9ce4019ca10259434dda65163faffe13ea558055"
+    },
+    "asanIdentity": {
+      "result": "PASS 4/4",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "testBinarySha256": "6b4ddce65c8c7c7866cc350bd44c56b1ea164e3298c129a33d22529f4d6583d4",
+      "librarySha256": "287176c65a8b7cb075567e4d71f1e0f49e95d82e1028e9fc7a87a2de491be819",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "c96c7c3981abf307f6e820383c2d1d1c38521af8b96c6f81a4d2ebd797ca7a0b"
+    },
+    "controls": "8 locally authored AC1018/AC1032 ASCII/binary 2D IMAGE/IMAGEDEF valid routes, 8 duplicate object failures/retries, 8 absent/null-handle callbacks and 8 malformed-handle rejections; application group 5 stays non-identity. Focused selectors only."
+  },
+  "limitations": [
+    "This deliberately changes malformed duplicate IMAGEDEF/object input from tolerated conflicting callbacks to read failure; valid IMAGEDEF, absent/null handles and ordinary 2D IMAGE callbacks were checked. Existing typed-entity duplicate softening is not changed.",
+    "One accepted IMAGEDEF source candidate does not establish unique entire-document identity, owner/reference closure, output eligibility, or native raster semantics. Legacy adapter namespace remains separately gated.",
+    "No DRW_Interface virtual, public object layout or API was added; rebuild the library and consuming executables. No drawing fixtures were committed."
+  ]
+}

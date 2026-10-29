@@ -278,6 +278,15 @@ also prevents body 5 from reserving a global self handle and body 330 from
 inventing a parent. Ordinary typed entity duplicates retain their existing
 softened import behavior; the original namespace remains unqualified when its
 physical identity is ambiguous. Identity, ownership and output gates remain open.
+The [SORTENTSTABLE scope fix](docs/research/rpp5in-sortents-identity-scope-2026-10-28.json)
+separates sort keys from outer identities, and [IMAGEDEF registration](docs/research/rpp5io-imagedef-self-registration-2026-10-28.json)
+detects duplicate object handles. Neither qualifies the namespace or graph.
+The [SORTENTSTABLE scope receipt](docs/research/rpp5in-sortents-identity-scope-2026-10-28.json)
+classifies selected sort keys as payload rather than outer identities; those
+keys do not establish ownership or output authority. The [IMAGEDEF receipt](docs/research/rpp5io-imagedef-self-registration-2026-10-28.json)
+records outer self-handle registration and rejects malformed duplicate object
+handles while preserving the tested valid 2D image callbacks. Original target
+and graph closure remain separate.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
