@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE description/default-text composition",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "6f9e9eea8af2c198b4d69acc3f529305e45e40c3",
+  "scope": "A runtime-authored AC1027 MLEADERSTYLE source admits a composed edit to its unique existing group-3 description and group-300 textDefault string fields. Both fields use valid UTF-8 scalar text and retain their source-relative physical order.",
+  "fieldEvidence": {
+    "groupCodes": [3, 300],
+    "fieldRoles": "The existing DRW_MLeaderStyle model and source-bound single-field transactions identify group 3 as description and group 300 as default text. This slice qualifies the pairwise composed adapter transaction and emitted field roles.",
+    "sourceEvidence": "The test runtime generates a source with exactly one group 3 value source-style-description followed by exactly one group 300 value source-default-text. The edits include accented Latin, CJK, punctuation and a supplementary-plane character.",
+    "classification": "Selected AC1027 DXF transaction/output/readback evidence. It does not establish independent producer variation, native annotation meaning, DWG editing, cross-version behavior, complete-document closure or a format support claim."
+  },
+  "contract": {
+    "admission": "A multi-field edit set composed exclusively of the separately modeled MLEADERSTYLE string groups 3 and 300 is admitted on the selected AC1027 source-bound route. Both source slots must be unique and match the immutable baseline; strings must satisfy existing UTF-8 scalar validation. Other mixed field families remain refused unless separately qualified.",
+    "projection": "The writer projects each changed typed string into its source-matched raw field slot, preserving physical order and the other captured fields. The pair is checked against the selected output order and exact string values.",
+    "outputAndReadback": "ASCII and binary runtime-generated sources each produce same-format and cross-format output. Typed readback verifies both UTF-8 strings; raw readback verifies exactly one group 3 and one group 300 in source order with exact values.",
+    "failureAndRetry": "A conflicting retained group-300 source value refuses publication while preserving a pre-existing destination; after exact raw restoration the same adapter succeeds. A late group-300 typed mutation also refuses atomically while preserving the destination; after correcting the typed value the same adapter succeeds.",
+    "compatibility": "Untouched records retain their existing replay route. This qualification is limited to AC1027 DXF and the selected description/default-text pair; unrelated mixed families and versions retain their existing contracts."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp authors sources at test runtime and writes outputs to temporary paths. No drawing fixture is committed.",
+    "implementationCommit": "6f9e9eea8af2c198b4d69acc3f529305e45e40c3",
+    "dwg2dxf/dx_iface.cpp": "dd9f937ea4315e114f41dab063085bb0fc6181501322d13a2a131c5ac9b9d04e",
+    "tests/dwg2dxf_adapter_tests.cpp": "e251ba022d349b5f1bfd4f1be912d09df1a3e56f4712f36f1ef5f740c35f48ab",
+    "adapterTestExecutableSha256": "c3a775e3b4171bd476635ad68e7ebb250dd0ca0120e913538ac05a939cf77bad",
+    "dwg2dxfExecutableSha256": "5506e759fa791008ba1b744902f28977cc2d3d38c3cb9e54bd2c631c5f9f81bd",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "1/1 passed in 2.55s; covers ASCII/binary source and output combinations, same/cross-format writes, exact typed and raw string readback/order, raw conflict and late mutation destination preservation, and same-adapter retries."
+    },
+    "productBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target dwg2dxf -j2"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; the selected change adds no allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "This is selected transport evidence, not native annotation meaning or rendering proof.",
+    "Other MLEADERSTYLE field combinations, other versions, DWG-origin writes and complete-document conversion remain outside this profile.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a current source-backed P2 geometry/schema witness and identify its concrete loss or refusal before editing."
+}
