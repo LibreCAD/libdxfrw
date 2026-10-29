@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style ten-to-nine removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_TEN_NINE_SURVIVOR_NONUPLES_QUALIFIED",
+  "codeCommit": "57e4380e",
+  "scope": "Qualify all 10 ordered choices of nine surviving tuples when reducing a consumed ten-element AC1027 MLINESTYLE to nine elements. Combined with the existing 10-to-1 through 10-to-8 receipts, every nonzero target count for this selected source-count-ten profile is now qualified; this does not establish universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Extend the bounded source-count-ten subset-removal helper through targetCount=9, add a named runtime-generated CTest and raise the temporary-runner limit. The all-subset enumerator and exact output inspector verify all 10 survivor nonuples, source-derived parameter projection, ASCII/binary input/output, fresh readback, refusal rollback, late-mutation rollback and corrected retries.",
+    "productionBehavior": "No writer change was required; the selected 10-to-9 model transactions use existing source-bound consumer projection and atomic output admission."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_nine_from_ten_removal$' --output-on-failure",
+    "ctestResult": "PASS: survivorSets=10; profiles=40; readbacks=44; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF source/output files are generated at runtime in a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "This receipt newly qualifies only source count ten and target count nine, across all 10 survivor nonuples.",
+    "The aggregate 10-to-1..9 matrix remains selected AC1027 evidence; source counts above ten, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-eleven to one-element removal across all 11 survivor positions with the same exact projection, output/readback, refusal, late-mutation rollback and retry controls."
+}
