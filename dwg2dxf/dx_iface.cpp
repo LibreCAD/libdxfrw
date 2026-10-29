@@ -15991,9 +15991,9 @@ constexpr std::array<int, 13> mleaderDoubleCodes{{
 }};
 // DXF Boolean values are retained in DRW_Variant as INTEGER, so they share
 // integer-value change detection while their writer path remains Boolean.
-constexpr std::array<int, 23> mleaderInt32Codes{{
+constexpr std::array<int, 24> mleaderInt32Codes{{
     90, 91, 92, 93, 94, 170, 171, 172, 173, 174, 175, 176, 177, 178,
-    290, 291, 292, 293, 294, 295, 296, 297, 298
+    271, 290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
@@ -16023,6 +16023,7 @@ int mleaderEnumMaximum(int code) noexcept {
     case 170: return 3;
     case 171:
     case 172:
+    case 271:
     case 177: return 1;
     case 173:
     case 175:
@@ -16059,6 +16060,7 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 176: return style.textAlignmentType;
     case 177: return style.blockConnectionType;
     case 178: return style.rightAttachment;
+    case 271: return style.attachmentDirection;
     case 290: return style.landingEnabled ? 1 : 0;
     case 291: return style.autoIncludeLanding ? 1 : 0;
     case 292: return style.textFrameEnabled ? 1 : 0;
@@ -16089,6 +16091,7 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 176: style.textAlignmentType = static_cast<std::uint16_t>(value); break;
     case 177: style.blockConnectionType = static_cast<std::uint16_t>(value); break;
     case 178: style.rightAttachment = static_cast<std::uint16_t>(value); break;
+    case 271: style.attachmentDirection = static_cast<std::uint16_t>(value); break;
     case 290: style.landingEnabled = value != 0; break;
     case 291: style.autoIncludeLanding = value != 0; break;
     case 292: style.textFrameEnabled = value != 0; break;

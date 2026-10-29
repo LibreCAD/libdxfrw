@@ -32179,6 +32179,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(176, 0);
     writer->writeInt16(177, 0);
     writer->writeInt16(178, 0);
+    writer->writeInt16(271, 0);
     writer->writeBool(290, false);
     writer->writeBool(291, true);
     writer->writeBool(292, false);
@@ -34884,7 +34885,9 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         || !verifyControlEnum(173, "leader-type",
             &DRW_MLeaderStyle::leaderType, 1u, 2u, 3u)
         || !verifyControlEnum(177, "block-connection",
-            &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, 2u))
+            &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, 2u)
+        || !verifyControlEnum(271, "attachment-direction",
+            &DRW_MLeaderStyle::attachmentDirection, 0u, 1u, 2u))
         return false;
 
     const auto verifyBooleanField = [&](int code, const char* name,
