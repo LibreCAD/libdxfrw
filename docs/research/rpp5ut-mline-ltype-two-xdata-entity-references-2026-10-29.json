@@ -1,0 +1,114 @@
+{
+  "id": "RPP-5ut",
+  "title": "MLINE-referenced simple LTYPE with two ordered XDATA entity references",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "c1a1d692970a6256ffd2d19a692fb323792d6e14",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_providers": [
+      {
+        "type": "LINE",
+        "source_handle": "0xA900",
+        "source_section": "ENTITIES",
+        "source_owner": "0x201",
+        "source_owner_name": "*Model_Space"
+      },
+      {
+        "type": "LINE",
+        "source_handle": "0xA902",
+        "source_section": "ENTITIES",
+        "source_owner": "0x201",
+        "source_owner_name": "*Model_Space"
+      }
+    ],
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" },
+      { "code": 1005, "value": "A900", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A902", "role": "soft-pointer entity handle" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "implementation": {
+    "change": "The selected MLINE simple-LTYPE path accepts up to two ordered XDATA group-1005 references. It binds each typed value to a distinct ordered physical reference, a uniquely captured live LINE, and its source owner; accounts for retained entity/owner state; validates each source value during output projection; and rewrites both handles through the entity remap table. A third group-1005 reference remains refused.",
+    "preserved_contract": "No public API or DRW_Interface virtual changes. Other target record types/sections and versions remain outside this selected path."
+  },
+  "proof": {
+    "source": "Exact ordered raw and typed XDATA agrees. Both source handles bind in order to distinct captured LINE identities in ENTITIES with a model-space BLOCK_RECORD owner.",
+    "output": "Across the AC1027 ASCII/binary input/output cross-product, physical output contains the exact ordered XDATA values with two remapped, distinct LINE handles. Fresh import verifies both typed references, both emitted LINE identities, and their model-space ownership.",
+    "failure_retry": "Removing the second target LINE refuses and preserves the destination; restoring it succeeds on the same adapter. A late mutation of the second target's handle also refuses atomically; restoring it succeeds on the same adapter. A runtime source with three ordered 1005 references imports but export refuses and preserves the destination, enforcing the selected two-reference boundary.",
+    "counts": {
+      "two_reference_positive_profiles": 4,
+      "two_reference_successful_readbacks_including_retries": 6,
+      "selected_atomic_refusals_including_over_boundary": 3,
+      "selected_same_adapter_retries": 2,
+      "whole_focused_test_profiles": 56,
+      "whole_focused_test_readbacks": 114,
+      "whole_focused_test_refusals": 59,
+      "whole_focused_test_retries": 58
+    }
+  },
+  "validation": {
+    "normal_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "normal_focused_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "normal_focused_result": "PASS",
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "asan_focused_command": "build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "asan_focused_result": "PASS",
+    "runtime_counts": "profiles=56; readbacks=114; refusals=59; retries=58",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "commit": "c1a1d692970a6256ffd2d19a692fb323792d6e14",
+      "adapter_sha256": "6b1232ab4a94ae19a22b8624eea5e197e75acbf6b54d842a58db7cf10412d25c",
+      "test_source_sha256": "934ea8021f80642986fb1409b97305cd40731d1ffc4a13793d1c63e1dd7a686a",
+      "normal_executable_sha256": "2ef89248a8d677973f7c5da6b6fcacdb8366913689f128088486381c2f640ced",
+      "asan_executable_sha256": "1edef6ed9b3dcba685e683bb66ece4f0bfd7dfab456af159763b40ebf318b364",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    },
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "Only two ordered group-1005 pointers are admitted in one AC1027 simple-LTYPE XDATA profile under one bare APPID; the tested targets are two distinct model-space LINE entities in ENTITIES. A third pointer is refused. Other target types, sections, owners, versions, APPID counts/metadata, XDATA compositions and broader LTYPE schemas remain unqualified.",
+    "The evidence proves bounded transport, ownership and identity remapping only. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure or general format support."
+  ],
+  "next": "Select the next current P2 witness from the remaining named-resource body profiles. Prefer the existing three-APPID-group boundary (current provider admission caps at two); bind the exact APPID identities and output order before changing its cap. Keep other semantic/platform gates independent."
+}
