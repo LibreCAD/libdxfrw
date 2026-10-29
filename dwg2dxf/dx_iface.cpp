@@ -21962,6 +21962,11 @@ struct MlineLinetypeShape {
             xdataHasPayload=true;
             ++xdataFields;return true;
         }
+        if (code==1004) {
+            if (!xdata) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
         if (xdata) return false;
         if (code==5) return classes==0u && ++selves==1u;
         if (code==330) return classes==0u && ++owners==1u;
@@ -22030,6 +22035,20 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
                 --depth;
             } else return false;
             break;
+        case 1004: {
+            if (field->type()!=DRW_Variant::STRING || !field->content.s
+                || (field->content.s->size()%2u)!=0u
+                || field->content.s->size()/2u>DRW::kMaxDxfBinaryPayloadBytes)
+                return false;
+            const auto isHex=[](unsigned char value) {
+                return (value>='0'&&value<='9') || (value>='A'&&value<='F')
+                    || (value>='a'&&value<='f');
+            };
+            if (!std::all_of(field->content.s->begin(),field->content.s->end(),
+                    [&](char value){return isHex(static_cast<unsigned char>(value));}))
+                return false;
+            hasPayload=true;break;
+        }
         case 1040:
         case 1041:
         case 1042:
