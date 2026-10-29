@@ -31003,6 +31003,35 @@ bool complete(const std::filesystem::path& path,bool binary,const Names& names,i
         &&style.elements[0].linetypeIndex==-1&&style.elements[1].linetypeIndex==-1
         &&style.elements[0].linetypeHandle==0u&&style.elements[1].linetypeHandle==0u;
 }
+bool canonicalFlagsNormalized(const std::filesystem::path& path,bool binary) {
+    const std::array<std::pair<std::string,std::string>,3> mandatory{{
+        {"ByBlock","14"},{"ByLayer","15"},{"Continuous","16"}}};
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    for(const auto& expected:mandatory) {
+        unsigned matches=0u;
+        for(const auto& row:rows)if(row.type=="LTYPE") {
+            std::vector<std::string> names,flags;
+            for(const auto& field:row.fields) {
+                if(field.first==2)names.push_back(field.second);
+                if(field.first==70)flags.push_back(field.second);
+            }
+            if(names==std::vector<std::string>{expected.first}) {
+                if(row.id!=expected.second||row.owner!="5"||flags!=std::vector<std::string>{"0"})return false;
+                ++matches;
+            }
+        }
+        if(matches!=1u)return false;
+    }
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false))return false;
+    for(const auto& expected:mandatory) {
+        unsigned matches=0u;
+        for(const auto& value:actual.lineTypes)if(value.name==expected.first) {
+            if(value.flags!=0)return false;++matches;
+        }
+        if(matches!=1u)return false;
+    }
+    return true;
+}
 bool peer(const std::filesystem::path& input,const std::filesystem::path& output,bool binary,std::string_view mode) {
     if(mode!="typed"&&mode!="raw"&&mode!="both")return false;
     dx_iface adapter;dx_data data;if(!adapter.fileImport(input.string(),&data,false))return false;DRW_MLineStyle* selected=nullptr;
@@ -31442,20 +31471,28 @@ bool run(const std::filesystem::path& dir) {
     for(bool binary:{false,true})for(bool byLayer:{false,true}) {
         dx_iface adapter;dx_data data;const auto fields=withFlags(mlineLtypeEditControls::recipe(binary),byLayer?"101":"102",64);
         if(!sourceFlags(fields,byLayer?"101":"102",64)||!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto sourceHandle=byLayer?0x101u:0x102u;
         const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
         const auto check=[&] {
             const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
-            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofAbsent(adapter)
-                ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return false;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,sourceHandle)
+                ||!mlineLtypeEditControls::canonicalFlagsNormalized(output,binary)
+                ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}})
+                ||!mlineLtypeEditControls::caller(data,style,raw,lines))return false;
             ++readbacks;return true;
         };
         if(!check())return fail(__LINE__);
         for(bool rawEdit:{false,true}) {
-            const auto element=byLayer?1u:0u;const std::string name=byLayer?"ByLayer":"Continuous";
+            const auto element=byLayer?0u:1u;const std::string name=byLayer?"Continuous":"ByLayer";
             if(rawEdit)mlineLtypeEditControls::rawName(data,element,name);else data.mLineStyles.front().elements[element].linetype=name;
             const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
-            sentinel(output);if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
-                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++canonical;
+            const auto wanted=byLayer?mlineLtypeEditControls::Names{{"Continuous","Continuous"}}
+                :mlineLtypeEditControls::Names{{"ByLayer","ByLayer"}};
+            const auto destination=byLayer?0x102u:0x101u;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!A::mlineLinetypeProofBound(adapter,destination)||!mlineLtypeEditControls::canonicalFlagsNormalized(output,binary)
+                ||!mlineLtypeEditControls::complete(output,binary,wanted)
+                ||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++canonical;
             data.mLineStyles=typed;data.rawNamedResourceObjects=raws;if(!check())return fail(__LINE__);++retries;
         }
     }

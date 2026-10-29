@@ -21918,10 +21918,11 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
             || segment.xOffset!=0.0 || segment.yOffset!=0.0 || segment.rotation!=0.0 || segment.scale!=1.0) return false;
     }
     const auto key=layoutSymbolKey(value.name);
-    // Custom bit64 bookkeeping is retained; fixed canonical rows emit flags0
-    // and need their own source-to-output normalization qualification.
+    // Canonical linetypes are emitted as fixed rows with flags0, so their
+    // advisory referenced bit is normalized by the writer. Other canonical
+    // metadata still needs a source-to-output profile before admission.
     if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
-        && (value.flags!=0 || !value.path.empty()
+        && (!value.path.empty()
             || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
     // Omitted source flags mean zero. Actual output uses the strict default
     // policy so this writer's explicit fields remain independently checked.
@@ -22373,9 +22374,9 @@ bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) n
                 if (!physical.complete(row.model.path.size())) return false;
                 auto expected=row.model;expected.handle=row.emitted;expected.parentHandle=row.table;
                 const auto canonical=layoutSymbolKey(expected.name);
-                if (canonical=="BYBLOCK") expected.name="ByBlock";
-                else if (canonical=="BYLAYER") expected.name="ByLayer";
-                else if (canonical=="CONTINUOUS") {expected.name="Continuous";expected.desc="Solid line";}
+                if (canonical=="BYBLOCK") {expected.name="ByBlock";expected.flags=0;}
+                else if (canonical=="BYLAYER") {expected.name="ByLayer";expected.flags=0;}
+                else if (canonical=="CONTINUOUS") {expected.name="Continuous";expected.desc="Solid line";expected.flags=0;}
                 dx_standard_output::Decoder decoder(view);
                 return decoder.decodeRecord<DRW_LType>(body,[&](const auto& actual) {
                     return lineTypeSourceEqual(actual,expected,view.version);
