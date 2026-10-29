@@ -461,6 +461,18 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_quint_append_128_250 P
     LABELS "dxf;fast;transaction"
     TIMEOUT 120)
 
+# Qualify the selected six-tuple recipe across the count-valid non-two sources.
+add_test(NAME libdxfrw_mline_consumed_source_count_six_append_3_127
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 3 127 6)
+set_tests_properties(libdxfrw_mline_consumed_source_count_six_append_3_127 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 120)
+add_test(NAME libdxfrw_mline_consumed_source_count_six_append_128_249
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 128 249 6)
+set_tests_properties(libdxfrw_mline_consumed_source_count_six_append_128_249 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 120)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
