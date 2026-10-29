@@ -17150,6 +17150,8 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
                 || !mlineStyleDictionarySourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)
                 || !mlineLtypeSourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineStyleBodiesSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)) return false;
             m_dxfMLineDependencySourceLivePreflightPassed=true;
         }
@@ -26563,6 +26565,33 @@ bool dx_iface::mlineStyleBodiesSourceLiveProof(const dx_data& data,
             for(const auto& field:raw.groups)if(!chargeVariant(field))return false;
             for(const auto& field:raw.rawValues)if(!chargeText(field))return false;
         }
+        const bool preparedTransaction=!m_dxfMLineStyles.empty();
+        if(preparedTransaction&&m_dxfMLineStyles.size()!=original->m_entries.size())return false;
+        if(preparedTransaction)for(const auto& entry:original->m_entries) {
+            const auto transaction=m_dxfMLineStyles.find(entry.m_handle);
+            if(transaction==m_dxfMLineStyles.end()||!transaction->second.baseline
+                ||transaction->second.baseline!=data.m_mlineStyleBodyBaselines.at(entry.m_handle))return false;
+            const auto& output=transaction->second.output;
+            if(output.groups.size()>kMaxAdapterMLineStyleItems
+                ||output.rawValues.size()>kMaxAdapterMLineStyleItems
+                ||(output.hasRawValues&&output.rawValues.size()!=output.groups.size())
+                ||!WholeSourceV2::sum(rawGroupVisits,output.groups.size(),rawGroupVisits)
+                ||rawGroupVisits>kMaxAdapterMLineStyleItems||!chargeText(output.name))return false;
+            for(const auto& field:output.groups)if(!chargeVariant(field))return false;
+            for(const auto& field:output.rawValues)if(!chargeText(field))return false;
+            for(const DRW_MLineStyle* value:{&transaction->second.model,&transaction->second.projection}) {
+                std::size_t modelBytes=0u,modelItems=0u;
+                if(value->elements.size()>UINT8_MAX||!chargeCommon(*value)
+                    ||!chargeText(value->description)||!chargeText(value->fillColorName)
+                    ||!chargeText(value->fillColorBookName)
+                    ||!estimateMLineStyleTypedBytes(*value,modelBytes,modelItems)
+                    ||!WholeSourceV2::sum(variableBytes,modelBytes,variableBytes)
+                    ||!WholeSourceV2::sum(preflightItems,modelItems,preflightItems))return false;
+                for(const auto& element:value->elements)
+                    if(!chargeText(element.colorName)||!chargeText(element.colorBookName)
+                        ||!chargeText(element.linetype))return false;
+            }
+        }
         std::size_t nameBytes=0u;
         if(original->name.size()>whole.peakBytes()||liveDictionary->name.size()>whole.peakBytes()
             ||!WholeSourceV2::sum(original->name.size(),liveDictionary->name.size(),nameBytes))return false;
@@ -26673,9 +26702,23 @@ bool dx_iface::mlineStyleBodiesSourceLiveProof(const dx_data& data,
             DRW_MLineStyle decoded;MlineSlots slots;std::size_t insertion=0u;
             if(!decodeMlineBody(raw,*baseline->second,decoded,slots,insertion)
                 ||decoded.handle!=entry.m_handle||decoded.parentHandle!=dictionaryHandle
-                ||decoded.name!=entry.m_name||!live->validateDxfRecord()
-                ||!mlineFieldsEqual(*live,decoded)
-                ||!standardDwgCommonEqual(*live,decoded,whole.version()))return false;
+                ||decoded.name!=entry.m_name||!live->validateDxfRecord())return false;
+            const auto transaction=m_dxfMLineStyles.find(entry.m_handle);
+            if(transaction==m_dxfMLineStyles.end()) {
+                if(!mlineFieldsEqual(*live,decoded)
+                    ||!standardDwgCommonEqual(*live,decoded,whole.version()))return false;
+            } else {
+                const auto& planned=transaction->second;
+                if(planned.baseline!=baseline->second
+                    ||!retainedRawDxfObjectsEqual(planned.raw,raw)
+                    ||!mlineFieldsEqual(*live,planned.model)
+                    ||!standardDwgCommonEqual(*live,planned.model,whole.version()))return false;
+                DRW_MLineStyle plannedBody;
+                if(!dx_material_body::decodeRecord(planned.output,plannedBody,
+                        m_dxfMLineStyleState.binary,m_dxfMLineStyleState.codePage)
+                    ||!plannedBody.validateDxfRecord()
+                    ||!mlineFieldsEqual(plannedBody,planned.projection,true,true,true))return false;
+            }
         }
         if(charged)*charged=total;
         return true;
@@ -33281,6 +33324,8 @@ bool dx_iface::finalizeDxfWrite() {
                 || !mlineStyleDictionarySourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)
                 || !mlineLtypeSourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineStyleBodiesSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)

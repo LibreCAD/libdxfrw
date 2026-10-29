@@ -2261,7 +2261,7 @@ private:
     std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;
     DxfNamedResourceState m_dxfMLineStyleState;
     bool m_dxfMLineStylesInspected{false};
-    // Selected LAYER and MLINESTYLE dictionary source/live proofs are cached
+    // Selected LAYER, dictionary, LTYPE and MLINESTYLE body proofs are cached
     // only within one export; finalization repeats them after writer callbacks.
     mutable bool m_dxfMLineDependencySourceLivePreflightPassed{false};
     static bool chargeMlineComparisonWork(const std::vector<DRW_MLineElement>& elements,
