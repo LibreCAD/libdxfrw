@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "dx_iface.h"
+#include "dx_mline_dictionary_source_live.h"
 #include "dx_mline_layer_source_live.h"
 #include "dx_mline_ltype_source_live.h"
 #include "dx_legacy_blockref_source_relation.h"
@@ -26093,6 +26094,100 @@ dx_mline_source_dependency::Proof dx_iface::mlineDependencySourceProof(
     const auto& entry=original->m_entries.front();
     if(entry.m_name!="ACAD_MLINESTYLE"||entry.m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)return unavailable;
     return classify(input->source.get(),root,entry.m_handle,limits);
+}
+
+// Selected source/live root-dictionary evidence; not a write authorization.
+bool dx_iface::mlineRootDictionarySourceLiveProof(const dx_data& data,
+        std::size_t limit,std::size_t* charged) const noexcept {
+    if(charged)*charged=0u;
+    try {
+        const auto& s=data.m_tableDxfSource;
+        if(cData!=&data||!data.hasNamedObjectDictionary||!s.wholeInput||!s.wholeInput->source
+            ||!s.identityInput||!s.identityInput->source||!s.identityAudit||s.identityCaptureFailed
+            ||s.structuralCaptureFailed||s.structuralAudits.size()>64u||s.structuralInputs.size()>64u
+            ||s.structuralInputOwners.size()>64u||s.structuralAuditOwners.size()>64u
+            ||s.identityInput->source->records.size()>64u)return false;
+        const auto& whole=*s.wholeInput->source;
+        const auto& identity=*s.identityInput->source;
+        if(whole.fieldCount()>4096u||whole.peakBytes()>256u*1024u
+            ||data.namedObjectDictionary.m_entries.size()!=1u)return false;
+        std::size_t classifierWork=0u,cost=0u,x=0u,y=0u;
+        if(!WholeSourceV2::product(whole.peakBytes(),512u,x)
+            ||!WholeSourceV2::product(whole.fieldCount(),256u,y)
+            ||!WholeSourceV2::sum(x,y,classifierWork)
+            ||!WholeSourceV2::sum(classifierWork,64u*64u*128u+4096u,classifierWork)
+            ||!WholeSourceV2::product(whole.peakBytes(),4u,x)
+            ||!WholeSourceV2::product(whole.fieldCount(),64u,y)
+            ||!WholeSourceV2::sum(x,y,cost)||!WholeSourceV2::sum(cost,1024u,cost)
+            ||!WholeSourceV2::sum(cost,classifierWork,cost)
+            ||cost>limit)return false;
+        const auto sourceProof=mlineDependencySourceProof(data,{});
+        if(sourceProof.result!=dx_mline_source_dependency::Result::SourceCandidate
+            ||sourceProof.work!=classifierWork)return false;
+        const auto handle=data.namedObjectDictionary.handle;
+        const auto found=s.structuralAudits.find(handle);
+        if(found==s.structuralAudits.end()||!found->second||!found->second->input)return false;
+        const auto& audit=*found->second;const auto& input=audit.input;
+        const auto saved=s.structuralInputs.find(handle);
+        const auto same=[](const auto& a,const auto& b) noexcept {
+            return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+        };
+        const auto contextEqual=[](const auto& a,const auto& b) noexcept {
+            return a.captured&&b.captured&&a.sourceVersion==b.sourceVersion&&a.codecVersion==b.codecVersion
+                &&a.codecCodePage==b.codecCodePage&&a.declaration==b.declaration&&a.hasDeclaration==b.hasDeclaration
+                &&a.compatibilityProfile==b.compatibilityProfile&&a.textEncoding==b.textEncoding
+                &&a.codePagePolicy==b.codePagePolicy&&a.applyExtrusion==b.applyExtrusion&&a.binary==b.binary;
+        };
+        if(!same(s.identityInput,s.identityInputOwner)||!same(s.identityAudit,s.identityAuditOwner)
+            ||!same(s.identityAudit->input,s.identityInput)||s.identityInput->container!=&data
+            ||s.identityInput->generation!=data.importGeneration||s.identityInput->generation!=s.generation
+            ||!s.identityInput->containerId||s.identityInput->containerId!=data.m_entitiesContainerIdentity.value
+            ||identity.status!=DRW_DxfIdentitySource::Status::Complete||identity.version!=whole.version()
+            ||identity.binary!=whole.binary()||saved==s.structuralInputs.end()||!same(input,saved->second)
+            ||input->index>=s.structuralInputOwners.size()||!same(input,s.structuralInputOwners[input->index])
+            ||audit.index>=s.structuralAuditOwners.size()||!same(found->second,s.structuralAuditOwners[audit.index])
+            ||!audit.originBound||!audit.bodyMatched
+            ||!audit.stateComplete||!input->raw||!input->model||!input->context||!input->physical
+            ||!input->physicalOwner||!same(input->physical,input->physicalOwner)
+            ||input->physicalStatus!=DRW_DxfObjectPhysicalSource::Status::Complete
+            ||input->physical->status!=DRW_DxfObjectPhysicalSource::Status::Complete
+            ||input->kind!=dxfRW::DxfStructuralSourceView::Kind::RootDictionary
+            ||input->container!=&data||input->generation!=data.importGeneration
+            ||input->containerId!=data.m_entitiesContainerIdentity.value||!same(audit.identities,s.identityAudit)
+            ||audit.physical>=identity.records.size()
+            ||!contextEqual(*input->context,s.wholeInput->context)||!s.identityInput->context
+            ||!contextEqual(*s.identityInput->context,s.wholeInput->context)
+            ||input->context->binary!=whole.binary()||input->context->sourceVersion!=whole.version())return false;
+        const auto* original=dynamic_cast<const DRW_Dictionary*>(input->model.get());
+        if(!original||original->handle!=handle||original->parentHandle||original->m_entries.size()!=1u
+            ||!original->hasCompleteDxfEntries()||original->countCap
+            ||!original->appData.empty()||!original->extData.empty()||!original->reactorHandles.empty()
+            ||!original->pendingAppIdResolutions.empty()||!original->pendingLayerRefResolutions.empty()
+            ||original->xDictHandle||original->hasDataStorageBinaryData()
+            ||!data.namedObjectDictionary.hasCompleteDxfEntries()||data.namedObjectDictionary.countCap
+            ||!data.namedObjectDictionary.appData.empty()||!data.namedObjectDictionary.extData.empty()
+            ||!data.namedObjectDictionary.reactorHandles.empty()
+            ||!data.namedObjectDictionary.pendingAppIdResolutions.empty()
+            ||!data.namedObjectDictionary.pendingLayerRefResolutions.empty()
+            ||data.namedObjectDictionary.xDictHandle||data.namedObjectDictionary.hasDataStorageBinaryData()
+            ||original->name.size()>whole.peakBytes()||data.namedObjectDictionary.name.size()>whole.peakBytes()
+            ||original->m_entries.front().m_name.size()>whole.peakBytes()
+            ||data.namedObjectDictionary.m_entries.front().m_name.size()>whole.peakBytes()
+            ||!original->sameSelectedDxfEntryState(data.namedObjectDictionary)
+            ||!standardDwgCommonEqual(*original,data.namedObjectDictionary,whole.version())
+            ||original->cloning!=data.namedObjectDictionary.cloning
+            ||original->hardOwner!=data.namedObjectDictionary.hardOwner
+            ||original->m_entries.size()!=data.namedObjectDictionary.m_entries.size())return false;
+        const auto& sourceEntry=original->m_entries.front();
+        const auto& liveEntry=data.namedObjectDictionary.m_entries.front();
+        if(sourceEntry.m_name!=liveEntry.m_name||sourceEntry.m_handle!=liveEntry.m_handle
+            ||sourceEntry.m_dxfHandleCode!=liveEntry.m_dxfHandleCode)return false;
+        const auto& physical=identity.records[audit.physical];
+        if(!dx_mline_dictionary_source_live::equal(whole,physical,input->physical,
+                input->physicalStatus,*input->raw))return false;
+        if(charged)*charged=cost;
+        return true;
+    }catch(...) {return false;}
 }
 
 // Selected source/live LAYER evidence; not a write authorization.

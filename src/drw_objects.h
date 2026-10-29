@@ -3592,6 +3592,16 @@ public:
   }
   //! True when the DXF name/handle stream is structurally complete.
   [[nodiscard]] bool hasCompleteDxfEntries() const noexcept;
+  //! Selected proof helper for a parsed, complete DXF dictionary body.
+  //! Compares parser-private pending-name and retained-name state without
+  //! exposing or changing the dictionary layout.
+  [[nodiscard]] bool sameSelectedDxfEntryState(const DRW_Dictionary& other) const noexcept {
+    return m_dwgEntriesComplete && other.m_dwgEntriesComplete
+        && m_pendingEntryName.empty() && other.m_pendingEntryName.empty()
+        && m_dxfRetainedPendingEntryNameBytes == 0u
+        && other.m_dxfRetainedPendingEntryNameBytes == 0u
+        && m_dxfRetainedEntryNameBytes == other.m_dxfRetainedEntryNameBytes;
+  }
   [[nodiscard]] bool isDwgPayloadValid(DRW::Version version) const noexcept;
   [[nodiscard]] std::uint8_t dwgItemHandleCode() const noexcept;
 

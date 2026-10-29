@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include "dx_mline_dictionary_source_live.h"
 #include "dx_mline_layer_source_live.h"
 #include "dx_mline_ltype_source_live.h"
 #include "test_scratch.h"
@@ -22,6 +23,7 @@ public:
 };
 class DxIfaceMlineDependencyTestAccess {
 public:
+    static bool rootDictionary(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineRootDictionarySourceLiveProof(d,work,used);}
     static bool layers(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLayerSourceLiveProof(d,work,used);}
     static bool ltypes(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLtypeSourceLiveProof(d,work,used);}
     static dx_mline_source_dependency::Proof qualify(const dx_iface& a,const dx_data& data,
@@ -673,7 +675,152 @@ static int testMlineLtypeLive() {
              : 29;
 }
 
+static int testMlineRootDictionaryLive() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-root-dictionary-live", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  auto tags = parseTags(sourceText());
+  for (const char *id : {"D100", "D101"})
+    tags[field(tags, record(tags, "MLINE", id), 2)].second = "EFFECTIVE_STYLE";
+  tags[field(tags, record(tags, "MLINESTYLE", "D"), 2)].second =
+      "EFFECTIVE_STYLE";
+  tags[field(tags, record(tags, "MLINESTYLE", "D2"), 2)].second =
+      "RETARGET_STYLE";
+  const auto text = serialize(tags);
+  unsigned profiles = 0u, mutations = 0u, bodyTamper = 0u,
+           hiddenState = 0u, retries = 0u, limits = 0u;
+  for (bool binary : {false, true}) {
+    std::string bytes = text;
+    if (binary) {
+      std::string encoded;
+      if (!encodeBinary(text, encoded))
+        return 2;
+      bytes = std::move(encoded);
+    }
+    const auto path = dir / (binary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(path, bytes))
+      return 3;
+    Consumer adapter;
+    dx_data data;
+    if (!adapter.enableWholeDxfSourceObservation() ||
+        !adapter.enableLegacyDxfIdentityObservation() ||
+        !adapter.import(path.string(), data) ||
+        DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+            Result::SourceCandidate)
+      return 4;
+    std::size_t charged = 0u;
+    const auto check = [&](std::size_t work, std::size_t *used = nullptr) {
+      return DxIfaceMlineDependencyTestAccess::rootDictionary(
+          adapter, data, work, used);
+    };
+    if (!check(512u * 1024u * 1024u, &charged) || !charged)
+      return 5;
+    std::size_t refused = 123u;
+    if (check(charged - 1u, &refused) || refused || !check(charged))
+      return 6;
+    ++limits;
+    auto &live = data.namedObjectDictionary;
+    const auto saved = live;
+    const auto change = [&](const auto &modify) {
+      modify(live);
+      if (DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+              Result::SourceCandidate ||
+          check(512u * 1024u * 1024u))
+        return false;
+      live = saved;
+      if (!check(charged))
+        return false;
+      ++mutations;
+      ++retries;
+      return true;
+    };
+    using EntryCode = DRW_Dictionary::Entry::DxfHandleCode;
+    if (!change([](auto &v) { v.cloning ^= 1; }) ||
+        !change([](auto &v) { v.hardOwner ^= 1; }) ||
+        !change([](auto &v) { v.m_entries.front().m_name = "OTHER_ROOT"; }) ||
+        !change([](auto &v) { v.m_entries.front().m_handle = 0xBu; }) ||
+        !change([](auto &v) { v.m_entries.front().m_dxfHandleCode = EntryCode::HardOwner; }) ||
+        !change([](auto &v) { v.m_entries.clear(); }) ||
+        !change([](auto &v) { v.name = "OTHER_DICTIONARY"; }) ||
+        !change([](auto &v) { v.appData.push_back({{102, std::string("{NEW")}, {102, std::string("}")}}); }))
+      return 7;
+
+    auto &capture = DxWholeSourceTestAccess::capture(data);
+    const auto audit = capture.structuralAudits.find(0xCu);
+    if (audit == capture.structuralAudits.end() || !audit->second ||
+        !audit->second->input || !audit->second->input->raw ||
+        !audit->second->input->model)
+      return 8;
+    const auto &whole = *capture.wholeInput->source;
+    const auto &identity = *capture.identityInput->source;
+    if (audit->second->physical >= identity.records.size())
+      return 9;
+    auto raw = *audit->second->input->raw;
+    bool changedRaw = false;
+    for (std::size_t i = 0u; i < raw.groups.size(); ++i) {
+      if (raw.groups[i].code() == 280 &&
+          raw.groups[i].type() == DRW_Variant::INTEGER) {
+        raw.groups[i] = DRW_Variant(280, 1);
+        if (raw.hasRawValues)
+          raw.rawValues[i] = "1";
+        changedRaw = true;
+        break;
+      }
+    }
+    if (!changedRaw ||
+        DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+            Result::SourceCandidate ||
+        dx_mline_dictionary_source_live::equal(
+            whole, identity.records[audit->second->physical],
+            audit->second->input->physical,
+            audit->second->input->physicalStatus, raw) ||
+        !check(charged))
+      return 10;
+    ++bodyTamper;
+
+    const auto &original = static_cast<const DRW_Dictionary &>(
+        *audit->second->input->model);
+    auto resetOriginal = original;
+    resetOriginal.reset();
+    resetOriginal.handle = original.handle;
+    resetOriginal.parentHandle = original.parentHandle;
+    resetOriginal.name = original.name;
+    resetOriginal.cloning = original.cloning;
+    resetOriginal.hardOwner = original.hardOwner;
+    resetOriginal.m_entries = original.m_entries;
+    if (original.sameSelectedDxfEntryState(resetOriginal) || !check(charged))
+      return 11;
+    ++hiddenState;
+    ++profiles;
+
+    Consumer plain;
+    dx_data unobserved;
+    if (!plain.import(path.string(), unobserved) ||
+        DxIfaceMlineDependencyTestAccess::rootDictionary(
+            plain, unobserved, 512u * 1024u * 1024u, nullptr))
+      return 13;
+  }
+  std::cout << "root dictionary source/live profiles=" << profiles
+            << " mutations=" << mutations << " body-tamper=" << bodyTamper
+            << " hidden-state=" << hiddenState << " limits=" << limits
+            << " retries=" << retries << '\n';
+  return profiles == 2u && mutations == 16u && bodyTamper == 2u &&
+                 hiddenState == 2u && limits == 2u && retries == 16u
+             ? 0
+             : 14;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-root-dictionary-source-live")return testMlineRootDictionaryLive();
     if(argc==2&&std::string(argv[1])=="--layer-source-live")return testMlineLayerLive();
     if(argc==2&&std::string(argv[1])=="--ltype-source-live")return testMlineLtypeLive();
     if(argc!=1)return 26;
