@@ -199,8 +199,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // complete diffuse tuple and refraction prefix make the second group 42
     // unambiguous. The general canonical writer deliberately does not emit
     // markerless normal maps. For this captured, unchanged source only, allow
-    // composed typed edits of its blend, projection, tiling, auto transform and
-    // file-backed normal filename without
+    // composed typed edits of its blend, projection, tiling, auto transform,
+    // file-backed normal filename and normal matrix without
     // synthesizing a marker or opening the general writer grammar.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
@@ -212,18 +212,23 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const bool tilingEdit=original.m_normalMapTiling!=typed.m_normalMapTiling;
         const bool autoEdit=original.m_normalMapAutoTransform!=typed.m_normalMapAutoTransform;
         const bool filenameEdit=original.m_normalMapFileName!=typed.m_normalMapFileName;
+        const bool matrixEdit=!dxfMaterial::sameValue(original.m_normalMapTransform,typed.m_normalMapTransform);
         DRW_Material desired=original;
         if(blendEdit)desired.m_normalMapBlendFactor=typed.m_normalMapBlendFactor;
         if(projectionEdit)desired.m_normalMapProjection=typed.m_normalMapProjection;
         if(tilingEdit)desired.m_normalMapTiling=typed.m_normalMapTiling;
         if(autoEdit)desired.m_normalMapAutoTransform=typed.m_normalMapAutoTransform;
         if(filenameEdit)desired.m_normalMapFileName=typed.m_normalMapFileName;
-        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit)
+        if(matrixEdit)desired.m_normalMapTransform=typed.m_normalMapTransform;
+        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit||matrixEdit)
             || (projectionEdit&&(typed.m_normalMapProjection<1u||typed.m_normalMapProjection>4u))
             || (tilingEdit&&(typed.m_normalMapTiling<1u||typed.m_normalMapTiling>3u))
             || (autoEdit&&(typed.m_normalMapAutoTransform & ~7u))
             || (filenameEdit&&(!original.m_hasDiffuseMapFileName
-                || original.m_normalMapSource!=1u || typed.m_normalMapSource!=1u)))
+                || original.m_normalMapSource!=1u || typed.m_normalMapSource!=1u))
+            || (matrixEdit&&(!original.m_hasDiffuseMapTransform||!original.m_hasNormalMapTransform
+                ||!std::all_of(typed.m_normalMapTransform.begin(),typed.m_normalMapTransform.end(),
+                    [](double value){return std::isfinite(value);}))))
             return false;
         if(dxfMaterial::sameState(desired,typed)) {
             bool body=false,xdata=false,ok=true;unsigned depth=0u,markers=0u;
@@ -231,6 +236,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             std::array<std::array<std::size_t,2>,3> maps{};
             std::array<std::size_t,3> mapCount{};
             std::array<std::size_t,2> filenames{};std::size_t filenameCount=0u;
+            std::array<std::size_t,32> matrixSlots{};std::size_t matrixCount=0u;
             for(std::size_t i=0u;i<raw.groups.size()&&ok;++i) {
                 const auto& field=raw.groups[i];const int code=field.code();
                 if(code==102) {
@@ -259,6 +265,10 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 if(code==464||code==465||code==300||code==291||code==301
                     ||code==469||code==292||code==62||code==420||code==430){ok=false;break;}
                 if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
+                if(matrixEdit&&code==43) {
+                    if(matrixCount==matrixSlots.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}
+                    matrixSlots[matrixCount++]=i;
+                }
                 if(filenameEdit&&code==3) {
                     if(filenameCount==filenames.size()||field.type()!=DRW_Variant::STRING||!field.content.s){ok=false;break;}
                     filenames[filenameCount++]=i;
@@ -279,7 +289,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 &&bound(0u,projectionEdit,original.m_hasDiffuseMapProjection,original.m_diffuseMapProjection,original.m_normalMapProjection)
                 &&bound(1u,tilingEdit,original.m_hasDiffuseMapTiling,original.m_diffuseMapTiling,original.m_normalMapTiling)
                 &&bound(2u,autoEdit,original.m_hasDiffuseMapAutoTransform,original.m_diffuseMapAutoTransform,original.m_normalMapAutoTransform)
-                &&(!filenameEdit || (filenameCount==2u && filenames[0]<blends[1] && filenames[1]>blends[1]))) {
+                &&(!filenameEdit || (filenameCount==2u && filenames[0]<blends[1] && filenames[1]>blends[1]))
+                &&(!matrixEdit || (matrixCount==32u && matrixSlots[15]<blends[1] && matrixSlots[16]>blends[1]))) {
                 output=raw;
                 const auto replace=[&](std::size_t index,DRW_Variant field) {
                     output.groups[index]=std::move(field);
@@ -290,6 +301,14 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                     }
                     return true;
                 };
+                if(matrixEdit) {
+                    for(std::size_t i=0u;i<16u;++i) {
+                        if(!dxfMaterial::sameValue(raw.groups[matrixSlots[i]].d_val(),original.m_diffuseMapTransform[i])
+                            ||!dxfMaterial::sameValue(raw.groups[matrixSlots[16u+i]].d_val(),original.m_normalMapTransform[i])) return false;
+                        if(!dxfMaterial::sameValue(original.m_normalMapTransform[i],typed.m_normalMapTransform[i])
+                            &&!replace(matrixSlots[16u+i],DRW_Variant(43,typed.m_normalMapTransform[i])))return false;
+                    }
+                }
                 if(filenameEdit) {
                     BodyWriter filenameWriter(binary,baseline.m_version);
                     if(!filenameWriter.writeUtf8String(3,typed.m_normalMapFileName)
