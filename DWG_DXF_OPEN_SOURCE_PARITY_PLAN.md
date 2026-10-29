@@ -179,8 +179,11 @@ and broader producer behavior remain unqualified.
    qualifies only isolated typed blend, [projection](docs/research/rpp5ig-material-unmarked-normal-projection-2026-10-28.json)
    and [tiling](docs/research/rpp5ii-material-unmarked-normal-tiling-2026-10-28.json)
    edits on that captured source. Their [composition](docs/research/rpp5ij-material-unmarked-normal-composition-2026-10-28.json)
-   is also qualified for the selected source; other normal-map fields and
-   source profiles require separate evidence. Its
+   is also qualified for the selected source. The [normal auto-transform edit](docs/research/rpp5ix-material-unmarked-normal-autotransform-2026-10-28.json)
+   extends the same unchanged-source profile to group `75`, including composition
+   with the three existing edits. Its `0x07` admission mask is the existing
+   parser/writer policy, not independent proof of native normal-map bit meanings.
+   Other normal-map fields and source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
    keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
    refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
