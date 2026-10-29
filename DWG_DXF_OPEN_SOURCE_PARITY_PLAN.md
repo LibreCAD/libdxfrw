@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json), geometry-changing MLINE `340` retarget [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json), one-element append [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json), tail removal [RPP-5ke](docs/research/rpp5ke-mline-consumed-style-tail-removal-2026-10-29.json), two-element append [RPP-5kf](docs/research/rpp5kf-mline-consumed-style-multi-append-2026-10-29.json), first-element removal [RPP-5kg](docs/research/rpp5kg-mline-consumed-style-first-removal-2026-10-29.json), selected 4-to-2 middle-element removal [RPP-5kh](docs/research/rpp5kh-mline-consumed-style-multi-removal-2026-10-29.json), all four 4-to-3 removal positions [RPP-5ki](docs/research/rpp5ki-mline-consumed-style-three-removal-2026-10-29.json), all four 4-to-1 survivor positions [RPP-5kj](docs/research/rpp5kj-mline-consumed-style-single-survivor-removal-2026-10-29.json), selected 2-to-5 append [RPP-5kk](docs/research/rpp5kk-mline-consumed-style-triple-append-2026-10-29.json), selected 2-to-6 append [RPP-5kl](docs/research/rpp5kl-mline-consumed-style-quad-append-2026-10-29.json), selected 2-to-7 append [RPP-5km](docs/research/rpp5km-mline-consumed-style-quint-append-2026-10-29.json), selected 2-to-8 append [RPP-5kn](docs/research/rpp5kn-mline-consumed-style-sext-append-2026-10-29.json), selected 2-to-9 append [RPP-5ko](docs/research/rpp5ko-mline-consumed-style-sept-append-2026-10-29.json), and selected 2-to-10 append [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json) are bound to their exact profiles. Next qualify the witnessed 2-to-11 append. Other append cardinalities/count changes, retarget profiles, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Use the retained 2-to-11 refusal; bind its ninth appended tuple/provider, emitted arrays/readback and failure/retry, plus a neighboring refused count |
+| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection, geometry-changing MLINE `340` retarget, append/removal profiles and the exact-two-source append range are bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kq](docs/research/rpp5kq-mline-consumed-style-append-range-2026-10-29.json). The append path admits target counts 3..255 from a two-element source; selected evidence covers targets 3..11, 64, 254 and 255, with 256 refusal. Other source counts, removals/count-71 edits, retarget profiles, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Bind the next current refused operation to its original source/provider/consumers, exact output and failure/retry; do not reopen the completed exact-two-source append range |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,10 +61,10 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — next local geometry/schema witness | Reuse source/live/carrier/staged-output receipts [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json); the 2-to-11 refusal is source-bound in current generated tests. | Qualify selected 2-to-11 append with exact provider identity, full per-vertex output/readback, refusal/retry and a neighboring refused count |
+| P2 — next local geometry/schema witness | Reuse source/live/carrier/staged-output receipts [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kq](docs/research/rpp5kq-mline-consumed-style-append-range-2026-10-29.json). Exact-two-source append admission is implemented for targets 3..255; selected tests cover prior targets 3..10 plus 11, 64, 254 and 255, with 256 refusal. | Select a different current refused MLINE operation (both-field edit, dense-budget case, non-offset retarget, different source count or legacy path), bind it to its original source/provider and consumers, and prove exact output/readback plus rollback/retry |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
-| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and the selected consumed-offset/retarget/append/removal receipts through [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json) | Use the current 2-to-11 consumed-style refusal first; afterward bind another refused append/count profile, both-field edit, dense-budget case, non-offset retarget or legacy operation to source and exact expected output; do not wait for full P2 dependency closure |
+| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and the selected consumed-offset/retarget/append/removal receipts through [RPP-5kq](docs/research/rpp5kq-mline-consumed-style-append-range-2026-10-29.json) | Select another current refusal: both-field edit, dense-budget case, non-offset retarget, append/count change from a source style other than two elements, or legacy operation. Bind the exact source and expected output; do not wait for full P2 dependency closure |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -126,10 +126,11 @@ proof. Refused fields are not implemented editing support.
    [RPP-5kj](docs/research/rpp5kj-mline-consumed-style-single-survivor-removal-2026-10-29.json),
    [RPP-5kk](docs/research/rpp5kk-mline-consumed-style-triple-append-2026-10-29.json),
    [RPP-5kl](docs/research/rpp5kl-mline-consumed-style-quad-append-2026-10-29.json),
-   [RPP-5km](docs/research/rpp5km-mline-consumed-style-quint-append-2026-10-29.json), and
-   [RPP-5kn](docs/research/rpp5kn-mline-consumed-style-sext-append-2026-10-29.json), and
-   [RPP-5ko](docs/research/rpp5ko-mline-consumed-style-sept-append-2026-10-29.json), and
-   [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json).
+   [RPP-5km](docs/research/rpp5km-mline-consumed-style-quint-append-2026-10-29.json),
+   [RPP-5kn](docs/research/rpp5kn-mline-consumed-style-sext-append-2026-10-29.json),
+   [RPP-5ko](docs/research/rpp5ko-mline-consumed-style-sept-append-2026-10-29.json),
+   [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json), and
+   [RPP-5kq](docs/research/rpp5kq-mline-consumed-style-append-range-2026-10-29.json).
    Selected AC1027 profiles include appending one through eight elements to a consumed
    two-element style; removing either element from a two-element style to one
    survivor; removing the two middle elements from a four-element style to its
@@ -140,14 +141,17 @@ proof. Refused fields are not implemented editing support.
    and [RPP-5ki](docs/research/rpp5ki-mline-consumed-style-three-removal-2026-10-29.json).
    Retained tuple identity is an exact unique ordered match;
    per-vertex parameters follow each survivor and use the target justification
-   shift. The 2-to-5 through 2-to-10 appends recalculate all parameters
-   against their target minima and retain an adjacent refused count. The 4-to-3 profile proves all removal positions, including bottom-justification
+   shift. Appending to a two-element source style is admitted for target counts
+   3..255. Selected evidence covers prior targets 3..10 plus 11, 64, 254 and
+   255; the 255-element limit passes all four source/output encoding combinations
+   and 256 refuses atomically. Projected parameters are recalculated against the
+   full target minimum. The 4-to-3 profile proves all removal positions, including bottom-justification
    rebasing when the tail minimum is removed. The 4-to-1 profile is
    [RPP-5kj](docs/research/rpp5kj-mline-consumed-style-single-survivor-removal-2026-10-29.json).
-   The next exact witness is the refused 2-to-11 append in [RPP-5kp](docs/research/rpp5kp-mline-consumed-style-oct-append-2026-10-29.json).
    Still-refused work
-   includes other multi-element consumed-style removals, other count `71` edits, other append
-   cardinalities, 4-to-0, one-to-zero,
+   includes appends/count changes from source styles other than exactly two
+   elements, other multi-element consumed-style removals, other count `71`
+   edits, 4-to-0, one-to-zero,
    count changes outside the selected profiles (including unused definitions),
    retargets whose flags, angles, arity or other geometry differ, earlier-version
    authority, and other consumed-offset profiles. For each remaining operation, select

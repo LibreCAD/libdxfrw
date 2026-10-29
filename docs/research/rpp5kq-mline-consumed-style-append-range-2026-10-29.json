@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kq generic exact-two-source append range for consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_RANGE_BOUNDARY_IMPLEMENTED",
+  "codeCommit": "00e1c70b5915d47837aa66c6034c4dad2c75790c",
+  "scope": "The AC1027 consumed-style append route accepts appending complete MLINESTYLE tuples to an exactly two-element source style through the uint8 element-count limit of 255. It recalculates each open, uncut, unfilled MLINE consumer's per-vertex group-41 parameters using the complete target offset minimum. The implementation replaces selected target-count whitelisting with a checked range; evidence combines prior exact profiles for targets 3..10 with this receipt's representative interior and boundary profiles. This remains selected source/geometry/output evidence, not native CAD semantic qualification or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the MLINESTYLE element count; group 74 gives each vertex's repeated parameter count; group 41 carries those parameters; group 75/42 carry area-fill parameter counts and values."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries each MLINESTYLE element offset. The selected projection is limited to the admitted style flag and angle profile."
+    }
+  ],
+  "contract": {
+    "admission": "The original MLINESTYLE body, dictionary/provider graph and every ordinary MLINE consumer are source-bound. The source style has exactly two elements; the target appends complete tuples and has 3..255 elements. Existing source tuples are preserved. Appended tuples use finite offsets, valid ACI values and the existing ByLayer/Continuous linetype providers. Source and target style flags are 2 with equal start/end angles. Every consumer remains live, in its original scope and model-identical during preflight. The consumer route is limited to the exact two-element source count and this append operation.",
+    "geometry": "Selected consumers are open, have three vertices, positive finite scale, justification 1 or 2, unit extrusion, source-consistent WCS positions/directions/miters, exactly two group-41 parameters per original element with zero second values, and no group-42 fill values. Every original first group-41 value is validated. All target parameters are recalculated against the complete target offset set; bottom-justification shift uses the target minimum. Each appended element gets a [miter-distance, 0] pair and an empty fill-parameter list.",
+    "identityAndOutput": "The MLINESTYLE retains its redundant group-2 name and emits its target group-71 count, group-49 offsets, per-element ACI and linetype values. The unique ByLayer and Continuous LTYPE providers are checked under the LTYPE TABLE with handle and owner fields. Each MLINE retains its redundant group-2 name and group-340 style reference. Output proof checks group 73 = target count, three group-74 values per consumer vertex-count profile with each value 2, six group-41 values per target element (two per vertex), three zero group-75 values per consumer and no group 42. At target count 255 these are respectively 255, 765, 1530, 765 and zero. Fresh import checks all style tuples, per-vertex arrays, WCS positions/directions/miters, scale and extrusion for model-space and named-block consumers.",
+    "failureAndRetry": "An unsupported style flag refuses before publication and preserves destination/caller state; correcting it permits same-adapter retry. A target count of 256 refuses before publication and preserves destination/caller state. A late live-consumer parameter mutation after entity emission refuses before publication; restoring the caller snapshot permits same-adapter retry. Successful output is reopened for exact tuple, provider, field and geometry readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. ASCII/binary source and output routes remain supported. Test drawings are generated locally from scratch at runtime and removed after success; no DWG/DXF fixture files are committed.",
+    "limits": "This receipt tests AC1027 source style count 2 at target counts 11, 64, 254 and 255. Target 255 crosses all four ASCII/binary source/output combinations; target 11 uses ASCII-to-ASCII, target 64 binary-to-ASCII and target 254 ASCII-to-binary. Prior receipts bind target counts 3..10. It does not test every intermediate count separately or qualify another source style count, removal, composed edits, other MLINE schemas/carriers/versions, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "Target 11: ASCII source -> ASCII AC1027 output",
+      "Target 64: binary source -> ASCII AC1027 output",
+      "Target 254: ASCII source -> binary AC1027 output",
+      "Target 255: ASCII and binary sources crossed with ASCII and binary AC1027 output",
+      "Target 256: atomic refusal in ASCII and binary AC1027 output"
+    ],
+    "generatedTupleRecipe": "The initial source offsets are [1.25, -0.75], with source ACI [1,3] and linetypes [ByLayer,Continuous]. Appended target indices 2..9 use offsets [-1.25,-2,-3,-4,-5,-6,-7,-8], ACI [4,5,6,7,8,9,10,11], and alternating ByLayer/Continuous. Later target indices i>=10 use offset -(i-1), ACI 12+((i-10) mod 244), and ByLayer for even i / Continuous for odd i. Values remain in supported ACI range through target 255. The output proof derives every expected tuple and parameter from target count and checks the full target minimum.",
+    "failureAndRetry": "Seven successful output/readback profiles (three representative counts and four target-255 encoding combinations); two unsupported-flag refusals with two same-adapter retries; two late-consumer mutation refusals with two corrected retries; and two target-256 refusal controls. The latter preserve caller state and destination sentinel."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf",
+        "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests dwg2dxf"
+      ],
+      "toolchains": {
+        "normal": "GNU C++ at /usr/bin/g++; no explicit CMAKE_BUILD_TYPE or CMAKE_CXX_FLAGS",
+        "asan": "GNU C++ at /usr/bin/c++; Debug; -fsanitize=address -fno-omit-frame-pointer"
+      }
+    },
+    "affectedNormalCohort": {
+      "result": "PASS",
+      "summary": "17/17 source-current MLINE style body, authority, offset projection, retarget, append, append-range and removal selectors",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(style_body_transactions|style_authority|consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_triple_append|consumed_style_quad_append|consumed_style_quint_append|consumed_style_sext_append|consumed_style_sept_append|consumed_style_oct_append|consumed_style_append_range|consumed_style_removal|consumed_style_multi_removal|consumed_style_three_removal|consumed_style_single_from_four_removal)$' --output-on-failure"
+    },
+    "affectedAsanCohort": {
+      "result": "PASS",
+      "summary": "15/15 source-current consumed MLINE projection, retarget, append, append-range and removal selectors",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_(consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_triple_append|consumed_style_quad_append|consumed_style_quint_append|consumed_style_sext_append|consumed_style_sept_append|consumed_style_oct_append|consumed_style_append_range|consumed_style_removal|consumed_style_multi_removal|consumed_style_three_removal|consumed_style_single_from_four_removal)$' --output-on-failure"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "bb740803b8427d93dc7a19a28b31c702468a9a930d181875d970228dbaab7ef8",
+    "tests/CMakeLists.txt": "4349cf707b2eda0f3843b05d3425728607a18e22a49302fb15e010437f86984d",
+    "tests/dxf_fixture_tests.cpp": "578b77b097a6d09514c289c31095848ced76324aedb68186b470f382721729fb"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "a90ff1ddf03e8f627f3c30caa996117153d121426e3b74362cfe853bddd7c74c",
+    "asanLibdxfrwDxfFixtureTests": "ea5a9a4f2f26424a8a2cde2e4c4398a39399dbb612a8350657c8f24144925e72",
+    "normalDwg2dxf": "bce52eb323c8151bb96350673683729fc9815a4846c28ec29c264fbc6529fa97",
+    "asanDwg2dxf": "5b4c24d68179d0065eb6a79afdc9389a7984a4ab6a9cf44d248cd6bbb48d29ba"
+  },
+  "next": "Select a different current refused P2 operation: prioritize a source-bound consumed append/count edit whose original style has a count other than two, or another exact refused witness with a clearly missing layer. Bind source style and every live consumer, define exact projected output and boundary/failure/retry controls, then implement only that profile. Keep other source counts, removal semantics, legacy authority, MLINE carriers/schemas and native meaning open."
+}
