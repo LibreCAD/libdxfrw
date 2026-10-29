@@ -1,6 +1,6 @@
 # DWG/DXF parity — remaining implementation plan
 
-Updated 2026-10-28. This file contains open work only. Implementation history and
+Updated 2026-10-29. This file contains open work only. Implementation history and
 completed-item evidence belong in Git and `docs/research/`, not in this queue.
 
 The objective remains full, evidence-backed DWG/DXF parity with the intended
@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | A selected source-only dependency grammar now refuses the hidden-340 witness; consumed geometry and remaining count, legacy, retarget/LTYPE and MLEADERSTYLE operations remain open | Authenticate live consumers and dependency state, emitted output and geometry; independent ready slices can proceed |
+| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | A selected source-only dependency grammar refuses the hidden-340 witness; consumed geometry and remaining count, legacy, retarget, broader LTYPE provider/output profiles and MLEADERSTYLE operations remain open | Authenticate live consumers and dependency state, emitted output and geometry; independent ready slices can proceed |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -169,6 +169,13 @@ proof. Refused fields are not implemented editing support.
    spoofing and rejects later unqualified LAYER metadata or count changes;
    corrected source/live checks pass in both encodings. It is a private
    prerequisite and does not authorize export or qualify other graph carriers.
+
+   The [selected empty-pattern LTYPE source/live binding](docs/research/rpp5jp-mline-ltype-source-live-2026-10-29.json)
+   now joins the accepted source, complete captured LTYPE bodies and unique live
+   models under bounded work. It rejects hidden parser-state resets, changed
+   bodies, metadata and source/live count changes in the admitted profile. The
+   query remains disconnected from export and does not qualify patterned LTYPEs,
+   other versions, providers, native rendering or consumed geometry.
 
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
