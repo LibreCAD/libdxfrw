@@ -22038,7 +22038,7 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
         case 1004: {
             if (field->type()!=DRW_Variant::STRING || !field->content.s
                 || (field->content.s->size()%2u)!=0u
-                || field->content.s->size()/2u>DRW::kMaxDxfBinaryPayloadBytes)
+                || field->content.s->size()/2u>127u)
                 return false;
             const auto isHex=[](unsigned char value) {
                 return (value>='0'&&value<='9') || (value>='A'&&value<='F')

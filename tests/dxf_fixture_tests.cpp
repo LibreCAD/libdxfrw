@@ -31294,15 +31294,20 @@ Tags sourceWithDoubleXdata(bool binary) {
     return fields;
 }
 
-Tags sourceWithBinaryXdata(bool binary) {
+Tags sourceWithBinaryXdataChunks(bool binary,const std::vector<std::string>& chunks) {
     auto fields=source(binary);
     const Tags ordinary{{1001,appName},{1000,payload}};
     const auto first=std::search(fields.begin(),fields.end(),ordinary.begin(),ordinary.end());
     if(first==fields.end())throw std::runtime_error("binary LTYPE XDATA source pair missing");
     const auto at=fields.erase(first,first+static_cast<std::ptrdiff_t>(ordinary.size()));
-    const Tags typed{{1001,appName},{1004,"00A57FFF1234CDEF"}};
+    Tags typed{{1001,appName}};
+    for(const auto& chunk:chunks)typed.emplace_back(1004,chunk);
     fields.insert(at,typed.begin(),typed.end());
     return fields;
+}
+
+Tags sourceWithBinaryXdata(bool binary) {
+    return sourceWithBinaryXdataChunks(binary,{"00A57FFF1234CDEF"});
 }
 
 bool providerXdataProof(const std::filesystem::path& path,bool binary,const std::string& appOwner="9") {
@@ -31604,7 +31609,8 @@ bool doubleProviderProof(const std::filesystem::path& path,bool binary,
 }
 
 bool binaryProviderProof(const std::filesystem::path& path,bool binary,
-                         const std::string& appOwner="9") {
+                         const std::string& appOwner,
+                         const std::vector<std::string>& expectedChunks) {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;const mlineStyleAuthorityControls::Row* provider=nullptr;
@@ -31621,8 +31627,9 @@ bool binaryProviderProof(const std::filesystem::path& path,bool binary,
     if(!selected||!provider)return false;
     std::vector<std::pair<int,std::string>> xdata;
     for(const auto& field:selected->fields)if(field.first>=1000)xdata.push_back(field);
-    if(xdata!=std::vector<std::pair<int,std::string>>{
-            {1001,appName},{1004,"00A57FFF1234CDEF"}})return false;
+    std::vector<std::pair<int,std::string>> expectedXdata{{1001,appName}};
+    for(const auto& chunk:expectedChunks)expectedXdata.emplace_back(1004,chunk);
+    if(xdata!=expectedXdata)return false;
     const std::vector<int> appCodes{5,330,100,100,2,70};std::vector<int> observed;
     for(const auto& field:provider->fields)observed.push_back(field.first);
     if(observed!=appCodes||provider->owner!=appOwner)return false;
@@ -31638,15 +31645,23 @@ bool binaryProviderProof(const std::filesystem::path& path,bool binary,
     if(!reader.fileImport(path.string(),&actual,false))return false;
     unsigned linetypes=0u,appIds=0u;
     for(const auto& item:actual.lineTypes)if(item.name=="EditDash") {
-        if(item.extData.size()!=2u||item.extData[0]->code()!=1001
+        if(item.extData.size()!=expectedChunks.size()+1u||item.extData[0]->code()!=1001
             ||item.extData[0]->type()!=DRW_Variant::STRING||!item.extData[0]->content.s
-            ||*item.extData[0]->content.s!=appName
-            ||item.extData[1]->code()!=1004||item.extData[1]->type()!=DRW_Variant::STRING
-            ||!item.extData[1]->content.s||*item.extData[1]->content.s!="00A57FFF1234CDEF")return false;
+            ||*item.extData[0]->content.s!=appName)return false;
+        for(std::size_t i=0u;i<expectedChunks.size();++i) {
+            const auto* value=item.extData[i+1u];
+            if(!value||value->code()!=1004||value->type()!=DRW_Variant::STRING
+                ||!value->content.s||*value->content.s!=expectedChunks[i])return false;
+        }
         ++linetypes;
     }
     for(const auto& item:actual.appIds)if(item.name==appName)++appIds;
     return linetypes==1u&&appIds==1u;
+}
+
+bool binaryProviderProof(const std::filesystem::path& path,bool binary,
+                         const std::string& appOwner="9") {
+    return binaryProviderProof(path,binary,appOwner,{"00A57FFF1234CDEF"});
 }
 
 struct LateAppIdMutation:dx_iface {
@@ -31893,6 +31908,44 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
+        const std::vector<std::string> chunks{std::string(254u,'A'),"5A"};
+        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,sourceWithBinaryXdataChunks(sourceBinary,chunks),sourceBinary,"AC1027")
+                ||!binaryProviderProof(input,sourceBinary,"1F0",chunks)
+                ||!adapter.fileImport(input.string(),&data,false))return false;
+            const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+                [](const auto& value){return value.handle==0x103u;});
+            if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=3u
+                ||!sourceLine->extData[0]||!sourceLine->extData[1]||!sourceLine->extData[2]
+                ||sourceLine->extData[0]->code()!=1001
+                ||sourceLine->extData[1]->code()!=1004
+                ||!sourceLine->extData[1]->content.s
+                ||sourceLine->extData[1]->content.s->size()!=254u
+                ||sourceLine->extData[2]->code()!=1004
+                ||!sourceLine->extData[2]->content.s
+                ||*sourceLine->extData[2]->content.s!="5A")return false;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!binaryProviderProof(output,outputBinary,"9",chunks)
+                ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+                ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+            ++profiles;++readbacks;
+            const auto savedAppIds=data.appIds;
+            data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+                return value.handle==appRecordHandle;
+            }),data.appIds.end());
+            sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+            ++refusals;data.appIds=savedAppIds;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!binaryProviderProof(output,outputBinary,"9",chunks)
+                ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+                ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+            ++retries;++readbacks;
+        }
+    }
+    {
         LateAppIdMutation adapter;dx_data data;
         if(!write(input,source(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return false;
         sentinel(output);
@@ -32014,7 +32067,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==28u&&readbacks==63u&&refusals==35u&&retries==35u;
+    return profiles==32u&&readbacks==71u&&refusals==39u&&retries==39u;
 }
 }
 
