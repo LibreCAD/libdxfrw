@@ -16012,9 +16012,9 @@ bool mlineFieldsEqual(const DRW_MLineStyle& a,const DRW_MLineStyle& b,
     return true;
 }
 
-bool mlineOneElementRemoved(const DRW_MLineStyle& before,const DRW_MLineStyle& after,
+bool mlineElementsRemoved(const DRW_MLineStyle& before,const DRW_MLineStyle& after,
         std::array<std::size_t,UINT8_MAX>& survivorIndices) noexcept {
-    if (before.elements.size()!=after.elements.size()+1u
+    if (before.elements.size()<=after.elements.size()
         || after.elements.empty() || after.elements.size()>UINT8_MAX
         || before.name!=after.name || before.description!=after.description
         || !mlineFlagBitsEqual(before.flags,after.flags)
@@ -16444,18 +16444,18 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 }
 
 // Recompute the first, miter-distance parameter for an admitted open,
-// unfilled and uncut MLINE. A tail append or one-element tail removal projects
-// the per-vertex parameter arrays only after deriving the same source geometry.
+// unfilled and uncut MLINE. A tail append or ordered element removal projects
+// per-vertex parameter arrays only after deriving the same source geometry.
 // This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
-        const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElement=false) {
+        const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
-    const bool removed=removeElement && before.elements.size()==after.elements.size()+1u;
+    const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
     if (original.openClosed!=1 || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
-        || (appendElement && (!appended || removeElement)) || (removeElement && !removed)
+        || (appendElement && (!appended || removeElements)) || (removeElements && !removed)
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -16469,7 +16469,7 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
     } else if (appended) {
         for (std::size_t i=0u;i<before.elements.size();++i)
             if (!retainedDoubleEqual(before.elements[i].offset,after.elements[i].offset)) return false;
-    } else if (!mlineOneElementRemoved(before,after,survivorIndices)) {
+    } else if (!mlineElementsRemoved(before,after,survivorIndices)) {
         return false;
     }
     const auto norm=[](const DRW_Coord& v) {return std::hypot(std::hypot(v.x,v.y),v.z);};
@@ -17697,8 +17697,9 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 const bool append=style->second.countChanged && before
                     && before->elements.size()==2u
                     && (targetStyle.elements.size()==3u || targetStyle.elements.size()==4u);
-                const bool removeElement=style->second.countChanged && before
-                    && before->elements.size()==2u && targetStyle.elements.size()==1u;
+                const bool removeElements=style->second.countChanged && before
+                    && ((before->elements.size()==2u && targetStyle.elements.size()==1u)
+                        || (before->elements.size()==4u && targetStyle.elements.size()==2u));
                 std::size_t modelBytes=0u,appendBytes=0u;
                 const auto retainedAppendBytes=[&]() {
                     if (!append) return true;
@@ -17717,11 +17718,11 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     }
                     projectionWork=staged;return true;
                 };
-                const bool removalStyleWork=!removeElement
+                const bool removalStyleWork=!removeElements
                     || (chargeStyleTextWork(*before,2u) && chargeStyleTextWork(targetStyle,2u));
                 const bool fieldScope=!style->second.countChanged
                     ? before && mlineFieldsEqual(*before,targetStyle,true,true,true,true,true,false)
-                    : append || removeElement;
+                    : append || removeElements;
                 const std::size_t sourceElementCount=before?before->elements.size():0u;
                 const bool admitted=fieldScope
                     && removalStyleWork
@@ -17736,11 +17737,11 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && original->vertlist.size()<=kMaxAdapterBasicTableItems/targetStyle.elements.size()
                     && visitProjection(original->vertlist.size()*sourceElementCount)
                     && visitProjection(original->vertlist.size()*targetStyle.elements.size())
-                    && (removeElement || chargeMlineComparisonWork(before->elements,1u,projectionWork,kMaxAdapterBasicTableItems))
-                    && (removeElement || chargeMlineComparisonWork(targetStyle.elements,1u,projectionWork,kMaxAdapterBasicTableItems))
+                    && (removeElements || chargeMlineComparisonWork(before->elements,1u,projectionWork,kMaxAdapterBasicTableItems))
+                    && (removeElements || chargeMlineComparisonWork(targetStyle.elements,1u,projectionWork,kMaxAdapterBasicTableItems))
                     && estimateTypedEntityRetainedBytes(*original,sizeof(DRW_MLine),modelBytes)
                     && chargeNamedResourceBytes(bytes,modelBytes) && retainedAppendBytes();
-                if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,append,removeElement)) return false;
+                if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,append,removeElements)) return false;
                 planned.geometryProjected=true;
             }
             return m_dxfMLineConsumers.emplace(value.handle,std::move(planned)).second;

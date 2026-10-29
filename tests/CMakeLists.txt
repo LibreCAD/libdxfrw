@@ -197,6 +197,16 @@ add_test(NAME libdxfrw_mline_consumed_style_removal
 set_tests_properties(libdxfrw_mline_consumed_style_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Runtime-generated AC1027 profile for removing two middle elements from a
+# four-element style used by open, uncut MLINEs. It checks ordered survivor
+# mapping, exact fields/readback, failure rollback, a narrow count boundary and
+# same-adapter retry without committing fixture drawings.
+add_test(NAME libdxfrw_mline_consumed_style_multi_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-multi-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_multi_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}

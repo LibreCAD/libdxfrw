@@ -33641,6 +33641,56 @@ Tags recipe(bool binary,bool corrupt=false) {
     }
     return fields;
 }
+Tags fourElementRecipe(bool binary) {
+    const std::array<double,4> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25,-2.0}};
+    const std::array<int,4> colors{{1,3,4,5}};
+    const std::array<std::string,4> linetypes{{"ByLayer","Continuous","ByLayer","Continuous"}};
+    auto fields=recipe(binary);
+    for(std::size_t i=0u;i<fields.size();) {
+        if(fields[i].first!=0){++i;continue;}
+        std::size_t end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[i].second=="MLINESTYLE") {
+            setRecordValue(fields,i,end,71,"4");
+            const auto lastType=std::find_if(fields.rbegin()+static_cast<std::ptrdiff_t>(fields.size()-end),fields.rend(),
+                [](const auto& field){return field.first==6;});
+            if(lastType==fields.rend())throw std::runtime_error("consumed multi-removal style linetype missing");
+            const auto insert=fields.size()-1u-static_cast<std::size_t>(lastType-fields.rbegin());
+            Tags tuples;for(std::size_t element=2u;element<offsets.size();++element)
+                tuples.insert(tuples.end(),{{49,number(offsets[element])},{62,std::to_string(colors[element])},{6,linetypes[element]}});
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(insert+1u),tuples.begin(),tuples.end());
+            i=end+tuples.size();continue;
+        }
+        if(fields[i].second=="MLINE") {
+            const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+                [](const auto& field){return field.first==5;});
+            if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed multi-removal MLINE identity missing");
+            const unsigned profile=id->second=="D100"?0u:id->second=="D101"?1u:2u;
+            if(profile>1u)throw std::runtime_error("unexpected multi-removal MLINE profile");
+            setRecordValue(fields,i,end,73,"4");
+            const auto point=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+                [](const auto& field){return field.first==10;});
+            if(point==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed multi-removal base point missing");
+            const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+            Tags generated{{10,number(vertices.front().first.x)},{20,number(vertices.front().first.y)},{30,number(vertices.front().first.z)},
+                {210,number(ext.x)},{220,number(ext.y)},{230,number(ext.z)}};
+            const double shift=justification(profile)==2u?2.0:0.0;
+            for(unsigned vertex=0u;vertex<vertices.size();++vertex) {
+                const auto pos=vertices[vertex].first,dir=vertices[vertex].second,mit=miter(profile,vertices,vertex);
+                generated.insert(generated.end(),{{11,number(pos.x)},{21,number(pos.y)},{31,number(pos.z)},
+                    {12,number(dir.x)},{22,number(dir.y)},{32,number(dir.z)},
+                    {13,number(mit.x)},{23,number(mit.y)},{33,number(mit.z)}});
+                for(const double offset:offsets)generated.insert(generated.end(),{{74,"2"},
+                    {41,number(parameterForOffset(profile,vertex,offset,shift))},{41,number(0.0)},{75,"0"}});
+            }
+            const auto begin=static_cast<std::size_t>(point-fields.begin());
+            fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(begin),fields.begin()+static_cast<std::ptrdiff_t>(end));
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(begin),generated.begin(),generated.end());
+            i=begin+generated.size();continue;
+        }
+        i=end;
+    }
+    return fields;
+}
 bool close(double a,double b){return std::isfinite(a)&&std::isfinite(b)&&std::fabs(a-b)<=2e-5*(1.0+(std::max)(std::fabs(a),std::fabs(b)));}
 std::vector<std::string> values(const Row& row,int code){std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;}
 bool oneNumber(const Row& row,int code,double expected){const auto found=values(row,code);return found.size()==1u&&close(std::stod(found.front()),expected);}
@@ -34064,6 +34114,74 @@ bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned r
     }
     return true;
 }
+bool multiRemovalOutputProof(const std::filesystem::path& path,bool binary) {
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
+        std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
+    };
+    const std::array<double,2> offsets{{beforeOffsets[0],-2.0}};
+    const std::array<int,2> colors{{1,5}};
+    const std::array<std::string,2> linetypes{{"ByLayer","Continuous"}};
+    const mlineStyleAuthorityControls::Row* style=nullptr;unsigned styles=0u,consumers=0u;
+    for(const auto& row:rows)if(row.type=="MLINESTYLE") {
+        style=&row;++styles;const auto elementCounts=values(row,71),actualOffsets=values(row,49);
+        const auto actualColors=values(row,62),actualLinetypes=values(row,6);
+        if(values(row,2)!=std::vector<std::string>{"OLD_BODY_NAME"}||elementCounts.size()!=1u
+            ||std::stod(elementCounts.front())!=2.0||actualOffsets.size()!=offsets.size()
+            ||actualColors.size()!=colors.size()+1u||actualLinetypes.size()!=linetypes.size())return false;
+        for(std::size_t i=0u;i<offsets.size();++i)
+            if(!close(std::stod(actualOffsets[i]),offsets[i])||std::stoi(actualColors[i+1u])!=colors[i]
+                ||actualLinetypes[i]!=linetypes[i])return false;
+        if(std::stoi(actualColors.front())!=256)return false;
+    }
+    if(styles!=1u||!style)return false;
+    const auto outputHandle=style->id;
+    for(const auto& row:rows)if(row.type=="MLINE") {
+        const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
+        const auto lineCounts=values(row,73),segmentCounts=values(row,74),fillCounts=values(row,75),parameters=values(row,41);
+        if(profile>1u||row.section!=(profile?"BLOCKS":"ENTITIES")
+            ||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
+            ||values(row,340)!=std::vector<std::string>{outputHandle}
+            ||lineCounts.size()!=1u||std::stod(lineCounts.front())!=2.0
+            ||segmentCounts.size()!=6u||fillCounts.size()!=6u||parameters.size()!=12u||!values(row,42).empty())return false;
+        for(const auto& count:segmentCounts)if(std::stod(count)!=2.0)return false;
+        for(const auto& count:fillCounts)if(std::stod(count)!=0.0)return false;
+        const double shift=justification(profile)==2u?2.0:0.0;std::size_t at=0u;
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(const double offset:offsets)
+            if(!close(std::stod(parameters[at++]),parameterForOffset(profile,vertex,offset,shift))
+                ||std::stod(parameters[at++])!=0.0)return false;
+        ++consumers;
+    }
+    if(consumers!=2u)return false;
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
+        ||actual.mLineStyles.front().elements.size()!=offsets.size())return false;
+    for(std::size_t i=0u;i<offsets.size();++i)if(!close(actual.mLineStyles.front().elements[i].offset,offsets[i])
+        ||actual.mLineStyles.front().elements[i].color!=colors[i]
+        ||actual.mLineStyles.front().elements[i].linetype!=linetypes[i])return false;
+    const auto lines=mlineStyleAuthorityControls::consumers(actual);if(lines.size()!=2u)return false;
+    for(const auto* line:lines) {
+        const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
+        const auto sameCoord=[](const DRW_Coord& value,const Vec& expected) {
+            return close(value.x,expected.x)&&close(value.y,expected.y)&&close(value.z,expected.z);
+        };
+        const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+        if(profile>1u||line->numLines!=2u||line->numVerts!=3u||line->vertlist.size()!=3u
+            ||line->openClosed!=1u||!close(line->scale,scale(profile))
+            ||!sameCoord(line->basePoint,vertices.front().first)||!sameCoord(line->extPoint,ext))return false;
+        const double shift=justification(profile)==2u?2.0:0.0;
+        for(unsigned vertex=0u;vertex<3u;++vertex) {
+            const auto& point=line->vertlist[vertex];if(point.segParms.size()!=2u||point.areaFillParms.size()!=2u
+                ||!sameCoord(point.position,vertices[vertex].first)
+                ||!sameCoord(point.vertexDir,vertices[vertex].second)
+                ||!sameCoord(point.miterDir,miter(profile,vertices,vertex)))return false;
+            for(std::size_t element=0u;element<offsets.size();++element)
+                if(point.segParms[element].size()!=2u
+                    ||!close(point.segParms[element][0],parameterForOffset(profile,vertex,offsets[element],shift))
+                    ||point.segParms[element][1]!=0.0||!point.areaFillParms[element].empty())return false;
+        }
+    }
+    return true;
+}
 bool multiAppendOutputProof(const std::filesystem::path& path,bool binary) {
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
@@ -34324,6 +34442,78 @@ bool runConsumedRemovalTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedRemoval(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-multi-removal-input.dxf",output=dir/"consumed-multi-removal-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed multi-removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+    };
+    const auto removeMiddleElements=[](dx_data& data) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=4u)return false;
+        auto& elements=data.mLineStyles.front().elements;
+        elements.erase(elements.begin()+2);
+        elements.erase(elements.begin()+1);
+        return elements.size()==2u;
+    };
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fourElementRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeMiddleElements(data))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeMiddleElements(data))return fail(__LINE__);
+        data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary)||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+            ||data.mLineStyles.front().elements.size()!=4u)return fail(__LINE__);
+        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++boundaries;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeMiddleElements(data))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed multi-removal profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+}
+bool runConsumedMultiRemovalTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-multi-removal-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedMultiRemoval(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed multi-removal artifacts: "<<dir<<'\n';
     return passed;
 }
 }
@@ -42530,6 +42720,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-multi-removal") {
+        return mlineConsumedOffsetControls::runConsumedMultiRemovalTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
