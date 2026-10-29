@@ -67,6 +67,16 @@ class DxIfaceTableSourceTestAccess {public:
   providers={{UINT32_MAX,UINT32_MAX}};const bool context=!dx_iface::legacyBlockTargetSource(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==std::array<std::uint32_t,2>{};
   value.context.binary=!value.context.binary;return cross&&context;
  }
+ static bool attdefCrossAndContext(dx_data& target,const dx_data& foreign) {
+  auto& a=target.m_tableDxfSource;const auto& b=foreign.m_tableDxfSource;if(!a.wholeInput||!b.wholeInput)return false;
+  const auto input=a.wholeInput,owner=a.wholeInputOwner;const auto source=a.wholeSourceOwner;
+  a.wholeInput=b.wholeInput;a.wholeInputOwner=b.wholeInputOwner;a.wholeSourceOwner=b.wholeSourceOwner;
+  std::uint32_t providers=UINT32_MAX;const bool cross=!dx_iface::legacyCompoundAttdefSource(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==0u;
+  a.wholeInput=input;a.wholeInputOwner=owner;a.wholeSourceOwner=source;
+  auto& value=const_cast<dx_data::TableDxfSourceCapture::WholeSourceInput&>(*a.wholeInput);value.context.binary=!value.context.binary;
+  providers=UINT32_MAX;const bool context=!dx_iface::legacyCompoundAttdefSource(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==0u;
+  value.context.binary=!value.context.binary;return cross&&context;
+ }
  static bool unknownAppCensusRow(dx_data& data) {
   auto& s=data.m_tableDxfSource;const auto old=s.legacyIdentityObservation,oldOwner=s.legacyIdentityObservationOwner;
   const auto oldSource=s.legacyIdentitySourceOwner;const auto it=s.legacyEntitiesCompoundJoins.find(0xE0u);
@@ -119,6 +129,8 @@ class DxIfaceTableSourceTestAccess {public:
  static bool layers(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit,const std::array<std::uint32_t,3>& expected) {
   std::array<std::uint32_t,3> providers{};return dx_iface::legacyCompoundLayerSources(data,blockId,insertId,limit,bytesLimit,providers)&&providers==expected;
  }
+ static bool attdef(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit,std::uint32_t expected) {std::uint32_t out=0u;return dx_iface::legacyCompoundAttdefSource(data,blockId,insertId,limit,bytesLimit,out)&&out==expected;}
+ static bool attdefRefuses(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit) {std::uint32_t out=UINT32_MAX;return !dx_iface::legacyCompoundAttdefSource(data,blockId,insertId,limit,bytesLimit,out)&&out==0u;}
  static bool target(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit,std::array<std::uint32_t,2> expected) {
   std::array<std::uint32_t,2> out{};return dx_iface::legacyBlockTargetSource(data,blockId,insertId,limit,bytesLimit,out)&&out==expected;
  }
@@ -168,6 +180,7 @@ public:
  bool relation(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::relation(d,blockId,insertId,joinWork,joinBytes);}
  bool unique(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::unique(d,blockId,insertId,joinWork,joinBytes);}
  bool appid(const dx_data& d,std::uint32_t expected=0xA0u)const{return accepted&&DxIfaceTableSourceTestAccess::appid(d,blockId,insertId,joinWork,joinBytes,expected);}
+ bool attdef(const dx_data& d,std::uint32_t expected=0xF4u)const{return accepted&&DxIfaceTableSourceTestAccess::attdef(d,blockId,insertId,joinWork,joinBytes,expected);}
  bool target(const dx_data& d,std::array<std::uint32_t,2> expected={{0xF1u,0xF2u}})const{return accepted&&DxIfaceTableSourceTestAccess::target(d,blockId,insertId,joinWork,joinBytes,expected);}
  bool layers(const dx_data& d,std::array<std::uint32_t,3> expected={{0xC0u,0xC1u,0xC0u}})const{return accepted&&DxIfaceTableSourceTestAccess::layers(d,blockId,insertId,joinWork,joinBytes,expected);}
 };
@@ -175,12 +188,12 @@ static bool write(const std::filesystem::path& path,const Tags& tags,bool bin){s
  if(bin)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
  for(const auto& t:tags)if(!bin)out<<t.code<<'\n'<<t.value<<'\n';else {word(static_cast<unsigned>(t.code),2);if(t.code>=10&&t.code<=59){double v=std::stod(t.value);std::uint64_t bits=0;std::memcpy(&bits,&v,8);word(bits,8);}else if((t.code>=60&&t.code<=79)||t.code==1070)word(static_cast<std::uint16_t>(std::stoi(t.value)),2);else{out<<t.value;out.put('\0');}}
  return out.good();}
-int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data),unique=real.unique(data),appid=real.appid(data,0x1457u),layers=real.layers(data,{{0x275u,0x10u,0x275u}});const bool target=real.target(data,{{0x6F4u,0x6F9u}});std::cout<<"target="<<target<<" real same-read relation="<<matched<<" unique="<<unique<<" appid="<<appid<<" layers="<<layers<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof&&unique==!real.spoof&&appid==!real.spoof&&layers==!real.spoof&&target==!real.spoof?0:31;}
+int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data),unique=real.unique(data),appid=real.appid(data,0x1457u),layers=real.layers(data,{{0x275u,0x10u,0x275u}});const bool target=real.target(data,{{0x6F4u,0x6F9u}}),attdef=real.attdef(data,0x6F8u);std::cout<<"attdef="<<attdef<<" target="<<target<<" real same-read relation="<<matched<<" unique="<<unique<<" appid="<<appid<<" layers="<<layers<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof&&unique==!real.spoof&&appid==!real.spoof&&layers==!real.spoof&&target==!real.spoof&&attdef==!real.spoof?0:31;}
  std::error_code ec;const auto dir=libdxfrw_test::reserveTestScratch(std::filesystem::temp_directory_path(),"same-read-blockref",ec);if(ec)return 1;struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};
  Tags doc={{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},
  {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"1"},{0,"APPID"},{5,"A0"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},{0,"ENDTAB"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},
  {0,"BLOCK_RECORD"},{5,"B0"},{102,"{ACAD_XDICTIONARY"},{360,"D0"},{102,"}"},{330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"TEST_BLOCK"},{340,"0"},{102,"{BLKREFS"},{331,"E0"},{102,"}"},{1001,"TEST_APP"},{1000,"x"},{0,"ENDTAB"},{0,"TABLE"},{2,"LAYER"},{5,"C9"},{100,"AcDbSymbolTable"},{70,"2"},{0,"LAYER"},{5,"C0"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,"LayerA"},{70,"0"},{62,"7"},{6,"CONTINUOUS"},{0,"LAYER"},{5,"C1"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,"0"},{70,"0"},{62,"7"},{6,"CONTINUOUS"},{0,"ENDTAB"},{0,"ENDSEC"},
- {0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},{5,"F1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"TEST_BLOCK"},{70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"TEST_BLOCK"},{1,""},{0,"ENDBLK"},{5,"F2"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},
+ {0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},{5,"F1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"TEST_BLOCK"},{70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"TEST_BLOCK"},{1,""},{0,"ATTDEF"},{5,"F4"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},{10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,"1"},{100,"AcDbAttributeDefinition"},{3,"Prompt"},{2,"TEST_TAG"},{70,"0"},{1001,"AcDbAttr"},{1070,"0"},{1070,"1"},{0,"ENDBLK"},{5,"F2"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},
  {0,"SECTION"},{2,"ENTITIES"},{0,"INSERT"},{5,"E0"},{330,"B0"},{100,"AcDbEntity"},{8,"LayerA"},{100,"AcDbBlockReference"},{66,"1"},{2,"TEST_BLOCK"},{10,"2"},{20,"3"},{30,"0"},{41,"1"},{42,"1"},{43,"1"},
  {0,"ATTRIB"},{5,"E1"},{330,"E0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},{10,"2"},{20,"3"},{30,"0"},{40,"2"},{1,"value"},{100,"AcDbAttribute"},{2,"TEST_TAG"},{70,"0"},{1001,"AcDbAttr"},{1070,"0"},{1070,"1"},
  {0,"SEQEND"},{5,"E2"},{330,"E0"},{100,"AcDbEntity"},{8,"LayerA"},{0,"ENDSEC"},{0,"EOF"}};
@@ -200,9 +213,41 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
    if(dimension==0)reader.joinWork=lo-1u;else reader.joinBytes=lo-1u;if(reader.relation(good))return 28;
    reader.joinWork=64u*1024u*1024u;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good))return 29;}
   ++checks;
-  dx_data other;if(!reader.import(path.string(),other)||!reader.relation(other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::crossRead(good,other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::appidCrossAndContext(good,other)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::layerCrossAndContext(good,other)||!reader.layers(good)||!DxIfaceTableSourceTestAccess::targetCrossAndContext(good,other)||!reader.target(good))return 4;++checks;
+  dx_data other;if(!reader.import(path.string(),other)||!reader.relation(other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::crossRead(good,other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::appidCrossAndContext(good,other)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::layerCrossAndContext(good,other)||!reader.layers(good)||!DxIfaceTableSourceTestAccess::targetCrossAndContext(good,other)||!reader.target(good)||!DxIfaceTableSourceTestAccess::attdefCrossAndContext(good,other)||!reader.attdef(good))return 4;++checks;
   for(int mode=1;mode<=4;++mode){Reader bad;bad.enableLegacyDxfIdentityObservation();bad.mode=mode;dx_data data;if(!bad.import(path.string(),data)||bad.relation(data))return 5;bad.mode=0;dx_data retry;if(!bad.import(path.string(),retry)||!bad.relation(retry))return 6;++checks;}
-  if(!reader.target(good))return 127;
+  if(!reader.target(good)||!reader.attdef(good))return 127;
+  // The endpoint proof stays separate from source-tag qualification.
+  for(unsigned variant=0u;variant<8u;++variant){auto bad=doc;
+   auto attr=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==0&&t.value=="ATTDEF";});
+   auto end=std::find_if(attr,bad.end(),[](const Tag& t){return t.code==0&&t.value=="ENDBLK";});if(attr==bad.end()||end==bad.end())return 153;
+   if(variant==0u){auto t=std::find_if(attr,end,[](const Tag& x){return x.code==2;});if(t==end)return 154;t->value="OTHER";}
+   else if(variant==1u){auto t=std::find_if(attr,end,[](const Tag& x){return x.code==330;});if(t==end)return 155;t->value="C0";}
+   else if(variant==2u){auto t=std::find_if(attr,end,[](const Tag& x){return x.code==2;});if(t==end)return 156;bad.insert(t+1,{2,"TEST_TAG"});}
+   else if(variant==3u){bad.erase(attr,end);}
+   else if(variant==4u){auto t=std::find_if(attr,end,[](const Tag& x){return x.code==2;});if(t==end)return 157;bad.insert(t,{100,"AcDbXrecord"});}
+   else {Tags extra(attr,end);auto handle=std::find_if(extra.begin(),extra.end(),[](const Tag& x){return x.code==5;});auto tag=std::find_if(extra.begin(),extra.end(),[](const Tag& x){return x.code==2;});if(handle==extra.end()||tag==extra.end())return 158;
+    handle->value=variant==5u?"F4":"F5";tag->value=variant==6u?"test_tag":variant==7u?"OTHER_TAG":"TEST_TAG";bad.insert(end,extra.begin(),extra.end());}
+   if(!write(path,bad,binary))return 159;Reader rejected;rejected.enableLegacyDxfIdentityObservation();dx_data damaged;
+   const bool imported=rejected.import(path.string(),damaged);if(variant==7u){if(!imported||!rejected.attdef(damaged))return 160;}
+   else if(imported&&!DxIfaceTableSourceTestAccess::attdefRefuses(damaged,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u))return 161;
+   if(!write(path,doc,binary))return 162;dx_data retry;if(!rejected.import(path.string(),retry)||!rejected.attdef(retry))return 163;
+  }
+  // A noncanonical marker is dispatched as ATTDEF by the reader and must not
+  // hide a colliding tag. This control reaches the new source-only gate.
+  {auto mixed=doc;auto attr=std::find_if(mixed.begin(),mixed.end(),[](const Tag& t){return t.code==0&&t.value=="ATTDEF";});
+   auto end=std::find_if(attr,mixed.end(),[](const Tag& t){return t.code==0&&t.value=="ENDBLK";});if(attr==mixed.end()||end==mixed.end())return 168;
+   Tags extra(attr,end);extra[0].value="attdef";auto h=std::find_if(extra.begin(),extra.end(),[](const Tag& t){return t.code==5;});
+   auto tag=std::find_if(extra.begin(),extra.end(),[](const Tag& t){return t.code==2;});if(h==extra.end()||tag==extra.end())return 169;
+   h->value="F5";tag->value="test_tag";mixed.insert(end,extra.begin(),extra.end());if(!write(path,mixed,binary))return 170;
+   Reader mixedReader;mixedReader.enableLegacyDxfIdentityObservation();dx_data damaged;
+   if(!mixedReader.import(path.string(),damaged)||!mixedReader.target(damaged)
+    ||!DxIfaceTableSourceTestAccess::attdefRefuses(damaged,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u))return 171;
+   if(!write(path,doc,binary))return 172;dx_data retry;if(!mixedReader.import(path.string(),retry)||!mixedReader.attdef(retry))return 173;}
+  for(int dim=0;dim<2;++dim){std::size_t lo=0,hi=64u*1024u*1024u;while(lo<hi){const auto mid=lo+(hi-lo)/2u;
+   if(dim==0)reader.joinWork=mid;else reader.joinBytes=mid;if(reader.attdef(good))hi=mid;else lo=mid+1u;}
+   if(!lo)return 164;if(dim==0)reader.joinWork=lo;else reader.joinBytes=lo;if(!reader.attdef(good))return 165;
+   if(dim==0)reader.joinWork=lo-1u;else reader.joinBytes=lo-1u;if(reader.attdef(good))return 166;
+   reader.joinWork=64u*1024u*1024u;reader.joinBytes=64u*1024u*1024u;if(!reader.attdef(good))return 167;}
   // Positive framing controls: selected block with a child, and independent
   // block pairs before and after it; selected target identities remain stable.
   for(unsigned variant=0u;variant<2u;++variant){auto valid=doc;
@@ -352,4 +397,4 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
   Reader limited;limited.enableLegacyDxfIdentityObservation();limited.limits.fields=0;dx_data noFields;if(!limited.import(path.string(),noFields)||limited.relation(noFields))return 11;limited.limits={};dx_data recovered;if(!limited.import(path.string(),recovered)||!limited.relation(recovered))return 12;++checks;
   if(!reader.import(path.string(),other)||reader.relation(other))return 13;dx_data fresh;if(!reader.import(path.string(),fresh)||!reader.relation(fresh))return 14;++checks;
  }
- std::cout<<"same-read source-only ascii-binary=2 controls="<<checks<<" callback-spoof=2 quota-retry=2 join-work-byte-retry=4 same-data-refusal=2 layer-census-ascii-binary=2 layer-controls=passed target-controls=passed\n";return 0;}
+ std::cout<<"same-read source-only ascii-binary=2 controls="<<checks<<" callback-spoof=2 quota-retry=2 join-work-byte-retry=4 same-data-refusal=2 layer-census-ascii-binary=2 layer-controls=passed target-controls=passed attdef-tag-controls=passed\n";return 0;}

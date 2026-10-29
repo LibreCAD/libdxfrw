@@ -26968,6 +26968,82 @@ bool dx_iface::legacyBlockTargetSource(const dx_data& data,std::uint32_t blockId
  }catch(...){endpoints={};return false;}
 }
 
+// Selected original ATTRIB tag to uniquely scoped ATTDEF source evidence.
+// This is not a child-model, graph, native semantics or output certificate.
+bool dx_iface::legacyCompoundAttdefSource(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,
+        std::size_t limit,std::size_t bytesLimit,std::uint32_t& result) noexcept {
+ result=0u;try {
+  std::array<std::uint32_t,2> endpoints{};const auto workLimit=limit/2u,memLimit=bytesLimit/2u;
+  if(!legacyBlockTargetSource(data,blockId,insertId,workLimit,memLimit,endpoints))return false;
+  const auto& s=data.m_tableDxfSource;const auto& source=*s.legacyIdentityObservation->source;const auto& whole=*s.wholeInput->source;
+  const auto pay=[](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
+   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
+  const auto valid=[](std::string_view text)noexcept {if(text.empty()||text.size()>255u)return false;
+   for(unsigned char c:text)if(c<=32u||c>=127u||c=='\\')return false;return true;};
+  const auto handle=[](std::string_view text,std::uint32_t& value)noexcept {if(text.empty()||text.size()>16u)return false;
+   std::uint64_t h=0u;const auto p=std::from_chars(text.data(),text.data()+text.size(),h,16);
+   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!h||h>UINT32_MAX)return false;value=static_cast<std::uint32_t>(h);return true;};
+  std::size_t work=0u,bytes=0u,depth=8u;for(auto n=source.candidates.size();n;n>>=1u)++depth;
+  if(!pay(source.records.size(),256u,work,workLimit)||!pay(source.candidates.size(),128u*depth,work,workLimit)
+   ||!pay(source.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*),bytes,memLimit)
+   ||!pay(source.records.size(),sizeof(std::uint8_t),bytes,memLimit))return false;
+  for(const auto& c:source.candidates)if(!pay(c.lexeme.size(),4u,work,workLimit)||!pay(c.rawValue.size(),2u,work,workLimit))return false;
+  dx_legacy_identity_join::Index index;if(!dx_legacy_identity_join::buildIndex(source,index))return false;
+  const auto join=s.legacyEntitiesCompoundJoins.find(insertId);
+  if(join==s.legacyEntitiesCompoundJoins.end()||!join->second||!join->second->audit
+   ||!join->second->audit->physical||join->second->proof>=join->second->audit->proofs.size())return false;
+  const auto& proof=join->second->audit->proofs[join->second->proof];const auto& records=join->second->audit->physical->records;
+  if(proof.next<proof.first||proof.next-proof.first!=3u||proof.next>records.size())return false;
+  const auto& attr=records[proof.first+1u];if(!pay(attr.groups.size(),256u,work,workLimit))return false;
+  for(const auto& g:attr.groups)if(g.type()==DRW_Variant::STRING&&g.content.s&&!pay(g.content.s->size(),4u,work,workLimit))return false;
+  dx_legacy_attribute_compound_profile::Roles roles;if(!dx_legacy_attribute_compound_profile::attribute(attr,DRW::AC1018,roles)
+   ||!pay(roles.tag.size(),4u,work,workLimit)||!valid(roles.tag))return false;
+  using S=DRW_DxfIdentitySource;const auto b=index.ids.find(endpoints[0]),e=index.ids.find(endpoints[1]);
+  if(b==index.ids.end()||e==index.ids.end()||b->second.ambiguous||e->second.ambiguous
+   ||b->second.record>=source.records.size()||e->second.record>=source.records.size()||b->second.record>=e->second.record)return false;
+  const auto first=b->second.record,last=e->second.record;const auto& block=source.records[first];const auto& end=source.records[last];
+  if(block.section!=end.section||!pay(last-first,256u,work,workLimit))return false;
+  std::uint32_t found=0u;unsigned matches=0u;
+  for(std::size_t i=first+1u;i<last;++i){const auto& row=source.records[i];const auto& before=source.records[i-1u];
+   if(row.kind!=S::Kind::Entity||row.section!=block.section||!row.marker.ordinal||row.endMarker.ordinal<=row.marker.ordinal
+    ||row.endMarker.ordinal>whole.fieldCount()||before.endMarker.ordinal!=row.marker.ordinal
+    ||before.endMarker.beginOffset!=row.marker.beginOffset||before.endMarker.endOffset!=row.marker.endOffset)return false;
+   const auto opening=whole.field(row.marker.ordinal-1u);if(!whole.bounds(opening)||opening.code!=0||opening.kind!=DxfReadRecordView::Text
+    ||opening.ordinal!=row.marker.ordinal||opening.begin!=row.marker.beginOffset||opening.end!=row.marker.endOffset
+    ||!pay(row.name.size(),2u,work,workLimit)||whole.value(opening)!=row.name)return false;
+   if(!dx_legacy_identity_join::sameName(row.name,"ATTDEF"))continue;
+   // A decoded mixed-case keyword dispatches as ATTDEF. Do not let it
+   // evade the source census; this selected profile requires canonical form.
+   if(row.name!="ATTDEF")return false;
+   const auto start=row.marker.ordinal-1u,finish=row.endMarker.ordinal-1u;
+   if(finish>=whole.fieldCount()||!pay(finish-start+1u,256u,work,workLimit))return false;
+   const auto closing=whole.field(finish);std::size_t prior=opening.end;unsigned selfCount=0u,ownerCount=0u,tagCount=0u,nesting=0u;
+   bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;std::string_view tag;
+   for(std::size_t j=start+1u;j<finish;++j){const auto f=whole.field(j);
+    if(!whole.bounds(f)||f.ordinal!=j+1u||f.begin!=prior||f.end<=f.begin||f.code==0)return false;prior=f.end;
+    if(f.ignored){if(f.code!=999)return false;continue;}
+    if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
+     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="}"){if(!nesting)return false;--nesting;}
+     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}else return false;continue;}
+    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+    if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
+     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbAttributeDefinition"){if(body)return false;body=true;}else if(body)return false;continue;}
+    if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);std::uint32_t h=0u;
+     if(!pay(t.size(),2u,work,workLimit)||!handle(t,h))return false;if(f.code==5){if(++selfCount!=1u)return false;self=h;}else{if(++ownerCount!=1u)return false;owner=h;}continue;}
+    if(f.code==2){if(!body||++tagCount!=1u||f.kind!=DxfReadRecordView::Text)return false;tag=whole.value(f);
+     if(!pay(tag.size(),4u,work,workLimit)||!valid(tag))return false;}
+   }
+   if(prior!=closing.begin||closing.code!=0||closing.ordinal!=row.endMarker.ordinal||closing.begin!=row.endMarker.beginOffset
+    ||closing.end!=row.endMarker.endOffset||nesting||!body||selfCount!=1u||ownerCount!=1u||owner!=blockId||tagCount!=1u
+    ||dx_legacy_identity_join::record(source,index,self,S::Kind::Entity,S::Section::Blocks,"ATTDEF",0u)!=&row)return false;
+   if(dx_legacy_block_record_source::sameAsciiName(tag,roles.tag)){++matches;found=self;}
+  }
+  const auto& previous=source.records[last-1u];if(previous.endMarker.ordinal!=end.marker.ordinal
+   ||previous.endMarker.beginOffset!=end.marker.beginOffset||previous.endMarker.endOffset!=end.marker.endOffset)return false;
+  if(matches!=1u||!found)return false;result=found;return true;
+ }catch(...){result=0u;return false;}
+}
+
 // Selected AC1018 ATTRIB APPID provider under an ASCII source-name census.
 // This is not a native collation, XDATA semantic, graph or output proof.
 bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,
