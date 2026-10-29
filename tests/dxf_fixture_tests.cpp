@@ -34344,7 +34344,7 @@ double retargetAppendSourceOffset(unsigned element) {
 }
 Tags retargetAppendRecipe(bool binary,unsigned sourceCount) {
     auto fields=retargetRecipe(binary);
-    if(sourceCount<2u||sourceCount>11u)throw std::runtime_error("unsupported retarget append source count");
+    if(sourceCount<2u||sourceCount>12u)throw std::runtime_error("unsupported retarget append source count");
     std::vector<double> offsets{beforeOffsets[0],beforeOffsets[1]};
     for(unsigned element=2u;element<sourceCount;++element)offsets.push_back(retargetAppendSourceOffset(element));
     if(sourceCount==2u)return fields;
@@ -34708,7 +34708,7 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary,
         unsigned sourceCount,unsigned removedIndex) {
     using Row=mlineStyleAuthorityControls::Row;
     const auto bad=[](int line){std::cerr<<"MLINE retarget removal output proof line="<<line<<'\n';return false;};
-    if(sourceCount<3u||sourceCount>11u||removedIndex>=sourceCount)return bad(__LINE__);
+    if(sourceCount<3u||sourceCount>12u||removedIndex>=sourceCount)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34881,7 +34881,8 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
         {8u,0u},{8u,1u},{8u,2u},{8u,3u},{8u,4u},{8u,5u},{8u,6u},{8u,7u},
         {9u,0u},{9u,1u},{9u,2u},{9u,3u},{9u,4u},{9u,5u},{9u,6u},{9u,7u},{9u,8u},
         {10u,0u},{10u,1u},{10u,2u},{10u,3u},{10u,4u},{10u,5u},{10u,6u},{10u,7u},{10u,8u},{10u,9u},
-        {11u,0u},{11u,1u},{11u,2u},{11u,3u},{11u,4u},{11u,5u},{11u,6u},{11u,7u},{11u,8u},{11u,9u},{11u,10u}};
+        {11u,0u},{11u,1u},{11u,2u},{11u,3u},{11u,4u},{11u,5u},{11u,6u},{11u,7u},{11u,8u},{11u,9u},{11u,10u},
+        {12u,0u},{12u,1u},{12u,2u},{12u,3u},{12u,4u},{12u,5u},{12u,6u},{12u,7u},{12u,8u},{12u,9u},{12u,10u},{12u,11u}};
     for(const auto& selection:selected)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!prepare(adapter,data,sourceBinary,selection.first,selection.second))return fail(__LINE__);
@@ -34891,9 +34892,9 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(unsigned removedIndex=0u;removedIndex<11u;++removedIndex)for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<12u;++removedIndex)for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!prepare(adapter,data,false,11u,removedIndex))return fail(__LINE__);
+        if(!prepare(adapter,data,false,12u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot correct(data);
         mlineRetargetControls::style(data,0xD2u).elements.front().offset+=.125;
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
@@ -34901,12 +34902,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
         ++refusals;correct.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary,11u,removedIndex)||!correct.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,12u,removedIndex)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(unsigned removedIndex=0u;removedIndex<11u;++removedIndex)for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<12u;++removedIndex)for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
-        if(!prepare(adapter,data,false,11u,removedIndex))return fail(__LINE__);
+        if(!prepare(adapter,data,false,12u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         const auto consumers=mlineStyleAuthorityControls::consumers(data);
         if(consumers.size()!=2u)return fail(__LINE__);
@@ -34916,12 +34917,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
         ++late;adapter.active=false;caller.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary,11u,removedIndex)||!caller.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,12u,removedIndex)||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     std::cout<<"MLINE retarget removal profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==244u&&readbacks==288u&&refusals==22u&&late==22u&&retries==44u;
+    return profiles==292u&&readbacks==340u&&refusals==24u&&late==24u&&retries==48u;
 }
 bool runRetargetRemovalTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
