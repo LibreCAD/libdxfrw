@@ -34,6 +34,7 @@
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
 #include "dx_legacy_identity_join.h"
+#include "dx_legacy_attribute_compound_join.h"
 #include "dx_raster_output.h"
 #include "dx_symbol_output.h"
 #include "dx_symbol_name_key.h"
@@ -25235,6 +25236,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.structuralPending.clear();
     if(source.successful)finishStructuralSourceAudits(data);
     if(source.successful)finishLegacyAttdefScopeJoins(data);
+    if(source.successful)finishLegacyEntitiesCompoundJoins(data);
     if(!source.plotSourcePending.empty())source.plotSourceCaptureFailed=true;
     source.plotSourcePending.clear();
     if(source.successful)finishPlotStyleSources(data);
@@ -26454,6 +26456,114 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
             saved->table=static_cast<std::size_t>(t-physical.records.data());s.legacyAttdefScopeJoins.emplace(item.first,std::move(saved));
         }
         s.legacyAttdefScopeBytes=bytes;s.legacyAttdefScopeWork=work;
+    }catch(...) {fail();}
+}
+
+void dx_iface::finishLegacyEntitiesCompoundJoins(dx_data& data) noexcept {
+    using Join=dx_data::TableDxfSourceCapture::LegacyEntitiesCompoundJoin;
+    using Proof=dx_data::TableDxfSourceCapture::EntitiesCompoundProof;auto& s=data.m_tableDxfSource;
+    if(s.version!=DRW::AC1018||!s.legacyIdentityObservation||s.legacyIdentityCaptureFailed)return;
+    const auto fail=[&]() noexcept {s.legacyEntitiesCompoundFailed=true;s.legacyEntitiesCompoundJoins.clear();
+        s.legacyEntitiesCompoundBytes=s.legacyEntitiesCompoundWork=0u;};
+    const auto same=[](const auto& a,const auto& b) noexcept {return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    const auto contextEqual=[](const auto& a,const auto& b) noexcept {
+        return a.captured&&b.captured&&std::tie(a.sourceVersion,a.codecVersion,a.codecCodePage,a.declaration,
+            a.hasDeclaration,a.compatibilityProfile,a.textEncoding,a.codePagePolicy,a.binary,a.applyExtrusion)
+            ==std::tie(b.sourceVersion,b.codecVersion,b.codecCodePage,b.declaration,
+            b.hasDeclaration,b.compatibilityProfile,b.textEncoding,b.codePagePolicy,b.binary,b.applyExtrusion);
+    };
+    const auto& identity=s.legacyIdentityObservation;
+    if(!same(identity,s.legacyIdentityObservationOwner)||!identity->source||!identity->context
+        ||!same(identity->source,s.legacyIdentitySourceOwner)||!identity->deliveryTicket||!s.legacyIdentityContextSnapshot
+        ||identity->container!=&data||identity->generation!=s.generation||s.generation!=data.importGeneration
+        ||!identity->containerId||identity->containerId!=data.m_entitiesContainerIdentity.value
+        ||s.contextFailed||!s.successful||!s.closed||s.reader||s.entitiesReadInput
+        ||s.entitiesCaptureFailed||s.entitiesDeliveryCaptureFailed||s.entitiesCompoundCaptureFailed) {fail();return;}
+    const auto& census=*identity->source;std::size_t bytes=0u,work=0u,depth=1u;
+    for(auto n=census.candidates.size();n;n>>=1u)++depth;
+    if(!addAssociativeSlotBytes(census.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*),bytes)
+        ||!addAssociativeSlotBytes(census.records.size(),sizeof(std::uint8_t),bytes)
+        ||!addAssociativeSlotBytes(census.records.size(),128u,work)
+        ||!addAssociativeSlotBytes(census.candidates.size(),128u,work)
+        ||!addAssociativeSlotBytes(s.entitiesDeliveries.size(),512u,work)
+        ||!addAssociativeSlotBytes(s.entitiesCompoundAudits.size(),512u,work)
+        ||work>s.maxLegacyEntitiesCompoundWork/(depth+8u)||bytes>s.maxLegacyEntitiesCompoundBytes) {fail();return;}
+    work*=depth+8u;
+    for(const auto& candidate:census.candidates) {
+        if(!addAssociativeSlotBytes(candidate.lexeme.size(),4u,work)||!addAssociativeSlotBytes(candidate.rawValue.size(),2u,work)
+            ||work>s.maxLegacyEntitiesCompoundWork) {fail();return;}
+    }
+    std::size_t contextWork=0u;
+    if(!addAssociativeSlotBytes(identity->context->codecCodePage.size(),4u,contextWork)
+        ||!addAssociativeSlotBytes(identity->context->declaration.size(),4u,contextWork)
+        ||!addAssociativeSlotBytes(s.legacyIdentityContextSnapshot->codecCodePage.size(),4u,contextWork)
+        ||!addAssociativeSlotBytes(s.legacyIdentityContextSnapshot->declaration.size(),4u,contextWork)
+        ||work>s.maxLegacyEntitiesCompoundWork||contextWork>s.maxLegacyEntitiesCompoundWork-work) {fail();return;}
+    work+=contextWork;
+    if(!contextEqual(*identity->context,*s.legacyIdentityContextSnapshot)
+        ||identity->context->sourceVersion!=DRW::AC1018||identity->context->codecVersion!=DRW::AC1015
+        ||identity->context->applyExtrusion||identity->context->binary!=census.binary
+        ||entitiesDeliveryReport(data).state!=EntitiesDeliveryState::ObservedTransportComplete
+        ||s.entitiesCompoundAudits.size()!=s.entitiesDeliveries.size()
+        ||s.entitiesCompoundOwners.size()!=s.entitiesCompoundAudits.size()) {fail();return;}
+    try {
+        dx_legacy_identity_join::Index index;if(!dx_legacy_identity_join::buildIndex(census,index)){fail();return;}
+        for(std::size_t section=0;section<s.entitiesCompoundAudits.size();++section) {
+            const auto& audit=s.entitiesCompoundAudits[section];const auto& row=s.entitiesDeliveries[section];
+            if(!audit||!same(audit,s.entitiesCompoundOwners[section])||audit->section!=section
+                ||audit->container!=&data||audit->generation!=s.generation||audit->containerId!=data.m_entitiesContainerIdentity.value
+                ||!same(audit->physical,row.physical)||!same(audit->delivery,row.delivery)||!same(audit->observed,row.observed)
+                ||!same(audit->context,row.context)||!audit->context||!s.entitiesSources[section].ticket){fail();return;}
+            std::size_t textWork=0u;
+            if(!addAssociativeSlotBytes(audit->context->codecCodePage.size(),2u,textWork)
+                ||!addAssociativeSlotBytes(audit->context->declaration.size(),2u,textWork)
+                ||!addAssociativeSlotBytes(identity->context->codecCodePage.size(),2u,textWork)
+                ||!addAssociativeSlotBytes(identity->context->declaration.size(),2u,textWork)
+                ||!addAssociativeSlotBytes(audit->proofs.size(),512u*(depth+8u),textWork)
+                ||work>s.maxLegacyEntitiesCompoundWork||textWork>s.maxLegacyEntitiesCompoundWork-work) {fail();return;}
+            work+=textWork;if(!contextEqual(*audit->context,*identity->context)){fail();return;}
+            for(std::size_t p=0;p<audit->proofs.size();++p) {
+                const auto& proof=audit->proofs[p];
+                if(!proof.compound||proof.state!=Proof::State::ProfileMismatch||!proof.modeledMatched
+                    ||proof.next<proof.first||proof.next-proof.first!=3u||proof.first>=audit->physical->records.size()
+                    ||proof.next>audit->physical->records.size()||proof.profiles.size()!=3u||proof.replayStates.size()!=3u)continue;
+                if(!std::all_of(proof.profiles.begin(),proof.profiles.end(),[](const auto& v){return v.reason==dx_attdef_source::Reason::Revision;})
+                    ||proof.dispatch>=audit->delivery->dispatches.size()||proof.event>=audit->observed->size()
+                    ||audit->delivery->dispatches[proof.dispatch].firstEvent!=proof.event)continue;
+                const auto& observed=(*audit->observed)[proof.event];
+                if(!observed.valueObserved||!observed.model||observed.modelUnavailable||!observed.compoundStatesCaptured
+                    ||observed.compoundStates.size()!=proof.replayStates.size())continue;
+                bool statesMatch=true;
+                for(std::size_t i=0u;i<proof.replayStates.size();++i)
+                    if(!proof.replayStates[i].hasNoPendingXdata()||!observed.compoundStates[i].hasNoPendingXdata()
+                        ||!(proof.replayStates[i]==observed.compoundStates[i])) {statesMatch=false;break;}
+                if(!statesMatch)continue;
+                std::size_t scan=0u,extra=0u,localBytes=sizeof(Join)+16u*sizeof(void*);
+                for(std::size_t i=proof.first;i<proof.next;++i) {
+                    const auto& record=audit->physical->records[i];
+                    if(record.groups.size()!=record.rawValues.size()||record.groups.size()!=record.spans.size()
+                        ||!addAssociativeSlotBytes(record.groups.size(),128u,scan)
+                        ||!addAssociativeSlotBytes(record.name.size(),2u,scan)) {fail();return;}
+                }
+                if(work>s.maxLegacyEntitiesCompoundWork||scan>s.maxLegacyEntitiesCompoundWork-work) {fail();return;}
+                work+=scan;
+                for(std::size_t i=proof.first;i<proof.next;++i) {
+                    const auto& record=audit->physical->records[i];
+                    for(const auto& group:record.groups)if(group.type()==DRW_Variant::STRING&&group.content.s
+                        &&!addAssociativeSlotBytes(group.content.s->size(),8u,extra)){fail();return;}
+                    for(const auto& raw:record.rawValues)if(!addAssociativeSlotBytes(raw.size(),4u,extra)){fail();return;}
+                }
+                if(work>s.maxLegacyEntitiesCompoundWork||extra>s.maxLegacyEntitiesCompoundWork-work
+                    ||bytes>s.maxLegacyEntitiesCompoundBytes||localBytes>s.maxLegacyEntitiesCompoundBytes-bytes) {fail();return;}
+                work+=extra;bytes+=localBytes;
+                dx_legacy_attribute_compound_join::Result joined;
+                if(!dx_legacy_attribute_compound_join::join(*audit->physical,*audit->delivery,census,index,proof.first,proof.dispatch,joined))continue;
+                auto saved=std::make_shared<Join>();saved->identity=identity;saved->audit=audit;saved->proof=p;
+                saved->ownerRecord=joined.ownerRecord;saved->root=joined.root.self;saved->attribute=joined.attribute.self;saved->footer=joined.footer.self;
+                if(!s.legacyEntitiesCompoundJoins.emplace(saved->root,std::move(saved)).second){fail();return;}
+            }
+        }
+        s.legacyEntitiesCompoundBytes=bytes;s.legacyEntitiesCompoundWork=work;
     }catch(...) {fail();}
 }
 
@@ -30373,6 +30483,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         if(source.generation) {
             source.legacyIdentityCaptureFailed=true;
             source.legacyAttdefScopeJoins.clear();source.legacyAttdefScopeBytes=source.legacyAttdefScopeWork=0u;
+            source.legacyEntitiesCompoundJoins.clear();source.legacyEntitiesCompoundBytes=source.legacyEntitiesCompoundWork=0u;
             source.legacyIdentityObservation.reset();source.legacyIdentityObservationOwner.reset();
             source.legacyIdentityContextSnapshot.reset();source.legacyIdentitySourceOwner.reset();
             source.legacyIdentityReadInput=nullptr;

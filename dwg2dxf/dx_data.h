@@ -1404,6 +1404,18 @@ private:
         std::size_t legacyAttdefScopeBytes{0},legacyAttdefScopeWork{0};
         std::size_t maxLegacyAttdefScopeBytes{64u*1024u*1024u},maxLegacyAttdefScopeWork{64u*1024u*1024u};
         bool legacyAttdefScopeFailed{false};
+        // Selected AC1018 ENTITIES source/dispatch evidence only; no output
+        // or generic compound/namespace authority consumes this map.
+        struct LegacyEntitiesCompoundJoin {
+            std::shared_ptr<const IdentityInput> identity;
+            std::shared_ptr<const EntitiesCompoundAudit> audit;
+            std::size_t proof{0},ownerRecord{DRW_DxfIdentitySource::NoIndex};
+            std::uint32_t root{0},attribute{0},footer{0};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const LegacyEntitiesCompoundJoin>> legacyEntitiesCompoundJoins;
+        std::size_t legacyEntitiesCompoundBytes{0},legacyEntitiesCompoundWork{0};
+        std::size_t maxLegacyEntitiesCompoundBytes{64u*1024u*1024u},maxLegacyEntitiesCompoundWork{64u*1024u*1024u};
+        bool legacyEntitiesCompoundFailed{false};
         // AC1018 opt-in observation only. Never consumed by modern identity,
         // structural-origin, graph or output authority paths.
         std::shared_ptr<const IdentityInput> legacyIdentityObservation,legacyIdentityObservationOwner;
