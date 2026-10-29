@@ -250,8 +250,10 @@ and broader producer behavior remain unqualified.
    does not establish native normal-matrix ordering, meaning or rendering. The
    [diffuse matrix edit](docs/research/rpp5jc-material-unmarked-diffuse-matrix-2026-10-28.json)
    qualifies finite edits to the first 16 group-`43` values on the same source,
-   including a composition with the normal fields. Other producer profiles and
-   native rendering remain separate. Changing
+   including a composition with the normal fields. The [diffuse scalar edits](docs/research/rpp5jd-material-unmarked-diffuse-roles-2026-10-28.json)
+   bind the first `42/73/74/75` roles and compose with the selected normal and
+   matrix edits; their `0x07` auto-transform mask remains an admission policy.
+   Other producer profiles and native rendering remain separate. Changing
    group `72`, its coupling to filenames/procedural data, native rendering and
    other normal-map fields and source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
