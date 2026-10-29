@@ -261,6 +261,23 @@ bool physicalBoth(const std::filesystem::path& path,bool binary,const std::array
     return selected&&values.size()==32u&&std::memcmp(values.data(),diffuse.data(),sizeof(diffuse))==0
         &&std::memcmp(values.data()+16u,normal.data(),sizeof(normal))==0;
 }
+bool physicalDiffuseRoles(const std::filesystem::path& path,bool binary,double blend,int projection,int tiling,int automatic,
+        double normalBlend=.75,int normalProjection=4,int normalTiling=3,int normalAuto=4) {
+    std::ifstream stream(path,std::ios::binary);if(!stream)return false;if(binary)stream.seekg(22);
+    std::unique_ptr<dxfReader> reader=binary?std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        :std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool material=false,selected=false;int code=0;std::vector<double> blends;std::vector<int> projections,tilings,automatics;
+    while(reader->readRec(&code)) {
+        if(code==0){const auto type=reader->getString();if(material&&selected)break;material=type=="MATERIAL";selected=false;}
+        else if(material&&code==1)selected=reader->getString()=="PeerMaterial";
+        else if(material&&selected&&code==42)blends.push_back(reader->getDouble());
+        else if(material&&selected&&code==73)projections.push_back(reader->getInt32());
+        else if(material&&selected&&code==74)tilings.push_back(reader->getInt32());
+        else if(material&&selected&&code==75)automatics.push_back(reader->getInt32());
+    }
+    return selected&&blends==std::vector<double>{blend,normalBlend}&&projections==std::vector<int>{projection,normalProjection}
+        &&tilings==std::vector<int>{tiling,normalTiling}&&automatics==std::vector<int>{automatic,normalAuto};
+}
 bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
@@ -288,11 +305,12 @@ bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
 }
 
 struct LateMaterialEdit final : dx_iface {
-    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false, diffuseMatrix = false; unsigned phase = 0;
+    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false, diffuseMatrix = false, diffuseBlend = false; unsigned phase = 0;
     void mutate() {
         if (!active || !cData) return;
         for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
             if (diffuseMatrix) material.m_diffuseMapTransform[9] = 999.0;
+            else if (diffuseBlend) material.m_diffuseMapBlendFactor = 0.9375;
             else if (matrix) material.m_normalMapTransform[9] = 999.0;
             else if (filename) material.m_normalMapFileName = "late-normal.png";
             else if (autoTransform) material.m_normalMapAutoTransform = 3;
@@ -419,6 +437,72 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapBlendFactor = 0.75; selected->m_normalMapProjection = 4; selected->m_normalMapTiling = 3;
             if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                 || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+        }
+        // Complete diffuse mapper scalars use the first of each repeated role.
+        // Every subset composes with a simultaneous qualified normal edit.
+        for(bool outputBinary:{false,true})for(unsigned mask=1u;mask<16u;++mask) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false)||!matrixState(source))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;
+            if(mask&1u)m->m_diffuseMapBlendFactor=.5;if(mask&2u)m->m_diffuseMapProjection=1;
+            if(mask&4u)m->m_diffuseMapTiling=1;if(mask&8u)m->m_diffuseMapAutoTransform=1;
+            m->m_normalMapBlendFactor=.875;m->m_normalMapProjection=1;m->m_normalMapTiling=1;m->m_normalMapAutoTransform=1;
+            m->m_diffuseMapTransform[9]=777.;m->m_normalMapTransform[9]=888.;
+            const double blend=mask&1u?.5:.25;const int projection=mask&2u?1:2,tiling=mask&4u?1:2,automatic=mask&8u?1:2;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physicalDiffuseRoles(output,outputBinary,blend,projection,tiling,automatic,.875,1,1,1))return false;
+            dx_data readback;dx_iface verifier;if(!verifier.fileImport(output.string(),&readback,false))return false;
+            const auto* value=target(readback);if(!value||value->m_diffuseMapBlendFactor!=blend||value->m_diffuseMapProjection!=projection
+                ||value->m_diffuseMapTiling!=tiling||value->m_diffuseMapAutoTransform!=automatic
+                ||value->m_diffuseMapTransform[9]!=777.||value->m_normalMapTransform[9]!=888.)return false;
+        }
+        for(bool outputBinary:{false,true})for(unsigned role=0u;role<3u;++role)for(unsigned wanted=role==2u?0u:1u;wanted<=(role==0u?4u:role==1u?3u:7u);++wanted) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;
+            if(role==0u)m->m_diffuseMapProjection=static_cast<std::uint8_t>(wanted);
+            else if(role==1u)m->m_diffuseMapTiling=static_cast<std::uint8_t>(wanted);
+            else m->m_diffuseMapAutoTransform=static_cast<std::uint8_t>(wanted);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physicalDiffuseRoles(output,outputBinary,.25,role==0u?wanted:2,role==1u?wanted:2,role==2u?wanted:2))return false;
+        }
+        for(bool outputBinary:{false,true})for(unsigned fault=0u;fault<16u;++fault) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;
+            auto& raw=source.rawMaterialObjects.front();const auto savedRaw=raw;
+            m->m_diffuseMapBlendFactor=.5;m->m_diffuseMapProjection=1;m->m_diffuseMapTiling=1;m->m_diffuseMapAutoTransform=1;
+            if(fault==0u)m->m_diffuseMapBlendFactor=(std::numeric_limits<double>::infinity)();
+            if(fault==1u)m->m_diffuseMapBlendFactor=(std::numeric_limits<double>::quiet_NaN)();
+            if(fault==2u)m->m_diffuseMapProjection=0u;if(fault==3u)m->m_diffuseMapProjection=5u;
+            if(fault==4u)m->m_diffuseMapTiling=0u;if(fault==5u)m->m_diffuseMapTiling=4u;
+            if(fault==6u)m->m_diffuseMapAutoTransform=8u;
+            if(fault==7u)m->m_hasDiffuseMapProjection=false;
+            if(fault>=8u) {const int field=fault<10u?42:fault<12u?73:fault<14u?74:75;const unsigned wanted=(fault%2u)?2u:1u;unsigned count=0;
+                for(std::size_t i=0;i<raw.groups.size();++i)if(raw.groups[i].code()==field&&++count==wanted){
+                    raw.groups[i]=field==42?DRW_Variant(42,.125):DRW_Variant(field,static_cast<std::int32_t>(5));
+                    if(raw.hasRawValues)raw.rawValues[i]=field==42?"0.125":"5";break;}}
+            const auto failed=*m;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||std::memcmp(&m->m_diffuseMapBlendFactor,&failed.m_diffuseMapBlendFactor,sizeof(double))
+                ||m->m_diffuseMapProjection!=failed.m_diffuseMapProjection||m->m_diffuseMapTiling!=failed.m_diffuseMapTiling
+                ||m->m_diffuseMapAutoTransform!=failed.m_diffuseMapAutoTransform||m->m_hasDiffuseMapProjection!=failed.m_hasDiffuseMapProjection)return false;
+            raw=savedRaw;m->m_diffuseMapBlendFactor=.5;m->m_diffuseMapProjection=1;m->m_diffuseMapTiling=1;m->m_diffuseMapAutoTransform=1;m->m_hasDiffuseMapProjection=true;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)||!physicalDiffuseRoles(output,outputBinary,.5,1,1,1))return false;
+        }
+        for(unsigned phase=0;phase<3u;++phase) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;LateMaterialEdit adapter;adapter.phase=phase;adapter.diffuseBlend=true;
+            if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;m->m_diffuseMapBlendFactor=.5;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!adapter.hit)return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||m->m_diffuseMapBlendFactor!=.9375)return false;
+            adapter.active=false;m->m_diffuseMapBlendFactor=.5;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!physicalDiffuseRoles(output,sourceBinary,.5,2,2,2))return false;
         }
         // Both matrices have distinct source roles. Test individual, multiple,
         // signed-zero and composed diffuse/normal edits on all wire routes.
@@ -709,7 +793,7 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapAutoTransform = 1;
             if (fault == 0) selected->m_normalMapAutoTransform = 8;
             if (fault == 1) selected->m_normalMapAutoTransform = 255;
-            if (fault == 2) selected->m_diffuseMapAutoTransform = 3;
+            if (fault == 2) selected->m_diffuseMapAutoTransform = 8;
             if (fault == 3) selected->m_hasNormalMapAutoTransform = false;
             if (fault == 4) {
                 unsigned count=0;
@@ -853,7 +937,7 @@ bool run(const std::filesystem::path& dir) {
                 if (fault == 1) selected->m_normalMapTiling = 4;
                 if (fault == 2) selected->m_normalMapSource = 0;
                 if (fault == 3) {selected->m_normalMapFileName = "changed-normal.png";selected->m_hasNormalMapFileName=false;}
-                if (fault == 4) selected->m_diffuseMapTiling = 3;
+                if (fault == 4) selected->m_diffuseMapTiling = 4;
                 if (fault == 5) {
                     unsigned count = 0;
                     for (std::size_t i = 0; i < raw.groups.size(); ++i) if (raw.groups[i].code() == 74 && ++count == 2) {
@@ -925,7 +1009,7 @@ bool run(const std::filesystem::path& dir) {
                 if (fault == 0) selected->m_normalMapProjection = 0;
                 if (fault == 1) selected->m_normalMapProjection = 5;
                 if (fault == 2) selected->m_normalMapSource = 0;
-                if (fault == 3) selected->m_diffuseMapProjection = 3;
+                if (fault == 3) selected->m_diffuseMapProjection = 5;
                 if (fault == 4) {
                     unsigned count = 0;
                     for (std::size_t i = 0; i < raw.groups.size(); ++i) if (raw.groups[i].code() == 73 && ++count == 2) {
@@ -993,7 +1077,7 @@ bool run(const std::filesystem::path& dir) {
                 // edits remain refused; correct and retry the same adapter.
                 auto& raw = source.rawMaterialObjects.front();
                 const DRW_RawDxfObject originalRaw = raw;
-                if (fault == 0) selected->m_diffuseMapBlendFactor = 0.5;
+                if (fault == 0) selected->m_diffuseMapBlendFactor = (std::numeric_limits<double>::infinity)();
                 if (fault == 1) selected->m_normalMapBlendFactor = std::numeric_limits<double>::infinity();
                 if (fault == 2) {
                     unsigned count = 0;
