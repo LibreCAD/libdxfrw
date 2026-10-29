@@ -2312,13 +2312,13 @@ private:
         std::vector<std::uint32_t> xdataEntityHandles;
         std::vector<const DRW_Entity*> xdataEntityModels;
         std::vector<std::uint32_t> xdataEntityOwners;
-        std::vector<DxfMLineXdataEntitySection> xdataEntitySections;
+        std::vector<DxfMLineXdataEntitySection> xdataEntitySourceSections;
         std::uint32_t emitted{0},table{0};
     };
     struct DxfMLineXdataLineSource {
         const DRW_Entity* live{nullptr};
         std::uint32_t owner{0u};
-        DxfMLineXdataEntitySection section{
+        DxfMLineXdataEntitySection sourceSection{
             DxfMLineXdataEntitySection::Entities};
     };
     struct DxfMLineAppIdSource {

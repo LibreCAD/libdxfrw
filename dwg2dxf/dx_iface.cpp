@@ -23130,7 +23130,7 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                             return false;
                                         entityModels.push_back(origin->second.live);
                                         entityOwners.push_back(origin->second.owner);
-                                        entitySections.push_back(origin->second.section);
+                                        entitySections.push_back(origin->second.sourceSection);
                                         ++referenceCount;
                                     }
                                     if (referenceCount!=entityHandles.size())
@@ -23198,7 +23198,7 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                 row.xdataEntityHandles=entityHandles->second;
                 row.xdataEntityModels=entityModels->second;
                 row.xdataEntityOwners=entityOwners->second;
-                row.xdataEntitySections=entitySections->second;
+                row.xdataEntitySourceSections=entitySections->second;
                 for (const auto appIdHandle:row.appIdHandles) {
                     const auto app=source.resources.find(appIdHandle);
                     const auto origin=source.resourceOriginAudits.find(appIdHandle);
@@ -23279,7 +23279,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                 || row.second.xdataEntityHandles.size()>kMaxAdapterBasicTableItems
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityModels.size()
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityOwners.size()
-                || row.second.xdataEntityHandles.size()!=row.second.xdataEntitySections.size()
+                || row.second.xdataEntityHandles.size()!=row.second.xdataEntitySourceSections.size()
                 || entityReferenceCount>kMaxAdapterBasicTableItems
                     -row.second.xdataEntityHandles.size()) return false;
             appReferenceCount+=row.second.appIdHandles.size();
@@ -23353,7 +23353,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                 if (origin==entityOrigins.end()
                     || origin->second.live!=row.second.xdataEntityModels[i]
                     || origin->second.owner!=row.second.xdataEntityOwners[i]
-                    || origin->second.section!=row.second.xdataEntitySections[i])
+                    || origin->second.sourceSection!=row.second.xdataEntitySourceSections[i])
                     return false;
             }
         }
@@ -36111,7 +36111,7 @@ bool dx_iface::finalizeDxfWrite() {
                 || !mlineStyleBodiesSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
-        || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
+        || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
     for (const auto& row:m_dxfMLineLinetypes) {
@@ -36126,7 +36126,7 @@ bool dx_iface::finalizeDxfWrite() {
             || row.second.xdataEntityHandles.size()
                 !=row.second.xdataEntityOwners.size()
             || row.second.xdataEntityHandles.size()
-                !=row.second.xdataEntitySections.size()) return false;
+                !=row.second.xdataEntitySourceSections.size()) return false;
         for (std::size_t i=0u;i<row.second.xdataEntityHandles.size();++i) {
             const auto source=row.second.xdataEntityHandles[i];
             const auto emitted=dxfW->remapEntityHandle(source);
@@ -36147,24 +36147,25 @@ bool dx_iface::finalizeDxfWrite() {
                     ?DRW::DxfPaperSpaceBlockRecordHandle
                     :sourceOwner==nullptr?DRW::NoHandle
                         :dxfW->getBlockRecordHandleToWrite(sourceOwner->name);
-            const char* emittedSection=nullptr;
-            switch (row.second.xdataEntitySections[i]) {
-            case DxfMLineXdataEntitySection::Entities:
-                emittedSection="ENTITIES";break;
-            case DxfMLineXdataEntitySection::Blocks:
-                emittedSection="BLOCKS";break;
-            default:
-                return false;
-            }
+            // The source section is retained and revalidated independently.
+            // The writer canonicalizes fixed-space BLOCKS children into the
+            // ENTITIES output route; named block children remain in BLOCKS.
+            const char* emittedSection=
+                ownerName=="*MODEL_SPACE"||ownerName=="*PAPER_SPACE"
+                    ?"ENTITIES":"BLOCKS";
+            const bool emittedIdentity=emitted
+                &&dxfW->dxfWriteRecordHasIdentity(emitted,"LINE",emittedSection);
+            const bool emittedOwnerMatches=emitted
+                &&dxfW->dxfWriteRecordHasOwner(emitted,emittedOwner);
+            const bool sourceIdentityMatches=emitted
+                &&dxfW->dxfWriteSourceEntityHasIdentity(
+                    source,emitted,"LINE",emittedSection,emittedOwner);
             if (row.second.xdataEntityModels[i]==nullptr || !emitted
                 || emitted==DRW::NoHandle || !emittedOwner
                 || emittedOwner==DRW::NoHandle
                 || dxfW->dxfWriteRecordHandleCount(emitted)!=1u
-                || !dxfW->dxfWriteRecordHasIdentity(
-                    emitted,"LINE",emittedSection)
-                || !dxfW->dxfWriteRecordHasOwner(emitted,emittedOwner)
-                || !dxfW->dxfWriteSourceEntityHasIdentity(
-                    source,emitted,"LINE",emittedSection,emittedOwner)) return false;
+                || !emittedIdentity || !emittedOwnerMatches
+                || !sourceIdentityMatches) return false;
         }
     }
     for (const auto& entry:m_dxfMLineConsumers) {
@@ -37087,7 +37088,7 @@ bool dx_iface::preallocateDxfMLineLinetypeXdataEntityHandles() {
             || row.second.xdataEntityHandles.size()
                 !=row.second.xdataEntityOwners.size()
             || row.second.xdataEntityHandles.size()
-                !=row.second.xdataEntitySections.size()) return false;
+                !=row.second.xdataEntitySourceSections.size()) return false;
         for (std::size_t i=0u;i<row.second.xdataEntityHandles.size();++i) {
             if (row.second.xdataEntityHandles[i]==0u
                 || row.second.xdataEntityModels[i]==nullptr

@@ -5310,6 +5310,7 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
     //      writeBlock() latches it for every user block in the BLOCKS section;
     //   3) the fixed Model_Space (0x1F) / Paper_Space (0x1E) BLOCK_RECORD
     //      handles by ent->space, for entities in the ENTITIES section.
+    bool paperSpaceEntity = ent->space == DRW::PaperSpace;
     if (version > DRW::AC1014) {
         // ownerOverride and currHandle are already output identities. Only a
         // source parentHandle is translated: a source may numerically equal
@@ -5337,6 +5338,10 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
                     ? DRW::DxfPaperSpaceBlockRecordHandle
                     : DRW::DxfModelSpaceBlockRecordHandle;
         }
+        if (ownerHandle == DRW::DxfPaperSpaceBlockRecordHandle)
+            paperSpaceEntity = true;
+        else if (ownerHandle == DRW::DxfModelSpaceBlockRecordHandle)
+            paperSpaceEntity = false;
         writer->writeString(330, toHexStr(ownerHandle));
     }
     if (!writeEntityReferenceGroups(ent))
@@ -5348,7 +5353,7 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
     if (version > DRW::AC1009) {
         writer->writeString(100, "AcDbEntity");
     }
-    if (ent->space == 1)
+    if (paperSpaceEntity)
         writer->writeInt16(67, 1);
     if (version > DRW::AC1009) {
         writer->writeUtf8String(8, ent->layer);
