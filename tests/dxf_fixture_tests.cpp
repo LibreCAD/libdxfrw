@@ -33592,6 +33592,12 @@ double parameterForOffset(unsigned profile,unsigned vertex,double offset,double 
     const double denominator=dot(cross(extrusion(profile),direction),mit);
     return (offset+shift)*scale(profile)/denominator;
 }
+double parameterForStyle(unsigned profile,unsigned vertex,double offset,double shift,double startAngle,double endAngle) {
+    const auto points=geometry(profile);const auto direction=points.at(vertex).second;
+    const auto mit=miter(profile,points,vertex,startAngle,endAngle);
+    const double denominator=dot(cross(extrusion(profile),direction),mit);
+    return (offset+shift)*scale(profile)/denominator;
+}
 void setRecordValue(Tags& fields,std::size_t begin,std::size_t end,int code,const std::string& value,unsigned occurrence=0u) {
     for(std::size_t i=begin;i<end;++i)if(fields[i].first==code) {
         if(occurrence){--occurrence;continue;}fields[i].second=value;return;
@@ -33842,7 +33848,8 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
     }
     return fields;
 }
-bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
+bool retargetOutputProof(const std::filesystem::path& path,bool binary,
+        const std::array<double,2>& targetOffsets=afterOffsets,double targetStartAngle=90.0,double targetEndAngle=90.0) {
     const auto bad=[](int line){std::cerr<<"retarget output proof mismatch line="<<line<<'\n';return false;};
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
@@ -33861,10 +33868,11 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
         ||!close(std::stod(values(*originalStyle,49)[0]),beforeOffsets[0])
         ||!close(std::stod(values(*originalStyle,49)[1]),beforeOffsets[1]))
         return bad(__LINE__);
-    const auto offsets=values(*targetStyle,49);
-    if(offsets.size()!=2u||!close(std::stod(offsets[0]),afterOffsets[0])
-        ||!close(std::stod(offsets[1]),afterOffsets[1])||values(*targetStyle,70).size()!=1u
-        ||std::stod(values(*targetStyle,70).front())!=2.0) {
+    const auto offsets=values(*targetStyle,49),startAngles=values(*targetStyle,51),endAngles=values(*targetStyle,52);
+    if(offsets.size()!=2u||!close(std::stod(offsets[0]),targetOffsets[0])
+        ||!close(std::stod(offsets[1]),targetOffsets[1])||startAngles.size()!=1u||endAngles.size()!=1u
+        ||!close(std::stod(startAngles.front()),targetStartAngle)||!close(std::stod(endAngles.front()),targetEndAngle)
+        ||values(*targetStyle,70).size()!=1u||std::stod(values(*targetStyle,70).front())!=2.0) {
         return bad(__LINE__);
     }
     const auto targetHandle=static_cast<std::uint32_t>(std::stoul(targetStyle->id,nullptr,16));
@@ -33873,10 +33881,19 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
         if(profile>1u||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{targetStyle->id}
             ||row.section!=(profile?"BLOCKS":"ENTITIES")||!values(row,42).empty())return bad(__LINE__);
-        const auto actual=values(row,41);if(actual.size()!=12u)return bad(__LINE__);std::size_t at=0u;
+        const auto actual=values(row,41),mitersX=values(row,13),mitersY=values(row,23),mitersZ=values(row,33);
+        if(actual.size()!=12u||mitersX.size()!=3u||mitersY.size()!=3u||mitersZ.size()!=3u)return bad(__LINE__);
+        const double targetMinimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;const auto vertices=geometry(profile);
+        std::size_t at=0u;
         for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element)
-            if(!close(std::stod(actual[at++]),parameter(profile,vertex,element,afterOffsets))
+            if(!close(std::stod(actual[at++]),parameterForStyle(profile,vertex,targetOffsets[element],shift,targetStartAngle,targetEndAngle))
                 ||std::stod(actual[at++])!=0.0)return bad(__LINE__);
+        for(unsigned vertex=0u;vertex<3u;++vertex) {
+            const auto expected=miter(profile,vertices,vertex,targetStartAngle,targetEndAngle);
+            if(!close(std::stod(mitersX[vertex]),expected.x)||!close(std::stod(mitersY[vertex]),expected.y)
+                ||!close(std::stod(mitersZ[vertex]),expected.z))return bad(__LINE__);
+        }
         ++consumerCount;
     }
     if(consumerCount!=2u)return bad(__LINE__);
@@ -33887,7 +33904,8 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
         if(style.name=="OLD_BODY_NAME")decodedOriginal=&style;
     }
     if(!decodedTarget||!decodedOriginal||decodedTarget->elements.size()!=2u||decodedOriginal->elements.size()!=2u
-        ||!close(decodedTarget->elements[0].offset,afterOffsets[0])||!close(decodedTarget->elements[1].offset,afterOffsets[1])
+        ||!close(decodedTarget->elements[0].offset,targetOffsets[0])||!close(decodedTarget->elements[1].offset,targetOffsets[1])
+        ||!close(decodedTarget->startAngle,targetStartAngle)||!close(decodedTarget->endAngle,targetEndAngle)
         ||!close(decodedOriginal->elements[0].offset,beforeOffsets[0])||!close(decodedOriginal->elements[1].offset,beforeOffsets[1]))return bad(__LINE__);
     const auto lines=mlineStyleAuthorityControls::consumers(actual);if(lines.size()!=2u)return bad(__LINE__);
     for(const auto* line:lines) {
@@ -33900,15 +33918,17 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
         };
         const auto vertices=geometry(profile);const auto ext=extrusion(profile);
         if(!sameCoord(line->extPoint,ext)||!sameCoord(line->basePoint,vertices.front().first))return bad(__LINE__);
+        const double targetMinimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;
         for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element) {
             const auto& parameters=line->vertlist[vertex].segParms[element];
-            if(parameters.size()!=2u||!close(parameters[0],parameter(profile,vertex,element,afterOffsets))
+            if(parameters.size()!=2u||!close(parameters[0],parameterForStyle(profile,vertex,targetOffsets[element],shift,targetStartAngle,targetEndAngle))
                 ||parameters[1]!=0.0||!line->vertlist[vertex].areaFillParms[element].empty())return bad(__LINE__);
         }
         for(unsigned vertex=0u;vertex<3u;++vertex)
             if(!sameCoord(line->vertlist[vertex].position,vertices[vertex].first)
                 ||!sameCoord(line->vertlist[vertex].vertexDir,vertices[vertex].second)
-                ||!sameCoord(line->vertlist[vertex].miterDir,miter(profile,vertices,vertex)))return bad(__LINE__);
+                ||!sameCoord(line->vertlist[vertex].miterDir,miter(profile,vertices,vertex,targetStartAngle,targetEndAngle)))return bad(__LINE__);
     }
     return true;
 }
@@ -34030,6 +34050,71 @@ bool runRetargetOffsetTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runRetargetOffset(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE retarget offset artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runRetargetAngles(const std::filesystem::path& dir) {
+    constexpr double targetStartAngle=60.0,targetEndAngle=120.0;
+    const auto input=dir/"retarget-angles-input.dxf",output=dir/"retarget-angles-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE retarget angles line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,beforeOffsets,targetStartAngle,targetEndAngle)
+            ||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.flags=0;target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;target.flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,beforeOffsets,targetStartAngle,targetEndAngle)
+            ||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,beforeOffsets,targetStartAngle,targetEndAngle)
+            ||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE retarget angle profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runRetargetAnglesTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-retarget-angles-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runRetargetAngles(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE retarget angle artifacts: "<<dir<<'\n';
     return passed;
 }
 bool appendOutputProof(const std::filesystem::path& path,bool binary) {
@@ -43694,6 +43779,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-retarget-offset-projection") {
         return mlineConsumedOffsetControls::runRetargetOffsetTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-retarget-angle-projection") {
+        return mlineConsumedOffsetControls::runRetargetAnglesTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-append") {
         return mlineConsumedOffsetControls::runConsumedAppendTemporary()?0:1;

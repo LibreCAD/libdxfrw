@@ -16283,6 +16283,18 @@ bool mlineRetargetGeometryOffsetsCompatible(const DRW_MLineStyle& original,
         && original.elements.size()==target.elements.size();
 }
 
+bool mlineRetargetGeometryAnglesCompatible(const DRW_MLineStyle& original,
+        const DRW_MLineStyle& target) noexcept {
+    if (!mlineRetargetGeometryKnown(original) || !mlineRetargetGeometryKnown(target)
+        || !mlineFlagBitsEqual(original.flags,target.flags)
+        || original.elements.size()!=target.elements.size()
+        || (retainedDoubleEqual(original.startAngle,target.startAngle)
+            && retainedDoubleEqual(original.endAngle,target.endAngle))) return false;
+    for (std::size_t i=0u;i<original.elements.size();++i)
+        if (!retainedDoubleEqual(original.elements[i].offset,target.elements[i].offset)) return false;
+    return true;
+}
+
 bool mlineRetargetCommonOutputEqual(const DRW_MLine& model,const DRW_MLine& actual,
         dxfRW& writer,std::uint32_t handle,std::uint32_t owner,DRW::Version version) {
     // These temporaries are covered by the precharged consumer allowance.
@@ -16448,7 +16460,8 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 // per-vertex parameter arrays only after deriving the same source geometry.
 // This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
-        const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false) {
+        const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
+        bool retargetAngles=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
@@ -16456,16 +16469,19 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
         || (appendElement && (!appended || removeElements)) || (removeElements && !removed)
+        || (retargetAngles && (appended || removed))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
         || original.vertlist.size()!=original.numVerts || before.flags!=2 || after.flags!=2
         || !mlineRetargetGeometryKnown(before) || !mlineRetargetGeometryKnown(after)
         || !mlineFlagBitsEqual(before.flags,after.flags)
-        || !retainedDoubleEqual(before.startAngle,after.startAngle)
-        || !retainedDoubleEqual(before.endAngle,after.endAngle)) return false;
+        || (!retargetAngles && (!retainedDoubleEqual(before.startAngle,after.startAngle)
+            || !retainedDoubleEqual(before.endAngle,after.endAngle)))) return false;
     if (!appended && !removed) {
-        if (!mlineRetargetGeometryOffsetsCompatible(before,after)) return false;
+        if (retargetAngles) {
+            if (!mlineRetargetGeometryAnglesCompatible(before,after)) return false;
+        } else if (!mlineRetargetGeometryOffsetsCompatible(before,after)) return false;
     } else if (appended) {
         for (std::size_t i=0u;i<before.elements.size();++i)
             if (!retainedDoubleEqual(before.elements[i].offset,after.elements[i].offset)) return false;
@@ -16526,30 +16542,45 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
     if (appended || removed) output.numLines=static_cast<std::uint16_t>(after.elements.size());
     for (std::size_t v=0u;v<original.vertlist.size();++v) {
         const auto& input=original.vertlist[v];auto& projected=output.vertlist[v];
-        const auto& normal=original.extPoint;const auto& direction=input.vertexDir;const auto& miter=input.miterDir;
-        if (!unit(direction)||!unit(miter)||!close(dot(normal,direction),0.0)
-            ||!close(dot(normal,miter),0.0)
+        const auto& normal=original.extPoint;const auto& direction=input.vertexDir;const auto& sourceMiter=input.miterDir;
+        if (!unit(direction)||!unit(sourceMiter)||!close(dot(normal,direction),0.0)
+            ||!close(dot(normal,sourceMiter),0.0)
             ||input.segParms.size()!=before.elements.size()
             ||input.areaFillParms.size()!=before.elements.size()) return false;
-        const double signedMiter=(normal.y*direction.z-normal.z*direction.y)*miter.x
-            +(normal.z*direction.x-normal.x*direction.z)*miter.y
-            +(normal.x*direction.y-normal.y*direction.x)*miter.z;
-        if (!std::isfinite(signedMiter)||signedMiter<=1e-9) return false;
+        const auto signedMiterFor=[&](const DRW_Coord& miter) {
+            return (normal.y*direction.z-normal.z*direction.y)*miter.x
+                +(normal.z*direction.x-normal.x*direction.z)*miter.y
+                +(normal.x*direction.y-normal.y*direction.x)*miter.z;
+        };
+        const double sourceSignedMiter=signedMiterFor(sourceMiter);
+        if (!std::isfinite(sourceSignedMiter)||sourceSignedMiter<=1e-9) return false;
+        DRW_Coord targetMiter=sourceMiter;
+        if (retargetAngles && (v==0u || v+1u==original.vertlist.size())) {
+            const double angle=(v==0u?after.startAngle:after.endAngle)*pi/180.0;
+            const auto perpendicular=cross(normal,direction);
+            targetMiter=DRW_Coord(std::cos(angle)*direction.x+std::sin(angle)*perpendicular.x,
+                std::cos(angle)*direction.y+std::sin(angle)*perpendicular.y,
+                std::cos(angle)*direction.z+std::sin(angle)*perpendicular.z);
+        }
+        const double targetSignedMiter=signedMiterFor(targetMiter);
+        if (!unit(targetMiter)||!close(dot(normal,targetMiter),0.0)
+            ||!std::isfinite(targetSignedMiter)||targetSignedMiter<=1e-9) return false;
+        if (retargetAngles) projected.miterDir=targetMiter;
         for (std::size_t i=0u;i<before.elements.size();++i) {
             const auto& segment=input.segParms[i];
             if (segment.size()!=2u || !retainedDoubleEqual(segment[1],0.0)
                 || !input.areaFillParms[i].empty()) return false;
-            const double expected=(before.elements[i].offset+beforeShift)*original.scale/signedMiter;
+            const double expected=(before.elements[i].offset+beforeShift)*original.scale/sourceSignedMiter;
             if (!close(segment[0],expected)) return false;
             if (!removed && i<after.elements.size()) {
-                const double replacement=(after.elements[i].offset+afterShift)*original.scale/signedMiter;
+                const double replacement=(after.elements[i].offset+afterShift)*original.scale/targetSignedMiter;
                 if (!std::isfinite(replacement)) return false;
                 projected.segParms[i][0]=replacement;
             }
         }
         if (appended) {
             for (std::size_t i=before.elements.size();i<after.elements.size();++i) {
-                const double replacement=(after.elements[i].offset+afterShift)*original.scale/signedMiter;
+                const double replacement=(after.elements[i].offset+afterShift)*original.scale/targetSignedMiter;
                 if (!std::isfinite(replacement)) return false;
                 projected.segParms.emplace_back(2u,0.0);
                 projected.segParms.back()[0]=replacement;
@@ -16558,7 +16589,7 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         }
         if (removed) {
             for (std::size_t i=0u;i<after.elements.size();++i) {
-                const double replacement=(after.elements[i].offset+afterShift)*original.scale/signedMiter;
+                const double replacement=(after.elements[i].offset+afterShift)*original.scale/targetSignedMiter;
                 if (!std::isfinite(replacement)) return false;
                 projected.segParms[i][0]=replacement;
                 projected.segParms[i][1]=input.segParms[survivorIndices[i]][1];
@@ -16902,6 +16933,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
             // when the change came only from the typed model.
             for (std::size_t i=0u;i<target.elements.size();++i)
                 source.geometryChanged=source.geometryChanged || !retainedDoubleEqual(target.elements[i].offset,original.elements[i].offset);
+            source.geometryChanged=source.geometryChanged
+                || !retainedDoubleEqual(target.startAngle,original.startAngle)
+                || !retainedDoubleEqual(target.endAngle,original.endAngle);
             if (append || remove) {source.geometryChanged=true;source.referencesChanged=true;}
             const auto sourcePage=version>=DRW::AC1021 ? std::string_view("UTF-8") : std::string_view(context.codePage);
             const bool pageChanged=sourcePage!=m_dxfMLineStyleState.codePage;
@@ -17615,8 +17649,9 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             if (!mlineGeometryEqual(value,original)
                 || !dxfAttdef::Decoder::sameEntityModel(value,original,variant)) return false;
             if (mlineRetargetGeometryEqual(old->original,planned.projection)) return true;
-            if (planned.countChanged
-                || !mlineRetargetGeometryOffsetsCompatible(old->original,planned.projection)
+            const bool offsetsCompatible=mlineRetargetGeometryOffsetsCompatible(old->original,planned.projection);
+            const bool anglesCompatible=mlineRetargetGeometryAnglesCompatible(old->original,planned.projection);
+            if (planned.countChanged || (!offsetsCompatible && !anglesCompatible)
                 || original.numLines==0u
                 || original.vertlist.size()>kMaxAdapterBasicTableItems/original.numLines
                 || !visit(original.vertlist.size()*original.numLines)
@@ -17624,7 +17659,8 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             std::size_t modelBytes=0u;
             if (!estimateTypedEntityRetainedBytes(original,sizeof(DRW_MLine),modelBytes)
                 || !chargeNamedResourceBytes(bytes,modelBytes)
-                || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection)) return false;
+                || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection,
+                    false,false,anglesCompatible)) return false;
             // Group 2 is redundant; only the authoritative 340 target changes.
             geometryProjection.styleHandle=value.styleHandle;
             geometryProjected=true;
