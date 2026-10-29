@@ -455,6 +455,9 @@ public:
     // Optional AC1018 source-presence spelling; one entry per cell, in row order.
     // The ordinary overload remains source-agnostic.
     bool writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<std::uint8_t>& legacyZeroOverrides);
+    // Selected AC1018 presence mask: bit 0 retains 177=0/178=0;
+    // bit 1 retains block-cell 179=0. Zero means neither source spelling.
+    bool writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector<std::uint8_t>& legacyPresence);
     /// Emits the bounded AC1021+ typed TABLESTYLE profile. DXF-origin
     /// TABLESTYLE records continue to use exact raw replay through the
     /// adapter; this typed path is for supported DWG-origin style snapshots.

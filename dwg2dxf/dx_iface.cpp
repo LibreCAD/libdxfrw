@@ -24711,8 +24711,8 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
             if (applicationDepth!=0u) continue;
             if (group.code()==100 && group.type()==DRW_Variant::STRING && group.content.s)
                 scanningTable = *group.content.s == "AcDbTable";
-            else if (scanningTable && group.code()==177 && group.type()==DRW_Variant::INTEGER
-                     && group.content.i==0) candidate = true;
+            else if (scanningTable && (group.code()==177 || group.code()==179)
+                     && group.type()==DRW_Variant::INTEGER && group.content.i==0) candidate = true;
         }
         if (!candidate) return LegacyZeroPresence::None;
         const std::size_t rows = table.m_content.m_rows.size(), columns = table.m_content.m_columns.size();
@@ -24721,7 +24721,7 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
         bool inTable = false, sawZero = false, invalid = false;
         std::size_t qualificationDepth = 0u;
         bool rowCountSeen = false, columnCountSeen = false;
-        std::size_t cell = 0u; bool hasCell = false, flagSeen = false, edgeSeen = false;
+        std::size_t cell = 0u; bool hasCell = false, flagSeen = false, edgeSeen = false, countSeen = false;
         int prior = -1; std::vector<std::uint8_t> found; found.reserve(rows * columns);
         for (const auto& group : raw.groups) {
             const int code = group.code();
@@ -24740,7 +24740,7 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
             }
             if (!inTable) continue;
             if (code == 1001) return LegacyZeroPresence::Invalid;
-            if (code == 177 && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
+            if ((code == 177 || code == 179) && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
                 sawZero = true;
             if (!hasCell && (code == 91 || code == 92)) {
                 bool& seen = code == 91 ? rowCountSeen : columnCountSeen;
@@ -24752,18 +24752,25 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
             if (code == 171) {
                 if (hasCell && flagSeen != edgeSeen) invalid = true;
                 if (cell >= rows * columns) return LegacyZeroPresence::Invalid;
-                hasCell = true; flagSeen = edgeSeen = false; ++cell; found.push_back(0u);
+                hasCell = true; flagSeen = edgeSeen = countSeen = false; ++cell; found.push_back(0u);
             } else if (code == 177) {
                 if (!hasCell || flagSeen || group.type() != DRW_Variant::INTEGER || prior != 176)
                     invalid = true;
                 flagSeen = true;
                 if (hasCell && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
-                    found.back() = 1u;
+                    found.back() |= 1u;
             } else if (code == 178) {
                 if (!hasCell || !flagSeen || edgeSeen || prior != 177
                     || group.type() != DRW_Variant::INTEGER || group.content.i != 0)
                     invalid = true;
                 edgeSeen = true;
+            } else if (code == 179) {
+                if (!hasCell || countSeen || (prior != 340 && prior != 144)
+                    || group.type() != DRW_Variant::INTEGER || group.content.i < 0)
+                    invalid = true;
+                countSeen = true;
+                if (hasCell && group.type() == DRW_Variant::INTEGER && group.content.i == 0)
+                    found.back() |= 2u;
             }
             prior = code;
         }
@@ -24775,7 +24782,9 @@ LegacyZeroPresence legacyTableZeroPresence(const DRW_RawDxfObject& raw,
                 if (table.m_content.m_rows[row].m_cells.size() != columns) { invalid = true; break; }
                 for (std::size_t col = 0u; col < columns; ++col) {
                     const auto& value = table.m_content.m_rows[row].m_cells[col];
-                    if (found[row * columns + col] && (value.m_overrideFlags != 0u || value.m_virtualEdgeFlags != 0))
+                    const auto spelling = found[row * columns + col];
+                    if (((spelling & 1u) != 0u && (value.m_overrideFlags != 0u || value.m_virtualEdgeFlags != 0))
+                        || ((spelling & 2u) != 0u && (value.m_type != 2 || !value.m_attributes.empty())))
                         invalid = true;
                 }
             }
@@ -24821,7 +24830,8 @@ void dx_iface::addDxfTableSource(const DRW_Table& table,
         // Authenticate selected field presence against a bounded independent
         // decode before accepting any user-overridable callback's model copy.
         std::vector<std::uint8_t> presence;
-        const auto profile = legacyTableZeroPresence(raw,table,presence);
+        const auto profile = table.m_hasSemanticContent && table.m_semanticContentComplete
+            ? legacyTableZeroPresence(raw,table,presence) : LegacyZeroPresence::None;
         if (profile != LegacyZeroPresence::None) {
             if (profile == LegacyZeroPresence::Invalid || !table.attlist.empty() || table.seqEndEntity) {
                 source.failed = true; return;
@@ -31750,10 +31760,10 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
             if (profile == LegacyZeroPresence::None) continue;
             std::size_t modelBytes = 0u;
             if (!estimateTypedEntityRetainedBytes(item.second.typed,sizeof(DRW_Table),modelBytes)
-                || scanWork > source.maxWork || modelBytes > (source.maxWork - scanWork) / 2u)
+                || scanWork > source.maxWork || modelBytes > (source.maxWork - scanWork) / 3u)
                 return false;
-            // Live-vs-source model reconciliation and per-cell validation.
-            scanWork += 2u * modelBytes;
+            // Planning and dispatch live-model comparisons plus cell validation.
+            scanWork += 3u * modelBytes;
             if (profile == LegacyZeroPresence::Invalid || duplicateLive || !source.closed || !source.successful
                 || source.failed || source.contextFailed || source.generation != 1u
                 || source.generation != data.importGeneration || source.version != DRW::AC1018)
@@ -32199,6 +32209,10 @@ void dx_iface::writeEntityOrTableFallback(DRW_Entity* entity) {
     const auto table = m_tableFallbacks.find(entity->handle);
     if (table == m_tableFallbacks.end()) {
         writeEntity(entity);
+        return;
+    }
+    if (table->second == nullptr || table->second->handle != entity->handle) {
+        (void)dxfW->writeTable(nullptr);
         return;
     }
     if (!m_emittedTableHandles.insert(entity->handle).second) {
@@ -35854,8 +35868,13 @@ void dx_iface::writeEntity(DRW_Entity* e){
             std::vector<std::uint8_t> presence;
             const auto profile = legacyTableZeroPresence(found->second.raw,found->second.typed,presence);
             if (profile == LegacyZeroPresence::Invalid) written = dxfW->writeTable(nullptr);
-            else if (profile == LegacyZeroPresence::Selected) written = dxfW->writeTableWithLegacyZeroOverrides(table,presence);
-            else written = dxfW->writeTable(table);
+            else if (profile == LegacyZeroPresence::Selected) {
+                if (!table || !source.closed || !source.successful || source.failed || source.contextFailed
+                    || source.generation != 1u || source.generation != cData->importGeneration
+                    || !sameTableBodyModel(*table,found->second.typed,DRW::AC1018))
+                    written = dxfW->writeTable(nullptr);
+                else written = dxfW->writeTableWithLegacySourcePresence(table,presence);
+            } else written = dxfW->writeTable(table);
         } else written = dxfW->writeTable(table);
         break;
     }

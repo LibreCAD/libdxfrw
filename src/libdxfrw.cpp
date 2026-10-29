@@ -9198,6 +9198,13 @@ bool dxfRW::writeTable(DRW_Table *ent){
 }
 
 bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<std::uint8_t>& legacyZeroOverrides){
+    if (legacyZeroOverrides.size() > 200000u) return failDxfWrite();
+    for (const auto spelling : legacyZeroOverrides)
+        if (spelling > 1u) return failDxfWrite();
+    return writeTableWithLegacySourcePresence(ent,legacyZeroOverrides);
+}
+
+bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector<std::uint8_t>& legacyPresence){
     if (!preflightEntity(ent)
         || (ent != nullptr && ent->seqEndEntity != nullptr
             && !preflightEntity(ent->seqEndEntity.get())))
@@ -9229,17 +9236,19 @@ bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<
         return failDxfWrite();
     }
 
-    if (!legacyZeroOverrides.empty()) {
-        if (version != DRW::AC1018 || legacyZeroOverrides.size() != rows * columns)
+    if (!legacyPresence.empty()) {
+        if (version != DRW::AC1018 || legacyPresence.size() != rows * columns)
             return failDxfWrite();
         for (std::size_t row = 0u; row < rows; ++row) {
             if (ent->m_content.m_rows[row].m_cells.size() != columns)
                 return failDxfWrite();
             for (std::size_t column = 0u; column < columns; ++column) {
-                const auto spelling = legacyZeroOverrides[row * columns + column];
-                if (spelling > 1u || (spelling != 0u
-                    && (ent->m_content.m_rows[row].m_cells[column].m_overrideFlags != 0u
-                        || ent->m_content.m_rows[row].m_cells[column].m_virtualEdgeFlags != 0)))
+                const auto spelling = legacyPresence[row * columns + column];
+                const DRW_TableCell& value = ent->m_content.m_rows[row].m_cells[column];
+                if (spelling > 3u || ((spelling & 1u) != 0u
+                    && (value.m_overrideFlags != 0u || value.m_virtualEdgeFlags != 0))
+                    || ((spelling & 2u) != 0u
+                        && (value.m_type != 2 || !value.m_attributes.empty())))
                     return failDxfWrite();
             }
         }
@@ -9663,8 +9672,8 @@ bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<
                 writer->writeInt16(178, cell->m_virtualEdgeFlags);
                 writer->writeInt32(92, cell->m_flags);
             } else if (cell->m_overrideFlags != 0u
-                       || (!legacyZeroOverrides.empty()
-                           && legacyZeroOverrides[row * columns + column] != 0u)) {
+                       || (!legacyPresence.empty()
+                           && (legacyPresence[row * columns + column] & 1u) != 0u)) {
                 writer->writeInt16(177, static_cast<int>(cell->m_overrideFlags));
                 writer->writeInt16(178, 0);
             }
@@ -9708,7 +9717,8 @@ bool dxfRW::writeTableWithLegacyZeroOverrides(DRW_Table *ent, const std::vector<
                 writer->writeString(340, toHexStr(blockHandle));
                 if (cell->m_blockScale != 1.0)
                     writer->writeDouble(144, cell->m_blockScale);
-                if (!cell->m_attributes.empty()) {
+                if (!cell->m_attributes.empty() || (!legacyPresence.empty()
+                    && (legacyPresence[row * columns + column] & 2u) != 0u)) {
                     writer->writeInt16(179,
                         static_cast<int>(cell->m_attributes.size()));
                     for (const DRW_TableCellAttribute& attribute :

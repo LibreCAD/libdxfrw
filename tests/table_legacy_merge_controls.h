@@ -695,9 +695,11 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
             DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
             DRW_Table selected(input.tables.front());selected.handle=0x500u;selected.parentHandle=0x1fu;selected.name="*T500";
             direct.addTable(selected);const DRW_Table baseline(data.tables.front());
-            for(unsigned fault=0u;fault<3u;++fault) {
+            for(unsigned fault=0u;fault<4u;++fault) {
+                data.tables.front()=baseline;
                 direct.spellings=fault==0u?std::vector<std::uint8_t>{1u}:std::vector<std::uint8_t>{1u,0u,fault==1u?std::uint8_t{2u}:std::uint8_t{1u}};
                 if(fault==2u)data.tables.front().m_content.m_rows[0].m_cells[2].m_overrideFlags=1u;
+                if(fault==3u)direct.spellings.assign(200001u,0u);
                 if(!tableExportSentinel(out,true)||direct.fileExport(out.string(),DRW::AC1018,binary,&data,false,false)
                     ||!tableExportSentinel(out))return fail("direct invalid escaped");
                 data.tables.front()=baseline;direct.spellings={1u,0u,1u};

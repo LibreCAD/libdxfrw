@@ -3,6 +3,7 @@
 // scratch; independent original records only identify the field-role profile.
 bool legacyTableAlignmentTests(const std::filesystem::path& dir);
 bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir);
+bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir);
 bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     const auto source=dir/"legacy-height-source.dxf", output=dir/"legacy-height-output.dxf";
     const auto fail=[](const std::string& reason){std::cerr<<"legacy TABLE height: "<<reason<<'\n';return false;};
@@ -82,7 +83,7 @@ bool legacyTableTextHeightTests(const std::filesystem::path& dir) {
     std::cout<<"legacy TABLE height source routes="<<sourceRoutes<<" outputs="<<successes
         <<" atomic refusals="<<refusals<<" corrected retries="<<retries<<'\n';
     return sourceRoutes==2u&&successes==8u&&refusals==72u&&retries==72u
-        &&legacyTableAlignmentTests(dir)&&legacyTableBlockAlignmentTests(dir);
+        &&legacyTableAlignmentTests(dir)&&legacyTableBlockAlignmentTests(dir)&&legacyTableBlockCountPresenceTests(dir);
 }
 
 // Autodesk specifies the nine alignment values for table cells. The selected
@@ -260,4 +261,153 @@ bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir) {
     }
     std::cout<<"legacy TABLE block alignment source="<<sourceRoutes<<" outputs="<<successes<<" refusals="<<refusals<<" retries="<<retries<<" modern="<<modern<<'\n';
     return sourceRoutes==2u&&successes==16u&&refusals==128u&&retries==128u&&modern==16u;
+}
+
+// Selected physical 179=0 source spelling; no native default claim.
+struct TableLegacyCountLateProbe final:dx_iface {
+    bool mutateScale=false,mutateHandle=false;
+    void writeEntities() override {
+        auto& t=cData->tables.front();const auto oldHandle=t.handle;const double oldScale=t.m_content.m_rows[0].m_cells[0].m_blockScale;
+        if(mutateScale)t.m_content.m_rows[0].m_cells[0].m_blockScale=2.;
+        if(mutateHandle)++t.handle;
+        dx_iface::writeEntities();
+        t.handle=oldHandle;t.m_content.m_rows[0].m_cells[0].m_blockScale=oldScale;
+    }
+};
+struct TableLegacyCountDirectProbe final:dx_iface {
+    std::vector<std::uint8_t> spellings;
+    void writeEntities() override {
+        auto& table=cData->tables.front();const auto sourceHandle=table.handle;
+        if(dxfW->writeTableWithLegacySourcePresence(&table,spellings))
+            DxIfaceTableSourceTestAccess::markTableEmitted(*this,sourceHandle);
+    }
+};
+bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
+    const auto source=dir/"legacy-block-count-source.dxf",output=dir/"legacy-block-count-output.dxf";
+    const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE block count presence: "<<why<<'\n';return false;};
+    unsigned successes=0u,lateRefusals=0u,retries=0u,invalids=0u;
+    for(bool inputBinary:{false,true})for(bool outputBinary:{false,true})for(bool strict:{false,true})for(unsigned form=0;form<5u;++form) {
+        // 0: explicit 179 only; 1: both zero groups; 2: 177 only;
+        // 3: neither; 4: explicit zero 177 with a nonzero attribute count.
+        const bool zeroFlag=form==1u||form==2u||form==4u, zeroCount=form<2u, attribute=form==4u;
+        Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"ENTITIES"},{0,"ACAD_TABLE"},{5,"4F2"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},
+            {100,"AcDbBlockReference"},{2,"*T1"},{10,"1"},{20,"2"},{30,"3"},{100,"AcDbTable"},
+            {90,"2"},{91,"1"},{92,"1"},{141,"8"},{142,"20"},{171,"2"},{172,"0"},{173,"0"},
+            {174,"1"},{175,"1"},{176,"1"},{177,zeroFlag?"0":"1"},{178,"0"},{145,"0"},{340,"601"},{144,"1.5"}};
+        if(zeroCount)tags.push_back({179,"0"});
+        if(attribute)tags.insert(tags.end(),{{179,"1"},{331,"603"},{300,"attribute value"}});
+        if(!zeroFlag)tags.push_back({170,"1"});
+        tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
+        if(!write(source,tags,inputBinary))return fail("source write");
+        TableLegacyCountLateProbe io;dx_data data;
+        if(!io.fileImport(source.string(),&data,false)||data.tables.size()!=1u||!data.tables.front().m_semanticContentComplete)
+            return fail("source import");
+        DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+        DRW_Block_Record record;record.handle=0x601u;record.name="TABLE_CELL_BLOCK";data.blockRecords.push_back(record);
+        auto* block=new dx_ifaceBlock();block->name=record.name;block->parentHandle=record.handle;
+        if(attribute){DRW_Attdef def;def.handle=0x603u;def.parentHandle=record.handle;def.tag="TAG";def.text="DEFAULT";block->ent.push_back(new DRW_Attdef(def));}
+        data.blocks.push_back(block);
+        auto& table=data.tables.front();const DRW_Table baseline(table);const auto identities=tableExportIdentities(data);
+        const auto check=[&]() {
+            dx_iface reader;dx_data after;
+            if(!reader.fileImport(output.string(),&after,false)||after.tables.size()!=1u||!after.tables.front().m_semanticContentComplete)return false;
+            const auto& cell=after.tables.front().m_content.m_rows[0].m_cells[0];
+            const auto provider=std::find_if(after.blockRecords.begin(),after.blockRecords.end(),[](const auto& v){return v.name=="TABLE_CELL_BLOCK";});
+            if(provider==after.blockRecords.end()||cell.m_blockHandle!=provider->handle
+                ||cell.m_attributes.size()!=(attribute?1u:0u)||cell.m_overrideFlags!=(zeroFlag?0u:1u))return false;
+            bool inTable=false,inCell=false;unsigned n177=0,n179=0;int mask=-1,count=-1;std::size_t pos340=0,pos179=0,pos170=0,index=0;
+            for(const auto& v:attdefWireTags(output,outputBinary)) {
+                if(v.code==0){inTable=v.text=="ACAD_TABLE";inCell=false;continue;}
+                if(!inTable)continue;if(v.code==171)inCell=true;if(!inCell)continue;++index;
+                if(v.code==177){++n177;mask=static_cast<int>(v.integer);}if(v.code==179){++n179;count=static_cast<int>(v.integer);pos179=index;}
+                if(v.code==340)pos340=index;if(v.code==170)pos170=index;
+            }
+            return n177==1u&&mask==(zeroFlag?0:1)&&n179==((zeroCount||attribute)?1u:0u)
+                &&(!n179||(count==(attribute?1:0)&&pos340<pos179))
+                &&(zeroFlag?pos170==0u:(pos170>pos340&&(!n179||pos170>pos179)));
+        };
+        // Form 3 has no selected zero; its prior source-agnostic spelling
+        // intentionally omits 179. Other forms preserve explicit zeros.
+        if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check()
+            ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("positive form "+std::to_string(form));
+        ++successes;
+        if(form!=3u)for(unsigned fault=0;fault<2u;++fault) {
+            io.mutateScale=fault==0u;io.mutateHandle=fault==1u;
+            if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)
+                ||!tableExportSentinel(output)||identities!=tableExportIdentities(data)
+                ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("late mutation");
+            ++lateRefusals;io.mutateScale=io.mutateHandle=false;
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("late retry");
+            ++retries;
+        }
+        // A source that was already incomplete still takes the historical
+        // compatible INSERT projection instead of the selected TABLE path.
+        if(form==0u&&!strict) {
+            auto incomplete=tags;const auto target=slot(incomplete,340,"601");incomplete.erase(incomplete.begin()+static_cast<std::ptrdiff_t>(target));
+            dx_data partial;if(!write(source,incomplete,inputBinary)||!io.fileImport(source.string(),&partial,false)||partial.tables.size()!=1u
+                ||partial.tables.front().m_semanticContentComplete)return fail("incomplete source import");
+            partial.blockRecords.push_back(model);
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&partial,false,false))return fail("incomplete INSERT fallback");
+            unsigned tables=0u,inserts=0u;
+            for(const auto& v:attdefWireTags(output,outputBinary))if(v.code==0){if(v.text=="ACAD_TABLE")++tables;if(v.text=="INSERT")++inserts;}
+            if(tables!=0u||inserts!=1u)return fail("incomplete projection shape");
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("incomplete retry");
+        }
+        // Nested application-owned 179 is not a block count. Conversely,
+        // a real host zero behind a nested subtype remains unqualified.
+        if(form==0u||form==3u) {
+            auto nested=tags;const auto sub=slot(nested,100,"AcDbTable");
+            const Tags group=form==0u?Tags{{102,"{APP_SCOPE"},{100,"VendorSubtype"},{102,"}"}}
+                :Tags{{102,"{APP_SCOPE"},{179,"0"},{102,"}"}};
+            nested.insert(nested.begin()+static_cast<std::ptrdiff_t>(sub+1u),group.begin(),group.end());
+            dx_data scoped;if(!write(source,nested,inputBinary)||!io.fileImport(source.string(),&scoped,false)||scoped.tables.size()!=1u)return fail("scoped import");
+            scoped.blockRecords.push_back(model);scoped.blockRecords.push_back(record);
+            auto* scopedBlock=new dx_ifaceBlock();scopedBlock->name=record.name;scopedBlock->parentHandle=record.handle;scoped.blocks.push_back(scopedBlock);
+            if(form==0u) {
+                if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&scoped,false,strict)
+                    ||!tableExportSentinel(output))return fail("hidden zero escaped");
+            } else if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&scoped,false,strict))return fail("nested count treated as host");
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("scoped retry");
+        }
+        // Duplicate selected count is structurally ambiguous and must not
+        // publish; correcting the source and retrying uses the same adapter.
+        if(form==0u) {
+            const auto count=slot(tags,179,"0");auto bad=tags;bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(count+1u),{179,"0"});
+            dx_data rejected;if(!write(source,bad,inputBinary)||!io.fileImport(source.string(),&rejected,false)||rejected.tables.size()!=1u)return fail("duplicate import");
+            rejected.blockRecords.push_back(model);rejected.blockRecords.push_back(record);
+            auto* rejectedBlock=new dx_ifaceBlock();rejectedBlock->name=record.name;rejectedBlock->parentHandle=record.handle;rejected.blocks.push_back(rejectedBlock);
+            if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&rejected,false,strict)||!tableExportSentinel(output))return fail("duplicate escaped");
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("duplicate retry");
+            ++invalids;
+        }
+    }
+    // Direct mask API: valid block 179=0, invalid bits, conflicting zero
+    // override, text-cell use, and a non-AC1018 target all fail atomically.
+    {
+        TableLegacyCountDirectProbe io;dx_data data;tableExportReuseDrawing(io,data,0u,false);
+        DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
+        DRW_Block_Record record;record.handle=0x601u;record.name="TABLE_CELL_BLOCK";data.blockRecords.push_back(record);
+        auto* block=new dx_ifaceBlock();block->name=record.name;block->parentHandle=record.handle;data.blocks.push_back(block);
+        auto& table=data.tables.front();auto& cell=table.m_content.m_rows[0].m_cells[0];cell.m_type=2;cell.m_blockHandle=0x601u;
+        cell.m_contents[0].m_type=4;cell.m_contents[0].m_handle=0x601u;cell.m_overrideFlags=1u;cell.m_textAlignment=1;
+        const DRW_Table baseline(table);
+        for(unsigned fault=0u;fault<4u;++fault) {
+            table=baseline;io.spellings={fault==0u?std::uint8_t{4u}:fault==1u?std::uint8_t{3u}:std::uint8_t{2u}};
+            if(fault==2u)table.m_content.m_rows[0].m_cells[0].m_type=1;
+            const auto target=fault==3u?DRW::AC1021:DRW::AC1018;
+            if(!tableExportSentinel(output,true)||io.fileExport(output.string(),target,false,&data,false,false)||!tableExportSentinel(output))return fail("direct invalid mask");
+            table=baseline;io.spellings={2u};
+            if(!io.fileExport(output.string(),DRW::AC1018,false,&data,false,false))return fail("direct mask retry");
+            unsigned count=0u;bool inTable=false,inCell=false;
+            for(const auto& tag:attdefWireTags(output,false)) {
+                if(tag.code==0){inTable=tag.text=="ACAD_TABLE";inCell=false;continue;}
+                if(!inTable)continue;if(tag.code==171)inCell=true;
+                if(inCell&&tag.code==179&&tag.kind==AttdefWireTag::Integer&&tag.integer==0)++count;
+            }
+            if(count!=1u)return fail("direct zero count output");
+        }
+    }
+    std::cout<<"legacy TABLE count presence outputs="<<successes<<" late="<<lateRefusals<<" retries="<<retries<<" duplicate="<<invalids<<'\n';
+    return successes==40u&&lateRefusals==64u&&retries==64u&&invalids==8u;
 }
