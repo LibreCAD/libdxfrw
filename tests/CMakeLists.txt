@@ -189,9 +189,9 @@ set_tests_properties(libdxfrw_mline_retarget_append_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
-# Runtime-generated AC1027 retarget from a three-element style after middle
-# removal and a four-element style at each single-deletion position. Verify
-# projected parameters, exact references/readback and failure/retry controls.
+# Runtime-generated AC1027 retarget from three-, four-, and five-element styles
+# after the selected middle or all single-deletion removals. Verify projected
+# parameters, exact references/readback and failure/retry controls.
 add_test(NAME libdxfrw_mline_retarget_removal_projection
     COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-removal-projection)
 set_tests_properties(libdxfrw_mline_retarget_removal_projection PROPERTIES
