@@ -34183,6 +34183,9 @@ Tags tenElementRecipe(bool binary) {
 Tags elevenElementRecipe(bool binary) {
     return consumedSourceCountRecipe(binary,11u);
 }
+Tags twelveElementRecipe(bool binary) {
+    return consumedSourceCountRecipe(binary,12u);
+}
 Tags threeElementRecipe(bool binary) {
     auto fields=fourElementRecipe(binary);
     for(std::size_t begin=0u;begin<fields.size();) {
@@ -35490,6 +35493,14 @@ bool runConsumedElevenSourceAppend(const std::filesystem::path& dir) {
          "Continuous","ByLayer","Continuous","ByLayer","Continuous",
          "ByLayer","Continuous"});
 }
+bool runConsumedTwelveSourceAppend(const std::filesystem::path& dir) {
+    return runConsumedSourceCountAppend(dir,12u,twelveElementRecipe,
+        {1.25,-.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5,-5.0,-5.5,-6.0,-6.5},
+        {1,3,4,5,6,7,8,9,10,11,12,13,14},
+        {"ByLayer","Continuous","ByLayer","Continuous","ByLayer",
+         "Continuous","ByLayer","Continuous","ByLayer","Continuous",
+         "ByLayer","Continuous","ByLayer"});
+}
 bool runConsumedFourSourceAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-four-source-append-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -35566,6 +35577,16 @@ bool runConsumedElevenSourceAppendTemporary() {
     const bool passed=runConsumedElevenSourceAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed eleven-source append artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedTwelveSourceAppendTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-twelve-source-append-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runConsumedTwelveSourceAppend(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed twelve-source append artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedAppend(const std::filesystem::path& dir) {
@@ -44785,6 +44806,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-eleven-source-append") {
         return mlineConsumedOffsetControls::runConsumedElevenSourceAppendTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-twelve-source-append") {
+        return mlineConsumedOffsetControls::runConsumedTwelveSourceAppendTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
