@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style eleven-to-five removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_ELEVEN_SURVIVOR_QUINTUPLES_QUALIFIED",
+  "codeCommit": "56cb9869",
+  "scope": "Qualify all 462 ordered choices of five surviving tuples when reducing a consumed eleven-element AC1027 MLINESTYLE to five elements. This is a selected removal profile, not complete source-count-eleven removal or universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Register the source-count-eleven, target-count-five runtime-generated test and reuse the bounded all-subset enumerator and exact output inspector for all 462 survivor quintuplets. The test verifies source-derived parameter projection, ASCII/binary input/output, fresh readback, refusal rollback, late-mutation rollback and corrected retries.",
+    "productionBehavior": "No writer change was required; the selected 11-to-5 model transactions use existing source-bound consumer projection and atomic output admission."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_five_from_eleven_removal$' --output-on-failure",
+    "ctestResult": "PASS: survivorSets=462; profiles=1848; readbacks=1852; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF source/output files are generated at runtime in a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "Only source count eleven and target count five, across all 462 survivor quintuplets, are newly qualified here.",
+    "Source-count-eleven target counts 6..10, larger source counts, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-eleven to six-element removal across all 462 survivor sextuplets with the same exact projection, output/readback, refusal, late-mutation rollback and retry controls."
+}
