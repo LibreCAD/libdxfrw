@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | ATTDEF 6F8 source-scope join; explicitly opted-in ENTITIES physical/delivery snapshots authenticate the 704/705/706 witness, whose source profiles remain refused | Qualify the selected INSERT/ATTRIB/SEQEND source profiles and ownership, then bind BLOCK_RECORD targets and APPID/LAYER roles; qualify output and failure/retry separately |
+| P4a — AC1018 attribute provenance | Selected ATTDEF scope and private 704/705/706 source/dispatch/owner-role joins; generic compound remains ProfileMismatch | Bind the 6F2 BLKREFS/331 and name to 704 as a bounded source relation; independently qualify target-name uniqueness, APPID/LAYER roles and output/failure behavior |
 | P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); whole-read scalar capture and existing identity/delivery evidence | Capture and authenticate the whole original stream, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
@@ -401,10 +401,19 @@ captures. Source-only opt-in remains possible. ProfileMismatch and all generic
 compound, ownership, output and native-support gates stay closed. The public
 reader layout changes, so dependent binaries must rebuild.
 
-Next qualify the selected 704 INSERT, 705 ATTRIB and 706 SEQEND source profiles
-under this authenticated context without broadening generic admission. Bind
-their exact original membership/owner roles, XDICTIONARY 6F3 and APPID/LAYER
-targets in separate bounded slices, then prove actual output and retries.
+The [AC1018 compound source-role receipt](docs/research/rpp5ja-ac1018-entities-compound-source-join-2026-10-28.json)
+records a private, source-only join for the selected INSERT 704, ATTRIB 705 and
+SEQEND 706, their exact dispatch, replayed model and original self/owner spans;
+the enclosing owner is observed as BLOCK_RECORD 1F. This does not resolve the
+INSERT's named block target or the XDATA APPID/LAYER targets. Generic compound
+remains ProfileMismatch and graph/output/native gates are unchanged. The
+private adapter data layout changes, so dependent binaries must rebuild.
+
+Next bind the selected BLOCK_RECORD 6F2's BLKREFS/331 source role to INSERT 704
+and compare their original block names in a separate bounded source relation.
+Treat name uniqueness and target resolution as separate prerequisites; then
+bind XDICTIONARY 6F3 and APPID/LAYER targets, and prove actual output and retry
+behavior without weakening the generic gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
