@@ -38979,6 +38979,7 @@ bool runTemporary() {
 bool runRetargetOffset(const std::filesystem::path& dir) {
     const auto input=dir/"retarget-offset-input.dxf",output=dir/"retarget-offset-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    std::size_t capProfiles=0u,capReadbacks=0u,capRefusals=0u,capRetries=0u,capLate=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE retarget offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
@@ -38998,6 +38999,80 @@ bool runRetargetOffset(const std::filesystem::path& dir) {
         }
         if(!caller.same(data)){std::cerr<<"retarget offset caller state changed\n";return fail(__LINE__);}
         ++profiles;++readbacks;
+    }
+    // Offset-only group-340 retargets preserve the MLINE group-71 cap flags.
+    // These flags do not change the per-vertex parameter arrays, so prove the
+    // same physical groups and semantic readback for each documented cap mode.
+    for(const int entityFlags:{5,9,13})
+        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,retargetRecipe(sourceBinary,false,true,entityFlags),
+                    sourceBinary,"AC1027")
+                ||!adapter.fileImport(input.string(),&data,false)
+                ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+            const auto sourceLines=mlineStyleAuthorityControls::consumers(data);
+            if(sourceLines.size()!=2u||sourceLines[0]->openClosed!=entityFlags
+                ||sourceLines[1]->openClosed!=entityFlags)return fail(__LINE__);
+            mlineRetargetControls::request(data,3u);
+            const mlineRetargetControls::Snapshot caller(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                    &data,false,true)
+                ||!retargetOutputProof(output,outputBinary,afterOffsets,90.0,90.0,
+                    2,entityFlags)
+                ||!caller.same(data))return fail(__LINE__);
+            ++capProfiles;++capReadbacks;
+        }
+    // Closed and unknown group-71 flags still refuse without replacing the
+    // destination or mutating caller state. A newly imported valid source is
+    // retried through the same writer instance.
+    for(const int entityFlags:{3,17})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false,false,true,entityFlags),false,
+                "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!caller.same(data))return fail(__LINE__);
+        ++capRefusals;
+        dx_iface correctedReader;dx_data correctedData;
+        if(!write(input,retargetRecipe(false,false,true,13),false,"AC1027")
+            ||!correctedReader.fileImport(input.string(),&correctedData,false)
+            ||correctedData.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(correctedData,3u);
+        const mlineRetargetControls::Snapshot corrected(correctedData);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                &correctedData,false,true)
+            ||!retargetOutputProof(output,outputBinary,afterOffsets,90.0,90.0,
+                2,13)
+            ||!corrected.same(correctedData))return fail(__LINE__);
+        ++capRetries;++capReadbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,retargetRecipe(false,false,true,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        const mlineRetargetControls::Snapshot caller(data);
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return fail(__LINE__);
+        ++capLate;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                &data,false,true)
+            ||!retargetOutputProof(output,outputBinary,afterOffsets,90.0,90.0,
+                2,13)
+            ||!caller.same(data))return fail(__LINE__);
+        ++capRetries;++capReadbacks;
     }
     for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -39026,8 +39101,12 @@ bool runRetargetOffset(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE retarget offset profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==8u&&readbacks==10u&&refusals==2u&&late==2u&&retries==4u;
+        <<"; late="<<late<<"; retries="<<retries<<"; capProfiles="<<capProfiles
+        <<"; capReadbacks="<<capReadbacks<<"; capRefusals="<<capRefusals
+        <<"; capLate="<<capLate<<"; capRetries="<<capRetries<<'\n';
+    return profiles==8u&&readbacks==10u&&refusals==2u&&late==2u&&retries==4u
+        &&capProfiles==12u&&capReadbacks==18u&&capRefusals==4u
+        &&capLate==2u&&capRetries==6u;
 }
 bool runRetargetOffsetTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/

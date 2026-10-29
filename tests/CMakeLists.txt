@@ -162,9 +162,11 @@ set_tests_properties(libdxfrw_mline_consumed_offset_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
-# Generated at runtime from the selected AC1027 MLINE profile. This proves
-# offset reprojection when retargeting group 340, exact redundant group-2 and
-# reference output, fresh readback, refusal, rollback and same-adapter retry.
+# Generated at runtime from the selected AC1027 MLINE profiles. This proves
+# offset reprojection when retargeting group 340, including documented
+# start/end-cap suppression flags, exact redundant group-2/reference/geometry
+# output, fresh readback, closed/unknown-flag refusal, rollback and same-adapter
+# retry.
 add_test(NAME libdxfrw_mline_retarget_offset_projection
     COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-offset-projection)
 set_tests_properties(libdxfrw_mline_retarget_offset_projection PROPERTIES

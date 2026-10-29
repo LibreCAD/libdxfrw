@@ -17463,22 +17463,24 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 
 // Recompute the first, miter-distance parameter for an admitted open,
 // unfilled and uncut MLINE. Preserve documented start/end-cap suppression
-// flags on the selected angle-retarget path; they do not alter the segment
-// parameter arrays. Other projections retain the plain-open profile until
-// qualified separately. This is not a general MLINE regeneration algorithm.
+// flags on selected AC1027 angle and offset-only retarget paths; they do not
+// alter the segment parameter arrays. Other projections retain the plain-open
+// profile until qualified separately. This is not a general MLINE regeneration
+// algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
-        bool retargetAngles=false,bool retargetStyleRemoval=false) {
+        bool retargetAngles=false,bool retargetStyleRemoval=false,bool retargetOffsets=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
     if (!mlineProjectionOpenAndUncut(original)
-        || (original.openClosed!=1 && !retargetAngles)
+        || (original.openClosed!=1 && !retargetAngles && !retargetOffsets)
         || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
         || (appendElement && (!appended || removeElements)) || (removeElements && !removed)
         || (retargetAngles && (appended || removed))
+        || (retargetOffsets && (retargetAngles || appended || removed))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -18675,6 +18677,8 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 && mlineRetargetGeometryRemovalCompatible(old->original,planned.projection);
             const bool anglesChanged=!retainedDoubleEqual(old->original.startAngle,planned.projection.startAngle)
                 || !retainedDoubleEqual(old->original.endAngle,planned.projection.endAngle);
+            const bool offsetOnlyRetarget=version==DRW::AC1027 && !anglesChanged && geometryCompatible
+                && !appendCompatible && !removalCompatible;
             const bool targetDefinitionAppend=planned.projection.elements.size()>target->original.elements.size();
             const bool targetDefinitionRemoval=planned.projection.elements.size()<target->original.elements.size();
             const auto chargeAppendProjection=[&]() {
@@ -18703,7 +18707,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 || !chargeNamedResourceBytes(bytes,modelBytes)
                 || !chargeAppendProjection()
                 || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection,
-                    appendCompatible,removalCompatible,anglesChanged,removalCompatible)) return false;
+                    appendCompatible,removalCompatible,anglesChanged,removalCompatible,offsetOnlyRetarget)) return false;
             // Group 2 is redundant; only the authoritative 340 target changes.
             geometryProjection.styleHandle=value.styleHandle;
             geometryProjected=true;
