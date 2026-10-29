@@ -33162,7 +33162,11 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        const std::vector<std::string> chunks{std::string(254u,'A'),"5A"};
+        const std::vector<std::vector<std::string>> chunkProfiles{
+            {std::string(254u,'A'),"5A"},
+            {"00A5","7FFF12","34CDEF"}
+        };
+        for(const auto& chunks:chunkProfiles)
         for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
             dx_iface adapter;dx_data data;
             if(!write(input,sourceWithBinaryXdataChunks(sourceBinary,chunks),sourceBinary,"AC1027")
@@ -33170,15 +33174,15 @@ bool runTemporary() {
                 ||!adapter.fileImport(input.string(),&data,false))return false;
             const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
                 [](const auto& value){return value.handle==0x103u;});
-            if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=3u
-                ||!sourceLine->extData[0]||!sourceLine->extData[1]||!sourceLine->extData[2]
-                ||sourceLine->extData[0]->code()!=1001
-                ||sourceLine->extData[1]->code()!=1004
-                ||!sourceLine->extData[1]->content.s
-                ||sourceLine->extData[1]->content.s->size()!=254u
-                ||sourceLine->extData[2]->code()!=1004
-                ||!sourceLine->extData[2]->content.s
-                ||*sourceLine->extData[2]->content.s!="5A")return false;
+            if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=chunks.size()+1u
+                ||!sourceLine->extData[0]||sourceLine->extData[0]->code()!=1001
+                ||!sourceLine->extData[0]->content.s||*sourceLine->extData[0]->content.s!=appName)
+                return false;
+            for(std::size_t i=0u;i<chunks.size();++i) {
+                const auto* chunk=sourceLine->extData[i+1u];
+                if(!chunk||chunk->code()!=1004||!chunk->content.s
+                    ||*chunk->content.s!=chunks[i])return false;
+            }
             if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
                 ||!binaryProviderProof(output,outputBinary,"9",chunks)
                 ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
@@ -34129,7 +34133,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==92u&&readbacks==201u&&refusals==109u&&retries==109u;
+    return profiles==96u&&readbacks==209u&&refusals==113u&&retries==113u;
 }
 
 bool runBudgetTemporary() {
