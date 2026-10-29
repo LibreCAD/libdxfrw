@@ -32171,6 +32171,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(179, 2);
     writer->writeInt16(170, 0);
     writer->writeInt32(90, 0);
+    writer->writeInt16(174, 0);
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
         if (includeLeaderColorExtension)
@@ -34177,6 +34178,169 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         if (previous.bad() || preserved != blockColorExtensionSentinel)
             return fail("MLEADERSTYLE block CMC-extension refusal replaced destination");
     }
+
+    // Group 174 is the left text attachment enum. Its bounded 0..8 domain is
+    // confirmed by Autodesk's AcTextAttachmentType reference; this transaction
+    // edits only this one existing AC1027 field.
+    const auto attachmentSource = directory
+        / ("root-mleaderstyle-left-attachment-source-" + encoding + ".dxf");
+    dx_data attachmentData;
+    dx_iface attachmentReader;
+    if (!generateRootMLeaderStyleControl(attachmentSource, binary)
+        || !attachmentReader.fileImport(attachmentSource.string(),
+                                        &attachmentData, false))
+        return fail("could not import MLEADERSTYLE left-attachment source");
+    auto attachmentStyle = std::find_if(
+        attachmentData.mLeaderStyles.begin(), attachmentData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    auto attachmentRaw = std::find_if(
+        attachmentData.rawNamedResourceObjects.begin(),
+        attachmentData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (attachmentStyle == attachmentData.mLeaderStyles.end()
+        || attachmentRaw == attachmentData.rawNamedResourceObjects.end()
+        || attachmentStyle->leftAttachment != 0u)
+        return fail("MLEADERSTYLE group-174 source identity/value is missing");
+    const auto sourceAttachment = std::find_if(
+        attachmentRaw->groups.begin(), attachmentRaw->groups.end(),
+        [](const DRW_Variant& field) { return field.code() == 174; });
+    if (sourceAttachment == attachmentRaw->groups.end()
+        || sourceAttachment->type() != DRW_Variant::INTEGER
+        || sourceAttachment->i_val() != 0)
+        return fail("MLEADERSTYLE source has no group-174 INTEGER witness");
+    const std::size_t sourceAttachmentSlot = static_cast<std::size_t>(
+        sourceAttachment - attachmentRaw->groups.begin());
+    const DRW_RawDxfObject originalAttachmentRaw = *attachmentRaw;
+    attachmentStyle->leftAttachment = 7u;
+    const auto attachmentOutput = directory
+        / ("root-mleaderstyle-left-attachment-output-" + encoding + ".dxf");
+    const std::string attachmentSentinel =
+        "existing MLEADERSTYLE attachment output survives\n";
+    const auto seedAttachmentSentinel = [&]() {
+        std::ofstream previous(attachmentOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous
+            && static_cast<bool>(previous << attachmentSentinel);
+    };
+    const auto attachmentSentinelSurvives = [&]() {
+        std::ifstream previous(attachmentOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == attachmentSentinel;
+    };
+    if (!seedAttachmentSentinel())
+        return fail("could not seed MLEADERSTYLE group-174 refusal");
+    attachmentRaw->groups[sourceAttachmentSlot] = DRW_Variant(174, 1);
+    if (attachmentRaw->hasRawValues && !binary)
+        attachmentRaw->rawValues[sourceAttachmentSlot] = "1";
+    dx_iface attachmentWriter;
+    if (attachmentWriter.fileExport(attachmentOutput.string(), DRW::AC1027,
+            binary, &attachmentData, false, true)
+        || !attachmentSentinelSurvives())
+        return fail("conflicting raw and typed MLEADERSTYLE group 174 was accepted");
+    *attachmentRaw = originalAttachmentRaw;
+
+    attachmentStyle->leftAttachment = 9u;
+    if (!seedAttachmentSentinel()
+        || attachmentWriter.fileExport(attachmentOutput.string(),
+            DRW::AC1027, binary, &attachmentData, false, true)
+        || !attachmentSentinelSurvives())
+        return fail("out-of-range MLEADERSTYLE group-174 value was accepted");
+    attachmentStyle->leftAttachment = 7u;
+    attachmentStyle->maxLeaderPoints = 1;
+    if (!seedAttachmentSentinel()
+        || attachmentWriter.fileExport(attachmentOutput.string(),
+            DRW::AC1027, binary, &attachmentData, false, true)
+        || !attachmentSentinelSurvives())
+        return fail("simultaneous MLEADERSTYLE edits were not refused");
+    attachmentStyle->maxLeaderPoints = 0;
+
+    class LateAttachmentWriter final : public dx_iface {
+    public:
+        bool mutate{false};
+        void writeObjects() override {
+            if (mutate && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.name == "STANDARD";
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    style->leftAttachment = 8u;
+            }
+            dx_iface::writeObjects();
+        }
+    } lateAttachmentWriter;
+    lateAttachmentWriter.mutate = true;
+    if (!seedAttachmentSentinel()
+        || lateAttachmentWriter.fileExport(attachmentOutput.string(),
+            DRW::AC1027, binary, &attachmentData, false, true)
+        || !attachmentSentinelSurvives())
+        return fail("late MLEADERSTYLE group-174 mutation was published");
+    lateAttachmentWriter.mutate = false;
+    attachmentStyle->leftAttachment = 7u;
+    if (!lateAttachmentWriter.fileExport(attachmentOutput.string(),
+            DRW::AC1027, binary, &attachmentData, false, true))
+        return fail("same-adapter MLEADERSTYLE group-174 retry failed: "
+            + lateAttachmentWriter.extensionGraphFailureDetail());
+    dx_data attachmentReadback;
+    dx_iface attachmentOutputReader;
+    if (!attachmentOutputReader.fileImport(attachmentOutput.string(),
+            &attachmentReadback, false))
+        return fail("could not read back MLEADERSTYLE group-174 output");
+    const auto emittedAttachmentStyle = std::find_if(
+        attachmentReadback.mLeaderStyles.begin(),
+        attachmentReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedAttachmentStyle == attachmentReadback.mLeaderStyles.end()
+        || emittedAttachmentStyle->leftAttachment != 7u
+        || emittedAttachmentStyle->maxLeaderPoints != 0)
+        return fail("MLEADERSTYLE group-174 typed readback mismatch");
+    const auto emittedAttachmentRaw = std::find_if(
+        attachmentReadback.rawNamedResourceObjects.begin(),
+        attachmentReadback.rawNamedResourceObjects.end(),
+        [handle = emittedAttachmentStyle->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (emittedAttachmentRaw
+        == attachmentReadback.rawNamedResourceObjects.end()
+        || std::count_if(emittedAttachmentRaw->groups.begin(),
+            emittedAttachmentRaw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 174
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == 7;
+            }) != 1)
+        return fail("MLEADERSTYLE group-174 literal output proof failed");
+
+    const auto crossAttachmentOutput = directory
+        / ("root-mleaderstyle-left-attachment-cross-" + encoding + ".dxf");
+    dx_iface crossAttachmentWriter;
+    dx_data crossAttachmentReadback;
+    dx_iface crossAttachmentReader;
+    if (!crossAttachmentWriter.fileExport(crossAttachmentOutput.string(),
+            DRW::AC1027, !binary, &attachmentData, false, true)
+        || !crossAttachmentReader.fileImport(crossAttachmentOutput.string(),
+            &crossAttachmentReadback, false))
+        return fail("cross-format MLEADERSTYLE group-174 output failed");
+    const auto crossAttachmentStyle = std::find_if(
+        crossAttachmentReadback.mLeaderStyles.begin(),
+        crossAttachmentReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossAttachmentStyle == crossAttachmentReadback.mLeaderStyles.end()
+        || crossAttachmentStyle->leftAttachment != 7u)
+        return fail("cross-format MLEADERSTYLE group-174 readback mismatch");
 
     return true;
 }
