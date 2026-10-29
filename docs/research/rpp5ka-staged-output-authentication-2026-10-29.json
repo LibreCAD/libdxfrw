@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5ka selected staged DXF section-body and HANDSEED authentication",
+  "date": "2026-10-29",
+  "codeCommit": "81c9bc5f8d107d7052b588156fb7c730944d10a2",
+  "scope": "Adds opt-in post-append byte comparison against the owned DXF output transaction for the selected modern MLINE-style route. The selected writer bodies are HEADER, generated CLASSES, TABLES, BLOCKS, ENTITIES, and OBJECTS. The final fixed-width HANDSEED bytes are read back after backpatching. Raw DXF sections are refused under this selected mode. This proves byte identity for inspected generated bodies and the patched field; it does not prove whole-file semantic completeness, section-envelope correctness beyond checked writer calls, all source dependencies, or consumer meaning.",
+  "contract": {
+    "selection": "dx_iface opts in when the selected MLINESTYLE source transaction is present. Direct dxfRW callers leave the behavior disabled by default. The codec uses the output transaction's original exclusive descriptor for bounded positional reads; it does not retain a second copy of the complete drawing.",
+    "stagedBodies": "DxfWriterRecordScope compares the inspected/materialized section body to bytes reread from the transaction file immediately after append. The selected set includes HEADER, CLASSES, TABLES, BLOCKS, ENTITIES, and OBJECTS. Refusal after append marks the writer failed and the owning output transaction aborts before publication.",
+    "handseed": "The final fixed-width HANDSEED patch is compared byte-for-byte from the same transaction descriptor after the seek/write/restore sequence. Opted-in writes refuse if the patch locator is absent or the patched bytes differ.",
+    "bounds": "Transaction readback uses a fixed 4096-byte stack buffer, checked offset/length arithmetic, exact short-read handling, and positional reads on POSIX. Windows uses the transaction's read/write CRT descriptor and bounded seeks/reads. No whole-output buffer or new fixture is introduced.",
+    "rollbackAndRetry": "A writer primitive test forces the appended-range verifier to compare against altered expected bytes. The section commit refuses, abort preserves the pre-existing destination, and a fresh corrected transaction authenticates and publishes successfully. The transaction-level mismatch control also rejects a mismatched range.",
+    "compatibility": "The feature is default-off for direct writers. It adds no DRW_Interface virtuals and preserves the existing LibreCAD callback contract. The selected dx_iface MLINE-style path opts in. No DWG/DXF fixture was added; generated DXF data is authored in tests and temporary files are removed.",
+    "limits": "Only generated section bodies and the final HANDSEED field receive post-append readback in the selected mode. Section framing, binary preamble, whole-file structure, semantic closure, other source profiles, other carrier schemas, consumed MLINE geometry, and native consumer meaning remain open. Windows execution was not available in this run."
+  },
+  "controls": {
+    "formats": [
+      "ASCII DXF output",
+      "Binary DXF output"
+    ],
+    "generatedClass": "A synthetic TEST_CUSTOM_RECORD CLASSES row is emitted in both formats and independently read back as one class.",
+    "handseed": "The test reserves handle 0x20044, checks that the emitted fixed-width value equals the writer high-water handle and differs from the default 00020000 placeholder, in both formats.",
+    "transactionMismatch": "Exact range accepted; same-length altered range rejected.",
+    "rollbackRetry": "Post-append mismatch refuses and preserves the destination sentinel; a corrected attempt on a fresh transaction commits successfully.",
+    "selectedMline": "Six selected MLINE source/live/geometry guard selectors ran with automatic staged-output authentication enabled by dx_iface.",
+    "fixtures": "All test drawings are generated locally. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build -j4"
+    },
+    "normalFocusedCohort": {
+      "result": "PASS",
+      "count": "8/8",
+      "seconds": 1.38,
+      "command": "ctest --test-dir build -R 'libdxfrw_no_raw_sections|libdxfrw_writer_primitives|libdxfrw_mline_(entity_carrier_geometry_guard|consumer_census_budget_guard|style_body_geometry_guard|layer_carrier_geometry_guard|dictionary_carrier_geometry_guard|ltype_provider_geometry_guard)' --output-on-failure"
+    },
+    "addressSanitizerCohort": {
+      "result": "PASS",
+      "count": "8/8",
+      "seconds": 2.98,
+      "command": "ASAN_OPTIONS=halt_on_error=1 ctest --test-dir /tmp/libdxfrw-build-asan-codex -R 'libdxfrw_no_raw_sections|libdxfrw_writer_primitives|libdxfrw_mline_(entity_carrier_geometry_guard|consumer_census_budget_guard|style_body_geometry_guard|layer_carrier_geometry_guard|dictionary_carrier_geometry_guard|ltype_provider_geometry_guard)' --output-on-failure",
+      "note": "AddressSanitizer passed. This host runtime reports leak detection as unsupported; the passing run does not enable leak detection."
+    },
+    "diffCheck": "PASS (git diff --check before code commit and after plan/receipt edits)",
+    "receiptJson": "Validated with python3 -m json.tool"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "7dafa022be39df475071b4b4f3eadee122fa9d3fff3a2fdeaf8254cd56f624b9",
+    "src/intern/dwg_dxf_output_transaction.cpp": "dbab75c82aa5e955cc2be2a6f468648272eafacb69ad4c27d7e245c6d5140a61",
+    "src/intern/dwg_dxf_output_transaction.h": "298f329b413aa6ad75bdc6dc2ae97f327be837e1a6a568eef4202702f5cce3af",
+    "src/intern/dxfwriter.h": "ce101137f3adbed4be28acdc5284f0585610ca1af613389a829b5862faffb3ff",
+    "src/libdxfrw.cpp": "c0f647774feecea19ffb0994d64e56e62a58c96ff1170146179cd157428f8fe4",
+    "src/libdxfrw.h": "0228b92d71f22a1e9e39e8c98102ffdcb12485360cfa4732b321909a1e282440",
+    "tests/dxf_no_raw_sections_tests.cpp": "501321860a440d7cb265e085d8145247c1f925da8828c54a9c4062105f5da2d7",
+    "tests/writer_primitives_tests.cpp": "d066e5735c1a3790e78f0cbca492e795ed076b68667eb64a521e51b80a530993"
+  },
+  "binaryBindings": {
+    "normalNoRawSectionTests": "1e192113402d508a31173c5bd30e3317ad777269d0e89dce2c082684c4097164",
+    "normalWriterPrimitivesTests": "30182cf8a04f135352bd2b185052b84d296dd7ff2577c4ab06dcea40164f89c9",
+    "normalMlineSourceDependencyTests": "3482ab3f88aa1a37bd6328e942a46d4a6c93b11d90318daa0ab0d1aa6d40fe48",
+    "normalDwg2dxf": "c22b33748735b53b6096064086b0f0a1ca5d605b9bbcee9f22f977f526fcd6b1",
+    "asanNoRawSectionTests": "3d8cf5f8d19ec7f0b4fbc51ae5f61e270bd5d5e053a60b639ebda4fb3d05517d",
+    "asanWriterPrimitivesTests": "2444ef5b6bb3fc3516e463ef82c0255bdc10ba5fa8622c8482fca755fd60ccf3",
+    "asanMlineSourceDependencyTests": "59ae75425094ee497568534ca83bdb9c4d6dd5e2dc86d29e0adf42d138f7e746"
+  },
+  "next": "Select the next exact P2 witness: either an unadmitted MLINE carrier/schema profile or one still-refused count/legacy/retarget operation. Reuse the existing source/live snapshots and byte-projection machinery. Keep consumed-style geometry refused until all relevant carriers and actual BLOCKS/ENTITIES output are independently proved."
+}
