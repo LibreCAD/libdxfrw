@@ -34337,7 +34337,7 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
     }
     return fields;
 }
-constexpr unsigned retargetRemovalMaxSourceCount=14u;
+constexpr unsigned retargetRemovalMaxSourceCount=15u;
 double retargetAppendSourceOffset(unsigned element) {
     if(element==2u)return -1.25;
     if(element>=3u)return -2.0-.75*static_cast<double>(element-3u);
