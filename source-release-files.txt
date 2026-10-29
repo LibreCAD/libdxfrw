@@ -59,6 +59,7 @@ dwg2dxf/dx_legacy_blockrecord_whole_source.h
 dwg2dxf/dx_legacy_blockref_source_relation.h
 dwg2dxf/dx_legacy_identity_join.h
 dwg2dxf/dx_material_body.h
+dwg2dxf/dx_mline_source_dependency.h
 dwg2dxf/dx_plotstyle_source.h
 dwg2dxf/dx_raster_dwg_wire.h
 dwg2dxf/dx_raster_output.h
@@ -382,6 +383,7 @@ tests/dwg_object_vectors_tests.cpp
 tests/dwg_reader_matrix_tests.cpp
 tests/dxf_entity_identity_test_helpers.h
 tests/dxf_fixture_tests.cpp
+tests/dxf_mline_source_dependency_tests.cpp
 tests/dxf_symbol_output_tests.cpp
 tests/dxf_whole_source_tests.cpp
 tests/effective_ownership_controls.h

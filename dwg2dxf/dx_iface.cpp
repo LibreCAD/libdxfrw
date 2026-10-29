@@ -26054,6 +26054,45 @@ void dx_iface::addLayout(const DRW_Layout& data) {
     retainBasicTableTyped(cData, cData->layouts, data, estimateLayoutTypedBytes);
 }
 
+// Classifies only the authenticated original source. This is not an export
+// preflight: mutable live objects, actual output and geometry are not checked.
+dx_mline_source_dependency::Proof dx_iface::mlineDependencySourceProof(
+        const dx_data& data,dx_mline_source_dependency::Limits limits) const noexcept {
+    using namespace dx_mline_source_dependency;
+    Proof unavailable;unavailable.result=Result::NoAuthority;
+    if(limits.work<4096u){unavailable.result=Result::Limit;return unavailable;}
+    const auto& s=data.m_tableDxfSource;const auto& input=s.wholeInput;
+    const auto same=[](const auto& a,const auto& b) noexcept {
+        return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+    };
+    const auto& outcome=data.dxfReadOutcome;
+    if(cData!=&data||!s.closed||!s.successful||!s.wholeSelected||!s.wholePending
+        ||s.wholeFailed||!s.wholeFinished||s.contextFailed||!input||!same(input,s.wholeInputOwner)
+        ||input->container!=&data||input->generation!=data.importGeneration||input->generation!=s.generation
+        ||!input->containerId||input->containerId!=data.m_entitiesContainerIdentity.value
+        ||!input->source||!same(input->source,s.wholeSourceOwner)
+        ||input->source->state()!=WholeSourceV2::State::ThroughEof||input->source->version()!=data.sourceVersion
+        ||input->source->binary()!=input->context.binary||!input->context.captured
+        ||input->context.sourceVersion!=outcome.sourceVersion||input->context.codecVersion!=outcome.codecVersion
+        ||input->context.codePagePolicy!=outcome.requestedCodePagePolicy||!outcome.attempted||!outcome.readReturned
+        ||!outcome.operationSucceeded||outcome.readThrew||data.sourceFormat!=dx_source_format::DXF)return unavailable;
+    // The fixed work allowance covers this bounded map lookup and its single
+    // entry check; do not scan a source dictionary before checking its size.
+    if(!data.hasNamedObjectDictionary||s.structuralCaptureFailed||s.structuralAudits.size()>100000u)return unavailable;
+    const auto root=data.namedObjectDictionary.handle;const auto it=s.structuralAudits.find(root);
+    if(it==s.structuralAudits.end()||!it->second||!it->second->input||!it->second->originBound
+        ||!it->second->bodyMatched||!it->second->stateComplete||it->second->input->container!=&data
+        ||it->second->input->generation!=data.importGeneration
+        ||it->second->input->containerId!=data.m_entitiesContainerIdentity.value
+        ||it->second->input->kind!=dxfRW::DxfStructuralSourceView::Kind::RootDictionary)return unavailable;
+    const auto* original=dynamic_cast<const DRW_Dictionary*>(it->second->input->model.get());
+    if(!original||original->handle!=root||original->parentHandle||original->m_entries.size()!=1u
+        ||!original->hasCompleteDxfEntries())return unavailable;
+    const auto& entry=original->m_entries.front();
+    if(entry.m_name!="ACAD_MLINESTYLE"||entry.m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)return unavailable;
+    return classify(input->source.get(),root,entry.m_handle,limits);
+}
+
 bool dx_iface::wantsWholeSource() const noexcept {
     return m_wholeEnabled&&tableSourceCaptureOpen()&&cData->m_tableDxfSource.entitiesReadInput;
 }

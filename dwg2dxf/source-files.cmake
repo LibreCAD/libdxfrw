@@ -27,6 +27,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_blockref_source_relation.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_identity_join.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_material_body.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_mline_source_dependency.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_plotstyle_source.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_raster_dwg_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_raster_output.h"

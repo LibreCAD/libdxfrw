@@ -86,6 +86,17 @@ set_tests_properties(dwg2dxf_version_policy PROPERTIES
 # source DXF is generated at test time, passed through the real CLI twice, and
 # read back through the same adapter; no image/DXF fixture is committed.
 include(${CMAKE_SOURCE_DIR}/cmake/libdxfrwTestAdapter.cmake)
+add_executable(libdxfrw_mline_source_dependency_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_mline_source_dependency_tests.cpp
+    ${_libdxfrw_test_adapter_source}
+)
+target_compile_features(libdxfrw_mline_source_dependency_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_mline_source_dependency_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_mline_source_dependency_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_mline_source_dependency_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_mline_source_dependency COMMAND libdxfrw_mline_source_dependency_tests)
+set_tests_properties(libdxfrw_mline_source_dependency PROPERTIES LABELS "dxf;fast")
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
