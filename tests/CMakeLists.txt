@@ -309,6 +309,15 @@ add_test(NAME libdxfrw_mline_consumed_style_single_from_four_removal
 set_tests_properties(libdxfrw_mline_consumed_style_single_from_four_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Runtime-generated AC1027 profiles remove each element in turn from a
+# three-element style consumed by open, uncut MLINEs. Check parameter
+# reprojection, exact output/readback, rollback and retries across DXF encodings.
+add_test(NAME libdxfrw_mline_consumed_three_to_two_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-three-to-two-removal)
+set_tests_properties(libdxfrw_mline_consumed_three_to_two_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
