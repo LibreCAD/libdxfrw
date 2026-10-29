@@ -120,9 +120,31 @@ public:
                 return false;
         return true;
     }
+    static bool mlineLinetypeMixedEntityProofBound(
+            const dx_iface& value,std::uint32_t source,
+            const std::vector<std::uint32_t>& targets,
+            const std::vector<bool>& blockSections) {
+        const auto row=value.m_dxfMLineLinetypes.find(source);
+        if(row==value.m_dxfMLineLinetypes.end()
+            ||row->second.xdataEntityHandles!=targets
+            ||targets.size()!=blockSections.size()
+            ||row->second.xdataEntityModels.size()!=targets.size()
+            ||row->second.xdataEntityOwners.size()!=targets.size()
+            ||row->second.xdataEntitySourceSections.size()!=targets.size())
+            return false;
+        for(std::size_t i=0u;i<targets.size();++i)
+            if(row->second.xdataEntityModels[i]==nullptr
+                ||row->second.xdataEntityOwners[i]==0u
+                ||row->second.xdataEntitySourceSections[i]
+                    !=(blockSections[i]
+                        ?dx_iface::DxfMLineXdataEntitySection::Blocks
+                        :dx_iface::DxfMLineXdataEntitySection::Entities))
+                return false;
+        return true;
+    }
     static bool mlineXdataLineSourceBound(
             dx_iface& value,dx_data& data,std::uint32_t target,
-            std::uint32_t owner) {
+            std::uint32_t owner,bool expectBlockSection=true) {
         auto* previous=value.cData;
         value.cData=&data;
         std::map<std::uint32_t,dx_iface::DxfMLineXdataLineSource> sources;
@@ -137,7 +159,9 @@ public:
             &&found->second.live->parentHandle==owner
             &&found->second.owner==owner
             &&found->second.sourceSection
-                ==dx_iface::DxfMLineXdataEntitySection::Blocks;
+                ==(expectBlockSection
+                    ?dx_iface::DxfMLineXdataEntitySection::Blocks
+                    :dx_iface::DxfMLineXdataEntitySection::Entities);
     }
     static bool mlineLinetypeLayerProofBound(const dx_iface& value,std::uint32_t source){
         const auto row=value.m_dxfMLineLayers.find(source);
@@ -31440,6 +31464,69 @@ Tags sourceWithBlockEntityHandleXdata(
     return fields;
 }
 
+Tags sourceWithMixedSectionEntityHandleXdata(bool binary) {
+    auto fields=sourceWithManyEntityHandleXdata(binary,{"A900","A901"});
+    bool inEntities=false,entityRemoved=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A901")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        entityRemoved=true;
+        break;
+    }
+    if(!entityRemoved)
+        throw std::runtime_error("mixed-section model LINE source missing");
+
+    bool inBlocks=false,blockInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inBlocks=fields[i+1u]==std::make_pair(2,std::string("BLOCKS"));
+            continue;
+        }
+        if(!inBlocks||fields[i]!=std::make_pair(0,std::string("BLOCK")))
+            continue;
+        std::size_t headerEnd=i+1u;
+        while(headerEnd<fields.size()&&fields[headerEnd].first!=0)
+            ++headerEnd;
+        const bool selectedBlock=std::find(
+            fields.begin()+static_cast<std::ptrdiff_t>(i+1u),
+            fields.begin()+static_cast<std::ptrdiff_t>(headerEnd),
+            std::make_pair(2,std::string("AuthorityBlock")))
+                !=fields.begin()+static_cast<std::ptrdiff_t>(headerEnd);
+        if(!selectedBlock) {i=headerEnd-1u;continue;}
+        std::size_t endBlock=headerEnd;
+        while(endBlock<fields.size()
+            &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
+            ++endBlock;
+        if(endBlock==fields.size())break;
+        const Tags line{{0,"LINE"},{5,"A901"},{330,"203"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
+            {10,"100.5"},{20,"2"},{30,"0"},
+            {11,"101.5"},{21,"3"},{31,"0"}};
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(endBlock),
+                      line.begin(),line.end());
+        blockInserted=true;
+        break;
+    }
+    if(!blockInserted)
+        throw std::runtime_error("mixed-section AuthorityBlock missing");
+    return fields;
+}
+
 DRW_Line* blockTargetLine(dx_data& data,
                           std::string_view targetBlock="AuthorityBlock") {
     std::string expectedName;
@@ -31622,6 +31709,161 @@ bool blockEntityHandleProviderProof(const std::filesystem::path& path,
                 ?*handleValue->content.s:std::string("<missing>"))
             <<" expected="<<target->id<<'\n';
     return typedXdata;
+}
+
+bool mixedSectionEntityHandleProviderProof(
+        const std::filesystem::path& path,bool binary,bool requireRemap) {
+    if(!providerProof(path,binary))return false;
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const auto value=[](const auto& row,int code) {
+        const auto field=std::find_if(row.fields.begin(),row.fields.end(),
+            [&](const auto& candidate){return candidate.first==code;});
+        return field==row.fields.end()?std::string{}:field->second;
+    };
+    const auto realValue=[&](const auto& row,int code,double expected) {
+        double parsed=0.0;
+        return dx_raster_output::finiteReal(value(row,code),parsed)
+            &&parsed==expected;
+    };
+    const auto normalizeHandle=[](const std::string& handle,
+                                  std::uint32_t& parsed) {
+        try {
+            const auto value=std::stoul(handle,nullptr,16);
+            if(value==0u||value>UINT32_MAX)return false;
+            parsed=static_cast<std::uint32_t>(value);
+            return true;
+        } catch(...) {return false;}
+    };
+    const mlineStyleAuthorityControls::Row* style=nullptr;
+    const mlineStyleAuthorityControls::Row* app=nullptr;
+    const mlineStyleAuthorityControls::Row* appTable=nullptr;
+    std::map<std::string,std::string> blockRecords;
+    const mlineStyleAuthorityControls::Row* modelLine=nullptr;
+    const mlineStyleAuthorityControls::Row* blockLine=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE"&&row.section=="TABLES"
+            &&value(row,2)=="EditDash") {
+            if(style!=nullptr)return false;
+            style=&row;
+        }
+        if(row.type=="APPID"&&row.section=="TABLES"
+            &&value(row,2)==appName) {
+            if(app!=nullptr)return false;
+            app=&row;
+        }
+        if(row.type=="TABLE"&&row.section=="TABLES"
+            &&value(row,2)=="APPID") {
+            if(appTable!=nullptr)return false;
+            appTable=&row;
+        }
+        if(row.type=="BLOCK_RECORD"&&row.section=="TABLES") {
+            std::string nameKey;
+            if(!dx_symbol_output::nameKey(value(row,2),nameKey)
+                ||row.id.empty()||!blockRecords.emplace(nameKey,row.id).second)
+                return false;
+        }
+        if(row.type!="LINE")continue;
+        if(realValue(row,10,1.25)&&realValue(row,20,0.0)) {
+            if(modelLine!=nullptr)return false;
+            modelLine=&row;
+        }
+        if(realValue(row,10,100.5)&&realValue(row,20,2.0)) {
+            if(blockLine!=nullptr)return false;
+            blockLine=&row;
+        }
+    }
+    const auto modelRecord=blockRecords.find("*model_space");
+    const auto namedRecord=blockRecords.find("authorityblock");
+    if(style==nullptr||app==nullptr||appTable==nullptr
+        ||modelLine==nullptr||blockLine==nullptr
+        ||modelRecord==blockRecords.end()||namedRecord==blockRecords.end()
+        ||style->id.empty()||app->id.empty()||appTable->id.empty()
+        ||modelLine->section!="ENTITIES"||blockLine->section!="BLOCKS"
+        ||modelLine->owner!=modelRecord->second
+        ||blockLine->owner!=namedRecord->second
+        ||(requireRemap
+            ?(modelLine->id=="A900"||blockLine->id=="A901")
+            :(modelLine->id!="A900"||blockLine->id!="A901")))
+        return false;
+    std::int64_t appFlags=1;
+    if(!dx_raster_output::integer(value(*app,70),appFlags)||appFlags!=0
+        ||app->owner!=appTable->id)return false;
+    const std::vector<std::pair<int,std::string>> expectedXdata{
+        {1001,appName},{1000,payload},{1005,modelLine->id},
+        {1005,blockLine->id}};
+    std::vector<std::pair<int,std::string>> physicalXdata;
+    for(const auto& field:style->fields)
+        if(field.first>=1000)physicalXdata.push_back(field);
+    if(physicalXdata!=expectedXdata)return false;
+
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)
+        ||actual.mBlock==nullptr)return false;
+    const auto modelOwner=static_cast<std::uint32_t>(
+        std::stoul(modelRecord->second,nullptr,16));
+    const auto namedOwner=static_cast<std::uint32_t>(
+        std::stoul(namedRecord->second,nullptr,16));
+    unsigned lineTypes=0u;
+    for(const auto& value:actual.lineTypes) {
+        if(value.name!="EditDash")continue;
+        if(value.extData.size()!=4u||value.extData[0]==nullptr
+            ||value.extData[1]==nullptr||value.extData[2]==nullptr
+            ||value.extData[3]==nullptr
+            ||value.extData[0]->code()!=1001
+            ||value.extData[0]->type()!=DRW_Variant::STRING
+            ||value.extData[0]->content.s==nullptr
+            ||*value.extData[0]->content.s!=appName
+            ||value.extData[1]->code()!=1000
+            ||value.extData[1]->type()!=DRW_Variant::STRING
+            ||value.extData[1]->content.s==nullptr
+            ||*value.extData[1]->content.s!=payload)
+            return false;
+        const std::array<std::pair<const DRW_Variant*,std::string>,2> refs{{
+            {value.extData[2],modelLine->id},
+            {value.extData[3],blockLine->id}}};
+        for(const auto& ref:refs) {
+            std::uint32_t parsed=0u;
+            if(ref.first->code()!=1005
+                ||ref.first->type()!=DRW_Variant::STRING
+                ||ref.first->content.s==nullptr
+                ||!normalizeHandle(*ref.first->content.s,parsed)
+                ||parsed!=static_cast<std::uint32_t>(
+                    std::stoul(ref.second,nullptr,16)))return false;
+        }
+        ++lineTypes;
+    }
+    if(lineTypes!=1u)return false;
+    const auto model=std::find_if(actual.mBlock->ent.begin(),
+        actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+            return entity!=nullptr&&entity->eType==DRW::LINE
+                &&entity->handle==std::stoul(modelLine->id,nullptr,16);
+        });
+    const auto* typedModel=model==actual.mBlock->ent.end()?nullptr
+        :dynamic_cast<const DRW_Line*>(*model);
+    if(typedModel==nullptr||typedModel->parentHandle!=modelOwner
+        ||typedModel->basePoint.x!=1.25||typedModel->basePoint.y!=0.0
+        ||typedModel->secPoint.x!=1.25||typedModel->secPoint.y!=1.0
+        ||typedModel->secPoint.z!=1.0)return false;
+    const auto named=std::find_if(actual.blocks.begin(),actual.blocks.end(),
+        [](const dx_ifaceBlock* block) {
+            std::string key;
+            return block!=nullptr
+                &&dx_symbol_output::nameKey(block->name,key)
+                &&key=="authorityblock";
+        });
+    if(named==actual.blocks.end())return false;
+    const auto target=std::find_if((*named)->ent.begin(),(*named)->ent.end(),
+        [&](const DRW_Entity* entity) {
+            return entity!=nullptr&&entity->eType==DRW::LINE
+                &&entity->handle==std::stoul(blockLine->id,nullptr,16);
+        });
+    const auto* typedBlock=target==(*named)->ent.end()?nullptr
+        :dynamic_cast<const DRW_Line*>(*target);
+    if(typedBlock==nullptr||typedBlock->parentHandle!=namedOwner
+        ||typedBlock->basePoint.x!=100.5||typedBlock->basePoint.y!=2.0
+        ||typedBlock->secPoint.x!=101.5||typedBlock->secPoint.y!=3.0)
+        return false;
+    return true;
 }
 
 Tags sourceWithTwoPairs(bool binary) {
@@ -33001,9 +33243,13 @@ struct LateXdataLineMutation:dx_iface {
 
 struct LateBlockXdataLineMutation:dx_iface {
     explicit LateBlockXdataLineMutation(
-            std::string blockName="AuthorityBlock")
-        :targetBlock(std::move(blockName)) {}
+            std::string blockName="AuthorityBlock",
+            std::uint32_t targetHandle=0xA900u,
+            std::uint32_t replacementHandle=0xA901u)
+        :targetBlock(std::move(blockName)),sourceHandle(targetHandle),
+         mutatedHandle(replacementHandle) {}
     std::string targetBlock;
+    std::uint32_t sourceHandle{0u},mutatedHandle{0u};
     bool armed{true},mutated{false};
     void writeAppId()override {
         dx_iface::writeAppId();
@@ -33012,8 +33258,8 @@ struct LateBlockXdataLineMutation:dx_iface {
             if(block==nullptr||block->name!=targetBlock)continue;
             for(DRW_Entity* entity:block->ent)
                 if(entity!=nullptr&&entity->eType==DRW::LINE
-                    &&entity->handle==0xA900u) {
-                    entity->handle=0xA901u;mutated=true;return;
+                    &&entity->handle==sourceHandle) {
+                    entity->handle=mutatedHandle;mutated=true;return;
                 }
         }
     }
@@ -34966,10 +35212,146 @@ bool runTemporary() {
             ++retries;++readbacks;
         }
     }
+    const std::vector<std::uint32_t> mixedTargetHandles{0xA900u,0xA901u};
+    const std::vector<bool> mixedSourceBlocks{false,true};
+    const auto mixedInternalProof=[&](const dx_iface& adapter) {
+        return DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                   adapter,0x103u)
+            &&DxIfaceMaterialReferenceTestAccess::
+                mlineLinetypeMixedEntityProofBound(
+                    adapter,0x103u,mixedTargetHandles,mixedSourceBlocks);
+    };
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithMixedSectionEntityHandleXdata(sourceBinary),
+                  sourceBinary,"AC1027")
+            ||!mixedSectionEntityHandleProviderProof(
+                input,sourceBinary,false)
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"mixed-section LINE XDATA source import/proof failed: "
+                     <<sourceBinary<<'\n';return false;
+        }
+        const auto model=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->handle==0xA900u;
+            });
+        auto* blockTarget=blockTargetLine(data,"AuthorityBlock");
+        if(model==data.mBlock->ent.end()||(*model)->parentHandle!=0x201u
+            ||blockTarget==nullptr||blockTarget->handle!=0xA901u
+            ||blockTarget->parentHandle!=0x203u
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+                adapter,data,0xA900u,0x201u,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+                adapter,data,0xA901u,0x203u,true)) {
+            std::cerr<<"mixed-section LINE XDATA source identity failed: "
+                     <<sourceBinary<<'\n';return false;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!mixedSectionEntityHandleProviderProof(
+                output,outputBinary,true)
+            ||!mixedInternalProof(adapter)) {
+            std::cerr<<"mixed-section LINE XDATA output/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        const auto missingTargetRefusalRetry=[&](
+                auto& entities,std::uint32_t handle,
+                const char* role) {
+            const auto target=std::find_if(entities.begin(),entities.end(),
+                [&](const DRW_Entity* entity) {
+                    return entity!=nullptr&&entity->handle==handle;
+                });
+            if(target==entities.end())return false;
+            DRW_Entity* retained=*target;
+            const auto offset=static_cast<std::size_t>(
+                std::distance(entities.begin(),target));
+            entities.erase(target);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                                  &data,false,true)
+                ||!dictionaryVarTransactionControls::
+                    keptWithoutTemporary(output)) {
+                std::cerr<<"mixed-section "<<role
+                         <<" missing-target refusal failed: "
+                         <<sourceBinary<<' '<<outputBinary<<'\n';
+                return false;
+            }
+            ++refusals;
+            auto restore=entities.begin();
+            std::advance(restore,static_cast<std::ptrdiff_t>(offset));
+            entities.insert(restore,retained);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                                   &data,false,true)
+                ||!mixedSectionEntityHandleProviderProof(
+                    output,outputBinary,true)
+                ||!mixedInternalProof(adapter)) {
+                std::cerr<<"mixed-section "<<role
+                         <<" same-adapter retry failed: "
+                         <<sourceBinary<<' '<<outputBinary<<'\n';
+                return false;
+            }
+            ++retries;++readbacks;
+            return true;
+        };
+        const auto namedBlock=std::find_if(data.blocks.begin(),
+            data.blocks.end(),[](const dx_ifaceBlock* block) {
+                std::string key;
+                return block!=nullptr
+                    &&dx_symbol_output::nameKey(block->name,key)
+                    &&key=="authorityblock";
+            });
+        if(namedBlock==data.blocks.end()
+            ||!missingTargetRefusalRetry(data.mBlock->ent,0xA900u,
+                                         "model-space")
+            ||!missingTargetRefusalRetry((*namedBlock)->ent,0xA901u,
+                                         "named-block"))return false;
+    }
+    {
+        LateBlockXdataLineMutation adapter{
+            "AuthorityBlock",0xA901u,0xA902u};
+        dx_data data;
+        if(!write(input,sourceWithMixedSectionEntityHandleXdata(false),false,
+                  "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+                adapter,data,0xA900u,0x201u,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+                adapter,data,0xA901u,0x203u,true)) {
+            std::cerr<<"mixed-section late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"mixed-section late-mutation refusal failed\n";
+            return false;
+        }
+        ++refusals;adapter.armed=false;
+        const auto namedBlock=std::find_if(data.blocks.begin(),
+            data.blocks.end(),[](const dx_ifaceBlock* block) {
+                std::string key;
+                return block!=nullptr
+                    &&dx_symbol_output::nameKey(block->name,key)
+                    &&key=="authorityblock";
+            });
+        if(namedBlock==data.blocks.end())return false;
+        for(DRW_Entity* entity:(*namedBlock)->ent)
+            if(entity!=nullptr&&entity->handle==0xA902u) {
+                entity->handle=0xA901u;break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!mixedSectionEntityHandleProviderProof(output,false,true)
+            ||!mixedInternalProof(adapter)) {
+            std::cerr<<"mixed-section late-mutation retry failed\n";
+            return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==216u&&readbacks==479u&&refusals==263u&&retries==263u;
+    return profiles==220u&&readbacks==492u&&refusals==272u&&retries==272u;
 }
 
 bool runBudgetTemporary() {
