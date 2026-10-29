@@ -1,0 +1,93 @@
+{
+  "id": "RPP-5wl",
+  "title": "MLINE LTYPE XDATA code-1005 reference to a fixed paper-space BLOCKS LINE",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "95f70f472bcbfcdf81a6c7d67b5fbc2830af61ed",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected profile was exercised for all four ASCII/binary source and output combinations.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID group 1001, one group 1000 payload, and one ordered group 1005 soft pointer.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_target": {
+      "type": "LINE",
+      "source_handle": "0xA900",
+      "source_section": "BLOCKS",
+      "block_name": "*Paper_Space",
+      "block_record_handle": "0x202",
+      "source_owner_handle": "0x202",
+      "emitted_section": "ENTITIES",
+      "emitted_handle": "0x35",
+      "emitted_owner_handle": "0x1E",
+      "space": "PaperSpace (group 67 value 1)",
+      "geometry": "Start (100.5, 2, 0), end (101.5, 3, 0)"
+    }
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 67 identifies paper-space entities; group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The generated physical LTYPE XDATA sequence is checked against the APPID row. The target LINE is bound through its fixed *Paper_Space BLOCKS record, owner, block-child delivery and unique live typed identity.",
+    "output": "Across all four encoding pairs, physical output proves the remapped code-1005 handle, ENTITIES section, fixed Paper_Space BLOCK_RECORD owner and group-67 value 1. Fresh typed readback checks the LTYPE XDATA and target LINE handle, owner, paper-space value and geometry. The writer derives the paper-space flag from the resolved fixed owner when the source entity's space field was defaulted while delivered from the fixed-space BLOCKS body.",
+    "failure_retry": "For each encoding pair, removing the target from the live fixed-space block makes export refuse while preserving the prior destination; restoring it allows same-adapter retry. A separate ASCII-input/ASCII-output case mutates the target handle after APPID output; finalization refuses and preserves the destination, and a corrected same-adapter retry succeeds.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 216,
+      "whole_focused_test_readbacks": 479,
+      "whole_focused_test_refusals": 263,
+      "whole_focused_test_retries": 263
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 13.28 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes entity space emission and adds no new parser buffer or ownership transfer. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_source_sha256": "23a5f2af33c07c14e70a404858913a966b8ad866090dae03a8cdb48db8af57d1",
+      "adapter_source_sha256": "7c8f8e991fd2ec41ce28fef3a190fbc0f942be4d53a243a3b458f35f5e3f0570",
+      "adapter_header_sha256": "6917376d04efe89a7955e2bcc6ed0a689034e3103683119ed309f1221a1b4a6d",
+      "test_source_sha256": "0cef68d8ddbc37973d5a276de99b178f200c795dc760580e72213f5e92f554c2",
+      "normal_executable_sha256": "c12beeb0dfa0f49f607c1357a3daf00f94eaa1e2b90e2cf5ead9c94ba26d3b43",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This receipt qualifies one AC1027 simple-LTYPE XDATA profile targeting one source-bound LINE in the fixed *Paper_Space BLOCKS body, canonicalized to ENTITIES. It does not qualify other layout profiles, target entity types, section combinations, versions or XDATA compositions.",
+    "This is selected transport, identity, readback and transaction evidence only; it does not establish recursive document closure, broader XDATA semantics, native rendering or format support claims."
+  ],
+  "next": "Select another current P2 witness from the remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations. Keep the source-bound distinction, exact emitted fields and refusal/retry controls in a focused receipt."
+}
