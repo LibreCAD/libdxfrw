@@ -170,14 +170,21 @@ proof. Refused fields are not implemented editing support.
    with exact physical output, fresh readback and missing-provider rollback and
    retry. The selected provider profile now admits each 1004 chunk only up to
    127 bytes. Other XDATA values/ranges and payload orders/compositions, other
-   multi-chunk layouts, multiple list payloads, list compositions across
-   APPIDs. [RPP-5uo](docs/research/rpp5uo-mline-ltype-xdata-layer-name-2026-10-29.json)
+   multi-chunk layouts, multiple list payloads and list compositions across
+   APPIDs remain open. [RPP-5uo](docs/research/rpp5uo-mline-ltype-xdata-layer-name-2026-10-29.json)
    qualifies one source-bound group-1003 layer name (`0`) between one APPID and
    one group-1000 payload, with ASCII/binary input/output, exact physical and
    typed readback, emitted LAYER identity binding, missing-layer atomic refusal
-   and same-adapter retry. Other layer-name values/profiles, group-1005 handle
-   dependencies, coordinate tuples, three-or-more APPID groups, APPID metadata,
-   LTYPE schemas and versions remain open.
+   and same-adapter retry. Other layer-name values/profiles remain open.
+   [RPP-5up](docs/research/rpp5up-mline-ltype-xdata-coordinate-tuples-2026-10-29.json)
+   qualifies the ordered XDATA group-1010 through group-1013 XYZ tuple forms
+   under one source-bound APPID, with exact physical component order and values,
+   typed readback, ASCII/binary input/output, provider-removal rollback/retry,
+   and late APPID mutation rollback/retry. This covers one selected AC1027
+   simple-LTYPE transport profile only; tuple meanings under application edits
+   are not qualified. Other coordinate values/orders/layouts, group-1005 handle
+   dependencies, three-or-more APPID groups, APPID metadata, LTYPE schemas and
+   versions remain open.
    [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
    qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
    source group 340 binds its STYLE provider, exact output binds the remapped
