@@ -1893,6 +1893,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-mixed-segments)
     set_tests_properties(libdxfrw_mline_ltype_mixed_segments PROPERTIES
         LABELS "fast;dxf;adapter;mline;linetype;style;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_mline_ltype_reverse_shape_text
+        COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-reverse-shape-text)
+    set_tests_properties(libdxfrw_mline_ltype_reverse_shape_text PROPERTIES
+        LABELS "fast;dxf;adapter;mline;linetype;style;transaction;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_mline_style_authority
         COMMAND libdxfrw_dxf_fixture_tests --mline-style-authority)
     set_tests_properties(libdxfrw_mline_style_authority PROPERTIES

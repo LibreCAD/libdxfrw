@@ -29223,7 +29223,7 @@ namespace mlineLtypeProviderControls {bool run(const std::filesystem::path& dir)
 namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeDefaultFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeReferencedFlagControls {bool run(const std::filesystem::path& dir);}
-namespace mlineLtypeMixedShapeTextControls {bool runTemporary();}
+namespace mlineLtypeMixedShapeTextControls {bool runTemporary();bool runReverseTemporary();}
 namespace mlineRetargetControls {bool run(const std::filesystem::path& dir);}
 namespace mlineUnusedOffsetControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
@@ -31865,7 +31865,7 @@ constexpr const char* textValue="DXF";
 constexpr const char* textFile="txt.shx";
 constexpr const char* shapeFile="ltypeshp.shx";
 
-Tags recipe(bool binary) {
+Tags recipe(bool binary,bool shapeFirst) {
     auto fields=mlineLtypeTextStyleControls::recipe(binary);
     std::size_t styleTable=fields.size(),textStyle=fields.size(),ltype=fields.size();
     for(std::size_t i=0u;i+1u<fields.size();++i) {
@@ -31889,16 +31889,16 @@ Tags recipe(bool binary) {
     if(countField==fields.size())throw std::runtime_error("STYLE table count missing");
     fields[countField].second=std::to_string(std::stoi(fields[countField].second)+1);
     std::size_t styleEnd=textStyle+1u;while(styleEnd<fields.size()&&fields[styleEnd].first!=0)++styleEnd;
-    Tags shape(fields.begin()+static_cast<std::ptrdiff_t>(textStyle),
+    Tags shapeRow(fields.begin()+static_cast<std::ptrdiff_t>(textStyle),
         fields.begin()+static_cast<std::ptrdiff_t>(styleEnd));
-    for(auto& field:shape) {
+    for(auto& field:shapeRow) {
         if(field.first==5)field.second=shapeHandle;
         else if(field.first==2)field.second=shapeStyleName;
         else if(field.first==70)field.second="1";
         else if(field.first==3)field.second=shapeFile;
     }
-    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(styleEnd),shape.begin(),shape.end());
-    if(styleEnd<=ltype)ltype+=shape.size();
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(styleEnd),shapeRow.begin(),shapeRow.end());
+    if(styleEnd<=ltype)ltype+=shapeRow.size();
     std::size_t end=ltype+1u;while(end<fields.size()&&fields[end].first!=0)++end;
     std::size_t first=fields.size();
     for(std::size_t i=ltype+1u;i<end;++i) {
@@ -31907,10 +31907,13 @@ Tags recipe(bool binary) {
         else if(fields[i].first==49){first=i;break;}
     }
     if(first==fields.size())throw std::runtime_error("mixed LTYPE pattern missing");
-    const Tags pattern{{49,"1.5"},{74,"4"},{75,"7"},{340,shapeHandle},
-        {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},
-        {49,"0.5"},{74,"2"},{75,"0"},{340,textHandle},
+    const Tags shape{{49,"1.5"},{74,"4"},{75,"7"},{340,shapeHandle},
+        {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"}};
+    const Tags text{{49,"0.5"},{74,"2"},{75,"0"},{340,textHandle},
         {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},{9,textValue}};
+    Tags pattern=shapeFirst?shape:text;
+    const Tags& tail=shapeFirst?text:shape;
+    pattern.insert(pattern.end(),tail.begin(),tail.end());
     fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(first),fields.begin()+static_cast<std::ptrdiff_t>(end));
     fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(first),pattern.begin(),pattern.end());
     return fields;
@@ -31918,7 +31921,7 @@ Tags recipe(bool binary) {
 std::vector<std::string> values(const Row& row,int code) {
     std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;
 }
-bool proof(const std::filesystem::path& path,bool binary,bool output) {
+bool proof(const std::filesystem::path& path,bool binary,bool output,bool shapeFirst) {
     const auto rows=records(path,binary);const Row* text=nullptr;const Row* shape=nullptr;const Row* ltype=nullptr;
     for(const auto& row:rows) {
         if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{textStyleName}){if(text)return false;text=&row;}
@@ -31932,10 +31935,14 @@ bool proof(const std::filesystem::path& path,bool binary,bool output) {
         ||values(*ltype,3)!=std::vector<std::string>{"text-bearing source profile"}
         ||!mlineLtypeTextStyleControls::numeric(*ltype,72,65)||!mlineLtypeTextStyleControls::numeric(*ltype,73,2)
         ||!mlineLtypeTextStyleControls::numeric(*ltype,40,2)
-        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,49,{1.5,.5})
-        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,74,{4,2})
-        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,75,{7,0})
-        ||values(*ltype,340)!=std::vector<std::string>{shape->id,text->id}
+        ||values(*ltype,340)!=(shapeFirst?std::vector<std::string>{shape->id,text->id}
+            :std::vector<std::string>{text->id,shape->id})
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,49,shapeFirst?std::vector<double>{1.5,.5}
+            :std::vector<double>{.5,1.5})
+        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,74,shapeFirst?std::vector<int>{4,2}
+            :std::vector<int>{2,4})
+        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,75,shapeFirst?std::vector<int>{7,0}
+            :std::vector<int>{0,7})
         ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,46,{.75,.75})
         ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,50,{.25,.25})
         ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,44,{.125,.125})
@@ -31943,7 +31950,7 @@ bool proof(const std::filesystem::path& path,bool binary,bool output) {
         ||values(*ltype,9)!=std::vector<std::string>{textValue})return false;
     return true;
 }
-bool model(dx_data& data,std::uint32_t textId,std::uint32_t shapeId) {
+bool model(dx_data& data,std::uint32_t textId,std::uint32_t shapeId,bool shapeFirst) {
     const DRW_LType* ltype=nullptr;for(const auto& item:data.lineTypes)if(item.name==ltypeName){if(ltype)return false;ltype=&item;}
     const DRW_Textstyle* text=nullptr;const DRW_Textstyle* shape=nullptr;
     for(const auto& item:data.textStyles) {
@@ -31952,9 +31959,11 @@ bool model(dx_data& data,std::uint32_t textId,std::uint32_t shapeId) {
     }
     if(!ltype||!text||!shape||text->handle!=textId||shape->handle!=shapeId
         ||text->flags!=0||text->font!=textFile||shape->flags!=1||shape->font!=shapeFile
-        ||ltype->size!=2||ltype->length!=2||ltype->path!=std::vector<double>{1.5,.5}
+        ||ltype->size!=2||ltype->length!=2
+        ||ltype->path!=(shapeFirst?std::vector<double>{1.5,.5}:std::vector<double>{.5,1.5})
         ||ltype->segments.size()!=2u)return false;
-    const auto& glyph=ltype->segments[0];const auto& word=ltype->segments[1];
+    const auto& glyph=ltype->segments[shapeFirst?0u:1u];
+    const auto& word=ltype->segments[shapeFirst?1u:0u];
     const auto placement=[](const DRW_LTypeSegment& item) {
         return item.scale==.75&&std::abs(item.rotation-.25/ARAD)<1e-12
             &&item.xOffset==.125&&item.yOffset==-.25;
@@ -31967,8 +31976,8 @@ bool model(dx_data& data,std::uint32_t textId,std::uint32_t shapeId) {
         &&data.mLineStyles.front().elements.front().linetype==ltypeName
         &&mlineStyleAuthorityControls::consumers(data).size()==2u;
 }
-bool outputProof(const std::filesystem::path& path,bool binary) {
-    if(!proof(path,binary,true))return false;
+bool outputProof(const std::filesystem::path& path,bool binary,bool shapeFirst) {
+    if(!proof(path,binary,true,shapeFirst))return false;
     const auto rows=records(path,binary);std::uint32_t textId=0u,shapeId=0u;
     for(const auto& row:rows)if(row.type=="STYLE") {
         const auto names=values(row,2),ids=values(row,5);
@@ -31979,22 +31988,23 @@ bool outputProof(const std::filesystem::path& path,bool binary) {
         if(names.front()==shapeStyleName)shapeId=parsed;
     }
     if(!textId||!shapeId)return false;dx_iface reader;dx_data actual;
-    return reader.fileImport(path.string(),&actual,false)&&model(actual,textId,shapeId)
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,textId,shapeId,shapeFirst)
         &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",ltypeName,"Continuous");
 }
-bool runTemporary() {
-    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-ltype-mixed-shape-text-"+
+bool runTemporary(bool shapeFirst) {
+    const auto dir=std::filesystem::temp_directory_path()/(std::string("libdxfrw-mline-ltype-mixed-")
+        +(shapeFirst?"shape-text-":"text-shape-")+
         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u;
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
-        if(!write(input,fields,sourceBinary,"AC1027")||!proof(input,sourceBinary,false)
-            ||!adapter.fileImport(input.string(),&data,false)||!model(data,0x1F3u,0x1F4u)
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary,shapeFirst);
+        if(!write(input,fields,sourceBinary,"AC1027")||!proof(input,sourceBinary,false,shapeFirst)
+            ||!adapter.fileImport(input.string(),&data,false)||!model(data,0x1F3u,0x1F4u,shapeFirst)
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
         const auto original=mlineLtypeProviderControls::provider(data);const auto styles=data.textStyles;
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!outputProof(output,outputBinary)
+            ||!outputProof(output,outputBinary,shapeFirst)
             ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
             ||data.textStyles.size()!=styles.size()
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
@@ -32010,7 +32020,7 @@ bool runTemporary() {
                 ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
             ++refusals;data.textStyles=styles;
             if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-                ||!outputProof(output,outputBinary)
+                ||!outputProof(output,outputBinary,shapeFirst)
                 ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
                 ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
             ++readbacks;++retries;
@@ -32021,6 +32031,8 @@ bool runTemporary() {
         <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
     return profiles==4u&&readbacks==12u&&refusals==8u&&retries==8u;
 }
+bool runTemporary() { return runTemporary(true); }
+bool runReverseTemporary() { return runTemporary(false); }
 }
 
 namespace mlineLtypeDefaultFlagControls {
@@ -46445,6 +46457,8 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-mixed-segments")
         return mlineLtypeMixedSegmentControls::runTemporary()
             &&mlineLtypeMixedShapeTextControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-reverse-shape-text")
+        return mlineLtypeMixedShapeTextControls::runReverseTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
