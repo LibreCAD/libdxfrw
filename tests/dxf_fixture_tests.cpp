@@ -31328,6 +31328,22 @@ Tags sourceWithLayerNameXdata(bool binary) {
     return fields;
 }
 
+Tags sourceWithCoordinateXdata(bool binary) {
+    auto fields=source(binary);
+    const Tags ordinary{{1001,appName},{1000,payload}};
+    const auto first=std::search(fields.begin(),fields.end(),ordinary.begin(),ordinary.end());
+    if(first==fields.end())throw std::runtime_error("coordinate LTYPE XDATA source pair missing");
+    const auto at=fields.erase(first,first+static_cast<std::ptrdiff_t>(ordinary.size()));
+    const Tags typed{{1001,appName},
+        {1010,"1.25"},{1020,"-2.5"},{1030,"3.75"},
+        {1011,"4"},{1021,"5"},{1031,"6"},
+        {1012,"-7"},{1022,"-8"},{1032,"-9"},
+        {1013,"0.25"},{1023,"0.5"},{1033,"0.75"},
+        {1000,payload}};
+    fields.insert(at,typed.begin(),typed.end());
+    return fields;
+}
+
 bool providerXdataProof(const std::filesystem::path& path,bool binary,const std::string& appOwner="9") {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
@@ -31408,6 +31424,72 @@ bool layerNameProviderProof(const std::filesystem::path& path,bool binary,
     for(const auto& value:actual.appIds)if(value.name==appName)++appIds;
     for(const auto& value:actual.layers)if(value.name=="0")++layers;
     return linetypes==1u&&appIds==1u&&layers==1u;
+}
+
+bool coordinateProviderProof(const std::filesystem::path& path,bool binary,
+                             const std::string& appOwner="9") {
+    if(!providerProof(path,binary))return false;
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const mlineStyleAuthorityControls::Row* selected=nullptr;
+    const mlineStyleAuthorityControls::Row* provider=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,std::string("EditDash"))){if(selected)return false;selected=&row;}
+        if(row.type=="APPID")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,std::string(appName))){if(provider)return false;provider=&row;}
+    }
+    if(!selected||!provider)return false;
+    const std::array<std::pair<int,double>,12> expectedCoordinates{{
+        {1010,1.25},{1020,-2.5},{1030,3.75},
+        {1011,4.0},{1021,5.0},{1031,6.0},
+        {1012,-7.0},{1022,-8.0},{1032,-9.0},
+        {1013,0.25},{1023,0.5},{1033,0.75}}};
+    std::vector<std::pair<int,std::string>> xdata;
+    for(const auto& field:selected->fields)if(field.first>=1000)xdata.push_back(field);
+    if(xdata.size()!=expectedCoordinates.size()+2u
+        ||xdata.front()!=std::make_pair(1001,std::string(appName))
+        ||xdata.back()!=std::make_pair(1000,std::string(payload)))return false;
+    for(std::size_t i=0u;i<expectedCoordinates.size();++i) {
+        double actual=0.0;
+        if(xdata[i+1u].first!=expectedCoordinates[i].first
+            ||!dx_raster_output::finiteReal(xdata[i+1u].second,actual)
+            ||actual!=expectedCoordinates[i].second)return false;
+    }
+    const std::vector<int> appCodes{5,330,100,100,2,70};std::vector<int> observed;
+    for(const auto& field:provider->fields)observed.push_back(field.first);
+    if(observed!=appCodes||provider->owner!=appOwner)return false;
+    const auto appValue=[&](int code) {
+        const auto field=std::find_if(provider->fields.begin(),provider->fields.end(),
+            [&](const auto& item){return item.first==code;});
+        return field==provider->fields.end()?std::string{}:field->second;
+    };
+    std::int64_t flags=1;
+    if(appValue(5).empty()||appValue(2)!=appName
+        ||!dx_raster_output::integer(appValue(70),flags)||flags!=0)return false;
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false))return false;
+    const std::array<std::pair<int,DRW_Coord>,4> expectedTuples{{
+        {1010,DRW_Coord(1.25,-2.5,3.75)},
+        {1011,DRW_Coord(4.0,5.0,6.0)},
+        {1012,DRW_Coord(-7.0,-8.0,-9.0)},
+        {1013,DRW_Coord(0.25,0.5,0.75)}}};
+    unsigned linetypes=0u,appIds=0u;
+    for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
+        if(value.extData.size()!=6u||!value.extData[0]||!value.extData[5]
+            ||value.extData[0]->code()!=1001||value.extData[0]->type()!=DRW_Variant::STRING
+            ||!value.extData[0]->content.s||*value.extData[0]->content.s!=appName
+            ||value.extData[5]->code()!=1000||value.extData[5]->type()!=DRW_Variant::STRING
+            ||!value.extData[5]->content.s||*value.extData[5]->content.s!=payload)return false;
+        for(std::size_t i=0u;i<expectedTuples.size();++i) {
+            const auto* tuple=value.extData[i+1u];const auto& expected=expectedTuples[i];
+            if(!tuple||tuple->code()!=expected.first||tuple->type()!=DRW_Variant::COORD
+                ||!tuple->content.v||tuple->content.v->x!=expected.second.x
+                ||tuple->content.v->y!=expected.second.y||tuple->content.v->z!=expected.second.z)return false;
+        }
+        ++linetypes;
+    }
+    for(const auto& value:actual.appIds)if(value.name==appName)++appIds;
+    return linetypes==1u&&appIds==1u;
 }
 
 bool twoPairProviderProof(const std::filesystem::path& path,bool binary,
@@ -32159,10 +32241,57 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithCoordinateXdata(sourceBinary),sourceBinary,"AC1027")
+            ||!coordinateProviderProof(input,sourceBinary,"1F0")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        const auto sourceApp=std::find_if(data.appIds.begin(),data.appIds.end(),
+            [](const auto& value){return value.handle==appRecordHandle&&value.name==appName;});
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=6u
+            ||sourceApp==data.appIds.end())return false;
+        const auto savedAppIds=data.appIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!coordinateProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++profiles;++readbacks;
+        data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+            return value.handle==appRecordHandle;
+        }),data.appIds.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;data.appIds=savedAppIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!coordinateProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++retries;++readbacks;
+    }
+    {
+        LateAppIdMutation adapter;dx_data data;
+        if(!write(input,sourceWithCoordinateXdata(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;adapter.armed=false;
+        for(auto& app:data.appIds)if(app.name=="MUTATED_LTYPE_APPID") {
+            app.name=appName;break;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!coordinateProviderProof(output,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==36u&&readbacks==79u&&refusals==43u&&retries==43u;
+    return profiles==40u&&readbacks==88u&&refusals==48u&&retries==48u;
 }
 }
 

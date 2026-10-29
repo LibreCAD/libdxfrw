@@ -21924,13 +21924,31 @@ struct MlineLinetypeShape {
     std::size_t xdataFields{0u};
     std::size_t xdataDepth{0u};
     bool xdataHasPayload{false};
+    int xdataCoordinateCode{0};
+    unsigned xdataCoordinateComponent{0u};
     bool field(int code,std::string_view text={}) {
         if (code==999) return true;
         if (code==1001) {
-            if (classes!=2u || pending || text.empty()
+            if (classes!=2u || pending || xdataCoordinateCode!=0 || text.empty()
                 || (xdata && (xdataDepth!=0u || !xdataHasPayload))) return false;
             xdata=true;xdataHasPayload=false;++xdataFields;return true;
         }
+        if (code>=1010 && code<=1013) {
+            if (!xdata || xdataCoordinateCode!=0) return false;
+            xdataCoordinateCode=code;xdataCoordinateComponent=1u;
+            xdataHasPayload=true;++xdataFields;return true;
+        }
+        if (code>=1020 && code<=1023) {
+            if (!xdata || xdataCoordinateCode==0
+                || code!=xdataCoordinateCode+10 || xdataCoordinateComponent!=1u) return false;
+            xdataCoordinateComponent=2u;return true;
+        }
+        if (code>=1030 && code<=1033) {
+            if (!xdata || xdataCoordinateCode==0
+                || code!=xdataCoordinateCode+20 || xdataCoordinateComponent!=2u) return false;
+            xdataCoordinateCode=0;xdataCoordinateComponent=0u;return true;
+        }
+        if (xdataCoordinateCode!=0) return false;
         if (code==1000) {
             if (!xdata || text.size()>255u) return false;
             xdataHasPayload=true;
@@ -21996,6 +22014,7 @@ struct MlineLinetypeShape {
         return classes==2u && selves==1u && owners==1u && (!pending || allowOmittedDashFlags) && dashes==count
             && expectedXdataFields<=kMaxAdapterBasicTableItems
             && xdataFields==expectedXdataFields && xdataDepth==0u
+            && xdataCoordinateCode==0 && xdataCoordinateComponent==0u
             && (xdataFields==0u || xdataHasPayload)
             && std::all_of(headers.begin(),headers.end(),[](bool v){return v;});
     }
@@ -22062,6 +22081,15 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
                 return false;
             hasPayload=true;break;
         }
+        case 1010:
+        case 1011:
+        case 1012:
+        case 1013:
+            if (field->type()!=DRW_Variant::COORD || !field->content.v
+                || !std::isfinite(field->content.v->x)
+                || !std::isfinite(field->content.v->y)
+                || !std::isfinite(field->content.v->z)) return false;
+            hasPayload=true;break;
         case 1040:
         case 1041:
         case 1042:
