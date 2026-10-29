@@ -1077,6 +1077,10 @@ public:
             (void)dxfW->writeTable(nullptr);
             return;
         }
+        if (!preallocateDxfMLineLinetypeXdataEntityHandles()) {
+            (void)dxfW->writeTable(nullptr);
+            return;
+        }
         if (dxfW->getVersion() > DRW::AC1009) {
             std::unordered_set<std::uint32_t> sourceStyleHandles;
             for (const DRW_Textstyle& style : cData->textStyles) {
@@ -1155,9 +1159,8 @@ public:
             dxfW->writeTextstyle(&(*it));
     }
     virtual void writeVports() override{
-        for (std::list<DRW_Vport>::iterator it=cData->VPorts.begin(); it != cData->VPorts.end(); ++it) {
+        for (std::list<DRW_Vport>::iterator it=cData->VPorts.begin(); it != cData->VPorts.end(); ++it)
             dxfW->writeVport(&(*it));
-        }
     }
     void writeViews() override {
         for (DRW_View& view : cData->views)
@@ -2302,7 +2305,14 @@ private:
         std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
         std::vector<std::uint32_t> appIdHandles;
         std::vector<std::uint32_t> layerHandles;
+        std::vector<std::uint32_t> xdataEntityHandles;
+        std::vector<const DRW_Entity*> xdataEntityModels;
+        std::vector<std::uint32_t> xdataEntityOwners;
         std::uint32_t emitted{0},table{0};
+    };
+    struct DxfMLineXdataLineSource {
+        const DRW_Entity* live{nullptr};
+        std::uint32_t owner{0u};
     };
     struct DxfMLineAppIdSource {
         const DRW_AppId* live{nullptr};
@@ -2324,7 +2334,11 @@ private:
     std::size_t m_dxfMLineLayerCount{0u};
     bool prepareDxfMLineLinetypes(std::size_t chargedBytes=0u) noexcept;
     bool hasUnchangedDxfMLineLinetypes() const noexcept;
+    bool collectDxfMLineXdataLineSources(
+        std::map<std::uint32_t,DxfMLineXdataLineSource>&,
+        std::size_t&,std::size_t&) const noexcept;
     bool inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView&) noexcept;
+    bool preallocateDxfMLineLinetypeXdataEntityHandles();
     struct DxfMLineConsumerSource {
         const DRW_MLine* live{nullptr};
         const dx_ifaceBlock* block{nullptr};
