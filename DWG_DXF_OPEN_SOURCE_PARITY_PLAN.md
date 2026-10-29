@@ -163,12 +163,19 @@ proof. Refused fields are not implemented editing support.
    or dependency proof, and it is not yet used to enable consumed geometry.
    The added private codec state requires dependent binaries to rebuild.
 
+   The [selected LAYER source/live binding](docs/research/rpp5jo-mline-layer-source-live-2026-10-29.json)
+   joins the accepted source, complete captured LAYER bodies and unique live
+   models under bounded work. It detects coordinated raw/typed callback
+   spoofing and rejects later unqualified LAYER metadata or count changes;
+   corrected source/live checks pass in both encodings. It is a private
+   prerequisite and does not authorize export or qualify other graph carriers.
+
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
      unknown/proxy/embedded/XDATA or unqualified dependencies; do not infer a
      complete dependency graph from recognized record names or group `340`.
-   - Bind immutable original evidence to every admitted live graph carrier,
-     including root/style dictionaries, styles, providers, layers, blocks and
+   - Extend the selected LAYER binding to every other admitted live graph
+     carrier, including root/style dictionaries, styles, providers, blocks and
      entities. Check application data, XDATA and unknown metadata, and refuse
      newly added opaque objects or raw sections unless separately qualified.
      Use the codec guard for the no-raw-section profile, including ownership

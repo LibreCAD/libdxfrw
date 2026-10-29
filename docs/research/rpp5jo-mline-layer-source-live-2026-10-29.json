@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 selected original-to-live LAYER binding",
+  "date": "2026-10-29",
+  "status": "IMPLEMENTED_PREREQUISITE",
+  "codeCommit": "5cfb9764",
+  "scope": "Private source/live evidence for LAYER records in the existing narrow AC1027 source profile. It does not run during ordinary writing or authorize a consumed MLINE geometry edit.",
+  "method": "After accepted-read and source-grammar qualification, bind the same read identity/context and resource origins; compare complete captured LAYER physical records against the immutable whole-source decoded scalars and ASCII raw spellings, then reconcile the unique original/live handle census and compare typed live layers to the pinned models. The selected query rejects mutable application data, XDATA, reactors and pending references. It precharges the bounded source, record, typed-byte and comparison passes; logical units are not CPU-time or allocator/RSS guarantees.",
+  "witness": {
+    "asciiSourceSha256": "34b45aedbf4a12cb3eb9afa796453e96151e9486648b09f09e8135a9a534d83a",
+    "binarySourceSha256": "5e0e20fc568dc707c5ca0ff3bf6289de168441dc2a766bc96d34f35aa5ff7848",
+    "physicalReportSha256": "1d0916677a557be3b839aaeec4246237148d2024c4418e9340ef3c660ba5514a",
+    "physicalAuditScriptSha256": "efdf68671afbfbeee6c4a33b378f1c05f3f9bf7431dbec1692d61d2d8fa2957e",
+    "physicalScope": "Independent tag decoding confirms the source LAYER handle 1E1 and ACI 7 and selected style/consumer associations in both encodings; it is not native semantics or geometry evidence."
+  },
+  "finalProbe": {
+    "logSha256": "3d25bb561ea50d60815c5a6f8a817d7026ebc4c1c34f1d49052bb013dedf93bb",
+    "binarySha256": "2f5e1462e223b7aa1deef418ff529d098971f887a5794e8feb3ffbebddc079e1",
+    "results": "Clean source and live layers qualify in ASCII and binary. Coordinated callback spoof of both raw and typed LAYER ACI 7\u21923 leaves prior source candidate and resource origin classifications green but fails this source/body binding. Adding live LAYER appData with group 340 rejects; clearing it restores the same-data check."
+  },
+  "controls": {
+    "registeredTest": "libdxfrw_mline_layer_source_live",
+    "encodings": 2,
+    "liveMutationAndCountControls": 34,
+    "sourceBodyAndSpellingTamperControls": 24,
+    "exactAndBelowBudgetControls": 4,
+    "restoredOrFreshRetries": 36,
+    "compatibility": "Generated default-off import and ordinary unchanged-style export pass for both encodings. The existing source-grammar regression remains unchanged and passes. The query is not wired into an export transaction, so these checks do not claim output rollback or same-adapter export retry."
+  },
+  "validation": {
+    "sharedNormal": "4/4 focused tests passed, source-release inventory 629 files passed.",
+    "normalLibrarySha256": "753ad0aaba11ccb3ba0298199cd7ee4a29d0c6bcca4112756121c60033bee1eb",
+    "normalAdapterSha256": "1df6030f168a69df56c89eda2da7a386a8c3cc2356275cc86dd30c78c9a7d6fe",
+    "normalTestSha256": "36ac5a7fe62555a4b3e3d8c8239e1e8cbc0e6aaac96cd71d2d0cf4015beb689e",
+    "normalLogSha256": "099122705f6827d025b02fd9c915b6d3b275b1b98bb9590a2c84ac4df852f002",
+    "sharedAsan": "4/4 focused tests passed with ASAN_OPTIONS=halt_on_error=1:detect_leaks=0.",
+    "asanAdapterSha256": "53553adac8fca0fa70789c7d2cbed799c43c1affeb59eda7e3879f3dc2edf693",
+    "asanTestSha256": "386e28da59f87d234a98668d9d1a3c29dbf67f0073fe435be3b6718c2cd9d863",
+    "asanLogSha256": "b2b601803aa7db2c9144b0dc3fc43125d1cf9b633be531f0eda47a53ae0c2530",
+    "independentReview": "The source/live-only design and rebased production patch were reviewed before integration; no concrete issue found within this limited profile."
+  },
+  "limits": "The source classifier accepts a narrowly ordered source subset and a fixed record/field budget; unsupported records and content remain refused. Other live carriers, generated CLASSES, final HEADER/HANDSEED, staged output, deleted/moved original MLINE consumers, atomic export and native rendering are not established by this LAYER evidence.",
+  "nextWork": "Bind remaining source/live carriers and all original/live affected consumers; enforce codec no-raw-section guard and complete staged-output grammar with final HEADER/CLASSES proof. Only then consider the consumed geometry transaction and its failure/retry tests.",
+  "fixtures": "All source and output drawings are locally generated, remain in ignored scratch or isolated test directories and are not committed.",
+  "claimsPromoted": false
+}
