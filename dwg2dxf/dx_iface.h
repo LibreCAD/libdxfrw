@@ -2301,6 +2301,7 @@ private:
         DRW_LType model;
         std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
         std::vector<std::uint32_t> appIdHandles;
+        std::vector<std::uint32_t> layerHandles;
         std::uint32_t emitted{0},table{0};
     };
     struct DxfMLineAppIdSource {
@@ -2309,10 +2310,18 @@ private:
         std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
         std::uint32_t emitted{0},table{0};
     };
+    struct DxfMLineLayerSource {
+        const DRW_Layer* live{nullptr};
+        DRW_Layer model;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
+        std::uint32_t emitted{0},table{0};
+    };
     std::map<std::uint32_t,DxfMLineLinetypeSource> m_dxfMLineLinetypes;
     std::map<std::uint32_t,DxfMLineAppIdSource> m_dxfMLineAppIds;
+    std::map<std::uint32_t,DxfMLineLayerSource> m_dxfMLineLayers;
     bool m_dxfMLineLinetypesInspected{false};
     std::size_t m_dxfMLineLinetypeCount{0u};
+    std::size_t m_dxfMLineLayerCount{0u};
     bool prepareDxfMLineLinetypes(std::size_t chargedBytes=0u) noexcept;
     bool hasUnchangedDxfMLineLinetypes() const noexcept;
     bool inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView&) noexcept;

@@ -21936,6 +21936,11 @@ struct MlineLinetypeShape {
             xdataHasPayload=true;
             ++xdataFields;return true;
         }
+        if (code==1003) {
+            if (!xdata || text.empty() || text.size()>255u) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
         if (code==1002) {
             if (!xdata) return false;
             if (text=="{") {
@@ -22003,8 +22008,9 @@ bool simpleMlineAppId(const DRW_AppId& value) {
 }
 
 bool simpleMlineLinetypeXdata(const DRW_LType& value,
-                              std::vector<std::string_view>& appIdNames) {
-    appIdNames.clear();
+                              std::vector<std::string_view>& appIdNames,
+                              std::vector<std::string_view>& layerNames) {
+    appIdNames.clear();layerNames.clear();
     if (value.extData.size()>kMaxAdapterBasicTableItems) return false;
     std::size_t depth=0u;bool application=false,hasPayload=false;
     for (const DRW_Variant* field:value.extData) {
@@ -22024,6 +22030,13 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
             if (field->type()!=DRW_Variant::STRING || !field->content.s
                 || field->content.s->size()>255u
                 || field->content.s->find('\0')!=std::string::npos) return false;
+            hasPayload=true;break;
+        case 1003:
+            if (field->type()!=DRW_Variant::STRING || !field->content.s
+                || field->content.s->empty() || field->content.s->size()>255u
+                || field->content.s->find('\0')!=std::string::npos
+                || !layerNames.empty()) return false;
+            layerNames.emplace_back(*field->content.s);
             hasPayload=true;break;
         case 1002:
             if (field->type()!=DRW_Variant::STRING || !field->content.s) return false;
@@ -22071,13 +22084,14 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
 }
 
 bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
-                         std::vector<std::string_view>& appIdNames) {
+                         std::vector<std::string_view>& appIdNames,
+                         std::vector<std::string_view>& layerNames) {
     if ((value.flags!=0 && value.flags!=64) || value.alignment!=65 || value.size<0
         || static_cast<std::size_t>(value.size)!=value.path.size()
         || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
         || value.synchronizedLengthCount()!=value.path.size()
         || value.retainedSegmentTextCount()!=value.path.size()
-        || !value.appData.empty() || !simpleMlineLinetypeXdata(value,appIdNames)
+        || !value.appData.empty() || !simpleMlineLinetypeXdata(value,appIdNames,layerNames)
         || !value.reactorHandles.empty()
         || value.xDictHandle!=0u || value.xrefBlockHandle.ref!=0u || value.xrefBlockHandle.ref64!=0u) return false;
     for (std::size_t i=0u;i<value.path.size();++i) {
@@ -22377,7 +22391,8 @@ bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,s
 } // namespace
 
 bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
-    m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
+    m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLayers.clear();
+    m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;m_dxfMLineLayerCount=0u;
     if (!cData) return false;
     if (m_dxfMLineStyles.empty() || cData->sourceFormat!=dx_source_format::DXF
         || cData->sourceVersion<DRW::AC1021) return true;
@@ -22390,12 +22405,14 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
         const auto& source=cData->m_tableDxfSource;
         std::map<std::uint32_t,const DRW_LType*> candidates;
         std::map<std::uint32_t,std::vector<std::uint32_t>> candidateAppIds;
+        std::map<std::uint32_t,std::vector<std::uint32_t>> candidateLayers;
         std::size_t work=0u;
         const auto visit=[&](std::size_t amount) {
             if (work>kMaxAdapterBasicTableItems || amount>kMaxAdapterBasicTableItems-work) return false;
             work+=amount;return true;
         };
         enum class AppIdResult {Bound,Unqualified,LimitFailure};
+        enum class LayerResult {Bound,Unqualified,LimitFailure};
         const auto resolveAppId=[&](std::string_view name,std::uint32_t& handle) {
             handle=0u;
             std::string key;
@@ -22432,6 +22449,43 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
             if (!chargeNamedResourceBytes(bytes,sizeof(DxfMLineAppIdSource)+16u*sizeof(void*)))
                 return AppIdResult::LimitFailure;
             return AppIdResult::Bound;
+        };
+        const auto resolveLayer=[&](std::string_view name,std::uint32_t& handle) {
+            handle=0u;
+            std::string key;
+            if (!dx_symbol_output::nameKey(name,key)) return LayerResult::Unqualified;
+            const auto named=source.resourceNames.find({F::Layer,key});
+            if (named==source.resourceNames.end() || !named->second)
+                return LayerResult::Unqualified;
+            handle=named->second;
+            const auto resource=source.resources.find(handle);
+            const auto origin=source.resourceOriginAudits.find(handle);
+            if (resource==source.resources.end() || origin==source.resourceOriginAudits.end())
+                return LayerResult::Unqualified;
+            const auto& layer=resource->second;const auto& audit=origin->second;
+            if (layer.family!=F::Layer || layer.awaitingSymbol || layer.invalidName || layer.ambiguousName
+                || !layer.rawTypedMatched || layer.rawTypedMismatch || !layer.raw || !layer.model
+                || !audit || !audit->input || !audit->bodyMatched || !audit->stateComplete
+                || !audit->originBound || !audit->input->paired || audit->input->kind!=K::Layer
+                || !audit->input->context || !audit->input->context->captured
+                || audit->input->context->sourceVersion!=cData->sourceVersion)
+                return LayerResult::Unqualified;
+            const auto* model=dynamic_cast<const DRW_Layer*>(layer.model.get());
+            if (!model) return LayerResult::Unqualified;
+            std::size_t typedBytes=0u,items=0u,rawBytes=0u;
+            if (!estimateLayerTypedBytes(*model,typedBytes,items)
+                || !estimateRawDxfObjectBytes(*layer.raw,rawBytes)
+                || !visit(items) || !visit(layer.raw->groups.size())
+                || !chargeNamedResourceBytes(bytes,typedBytes)
+                || !chargeNamedResourceBytes(bytes,rawBytes))
+                return LayerResult::LimitFailure;
+            std::string modelKey;
+            if (!model->handle || model->handle!=handle
+                || !dx_symbol_output::nameKey(model->name,modelKey) || modelKey!=key)
+                return LayerResult::Unqualified;
+            if (!chargeNamedResourceBytes(bytes,sizeof(DxfMLineLayerSource)+16u*sizeof(void*)))
+                return LayerResult::LimitFailure;
+            return LayerResult::Bound;
         };
         for (auto& style:m_dxfMLineStyles) {
             style.second.linetypesBound=false;
@@ -22486,11 +22540,11 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                             if (!estimateLTypeTypedBytes(*model,typed,items) || !estimateRawDxfObjectBytes(*r.raw,raw)
                                 || !visit(items) || !visit(r.raw->groups.size())
                                 || !chargeNamedResourceBytes(bytes,typed) || !chargeNamedResourceBytes(bytes,raw)) return false;
-                            std::vector<std::string_view> appIdNames;
+                            std::vector<std::string_view> appIdNames,layerNames;
                             if (!model->handle || model->handle!=handle
-                                || !simpleMlineLinetype(*model,*r.raw,appIdNames)) model=nullptr;
+                                || !simpleMlineLinetype(*model,*r.raw,appIdNames,layerNames)) model=nullptr;
                             if (model) {
-                                std::vector<std::uint32_t> appIdHandles;
+                                std::vector<std::uint32_t> appIdHandles,layerHandles;
                                 if (!appIdNames.empty()) {
                                     if (appIdNames.size()>2u || !visit(appIdNames.size())
                                         || !chargeNamedResourceBytes(bytes,
@@ -22530,10 +22584,44 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                         appIdHandles.push_back(appIdHandle);
                                     }
                                 }
+                                if (model && !layerNames.empty()) {
+                                    if (layerNames.size()!=1u || !visit(layerNames.size())
+                                        || !chargeNamedResourceBytes(bytes,
+                                            layerNames.size()*(sizeof(std::uint32_t)
+                                                +sizeof(std::string_view)+512u)))
+                                        return false;
+                                    std::size_t referenceCount=0u,referenceSlot=SIZE_MAX;
+                                    for (const auto& reference:r.references) {
+                                        if (reference.kind!=dx_tableResourceRole::LayerName
+                                            || reference.code!=1003) continue;
+                                        if (++referenceCount>1u) {model=nullptr;break;}
+                                        referenceSlot=reference.groupIndex;
+                                    }
+                                    if (referenceCount!=layerNames.size()) model=nullptr;
+                                    for (std::size_t i=0u;model && i<layerNames.size();++i) {
+                                        if (referenceSlot>=r.raw->groups.size()
+                                            || r.raw->groups[referenceSlot].code()!=1003
+                                            || r.raw->groups[referenceSlot].type()!=DRW_Variant::STRING
+                                            || !r.raw->groups[referenceSlot].content.s
+                                            || *r.raw->groups[referenceSlot].content.s!=layerNames[i]) {
+                                            model=nullptr;break;
+                                        }
+                                        std::uint32_t layerHandle=0u;
+                                        const auto resolved=resolveLayer(layerNames[i],layerHandle);
+                                        if (resolved==LayerResult::LimitFailure) return false;
+                                        if (resolved!=LayerResult::Bound) {
+                                            model=nullptr;break;
+                                        }
+                                        layerHandles.push_back(layerHandle);
+                                    }
+                                }
                                 if (model) {
                                     if (!chargeNamedResourceBytes(bytes,
-                                            appIdHandles.size()*sizeof(std::uint32_t))) return false;
+                                            appIdHandles.size()*sizeof(std::uint32_t))
+                                        || !chargeNamedResourceBytes(bytes,
+                                            layerHandles.size()*sizeof(std::uint32_t))) return false;
                                     candidateAppIds.emplace(handle,std::move(appIdHandles));
+                                    candidateLayers.emplace(handle,std::move(layerHandles));
                                 }
                             }
                         }
@@ -22553,6 +22641,10 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                 if (!chargeNamedResourceBytes(bytes,
                         appId->second.size()*sizeof(std::uint32_t))) return false;
                 row.appIdHandles=appId->second;
+                const auto layer=candidateLayers.find(handle);
+                if (layer==candidateLayers.end()
+                    || !chargeNamedResourceBytes(bytes,layer->second.size()*sizeof(std::uint32_t))) return false;
+                row.layerHandles=layer->second;
                 for (const auto appIdHandle:row.appIdHandles) {
                     const auto app=source.resources.find(appIdHandle);
                     const auto origin=source.resourceOriginAudits.find(appIdHandle);
@@ -22564,6 +22656,19 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                         DxfMLineAppIdSource appRow;appRow.model=*appModel;
                         appRow.origin=origin->second;
                         m_dxfMLineAppIds.emplace(appIdHandle,std::move(appRow));
+                    }
+                }
+                for (const auto layerHandle:row.layerHandles) {
+                    const auto resource=source.resources.find(layerHandle);
+                    const auto origin=source.resourceOriginAudits.find(layerHandle);
+                    if (resource==source.resources.end() || origin==source.resourceOriginAudits.end()
+                        || !origin->second || !resource->second.model) return false;
+                    if (!m_dxfMLineLayers.count(layerHandle)) {
+                        const auto* model=dynamic_cast<const DRW_Layer*>(resource->second.model.get());
+                        if (!model) return false;
+                        DxfMLineLayerSource layerRow;layerRow.model=*model;
+                        layerRow.origin=origin->second;
+                        m_dxfMLineLayers.emplace(layerHandle,std::move(layerRow));
                     }
                 }
                 m_dxfMLineLinetypes.emplace(handle,std::move(row));
@@ -22586,26 +22691,38 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
             found->second.live=&value;
         }
         for (const auto& row:m_dxfMLineAppIds) if (!row.second.live) return false;
+        if (cData->layers.size()>kMaxAdapterBasicTableRecords || !visit(cData->layers.size())) return false;
+        m_dxfMLineLayerCount=cData->layers.size();
+        for (const auto& value:cData->layers) {
+            const auto found=m_dxfMLineLayers.find(value.handle);if (found==m_dxfMLineLayers.end()) continue;
+            if (found->second.live || !layerSourceEqual(value,found->second.model,cData->sourceVersion)) return false;
+            found->second.live=&value;
+        }
+        for (const auto& row:m_dxfMLineLayers) if (!row.second.live) return false;
         return hasUnchangedDxfMLineLinetypes();
     } catch (...) {return false;}
 }
 
 bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
-    if (m_dxfMLineLinetypes.empty()) return m_dxfMLineAppIds.empty();
+    if (m_dxfMLineLinetypes.empty()) return m_dxfMLineAppIds.empty() && m_dxfMLineLayers.empty();
     if (!cData || cData->lineTypes.size()!=m_dxfMLineLinetypeCount
+        || cData->layers.size()!=m_dxfMLineLayerCount
         || !hasUnchangedDxfNamedResourceState(m_dxfMLineStyleState)) return false;
     try {
         const auto report=resourceOriginReport(*cData);
         if (report.state!=ResourceOriginState::OriginsBound && report.state!=ResourceOriginState::Unqualified) return false;
         const auto& origins=cData->m_tableDxfSource.resourceOriginAudits;
-        std::size_t appReferenceCount=0u;
+        std::size_t appReferenceCount=0u,layerReferenceCount=0u;
         for (const auto& row:m_dxfMLineLinetypes) {
             if (row.second.appIdHandles.size()>2u
-                || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()) return false;
+                || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()
+                || row.second.layerHandles.size()>1u
+                || layerReferenceCount>kMaxAdapterBasicTableItems-row.second.layerHandles.size()) return false;
             appReferenceCount+=row.second.appIdHandles.size();
+            layerReferenceCount+=row.second.layerHandles.size();
         }
-        std::vector<std::uint32_t> referencedAppIds;
-        referencedAppIds.reserve(appReferenceCount);
+        std::vector<std::uint32_t> referencedAppIds,referencedLayers;
+        referencedAppIds.reserve(appReferenceCount);referencedLayers.reserve(layerReferenceCount);
         for (const auto& row:m_dxfMLineLinetypes) {
             const auto origin=origins.find(row.first);
             if (origin==origins.end() || origin->second!=row.second.origin
@@ -22614,10 +22731,10 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
             const auto named=cData->m_tableDxfSource.resourceNames.find({dx_tableResourceFamily::LineType,key});
             if (named==cData->m_tableDxfSource.resourceNames.end() || named->second!=row.first) return false;
             if (row.second.model.extData.empty()) {
-                if (!row.second.appIdHandles.empty()) return false;
+                if (!row.second.appIdHandles.empty() || !row.second.layerHandles.empty()) return false;
             } else {
-                std::vector<std::string_view> appIdNames;
-                if (!simpleMlineLinetypeXdata(row.second.model,appIdNames)
+                std::vector<std::string_view> appIdNames,layerNames;
+                if (!simpleMlineLinetypeXdata(row.second.model,appIdNames,layerNames)
                     || appIdNames.empty()
                     || appIdNames.size()!=row.second.appIdHandles.size()) return false;
                 std::array<std::string,2> appKeys{};
@@ -22630,6 +22747,16 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                         || appName->second!=row.second.appIdHandles[i]) return false;
                     referencedAppIds.push_back(row.second.appIdHandles[i]);
                 }
+                if (layerNames.size()!=row.second.layerHandles.size()) return false;
+                for (std::size_t i=0u;i<row.second.layerHandles.size();++i) {
+                    std::string layerKey;
+                    if (!dx_symbol_output::nameKey(layerNames[i],layerKey)) return false;
+                    const auto namedLayer=cData->m_tableDxfSource.resourceNames.find(
+                        {dx_tableResourceFamily::Layer,layerKey});
+                    if (namedLayer==cData->m_tableDxfSource.resourceNames.end()
+                        || namedLayer->second!=row.second.layerHandles[i]) return false;
+                    referencedLayers.push_back(row.second.layerHandles[i]);
+                }
             }
         }
         std::size_t found=0u;
@@ -22641,7 +22768,10 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
         if (found!=m_dxfMLineLinetypes.size()) return false;
         std::sort(referencedAppIds.begin(),referencedAppIds.end());
         referencedAppIds.erase(std::unique(referencedAppIds.begin(),referencedAppIds.end()),referencedAppIds.end());
+        std::sort(referencedLayers.begin(),referencedLayers.end());
+        referencedLayers.erase(std::unique(referencedLayers.begin(),referencedLayers.end()),referencedLayers.end());
         if (referencedAppIds.size()!=m_dxfMLineAppIds.size()) return false;
+        if (referencedLayers.size()!=m_dxfMLineLayers.size()) return false;
         for (const auto& row:m_dxfMLineAppIds) {
             if (!std::binary_search(referencedAppIds.begin(),referencedAppIds.end(),row.first)) return false;
             const auto origin=origins.find(row.first);
@@ -22666,12 +22796,37 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
             if (&value!=row->second.live || !appIdSourceEqual(value,row->second.model,cData->sourceVersion)) return false;
             ++foundAppIds;
         }
-        return foundAppIds==m_dxfMLineAppIds.size();
+        if (foundAppIds!=m_dxfMLineAppIds.size()) return false;
+        for (const auto& row:m_dxfMLineLayers) {
+            if (!std::binary_search(referencedLayers.begin(),referencedLayers.end(),row.first)) return false;
+            const auto origin=origins.find(row.first);
+            if (origin==origins.end() || origin->second!=row.second.origin
+                || origin->second.owner_before(row.second.origin) || row.second.origin.owner_before(origin->second)) return false;
+            const auto resource=cData->m_tableDxfSource.resources.find(row.first);
+            if (resource==cData->m_tableDxfSource.resources.end() || resource->second.family!=dx_tableResourceFamily::Layer
+                || !resource->second.rawTypedMatched || resource->second.rawTypedMismatch || !resource->second.raw
+                || !resource->second.model) return false;
+            const auto* model=dynamic_cast<const DRW_Layer*>(resource->second.model.get());
+            std::string key,modelKey;
+            if (!dx_symbol_output::nameKey(row.second.model.name,key)
+                || !model || !dx_symbol_output::nameKey(model->name,modelKey) || modelKey!=key
+                || !layerSourceEqual(*model,row.second.model,cData->sourceVersion)) return false;
+            const auto named=cData->m_tableDxfSource.resourceNames.find({dx_tableResourceFamily::Layer,key});
+            if (named==cData->m_tableDxfSource.resourceNames.end() || named->second!=row.first) return false;
+        }
+        std::size_t foundLayers=0u;
+        for (const auto& value:cData->layers) {
+            const auto row=m_dxfMLineLayers.find(value.handle);
+            if (row==m_dxfMLineLayers.end()) continue;
+            if (&value!=row->second.live || !layerSourceEqual(value,row->second.model,cData->sourceVersion)) return false;
+            ++foundLayers;
+        }
+        return foundLayers==m_dxfMLineLayers.size();
     } catch (...) {return false;}
 }
 
 bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) noexcept {
-    if (m_dxfMLineLinetypes.empty()) return m_dxfMLineAppIds.empty();
+    if (m_dxfMLineLinetypes.empty()) return m_dxfMLineAppIds.empty() && m_dxfMLineLayers.empty();
     if (!dxfW || m_dxfMLineLinetypesInspected || !hasUnchangedDxfMLineLinetypes()
         || view.version!=m_dxfMLineStyleState.version || view.binary!=m_dxfMLineStyleState.binary
         || (view.version>=DRW::AC1021?std::string_view("UTF-8"):view.codePage)!=m_dxfMLineStyleState.codePage) return false;
@@ -22680,8 +22835,11 @@ bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) n
         std::map<std::string,DxfMLineLinetypeSource*> names;
         std::map<std::string,DxfMLineAppIdSource*> appIdNames;
         std::map<std::uint32_t,DxfMLineAppIdSource*> appIdHandles;
+        std::map<std::string,DxfMLineLayerSource*> layerNames;
+        std::map<std::uint32_t,DxfMLineLayerSource*> layerHandles;
         std::map<std::uint32_t,unsigned> nameRows,handleRows,bodyRows;
         std::map<std::uint32_t,unsigned> appIdNameRows,appIdHandleRows,appIdBodyRows;
+        std::map<std::uint32_t,unsigned> layerNameRows,layerHandleRows;
         for (auto& item:m_dxfMLineLinetypes) {
             auto& row=item.second;row.emitted=dxfW->dxfWriteSourceLinetypeTargetHandle(item.first);row.table=0u;
             std::string key;
@@ -22694,6 +22852,12 @@ bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) n
             if (!dx_symbol_output::nameKey(row.model.name,key)
                 || !appIdNames.emplace(key,&row).second) return false;
         }
+        for (auto& item:m_dxfMLineLayers) {
+            auto& row=item.second;row.emitted=dxfW->dxfWriteEmittedSourceTableHandle(item.first);row.table=0u;
+            std::string key;
+            if (!row.emitted || !dx_symbol_output::nameKey(row.model.name,key)
+                || !layerNames.emplace(key,&row).second) return false;
+        }
         if (!dx_symbol_output::inspect(view,[&](const auto& actual) {
             if (actual.type==dx_symbol_output::Kind::AppId) {
                 std::string key;if (!dx_symbol_output::nameKey(actual.name,key)) return false;
@@ -22704,6 +22868,17 @@ bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) n
                     || actual.name!=row.model.name || row.emitted
                     || !appIdHandles.emplace(actual.handle,&row).second || emitted.count(actual.handle)) return false;
                 ++appIdHandleRows[row.model.handle];row.emitted=actual.handle;row.table=actual.tableHandle;
+                return true;
+            }
+            if (actual.type==dx_symbol_output::Kind::Layer) {
+                std::string key;if (!dx_symbol_output::nameKey(actual.name,key)) return false;
+                const auto named=layerNames.find(key);
+                if (named==layerNames.end()) return true;
+                auto& row=*named->second;++layerNameRows[row.model.handle];
+                if (!actual.qualified || actual.name!=row.model.name || actual.owner!=0x2u
+                    || actual.tableHandle!=0x2u || actual.handle!=row.emitted
+                    || !layerHandles.emplace(actual.handle,&row).second) return false;
+                ++layerHandleRows[row.model.handle];row.table=actual.tableHandle;
                 return true;
             }
             if (actual.type!=dx_symbol_output::Kind::LineType) return true;
@@ -22722,6 +22897,8 @@ bool dx_iface::inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView& view) n
         })) return false;
         for (const auto& row:m_dxfMLineAppIds) if (!row.second.emitted || row.second.table!=0x9u
             || appIdNameRows[row.first]!=1u || appIdHandleRows[row.first]!=1u) return false;
+        for (const auto& row:m_dxfMLineLayers) if (!row.second.emitted || row.second.table!=0x2u
+            || layerNameRows[row.first]!=1u || layerHandleRows[row.first]!=1u) return false;
         if (!dx_standard_output::inspectSelected(view,[&](std::string_view name,std::uint32_t handle) {
                 return name=="APPID" && appIdHandles.count(handle);
             },[&](const auto& shape,std::string_view body) {
