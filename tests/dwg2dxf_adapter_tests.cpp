@@ -32173,6 +32173,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt32(90, 0);
     writer->writeInt16(174, 0);
     writer->writeInt16(175, 0);
+    writer->writeInt16(176, 0);
     writer->writeInt16(178, 0);
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
@@ -34598,6 +34599,134 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     if (crossTextAngleStyle == crossTextAngleReadback.mLeaderStyles.end()
         || crossTextAngleStyle->textAngleType != 2u)
         return fail("cross-format MLEADERSTYLE group-175 readback mismatch");
+
+    const auto textAlignmentSource = directory
+        / ("root-mleaderstyle-text-alignment-source-" + encoding + ".dxf");
+    dx_data textAlignmentData;
+    dx_iface textAlignmentReader;
+    if (!generateRootMLeaderStyleControl(textAlignmentSource, binary)
+        || !textAlignmentReader.fileImport(textAlignmentSource.string(),
+            &textAlignmentData, false))
+        return fail("could not import MLEADERSTYLE text-alignment source");
+    auto textAlignmentStyle = std::find_if(textAlignmentData.mLeaderStyles.begin(),
+        textAlignmentData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    auto textAlignmentRaw = std::find_if(
+        textAlignmentData.rawNamedResourceObjects.begin(),
+        textAlignmentData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (textAlignmentStyle == textAlignmentData.mLeaderStyles.end()
+        || textAlignmentRaw == textAlignmentData.rawNamedResourceObjects.end()
+        || textAlignmentStyle->textAlignmentType != 0u)
+        return fail("MLEADERSTYLE group-176 source identity/value is missing");
+    const auto sourceTextAlignment = std::find_if(
+        textAlignmentRaw->groups.begin(), textAlignmentRaw->groups.end(),
+        [](const DRW_Variant& field) { return field.code() == 176; });
+    if (sourceTextAlignment == textAlignmentRaw->groups.end()
+        || sourceTextAlignment->type() != DRW_Variant::INTEGER
+        || sourceTextAlignment->i_val() != 0)
+        return fail("MLEADERSTYLE source has no group-176 INTEGER witness");
+    const std::size_t sourceTextAlignmentSlot = static_cast<std::size_t>(
+        sourceTextAlignment - textAlignmentRaw->groups.begin());
+    const DRW_RawDxfObject originalTextAlignmentRaw = *textAlignmentRaw;
+    textAlignmentStyle->textAlignmentType = 2u;
+    const auto textAlignmentOutput = directory
+        / ("root-mleaderstyle-text-alignment-output-" + encoding + ".dxf");
+    const std::string textAlignmentSentinel =
+        "existing MLEADERSTYLE text-alignment output survives\n";
+    const auto seedTextAlignmentSentinel = [&]() {
+        std::ofstream previous(textAlignmentOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous && static_cast<bool>(previous << textAlignmentSentinel);
+    };
+    const auto textAlignmentSentinelSurvives = [&]() {
+        std::ifstream previous(textAlignmentOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == textAlignmentSentinel;
+    };
+    if (!seedTextAlignmentSentinel())
+        return fail("could not seed MLEADERSTYLE group-176 refusal");
+    textAlignmentRaw->groups[sourceTextAlignmentSlot] = DRW_Variant(176, 1);
+    if (textAlignmentRaw->hasRawValues && !binary)
+        textAlignmentRaw->rawValues[sourceTextAlignmentSlot] = "1";
+    dx_iface textAlignmentWriter;
+    if (textAlignmentWriter.fileExport(textAlignmentOutput.string(),
+            DRW::AC1027, binary, &textAlignmentData, false, true)
+        || !textAlignmentSentinelSurvives())
+        return fail("conflicting raw and typed MLEADERSTYLE group 176 was accepted");
+    *textAlignmentRaw = originalTextAlignmentRaw;
+
+    textAlignmentStyle->textAlignmentType = 3u;
+    if (!seedTextAlignmentSentinel()
+        || textAlignmentWriter.fileExport(textAlignmentOutput.string(),
+            DRW::AC1027, binary, &textAlignmentData, false, true)
+        || !textAlignmentSentinelSurvives())
+        return fail("out-of-range MLEADERSTYLE group-176 value was accepted");
+    textAlignmentStyle->textAlignmentType = 2u;
+    if (!textAlignmentWriter.fileExport(textAlignmentOutput.string(),
+            DRW::AC1027, binary, &textAlignmentData, false, true))
+        return fail("same-adapter MLEADERSTYLE group-176 retry failed: "
+            + textAlignmentWriter.extensionGraphFailureDetail());
+    dx_data textAlignmentReadback;
+    dx_iface textAlignmentOutputReader;
+    if (!textAlignmentOutputReader.fileImport(textAlignmentOutput.string(),
+            &textAlignmentReadback, false))
+        return fail("could not read back MLEADERSTYLE group-176 output");
+    const auto emittedTextAlignmentStyle = std::find_if(
+        textAlignmentReadback.mLeaderStyles.begin(),
+        textAlignmentReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedTextAlignmentStyle == textAlignmentReadback.mLeaderStyles.end()
+        || emittedTextAlignmentStyle->textAlignmentType != 2u
+        || emittedTextAlignmentStyle->textAngleType != 0u)
+        return fail("MLEADERSTYLE group-176 typed readback mismatch");
+    const auto emittedTextAlignmentRaw = std::find_if(
+        textAlignmentReadback.rawNamedResourceObjects.begin(),
+        textAlignmentReadback.rawNamedResourceObjects.end(),
+        [handle = emittedTextAlignmentStyle->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (emittedTextAlignmentRaw
+            == textAlignmentReadback.rawNamedResourceObjects.end()
+        || std::count_if(emittedTextAlignmentRaw->groups.begin(),
+            emittedTextAlignmentRaw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 176
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == 2;
+            }) != 1)
+        return fail("MLEADERSTYLE group-176 literal output proof failed");
+    const auto crossTextAlignmentOutput = directory
+        / ("root-mleaderstyle-text-alignment-cross-" + encoding + ".dxf");
+    dx_iface crossTextAlignmentWriter;
+    dx_data crossTextAlignmentReadback;
+    dx_iface crossTextAlignmentReader;
+    if (!crossTextAlignmentWriter.fileExport(crossTextAlignmentOutput.string(),
+            DRW::AC1027, !binary, &textAlignmentData, false, true)
+        || !crossTextAlignmentReader.fileImport(
+            crossTextAlignmentOutput.string(), &crossTextAlignmentReadback,
+            false))
+        return fail("cross-format MLEADERSTYLE group-176 output failed");
+    const auto crossTextAlignmentStyle = std::find_if(
+        crossTextAlignmentReadback.mLeaderStyles.begin(),
+        crossTextAlignmentReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossTextAlignmentStyle
+            == crossTextAlignmentReadback.mLeaderStyles.end()
+        || crossTextAlignmentStyle->textAlignmentType != 2u)
+        return fail("cross-format MLEADERSTYLE group-176 readback mismatch");
 
     return true;
 }

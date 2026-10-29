@@ -15989,7 +15989,7 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 8> mleaderInt32Codes{{90, 91, 92, 93, 94, 174, 175, 178}};
+constexpr std::array<int, 9> mleaderInt32Codes{{90, 91, 92, 93, 94, 174, 175, 176, 178}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16015,6 +16015,7 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 94: return style.blockColor;
     case 174: return style.leftAttachment;
     case 175: return style.textAngleType;
+    case 176: return style.textAlignmentType;
     case 178: return style.rightAttachment;
     default: return 0;
     }
@@ -16030,6 +16031,7 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 94: style.blockColor = value; break;
     case 174: style.leftAttachment = static_cast<std::uint16_t>(value); break;
     case 175: style.textAngleType = static_cast<std::uint16_t>(value); break;
+    case 176: style.textAlignmentType = static_cast<std::uint16_t>(value); break;
     case 178: style.rightAttachment = static_cast<std::uint16_t>(value); break;
     default: break;
     }
@@ -16252,7 +16254,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             const bool validValue = (isMLeaderColorCode(editedCode)
                     ? mleaderInt32Value(value, editedCode) >= 0
                         && mleaderInt32Value(value, editedCode) <= 256
-                    : editedCode == 175
+                    : editedCode == 175 || editedCode == 176
                         ? mleaderInt32Value(value, editedCode) >= 0
                             && mleaderInt32Value(value, editedCode) <= 2
                     : editedCode == 174 || editedCode == 178
