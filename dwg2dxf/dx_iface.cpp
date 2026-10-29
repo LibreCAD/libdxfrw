@@ -16462,9 +16462,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                         || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
                 }
             } else if (remove) {
-                // Reuse exact subsequence matching first. If a survivor's ACI
-                // changed, require its remaining tuple fields to identify one
-                // and only one original element across the entire source.
+                // Reuse exact matching first. Changed survivors must retain
+                // either their offset or their ACI and all other tuple fields;
+                // the union of those anchors must identify only one original.
                 std::size_t originalTyped=0u,originalItems=0u;
                 if (!chargeMlineComparisonWork(original.elements,2u,removalWork,kMaxAdapterBasicTableItems)
                     || !estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
@@ -16477,12 +16477,14 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 // identity is established by the unique ordered embedding.
                 DRW_MLineStyle shape=original;shape.elements=value.elements;
                 if (!mlineFieldsEqual(value,shape,false,false,false,true,true,true)) return false;
-                const auto sameAnchor=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
-                    return retainedDoubleEqual(a.offset,b.offset)
-                        && a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
+                const auto sameRest=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                    return a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
                         && a.colorName==b.colorName && a.colorBookName==b.colorBookName
                         && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
                         && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
+                };
+                const auto sameAnchor=[&](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                    return retainedDoubleEqual(a.offset,b.offset) && sameRest(a,b);
                 };
                 const auto sameElement=[&](const DRW_MLineElement& a,const DRW_MLineElement& b) {
                     return a.color==b.color && sameAnchor(a,b);
@@ -16507,15 +16509,21 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     // bound its complete byte-sensitive cross-product first.
                     if (!chargeMlineComparisonWork(original.elements,value.elements.size(),
                             removalWork,kMaxAdapterBasicTableItems)) return false;
+                    // Either offset or ACI must be unchanged for the selected
+                    // source. Compare their union so the survivor cannot map
+                    // to different originals through the two edit profiles.
                     std::size_t previous=0u;
                     for (std::size_t i=0u;i<value.elements.size();++i) {
                         const auto& survivor=value.elements[i];
                         std::size_t matched=0u,index=0u;
                         for (std::size_t j=0u;j<original.elements.size();++j) {
-                            if (sameAnchor(original.elements[j],survivor)) {++matched;index=j;}
+                            const auto& source=original.elements[j];
+                            if ((retainedDoubleEqual(source.offset,survivor.offset) || source.color==survivor.color)
+                                && sameRest(source,survivor)) {++matched;index=j;}
                         }
-                        if (matched!=1u || (i && index<=previous)) return false;
-                        if (survivor.color!=original.elements[index].color
+                        if (matched!=1u || (i && index<=previous) || !std::isfinite(survivor.offset)) return false;
+                        if ((survivor.color!=original.elements[index].color
+                                || !retainedDoubleEqual(survivor.offset,original.elements[index].offset))
                             && (survivor.color<0 || survivor.color>256)) return false;
                         survivorIndices[i]=index;previous=index;
                     }
@@ -16775,6 +16783,11 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                                 source.output.rawValues.at(destination)=std::move(source.output.rawValues.at(field));
                         }
                         ++destination;
+                    }
+                    if (!retainedDoubleEqual(target.elements[i].offset,value.elements[i].offset)) {
+                        if (!encoded.writeDouble(49,value.elements[i].offset)
+                            || !replace(destination-3u,encoded.groups.back())) return false;
+                        target.elements[i].offset=value.elements[i].offset;
                     }
                     if (target.elements[i].color!=value.elements[i].color) {
                         if (!encoded.writeInt16(62,value.elements[i].color)
