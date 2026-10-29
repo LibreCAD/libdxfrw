@@ -158,9 +158,13 @@ proof. Refused fields are not implemented editing support.
    orientation, shape-number meaning or rendered output. [RPP-5ri](docs/research/rpp5ri-mline-ltype-shape-text-composition-2026-10-29.json)
    qualifies one two-segment shape→text composition with distinct shape and text
    STYLE providers, exact ordered group-340 remaps, fresh readback, and separate
-   missing-provider refusal/retry controls. Other shape numbers/files, combined
-   flags, optional placements, multi-segment combinations, providers and versions
-   remain open; earlier versions need source/context/codec evidence.
+   missing-provider refusal/retry controls. [RPP-5ud](docs/research/rpp5ud-mline-ltype-text-shape-composition-2026-10-29.json)
+   qualifies the reverse text→shape order across the same AC1027 ASCII/binary
+   source/output matrix, with exact ordered fields and provider remaps, fresh
+   readback, missing-provider refusals and same-adapter retries. Other shape
+   numbers/files, combined flags, optional placements, multi-segment combinations,
+   providers and versions remain open; earlier versions need source/context/codec
+   evidence.
    Native units, font identity, collation, ByLayer/ByBlock inheritance and
    rendering remain separate evidence.
    [RPP-5ra](docs/research/rpp5ra-mline-ltype-mixed-simple-text-segments-2026-10-29.json)
