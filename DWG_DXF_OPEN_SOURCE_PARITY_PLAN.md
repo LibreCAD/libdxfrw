@@ -157,6 +157,15 @@ proof. Refused fields are not implemented editing support.
    and versions remain open; earlier versions need source/context/codec evidence.
    Native units, font identity, collation, ByLayer/ByBlock inheritance and
    rendering remain separate evidence.
+   [RPP-5ra](docs/research/rpp5ra-mline-ltype-mixed-simple-text-segments-2026-10-29.json)
+   adds one two-element mixed profile: a simple dash followed by a text segment
+   with a STYLE dependency. The source/output ASCII/binary cross-product checks
+   group-49/74 order, text fields, the remapped group-340 pointer, typed readback,
+   MLINE consumers, missing-provider refusal, destination preservation and
+   same-adapter retry. Other mixed segment orders/counts, complex flags, optional
+   placements, shape/text combinations, providers and versions remain open.
+   This establishes transport only; native font loading and rendered meaning
+   remain unqualified.
    Start with one witnessed unsupported profile; retain advisory transport until
    qualified.
 3. **P2.4: remaining geometry operations.** Selected AC1027 consumed-style

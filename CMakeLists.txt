@@ -1889,6 +1889,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-shape-style-provider)
     set_tests_properties(libdxfrw_mline_ltype_shape_style_provider PROPERTIES
         LABELS "fast;dxf;adapter;mline;linetype;shape;style;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_mline_ltype_mixed_segments
+        COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-mixed-segments)
+    set_tests_properties(libdxfrw_mline_ltype_mixed_segments PROPERTIES
+        LABELS "fast;dxf;adapter;mline;linetype;style;transaction;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_mline_style_authority
         COMMAND libdxfrw_dxf_fixture_tests --mline-style-authority)
     set_tests_properties(libdxfrw_mline_style_authority PROPERTIES

@@ -31686,6 +31686,140 @@ bool runTemporary() {
 }
 }
 
+namespace mlineLtypeMixedSegmentControls {
+using namespace materialConsumerControls;
+using Row=mlineStyleAuthorityControls::Row;
+using namespace mlineStyleAuthorityControls;
+constexpr const char* ltypeName="EditDash";
+constexpr const char* styleName="ComplexText";
+constexpr const char* sourceStyleHandle="1F3";
+constexpr const char* textValue="DXF";
+using mlineLtypeTextStyleControls::numeric;
+
+Tags recipe(bool binary) {
+    auto fields=mlineLtypeTextStyleControls::recipe(binary);
+    std::size_t begin=fields.size(),dashBegin=fields.size(),end=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))
+        &&fields[i+1u]==std::make_pair(5,std::string("103"))) {
+        begin=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
+    }
+    if(begin==fields.size())throw std::runtime_error("mixed LTYPE provider missing");
+    for(std::size_t i=begin+1u;i<end;++i) {
+        if(fields[i].first==73)fields[i].second="2";
+        if(fields[i].first==40)fields[i].second="2";
+        if(fields[i].first==49){dashBegin=i;break;}
+    }
+    if(dashBegin==fields.size())throw std::runtime_error("mixed LTYPE first segment missing");
+    const Tags segments{{49,"1.5"},{74,"0"},{49,"0.5"},{74,"2"},{75,"0"},{340,sourceStyleHandle},
+        {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},{9,textValue}};
+    fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(dashBegin),fields.begin()+static_cast<std::ptrdiff_t>(end));
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(dashBegin),segments.begin(),segments.end());
+    return fields;
+}
+std::vector<std::string> values(const Row& row,int code) {
+    std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;
+}
+bool integerSequence(const Row& row,int code,const std::vector<int>& expected) {
+    const auto actual=values(row,code);if(actual.size()!=expected.size())return false;
+    try {for(std::size_t i=0u;i<actual.size();++i)if(std::stoi(actual[i])!=expected[i])return false;}
+    catch(...) {return false;}
+    return true;
+}
+bool numberSequence(const Row& row,int code,const std::vector<double>& expected) {
+    const auto actual=values(row,code);if(actual.size()!=expected.size())return false;
+    try {for(std::size_t i=0u;i<actual.size();++i)if(std::abs(std::stod(actual[i])-expected[i])>1e-12)return false;}
+    catch(...) {return false;}
+    return true;
+}
+bool proof(const std::filesystem::path& path,bool binary,bool output) {
+    const auto rows=records(path,binary);const Row* style=nullptr;const Row* ltype=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName}){if(style)return false;style=&row;}
+        if(row.type=="LTYPE"&&values(row,2)==std::vector<std::string>{ltypeName}){if(ltype)return false;ltype=&row;}
+    }
+    const auto fail=[&](const char* field){std::cerr<<"mixed segment physical mismatch at "<<field<<" binary="<<binary<<" output="<<output<<'\n';return false;};
+    if(!style||!ltype)return fail("record");
+    if(style->section!="TABLES"||ltype->section!="TABLES")return fail("section");
+    if(output?style->id.empty():style->id!=sourceStyleHandle)return fail("STYLE handle");
+    if(values(*style,3)!=std::vector<std::string>{"txt.shx"})return fail("STYLE file");
+    if(!numeric(*ltype,72,65))return fail("LTYPE 72");
+    if(!numeric(*ltype,73,2))return fail("LTYPE 73");
+    if(!numeric(*ltype,40,2))return fail("LTYPE 40");
+    if(!numberSequence(*ltype,49,{1.5,.5}))return fail("LTYPE 49");
+    if(!integerSequence(*ltype,74,{0,2}))return fail("LTYPE 74");
+    if(!numeric(*ltype,75,0))return fail("LTYPE 75");
+    if(values(*ltype,340)!=std::vector<std::string>{output?style->id:sourceStyleHandle})return fail("LTYPE 340");
+    if(!numeric(*ltype,46,.75))return fail("LTYPE 46");
+    if(!numeric(*ltype,50,.25))return fail("LTYPE 50");
+    if(!numeric(*ltype,44,.125))return fail("LTYPE 44");
+    if(!numeric(*ltype,45,-.25))return fail("LTYPE 45");
+    if(values(*ltype,9)!=std::vector<std::string>{textValue})return fail("LTYPE 9");
+    return true;
+}
+bool model(dx_data& data,std::uint32_t styleHandle) {
+    const DRW_LType* ltype=nullptr;for(const auto& value:data.lineTypes)if(value.name==ltypeName){if(ltype)return false;ltype=&value;}
+    const DRW_Textstyle* style=nullptr;for(const auto& value:data.textStyles)if(value.name==styleName){if(style)return false;style=&value;}
+    if(!ltype||!style||style->handle!=styleHandle||ltype->size!=2||ltype->length!=2
+        ||ltype->path!=std::vector<double>{1.5,.5}||ltype->segments.size()!=2u)return false;
+    const auto& plain=ltype->segments[0];const auto& text=ltype->segments[1];
+    return plain.length==1.5&&plain.shapeFlags==0&&plain.complexShapeCode==0
+        &&plain.styleHandle.ref==0&&plain.styleHandle.ref64==0&&plain.text.empty()
+        &&text.length==.5&&text.shapeFlags==2&&text.complexShapeCode==0
+        &&text.styleHandle.ref==styleHandle&&text.styleHandle.ref64==styleHandle
+        &&text.scale==.75&&std::abs(text.rotation-.25/ARAD)<1e-12
+        &&text.xOffset==.125&&text.yOffset==-.25&&text.text==textValue
+        &&data.mLineStyles.size()==1u&&data.mLineStyles.front().elements.size()==2u
+        &&data.mLineStyles.front().elements.front().linetype==ltypeName
+        &&mlineStyleAuthorityControls::consumers(data).size()==2u;
+}
+bool outputProof(const std::filesystem::path& path,bool binary) {
+    if(!proof(path,binary,true))return false;
+    const auto rows=records(path,binary);const Row* style=nullptr;
+    for(const auto& row:rows)if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName})style=&row;
+    if(!style)return false;std::uint32_t handle=0;const auto parsed=std::from_chars(style->id.data(),style->id.data()+style->id.size(),handle,16);
+    if(parsed.ec!=std::errc{}||parsed.ptr!=style->id.data()+style->id.size()||!handle)return false;
+    dx_iface reader;dx_data actual;
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,handle)
+        &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",ltypeName,"Continuous");
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-ltype-mixed-segments-"+
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0,readbacks=0,refusals=0,retries=0;
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
+        if(!write(input,fields,sourceBinary,"AC1027")){std::cerr<<"mixed segment source write failed\n";return false;}
+        if(!proof(input,sourceBinary,false)){std::cerr<<"mixed segment source proof failed binary="<<sourceBinary<<'\n';return false;}
+        if(!adapter.fileImport(input.string(),&data,false)){std::cerr<<"mixed segment import failed\n";return false;}
+        if(!model(data,0x1F3u)){std::cerr<<"mixed segment model failed\n";return false;}
+        if(!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment caller proof failed\n";return false;}
+        const auto original=mlineLtypeProviderControls::provider(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)){std::cerr<<"mixed segment export failed\n";return false;}
+        if(!outputProof(output,outputBinary)){std::cerr<<"mixed segment output proof failed binary="<<outputBinary<<'\n';return false;}
+        if(!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)){std::cerr<<"mixed segment provider mutation\n";return false;}
+        if(!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment caller mutated\n";return false;}
+        ++profiles;++readbacks;const auto saved=data.textStyles;
+        const auto provider=std::find_if(data.textStyles.begin(),data.textStyles.end(),[](const auto& row){return row.name==styleName;});
+        if(provider==data.textStyles.end())return false;data.textStyles.erase(provider);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment missing-provider refusal failed\n";return false;}
+        ++refusals;data.textStyles=saved;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProof(output,outputBinary)||!model(data,0x1F3u)
+            ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")){std::cerr<<"mixed segment retry failed\n";return false;}
+        ++readbacks;++retries;
+    }
+    std::error_code error;std::filesystem::remove_all(dir,error);
+    std::cout<<"MLINE mixed simple/text LTYPE profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
+    return profiles==4&&readbacks==8&&refusals==4&&retries==4;
+}
+}
+
 
 namespace mlineLtypeDefaultFlagControls {
 using namespace materialConsumerControls;
@@ -46027,6 +46161,8 @@ int main(int argc, char** argv) {
         return mlineLtypeTextStyleControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-shape-style-provider")
         return mlineLtypeShapeStyleControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-mixed-segments")
+        return mlineLtypeMixedSegmentControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
