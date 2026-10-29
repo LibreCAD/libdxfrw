@@ -23,6 +23,8 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_attribute_compound_join.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_attribute_compound_profile.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_block_record_source_profile.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_blockrecord_whole_source.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_blockref_source_relation.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_identity_join.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_material_body.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_plotstyle_source.h"

@@ -57,6 +57,8 @@ EXTRA_DIST = \
     dwg2dxf/dx_legacy_attribute_compound_join.h \
     dwg2dxf/dx_legacy_attribute_compound_profile.h \
     dwg2dxf/dx_legacy_block_record_source_profile.h \
+    dwg2dxf/dx_legacy_blockrecord_whole_source.h \
+    dwg2dxf/dx_legacy_blockref_source_relation.h \
     dwg2dxf/dx_legacy_identity_join.h \
     dwg2dxf/dx_material_body.h \
     dwg2dxf/dx_plotstyle_source.h \
@@ -464,6 +466,7 @@ EXTRA_DIST = \
     tests/layout_source_controls.h \
     tests/lc3_compat_check.cpp \
     tests/legacy_attdef_scope_controls.h \
+    tests/legacy_blockref_relation_tests.cpp \
     tests/legacy_entities_compound_join_tests.cpp \
     tests/legacy_identity_controls.h \
     tests/ltype_string_area_test_helpers.h \

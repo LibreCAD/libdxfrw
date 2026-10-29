@@ -17,6 +17,7 @@
 #include "libdxfrw.h"
 #include "dx_data.h"
 #include "intern/dxfwholesource.h"
+namespace blockref_source_relation { struct Result; }
 
 #include <cstdint>
 #include <cstddef>
@@ -1825,6 +1826,9 @@ public:
 
 private:
     friend class DxWholeSourceTestAccess;
+    // Source relation only; no target uniqueness, graph or output authority.
+    static bool legacyBlockRefSourceRelation(const dx_data&,std::uint32_t,std::uint32_t,
+        std::size_t,std::size_t,blockref_source_relation::Result&) noexcept;
     bool m_wholeEnabled{false};WholeSourceV2::Limits m_wholeLimits{};
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;

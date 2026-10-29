@@ -601,6 +601,16 @@ target_link_libraries(libdxfrw_legacy_entities_compound_join_tests PRIVATE dxfrw
 add_test(NAME libdxfrw_legacy_entities_compound_join COMMAND libdxfrw_legacy_entities_compound_join_tests)
 set_tests_properties(libdxfrw_legacy_entities_compound_join PROPERTIES LABELS "fast;dxf;adapter;entities;compound;generated" TIMEOUT 60)
 
+add_executable(libdxfrw_legacy_blockref_relation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/legacy_blockref_relation_tests.cpp ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_legacy_blockref_relation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_legacy_blockref_relation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_legacy_blockref_relation_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../dwg2dxf)
+target_link_libraries(libdxfrw_legacy_blockref_relation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_legacy_blockref_relation COMMAND libdxfrw_legacy_blockref_relation_tests)
+set_tests_properties(libdxfrw_legacy_blockref_relation PROPERTIES LABELS "fast;dxf;adapter;entities;source;generated" TIMEOUT 60)
+
 # Authentication controls use authored in-memory / temporary DXF records.
 foreach(facet codec adapter)
     add_executable(libdxfrw_entities_ledger_${facet}_tests

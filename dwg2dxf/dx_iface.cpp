@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "dx_iface.h"
+#include "dx_legacy_blockref_source_relation.h"
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
 #include "dx_legacy_identity_join.h"
@@ -26631,6 +26632,67 @@ void dx_iface::finishLegacyEntitiesCompoundJoins(dx_data& data) noexcept {
         }
         s.legacyEntitiesCompoundBytes=bytes;s.legacyEntitiesCompoundWork=work;
     }catch(...) {fail();}
+}
+
+bool dx_iface::legacyBlockRefSourceRelation(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit,blockref_source_relation::Result& output) noexcept {
+ try {output={};const auto& capture=data.m_tableDxfSource;
+  const auto own=[](const auto& a,const auto& b) noexcept {return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+  if(!capture.wholeSelected||!capture.wholePending||!capture.wholeFinished||capture.wholeFailed||!capture.wholeInput
+    ||!own(capture.wholeInput,capture.wholeInputOwner)||!capture.wholeInput->source
+    ||!own(capture.wholeInput->source,capture.wholeSourceOwner)||capture.wholeInput->container!=&data
+    ||capture.wholeInput->generation!=data.importGeneration||capture.wholeInput->generation!=capture.generation
+    ||!capture.wholeInput->containerId||capture.wholeInput->containerId!=data.m_entitiesContainerIdentity.value)return false;
+  const auto& whole=*capture.wholeInput->source;const auto& s=data.m_tableDxfSource;std::size_t work=0,bytes=0;
+  const auto pay=[&](std::size_t n,std::size_t unit){if(unit&&n>limit/unit)return false;const auto amount=n*unit;if(work>limit||amount>limit-work)return false;work+=amount;return true;};
+  if(s.entitiesSources.size()!=s.entitiesDeliveries.size()
+   ||!pay(s.entitiesSources.size(),1024u)||!pay(s.entitiesDeliveries.size(),1024u)||!pay(1u,8192u))return false;
+  using S=dx_data::TableDxfSourceCapture;if(data.importGeneration!=1u||s.generation!=1u||s.contextFailed||!s.closed||!s.successful||s.reader||s.entitiesReadInput
+   ||s.legacyIdentityCaptureFailed||!s.legacyIdentityObservation||!s.legacyIdentityObservationOwner||!s.legacyIdentityContextSnapshot
+   ||s.legacyIdentityObservation->container!=&data||s.legacyIdentityObservation->generation!=s.generation
+   ||s.legacyIdentityObservation->containerId!=data.m_entitiesContainerIdentity.value
+   ||s.legacyIdentityObservation.get()!=s.legacyIdentityObservationOwner.get()||s.legacyIdentityObservation.owner_before(s.legacyIdentityObservationOwner)||s.legacyIdentityObservationOwner.owner_before(s.legacyIdentityObservation)
+   ||dx_iface::entitiesDeliveryReport(data).state!=dx_iface::EntitiesDeliveryState::ObservedTransportComplete)return false;
+  const auto& identity=*s.legacyIdentityObservation;if(!identity.source||!identity.context||!identity.deliveryTicket||!s.legacyIdentitySourceOwner
+   ||identity.source.get()!=s.legacyIdentitySourceOwner.get()||identity.source.owner_before(s.legacyIdentitySourceOwner)||s.legacyIdentitySourceOwner.owner_before(identity.source)
+   ||whole.version()!=DRW::AC1018||whole.binary()!=identity.source->binary)return false;
+  const auto rec=s.structuralInputs.find(blockId);const auto en=s.legacyEntitiesCompoundJoins.find(insertId);
+  if(rec==s.structuralInputs.end()||!rec->second||en==s.legacyEntitiesCompoundJoins.end()||!en->second)return false;
+  const auto sameOwner=[](const auto&a,const auto&b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+  const auto& row=*rec->second;const auto& j=*en->second;if(!row.raw||!row.model||!row.context||!row.paired||row.kind!=dxfRW::DxfStructuralSourceView::Kind::BlockRecord
+   ||row.originalState.first||row.originalState.second||!row.legacyBlockRecordReplayMatched||!row.legacyBlockRecordProfile.complete()
+   ||row.container!=&data||row.generation!=s.generation||row.containerId!=identity.containerId||row.index>=s.structuralInputOwners.size()||!sameOwner(s.structuralInputOwners[row.index],rec->second)
+   ||j.identity.get()!=s.legacyIdentityObservation.get()||j.identity.owner_before(s.legacyIdentityObservation)||s.legacyIdentityObservation.owner_before(j.identity)||!j.audit||!j.audit->context||j.proof>=j.audit->proofs.size())return false;
+  if(j.audit->section>=s.entitiesCompoundAudits.size()||j.audit->section>=s.entitiesCompoundOwners.size()||j.audit->section>=s.entitiesSources.size()||j.audit->section>=s.entitiesDeliveries.size()
+   ||!sameOwner(j.audit,s.entitiesCompoundAudits[j.audit->section])||!sameOwner(j.audit,s.entitiesCompoundOwners[j.audit->section])
+   ||!sameOwner(j.audit->physical,s.entitiesSources[j.audit->section].physical)||!s.entitiesSources[j.audit->section].ticket
+   ||!sameOwner(j.audit->delivery,s.entitiesDeliveries[j.audit->section].delivery)||!sameOwner(j.audit->observed,s.entitiesDeliveries[j.audit->section].observed)
+   ||!sameOwner(j.audit->context,s.entitiesDeliveries[j.audit->section].context))return false;
+  const auto resource=s.resources.find(blockId);if(resource==s.resources.end()||!sameOwner(row.model,resource->second.model)||!sameOwner(row.raw,resource->second.raw))return false;
+  for(const auto* context:{identity.context.get(),s.legacyIdentityContextSnapshot.get(),row.context.get(),j.audit->context.get(),&capture.wholeInput->context})
+   if(!pay(context->codecCodePage.size(),4u)||!pay(context->declaration.size(),4u))return false;
+  const auto same=[](const S::EntitiesReadContext&a,const S::EntitiesReadContext&b){return a.captured&&b.captured&&std::tie(a.sourceVersion,a.codecVersion,a.codecCodePage,a.declaration,a.hasDeclaration,a.compatibilityProfile,a.textEncoding,a.codePagePolicy,a.applyExtrusion,a.binary)==std::tie(b.sourceVersion,b.codecVersion,b.codecCodePage,b.declaration,b.hasDeclaration,b.compatibilityProfile,b.textEncoding,b.codePagePolicy,b.applyExtrusion,b.binary);};
+  if(!same(*identity.context,*s.legacyIdentityContextSnapshot)||!same(*identity.context,*row.context)||!same(*identity.context,*j.audit->context)||!same(*identity.context,capture.wholeInput->context)
+   ||identity.context->sourceVersion!=DRW::AC1018||identity.context->codecVersion!=DRW::AC1015||identity.context->binary!=whole.binary())return false;
+  const auto& census=*identity.source;std::size_t depth=8u;for(auto n=census.candidates.size();n;n>>=1u)++depth;
+  const auto payBytes=[&](std::size_t n,std::size_t unit){if(unit&&n>bytesLimit/unit)return false;const auto amount=n*unit;if(bytes>bytesLimit||amount>bytesLimit-bytes)return false;bytes+=amount;return true;};
+  if(!payBytes(census.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*))
+    ||!payBytes(census.records.size(),sizeof(std::uint8_t))||!pay(census.records.size(),128u)||!pay(census.candidates.size(),128u*depth))return false;
+  for(const auto& c:census.candidates)if(!pay(c.lexeme.size(),4u)||!pay(c.rawValue.size(),2u))return false;
+  dx_legacy_identity_join::Index ix;try{if(!dx_legacy_identity_join::buildIndex(census,ix))return false;}catch(...){return false;}
+  const auto* physical=dx_legacy_identity_join::record(census,ix,blockId,DRW_DxfIdentitySource::Kind::TableRecord,DRW_DxfIdentitySource::Section::Tables,"BLOCK_RECORD",0u);
+  if(!physical||physical->endMarker.ordinal<=physical->marker.ordinal||physical->endMarker.ordinal>whole.fieldCount()||!pay(physical->endMarker.ordinal-physical->marker.ordinal,1024u)||!pay(row.raw->groups.size(),1024u))return false;
+  for(std::size_t i=physical->marker.ordinal-1u;i<physical->endMarker.ordinal;++i){const auto f=whole.field(i);if(!whole.bounds(f)||!pay(f.valueSize,8u)||!pay(f.rawSize,8u))return false;}
+  for(const auto& g:row.raw->groups)if(g.type()==DRW_Variant::STRING&&g.content.s&&!pay(g.content.s->size(),8u))return false;
+  for(const auto& raw:row.raw->rawValues)if(!pay(raw.size(),8u))return false;
+  const auto& p=j.audit->proofs[j.proof];dx_legacy_attribute_compound_join::Result entity;blockref_source_relation::Result result;
+  if(!j.audit->physical||!j.audit->delivery||p.next<p.first||p.next-p.first!=3u||p.next>j.audit->physical->records.size())return false;
+  for(std::size_t i=p.first;i<p.next;++i){const auto& r=j.audit->physical->records[i];if(r.groups.size()!=r.rawValues.size()||!pay(r.groups.size(),512u)||!pay(r.name.size(),4u))return false;}
+  for(std::size_t i=p.first;i<p.next;++i){const auto& r=j.audit->physical->records[i];for(const auto& g:r.groups)if(g.type()==DRW_Variant::STRING&&g.content.s&&!pay(g.content.s->size(),8u))return false;for(const auto& raw:r.rawValues)if(!pay(raw.size(),8u))return false;}
+  if(!p.modeledMatched||p.state!=S::EntitiesCompoundProof::State::ProfileMismatch
+   ||!dx_legacy_attribute_compound_join::join(*j.audit->physical,*j.audit->delivery,*identity.source,ix,p.first,p.dispatch,entity))return false;
+  if(!blockref_source_relation::match(whole,*identity.source,ix,*row.raw,row.legacyBlockRecordProfile,entity,result)||result.record!=blockId||result.insert!=insertId)return false;
+  output=result;return true;
+ } catch(...) {output={};return false;}
 }
 
 void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {

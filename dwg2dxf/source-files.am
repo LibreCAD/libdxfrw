@@ -21,6 +21,8 @@ dist_noinst_HEADERS = \
     dx_legacy_attribute_compound_join.h \
     dx_legacy_attribute_compound_profile.h \
     dx_legacy_block_record_source_profile.h \
+    dx_legacy_blockrecord_whole_source.h \
+    dx_legacy_blockref_source_relation.h \
     dx_legacy_identity_join.h \
     dx_material_body.h \
     dx_plotstyle_source.h \
