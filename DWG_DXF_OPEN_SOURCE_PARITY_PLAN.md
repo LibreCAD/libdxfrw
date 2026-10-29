@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census and [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) | Resolve the BLOCK target, XDICTIONARY and LAYER separately before output or graph promotion |
+| P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json) | Resolve the BLOCK target and XDICTIONARY, then bind live graph and output before promotion |
 | P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json) | Bind original and live dependency/consumer inventories and actual output before considering the geometry projection; expand the source grammar only with separate evidence |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
@@ -455,9 +455,13 @@ now counts the whole original BLOCK_RECORD table and rejects duplicate, invalid
 or non-ASCII names. This is source evidence, not native collation or BLOCK
 target resolution. The [selected ATTRIB APPID census](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json)
 binds original group 1001 `AcDbAttr` to its unique original APPID 1457 within
-the admitted ASCII policy; it does not interpret the associated payload. Bind
-XDICTIONARY 6F3 and LAYER targets and prove output and retry behavior without weakening
-the generic gates.
+the admitted ASCII policy; it does not interpret the associated payload. The
+[selected compound LAYER census](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json)
+binds original group-8 names to unique original providers under a selected ASCII
+policy. Mutation refusals are route-level; unknown-row coverage is synthetic.
+Neither census establishes native collation, layer semantics, a live graph or
+output. Resolve the BLOCK target and XDICTIONARY 6F3, then prove live graph,
+output and retry behavior without weakening the generic gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
