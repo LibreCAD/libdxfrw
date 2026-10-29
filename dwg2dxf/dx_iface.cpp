@@ -17700,7 +17700,8 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 const bool removeElements=style->second.countChanged && before
                     && ((before->elements.size()==2u && targetStyle.elements.size()==1u)
                         || (before->elements.size()==4u
-                            && (targetStyle.elements.size()==2u || targetStyle.elements.size()==3u)));
+                            && (targetStyle.elements.size()==1u || targetStyle.elements.size()==2u
+                                || targetStyle.elements.size()==3u)));
                 std::size_t modelBytes=0u,appendBytes=0u;
                 const auto retainedAppendBytes=[&]() {
                     if (!append) return true;

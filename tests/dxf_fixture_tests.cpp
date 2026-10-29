@@ -34495,9 +34495,7 @@ bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
         if(!write(input,fourElementRecipe(false),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
             ||data.mLineStyles.front().elements.size()!=4u)return fail(__LINE__);
-        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
-        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
-        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
+        data.mLineStyles.front().elements.clear();
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
@@ -34588,6 +34586,68 @@ bool runConsumedThreeRemovalTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedThreeRemoval(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed 4-to-3 removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedSingleFromFour(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-single-from-four-input.dxf",output=dir/"consumed-single-from-four-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed 4-to-1 removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    const auto retainOnly=[](dx_data& data,unsigned retained,std::vector<std::size_t>& survivors) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=4u||retained>=4u)return false;
+        auto& elements=data.mLineStyles.front().elements;
+        for(std::size_t i=elements.size();i>0u;--i)
+            if(i-1u!=retained)elements.erase(elements.begin()+static_cast<std::ptrdiff_t>(i-1u));
+        survivors.assign(1u,retained);
+        return elements.size()==1u;
+    };
+    for(unsigned retained=0u;retained<4u;++retained)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!retainOnly(data,retained,survivors))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!retainOnly(data,2u,survivors))return fail(__LINE__);
+        data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!retainOnly(data,3u,survivors))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed 4-to-1 removal survivors="<<profiles/4u<<"; profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==16u&&readbacks==20u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runConsumedSingleFromFourTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-single-from-four-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedSingleFromFour(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed 4-to-1 removal artifacts: "<<dir<<'\n';
     return passed;
 }
 }
@@ -42800,6 +42860,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-three-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeRemovalTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-single-from-four-removal") {
+        return mlineConsumedOffsetControls::runConsumedSingleFromFourTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
