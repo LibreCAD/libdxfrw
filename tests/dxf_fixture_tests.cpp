@@ -31328,6 +31328,41 @@ Tags sourceWithLayerNameXdata(bool binary) {
     return fields;
 }
 
+Tags sourceWithTwoLayerNamesXdata(bool binary) {
+    auto fields=sourceWithLayerNameXdata(binary);
+    std::size_t layerBegin=fields.size(),layerEnd=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]!=std::make_pair(0,std::string("TABLE"))
+            ||fields[i+1u]!=std::make_pair(2,std::string("LAYER")))continue;
+        layerBegin=i;
+        bool header=true;
+        for(std::size_t j=i+2u;j<fields.size();++j) {
+            if(fields[j].first==0) {
+                if(fields[j]==std::make_pair(0,std::string("ENDTAB"))) {layerEnd=j;break;}
+                header=false;continue;
+            }
+            if(header&&fields[j].first==70) {
+                fields[j].second=std::to_string(std::stoi(fields[j].second)+1);
+            }
+        }
+        break;
+    }
+    if(layerBegin==fields.size()||layerEnd==fields.size())
+        throw std::runtime_error("multiple-layer LTYPE XDATA table missing");
+    const Tags secondLayer{{0,"LAYER"},{5,"1E2"},{330,"1E0"},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},
+        {2,"MLINE_XDATA_LAYER"},{70,"0"},{62,"3"},{6,"Continuous"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(layerEnd),
+        secondLayer.begin(),secondLayer.end());
+    const Tags ordinary{{1001,appName},{1003,"0"},{1000,payload}};
+    const auto first=std::search(fields.begin(),fields.end(),ordinary.begin(),ordinary.end());
+    if(first==fields.end())throw std::runtime_error("multiple-layer LTYPE XDATA source fields missing");
+    const auto at=fields.erase(first,first+static_cast<std::ptrdiff_t>(ordinary.size()));
+    const Tags typed{{1001,appName},{1003,"0"},{1003,"MLINE_XDATA_LAYER"},{1000,payload}};
+    fields.insert(at,typed.begin(),typed.end());
+    return fields;
+}
+
 Tags sourceWithCoordinateXdata(bool binary) {
     auto fields=source(binary);
     const Tags ordinary{{1001,appName},{1000,payload}};
@@ -31386,26 +31421,37 @@ bool providerXdataProof(const std::filesystem::path& path,bool binary,const std:
 }
 
 bool layerNameProviderProof(const std::filesystem::path& path,bool binary,
-                            const std::string& appOwner="9") {
+                            const std::string& appOwner="9",
+                            const std::string& secondLayerName={}) {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
     const mlineStyleAuthorityControls::Row* appProvider=nullptr;
     const mlineStyleAuthorityControls::Row* layerProvider=nullptr;
+    const mlineStyleAuthorityControls::Row* secondLayerProvider=nullptr;
     for(const auto& row:rows) {
         if(row.type=="LTYPE")for(const auto& field:row.fields)
             if(field==std::make_pair(2,std::string("EditDash"))){if(selected)return false;selected=&row;}
         if(row.type=="APPID")for(const auto& field:row.fields)
             if(field==std::make_pair(2,std::string(appName))){if(appProvider)return false;appProvider=&row;}
-        if(row.type=="LAYER")for(const auto& field:row.fields)
+        if(row.type=="LAYER")for(const auto& field:row.fields) {
             if(field==std::make_pair(2,std::string("0"))){if(layerProvider)return false;layerProvider=&row;}
+            if(!secondLayerName.empty()
+                &&field==std::make_pair(2,secondLayerName)) {
+                if(secondLayerProvider)return false;secondLayerProvider=&row;
+            }
+        }
     }
     if(!selected||!appProvider||!layerProvider||selected->id.empty()||appProvider->id.empty()
-        ||layerProvider->id.empty()||layerProvider->owner.empty())return false;
+        ||layerProvider->id.empty()||layerProvider->owner.empty()
+        ||(!secondLayerName.empty()&&(!secondLayerProvider||secondLayerProvider->id.empty()
+            ||secondLayerProvider->owner.empty())))return false;
     std::vector<std::pair<int,std::string>> xdata;
     for(const auto& field:selected->fields)if(field.first>=1000)xdata.push_back(field);
-    if(xdata!=std::vector<std::pair<int,std::string>>{
-            {1001,appName},{1003,"0"},{1000,payload}})return false;
+    std::vector<std::pair<int,std::string>> expectedXdata{{1001,appName},{1003,"0"}};
+    if(!secondLayerName.empty())expectedXdata.emplace_back(1003,secondLayerName);
+    expectedXdata.emplace_back(1000,payload);
+    if(xdata!=expectedXdata)return false;
     const std::vector<int> appCodes{5,330,100,100,2,70};std::vector<int> observedCodes;
     for(const auto& field:appProvider->fields)observedCodes.push_back(field.first);
     if(observedCodes!=appCodes||appProvider->owner!=appOwner)return false;
@@ -31413,17 +31459,28 @@ bool layerNameProviderProof(const std::filesystem::path& path,bool binary,
     if(!reader.fileImport(path.string(),&actual,false))return false;
     unsigned linetypes=0u,appIds=0u,layers=0u;
     for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
-        if(value.extData.size()!=3u||!value.extData[0]||!value.extData[1]||!value.extData[2]
+        const std::size_t expectedCount=secondLayerName.empty()?3u:4u;
+        if(value.extData.size()!=expectedCount||!value.extData[0]
             ||value.extData[0]->code()!=1001||!value.extData[0]->content.s
-            ||*value.extData[0]->content.s!=appName||value.extData[1]->code()!=1003
+            ||*value.extData[0]->content.s!=appName||!value.extData[1]
+            ||value.extData[1]->code()!=1003
             ||!value.extData[1]->content.s||*value.extData[1]->content.s!="0"
-            ||value.extData[2]->code()!=1000||!value.extData[2]->content.s
-            ||*value.extData[2]->content.s!=payload)return false;
+            )return false;
+        const std::size_t payloadIndex=secondLayerName.empty()?2u:3u;
+        if(!secondLayerName.empty()&&(!value.extData[2]
+            ||value.extData[2]->code()!=1003||!value.extData[2]->content.s
+            ||*value.extData[2]->content.s!=secondLayerName))return false;
+        if(!value.extData[payloadIndex]||value.extData[payloadIndex]->code()!=1000
+            ||!value.extData[payloadIndex]->content.s
+            ||*value.extData[payloadIndex]->content.s!=payload)return false;
         ++linetypes;
     }
     for(const auto& value:actual.appIds)if(value.name==appName)++appIds;
     for(const auto& value:actual.layers)if(value.name=="0")++layers;
-    return linetypes==1u&&appIds==1u&&layers==1u;
+    unsigned secondLayers=0u;
+    for(const auto& value:actual.layers)if(value.name==secondLayerName&&!secondLayerName.empty())++secondLayers;
+    return linetypes==1u&&appIds==1u&&layers==1u
+        &&(secondLayerName.empty()||secondLayers==1u);
 }
 
 bool coordinateProviderProof(const std::filesystem::path& path,bool binary,
@@ -32122,6 +32179,47 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeLayerProofBound(adapter,sourceLayerHandle))return false;
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithTwoLayerNamesXdata(sourceBinary),sourceBinary,"AC1027")
+            ||!layerNameProviderProof(input,sourceBinary,"1F0","MLINE_XDATA_LAYER")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        const auto firstLayer=std::find_if(data.layers.begin(),data.layers.end(),
+            [](const auto& value){return value.name=="0";});
+        const auto secondLayer=std::find_if(data.layers.begin(),data.layers.end(),
+            [](const auto& value){return value.name=="MLINE_XDATA_LAYER";});
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=4u
+            ||!sourceLine->extData[0]||!sourceLine->extData[1]
+            ||!sourceLine->extData[2]||!sourceLine->extData[3]
+            ||sourceLine->extData[0]->code()!=1001||sourceLine->extData[1]->code()!=1003
+            ||sourceLine->extData[2]->code()!=1003||sourceLine->extData[3]->code()!=1000
+            ||firstLayer==data.layers.end()||secondLayer==data.layers.end())return false;
+        const auto firstLayerHandle=firstLayer->handle,secondLayerHandle=secondLayer->handle;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!layerNameProviderProof(output,outputBinary,"9","MLINE_XDATA_LAYER")
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeLayerProofBound(adapter,firstLayerHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeLayerProofBound(adapter,secondLayerHandle))return false;
+        ++profiles;++readbacks;
+        const auto savedLayers=data.layers;
+        data.layers.erase(std::remove_if(data.layers.begin(),data.layers.end(),[](const auto& value) {
+            return value.name=="MLINE_XDATA_LAYER";
+        }),data.layers.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;data.layers=savedLayers;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!layerNameProviderProof(output,outputBinary,"9","MLINE_XDATA_LAYER")
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeLayerProofBound(adapter,firstLayerHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeLayerProofBound(adapter,secondLayerHandle))return false;
+        ++retries;++readbacks;
+    }
     {
         LateAppIdMutation adapter;dx_data data;
         if(!write(input,source(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return false;
@@ -32291,7 +32389,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==40u&&readbacks==88u&&refusals==48u&&retries==48u;
+    return profiles==44u&&readbacks==96u&&refusals==52u&&retries==52u;
 }
 }
 

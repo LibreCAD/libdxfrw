@@ -22054,7 +22054,7 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
             if (field->type()!=DRW_Variant::STRING || !field->content.s
                 || field->content.s->empty() || field->content.s->size()>255u
                 || field->content.s->find('\0')!=std::string::npos
-                || !layerNames.empty()) return false;
+                || layerNames.size()>=2u) return false;
             layerNames.emplace_back(*field->content.s);
             hasPayload=true;break;
         case 1002:
@@ -22613,20 +22613,22 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                     }
                                 }
                                 if (model && !layerNames.empty()) {
-                                    if (layerNames.size()!=1u || !visit(layerNames.size())
+                                    if (layerNames.size()>2u || !visit(layerNames.size())
                                         || !chargeNamedResourceBytes(bytes,
                                             layerNames.size()*(sizeof(std::uint32_t)
                                                 +sizeof(std::string_view)+512u)))
                                         return false;
-                                    std::size_t referenceCount=0u,referenceSlot=SIZE_MAX;
+                                    std::array<std::size_t,2> referenceSlots{};
+                                    std::size_t referenceCount=0u;
                                     for (const auto& reference:r.references) {
                                         if (reference.kind!=dx_tableResourceRole::LayerName
                                             || reference.code!=1003) continue;
-                                        if (++referenceCount>1u) {model=nullptr;break;}
-                                        referenceSlot=reference.groupIndex;
+                                        if (referenceCount==referenceSlots.size()) {model=nullptr;break;}
+                                        referenceSlots[referenceCount++]=reference.groupIndex;
                                     }
                                     if (referenceCount!=layerNames.size()) model=nullptr;
                                     for (std::size_t i=0u;model && i<layerNames.size();++i) {
+                                        const auto referenceSlot=referenceSlots[i];
                                         if (referenceSlot>=r.raw->groups.size()
                                             || r.raw->groups[referenceSlot].code()!=1003
                                             || r.raw->groups[referenceSlot].type()!=DRW_Variant::STRING
@@ -22744,7 +22746,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
         for (const auto& row:m_dxfMLineLinetypes) {
             if (row.second.appIdHandles.size()>2u
                 || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()
-                || row.second.layerHandles.size()>1u
+                || row.second.layerHandles.size()>2u
                 || layerReferenceCount>kMaxAdapterBasicTableItems-row.second.layerHandles.size()) return false;
             appReferenceCount+=row.second.appIdHandles.size();
             layerReferenceCount+=row.second.layerHandles.size();
