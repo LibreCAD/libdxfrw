@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5km selected five-element tail append to a consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "8a6aaa98dd73e77e16f18e964b10cab8aca4ea33",
+  "scope": "Extends the selected AC1027 open, uncut, unfilled MLINE projector to append five tail elements to a source-bound two-element MLINESTYLE already used by ordinary MLINE consumers. It recalculates group-41 values against the complete seven-element target offset set and publishes group-73 count 7. This is selected output/geometry evidence, not native CAD semantic qualification or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the number of MLINESTYLE elements; group 74 gives the repeated parameter count per element at each vertex; group 41 carries those parameters; group 75/42 carry area-fill parameter counts and values. The first group-41 value is the distance along the miter vector to the element path intersection."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries each MLINESTYLE element offset; the selected projection is limited to style flag 2."
+    }
+  ],
+  "contract": {
+    "admission": "The original MLINESTYLE body, dictionary/provider graph and every ordinary MLINE consumer must be source-bound. The source style has exactly two elements and the target appends exactly five complete tail tuples, yielding seven. Existing offsets remain unchanged; appended tuples use validated ACI values and the existing ByLayer/Continuous linetype providers. Source and target style flags are 2 with equal start/end angles. Every consumer remains live, in its original scope and model-identical during preflight. The consumed route admits this exact 2-to-7 profile; other source counts and append cardinalities remain refused.",
+    "geometry": "Each selected MLINE is open, has at least two vertices, positive finite scale, justification 1 or 2, unit extrusion, source-consistent WCS positions/directions/miters, exactly two group-41 parameters per source element with zero second values, and no group-42 fill values. Every original first group-41 value is validated. All seven target parameters are recalculated using the complete offset set; bottom-justification shift is derived from the new minimum offset -5.0. Each appended element receives a [miter-distance, 0] pair and an empty fill-parameter list. The output MLINE element count becomes seven without mutating caller models.",
+    "identityAndOutput": "The MLINE retains its redundant group-2 name and group-340 style reference. Output proof checks seven group-49 offsets and corresponding ACI/linetype values; the unique ByLayer and Continuous LTYPE records are checked under their LTYPE TABLE with handle and owner fields present. Each consumer has group-73 count 7, twenty-one group-74 counts of 2, forty-two group-41 values, twenty-one zero group-75 counts, and no group 42. Fresh import verifies all seven style tuples and per-vertex arrays plus unchanged WCS positions/directions/miters, scale and extrusion for model-space and named-block consumers.",
+    "failureAndRetry": "An unsupported style flag refuses before publication and preserves destination/caller state; correcting it permits same-adapter retry. A target with eight elements refuses before publication as the adjacent count boundary. A late live-consumer parameter mutation after entity emission refuses before publication; restoring the caller snapshot permits same-adapter retry. Successful output is reopened for exact tuple, provider, field and geometry readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. ASCII/binary source and output routes remain supported. All drawings are authored at runtime from scratch and removed after success; no DWG/DXF fixture was committed.",
+    "limits": "Evidence covers AC1027 ASCII and binary sources crossed with ASCII and binary output; a two-element source style with five appended tails; flags 2, equal angles, open/unfilled/uncut MLINEs, one model-space and one named-block consumer, three vertices, center and bottom justification, and two extrusion planes. It does not qualify other source counts, other append cardinalities, composed edits, other MLINE schemas/carriers/versions, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "styleAndConsumerProfile": "The generated two-element source has offsets [1.25, -0.75]. Exact appended tuples are (-1.25, ACI 4, ByLayer), (-2.0, ACI 5, Continuous), (-3.0, ACI 6, ByLayer), (-4.0, ACI 7, Continuous), and (-5.0, ACI 8, ByLayer), producing [1.25, -0.75, -1.25, -2.0, -3.0, -4.0, -5.0]. The bottom-justification shift becomes +5.0 and is checked for all seven element parameters. Model-space and named-block consumers exercise center/bottom justification, three vertices and distinct extrusion planes.",
+    "failureAndRetry": "Four source/output profiles and eight successful readbacks; two unsupported-flag refusals and two late-consumer mutation refusals preserve destination state; four same-adapter retries succeed after state correction. The adjacent 2-to-8 append refuses atomically in ASCII and binary outputs."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf",
+        "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests dwg2dxf"
+      ]
+    },
+    "focusedAppendSelectors": {
+      "result": "PASS",
+      "summary": "4/4 consumed-style two-, three-, four- and five-element append selectors",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_(multi_append|triple_append|quad_append|quint_append)$' --output-on-failure"
+    },
+    "affectedNormalCohort": {
+      "result": "PASS",
+      "summary": "13/13 current-source MLINE style/body, authority, projection, retarget, append and removal selectors",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(style_body_transactions|style_authority|consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_triple_append|consumed_style_quad_append|consumed_style_quint_append|consumed_style_removal|consumed_style_multi_removal|consumed_style_three_removal|consumed_style_single_from_four_removal)$' --output-on-failure"
+    },
+    "affectedAsanCohort": {
+      "result": "PASS",
+      "summary": "11/11 current-source consumed MLINE projection, retarget, append and removal selectors",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_(consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_triple_append|consumed_style_quad_append|consumed_style_quint_append|consumed_style_removal|consumed_style_multi_removal|consumed_style_three_removal|consumed_style_single_from_four_removal)$' --output-on-failure"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "a1e71161175f353fd92c567733c0a81f86523175ed2c72d51a4b77c9304ad190",
+    "tests/CMakeLists.txt": "b85c1a8fea2004ff13c5937eeb3fe82c48b4a42a24fe59ddb33638bc2891184f",
+    "tests/dxf_fixture_tests.cpp": "2ec7e861c0c9ab55e7fa6312a67ab146bdba1281d7bf91e0387e6e3b9123e65d"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "d77e240eddd4b571ccee282cd94b56bbad4238b57b1043f5628577e89eceef15",
+    "asanLibdxfrwDxfFixtureTests": "492985166cf112c4fdeebe843d34eb21db51b1f97788bfc7d0e08d1c14686ea9",
+    "normalDwg2dxf": "8a55f8578084e1c50008aaaba497b04eeaa14733d334170ccd9ea0db55a8f05d",
+    "asanDwg2dxf": "61de7d0f9fd89b92d0e17fb458bcea8f40d1e163a26f82fc289c7d3b1090bc71"
+  },
+  "next": "Use the generated 2-to-8 refusal as the next exact count witness. Qualify the sixth appended tuple/provider, emitted MLINE arrays/readback and failure/retry while preserving a neighboring refused count. Keep unrelated counts, removal, retarget, version, carrier, schema and semantic claims open."
+}
