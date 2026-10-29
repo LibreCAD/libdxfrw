@@ -17493,7 +17493,9 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
             || (original.openClosed!=5 && original.openClosed!=9 && original.openClosed!=13)))
         || (simpleFillOffsetEdit && (appended || removed || retargetAngles || retargetStyleRemoval
             || retargetOffsets || before.elements.size()!=2u || after.elements.size()!=2u
-            || original.openClosed!=13 || original.vertlist.size()!=3u))
+            || (original.openClosed!=1 && original.openClosed!=5
+                && original.openClosed!=9 && original.openClosed!=13)
+            || original.vertlist.size()<2u || original.vertlist.size()>4u))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -18862,8 +18864,10 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                         || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
                 const bool selectedSimpleFillOffsetEdit=before && version==DRW::AC1027
                     && !append && !removeElements && before->elements.size()==2u
-                    && targetStyle.elements.size()==2u && original->openClosed==13
-                    && original->vertlist.size()==3u
+                    && targetStyle.elements.size()==2u
+                    && (original->openClosed==1 || original->openClosed==5
+                        || original->openClosed==9 || original->openClosed==13)
+                    && original->vertlist.size()>=2u && original->vertlist.size()<=4u
                     && std::all_of(original->vertlist.begin(),original->vertlist.end(),[](const DRW_MLineVertex& vertex) {
                         return vertex.areaFillParms.size()==2u
                             && std::all_of(vertex.areaFillParms.begin(),vertex.areaFillParms.end(),
