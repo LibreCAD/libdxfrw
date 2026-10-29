@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected ATTDEF and 704/705/706 source joins; [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) | Bind original 6F2 body to the structural capture before any BLKREFS/331 source relation. Target-name uniqueness, APPID/LAYER and output remain separate |
+| P4a — AC1018 attribute provenance | Selected ATTDEF and 704/705/706 source joins; [BLOCK_RECORD/331 source relation](docs/research/rpp5jh-ac1018-blockref-whole-source-relation-2026-10-28.json) | Resolve target-name uniqueness, XDICTIONARY and APPID/LAYER separately before output or graph promotion |
 | P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) and existing identity/delivery evidence | Join the accepted capture to origins, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
@@ -421,12 +421,11 @@ and profile all pass. A scratch comparison against a separately reopened
 whole-source stream detects this counterexample, but that comparison is not
 same-read authority and must not promote a source relation.
 
-Use the [same-read observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json)
-for a bounded exact BLOCK_RECORD body join, verifying the original scalar scope,
-record boundaries and all roles against the selected capture. Then bind 6F2's
-BLKREFS/331 and original name to 704
-as a source relation with ASCII/binary, callback-spoof, quota and retry controls.
-Keep name uniqueness and target resolution separate, then bind XDICTIONARY 6F3
+The [same-read source relation](docs/research/rpp5jh-ac1018-blockref-whole-source-relation-2026-10-28.json)
+now binds 6F2's captured BLOCK_RECORD body, original name and BLKREFS/331 to
+704's selected INSERT compound, with ASCII/binary, callback-spoof, quota and
+retry controls. This is source evidence only. Keep name uniqueness and target
+resolution separate, then bind XDICTIONARY 6F3
 and APPID/LAYER targets and prove output and retry behavior without weakening
 the generic gates.
 

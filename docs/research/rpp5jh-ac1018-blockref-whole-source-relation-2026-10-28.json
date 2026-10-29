@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 BLOCK_RECORD to INSERT source relation",
+  "date": "2026-10-28",
+  "codeCommit": "9a0a46f9d1947fb0b6e3756a78c8955a2cfe94ff",
+  "scope": "Private, on-demand source-only relation for a selected AC1018 BLOCK_RECORD profile with one BLKREFS group-331 and a selected authenticated INSERT/ATTRIB/SEQEND compound, all bound to the same accepted import and context.",
+  "contract": {
+    "operation": "Match every selected BLOCK_RECORD group to the whole-read decoded scalar/lexeme record and ordinal spans, including ignored comments and ASCII spellings where captured; bind its self, TABLE owner, name and selected 331 to the separately source-bound compound INSERT and original block name. Return source identity and name/reference spans only.",
+    "admission": "Authenticate whole, identity, structural and compound owners, import/generation/container and codec context; build a bounded identity index and precharge source/delivery counts, field and string comparisons. Quota failure returns no relation and leaves source state intact.",
+    "unqualified": "Name uniqueness and target resolution, complete owner/extension/APPID/LAYER graph, regenerated output, native semantics, arbitrary source profiles and support claims."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "5b6ecd6840bf0647e5905eab39079a69ba58adecf6d32054aae94b780766ca6f",
+    "adapterHeaderSha256": "792ef94559a11721cc3ec82aaff5cbfd647f19b2852fdef1fb9f9a19afc655b2",
+    "wholeBodyHelperSha256": "3ca61c5a0ee6b23d94cf2ece825929e5890d8db49ffac76503cbc2f9b0bee5ee",
+    "relationHelperSha256": "4d159425b527fb8556fa4ade602ff35ca143bd4d6a88fb4107cef9f8836813ce",
+    "testSourceSha256": "256570095c11f5620e91a53d82d48a8e52e958e7455e81a87a136d11a87e891f",
+    "normalAdapterObjectSha256": "da38761e741bb2493a3b2138ddf2d2b609422ad0bd16c166d41a58f815c23a1f",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "normalTestExecutableSha256": "f2c9bb19ba0fde81d00999d16be32dc0e9c3eb6990a4f51e8c30523304cc818c",
+    "asanAdapterObjectSha256": "3f660ac1797fbec0f21a80bdd03d24a3bd796390030153caa8aa5fc52d21d9e8",
+    "asanLibrarySha256": "470a3cf789dabd460281880b22933e335a60e01b8eb58281ff27aeb012d29e57",
+    "asanTestExecutableSha256": "4a50774ddd0bf6b24a1b185572e4845e80f28552a1e0510048238731e39ec027"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII and binary input: paired callback 331 spoof, original/whole owner and context substitutions, omitted/duplicate/mutated observer callbacks, exact and one-below work/bytes budgets and corrected retries; ignored comments before/within/after selected body, same-data refusal. The many-source/no-delivery low-quota control shows refusal and restored retry; it does not isolate scan ordering from the fixed quota charge. Early count check and both scan precharges were independently code reviewed.",
+    "inventory": "Source inventory check passed 625 tracked files."
+  },
+  "independentSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "sharedLinkedProbeSha256": "f0a7f744ebbd9ea76f7bf0f1b39226029094610bac247e58d04496a6fbcc1636",
+    "baselineStdoutSha256": "e9a7e715377a113ef0fa8a35373e62ad28b92f0a5785a11cb0ef5db8a673e9c7",
+    "result": "Selected original 6F2 name MyBlock and its 331 value 704 match the 704 INSERT compound source.",
+    "localSpoof": {
+      "derivedSha256": "0a57c4ae242bc303f88913d6d19f0189a27ad61960a83ea2c7a4059bc899ded4",
+      "derivation": "Local test copy changes only the selected BLKREFS 331 from 704 to 703; callbacks rewrite both retained raw and typed views back to 704.",
+      "stdoutSha256": "90641bcbc326a0148e1f93ca8c9a4d7e2cc21e832c4844bad9cda54824ea55f4",
+      "result": "The earlier raw/typed pairing and selected profile accept the coordinated spoof, but the whole-source body comparison refuses the relation."
+    }
+  },
+  "limitations": [
+    "The whole-read observer is a decoded scalar and available value-spelling census, not a byte-exact file image.",
+    "The 331 relation is source-only: it neither proves target-name uniqueness nor resolves an INSERT target, whole graph, XDICTIONARY, APPID/LAYER or export.",
+    "ACadSharp sample producer/native authoring semantics and native application behavior are not independently certified. No drawing fixture is committed."
+  ]
+}
