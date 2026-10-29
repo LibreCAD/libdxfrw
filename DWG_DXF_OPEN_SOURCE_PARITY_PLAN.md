@@ -273,8 +273,11 @@ forms remain separate profiles. Bind original identity/scope and target types
 before owner or output claims; profile completion does not change those gates.
 The [XRECORD identity observer fix](docs/research/rpp5il-xrecord-identity-body-scopes-2026-10-28.json)
 allows the selected AC1018 source census to complete while classifying payload
-handles as opaque. Reader-level registration of XRECORD body group 5 remains a
-separate reproduced issue; neither observation qualifies identity or ownership.
+handles as opaque. The [payload identity fix](docs/research/rpp5im-xrecord-payload-identity-2026-10-28.json)
+also prevents body 5 from reserving a global self handle and body 330 from
+inventing a parent. Ordinary typed entity duplicates retain their existing
+softened import behavior; the original namespace remains unqualified when its
+physical identity is ambiguous. Identity, ownership and output gates remain open.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,

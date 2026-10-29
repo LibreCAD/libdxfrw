@@ -1,0 +1,65 @@
+{
+  "schema": "xrecord-payload-raw-identity-v1",
+  "date": "2026-10-28",
+  "codeCommit": "91aa8f59e46ef0b5a1c9ba5b69c59009ed4660ae",
+  "supportClaimsPromoted": false,
+  "scope": "XRECORD DXF body 5/105/330 values remain payload; raw capture no longer registers a body 5 as a global self handle or derives the raw outer parent from a body 330. Existing outer identity behavior and typed-reader duplicate softening remain in place.",
+  "counterfactual": {
+    "input": "build/agent-attribute-profile/xrecord-debug/duplicate-authored.dxf",
+    "inputSha256": "bbc62329eee9144176995b0ea36c86e25d0b2f274e0ed73c606ff4af1b15802d",
+    "provenance": "Locally authored AC1018 ASCII control; generated under ignored build tree, not committed.",
+    "trigger": "XRECORD outer self 5=41 and body payload 5=41, plus body 105=43.",
+    "before": "Prior binary exit 3: DXF format 13, error 14.",
+    "after": "Current binary exit 0; outer 5=41 remains Outer/Accepted, body 5=41 and 105=43 remain OpaqueBody/Unobserved, identity observation Complete; legacy adapter namespace remains uncaptured.",
+    "beforeBinarySha256": "a2759d741116bd7a6aced3fc57a8daf68a658933fe3b87f7cb2978feec6614a6",
+    "beforeStdoutSha256": "243e57916e2a801ad31c2498591848e86893f449998475eed75b58d799164d90",
+    "afterProbeSourceSha256": "ad05831433883c422d484c5627f707cf09ea14f336afeaf7d33b317870feb99e",
+    "afterBinarySha256": "25fa5db50ddf29d611f913ff0eecc4eb89a118d8e09ea3e3e7b8d1b0ce1d08b0",
+    "afterStdoutSha256": "f51e3584647da5cc164f873573593c537adcd2d6abc976b400ea26b35150f6af",
+    "afterAdapterObjectSha256": "616dd8ba03fe54c97ad0d9cd1baa037d680cbef01570fa7b69c6338896328a77",
+    "afterLibrarySha256": "092b80422da3d0f68db2d2d221a9f9b1c13a0eafee49e1f85910f68c5cc948a7"
+  },
+  "bindings": {
+    "librarySourceSha256": "23d9d3375ee5af25b4bb9feb7e0062765250d8ec0c8d8323077221cc328867d6",
+    "libraryHeaderSha256": "b597ebf7185594af72e1b5d0b33bea591117f6d31ab4f0044e5d8be33e2688e6",
+    "identityControlsSha256": "94e1138a1d5d56ae1b57b9cee5be56b6db98ec907210c6cd2dc6f9e4a6219241",
+    "identityXrecordControlsSha256": "ca4c5bdbf4e9237e5133e3670d011ef167fbd501354f0fecdd3e74714b598308",
+    "payloadControlsSha256": "6be7dfeef7e7f7df2184982a219a74e75e4584d187cf3f6584d4d74325ffc8c6",
+    "normalTestBinarySha256": "ec4bc12e99f32b016da7b6001e8312ebc6441472784da16bbcb882b50d1dd846",
+    "note": "Source/control hashes match the packet code commit; the original local counterfactual binds its actual pre- and post-fix binaries and library."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_xrecord_xdata_channels",
+      "libdxfrw_xrecord_normal_string_codes",
+      "libdxfrw_xrecord_legacy_double_codes",
+      "libdxfrw_xrecord_legacy_boolean_codes"
+    ],
+    "normal": {
+      "result": "PASS 8/8",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "9cb128889001b6f8a97ebe6d53ee9780bfc8f50df7342065bd83d39b0130d3c4"
+    },
+    "asan": {
+      "result": "PASS 8/8 same focused selectors",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tableBinarySha256": "17a66dda83b42b8758ec9d51a6238de5e1573c1ccf49ed82cf4b3c5498139438",
+      "fixtureBinarySha256": "00d3a072fa32bfa1f082d9f8066ae2a8b0b20083c33bbd8aaa7a1681e41bddd2",
+      "attdefBinarySha256": "46d26725bea6017a0b40151b352f93340cecb15954d6ac99439bb40163b0ea1e",
+      "librarySha256": "2528f884fc6359de5bcf7a9db9d7ceaf801ef7cad5a997795a113c843f6acce6",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "77f4ea2effa4bb41b4765259a3017c3223e9843a06c5918dbd49a0c18feeaaee"
+    },
+    "controls": "16 locally authored AC1018/AC1032 ASCII/binary routes cover resource-facet on/off, XRECORD payload equal to own or later POINT self handle, absent/explicit-null outer owner vs body 330, raw/typed preservation, 16 true outer duplicate admissions and 16 corrected retries. Typed POINT duplicate is intentionally softened; observer records Duplicate and modern namespace remains Unqualified. Focused checks only."
+  },
+  "limitations": [
+    "No full-document, complete namespace, output or native CAD semantic claim is made; OpaqueBody candidates remain unqualified for source namespace authority.",
+    "The private raw-capture helper signature changed; rebuild/relink libdxfrw consumers and validate any binary compatibility promises separately. No DRW_Interface virtual or public object data layout is added.",
+    "Body payload values still use existing typed-handle width and validation policy; this does not claim wide-handle support.",
+    "No drawing fixtures were committed."
+  ]
+}
