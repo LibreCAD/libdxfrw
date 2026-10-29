@@ -63,7 +63,7 @@ external searches or a broad audit with no current failing witness.
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Opt-in ATTDEF, BLOCK endpoint and selected BLOCK_RECORD field profiles; real 6F8/6F2 and ATTRIB 705 | Bind original scope and BLOCK_RECORD targets, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused simultaneous retained-element edit, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused retained-element offset/linetype edit, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -122,14 +122,18 @@ proof. Refused fields are not implemented editing support.
    [2→1 first-element removal](docs/research/rpp5hp-mline-first-removal-2026-10-28.json)
    [multi-element append](docs/research/rpp5ht-mline-multi-append-2026-10-28.json)
    [bounded unused-style tail removal](docs/research/rpp5ib-mline-unused-tail-removal-2026-10-28.json),
-   and [bounded unique-subsequence removal](docs/research/rpp5id-mline-unique-subsequence-removal-2026-10-28.json)
-   receipts and their original/live ordinary MLINE census. The latest packet
+   [bounded unique-subsequence removal](docs/research/rpp5id-mline-unique-subsequence-removal-2026-10-28.json),
+   and [removal with retained-element ACI edits](docs/research/rpp5iy-mline-removal-aci-2026-10-28.json)
+   receipts and their original/live ordinary MLINE census. The selected route
    admits a nonempty, uniquely matched ordered survivor subsequence from a
-   qualified unused modern style, including non-tail removals. It preserves
-   original tuple spellings and provider evidence and leaves the source and
-   destination unchanged on refusal. It does not qualify simultaneous
-   retained-element edits, 1→0, consumed geometry, earlier versions, proxy or
-   unknown dependencies. Continue to refuse unsupported operations.
+   qualified unused modern style, including non-tail removals and ACI edits
+   where non-ACI survivor anchors match exactly one original tuple. It preserves
+   original tuple provenance and provider evidence and leaves the source and
+   destination unchanged on refusal. Comparison scans precharge string-sensitive
+   work; the existing typed-copy path is separately bounded by retained bytes,
+   not by a total CPU or RSS limit. Simultaneous offset or linetype edits, 1→0,
+   consumed geometry, earlier versions, proxy or unknown dependencies and native
+   interpretation remain unqualified. Continue to refuse unsupported operations.
 4. **P2.2L: earlier-version authority.** Extend original dictionary/key and actual
    consumer origin/context/codec proof before admitting earlier-DXF key renames or
    distinct redundant names. Start with one justified legacy encoding boundary;
