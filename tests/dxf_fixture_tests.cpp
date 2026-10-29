@@ -33770,55 +33770,87 @@ Tags recipe(bool binary,bool corrupt=false) {
     }
     return fields;
 }
-Tags fourElementRecipe(bool binary) {
-    const std::array<double,4> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25,-2.0}};
-    const std::array<int,4> colors{{1,3,4,5}};
-    const std::array<std::string,4> linetypes{{"ByLayer","Continuous","ByLayer","Continuous"}};
+Tags consumedSourceCountRecipe(bool binary,unsigned sourceCount) {
+    if(sourceCount<4u||sourceCount>254u)
+        throw std::runtime_error("consumed source-count recipe is outside 4..254");
+    std::vector<double> offsets{beforeOffsets[0],beforeOffsets[1]};
+    for(unsigned element=2u;element<sourceCount;++element) {
+        const double offset=element==2u?-1.25
+            :-2.0-.5*static_cast<double>(element-3u);
+        offsets.push_back(offset);
+    }
     auto fields=recipe(binary);
-    for(std::size_t i=0u;i<fields.size();) {
-        if(fields[i].first!=0){++i;continue;}
-        std::size_t end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;
-        if(fields[i].second=="MLINESTYLE") {
-            setRecordValue(fields,i,end,71,"4");
-            const auto lastType=std::find_if(fields.rbegin()+static_cast<std::ptrdiff_t>(fields.size()-end),fields.rend(),
-                [](const auto& field){return field.first==6;});
-            if(lastType==fields.rend())throw std::runtime_error("consumed multi-removal style linetype missing");
-            const auto insert=fields.size()-1u-static_cast<std::size_t>(lastType-fields.rbegin());
-            Tags tuples;for(std::size_t element=2u;element<offsets.size();++element)
-                tuples.insert(tuples.end(),{{49,number(offsets[element])},{62,std::to_string(colors[element])},{6,linetypes[element]}});
-            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(insert+1u),tuples.begin(),tuples.end());
-            i=end+tuples.size();continue;
-        }
-        if(fields[i].second=="MLINE") {
-            const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+    for(std::size_t begin=0u;begin<fields.size();) {
+        if(fields[begin].first!=0){++begin;continue;}
+        std::size_t end=begin+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[begin].second=="MLINESTYLE") {
+            setRecordValue(fields,begin,end,71,std::to_string(sourceCount));
+            std::size_t lastLinetype=end;
+            for(std::size_t i=begin+1u;i<end;++i)
+                if(fields[i].first==6)lastLinetype=i;
+            if(lastLinetype==end)
+                throw std::runtime_error("consumed MLINESTYLE source linetype missing");
+            Tags tuples;
+            for(unsigned element=2u;element<sourceCount;++element) {
+                const int color=static_cast<int>(element)+2;
+                const char* linetype=(element%2u)==0u?"ByLayer":"Continuous";
+                tuples.insert(tuples.end(),{{49,number(offsets[element])},
+                    {62,std::to_string(color)},{6,linetype}});
+            }
+            const auto insert=lastLinetype+1u;
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(insert),
+                tuples.begin(),tuples.end());
+            end+=tuples.size();
+        } else if(fields[begin].second=="MLINE") {
+            setRecordValue(fields,begin,end,73,std::to_string(sourceCount));
+            const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(begin+1u),
+                fields.begin()+static_cast<std::ptrdiff_t>(end),
                 [](const auto& field){return field.first==5;});
-            if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed multi-removal MLINE identity missing");
+            if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))
+                throw std::runtime_error("consumed MLINE identity missing");
             const unsigned profile=id->second=="D100"?0u:id->second=="D101"?1u:2u;
-            if(profile>1u)throw std::runtime_error("unexpected multi-removal MLINE profile");
-            setRecordValue(fields,i,end,73,"4");
-            const auto point=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+            if(profile>1u)
+                throw std::runtime_error("unexpected consumed MLINE profile");
+            const auto point=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(begin+1u),
+                fields.begin()+static_cast<std::ptrdiff_t>(end),
                 [](const auto& field){return field.first==10;});
-            if(point==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed multi-removal base point missing");
-            const auto vertices=geometry(profile);const auto ext=extrusion(profile);
-            Tags generated{{10,number(vertices.front().first.x)},{20,number(vertices.front().first.y)},{30,number(vertices.front().first.z)},
+            if(point==fields.begin()+static_cast<std::ptrdiff_t>(end))
+                throw std::runtime_error("consumed MLINE base point missing");
+            const auto vertices=geometry(profile);
+            const auto ext=extrusion(profile);
+            Tags generated{{10,number(vertices.front().first.x)},
+                {20,number(vertices.front().first.y)},
+                {30,number(vertices.front().first.z)},
                 {210,number(ext.x)},{220,number(ext.y)},{230,number(ext.z)}};
-            const double shift=justification(profile)==2u?2.0:0.0;
+            const double shift=justification(profile)==2u?-offsets.back():0.0;
             for(unsigned vertex=0u;vertex<vertices.size();++vertex) {
-                const auto pos=vertices[vertex].first,dir=vertices[vertex].second,mit=miter(profile,vertices,vertex);
-                generated.insert(generated.end(),{{11,number(pos.x)},{21,number(pos.y)},{31,number(pos.z)},
+                const auto pos=vertices[vertex].first;
+                const auto dir=vertices[vertex].second;
+                const auto mit=miter(profile,vertices,vertex);
+                generated.insert(generated.end(),{{11,number(pos.x)},
+                    {21,number(pos.y)},{31,number(pos.z)},
                     {12,number(dir.x)},{22,number(dir.y)},{32,number(dir.z)},
                     {13,number(mit.x)},{23,number(mit.y)},{33,number(mit.z)}});
-                for(const double offset:offsets)generated.insert(generated.end(),{{74,"2"},
-                    {41,number(parameterForOffset(profile,vertex,offset,shift))},{41,number(0.0)},{75,"0"}});
+                for(const double offset:offsets)
+                    generated.insert(generated.end(),{{74,"2"},
+                        {41,number(parameterForOffset(profile,vertex,offset,shift))},
+                        {41,number(0.0)},{75,"0"}});
             }
-            const auto begin=static_cast<std::size_t>(point-fields.begin());
-            fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(begin),fields.begin()+static_cast<std::ptrdiff_t>(end));
-            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(begin),generated.begin(),generated.end());
-            i=begin+generated.size();continue;
+            const auto pointIndex=static_cast<std::size_t>(point-fields.begin());
+            fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(pointIndex),
+                fields.begin()+static_cast<std::ptrdiff_t>(end));
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(pointIndex),
+                generated.begin(),generated.end());
+            begin=pointIndex+generated.size();
+            continue;
         }
-        i=end;
+        begin=end;
     }
     return fields;
+}
+Tags fourElementRecipe(bool binary) {
+    return consumedSourceCountRecipe(binary,4u);
 }
 Tags fiveElementRecipe(bool binary) {
     auto fields=fourElementRecipe(binary);
@@ -34147,6 +34179,9 @@ Tags tenElementRecipe(bool binary) {
         begin=end;
     }
     return fields;
+}
+Tags elevenElementRecipe(bool binary) {
+    return consumedSourceCountRecipe(binary,11u);
 }
 Tags threeElementRecipe(bool binary) {
     auto fields=fourElementRecipe(binary);
@@ -35447,6 +35482,14 @@ bool runConsumedTenSourceAppend(const std::filesystem::path& dir) {
          "Continuous","ByLayer","Continuous","ByLayer","Continuous",
          "ByLayer"});
 }
+bool runConsumedElevenSourceAppend(const std::filesystem::path& dir) {
+    return runConsumedSourceCountAppend(dir,11u,elevenElementRecipe,
+        {1.25,-.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5,-5.0,-5.5,-6.0},
+        {1,3,4,5,6,7,8,9,10,11,12,13},
+        {"ByLayer","Continuous","ByLayer","Continuous","ByLayer",
+         "Continuous","ByLayer","Continuous","ByLayer","Continuous",
+         "ByLayer","Continuous"});
+}
 bool runConsumedFourSourceAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-four-source-append-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -35513,6 +35556,16 @@ bool runConsumedTenSourceAppendTemporary() {
     const bool passed=runConsumedTenSourceAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed ten-source append artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedElevenSourceAppendTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-eleven-source-append-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runConsumedElevenSourceAppend(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed eleven-source append artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedAppend(const std::filesystem::path& dir) {
@@ -44729,6 +44782,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-ten-source-append") {
         return mlineConsumedOffsetControls::runConsumedTenSourceAppendTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-eleven-source-append") {
+        return mlineConsumedOffsetControls::runConsumedElevenSourceAppendTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
