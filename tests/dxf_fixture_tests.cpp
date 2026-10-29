@@ -36464,7 +36464,7 @@ template<class SourceRecipe>
 bool runConsumedSurvivorSubsetRemoval(const std::filesystem::path& dir,unsigned sourceCount,
         unsigned targetCount,SourceRecipe sourceRecipe,const std::vector<double>& sourceOffsets,
         const std::vector<int>& sourceColors,const std::vector<std::string>& sourceLinetypes) {
-    if(sourceCount<2u||sourceCount>10u
+    if(sourceCount<2u||sourceCount>11u
         ||(sourceCount==9u&&targetCount>8u)
         ||(sourceCount==10u&&targetCount>9u)
         ||targetCount==0u||targetCount>=sourceCount
@@ -36644,6 +36644,30 @@ bool runConsumedTenReductionTemporary(unsigned targetCount) {
         std::filesystem::remove_all(dir,error);
     } else {
         std::cerr<<"MLINE consumed 10-to-"<<targetCount<<" removal artifacts: "<<dir<<'\n';
+    }
+    return passed;
+}
+bool runConsumedElevenReductionTemporary(unsigned targetCount) {
+    if(targetCount==0u||targetCount>10u)return false;
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-eleven-to-"+std::to_string(targetCount)+"-removal-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    std::vector<double> offsets;
+    std::vector<int> colors;
+    std::vector<std::string> linetypes;
+    for(unsigned i=0u;i<11u;++i) {
+        offsets.push_back(consumedAppendOffset(i));
+        colors.push_back(consumedAppendColor(i));
+        linetypes.emplace_back(i%2u==0u?"ByLayer":"Continuous");
+    }
+    const bool passed=runConsumedSurvivorSubsetRemoval(dir,11u,targetCount,
+        elevenElementRecipe,offsets,colors,linetypes);
+    if(passed) {
+        std::error_code error;
+        std::filesystem::remove_all(dir,error);
+    } else {
+        std::cerr<<"MLINE consumed 11-to-"<<targetCount<<" removal artifacts: "<<dir<<'\n';
     }
     return passed;
 }
@@ -45341,6 +45365,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-nine-from-ten-removal") {
         return mlineConsumedOffsetControls::runConsumedTenReductionTemporary(9u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-one-from-eleven-removal") {
+        return mlineConsumedOffsetControls::runConsumedElevenReductionTemporary(1u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
