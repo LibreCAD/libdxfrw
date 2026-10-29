@@ -1,0 +1,60 @@
+{
+  "schema": "ac1018-attdef-source-scope-join-v1",
+  "date": "2026-10-28",
+  "codeCommit": "bcda04258edd603cfde1b82c65b3d0596f9411b0",
+  "scope": "Private selected AC1018 ATTDEF/BLOCK/ENDBLK/BLOCK_RECORD/TABLE physical identity and original ownership join using authenticated census, immutable source/model/profile pairs, BLOCK child stream and staged callback membership. No public diagnostic API, generic EnclosingMatched, full namespace/recursive graph/output or native semantic support is promoted.",
+  "route": {
+    "requirements": "The source opt-ins for identity, BLOCK endpoint, child stream, BLOCK delivery and ATTDEF must all be enabled; the retained census must pass the separate codec-owned delivery authentication. Default 2D consumers remain opted out.",
+    "algorithm": "Build one bounded canonical identity index and one per-record self-count vector. Require distinct uniquely selected physical identities, correct sections/types and BLOCK_RECORD table control; bind ATTDEF source dispatch and exact self-scalar span to the separately captured BLOCK child, compare all child record boundaries, and require original model/raw/profile/context and 330-owner relationships. Indexing charges candidate strings, records, map/vector storage and work before scanning; repeated per-block child and string work is charged before use.",
+    "repeats": "For the selected source-capture route, exactly one repeated same-ordinal self registration is required for BLOCK/ATTDEF/ENDBLK: raw group capture registers the scalar and its decoder registers that same current scalar. dxfReader resets the registration state at each readRec. TABLE and BLOCK_RECORD require zero repeats. This does not qualify arbitrary repeated admissions or other routes.",
+    "alias": "Long leading-zero physical aliases are parsed canonically rather than skipped; an Invalid registration is treated as a potential conflicting physical identity, not an admitted typed duplicate. Any selected collision or unqualified candidate refuses the selected join."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_legacy_adapter_capture",
+      "libdxfrw_block_legacy_capture",
+      "libdxfrw_legacy_attdef_scope_join",
+      "libdxfrw_identity_source_namespace"
+    ],
+    "normal": "PASS 4/4",
+    "asan": "PASS 4/4",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normalLogSha256": "4adbb722895c5668a4e101ace470c2fc237b4b904ce104a644e74bac6f191248",
+    "asanLogSha256": "b9a2ec4aaf8413a83147b9d45bd2a204eec10e09ecd13d3e83b824e9e17f4189",
+    "normalTestExecutableSha256": "e21d3dad407c3b906248e8483d571c1286d7aba990e3a4345a15c8aa4872c293",
+    "asanTestExecutableSha256": "bcd88c66289818fc6c4ffe74baf16b80b268cc1a62ad38e17d107f4442f60ae6",
+    "normalLibrarySha256": "3e771b88b7069039c9c75013cf25710f50570c53e7950ae45317ecde4dc1b67f",
+    "asanLibrarySha256": "01130f377d4b1aa36f9d9c2c2b239758d5fe1ea3eb0b62b1c285c858117f9bd7",
+    "controls": "Two locally authored ASCII/binary selected joins and two default opt-outs; 26 altered callback-census refusals, 10 direct index controls including repeated-admission and long-alias collisions, six changed original owner cases, eight exact/one-under quotas, two physical long-alias cases, two 16-ATTDEF shared-BLOCK cases and 42 fresh/same-data retries. Callback-census mutations are rejected by the prerequisite delivery ledger before index construction; the direct index controls separately exercise index behavior."
+  },
+  "realSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "result": "PASS selected ATTDEF 6F8 [74220,74426) with original owner BLOCK_RECORD 6F2 [30381,30685); enclosing BLOCK 6F4 [73768,73898), ENDBLK 6F9 [74426,74491), and BLOCK_RECORD TABLE 1 [28821,28891). The selected child self scalar is [74231,74239). Full native authoring and semantic meaning are not certified.",
+    "probeSourceSha256": "d7b6fb94ab63b97381c4e2c3c1d53ef56b5dbd5c535367e394b8fb4791b248e1",
+    "probeExecutableSha256": "1bab85c8731f81ab5df12b1266f46a8e0c9810e6ad37738060d82a9513d2ea80",
+    "probeOutputSha256": "dfdeefd16aee9fa836c00e6290d57e2ffd94a0bb0bc8252c2d262f320d548247",
+    "probeStderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "adapterObjectSha256": "0a7205afc7b64a3b0e6a5f4f07bd1e8d4ad447961e1cae47264b1f96c32811ab",
+    "independentScanner": "A separate byte-level ASCII code/value scanner found exactly one selected outer identity for each of the five roles and independently checked their record/self spans and original 330 values. This is physical/source evidence, not an independent CAD rendering or complete graph oracle.",
+    "scannerSha256": "dd793dec9079e0798b8f920bc00700e936172d49f05a4207e905c21e8926706d",
+    "scannerOutputSha256": "680e6cd803bbd9ffdfa178ebaba95f822a60df24449dae4008e7586f769066ee"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "28c00ccb2dd26bac3a45987c98a92f60df9c97686cde2aa2ef0ec0dfd6fa26ac",
+    "dwg2dxf/dx_iface.h": "87deaaa31d4df5d2a70c919a5391c672bf996cf03ec9a3e4d3775314b6cbac28",
+    "dwg2dxf/dx_iface.cpp": "b2bcfb17c072871612b238118fb0f7f25f8fa03cacb4aa394f61e7734fd42ca4",
+    "dwg2dxf/dx_legacy_identity_join.h": "6989782af1c11a9be5ce7a0863e841001ebd76e9aeae951647230715bb424aa1",
+    "tests/CMakeLists.txt": "afdefb02656560ddb3ae649fe5db2fe3d2fc1dd70e3f2f19582ac526f94c6365",
+    "tests/attdef_source_tests.cpp": "f2d6a10475b67e93ed55f29004c8276bbf90bd7822dd02ced1e1ef9979019c39",
+    "tests/legacy_attdef_scope_controls.h": "092db0e6103418f956c4184da029c8c7b0a21399b61c979f589d8989f11e8375"
+  },
+  "limits": [
+    "The selected join is private and diagnostic; generic resource rawTypedMatched and EnclosingMatched, namespace readiness and support claims remain unchanged. The new private adapter data layout requires dependent binaries to rebuild; no DRW_Interface virtual was added.",
+    "XDICTIONARY 6F3, BLKREFS INSERT 704, APPID/LAYER roles, ATTRIB 705 compound membership, recursive dependencies and actual staged output remain separate unqualified work.",
+    "The ASCII byte scanner is independent physical projection only; native rendering, CAD acceptance, platform qualification and full-suite/release checks remain open.",
+    "No external or generated drawing fixture was committed."
+  ]
+}

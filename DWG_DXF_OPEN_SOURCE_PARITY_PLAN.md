@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Opt-in ATTDEF, BLOCK endpoint and selected BLOCK_RECORD field profiles; real 6F8/6F2 and ATTRIB 705 | Bind original scope and BLOCK_RECORD targets, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
+| P4a — AC1018 attribute provenance | Selected source-scope join for ATTDEF 6F8 and BLOCK_RECORD 6F2; ATTRIB 705 remains separate | Bind remaining BLOCK_RECORD targets, ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused linetype edit, both-field edit on one survivor, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -316,9 +316,9 @@ import; ordinary typed-entity duplicate handling remains unchanged. Original
 target, graph closure and output proof remain separate gates. The [AC1018
 identity observation receipt](docs/research/rpp5iw-ac1018-identity-observation-2026-10-28.json)
 records the default-off, private retained census with completion authentication;
-it provides no public report or namespace authority. Next bind its scoped
-records to the selected BLOCK_RECORD, ATTDEF and target bodies under explicit
-uniqueness, type and owner checks, while keeping graph and output gates closed.
+it provides no public report or namespace authority. The selected-scope join
+below binds its witnessed ATTDEF and enclosing BLOCK_RECORD; target roles,
+recursive graph and output remain separate.
 The [identity delivery receipt](docs/research/rpp5ix-ac1018-identity-delivery-authentication-2026-10-28.json)
 authenticates the retained census against a bounded codec-owned pre-callback
 freeze, including an altered-scope long-alias counterexample and callback-only
@@ -327,6 +327,15 @@ The 17-digit leading-zero alias is observed but its self-registration is Invalid
 treat it as a potential physical collision, not an admitted typed duplicate.
 Charge candidate lexical work and selected-record lookups before joining, and
 reject unqualified repeated admissions rather than silently skipping them.
+The [selected ATTDEF scope join](docs/research/rpp5iy-ac1018-attdef-source-scope-join-2026-10-28.json)
+binds the witnessed 6F8 ATTDEF to its BLOCK 6F4/ENDBLK 6F9, BLOCK_RECORD 6F2
+and TABLE 1 using authenticated physical identities, exact child spans,
+original owner roles and captured profiles. The selected capture path has one
+source/decoder repeat on each BLOCKS self scalar and zero for TABLE/BLOCK_RECORD;
+other repeat counts remain unqualified. The private result does not change
+generic EnclosingMatched, full namespace, recursive graph or output gates.
+Next bind the selected XDICTIONARY 6F3, INSERT 704 and APPID/LAYER targets,
+and ATTRIB 705 membership, with their own original types and ownership roles.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
