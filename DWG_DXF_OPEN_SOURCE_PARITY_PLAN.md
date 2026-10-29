@@ -165,10 +165,12 @@ proof. Refused fields are not implemented editing support.
    same-adapter retry. [RPP-5rg](docs/research/rpp5rg-mline-ltype-mixed-text-first-2026-10-29.json)
    qualifies the reverse two-element order (text then simple) across the same
    ASCII/binary source/output cross-product, including exact ordered payload and
-   STYLE remap readback plus provider refusal/retry. Together these receipts
-   qualify both orders for this exact two-segment pair. Other mixed segment
-   counts, complex flags, optional placements, shape/text combinations,
-   providers and versions remain open.
+   STYLE remap readback plus provider refusal/retry. [RPP-5rh](docs/research/rpp5rh-mline-ltype-three-segment-mixed-2026-10-29.json)
+   qualifies one simple→text→simple three-segment sequence across that same
+   encoding matrix with ordered readback and provider refusal/retry. Together
+   these receipts qualify only the two exact two-segment orders and this one
+   three-segment sequence. Other mixed counts/sequences, complex flags, optional
+   placements, shape/text combinations, providers and versions remain open.
    This establishes transport only; native font loading and rendered meaning
    remain unqualified.
    Start with one witnessed unsupported profile; retain advisory transport until
