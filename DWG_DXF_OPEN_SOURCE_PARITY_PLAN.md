@@ -196,7 +196,14 @@ proof. Refused fields are not implemented editing support.
    same-adapter retries are covered. This is transport evidence only. Other
    group-1005 target records/sections and multiplicities, other coordinate
    values/orders/layouts, three-or-more APPID groups, APPID metadata, LTYPE
-   schemas and versions remain open.
+   schemas and versions remain open. [RPP-5us](docs/research/rpp5us-mline-ltype-xdata-string-handle-composition-2026-10-29.json)
+   composes one group-1000 string before one group-1005 soft pointer under the
+   same APPID. It verifies exact ordered physical output, typed readback, the
+   remapped model-space LINE identity, and missing-target/late-mutation atomic
+   refusal with same-adapter retries across ASCII/binary input/output. The
+   composition adds no production change; it qualifies only this selected
+   transport sequence. Additional payload orders and multiple 1005 targets
+   remain open.
    [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
    qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
    source group 340 binds its STYLE provider, exact output binds the remapped
@@ -238,13 +245,17 @@ proof. Refused fields are not implemented editing support.
    placements, shape/text combinations, providers and versions remain open.
    This establishes transport only; native font loading and rendered meaning
    remain unqualified.
-   **Next ready probe:** one APPID with ordered groups 1001/1000/1005 on the
-   selected simple-LTYPE profile, targeting the same source-bound model-space
-   LINE. Reuse the ASCII/binary input/output cross-product, exact physical and
-   typed readback, missing-target rollback/retry, and late-mutation rollback/
-   retry. If the current writer passes, record only the bounded composition
-   evidence; otherwise implement only the observed gap. Keep other payload
-   compositions advisory until independently bound.
+   **Next ready implementation:** extend the selected simple-LTYPE path from one
+   to two ordered group-1005 soft pointers. The current typed parser caps this
+   list at one, the source binder stores one physical reference slot, the live
+   admission check rejects more than one, and staged output rewrites exactly
+   one handle. Remove only those single-reference restrictions; retain existing
+   source/raw/typed agreement and byte/work budgets. Use two uniquely bound
+   model-space LINEs, prove both remapped values in exact XDATA order and fresh
+   typed readback across ASCII/binary input/output, then verify each missing
+   target and late handle mutation preserves the destination and retries on the
+   same adapter. Keep other target types/sections, more than two targets, other
+   payload compositions, and application meaning outside this slice.
 3. **P2.4: remaining geometry operations.** Selected AC1027 consumed-style
    offset projection, a geometry-changing MLINE `340` retarget, and one tail
    element append to a consumed style are implemented for their exact open,
