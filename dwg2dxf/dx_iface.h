@@ -2257,6 +2257,7 @@ private:
         DRW_MLeaderStyle model, projection;
         DRW_RawDxfObject raw, output;
         std::shared_ptr<const dx_data::NamedResourceBodyBaseline> baseline;
+        int editedDoubleCode{0};
     };
     std::unordered_map<std::uint32_t,DxfMLeaderStyleSource> m_dxfMLeaderStyles;
     DxfNamedResourceState m_dxfMLeaderStyleState;

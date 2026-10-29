@@ -11554,7 +11554,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      int wrongReferenceKind = 0,
                                      bool includeMLeader = false,
                                      bool includeSecondStyle = false,
-                                     double standardTextHeight = 0.0);
+                                     double standardTextHeight = 0.0,
+                                     double standardLandingGap = 0.0);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32045,7 +32046,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      int wrongReferenceKind,
                                      bool includeMLeader,
                                      bool includeSecondStyle,
-                                     double standardTextHeight) {
+                                     double standardTextHeight,
+                                     double standardLandingGap) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32161,6 +32163,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         writer->writeString(342, wrongReferenceKind == 3 ? "1F" : "31");
         writer->writeString(343, wrongReferenceKind == 4 ? "31" : "1E");
     }
+    if (standardLandingGap != 0.0)
+        writer->writeDouble(42, standardLandingGap);
     if (standardTextHeight != 0.0)
         writer->writeDouble(45, standardTextHeight);
     writer->writeString(302, "preserve-mleader-opaque-tag");
@@ -32985,6 +32989,171 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     if (!crossReader.fileImport(crossOutput.string(), &crossReadback, false)
         || !assertRootedReadback(crossReadback, true, 4.5, true))
         return fail("cross-format MLEADERSTYLE output lost its rooted graph or value");
+
+    // A separate witness proves the group-42 landingGap field without
+    // broadening the selected transaction to multiple simultaneous edits.
+    const auto gapSource = directory
+        / ("root-mleaderstyle-landing-gap-source-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(gapSource, binary, true, 0, false,
+                                         true, 0.0, 1.25))
+        return false;
+    dx_data gapData;
+    dx_iface gapReader;
+    if (!gapReader.fileImport(gapSource.string(), &gapData, false)
+        || !gapData.hasSingleSuccessfulNamedResourceImport())
+        return fail("could not import MLEADERSTYLE landing-gap source");
+    auto gapStyle = std::find_if(gapData.mLeaderStyles.begin(),
+        gapData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+            return candidate.handle == 0x1Cu
+                && candidate.name == "STANDARD";
+        });
+    auto gapRaw = std::find_if(gapData.rawNamedResourceObjects.begin(),
+        gapData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (gapStyle == gapData.mLeaderStyles.end()
+        || gapStyle->landingGap != 1.25
+        || gapRaw == gapData.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE landing-gap witness did not import");
+    const DRW_RawDxfObject originalGapRaw = *gapRaw;
+    const auto sourceGap = std::find_if(gapRaw->groups.begin(),
+        gapRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 42;
+        });
+    if (sourceGap == gapRaw->groups.end()
+        || sourceGap->type() != DRW_Variant::DOUBLE
+        || sourceGap->d_val() != 1.25)
+        return fail("MLEADERSTYLE source has no unique group-42 witness");
+    const std::size_t sourceGapSlot = static_cast<std::size_t>(
+        sourceGap - gapRaw->groups.begin());
+    gapStyle->landingGap = 4.5;
+
+    const auto gapOutput = directory
+        / ("root-mleaderstyle-landing-gap-output-" + encoding + ".dxf");
+    const std::string gapSentinel =
+        "existing MLEADERSTYLE landing-gap output survives\n";
+    class LateMLeaderGapWriter final : public dx_iface {
+    public:
+        bool mutateLandingGap{false};
+        void writeObjects() override {
+            if (mutateLandingGap && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == 0x1Cu;
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    style->landingGap += 1.0;
+            }
+            dx_iface::writeObjects();
+        }
+    } gapWriter;
+    const auto seedGapSentinel = [&]() {
+        std::ofstream previous(gapOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous && static_cast<bool>(previous << gapSentinel);
+    };
+    const auto gapSentinelSurvives = [&]() {
+        std::ifstream previous(gapOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == gapSentinel;
+    };
+    if (!seedGapSentinel())
+        return fail("could not seed MLEADERSTYLE landing-gap refusal");
+    gapRaw->groups[sourceGapSlot] = DRW_Variant(42, 2.25);
+    if (gapRaw->hasRawValues && !binary)
+        gapRaw->rawValues[sourceGapSlot] = "2.25";
+    if (gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
+                             &gapData, false, true)
+        || !gapSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE group-42 edit was published");
+    *gapRaw = originalGapRaw;
+
+    // The narrow field selector must refuse a second typed change in the same
+    // object; each witnessed field remains independently editable.
+    gapStyle->textHeight = 3.0;
+    if (!seedGapSentinel()
+        || gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
+                                &gapData, false, true)
+        || !gapSentinelSurvives())
+        return fail("combined MLEADERSTYLE scalar edits were not refused atomically");
+    gapStyle->textHeight = 0.0;
+
+    gapWriter.mutateLandingGap = true;
+    if (!seedGapSentinel()
+        || gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
+                                &gapData, false, true)
+        || !gapSentinelSurvives())
+        return fail("late MLEADERSTYLE landing-gap mutation was published");
+    gapWriter.mutateLandingGap = false;
+    gapStyle->landingGap = 4.5;
+    if (!gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
+                              &gapData, false, true))
+        return fail("same-adapter landing-gap retry failed: "
+            + gapWriter.extensionGraphFailureDetail());
+    dx_data gapReadback;
+    dx_iface gapOutputReader;
+    if (!gapOutputReader.fileImport(gapOutput.string(), &gapReadback, false))
+        return fail("could not read back MLEADERSTYLE landing-gap output");
+    const auto emittedGapStyle = std::find_if(
+        gapReadback.mLeaderStyles.begin(), gapReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedGapStyle == gapReadback.mLeaderStyles.end()
+        || emittedGapStyle->landingGap != 4.5)
+        return fail("MLEADERSTYLE landing-gap readback lost the edited value");
+    const std::uint32_t emittedGapHandle = emittedGapStyle->handle;
+    const auto emittedGapRaw = std::find_if(
+        gapReadback.rawNamedResourceObjects.begin(),
+        gapReadback.rawNamedResourceObjects.end(),
+        [emittedGapHandle](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == emittedGapHandle;
+        });
+    if (emittedGapRaw == gapReadback.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE landing-gap raw output was not found");
+    const auto emittedGapCount = std::count_if(
+        emittedGapRaw->groups.begin(), emittedGapRaw->groups.end(),
+        [](const DRW_Variant& field) {
+            return field.code() == 42
+                && field.type() == DRW_Variant::DOUBLE
+                && field.d_val() == 4.5;
+        });
+    const bool gapOpaqueTagRetained = std::any_of(
+        emittedGapRaw->groups.begin(), emittedGapRaw->groups.end(),
+        [](const DRW_Variant& field) {
+            return field.code() == 302 && field.type() == DRW_Variant::STRING
+                && field.c_str() != nullptr
+                && std::string(field.c_str())
+                    == "preserve-mleader-opaque-tag";
+        });
+    if (emittedGapCount != 1 || !gapOpaqueTagRetained)
+        return fail("MLEADERSTYLE group-42 output/opaque proof failed");
+
+    const auto gapCrossOutput = directory
+        / ("root-mleaderstyle-landing-gap-cross-" + encoding + ".dxf");
+    dx_iface gapCrossWriter;
+    dx_data gapCrossReadback;
+    dx_iface gapCrossReader;
+    if (!gapCrossWriter.fileExport(gapCrossOutput.string(), DRW::AC1027,
+                                   !binary, &gapData, false, true)
+        || !gapCrossReader.fileImport(gapCrossOutput.string(),
+                                      &gapCrossReadback, false))
+        return fail("cross-format MLEADERSTYLE landing-gap output failed");
+    const auto gapCrossStyle = std::find_if(
+        gapCrossReadback.mLeaderStyles.begin(),
+        gapCrossReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (gapCrossStyle == gapCrossReadback.mLeaderStyles.end()
+        || gapCrossStyle->landingGap != 4.5)
+        return fail("cross-format MLEADERSTYLE output lost landingGap");
 
     return true;
 }
