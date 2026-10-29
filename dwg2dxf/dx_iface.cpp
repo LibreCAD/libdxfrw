@@ -15999,8 +15999,11 @@ constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 2> mleaderStringCodes{{3, 300}};
+constexpr std::array<int, 2> mleaderHandleCodes{{340, 342}};
 // MLEADERSTYLE's group 340 stores leaderLineTypeHandle.
 constexpr int mleaderLeaderLineTypeHandleCode = 340;
+// MLEADERSTYLE's group 342 stores textStyleHandle.
+constexpr int mleaderTextStyleHandleCode = 342;
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16023,19 +16026,34 @@ bool isMLeaderStringCode(int code) noexcept {
 }
 
 bool isMLeaderHandleCode(int code) noexcept {
-    return code == mleaderLeaderLineTypeHandleCode;
+    return code == mleaderLeaderLineTypeHandleCode
+        || code == mleaderTextStyleHandleCode;
 }
 
 std::uint32_t mleaderHandleValue(const DRW_MLeaderStyle& style,
                                  int code) noexcept {
-    return code == mleaderLeaderLineTypeHandleCode
-        ? style.leaderLineTypeHandle.ref : 0u;
+    switch (code) {
+    case mleaderLeaderLineTypeHandleCode:
+        return style.leaderLineTypeHandle.ref;
+    case mleaderTextStyleHandleCode:
+        return style.textStyleHandle.ref;
+    default:
+        return 0u;
+    }
 }
 
 void setMLeaderHandleValue(DRW_MLeaderStyle& style, int code,
                            std::uint32_t value) noexcept {
-    if (code == mleaderLeaderLineTypeHandleCode)
+    switch (code) {
+    case mleaderLeaderLineTypeHandleCode:
         style.leaderLineTypeHandle.ref = value;
+        break;
+    case mleaderTextStyleHandleCode:
+        style.textStyleHandle.ref = value;
+        break;
+    default:
+        break;
+    }
 }
 
 bool parseMLeaderHandleText(std::string_view text,
@@ -16237,10 +16255,15 @@ int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
             return -1;
         stringCode = code;
     }
-    const int handleCode = mleaderHandleValue(value,
-        mleaderLeaderLineTypeHandleCode)
-        == mleaderHandleValue(original, mleaderLeaderLineTypeHandleCode)
-        ? 0 : mleaderLeaderLineTypeHandleCode;
+    int handleCode = 0;
+    for (int code : mleaderHandleCodes) {
+        if (mleaderHandleValue(value, code)
+            == mleaderHandleValue(original, code))
+            continue;
+        if (handleCode != 0)
+            return -1;
+        handleCode = code;
+    }
     if ((doubleCode != 0 && int32Code != 0)
         || (handleCode != 0
             && (doubleCode != 0 || int32Code != 0 || stringCode != 0)))

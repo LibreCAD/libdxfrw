@@ -11563,7 +11563,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeTextColorExtension = false,
                                      bool includeBlockColorField = false,
                                      bool includeBlockColorExtension = false,
-                                     bool includeAlternateLineType = false);
+                                     bool includeAlternateLineType = false,
+                                     bool includeAlternateTextStyle = false);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32063,7 +32064,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeTextColorExtension,
                                      bool includeBlockColorField,
                                      bool includeBlockColorExtension,
-                                     bool includeAlternateLineType) {
+                                     bool includeAlternateLineType,
+                                     bool includeAlternateTextStyle) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32137,7 +32139,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         writer->writeString(5, "3");
         writer->writeString(330, "0");
         writer->writeString(100, "AcDbSymbolTable");
-        writer->writeInt16(70, 1);
+        writer->writeInt16(70, includeAlternateTextStyle ? 2 : 1);
         writer->writeString(0, "STYLE");
         writer->writeString(5, "31");
         writer->writeString(330, "3");
@@ -32152,6 +32154,22 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         writer->writeDouble(42, 0.0);
         writer->writeString(3, "txt");
         writer->writeString(4, "");
+        if (includeAlternateTextStyle) {
+            writer->writeString(0, "STYLE");
+            writer->writeString(5, "33");
+            writer->writeString(330, "3");
+            writer->writeString(100, "AcDbSymbolTableRecord");
+            writer->writeString(100, "AcDbTextStyleTableRecord");
+            writer->writeString(2, "MLEADER_ALT_TEXT");
+            writer->writeInt16(70, 0);
+            writer->writeDouble(40, 0.0);
+            writer->writeDouble(41, 1.0);
+            writer->writeDouble(50, 0.0);
+            writer->writeInt16(71, 0);
+            writer->writeDouble(42, 0.0);
+            writer->writeString(3, "txt");
+            writer->writeString(4, "");
+        }
         writer->writeString(0, "ENDTAB");
         writer->writeString(0, "ENDSEC");
     }
@@ -32500,6 +32518,148 @@ bool mleaderStyleLeaderLineTypeHandleTransaction(
                 || style->leaderLineTypeHandle.ref != invalidTarget)
                 return failHandle("refusal changed the destination or caller reference");
             style->leaderLineTypeHandle.ref = 0x32u;
+            if (!retryWriter.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !verifyOutput(output))
+                return failHandle("corrected same-adapter reference retry failed");
+        }
+    }
+    return true;
+}
+
+bool mleaderStyleTextStyleHandleTransaction(
+        const std::filesystem::path& directory) {
+    const auto failHandle = [](const std::string& message) {
+        std::cerr << "MLEADERSTYLE group-342 transaction: " << message << '\n';
+        return false;
+    };
+    const auto findStyle = [](dx_data& data) -> DRW_MLeaderStyle* {
+        const auto found = std::find_if(data.mLeaderStyles.begin(),
+            data.mLeaderStyles.end(), [](const DRW_MLeaderStyle& style) {
+                return style.name == "STANDARD";
+            });
+        return found == data.mLeaderStyles.end() ? nullptr : &*found;
+    };
+    const auto findAlternateStyle = [](dx_data& data) {
+        return std::find_if(data.textStyles.begin(), data.textStyles.end(),
+            [](const DRW_Textstyle& style) {
+                return style.name == "MLEADER_ALT_TEXT";
+            });
+    };
+    const auto verifyOutput = [&findStyle, &findAlternateStyle, &failHandle](
+            const std::filesystem::path& path) {
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &readback, false))
+            return failHandle("fresh output readback failed");
+        DRW_MLeaderStyle* style = findStyle(readback);
+        const auto target = findAlternateStyle(readback);
+        if (style == nullptr || target == readback.textStyles.end()
+            || target->handle == 0u || style->textStyleHandle.ref
+                != target->handle)
+            return failHandle("typed group-342 handle did not resolve to the emitted alternate STYLE");
+        const auto raw = std::find_if(readback.rawNamedResourceObjects.begin(),
+            readback.rawNamedResourceObjects.end(),
+            [style](const DRW_RawDxfObject& object) {
+                return object.name == "MLEADERSTYLE"
+                    && object.handle == style->handle;
+            });
+        if (raw == readback.rawNamedResourceObjects.end())
+            return failHandle("raw MLEADERSTYLE output is missing");
+        std::size_t handleFields = 0u;
+        for (const DRW_Variant& field : raw->groups) {
+            if (field.code() != 342)
+                continue;
+            ++handleFields;
+            if (field.type() != DRW_Variant::STRING
+                || field.content.s == nullptr
+                || std::stoul(*field.content.s, nullptr, 16) != target->handle)
+                return failHandle("literal group-342 output does not name the emitted STYLE");
+        }
+        if (handleFields != 1u)
+            return failHandle("output did not preserve exactly one group-342 handle field");
+        return true;
+    };
+
+    for (bool sourceBinary : {false, true}) {
+        for (bool outputBinary : {false, true}) {
+            const std::string encoding = sourceBinary ? "bin" : "ascii";
+            const auto source = directory
+                / ("mleaderstyle-text-handle-source-" + encoding + ".dxf");
+            if (!generateRootMLeaderStyleControl(source, sourceBinary, true,
+                    0, false, false, 0.0, 0.0, false, 0, false, false,
+                    false, false, false, false, true))
+                return failHandle("could not generate source with alternate STYLE");
+            dx_data data;
+            dx_iface reader;
+            if (!reader.fileImport(source.string(), &data, false)
+                || data.mLeaderStyles.size() != 1u)
+                return failHandle("source style did not import");
+            DRW_MLeaderStyle* style = findStyle(data);
+            const auto alternate = findAlternateStyle(data);
+            if (style == nullptr || style->textStyleHandle.ref != 0x31u
+                || alternate == data.textStyles.end()
+                || alternate->handle != 0x33u)
+                return failHandle("source and alternate STYLE identity is not source-bound");
+            const std::uint32_t originalLineType =
+                style->leaderLineTypeHandle.ref;
+            const std::uint32_t originalArrow =
+                style->arrowHeadBlockHandle.ref;
+            const std::uint32_t originalBlock = style->blockHandle.ref;
+            const std::string originalDescription = style->description;
+            const std::string originalTextDefault = style->textDefault;
+            style->textStyleHandle.ref = alternate->handle;
+            const auto output = directory / ("mleaderstyle-text-handle-output-"
+                + encoding + (outputBinary ? "-bin.dxf" : "-ascii.dxf"));
+            dx_iface writer;
+            if (!writer.fileExport(output.string(), DRW::AC1027, outputBinary,
+                    &data, false, true))
+                return failHandle("valid unique STYLE retarget was refused: "
+                    + writer.extensionGraphFailureDetail());
+            if (style->textStyleHandle.ref != alternate->handle
+                || style->leaderLineTypeHandle.ref != originalLineType
+                || style->arrowHeadBlockHandle.ref != originalArrow
+                || style->blockHandle.ref != originalBlock
+                || style->description != originalDescription
+                || style->textDefault != originalTextDefault
+                || !verifyOutput(output))
+                return failHandle("successful retarget changed caller state or failed exact output/readback");
+        }
+    }
+
+    const std::string sentinel = "existing MLEADERSTYLE output must survive\n";
+    for (const std::uint32_t invalidTarget : {0x55u, 0x30u}) {
+        for (bool outputBinary : {false, true}) {
+            const auto source = directory / "mleaderstyle-text-handle-refusal-source.dxf";
+            if (!generateRootMLeaderStyleControl(source, false, true, 0,
+                    false, false, 0.0, 0.0, false, 0, false, false,
+                    false, false, false, false, true))
+                return failHandle("could not regenerate refusal source");
+            dx_data data;
+            dx_iface reader;
+            if (!reader.fileImport(source.string(), &data, false))
+                return failHandle("could not import refusal source");
+            DRW_MLeaderStyle* style = findStyle(data);
+            const auto alternate = findAlternateStyle(data);
+            if (style == nullptr || alternate == data.textStyles.end())
+                return failHandle("refusal source has no unique alternate STYLE");
+            style->textStyleHandle.ref = invalidTarget;
+            const auto output = directory / ("mleaderstyle-text-handle-refusal-"
+                + std::to_string(invalidTarget)
+                + (outputBinary ? "-bin.dxf" : "-ascii.dxf"));
+            { std::ofstream previous(output); previous << sentinel; }
+            dx_iface retryWriter;
+            if (retryWriter.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true))
+                return failHandle("dangling or wrong-kind group-342 target was accepted");
+            std::ifstream preservedInput(output, std::ios::binary);
+            const std::string preserved(
+                (std::istreambuf_iterator<char>(preservedInput)),
+                std::istreambuf_iterator<char>());
+            if (preserved != sentinel
+                || style->textStyleHandle.ref != invalidTarget)
+                return failHandle("refusal changed the destination or caller reference");
+            style->textStyleHandle.ref = alternate->handle;
             if (!retryWriter.fileExport(output.string(), DRW::AC1027,
                     outputBinary, &data, false, true)
                 || !verifyOutput(output))
@@ -35565,6 +35725,8 @@ bool mLeaderStyleWriterClosureFocused(
         && rootMLeaderStyleWriterClosure(directory, true);
     if (passed)
         passed = mleaderStyleLeaderLineTypeHandleTransaction(directory);
+    if (passed)
+        passed = mleaderStyleTextStyleHandleTransaction(directory);
     std::filesystem::remove_all(directory, error);
     if (error)
         return fail("could not remove focused MLEADERSTYLE scratch files");
