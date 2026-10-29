@@ -283,7 +283,12 @@ classifies selected sort keys as payload rather than outer identities; those
 keys do not establish ownership or output authority. The [IMAGEDEF receipt](docs/research/rpp5io-imagedef-self-registration-2026-10-28.json)
 records outer self-handle registration and rejects malformed duplicate object
 handles while preserving the tested valid 2D image callbacks. Original target
-and graph closure remain separate.
+and graph closure remain separate. The [DIMSTYLE identity receipt](docs/research/rpp5is-dimstyle-self-registration-2026-10-28.json)
+registers top-level group 105 and retains group 5 as the legacy DIMBLK name;
+the witnessed six AC1018 identities are now observed as accepted. Collisions
+with later typed entities still follow their existing softened import behavior.
+The AC1018 namespace remains gated; identity, ownership and output proof do
+not follow from this registration alone.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
