@@ -322,10 +322,10 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // markerless normal maps. For this captured, unchanged source only, allow
     // composed typed edits of both blends, projections, tilings, auto transforms,
     // file-backed diffuse/normal filenames and both mapper matrices without
-    // synthesizing a marker or opening the general writer grammar. The normal
-    // source may change from Scene (0) to File (1) in the same transaction as
-    // its filename; the output remains a selected field-transport profile and
-    // does not qualify image loading or rendered meaning.
+    // synthesizing a marker or opening the general writer grammar. A selected
+    // diffuse or normal source may change from Scene (0) to File (1) in the
+    // same transaction as its filename; the output remains a selected
+    // field-transport profile and does not qualify image loading or rendering.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
         &&original.m_hasNormalMapSource&&original.m_hasNormalMapFileName
@@ -341,6 +341,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const bool autoEdit=original.m_normalMapAutoTransform!=typed.m_normalMapAutoTransform;
         const bool filenameEdit=original.m_normalMapFileName!=typed.m_normalMapFileName;
         const bool diffuseFilenameEdit=original.m_diffuseMapFileName!=typed.m_diffuseMapFileName;
+        const bool diffuseSourceEdit=original.m_diffuseMapSource!=typed.m_diffuseMapSource;
         const bool normalSourceEdit=original.m_normalMapSource!=typed.m_normalMapSource;
         const bool matrixEdit=!dxfMaterial::sameValue(original.m_normalMapTransform,typed.m_normalMapTransform);
         const bool diffuseMatrixEdit=!dxfMaterial::sameValue(original.m_diffuseMapTransform,typed.m_diffuseMapTransform);
@@ -355,10 +356,11 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         if(autoEdit)desired.m_normalMapAutoTransform=typed.m_normalMapAutoTransform;
         if(filenameEdit)desired.m_normalMapFileName=typed.m_normalMapFileName;
         if(diffuseFilenameEdit)desired.m_diffuseMapFileName=typed.m_diffuseMapFileName;
+        if(diffuseSourceEdit)desired.m_diffuseMapSource=typed.m_diffuseMapSource;
         if(normalSourceEdit)desired.m_normalMapSource=typed.m_normalMapSource;
         if(matrixEdit)desired.m_normalMapTransform=typed.m_normalMapTransform;
         if(diffuseMatrixEdit)desired.m_diffuseMapTransform=typed.m_diffuseMapTransform;
-        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit||diffuseFilenameEdit||normalSourceEdit||matrixEdit||diffuseMatrixEdit||diffuseBlendEdit||diffuseProjectionEdit||diffuseTilingEdit||diffuseAutoEdit)
+        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit||diffuseFilenameEdit||diffuseSourceEdit||normalSourceEdit||matrixEdit||diffuseMatrixEdit||diffuseBlendEdit||diffuseProjectionEdit||diffuseTilingEdit||diffuseAutoEdit)
             || (diffuseBlendEdit&&!std::isfinite(typed.m_diffuseMapBlendFactor))
             || (diffuseProjectionEdit&&(typed.m_diffuseMapProjection<1u||typed.m_diffuseMapProjection>4u))
             || (diffuseTilingEdit&&(typed.m_diffuseMapTiling<1u||typed.m_diffuseMapTiling>3u))
@@ -367,7 +369,14 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             || (tilingEdit&&(typed.m_normalMapTiling<1u||typed.m_normalMapTiling>3u))
             || (autoEdit&&(typed.m_normalMapAutoTransform & ~7u))
             || (diffuseFilenameEdit&&(!original.m_hasDiffuseMapSource||!original.m_hasDiffuseMapFileName
-                || original.m_diffuseMapSource!=1u || typed.m_diffuseMapSource!=1u))
+                ||(original.m_diffuseMapSource!=1u&&!diffuseSourceEdit)
+                ||typed.m_diffuseMapSource!=1u))
+            ||(diffuseSourceEdit&&(!original.m_hasDiffuseMapSource||!original.m_hasDiffuseMapFileName
+                ||!typed.m_hasDiffuseMapSource||!typed.m_hasDiffuseMapFileName
+                ||original.m_diffuseMapSource!=0u||typed.m_diffuseMapSource!=1u
+                ||!diffuseFilenameEdit||filenameEdit||normalSourceEdit||blendEdit
+                ||projectionEdit||tilingEdit||autoEdit||matrixEdit||diffuseMatrixEdit
+                ||diffuseBlendEdit||diffuseProjectionEdit||diffuseTilingEdit||diffuseAutoEdit))
             || (filenameEdit&&(!original.m_hasDiffuseMapFileName
                 || !original.m_hasNormalMapSource || !original.m_hasNormalMapFileName
                 || typed.m_normalMapSource!=1u
@@ -376,6 +385,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 || !original.m_hasNormalMapSource||!original.m_hasNormalMapFileName
                 || !typed.m_hasNormalMapSource||!typed.m_hasNormalMapFileName
                 || original.m_normalMapSource>1u||typed.m_normalMapSource>1u
+                ||diffuseSourceEdit
                 ||blendEdit||projectionEdit||tilingEdit
                 ||autoEdit||(filenameEdit&&typed.m_normalMapSource!=1u)
                 ||diffuseFilenameEdit||matrixEdit
@@ -423,7 +433,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 if(code==464||code==465||code==300||code==291||code==301
                     ||code==469||code==292||code==62||code==420||code==430){ok=false;break;}
                 if(code==42){if(count==blends.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}blends[count++]=i;}
-                if(normalSourceEdit&&code==72) {
+                if((diffuseSourceEdit||normalSourceEdit)&&code==72) {
                     if(sourceCount==sources.size()||field.type()!=DRW_Variant::INTEGER){ok=false;break;}
                     sources[sourceCount++]=i;
                 }
@@ -448,10 +458,12 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             if(ok&&!depth&&markers==1u&&count==2u
                 &&dxfMaterial::sameValue(raw.groups[blends[0]].d_val(),original.m_diffuseMapBlendFactor)
                 &&dxfMaterial::sameValue(raw.groups[blends[1]].d_val(),original.m_normalMapBlendFactor)
-                &&(!normalSourceEdit||(sourceCount==2u&&sources[0]>blends[0]
+                &&(!(diffuseSourceEdit||normalSourceEdit)||(sourceCount==2u&&sources[0]>blends[0]
                     &&sources[0]<blends[1]&&sources[1]>blends[1]
                     &&raw.groups[sources[0]].i_val()==original.m_diffuseMapSource
-                    &&raw.groups[sources[1]].i_val()==original.m_normalMapSource))
+                    &&raw.groups[sources[1]].i_val()==original.m_normalMapSource
+                    &&(!diffuseSourceEdit||sources[0]<filenames[0])
+                    &&(!filenameEdit||sources[1]<filenames[1])))
                 &&bound(0u,projectionEdit||diffuseProjectionEdit,original.m_hasDiffuseMapProjection,original.m_diffuseMapProjection,original.m_normalMapProjection)
                 &&bound(1u,tilingEdit||diffuseTilingEdit,original.m_hasDiffuseMapTiling,original.m_diffuseMapTiling,original.m_normalMapTiling)
                 &&bound(2u,autoEdit||diffuseAutoEdit,original.m_hasDiffuseMapAutoTransform,original.m_diffuseMapAutoTransform,original.m_normalMapAutoTransform)
@@ -489,7 +501,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                         ||filenameWriter.hasWriteError()||filenameWriter.groups.size()!=1u
                         ||!replace(filenames[1],std::move(filenameWriter.groups.front()))) return false;
                 }
-                if((diffuseBlendEdit&&!replace(blends[0],DRW_Variant(42,typed.m_diffuseMapBlendFactor)))
+                if((diffuseSourceEdit&&!replace(sources[0],DRW_Variant(72,static_cast<std::int32_t>(typed.m_diffuseMapSource))))
+                    ||(diffuseBlendEdit&&!replace(blends[0],DRW_Variant(42,typed.m_diffuseMapBlendFactor)))
                     ||(normalSourceEdit&&!replace(sources[1],DRW_Variant(72,static_cast<std::int32_t>(typed.m_normalMapSource))))
                     ||(diffuseProjectionEdit&&!replace(maps[0][0],DRW_Variant(73,static_cast<std::int32_t>(typed.m_diffuseMapProjection))))
                     ||(diffuseTilingEdit&&!replace(maps[1][0],DRW_Variant(74,static_cast<std::int32_t>(typed.m_diffuseMapTiling))))

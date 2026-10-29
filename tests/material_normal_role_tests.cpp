@@ -151,13 +151,14 @@ bool originalCommon(const DRW_Material& value) {
 
 bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75,
            int normalProjection = 4, int normalTiling = 3, int normalAuto = 4,
-           const std::string& normalFile = "normal-sentinel.png", int normalSource = 1) {
+           const std::string& normalFile = "normal-sentinel.png", int normalSource = 1,
+           const std::string& diffuseFile = "diffuse-sentinel.png", int diffuseSource = 0) {
     const auto* m = target(data);
     return m && m->m_hasDiffuseMapBlendFactor && m->m_hasDiffuseMapSource
         && m->m_hasDiffuseMapFileName && m->m_hasDiffuseMapProjection
         && m->m_hasDiffuseMapTiling && m->m_hasDiffuseMapAutoTransform
-        && m->m_diffuseMapBlendFactor == 0.25 && m->m_diffuseMapSource == 0
-        && m->m_diffuseMapFileName == "diffuse-sentinel.png"
+        && m->m_diffuseMapBlendFactor == 0.25 && m->m_diffuseMapSource == diffuseSource
+        && m->m_diffuseMapFileName == diffuseFile
         && m->m_diffuseMapProjection == 2 && m->m_diffuseMapTiling == 2
         && m->m_diffuseMapAutoTransform == 2
         && m->m_hasNormalMapBlendFactor && m->m_hasNormalMapSource
@@ -174,7 +175,8 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75,
 bool physical(const std::filesystem::path& path, bool binary, bool boundary,
               bool duplicateNormalBlend = false, double normalBlend = 0.75,
               int normalProjection = 4, int normalTiling = 3, int normalAuto = 4,
-              const std::string& normalFile = "normal-sentinel.png", int normalSource = 1) {
+              const std::string& normalFile = "normal-sentinel.png", int normalSource = 1,
+              const std::string& diffuseFile = "diffuse-sentinel.png", int diffuseSource = 0) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
     if (binary) stream.seekg(22);
@@ -215,8 +217,8 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
         ? std::vector<double>{0.25, 0.75, 0.875}
         : std::vector<double>{0.25, normalBlend};
     return selected && blends == expectedBlends
-        && sources == std::vector<int>{0, normalSource}
-        && files == std::vector<std::string>{"diffuse-sentinel.png", normalFile}
+        && sources == std::vector<int>{diffuseSource, normalSource}
+        && files == std::vector<std::string>{diffuseFile, normalFile}
         && projections == std::vector<int>{2, normalProjection}
         && tilings == std::vector<int>{2, normalTiling}
         && transforms == std::vector<int>{2, normalAuto}
@@ -468,6 +470,77 @@ bool run(const std::filesystem::path& dir) {
             dx_data retry; dx_iface retryVerifier;
             if (!retryVerifier.fileImport(output.string(), &retry, false)
                 || !typed(retry, false, 0.75, 4, 3, 4, wantedFile, 1)) return false;
+        }
+        // A diffuse Scene-to-File transition is admitted only together with
+        // its bound filename. Check the selector-only refusal, exact physical
+        // fields, readback, raw contradiction, rollback, and same-adapter retry.
+        for (bool outputBinary : {false, true}) {
+            if (!author(input, sourceBinary, false, false, false, false, 0, 0,
+                        4, false, 3, 0u, 0, 1)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false)
+                || !typed(source, false)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials)
+                if (material.m_name == "PeerMaterial") {
+                    if (selected) return false;
+                    selected = &material;
+                }
+            if (!selected) return false;
+            const auto originalRaw = source.rawMaterialObjects.front();
+            selected->m_diffuseMapSource = 1u;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+              sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                   &source, false, true)) return false;
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {});
+            saved.close();
+            if (savedBytes != "keep destination"
+                || selected->m_diffuseMapSource != 1u
+                || selected->m_diffuseMapFileName != "diffuse-sentinel.png") return false;
+
+            const std::string wantedFile = "edited-diffuse-Ω.png";
+            selected->m_diffuseMapFileName = wantedFile;
+            const auto exactOutput = [&]() {
+                return physical(output, outputBinary, false, false, 0.75, 4, 3,
+                                4, "normal-sentinel.png", 1, wantedFile, 1)
+                    && typed(source, false, 0.75, 4, 3, 4,
+                             "normal-sentinel.png", 1, wantedFile, 1);
+            };
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true) || !exactOutput()) return false;
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !typed(readback, false, 0.75, 4, 3, 4,
+                          "normal-sentinel.png", 1, wantedFile, 1)) return false;
+
+            auto& raw = source.rawMaterialObjects.front();
+            unsigned selectorFields = 0u;
+            for (std::size_t i = 0u; i < raw.groups.size(); ++i) {
+                if (raw.groups[i].code() != 72 || ++selectorFields != 1u) continue;
+                raw.groups[i] = DRW_Variant(72, std::int32_t(2));
+                if (raw.hasRawValues) raw.rawValues.at(i) = "2";
+                break;
+            }
+            if (selectorFields != 1u) return false;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+              sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                   &source, false, true)) return false;
+            std::ifstream conflictSaved(output, std::ios::binary);
+            const std::string conflictBytes(std::istreambuf_iterator<char>(conflictSaved), {});
+            conflictSaved.close();
+            if (conflictBytes != "keep destination"
+                || selected->m_diffuseMapSource != 1u
+                || selected->m_diffuseMapFileName != wantedFile) return false;
+            raw = originalRaw;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true) || !exactOutput()) return false;
+            dx_data retry; dx_iface retryVerifier;
+            if (!retryVerifier.fileImport(output.string(), &retry, false)
+                || !typed(retry, false, 0.75, 4, 3, 4,
+                          "normal-sentinel.png", 1, wantedFile, 1)) return false;
         }
         // A callback that changes the edited source after planning must not
         // publish; restoring the requested source permits same-adapter retry.
