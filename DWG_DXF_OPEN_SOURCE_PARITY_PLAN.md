@@ -192,7 +192,11 @@ and broader producer behavior remain unqualified.
    extends the same unchanged-source profile to group `75`, including composition
    with the three existing edits. Its `0x07` admission mask is the existing
    parser/writer policy, not independent proof of native normal-map bit meanings.
-   Other normal-map fields and source profiles require separate evidence. Its
+   The [file-backed normal filename edit](docs/research/rpp5ja-material-unmarked-normal-filename-2026-10-28.json)
+   binds and rewrites the second group `3` when normal source is `1`, with strict
+   target text encoding and selected composition with those fields. Changing
+   group `72`, its coupling to filenames/procedural data, native rendering and
+   other normal-map fields and source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
    keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
    refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
