@@ -21947,6 +21947,11 @@ struct MlineLinetypeShape {
             } else return false;
             ++xdataFields;return true;
         }
+        if (code==1070) {
+            if (!xdata) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
         if (xdata) return false;
         if (code==5) return classes==0u && ++selves==1u;
         if (code==330) return classes==0u && ++owners==1u;
@@ -22004,7 +22009,14 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
             && stringField(value.extData[1],1002) && *value.extData[1]->content.s=="{"
             && stringField(value.extData[2],1000)
             && stringField(value.extData[3],1002) && *value.extData[3]->content.s=="}";
+        const bool oneSignedShort=value.extData.size()==2u
+            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
+            && value.extData[1] && value.extData[1]->code()==1070
+            && value.extData[1]->type()==DRW_Variant::INTEGER
+            && value.extData[1]->i_val()>=-32768 && value.extData[1]->i_val()<=32767;
         if (oneStructuredList) {
+            appIdNames.emplace_back(*value.extData[0]->content.s);
+        } else if (oneSignedShort) {
             appIdNames.emplace_back(*value.extData[0]->content.s);
         } else {
             if (value.extData.size()!=2u && value.extData.size()!=4u) return false;
@@ -22558,6 +22570,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                     && extData[1u] && extData[1u]->code()==1002
                     && extData[1u]->type()==DRW_Variant::STRING
                     && extData[1u]->content.s && *extData[1u]->content.s=="{"
+                    && extData[2u] && extData[2u]->code()==1000
                     && extData[3u] && extData[3u]->code()==1002
                     && extData[3u]->type()==DRW_Variant::STRING
                     && extData[3u]->content.s && *extData[3u]->content.s=="}";
@@ -22568,10 +22581,18 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                 for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
                     const auto& appField=extData[structuredList?0u:i*2u];
                     const auto& payloadField=extData[structuredList?2u:i*2u+1u];
+                    const bool stringPayload=payloadField
+                        && payloadField->code()==1000
+                        && payloadField->type()==DRW_Variant::STRING
+                        && payloadField->content.s;
+                    const bool signedShortPayload=payloadField
+                        && payloadField->code()==1070
+                        && payloadField->type()==DRW_Variant::INTEGER
+                        && payloadField->i_val()>=-32768 && payloadField->i_val()<=32767;
                     if (!appField || !payloadField || appField->code()!=1001
                         || appField->type()!=DRW_Variant::STRING || !appField->content.s
-                        || appField->content.s->empty() || payloadField->code()!=1000
-                        || payloadField->type()!=DRW_Variant::STRING || !payloadField->content.s)
+                        || appField->content.s->empty()
+                        || (!stringPayload && !signedShortPayload))
                         return false;
                     if (!dx_symbol_output::nameKey(*appField->content.s,appKeys[i])
                         || (i!=0u && appKeys[i]==appKeys[0])) return false;
