@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mv two-tuple MLINE append source counts 5 through 253",
+  "date": "2026-10-29",
+  "status": "SELECTED_SOURCE_COUNT_RANGE_QUALIFIED",
+  "codeCommit": "ee7825e4",
+  "scope": "Qualifies the existing AC1027 consumed-style two-tuple append recipe for every generated source count 5 through 253, producing target counts 7 through 255. Together with RPP-5mu's source counts 3 and 4, this covers the selected two-tuple recipe for non-two source counts 3 through 253. Source count 2 remains covered separately; no broader semantic claim is promoted.",
+  "contract": {
+    "recipe": "For each source count 5..253, generate the existing ordered offset/ACI/alternating ByLayer-Continuous source style, append two complete ordered tuples from that recipe, preserve flags 2 and unchanged angles, and bind two source-bound open, uncut and unfilled MLINE consumers.",
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "outputAndReadback": "Check target minima and projected MLINE parameters, group 71/group 73 target counts, ordered style tuples in groups 49/62/6, group 340 style identity, consumer group 74/group 41/group 75 arrays, and fresh style/consumer readback in model space and a named block.",
+    "failureAndRetry": "Each source count exercises unsupported-flags refusal and late-live-consumer-mutation refusal for ASCII and binary output. Both preserve sentinel destinations and caller snapshots, then corrected state succeeds on the same adapter.",
+    "boundary": "Source count 253 reaches the maximum two-tuple target count 255. Source count 254 plus two tuples would exceed the one-byte count and is outside this positive profile."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_source_count_multi_append_(5_127|128_253)$' -j2 --output-on-failure",
+      "summary": "Source counts 5..127 passed in 34.80 seconds and 128..253 passed in 76.13 seconds. The combined focused run passed both halves and their encoding, readback, refusal, rollback and retry controls."
+    },
+    "coverageExtension": "RPP-5mu separately qualifies source counts 3→5 and 4→6 with the same two-tuple recipe. The previous source-2 multi-append receipt RPP-5ht remains separately bound.",
+    "diffCheck": "git diff --check; PASS before commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "ee7825e4",
+    "tests/CMakeLists.txt": "aa64d98bad285bda4f1c34f33a77b86a671643e5",
+    "tests/dxf_fixture_tests.cpp": "aa11fcdba2edbec369783a2d8fd179fb891dd9b4",
+    "testExecutableSha256": "d154947e4e03551f79fdbce77212099ea22ece76107c78fe53748d7d88a8e9a3",
+    "fixturePolicy": "All DXF input/output files are generated at runtime from the authored source recipe and removed on success. No testing DWG/DXF fixtures were committed."
+  },
+  "limits": [
+    "This qualifies one exact two-tuple AC1027 recipe and selected ordinary consumers only.",
+    "Other tuple sequences, multi-tuple batches from other source counts only where not included, multi-tuple removals, count-71 edits, alternative angle/offset/flag combinations, carriers and versions remain open.",
+    "This does not qualify complete-document closure, native LibreCAD/LibreCAD_3/FreeCAD meaning, independent external semantics or 3D support."
+  ],
+  "next": "Select a distinct current P2 operation instead of repeating this already-covered batch recipe. Bind one count-71 edit or alternate angle/offset profile to an exact source, expected output and focused refusal/retry controls before implementation."
+}

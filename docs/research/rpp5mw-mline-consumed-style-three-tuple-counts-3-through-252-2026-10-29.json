@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mw selected MLINE three-tuple append counts 3 through 252",
+  "date": "2026-10-29",
+  "status": "SELECTED_SOURCE_COUNT_RANGE_QUALIFIED",
+  "codeCommit": "69262229",
+  "scope": "Qualifies one generated AC1027 consumed-style three-tuple append recipe for every source count 3 through 252, producing target counts 6 through 255. This is operation-specific evidence; it does not establish arbitrary tuple edits or general document support.",
+  "contract": {
+    "recipe": "Use the existing ordered generated source style. Append the exact three generated ordered offset/ACI/alternating ByLayer-Continuous tuples, preserve flags 2 and unchanged angles, and bind two source-bound open, uncut, unfilled MLINE consumers.",
+    "sourceCounts": "3..252 inclusive",
+    "targetCounts": "6..255 inclusive",
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "outputAndReadback": "Check target minima and projected parameters; group 71/group 73 counts; ordered style tuples in groups 49/62/6; group 340 identity; consumer group 74/group 41/group 75 arrays; and fresh style/consumer readback in model space and a named block.",
+    "failureAndRetry": "For each source count, verify unsupported-flags refusal and late-live-consumer-mutation refusal for ASCII and binary output. Each refusal preserves the sentinel destination; caller snapshots are restored/unchanged as required; the corrected state succeeds on the same adapter.",
+    "boundary": "Source count 252 reaches target 255. Source count 253 plus three tuples would require target count 256 and is outside the positive profile; this receipt does not claim a serialized 256-count refusal test."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_source_count_triple_append_(3_127|128_190|191_252)$' -j3 --output-on-failure",
+      "ranges": [
+        {"sourceCounts": "3..127", "targetCounts": "6..130", "elapsedSeconds": 35.15, "result": "PASS"},
+        {"sourceCounts": "128..190", "targetCounts": "131..193", "elapsedSeconds": 32.94, "result": "PASS"},
+        {"sourceCounts": "191..252", "targetCounts": "194..255", "elapsedSeconds": 42.42, "result": "PASS"}
+      ],
+      "summary": "All source-count cases passed across all four source/output encodings with output/readback and refusal/retry controls."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "69262229",
+    "tests/CMakeLists.txt": "aec0b1bc256985cb57d4c4bdb24fd9449d360f8f",
+    "tests/dxf_fixture_tests.cpp": "aa11fcdba2edbec369783a2d8fd179fb891dd9b4",
+    "testExecutableSha256": "d154947e4e03551f79fdbce77212099ea22ece76107c78fe53748d7d88a8e9a3",
+    "fixturePolicy": "DXF files are generated at runtime and removed after success. No testing DWG/DXF fixture files were committed."
+  },
+  "limits": [
+    "Only the selected generated tuple recipe, AC1027 route, and ordinary source-bound consumers are qualified.",
+    "Other tuple sequences, batches larger than three from non-two source counts, removals, count-71 field edits, angle/offset/flag variants, other carriers, versions, and native semantics remain open.",
+    "This does not qualify complete-document closure, LibreCAD/LibreCAD_3/FreeCAD meaning, independent external semantics, or 3D support."
+  ],
+  "next": "Select one current distinct P2 witness, preferably a count-71 edit or alternate angle/offset/schema operation; bind exact source, affected consumers, expected bytes/readback, and refusal/retry controls before expanding the supported profile."
+}
