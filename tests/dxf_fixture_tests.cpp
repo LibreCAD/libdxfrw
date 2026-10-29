@@ -32027,20 +32027,20 @@ bool manyEntityHandleProviderProof(const std::filesystem::path& path,bool binary
             [&](const auto& value){return value.first==code;});
         return field==row.fields.end()?std::string{}:field->second;
     };
+    std::map<double,const mlineStyleAuthorityControls::Row*> linesByStartX;
+    for(const auto* lineProvider:lineProviders) {
+        double startX=0.0;
+        if(!dx_raster_output::finiteReal(fieldValue(*lineProvider,10),startX)
+            ||!linesByStartX.emplace(startX,lineProvider).second)return false;
+    }
     std::vector<std::string> emittedHandles;
     emittedHandles.reserve(sourceHandles.size());
     std::string owner;
     for(std::size_t i=0u;i<sourceHandles.size();++i) {
         const double expectedStartX=i==0u?1.25:1.5+6.0*static_cast<double>(i);
-        const mlineStyleAuthorityControls::Row* matched=nullptr;
-        for(const auto* lineProvider:lineProviders) {
-            double observedStartX=0.0;
-            if(!dx_raster_output::finiteReal(fieldValue(*lineProvider,10),
-                                              observedStartX)
-                ||observedStartX!=expectedStartX)continue;
-            if(matched)return false;
-            matched=lineProvider;
-        }
+        const auto lineByStart=linesByStartX.find(expectedStartX);
+        const auto* matched=lineByStart==linesByStartX.end()
+            ?nullptr:lineByStart->second;
         if(matched==nullptr||matched->id.empty()||matched->owner.empty()
             ||(!owner.empty()&&owner!=matched->owner)
             ||(requireRemap&&matched->id==sourceHandles[i])
@@ -34415,10 +34415,13 @@ bool runTemporary() {
     }
     const std::vector<std::string> allReferenceHandles{
         "A900","A902","A903","A904","A905","A906","A907","A908",
-        "A909","A90A","A90B","A90C","A90D","A90E","A90F","A910"};
+        "A909","A90A","A90B","A90C","A90D","A90E","A90F","A910",
+        "A911","A912","A913","A914","A915","A916","A917","A918",
+        "A919","A91A","A91B","A91C","A91D","A91E","A91F","A920"};
     for(std::size_t referenceCount=6u;
         referenceCount<=allReferenceHandles.size();++referenceCount) {
-        const auto end=allReferenceHandles.begin()+static_cast<std::ptrdiff_t>(referenceCount);
+        const auto end=allReferenceHandles.begin()
+            +static_cast<std::ptrdiff_t>(referenceCount);
         const std::vector<std::string> sourceHandles(allReferenceHandles.begin(),end);
         std::vector<std::uint32_t> sourceHandleIds;
         sourceHandleIds.reserve(sourceHandles.size());
@@ -34533,7 +34536,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==144u&&readbacks==317u&&refusals==173u&&retries==173u;
+    return profiles==208u&&readbacks==461u&&refusals==253u&&retries==253u;
 }
 
 bool runBudgetTemporary() {
