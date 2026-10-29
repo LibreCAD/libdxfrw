@@ -32170,10 +32170,14 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(70, 0);
     writer->writeInt16(179, 2);
     writer->writeInt16(170, 0);
+    writer->writeInt16(171, 0);
+    writer->writeInt16(172, 0);
+    writer->writeInt16(173, 1);
     writer->writeInt32(90, 0);
     writer->writeInt16(174, 0);
     writer->writeInt16(175, 0);
     writer->writeInt16(176, 0);
+    writer->writeInt16(177, 0);
     writer->writeInt16(178, 0);
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
@@ -34727,6 +34731,158 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             == crossTextAlignmentReadback.mLeaderStyles.end()
         || crossTextAlignmentStyle->textAlignmentType != 2u)
         return fail("cross-format MLEADERSTYLE group-176 readback mismatch");
+
+    const auto verifyControlEnum = [&](int code, const char* name,
+            std::uint16_t DRW_MLeaderStyle::*member,
+            std::uint16_t sourceValue, std::uint16_t requestedValue,
+            std::uint16_t invalidValue) {
+        const auto enumSource = directory
+            / (std::string("root-mleaderstyle-") + name + "-source-"
+                + encoding + ".dxf");
+        dx_data enumData;
+        dx_iface enumReader;
+        if (!generateRootMLeaderStyleControl(enumSource, binary)
+            || !enumReader.fileImport(enumSource.string(), &enumData, false))
+            return fail(std::string("could not import MLEADERSTYLE ")
+                + name + " source");
+        auto enumStyle = std::find_if(enumData.mLeaderStyles.begin(),
+            enumData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        auto enumRaw = std::find_if(enumData.rawNamedResourceObjects.begin(),
+            enumData.rawNamedResourceObjects.end(),
+            [](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == 0x1Cu;
+            });
+        if (enumStyle == enumData.mLeaderStyles.end()
+            || enumRaw == enumData.rawNamedResourceObjects.end()
+            || (*enumStyle).*member != sourceValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " typed source value mismatch");
+        const auto sourceField = std::find_if(enumRaw->groups.begin(),
+            enumRaw->groups.end(), [code](const DRW_Variant& field) {
+                return field.code() == code;
+            });
+        if (sourceField == enumRaw->groups.end()
+            || sourceField->type() != DRW_Variant::INTEGER
+            || sourceField->i_val() != sourceValue
+            || std::count_if(enumRaw->groups.begin(), enumRaw->groups.end(),
+                [code](const DRW_Variant& field) {
+                    return field.code() == code;
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " source has no unique INTEGER field");
+        const std::size_t fieldSlot = static_cast<std::size_t>(
+            sourceField - enumRaw->groups.begin());
+        const DRW_RawDxfObject originalRaw = *enumRaw;
+        const DRW_MLeaderStyle originalStyle = *enumStyle;
+        (*enumStyle).*member = requestedValue;
+        const auto enumOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-output-"
+                + encoding + ".dxf");
+        const std::string sentinel = std::string("existing MLEADERSTYLE ")
+            + name + " output survives\n";
+        const auto seedSentinel = [&]() {
+            std::ofstream previous(enumOutput,
+                std::ios::binary | std::ios::trunc);
+            return previous && static_cast<bool>(previous << sentinel);
+        };
+        const auto sentinelSurvives = [&]() {
+            std::ifstream previous(enumOutput, std::ios::binary);
+            const std::string preserved(
+                (std::istreambuf_iterator<char>(previous)),
+                std::istreambuf_iterator<char>());
+            return !previous.bad() && preserved == sentinel;
+        };
+        if (!seedSentinel())
+            return fail(std::string("could not seed MLEADERSTYLE ")
+                + name + " refusal");
+        const std::uint16_t conflictingRawValue = sourceValue == 0u ? 1u : 0u;
+        enumRaw->groups[fieldSlot] = DRW_Variant(code, conflictingRawValue);
+        if (enumRaw->hasRawValues && !binary)
+            enumRaw->rawValues[fieldSlot] = std::to_string(conflictingRawValue);
+        dx_iface enumWriter;
+        if (enumWriter.fileExport(enumOutput.string(), DRW::AC1027, binary,
+                &enumData, false, true)
+            || !sentinelSurvives())
+            return fail(std::string("conflicting raw and typed MLEADERSTYLE ")
+                + name + " edit was accepted");
+        *enumRaw = originalRaw;
+
+        (*enumStyle).*member = invalidValue;
+        if (!seedSentinel()
+            || enumWriter.fileExport(enumOutput.string(), DRW::AC1027, binary,
+                &enumData, false, true)
+            || !sentinelSurvives())
+            return fail(std::string("out-of-range MLEADERSTYLE ")
+                + name + " value was accepted");
+        (*enumStyle).*member = requestedValue;
+        if (!enumWriter.fileExport(enumOutput.string(), DRW::AC1027, binary,
+                &enumData, false, true))
+            return fail(std::string("same-adapter MLEADERSTYLE ") + name
+                + " retry failed: " + enumWriter.extensionGraphFailureDetail());
+
+        dx_data enumReadback;
+        dx_iface enumOutputReader;
+        if (!enumOutputReader.fileImport(enumOutput.string(), &enumReadback,
+                false))
+            return fail(std::string("could not read back MLEADERSTYLE ")
+                + name + " output");
+        const auto emittedStyle = std::find_if(enumReadback.mLeaderStyles.begin(),
+            enumReadback.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (emittedStyle == enumReadback.mLeaderStyles.end()
+            || (*emittedStyle).*member != requestedValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " typed output/readback mismatch");
+        const auto emittedRaw = std::find_if(
+            enumReadback.rawNamedResourceObjects.begin(),
+            enumReadback.rawNamedResourceObjects.end(),
+            [handle = emittedStyle->handle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == handle;
+            });
+        if (emittedRaw == enumReadback.rawNamedResourceObjects.end()
+            || std::count_if(emittedRaw->groups.begin(), emittedRaw->groups.end(),
+                [code, requestedValue](const DRW_Variant& field) {
+                    return field.code() == code
+                        && field.type() == DRW_Variant::INTEGER
+                        && field.i_val() == requestedValue;
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " exact output field proof failed");
+        const auto crossOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-cross-"
+                + encoding + ".dxf");
+        dx_iface crossWriter;
+        dx_data crossReadback;
+        dx_iface crossReader;
+        if (!crossWriter.fileExport(crossOutput.string(), DRW::AC1027, !binary,
+                &enumData, false, true)
+            || !crossReader.fileImport(crossOutput.string(), &crossReadback,
+                false))
+            return fail(std::string("cross-format MLEADERSTYLE ") + name
+                + " output failed");
+        const auto crossStyle = std::find_if(crossReadback.mLeaderStyles.begin(),
+            crossReadback.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        return crossStyle != crossReadback.mLeaderStyles.end()
+            && (*crossStyle).*member == requestedValue;
+    };
+    if (!verifyControlEnum(171, "draw-mleader-order",
+            &DRW_MLeaderStyle::drawMLeaderOrder, 0u, 1u, 2u)
+        || !verifyControlEnum(172, "draw-leader-order",
+            &DRW_MLeaderStyle::drawLeaderOrder, 0u, 1u, 2u)
+        || !verifyControlEnum(173, "leader-type",
+            &DRW_MLeaderStyle::leaderType, 1u, 2u, 3u)
+        || !verifyControlEnum(177, "block-connection",
+            &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, 2u))
+        return false;
 
     return true;
 }

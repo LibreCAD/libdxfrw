@@ -15989,7 +15989,9 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 9> mleaderInt32Codes{{90, 91, 92, 93, 94, 174, 175, 176, 178}};
+constexpr std::array<int, 13> mleaderInt32Codes{{
+    90, 91, 92, 93, 94, 171, 172, 173, 174, 175, 176, 177, 178
+}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16005,6 +16007,20 @@ bool isMLeaderColorCode(int code) noexcept {
     return code == 91 || code == 93 || code == 94;
 }
 
+int mleaderEnumMaximum(int code) noexcept {
+    switch (code) {
+    case 171:
+    case 172:
+    case 177: return 1;
+    case 173:
+    case 175:
+    case 176: return 2;
+    case 174:
+    case 178: return 8;
+    default: return -1;
+    }
+}
+
 std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
                                int code) noexcept {
     switch (code) {
@@ -16013,9 +16029,13 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 92: return style.leaderLineWeight;
     case 93: return style.textColor;
     case 94: return style.blockColor;
+    case 171: return style.drawMLeaderOrder;
+    case 172: return style.drawLeaderOrder;
+    case 173: return style.leaderType;
     case 174: return style.leftAttachment;
     case 175: return style.textAngleType;
     case 176: return style.textAlignmentType;
+    case 177: return style.blockConnectionType;
     case 178: return style.rightAttachment;
     default: return 0;
     }
@@ -16029,9 +16049,13 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 92: style.leaderLineWeight = value; break;
     case 93: style.textColor = value; break;
     case 94: style.blockColor = value; break;
+    case 171: style.drawMLeaderOrder = static_cast<std::uint16_t>(value); break;
+    case 172: style.drawLeaderOrder = static_cast<std::uint16_t>(value); break;
+    case 173: style.leaderType = static_cast<std::uint16_t>(value); break;
     case 174: style.leftAttachment = static_cast<std::uint16_t>(value); break;
     case 175: style.textAngleType = static_cast<std::uint16_t>(value); break;
     case 176: style.textAlignmentType = static_cast<std::uint16_t>(value); break;
+    case 177: style.blockConnectionType = static_cast<std::uint16_t>(value); break;
     case 178: style.rightAttachment = static_cast<std::uint16_t>(value); break;
     default: break;
     }
@@ -16251,15 +16275,14 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             if (editedCode < 0)
                 return false;
             std::size_t baselineSlot = noMLeaderFieldSlot;
+            const int enumMaximum = mleaderEnumMaximum(editedCode);
             const bool validValue = (isMLeaderColorCode(editedCode)
                     ? mleaderInt32Value(value, editedCode) >= 0
                         && mleaderInt32Value(value, editedCode) <= 256
-                    : editedCode == 175 || editedCode == 176
+                    : enumMaximum >= 0
                         ? mleaderInt32Value(value, editedCode) >= 0
-                            && mleaderInt32Value(value, editedCode) <= 2
-                    : editedCode == 174 || editedCode == 178
-                        ? mleaderInt32Value(value, editedCode) >= 0
-                            && mleaderInt32Value(value, editedCode) <= 8
+                            && mleaderInt32Value(value, editedCode)
+                                <= enumMaximum
                     : isMLeaderInt32Code(editedCode))
                 || std::isfinite(mleaderDoubleValue(value, editedCode));
             if (!validValue
