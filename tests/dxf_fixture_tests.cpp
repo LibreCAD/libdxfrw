@@ -36499,15 +36499,18 @@ bool runConsumedSurvivorSubsetRemoval(const std::filesystem::path& dir,unsigned 
         return elements.size()==targetCount;
     };
     for(const auto& survivors:survivorSets) {
-        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        for(bool sourceBinary:{false,true}) {
             dx_iface adapter;dx_data data;
             if(!write(input,sourceRecipe(sourceBinary),sourceBinary,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)||!retainSelection(data,survivors))return fail(__LINE__);
             const mlineRetargetControls::Snapshot caller(data);
-            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-                ||!multiRemovalOutputProof(output,outputBinary,survivors,sourceOffsets,sourceColors,sourceLinetypes)
-                ||!caller.same(data))return fail(__LINE__);
-            ++profiles;++readbacks;
+            for(bool outputBinary:{false,true}) {
+                dx_iface outputAdapter;
+                if(!outputAdapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                    ||!multiRemovalOutputProof(output,outputBinary,survivors,sourceOffsets,sourceColors,sourceLinetypes)
+                    ||!caller.same(data))return fail(__LINE__);
+                ++profiles;++readbacks;
+            }
         }
     }
     for(bool outputBinary:{false,true}) {
