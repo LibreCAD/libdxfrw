@@ -36006,7 +36006,8 @@ bool mleaderStyleDoubleCompositionTransaction(
             });
         return found == data.mLeaderStyles.end() ? nullptr : &*found;
     };
-    const auto verifyOutput = [&](const std::filesystem::path& path) {
+    const auto verifyOutput = [&](const std::filesystem::path& path,
+                                  std::int32_t expectedMaxLeaderPoints) {
         dx_data readback;
         dx_iface reader;
         if (!reader.fileImport(path.string(), &readback, false))
@@ -36023,6 +36024,14 @@ bool mleaderStyleDoubleCompositionTransaction(
             });
         if (raw == readback.rawNamedResourceObjects.end())
             return fail("composed MLEADERSTYLE raw output is missing");
+        if (style->maxLeaderPoints != expectedMaxLeaderPoints
+            || std::count_if(raw->groups.begin(), raw->groups.end(),
+                [expectedMaxLeaderPoints](const DRW_Variant& candidate) {
+                    return candidate.code() == 90
+                        && candidate.type() == DRW_Variant::INTEGER
+                        && candidate.i_val() == expectedMaxLeaderPoints;
+                }) != 1)
+            return fail("composed MLEADERSTYLE group-90 output/readback mismatch");
         for (const auto& field : requested) {
             if (getValue(*style, field.first) != field.second
                 || std::count_if(raw->groups.begin(), raw->groups.end(),
@@ -36073,6 +36082,20 @@ bool mleaderStyleDoubleCompositionTransaction(
             if (style == nullptr || style->handle != 0x1Cu
                 || raw == data.rawNamedResourceObjects.end())
                 return fail("composed MLEADERSTYLE source identity is missing");
+            const auto sourceMaxLeaderPoints = std::find_if(
+                raw->groups.begin(), raw->groups.end(),
+                [](const DRW_Variant& candidate) {
+                    return candidate.code() == 90;
+                });
+            if (style->maxLeaderPoints != 0
+                || sourceMaxLeaderPoints == raw->groups.end()
+                || sourceMaxLeaderPoints->type() != DRW_Variant::INTEGER
+                || sourceMaxLeaderPoints->i_val() != 0
+                || std::count_if(raw->groups.begin(), raw->groups.end(),
+                    [](const DRW_Variant& candidate) {
+                        return candidate.code() == 90;
+                    }) != 1)
+                return fail("authored MLEADERSTYLE source lacks unique group-90 INT32");
             for (const auto& field : requested) {
                 const auto sourceField = std::find_if(raw->groups.begin(),
                     raw->groups.end(), [&field](const DRW_Variant& candidate) {
@@ -36126,20 +36149,34 @@ bool mleaderStyleDoubleCompositionTransaction(
                 || !sentinelSurvives())
                 return fail("conflicting composed MLEADERSTYLE source was published");
             *raw = baselineRaw;
+            if (!writer.fileExport(output.string(), DRW::AC1027, outputBinary,
+                    &data, false, true)
+                || !verifyOutput(output, 0))
+                return fail("composed MLEADERSTYLE DOUBLE retry failed: "
+                    + writer.extensionGraphFailureDetail());
+
             style->maxLeaderPoints = 5;
+            if (!writer.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !verifyOutput(output, 5))
+                return fail("composed MLEADERSTYLE DOUBLE/group-90 edit failed: "
+                    + writer.extensionGraphFailureDetail());
+
+            style->leaderColor = 7;
             if (!seedSentinel()
                 || writer.fileExport(output.string(), DRW::AC1027,
                     outputBinary, &data, false, true)
                 || !sentinelSurvives())
-                return fail("mixed DOUBLE/INT32 MLEADERSTYLE edits were accepted");
-            style->maxLeaderPoints = 0;
+                return fail("unqualified mixed DOUBLE/group-90/ACI MLEADERSTYLE edits were accepted");
+            style->leaderColor = 0;
             if (!writer.fileExport(output.string(), DRW::AC1027, outputBinary,
                     &data, false, true)
-                || !verifyOutput(output))
-                return fail("composed MLEADERSTYLE same-adapter retry failed: "
+                || !verifyOutput(output, 5))
+                return fail("composed MLEADERSTYLE same-adapter mixed retry failed: "
                     + writer.extensionGraphFailureDetail());
 
             if (!exercisedLateRollback) {
+                style->maxLeaderPoints = 5;
                 const auto lateOutput = directory
                     / ("mleaderstyle-double-composition-late-output-"
                         + outputEncoding + ".dxf");
@@ -36182,7 +36219,7 @@ bool mleaderStyleDoubleCompositionTransaction(
                 lateWriter.mutate = false;
                 if (!lateWriter.fileExport(lateOutput.string(), DRW::AC1027,
                         outputBinary, &data, false, true)
-                    || !verifyOutput(lateOutput))
+                    || !verifyOutput(lateOutput, 5))
                     return fail("late composed MLEADERSTYLE same-adapter retry failed: "
                         + lateWriter.extensionGraphFailureDetail());
                 exercisedLateRollback = true;

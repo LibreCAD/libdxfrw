@@ -16321,7 +16321,16 @@ std::vector<int> changedMLeaderFieldCodes(
 bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
     if (codes.size() <= 1u)
         return true;
-    return std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode);
+    if (std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode))
+        return true;
+
+    // The selected AC1027 profile also admits the independent max-leader-
+    // points scalar (group 90) alongside mapped DOUBLE fields. Other mixed
+    // field families remain on their existing single-field routes.
+    return std::count(codes.begin(), codes.end(), 90) == 1
+        && std::all_of(codes.begin(), codes.end(), [](int code) {
+            return code == 90 || isMLeaderDoubleCode(code);
+        });
 }
 
 void copyMLeaderField(DRW_MLeaderStyle& destination,
@@ -16627,10 +16636,10 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             const std::vector<int> editedCodes =
                 changedMLeaderFieldCodes(value, original);
             if (!editedCodes.empty()) {
-                // Multiple-field composition is currently admitted only for
-                // independent existing AC1027 scalar DOUBLE groups. Other
-                // edit sets retain the single-field contract until separately
-                // qualified.
+                // Multiple-field composition is limited to mapped AC1027
+                // DOUBLE groups, optionally with the selected group-90
+                // maxLeaderPoints scalar. Other edit sets keep their
+                // single-field contract until separately qualified.
                 if (version != DRW::AC1027
                     || !supportedMLeaderEditSet(editedCodes)
                     || !standardDwgCommonEqual(value, original, version,
