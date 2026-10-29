@@ -2268,7 +2268,7 @@ private:
         std::size_t passes,std::size_t& work,std::size_t limit) noexcept;
     bool prepareDxfMLineStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
-    bool hasUnchangedDxfMLineStyles() const noexcept;
+    bool hasUnchangedDxfMLineStyles(bool deferConsumedGeometry=false) const noexcept;
     bool hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) const noexcept;
     bool needsDxfMLineNoRawSectionsGuard() const noexcept;
     bool needsDxfMLineConsumerInspection() const noexcept;
@@ -2288,7 +2288,8 @@ private:
     struct DxfMLineConsumerSource {
         const DRW_MLine* live{nullptr};
         const dx_ifaceBlock* block{nullptr};
-        DRW_MLine model;
+        DRW_MLine model,projection;
+        bool geometryProjected{false};
         std::shared_ptr<const DRW_MLine> original;
         std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesDelivery::Certificate> entities;
         std::shared_ptr<const dx_data::TableDxfSourceCapture::BlockOriginAudit> blocks;

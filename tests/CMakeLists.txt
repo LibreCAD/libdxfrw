@@ -152,6 +152,15 @@ set_tests_properties(libdxfrw_mline_deleted_consumer_geometry_guard PROPERTIES L
 add_test(NAME libdxfrw_mline_raw_section_geometry_guard
     COMMAND libdxfrw_mline_source_dependency_tests --mline-raw-section-geometry-guard)
 set_tests_properties(libdxfrw_mline_raw_section_geometry_guard PROPERTIES LABELS "dxf;fast;transaction" TIMEOUT 30)
+
+# The source and output are authored at runtime. This selected AC1027 profile
+# proves consumed MLINE group-41 reprojection in ASCII/binary, plus atomic
+# refusal and same-adapter retry controls; it adds no drawing fixture.
+add_test(NAME libdxfrw_mline_consumed_offset_projection
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-offset-projection)
+set_tests_properties(libdxfrw_mline_consumed_offset_projection PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}

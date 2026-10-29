@@ -33545,6 +33545,203 @@ bool run(const std::filesystem::path& dir) {
 }
 
 
+namespace mlineConsumedOffsetControls {
+using namespace materialConsumerControls;
+using namespace mlineStyleAuthorityControls;
+struct Vec {double x,y,z;};
+using Vertex=std::pair<Vec,Vec>;
+const std::array<double,2> beforeOffsets{{1.25,-.75}};
+const std::array<double,2> afterOffsets{{1.5,-.75}};
+double norm(const Vec& v){return std::hypot(std::hypot(v.x,v.y),v.z);}
+Vec cross(const Vec& a,const Vec& b){return {a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x};}
+double dot(const Vec& a,const Vec& b){return a.x*b.x+a.y*b.y+a.z*b.z;}
+std::string number(double value){std::ostringstream out;out.precision(std::numeric_limits<double>::max_digits10);out<<value;return out.str();}
+std::vector<Vertex> geometry(unsigned index) {
+    if(!index)return {{{0,0,0},{1,0,0}},{{4,0,0},{0,1,0}},{{4,3,0},{0,1,0}}};
+    return {{{0,0,0},{1,0,0}},{{4,0,0},{0,0,1}},{{4,0,3},{0,0,1}}};
+}
+Vec extrusion(unsigned index){return index?Vec{0,-1,0}:Vec{0,0,1};}
+unsigned justification(unsigned index){return index?2u:1u;}
+double scale(unsigned index){return index?2.5:1.25;}
+Vec miter(unsigned profile,const std::vector<Vertex>& vertices,unsigned index,double start=90.0,double end=90.0) {
+    const auto ext=extrusion(profile);
+    if(index==0u) {
+        const auto perpendicular=cross(ext,vertices.front().second);const double angle=start*3.14159265358979323846/180.0;
+        return {std::cos(angle)*vertices.front().second.x+std::sin(angle)*perpendicular.x,
+            std::cos(angle)*vertices.front().second.y+std::sin(angle)*perpendicular.y,
+            std::cos(angle)*vertices.front().second.z+std::sin(angle)*perpendicular.z};
+    }
+    if(index+1u==vertices.size()) {
+        const auto perpendicular=cross(ext,vertices[index].second);const double angle=end*3.14159265358979323846/180.0;
+        return {std::cos(angle)*vertices[index].second.x+std::sin(angle)*perpendicular.x,
+            std::cos(angle)*vertices[index].second.y+std::sin(angle)*perpendicular.y,
+            std::cos(angle)*vertices[index].second.z+std::sin(angle)*perpendicular.z};
+    }
+    const auto& previous=vertices[index-1u].second;const auto& current=vertices[index].second;
+    const Vec sum{previous.x+current.x,previous.y+current.y,previous.z+current.z};const double length=norm(sum);
+    return cross(ext,{sum.x/length,sum.y/length,sum.z/length});
+}
+double parameter(unsigned profile,unsigned vertex,unsigned element,const std::array<double,2>& offsets) {
+    const auto points=geometry(profile);const auto direction=points.at(vertex).second;const auto mit=miter(profile,points,vertex);
+    const double denominator=dot(cross(extrusion(profile),direction),mit);
+    const double shift=justification(profile)==2u?.75:0.0;
+    return (offsets[element]+shift)*scale(profile)/denominator;
+}
+void setRecordValue(Tags& fields,std::size_t begin,std::size_t end,int code,const std::string& value,unsigned occurrence=0u) {
+    for(std::size_t i=begin;i<end;++i)if(fields[i].first==code) {
+        if(occurrence){--occurrence;continue;}fields[i].second=value;return;
+    }
+    throw std::runtime_error("consumed MLINE field missing");
+}
+Tags recipe(bool binary,bool corrupt=false) {
+    auto fields=mlineStyleAuthorityControls::recipe(binary);
+    for(std::size_t i=0u;i<fields.size();) {
+        if(fields[i].first!=0){++i;continue;}
+        std::size_t end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[i].second=="MLINESTYLE") {
+            setRecordValue(fields,i,end,70,"2");
+            setRecordValue(fields,i,end,49,number(beforeOffsets[0]),0u);
+            setRecordValue(fields,i,end,49,number(beforeOffsets[1]),1u);
+            for(std::size_t j=i+1u;j<end;)if(fields[j].first==301) {
+                fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(j));--end;
+            } else ++j;
+        }
+        if(fields[i].second=="MLINE") {
+            const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+                [](const auto& field){return field.first==5;});
+            if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed MLINE identity missing");
+            const unsigned profile=id->second=="D100"?0u:id->second=="D101"?1u:2u;
+            if(profile>1u)throw std::runtime_error("unexpected MLINE profile");
+            const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+            setRecordValue(fields,i,end,40,number(scale(profile)));setRecordValue(fields,i,end,70,std::to_string(justification(profile)));
+            setRecordValue(fields,i,end,71,"1");setRecordValue(fields,i,end,72,"3");setRecordValue(fields,i,end,73,"2");
+            const auto point=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.begin()+static_cast<std::ptrdiff_t>(end),
+                [](const auto& field){return field.first==10;});
+            if(point==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("consumed MLINE base point missing");
+            Tags generated{{10,number(vertices.front().first.x)},{20,number(vertices.front().first.y)},{30,number(vertices.front().first.z)},
+                {210,number(ext.x)},{220,number(ext.y)},{230,number(ext.z)}};
+            for(unsigned v=0u;v<vertices.size();++v) {
+                const auto pos=vertices[v].first,dir=vertices[v].second,mit=miter(profile,vertices,v);
+                generated.insert(generated.end(),{{11,number(pos.x)},{21,number(pos.y)},{31,number(pos.z)},
+                    {12,number(dir.x)},{22,number(dir.y)},{32,number(dir.z)},
+                    {13,number(mit.x)},{23,number(mit.y)},{33,number(mit.z)}});
+                for(unsigned element=0u;element<2u;++element)generated.insert(generated.end(),{{74,"2"},
+                    {41,number(parameter(profile,v,element,beforeOffsets))},{41,number(0.0)},{75,"0"}});
+            }
+            if(corrupt&&profile==0u)for(auto& field:generated)if(field.first==41){field.second=number(std::stod(field.second)+.25);break;}
+            const auto offset=static_cast<std::size_t>(point-fields.begin());fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(offset),fields.begin()+static_cast<std::ptrdiff_t>(end));
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(offset),generated.begin(),generated.end());end=offset+generated.size();
+        }
+        i=end;
+    }
+    return fields;
+}
+bool close(double a,double b){return std::isfinite(a)&&std::isfinite(b)&&std::fabs(a-b)<=2e-5*(1.0+(std::max)(std::fabs(a),std::fabs(b)));}
+std::vector<std::string> values(const Row& row,int code){std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;}
+bool oneNumber(const Row& row,int code,double expected){const auto found=values(row,code);return found.size()==1u&&close(std::stod(found.front()),expected);}
+bool outputProof(const std::filesystem::path& path,bool binary) {
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);unsigned consumers=0u,styles=0u;
+    for(const auto& row:rows) {
+        if(row.type=="MLINESTYLE") {
+            const auto offsets=values(row,49);
+            if(offsets.size()!=2u||!close(std::stod(offsets[0]),afterOffsets[0])
+                ||!close(std::stod(offsets[1]),afterOffsets[1])){std::cerr<<"output style offsets mismatch\n";return false;}
+            ++styles;
+        }
+        if(row.type!="MLINE")continue;
+        const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;if(profile>1u)return false;
+        if(row.section!=(profile?"BLOCKS":"ENTITIES")||!oneNumber(row,70,justification(profile))
+            ||!oneNumber(row,71,1)||!oneNumber(row,72,3)||!oneNumber(row,73,2)
+            ||!oneNumber(row,40,scale(profile))||!values(row,42).empty())return false;
+        const auto actual=values(row,41);if(actual.size()!=12u){std::cerr<<"output MLINE parameter count="<<actual.size()<<"\n";return false;}std::size_t at=0u;
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element)
+            if(!close(std::stod(actual[at++]),parameter(profile,vertex,element,afterOffsets))
+                ||std::stod(actual[at++])!=0.0){std::cerr<<"output MLINE parameter mismatch profile="<<profile<<" vertex="<<vertex<<" element="<<element<<"\n";return false;}
+        ++consumers;
+    }
+    if(styles!=1u||consumers!=2u){std::cerr<<"output record counts styles="<<styles<<" consumers="<<consumers<<"\n";return false;}
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)
+        ||actual.mLineStyles.size()!=1u||actual.mLineStyles.front().elements.size()!=2u
+        ||!close(actual.mLineStyles.front().elements[0].offset,afterOffsets[0])
+        ||!close(actual.mLineStyles.front().elements[1].offset,afterOffsets[1])){std::cerr<<"output readback style mismatch\n";return false;}
+    const auto lines=mlineStyleAuthorityControls::consumers(actual);if(lines.size()!=2u){std::cerr<<"output readback consumer count="<<lines.size()<<"\n";return false;}
+    for(unsigned profile=0u;profile<2u;++profile) {
+        const auto& line=*lines[profile];const auto points=geometry(profile);const auto ext=extrusion(profile);
+        if(line.numVerts!=3u||line.numLines!=2u||line.vertlist.size()!=3u
+            ||line.justification!=justification(profile)||line.openClosed!=1u||!close(line.scale,scale(profile))
+            ||!close(line.extPoint.x,ext.x)||!close(line.extPoint.y,ext.y)||!close(line.extPoint.z,ext.z)
+            ||line.vertlist.front().position.x!=points.front().first.x||line.vertlist.front().position.y!=points.front().first.y
+            ||line.vertlist.front().position.z!=points.front().first.z){std::cerr<<"output readback geometry header profile="<<profile<<" numVerts="<<line.numVerts<<" verts="<<line.vertlist.size()<<" scale="<<line.scale<<" just="<<line.justification<<"\n";return false;}
+        for(unsigned vertex=0u;vertex<3u;++vertex) {
+            const auto& model=line.vertlist[vertex];if(model.segParms.size()!=2u||model.areaFillParms.size()!=2u)return false;
+            for(unsigned element=0u;element<2u;++element)
+                if(model.segParms[element].size()!=2u||!close(model.segParms[element][0],parameter(profile,vertex,element,afterOffsets))
+                    ||model.segParms[element][1]!=0.0||!model.areaFillParms[element].empty()){std::cerr<<"output readback parameters profile="<<profile<<" v="<<vertex<<" e="<<element<<" size="<<model.segParms[element].size()<<" value="<<(model.segParms[element].empty()?999:model.segParms[element][0])<<"\n";return false;}
+        }
+    }
+    return true;
+}
+struct Editing:dx_iface {
+    bool active=true;std::function<void()> change;
+    void writeEntities()override{dx_iface::writeEntities();if(active&&change)change();}
+};
+bool run(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-offset-input.dxf",output=dir/"consumed-offset-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    const auto fail=[&](int line){std::cerr<<"MLINE consumed offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+        <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;};
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        const auto fields=recipe(sourceBinary);
+        if(!write(input,fields,sourceBinary,"AC1027")){std::cerr<<"consumed MLINE fixture writer rejected authored tags\n";return fail(__LINE__);}
+        if(!adapter.fileImport(input.string(),&data,false)){std::cerr<<"consumed MLINE input rejected\n";return fail(__LINE__);}
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u||lines[0]->vertlist.size()!=3u||lines[1]->vertlist.size()!=3u
+            ||data.mLineStyles.size()!=1u||data.mLineStyles.front().flags!=2
+            ||!close(data.mLineStyles.front().elements[0].offset,beforeOffsets[0])
+            ||!close(data.mLineStyles.front().elements[1].offset,beforeOffsets[1]))return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=afterOffsets[0];const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true))return fail(__LINE__);
+        if(!outputProof(output,outputBinary)){std::cerr<<"consumed MLINE output proof failed binary="<<outputBinary<<'\n';return fail(__LINE__);}
+        if(!caller.same(data)){std::cerr<<"consumed MLINE caller preservation failed\n";return fail(__LINE__);}
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false,true),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=1u)return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=afterOffsets[0];sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++refusals;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=1u)return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=afterOffsets[0];const mlineRetargetControls::Snapshot expected(data);
+        auto lines=mlineStyleAuthorityControls::consumers(data);if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);++late;
+        adapter.active=false;expected.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProof(output,outputBinary)||!expected.same(data))return fail(__LINE__);++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed offset profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==6u&&refusals==2u&&late==2u&&retries==2u;
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-offset-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=run(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed offset artifacts: "<<dir<<'\n';
+    return passed;
+}
+}
+
 namespace headerMaterialControls {
 using namespace materialConsumerControls;
 Tags recipe(const std::filesystem::path& dir,const std::string& version,const std::string& material){
@@ -41732,6 +41929,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-style-body-transactions") {
         TestContext context;testMLineStyleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
+        return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
