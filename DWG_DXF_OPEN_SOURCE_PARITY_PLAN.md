@@ -164,10 +164,15 @@ proof. Refused fields are not implemented editing support.
    qualifies the ordered finite group-1040/1041/1042 profile under one APPID.
    [RPP-5um](docs/research/rpp5um-mline-ltype-xdata-binary-2026-10-29.json)
    qualifies one eight-byte group-1004 hex chunk under one APPID. Other XDATA
-   values/ranges and payload orders/compositions, multi-chunk/boundary 1004
-   cases, multiple list payloads, list compositions across APPIDs, 1003/1005
-   dependency roles, coordinate tuples, three-or-more APPID groups, APPID
-   metadata, LTYPE schemas and versions remain open.
+   [RPP-5un](docs/research/rpp5un-mline-ltype-xdata-multichunk-2026-10-29.json)
+   qualifies ordered group-1004 chunks at the 127-byte boundary (127 bytes
+   followed by one byte) across the ASCII/binary input/output cross-product,
+   with exact physical output, fresh readback and missing-provider rollback and
+   retry. The selected provider profile now admits each 1004 chunk only up to
+   127 bytes. Other XDATA values/ranges and payload orders/compositions, other
+   multi-chunk layouts, multiple list payloads, list compositions across
+   APPIDs, 1003/1005 dependency roles, coordinate tuples, three-or-more APPID
+   groups, APPID metadata, LTYPE schemas and versions remain open.
    [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
    qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
    source group 340 binds its STYLE provider, exact output binds the remapped
