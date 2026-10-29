@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection is implemented for the documented open, uncut, unfilled MLINE profile; its source/live dependency gates and staged BLOCKS/ENTITIES output/readback checks are bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json). Count changes, geometry-changing MLINE `340` retargets, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Choose one still-refused exact operation/profile and bind source, live graph, emitted output and a focused retry/refusal control |
+| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection is bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json). A selected geometry-changing MLINE `340` retarget with matching flags, angles and arity and offset-only geometry difference is bound in [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json). Count changes, other retarget profiles, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Select one still-refused exact operation/profile and bind source, live graph, emitted output and a focused retry/refusal control |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,10 +61,10 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — next local geometry/schema witness | Reuse the source/live/carrier/staged-output receipts above and [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) for the completed narrow offset profile. | Select one still-refused count `71`, MLINE `340` retarget, earlier-version, carrier/schema or MLEADERSTYLE witness; implement only its missing layer with a focused generated-source test, output proof, refusal/retry control and bounded work |
+| P2 — next local geometry/schema witness | Reuse the source/live/carrier/staged-output receipts, [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json), and [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json) for the selected consumed-offset and offset-only retarget profiles. | Prefer one exact still-refused count `71`, non-offset retarget, earlier-version, carrier/schema or MLEADERSTYLE witness; implement its missing layer with a focused generated-source test, output proof, refusal/retry control and bounded work |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
-| P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused count, both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for full P2 dependency closure |
+| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and the selected consumed-offset/retarget receipts | Bind a still-refused count, both-field edit, dense-budget case, non-offset retarget or legacy operation to source and exact expected output; do not wait for full P2 dependency closure |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -112,18 +112,21 @@ proof. Refused fields are not implemented editing support.
    need source/context/codec evidence. Native units, font identity, collation,
    ByLayer/ByBlock inheritance and rendering remain separate evidence. Start with
    one witnessed unsupported profile; retain advisory transport until qualified.
-3. **P2.4: remaining geometry operations.** Still-refused work is count `71`
-   changes (including unused definitions), geometry-changing MLINE `340`
-   retargets, earlier-version authority and consumed-offset profiles beyond the
-   selected AC1027 case. The selected narrow offset projection is implemented;
-   see [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json)
-   for its exact admission limits and proof. For each remaining operation, select
+3. **P2.4: remaining geometry operations.** Selected AC1027 consumed-style
+   offset projection and a geometry-changing MLINE `340` retarget are implemented
+   for their exact open, uncut, unfilled offset-only profiles; see
+   [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json)
+   and [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json).
+   Still-refused work includes count `71` changes (including unused definitions),
+   retargets whose flags, angles, arity or other geometry differ, earlier-version
+   authority, and other consumed-offset profiles. For each remaining operation, select
    one current source witness, bind every affected original/live consumer and
    provider, define the exact emitted fields and readback, and add a bounded
    refusal/rollback/retry control. Keep count, retarget and other geometry
    profiles separate; same arity does not establish parameter compatibility.
    Preserve redundant group-2 values, caller state and destination on refusal.
-   Do not widen the selected offset admission or promote broader claims from it.
+   Keep each profile's exact admission boundary; do not promote broader claims
+   from selected offset or retarget evidence.
 
    Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json),
    [2→1 last-element removal](docs/research/rpp5hm-mline-unused-removal-2026-10-28.json)
