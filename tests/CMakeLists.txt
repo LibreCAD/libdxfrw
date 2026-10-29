@@ -161,6 +161,15 @@ add_test(NAME libdxfrw_mline_consumed_offset_projection
 set_tests_properties(libdxfrw_mline_consumed_offset_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Generated at runtime from the selected AC1027 MLINE profile. This proves
+# offset reprojection when retargeting group 340, exact redundant group-2 and
+# reference output, fresh readback, refusal, rollback and same-adapter retry.
+add_test(NAME libdxfrw_mline_retarget_offset_projection
+    COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-offset-projection)
+set_tests_properties(libdxfrw_mline_retarget_offset_projection PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}

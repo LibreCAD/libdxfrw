@@ -33681,6 +33681,126 @@ bool outputProof(const std::filesystem::path& path,bool binary) {
     }
     return true;
 }
+bool recordSpan(const Tags& fields,const std::string& type,const std::string& handle,
+        std::size_t& begin,std::size_t& end) {
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]!=std::make_pair(0,type))continue;
+        std::size_t stop=i+1u;while(stop<fields.size()&&fields[stop].first!=0)++stop;
+        for(std::size_t j=i+1u;j<stop;++j)if(fields[j]==std::make_pair(5,handle)) {
+            begin=i;end=stop;return true;
+        }
+        i=stop-1u;
+    }
+    return false;
+}
+void setStyleValues(Tags& fields,const std::string& handle) {
+    std::size_t begin=0u,end=0u;
+    if(!recordSpan(fields,"MLINESTYLE",handle,begin,end))throw std::runtime_error("retarget geometry style missing");
+    setRecordValue(fields,begin,end,70,"2");
+    setRecordValue(fields,begin,end,49,number(beforeOffsets[0]),0u);
+    setRecordValue(fields,begin,end,49,number(beforeOffsets[1]),1u);
+}
+Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=false) {
+    auto fields=mlineRetargetControls::recipe(binary);
+    const auto geometryFields=recipe(binary,corrupt);
+    for(const auto& handle:std::array<std::string,2>{{"D100","D101"}}) {
+        std::size_t destinationBegin=0u,destinationEnd=0u,sourceBegin=0u,sourceEnd=0u;
+        if(!recordSpan(fields,"MLINE",handle,destinationBegin,destinationEnd)
+            ||!recordSpan(geometryFields,"MLINE",handle,sourceBegin,sourceEnd))
+            throw std::runtime_error("retarget geometry consumer missing");
+        const auto destinationMarker=std::find(fields.begin()+static_cast<std::ptrdiff_t>(destinationBegin),
+            fields.begin()+static_cast<std::ptrdiff_t>(destinationEnd),std::make_pair(100,std::string("AcDbMline")));
+        const auto sourceMarker=std::find(geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceBegin),
+            geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceEnd),std::make_pair(100,std::string("AcDbMline")));
+        if(destinationMarker==fields.begin()+static_cast<std::ptrdiff_t>(destinationEnd)
+            ||sourceMarker==geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceEnd))
+            throw std::runtime_error("retarget geometry subclass missing");
+        const auto destinationSuffix=static_cast<std::size_t>(destinationMarker-fields.begin())+1u;
+        const auto sourceSuffix=static_cast<std::size_t>(sourceMarker-geometryFields.begin())+1u;
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(destinationSuffix),
+            fields.begin()+static_cast<std::ptrdiff_t>(destinationEnd));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(destinationSuffix),
+            geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceSuffix),
+            geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceEnd));
+    }
+    setStyleValues(fields,"D");setStyleValues(fields,"D2");
+    if(targetOffsetDiffers) {
+        std::size_t begin=0u,end=0u;if(!recordSpan(fields,"MLINESTYLE","D2",begin,end))
+            throw std::runtime_error("retarget offset target style missing");
+        setRecordValue(fields,begin,end,49,number(afterOffsets[0]),0u);
+    }
+    return fields;
+}
+bool retargetOutputProof(const std::filesystem::path& path,bool binary) {
+    const auto bad=[](int line){std::cerr<<"retarget output proof mismatch line="<<line<<'\n';return false;};
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
+        std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
+    };
+    const mlineStyleAuthorityControls::Row* originalStyle=nullptr;const mlineStyleAuthorityControls::Row* targetStyle=nullptr;
+    unsigned styleCount=0u,consumerCount=0u;
+    for(const auto& row:rows)if(row.type=="MLINESTYLE") {
+        ++styleCount;const auto name=values(row,2);
+        if(name==std::vector<std::string>{"OLD_BODY_NAME"})originalStyle=&row;
+        else if(name==std::vector<std::string>{"RETARGET_BODY"})targetStyle=&row;
+        else return bad(__LINE__);
+    }
+    if(styleCount!=2u||!originalStyle||!targetStyle
+        ||values(*originalStyle,49).size()!=2u
+        ||!close(std::stod(values(*originalStyle,49)[0]),beforeOffsets[0])
+        ||!close(std::stod(values(*originalStyle,49)[1]),beforeOffsets[1]))
+        return bad(__LINE__);
+    const auto offsets=values(*targetStyle,49);
+    if(offsets.size()!=2u||!close(std::stod(offsets[0]),afterOffsets[0])
+        ||!close(std::stod(offsets[1]),afterOffsets[1])||values(*targetStyle,70).size()!=1u
+        ||std::stod(values(*targetStyle,70).front())!=2.0) {
+        return bad(__LINE__);
+    }
+    const auto targetHandle=static_cast<std::uint32_t>(std::stoul(targetStyle->id,nullptr,16));
+    for(const auto& row:rows)if(row.type=="MLINE") {
+        const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
+        if(profile>1u||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
+            ||values(row,340)!=std::vector<std::string>{targetStyle->id}
+            ||row.section!=(profile?"BLOCKS":"ENTITIES")||!values(row,42).empty())return bad(__LINE__);
+        const auto actual=values(row,41);if(actual.size()!=12u)return bad(__LINE__);std::size_t at=0u;
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element)
+            if(!close(std::stod(actual[at++]),parameter(profile,vertex,element,afterOffsets))
+                ||std::stod(actual[at++])!=0.0)return bad(__LINE__);
+        ++consumerCount;
+    }
+    if(consumerCount!=2u)return bad(__LINE__);
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=2u)return bad(__LINE__);
+    const DRW_MLineStyle* decodedTarget=nullptr;const DRW_MLineStyle* decodedOriginal=nullptr;
+    for(const auto& style:actual.mLineStyles) {
+        if(style.handle==targetHandle&&style.name=="RETARGET_BODY")decodedTarget=&style;
+        if(style.name=="OLD_BODY_NAME")decodedOriginal=&style;
+    }
+    if(!decodedTarget||!decodedOriginal||decodedTarget->elements.size()!=2u||decodedOriginal->elements.size()!=2u
+        ||!close(decodedTarget->elements[0].offset,afterOffsets[0])||!close(decodedTarget->elements[1].offset,afterOffsets[1])
+        ||!close(decodedOriginal->elements[0].offset,beforeOffsets[0])||!close(decodedOriginal->elements[1].offset,beforeOffsets[1]))return bad(__LINE__);
+    const auto lines=mlineStyleAuthorityControls::consumers(actual);if(lines.size()!=2u)return bad(__LINE__);
+    for(const auto* line:lines) {
+        const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
+        if(profile>1u||line->styleHandle!=targetHandle||line->styleName!="OLD_ENTITY_NAME"
+            ||line->numVerts!=3u||line->numLines!=2u||line->openClosed!=1u||line->vertlist.size()!=3u
+            ||!close(line->scale,scale(profile)))return bad(__LINE__);
+        const auto sameCoord=[](const DRW_Coord& actual,const Vec& expected) {
+            return close(actual.x,expected.x)&&close(actual.y,expected.y)&&close(actual.z,expected.z);
+        };
+        const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+        if(!sameCoord(line->extPoint,ext)||!sameCoord(line->basePoint,vertices.front().first))return bad(__LINE__);
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element) {
+            const auto& parameters=line->vertlist[vertex].segParms[element];
+            if(parameters.size()!=2u||!close(parameters[0],parameter(profile,vertex,element,afterOffsets))
+                ||parameters[1]!=0.0||!line->vertlist[vertex].areaFillParms[element].empty())return bad(__LINE__);
+        }
+        for(unsigned vertex=0u;vertex<3u;++vertex)
+            if(!sameCoord(line->vertlist[vertex].position,vertices[vertex].first)
+                ||!sameCoord(line->vertlist[vertex].vertexDir,vertices[vertex].second)
+                ||!sameCoord(line->vertlist[vertex].miterDir,miter(profile,vertices,vertex)))return bad(__LINE__);
+    }
+    return true;
+}
 struct Editing:dx_iface {
     bool active=true;std::function<void()> change;
     void writeEntities()override{dx_iface::writeEntities();if(active&&change)change();}
@@ -33738,6 +33858,67 @@ bool runTemporary() {
     std::filesystem::create_directory(dir);const bool passed=run(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed offset artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runRetargetOffset(const std::filesystem::path& dir) {
+    const auto input=dir/"retarget-offset-input.dxf",output=dir/"retarget-offset-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE retarget offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    for(bool targetStyleEdit:{false,true})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(sourceBinary,false,!targetStyleEdit),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        if(targetStyleEdit)mlineRetargetControls::style(data,0xD2u).elements[0].offset=afterOffsets[0];
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)) {
+            std::cerr<<"retarget offset export failed sourceBinary="<<sourceBinary<<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+        }
+        if(!retargetOutputProof(output,outputBinary)) {
+            std::cerr<<"retarget offset output proof failed sourceBinary="<<sourceBinary<<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+        }
+        if(!caller.same(data)){std::cerr<<"retarget offset caller state changed\n";return fail(__LINE__);}
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.flags=0;target.elements[0].offset=afterOffsets[0];const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;target.flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary)||!corrected.same(data))return fail(__LINE__);
+        ++retries;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);mlineRetargetControls::style(data,0xD2u).elements[0].offset=afterOffsets[0];
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE retarget offset profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==8u&&readbacks==10u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runRetargetOffsetTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-retarget-offset-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runRetargetOffset(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE retarget offset artifacts: "<<dir<<'\n';
     return passed;
 }
 }
@@ -41932,6 +42113,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-retarget-offset-projection") {
+        return mlineConsumedOffsetControls::runRetargetOffsetTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
