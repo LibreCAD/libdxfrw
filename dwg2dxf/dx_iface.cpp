@@ -16118,10 +16118,28 @@ bool parseMLeaderHandleText(std::string_view text,
     return true;
 }
 
-bool isMLeaderAsciiString(std::string_view value) noexcept {
-    return std::all_of(value.begin(), value.end(), [](unsigned char character) {
-        return character >= 0x20u && character <= 0x7Eu;
-    });
+bool isMLeaderUtf8Text(std::string_view value) noexcept {
+    if (!DRW_TextCodec::isUtf8ScalarText(value))
+        return false;
+    for (std::size_t offset = 0u; offset < value.size();) {
+        const auto first = static_cast<unsigned char>(value[offset]);
+        if (first < 0x80u) {
+            if (first < 0x20u || first == 0x7Fu)
+                return false;
+            ++offset;
+            continue;
+        }
+        // DXF string records must not contain C1 control characters either.
+        if (first == 0xC2u && offset + 1u < value.size()) {
+            const auto second = static_cast<unsigned char>(value[offset + 1u]);
+            if (second >= 0x80u && second <= 0x9Fu)
+                return false;
+        }
+        const std::size_t width = first < 0xE0u ? 2u
+            : first < 0xF0u ? 3u : 4u;
+        offset += width;
+    }
+    return true;
 }
 
 bool isMLeaderColorCode(int code) noexcept {
@@ -16529,7 +16547,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     : isMLeaderInt32Code(editedCode)
                         ? true
                     : isMLeaderStringCode(editedCode)
-                        ? isMLeaderAsciiString(
+                        ? isMLeaderUtf8Text(
                             mleaderStringValue(value, editedCode))
                     : std::isfinite(mleaderDoubleValue(value, editedCode));
                 if (!validValue

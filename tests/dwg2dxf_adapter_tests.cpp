@@ -35692,8 +35692,10 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                 + name + " was accepted");
         *stringRaw = originalRaw;
 
-        const std::array<std::string, 2> invalidValues{{
-            std::string("\xC3\xA9", 2u), "line\nbreak"
+        const std::array<std::string, 5> invalidValues{{
+            std::string("\xC3", 1u), "line\nbreak",
+            std::string("nul\0byte", 8u), std::string("\x7F", 1u),
+            std::string("\xC2\x85", 2u)
         }};
         for (const std::string& invalidValue : invalidValues) {
             (*stringStyle).*member = invalidValue;
@@ -35702,7 +35704,7 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                     DRW::AC1027, binary, &stringData, false, true)
                 || !sentinelSurvives())
                 return fail(std::string("unsupported MLEADERSTYLE ") + name
-                    + " text was accepted");
+                    + " malformed/control text was accepted");
         }
         (*stringStyle).*member = requestedValue;
         if (!stringWriter.fileExport(stringOutput.string(), DRW::AC1027,
@@ -35768,10 +35770,12 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     };
     if (!verifyStringField(3, "description",
             &DRW_MLeaderStyle::description, "source-style-description",
-            "edited-style-description")
+            std::string("edited-style-") + "\xC3\xA9"
+                + "-\xE2\x80\x94-" + "\xF0\x9F\xA7\xAD")
         || !verifyStringField(300, "default-text",
             &DRW_MLeaderStyle::textDefault, "source-default-text",
-            "edited-default-text"))
+            std::string("edited-default-") + "\xE6\x96\x87"
+                + "-" + "\xF0\x9F\x94\xA7"))
         return false;
 
     return true;
