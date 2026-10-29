@@ -139,11 +139,18 @@ proof. Refused fields are not implemented editing support.
    and canonical output. These lanes have separate focused CTests. Remaining
    work is other header permutations/optional placements, flags, and
    metadata/application/XDATA profiles separately from the selected simple
-   grammar. Complex STYLE/text/shape
-   dependencies need original providers and actual output roles; earlier versions
-   need source/context/codec evidence. Native units, font identity, collation,
-   ByLayer/ByBlock inheritance and rendering remain separate evidence. Start with
-   one witnessed unsupported profile; retain advisory transport until qualified.
+   grammar. [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
+   qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
+   source group 340 binds its STYLE provider, exact output binds the remapped
+   STYLE identity, and fresh readback verifies the selected segment and MLINE
+   consumer. Missing-provider refusal preserves the destination and succeeds on
+   same-adapter retry after correction. This does not qualify font availability
+   or rendered text. Shape-bearing segments, other complex flags/field placements,
+   multi-segment combinations, other providers and versions remain open; earlier
+   versions need source/context/codec evidence. Native units, font identity,
+   collation, ByLayer/ByBlock inheritance and rendering remain separate evidence.
+   Start with one witnessed unsupported profile; retain advisory transport until
+   qualified.
 3. **P2.4: remaining geometry operations.** Selected AC1027 consumed-style
    offset projection, a geometry-changing MLINE `340` retarget, and one tail
    element append to a consumed style are implemented for their exact open,

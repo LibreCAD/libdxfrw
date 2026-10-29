@@ -31418,6 +31418,164 @@ bool run(const std::filesystem::path& dir) {
 }
 }
 
+namespace mlineLtypeTextStyleControls {
+using namespace materialConsumerControls;
+using Row=mlineStyleAuthorityControls::Row;
+using namespace mlineStyleAuthorityControls;
+constexpr const char* ltypeName="EditDash";
+constexpr const char* textStyleName="ComplexText";
+constexpr const char* sourceStyleHandle="1F3";
+constexpr const char* textValue="DXF";
+
+Tags recipe(bool binary) {
+    auto fields=mlineLtypeProviderControls::recipe(binary);
+    bool tables=false;std::size_t tablesEnd=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&fields[i+1u]==std::make_pair(2,std::string("TABLES")))tables=true;
+        else if(tables&&fields[i]==std::make_pair(0,std::string("ENDSEC"))) {tablesEnd=i;break;}
+    }
+    if(tablesEnd==fields.size())throw std::runtime_error("complex LTYPE TABLES boundary missing");
+    const Tags styleTable{{0,"TABLE"},{2,"STYLE"},{5,"1F2"},{330,"0"},{100,"AcDbSymbolTable"},{70,"1"},
+        {0,"STYLE"},{5,sourceStyleHandle},{330,"1F2"},{100,"AcDbSymbolTableRecord"},
+        {100,"AcDbTextStyleTableRecord"},{2,textStyleName},{70,"0"},{40,"0"},{41,"1"},
+        {50,"0"},{71,"0"},{42,"1"},{3,"txt.shx"},{4,""},{0,"ENDTAB"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tablesEnd),styleTable.begin(),styleTable.end());
+
+    std::size_t begin=fields.size(),end=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("LTYPE"))
+        &&fields[i+1u]==std::make_pair(5,std::string("103"))) {
+        begin=i;end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;break;
+    }
+    if(begin==fields.size())throw std::runtime_error("complex LTYPE provider missing");
+    const Tags complex{{0,"LTYPE"},{5,"103"},{330,"100"},{100,"AcDbSymbolTableRecord"},
+        {100,"AcDbLinetypeTableRecord"},{2,ltypeName},{70,"0"},{3,"text-bearing source profile"},
+        {72,"65"},{73,"1"},{40,"1.5"},{49,"1.5"},{74,"2"},{75,"0"},
+        {340,sourceStyleHandle},{46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},{9,textValue}};
+    fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(begin),fields.begin()+static_cast<std::ptrdiff_t>(end));
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(begin),complex.begin(),complex.end());
+    return fields;
+}
+
+std::vector<std::string> values(const Row& row,int code) {
+    std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);
+    return result;
+}
+bool numeric(const Row& row,int code,double expected) {
+    try {const auto actual=values(row,code);return actual.size()==1u&&std::stod(actual.front())==expected;}
+    catch(...) {return false;}
+}
+bool sourceProof(const std::filesystem::path& path,bool binary,const std::string& styleHandle) {
+    const auto rows=records(path,binary);const Row* style=nullptr;const Row* ltype=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{textStyleName}) {if(style)return false;style=&row;}
+        if(row.type=="LTYPE"&&values(row,2)==std::vector<std::string>{ltypeName}) {if(ltype)return false;ltype=&row;}
+    }
+    const auto fail=[&](const char* field){std::cerr<<"complex LTYPE source mismatch at "<<field<<" binary="<<binary<<'\n';return false;};
+    if(!style||!ltype)return fail("record");
+    if(style->id!=styleHandle)return fail("STYLE handle");
+    if(style->section!="TABLES"||ltype->section!="TABLES")return fail("section");
+    const auto check=[&](int code,const std::string& expected,const char* name){
+        if(values(*ltype,code)!=std::vector<std::string>{expected})return fail(name);return true;};
+    return values(*style,2)==std::vector<std::string>{textStyleName}
+        &&numeric(*style,70,0)&&numeric(*style,40,0)&&numeric(*style,41,1)
+        &&numeric(*style,50,0)&&numeric(*style,71,0)&&numeric(*style,42,1)
+        &&values(*style,3)==std::vector<std::string>{"txt.shx"}
+        &&values(*style,4)==std::vector<std::string>{""}
+        &&check(2,ltypeName,"name")&&check(3,"text-bearing source profile","description")
+        &&numeric(*ltype,70,0)&&numeric(*ltype,72,65)&&numeric(*ltype,73,1)
+        &&numeric(*ltype,40,1.5)&&numeric(*ltype,49,1.5)&&numeric(*ltype,74,2)
+        &&numeric(*ltype,75,0)&&check(340,styleHandle,"STYLE pointer")
+        &&numeric(*ltype,46,.75)&&numeric(*ltype,50,.25)&&numeric(*ltype,44,.125)
+        &&numeric(*ltype,45,-.25)&&check(9,textValue,"text");
+}
+bool model(dx_data& data,std::uint32_t styleHandle) {
+    const DRW_LType* ltype=nullptr;for(const auto& value:data.lineTypes)if(value.name==ltypeName) {if(ltype)return false;ltype=&value;}
+    const DRW_Textstyle* style=nullptr;for(const auto& value:data.textStyles)if(value.name==textStyleName) {if(style)return false;style=&value;}
+    if(!ltype||!style||style->handle!=styleHandle||ltype->size!=1||ltype->length!=1.5
+        ||ltype->path!=std::vector<double>{1.5}||ltype->segments.size()!=1u)return false;
+    const auto& segment=ltype->segments.front();
+    const auto lines=mlineStyleAuthorityControls::consumers(data);
+    return segment.length==1.5&&segment.shapeFlags==2&&segment.complexShapeCode==0
+        &&segment.styleHandle.ref==styleHandle&&segment.styleHandle.ref64==styleHandle
+        &&segment.scale==.75&&std::abs(segment.rotation-.25/ARAD)<1e-12
+        &&segment.xOffset==.125&&segment.yOffset==-.25&&segment.text==textValue
+        &&data.mLineStyles.size()==1u&&data.mLineStyles.front().elements.size()==2u
+        &&data.mLineStyles.front().elements.front().linetype==ltypeName&&lines.size()==2u;
+}
+bool outputProof(const std::filesystem::path& path,bool binary) {
+    const auto rows=records(path,binary);const Row* style=nullptr;const Row* ltype=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{textStyleName}) {if(style)return false;style=&row;}
+        if(row.type=="LTYPE"&&values(row,2)==std::vector<std::string>{ltypeName}) {if(ltype)return false;ltype=&row;}
+    }
+    if(!style||!ltype||style->id.empty()
+        ||values(*style,2)!=std::vector<std::string>{textStyleName}
+        ||values(*style,3)!=std::vector<std::string>{"txt.shx"}
+        ||values(*style,4)!=std::vector<std::string>{""}
+        ||!numeric(*style,70,0)||!numeric(*style,40,0)||!numeric(*style,41,1)
+        ||!numeric(*style,50,0)||!numeric(*style,71,0)||!numeric(*style,42,1)
+        ||values(*ltype,2)!=std::vector<std::string>{ltypeName}
+        ||values(*ltype,3)!=std::vector<std::string>{"text-bearing source profile"}
+        ||!numeric(*ltype,70,0)||!numeric(*ltype,72,65)||!numeric(*ltype,73,1)
+        ||!numeric(*ltype,40,1.5)||!numeric(*ltype,49,1.5)||values(*ltype,340)!=std::vector<std::string>{style->id}
+        ||!numeric(*ltype,46,.75)||!numeric(*ltype,50,.25)||!numeric(*ltype,44,.125)
+        ||!numeric(*ltype,45,-.25)||!numeric(*ltype,74,2)||!numeric(*ltype,75,0)
+        ||values(*ltype,9)!=std::vector<std::string>{textValue})return false;
+    std::uint32_t emittedStyleHandle=0;
+    const auto parsed=std::from_chars(style->id.data(),style->id.data()+style->id.size(),emittedStyleHandle,16);
+    if(parsed.ec!=std::errc{}||parsed.ptr!=style->id.data()+style->id.size()||emittedStyleHandle==0u)return false;
+    dx_iface reader;dx_data actual;
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,emittedStyleHandle)
+        &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027",
+            "OLD_ENTITY_NAME",ltypeName,"Continuous");
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-ltype-text-style-"+
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u;
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        const auto fields=recipe(sourceBinary);dx_iface adapter;dx_data data;
+        if(!write(input,fields,sourceBinary,"AC1027")||!sourceProof(input,sourceBinary,sourceStyleHandle)) {
+            std::cerr<<"complex text LTYPE source profile failed\n";return false;
+        }
+        if(!adapter.fileImport(input.string(),&data,false)) {std::cerr<<"complex text LTYPE import failed\n";return false;}
+        if(!model(data,0x1F3u)) {std::cerr<<"complex text LTYPE source model mismatch\n";return false;}
+        if(!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")) {
+            std::cerr<<"complex text LTYPE source MLINE authority mismatch\n";return false;
+        }
+        const auto original=mlineLtypeProviderControls::provider(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)) {
+            std::cerr<<"complex text LTYPE export failed\n";return false;
+        }
+        if(!outputProof(output,outputBinary)) {std::cerr<<"complex text LTYPE output proof failed\n";return false;}
+        if(!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")) {
+            std::cerr<<"complex text LTYPE caller changed\n";return false;
+        }
+        ++profiles;++readbacks;
+        const auto savedStyles=data.textStyles;
+        const auto style=std::find_if(data.textStyles.begin(),data.textStyles.end(),[](const auto& value){return value.name==textStyleName;});
+        if(style==data.textStyles.end())return false;data.textStyles.erase(style);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+        ++refusals;data.textStyles=savedStyles;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProof(output,outputBinary)||!model(data,0x1F3u)
+            ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+        ++readbacks;++retries;
+    }
+    std::error_code error;std::filesystem::remove_all(dir,error);
+    std::cout<<"MLINE complex text LTYPE/STYLE profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==4u&&retries==4u;
+}
+}
+
 
 namespace mlineLtypeDefaultFlagControls {
 using namespace materialConsumerControls;
@@ -45755,6 +45913,8 @@ int main(int argc, char** argv) {
         return mlineLtypeProviderControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-style-xdata")
         return mlineStyleXdataControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-text-style-provider")
+        return mlineLtypeTextStyleControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
