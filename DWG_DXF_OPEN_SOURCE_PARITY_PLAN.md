@@ -175,7 +175,12 @@ proof. Refused fields are not implemented editing support.
    qualifies one source-bound group-1003 layer name (`0`) between one APPID and
    one group-1000 payload, with ASCII/binary input/output, exact physical and
    typed readback, emitted LAYER identity binding, missing-layer atomic refusal
-   and same-adapter retry. Other layer-name values/profiles remain open.
+   and same-adapter retry. [RPP-5uq](docs/research/rpp5uq-mline-ltype-xdata-two-layer-names-2026-10-29.json)
+   qualifies two ordered, distinct source-bound group-1003 layer names under one
+   APPID in the same selected AC1027 simple-LTYPE profile, with exact physical
+   output/readback, emitted LAYER identity binding, missing-second-provider
+   refusal and same-adapter retry. Other layer-name values/encodings and more
+   than two references remain open.
    [RPP-5up](docs/research/rpp5up-mline-ltype-xdata-coordinate-tuples-2026-10-29.json)
    qualifies the ordered XDATA group-1010 through group-1013 XYZ tuple forms
    under one source-bound APPID, with exact physical component order and values,
