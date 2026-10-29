@@ -32172,6 +32172,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(170, 0);
     writer->writeInt32(90, 0);
     writer->writeInt16(174, 0);
+    writer->writeInt16(175, 0);
     writer->writeInt16(178, 0);
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
@@ -34473,6 +34474,130 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             == crossRightAttachmentReadback.mLeaderStyles.end()
         || crossRightAttachmentStyle->rightAttachment != 6u)
         return fail("cross-format MLEADERSTYLE group-178 readback mismatch");
+
+    const auto textAngleSource = directory
+        / ("root-mleaderstyle-text-angle-source-" + encoding + ".dxf");
+    dx_data textAngleData;
+    dx_iface textAngleReader;
+    if (!generateRootMLeaderStyleControl(textAngleSource, binary)
+        || !textAngleReader.fileImport(textAngleSource.string(),
+            &textAngleData, false))
+        return fail("could not import MLEADERSTYLE text-angle source");
+    auto textAngleStyle = std::find_if(textAngleData.mLeaderStyles.begin(),
+        textAngleData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    auto textAngleRaw = std::find_if(textAngleData.rawNamedResourceObjects.begin(),
+        textAngleData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (textAngleStyle == textAngleData.mLeaderStyles.end()
+        || textAngleRaw == textAngleData.rawNamedResourceObjects.end()
+        || textAngleStyle->textAngleType != 0u)
+        return fail("MLEADERSTYLE group-175 source identity/value is missing");
+    const auto sourceTextAngle = std::find_if(textAngleRaw->groups.begin(),
+        textAngleRaw->groups.end(),
+        [](const DRW_Variant& field) { return field.code() == 175; });
+    if (sourceTextAngle == textAngleRaw->groups.end()
+        || sourceTextAngle->type() != DRW_Variant::INTEGER
+        || sourceTextAngle->i_val() != 0)
+        return fail("MLEADERSTYLE source has no group-175 INTEGER witness");
+    const std::size_t sourceTextAngleSlot = static_cast<std::size_t>(
+        sourceTextAngle - textAngleRaw->groups.begin());
+    const DRW_RawDxfObject originalTextAngleRaw = *textAngleRaw;
+    textAngleStyle->textAngleType = 2u;
+    const auto textAngleOutput = directory
+        / ("root-mleaderstyle-text-angle-output-" + encoding + ".dxf");
+    const std::string textAngleSentinel =
+        "existing MLEADERSTYLE text-angle output survives\n";
+    const auto seedTextAngleSentinel = [&]() {
+        std::ofstream previous(textAngleOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous && static_cast<bool>(previous << textAngleSentinel);
+    };
+    const auto textAngleSentinelSurvives = [&]() {
+        std::ifstream previous(textAngleOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == textAngleSentinel;
+    };
+    if (!seedTextAngleSentinel())
+        return fail("could not seed MLEADERSTYLE group-175 refusal");
+    textAngleRaw->groups[sourceTextAngleSlot] = DRW_Variant(175, 1);
+    if (textAngleRaw->hasRawValues && !binary)
+        textAngleRaw->rawValues[sourceTextAngleSlot] = "1";
+    dx_iface textAngleWriter;
+    if (textAngleWriter.fileExport(textAngleOutput.string(), DRW::AC1027,
+            binary, &textAngleData, false, true)
+        || !textAngleSentinelSurvives())
+        return fail("conflicting raw and typed MLEADERSTYLE group 175 was accepted");
+    *textAngleRaw = originalTextAngleRaw;
+
+    textAngleStyle->textAngleType = 3u;
+    if (!seedTextAngleSentinel()
+        || textAngleWriter.fileExport(textAngleOutput.string(), DRW::AC1027,
+            binary, &textAngleData, false, true)
+        || !textAngleSentinelSurvives())
+        return fail("out-of-range MLEADERSTYLE group-175 value was accepted");
+    textAngleStyle->textAngleType = 2u;
+    if (!textAngleWriter.fileExport(textAngleOutput.string(), DRW::AC1027,
+            binary, &textAngleData, false, true))
+        return fail("same-adapter MLEADERSTYLE group-175 retry failed: "
+            + textAngleWriter.extensionGraphFailureDetail());
+    dx_data textAngleReadback;
+    dx_iface textAngleOutputReader;
+    if (!textAngleOutputReader.fileImport(textAngleOutput.string(),
+            &textAngleReadback, false))
+        return fail("could not read back MLEADERSTYLE group-175 output");
+    const auto emittedTextAngleStyle = std::find_if(
+        textAngleReadback.mLeaderStyles.begin(), textAngleReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedTextAngleStyle == textAngleReadback.mLeaderStyles.end()
+        || emittedTextAngleStyle->textAngleType != 2u
+        || emittedTextAngleStyle->leftAttachment != 0u
+        || emittedTextAngleStyle->rightAttachment != 0u)
+        return fail("MLEADERSTYLE group-175 typed readback mismatch");
+    const auto emittedTextAngleRaw = std::find_if(
+        textAngleReadback.rawNamedResourceObjects.begin(),
+        textAngleReadback.rawNamedResourceObjects.end(),
+        [handle = emittedTextAngleStyle->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (emittedTextAngleRaw == textAngleReadback.rawNamedResourceObjects.end()
+        || std::count_if(emittedTextAngleRaw->groups.begin(),
+            emittedTextAngleRaw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 175
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == 2;
+            }) != 1)
+        return fail("MLEADERSTYLE group-175 literal output proof failed");
+    const auto crossTextAngleOutput = directory
+        / ("root-mleaderstyle-text-angle-cross-" + encoding + ".dxf");
+    dx_iface crossTextAngleWriter;
+    dx_data crossTextAngleReadback;
+    dx_iface crossTextAngleReader;
+    if (!crossTextAngleWriter.fileExport(crossTextAngleOutput.string(),
+            DRW::AC1027, !binary, &textAngleData, false, true)
+        || !crossTextAngleReader.fileImport(crossTextAngleOutput.string(),
+            &crossTextAngleReadback, false))
+        return fail("cross-format MLEADERSTYLE group-175 output failed");
+    const auto crossTextAngleStyle = std::find_if(
+        crossTextAngleReadback.mLeaderStyles.begin(),
+        crossTextAngleReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossTextAngleStyle == crossTextAngleReadback.mLeaderStyles.end()
+        || crossTextAngleStyle->textAngleType != 2u)
+        return fail("cross-format MLEADERSTYLE group-175 readback mismatch");
 
     return true;
 }
