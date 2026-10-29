@@ -44801,7 +44801,254 @@ std::function<void()> DxIfaceMaterialReferenceTestAccess::misbindMLineLinetypeNa
 #include "rendering_model_controls.h"
 #include "visual_style_property_controls.h"
 
+namespace mlineFlagEditControls {
+using materialConsumerControls::Tags;
+
+bool literal(const std::filesystem::path& path, bool binary, int changedFlags) {
+    using Row = mlineStyleAuthorityControls::Row;
+    const auto rows = mlineStyleAuthorityControls::records(path, binary);
+    std::size_t matched = 0u;
+    std::map<std::string, const Row*> identities;
+    const Row* style = nullptr;
+    for (const Row& row : rows) {
+        if (!row.id.empty() && !identities.emplace(row.id, &row).second)
+            return false;
+        if (row.type == "MLINESTYLE") {
+            if (style != nullptr || row.owner.empty())
+                return false;
+            style = &row;
+        }
+    }
+    if (style == nullptr)
+        return false;
+    for (const Row& row : rows) {
+        if (row.type != "MLINE")
+            continue;
+        const auto values = [](const Row& target, int code) {
+            std::vector<std::string> result;
+            for (const auto& field : target.fields) {
+                if (field.first == code)
+                    result.push_back(field.second);
+            }
+            return result;
+        };
+        const auto x = values(row, 10);
+        if (x.size() != 1u)
+            return false;
+        const double baseX = std::stod(x.front());
+        const int expectedFlags = baseX == 1.0 ? changedFlags
+            : baseX == 4.0 ? 1 : -1;
+        const auto owner = identities.find(row.owner);
+        const auto blockNames = owner == identities.end()
+            ? std::vector<std::string>{} : values(*owner->second, 2);
+        const bool expectedSpace = baseX == 1.0
+            ? row.section == "ENTITIES"
+                && blockNames == std::vector<std::string>{"*Model_Space"}
+            : baseX == 4.0
+                && row.section == "BLOCKS"
+                && blockNames == std::vector<std::string>{"AuthorityBlock"};
+        const auto oneInteger = [&values, &row](int code, int expected) {
+            const auto actual = values(row, code);
+            return actual.size() == 1u && std::stoi(actual.front()) == expected;
+        };
+        if (expectedFlags < 0
+            || !expectedSpace
+            || owner == identities.end() || owner->second->type != "BLOCK_RECORD"
+            || !oneInteger(71, expectedFlags)
+            || !oneInteger(72, 2)
+            || !oneInteger(73, 2)
+            || values(row, 2) != std::vector<std::string>{"OLD_ENTITY_NAME"}
+            || values(row, 340) != std::vector<std::string>{style->id})
+            return false;
+        ++matched;
+    }
+    return matched == 2u;
+}
+
+bool readback(const std::filesystem::path& path, bool binary,
+        const std::vector<DRW_MLine>& expected) {
+    dx_iface reader;
+    dx_data actual;
+    if (!reader.fileImport(path.string(), &actual, false))
+        return false;
+    const auto actualLines = mlineStyleAuthorityControls::consumers(actual);
+    if (actualLines.size() != expected.size())
+        return false;
+    const DRW_MLineStyle* sourceStyle = nullptr;
+    for (const DRW_MLineStyle& style : actual.mLineStyles) {
+        if (style.name == "OLD_BODY_NAME") {
+            if (sourceStyle != nullptr)
+                return false;
+            sourceStyle = &style;
+        }
+    }
+    if (sourceStyle == nullptr)
+        return false;
+    for (const DRW_MLine& source : expected) {
+        const auto found = std::find_if(actualLines.begin(), actualLines.end(),
+            [&source](const DRW_MLine* line) {
+                return line != nullptr
+                    && line->basePoint.x == source.basePoint.x;
+            });
+        if (found == actualLines.end()
+            || !mlineRetargetControls::sameConsumer(source, **found, false)
+            || (*found)->styleHandle != sourceStyle->handle)
+            return false;
+    }
+    const auto changed = std::find_if(expected.begin(), expected.end(),
+        [](const DRW_MLine& line) { return line.basePoint.x == 1.0; });
+    return changed != expected.end()
+        && literal(path, binary, changed->openClosed);
+}
+
+std::vector<DRW_MLine> snapshotConsumers(dx_data& data) {
+    std::vector<DRW_MLine> result;
+    for (const DRW_MLine* line : mlineStyleAuthorityControls::consumers(data)) {
+        if (line == nullptr)
+            throw std::runtime_error("null MLINE in flag-edit source");
+        result.emplace_back(*line);
+    }
+    return result;
+}
+
+bool run(const std::filesystem::path& dir) {
+    const auto input = dir / "mline-flag-input.dxf";
+    const auto output = dir / "mline-flag-output.dxf";
+    std::size_t profiles = 0u;
+    std::size_t readbacks = 0u;
+    std::size_t refusals = 0u;
+    std::size_t retries = 0u;
+    const auto fail = [&](int line) {
+        std::cerr << "MLINE group-71 flags line=" << line
+                  << " profiles=" << profiles
+                  << " readbacks=" << readbacks
+                  << " refusals=" << refusals
+                  << " retries=" << retries << '\n';
+        return false;
+    };
+
+    // Autodesk's DXF reference defines bits 2, 4 and 8 as closed,
+    // suppress-start-cap and suppress-end-cap respectively. Keep bit 1,
+    // which records the existing non-empty vertex list, set in every case.
+    for (bool sourceBinary : {false, true}) {
+        for (bool outputBinary : {false, true}) {
+            for (const int edit : {2, 4, 8}) {
+                dx_iface adapter;
+                dx_data data;
+                if (!materialConsumerControls::write(input,
+                        mlineStyleAuthorityControls::recipe(sourceBinary),
+                        sourceBinary, "AC1027")
+                    || !adapter.fileImport(input.string(), &data, false))
+                    return fail(__LINE__);
+                const auto consumers = mlineStyleAuthorityControls::consumers(data);
+                if (consumers.size() != 2u)
+                    return fail(__LINE__);
+                auto selected = std::find_if(consumers.begin(), consumers.end(),
+                    [](const DRW_MLine* line) {
+                        return line != nullptr && line->basePoint.x == 1.0;
+                    });
+                if (selected == consumers.end() || (*selected)->openClosed != 1)
+                    return fail(__LINE__);
+                std::vector<DRW_MLine> expected = snapshotConsumers(data);
+                for (auto& line : expected) {
+                    if (line.basePoint.x == 1.0)
+                        line.openClosed = 1 | edit;
+                }
+                (*selected)->openClosed = 1 | edit;
+                const mlineRetargetControls::Snapshot caller(data);
+                const bool exported = adapter.fileExport(output.string(),
+                    DRW::AC1027, outputBinary, &data, false, true);
+                const bool callerStable = caller.same(data);
+                const bool fieldsMatch = exported
+                    && literal(output, outputBinary, 1 | edit);
+                const bool readbackMatches = fieldsMatch
+                    && readback(output, outputBinary, expected);
+                if (!exported || !callerStable || !fieldsMatch
+                    || !readbackMatches) {
+                    std::cerr << "MLINE flag detail sourceBinary=" << sourceBinary
+                              << " outputBinary=" << outputBinary
+                              << " edit=" << edit << " exported=" << exported
+                              << " callerStable=" << callerStable
+                              << " fieldsMatch=" << fieldsMatch
+                              << " readbackMatches=" << readbackMatches << '\n';
+                    return fail(__LINE__);
+                }
+                ++profiles;
+                ++readbacks;
+            }
+        }
+    }
+
+    // Invalid signed state must leave the prior destination intact; correcting
+    // the same model and retrying through the same adapter must then succeed.
+    for (bool sourceBinary : {false, true}) {
+        for (bool outputBinary : {false, true}) {
+            dx_iface adapter;
+            dx_data data;
+            if (!materialConsumerControls::write(input,
+                    mlineStyleAuthorityControls::recipe(sourceBinary),
+                    sourceBinary, "AC1027")
+                || !adapter.fileImport(input.string(), &data, false))
+                return fail(__LINE__);
+            const auto consumers = mlineStyleAuthorityControls::consumers(data);
+            const auto selected = std::find_if(consumers.begin(), consumers.end(),
+                [](const DRW_MLine* line) {
+                    return line != nullptr && line->basePoint.x == 1.0;
+                });
+            if (consumers.size() != 2u || selected == consumers.end())
+                return fail(__LINE__);
+            (*selected)->openClosed = -1;
+            const mlineRetargetControls::Snapshot refusedCaller(data);
+            materialConsumerControls::sentinel(output);
+            if (adapter.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !dictionaryVarTransactionControls::keptWithoutTemporary(output)
+                || !refusedCaller.same(data))
+                return fail(__LINE__);
+            ++refusals;
+
+            (*selected)->openClosed = 1;
+            const auto expected = snapshotConsumers(data);
+            const mlineRetargetControls::Snapshot retryCaller(data);
+            if (!adapter.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !retryCaller.same(data)
+                || !literal(output, outputBinary, 1)
+                || !readback(output, outputBinary, expected))
+                return fail(__LINE__);
+            ++retries;
+            ++readbacks;
+        }
+    }
+
+    std::cout << "MLINE group-71 flag profiles=" << profiles
+              << "; readbacks=" << readbacks
+              << "; refusals=" << refusals
+              << "; retries=" << retries << '\n';
+    return profiles == 12u && readbacks == 16u
+        && refusals == 4u && retries == 4u;
+}
+
+bool runTemporary() {
+    const auto dir = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mline-flag-edit-"
+            + std::to_string(std::chrono::steady_clock::now()
+                                 .time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed = run(dir);
+    if (passed) {
+        std::error_code error;
+        std::filesystem::remove_all(dir, error);
+    } else {
+        std::cerr << "MLINE group-71 flag evidence: " << dir << '\n';
+    }
+    return passed;
+}
+}
+
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--mline-flag-edits")
+        return mlineFlagEditControls::runTemporary() ? 0 : 1;
     if(argc==2&&std::string(argv[1])=="--visual-style-properties") {
         TestContext context;visualStylePropertyControls::run(context);return context.failures == 0 ? 0 : 1;
     }

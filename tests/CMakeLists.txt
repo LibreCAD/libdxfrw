@@ -189,6 +189,15 @@ set_tests_properties(libdxfrw_mline_retarget_append_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 MLINE consumers qualify the documented closed and
+# cap-suppression group-71 edits in ASCII/binary, with literal output, fresh
+# readback, destination rollback and same-adapter retry. No fixture is stored.
+add_test(NAME libdxfrw_mline_flag_edits
+    COMMAND libdxfrw_dxf_fixture_tests --mline-flag-edits)
+set_tests_properties(libdxfrw_mline_flag_edits PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Runtime-generated AC1027 profile for appending one style element consumed by
 # open, uncut MLINEs. It checks 73/74/41/75/42 output, bottom-offset rebasing,
 # readback, refusal and same-adapter retry without adding fixture drawings.
