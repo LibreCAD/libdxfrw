@@ -364,6 +364,22 @@ set_tests_properties(libdxfrw_mline_consumed_selected_source_counts PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Run the next source-count batch independently so extending the range does not
+# repeat the already-qualified 13..128 profiles on every implementation slice.
+add_test(NAME libdxfrw_mline_consumed_source_count_append_129_173
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 129 173)
+set_tests_properties(libdxfrw_mline_consumed_source_count_append_129_173 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
+# The 174 -> 175 case reaches the 64 MiB conservative retained-byte budget;
+# preserve the fail-closed destination/caller contract and same-adapter refusal.
+add_test(NAME libdxfrw_mline_consumed_source_count_174_budget_refusal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-174-budget-refusal)
+set_tests_properties(libdxfrw_mline_consumed_source_count_174_budget_refusal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
