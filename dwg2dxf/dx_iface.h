@@ -1839,6 +1839,9 @@ private:
     // Selected original APPID provider name, not semantic/output authority.
     static bool legacyCompoundAppIdSource(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t,std::uint32_t&) noexcept;
+    // Selected original INSERT/ATTRIB/SEQEND layer providers only.
+    static bool legacyCompoundLayerSources(const dx_data&,std::uint32_t,std::uint32_t,
+        std::size_t,std::size_t,std::array<std::uint32_t,3>&) noexcept;
     bool m_wholeEnabled{false};WholeSourceV2::Limits m_wholeLimits{};
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;

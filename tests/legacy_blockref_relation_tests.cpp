@@ -47,6 +47,16 @@ class DxIfaceTableSourceTestAccess {public:
   provider=UINT32_MAX;const bool context=!dx_iface::legacyCompoundAppIdSource(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,provider)&&provider==0u;
   value.context.binary=!value.context.binary;return cross&&context;
  }
+ static bool layerCrossAndContext(dx_data& target,const dx_data& foreign) {
+  auto& a=target.m_tableDxfSource;const auto& b=foreign.m_tableDxfSource;if(!a.wholeInput||!b.wholeInput)return false;
+  const auto input=a.wholeInput,owner=a.wholeInputOwner;const auto source=a.wholeSourceOwner;
+  a.wholeInput=b.wholeInput;a.wholeInputOwner=b.wholeInputOwner;a.wholeSourceOwner=b.wholeSourceOwner;
+  std::array<std::uint32_t,3> providers{{UINT32_MAX,UINT32_MAX,UINT32_MAX}};const bool cross=!dx_iface::legacyCompoundLayerSources(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==std::array<std::uint32_t,3>{};
+  a.wholeInput=input;a.wholeInputOwner=owner;a.wholeSourceOwner=source;
+  auto& value=const_cast<dx_data::TableDxfSourceCapture::WholeSourceInput&>(*a.wholeInput);value.context.binary=!value.context.binary;
+  providers={{UINT32_MAX,UINT32_MAX,UINT32_MAX}};const bool context=!dx_iface::legacyCompoundLayerSources(target,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==std::array<std::uint32_t,3>{};
+  value.context.binary=!value.context.binary;return cross&&context;
+ }
  static bool unknownAppCensusRow(dx_data& data) {
   auto& s=data.m_tableDxfSource;const auto old=s.legacyIdentityObservation,oldOwner=s.legacyIdentityObservationOwner;
   const auto oldSource=s.legacyIdentitySourceOwner;const auto it=s.legacyEntitiesCompoundJoins.find(0xE0u);
@@ -59,6 +69,20 @@ class DxIfaceTableSourceTestAccess {public:
   s.legacyIdentityObservation=input;s.legacyIdentityObservationOwner=input;s.legacyIdentitySourceOwner=forged;it->second=join;
   blockref_source_relation::Result relation;const bool prior=dx_iface::legacyBlockRefSourceRelation(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,relation);
   std::uint32_t provider=UINT32_MAX;const bool refused=!dx_iface::legacyCompoundAppIdSource(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,provider)&&provider==0u;
+  s.legacyIdentityObservation=old;s.legacyIdentityObservationOwner=oldOwner;s.legacyIdentitySourceOwner=oldSource;it->second=oldJoin;return prior&&refused;
+ }
+ static bool unknownLayerCensusRow(dx_data& data) {
+  auto& s=data.m_tableDxfSource;const auto old=s.legacyIdentityObservation,oldOwner=s.legacyIdentityObservationOwner;
+  const auto oldSource=s.legacyIdentitySourceOwner;const auto it=s.legacyEntitiesCompoundJoins.find(0xE0u);
+  if(!old||!old->source||it==s.legacyEntitiesCompoundJoins.end()||!it->second)return false;const auto oldJoin=it->second;
+  auto forged=std::make_shared<DRW_DxfIdentitySource>(*old->source);auto found=std::find_if(forged->records.begin(),forged->records.end(),
+      [](const DRW_DxfIdentitySource::Record& row){return row.kind==DRW_DxfIdentitySource::Kind::TableRecord&&row.name=="LAYER";});
+  if(found==forged->records.end())return false;auto row=*found;row.name="UNRECOGNIZED";forged->records.push_back(std::move(row));
+  auto input=std::make_shared<dx_data::TableDxfSourceCapture::IdentityInput>(*old);input->source=forged;
+  auto join=std::make_shared<dx_data::TableDxfSourceCapture::LegacyEntitiesCompoundJoin>(*oldJoin);join->identity=input;
+  s.legacyIdentityObservation=input;s.legacyIdentityObservationOwner=input;s.legacyIdentitySourceOwner=forged;it->second=join;
+  blockref_source_relation::Result relation;const bool prior=dx_iface::legacyBlockRefSourceRelation(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,relation);
+  std::array<std::uint32_t,3> providers{{UINT32_MAX,UINT32_MAX,UINT32_MAX}};const bool refused=!dx_iface::legacyCompoundLayerSources(data,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u,providers)&&providers==std::array<std::uint32_t,3>{};
   s.legacyIdentityObservation=old;s.legacyIdentityObservationOwner=oldOwner;s.legacyIdentitySourceOwner=oldSource;it->second=oldJoin;return prior&&refused;
  }
  static bool uniqueContextFault(dx_data& data) {
@@ -81,6 +105,13 @@ class DxIfaceTableSourceTestAccess {public:
   s.entitiesSources.resize(4096u,sources.front());blockref_source_relation::Result out;
   const bool refused=!dx_iface::legacyBlockRefSourceRelation(data,0xB0u,0xE0u,1u,64u*1024u*1024u,out);
   s.entitiesSources=std::move(sources);s.entitiesDeliveries=std::move(deliveries);return refused;
+ }
+ static bool layers(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit,const std::array<std::uint32_t,3>& expected) {
+  std::array<std::uint32_t,3> providers{};return dx_iface::legacyCompoundLayerSources(data,blockId,insertId,limit,bytesLimit,providers)&&providers==expected;
+ }
+ static bool layersRefuse(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit) {
+  std::array<std::uint32_t,3> providers{{UINT32_MAX,UINT32_MAX,UINT32_MAX}};
+  return !dx_iface::legacyCompoundLayerSources(data,blockId,insertId,limit,bytesLimit,providers)&&providers==std::array<std::uint32_t,3>{};
  }
  static bool appidRefuses(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,std::size_t limit,std::size_t bytesLimit) {
   std::uint32_t provider=UINT32_MAX;return !dx_iface::legacyCompoundAppIdSource(data,blockId,insertId,limit,bytesLimit,provider)&&provider==0u;
@@ -121,16 +152,17 @@ public:
  bool relation(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::relation(d,blockId,insertId,joinWork,joinBytes);}
  bool unique(const dx_data& d)const{return accepted&&DxIfaceTableSourceTestAccess::unique(d,blockId,insertId,joinWork,joinBytes);}
  bool appid(const dx_data& d,std::uint32_t expected=0xA0u)const{return accepted&&DxIfaceTableSourceTestAccess::appid(d,blockId,insertId,joinWork,joinBytes,expected);}
+ bool layers(const dx_data& d,std::array<std::uint32_t,3> expected={{0xC0u,0xC1u,0xC0u}})const{return accepted&&DxIfaceTableSourceTestAccess::layers(d,blockId,insertId,joinWork,joinBytes,expected);}
 };
 static bool write(const std::filesystem::path& path,const Tags& tags,bool bin){std::ofstream out(path,std::ios::binary);const auto word=[&](std::uint64_t n,unsigned k){for(unsigned i=0;i<k;++i)out.put(static_cast<char>(n>>(i*8u)));};
  if(bin)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
  for(const auto& t:tags)if(!bin)out<<t.code<<'\n'<<t.value<<'\n';else {word(static_cast<unsigned>(t.code),2);if(t.code>=10&&t.code<=59){double v=std::stod(t.value);std::uint64_t bits=0;std::memcpy(&bits,&v,8);word(bits,8);}else if((t.code>=60&&t.code<=79)||t.code==1070)word(static_cast<std::uint16_t>(std::stoi(t.value)),2);else{out<<t.value;out.put('\0');}}
  return out.good();}
-int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data),unique=real.unique(data),appid=real.appid(data,0x1457u);std::cout<<"real same-read relation="<<matched<<" unique="<<unique<<" appid="<<appid<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof&&unique==!real.spoof&&appid==!real.spoof?0:31;}
+int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentityObservation();real.blockId=0x6F2u;real.insertId=0x704u;real.spoofOriginal=0x703u;real.spoof=argc>2;dx_data data;if(!real.import(argv[1],data))return 30;const bool matched=real.relation(data),unique=real.unique(data),appid=real.appid(data,0x1457u),layers=real.layers(data,{{0x275u,0x10u,0x275u}});std::cout<<"real same-read relation="<<matched<<" unique="<<unique<<" appid="<<appid<<" layers="<<layers<<" spoof="<<real.spoof<<"\n";return matched==!real.spoof&&unique==!real.spoof&&appid==!real.spoof&&layers==!real.spoof?0:31;}
  std::error_code ec;const auto dir=libdxfrw_test::reserveTestScratch(std::filesystem::temp_directory_path(),"same-read-blockref",ec);if(ec)return 1;struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};
  Tags doc={{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},
  {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"1"},{0,"APPID"},{5,"A0"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},{0,"ENDTAB"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},
- {0,"BLOCK_RECORD"},{5,"B0"},{102,"{ACAD_XDICTIONARY"},{360,"D0"},{102,"}"},{330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"TEST_BLOCK"},{340,"0"},{102,"{BLKREFS"},{331,"E0"},{102,"}"},{1001,"TEST_APP"},{1000,"x"},{0,"ENDTAB"},{0,"ENDSEC"},
+ {0,"BLOCK_RECORD"},{5,"B0"},{102,"{ACAD_XDICTIONARY"},{360,"D0"},{102,"}"},{330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"TEST_BLOCK"},{340,"0"},{102,"{BLKREFS"},{331,"E0"},{102,"}"},{1001,"TEST_APP"},{1000,"x"},{0,"ENDTAB"},{0,"TABLE"},{2,"LAYER"},{5,"C9"},{100,"AcDbSymbolTable"},{70,"2"},{0,"LAYER"},{5,"C0"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,"LayerA"},{70,"0"},{62,"7"},{6,"CONTINUOUS"},{0,"LAYER"},{5,"C1"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,"0"},{70,"0"},{62,"7"},{6,"CONTINUOUS"},{0,"ENDTAB"},{0,"ENDSEC"},
  {0,"SECTION"},{2,"ENTITIES"},{0,"INSERT"},{5,"E0"},{330,"B0"},{100,"AcDbEntity"},{8,"LayerA"},{100,"AcDbBlockReference"},{66,"1"},{2,"TEST_BLOCK"},{10,"2"},{20,"3"},{30,"0"},{41,"1"},{42,"1"},{43,"1"},
  {0,"ATTRIB"},{5,"E1"},{330,"E0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},{10,"2"},{20,"3"},{30,"0"},{40,"2"},{1,"value"},{100,"AcDbAttribute"},{2,"TEST_TAG"},{70,"0"},{1001,"AcDbAttr"},{1070,"0"},{1070,"1"},
  {0,"SEQEND"},{5,"E2"},{330,"E0"},{100,"AcDbEntity"},{8,"LayerA"},{0,"ENDSEC"},{0,"EOF"}};
@@ -143,15 +175,55 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
  auto tail=std::find_if(doc.begin(),doc.end(),[](const Tag& t){return t.code==1000&&t.value=="x";});
  if(tail==doc.end())return 25;doc.insert(tail+1,{999,"record tail"});
 
- unsigned checks=0;for(bool binary:{false,true}){const auto path=dir/(binary?"binary.dxf":"ascii.dxf");if(!write(path,doc,binary))return 2;Reader reader;reader.enableLegacyDxfIdentityObservation();dx_data good;if(!reader.import(path.string(),good)||!reader.relation(good)||!reader.unique(good)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::unknownAppCensusRow(good)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::uniqueContextFault(good)||!reader.unique(good)||!DxIfaceTableSourceTestAccess::unknownCensusRow(good)||!reader.unique(good))return 3;reader.joinWork=0;if(reader.relation(good))return 15;reader.joinWork=64u*1024u*1024u;if(!reader.relation(good))return 16;reader.joinBytes=0;if(reader.relation(good))return 17;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good)||!DxIfaceTableSourceTestAccess::contextFault(good)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::manySourceNoDelivery(good)||!reader.relation(good))return 18;
+ unsigned checks=0;for(bool binary:{false,true}){const auto path=dir/(binary?"binary.dxf":"ascii.dxf");if(!write(path,doc,binary))return 2;Reader reader;reader.enableLegacyDxfIdentityObservation();dx_data good;if(!reader.import(path.string(),good)||!reader.relation(good)||!reader.unique(good)||!reader.appid(good)||!reader.layers(good)||!DxIfaceTableSourceTestAccess::unknownLayerCensusRow(good)||!reader.layers(good)||!DxIfaceTableSourceTestAccess::unknownAppCensusRow(good)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::uniqueContextFault(good)||!reader.unique(good)||!DxIfaceTableSourceTestAccess::unknownCensusRow(good)||!reader.unique(good))return 3;reader.joinWork=0;if(reader.relation(good))return 15;reader.joinWork=64u*1024u*1024u;if(!reader.relation(good))return 16;reader.joinBytes=0;if(reader.relation(good))return 17;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good)||!DxIfaceTableSourceTestAccess::contextFault(good)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::manySourceNoDelivery(good)||!reader.relation(good))return 18;
   for(int dimension=0;dimension<2;++dimension){std::size_t lo=0,hi=64u*1024u*1024u;while(lo<hi){const auto mid=lo+(hi-lo)/2u;
     if(dimension==0)reader.joinWork=mid;else reader.joinBytes=mid;if(reader.relation(good))hi=mid;else lo=mid+1u;}
    if(!lo)return 26;if(dimension==0)reader.joinWork=lo;else reader.joinBytes=lo;if(!reader.relation(good))return 27;
    if(dimension==0)reader.joinWork=lo-1u;else reader.joinBytes=lo-1u;if(reader.relation(good))return 28;
    reader.joinWork=64u*1024u*1024u;reader.joinBytes=64u*1024u*1024u;if(!reader.relation(good))return 29;}
   ++checks;
-  dx_data other;if(!reader.import(path.string(),other)||!reader.relation(other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::crossRead(good,other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::appidCrossAndContext(good,other)||!reader.appid(good))return 4;++checks;
+  dx_data other;if(!reader.import(path.string(),other)||!reader.relation(other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::crossRead(good,other)||!reader.relation(good)||!DxIfaceTableSourceTestAccess::appidCrossAndContext(good,other)||!reader.appid(good)||!DxIfaceTableSourceTestAccess::layerCrossAndContext(good,other)||!reader.layers(good))return 4;++checks;
   for(int mode=1;mode<=4;++mode){Reader bad;bad.enableLegacyDxfIdentityObservation();bad.mode=mode;dx_data data;if(!bad.import(path.string(),data)||bad.relation(data))return 5;bad.mode=0;dx_data retry;if(!bad.import(path.string(),retry)||!bad.relation(retry))return 6;++checks;}
+  // Table structure and selected source layer-role mutations are checked
+  // through the whole route; refusal can occur before the final census.
+  for(unsigned variant=0u;variant<6u;++variant){auto bad=doc;
+   auto table=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==2&&t.value=="LAYER";});if(table==bad.end()||table==bad.begin())return 118;
+   auto end=std::find_if(table,bad.end(),[](const Tag& t){return t.code==0&&t.value=="ENDTAB";});if(end==bad.end())return 119;
+   if(variant==0u)bad.erase(table-1,end+1);
+   else if(variant==1u){Tags second={{0,"TABLE"},{2,"LAYER"},{5,"C8"},{100,"AcDbSymbolTable"},{70,"0"},{0,"ENDTAB"}};bad.insert(end+1,second.begin(),second.end());}
+   else if(variant==2u){Tags same={{0,"LAYER"},{5,"C0"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,"LayerA"},{70,"0"},{62,"7"},{6,"CONTINUOUS"}};bad.insert(end,same.begin(),same.end());}
+   else {const char* kind=variant==3u?"INSERT":variant==4u?"ATTRIB":"SEQEND";auto marker=std::find_if(bad.begin(),bad.end(),[&](const Tag& t){return t.code==0&&t.value==kind;});if(marker==bad.end())return 120;
+    auto layer=std::find_if(marker+1,bad.end(),[](const Tag& t){return t.code==8;});if(layer==bad.end())return 121;
+    if(variant==3u)bad.erase(layer);else if(variant==4u)bad.insert(layer+1,{8,"LayerA"});else {auto value=*layer;bad.erase(layer);auto sub=std::find_if(marker+1,bad.end(),[](const Tag& t){return t.code==100&&t.value=="AcDbEntity";});if(sub==bad.end())return 122;bad.insert(sub,value);}}
+   if(!write(path,bad,binary))return 123;Reader rejected;rejected.enableLegacyDxfIdentityObservation();dx_data damaged;
+   if(rejected.import(path.string(),damaged)&&!DxIfaceTableSourceTestAccess::layersRefuse(damaged,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u))return 124;
+   if(!write(path,doc,binary))return 125;dx_data retry;if(!rejected.import(path.string(),retry)||!rejected.layers(retry))return 126;}
+  // Complete original LAYER table source census for all three layer roles.
+  for(unsigned variant=0;variant<5u;++variant){auto extra=doc;auto end=extra.begin();
+   for(int n=0;n<3;++n){end=std::find_if(end,extra.end(),[](const Tag& t){return t.code==0&&t.value=="ENDTAB";});if(end==extra.end())return 96;if(n<2)++end;}
+   Tags row={{0,"LAYER"},{5,"C2"},{330,"C9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLayerTableRecord"},{2,variant==0?"LayerA":variant==1?"layera":variant==2?"0":variant==3?"nonASCII-Ω":"other layer"},{70,"0"},{62,"7"},{6,"CONTINUOUS"}};
+   extra.insert(end,row.begin(),row.end());if(!write(path,extra,binary))return 97;Reader layerReader;layerReader.enableLegacyDxfIdentityObservation();dx_data rowData;
+   if(!layerReader.import(path.string(),rowData)||!layerReader.relation(rowData))return 98;
+   if(variant<4u){if(!DxIfaceTableSourceTestAccess::layersRefuse(rowData,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u))return 99;}
+   else if(!layerReader.layers(rowData))return 100;
+   if(!write(path,doc,binary))return 101;dx_data fixed;if(!layerReader.import(path.string(),fixed)||!layerReader.layers(fixed))return 102;}
+  for(unsigned variant=0;variant<6u;++variant){auto bad=doc;
+   if(variant<3u){const char* kind=variant==0u?"INSERT":variant==1u?"ATTRIB":"SEQEND";auto marker=std::find_if(bad.begin(),bad.end(),[&](const Tag& t){return t.code==0&&t.value==kind;});if(marker==bad.end())return 103;
+    auto field=std::find_if(marker+1,bad.end(),[](const Tag& t){return t.code==8;});if(field==bad.end())return 104;field->value="MISSING";}
+   else if(variant==3u){auto marker=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==0&&t.value=="LAYER";});if(marker==bad.end())return 105;
+    auto field=std::find_if(marker+1,bad.end(),[](const Tag& t){return t.code==330;});if(field==bad.end())return 106;field->value="B9";}
+   else if(variant==4u){auto field=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==2&&t.value=="LAYER";});if(field==bad.end()||field==bad.begin())return 107;
+    auto end=std::find_if(field,bad.end(),[](const Tag& t){return t.code==0&&t.value=="ENDTAB";});if(end==bad.end())return 108;bad.erase(field-1,end+1);}
+   else {auto ent=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==2&&t.value=="ENTITIES";});if(ent==bad.end())return 109;
+    Tags alien={{0,"LAYER"},{5,"C2"},{330,"C9"},{100,"AcDbLayerTableRecord"},{2,"LayerA"}};bad.insert(ent+1,alien.begin(),alien.end());}
+   if(!write(path,bad,binary))return 110;Reader rejected;rejected.enableLegacyDxfIdentityObservation();dx_data damaged;
+   if(rejected.import(path.string(),damaged)&&!DxIfaceTableSourceTestAccess::layersRefuse(damaged,0xB0u,0xE0u,64u*1024u*1024u,64u*1024u*1024u))return 111;
+   if(!write(path,doc,binary))return 112;dx_data fixed;if(!rejected.import(path.string(),fixed)||!rejected.layers(fixed))return 113;}
+  for(int dimension=0;dimension<2;++dimension){std::size_t lo=0,hi=64u*1024u*1024u;while(lo<hi){const auto mid=lo+(hi-lo)/2u;
+   if(dimension==0)reader.joinWork=mid;else reader.joinBytes=mid;if(reader.layers(good))hi=mid;else lo=mid+1u;}
+   if(!lo)return 114;if(dimension==0)reader.joinWork=lo;else reader.joinBytes=lo;if(!reader.layers(good))return 115;
+   if(dimension==0)reader.joinWork=lo-1u;else reader.joinBytes=lo-1u;if(reader.layers(good))return 116;
+   reader.joinWork=64u*1024u*1024u;reader.joinBytes=64u*1024u*1024u;if(!reader.layers(good))return 117;}
   // Each mutation is refused before a provider is published; retries use
   // fresh data with the same adapter, regardless of whether import itself fails.
   for(unsigned variant=0u;variant<7u;++variant){auto bad=doc;
@@ -225,4 +297,4 @@ int main(int argc,char**argv){if(argc>1){Reader real;real.enableLegacyDxfIdentit
   Reader limited;limited.enableLegacyDxfIdentityObservation();limited.limits.fields=0;dx_data noFields;if(!limited.import(path.string(),noFields)||limited.relation(noFields))return 11;limited.limits={};dx_data recovered;if(!limited.import(path.string(),recovered)||!limited.relation(recovered))return 12;++checks;
   if(!reader.import(path.string(),other)||reader.relation(other))return 13;dx_data fresh;if(!reader.import(path.string(),fresh)||!reader.relation(fresh))return 14;++checks;
  }
- std::cout<<"same-read source-only ascii-binary=2 controls="<<checks<<" callback-spoof=2 quota-retry=2 join-work-byte-retry=4 same-data-refusal=2\n";return 0;}
+ std::cout<<"same-read source-only ascii-binary=2 controls="<<checks<<" callback-spoof=2 quota-retry=2 join-work-byte-retry=4 same-data-refusal=2 layer-census-ascii-binary=2 layer-controls=passed\n";return 0;}
