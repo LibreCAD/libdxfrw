@@ -9965,6 +9965,8 @@ constexpr std::size_t kMaxAdapterMLineStyleRecords = 100000u;
 constexpr std::size_t kMaxAdapterMLineStyleItems = 1000000u;
 constexpr std::size_t kMaxAdapterMLineStyleRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
+constexpr std::size_t kMaxAdapterMLineDependencyProofWork =
+    512u * 1024u * 1024u;
 constexpr std::size_t kMaxAdapterNamedResourceTypedRecords = 100000u;
 constexpr std::size_t kMaxAdapterNamedResourceTypedRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
@@ -17136,6 +17138,18 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
             [](const auto& row){return row.second.geometryChanged;});
         if ((countChanged||geometryChanged)
             && !hasCompleteDxfMLineConsumerCensus(countChanged)) return false;
+        // LAYER application data and other source-backed metadata are possible
+        // opaque carriers for MLINESTYLE references. A modern geometry edit is
+        // admitted only when the selected source/live LAYER profile is intact.
+        // This deliberately remains a narrow admission profile: unqualified
+        // LAYER metadata refuses the edit rather than being replayed unchecked.
+        const bool layerSourceProfileSelected=m_wholeEnabled||m_legacyIdentityObservationEnabled;
+        if (geometryChanged && layerSourceProfileSelected
+            && !m_dxfMLineLayerSourceLivePreflightPassed) {
+            if (!mlineLayerSourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)) return false;
+            m_dxfMLineLayerSourceLivePreflightPassed=true;
+        }
         if (std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),[](const auto& source){return source.second.dictionaryOrigin!=nullptr;})) {
             const auto structural=structuralSourceReport(*cData);
             if (!structural.namespaceReady || structural.state==StructuralSourceState::ContextMismatch
@@ -26705,8 +26719,10 @@ bool dx_iface::mlineLayerSourceLiveProof(const dx_data& data,std::size_t limit,s
                 ||!WholeSourceV2::product(bytes,4u,x)||!WholeSourceV2::sum(cost,x,cost)||cost>limit)return false;
         }
         if(charged)*charged=cost;
-        if(mlineDependencySourceProof(data,{}).result!=dx_mline_source_dependency::Result::SourceCandidate
-            ||resourceOriginReport(data).state!=ResourceOriginState::OriginsBound)return false;
+        const auto sourceProof=mlineDependencySourceProof(data,{});
+        if(sourceProof.result!=dx_mline_source_dependency::Result::SourceCandidate)return false;
+        const auto origins=resourceOriginReport(data);
+        if(origins.state!=ResourceOriginState::OriginsBound)return false;
         const auto contextEqual=[](const auto& a,const auto& b) noexcept {
             return a.captured&&b.captured&&a.sourceVersion==b.sourceVersion&&a.codecVersion==b.codecVersion
                 &&a.codecCodePage==b.codecCodePage&&a.declaration==b.declaration&&a.hasDeclaration==b.hasDeclaration
@@ -33253,8 +33269,12 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
-    if ((needsDxfMLineNoRawSectionsGuard()
+    const bool mlineGeometryTransaction=needsDxfMLineNoRawSectionsGuard();
+    if ((mlineGeometryTransaction
             && (!dxfW || !dxfW->dxfWriteNoRawSectionsObserved()))
+        || (mlineGeometryTransaction&&m_dxfMLineLayerSourceLivePreflightPassed
+            && !mlineLayerSourceLiveProof(*cData,
+                kMaxAdapterMLineDependencyProofWork,nullptr))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
@@ -34183,6 +34203,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_dxfMLineLayerSourceLivePreflightPassed=false;
     m_dxfHeaderMaterialState={};
     m_dxfLayerMaterialState.clear();
     m_dxfFullStyleState.clear();m_dxfMaterialReferenceState.clear();

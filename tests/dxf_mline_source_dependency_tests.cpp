@@ -36,6 +36,21 @@ public:
 class Consumer:public dx_iface {
 public: bool import(const std::string& path,dx_data& data){return fileImport(path,&data,false);}
 };
+class LayerMutationAtFinalizeConsumer final:public Consumer {
+public:
+    dx_data* mutationTarget{nullptr};
+    bool injectAtFinalize{false},injected{false};
+    bool finalizeDxfWrite() override {
+        if(!injectAtFinalize)return dx_iface::finalizeDxfWrite();
+        if(!mutationTarget||mutationTarget->layers.empty())return false;
+        auto& appData=mutationTarget->layers.front().appData;
+        appData.push_back({{102,std::string("{TEST_HIDDEN")},{340,std::string("D2")},{102,std::string("}")}});
+        injected=true;
+        const bool result=dx_iface::finalizeDxfWrite();
+        appData.clear();
+        return result;
+    }
+};
 class SpoofingConsumer:public Consumer {
 public:
     bool corrupt=false,skip=false;
@@ -177,6 +192,13 @@ static std::size_t field(const Tags& a,std::size_t record,int code,unsigned ordi
     throw std::runtime_error("missing field");
 }
 static std::size_t afterRecord(const Tags& a,std::size_t rec){auto i=rec+1u;while(i<a.size()&&a[i].first!=0)++i;return i;}
+static std::string selectedMlineSourceText(){
+    auto tags=parseTags(sourceText());
+    for(const char* id:{"D100","D101"})tags[field(tags,record(tags,"MLINE",id),2)].second="EFFECTIVE_STYLE";
+    tags[field(tags,record(tags,"MLINESTYLE","D"),2)].second="EFFECTIVE_STYLE";
+    tags[field(tags,record(tags,"MLINESTYLE","D2"),2)].second="RETARGET_STYLE";
+    return serialize(tags);
+}
 static void replaceAllHandles(Tags& a) {
     for(auto& [code,text]:a)if(code==5||code==330||code==340||code==350) {
         std::uint32_t value=0;if(!dx_mline_source_dependency::handle(text,value,true))throw std::runtime_error("handle");if(!value)continue;
@@ -1383,7 +1405,7 @@ static int testDeletedMlineConsumerGeometryGuard() {
   }
   unsigned unusedProfiles = 0u;
   for (bool sourceBinary : {false, true}) {
-    const auto text = serialize(parseTags(sourceText()));
+    const auto text = selectedMlineSourceText();
     std::string source = text;
     if (sourceBinary && !encodeBinary(text, source))
       return 13;
@@ -1475,7 +1497,7 @@ static int testMlineRawSectionGeometryGuard() {
   } cleanup{dir};
   unsigned profiles = 0u, refusals = 0u, retries = 0u, readbacks = 0u;
   for (bool sourceBinary : {false, true}) {
-    const auto text = serialize(parseTags(sourceText()));
+    const auto text = selectedMlineSourceText();
     std::string source = text;
     if (sourceBinary && !encodeBinary(text, source))
       return 2;
@@ -1547,7 +1569,107 @@ static int testMlineRawSectionGeometryGuard() {
       ? 0 : 11;
 }
 
+static int testMlineLayerCarrierGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-layer-carrier-geometry-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, refusals = 0u, lateRefusals = 0u, retries = 0u, readbacks = 0u;
+  for (bool sourceBinary : {false, true}) {
+    const auto text = selectedMlineSourceText();
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 2;
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      LayerMutationAtFinalizeConsumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data))
+        return 4;
+      adapter.mutationTarget = &data;
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      auto layer = std::find_if(data.layers.begin(), data.layers.end(),
+          [](const auto &value) { return value.handle == 0x1E1u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u ||
+          layer == data.layers.end() || !layer->appData.empty())
+        return 5;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      layer->appData.push_back({{102, std::string("{TEST_HIDDEN")},
+                                {340, std::string("D2")},
+                                {102, std::string("}")}});
+
+      const std::string sentinel = "MLINE_LAYER_CARRIER_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 6;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          style->elements.front().offset != expectedOffset ||
+          layer->appData.size() != 1u || layer->appData.front().size() != 3u ||
+          layer->appData.front().back().c_str() == nullptr ||
+          std::string(layer->appData.front().back().c_str()) != "}")
+        return 7;
+      ++profiles;
+      ++refusals;
+
+      layer->appData.clear();
+      if (!writeFile(output, sentinel))
+        return 11;
+      adapter.injectAtFinalize = true;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          !adapter.injected || !layer->appData.empty() ||
+          style->elements.front().offset != expectedOffset)
+        return 12;
+      ++lateRefusals;
+      adapter.injectAtFinalize = false;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 8;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback) ||
+          std::any_of(readback.layers.begin(), readback.layers.end(),
+              [](const auto &value) { return !value.appData.empty(); }))
+        return 9;
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 10;
+      ++retries;
+      ++readbacks;
+    }
+  }
+  std::cout << "MLINE LAYER-carrier geometry guard profiles=" << profiles
+            << " refusals=" << refusals << " late-refusals=" << lateRefusals
+            << " retries=" << retries
+            << " readbacks=" << readbacks << '\n';
+  return profiles == 4u && refusals == 4u && lateRefusals == 4u
+      && retries == 4u && readbacks == 4u
+      ? 0 : 11;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-layer-carrier-geometry-guard")return testMlineLayerCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-raw-section-geometry-guard")return testMlineRawSectionGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-deleted-consumer-geometry-guard")return testDeletedMlineConsumerGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-style-body-source-live")return testMlineStyleBodiesLive();
