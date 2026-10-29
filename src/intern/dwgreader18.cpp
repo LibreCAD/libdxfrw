@@ -1313,8 +1313,10 @@ bool dwgReader18::readDwgClasses(){
 
     std::uint32_t size = dataBuf.getRawLong32();
     DRW_DBG("\ndata size in bytes "); DRW_DBG(size);
-    if ((DRW::AC1024 <= version && 3 < appMaintenanceVersion)
-        || DRW::AC1032 <= version) { //2010+ MV>3
+    const bool hasExtendedClassSize =
+        (DRW::AC1024 <= version && 3 < appMaintenanceVersion)
+        || DRW::AC1032 <= version;
+    if (hasExtendedClassSize) { // 2010+ MV>3 (or R2018+)
         std::uint32_t hSize = dataBuf.getRawLong32();
         DRW_DBG("\n2010+ & MV> 3, height 32b: "); DRW_DBG(hSize);
     }
@@ -1342,7 +1344,14 @@ bool dwgReader18::readDwgClasses(){
     std::uint64_t crcPosition = 0;
     std::uint64_t classDataEndBit = 0;
     std::uint64_t sectionEndBit = 0;
-    if (!dwgSafety::add(size, 20, crcPosition)
+    // The size word is followed by an optional high-size RL before the
+    // remaining class header. ODA 10.2 places the RS after the declared class
+    // data area; include that RL in the absolute offset when the extended
+    // header is present. The string-footer end-bit calculation uses the same
+    // 20/24-byte prefix and independently rounds to this CRC byte.
+    const std::uint64_t classSectionPrefixBytes =
+        hasExtendedClassSize ? 24u : 20u;
+    if (!dwgSafety::add(size, classSectionPrefixBytes, crcPosition)
         || !dwgSafety::range(crcPosition, 2, dataBuf.size())
         || crcPosition > static_cast<std::uint64_t>(
                std::numeric_limits<std::int32_t>::max() - 1)
