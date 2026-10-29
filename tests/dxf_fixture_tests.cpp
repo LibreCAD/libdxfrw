@@ -31211,6 +31211,7 @@ constexpr const char* referencedLineHandle="A900";
 constexpr const char* secondReferencedLineHandle="A902";
 constexpr const char* thirdReferencedLineHandle="A903";
 constexpr const char* fourthReferencedLineHandle="A904";
+constexpr const char* fifthReferencedLineHandle="A905";
 
 Tags source(bool binary) {
     auto fields=recipe(binary);
@@ -31258,11 +31259,14 @@ Tags source(bool binary) {
 Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false,
                                 bool includeSecondEntityHandle=false,
                                 bool includeThirdEntityHandle=false,
-                                bool includeFourthEntityHandle=false) {
+                                bool includeFourthEntityHandle=false,
+                                bool includeFifthEntityHandle=false) {
     if(includeThirdEntityHandle&&!includeSecondEntityHandle)
         throw std::runtime_error("third LTYPE entity reference requires the second");
     if(includeFourthEntityHandle&&!includeThirdEntityHandle)
         throw std::runtime_error("fourth LTYPE entity reference requires the third");
+    if(includeFifthEntityHandle&&!includeFourthEntityHandle)
+        throw std::runtime_error("fifth LTYPE entity reference requires the fourth");
     auto fields=source(binary);
     const Tags ordinary{{1001,appName},{1000,payload}};
     const auto first=std::search(fields.begin(),fields.end(),
@@ -31280,6 +31284,8 @@ Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false,
         typed.emplace_back(1005,thirdReferencedLineHandle);
     if(includeFourthEntityHandle)
         typed.emplace_back(1005,fourthReferencedLineHandle);
+    if(includeFifthEntityHandle)
+        typed.emplace_back(1005,fifthReferencedLineHandle);
     fields.insert(at,typed.begin(),typed.end());
     auto end=fields.end();bool entities=false;
     for(auto it=fields.begin();it!=fields.end();++it) {
@@ -31308,6 +31314,8 @@ Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false,
         line(thirdReferencedLineHandle,"13.5","14.5","15.5","16.5","17.5","18.5");
     if(includeFourthEntityHandle)
         line(fourthReferencedLineHandle,"19.5","20.5","21.5","22.5","23.5","24.5");
+    if(includeFifthEntityHandle)
+        line(fifthReferencedLineHandle,"25.5","26.5","27.5","28.5","29.5","30.5");
     return fields;
 }
 
@@ -31825,9 +31833,11 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
                                bool requireRemap,bool includeStringPayload=false,
                                bool includeSecondEntityHandle=false,
                                bool includeThirdEntityHandle=false,
-                               bool includeFourthEntityHandle=false) {
+                               bool includeFourthEntityHandle=false,
+                               bool includeFifthEntityHandle=false) {
     if(includeThirdEntityHandle&&!includeSecondEntityHandle)return false;
     if(includeFourthEntityHandle&&!includeThirdEntityHandle)return false;
+    if(includeFifthEntityHandle&&!includeFourthEntityHandle)return false;
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
@@ -31855,6 +31865,8 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
         sourceHandles.emplace_back(thirdReferencedLineHandle);
     if(includeFourthEntityHandle)
         sourceHandles.emplace_back(fourthReferencedLineHandle);
+    if(includeFifthEntityHandle)
+        sourceHandles.emplace_back(fifthReferencedLineHandle);
     if(!selected||!appProvider||selected->id.empty()||appProvider->id.empty()
         ||lineProviders.size()!=sourceHandles.size())return false;
     const auto fieldValue=[](const auto& row,int code) {
@@ -31868,7 +31880,8 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
     for(const auto& sourceHandle:sourceHandles) {
         const double startX=sourceHandle==referencedLineHandle?1.25
             :sourceHandle==secondReferencedLineHandle?7.5
-            :sourceHandle==thirdReferencedLineHandle?13.5:19.5;
+            :sourceHandle==thirdReferencedLineHandle?13.5
+            :sourceHandle==fourthReferencedLineHandle?19.5:25.5;
         const mlineStyleAuthorityControls::Row* matched=nullptr;
         for(const auto* lineProvider:lineProviders) {
             double observedStartX=0.0;
@@ -34130,10 +34143,123 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    const std::vector<std::uint32_t> fiveSourceHandles{
+        static_cast<std::uint32_t>(std::stoul(referencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(secondReferencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(thirdReferencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(fourthReferencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(fifthReferencedLineHandle,nullptr,16))};
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithEntityHandleXdata(
+                       sourceBinary,true,true,true,true,true),sourceBinary,"AC1027")
+            ||!entityHandleProviderProof(input,sourceBinary,false,true,true,true,true,true)) {
+            std::cerr<<"five-handle source proof failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        if(!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"five-handle source import failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),
+            data.lineTypes.end(),[](const auto& value) {
+                return value.handle==0x103u;
+            });
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=7u
+            ||!data.mBlock||std::count_if(data.mBlock->ent.begin(),
+                data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                    return entity&&entity->eType==DRW::LINE;
+                })!=5) {
+            std::cerr<<"five-handle typed source check failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!entityHandleProviderProof(output,outputBinary,true,true,true,true,true,true)) {
+            std::cerr<<"five-handle positive export/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,fiveSourceHandles)) {
+            std::cerr<<"five-handle source binding failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        const auto target=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+                return entity&&entity->handle==fiveSourceHandles.back();
+            });
+        if(target==data.mBlock->ent.end()) {
+            std::cerr<<"fifth source line not found for refusal probe\n";return false;
+        }
+        DRW_Entity* retained=*target;
+        const auto restoreIndex=std::distance(data.mBlock->ent.begin(),target);
+        if(restoreIndex<0)return false;
+        const auto restoreOffset=static_cast<std::size_t>(restoreIndex);
+        data.mBlock->ent.erase(target);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"five-handle missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restorePosition=data.mBlock->ent.begin();
+        std::advance(restorePosition,static_cast<std::ptrdiff_t>(restoreOffset));
+        data.mBlock->ent.insert(restorePosition,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!entityHandleProviderProof(output,outputBinary,true,true,true,true,true,true)) {
+            std::cerr<<"five-handle same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,fiveSourceHandles)) {
+            std::cerr<<"five-handle binding lost after retry: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataLineMutation adapter;dx_data data;
+        adapter.sourceHandle=fiveSourceHandles.back();
+        if(!write(input,sourceWithEntityHandleXdata(false,true,true,true,true,true),
+                  false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"five-handle late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"five-handle late-mutation refusal failed\n";return false;
+        }
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity&&entity->handle==0xA901u) {
+                entity->handle=fiveSourceHandles.back();break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!entityHandleProviderProof(output,false,true,true,true,true,true,true)) {
+            std::cerr<<"five-handle late-mutation retry failed\n";return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,fiveSourceHandles)) {
+            std::cerr<<"five-handle binding lost after late retry\n";return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==96u&&readbacks==209u&&refusals==113u&&retries==113u;
+    return profiles==100u&&readbacks==218u&&refusals==118u&&retries==118u;
 }
 
 bool runBudgetTemporary() {
