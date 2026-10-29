@@ -15989,8 +15989,14 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 14> mleaderInt32Codes{{
-    90, 91, 92, 93, 94, 170, 171, 172, 173, 174, 175, 176, 177, 178
+// DXF Boolean values are retained in DRW_Variant as INTEGER, so they share
+// integer-value change detection while their writer path remains Boolean.
+constexpr std::array<int, 23> mleaderInt32Codes{{
+    90, 91, 92, 93, 94, 170, 171, 172, 173, 174, 175, 176, 177, 178,
+    290, 291, 292, 293, 294, 295, 296, 297, 298
+}};
+constexpr std::array<int, 9> mleaderBoolCodes{{
+    290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 
 bool isMLeaderDoubleCode(int code) noexcept {
@@ -16001,6 +16007,11 @@ bool isMLeaderDoubleCode(int code) noexcept {
 bool isMLeaderInt32Code(int code) noexcept {
     return std::find(mleaderInt32Codes.begin(), mleaderInt32Codes.end(),
                      code) != mleaderInt32Codes.end();
+}
+
+bool isMLeaderBoolCode(int code) noexcept {
+    return std::find(mleaderBoolCodes.begin(), mleaderBoolCodes.end(),
+                     code) != mleaderBoolCodes.end();
 }
 
 bool isMLeaderColorCode(int code) noexcept {
@@ -16018,6 +16029,15 @@ int mleaderEnumMaximum(int code) noexcept {
     case 176: return 2;
     case 174:
     case 178: return 8;
+    case 290:
+    case 291:
+    case 292:
+    case 293:
+    case 294:
+    case 295:
+    case 296:
+    case 297:
+    case 298: return 1;
     default: return -1;
     }
 }
@@ -16039,6 +16059,15 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 176: return style.textAlignmentType;
     case 177: return style.blockConnectionType;
     case 178: return style.rightAttachment;
+    case 290: return style.landingEnabled ? 1 : 0;
+    case 291: return style.autoIncludeLanding ? 1 : 0;
+    case 292: return style.textFrameEnabled ? 1 : 0;
+    case 293: return style.blockScaleEnabled ? 1 : 0;
+    case 294: return style.blockRotationEnabled ? 1 : 0;
+    case 295: return style.propertyChanged ? 1 : 0;
+    case 296: return style.isAnnotative ? 1 : 0;
+    case 297: return style.alwaysAlignTextLeft ? 1 : 0;
+    case 298: return style.textExtended ? 1 : 0;
     default: return 0;
     }
 }
@@ -16060,6 +16089,15 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 176: style.textAlignmentType = static_cast<std::uint16_t>(value); break;
     case 177: style.blockConnectionType = static_cast<std::uint16_t>(value); break;
     case 178: style.rightAttachment = static_cast<std::uint16_t>(value); break;
+    case 290: style.landingEnabled = value != 0; break;
+    case 291: style.autoIncludeLanding = value != 0; break;
+    case 292: style.textFrameEnabled = value != 0; break;
+    case 293: style.blockScaleEnabled = value != 0; break;
+    case 294: style.blockRotationEnabled = value != 0; break;
+    case 295: style.propertyChanged = value != 0; break;
+    case 296: style.isAnnotative = value != 0; break;
+    case 297: style.alwaysAlignTextLeft = value != 0; break;
+    case 298: style.textExtended = value != 0; break;
     default: break;
     }
 }
@@ -16427,6 +16465,17 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         || encoded.groups.front().code() != editedCode
                         || encoded.groups.front().type()
                             != DRW_Variant::DOUBLE)
+                        return false;
+                    source.output.groups[slot] = encoded.groups.front();
+                } else if (isMLeaderBoolCode(editedCode)) {
+                    dx_material_body::BodyWriter encoded(
+                        binary, version, m_dxfMLeaderStyleState.codePage);
+                    if (!encoded.writeBool(editedCode,
+                            mleaderInt32Value(projection, editedCode) != 0)
+                        || encoded.groups.size() != 1u
+                        || encoded.groups.front().code() != editedCode
+                        || encoded.groups.front().type()
+                            != DRW_Variant::INTEGER)
                         return false;
                     source.output.groups[slot] = encoded.groups.front();
                 } else if (isMLeaderInt32Code(editedCode)) {

@@ -32179,6 +32179,15 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(176, 0);
     writer->writeInt16(177, 0);
     writer->writeInt16(178, 0);
+    writer->writeBool(290, false);
+    writer->writeBool(291, true);
+    writer->writeBool(292, false);
+    writer->writeBool(293, true);
+    writer->writeBool(294, false);
+    writer->writeBool(295, true);
+    writer->writeBool(296, false);
+    writer->writeBool(297, true);
+    writer->writeBool(298, false);
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
         if (includeLeaderColorExtension)
@@ -33131,14 +33140,6 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         || !gapSentinelSurvives())
         return fail("combined MLEADERSTYLE scalar edits were not refused atomically");
     gapStyle->textHeight = 0.0;
-
-    gapStyle->landingEnabled = false;
-    if (!seedGapSentinel()
-        || gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
-                                &gapData, false, true)
-        || !gapSentinelSurvives())
-        return fail("unsupported MLEADERSTYLE boolean edit was not refused");
-    gapStyle->landingEnabled = true;
 
     gapWriter.mutateLandingGap = true;
     if (!seedGapSentinel()
@@ -34884,6 +34885,157 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             &DRW_MLeaderStyle::leaderType, 1u, 2u, 3u)
         || !verifyControlEnum(177, "block-connection",
             &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, 2u))
+        return false;
+
+    const auto verifyBooleanField = [&](int code, const char* name,
+            bool DRW_MLeaderStyle::*member) {
+        const auto boolSource = directory
+            / (std::string("root-mleaderstyle-") + name + "-source-"
+                + encoding + ".dxf");
+        dx_data boolData;
+        dx_iface boolReader;
+        if (!generateRootMLeaderStyleControl(boolSource, binary)
+            || !boolReader.fileImport(boolSource.string(), &boolData, false))
+            return fail(std::string("could not import MLEADERSTYLE ")
+                + name + " source");
+        auto boolStyle = std::find_if(boolData.mLeaderStyles.begin(),
+            boolData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        auto boolRaw = std::find_if(boolData.rawNamedResourceObjects.begin(),
+            boolData.rawNamedResourceObjects.end(),
+            [](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == 0x1Cu;
+            });
+        if (boolStyle == boolData.mLeaderStyles.end()
+            || boolRaw == boolData.rawNamedResourceObjects.end())
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " typed source or raw body is missing");
+        const bool sourceValue = (*boolStyle).*member;
+        const bool requestedValue = !sourceValue;
+        const auto sourceField = std::find_if(boolRaw->groups.begin(),
+            boolRaw->groups.end(), [code](const DRW_Variant& field) {
+                return field.code() == code;
+            });
+        if (sourceField == boolRaw->groups.end()
+            || sourceField->type() != DRW_Variant::INTEGER
+            || sourceField->i_val() != static_cast<int>(sourceValue)
+            || std::count_if(boolRaw->groups.begin(), boolRaw->groups.end(),
+                [code](const DRW_Variant& field) {
+                    return field.code() == code;
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " source has no unique Boolean-coded INTEGER field");
+        const std::size_t fieldSlot = static_cast<std::size_t>(
+            sourceField - boolRaw->groups.begin());
+        const DRW_RawDxfObject originalRaw = *boolRaw;
+        (*boolStyle).*member = requestedValue;
+        const auto boolOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-output-"
+                + encoding + ".dxf");
+        const std::string sentinel = std::string("existing MLEADERSTYLE ")
+            + name + " output survives\n";
+        const auto seedSentinel = [&]() {
+            std::ofstream previous(boolOutput,
+                std::ios::binary | std::ios::trunc);
+            return previous && static_cast<bool>(previous << sentinel);
+        };
+        const auto sentinelSurvives = [&]() {
+            std::ifstream previous(boolOutput, std::ios::binary);
+            const std::string preserved(
+                (std::istreambuf_iterator<char>(previous)),
+                std::istreambuf_iterator<char>());
+            return !previous.bad() && preserved == sentinel;
+        };
+        if (!seedSentinel())
+            return fail(std::string("could not seed MLEADERSTYLE ")
+                + name + " refusal");
+        boolRaw->groups[fieldSlot] = DRW_Variant(code,
+            static_cast<std::int32_t>(requestedValue));
+        if (boolRaw->hasRawValues && !binary)
+            boolRaw->rawValues[fieldSlot] = requestedValue ? "1" : "0";
+        dx_iface boolWriter;
+        if (boolWriter.fileExport(boolOutput.string(), DRW::AC1027, binary,
+                &boolData, false, true)
+            || !sentinelSurvives())
+            return fail(std::string("conflicting raw and typed MLEADERSTYLE ")
+                + name + " edit was accepted");
+        *boolRaw = originalRaw;
+        if (!boolWriter.fileExport(boolOutput.string(), DRW::AC1027, binary,
+                &boolData, false, true))
+            return fail(std::string("same-adapter MLEADERSTYLE ") + name
+                + " retry failed: "
+                + boolWriter.extensionGraphFailureDetail());
+
+        dx_data boolReadback;
+        dx_iface boolOutputReader;
+        if (!boolOutputReader.fileImport(boolOutput.string(), &boolReadback,
+                false))
+            return fail(std::string("could not read back MLEADERSTYLE ")
+                + name + " output");
+        const auto emittedStyle = std::find_if(boolReadback.mLeaderStyles.begin(),
+            boolReadback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (emittedStyle == boolReadback.mLeaderStyles.end()
+            || (*emittedStyle).*member != requestedValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " typed output/readback mismatch");
+        const auto emittedRaw = std::find_if(
+            boolReadback.rawNamedResourceObjects.begin(),
+            boolReadback.rawNamedResourceObjects.end(),
+            [handle = emittedStyle->handle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == handle;
+            });
+        if (emittedRaw == boolReadback.rawNamedResourceObjects.end()
+            || std::count_if(emittedRaw->groups.begin(), emittedRaw->groups.end(),
+                [code, requestedValue](const DRW_Variant& field) {
+                    return field.code() == code
+                        && field.type() == DRW_Variant::INTEGER
+                        && field.i_val() == static_cast<int>(requestedValue);
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " exact Boolean output field proof failed");
+
+        const auto crossOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-cross-"
+                + encoding + ".dxf");
+        dx_iface crossWriter;
+        dx_data crossReadback;
+        dx_iface crossReader;
+        if (!crossWriter.fileExport(crossOutput.string(), DRW::AC1027, !binary,
+                &boolData, false, true)
+            || !crossReader.fileImport(crossOutput.string(), &crossReadback,
+                false))
+            return fail(std::string("cross-format MLEADERSTYLE ") + name
+                + " output failed");
+        const auto crossStyle = std::find_if(crossReadback.mLeaderStyles.begin(),
+            crossReadback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        return crossStyle != crossReadback.mLeaderStyles.end()
+            && (*crossStyle).*member == requestedValue;
+    };
+    if (!verifyBooleanField(290, "landing-enabled",
+            &DRW_MLeaderStyle::landingEnabled)
+        || !verifyBooleanField(291, "auto-include-landing",
+            &DRW_MLeaderStyle::autoIncludeLanding)
+        || !verifyBooleanField(292, "text-frame-enabled",
+            &DRW_MLeaderStyle::textFrameEnabled)
+        || !verifyBooleanField(293, "block-scale-enabled",
+            &DRW_MLeaderStyle::blockScaleEnabled)
+        || !verifyBooleanField(294, "block-rotation-enabled",
+            &DRW_MLeaderStyle::blockRotationEnabled)
+        || !verifyBooleanField(295, "property-changed",
+            &DRW_MLeaderStyle::propertyChanged)
+        || !verifyBooleanField(296, "annotative",
+            &DRW_MLeaderStyle::isAnnotative)
+        || !verifyBooleanField(297, "always-align-text-left",
+            &DRW_MLeaderStyle::alwaysAlignTextLeft)
+        || !verifyBooleanField(298, "text-extended",
+            &DRW_MLeaderStyle::textExtended))
         return false;
 
     return true;
