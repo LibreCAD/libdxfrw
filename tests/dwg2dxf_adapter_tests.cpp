@@ -11558,7 +11558,9 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      double standardLandingGap = 0.0,
                                      bool includeDoubleScalars = false,
                                      int standardLeaderLineWeight = 0,
-                                     bool includeLeaderColorExtension = false);
+                                     bool includeLeaderColorExtension = false,
+                                     bool includeTextColorField = false,
+                                     bool includeTextColorExtension = false);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32053,7 +32055,9 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      double standardLandingGap,
                                      bool includeDoubleScalars,
                                      int standardLeaderLineWeight,
-                                     bool includeLeaderColorExtension) {
+                                     bool includeLeaderColorExtension,
+                                     bool includeTextColorField,
+                                     bool includeTextColorExtension) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32168,6 +32172,11 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         if (includeLeaderColorExtension)
             writer->writeInt32(420, 0x123456);
         writer->writeInt32(92, standardLeaderLineWeight);
+    }
+    if (includeTextColorField) {
+        writer->writeInt32(93, 0);
+        if (includeTextColorExtension)
+            writer->writeInt32(420, 0x654321);
     }
     if (includeTargets) {
         writer->writeString(340, wrongReferenceKind == 1 ? "1F" : "30");
@@ -33333,7 +33342,8 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     const auto lineWeightSource = directory
         / ("root-mleaderstyle-lineweight-source-" + encoding + ".dxf");
     if (!generateRootMLeaderStyleControl(lineWeightSource, binary, true, 0,
-                                         false, true, 0.0, 0.0, false, 25))
+                                         false, true, 0.0, 0.0, false, 25,
+                                         false, true))
         return false;
     dx_data lineWeightData;
     dx_iface lineWeightReader;
@@ -33393,6 +33403,7 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         bool mutateLineWeight{false};
         bool mutateMaxLeaderPoints{false};
         bool mutateLeaderColor{false};
+        bool mutateTextColor{false};
         void writeObjects() override {
             if (mutateLineWeight && cData != nullptr) {
                 const auto style = std::find_if(cData->mLeaderStyles.begin(),
@@ -33420,6 +33431,15 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                     });
                 if (style != cData->mLeaderStyles.end())
                     ++style->leaderColor;
+            }
+            if (mutateTextColor && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == 0x1Cu;
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    ++style->textColor;
             }
             dx_iface::writeObjects();
         }
@@ -33800,6 +33820,171 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             std::istreambuf_iterator<char>());
         if (previous.bad() || preserved != extensionSentinel)
             return fail("MLEADERSTYLE CMC-extension refusal replaced destination");
+    }
+
+    // Group 93 is the text CMC. Qualify its ACI form independently from the
+    // leader color and keep text-color extensions on the fail-closed route.
+    const auto sourceTextColor = std::find_if(
+        lineWeightRaw->groups.begin(), lineWeightRaw->groups.end(),
+        [](const DRW_Variant& field) { return field.code() == 93; });
+    if (sourceTextColor == lineWeightRaw->groups.end()
+        || sourceTextColor->type() != DRW_Variant::INTEGER
+        || sourceTextColor->i_val() != 0
+        || lineWeightStyle->textColor != 0)
+        return fail("MLEADERSTYLE group-93 ACI source is missing");
+    const std::size_t sourceTextColorSlot = static_cast<std::size_t>(
+        sourceTextColor - lineWeightRaw->groups.begin());
+    lineWeightStyle->textColor = 7;
+    const auto textColorOutput = directory
+        / ("root-mleaderstyle-text-color-output-" + encoding + ".dxf");
+    const std::string textColorSentinel =
+        "existing MLEADERSTYLE text-color output survives\n";
+    const auto seedTextColorSentinel = [&]() {
+        std::ofstream previous(textColorOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous && static_cast<bool>(previous << textColorSentinel);
+    };
+    const auto textColorSentinelSurvives = [&]() {
+        std::ifstream previous(textColorOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == textColorSentinel;
+    };
+    if (!seedTextColorSentinel())
+        return fail("could not seed MLEADERSTYLE group-93 refusal");
+    lineWeightRaw->groups[sourceTextColorSlot] = DRW_Variant(93, 1);
+    if (lineWeightRaw->hasRawValues && !binary)
+        lineWeightRaw->rawValues[sourceTextColorSlot] = "1";
+    if (lineWeightWriter.fileExport(textColorOutput.string(), DRW::AC1027,
+                                    binary, &lineWeightData, false, true)
+        || !textColorSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE group-93 edit was published");
+    *lineWeightRaw = originalLineWeightRaw;
+
+    lineWeightStyle->leaderColor = 1;
+    if (!seedTextColorSentinel()
+        || lineWeightWriter.fileExport(textColorOutput.string(),
+                                       DRW::AC1027, binary, &lineWeightData,
+                                       false, true)
+        || !textColorSentinelSurvives())
+        return fail("mixed MLEADERSTYLE group-91/group-93 edits were not refused");
+    lineWeightStyle->leaderColor = 0;
+
+    lineWeightWriter.mutateTextColor = true;
+    if (!seedTextColorSentinel()
+        || lineWeightWriter.fileExport(textColorOutput.string(), DRW::AC1027,
+                                       binary, &lineWeightData, false, true)
+        || !textColorSentinelSurvives())
+        return fail("late MLEADERSTYLE group-93 mutation was published");
+    lineWeightWriter.mutateTextColor = false;
+    lineWeightStyle->textColor = 7;
+    if (!lineWeightWriter.fileExport(textColorOutput.string(), DRW::AC1027,
+                                     binary, &lineWeightData, false, true))
+        return fail("same-adapter MLEADERSTYLE group-93 retry failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data textColorReadback;
+    dx_iface textColorReader;
+    if (!textColorReader.fileImport(textColorOutput.string(),
+                                    &textColorReadback, false))
+        return fail("could not read back MLEADERSTYLE group-93 output");
+    const auto emittedTextColorStyle = std::find_if(
+        textColorReadback.mLeaderStyles.begin(),
+        textColorReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedTextColorStyle == textColorReadback.mLeaderStyles.end()
+        || emittedTextColorStyle->textColor != 7
+        || emittedTextColorStyle->leaderColor != 0
+        || emittedTextColorStyle->maxLeaderPoints != 0
+        || emittedTextColorStyle->leaderLineWeight != 25)
+        return fail("MLEADERSTYLE group-93 readback lost edited or unchanged colors");
+    const auto emittedTextColorRaw = std::find_if(
+        textColorReadback.rawNamedResourceObjects.begin(),
+        textColorReadback.rawNamedResourceObjects.end(),
+        [handle = emittedTextColorStyle->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (emittedTextColorRaw
+        == textColorReadback.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE group-93 raw output is missing");
+    const auto emittedTextColorCount = std::count_if(
+        emittedTextColorRaw->groups.begin(), emittedTextColorRaw->groups.end(),
+        [](const DRW_Variant& field) {
+            return field.code() == 93
+                && field.type() == DRW_Variant::INTEGER
+                && field.i_val() == 7;
+        });
+    if (emittedTextColorCount != 1)
+        return fail("MLEADERSTYLE output does not contain group-93 INTEGER 7");
+
+    const auto textColorCrossOutput = directory
+        / ("root-mleaderstyle-text-color-cross-" + encoding + ".dxf");
+    dx_iface textColorCrossWriter;
+    dx_data textColorCrossReadback;
+    dx_iface textColorCrossReader;
+    if (!textColorCrossWriter.fileExport(textColorCrossOutput.string(),
+                                         DRW::AC1027, !binary,
+                                         &lineWeightData, false, true)
+        || !textColorCrossReader.fileImport(textColorCrossOutput.string(),
+                                            &textColorCrossReadback, false))
+        return fail("cross-format MLEADERSTYLE group-93 output failed");
+    const auto crossTextColorStyle = std::find_if(
+        textColorCrossReadback.mLeaderStyles.begin(),
+        textColorCrossReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossTextColorStyle == textColorCrossReadback.mLeaderStyles.end()
+        || crossTextColorStyle->textColor != 7
+        || crossTextColorStyle->leaderColor != 0
+        || crossTextColorStyle->maxLeaderPoints != 0
+        || crossTextColorStyle->leaderLineWeight != 25)
+        return fail("cross-format MLEADERSTYLE group-93 output lost values");
+
+    const auto textColorExtensionSource = directory
+        / ("root-mleaderstyle-text-color-extension-" + encoding + ".dxf");
+    dx_data textColorExtensionData;
+    dx_iface textColorExtensionReader;
+    if (!generateRootMLeaderStyleControl(textColorExtensionSource, binary,
+            true, 0, false, false, 0.0, 0.0, false, 25, false, true, true)
+        || !textColorExtensionReader.fileImport(
+            textColorExtensionSource.string(), &textColorExtensionData, false))
+        return fail("could not import MLEADERSTYLE text CMC-extension source");
+    const auto textColorExtensionStyle = std::find_if(
+        textColorExtensionData.mLeaderStyles.begin(),
+        textColorExtensionData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (textColorExtensionStyle == textColorExtensionData.mLeaderStyles.end())
+        return fail("MLEADERSTYLE text CMC-extension style is missing");
+    textColorExtensionStyle->textColor = 7;
+    const auto textColorExtensionOutput = directory
+        / ("root-mleaderstyle-text-color-extension-output-" + encoding + ".dxf");
+    const std::string textColorExtensionSentinel =
+        "existing MLEADERSTYLE text CMC-extension output survives\n";
+    {
+        std::ofstream previous(textColorExtensionOutput,
+            std::ios::binary | std::ios::trunc);
+        if (!previous || !(previous << textColorExtensionSentinel))
+            return fail("could not seed MLEADERSTYLE text CMC-extension refusal");
+    }
+    dx_iface textColorExtensionWriter;
+    if (textColorExtensionWriter.fileExport(
+            textColorExtensionOutput.string(), DRW::AC1027, binary,
+            &textColorExtensionData, false, true))
+        return fail("MLEADERSTYLE group-93 edit accepted a CMC extension");
+    {
+        std::ifstream previous(textColorExtensionOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        if (previous.bad() || preserved != textColorExtensionSentinel)
+            return fail("MLEADERSTYLE text CMC-extension refusal replaced destination");
     }
 
     return true;
