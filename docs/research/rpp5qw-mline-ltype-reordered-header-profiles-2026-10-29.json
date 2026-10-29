@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE source-bound simple-LTYPE provider with reordered headers",
+  "date": "2026-10-29",
+  "status": "AC1027_SIMPLE_LTYPE_REORDERED_HEADERS_QUALIFIED",
+  "codeCommit": "b156ed24",
+  "scope": "Qualify an alternate ordering of all six simple-LTYPE header fields for a selected MLINE style provider in ASCII and binary AC1027 input, with canonical output ordering and fresh readback.",
+  "implementation": {
+    "files": [
+      "CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "change": "Runtime-generated source rows reorder groups 3, 40, 2, 73, 70, and 72 while preserving the ordered 49/74 dash tuples. The test verifies source wire order, source-bound provider admission, exact canonical output field order, provider values and fresh import, MLINE style output, and caller/provider immutability. The provider and referenced-flag lanes now have separate focused CTest entries and are removed from the larger MLINE body selector to avoid duplicate work.",
+    "productionBehavior": "No production behavior changed; this adds bounded evidence for the existing simple-LTYPE parser and serializer paths."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_provider_profiles$' --output-on-failure",
+        "result": "PASS: selected alternate header ordering in ASCII and binary; 2.93 seconds"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_referenced_flags$' --output-on-failure",
+        "result": "PASS: canonical group-70 bit-64 profile, physical flags-0 proof and retarget controls; 3.01 seconds"
+      }
+    ],
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "Input DXFs are authored at runtime and removed after success. No DWG/DXF fixture was committed.",
+  "limits": [
+    "Only AC1027 and the selected simple two-dash MLINE provider grammar are qualified; the exercised permutation does not prove every header permutation or optional-field placement.",
+    "The tests prove libdxfrw output and readback, not native CAD rendering or interoperability with other readers.",
+    "Other group-70 values, canonical ByBlock bit 64, provider metadata/application/XDATA, complex STYLE/text/shape dependencies, and earlier-version profiles remain unqualified."
+  ],
+  "next": "Select one richer MLINE style/consumer schema witness or a provider metadata/application/XDATA witness with a concrete source profile. Keep advisory transport for unqualified profiles."
+}
