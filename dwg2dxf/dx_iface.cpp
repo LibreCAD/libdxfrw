@@ -16257,63 +16257,88 @@ double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
     }
 }
 
-int changedMLeaderDoubleCode(const DRW_MLeaderStyle& value,
-                             const DRW_MLeaderStyle& original) noexcept {
-    int changedCode = 0;
+void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
+                           double value) noexcept;
+void setMLeaderHandleValue(DRW_MLeaderStyle& style, int code,
+                           std::uint32_t value) noexcept;
+void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
+                          std::int32_t value) noexcept;
+void setMLeaderStringValue(DRW_MLeaderStyle& style, int code,
+                           const std::string& value);
+
+std::vector<int> changedMLeaderFieldCodes(
+        const DRW_MLeaderStyle& value,
+        const DRW_MLeaderStyle& original) {
+    std::vector<int> changedCodes;
+    changedCodes.reserve(mleaderDoubleCodes.size()
+        + mleaderInt32Codes.size() + mleaderStringCodes.size()
+        + mleaderHandleCodes.size());
     for (int code : mleaderDoubleCodes) {
         if (mleaderDoubleValue(value, code)
             == mleaderDoubleValue(original, code))
             continue;
-        if (changedCode != 0)
-            return -1;
-        changedCode = code;
+        changedCodes.push_back(code);
     }
-    return changedCode;
-}
-
-int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
-                            const DRW_MLeaderStyle& original) noexcept {
-    const int doubleCode = changedMLeaderDoubleCode(value, original);
-    if (doubleCode < 0)
-        return -1;
-    int int32Code = 0;
     for (int code : mleaderInt32Codes) {
         if (mleaderInt32Value(value, code)
             == mleaderInt32Value(original, code))
             continue;
-        if (int32Code != 0)
-            return -1;
-        int32Code = code;
+        changedCodes.push_back(code);
     }
-    int stringCode = 0;
     for (int code : mleaderStringCodes) {
         if (mleaderStringValue(value, code)
             == mleaderStringValue(original, code))
             continue;
-        if (stringCode != 0)
-            return -1;
-        stringCode = code;
+        changedCodes.push_back(code);
     }
-    int handleCode = 0;
     for (int code : mleaderHandleCodes) {
         if (mleaderHandleValue(value, code)
             == mleaderHandleValue(original, code))
             continue;
-        if (handleCode != 0)
-            return -1;
-        handleCode = code;
+        changedCodes.push_back(code);
     }
-    if ((doubleCode != 0 && int32Code != 0)
-        || (handleCode != 0
-            && (doubleCode != 0 || int32Code != 0 || stringCode != 0)))
-        return -1;
-    if (stringCode != 0 && (doubleCode != 0 || int32Code != 0))
-        return -1;
-    if (handleCode != 0)
-        return handleCode;
-    if (stringCode != 0)
-        return stringCode;
-    return int32Code != 0 ? int32Code : doubleCode;
+    return changedCodes;
+}
+
+bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
+    if (codes.size() <= 1u)
+        return true;
+    return std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode);
+}
+
+void copyMLeaderField(DRW_MLeaderStyle& destination,
+                      const DRW_MLeaderStyle& source, int code) {
+    if (isMLeaderDoubleCode(code))
+        setMLeaderDoubleValue(destination, code,
+                              mleaderDoubleValue(source, code));
+    else if (isMLeaderHandleCode(code))
+        setMLeaderHandleValue(destination, code,
+                              mleaderHandleValue(source, code));
+    else if (isMLeaderInt32Code(code))
+        setMLeaderInt32Value(destination, code,
+                             mleaderInt32Value(source, code));
+    else if (isMLeaderStringCode(code))
+        setMLeaderStringValue(destination, code,
+                              mleaderStringValue(source, code));
+}
+
+bool mleaderRawFieldMatches(const DRW_Variant& field,
+                            const DRW_MLeaderStyle& original,
+                            int code) noexcept {
+    if (isMLeaderInt32Code(code))
+        return field.i_val() == mleaderInt32Value(original, code);
+    if (isMLeaderHandleCode(code)) {
+        if (field.content.s == nullptr)
+            return false;
+        std::uint32_t parsed = 0u;
+        return parseMLeaderHandleText(*field.content.s, parsed)
+            && parsed == mleaderHandleValue(original, code);
+    }
+    if (isMLeaderStringCode(code))
+        return field.content.s != nullptr
+            && *field.content.s == mleaderStringValue(original, code);
+    return isMLeaderDoubleCode(code)
+        && field.d_val() == mleaderDoubleValue(original, code);
 }
 
 void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
@@ -16471,41 +16496,48 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     baseline->second->encoding, baseline->second->policy,
                     baseline->second->compatibility))
                 return false;
-            const int editedCode = changedMLeaderFieldCode(value, original);
-            if (editedCode == 0) {
+            const std::vector<int> editedCodes =
+                changedMLeaderFieldCodes(value, original);
+            if (editedCodes.empty()) {
                 if (!standardDwgCommonEqual(value, original, version, false)
                     || value.name != original.name
                     || !mleaderPayloadEqual(value, original, version))
                     return false;
                 continue;
             }
-            if (editedCode < 0)
+            // Multiple fields compose only for the independent scalar DOUBLE
+            // family. Mixed types can carry coupled semantics or references;
+            // keep those on the existing one-field transaction until separately
+            // qualified.
+            if (!supportedMLeaderEditSet(editedCodes))
                 return false;
-            std::size_t baselineSlot = noMLeaderFieldSlot;
-            const int enumMaximum = mleaderEnumMaximum(editedCode);
-            const bool validValue = isMLeaderColorCode(editedCode)
-                ? mleaderInt32Value(value, editedCode) >= 0
-                    && mleaderInt32Value(value, editedCode) <= 256
-                : enumMaximum >= 0
-                    ? mleaderInt32Value(value, editedCode)
-                            >= mleaderEnumMinimum(editedCode)
-                        && mleaderInt32Value(value, editedCode)
-                            <= enumMaximum
-                : isMLeaderHandleCode(editedCode)
-                    ? mleaderHandleValue(value, editedCode) != 0u
-                        && mleaderHandleValue(value, editedCode)
-                            != (std::numeric_limits<std::uint32_t>::max)()
-                : isMLeaderInt32Code(editedCode)
-                    ? true
-                : isMLeaderStringCode(editedCode)
-                    ? isMLeaderAsciiString(
-                        mleaderStringValue(value, editedCode))
-                : std::isfinite(mleaderDoubleValue(value, editedCode));
-            if (!validValue
-                || !mleaderFieldSlot(*baseline->second, editedCode,
-                                     baselineSlot)
-                || baselineSlot == noMLeaderFieldSlot)
-                return false;
+            for (const int editedCode : editedCodes) {
+                std::size_t baselineSlot = noMLeaderFieldSlot;
+                const int enumMaximum = mleaderEnumMaximum(editedCode);
+                const bool validValue = isMLeaderColorCode(editedCode)
+                    ? mleaderInt32Value(value, editedCode) >= 0
+                        && mleaderInt32Value(value, editedCode) <= 256
+                    : enumMaximum >= 0
+                        ? mleaderInt32Value(value, editedCode)
+                                >= mleaderEnumMinimum(editedCode)
+                            && mleaderInt32Value(value, editedCode)
+                                <= enumMaximum
+                    : isMLeaderHandleCode(editedCode)
+                        ? mleaderHandleValue(value, editedCode) != 0u
+                            && mleaderHandleValue(value, editedCode)
+                                != (std::numeric_limits<std::uint32_t>::max)()
+                    : isMLeaderInt32Code(editedCode)
+                        ? true
+                    : isMLeaderStringCode(editedCode)
+                        ? isMLeaderAsciiString(
+                            mleaderStringValue(value, editedCode))
+                    : std::isfinite(mleaderDoubleValue(value, editedCode));
+                if (!validValue
+                    || !mleaderFieldSlot(*baseline->second, editedCode,
+                                         baselineSlot)
+                    || baselineSlot == noMLeaderFieldSlot)
+                    return false;
+            }
             changedHandles.push_back(value.handle);
         }
         if (changedHandles.empty())
@@ -16574,88 +16606,49 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 return false;
 
             DRW_MLeaderStyle projection = original;
-            const int editedCode = changedMLeaderFieldCode(value, original);
-            if (editedCode != 0) {
-                // One mapped field edit is source-bound to AC1027 and one
-                // unique existing physical group. Other schemas/versions
-                // remain on raw replay.
-                if (version != DRW::AC1027 || editedCode < 0)
+            const std::vector<int> editedCodes =
+                changedMLeaderFieldCodes(value, original);
+            if (!editedCodes.empty()) {
+                // Multiple-field composition is currently admitted only for
+                // independent existing AC1027 scalar DOUBLE groups. Other
+                // edit sets retain the single-field contract until separately
+                // qualified.
+                if (version != DRW::AC1027
+                    || !supportedMLeaderEditSet(editedCodes)
+                    || !standardDwgCommonEqual(value, original, version,
+                                               false)
+                    || value.name != original.name)
                     return false;
                 DRW_MLeaderStyle normalized = value;
-                if (isMLeaderDoubleCode(editedCode)) {
-                    const double editedValue =
-                        mleaderDoubleValue(value, editedCode);
-                    const double originalValue =
-                        mleaderDoubleValue(original, editedCode);
-                    if (!std::isfinite(editedValue))
+                for (const int editedCode : editedCodes) {
+                    if (isMLeaderDoubleCode(editedCode)
+                        && !std::isfinite(
+                            mleaderDoubleValue(value, editedCode)))
                         return false;
-                    setMLeaderDoubleValue(normalized, editedCode,
-                                         originalValue);
-                } else if (isMLeaderHandleCode(editedCode)) {
-                    setMLeaderHandleValue(normalized, editedCode,
-                        mleaderHandleValue(original, editedCode));
-                } else if (isMLeaderInt32Code(editedCode)) {
-                    setMLeaderInt32Value(normalized, editedCode,
-                        mleaderInt32Value(original, editedCode));
-                } else if (isMLeaderStringCode(editedCode)) {
-                    setMLeaderStringValue(normalized, editedCode,
-                        mleaderStringValue(original, editedCode));
-                } else {
-                    return false;
+                    copyMLeaderField(normalized, original, editedCode);
+                    std::size_t slot = noMLeaderFieldSlot;
+                    if (!mleaderFieldSlot(raw, editedCode, slot)
+                        || slot == noMLeaderFieldSlot
+                        || !mleaderRawFieldMatches(raw.groups[slot],
+                                                   original, editedCode))
+                        return false;
+                    copyMLeaderField(projection, value, editedCode);
                 }
-                if (!standardDwgCommonEqual(value, original, version, false)
-                    || value.name != original.name
-                    || !mleaderPayloadEqual(normalized, original, version))
+                if (!mleaderPayloadEqual(normalized, original, version))
                     return false;
-                std::size_t slot = noMLeaderFieldSlot;
-                if (!mleaderFieldSlot(raw, editedCode, slot)
-                    || slot == noMLeaderFieldSlot)
-                    return false;
-                const DRW_Variant& rawField = raw.groups[slot];
-                const bool rawValueMatches = isMLeaderInt32Code(editedCode)
-                    ? rawField.i_val()
-                        == mleaderInt32Value(original, editedCode)
-                    : isMLeaderHandleCode(editedCode)
-                        ? rawField.content.s != nullptr
-                            && [&rawField, &original, editedCode]() {
-                                std::uint32_t parsed = 0u;
-                                return parseMLeaderHandleText(
-                                        *rawField.content.s, parsed)
-                                    && parsed == mleaderHandleValue(
-                                        original, editedCode);
-                            }()
-                    : isMLeaderStringCode(editedCode)
-                        ? rawField.content.s != nullptr
-                            && *rawField.content.s
-                                == mleaderStringValue(original, editedCode)
-                        : rawField.d_val()
-                            == mleaderDoubleValue(original, editedCode);
-                if (!rawValueMatches)
-                    return false;
-                if (isMLeaderInt32Code(editedCode))
-                    setMLeaderInt32Value(projection, editedCode,
-                        mleaderInt32Value(value, editedCode));
-                else if (isMLeaderHandleCode(editedCode))
-                    setMLeaderHandleValue(projection, editedCode,
-                        mleaderHandleValue(value, editedCode));
-                else if (isMLeaderStringCode(editedCode))
-                    setMLeaderStringValue(projection, editedCode,
-                        mleaderStringValue(value, editedCode));
-                else
-                    setMLeaderDoubleValue(projection, editedCode,
-                        mleaderDoubleValue(value, editedCode));
             }
 
             DxfMLeaderStyleSource source;
             source.model = value;
             source.projection = projection;
-            source.editedFieldCode = changedMLeaderFieldCode(value, original);
+            source.editedFieldCodes = editedCodes;
             source.raw = raw;
             source.output = raw;
             source.baseline = baselineIt->second;
-            if (source.editedFieldCode != 0) {
+            if (!charge(source.editedFieldCodes.size() * sizeof(int)))
+                return false;
+            for (const int editedCode : source.editedFieldCodes) {
                 std::size_t slot = noMLeaderFieldSlot;
-                const int editedCode = source.editedFieldCode;
                 if (!mleaderFieldSlot(raw, editedCode, slot)
                     || slot == noMLeaderFieldSlot)
                     return false;
@@ -16717,10 +16710,10 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         return false;
                     source.output.rawValues[slot] = std::move(spelling);
                 }
-                if (binary) {
-                    source.output.hasRawValues = false;
-                    source.output.rawValues.clear();
-                }
+            }
+            if (binary && !source.editedFieldCodes.empty()) {
+                source.output.hasRawValues = false;
+                source.output.rawValues.clear();
             }
             DRW_MLeaderStyle emitted;
             if (!dx_material_body::decodeRecord(source.output, emitted,
@@ -16800,80 +16793,96 @@ bool dx_iface::inspectDxfMLeaderStyles(
                         // source group and mapped handle survived. Decode the
                         // selected typed role here without requiring source
                         // handles to equal their remapped output identities.
-                        const int code = source.editedFieldCode;
-                        if (isMLeaderInt32Code(code))
-                            return mleaderInt32Value(value, code)
-                                == mleaderInt32Value(source.projection, code);
-                        if (isMLeaderStringCode(code))
-                            return mleaderStringValue(value, code)
-                                == mleaderStringValue(source.projection, code);
-                        if (isMLeaderHandleCode(code)) {
-                            if (dxfW == nullptr)
-                                return false;
-                            const std::uint32_t sourceHandle =
-                                mleaderHandleValue(source.projection, code);
-                            std::uint32_t expected =
-                                dxfW->remapHandle(sourceHandle);
-                            const auto* context = dxfW->getWritingContext();
-                            if (context == nullptr
-                                || context->ambiguousSourceHandles.count(
-                                    sourceHandle) != 0u)
-                                return false;
-                            bool bound = expected != sourceHandle;
-                            if (code == mleaderArrowHeadBlockHandleCode
-                                || code == mleaderBlockHandleCode) {
-                                if (cData == nullptr)
+                        const auto matchesField =
+                            [this, &source, &value](int code) {
+                            if (isMLeaderInt32Code(code))
+                                return mleaderInt32Value(value, code)
+                                    == mleaderInt32Value(
+                                        source.projection, code);
+                            if (isMLeaderStringCode(code))
+                                return mleaderStringValue(value, code)
+                                    == mleaderStringValue(
+                                        source.projection, code);
+                            if (isMLeaderHandleCode(code)) {
+                                if (dxfW == nullptr)
                                     return false;
-                                const DRW_Block_Record* sourceBlockRecord =
-                                    nullptr;
-                                for (const DRW_Block_Record& record :
-                                     cData->blockRecords) {
-                                    if (record.handle != sourceHandle)
-                                        continue;
-                                    if (sourceBlockRecord != nullptr)
+                                const std::uint32_t sourceHandle =
+                                    mleaderHandleValue(source.projection,
+                                                       code);
+                                std::uint32_t expected =
+                                    dxfW->remapHandle(sourceHandle);
+                                const auto* context =
+                                    dxfW->getWritingContext();
+                                if (context == nullptr
+                                    || context->ambiguousSourceHandles.count(
+                                        sourceHandle) != 0u)
                                         return false;
-                                    sourceBlockRecord = &record;
-                                }
-                                if (sourceBlockRecord == nullptr
-                                    || sourceBlockRecord->name.empty())
-                                    return false;
-                                const std::string blockNameKey =
-                                    layoutSymbolKey(sourceBlockRecord->name);
-                                if (blockNameKey == "*MODEL_SPACE")
-                                    expected =
-                                        DRW::DxfModelSpaceBlockRecordHandle;
-                                else if (blockNameKey == "*PAPER_SPACE")
-                                    expected =
-                                        DRW::DxfPaperSpaceBlockRecordHandle;
-                                else
-                                    expected =
-                                        dxfW->getBlockRecordHandleToWrite(
+                                bool bound = expected != sourceHandle;
+                                if (code == mleaderArrowHeadBlockHandleCode
+                                    || code == mleaderBlockHandleCode) {
+                                    if (cData == nullptr)
+                                        return false;
+                                    const DRW_Block_Record* sourceBlockRecord =
+                                        nullptr;
+                                    for (const DRW_Block_Record& record :
+                                         cData->blockRecords) {
+                                        if (record.handle != sourceHandle)
+                                            continue;
+                                        if (sourceBlockRecord != nullptr)
+                                            return false;
+                                        sourceBlockRecord = &record;
+                                    }
+                                    if (sourceBlockRecord == nullptr
+                                        || sourceBlockRecord->name.empty())
+                                        return false;
+                                    const std::string blockNameKey =
+                                        layoutSymbolKey(
                                             sourceBlockRecord->name);
-                                if (expected == 0u
-                                    || expected == DRW::NoHandle)
-                                    return false;
-                                bound = true;
+                                    if (blockNameKey == "*MODEL_SPACE")
+                                        expected =
+                                            DRW::DxfModelSpaceBlockRecordHandle;
+                                    else if (blockNameKey == "*PAPER_SPACE")
+                                        expected =
+                                            DRW::DxfPaperSpaceBlockRecordHandle;
+                                    else
+                                        expected =
+                                            dxfW->getBlockRecordHandleToWrite(
+                                                sourceBlockRecord->name);
+                                    if (expected == 0u
+                                        || expected == DRW::NoHandle)
+                                        return false;
+                                    bound = true;
+                                }
+                                for (const auto* aliases : {
+                                        &context->sourceHandleToWrittenTableMap,
+                                        &context->sourceHandleToWrittenObjectMap,
+                                        &context->sourceHandleToMintedMap}) {
+                                    const auto found = aliases->find(
+                                        sourceHandle);
+                                    if (found == aliases->end())
+                                        continue;
+                                    if (bound && expected != found->second)
+                                        return false;
+                                    expected = found->second;
+                                    bound = true;
+                                }
+                                return bound && expected != 0u
+                                    && expected != DRW::NoHandle
+                                    && mleaderHandleValue(value, code)
+                                        == expected;
                             }
-                            for (const auto* aliases : {
-                                    &context->sourceHandleToWrittenTableMap,
-                                    &context->sourceHandleToWrittenObjectMap,
-                                    &context->sourceHandleToMintedMap}) {
-                                const auto found = aliases->find(sourceHandle);
-                                if (found == aliases->end())
-                                    continue;
-                                if (bound && expected != found->second)
-                                    return false;
-                                expected = found->second;
-                                bound = true;
-                            }
-                            return bound && expected != 0u
-                                && expected != DRW::NoHandle
-                                && mleaderHandleValue(value, code) == expected;
-                        }
-                        return isMLeaderDoubleCode(code)
-                            && std::isfinite(mleaderDoubleValue(value, code))
-                            && mleaderDoubleValue(value, code)
-                                == mleaderDoubleValue(source.projection, code);
+                            return isMLeaderDoubleCode(code)
+                                && std::isfinite(
+                                    mleaderDoubleValue(value, code))
+                                && mleaderDoubleValue(value, code)
+                                    == mleaderDoubleValue(
+                                        source.projection, code);
+                        };
+                        return !source.editedFieldCodes.empty()
+                            && std::all_of(
+                                source.editedFieldCodes.begin(),
+                                source.editedFieldCodes.end(),
+                                matchesField);
                     });
             });
         return m_dxfMLeaderStylesInspected;

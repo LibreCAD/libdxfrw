@@ -35952,6 +35952,243 @@ bool namedResourceImportEvidence(const std::filesystem::path& directory,
     return true;
 }
 
+bool mleaderStyleDoubleCompositionTransaction(
+        const std::filesystem::path& directory) {
+    const std::array<std::pair<int, double>, 13> requested{{
+        {40, 0.35}, {41, 0.65}, {42, 0.85}, {43, 1.15}, {44, 1.35},
+        {45, 1.65}, {46, 1.85}, {47, 1.1}, {49, 1.2}, {140, 1.3},
+        {141, 0.225}, {142, 1.4}, {143, 0.475}
+    }};
+    const auto setValue = [](DRW_MLeaderStyle& style, int code, double value) {
+        switch (code) {
+        case 40: style.firstSegmentAngle = value; break;
+        case 41: style.secondSegmentAngle = value; break;
+        case 42: style.landingGap = value; break;
+        case 43: style.landingDistance = value; break;
+        case 44: style.arrowHeadSize = value; break;
+        case 45: style.textHeight = value; break;
+        case 46: style.alignSpace = value; break;
+        case 47: style.blockScale.x = value; break;
+        case 49: style.blockScale.y = value; break;
+        case 140: style.blockScale.z = value; break;
+        case 141: style.blockRotation = value; break;
+        case 142: style.scaleFactor = value; break;
+        case 143: style.breakSize = value; break;
+        default: break;
+        }
+    };
+    const auto getValue = [](const DRW_MLeaderStyle& style, int code) {
+        switch (code) {
+        case 40: return style.firstSegmentAngle;
+        case 41: return style.secondSegmentAngle;
+        case 42: return style.landingGap;
+        case 43: return style.landingDistance;
+        case 44: return style.arrowHeadSize;
+        case 45: return style.textHeight;
+        case 46: return style.alignSpace;
+        case 47: return style.blockScale.x;
+        case 49: return style.blockScale.y;
+        case 140: return style.blockScale.z;
+        case 141: return style.blockRotation;
+        case 142: return style.scaleFactor;
+        case 143: return style.breakSize;
+        default: return std::numeric_limits<double>::quiet_NaN();
+        }
+    };
+    const auto findStyle = [](dx_data& data) -> DRW_MLeaderStyle* {
+        const auto found = std::find_if(data.mLeaderStyles.begin(),
+            data.mLeaderStyles.end(), [](const DRW_MLeaderStyle& style) {
+                return style.name == "STANDARD";
+            });
+        return found == data.mLeaderStyles.end() ? nullptr : &*found;
+    };
+    const auto verifyOutput = [&](const std::filesystem::path& path) {
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &readback, false))
+            return fail("could not read back composed MLEADERSTYLE output");
+        DRW_MLeaderStyle* style = findStyle(readback);
+        if (style == nullptr)
+            return fail("composed MLEADERSTYLE is missing after readback");
+        const auto raw = std::find_if(
+            readback.rawNamedResourceObjects.begin(),
+            readback.rawNamedResourceObjects.end(),
+            [style](const DRW_RawDxfObject& object) {
+                return object.name == "MLEADERSTYLE"
+                    && object.handle == style->handle;
+            });
+        if (raw == readback.rawNamedResourceObjects.end())
+            return fail("composed MLEADERSTYLE raw output is missing");
+        for (const auto& field : requested) {
+            if (getValue(*style, field.first) != field.second
+                || std::count_if(raw->groups.begin(), raw->groups.end(),
+                    [&field](const DRW_Variant& candidate) {
+                        return candidate.code() == field.first
+                            && candidate.type() == DRW_Variant::DOUBLE
+                            && candidate.d_val() == field.second;
+                    }) != 1)
+                return fail("composed MLEADERSTYLE field/readback mismatch at group "
+                    + std::to_string(field.first));
+        }
+        const bool retainedOpaque = std::any_of(
+            raw->groups.begin(), raw->groups.end(),
+            [](const DRW_Variant& field) {
+                return field.code() == 302
+                    && field.type() == DRW_Variant::STRING
+                    && field.c_str() != nullptr
+                    && std::string(field.c_str())
+                        == "preserve-mleader-opaque-tag";
+            });
+        return retainedOpaque
+            || fail("composed MLEADERSTYLE did not retain its opaque group");
+    };
+
+    bool exercisedLateRollback = false;
+    for (const bool sourceBinary : {false, true}) {
+        for (const bool outputBinary : {false, true}) {
+            const std::string sourceEncoding = sourceBinary ? "bin" : "ascii";
+            const std::string outputEncoding = outputBinary ? "bin" : "ascii";
+            const auto source = directory
+                / ("mleaderstyle-double-composition-source-"
+                    + sourceEncoding + ".dxf");
+            if (!generateRootMLeaderStyleControl(source, sourceBinary, true,
+                    0, false, false, 0.0, 0.0, true))
+                return fail("could not author composed MLEADERSTYLE source");
+            dx_data data;
+            dx_iface reader;
+            if (!reader.fileImport(source.string(), &data, false)
+                || data.mLeaderStyles.size() != 1u)
+                return fail("could not import composed MLEADERSTYLE source");
+            DRW_MLeaderStyle* style = findStyle(data);
+            auto raw = std::find_if(data.rawNamedResourceObjects.begin(),
+                data.rawNamedResourceObjects.end(),
+                [](const DRW_RawDxfObject& object) {
+                    return object.name == "MLEADERSTYLE"
+                        && object.handle == 0x1Cu;
+                });
+            if (style == nullptr || style->handle != 0x1Cu
+                || raw == data.rawNamedResourceObjects.end())
+                return fail("composed MLEADERSTYLE source identity is missing");
+            for (const auto& field : requested) {
+                const auto sourceField = std::find_if(raw->groups.begin(),
+                    raw->groups.end(), [&field](const DRW_Variant& candidate) {
+                        return candidate.code() == field.first;
+                    });
+                if (sourceField == raw->groups.end()
+                    || sourceField->type() != DRW_Variant::DOUBLE
+                    || std::count_if(raw->groups.begin(), raw->groups.end(),
+                        [&field](const DRW_Variant& candidate) {
+                            return candidate.code() == field.first;
+                        }) != 1)
+                    return fail("authored MLEADERSTYLE source lacks unique group "
+                        + std::to_string(field.first));
+                setValue(*style, field.first, field.second);
+            }
+
+            const DRW_RawDxfObject baselineRaw = *raw;
+            const auto output = directory
+                / ("mleaderstyle-double-composition-output-"
+                    + sourceEncoding + "-" + outputEncoding + ".dxf");
+            const std::string sentinel =
+                "existing composed MLEADERSTYLE output survives\n";
+            const auto seedSentinel = [&]() {
+                std::ofstream previous(output,
+                    std::ios::binary | std::ios::trunc);
+                return previous && static_cast<bool>(previous << sentinel);
+            };
+            const auto sentinelSurvives = [&]() {
+                std::ifstream previous(output, std::ios::binary);
+                const std::string contents(
+                    (std::istreambuf_iterator<char>(previous)),
+                    std::istreambuf_iterator<char>());
+                return !previous.bad() && contents == sentinel;
+            };
+            if (!seedSentinel())
+                return fail("could not seed composed MLEADERSTYLE refusal");
+            const auto conflict = std::find_if(raw->groups.begin(),
+                raw->groups.end(), [](const DRW_Variant& candidate) {
+                    return candidate.code() == 45;
+                });
+            if (conflict == raw->groups.end())
+                return fail("MLEADERSTYLE conflict control lacks group 45");
+            const std::size_t conflictSlot = static_cast<std::size_t>(
+                conflict - raw->groups.begin());
+            raw->groups[conflictSlot] = DRW_Variant(45, 99.25);
+            if (raw->hasRawValues && !sourceBinary)
+                raw->rawValues[conflictSlot] = "99.25";
+            dx_iface writer;
+            if (writer.fileExport(output.string(), DRW::AC1027, outputBinary,
+                    &data, false, true)
+                || !sentinelSurvives())
+                return fail("conflicting composed MLEADERSTYLE source was published");
+            *raw = baselineRaw;
+            style->maxLeaderPoints = 5;
+            if (!seedSentinel()
+                || writer.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !sentinelSurvives())
+                return fail("mixed DOUBLE/INT32 MLEADERSTYLE edits were accepted");
+            style->maxLeaderPoints = 0;
+            if (!writer.fileExport(output.string(), DRW::AC1027, outputBinary,
+                    &data, false, true)
+                || !verifyOutput(output))
+                return fail("composed MLEADERSTYLE same-adapter retry failed: "
+                    + writer.extensionGraphFailureDetail());
+
+            if (!exercisedLateRollback) {
+                const auto lateOutput = directory
+                    / ("mleaderstyle-double-composition-late-output-"
+                        + outputEncoding + ".dxf");
+                const std::string lateSentinel =
+                    "existing late composed MLEADERSTYLE output survives\n";
+                {
+                    std::ofstream previous(lateOutput,
+                        std::ios::binary | std::ios::trunc);
+                    if (!previous || !(previous << lateSentinel))
+                        return fail("could not seed late composition refusal");
+                }
+                class LateMutationWriter final : public dx_iface {
+                public:
+                    bool mutate{true};
+                    void writeObjects() override {
+                        if (mutate && cData != nullptr) {
+                            for (DRW_MLeaderStyle& candidate :
+                                 cData->mLeaderStyles) {
+                                if (candidate.handle == 0x1Cu) {
+                                    candidate.landingGap = 7.75;
+                                    break;
+                                }
+                            }
+                        }
+                        dx_iface::writeObjects();
+                    }
+                } lateWriter;
+                if (lateWriter.fileExport(lateOutput.string(), DRW::AC1027,
+                        outputBinary, &data, false, true))
+                    return fail("late composed MLEADERSTYLE mutation was published");
+                {
+                    std::ifstream previous(lateOutput, std::ios::binary);
+                    const std::string contents(
+                        (std::istreambuf_iterator<char>(previous)),
+                        std::istreambuf_iterator<char>());
+                    if (previous.bad() || contents != lateSentinel)
+                        return fail("late composition refusal replaced destination");
+                }
+                style->landingGap = 0.85;
+                lateWriter.mutate = false;
+                if (!lateWriter.fileExport(lateOutput.string(), DRW::AC1027,
+                        outputBinary, &data, false, true)
+                    || !verifyOutput(lateOutput))
+                    return fail("late composed MLEADERSTYLE same-adapter retry failed: "
+                        + lateWriter.extensionGraphFailureDetail());
+                exercisedLateRollback = true;
+            }
+        }
+    }
+    return exercisedLateRollback
+        || fail("composed MLEADERSTYLE late-failure control did not run");
+}
+
 bool mLeaderStyleWriterClosureFocused(
         const std::filesystem::path& parentDirectory) {
     const auto nonce = std::chrono::steady_clock::now()
@@ -35964,6 +36201,8 @@ bool mLeaderStyleWriterClosureFocused(
         return fail("could not create focused MLEADERSTYLE test directory");
     bool passed = rootMLeaderStyleWriterClosure(directory, false)
         && rootMLeaderStyleWriterClosure(directory, true);
+    if (passed)
+        passed = mleaderStyleDoubleCompositionTransaction(directory);
     if (passed)
         passed = mleaderStyleLeaderLineTypeHandleTransaction(directory);
     if (passed)
