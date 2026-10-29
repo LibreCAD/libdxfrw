@@ -120,12 +120,17 @@ and [unused-style offset transactions](docs/research/rpp5gy-mline-unused-style-o
 Use shared baseline/profile/dictionary snapshots, indexed joins and actual-output
 proof. Refused fields are not implemented editing support.
 
-1. **Richer compatible-retarget profiles.** Qualify additional original style and
-   consumer common/application/XDATA/proxy/unknown-subclass schemas, other flags
-   and source versions separately. Bind their original meaning and actual output
-   before expanding the selected core grammar. Retain strict original geometry,
-   redundant group-2, owner and identity authority. Native rendering remains open;
-   differing geometry belongs to the coupled operations below.
+1. **Richer compatible-retarget profiles.** [RPP-5qx](docs/research/rpp5qx-mline-style-xdata-appid-2026-10-29.json)
+   qualifies one runtime-generated AC1027 MLINESTYLE XDATA profile: an APPID
+   provider plus ordered groups 1001/1000 survive a description edit across
+   ASCII/binary source/output combinations, with physical output and fresh
+   readback proof, overlength refusal, destination preservation and retry. This
+   closes only that selected transport profile. Other original style/consumer
+   common, application, XDATA, proxy and unknown-subclass schemas, flags and
+   versions still need separate witnesses and actual-output proof. Retain strict
+   original geometry, redundant group-2, owner and identity authority. Native
+   rendering remains open; differing geometry belongs to the coupled operations
+   below.
 2. **Remaining LTYPE provider profiles.** [RPP-5qv](docs/research/rpp5qv-mline-canonical-ltype-flag64-normalization-2026-10-29.json)
    qualifies AC1027 ByLayer/Continuous group-70 bit-64 source providers with
    exact fixed-row flags-0 output, readback, and typed/raw MLINE style retargets;

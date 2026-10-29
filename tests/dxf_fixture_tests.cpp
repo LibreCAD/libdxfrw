@@ -30641,6 +30641,128 @@ void testMLineStyleAuthority(TestContext& t) {
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}else std::cerr<<"MLINESTYLE authority evidence: "<<dir<<'\n';
 }
 
+namespace mlineStyleXdataControls {
+using namespace materialConsumerControls;
+using namespace mlineStyleAuthorityControls;
+constexpr const char* appName="MLINE_XDATA_PROFILE";
+constexpr const char* payload="profile-owned-xdata";
+
+Tags source(bool binary) {
+    auto fields=recipe(binary);
+    std::size_t tablesEnd=fields.size();bool inTables=false;
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&fields[i+1u]==std::make_pair(2,std::string("TABLES")))inTables=true;
+        else if(inTables&&fields[i]==std::make_pair(0,std::string("ENDSEC"))) {tablesEnd=i;break;}
+    }
+    if(tablesEnd==fields.size())throw std::runtime_error("MLINE XDATA TABLES section missing");
+    std::size_t appBegin=fields.size(),appEnd=fields.size();
+    for(std::size_t i=0u;i+1u<tablesEnd;++i)if(fields[i]==std::make_pair(0,std::string("TABLE"))
+        &&fields[i+1u]==std::make_pair(2,std::string("APPID"))) {
+        appBegin=i;for(std::size_t j=i+2u;j<tablesEnd;++j)if(fields[j]==std::make_pair(0,std::string("ENDTAB"))){appEnd=j;break;}break;
+    }
+    const Tags appRecord{{0,"APPID"},{5,"1F1"},{330,"1F0"},{100,"AcDbSymbolTableRecord"},
+        {100,"AcDbRegAppTableRecord"},{2,appName},{70,"0"}};
+    if(appBegin==fields.size()) {
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tablesEnd),
+            {{0,"TABLE"},{2,"APPID"},{5,"1F0"},{330,"0"},{100,"AcDbSymbolTable"},{70,"1"}});
+        tablesEnd+=6u;
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tablesEnd),appRecord.begin(),appRecord.end());
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tablesEnd+appRecord.size()),{{0,"ENDTAB"}});
+    } else {
+        if(appEnd==fields.size())throw std::runtime_error("MLINE XDATA APPID table is unterminated");
+        bool count=false;
+        for(std::size_t i=appBegin+2u;i<appEnd;++i)if(fields[i].first==70) {
+            fields[i].second=std::to_string(std::stoi(fields[i].second)+1);count=true;break;
+        }
+        if(!count)throw std::runtime_error("MLINE XDATA APPID capacity missing");
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(appEnd),appRecord.begin(),appRecord.end());
+    }
+    bool styleFound=false;
+    for(std::size_t i=0u;i<fields.size();++i)if(fields[i]==std::make_pair(0,std::string("MLINESTYLE"))) {
+        const auto end=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(i+1u),fields.end(),
+            [](const auto& field){return field.first==0;});
+        fields.insert(end,{{1001,appName},{1000,payload}});styleFound=true;break;
+    }
+    if(!styleFound)throw std::runtime_error("MLINESTYLE XDATA host missing");
+    return fields;
+}
+
+bool styleXdata(const std::filesystem::path& path,bool binary,
+                const std::string& description) {
+    const auto rows=records(path,binary);const Row* style=nullptr;unsigned appRows=0u;
+    for(const auto& row:rows) {
+        if(row.type=="MLINESTYLE") { if(style)return false;style=&row; }
+        if(row.type=="APPID")for(const auto& field:row.fields)
+            if(field.first==2&&field.second==appName)++appRows;
+    }
+    if(!style)return false;
+    std::vector<std::pair<int,std::string>> xdata;
+    for(const auto& field:style->fields)if(field.first==1001||field.first==1000)xdata.push_back(field);
+    if(xdata!=std::vector<std::pair<int,std::string>>{{1001,appName},{1000,payload}})
+        return false;
+    if(appRows!=1u)return false;
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
+        ||actual.mLineStyles.front().description!=description
+        ||actual.mLineStyles.front().extData.size()!=2u
+        ||actual.mLineStyles.front().extData[0]->code()!=1001
+        ||actual.mLineStyles.front().extData[0]->type()!=DRW_Variant::STRING
+        ||actual.mLineStyles.front().extData[0]->content.s==nullptr
+        ||*actual.mLineStyles.front().extData[0]->content.s!=appName
+        ||actual.mLineStyles.front().extData[1]->code()!=1000
+        ||actual.mLineStyles.front().extData[1]->type()!=DRW_Variant::STRING
+        ||actual.mLineStyles.front().extData[1]->content.s==nullptr
+        ||*actual.mLineStyles.front().extData[1]->content.s!=payload)
+        return false;
+    unsigned providers=0u;for(const auto& app:actual.appIds)if(app.name==appName)++providers;
+    return providers==1u;
+}
+
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-style-xdata-"+
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u;
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=source(sourceBinary);
+        if(!write(input,fields,sourceBinary,"AC1027")
+            ||!styleXdata(input,sourceBinary,mlineStyleBodyTransactionControls::initialDescription)
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=1u||data.mLineStyles.front().extData.size()!=2u
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))
+            return false;
+        auto& style=data.mLineStyles.front();const std::string originalName=style.name;
+        const auto originalPayload=*style.extData[1]->content.s;
+        style.description="edited MLINE XDATA profile";
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!styleXdata(output,outputBinary,style.description)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")
+            ||style.name!=originalName||*style.extData[1]->content.s!=originalPayload)
+            return false;
+        ++profiles;++readbacks;
+        const std::string savedAppId=*style.extData[0]->content.s;
+        *style.extData[0]->content.s=std::string(32u,'X');sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")
+            ||style.name!=originalName||*style.extData[0]->content.s!=std::string(32u,'X'))
+            return false;
+        ++refusals;*style.extData[0]->content.s=savedAppId;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!styleXdata(output,outputBinary,style.description)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE")
+            ||style.name!=originalName||*style.extData[0]->content.s!=savedAppId)
+            return false;
+        ++retries;++readbacks;
+    }
+    std::error_code error;std::filesystem::remove_all(dir,error);
+    std::cout<<"MLINESTYLE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==4u&&retries==4u;
+}
+}
+
 namespace mlineLtypeProviderControls {
 using namespace materialConsumerControls;
 using A=DxIfaceMaterialReferenceTestAccess;
@@ -45631,6 +45753,8 @@ int main(int argc, char** argv) {
         return mlineLtypeReferencedFlagControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-provider-profiles")
         return mlineLtypeProviderControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-style-xdata")
+        return mlineStyleXdataControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
