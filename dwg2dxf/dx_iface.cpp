@@ -16022,13 +16022,15 @@ constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 2> mleaderStringCodes{{3, 300}};
-constexpr std::array<int, 3> mleaderHandleCodes{{340, 341, 342}};
+constexpr std::array<int, 4> mleaderHandleCodes{{340, 341, 342, 343}};
 // MLEADERSTYLE's group 340 stores leaderLineTypeHandle.
 constexpr int mleaderLeaderLineTypeHandleCode = 340;
 // MLEADERSTYLE's group 341 stores arrowHeadBlockHandle.
 constexpr int mleaderArrowHeadBlockHandleCode = 341;
 // MLEADERSTYLE's group 342 stores textStyleHandle.
 constexpr int mleaderTextStyleHandleCode = 342;
+// MLEADERSTYLE's group 343 stores blockHandle.
+constexpr int mleaderBlockHandleCode = 343;
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16053,7 +16055,8 @@ bool isMLeaderStringCode(int code) noexcept {
 bool isMLeaderHandleCode(int code) noexcept {
     return code == mleaderLeaderLineTypeHandleCode
         || code == mleaderArrowHeadBlockHandleCode
-        || code == mleaderTextStyleHandleCode;
+        || code == mleaderTextStyleHandleCode
+        || code == mleaderBlockHandleCode;
 }
 
 std::uint32_t mleaderHandleValue(const DRW_MLeaderStyle& style,
@@ -16065,6 +16068,8 @@ std::uint32_t mleaderHandleValue(const DRW_MLeaderStyle& style,
         return style.arrowHeadBlockHandle.ref;
     case mleaderTextStyleHandleCode:
         return style.textStyleHandle.ref;
+    case mleaderBlockHandleCode:
+        return style.blockHandle.ref;
     default:
         return 0u;
     }
@@ -16081,6 +16086,9 @@ void setMLeaderHandleValue(DRW_MLeaderStyle& style, int code,
         break;
     case mleaderTextStyleHandleCode:
         style.textStyleHandle.ref = value;
+        break;
+    case mleaderBlockHandleCode:
+        style.blockHandle.ref = value;
         break;
     default:
         break;
@@ -16812,7 +16820,8 @@ bool dx_iface::inspectDxfMLeaderStyles(
                                     sourceHandle) != 0u)
                                 return false;
                             bool bound = expected != sourceHandle;
-                            if (code == mleaderArrowHeadBlockHandleCode) {
+                            if (code == mleaderArrowHeadBlockHandleCode
+                                || code == mleaderBlockHandleCode) {
                                 if (cData == nullptr)
                                     return false;
                                 const DRW_Block_Record* sourceBlockRecord =
