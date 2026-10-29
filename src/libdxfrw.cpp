@@ -15497,6 +15497,38 @@ bool dxfRW::processClasses() {
 
 /********* Tables Section *********/
 
+namespace {
+// TABLE control fields precede the first code-0 row marker. Preserve the
+// legacy tolerant treatment of malformed/absent header values, but register
+// a valid outer code-5 handle before any table-row callback can be published.
+// Application payload, XDATA and subsequent DIMSTYLE code-5 names are never
+// control identities. This stack-only tracker adds no public reader state.
+class DxfTableControlIdentity {
+    dxfReader& input;
+    std::size_t depth{0};
+    bool header{true},ambiguous{false},xdata{false};
+public:
+    explicit DxfTableControlIdentity(dxfReader& reader):input(reader) {}
+    bool observe(int code) {
+        if(!header)return true;
+        if(code==0){header=false;return true;}
+        if(code==102) {
+            const auto value=input.getStringView();
+            if(value=="}") {if(depth)--depth;else ambiguous=true;}
+            else if(value.size()>1u&&value.front()=='{') {
+                if(depth==DRW::kMaxDxfApplicationGroupNesting)ambiguous=true;
+                else ++depth;
+            } else ambiguous=true;
+            return true;
+        }
+        if(depth||ambiguous)return true;
+        if(code==1001){xdata=true;return true;}
+        if(!xdata&&code==5&&input.isValidHandleLexeme())return input.registerSelfHandle();
+        return true;
+    }
+};
+}
+
 bool dxfRW::processTables() {
     DRW_DBG("dxfRW::processTables\n");
     int code;
@@ -15675,7 +15707,9 @@ bool dxfRW::processTables() {
                         skippedTableName.assign(sectionstr.data(), nameBytes);
                     }
                     bool ended = false;
+                    DxfTableControlIdentity tableControl(*reader);
                     while (reader->readRec(&code)) {
+                        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
                         if (code != 0)
                             continue;
                         const std::string_view tableRecord =
@@ -15838,7 +15872,9 @@ bool dxfRW::processBlockRecord() {
     };
 
 
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (!finishRecord())
@@ -15965,7 +16001,9 @@ bool dxfRW::processLType() {
         pendingLineTypeNameMapReservation.transfer();
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (!finishLType())
@@ -16031,7 +16069,9 @@ bool dxfRW::processLayer() {
         pendingLayers.push_back(std::move(layer));
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (reading && !publishLayer())
@@ -16094,7 +16134,9 @@ bool dxfRW::processDimStyle() {
         pendingDimStyles.push_back(std::move(dimSty));
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (reading) {
@@ -16171,7 +16213,9 @@ bool dxfRW::processTextStyle(){
         pendingTextStyles.push_back(std::move(TxtSty));
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (reading && !publishTextStyle())
@@ -16228,7 +16272,9 @@ bool dxfRW::processVports(){
         pendingVports.push_back(std::move(vp));
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (reading && !publishVport())
@@ -16282,7 +16328,9 @@ bool dxfRW::processView(){
             const auto state=dxfViewUcs::Decoder::observe(value);states.push_back({state.first,state.second,true});raw.handle=value.handle;raw.parentHandle=value.parentHandle;sources.push_back(std::move(raw));}
         pending.push_back(std::move(value));return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while(reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code);DRW_DBG("\n");
         if(code==0){if(reading&&!finish())return setError(DRW::BAD_CODE_PARSED);const auto name=reader->getStringView();DRW_DBG(name.data());DRW_DBG("\n");
             if(dxfKeywordEquals(name,"VIEW")){reading=true;value.reset();decoder.reset();if(selected){raw={};if(!copyRawDxfCarrierName(raw,std::string(name)))return setError(DRW::BAD_CODE_PARSED);}}
@@ -16314,7 +16362,9 @@ bool dxfRW::processUCS(){
             const auto state=dxfViewUcs::Decoder::observe(value);states.push_back({state.first,state.second,true});raw.handle=value.handle;raw.parentHandle=value.parentHandle;sources.push_back(std::move(raw));}
         pending.push_back(std::move(value));return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while(reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code);DRW_DBG("\n");
         if(code==0){if(reading&&!finish())return setError(DRW::BAD_CODE_PARSED);const auto name=reader->getStringView();DRW_DBG(name.data());DRW_DBG("\n");
             if(dxfKeywordEquals(name,"UCS")){reading=true;value.reset();decoder.reset();if(selected){raw={};if(!copyRawDxfCarrierName(raw,std::string(name)))return setError(DRW::BAD_CODE_PARSED);}}
@@ -16358,7 +16408,9 @@ bool dxfRW::processAppId(){
         pendingAppIds.push_back(std::move(vp));
         return true;
     };
+    DxfTableControlIdentity tableControl(*reader);
     while (reader->readRec(&code)) {
+        if(!tableControl.observe(code))return setError(DRW::BAD_CODE_PARSED);
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (reading && !publishAppId())

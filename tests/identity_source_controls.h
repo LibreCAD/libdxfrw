@@ -71,7 +71,8 @@ bool identitySourceWire(const std::filesystem::path& path,bool binary,const dx_d
     for(const auto& c:source.candidates) {
         if(c.lexeme=="13"&&(c.code!=105||c.admission!=Source::Admission::Accepted))return false;
         if(c.lexeme=="NOT_A_HANDLE"&&(c.code!=5||c.admission!=Source::Admission::None))return false;
-        if(c.lexeme=="10"||c.lexeme=="12"||c.lexeme=="14"||c.lexeme=="15")if(c.admission!=Source::Admission::None)return false;
+        if(c.lexeme=="10"||c.lexeme=="12"||c.lexeme=="14")if(c.admission!=Source::Admission::Accepted)return false;
+        if(c.lexeme=="15"&&c.admission!=Source::Admission::None)return false;
         if(c.lexeme=="not-a-handle"||c.lexeme=="FFFFFFFFFFFFFFFE")if(c.scope!=Source::Scope::Application||c.admission!=Source::Admission::None)return false;
     }
     return physical(source.eofMarker,0,"EOF");
@@ -99,6 +100,7 @@ bool identityPublicLifetime(unsigned& contexts) {
 #include "identity_xrecord_controls.h"
 #include "xrecord_payload_identity_controls.h"
 #include "imagedef_identity_controls.h"
+#include "table_control_identity_controls.h"
 #include "identity_sortents_controls.h"
 #include "identity_dimstyle_controls.h"
 bool identitySourceTests(const std::filesystem::path& dir) {
@@ -108,10 +110,11 @@ bool identitySourceTests(const std::filesystem::path& dir) {
     if(!identityXrecordTests(path))return false;
     if(!xrecordPayloadIdentityTests(path))return false;
     if(!imageDefIdentityTests(path))return false;
+    if(!tableControlIdentityTests(path))return false;
     if(!identitySortentsTests(path))return false;
     if(!identityDimstyleTests(path))return false;
     const auto complete=[](const dx_data& d) {const auto r=dx_iface::identitySourceReport(d);
-        return r.state==S::NamespaceReady&&r.records==15u&&r.identities==15u&&r.admitted==11u&&r.unobserved==4u
+        return r.state==S::NamespaceReady&&r.records==15u&&r.identities==15u&&r.admitted==14u&&r.unobserved==1u
             &&r.opaque==2u&&r.dimstyleNames==1u&&!r.outputEligible&&!r.ownerTargetsResolved;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
         auto tags=identitySourceDocument(version);
@@ -151,7 +154,7 @@ bool identitySourceTests(const std::filesystem::path& dir) {
             if(!write(path,tags,binary))return false;IdentitySourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::identitySourceReport(data).state!=S::Unqualified) {std::cerr<<"refusal="<<kind<<'\n';return false;}
             const auto report=dx_iface::identitySourceReport(data);
-            if(kind<3u&&(report.duplicates!=1u||report.duplicateAdmissions!=((kind==0u||kind==2u)?1u:0u)))return false;
+            if(kind<3u&&(report.duplicates!=1u||report.duplicateAdmissions!=1u))return false;
             if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="exact and one-under quotas";
