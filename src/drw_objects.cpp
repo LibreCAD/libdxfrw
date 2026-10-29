@@ -27760,6 +27760,13 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
                                             m_arrayRowOffset))
                 return fail();
         } else if (m_kind == Kind::LookupAction) {
+            // ACadSharp's BLOCKLOOKUPACTION reader models the row-major
+            // expression grid separately from the per-column lookup metadata.
+            // The selected AC1024 sample also lands exactly on both declared
+            // object-stream ends with this layout. Keep this admission scoped
+            // to AC1024 until equivalent source-bound evidence exists for
+            // other versions.
+            const bool ac1024ColumnLayout = version == DRW::AC1024;
             if (!readBitLongWithinBody(buf, version, dynamicBodyEnd,
                                        m_lookupRowCount)
                 || !readBitLongWithinBody(buf, version, dynamicBodyEnd,
@@ -27772,9 +27779,11 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
                 * static_cast<std::uint64_t>(m_lookupColumnCount);
             if (entryCount > static_cast<std::uint64_t>(kMaxAssocItems))
                 return fail();
+            const std::int32_t inlineRecordCount = ac1024ColumnLayout
+                ? m_lookupColumnCount : static_cast<std::int32_t>(entryCount);
             if (!countFitsObjectBody(
                     buf, version, dynamicBodyEnd,
-                    static_cast<std::int32_t>(entryCount), 8u)) {
+                    inlineRecordCount, 8u)) {
                 if (DRW_DBGGL == DRW_dbg::Level::Debug) {
                     constexpr std::uint64_t kProbeEntryLimit = 512u;
                     constexpr std::int32_t kProbeColumnLimit = 64;
@@ -27878,7 +27887,9 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
                     DRW_DBG(m_lookupColumnCount);
                     DRW_DBG(" entries=");
                     DRW_DBG(entryCount);
-                    DRW_DBG(" minimumBitsPerEntry=8 dataBit=");
+                    DRW_DBG(" inlineRecords=");
+                    DRW_DBG(inlineRecordCount);
+                    DRW_DBG(" minimumBitsPerRecord=8 dataBit=");
                     DRW_DBG(currentObjectDwgBit(buf));
                     DRW_DBG(" dataEndBit=");
                     DRW_DBG(dynamicBodyEnd);
@@ -27905,44 +27916,101 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
                 return fail();
             }
             if (!DRW::reserve(m_lookupExpressions,
-                              static_cast<int>(entryCount))
-                || !DRW::reserve(m_lookupConnectionCodes,
-                                 static_cast<int>(entryCount))
-                || !DRW::reserve(m_lookupConnectionNames,
-                                 static_cast<int>(entryCount))
-                || !DRW::reserve(m_lookupEntryFlags282,
-                                 static_cast<int>(entryCount))
-                || !DRW::reserve(m_lookupEntryFlags281,
-                                 static_cast<int>(entryCount)))
+                              static_cast<int>(entryCount)))
                 return fail();
-            for (std::uint64_t entry = 0;
-                 entry < entryCount; ++entry) {
-                UTF8STRING expression;
-                if (!readActionText(expression))
-                    return fail();
-                m_lookupExpressions.push_back(std::move(expression));
-                std::vector<std::int32_t> codes;
-                std::vector<UTF8STRING> names;
-                codes.reserve(3);
-                names.reserve(3);
-                for (int cp = 0; cp < 3; ++cp) {
-                    if (!readConnection(codes, names))
+            if (ac1024ColumnLayout) {
+                for (std::uint64_t entry = 0;
+                     entry < entryCount; ++entry) {
+                    UTF8STRING expression;
+                    if (!readActionText(expression))
                         return fail();
+                    m_lookupExpressions.push_back(std::move(expression));
                 }
-                m_lookupConnectionCodes.push_back(std::move(codes));
-                m_lookupConnectionNames.push_back(std::move(names));
-                bool flag282 = false;
-                bool flag281 = false;
-                if (!readBitWithinBody(buf, version, dynamicBodyEnd, flag282)
-                    || !readBitWithinBody(buf, version, dynamicBodyEnd,
-                                          flag281))
+                if (!DRW::reserve(m_lookupConnectionCodes,
+                                  m_lookupColumnCount)
+                    || !DRW::reserve(m_lookupConnectionNames,
+                                     m_lookupColumnCount)
+                    || !DRW::reserve(m_lookupEntryFlags282,
+                                     m_lookupColumnCount)
+                    || !DRW::reserve(m_lookupEntryFlags281,
+                                     m_lookupColumnCount))
                     return fail();
-                m_lookupEntryFlags282.push_back(flag282);
-                m_lookupEntryFlags281.push_back(flag281);
+                for (std::int32_t column = 0;
+                     column < m_lookupColumnCount; ++column) {
+                    std::vector<std::int32_t> codes;
+                    std::vector<UTF8STRING> names;
+                    codes.reserve(3u);
+                    names.reserve(2u);
+                    for (int codeIndex = 0; codeIndex < 3; ++codeIndex) {
+                        std::int32_t code = 0;
+                        if (!readBitLongWithinBody(buf, version,
+                                                   dynamicBodyEnd, code))
+                            return fail();
+                        codes.push_back(code);
+                    }
+                    bool flag282 = false;
+                    bool flag281 = false;
+                    UTF8STRING unmatchedName;
+                    UTF8STRING connectionName;
+                    if (!readBitWithinBody(buf, version, dynamicBodyEnd,
+                                           flag282)
+                        || !readActionText(unmatchedName)
+                        || !readBitWithinBody(buf, version, dynamicBodyEnd,
+                                              flag281)
+                        || !readActionText(connectionName))
+                        return fail();
+                    names.push_back(std::move(unmatchedName));
+                    names.push_back(std::move(connectionName));
+                    m_lookupConnectionCodes.push_back(std::move(codes));
+                    m_lookupConnectionNames.push_back(std::move(names));
+                    m_lookupEntryFlags282.push_back(flag282);
+                    m_lookupEntryFlags281.push_back(flag281);
+                }
+                if (!readBitWithinBody(buf, version, dynamicBodyEnd,
+                                       m_lookupFlag280)
+                    || currentObjectDwgBit(buf) != dynamicBodyEnd
+                    || currentObjectDwgBit(sBuf) != dynamicStringEnd)
+                    return fail();
+            } else {
+                if (!DRW::reserve(m_lookupConnectionCodes,
+                                  static_cast<int>(entryCount))
+                    || !DRW::reserve(m_lookupConnectionNames,
+                                     static_cast<int>(entryCount))
+                    || !DRW::reserve(m_lookupEntryFlags282,
+                                     static_cast<int>(entryCount))
+                    || !DRW::reserve(m_lookupEntryFlags281,
+                                     static_cast<int>(entryCount)))
+                    return fail();
+                for (std::uint64_t entry = 0;
+                     entry < entryCount; ++entry) {
+                    UTF8STRING expression;
+                    if (!readActionText(expression))
+                        return fail();
+                    m_lookupExpressions.push_back(std::move(expression));
+                    std::vector<std::int32_t> codes;
+                    std::vector<UTF8STRING> names;
+                    codes.reserve(3u);
+                    names.reserve(3u);
+                    for (int cp = 0; cp < 3; ++cp) {
+                        if (!readConnection(codes, names))
+                            return fail();
+                    }
+                    m_lookupConnectionCodes.push_back(std::move(codes));
+                    m_lookupConnectionNames.push_back(std::move(names));
+                    bool flag282 = false;
+                    bool flag281 = false;
+                    if (!readBitWithinBody(buf, version, dynamicBodyEnd,
+                                           flag282)
+                        || !readBitWithinBody(buf, version, dynamicBodyEnd,
+                                              flag281))
+                        return fail();
+                    m_lookupEntryFlags282.push_back(flag282);
+                    m_lookupEntryFlags281.push_back(flag281);
+                }
+                if (!readBitWithinBody(buf, version, dynamicBodyEnd,
+                                       m_lookupFlag280))
+                    return fail();
             }
-            if (!readBitWithinBody(buf, version, dynamicBodyEnd,
-                                  m_lookupFlag280))
-                return fail();
         } else if (m_kind == Kind::PolarStretchAction) {
             for (int cp = 0; cp < 6; ++cp) {
                 if (!readConnection(m_connectionCodes, m_connectionNames))

@@ -13688,6 +13688,67 @@ int runDwgReadSample(const std::string& path) {
     return 0;
 }
 
+int runBlockLookupActionAc1024Sample(const std::string& path) {
+    std::ifstream sample(path, std::ios::binary);
+    char version[6] = {};
+    if (!sample.read(version, sizeof(version))
+        || std::string(version, sizeof(version)) != "AC1024") {
+        std::cerr << "BLOCKLOOKUPACTION sample is not AC1024\n";
+        return 1;
+    }
+    dx_data data;
+    dx_iface interface;
+    const bool imported = interface.fileImport(path, &data, false);
+    const auto object = std::find_if(
+        data.dynamicBlockObjects.cbegin(), data.dynamicBlockObjects.cend(),
+        [](const DRW_DynamicBlockObject& item) {
+            return item.handle == 559u
+                && item.m_recordName == "BLOCKLOOKUPACTION";
+        });
+    const bool columnsMatch = object != data.dynamicBlockObjects.cend()
+        && object->m_lookupConnectionCodes.size() == 7u
+        && object->m_lookupConnectionNames.size() == 7u
+        && object->m_lookupEntryFlags282.size() == 7u
+        && object->m_lookupEntryFlags281.size() == 7u
+        && std::all_of(
+            object->m_lookupConnectionCodes.cbegin(),
+            object->m_lookupConnectionCodes.cend(),
+            [](const std::vector<std::int32_t>& codes) {
+                return codes.size() == 3u;
+            })
+        && std::all_of(
+            object->m_lookupConnectionNames.cbegin(),
+            object->m_lookupConnectionNames.cend(),
+            [](const std::vector<UTF8STRING>& names) {
+                return names.size() == 2u;
+            });
+    if (!imported || data.sourceFormat != dx_source_format::DWG
+        || object == data.dynamicBlockObjects.cend()
+        || object->m_kind != DRW_DynamicBlockObject::Kind::LookupAction
+        || !object->m_bodyFullyDecoded
+        || object->m_lookupRowCount != 41
+        || object->m_lookupColumnCount != 7
+        || object->m_lookupExpressions.size() != 287u
+        || !columnsMatch) {
+        std::cerr << "AC1024 BLOCKLOOKUPACTION profile failed: import="
+                  << imported << " dynamicObjects="
+                  << data.dynamicBlockObjects.size();
+        if (object != data.dynamicBlockObjects.cend()) {
+            std::cerr << " bodyFullyDecoded=" << object->m_bodyFullyDecoded
+                      << " rows=" << object->m_lookupRowCount
+                      << " columns=" << object->m_lookupColumnCount
+                      << " expressions=" << object->m_lookupExpressions.size()
+                      << " columnRecords="
+                      << object->m_lookupConnectionCodes.size();
+        }
+        std::cerr << '\n';
+        return 1;
+    }
+    std::cout << "AC1024 BLOCKLOOKUPACTION profile: PASS rows=41 columns=7"
+                 " expressions=287 per-column-codes=3 per-column-texts=2\n";
+    return 0;
+}
+
 int runAcShOpaqueFrameCapture(const std::string& path) {
     dx_data data;
     dx_iface interface;
@@ -13891,6 +13952,9 @@ int main(int argc, char** argv) {
         return runAssociativeFailedFrameRetention(argv[2]);
     if (argc == 3 && std::string(argv[1]) == "--read-dwg-sample")
         return runDwgReadSample(argv[2]);
+    if (argc == 3
+        && std::string(argv[1]) == "--blocklookupaction-ac1024-sample")
+        return runBlockLookupActionAc1024Sample(argv[2]);
     if (argc == 3
         && std::string(argv[1]) == "--r2007-system-page-crc-diagnostic") {
         return runR2007SystemPageCrcDiagnostic(argv[2]);

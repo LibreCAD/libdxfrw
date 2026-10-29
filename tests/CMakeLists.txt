@@ -3598,3 +3598,18 @@ foreach(_ver IN LISTS _dwg_test_versions)
         )
     endforeach()
 endforeach()
+
+# This bounded AC1024 dynamic-block profile uses a locally supplied sample;
+# no external DWG is vendored. It validates the selected handle's row-major
+# expression grid, per-column fields and exact stream-end admission when that
+# same existing evidence file is available in the checkout.
+set(_blocklookup_action_ac1024_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
+if(EXISTS "${_blocklookup_action_ac1024_sample}")
+    add_test(NAME dwg_read_AC1024_blocklookupaction_profile
+        COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+            --blocklookupaction-ac1024-sample
+            "${_blocklookup_action_ac1024_sample}")
+    set_tests_properties(dwg_read_AC1024_blocklookupaction_profile PROPERTIES
+        LABELS "dwg_read;AC1024;sample;fast" TIMEOUT 60)
+endif()

@@ -789,13 +789,18 @@ The [AC1024 extended-header CLASSES receipt](docs/research/rpp5nb-ac1024-extende
 corrects the CRC byte offset when the optional high-size RL is present. Three
 locally available AC1024 sources now report no CLASSES CRC mismatch; this does
 not resolve their distinct custom-object parse failures or establish complete
-source coverage. The next ready reader witness is `BLOCKLOOKUPACTION` handle
-559/type 528 in `visualization_-_sun_and_sky_demo.dwg`: its current 41-by-7
-lookup-grid body fails the minimum inline data-bit preflight, while a diagnostic
-alternate-layout walk reaches the final flag and declared data/string ends. Check
-that body profile against an independent implementation before changing refusal
-behavior. Keep `ACDBPERSSUBENTMANAGER` and `ACSH_REVOLVE`/`ACSH_LOFT` failures
-separate; no testing drawing was added to Git.
+source coverage. The selected AC1024 `BLOCKLOOKUPACTION` handle 559/type 528
+profile is now decoded as 287 row-major expressions followed by seven
+per-column records. [PAR-133-AC1024-BLOCKLOOKUPACTION](docs/research/par133-blocklookupaction-ac1024-column-layout-2026-10-29.json)
+binds the exact sample hash, independent ACadSharp source-level layout,
+conflicting unstable LibreDWG schema, and exact data/string end checks. Its
+conditional focused test passes on the existing local sample. The result is
+one body-decode profile only: ACadSharp was not run, LibreDWG disagrees on
+cardinality, source provenance is unverified, and no native/evaluation meaning,
+writer, or support claim follows. Other versions keep the previous parser path.
+Select a separate current `ACDBPERSSUBENTMANAGER` or `ACSH_REVOLVE`/`ACSH_LOFT`
+witness before creating the next reader implementation task; do not combine
+those failures or add the local drawing to Git.
 
 The rows below are remaining verification/qualification boundaries, not assertions
 that historical local fixes are still absent. For each row, check current code and

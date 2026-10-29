@@ -1,0 +1,84 @@
+{
+  "id": "PAR-133-AC1024-BLOCKLOOKUPACTION",
+  "title": "AC1024 BLOCKLOOKUPACTION row-major expressions and column metadata",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_BODY_DECODE_PROFILE",
+  "scope": {
+    "version": "AC1024",
+    "class_name": "AcDbBlockLookupAction",
+    "record_name": "BLOCKLOOKUPACTION",
+    "object_handle_decimal": 559,
+    "object_handle_hex": "0x22F",
+    "object_type": 528,
+    "sample": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "sample_sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "profile": "41 rows by 7 columns; 287 row-major expression strings; then seven column records, each with three BitLong codes, flag 282, one text value, flag 281, and one text value; final flag 280.",
+    "admission": "AC1024 only. Other DWG versions retain their previous parser path pending version-specific source evidence."
+  },
+  "authority": [
+    {
+      "title": "ODA Open Design Specification v5.4.1, §§20.1 and 20.4",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "used_for": "Confirmed the generic object data/handle framing and the separate R2007+ string stream. The searched class prescriptions do not specify BLOCKLOOKUPACTION field order."
+    },
+    {
+      "title": "ACadSharp DwgObjectReader.Objects.cs",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "used_for": "Independent source-level layout comparison: readBlockLookupAction consumes rows*columns text values, then numcols column records and a final bit; readLookupActionColumn consumes three BitLongs, flag 282, text, flag 281, and text. The implementation was not executed against this sample."
+    },
+    {
+      "title": "LibreDWG dwg2.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "used_for": "Compared the independent generated field inventory. It models a LUT per rows*columns entry with three code/name connection pairs and flags 282/281; this disagrees with ACadSharp's per-column record cardinality and the observed AC1024 body budget. LibreDWG currently marks this class UNSTABLE."
+    }
+  ],
+  "observed_source": {
+    "class_table": "Class 528 names AcDbBlockLookupAction / BLOCKLOOKUPACTION.",
+    "dimensions": "rows=41, columns=7, product=287.",
+    "before_fix": "The previous minimum-data preflight required 287*8=2296 bits for per-cell LUT metadata; the available body span was only 209 bits at the first expression. A diagnostic-only ACadSharp-layout walk consumed all fields.",
+    "declared_boundaries": {
+      "data_start_bit": 301,
+      "data_end_bit": 510,
+      "string_end_bit": 72858,
+      "handle_start_bit": 72891,
+      "handle_end_bit": 72912
+    },
+    "candidate_cursor_result": "The row-major expression plus seven column records consumed data and string cursors exactly to 510 and 72858, respectively; the object handle stream remained separately bounded."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "For AC1024, parse the row-major expression grid before column metadata, bound inline record admission by the number of columns, store three codes/two text values/two flags per column, and require exact data and string stream endpoints. Other versions retain the prior path.",
+    "test": "dwg_read_AC1024_blocklookupaction_profile is registered only when the existing local sample is present; the sample is not added to the repository."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf --parallel 2",
+      "result": "PASS (-Werror build)"
+    },
+    "focused_profile": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1024_blocklookupaction_profile$' --output-on-failure",
+      "result": "PASS; rows=41, columns=7, expressions=287, three codes and two text values per column"
+    },
+    "adapter_controls": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(fail_closed|capture_limits)$' --output-on-failure",
+      "result": "PASS; 2/2"
+    },
+    "diff_check": "PASS"
+  },
+  "limits": [
+    "The local sample is untracked and its producer provenance is unverified. It was used only as existing local evidence and was not copied or committed.",
+    "ACadSharp was reviewed at source level but not run; its CSUtilities git submodule is not initialized in the local checkout.",
+    "The ACadSharp and LibreDWG layouts conflict. The selected body decode is supported by ACadSharp's independent reader source and the exact AC1024 cursor fit, but the conflict prevents a broad semantic or cross-version claim.",
+    "LibreDWG class recognition, its unstable field inventory, cursor fit, and this parser test do not prove native Dynamic Block behavior or correct evaluation semantics.",
+    "No DXF writer/output support, native application result, producer qualification, or support claim is established. Other versions retain the previous decode path."
+  ],
+  "new_support_claims": 0,
+  "no_fixture_committed": true
+}

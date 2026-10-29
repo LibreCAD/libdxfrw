@@ -7645,7 +7645,9 @@ public:
   // AcDbBlockLookupAction body.
   std::int32_t m_lookupRowCount = 0;
   std::int32_t m_lookupColumnCount = 0;
-  std::vector<UTF8STRING> m_lookupExpressions;
+  std::vector<UTF8STRING> m_lookupExpressions; // row-major rows * columns
+  // The AC1024 profile stores one metadata record per column. Other versions
+  // retain the prior decoder's per-cell interpretation pending evidence.
   std::vector<std::vector<std::int32_t>> m_lookupConnectionCodes;
   std::vector<std::vector<UTF8STRING>> m_lookupConnectionNames;
   std::vector<bool> m_lookupEntryFlags282;
