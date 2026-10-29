@@ -16431,17 +16431,18 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 }
 
 // Recompute the first, miter-distance parameter for an admitted open,
-// unfilled and uncut MLINE. A one-element append or tail removal projects the
-// per-vertex parameter arrays only after deriving the same source geometry.
+// unfilled and uncut MLINE. A tail append or one-element tail removal projects
+// the per-vertex parameter arrays only after deriving the same source geometry.
 // This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeTail=false) {
-    const bool appended=appendElement && after.elements.size()==before.elements.size()+1u;
+    const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeTail && before.elements.size()==after.elements.size()+1u;
     if (original.openClosed!=1 || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
         || (appendElement && (!appended || removeTail)) || (removeTail && !removed)
+        || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
         || original.vertlist.size()!=original.numVerts || before.flags!=2 || after.flags!=2
@@ -16533,11 +16534,13 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
             }
         }
         if (appended) {
-            const double replacement=(after.elements.back().offset+afterShift)*original.scale/signedMiter;
-            if (!std::isfinite(replacement)) return false;
-            projected.segParms.emplace_back(2u,0.0);
-            projected.segParms.back()[0]=replacement;
-            projected.areaFillParms.emplace_back();
+            for (std::size_t i=before.elements.size();i<after.elements.size();++i) {
+                const double replacement=(after.elements[i].offset+afterShift)*original.scale/signedMiter;
+                if (!std::isfinite(replacement)) return false;
+                projected.segParms.emplace_back(2u,0.0);
+                projected.segParms.back()[0]=replacement;
+                projected.areaFillParms.emplace_back();
+            }
         }
         if (removed) {
             projected.segParms.resize(after.elements.size());
@@ -17672,14 +17675,16 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 };
                 const auto& targetStyle=style->second.projection;
                 const bool append=style->second.countChanged && before
-                    && targetStyle.elements.size()==before->elements.size()+1u;
+                    && targetStyle.elements.size()>before->elements.size();
                 const bool removeTail=style->second.countChanged && before
                     && before->elements.size()==targetStyle.elements.size()+1u;
                 std::size_t modelBytes=0u,appendBytes=0u;
                 const auto retainedAppendBytes=[&]() {
                     if (!append) return true;
-                    std::size_t perVertex=4u*sizeof(std::vector<double>)+2u*sizeof(double);
-                    return WholeSourceV2::product(original->vertlist.size(),perVertex,appendBytes)
+                    const std::size_t additions=targetStyle.elements.size()-before->elements.size();
+                    std::size_t perElement=4u*sizeof(std::vector<double>)+2u*sizeof(double),perVertex=0u;
+                    return WholeSourceV2::product(additions,perElement,perVertex)
+                        && WholeSourceV2::product(original->vertlist.size(),perVertex,appendBytes)
                         && chargeNamedResourceBytes(bytes,appendBytes);
                 };
                 const auto chargeStyleTextWork=[&](const DRW_MLineStyle& selected) {
