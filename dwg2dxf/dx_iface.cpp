@@ -15986,27 +15986,71 @@ bool dx_iface::inspectDxfScales(const dxfRW::DxfObjectsWriteView& view) noexcept
 namespace {
 constexpr std::size_t noMLeaderDoubleSlot =
     (std::numeric_limits<std::size_t>::max)();
+constexpr std::array<int, 13> mleaderDoubleCodes{{
+    40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
+}};
+
+bool isMLeaderDoubleCode(int code) noexcept {
+    return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
+                     code) != mleaderDoubleCodes.end();
+}
 
 double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
     switch (code) {
+    case 40: return style.firstSegmentAngle;
+    case 41: return style.secondSegmentAngle;
     case 42: return style.landingGap;
+    case 43: return style.landingDistance;
+    case 44: return style.arrowHeadSize;
     case 45: return style.textHeight;
+    case 46: return style.alignSpace;
+    case 47: return style.blockScale.x;
+    case 49: return style.blockScale.y;
+    case 140: return style.blockScale.z;
+    case 141: return style.blockRotation;
+    case 142: return style.scaleFactor;
+    case 143: return style.breakSize;
     default: return std::numeric_limits<double>::quiet_NaN();
     }
+}
+
+int changedMLeaderDoubleCode(const DRW_MLeaderStyle& value,
+                             const DRW_MLeaderStyle& original) noexcept {
+    int changedCode = 0;
+    for (int code : mleaderDoubleCodes) {
+        if (mleaderDoubleValue(value, code)
+            == mleaderDoubleValue(original, code))
+            continue;
+        if (changedCode != 0)
+            return -1;
+        changedCode = code;
+    }
+    return changedCode;
 }
 
 void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
                            double value) noexcept {
     switch (code) {
+    case 40: style.firstSegmentAngle = value; break;
+    case 41: style.secondSegmentAngle = value; break;
     case 42: style.landingGap = value; break;
+    case 43: style.landingDistance = value; break;
+    case 44: style.arrowHeadSize = value; break;
     case 45: style.textHeight = value; break;
+    case 46: style.alignSpace = value; break;
+    case 47: style.blockScale.x = value; break;
+    case 49: style.blockScale.y = value; break;
+    case 140: style.blockScale.z = value; break;
+    case 141: style.blockRotation = value; break;
+    case 142: style.scaleFactor = value; break;
+    case 143: style.breakSize = value; break;
     default: break;
     }
 }
 
 bool mleaderDoubleSlot(const DRW_RawDxfObject& raw, int code,
         std::size_t& slot) noexcept {
-    if (code != 42 && code != 45)
+    if (!isMLeaderDoubleCode(code))
         return false;
     slot = noMLeaderDoubleSlot;
     unsigned applicationDepth = 0u;
@@ -16126,15 +16170,11 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     baseline->second->encoding, baseline->second->policy,
                     baseline->second->compatibility))
                 return false;
-            const bool landingGapChanged =
-                value.landingGap != original.landingGap;
-            const bool textHeightChanged =
-                value.textHeight != original.textHeight;
-            if (!landingGapChanged && !textHeightChanged)
+            const int editedCode = changedMLeaderDoubleCode(value, original);
+            if (editedCode == 0)
                 continue;
-            if (landingGapChanged && textHeightChanged)
+            if (editedCode < 0)
                 return false;
-            const int editedCode = landingGapChanged ? 42 : 45;
             std::size_t baselineSlot = noMLeaderDoubleSlot;
             if (!std::isfinite(mleaderDoubleValue(value, editedCode))
                 || !mleaderDoubleSlot(*baseline->second, editedCode,
@@ -16209,18 +16249,13 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 return false;
 
             DRW_MLeaderStyle projection = original;
-            const bool landingGapChanged =
-                value.landingGap != original.landingGap;
-            const bool textHeightChanged =
-                value.textHeight != original.textHeight;
-            if (landingGapChanged || textHeightChanged) {
-                // These scalar edits are source-bound to AC1027 and a unique
-                // existing physical group 42 or 45. Other schemas/versions
-                // remain on their existing raw replay route.
-                if (version != DRW::AC1027
-                    || (landingGapChanged && textHeightChanged))
+            const int editedCode = changedMLeaderDoubleCode(value, original);
+            if (editedCode != 0) {
+                // One mapped DOUBLE edit is source-bound to AC1027 and one
+                // unique existing physical group in the documented scalar
+                // set. Other schemas/versions remain on raw replay.
+                if (version != DRW::AC1027 || editedCode < 0)
                     return false;
-                const int editedCode = landingGapChanged ? 42 : 45;
                 const double editedValue =
                     mleaderDoubleValue(value, editedCode);
                 const double originalValue =
@@ -16244,8 +16279,8 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             DxfMLeaderStyleSource source;
             source.model = value;
             source.projection = projection;
-            source.editedDoubleCode = landingGapChanged ? 42
-                : textHeightChanged ? 45 : 0;
+            source.editedDoubleCode = changedMLeaderDoubleCode(value,
+                                                               original);
             source.raw = raw;
             source.output = raw;
             source.baseline = baselineIt->second;

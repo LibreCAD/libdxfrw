@@ -11555,7 +11555,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeMLeader = false,
                                      bool includeSecondStyle = false,
                                      double standardTextHeight = 0.0,
-                                     double standardLandingGap = 0.0);
+                                     double standardLandingGap = 0.0,
+                                     bool includeDoubleScalars = false);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32047,7 +32048,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeMLeader,
                                      bool includeSecondStyle,
                                      double standardTextHeight,
-                                     double standardLandingGap) {
+                                     double standardLandingGap,
+                                     bool includeDoubleScalars) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32163,10 +32165,21 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         writer->writeString(342, wrongReferenceKind == 3 ? "1F" : "31");
         writer->writeString(343, wrongReferenceKind == 4 ? "31" : "1E");
     }
-    if (standardLandingGap != 0.0)
-        writer->writeDouble(42, standardLandingGap);
-    if (standardTextHeight != 0.0)
-        writer->writeDouble(45, standardTextHeight);
+    if (includeDoubleScalars) {
+        const std::array<std::pair<int, double>, 13> doubleScalars{{
+            {40, 0.25}, {41, 0.5}, {42, 0.75}, {43, 1.0},
+            {44, 1.25}, {45, 1.5}, {46, 1.75}, {47, 1.0},
+            {49, 1.0}, {140, 1.0}, {141, 0.125}, {142, 1.0},
+            {143, 0.375}
+        }};
+        for (const auto& scalar : doubleScalars)
+            writer->writeDouble(scalar.first, scalar.second);
+    } else {
+        if (standardLandingGap != 0.0)
+            writer->writeDouble(42, standardLandingGap);
+        if (standardTextHeight != 0.0)
+            writer->writeDouble(45, standardTextHeight);
+    }
     writer->writeString(302, "preserve-mleader-opaque-tag");
     if (includeSecondStyle) {
         writer->writeString(0, "MLEADERSTYLE");
@@ -33154,6 +33167,150 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     if (gapCrossStyle == gapCrossReadback.mLeaderStyles.end()
         || gapCrossStyle->landingGap != 4.5)
         return fail("cross-format MLEADERSTYLE output lost landingGap");
+
+    const auto readDoubleField = [](const DRW_MLeaderStyle& style,
+                                    int code) {
+        switch (code) {
+        case 40: return style.firstSegmentAngle;
+        case 41: return style.secondSegmentAngle;
+        case 42: return style.landingGap;
+        case 43: return style.landingDistance;
+        case 44: return style.arrowHeadSize;
+        case 45: return style.textHeight;
+        case 46: return style.alignSpace;
+        case 47: return style.blockScale.x;
+        case 49: return style.blockScale.y;
+        case 140: return style.blockScale.z;
+        case 141: return style.blockRotation;
+        case 142: return style.scaleFactor;
+        case 143: return style.breakSize;
+        default: return std::numeric_limits<double>::quiet_NaN();
+        }
+    };
+    const auto writeDoubleField = [](DRW_MLeaderStyle& style, int code,
+                                     double value) {
+        switch (code) {
+        case 40: style.firstSegmentAngle = value; break;
+        case 41: style.secondSegmentAngle = value; break;
+        case 42: style.landingGap = value; break;
+        case 43: style.landingDistance = value; break;
+        case 44: style.arrowHeadSize = value; break;
+        case 45: style.textHeight = value; break;
+        case 46: style.alignSpace = value; break;
+        case 47: style.blockScale.x = value; break;
+        case 49: style.blockScale.y = value; break;
+        case 140: style.blockScale.z = value; break;
+        case 141: style.blockRotation = value; break;
+        case 142: style.scaleFactor = value; break;
+        case 143: style.breakSize = value; break;
+        default: break;
+        }
+    };
+    const std::array<std::pair<int, double>, 13> scalarWitnesses{{
+        {40, 0.25}, {41, 0.5}, {42, 0.75}, {43, 1.0},
+        {44, 1.25}, {45, 1.5}, {46, 1.75}, {47, 1.0},
+        {49, 1.0}, {140, 1.0}, {141, 0.125}, {142, 1.0},
+        {143, 0.375}
+    }};
+    const auto scalarSource = directory
+        / ("root-mleaderstyle-all-double-source-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(scalarSource, binary, true, 0,
+                                         false, true, 0.0, 0.0, true))
+        return false;
+    dx_data scalarData;
+    dx_iface scalarReader;
+    if (!scalarReader.fileImport(scalarSource.string(), &scalarData, false)
+        || !scalarData.hasSingleSuccessfulNamedResourceImport())
+        return fail("could not import MLEADERSTYLE scalar-field source");
+    auto scalarStyle = std::find_if(scalarData.mLeaderStyles.begin(),
+        scalarData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+            return candidate.handle == 0x1Cu
+                && candidate.name == "STANDARD";
+        });
+    auto scalarRaw = std::find_if(scalarData.rawNamedResourceObjects.begin(),
+        scalarData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (scalarStyle == scalarData.mLeaderStyles.end()
+        || scalarRaw == scalarData.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE scalar-field source identity is missing");
+    std::vector<double> sourceScalarValues;
+    sourceScalarValues.reserve(scalarWitnesses.size());
+    for (const auto& witness : scalarWitnesses) {
+        const double value = readDoubleField(*scalarStyle, witness.first);
+        const auto count = std::count_if(
+            scalarRaw->groups.begin(), scalarRaw->groups.end(),
+            [&witness](const DRW_Variant& field) {
+                return field.code() == witness.first
+                    && field.type() == DRW_Variant::DOUBLE;
+            });
+        if (value != witness.second || count != 1)
+            return fail("MLEADERSTYLE source scalar witness mismatch at group "
+                        + std::to_string(witness.first));
+        sourceScalarValues.push_back(value);
+    }
+    for (std::size_t index = 0u; index < scalarWitnesses.size(); ++index) {
+        const int code = scalarWitnesses[index].first;
+        const double sourceValue = sourceScalarValues[index];
+        const double requestedValue = sourceValue + 0.25;
+        writeDoubleField(*scalarStyle, code, requestedValue);
+        const bool targetBinary = (index % 2u) == 0u ? !binary : binary;
+        const auto scalarOutput = directory
+            / ("root-mleaderstyle-double-" + std::to_string(code) + "-"
+               + encoding + ".dxf");
+        dx_iface scalarWriter;
+        if (!scalarWriter.fileExport(scalarOutput.string(), DRW::AC1027,
+                                     targetBinary, &scalarData, false, true))
+            return fail("MLEADERSTYLE scalar transaction failed at group "
+                        + std::to_string(code) + ": "
+                        + scalarWriter.extensionGraphFailureDetail());
+        dx_data scalarReadback;
+        dx_iface scalarOutputReader;
+        if (!scalarOutputReader.fileImport(scalarOutput.string(),
+                                           &scalarReadback, false))
+            return fail("could not read back MLEADERSTYLE group "
+                        + std::to_string(code));
+        const auto outputStyle = std::find_if(
+            scalarReadback.mLeaderStyles.begin(),
+            scalarReadback.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (outputStyle == scalarReadback.mLeaderStyles.end()
+            || readDoubleField(*outputStyle, code) != requestedValue)
+            return fail("MLEADERSTYLE scalar readback mismatch at group "
+                        + std::to_string(code));
+        for (std::size_t other = 0u; other < scalarWitnesses.size(); ++other) {
+            if (other != index
+                && readDoubleField(*outputStyle,
+                                   scalarWitnesses[other].first)
+                    != sourceScalarValues[other])
+                return fail("MLEADERSTYLE unrelated scalar changed at group "
+                            + std::to_string(scalarWitnesses[other].first));
+        }
+        const auto outputRaw = std::find_if(
+            scalarReadback.rawNamedResourceObjects.begin(),
+            scalarReadback.rawNamedResourceObjects.end(),
+            [&outputStyle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == outputStyle->handle;
+            });
+        if (outputRaw == scalarReadback.rawNamedResourceObjects.end())
+            return fail("MLEADERSTYLE raw scalar output is missing");
+        const auto outputFieldCount = std::count_if(
+            outputRaw->groups.begin(), outputRaw->groups.end(),
+            [code, requestedValue](const DRW_Variant& field) {
+                return field.code() == code
+                    && field.type() == DRW_Variant::DOUBLE
+                    && field.d_val() == requestedValue;
+            });
+        if (outputFieldCount != 1)
+            return fail("MLEADERSTYLE literal scalar output mismatch at group "
+                        + std::to_string(code));
+        writeDoubleField(*scalarStyle, code, sourceValue);
+    }
 
     return true;
 }
