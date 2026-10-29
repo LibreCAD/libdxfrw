@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-300 textDefault edit",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "5d6a1db2d71d3a42d21256bd893dde1b893c47eb",
+  "scope": "One runtime-authored AC1027 ASCII or binary DXF source has a root-reachable STANDARD MLEADERSTYLE with one existing group-300 textDefault string. Its isolated transaction changes only textDefault to a printable-ASCII value; group-3 description is retained unchanged in the same source and output.",
+  "fieldEvidence": {
+    "groupCode": 300,
+    "field": "textDefault",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies code 300 as Default MText Contents",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "selectedTextDomain": "Printable 7-bit ASCII; non-ASCII bytes and control characters are refused until a lossless code-page/Unicode profile is qualified",
+    "classification": "Authoritative Autodesk DXF field-role evidence plus authored ASCII-only adapter transaction; not MText parser/rendering, independent producer, Unicode/code-page or native consumer semantic qualification"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The MLEADERSTYLE must be root-reachable and match its captured raw body and immutable baseline. It must contain exactly one existing group-300 STRING matching typed textDefault. The replacement must contain only printable ASCII bytes, and textDefault must be the only changed typed payload field. The adjacent group-3 description, identity, common fields, handles, application data, extension data and remaining style payload must remain source-equal.",
+    "projection": "Replace only the existing group-300 string in a copy of the captured body. Preserve all ordered fields and opaque groups. Missing/repeated group 300, raw/typed conflict, simultaneous edits, non-ASCII/control text, unknown subclass grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "The shared string-field regression separately exercises group 300 and group 3 with ASCII and binary sources, same-format and opposite-format output, exact unique emitted STRING fields, and fresh typed readback. The group-300 output is `edited-default-text`; the group-3 description remains source-equal.",
+    "failureAndRetry": "A raw group-300 mutation that conflicts with typed textDefault refuses and preserves a sentinel destination. Non-ASCII and newline-containing typed values also refuse without replacing the sentinel. Restoring the raw baseline and requesting printable ASCII permits same-adapter retry and exact readback.",
+    "compatibility": "Untouched MLEADERSTYLE records retain raw replay. The transaction is AC1027-only and one field per record. It does not establish MText formatting or rendered appearance. Group-3 has its own bounded receipt; other strings, non-ASCII/code-page profiles, DWG-origin writing and complete document closure remain unqualified."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 300 `source-default-text` and group 3 `source-style-description`; each field is edited independently from runtime-generated sources in temporary storage.",
+    "implementationCommit": "5d6a1db2d71d3a42d21256bd893dde1b893c47eb",
+    "dwg2dxf/dx_iface.cpp": "bbc311cfe0fc94b7e5ae441f5e4dd958815a2053bc539b68669e33fa33e5987a",
+    "tests/dwg2dxf_adapter_tests.cpp": "1bd4729f0b09d7f303ecc922efe85b57e6da431fab4326d68b529c1ca5800cd3",
+    "adapterTestExecutableSha256": "ee0e4c0560a92855a837ac1763365d3e9828b2d68e721a3a1e6e2db47c79cffe"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang version 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. For both group 300 and group 3, generated ASCII/binary tests cover raw/source agreement, conflict rollback, non-ASCII/control-text refusal, same-adapter retry, exact output group, typed readback and cross-format conversion."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies only printable-ASCII group-300 textDefault edits on authored AC1027 sources. It does not prove MText syntax/rendering, Unicode/code-page handling, independent producer variation, native acceptance, other versions, DWG editing or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select another remaining MLEADERSTYLE integer/handle field or a source-backed P2 geometry/provider witness; qualify Unicode text as a separate lossless encoding profile."
+}
