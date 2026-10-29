@@ -929,6 +929,11 @@ add_test(NAME libdxfrw_mline_consumed_style_seven_from_fourteen_removal
 set_tests_properties(libdxfrw_mline_consumed_style_seven_from_fourteen_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 240)
+add_test(NAME libdxfrw_mline_consumed_style_eight_from_fourteen_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-eight-from-fourteen-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_eight_from_fourteen_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 240)
 
 # Runtime-generated AC1027 profiles remove each element in turn from a
 # three-element style consumed by open, uncut MLINEs. Check parameter
