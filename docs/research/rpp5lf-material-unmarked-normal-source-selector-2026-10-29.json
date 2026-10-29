@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL normal-map source-selector edit",
+  "date": "2026-10-29",
+  "codeCommit": "5f1d79f2d3036c0b7a13cc12206e9bbd957ba56b",
+  "scope": "One unchanged, locally authored AC1027 MATERIAL profile with complete diffuse/refraction and inferred normal-map tuples, both outer group-72 fields and the second group-3 filename present. Supports an isolated typed edit of the normal-map source selector only.",
+  "contract": {
+    "operation": "Bind the two outer group-72 source fields by their positions around the two group-42 blend fields and compare each to its decoded source role. Replace only the second group-72 value, preserve both group-3 filenames and every other source field, then decode and compare the full represented MATERIAL state.",
+    "admission": "The exact source body and common carrier must be unchanged; both source fields and the normal filename must be represented; selector values must be 0 or 1; no other typed field may change in the same transaction. Procedural, malformed, duplicate, incomplete, raw-conflicting and unqualified profiles remain refused.",
+    "atomicity": "An invalid raw normal selector refuses with the existing destination bytes and caller model preserved; restoring the raw source permits same-adapter retry. Late callback mutations at three export phases refuse without publishing; restoring the requested selector permits retry."
+  },
+  "sourceBindings": {
+    "sourceFixture": "Authored by the test recipe at runtime from scratch, AC1027, parameterized for ASCII/binary source and source selector 0/1; test removes its temporary directory after success. No DWG/DXF fixture is committed.",
+    "implementationCommit": "5f1d79f2d3036c0b7a13cc12206e9bbd957ba56b",
+    "materialBodyHeaderSha256": "e12506a4ebd717c9e0dcb5c6cac4761b05894255e85be32aa723025cf23ed854",
+    "testSourceSha256": "f711338495e0fe132cfc701359fdf457de7e979e03f42d6589b11d4756595ffc",
+    "adapterObjectSha256": "58c2306b1ddf3caea8b2ed566bcdf0f040b13c271d9f086ff08d071e4014e2e1",
+    "testExecutableSha256": "12dc16eebab53a1566b53c5651481291582b2d7c04ef1f62ab82bd1739873f3d"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_material_normal_role_tests -j4; PASS",
+    "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_material_normal_roles$' --output-on-failure",
+    "result": "PASS",
+    "focusedControls": "Eight positive route/source-value combinations across ASCII/binary source and output, with both 0→1 and 1→0 transitions; literal physical-field checks for both group-72 values and both unchanged group-3 names; fresh libdxfrw readback. Eight malformed raw-selector refusals verify sentinel destination and caller state before same-adapter retry. Twelve late-callback rollback/retry cases cover three callback phases and both output encodings for each source encoding.",
+    "diffCheck": "git diff --check; PASS before implementation commit"
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    },
+    {
+      "title": "Autodesk MaterialMap source enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_Source.html"
+    }
+  ],
+  "limitations": [
+    "This receipt establishes the selected adapter's literal source-field rewrite and parser round trip only. It does not establish the native meaning of selector values, actual scene/image resolution, rendering, producer validity or whole-document fidelity.",
+    "The source selector change is supported only as a standalone edit on this inferred-boundary profile with the second filename already present. Source/filename composition, procedural-source coupling, other boundary/source profiles, DWG and native consumer behavior remain open.",
+    "No support claim is promoted; the support ledger remains closed."
+  ]
+}

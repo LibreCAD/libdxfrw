@@ -323,10 +323,13 @@ and broader producer behavior remain unqualified.
    matrix edits; their `0x07` auto-transform mask remains an admission policy.
    The [file-backed diffuse filename edit](docs/research/rpp5je-material-unmarked-diffuse-filename-2026-10-28.json)
    binds the first group `3` with unchanged diffuse source `1` and composes with
-   selected normal and diffuse edits. Other producer profiles and native
-   rendering remain separate. Changing
-   group `72`, its coupling to filenames/procedural data, native rendering and
-   other normal-map fields and source profiles require separate evidence. Its
+   selected normal and diffuse edits. The [isolated normal source-selector edit](docs/research/rpp5lf-material-unmarked-normal-source-selector-2026-10-29.json)
+   rewrites only the second group `72` on one unchanged inferred-boundary
+   profile, retaining both group-`3` filenames with ASCII/binary output,
+   readback, refusal and retry controls. This is field/output evidence for the
+   selected adapter transaction only; numeric native meaning, source/filename
+   composition, procedural coupling, other source profiles and native rendering
+   remain unqualified. Other producer profiles remain separate. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
    keeps unqualified bodies out of that edit; the [common-carrier guard](docs/research/rpp5ih-material-common-carrier-guard-2026-10-28.json)
    refuses metadata edits that raw replay cannot preserve. Treat absent/ambiguous
