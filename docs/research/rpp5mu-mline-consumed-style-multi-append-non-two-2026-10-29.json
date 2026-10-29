@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mu selected two-tuple MLINE append from non-two-element sources",
+  "date": "2026-10-29",
+  "status": "SELECTED_SOURCE_AND_BATCH_PROFILES_QUALIFIED",
+  "codeCommit": "fd8552e6",
+  "scope": "Qualifies two appended MLINESTYLE tuples from selected AC1027 source counts 3 and 4, producing target counts 5 and 6. It does not qualify other source counts, batch sizes, tuple recipes or consumer profiles.",
+  "implementation": {
+    "change": "Generalize the runtime-generated source-count test helper to append an ordered range of expected tuples. Source counts 3 and 4 reuse their existing canonical recipes; later counts continue to use the existing generated recipe. Production writer behavior is unchanged in this evidence slice.",
+    "recipe": "Append two tuples with the existing generated offset, ACI and alternating ByLayer/Continuous pattern. The target minima shift the selected MLINE per-vertex parameters and are checked from actual emitted records.",
+    "compatibility": "No public API, DRW_Interface virtual or consumer behavior changed. All test DXFs are generated at runtime and removed on success."
+  },
+  "contract": {
+    "profiles": [
+      {"sourceCount": 3, "appendedTuples": 2, "targetCount": 5},
+      {"sourceCount": 4, "appendedTuples": 2, "targetCount": 6}
+    ],
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "outputAndReadback": "Check group 71 target count, ordered groups 49/62/6 tuples, style handle group 340, consumer group 73, group 74/group 41/group 75 arrays and recalculated parameters. Fresh readback checks all target style tuples and consumers in model space and a named block.",
+    "failureAndRetry": "For both output formats, unsupported flags and a late consumer mutation refuse atomically, preserve the sentinel destination and caller snapshot, and allow corrected-state retry on the same adapter.",
+    "sourceOwnership": "The selected original MLINESTYLE and two source-bound consumers are authenticated by the existing original capture and provider/consumer proof path."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_(source_count_multi_append_non_two|three_source_append|four_source_append)$' -j3 --output-on-failure",
+      "summary": "Source 3→5 and 4→6 two-tuple profiles passed; adjacent source 3→4 and 4→5 single-tuple profiles also passed. Each profile retained all encoding, output/readback, refusal, rollback and retry controls."
+    },
+    "maximumCountRegression": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_source_count_append_254_255$' --output-on-failure",
+      "summary": "The existing source-254 to target-255 one-tuple profile passed after generalizing the append test helper."
+    },
+    "diffCheck": "git diff --check; PASS before commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "fd8552e6",
+    "tests/dxf_fixture_tests.cpp": "aa11fcdba2edbec369783a2d8fd179fb891dd9b4",
+    "tests/CMakeLists.txt": "e999a795ed969609e4dcf6588d79d30b09819fb6",
+    "testExecutableSha256": "d154947e4e03551f79fdbce77212099ea22ece76107c78fe53748d7d88a8e9a3",
+    "fixturePolicy": "All DXF input/output files are generated from authored recipes at runtime and removed after success. No testing DWG/DXF fixture was committed."
+  },
+  "limits": [
+    "These are selected generated AC1027 source/count/tuple profiles, not support for every MLINESTYLE edit or MLINE consumer.",
+    "Larger batches and two-tuple batches from additional source counts remain open.",
+    "Native LibreCAD/LibreCAD_3/FreeCAD behavior, external semantic evidence, complete-document closure and 3D meaning are unchanged and unqualified."
+  ],
+  "next": "Bind the next exact P2 profile before editing. A source-5→7 or source-5→8 batch reuses this focused harness; alternatively select a current count-71 or angle/offset boundary whose literal output expectation is absent. Keep all broader semantic and native gates separate."
+}
