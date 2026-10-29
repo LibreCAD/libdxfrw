@@ -29223,6 +29223,7 @@ namespace mlineLtypeProviderControls {bool run(const std::filesystem::path& dir)
 namespace mlineLtypeEditControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeDefaultFlagControls {bool run(const std::filesystem::path& dir);}
 namespace mlineLtypeReferencedFlagControls {bool run(const std::filesystem::path& dir);}
+namespace mlineLtypeMixedShapeTextControls {bool runTemporary();}
 namespace mlineRetargetControls {bool run(const std::filesystem::path& dir);}
 namespace mlineUnusedOffsetControls {bool run(const std::filesystem::path& dir);}
 namespace mlineStyleBodyTransactionControls {
@@ -31850,6 +31851,177 @@ bool runTemporary() {
 }
 }
 
+
+namespace mlineLtypeMixedShapeTextControls {
+using namespace materialConsumerControls;
+using namespace mlineStyleAuthorityControls;
+using Row=mlineStyleAuthorityControls::Row;
+constexpr const char* ltypeName="EditDash";
+constexpr const char* textStyleName="ComplexText";
+constexpr const char* shapeStyleName="ComplexShape";
+constexpr const char* textHandle="1F3";
+constexpr const char* shapeHandle="1F4";
+constexpr const char* textValue="DXF";
+constexpr const char* textFile="txt.shx";
+constexpr const char* shapeFile="ltypeshp.shx";
+
+Tags recipe(bool binary) {
+    auto fields=mlineLtypeTextStyleControls::recipe(binary);
+    std::size_t styleTable=fields.size(),textStyle=fields.size(),ltype=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("TABLE"))
+            &&fields[i+1u]==std::make_pair(2,std::string("STYLE")))styleTable=i;
+        if(fields[i]==std::make_pair(0,std::string("STYLE"))) {
+            std::size_t end=i+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+            if(std::find(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                    fields.begin()+static_cast<std::ptrdiff_t>(end),
+                    std::make_pair(2,std::string(textStyleName)))
+                !=fields.begin()+static_cast<std::ptrdiff_t>(end))textStyle=i;
+        }
+        if(fields[i]==std::make_pair(0,std::string("LTYPE"))
+            &&fields[i+1u]==std::make_pair(5,std::string("103")))ltype=i;
+    }
+    if(styleTable==fields.size()||textStyle==fields.size()||ltype==fields.size())
+        throw std::runtime_error("mixed shape/text source provider missing");
+    std::size_t countField=fields.size();
+    for(std::size_t i=styleTable+2u;i<fields.size()&&fields[i].first!=0;++i)
+        if(fields[i].first==70){countField=i;break;}
+    if(countField==fields.size())throw std::runtime_error("STYLE table count missing");
+    fields[countField].second=std::to_string(std::stoi(fields[countField].second)+1);
+    std::size_t styleEnd=textStyle+1u;while(styleEnd<fields.size()&&fields[styleEnd].first!=0)++styleEnd;
+    Tags shape(fields.begin()+static_cast<std::ptrdiff_t>(textStyle),
+        fields.begin()+static_cast<std::ptrdiff_t>(styleEnd));
+    for(auto& field:shape) {
+        if(field.first==5)field.second=shapeHandle;
+        else if(field.first==2)field.second=shapeStyleName;
+        else if(field.first==70)field.second="1";
+        else if(field.first==3)field.second=shapeFile;
+    }
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(styleEnd),shape.begin(),shape.end());
+    if(styleEnd<=ltype)ltype+=shape.size();
+    std::size_t end=ltype+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+    std::size_t first=fields.size();
+    for(std::size_t i=ltype+1u;i<end;++i) {
+        if(fields[i].first==73)fields[i].second="2";
+        else if(fields[i].first==40)fields[i].second="2";
+        else if(fields[i].first==49){first=i;break;}
+    }
+    if(first==fields.size())throw std::runtime_error("mixed LTYPE pattern missing");
+    const Tags pattern{{49,"1.5"},{74,"4"},{75,"7"},{340,shapeHandle},
+        {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},
+        {49,"0.5"},{74,"2"},{75,"0"},{340,textHandle},
+        {46,"0.75"},{50,"0.25"},{44,"0.125"},{45,"-0.25"},{9,textValue}};
+    fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(first),fields.begin()+static_cast<std::ptrdiff_t>(end));
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(first),pattern.begin(),pattern.end());
+    return fields;
+}
+std::vector<std::string> values(const Row& row,int code) {
+    std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;
+}
+bool proof(const std::filesystem::path& path,bool binary,bool output) {
+    const auto rows=records(path,binary);const Row* text=nullptr;const Row* shape=nullptr;const Row* ltype=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{textStyleName}){if(text)return false;text=&row;}
+        if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{shapeStyleName}){if(shape)return false;shape=&row;}
+        if(row.type=="LTYPE"&&values(row,2)==std::vector<std::string>{ltypeName}){if(ltype)return false;ltype=&row;}
+    }
+    if(!text||!shape||!ltype||text->section!="TABLES"||shape->section!="TABLES"||ltype->section!="TABLES"
+        ||text->id==shape->id||(output?text->id.empty()||shape->id.empty():text->id!=textHandle||shape->id!=shapeHandle)
+        ||!mlineLtypeTextStyleControls::numeric(*text,70,0)||values(*text,3)!=std::vector<std::string>{textFile}
+        ||!mlineLtypeTextStyleControls::numeric(*shape,70,1)||values(*shape,3)!=std::vector<std::string>{shapeFile}
+        ||values(*ltype,3)!=std::vector<std::string>{"text-bearing source profile"}
+        ||!mlineLtypeTextStyleControls::numeric(*ltype,72,65)||!mlineLtypeTextStyleControls::numeric(*ltype,73,2)
+        ||!mlineLtypeTextStyleControls::numeric(*ltype,40,2)
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,49,{1.5,.5})
+        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,74,{4,2})
+        ||!mlineLtypeMixedSegmentControls::integerSequence(*ltype,75,{7,0})
+        ||values(*ltype,340)!=std::vector<std::string>{shape->id,text->id}
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,46,{.75,.75})
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,50,{.25,.25})
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,44,{.125,.125})
+        ||!mlineLtypeMixedSegmentControls::numberSequence(*ltype,45,{-.25,-.25})
+        ||values(*ltype,9)!=std::vector<std::string>{textValue})return false;
+    return true;
+}
+bool model(dx_data& data,std::uint32_t textId,std::uint32_t shapeId) {
+    const DRW_LType* ltype=nullptr;for(const auto& item:data.lineTypes)if(item.name==ltypeName){if(ltype)return false;ltype=&item;}
+    const DRW_Textstyle* text=nullptr;const DRW_Textstyle* shape=nullptr;
+    for(const auto& item:data.textStyles) {
+        if(item.name==textStyleName){if(text)return false;text=&item;}
+        if(item.name==shapeStyleName){if(shape)return false;shape=&item;}
+    }
+    if(!ltype||!text||!shape||text->handle!=textId||shape->handle!=shapeId
+        ||text->flags!=0||text->font!=textFile||shape->flags!=1||shape->font!=shapeFile
+        ||ltype->size!=2||ltype->length!=2||ltype->path!=std::vector<double>{1.5,.5}
+        ||ltype->segments.size()!=2u)return false;
+    const auto& glyph=ltype->segments[0];const auto& word=ltype->segments[1];
+    const auto placement=[](const DRW_LTypeSegment& item) {
+        return item.scale==.75&&std::abs(item.rotation-.25/ARAD)<1e-12
+            &&item.xOffset==.125&&item.yOffset==-.25;
+    };
+    return glyph.length==1.5&&glyph.shapeFlags==4&&glyph.complexShapeCode==7
+        &&glyph.styleHandle.ref==shapeId&&glyph.styleHandle.ref64==shapeId&&placement(glyph)&&glyph.text.empty()
+        &&word.length==.5&&word.shapeFlags==2&&word.complexShapeCode==0
+        &&word.styleHandle.ref==textId&&word.styleHandle.ref64==textId&&placement(word)&&word.text==textValue
+        &&data.mLineStyles.size()==1u&&data.mLineStyles.front().elements.size()==2u
+        &&data.mLineStyles.front().elements.front().linetype==ltypeName
+        &&mlineStyleAuthorityControls::consumers(data).size()==2u;
+}
+bool outputProof(const std::filesystem::path& path,bool binary) {
+    if(!proof(path,binary,true))return false;
+    const auto rows=records(path,binary);std::uint32_t textId=0u,shapeId=0u;
+    for(const auto& row:rows)if(row.type=="STYLE") {
+        const auto names=values(row,2),ids=values(row,5);
+        if(names.size()!=1u||ids.size()!=1u)continue;
+        std::uint32_t parsed=0u;const auto result=std::from_chars(ids.front().data(),ids.front().data()+ids.front().size(),parsed,16);
+        if(result.ec!=std::errc{}||result.ptr!=ids.front().data()+ids.front().size()||!parsed)return false;
+        if(names.front()==textStyleName)textId=parsed;
+        if(names.front()==shapeStyleName)shapeId=parsed;
+    }
+    if(!textId||!shapeId)return false;dx_iface reader;dx_data actual;
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,textId,shapeId)
+        &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",ltypeName,"Continuous");
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-mline-ltype-mixed-shape-text-"+
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u;
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
+        if(!write(input,fields,sourceBinary,"AC1027")||!proof(input,sourceBinary,false)
+            ||!adapter.fileImport(input.string(),&data,false)||!model(data,0x1F3u,0x1F4u)
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+        const auto original=mlineLtypeProviderControls::provider(data);const auto styles=data.textStyles;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProof(output,outputBinary)
+            ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+            ||data.textStyles.size()!=styles.size()
+            ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+        ++profiles;++readbacks;
+        for(const std::string missing:{std::string(textStyleName),std::string(shapeStyleName)}) {
+            data.textStyles=styles;
+            const auto provider=std::find_if(data.textStyles.begin(),data.textStyles.end(),
+                [&missing](const DRW_Textstyle& item){return item.name==missing;});
+            if(provider==data.textStyles.end())return false;data.textStyles.erase(provider);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+                ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+                ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+            ++refusals;data.textStyles=styles;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!outputProof(output,outputBinary)
+                ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
+                ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
+            ++readbacks;++retries;
+        }
+    }
+    std::error_code error;std::filesystem::remove_all(dir,error);
+    std::cout<<"MLINE mixed shape/text LTYPE profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==12u&&refusals==8u&&retries==8u;
+}
+}
 
 namespace mlineLtypeDefaultFlagControls {
 using namespace materialConsumerControls;
@@ -46192,7 +46364,8 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-shape-style-provider")
         return mlineLtypeShapeStyleControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-ltype-mixed-segments")
-        return mlineLtypeMixedSegmentControls::runTemporary()?0:1;
+        return mlineLtypeMixedSegmentControls::runTemporary()
+            &&mlineLtypeMixedShapeTextControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }
