@@ -32836,7 +32836,7 @@ bool removeTwoTailControls(const std::filesystem::path& dir) {
         <<" late="<<late<<" ambiguous="<<ambiguous<<" injected="<<injected<<" retries="<<retries<<'\n';
     return profiles==4u&&refusals==24u&&readbacks==42u&&late==8u&&ambiguous==2u&&injected==4u&&retries==38u;
 }
-bool subsequenceProof(const std::filesystem::path& path,bool binary,const std::vector<DRW_MLineElement>& expected) {
+bool subsequenceProof(const std::filesystem::path& path,bool binary,const std::vector<DRW_MLineElement>& expected,bool encodedNames=false) {
     using Row=mlineStyleAuthorityControls::Row;const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto fields=[](const Row& row,int code){std::vector<std::string> out;for(const auto& f:row.fields)if(f.first==code)out.push_back(f.second);return out;};
     std::map<std::string,const Row*> ids;const Row* root=nullptr;const Row* changed=nullptr;const Row* old=nullptr;
@@ -32859,7 +32859,7 @@ bool subsequenceProof(const std::filesystem::path& path,bool binary,const std::v
     if(depth||count!=1u||tuples.size()!=3u*expected.size())return false;
     for(std::size_t i=0u;i<expected.size();++i)if(tuples[3u*i].first!=49||!equal(std::stod(tuples[3u*i].second),expected[i].offset)
         ||tuples[3u*i+1u].first!=62||std::stoi(tuples[3u*i+1u].second)!=expected[i].color
-        ||tuples[3u*i+2u]!=std::make_pair(6,expected[i].linetype))return false;
+        ||tuples[3u*i+2u]!=std::make_pair(6,encodedNames?materialBodyControls::encodedText(expected[i].linetype,"AC1027",binary):expected[i].linetype))return false;
     for(const auto& name:{std::string("ByLayer"),std::string("Continuous")}) {
         const Row* provider=nullptr;for(const auto& row:rows)if(row.type=="LTYPE"&&fields(row,2)==std::vector<std::string>{name}){if(provider)return false;provider=&row;}
         if(!provider||provider->section!="TABLES"||provider->id.empty())return false;const auto table=ids.find(provider->owner);
@@ -33080,6 +33080,172 @@ bool removalOffsetControls(const std::filesystem::path& dir) {
     std::cout<<"MLINE removal plus offset profiles="<<profiles<<" compositions="<<compositions<<" refusals="<<refusals<<" late="<<late<<" ambiguous="<<ambiguous<<" retries="<<retries<<" boundaries="<<boundaries<<" crossProfile="<<crossProfile<<'\n';
     return profiles==12u&&compositions==8u&&refusals==24u&&late==8u&&ambiguous==4u&&retries==38u&&boundaries==4u&&crossProfile==2u;
 }
+bool removalLtypeControls(const std::filesystem::path& dir) {
+    const auto input=dir/"mline-removal-ltype-input.dxf",output=dir/"mline-removal-ltype-output.dxf";
+    unsigned profiles=0u,compositions=0u,refusals=0u,retries=0u,late=0u,ambiguities=0u,providerRefusals=0u,boundaries=0u,budgetRefusals=0u,providerLate=0u,escapedNames=0u,escapedRefusals=0u;
+    // Production work helper: the original-name comparison and requested-
+    // name validation passes are staged together before publishing the charge.
+    {
+        std::vector<DRW_MLineElement> original(2u),requested(2u);
+        for(auto& value:original)value.linetype.assign(10000u,'A');
+        for(auto& value:requested)value.linetype.assign(11000u,'B');
+        const std::size_t exact=7u+(2u+20000u)+(2u+22000u);
+        for(bool enough:{false,true}) {
+            std::size_t work=7u,staged=work;const auto limit=exact-(enough?0u:1u);
+            const bool charged=A::chargeMLineComparisons(original,1u,staged,limit)
+                &&A::chargeMLineComparisons(requested,1u,staged,limit);
+            if(charged)work=staged;
+            if(charged!=enough || work!=(enough?exact:7u))return false;
+        }
+    }
+    const auto fail=[&](int line){std::cerr<<"MLINE removal plus LTYPE line="<<line<<" profiles="<<profiles
+        <<" compositions="<<compositions<<" refusals="<<refusals<<" retries="<<retries<<" late="<<late<<" ambiguities="<<ambiguities<<" provider="<<providerRefusals<<'\n';return false;};
+    const auto recipeWithProvider=[](bool binary){return mlineLtypeProviderControls::withProvider(fourElementSource(binary),false);};
+    const auto edit=[](dx_data& data,unsigned mask,bool mixed){auto& e=mlineRetargetControls::style(data,0xD2u).elements;
+        std::vector<DRW_MLineElement> keep;for(unsigned i=0u;i<4u;++i)if(mask&(1u<<i)){auto v=e[i];
+            if(i==0u)v.linetype="EditDash";else if(mixed&&i==1u)v.offset+=8.0;else if(mixed&&i==2u)v.color=11;keep.push_back(v);}e=keep;};
+    const auto proof=[&](dx_iface& adapter,bool binary,const std::vector<DRW_MLineElement>& wanted){
+        return A::mlineLinetypeProofBound(adapter,0x103u)&&subsequenceProof(output,binary,wanted)
+            &&mlineLtypeProviderControls::providerProof(output,binary,"source EditDash");};
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(unsigned mask:{1u,5u,7u})for(bool mixed:{false,true}) {
+        if(mixed&&mask!=7u)continue;dx_iface adapter;dx_data data;
+        if(!write(input,recipeWithProvider(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,mask,mixed);const auto wanted=mlineRetargetControls::style(data,0xD2u).elements;const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,wanted)||!caller.same(data))return fail(__LINE__);
+        if(mixed)++compositions;else ++profiles;
+    }
+    for(bool binary:{false,true})for(unsigned kind=0u;kind<15u;++kind) {
+        dx_iface adapter;dx_data data;if(!write(input,recipeWithProvider(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,5u,false);const auto wanted=mlineRetargetControls::style(data,0xD2u).elements;const mlineRetargetControls::Snapshot correct(data);
+        std::function<void()> restore;
+        if(kind<3u)restore=A::unqualifyMLineLinetypeOrigin(data,0x101u+kind);
+        if(kind==3u)mlineRetargetControls::style(data,0xD2u).elements[0].linetype="MISSING_LTYPE";
+        if(kind==4u)mlineRetargetControls::style(data,0xD2u).elements[0].linetype=std::string(1,static_cast<char>(0xFF));
+        if(kind==5u)mlineRetargetControls::style(data,0xD2u).elements[0].linetype.clear();
+        if(kind==6u)mlineRetargetControls::style(data,0xD2u).elements[0].linetypeIndex=7;
+        if(kind==7u)mlineRetargetControls::rawValue(data,0xD2u,6,"Continuous",0u);
+        if(kind==8u)mlineRetargetControls::request(data,1u);
+        if(kind==9u)mlineRetargetControls::request(data,2u);
+        if(kind==10u)restore=A::removeMLineConsumerEvidence(data,false);
+        if(kind==11u)restore=A::removeMLineConsumerEvidence(data,true);
+        if(kind==12u)mlineRetargetControls::style(data,0xD2u).elements[0].offset+=.125;
+        if(kind==13u)mlineRetargetControls::style(data,0xD2u).elements[0].color=11;
+        if(kind==14u){auto& e=mlineRetargetControls::style(data,0xD2u).elements;std::swap(e[0],e[1]);}
+        if((kind<3u||kind==10u||kind==11u)&&!restore)return fail(__LINE__);const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        const bool refused=!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            &&dictionaryVarTransactionControls::keptWithoutTemporary(output)&&caller.same(data);
+        if(restore)restore();if(!refused)return fail(__LINE__);++refusals;if(kind<3u)++providerRefusals;correct.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,wanted)||!correct.same(data))return fail(__LINE__);
+        ++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipeWithProvider(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,5u,false);const auto wanted=mlineRetargetControls::style(data,0xD2u).elements;const mlineRetargetControls::Snapshot caller(data);bool hit=false;
+        adapter.change=[&]{hit=true;mlineRetargetControls::style(data,0xD2u).elements[0].linetype="ByLayer";};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;adapter.active=false;caller.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,wanted)||!caller.same(data))return fail(__LINE__);
+        ++retries;
+    }
+    for(bool binary:{false,true})for(unsigned phase=0u;phase<4u;++phase)for(std::uint32_t handle:{0x101u,0x102u,0x103u}) {
+        materialBodyControls::Editing adapter;adapter.phase=phase;dx_data data;
+        if(!write(input,recipeWithProvider(binary),binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        edit(data,5u,false);const auto wanted=mlineRetargetControls::style(data,0xD2u).elements;const mlineRetargetControls::Snapshot caller(data);bool hit=false;
+        adapter.change=[&]{for(auto& line:data.lineTypes)if(line.handle==handle){hit=true;line.flags^=1;return;}};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++providerLate;adapter.active=false;caller.restore(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,wanted)||!caller.same(data))return fail(__LINE__);
+        ++retries;
+    }
+    for(bool binary:{false,true})for(unsigned shape=0u;shape<3u;++shape) {
+        auto source=recipeWithProvider(binary);bool selected=false;unsigned element=0u,changed=0u;
+        for(auto& field:source) {
+            if(field.first==0){selected=false;element=0u;}if(field==std::make_pair(5,std::string("D2")))selected=true;if(!selected)continue;
+            if(field.first==49){++element;if(element==1u||element==3u){field.second=(shape==0u||element==1u)?"1":"2";++changed;}}
+            else if(field.first==62&&(element==1u||element==3u)){field.second=(shape==1u||element==1u)?"1":"2";++changed;}
+            else if(field.first==6&&(element==1u||element==3u)){field.second=(shape==2u||element==1u)?"ByLayer":"EditDash";++changed;}
+        }
+        if(changed!=6u)return fail(__LINE__);dx_iface adapter;dx_data data;
+        if(!write(input,source,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& e=mlineRetargetControls::style(data,0xD2u).elements;if(e.size()!=4u)return fail(__LINE__);
+        const auto sourceA=e[0];auto survivor=sourceA;if(shape==0u)survivor.linetype="EditDash";else if(shape==1u)survivor.linetype="EditDash";else survivor.color=2;
+        e.assign(1u,survivor);const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++ambiguities;survivor=sourceA;survivor.offset+=10.0;
+        // The corrected operation is intentionally a simpler previously
+        // qualified route, preserving a unique pair in this source.
+        e[0]=survivor;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!corrected.same(data))return fail(__LINE__);
+        ++retries;
+    }
+    // A qualified provider name containing literal CIF-like sequences
+    // expands substantially in its strict DXF spelling. Verify both retained
+    // source and final provider/name associations across source/output modes.
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        std::string semantic;for(unsigned i=0u;i<1000u;++i)semantic+="\\U+";
+        const auto sourceSpelling=materialBodyControls::encodedText(semantic,"AC1027",sourceBinary);
+        const auto outputSpelling=materialBodyControls::encodedText(semantic,"AC1027",binary);
+        if(semantic.size()!=3000u||sourceSpelling.size()!=9000u||outputSpelling.size()!=9000u)return fail(__LINE__);
+        auto source=recipeWithProvider(sourceBinary);bool provider=false;unsigned changed=0u;
+        for(auto& field:source) {
+            if(field.first==0)provider=false;
+            if(field==std::make_pair(5,std::string("103")))provider=true;
+            if(provider&&field==std::make_pair(2,std::string("EditDash"))){field.second=sourceSpelling;++changed;}
+        }
+        if(changed!=1u)return fail(__LINE__);dx_iface adapter;dx_data data;
+        if(!write(input,source,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        bool originalProvider=false;for(const auto& line:data.lineTypes)if(line.handle==0x103u)originalProvider=line.name==semantic;
+        if(!originalProvider)return fail(__LINE__);
+        auto& e=mlineRetargetControls::style(data,0xD2u).elements;e.resize(1u);e[0].linetype=semantic;
+        const auto wanted=e;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        // Compatible target output cannot faithfully emit this provider name
+        // on the selected route. Preserve both destination and caller state,
+        // then retry the same adapter with strict target text output.
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++escapedRefusals;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true,
+                dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::RequireLossless)
+            ||!A::mlineLinetypeProofBound(adapter,0x103u)||!subsequenceProof(output,binary,wanted,true)||!caller.same(data))return fail(__LINE__);
+        ++retries;
+        const auto rows=mlineStyleAuthorityControls::records(output,binary);unsigned providers=0u;
+        for(const auto& row:rows)if(row.type=="LTYPE")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,outputSpelling)){if(row.section!="TABLES"||row.id.empty()||row.owner.empty())return fail(__LINE__);++providers;}
+        if(providers!=1u)return fail(__LINE__);
+        ++escapedNames;
+    }
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true})for(bool one:{false,true}) {
+        auto source=recipeWithProvider(sourceBinary);bool selected=false;std::size_t count=source.size(),end=source.size();
+        for(std::size_t i=0u;i<source.size();++i){if(source[i].first==0){if(selected){end=i;break;}selected=false;}
+            if(source[i]==std::make_pair(5,std::string("D2")))selected=true;if(selected&&source[i].first==71)count=i;}
+        if(count==source.size()||end==source.size())return fail(__LINE__);source[count].second="255";
+        Tags added;for(unsigned i=0u;i<251u;++i)added.insert(added.end(),{{49,std::to_string(i+2u)},{62,"4"},{6,"ByLayer"}});
+        source.insert(source.begin()+static_cast<std::ptrdiff_t>(end),added.begin(),added.end());
+        dx_iface adapter;dx_data data;if(!write(input,source,sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        auto& elements=mlineRetargetControls::style(data,0xD2u).elements;if(elements.size()!=255u)return fail(__LINE__);
+        if(one){const auto survivor=elements[127u];elements.assign(1u,survivor);}else elements.erase(elements.begin()+127);
+        for(auto& e:elements)e.linetype="EditDash";const auto wanted=elements;const mlineRetargetControls::Snapshot caller(data);
+        if(one) {
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,wanted)||!caller.same(data))return fail(__LINE__);
+        } else {
+            // This selected dense edit exceeds the conservative retained-byte
+            // charge. Preserve publication and prove a smaller corrected retry.
+            sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+            ++budgetRefusals;const auto survivor=elements.front();elements.assign(1u,survivor);
+            const auto retryWanted=elements;const mlineRetargetControls::Snapshot corrected(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!proof(adapter,binary,retryWanted)||!corrected.same(data))return fail(__LINE__);
+            ++retries;
+        }
+        ++boundaries;
+    }
+    std::cout<<"MLINE removal plus LTYPE profiles="<<profiles<<" compositions="<<compositions<<" refusals="<<refusals
+        <<" late="<<late<<" providerLate="<<providerLate<<" ambiguities="<<ambiguities<<" providers="<<providerRefusals<<" retries="<<retries<<" boundaries="<<boundaries<<" budgetRefusals="<<budgetRefusals<<" escapedNames="<<escapedNames<<" escapedRefusals="<<escapedRefusals<<'\n';
+    return profiles==12u&&compositions==4u&&refusals==30u&&late==8u&&ambiguities==6u&&providerRefusals==6u&&retries==76u&&boundaries==8u&&budgetRefusals==4u&&providerLate==24u&&escapedNames==4u&&escapedRefusals==4u;
+}
 bool subsequenceControls(const std::filesystem::path& dir) {
     const auto input=dir/"mline-subsequence-input.dxf",output=dir/"mline-subsequence-output.dxf";
     unsigned profiles=0u,refusals=0u,retries=0u,late=0u,ambiguous=0u,boundaries=0u;
@@ -33253,7 +33419,7 @@ bool run(const std::filesystem::path& dir) {
     std::size_t profiles=0u,readbacks=0u,conflicts=0u,invalid=0u,affected=0u,late=0u,retries=0u,scopes=0u,boundaries=0u,away=0u,zeros=0u,legacy=0u,corruptions=0u,faults=0u,unreached=0u;
     const auto fail=[&](int line){std::cerr<<"MLINE unused offset line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" conflicts="<<conflicts<<" invalid="<<invalid
         <<" affected="<<affected<<" late="<<late<<" scopes="<<scopes<<" boundaries="<<boundaries<<'\n';return false;};
-    if(!appendControls(dir)||!multiAppendControls(dir)||!removeControls(dir)||!removeFirstControls(dir)||!removeTwoTailControls(dir)||!generalTailControls(dir)||!subsequenceControls(dir)||!removalColorControls(dir)||!removalOffsetControls(dir))return fail(__LINE__);
+    if(!appendControls(dir)||!multiAppendControls(dir)||!removeControls(dir)||!removeFirstControls(dir)||!removeTwoTailControls(dir)||!generalTailControls(dir)||!subsequenceControls(dir)||!removalColorControls(dir)||!removalOffsetControls(dir)||!removalLtypeControls(dir))return fail(__LINE__);
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
         const mlineRetargetControls::Snapshot originalState(data);

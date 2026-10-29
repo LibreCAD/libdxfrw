@@ -16463,9 +16463,9 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                         || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
                 }
             } else if (remove) {
-                // Reuse exact matching first. Changed survivors must retain
-                // either their offset or their ACI and all other tuple fields;
-                // the union of those anchors must identify only one original.
+                // Reuse exact matching first. A changed survivor must retain
+                // at least two of offset, ACI and LTYPE, plus every other
+                // field, with exactly one original across the anchor union.
                 std::size_t originalTyped=0u,originalItems=0u;
                 if (!chargeMlineComparisonWork(original.elements,2u,removalWork,kMaxAdapterBasicTableItems)
                     || !estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
@@ -16478,14 +16478,14 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                 // identity is established by the unique ordered embedding.
                 DRW_MLineStyle shape=original;shape.elements=value.elements;
                 if (!mlineFieldsEqual(value,shape,false,false,false,true,true,true)) return false;
-                const auto sameRest=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                const auto sameNonEditable=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
                     return a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
                         && a.colorName==b.colorName && a.colorBookName==b.colorBookName
-                        && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
+                        && a.colorDwgIndex==b.colorDwgIndex
                         && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
                 };
                 const auto sameAnchor=[&](const DRW_MLineElement& a,const DRW_MLineElement& b) {
-                    return retainedDoubleEqual(a.offset,b.offset) && sameRest(a,b);
+                    return retainedDoubleEqual(a.offset,b.offset) && a.linetype==b.linetype && sameNonEditable(a,b);
                 };
                 const auto sameElement=[&](const DRW_MLineElement& a,const DRW_MLineElement& b) {
                     return a.color==b.color && sameAnchor(a,b);
@@ -16510,17 +16510,20 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     // bound its complete byte-sensitive cross-product first.
                     if (!chargeMlineComparisonWork(original.elements,value.elements.size(),
                             removalWork,kMaxAdapterBasicTableItems)) return false;
-                    // Either offset or ACI must be unchanged for the selected
-                    // source. Compare their union so the survivor cannot map
-                    // to different originals through the two edit profiles.
+                    // Two of offset, ACI and LTYPE must be unchanged for the
+                    // selected source. Match their union, comparing each
+                    // potentially long string at most once per candidate.
                     std::size_t previous=0u;
                     for (std::size_t i=0u;i<value.elements.size();++i) {
                         const auto& survivor=value.elements[i];
                         std::size_t matched=0u,index=0u;
                         for (std::size_t j=0u;j<original.elements.size();++j) {
                             const auto& source=original.elements[j];
-                            if ((retainedDoubleEqual(source.offset,survivor.offset) || source.color==survivor.color)
-                                && sameRest(source,survivor)) {++matched;index=j;}
+                            const bool sameOffset=retainedDoubleEqual(source.offset,survivor.offset);
+                            const bool sameColor=source.color==survivor.color;
+                            if (!sameOffset && !sameColor) continue;
+                            const bool pair=(sameOffset && sameColor) || source.linetype==survivor.linetype;
+                            if (pair && sameNonEditable(source,survivor)) {++matched;index=j;}
                         }
                         if (matched!=1u || (i && index<=previous) || !std::isfinite(survivor.offset)) return false;
                         if ((survivor.color!=original.elements[index].color
@@ -16529,6 +16532,34 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                         survivorIndices[i]=index;previous=index;
                     }
                 }
+                // The source-name comparisons and validation of requested
+                // names each need a byte-sensitive linear precharge in
+                // addition to the anchor matching work. Stage both charges
+                // so failure leaves the accumulated counter unchanged.
+                std::size_t referenceWork=removalWork;
+                if (!chargeMlineComparisonWork(original.elements,1u,referenceWork,kMaxAdapterBasicTableItems)
+                    || !chargeMlineComparisonWork(value.elements,1u,referenceWork,kMaxAdapterBasicTableItems)) return false;
+                removalWork=referenceWork;
+                // A changed reference is copied to the semantic projection,
+                // the encoded field, and the staged output (including ASCII
+                // spelling). Charge those copies before allocating them.
+                std::size_t changedReferences=0u,referenceBytes=0u;
+                for (std::size_t i=0u;i<value.elements.size();++i) {
+                    const auto& next=value.elements[i].linetype;
+                    const auto& old=original.elements[survivorIndices[i]].linetype;
+                    if (next==old) continue;
+                    if (next.empty() || !DRW_TextCodec::isUtf8ScalarText(next)) return false;
+                    ++changedReferences;
+                    // A modern strict DXF spelling may expand one input byte
+                    // to seven (for example CIF quoting). Account for encoded
+                    // temporaries, writer/group copies, output and spelling,
+                    // projection and decode staging before allocating them.
+                    for (unsigned copy=0u;copy<8u;++copy)
+                        if (!addAssociativeSlotBytes(next.size(),7u,referenceBytes)
+                            || !addAssociativeRetainedBytes(1u,referenceBytes)) return false;
+                }
+                if (!addAssociativeSlotBytes(changedReferences,3u*sizeof(DRW_Variant)+2u*sizeof(UTF8STRING),referenceBytes)
+                    || !chargeNamedResourceBytes(bytes,referenceBytes)) return false;
                 bool originalReactor=false,rawReactor=false;
                 std::array<std::array<std::size_t,3>,UINT8_MAX> before{},current{};
                 std::size_t beforeCount=0u,currentCount=0u;
@@ -16794,6 +16825,11 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                         if (!encoded.writeInt16(62,value.elements[i].color)
                             || !replace(destination-2u,encoded.groups.back())) return false;
                         target.elements[i].color=value.elements[i].color;
+                    }
+                    if (target.elements[i].linetype!=value.elements[i].linetype) {
+                        if (!encoded.writeUtf8String(6,value.elements[i].linetype)
+                            || !replace(destination-1u,encoded.groups.back())) return false;
+                        target.elements[i].linetype=value.elements[i].linetype;
                     }
                 }
                 source.output.groups.resize(destination);
