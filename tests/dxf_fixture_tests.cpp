@@ -35391,13 +35391,16 @@ bool runConsumedSourceCountAppend(const std::filesystem::path& dir,unsigned sour
             <<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
-    if(sourceCount<2u||offsets.size()!=sourceCount+1u
+    if(sourceCount<2u||offsets.size()<=sourceCount
         ||colors.size()!=offsets.size()||linetypes.size()!=offsets.size())return fail(__LINE__);
     const auto append=[&](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=sourceCount)return false;
-        auto element=data.mLineStyles.front().elements.front();
-        element.offset=offsets.back();element.color=colors.back();element.linetype=linetypes.back();
-        data.mLineStyles.front().elements.push_back(std::move(element));return true;
+        for(std::size_t index=sourceCount;index<offsets.size();++index) {
+            auto element=data.mLineStyles.front().elements.front();
+            element.offset=offsets[index];element.color=colors[index];element.linetype=linetypes[index];
+            data.mLineStyles.front().elements.push_back(std::move(element));
+        }
+        return data.mLineStyles.front().elements.size()==offsets.size();
     };
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -35456,21 +35459,25 @@ int consumedAppendColor(unsigned element) {
     return static_cast<int>(element)+2;
 }
 bool runSelectedConsumedAppendSourceCounts(
-        const std::filesystem::path& dir,unsigned first,unsigned last) {
-    if(first<4u||last<first||last>254u)return false;
+        const std::filesystem::path& dir,unsigned first,unsigned last,unsigned appendCount=1u) {
+    if(first<3u||last<first||last>254u||appendCount==0u)return false;
     for(unsigned sourceCount=first;sourceCount<=last;++sourceCount) {
+        if(appendCount>UINT8_MAX-sourceCount)return false;
+        const unsigned targetCount=sourceCount+appendCount;
         std::vector<double> offsets;
         std::vector<int> colors;
         std::vector<std::string> linetypes;
-        offsets.reserve(static_cast<std::size_t>(sourceCount)+1u);
-        colors.reserve(static_cast<std::size_t>(sourceCount)+1u);
-        linetypes.reserve(static_cast<std::size_t>(sourceCount)+1u);
-        for(unsigned element=0u;element<=sourceCount;++element) {
+        offsets.reserve(targetCount);
+        colors.reserve(targetCount);
+        linetypes.reserve(targetCount);
+        for(unsigned element=0u;element<targetCount;++element) {
             offsets.push_back(consumedAppendOffset(element));
             colors.push_back(consumedAppendColor(element));
             linetypes.emplace_back((element%2u)==0u?"ByLayer":"Continuous");
         }
         const auto sourceRecipe=[sourceCount](bool binary) {
+            if(sourceCount==3u)return threeElementRecipe(binary);
+            if(sourceCount==4u)return fourElementRecipe(binary);
             return consumedSourceCountRecipe(binary,sourceCount);
         };
         if(!runConsumedSourceCountAppend(dir,sourceCount,sourceRecipe,
@@ -35626,13 +35633,14 @@ bool runConsumedTwelveSourceAppendTemporary() {
     else std::cerr<<"MLINE consumed twelve-source append artifacts: "<<dir<<'\n';
     return passed;
 }
-bool runSelectedConsumedAppendSourceCountsTemporary(unsigned first,unsigned last) {
+bool runSelectedConsumedAppendSourceCountsTemporary(unsigned first,unsigned last,unsigned appendCount=1u) {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-selected-source-counts-"+
-         std::to_string(first)+"-through-"+std::to_string(last)+"-"+
+         std::to_string(first)+"-through-"+std::to_string(last)+"-append-"+
+         std::to_string(appendCount)+"-"+
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(dir);
-    const bool passed=runSelectedConsumedAppendSourceCounts(dir,first,last);
+    const bool passed=runSelectedConsumedAppendSourceCounts(dir,first,last,appendCount);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed selected source-count artifacts: "<<dir<<'\n';
     return passed;
@@ -44861,13 +44869,19 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-selected-source-counts") {
         return mlineConsumedOffsetControls::runSelectedConsumedAppendSourceCountsTemporary(13u,128u)?0:1;
     }
-    if (argc == 4 && std::string(argv[1]) == "--mline-consumed-source-count-append-range") {
+    if ((argc == 4 || argc == 5)
+        && std::string(argv[1]) == "--mline-consumed-source-count-append-range") {
         try {
             const auto first=std::stoul(argv[2]);
             const auto last=std::stoul(argv[3]);
-            if(first>254u||last>254u)return 2;
+            const auto appendCount=argc==5?std::stoul(argv[4]):1u;
+            if(first>254u||last>254u||appendCount>UINT8_MAX)return 2;
             return mlineConsumedOffsetControls::runSelectedConsumedAppendSourceCountsTemporary(
-                static_cast<unsigned>(first),static_cast<unsigned>(last))?0:1;
+                static_cast<unsigned>(first),static_cast<unsigned>(last),
+                static_cast<unsigned>(appendCount))?0:1;
+        } catch (const std::exception& error) {
+            std::cerr<<"MLINE append-range exception: "<<error.what()<<'\n';
+            return 2;
         } catch (...) {
             return 2;
         }

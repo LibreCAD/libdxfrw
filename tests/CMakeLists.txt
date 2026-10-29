@@ -387,6 +387,14 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_append_254_255 PROPERT
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 non-two-element sources exercise a two-tuple
+# append with exact consumer reprojection and rollback/retry controls.
+add_test(NAME libdxfrw_mline_consumed_source_count_multi_append_non_two
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 3 4 2)
+set_tests_properties(libdxfrw_mline_consumed_source_count_multi_append_non_two PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
