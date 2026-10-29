@@ -21921,16 +21921,30 @@ struct MlineLinetypeShape {
     bool pending{false};
     bool allowOmittedDashFlags{false};
     bool xdata{false};
-    unsigned xdataFields{0u};
+    std::size_t xdataFields{0u};
+    std::size_t xdataDepth{0u};
+    bool xdataHasPayload{false};
     bool field(int code,std::string_view text={}) {
         if (code==999) return true;
         if (code==1001) {
             if (classes!=2u || pending || text.empty()
-                || (xdata && xdataFields%2u!=0u)) return false;
-            xdata=true;++xdataFields;return true;
+                || (xdata && (xdataDepth!=0u || !xdataHasPayload))) return false;
+            xdata=true;xdataHasPayload=false;++xdataFields;return true;
         }
         if (code==1000) {
-            if (!xdata || xdataFields%2u!=1u || text.size()>255u) return false;
+            if (!xdata || text.size()>255u) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
+        if (code==1002) {
+            if (!xdata) return false;
+            if (text=="{") {
+                if (xdataDepth>=DRW::kMaxDxfApplicationGroupNesting) return false;
+                ++xdataDepth;
+            } else if (text=="}") {
+                if (xdataDepth==0u) return false;
+                --xdataDepth;
+            } else return false;
             ++xdataFields;return true;
         }
         if (xdata) return false;
@@ -21955,8 +21969,9 @@ struct MlineLinetypeShape {
     }
     bool complete(std::size_t count,std::size_t expectedXdataFields=0u) const {
         return classes==2u && selves==1u && owners==1u && (!pending || allowOmittedDashFlags) && dashes==count
-            && (expectedXdataFields==0u || expectedXdataFields==2u || expectedXdataFields==4u)
-            && xdataFields==expectedXdataFields && xdataFields%2u==0u
+            && expectedXdataFields<=kMaxAdapterBasicTableItems
+            && xdataFields==expectedXdataFields && xdataDepth==0u
+            && (xdataFields==0u || xdataHasPayload)
             && std::all_of(headers.begin(),headers.end(),[](bool v){return v;});
     }
 };
@@ -21975,25 +21990,30 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
         || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
         || value.synchronizedLengthCount()!=value.path.size()
         || value.retainedSegmentTextCount()!=value.path.size()
-        || !value.appData.empty() || (value.extData.size()!=0u && value.extData.size()!=2u
-            && value.extData.size()!=4u) || !value.reactorHandles.empty()
+        || !value.appData.empty() || value.extData.size()>kMaxAdapterBasicTableItems
+        || !value.reactorHandles.empty()
         || value.xDictHandle!=0u || value.xrefBlockHandle.ref!=0u || value.xrefBlockHandle.ref64!=0u) return false;
     if (!value.extData.empty()) {
-        for (std::size_t i=0u;i<value.extData.size();i+=2u) {
-            if (!value.extData[i] || !value.extData[i+1u]
-                || value.extData[i]->code()!=1001
-                || value.extData[i]->type()!=DRW_Variant::STRING
-                || value.extData[i]->content.s==nullptr
-                || value.extData[i]->content.s->empty()
-                || value.extData[i]->content.s->size()>255u
-                || value.extData[i]->content.s->find('\0')!=std::string::npos
-                || value.extData[i+1u]->code()!=1000
-                || value.extData[i+1u]->type()!=DRW_Variant::STRING
-                || value.extData[i+1u]->content.s==nullptr
-                || value.extData[i+1u]->content.s->size()>255u
-                || value.extData[i+1u]->content.s->find('\0')!=std::string::npos)
-                return false;
-            appIdNames.emplace_back(*value.extData[i]->content.s);
+        const auto stringField=[](const DRW_Variant* field,int code) {
+            return field && field->code()==code && field->type()==DRW_Variant::STRING
+                && field->content.s && field->content.s->size()<=255u
+                && field->content.s->find('\0')==std::string::npos;
+        };
+        const bool oneStructuredList=value.extData.size()==4u
+            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
+            && stringField(value.extData[1],1002) && *value.extData[1]->content.s=="{"
+            && stringField(value.extData[2],1000)
+            && stringField(value.extData[3],1002) && *value.extData[3]->content.s=="}";
+        if (oneStructuredList) {
+            appIdNames.emplace_back(*value.extData[0]->content.s);
+        } else {
+            if (value.extData.size()!=2u && value.extData.size()!=4u) return false;
+            for (std::size_t i=0u;i<value.extData.size();i+=2u) {
+                if (!stringField(value.extData[i],1001)
+                    || value.extData[i]->content.s->empty()
+                    || !stringField(value.extData[i+1u],1000)) return false;
+                appIdNames.emplace_back(*value.extData[i]->content.s);
+            }
         }
     }
     for (std::size_t i=0u;i<value.path.size();++i) {
@@ -22532,12 +22552,22 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
             if (row.second.model.extData.empty()) {
                 if (!row.second.appIdHandles.empty()) return false;
             } else {
+                const auto& extData=row.second.model.extData;
+                const bool structuredList=extData.size()==4u
+                    && row.second.appIdHandles.size()==1u
+                    && extData[1u] && extData[1u]->code()==1002
+                    && extData[1u]->type()==DRW_Variant::STRING
+                    && extData[1u]->content.s && *extData[1u]->content.s=="{"
+                    && extData[3u] && extData[3u]->code()==1002
+                    && extData[3u]->type()==DRW_Variant::STRING
+                    && extData[3u]->content.s && *extData[3u]->content.s=="}";
                 if (row.second.appIdHandles.empty()
-                    || row.second.model.extData.size()!=row.second.appIdHandles.size()*2u) return false;
+                    || (!structuredList
+                        && extData.size()!=row.second.appIdHandles.size()*2u)) return false;
                 std::array<std::string,2> appKeys{};
                 for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
-                    const auto& appField=row.second.model.extData[i*2u];
-                    const auto& payloadField=row.second.model.extData[i*2u+1u];
+                    const auto& appField=extData[structuredList?0u:i*2u];
+                    const auto& payloadField=extData[structuredList?2u:i*2u+1u];
                     if (!appField || !payloadField || appField->code()!=1001
                         || appField->type()!=DRW_Variant::STRING || !appField->content.s
                         || appField->content.s->empty() || payloadField->code()!=1000

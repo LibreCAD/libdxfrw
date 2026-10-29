@@ -31249,6 +31249,17 @@ Tags sourceWithTwoPairs(bool binary) {
     return fields;
 }
 
+Tags sourceWithNestedXdata(bool binary) {
+    auto fields=source(binary);
+    const Tags ordinary{{1001,appName},{1000,payload}};
+    const auto first=std::search(fields.begin(),fields.end(),ordinary.begin(),ordinary.end());
+    if(first==fields.end())throw std::runtime_error("nested LTYPE XDATA source pair missing");
+    const auto at=fields.erase(first,first+static_cast<std::ptrdiff_t>(ordinary.size()));
+    const Tags nested{{1001,appName},{1002,"{"},{1000,payload},{1002,"}"}};
+    fields.insert(at,nested.begin(),nested.end());
+    return fields;
+}
+
 bool providerXdataProof(const std::filesystem::path& path,bool binary,const std::string& appOwner="9") {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
@@ -31353,6 +31364,57 @@ bool twoPairProviderProof(const std::filesystem::path& path,bool binary,
     return true;
 }
 
+bool nestedProviderProof(const std::filesystem::path& path,bool binary,
+                        const std::string& appOwner="9") {
+    if(!providerProof(path,binary))return false;
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const mlineStyleAuthorityControls::Row* selected=nullptr;const mlineStyleAuthorityControls::Row* provider=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,std::string("EditDash"))) {
+                if(selected)return false;selected=&row;
+            }
+        if(row.type=="APPID")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,std::string(appName))) {
+                if(provider)return false;provider=&row;
+            }
+    }
+    if(!selected||!provider)return false;
+    std::vector<std::pair<int,std::string>> xdata;
+    for(const auto& field:selected->fields)if(field.first>=1000)xdata.push_back(field);
+    const std::vector<std::pair<int,std::string>> expectedXdata{
+        {1001,appName},{1002,"{"},{1000,payload},{1002,"}"}};
+    if(xdata!=expectedXdata)return false;
+    const std::vector<int> appCodes{5,330,100,100,2,70};std::vector<int> observed;
+    for(const auto& field:provider->fields)observed.push_back(field.first);
+    if(observed!=appCodes||provider->owner!=appOwner)return false;
+    const auto value=[&](int code) {
+        const auto field=std::find_if(provider->fields.begin(),provider->fields.end(),
+            [&](const auto& item){return item.first==code;});
+        return field==provider->fields.end()?std::string{}:field->second;
+    };
+    std::int64_t flags=1;
+    if(value(5).empty()||value(2)!=appName
+        ||!dx_raster_output::integer(value(70),flags)||flags!=0)return false;
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false))return false;
+    unsigned linetypes=0u,appIds=0u;
+    for(const auto& item:actual.lineTypes)if(item.name=="EditDash") {
+        if(item.extData.size()!=4u)return false;
+        const std::array<std::pair<int,std::string>,4> expected{{
+            {1001,appName},{1002,"{"},{1000,payload},{1002,"}"}}};
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& field=item.extData[i];
+            if(!field||field->code()!=expected[i].first
+                ||field->type()!=DRW_Variant::STRING||!field->content.s
+                ||*field->content.s!=expected[i].second)return false;
+        }
+        ++linetypes;
+    }
+    for(const auto& item:actual.appIds)if(item.name==appName)++appIds;
+    return linetypes==1u&&appIds==1u;
+}
+
 struct LateAppIdMutation:dx_iface {
     bool armed{true},mutated{false};
     void writeAppId()override {
@@ -31434,6 +31496,38 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,secondAppRecordHandle))return false;
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithNestedXdata(sourceBinary),sourceBinary,"AC1027")
+            ||!nestedProviderProof(input,sourceBinary,"1F0")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=4u
+            ||sourceLine->extData[0]->code()!=1001||sourceLine->extData[1]->code()!=1002
+            ||sourceLine->extData[2]->code()!=1000||sourceLine->extData[3]->code()!=1002
+            ||std::count_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+                return value.handle==appRecordHandle;
+            })!=1)return false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!nestedProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++profiles;++readbacks;
+        const auto savedAppIds=data.appIds;
+        data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+            return value.handle==appRecordHandle;
+        }),data.appIds.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;data.appIds=savedAppIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!nestedProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++retries;++readbacks;
+    }
     {
         LateAppIdMutation adapter;dx_data data;
         if(!write(input,source(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return false;
@@ -31468,10 +31562,27 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,secondAppRecordHandle))return false;
         ++retries;++readbacks;
     }
+    {
+        LateAppIdMutation adapter;dx_data data;
+        if(!write(input,sourceWithNestedXdata(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;adapter.armed=false;
+        for(auto& app:data.appIds)if(app.name=="MUTATED_LTYPE_APPID") {
+            app.name=appName;break;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!nestedProviderProof(output,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==8u&&readbacks==18u&&refusals==10u&&retries==10u;
+    return profiles==12u&&readbacks==27u&&refusals==15u&&retries==15u;
 }
 }
 
