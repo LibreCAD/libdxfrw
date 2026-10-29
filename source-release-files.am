@@ -313,6 +313,7 @@ EXTRA_DIST = \
     src/intern/dxftablereferences.h \
     src/intern/dxfvalue.h \
     src/intern/dxfviewucs.h \
+    src/intern/dxfwholesource.h \
     src/intern/dxfwriter.cpp \
     src/intern/dxfwriter.h \
     src/intern/proxygraphicdecoder.cpp \
@@ -382,6 +383,7 @@ EXTRA_DIST = \
     tests/dxf_entity_identity_test_helpers.h \
     tests/dxf_fixture_tests.cpp \
     tests/dxf_symbol_output_tests.cpp \
+    tests/dxf_whole_source_tests.cpp \
     tests/effective_ownership_controls.h \
     tests/entities_compound_controls.h \
     tests/entities_delivery_controls.h \

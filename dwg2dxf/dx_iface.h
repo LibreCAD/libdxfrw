@@ -16,6 +16,7 @@
 #include "drw_interface.h"
 #include "libdxfrw.h"
 #include "dx_data.h"
+#include "intern/dxfwholesource.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -41,8 +42,19 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler,
                  public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler,
-                 public DRW_DxfViewUcsSourceHandler {
+                 public DRW_DxfViewUcsSourceHandler, public WholeSourceV2::Handler {
 public:
+    // Internal-only groundwork; opting in captures decoded physical scalars,
+    // not source bytes, graph completeness or write/semantic eligibility.
+    bool enableWholeDxfSourceObservation(bool enabled=true) noexcept {
+        if(m_tableSourceReadData)return false;m_wholeEnabled=enabled;return true;
+    }
+    bool wantsWholeSource() const noexcept override;
+    WholeSourceV2::Limits wholeSourceLimits() const noexcept override;
+    void wholeSourceBegin(const void*) noexcept override;
+    bool wholeSourceSelected(const void*) const noexcept override;
+    void wholeSourcePending(const void*,const WholeSourceV2::Source&,const WholeSourceV2::Ticket&) noexcept override;
+    void wholeSourceFinished(const void*,const WholeSourceV2::FinishToken&) noexcept override;
     // Explicit opt-in for an AC1018 whole-source identity observation.
     // Private groundwork only; there is no public observation accessor and it
     // establishes no namespace, ownership or output authority. Applies to
@@ -1812,6 +1824,8 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    friend class DxWholeSourceTestAccess;
+    bool m_wholeEnabled{false};WholeSourceV2::Limits m_wholeLimits{};
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;
     void finishTableBodies(dx_data&) noexcept;

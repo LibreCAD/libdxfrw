@@ -44,6 +44,8 @@
 #include <utility>
 #include <vector>
 
+namespace WholeSourceV2 { struct Source; }
+
 // CLI-owned metadata prefixes. Full physical declaration bytes remain in the
 // delivered headerC capsule; a prefix is never a complete declaration identity.
 struct dx_dxfTextPrefix {
@@ -1263,6 +1265,14 @@ private:
             DRW::DxfCodePagePolicy codePagePolicy{DRW::DxfCodePagePolicy::Compatible};
             bool hasDeclaration{false},applyExtrusion{false},binary{false},captured{false};
         };
+        struct WholeSourceInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            const void* codec{nullptr};EntitiesReadContext context;
+            std::shared_ptr<const WholeSourceV2::Source> source;
+        };
+        std::shared_ptr<const WholeSourceInput> wholeInput,wholeInputOwner;
+        std::shared_ptr<const WholeSourceV2::Source> wholeSourceOwner;
+        bool wholeSelected{false},wholePending{false},wholeFinished{false},wholeFailed{false};
         struct TableInput {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::uint32_t block{0};std::uint64_t scope{0};std::size_t event{0},section{0};bool inBlock{false},typed{false};
@@ -1903,6 +1913,7 @@ private:
     // of CELLSTYLEMAP. They are adapter provenance, not consumer-editable
     // drawing state. Snapshot storage shares the family resource ceilings
     // with the corresponding typed/raw retained carriers.
+    friend class DxWholeSourceTestAccess;
     friend class dx_iface;
     std::list<DRW_CellStyleMap> m_cellStyleMapDxfBaselines;
     std::size_t m_cellStyleMapDxfBaselineRetainedRecords{0};

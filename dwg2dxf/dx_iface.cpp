@@ -25174,6 +25174,20 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew
         && data.dxfReadOutcome.error == DRW::BAD_NONE;
+    if(source.wholeSelected) {
+        const auto same=[](const auto& a,const auto& b) noexcept {return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+        const auto& input=source.wholeInput;const auto& outcome=data.dxfReadOutcome;
+        bool valid=source.successful&&!source.wholeFailed&&source.wholePending&&source.wholeFinished
+            &&input&&same(input,source.wholeInputOwner)&&input->source&&same(input->source,source.wholeSourceOwner)
+            &&input->container==&data&&input->generation==data.importGeneration&&input->generation==source.generation
+            &&input->containerId&&input->containerId==data.m_entitiesContainerIdentity.value
+            &&input->codec==source.entitiesReadInput&&source.reader==this&&cData==&data&&input->context.captured
+            &&input->source->state()==WholeSourceV2::State::ThroughEof&&input->source->version()==outcome.sourceVersion
+            &&input->source->version()==data.sourceVersion&&input->source->binary()==input->context.binary
+            &&input->context.sourceVersion==outcome.sourceVersion&&input->context.codecVersion==outcome.codecVersion
+            &&input->context.codePagePolicy==outcome.requestedCodePagePolicy&&outcome.readReturned;
+        if(!valid) {source.wholeFailed=true;source.wholeInput.reset();source.wholeInputOwner.reset();source.wholeSourceOwner.reset();}
+    }
     // This private diagnostic is useful only while it still belongs to the
     // completed import. No downstream authority consumes it.
     if(source.legacyIdentityObservation) {
@@ -26037,6 +26051,58 @@ void dx_iface::addLayout(const DRW_Layout& data) {
         return;
     pairLayoutSource(data);
     retainBasicTableTyped(cData, cData->layouts, data, estimateLayoutTypedBytes);
+}
+
+bool dx_iface::wantsWholeSource() const noexcept {
+    return m_wholeEnabled&&tableSourceCaptureOpen()&&cData->m_tableDxfSource.entitiesReadInput;
+}
+WholeSourceV2::Limits dx_iface::wholeSourceLimits() const noexcept {return m_wholeLimits;}
+void dx_iface::wholeSourceBegin(const void* reader) noexcept {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;
+    if(!wantsWholeSource()||s.wholeSelected||reader!=s.entitiesReadInput) {s.wholeFailed=true;return;}
+    s.wholeSelected=true;
+}
+bool dx_iface::wholeSourceSelected(const void* reader) const noexcept {
+    return wantsWholeSource()&&cData->m_tableDxfSource.wholeSelected
+        &&!cData->m_tableDxfSource.wholeFailed&&reader==cData->m_tableDxfSource.entitiesReadInput;
+}
+void dx_iface::wholeSourcePending(const void* reader,const WholeSourceV2::Source& source,const WholeSourceV2::Ticket& ticket) noexcept {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;
+    const auto fail=[&]() noexcept {s.wholeFailed=true;s.wholeInput.reset();s.wholeInputOwner.reset();s.wholeSourceOwner.reset();};
+    if(!wholeSourceSelected(reader)||s.wholePending||s.wholeFinished||s.wholeInput) {fail();return;}
+    s.wholePending=true;dxfRW::DxfReadContext live;
+    if(!s.entitiesReadInput->getDxfReadContext(live)||!cData->m_entitiesContainerIdentity.value
+        ||source.state()!=WholeSourceV2::State::ThroughEof||source.version()!=live.sourceVersion
+        ||source.binary()!=live.binary||live.codecCodePage.size()>2048u||live.declaration.size()>2048u) {fail();return;}
+    try {
+        auto copy=ticket.verifiedCopy(source,reader);if(!copy) {fail();return;}
+        using Input=dx_data::TableDxfSourceCapture::WholeSourceInput;
+        auto input=std::make_shared<Input>();input->container=cData;input->generation=s.generation;
+        input->containerId=cData->m_entitiesContainerIdentity.value;input->codec=reader;
+        auto& context=input->context;context.sourceVersion=live.sourceVersion;context.codecVersion=live.codecVersion;
+        context.codecCodePage=live.codecCodePage;context.declaration=live.declaration;context.hasDeclaration=live.hasDeclaration;
+        context.compatibilityProfile=live.compatibilityProfile;context.textEncoding=live.textEncoding;
+        context.codePagePolicy=live.codePagePolicy;context.applyExtrusion=live.applyExtrusion;context.binary=live.binary;context.captured=true;
+        input->source=std::move(copy);s.wholeSourceOwner=input->source;
+        s.wholeInput=std::move(input);s.wholeInputOwner=s.wholeInput;
+    } catch(...) {fail();}
+}
+void dx_iface::wholeSourceFinished(const void* reader,const WholeSourceV2::FinishToken& token) noexcept {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;
+    dxfRW::DxfReadContext live;
+    bool context=false;
+    if(s.wholeInput&&s.entitiesReadInput&&s.entitiesReadInput->getDxfReadContext(live)) {
+        const auto& saved=s.wholeInput->context;
+        context=saved.captured&&saved.sourceVersion==live.sourceVersion&&saved.codecVersion==live.codecVersion
+            &&std::string_view(saved.codecCodePage)==live.codecCodePage&&std::string_view(saved.declaration)==live.declaration
+            &&saved.hasDeclaration==live.hasDeclaration&&saved.compatibilityProfile==live.compatibilityProfile
+            &&saved.textEncoding==live.textEncoding&&saved.codePagePolicy==live.codePagePolicy
+            &&saved.applyExtrusion==live.applyExtrusion&&saved.binary==live.binary;
+    }
+    if(!wholeSourceSelected(reader)||s.wholeFinished||!s.wholePending||!s.wholeInput||!token.validFor(reader)||!context) {
+        s.wholeFailed=true;s.wholeInput.reset();s.wholeInputOwner.reset();s.wholeSourceOwner.reset();return;
+    }
+    s.wholeFinished=true;
 }
 
 bool dx_iface::wantsDxfIdentitySource() const {
@@ -30477,7 +30543,17 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
-    if (fData == nullptr) return false;
+    // Every attempt invalidates a previous accepted whole-source owner before
+    // any early failure; reentry also invalidates the still-active owner.
+    const auto invalidateWhole=[](dx_data& data) noexcept {
+        auto& source=data.m_tableDxfSource;
+        if(source.wholeSelected||source.wholeInput||source.wholePending||source.wholeFinished) {
+            source.wholeFailed=true;source.wholeInput.reset();source.wholeInputOwner.reset();source.wholeSourceOwner.reset();
+        }
+    };
+    if(!fData) {if(m_tableSourceReadData)invalidateWhole(*m_tableSourceReadData);return false;}
+    invalidateWhole(*fData);
+    if(m_tableSourceReadData&&m_tableSourceReadData!=fData)invalidateWhole(*m_tableSourceReadData);
     const auto invalidateLegacy=[](dx_data& data) noexcept {
         auto& source=data.m_tableDxfSource;
         if(source.generation) {

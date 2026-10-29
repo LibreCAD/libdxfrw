@@ -55,6 +55,7 @@
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
+#include "intern/dxfwholesource.h"
 #include "intern/dxfentitiesauth.h"
 #include "intern/dxfidentitysource.h"
 #include "intern/dxfobjectphysicalsource.h"
@@ -3768,6 +3769,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
     m_readDecodeWorkBudgetActive = true;
+    WholeSourceV2::Completion wholeCompletion(dynamic_cast<WholeSourceV2::Handler*>(iface),this);
     bool isOk {processDxf()};
     if (reader->retainedByteBudget() != nullptr
         && reader->retainedByteBudget()->exceeded()) {
@@ -3779,6 +3781,10 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         || reader->typedVariantNodeBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
+    }
+    if(wholeCompletion.active) {
+        const auto next=filestr.peek();
+        wholeCompletion.finish(isOk&&next==std::char_traits<char>::eof()&&filestr.eof()&&!filestr.bad());
     }
     filestr.close();
     version = (DRW::Version) reader->getVersion();
@@ -3854,6 +3860,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
     m_readDecodeWorkBudgetActive = true;
+    WholeSourceV2::Completion wholeCompletion(dynamic_cast<WholeSourceV2::Handler*>(iface),this);
     bool isOk {processDxf()};
     if (reader->retainedByteBudget() != nullptr
         && reader->retainedByteBudget()->exceeded()) {
@@ -3865,6 +3872,10 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
         || reader->typedVariantNodeBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
+    }
+    if(wholeCompletion.active) {
+        const auto next=strstream.peek();
+        wholeCompletion.finish(isOk&&next==std::char_traits<char>::eof()&&strstream.eof()&&!strstream.bad());
     }
     version = (DRW::Version) reader->getVersion();
     m_sourceVersion = reader->getSourceVersion();
@@ -15363,7 +15374,12 @@ bool dxfRW::processDxf() {
     const bool identitySelected=identityHandler&&identityHandler->wantsDxfIdentitySource();
     dxfIdentitySource::Capture identitySource(*reader);
     if(identitySelected)identitySource.start(identityHandler->dxfIdentitySourceLimits());
+    auto* wholeHandler=dynamic_cast<WholeSourceV2::Handler*>(iface);
+    const bool wholeSelected=wholeHandler&&wholeHandler->wholeSourceSelected(this);
+    WholeSourceV2::Capture wholeCapture(*reader);
+    if(wholeSelected)wholeCapture.start(wholeHandler->wholeSourceLimits());
     const auto publishIdentity=[&]() {
+        if(wholeSelected)wholeCapture.finish(*wholeHandler,this);
         if(!identitySelected)return;
         identitySource.finish();
         if(m_dxfIdentityDelivery.state.enabled)captureDxfIdentityDelivery(identitySource.source());
