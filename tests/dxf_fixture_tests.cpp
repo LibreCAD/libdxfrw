@@ -35380,7 +35380,8 @@ bool sourceCountAppendOutputProof(const std::filesystem::path& path,bool binary,
     }
     return true;
 }
-bool runConsumedSourceCountAppend(const std::filesystem::path& dir,unsigned sourceCount,Tags(*sourceRecipe)(bool),
+template<class SourceRecipe>
+bool runConsumedSourceCountAppend(const std::filesystem::path& dir,unsigned sourceCount,SourceRecipe sourceRecipe,
         const std::vector<double>& offsets,const std::vector<int>& colors,const std::vector<std::string>& linetypes) {
     const auto input=dir/("consumed-source-"+std::to_string(sourceCount)+"-append-input.dxf");
     const auto output=dir/("consumed-source-"+std::to_string(sourceCount)+"-append-output.dxf");
@@ -35390,7 +35391,7 @@ bool runConsumedSourceCountAppend(const std::filesystem::path& dir,unsigned sour
             <<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
-    if(!sourceRecipe||sourceCount<2u||offsets.size()!=sourceCount+1u
+    if(sourceCount<2u||offsets.size()!=sourceCount+1u
         ||colors.size()!=offsets.size()||linetypes.size()!=offsets.size())return fail(__LINE__);
     const auto append=[&](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=sourceCount)return false;
@@ -35441,6 +35442,41 @@ bool runConsumedSourceCountAppend(const std::filesystem::path& dir,unsigned sour
     std::cout<<"MLINE consumed source-count="<<sourceCount<<" append profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
     return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+}
+double consumedAppendOffset(unsigned element) {
+    if(element==0u)return 1.25;
+    if(element==1u)return -.75;
+    if(element==2u)return -1.25;
+    return -2.0-.5*static_cast<double>(element-3u);
+}
+int consumedAppendColor(unsigned element) {
+    if(element==0u)return 1;
+    if(element==1u)return 3;
+    return static_cast<int>(element)+2;
+}
+bool runSelectedConsumedAppendSourceCounts(
+        const std::filesystem::path& dir) {
+    constexpr std::array<unsigned,5> sourceCounts{{13u,16u,32u,64u,128u}};
+    for(const unsigned sourceCount:sourceCounts) {
+        std::vector<double> offsets;
+        std::vector<int> colors;
+        std::vector<std::string> linetypes;
+        offsets.reserve(static_cast<std::size_t>(sourceCount)+1u);
+        colors.reserve(static_cast<std::size_t>(sourceCount)+1u);
+        linetypes.reserve(static_cast<std::size_t>(sourceCount)+1u);
+        for(unsigned element=0u;element<=sourceCount;++element) {
+            offsets.push_back(consumedAppendOffset(element));
+            colors.push_back(consumedAppendColor(element));
+            linetypes.emplace_back((element%2u)==0u?"ByLayer":"Continuous");
+        }
+        const auto sourceRecipe=[sourceCount](bool binary) {
+            return consumedSourceCountRecipe(binary,sourceCount);
+        };
+        if(!runConsumedSourceCountAppend(dir,sourceCount,sourceRecipe,
+                offsets,colors,linetypes))
+            return false;
+    }
+    return true;
 }
 bool runConsumedFourSourceAppend(const std::filesystem::path& dir) {
     return runConsumedSourceCountAppend(dir,4u,fourElementRecipe,{1.25,-.75,-1.25,-2.0,-2.5},{1,3,4,5,6},
@@ -35587,6 +35623,16 @@ bool runConsumedTwelveSourceAppendTemporary() {
     const bool passed=runConsumedTwelveSourceAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed twelve-source append artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runSelectedConsumedAppendSourceCountsTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-selected-source-counts-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runSelectedConsumedAppendSourceCounts(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed selected source-count artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedAppend(const std::filesystem::path& dir) {
@@ -44809,6 +44855,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-twelve-source-append") {
         return mlineConsumedOffsetControls::runConsumedTwelveSourceAppendTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-selected-source-counts") {
+        return mlineConsumedOffsetControls::runSelectedConsumedAppendSourceCountsTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;

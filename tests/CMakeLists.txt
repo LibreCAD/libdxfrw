@@ -355,6 +355,15 @@ set_tests_properties(libdxfrw_mline_consumed_twelve_source_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 selected source-count profiles exercise the shared
+# append recipe across intermediate counts; the maximum-count boundary remains
+# outside this positive qualification.
+add_test(NAME libdxfrw_mline_consumed_selected_source_counts
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-selected-source-counts)
+set_tests_properties(libdxfrw_mline_consumed_selected_source_counts PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
