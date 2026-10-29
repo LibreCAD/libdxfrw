@@ -16327,6 +16327,9 @@ bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
     // unique INTEGER and its containing CMC has no unmodeled extensions.
     if (std::all_of(codes.begin(), codes.end(), isMLeaderColorCode))
         return true;
+    // Description and default text are separately modeled UTF-8 strings.
+    if (std::all_of(codes.begin(), codes.end(), isMLeaderStringCode))
+        return true;
 
     // Selected AC1027 profiles admit either or both independent group-90 and
     // group-92 INT32 scalars alongside mapped DOUBLE fields. Other mixed
@@ -16548,10 +16551,11 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 continue;
             }
             // Multiple fields compose only for mapped DOUBLE fields with the
-            // selected group-90/group-92 scalar family, or for the bounded ACI
-            // color-only family. Other mixed types can carry coupled semantics
-            // or references; keep those on their existing one-field
-            // transaction until separately qualified.
+            // selected group-90/group-92 scalar family, the bounded ACI
+            // color-only family, or the description/default-text pair. Other
+            // mixed types can carry coupled semantics or references; keep
+            // those on their existing one-field transaction until separately
+            // qualified.
             if (!supportedMLeaderEditSet(editedCodes))
                 return false;
             for (const int editedCode : editedCodes) {
@@ -16654,8 +16658,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             if (!editedCodes.empty()) {
                 // Multiple-field composition is limited to mapped AC1027
                 // DOUBLE groups with selected group-90/group-92 INT32 scalars,
-                // or to the bounded ACI color-only family. Other edit sets
-                // keep their single-field contract until separately qualified.
+                // the bounded ACI color-only family, or the description and
+                // default-text string pair. Other edit sets keep their
+                // single-field contract until separately qualified.
                 if (version != DRW::AC1027
                     || !supportedMLeaderEditSet(editedCodes)
                     || !standardDwgCommonEqual(value, original, version,

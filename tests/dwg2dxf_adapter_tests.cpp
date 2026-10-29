@@ -35950,6 +35950,210 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                 + "-" + "\xF0\x9F\x94\xA7"))
         return false;
 
+    const auto stringCompositionSource = directory
+        / ("root-mleaderstyle-string-composition-source-" + encoding + ".dxf");
+    dx_data stringCompositionData;
+    dx_iface stringCompositionReader;
+    if (!generateRootMLeaderStyleControl(stringCompositionSource, binary)
+        || !stringCompositionReader.fileImport(
+            stringCompositionSource.string(), &stringCompositionData, false))
+        return fail("could not import MLEADERSTYLE string-composition source");
+    auto stringCompositionStyle = std::find_if(
+        stringCompositionData.mLeaderStyles.begin(),
+        stringCompositionData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    auto stringCompositionRaw = std::find_if(
+        stringCompositionData.rawNamedResourceObjects.begin(),
+        stringCompositionData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (stringCompositionStyle == stringCompositionData.mLeaderStyles.end()
+        || stringCompositionRaw
+            == stringCompositionData.rawNamedResourceObjects.end()
+        || stringCompositionStyle->description != "source-style-description"
+        || stringCompositionStyle->textDefault != "source-default-text")
+        return fail("MLEADERSTYLE string-composition source fields are missing");
+    const auto findStringSlot = [&stringCompositionRaw](int code,
+            const std::string& expected) {
+        const auto found = std::find_if(stringCompositionRaw->groups.begin(),
+            stringCompositionRaw->groups.end(), [code, &expected](
+                    const DRW_Variant& field) {
+                return field.code() == code
+                    && field.type() == DRW_Variant::STRING
+                    && field.content.s != nullptr
+                    && *field.content.s == expected;
+            });
+        return found == stringCompositionRaw->groups.end()
+            ? stringCompositionRaw->groups.size()
+            : static_cast<std::size_t>(
+                found - stringCompositionRaw->groups.begin());
+    };
+    const std::size_t descriptionSlot = findStringSlot(
+        3, "source-style-description");
+    const std::size_t defaultTextSlot = findStringSlot(
+        300, "source-default-text");
+    if (descriptionSlot == stringCompositionRaw->groups.size()
+        || defaultTextSlot == stringCompositionRaw->groups.size()
+        || descriptionSlot >= defaultTextSlot
+        || std::count_if(stringCompositionRaw->groups.begin(),
+            stringCompositionRaw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 3 || field.code() == 300;
+            }) != 2)
+        return fail("MLEADERSTYLE string-composition source spans are ambiguous");
+    const DRW_RawDxfObject originalStringCompositionRaw =
+        *stringCompositionRaw;
+    const std::string composedDescription =
+        "combined-description-\xC3\xA9-\xE2\x80\x94";
+    const std::string composedDefaultText =
+        "combined-default-\xE6\x96\x87-\xF0\x9F\x94\xA7";
+    stringCompositionStyle->description = composedDescription;
+    stringCompositionStyle->textDefault = composedDefaultText;
+    const auto verifyStringComposition = [&](const std::filesystem::path& path) {
+        dx_data readback;
+        dx_iface readerForOutput;
+        if (!readerForOutput.fileImport(path.string(), &readback, false))
+            return fail("could not read back composed MLEADERSTYLE strings");
+        const auto style = std::find_if(readback.mLeaderStyles.begin(),
+            readback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (style == readback.mLeaderStyles.end()
+            || style->description != composedDescription
+            || style->textDefault != composedDefaultText)
+            return fail("composed MLEADERSTYLE typed strings mismatch");
+        const auto raw = std::find_if(readback.rawNamedResourceObjects.begin(),
+            readback.rawNamedResourceObjects.end(), [style](
+                    const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == style->handle;
+            });
+        if (raw == readback.rawNamedResourceObjects.end())
+            return fail("composed MLEADERSTYLE raw strings are missing");
+        const auto description = std::find_if(raw->groups.begin(),
+            raw->groups.end(), [&composedDescription](
+                    const DRW_Variant& field) {
+                return field.code() == 3
+                    && field.type() == DRW_Variant::STRING
+                    && field.content.s != nullptr
+                    && *field.content.s == composedDescription;
+            });
+        const auto defaultText = std::find_if(raw->groups.begin(),
+            raw->groups.end(), [&composedDefaultText](
+                    const DRW_Variant& field) {
+                return field.code() == 300
+                    && field.type() == DRW_Variant::STRING
+                    && field.content.s != nullptr
+                    && *field.content.s == composedDefaultText;
+            });
+        const bool matches = description != raw->groups.end()
+            && defaultText != raw->groups.end()
+            && description < defaultText
+            && std::count_if(raw->groups.begin(), raw->groups.end(),
+                [](const DRW_Variant& field) {
+                    return field.code() == 3 || field.code() == 300;
+                }) == 2;
+        return matches
+            || fail("composed MLEADERSTYLE physical string order/values mismatch");
+    };
+    const auto stringCompositionOutput = directory
+        / ("root-mleaderstyle-string-composition-output-" + encoding + ".dxf");
+    const std::string stringCompositionSentinel =
+        "existing composed MLEADERSTYLE string output survives\n";
+    const auto seedStringCompositionSentinel = [&]() {
+        std::ofstream previous(stringCompositionOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous
+            && static_cast<bool>(previous << stringCompositionSentinel);
+    };
+    const auto stringCompositionSentinelSurvives = [&]() {
+        std::ifstream previous(stringCompositionOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == stringCompositionSentinel;
+    };
+    dx_iface stringCompositionWriter;
+    if (!stringCompositionWriter.fileExport(stringCompositionOutput.string(),
+            DRW::AC1027, binary, &stringCompositionData, false, true)
+        || !verifyStringComposition(stringCompositionOutput))
+        return fail("composed MLEADERSTYLE string output failed: "
+            + stringCompositionWriter.extensionGraphFailureDetail());
+
+    if (!seedStringCompositionSentinel())
+        return fail("could not seed composed MLEADERSTYLE string refusal");
+    stringCompositionRaw->groups[defaultTextSlot] =
+        DRW_Variant(300, UTF8STRING("conflicting-source-default"));
+    if (stringCompositionRaw->hasRawValues && !binary)
+        stringCompositionRaw->rawValues[defaultTextSlot]
+            = "conflicting-source-default";
+    if (stringCompositionWriter.fileExport(stringCompositionOutput.string(),
+            DRW::AC1027, binary, &stringCompositionData, false, true)
+        || !stringCompositionSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE string source was published");
+    *stringCompositionRaw = originalStringCompositionRaw;
+    if (!stringCompositionWriter.fileExport(stringCompositionOutput.string(),
+            DRW::AC1027, binary, &stringCompositionData, false, true)
+        || !verifyStringComposition(stringCompositionOutput))
+        return fail("same-adapter MLEADERSTYLE string retry failed: "
+            + stringCompositionWriter.extensionGraphFailureDetail());
+
+    const auto stringCompositionCrossOutput = directory
+        / ("root-mleaderstyle-string-composition-cross-" + encoding + ".dxf");
+    dx_iface stringCompositionCrossWriter;
+    if (!stringCompositionCrossWriter.fileExport(
+            stringCompositionCrossOutput.string(), DRW::AC1027, !binary,
+            &stringCompositionData, false, true)
+        || !verifyStringComposition(stringCompositionCrossOutput))
+        return fail("cross-format MLEADERSTYLE string composition failed: "
+            + stringCompositionCrossWriter.extensionGraphFailureDetail());
+
+    class LateStringCompositionWriter final : public dx_iface {
+    public:
+        bool mutate{true};
+        void writeObjects() override {
+            if (mutate && cData != nullptr) {
+                for (DRW_MLeaderStyle& style : cData->mLeaderStyles)
+                    if (style.handle == 0x1Cu) {
+                        style.textDefault = "late-mutated-default";
+                        break;
+                    }
+            }
+            dx_iface::writeObjects();
+        }
+    } lateStringCompositionWriter;
+    const auto lateStringOutput = directory
+        / ("root-mleaderstyle-string-composition-late-" + encoding + ".dxf");
+    const std::string lateStringSentinel =
+        "existing late MLEADERSTYLE string output survives\n";
+    {
+        std::ofstream previous(lateStringOutput,
+            std::ios::binary | std::ios::trunc);
+        if (!previous || !(previous << lateStringSentinel))
+            return fail("could not seed late MLEADERSTYLE string refusal");
+    }
+    if (lateStringCompositionWriter.fileExport(lateStringOutput.string(),
+            DRW::AC1027, binary, &stringCompositionData, false, true))
+        return fail("late composed MLEADERSTYLE string mutation was published");
+    {
+        std::ifstream previous(lateStringOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        if (previous.bad() || preserved != lateStringSentinel)
+            return fail("late MLEADERSTYLE string refusal replaced destination");
+    }
+    stringCompositionStyle->textDefault = composedDefaultText;
+    lateStringCompositionWriter.mutate = false;
+    if (!lateStringCompositionWriter.fileExport(lateStringOutput.string(),
+            DRW::AC1027, binary, &stringCompositionData, false, true)
+        || !verifyStringComposition(lateStringOutput))
+        return fail("late MLEADERSTYLE string same-adapter retry failed: "
+            + lateStringCompositionWriter.extensionGraphFailureDetail());
+
     return true;
 }
 
