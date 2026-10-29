@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected source-scope join for ATTDEF 6F8 and BLOCK_RECORD 6F2; ATTRIB 705 remains separate | Bind remaining BLOCK_RECORD targets, ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
+| P4a — AC1018 attribute provenance | ATTDEF 6F8 source-scope join; explicitly opted-in ENTITIES physical/delivery snapshots authenticate the 704/705/706 witness, whose source profiles remain refused | Qualify the selected INSERT/ATTRIB/SEQEND source profiles and ownership, then bind BLOCK_RECORD targets and APPID/LAYER roles; qualify output and failure/retry separately |
 | P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused both-field edit on one survivor, dense-budget case, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -283,9 +283,10 @@ The [AC1018 classic ATTDEF profile receipt](docs/research/rpp5ie-ac1018-attdef-c
 qualifies only the bounded opt-in source-field profile and replay, including
 real source 6F8. Default legacy consumers remain opted out; reader-level capture
 quotas or malformed source can fail an opted-in read. Profile completion does
-not establish origin or output authority; default BLOCK capture and child and
-ENTITIES source capture remain gated below AC1021. Next bind original scope and compound
-ownership, then APPID/LAYER targets and output/failure behavior separately.
+not establish origin or output authority; default BLOCK, child and ENTITIES
+capture remain opted out below AC1021. Explicit AC1018 ENTITIES capture now has
+a separate authenticated-delivery prerequisite as described below. Bind compound
+ownership, APPID/LAYER targets and output/failure behavior separately.
 AC1018 ATTRIB, proxy graphics, group 280, embedded/secondary and unsupported
 application or XDATA forms remain separate source-backed profiles; codec
 and non-ASCII name qualification also remain open.
@@ -342,8 +343,19 @@ original owner roles and captured profiles. The selected capture path has one
 source/decoder repeat on each BLOCKS self scalar and zero for TABLE/BLOCK_RECORD;
 other repeat counts remain unqualified. The private result does not change
 generic EnclosingMatched, full namespace, recursive graph or output gates.
-Next bind the selected XDICTIONARY 6F3, INSERT 704 and APPID/LAYER targets,
-and ATTRIB 705 membership, with their own original types and ownership roles.
+The [AC1018 ENTITIES delivery receipt](docs/research/rpp5iz-ac1018-entities-delivery-authentication-2026-10-28.json)
+adds default-off codec-owned physical and delivery freezes with a shared
+read/section ticket, preserving physical-then-delivery callback timing. The
+real 704/705/706 source is captured without authenticating its compound meaning;
+a callback-only change to ATTRIB 705's raw spelling now fails both retained
+captures. Source-only opt-in remains possible. ProfileMismatch and all generic
+compound, ownership, output and native-support gates stay closed. The public
+reader layout changes, so dependent binaries must rebuild.
+
+Next qualify the selected 704 INSERT, 705 ATTRIB and 706 SEQEND source profiles
+under this authenticated context without broadening generic admission. Bind
+their exact original membership/owner roles, XDICTIONARY 6F3 and APPID/LAYER
+targets in separate bounded slices, then prove actual output and retries.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
