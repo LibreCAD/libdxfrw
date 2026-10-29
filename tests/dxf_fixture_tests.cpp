@@ -36465,7 +36465,7 @@ bool runConsumedSurvivorSubsetRemoval(const std::filesystem::path& dir,unsigned 
         unsigned targetCount,SourceRecipe sourceRecipe,const std::vector<double>& sourceOffsets,
         const std::vector<int>& sourceColors,const std::vector<std::string>& sourceLinetypes) {
     if(sourceCount<2u||sourceCount>9u
-        ||(sourceCount==9u&&targetCount>6u)
+        ||(sourceCount==9u&&targetCount>7u)
         ||targetCount==0u||targetCount>=sourceCount
         ||sourceOffsets.size()!=sourceCount||sourceColors.size()!=sourceCount
         ||sourceLinetypes.size()!=sourceCount)return false;
@@ -36599,7 +36599,7 @@ bool runConsumedSourceCountRemovalMatrixTemporary(unsigned sourceCount) {
     return passed;
 }
 bool runConsumedNineReductionTemporary(unsigned targetCount) {
-    if(targetCount==0u||targetCount>6u)return false;
+    if(targetCount==0u||targetCount>7u)return false;
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-nine-to-"+std::to_string(targetCount)+"-removal-"+
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -45283,6 +45283,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-six-from-nine-removal") {
         return mlineConsumedOffsetControls::runConsumedNineReductionTemporary(6u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-seven-from-nine-removal") {
+        return mlineConsumedOffsetControls::runConsumedNineReductionTemporary(7u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
