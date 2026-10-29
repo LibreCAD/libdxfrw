@@ -1,0 +1,64 @@
+{
+  "schema": "ac1027-mline-ltype-shape-text-composition-v1",
+  "date": "2026-10-29",
+  "codeCommit": "bad8ef6683fe757671f7fe7a0c799aaa9dd1f874",
+  "scope": "One two-segment AC1027 mixed complex LTYPE: a shape segment followed by a text segment, each using a distinct source-bound STYLE. No general shape/text composition or rendered meaning is inferred.",
+  "relatedReceipts": [
+    "docs/research/rpp5qz-mline-ltype-shape-style-provider-2026-10-29.json",
+    "docs/research/rpp5ra-mline-ltype-mixed-simple-text-segments-2026-10-29.json"
+  ],
+  "finding": "The current parser, model and writer preserve both segment payloads, their distinct STYLE references and remapped output identities for this selected composition. No production code change was needed.",
+  "profile": {
+    "version": "AC1027",
+    "segments": [
+      {
+        "order": 1,
+        "kind": "shape",
+        "length": 1.5,
+        "shapeFlags": 4,
+        "shapeNumber": 7,
+        "styleProvider": "ComplexShape",
+        "styleFlags": 1,
+        "styleFile": "ltypeshp.shx",
+        "scale": 0.75,
+        "rotationRadians": 0.004363323129985824,
+        "xOffset": 0.125,
+        "yOffset": -0.25
+      },
+      {
+        "order": 2,
+        "kind": "text",
+        "length": 0.5,
+        "shapeFlags": 2,
+        "textProvider": "ComplexText",
+        "styleFlags": 0,
+        "styleFile": "txt.shx",
+        "scale": 0.75,
+        "rotationRadians": 0.004363323129985824,
+        "xOffset": 0.125,
+        "yOffset": -0.25,
+        "text": "DXF"
+      }
+    ],
+    "sourceAndOutput": "Runtime-authored AC1027 ASCII/binary source/output cross-product; each source contains both unique STYLE rows and two existing MLINE consumers.",
+    "physicalChecks": "Verify both STYLE identities and their flag/file fields, LTYPE group-73 count and group-40 total, ordered group-49/74/75 pattern, ordered group-340 references to the correct remapped providers, both segments' scale/rotation/offset fields and the text payload.",
+    "readback": "Fresh import verifies both STYLE handles and metadata, the ordered shape/text DRW_LTypeSegment models, distinct remapped styleHandle values and the existing MLINE consumer profile.",
+    "failureControls": "Remove each STYLE provider in turn. Each missing-provider case refuses output while retaining the sentinel destination, LTYPE provider model and MLINE caller state. Restore the provider and retry with the same adapter; output and readback pass."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_mixed_segments$' --output-on-failure",
+    "result": "PASS 1/1. The added profile covers four ASCII/binary input/output combinations, twelve readbacks including corrected retries, eight independent missing-provider refusals and eight retries.",
+    "diffCheck": "PASS git diff --check before the code commit.",
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3 (clang-2100.3.34.2), arm64 macOS"
+  },
+  "bindings": {
+    "tests/dxf_fixture_tests.cpp": "c771c705b96179414f930f5c368e003970c3e99596331293e625f7ec75510847",
+    "testExecutableSha256": "bf954f30a971db65997c499d63831bb3b719eb77b98ddc056e839bbc31ed0004"
+  },
+  "limits": [
+    "The drawing is authored at runtime from scratch in temporary storage; no external drawing fixture is committed or used.",
+    "Other segment orders/counts, shape numbers, flags, STYLE provider profiles and versions remain open.",
+    "The SHX file fields are transported; SHX availability, native symbol/text interpretation and rendered appearance are not qualified."
+  ]
+}

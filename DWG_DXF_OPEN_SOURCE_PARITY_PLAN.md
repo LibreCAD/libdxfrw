@@ -152,9 +152,12 @@ proof. Refused fields are not implemented editing support.
    checked in physical output and fresh readback. Missing-provider refusal,
    destination preservation and retry cover both profiles. This preserves the
    selected flag and wire angle; it does not establish SHX availability, native
-   orientation, shape-number meaning or rendered output. Other shape numbers/
-   files, combined flags, field placements, multi-segment combinations, providers
-   and versions remain open; earlier versions need source/context/codec evidence.
+   orientation, shape-number meaning or rendered output. [RPP-5ri](docs/research/rpp5ri-mline-ltype-shape-text-composition-2026-10-29.json)
+   qualifies one two-segment shape→text composition with distinct shape and text
+   STYLE providers, exact ordered group-340 remaps, fresh readback, and separate
+   missing-provider refusal/retry controls. Other shape numbers/files, combined
+   flags, optional placements, multi-segment combinations, providers and versions
+   remain open; earlier versions need source/context/codec evidence.
    Native units, font identity, collation, ByLayer/ByBlock inheritance and
    rendering remain separate evidence.
    [RPP-5ra](docs/research/rpp5ra-mline-ltype-mixed-simple-text-segments-2026-10-29.json)
