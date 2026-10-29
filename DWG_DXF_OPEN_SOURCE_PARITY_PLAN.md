@@ -247,7 +247,11 @@ and broader producer behavior remain unqualified.
    matrix edit](docs/research/rpp5jb-material-unmarked-normal-matrix-2026-10-28.json)
    binds the two selected 16-value group-`43` arrays and permits finite typed
    normal-slot edits, including compositions with the five preceding fields; it
-   does not establish native matrix ordering, meaning or rendering. Changing
+   does not establish native normal-matrix ordering, meaning or rendering. The
+   [diffuse matrix edit](docs/research/rpp5jc-material-unmarked-diffuse-matrix-2026-10-28.json)
+   qualifies finite edits to the first 16 group-`43` values on the same source,
+   including a composition with the normal fields. Other producer profiles and
+   native rendering remain separate. Changing
    group `72`, its coupling to filenames/procedural data, native rendering and
    other normal-map fields and source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)
