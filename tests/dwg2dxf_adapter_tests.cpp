@@ -32180,6 +32180,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(177, 0);
     writer->writeInt16(178, 0);
     writer->writeInt16(271, 0);
+    writer->writeInt16(272, 9);
+    writer->writeInt16(273, 9);
     writer->writeBool(290, false);
     writer->writeBool(291, true);
     writer->writeBool(292, false);
@@ -34737,7 +34739,7 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     const auto verifyControlEnum = [&](int code, const char* name,
             std::uint16_t DRW_MLeaderStyle::*member,
             std::uint16_t sourceValue, std::uint16_t requestedValue,
-            std::uint16_t invalidValue) {
+            std::array<std::uint16_t, 2> invalidValues) {
         const auto enumSource = directory
             / (std::string("root-mleaderstyle-") + name + "-source-"
                 + encoding + ".dxf");
@@ -34812,13 +34814,15 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                 + name + " edit was accepted");
         *enumRaw = originalRaw;
 
-        (*enumStyle).*member = invalidValue;
-        if (!seedSentinel()
-            || enumWriter.fileExport(enumOutput.string(), DRW::AC1027, binary,
-                &enumData, false, true)
-            || !sentinelSurvives())
-            return fail(std::string("out-of-range MLEADERSTYLE ")
-                + name + " value was accepted");
+        for (const std::uint16_t invalidValue : invalidValues) {
+            (*enumStyle).*member = invalidValue;
+            if (!seedSentinel()
+                || enumWriter.fileExport(enumOutput.string(), DRW::AC1027,
+                    binary, &enumData, false, true)
+                || !sentinelSurvives())
+                return fail(std::string("out-of-range MLEADERSTYLE ")
+                    + name + " value was accepted");
+        }
         (*enumStyle).*member = requestedValue;
         if (!enumWriter.fileExport(enumOutput.string(), DRW::AC1027, binary,
                 &enumData, false, true))
@@ -34877,17 +34881,22 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             && (*crossStyle).*member == requestedValue;
     };
     if (!verifyControlEnum(170, "content-type",
-            &DRW_MLeaderStyle::contentType, 0u, 3u, 4u)
+            &DRW_MLeaderStyle::contentType, 0u, 3u, {{4u, 65535u}})
         || !verifyControlEnum(171, "draw-mleader-order",
-            &DRW_MLeaderStyle::drawMLeaderOrder, 0u, 1u, 2u)
+            &DRW_MLeaderStyle::drawMLeaderOrder, 0u, 1u, {{2u, 65535u}})
         || !verifyControlEnum(172, "draw-leader-order",
-            &DRW_MLeaderStyle::drawLeaderOrder, 0u, 1u, 2u)
+            &DRW_MLeaderStyle::drawLeaderOrder, 0u, 1u, {{2u, 65535u}})
         || !verifyControlEnum(173, "leader-type",
-            &DRW_MLeaderStyle::leaderType, 1u, 2u, 3u)
+            &DRW_MLeaderStyle::leaderType, 1u, 2u, {{3u, 65535u}})
         || !verifyControlEnum(177, "block-connection",
-            &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, 2u)
+            &DRW_MLeaderStyle::blockConnectionType, 0u, 1u, {{2u, 65535u}})
         || !verifyControlEnum(271, "attachment-direction",
-            &DRW_MLeaderStyle::attachmentDirection, 0u, 1u, 2u))
+            &DRW_MLeaderStyle::attachmentDirection, 0u, 1u,
+            {{2u, 65535u}})
+        || !verifyControlEnum(272, "bottom-attachment",
+            &DRW_MLeaderStyle::bottomAttachment, 9u, 10u, {{8u, 11u}})
+        || !verifyControlEnum(273, "top-attachment",
+            &DRW_MLeaderStyle::topAttachment, 9u, 10u, {{8u, 11u}}))
         return false;
 
     const auto verifyBooleanField = [&](int code, const char* name,

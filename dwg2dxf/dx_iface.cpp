@@ -15991,9 +15991,9 @@ constexpr std::array<int, 13> mleaderDoubleCodes{{
 }};
 // DXF Boolean values are retained in DRW_Variant as INTEGER, so they share
 // integer-value change detection while their writer path remains Boolean.
-constexpr std::array<int, 24> mleaderInt32Codes{{
+constexpr std::array<int, 26> mleaderInt32Codes{{
     90, 91, 92, 93, 94, 170, 171, 172, 173, 174, 175, 176, 177, 178,
-    271, 290, 291, 292, 293, 294, 295, 296, 297, 298
+    271, 272, 273, 290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
@@ -16030,6 +16030,8 @@ int mleaderEnumMaximum(int code) noexcept {
     case 176: return 2;
     case 174:
     case 178: return 8;
+    case 272:
+    case 273: return 10;
     case 290:
     case 291:
     case 292:
@@ -16041,6 +16043,10 @@ int mleaderEnumMaximum(int code) noexcept {
     case 298: return 1;
     default: return -1;
     }
+}
+
+int mleaderEnumMinimum(int code) noexcept {
+    return code == 272 || code == 273 ? 9 : 0;
 }
 
 std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
@@ -16061,6 +16067,8 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 177: return style.blockConnectionType;
     case 178: return style.rightAttachment;
     case 271: return style.attachmentDirection;
+    case 272: return style.bottomAttachment;
+    case 273: return style.topAttachment;
     case 290: return style.landingEnabled ? 1 : 0;
     case 291: return style.autoIncludeLanding ? 1 : 0;
     case 292: return style.textFrameEnabled ? 1 : 0;
@@ -16092,6 +16100,8 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 177: style.blockConnectionType = static_cast<std::uint16_t>(value); break;
     case 178: style.rightAttachment = static_cast<std::uint16_t>(value); break;
     case 271: style.attachmentDirection = static_cast<std::uint16_t>(value); break;
+    case 272: style.bottomAttachment = static_cast<std::uint16_t>(value); break;
+    case 273: style.topAttachment = static_cast<std::uint16_t>(value); break;
     case 290: style.landingEnabled = value != 0; break;
     case 291: style.autoIncludeLanding = value != 0; break;
     case 292: style.textFrameEnabled = value != 0; break;
@@ -16324,7 +16334,8 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     ? mleaderInt32Value(value, editedCode) >= 0
                         && mleaderInt32Value(value, editedCode) <= 256
                     : enumMaximum >= 0
-                        ? mleaderInt32Value(value, editedCode) >= 0
+                        ? mleaderInt32Value(value, editedCode)
+                                >= mleaderEnumMinimum(editedCode)
                             && mleaderInt32Value(value, editedCode)
                                 <= enumMaximum
                     : isMLeaderInt32Code(editedCode))
