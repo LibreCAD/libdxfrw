@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-271 attachmentDirection",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "3fc83d8ff72228e392681e3b9e0635a3e17ae605",
+  "scope": "One runtime-authored AC1027 MLEADERSTYLE record with a unique existing group-271 INTEGER attachmentDirection value 0 (Horizontal). Its isolated transaction changes only attachmentDirection to 1 (Vertical); all other encoded style fields remain unchanged.",
+  "fieldEvidence": {
+    "groupCode": 271,
+    "field": "attachmentDirection",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies code 271 as text attachment direction for MText contents",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "valueDomain": {
+      "0": "Horizontal",
+      "1": "Vertical"
+    },
+    "valueDomainSource": "The Autodesk MLEADERSTYLE group-code table documents the code-271 values 0=Horizontal and 1=Vertical",
+    "classification": "Authoritative Autodesk DXF field-role and value-domain evidence plus authored adapter transaction; not independent producer, native MText layout or consumer semantic acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable from the validated ACAD_MLEADERSTYLE dictionary, have a source-matched raw body and immutable baseline, and contain exactly one existing group-271 INTEGER matching the parsed attachmentDirection. The target value must be in 0..1. attachmentDirection must be the only changed typed payload field; identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-271 value in a copy of the captured body. Preserve all other ordered fields and opaque groups. Missing/repeated group 271, conflicting raw changes, simultaneous edits, values outside 0..1, unknown subclass grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "The table-driven regression exercises the group-271 field on ASCII and binary sources, same-format and opposite-format output. It verifies exactly one emitted INTEGER group 271 with value 1, fresh typed readback as attachmentDirection=1, and cross-format readback.",
+    "failureAndRetry": "Changing captured raw group 271 from 0 to 1 while the typed value requests 1 refuses and preserves a sentinel destination. Typed value 2 is refused atomically. Restoring the original raw body and requesting value 1 permits same-adapter retry. The regression runs for ASCII and binary source profiles.",
+    "compatibility": "Untouched MLEADERSTYLE records keep raw replay. Transactions remain AC1027-only and one field per record. DWG-origin writing is unchanged. This field-level output evidence does not qualify native attachment behavior, other versions or document closure."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 271=0 for STANDARD; ASCII and binary test inputs and outputs are generated from scratch at runtime in temporary storage.",
+    "implementationCommit": "3fc83d8ff72228e392681e3b9e0635a3e17ae605",
+    "dwg2dxf/dx_iface.cpp": "ddcb26ba55fe92fd32004c831042dfe2397bc107a21b9613a42d161eb760f402",
+    "tests/dwg2dxf_adapter_tests.cpp": "73c0726a3b1739ea424fd4dae57c704f32558fb535918e61d1f395193ddefc66",
+    "adapterTestExecutableSha256": "2e419383f58b262ec93df70857520a673f46d25ccc8c080be9fea5ecca710e7c"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang version 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. Group 271 is checked for typed source identity, exact output field, raw-conflict rollback, invalid enum refusal, same-adapter retry and cross-format conversion; the fail-closed selector passed."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies one authored AC1027 group-271 field transaction only. It does not establish native MText orientation, independent producer variation, other MLEADERSTYLE fields, cross-version behavior, DWG editing, consumer acceptance or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a distinct remaining MLEADERSTYLE integer, string or handle field profile, or a source-backed P2 geometry/provider witness; bind the exact source, output, rollback and retry controls before widening admission."
+}
