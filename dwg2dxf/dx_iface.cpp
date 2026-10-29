@@ -15989,7 +15989,7 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 2> mleaderInt32Codes{{90, 92}};
+constexpr std::array<int, 3> mleaderInt32Codes{{90, 91, 92}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16005,6 +16005,7 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
                                int code) noexcept {
     switch (code) {
     case 90: return style.maxLeaderPoints;
+    case 91: return style.leaderColor;
     case 92: return style.leaderLineWeight;
     default: return 0;
     }
@@ -16014,6 +16015,7 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
                           std::int32_t value) noexcept {
     switch (code) {
     case 90: style.maxLeaderPoints = value; break;
+    case 91: style.leaderColor = value; break;
     case 92: style.leaderLineWeight = value; break;
     default: break;
     }
@@ -16135,6 +16137,12 @@ bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
                 return false;
             continue;
         }
+        // Group 91 is a CMC field. This transaction supports only its
+        // source-bound ACI group; do not rewrite it if truecolor, name/book,
+        // transparency or another CMC extension is also present.
+        if (code == 91 && inStyleBody
+            && fieldCode >= 420 && fieldCode <= 449)
+            return false;
         if (!inStyleBody || fieldCode != code)
             continue;
         if (field.type() != expectedType
@@ -16227,7 +16235,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             if (editedCode < 0)
                 return false;
             std::size_t baselineSlot = noMLeaderFieldSlot;
-            const bool validValue = isMLeaderInt32Code(editedCode)
+            const bool validValue = (editedCode == 91
+                    ? value.leaderColor >= 0 && value.leaderColor <= 256
+                    : isMLeaderInt32Code(editedCode))
                 || std::isfinite(mleaderDoubleValue(value, editedCode));
             if (!validValue
                 || !mleaderFieldSlot(*baseline->second, editedCode,
@@ -16372,9 +16382,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     source.output.groups[slot] = encoded.groups.front();
                 } else if (isMLeaderInt32Code(editedCode)) {
                     // BodyWriter stores generic 90-92 values as INTEGER64 for
-                    // MATERIAL's unsigned color case. MLEADERSTYLE groups 90
-                    // and 92 are INT32 fields and their raw-carrier validator
-                    // requires the ordinary INTEGER variant.
+                    // MATERIAL's unsigned color case. MLEADERSTYLE groups
+                    // 90-92 are signed INT32/ACI fields and their raw-carrier
+                    // validator requires the ordinary INTEGER variant.
                     source.output.groups[slot] = DRW_Variant(
                         editedCode, mleaderInt32Value(projection,
                                                       editedCode));
