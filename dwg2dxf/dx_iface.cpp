@@ -21957,6 +21957,11 @@ struct MlineLinetypeShape {
             xdataHasPayload=true;
             ++xdataFields;return true;
         }
+        if (code==1040 || code==1041 || code==1042) {
+            if (!xdata) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
         if (xdata) return false;
         if (code==5) return classes==0u && ++selves==1u;
         if (code==330) return classes==0u && ++owners==1u;
@@ -21992,55 +21997,70 @@ bool simpleMlineAppId(const DRW_AppId& value) {
         && value.xDictHandle==0u;
 }
 
+bool simpleMlineLinetypeXdata(const DRW_LType& value,
+                              std::vector<std::string_view>& appIdNames) {
+    appIdNames.clear();
+    if (value.extData.size()>kMaxAdapterBasicTableItems) return false;
+    std::size_t depth=0u;bool application=false,hasPayload=false;
+    for (const DRW_Variant* field:value.extData) {
+        if (!field) return false;
+        if (field->code()==1001) {
+            if (field->type()!=DRW_Variant::STRING || !field->content.s
+                || field->content.s->empty() || field->content.s->size()>255u
+                || field->content.s->find('\0')!=std::string::npos
+                || (application && (depth!=0u || !hasPayload))) return false;
+            appIdNames.emplace_back(*field->content.s);
+            if (appIdNames.size()>2u) return false;
+            application=true;hasPayload=false;continue;
+        }
+        if (!application) return false;
+        switch (field->code()) {
+        case 1000:
+            if (field->type()!=DRW_Variant::STRING || !field->content.s
+                || field->content.s->size()>255u
+                || field->content.s->find('\0')!=std::string::npos) return false;
+            hasPayload=true;break;
+        case 1002:
+            if (field->type()!=DRW_Variant::STRING || !field->content.s) return false;
+            if (*field->content.s=="{") {
+                if (depth>=DRW::kMaxDxfApplicationGroupNesting) return false;
+                ++depth;
+            } else if (*field->content.s=="}") {
+                if (depth==0u) return false;
+                --depth;
+            } else return false;
+            break;
+        case 1040:
+        case 1041:
+        case 1042:
+            if (field->type()!=DRW_Variant::DOUBLE
+                || !std::isfinite(field->content.d)) return false;
+            hasPayload=true;break;
+        case 1070:
+            if (field->type()!=DRW_Variant::INTEGER
+                || field->i_val()<-32768 || field->i_val()>32767) return false;
+            hasPayload=true;break;
+        case 1071:
+            if (field->type()!=DRW_Variant::INTEGER
+                || field->i_val()<std::numeric_limits<std::int32_t>::min()
+                || field->i_val()>std::numeric_limits<std::int32_t>::max()) return false;
+            hasPayload=true;break;
+        default:return false;
+        }
+    }
+    return !application || (depth==0u && hasPayload);
+}
+
 bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
                          std::vector<std::string_view>& appIdNames) {
-    appIdNames.clear();
     if ((value.flags!=0 && value.flags!=64) || value.alignment!=65 || value.size<0
         || static_cast<std::size_t>(value.size)!=value.path.size()
         || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
         || value.synchronizedLengthCount()!=value.path.size()
         || value.retainedSegmentTextCount()!=value.path.size()
-        || !value.appData.empty() || value.extData.size()>kMaxAdapterBasicTableItems
+        || !value.appData.empty() || !simpleMlineLinetypeXdata(value,appIdNames)
         || !value.reactorHandles.empty()
         || value.xDictHandle!=0u || value.xrefBlockHandle.ref!=0u || value.xrefBlockHandle.ref64!=0u) return false;
-    if (!value.extData.empty()) {
-        const auto stringField=[](const DRW_Variant* field,int code) {
-            return field && field->code()==code && field->type()==DRW_Variant::STRING
-                && field->content.s && field->content.s->size()<=255u
-                && field->content.s->find('\0')==std::string::npos;
-        };
-        const bool oneStructuredList=value.extData.size()==4u
-            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
-            && stringField(value.extData[1],1002) && *value.extData[1]->content.s=="{"
-            && stringField(value.extData[2],1000)
-            && stringField(value.extData[3],1002) && *value.extData[3]->content.s=="}";
-        const bool oneSignedShort=value.extData.size()==2u
-            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
-            && value.extData[1] && value.extData[1]->code()==1070
-            && value.extData[1]->type()==DRW_Variant::INTEGER
-            && value.extData[1]->i_val()>=-32768 && value.extData[1]->i_val()<=32767;
-        const bool oneSignedLong=value.extData.size()==2u
-            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
-            && value.extData[1] && value.extData[1]->code()==1071
-            && value.extData[1]->type()==DRW_Variant::INTEGER
-            && value.extData[1]->i_val()>=std::numeric_limits<std::int32_t>::min()
-            && value.extData[1]->i_val()<=std::numeric_limits<std::int32_t>::max();
-        if (oneStructuredList) {
-            appIdNames.emplace_back(*value.extData[0]->content.s);
-        } else if (oneSignedShort) {
-            appIdNames.emplace_back(*value.extData[0]->content.s);
-        } else if (oneSignedLong) {
-            appIdNames.emplace_back(*value.extData[0]->content.s);
-        } else {
-            if (value.extData.size()!=2u && value.extData.size()!=4u) return false;
-            for (std::size_t i=0u;i<value.extData.size();i+=2u) {
-                if (!stringField(value.extData[i],1001)
-                    || value.extData[i]->content.s->empty()
-                    || !stringField(value.extData[i+1u],1000)) return false;
-                appIdNames.emplace_back(*value.extData[i]->content.s);
-            }
-        }
-    }
     for (std::size_t i=0u;i<value.path.size();++i) {
         const auto& segment=value.segments[i];
         if (!retainedDoubleEqual(segment.length,value.path[i]) || segment.shapeFlags!=0
@@ -22577,42 +22597,13 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
             if (row.second.model.extData.empty()) {
                 if (!row.second.appIdHandles.empty()) return false;
             } else {
-                const auto& extData=row.second.model.extData;
-                const bool structuredList=extData.size()==4u
-                    && row.second.appIdHandles.size()==1u
-                    && extData[1u] && extData[1u]->code()==1002
-                    && extData[1u]->type()==DRW_Variant::STRING
-                    && extData[1u]->content.s && *extData[1u]->content.s=="{"
-                    && extData[2u] && extData[2u]->code()==1000
-                    && extData[3u] && extData[3u]->code()==1002
-                    && extData[3u]->type()==DRW_Variant::STRING
-                    && extData[3u]->content.s && *extData[3u]->content.s=="}";
-                if (row.second.appIdHandles.empty()
-                    || (!structuredList
-                        && extData.size()!=row.second.appIdHandles.size()*2u)) return false;
+                std::vector<std::string_view> appIdNames;
+                if (!simpleMlineLinetypeXdata(row.second.model,appIdNames)
+                    || appIdNames.empty()
+                    || appIdNames.size()!=row.second.appIdHandles.size()) return false;
                 std::array<std::string,2> appKeys{};
                 for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
-                    const auto& appField=extData[structuredList?0u:i*2u];
-                    const auto& payloadField=extData[structuredList?2u:i*2u+1u];
-                    const bool stringPayload=payloadField
-                        && payloadField->code()==1000
-                        && payloadField->type()==DRW_Variant::STRING
-                        && payloadField->content.s;
-                    const bool signedShortPayload=payloadField
-                        && payloadField->code()==1070
-                        && payloadField->type()==DRW_Variant::INTEGER
-                        && payloadField->i_val()>=-32768 && payloadField->i_val()<=32767;
-                    const bool signedLongPayload=payloadField
-                        && payloadField->code()==1071
-                        && payloadField->type()==DRW_Variant::INTEGER
-                        && payloadField->i_val()>=std::numeric_limits<std::int32_t>::min()
-                        && payloadField->i_val()<=std::numeric_limits<std::int32_t>::max();
-                    if (!appField || !payloadField || appField->code()!=1001
-                        || appField->type()!=DRW_Variant::STRING || !appField->content.s
-                        || appField->content.s->empty()
-                        || (!stringPayload && !signedShortPayload && !signedLongPayload))
-                        return false;
-                    if (!dx_symbol_output::nameKey(*appField->content.s,appKeys[i])
+                    if (!dx_symbol_output::nameKey(appIdNames[i],appKeys[i])
                         || (i!=0u && appKeys[i]==appKeys[0])) return false;
                     const auto appName=cData->m_tableDxfSource.resourceNames.find(
                         {dx_tableResourceFamily::AppId,appKeys[i]});
