@@ -35452,11 +35452,12 @@ double consumedAppendOffset(unsigned element) {
 int consumedAppendColor(unsigned element) {
     if(element==0u)return 1;
     if(element==1u)return 3;
+    if(element==254u)return 2;
     return static_cast<int>(element)+2;
 }
 bool runSelectedConsumedAppendSourceCounts(
         const std::filesystem::path& dir,unsigned first,unsigned last) {
-    if(first<4u||last<first||last>253u)return false;
+    if(first<4u||last<first||last>254u)return false;
     for(unsigned sourceCount=first;sourceCount<=last;++sourceCount) {
         std::vector<double> offsets;
         std::vector<int> colors;
@@ -35477,42 +35478,6 @@ bool runSelectedConsumedAppendSourceCounts(
             return false;
     }
     return true;
-}
-bool runConsumedSourceCount174BudgetRefusal(const std::filesystem::path& dir) {
-    constexpr unsigned sourceCount=174u;
-    const auto input=dir/"consumed-source-174-budget-input.dxf";
-    const auto output=dir/"consumed-source-174-budget-output.dxf";
-    std::size_t refusals=0u,retries=0u;
-    const auto fail=[&](int line) {
-        std::cerr<<"MLINE source-count-174 budget refusal line="<<line
-            <<" refusals="<<refusals<<" retries="<<retries<<'\n';return false;
-    };
-    dx_iface adapter;dx_data data;
-    if(!write(input,consumedSourceCountRecipe(false,sourceCount),false,"AC1027")
-        ||!adapter.fileImport(input.string(),&data,false)
-        ||data.mLineStyles.size()!=1u
-        ||data.mLineStyles.front().elements.size()!=sourceCount)return fail(__LINE__);
-    auto appended=data.mLineStyles.front().elements.front();
-    appended.offset=consumedAppendOffset(sourceCount);
-    appended.color=consumedAppendColor(sourceCount);
-    appended.linetype=(sourceCount%2u)==0u?"ByLayer":"Continuous";
-    data.mLineStyles.front().elements.push_back(std::move(appended));
-    const mlineRetargetControls::Snapshot caller(data);
-    for(const bool outputBinary:{false,true}) {
-        sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
-            ||!caller.same(data))return fail(__LINE__);
-        ++refusals;
-        sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
-            ||!caller.same(data))return fail(__LINE__);
-        ++retries;
-    }
-    std::cout<<"MLINE consumed source-count=174 -> 175 budget refusal: refusals="
-        <<refusals<<" same-adapter retries="<<retries<<'\n';
-    return refusals==2u&&retries==2u;
 }
 bool runConsumedFourSourceAppend(const std::filesystem::path& dir) {
     return runConsumedSourceCountAppend(dir,4u,fourElementRecipe,{1.25,-.75,-1.25,-2.0,-2.5},{1,3,4,5,6},
@@ -35670,16 +35635,6 @@ bool runSelectedConsumedAppendSourceCountsTemporary(unsigned first,unsigned last
     const bool passed=runSelectedConsumedAppendSourceCounts(dir,first,last);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed selected source-count artifacts: "<<dir<<'\n';
-    return passed;
-}
-bool runConsumedSourceCount174BudgetRefusalTemporary() {
-    const auto dir=std::filesystem::temp_directory_path()/
-        ("libdxfrw-mline-consumed-source-count-174-budget-"+
-         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::create_directory(dir);
-    const bool passed=runConsumedSourceCount174BudgetRefusal(dir);
-    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
-    else std::cerr<<"MLINE consumed source-count-174 budget artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedAppend(const std::filesystem::path& dir) {
@@ -44910,15 +44865,12 @@ int main(int argc, char** argv) {
         try {
             const auto first=std::stoul(argv[2]);
             const auto last=std::stoul(argv[3]);
-            if(first>253u||last>253u)return 2;
+            if(first>254u||last>254u)return 2;
             return mlineConsumedOffsetControls::runSelectedConsumedAppendSourceCountsTemporary(
                 static_cast<unsigned>(first),static_cast<unsigned>(last))?0:1;
         } catch (...) {
             return 2;
         }
-    }
-    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-source-count-174-budget-refusal") {
-        return mlineConsumedOffsetControls::runConsumedSourceCount174BudgetRefusalTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;

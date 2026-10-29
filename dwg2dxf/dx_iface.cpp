@@ -18622,28 +18622,33 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             if (value.handle!=original->handle || value.parentHandle!=original->parentHandle
                 || value.styleName!=original->styleName
                 || m_dxfMLineStyles.count(value.styleHandle)!=1u) return false;
-            // Precharge the physical copy, wire/decoder temporaries and their
-            // string owners before materializing them. The shared conservative
-            // allowance is logical accounting, not an allocator/RSS theorem.
-            std::size_t rawBytes=sizeof(DRW_RawDxfObject);
-            if (!addStringPayloadBytes(physical.name,rawBytes)
-                || !addAssociativeSlotBytes(physical.groups.size(),sizeof(DRW_Variant)+sizeof(UTF8STRING),rawBytes)) return false;
-            for (std::size_t i=0u;i<physical.groups.size();++i) {
-                std::size_t payload=0u;
-                if (!physical.groups[i].estimateRetainedPayloadBytes(kMaxAdapterRawNamedResourceRetainedBytes,payload)
-                    || !addAssociativeRetainedBytes(payload,rawBytes)
-                    || !addStringPayloadBytes(physical.rawValues[i],rawBytes)) return false;
-            }
-            if (!chargeNamedResourceBytes(bytes,rawBytes)) return false;
-            DRW_RawDxfObject raw;raw.name=physical.name;raw.handle=original->handle;
-            raw.parentHandle=original->parentHandle;raw.m_version=version;raw.hasRawValues=!context.binary;
-            raw.groups=physical.groups;raw.rawValues=physical.rawValues;
-            DRW_MLine decoded;
-            if (!dx_material_body::decodeRecord(raw,decoded,context.binary,context.codecCodePage,
-                    context.textEncoding,context.codePagePolicy,context.compatibilityProfile)
-                || decoded.handle!=original->handle
-                || decoded.parentHandle!=original->parentHandle || decoded.styleName!=original->styleName
-                || decoded.styleHandle!=original->styleHandle || !mlineGeometryEqual(decoded,*original)) return false;
+            // The captured physical group span is already retained and remains
+            // immutable here; charge its exact serialized work and parsed MLINE
+            // before allocating either, without cloning groups/raw spellings.
+            std::size_t decodedBytes=0u;
+            if (!estimateTypedEntityRetainedBytes(*original,sizeof(DRW_MLine),decodedBytes)
+                || !dx_material_body::decodePhysicalGroups<DRW_MLine>(physical.groups,version,
+                    context.binary,context.codecCodePage,context.textEncoding,
+                    context.codePagePolicy,context.compatibilityProfile,
+                    [&](std::size_t wireBytes) {
+                        if (wireBytes>kMaxAdapterRawNamedResourceRetainedBytes/2u) return false;
+                        std::size_t workBytes=2u*wireBytes;
+                        constexpr std::size_t writerBytes=sizeof(dxfWriterAscii)>sizeof(dxfWriterBinary)
+                            ?sizeof(dxfWriterAscii):sizeof(dxfWriterBinary);
+                        const std::size_t fixedBytes=sizeof(std::string)+sizeof(std::ostream)
+                            +2u*sizeof(std::streambuf)+writerBytes+sizeof(dx_standard_output::Decoder)
+                            +sizeof(dxfRW::DxfObjectsWriteView)+sizeof(std::unique_ptr<dxfWriter>);
+                        return addAssociativeRetainedBytes(decodedBytes,workBytes)
+                            && addAssociativeRetainedBytes(fixedBytes,workBytes)
+                            && chargeNamedResourceBytes(bytes,workBytes);
+                    },
+                    [&](const DRW_MLine& decoded) {
+                        return decoded.handle==original->handle
+                            && decoded.parentHandle==original->parentHandle
+                            && decoded.styleName==original->styleName
+                            && decoded.styleHandle==original->styleHandle
+                            && mlineGeometryEqual(decoded,*original);
+                    })) return false;
             DxfMLineConsumerSource planned;planned.live=current->second.model;planned.block=block;
             planned.model=value;planned.original=original;planned.entities=entities;planned.blocks=blocks;planned.dispatch=dispatch;
             if (retargetGeometryProjected) {

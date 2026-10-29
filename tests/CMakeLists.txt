@@ -372,13 +372,20 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_append_129_173 PROPERT
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
-# The 174 -> 175 case reaches the 64 MiB conservative retained-byte budget;
-# preserve the fail-closed destination/caller contract and same-adapter refusal.
-add_test(NAME libdxfrw_mline_consumed_source_count_174_budget_refusal
-    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-174-budget-refusal)
-set_tests_properties(libdxfrw_mline_consumed_source_count_174_budget_refusal PROPERTIES
+# Runtime-generated AC1027 source counts 174 through 253 after bounded direct
+# physical-group decoding; verify output/readback, rollback and same-adapter retry.
+add_test(NAME libdxfrw_mline_consumed_source_count_append_174_253
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 174 253)
+set_tests_properties(libdxfrw_mline_consumed_source_count_append_174_253 PROPERTIES
     LABELS "dxf;fast;transaction"
-    TIMEOUT 30)
+    TIMEOUT 120)
+
+# Highest legal one-element append: source count 254 to target count 255.
+add_test(NAME libdxfrw_mline_consumed_source_count_append_254_255
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 254 254)
+set_tests_properties(libdxfrw_mline_consumed_source_count_append_254_255 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
 
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,

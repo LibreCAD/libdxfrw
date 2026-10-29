@@ -3,9 +3,17 @@
 // adapter-private and is not a producer/native-semantic support certificate.
 #ifndef DX_MATERIAL_BODY_H
 #define DX_MATERIAL_BODY_H
+#include <cstdint>
+#include <cstring>
+#include <limits>
 #include <map>
+#include <memory>
+#include <ostream>
 #include <set>
 #include <sstream>
+#include <streambuf>
+#include <string>
+#include <vector>
 #include "dx_standard_output.h"
 #include "intern/dxfmaterial.h"
 namespace dx_material_body {
@@ -154,6 +162,119 @@ template<class Record> inline bool decodeRecord(const DRW_RawDxfObject& raw,Reco
     dx_standard_output::Decoder reader(view,true,encoding,policy);
     return reader.decodeRecord<Record>(storage,[&](const Record& value){
         result=value;return true;
+    });
+}
+namespace detail {
+class CountingBuffer final : public std::streambuf {
+public:
+    std::size_t size() const noexcept { return m_size; }
+protected:
+    int_type overflow(int_type value) override {
+        if (traits_type::eq_int_type(value,traits_type::eof()))
+            return traits_type::not_eof(value);
+        if (m_size==std::numeric_limits<std::size_t>::max())
+            return traits_type::eof();
+        ++m_size;
+        return value;
+    }
+    std::streamsize xsputn(const char*,std::streamsize count) override {
+        if (count<0 || static_cast<std::uintmax_t>(count)
+                >std::numeric_limits<std::size_t>::max()-m_size)
+            return 0;
+        m_size+=static_cast<std::size_t>(count);
+        return count;
+    }
+private:
+    std::size_t m_size{0u};
+};
+
+class FixedBuffer final : public std::streambuf {
+public:
+    FixedBuffer(char* data,std::size_t size) noexcept : m_data(data),m_size(size) {}
+    std::size_t written() const noexcept { return m_written; }
+protected:
+    int_type overflow(int_type value) override {
+        if (traits_type::eq_int_type(value,traits_type::eof()))
+            return traits_type::not_eof(value);
+        if (m_written>=m_size)
+            return traits_type::eof();
+        m_data[m_written++]=traits_type::to_char_type(value);
+        return value;
+    }
+    std::streamsize xsputn(const char* data,std::streamsize count) override {
+        if (count<0 || static_cast<std::uintmax_t>(count)>m_size-m_written)
+            return 0;
+        const auto length=static_cast<std::size_t>(count);
+        if (length!=0u)
+            std::memcpy(m_data+m_written,data,length);
+        m_written+=length;
+        return count;
+    }
+private:
+    char* m_data;
+    std::size_t m_size;
+    std::size_t m_written{0u};
+};
+
+inline std::unique_ptr<dxfWriter> makeWriter(std::ostream& stream,bool binary) {
+    return binary ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+                  : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+}
+
+inline bool writeGroups(dxfWriter& writer,const Groups& groups,bool binary) {
+    for (const auto& value:groups) {
+        bool good=false;
+        const auto code=value.code();
+        if (value.type()==DRW_Variant::STRING&&value.content.s)
+            good=writer.writeRawString(code,*value.content.s);
+        else if (value.type()==DRW_Variant::INTEGER)
+            good=integer(writer,code,value.i_val(),binary);
+        else if (value.type()==DRW_Variant::DOUBLE)
+            good=writer.writeDouble(code,value.d_val());
+        else if (value.type()==DRW_Variant::INTEGER64)
+            good=integer(writer,code,value.i64_val(),binary);
+        if (!good)
+            return false;
+    }
+    return !writer.hasWriteError();
+}
+} // namespace detail
+
+// Decode an immutable physical group span without cloning it into a raw-object
+// carrier. The sizing pass writes to a counting stream, so callers can charge
+// the exact output size and parsed model before the output allocation.
+// The callback consumes the parsed record by reference and can avoid a second
+// typed-model copy when it only needs to authenticate source equality.
+template<class Record,class BeforeMaterialize,class Consumer>
+inline bool decodePhysicalGroups(const Groups& groups,DRW::Version version,bool binary,
+        std::string_view page,DRW::DxfTextEncoding encoding,DRW::DxfCodePagePolicy policy,
+        dxfRW::DxfCompatibilityProfile compatibility,BeforeMaterialize&& beforeMaterialize,
+        Consumer&& consumer) {
+    detail::CountingBuffer countBuffer;
+    std::ostream countStream(&countBuffer);
+    {
+        auto writer=detail::makeWriter(countStream,binary);
+        writer->setVersion("AC1027",true);
+        if (!detail::writeGroups(*writer,groups,binary))
+            return false;
+    }
+    const std::size_t wireBytes=countBuffer.size();
+    if (!beforeMaterialize(wireBytes))
+        return false;
+    std::string storage(wireBytes,'\0');
+    detail::FixedBuffer outputBuffer(storage.data(),storage.size());
+    std::ostream outputStream(&outputBuffer);
+    {
+        auto writer=detail::makeWriter(outputStream,binary);
+        writer->setVersion("AC1027",true);
+        if (!detail::writeGroups(*writer,groups,binary)
+            || outputBuffer.written()!=wireBytes)
+            return false;
+    }
+    const dxfRW::DxfObjectsWriteView view{storage,version,binary,page,compatibility};
+    dx_standard_output::Decoder reader(view,true,encoding,policy);
+    return reader.decodeRecord<Record>(storage,[&](const Record& value) {
+        return consumer(value);
     });
 }
 inline bool decode(const DRW_RawDxfObject& raw,DRW_Material& result,bool binary) {
