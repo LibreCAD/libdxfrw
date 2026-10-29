@@ -36464,7 +36464,8 @@ template<class SourceRecipe>
 bool runConsumedSurvivorSubsetRemoval(const std::filesystem::path& dir,unsigned sourceCount,
         unsigned targetCount,SourceRecipe sourceRecipe,const std::vector<double>& sourceOffsets,
         const std::vector<int>& sourceColors,const std::vector<std::string>& sourceLinetypes) {
-    if(sourceCount<2u||sourceCount>9u||(sourceCount==9u&&targetCount!=1u)
+    if(sourceCount<2u||sourceCount>9u
+        ||(sourceCount==9u&&targetCount!=1u&&targetCount!=2u)
         ||targetCount==0u||targetCount>=sourceCount
         ||sourceOffsets.size()!=sourceCount||sourceColors.size()!=sourceCount
         ||sourceLinetypes.size()!=sourceCount)return false;
@@ -36597,9 +36598,10 @@ bool runConsumedSourceCountRemovalMatrixTemporary(unsigned sourceCount) {
     else std::cerr<<"MLINE consumed source-count removal artifacts: "<<dir<<'\n';
     return passed;
 }
-bool runConsumedNineToOneRemovalTemporary() {
+bool runConsumedNineReductionTemporary(unsigned targetCount) {
+    if(targetCount!=1u&&targetCount!=2u)return false;
     const auto dir=std::filesystem::temp_directory_path()/
-        ("libdxfrw-mline-consumed-nine-to-one-removal-"+
+        ("libdxfrw-mline-consumed-nine-to-"+std::to_string(targetCount)+"-removal-"+
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(dir);
     std::vector<double> offsets;
@@ -36610,13 +36612,13 @@ bool runConsumedNineToOneRemovalTemporary() {
         colors.push_back(consumedAppendColor(i));
         linetypes.emplace_back(i%2u==0u?"ByLayer":"Continuous");
     }
-    const bool passed=runConsumedSurvivorSubsetRemoval(dir,9u,1u,
+    const bool passed=runConsumedSurvivorSubsetRemoval(dir,9u,targetCount,
         nineElementRecipe,offsets,colors,linetypes);
     if(passed) {
         std::error_code error;
         std::filesystem::remove_all(dir,error);
     } else {
-        std::cerr<<"MLINE consumed 9-to-1 removal artifacts: "<<dir<<'\n';
+        std::cerr<<"MLINE consumed 9-to-"<<targetCount<<" removal artifacts: "<<dir<<'\n';
     }
     return passed;
 }
@@ -45265,7 +45267,10 @@ int main(int argc, char** argv) {
         return mlineConsumedOffsetControls::runConsumedSourceCountRemovalMatrixTemporary(8u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-single-from-nine-removal") {
-        return mlineConsumedOffsetControls::runConsumedNineToOneRemovalTemporary()?0:1;
+        return mlineConsumedOffsetControls::runConsumedNineReductionTemporary(1u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-two-from-nine-removal") {
+        return mlineConsumedOffsetControls::runConsumedNineReductionTemporary(2u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
