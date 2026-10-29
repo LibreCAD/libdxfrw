@@ -116,6 +116,9 @@ set_tests_properties(libdxfrw_mline_ltype_source_live PROPERTIES LABELS "dxf;fas
 add_test(NAME libdxfrw_mline_root_dictionary_source_live
     COMMAND libdxfrw_mline_source_dependency_tests --mline-root-dictionary-source-live)
 set_tests_properties(libdxfrw_mline_root_dictionary_source_live PROPERTIES LABELS "dxf;fast" TIMEOUT 30)
+add_test(NAME libdxfrw_mline_style_dictionary_source_live
+    COMMAND libdxfrw_mline_source_dependency_tests --mline-style-dictionary-source-live)
+set_tests_properties(libdxfrw_mline_style_dictionary_source_live PROPERTIES LABELS "dxf;fast" TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}

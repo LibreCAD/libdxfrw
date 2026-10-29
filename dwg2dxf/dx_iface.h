@@ -1829,6 +1829,7 @@ private:
     friend class DxWholeSourceTestAccess;
     friend class DxIfaceMlineDependencyTestAccess;
     bool mlineRootDictionarySourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
+    bool mlineStyleDictionarySourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLayerSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLtypeSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     dx_mline_source_dependency::Proof mlineDependencySourceProof(const dx_data&,
