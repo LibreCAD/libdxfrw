@@ -34198,10 +34198,18 @@ bool multiAppendOutputProof(const std::filesystem::path& path,bool binary,unsign
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
     };
-    const std::array<double,10> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25,-2.0,-3.0,-4.0,-5.0,-6.0,-7.0,-8.0}};
-    const std::array<int,10> colors{{1,3,4,5,6,7,8,9,10,11}};
-    const std::array<std::string,10> linetypes{{"ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous"}};
-    if(targetCount<3u||targetCount>offsets.size())return false;
+    const std::array<double,10> initialOffsets{{beforeOffsets[0],beforeOffsets[1],-1.25,-2.0,-3.0,-4.0,-5.0,-6.0,-7.0,-8.0}};
+    const std::array<int,10> initialColors{{1,3,4,5,6,7,8,9,10,11}};
+    const std::array<std::string,10> initialLinetypes{{"ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous"}};
+    if(targetCount<3u||targetCount>UINT8_MAX)return false;
+    std::vector<double> offsets(initialOffsets.begin(),initialOffsets.end());
+    std::vector<int> colors(initialColors.begin(),initialColors.end());
+    std::vector<std::string> linetypes(initialLinetypes.begin(),initialLinetypes.end());
+    for(std::size_t i=initialOffsets.size();i<targetCount;++i) {
+        offsets.push_back(-static_cast<double>(i-1u));
+        colors.push_back(12+static_cast<int>((i-initialOffsets.size())%244u));
+        linetypes.push_back(i%2u==0u?"ByLayer":"Continuous");
+    }
     const double targetMinimum=*std::min_element(offsets.begin(),offsets.begin()+static_cast<std::ptrdiff_t>(targetCount));
     const mlineStyleAuthorityControls::Row* style=nullptr;unsigned styles=0u,consumers=0u;
     for(const auto& row:rows)if(row.type=="MLINESTYLE") {
@@ -34337,10 +34345,10 @@ bool runConsumedAppendTemporary() {
 }
 bool runConsumedMultiAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-multi-append-input.dxf",output=dir/"consumed-multi-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed multi-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34370,28 +34378,6 @@ bool runConsumedMultiAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
-        auto third=data.mLineStyles.front().elements.front();third.offset=-3.0;third.color=6;
-        auto fourth=data.mLineStyles.front().elements.back();fourth.offset=-4.0;fourth.color=7;
-        auto fifth=data.mLineStyles.front().elements.back();fifth.offset=-5.0;fifth.color=8;
-        auto sixth=data.mLineStyles.front().elements.front();sixth.offset=-6.0;sixth.color=9;sixth.linetype="Continuous";
-        auto seventh=data.mLineStyles.front().elements.back();seventh.offset=-7.0;seventh.color=10;seventh.linetype="ByLayer";
-        auto eighth=data.mLineStyles.front().elements.front();eighth.offset=-8.0;eighth.color=11;eighth.linetype="Continuous";
-        auto ninth=data.mLineStyles.front().elements.back();ninth.offset=-9.0;ninth.color=12;ninth.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(third));
-        data.mLineStyles.front().elements.push_back(std::move(fourth));
-        data.mLineStyles.front().elements.push_back(std::move(fifth));
-        data.mLineStyles.front().elements.push_back(std::move(sixth));
-        data.mLineStyles.front().elements.push_back(std::move(seventh));
-        data.mLineStyles.front().elements.push_back(std::move(eighth));
-        data.mLineStyles.front().elements.push_back(std::move(ninth));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
@@ -34405,8 +34391,8 @@ bool runConsumedMultiAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed multi-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedMultiAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34418,10 +34404,10 @@ bool runConsumedMultiAppendTemporary() {
 }
 bool runConsumedTripleAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-triple-append-input.dxf",output=dir/"consumed-triple-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed triple-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34454,27 +34440,6 @@ bool runConsumedTripleAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto fourth=data.mLineStyles.front().elements.back();fourth.offset=-4.0;fourth.color=7;
-        auto fifth=data.mLineStyles.front().elements.back();fifth.offset=-5.0;fifth.color=8;
-        auto sixth=data.mLineStyles.front().elements.front();sixth.offset=-6.0;sixth.color=9;sixth.linetype="Continuous";
-        auto seventh=data.mLineStyles.front().elements.back();seventh.offset=-7.0;seventh.color=10;seventh.linetype="ByLayer";
-        auto eighth=data.mLineStyles.front().elements.front();eighth.offset=-8.0;eighth.color=11;eighth.linetype="Continuous";
-        auto ninth=data.mLineStyles.front().elements.back();ninth.offset=-9.0;ninth.color=12;ninth.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(fourth));
-        data.mLineStyles.front().elements.push_back(std::move(fifth));
-        data.mLineStyles.front().elements.push_back(std::move(sixth));
-        data.mLineStyles.front().elements.push_back(std::move(seventh));
-        data.mLineStyles.front().elements.push_back(std::move(eighth));
-        data.mLineStyles.front().elements.push_back(std::move(ninth));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
@@ -34488,8 +34453,8 @@ bool runConsumedTripleAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed triple-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedTripleAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34501,10 +34466,10 @@ bool runConsumedTripleAppendTemporary() {
 }
 bool runConsumedQuadAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-quad-append-input.dxf",output=dir/"consumed-quad-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed quad-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34540,25 +34505,6 @@ bool runConsumedQuadAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto fifth=data.mLineStyles.front().elements.back();fifth.offset=-5.0;fifth.color=8;
-        auto sixth=data.mLineStyles.front().elements.front();sixth.offset=-6.0;sixth.color=9;sixth.linetype="Continuous";
-        auto seventh=data.mLineStyles.front().elements.back();seventh.offset=-7.0;seventh.color=10;seventh.linetype="ByLayer";
-        auto eighth=data.mLineStyles.front().elements.front();eighth.offset=-8.0;eighth.color=11;eighth.linetype="Continuous";
-        auto ninth=data.mLineStyles.front().elements.back();ninth.offset=-9.0;ninth.color=12;ninth.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(fifth));
-        data.mLineStyles.front().elements.push_back(std::move(sixth));
-        data.mLineStyles.front().elements.push_back(std::move(seventh));
-        data.mLineStyles.front().elements.push_back(std::move(eighth));
-        data.mLineStyles.front().elements.push_back(std::move(ninth));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
             ||!append(data))return fail(__LINE__);
@@ -34573,8 +34519,8 @@ bool runConsumedQuadAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed quad-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedQuadAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34586,10 +34532,10 @@ bool runConsumedQuadAppendTemporary() {
 }
 bool runConsumedQuintAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-quint-append-input.dxf",output=dir/"consumed-quint-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed quint-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34626,23 +34572,6 @@ bool runConsumedQuintAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto eighth=data.mLineStyles.front().elements.front();eighth.offset=-6.0;eighth.color=9;eighth.linetype="Continuous";
-        auto ninth=data.mLineStyles.front().elements.back();ninth.offset=-7.0;ninth.color=10;ninth.linetype="ByLayer";
-        auto tenth=data.mLineStyles.front().elements.front();tenth.offset=-8.0;tenth.color=11;tenth.linetype="Continuous";
-        auto eleventh=data.mLineStyles.front().elements.back();eleventh.offset=-9.0;eleventh.color=12;eleventh.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(eighth));
-        data.mLineStyles.front().elements.push_back(std::move(ninth));
-        data.mLineStyles.front().elements.push_back(std::move(tenth));
-        data.mLineStyles.front().elements.push_back(std::move(eleventh));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
             ||!append(data))return fail(__LINE__);
@@ -34657,8 +34586,8 @@ bool runConsumedQuintAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed quint-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedQuintAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34670,10 +34599,10 @@ bool runConsumedQuintAppendTemporary() {
 }
 bool runConsumedSextAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-sext-append-input.dxf",output=dir/"consumed-sext-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed sext-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34712,21 +34641,6 @@ bool runConsumedSextAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto ninth=data.mLineStyles.front().elements.front();ninth.offset=-7.0;ninth.color=10;ninth.linetype="ByLayer";
-        auto tenth=data.mLineStyles.front().elements.back();tenth.offset=-8.0;tenth.color=11;tenth.linetype="Continuous";
-        auto eleventh=data.mLineStyles.front().elements.front();eleventh.offset=-9.0;eleventh.color=12;eleventh.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(ninth));
-        data.mLineStyles.front().elements.push_back(std::move(tenth));
-        data.mLineStyles.front().elements.push_back(std::move(eleventh));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
             ||!append(data))return fail(__LINE__);
@@ -34741,8 +34655,8 @@ bool runConsumedSextAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed sext-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedSextAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34754,10 +34668,10 @@ bool runConsumedSextAppendTemporary() {
 }
 bool runConsumedSeptAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-sept-append-input.dxf",output=dir/"consumed-sept-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed sept-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34798,19 +34712,6 @@ bool runConsumedSeptAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto tenth=data.mLineStyles.front().elements.front();tenth.offset=-8.0;tenth.color=11;tenth.linetype="Continuous";
-        auto eleventh=data.mLineStyles.front().elements.back();eleventh.offset=-9.0;eleventh.color=12;eleventh.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(tenth));
-        data.mLineStyles.front().elements.push_back(std::move(eleventh));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
             ||!append(data))return fail(__LINE__);
@@ -34825,8 +34726,8 @@ bool runConsumedSeptAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed sept-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedSeptAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34838,10 +34739,10 @@ bool runConsumedSeptAppendTemporary() {
 }
 bool runConsumedOctAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-oct-append-input.dxf",output=dir/"consumed-oct-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed oct-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34876,17 +34777,6 @@ bool runConsumedOctAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;
-        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
-            ||!append(data))return fail(__LINE__);
-        auto eleventh=data.mLineStyles.front().elements.front();eleventh.offset=-9.0;eleventh.color=12;eleventh.linetype="ByLayer";
-        data.mLineStyles.front().elements.push_back(std::move(eleventh));
-        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
-        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
-        ++boundaries;
-    }
-    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
             ||!append(data))return fail(__LINE__);
@@ -34901,8 +34791,8 @@ bool runConsumedOctAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed oct-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+        <<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
 }
 bool runConsumedOctAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -34910,6 +34800,103 @@ bool runConsumedOctAppendTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedOctAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed oct-append artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedAppendRange(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-range-append-input.dxf",output=dir/"consumed-range-append-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed append range line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
+    };
+    const auto append=[](dx_data& data,unsigned targetCount) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+            ||targetCount<3u||targetCount>UINT8_MAX)return false;
+        const auto first=data.mLineStyles.front().elements.front();
+        const auto last=data.mLineStyles.front().elements.back();
+        const std::array<double,8> offsets{{-1.25,-2.0,-3.0,-4.0,-5.0,-6.0,-7.0,-8.0}};
+        const std::array<int,8> colors{{4,5,6,7,8,9,10,11}};
+        const std::array<std::string,8> linetypes{{"ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous"}};
+        for(std::size_t index=0u;index<targetCount-2u;++index) {
+            auto element=index%2u==0u?first:last;
+            if(index<offsets.size()) {
+                element.offset=offsets[index];element.color=colors[index];element.linetype=linetypes[index];
+            } else {
+                element.offset=-static_cast<double>(index+1u);
+                element.color=12+static_cast<int>((index-offsets.size())%244u);
+                element.linetype=index%2u==0u?"ByLayer":"Continuous";
+            }
+            data.mLineStyles.front().elements.push_back(std::move(element));
+        }
+        return data.mLineStyles.front().elements.size()==targetCount;
+    };
+    const std::array<unsigned,3> representativeCounts{{11u,64u,254u}};
+    for(std::size_t i=0u;i<representativeCounts.size();++i) {
+        const bool sourceBinary=i==1u,outputBinary=i==2u;
+        const unsigned targetCount=representativeCounts[i];dx_iface adapter;dx_data data;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!append(data,targetCount))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiAppendOutputProof(output,outputBinary,targetCount)||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!append(data,UINT8_MAX))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiAppendOutputProof(output,outputBinary,UINT8_MAX)||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!append(data,UINT8_MAX))return fail(__LINE__);
+        data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiAppendOutputProof(output,outputBinary,UINT8_MAX)||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!append(data,UINT8_MAX))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiAppendOutputProof(output,outputBinary,UINT8_MAX)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)
+            ||!append(data,UINT8_MAX))return fail(__LINE__);
+        auto extra=data.mLineStyles.front().elements.front();extra.offset=-255.0;extra.color=13;extra.linetype="ByLayer";
+        data.mLineStyles.front().elements.push_back(std::move(extra));
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++boundaries;
+    }
+    std::cout<<"MLINE consumed append range profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
+        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
+    return profiles==7u&&readbacks==11u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
+}
+bool runConsumedAppendRangeTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-append-range-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedAppendRange(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed append range artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedRemoval(const std::filesystem::path& dir) {
@@ -43395,6 +43382,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-oct-append") {
         return mlineConsumedOffsetControls::runConsumedOctAppendTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-append-range") {
+        return mlineConsumedOffsetControls::runConsumedAppendRangeTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
