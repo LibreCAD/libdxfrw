@@ -33938,7 +33938,10 @@ bool runTemporary() {
         if(target==data.mBlock->ent.end()) {
             std::cerr<<"third source line not found for refusal probe\n";return false;
         }
-        DRW_Entity* retained=*target;const auto restoreBefore=std::next(target);
+        DRW_Entity* retained=*target;
+        const auto restoreIndex=std::distance(data.mBlock->ent.begin(),target);
+        if(restoreIndex<0)return false;
+        const auto restoreOffset=static_cast<std::size_t>(restoreIndex);
         data.mBlock->ent.erase(target);sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                               &data,false,true)
@@ -33946,7 +33949,9 @@ bool runTemporary() {
             {std::cerr<<"three-handle missing-target refusal failed: "
                       <<sourceBinary<<' '<<outputBinary<<'\n';return false;}
         ++refusals;
-        data.mBlock->ent.insert(restoreBefore,retained);
+        auto restorePosition=data.mBlock->ent.begin();
+        std::advance(restorePosition,static_cast<std::ptrdiff_t>(restoreOffset));
+        data.mBlock->ent.insert(restorePosition,retained);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                                &data,false,true)
             ||!entityHandleProviderProof(output,outputBinary,true,true,true,true)) {
