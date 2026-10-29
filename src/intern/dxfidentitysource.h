@@ -15,7 +15,7 @@ class Capture final:public DxfReadRecordObserver {
     std::shared_ptr<DxfReadRetainedLease> lease;
     enum class State {Outside,SectionName,Body,Ended} state{State::Outside};
     std::size_t section{None},table{None},record{None},depth{0},nextOrdinal{1},lastOffset{0};
-    bool xdata{false},embedded{false},xrecordBody{false};DRW_DxfPhysicalRecordSpan sectionMarker;
+    bool xdata{false},embedded{false},xrecordBody{false},sortBody{false};DRW_DxfPhysicalRecordSpan sectionMarker;
     static bool equal(std::string_view a,std::string_view b) noexcept {
         if(a.size()!=b.size())return false;
         for(std::size_t i=0;i<a.size();++i) {
@@ -45,7 +45,7 @@ class Capture final:public DxfReadRecordObserver {
             auto& row=result.records[record];row.endMarker=span(v);
             if(row.kind==Source::Kind::TableControl&&row.tableName.empty())result.status=S::InvalidBoundary;
         }
-        record=None;depth=0;xdata=false;embedded=false;xrecordBody=false;
+        record=None;depth=0;xdata=false;embedded=false;xrecordBody=false;sortBody=false;
     }
     void marker(const DxfReadRecordView& v) {
         if(v.kind!=DxfReadRecordView::Text||v.text.empty()) {result.status=S::InvalidBoundary;return;}
@@ -124,6 +124,11 @@ class Capture final:public DxfReadRecordObserver {
             &&v.code==100&&v.kind==DxfReadRecordView::Text&&v.text=="AcDbXrecord") {
             xrecordBody=true;return;
         }
+        if(record!=None&&kind==Source::Section::Objects
+            &&equal(result.records[record].name,"SORTENTSTABLE")&&!depth&&!xdata&&!embedded
+            &&v.code==100&&v.kind==DxfReadRecordView::Text&&v.text=="AcDbSortentsTable") {
+            sortBody=true;return;
+        }
         if(record!=None&&result.records[record].kind==Source::Kind::TableControl&&v.code==2&&depth==0&&!xdata&&!embedded) {
             auto& name=result.records[record].tableName;
             if(!name.empty()||v.text.empty()||!textCharge(0u,v.text)) {if(result.status==S::Collecting)result.status=S::InvalidBoundary;return;}
@@ -143,7 +148,8 @@ class Capture final:public DxfReadRecordObserver {
         if(!textCharge(sizeof(Source::Candidate),v.text,result.binary?std::string_view{}:v.raw))return;
         Source::Candidate candidate;candidate.record=record;candidate.section=section;candidate.code=v.code;
         candidate.scope=record==None?Source::Scope::Unframed:xrecordBody?Source::Scope::OpaqueBody:
-            depth?Source::Scope::Application:embedded?Source::Scope::Embedded:xdata?Source::Scope::Xdata:Source::Scope::Outer;
+            depth?Source::Scope::Application:embedded?Source::Scope::Embedded:xdata?Source::Scope::Xdata:
+            sortBody&&v.code==5?Source::Scope::SortOrder:Source::Scope::Outer;
         candidate.lexeme=v.text;if(!result.binary)candidate.rawValue=v.raw;candidate.span=span(v);
         result.candidates.push_back(std::move(candidate));if(record!=None)++result.records[record].candidates;
     }
