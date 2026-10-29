@@ -17461,16 +17461,19 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
     return true;
 }
 
-// Recompute the first, miter-distance parameter for an admitted open,
-// unfilled and uncut MLINE. Preserve documented start/end-cap suppression
-// flags on selected AC1027 angle/offset retarget and consumed-style edit
-// paths; they do not alter the segment parameter arrays. Other projections retain the plain-open
-// profile until qualified separately. This is not a general MLINE regeneration
+// Recompute the first, miter-distance parameter for an admitted open and
+// uncut MLINE. A selected AC1027 two-element/three-vertex fill profile may
+// carry the same simple miter/zero-start pair in group 42; the DXF reference
+// defines those values with the same parameterization as group 41. Keep cut
+// intervals and all other fill profiles refused. Preserve documented
+// start/end-cap suppression flags on selected AC1027 angle/offset retarget and
+// consumed-style edit paths. This is not a general MLINE regeneration
 // algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
         bool retargetAngles=false,bool retargetStyleRemoval=false,bool retargetOffsets=false,
-        bool appendCapFlags=false,bool removeCapFlags=false,bool consumedOffsetCapFlags=false) {
+        bool appendCapFlags=false,bool removeCapFlags=false,bool consumedOffsetCapFlags=false,
+        bool simpleFillOffsetEdit=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
@@ -17488,6 +17491,9 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         || (consumedOffsetCapFlags && (appended || removed || retargetAngles || retargetOffsets
             || before.elements.size()!=2u || after.elements.size()!=2u
             || (original.openClosed!=5 && original.openClosed!=9 && original.openClosed!=13)))
+        || (simpleFillOffsetEdit && (appended || removed || retargetAngles || retargetStyleRemoval
+            || retargetOffsets || before.elements.size()!=2u || after.elements.size()!=2u
+            || original.openClosed!=13 || original.vertlist.size()!=3u))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -17588,14 +17594,19 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         if (retargetAngles) projected.miterDir=targetMiter;
         for (std::size_t i=0u;i<before.elements.size();++i) {
             const auto& segment=input.segParms[i];
-            if (segment.size()!=2u || !retainedDoubleEqual(segment[1],0.0)
-                || !input.areaFillParms[i].empty()) return false;
+            const auto& fill=input.areaFillParms[i];
+            if (segment.size()!=2u || !retainedDoubleEqual(segment[1],0.0)) return false;
+            if (simpleFillOffsetEdit) {
+                if (fill.size()!=2u || !retainedDoubleEqual(fill[1],0.0)) return false;
+            } else if (!fill.empty()) return false;
             const double expected=(before.elements[i].offset+beforeShift)*original.scale/sourceSignedMiter;
-            if (!close(segment[0],expected)) return false;
+            if (!close(segment[0],expected)
+                || (simpleFillOffsetEdit && !close(fill[0],expected))) return false;
             if (!removed && i<after.elements.size()) {
                 const double replacement=(after.elements[i].offset+afterShift)*original.scale/targetSignedMiter;
                 if (!std::isfinite(replacement)) return false;
                 projected.segParms[i][0]=replacement;
+                if (simpleFillOffsetEdit) projected.areaFillParms[i][0]=replacement;
             }
         }
         if (appended) {
@@ -18849,9 +18860,20 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && (original->openClosed==5 || original->openClosed==9 || original->openClosed==13)
                     && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
                         || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
+                const bool selectedSimpleFillOffsetEdit=before && version==DRW::AC1027
+                    && !append && !removeElements && before->elements.size()==2u
+                    && targetStyle.elements.size()==2u && original->openClosed==13
+                    && original->vertlist.size()==3u
+                    && std::all_of(original->vertlist.begin(),original->vertlist.end(),[](const DRW_MLineVertex& vertex) {
+                        return vertex.areaFillParms.size()==2u
+                            && std::all_of(vertex.areaFillParms.begin(),vertex.areaFillParms.end(),
+                                [](const std::vector<double>& parameters) {return parameters.size()==2u;});
+                    })
+                    && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
+                        || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
                 if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,
                         append,removeElements,false,false,false,selectedCapFlagAppend,
-                        selectedCapFlagRemoval,selectedCapFlagOffsetEdit)) return false;
+                        selectedCapFlagRemoval,selectedCapFlagOffsetEdit,selectedSimpleFillOffsetEdit)) return false;
                 planned.geometryProjected=true;
             }
             return m_dxfMLineConsumers.emplace(value.handle,std::move(planned)).second;

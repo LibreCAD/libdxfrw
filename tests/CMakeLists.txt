@@ -181,12 +181,11 @@ set_tests_properties(libdxfrw_mline_vertex_flag_profiles PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
-# Nonempty group-42/75 source arrays remain outside consumed-style offset
-# projection. This runtime test binds atomic refusal and exact unchanged
-# readback after same-adapter retry; it makes no fill/cut semantic claim.
-add_test(NAME libdxfrw_mline_fill_offset_refusal
-    COMMAND libdxfrw_dxf_fixture_tests --mline-fill-offset-refusal)
-set_tests_properties(libdxfrw_mline_fill_offset_refusal PROPERTIES
+# Runtime-authored simple fill boundaries are projected with the documented
+# group-41 parameter rule. Cut intervals and mismatched profiles remain refused.
+add_test(NAME libdxfrw_mline_fill_parameter_profiles
+    COMMAND libdxfrw_dxf_fixture_tests --mline-fill-parameter-profiles)
+set_tests_properties(libdxfrw_mline_fill_parameter_profiles PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
