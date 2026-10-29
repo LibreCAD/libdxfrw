@@ -32192,6 +32192,7 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeBool(297, true);
     writer->writeBool(298, false);
     writer->writeString(3, "source-style-description");
+    writer->writeString(300, "source-default-text");
     if (standardLeaderLineWeight != 0) {
         writer->writeInt32(91, 0);
         if (includeLeaderColorExtension)
@@ -35051,143 +35052,171 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             &DRW_MLeaderStyle::textExtended))
         return false;
 
-    const auto stringSource = directory
-        / ("root-mleaderstyle-description-source-" + encoding + ".dxf");
-    dx_data stringData;
-    dx_iface stringReader;
-    if (!generateRootMLeaderStyleControl(stringSource, binary)
-        || !stringReader.fileImport(stringSource.string(), &stringData, false))
-        return fail("could not import MLEADERSTYLE description source");
-    auto stringStyle = std::find_if(stringData.mLeaderStyles.begin(),
-        stringData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
-            return candidate.name == "STANDARD";
-        });
-    auto stringRaw = std::find_if(stringData.rawNamedResourceObjects.begin(),
-        stringData.rawNamedResourceObjects.end(),
-        [](const DRW_RawDxfObject& candidate) {
-            return candidate.name == "MLEADERSTYLE"
-                && candidate.handle == 0x1Cu;
-        });
-    if (stringStyle == stringData.mLeaderStyles.end()
-        || stringRaw == stringData.rawNamedResourceObjects.end()
-        || stringStyle->description != "source-style-description")
-        return fail("MLEADERSTYLE description source value/body is missing");
-    const auto sourceDescription = std::find_if(stringRaw->groups.begin(),
-        stringRaw->groups.end(), [](const DRW_Variant& field) {
-            return field.code() == 3;
-        });
-    if (sourceDescription == stringRaw->groups.end()
-        || sourceDescription->type() != DRW_Variant::STRING
-        || sourceDescription->content.s == nullptr
-        || *sourceDescription->content.s != stringStyle->description
-        || std::count_if(stringRaw->groups.begin(), stringRaw->groups.end(),
-            [](const DRW_Variant& field) { return field.code() == 3; }) != 1)
-        return fail("MLEADERSTYLE description has no unique raw string source");
-    const std::size_t descriptionSlot = static_cast<std::size_t>(
-        sourceDescription - stringRaw->groups.begin());
-    const DRW_RawDxfObject originalStringRaw = *stringRaw;
-    const std::string requestedDescription = "edited-style-description";
-    stringStyle->description = requestedDescription;
-    const auto descriptionOutput = directory
-        / ("root-mleaderstyle-description-output-" + encoding + ".dxf");
-    const std::string descriptionSentinel =
-        "existing MLEADERSTYLE description output survives\n";
-    const auto seedDescriptionSentinel = [&]() {
-        std::ofstream previous(descriptionOutput,
-            std::ios::binary | std::ios::trunc);
-        return previous
-            && static_cast<bool>(previous << descriptionSentinel);
+    const auto verifyStringField = [&](int code, const char* name,
+            std::string DRW_MLeaderStyle::*member,
+            const std::string& sourceValue,
+            const std::string& requestedValue) {
+        const auto stringSource = directory
+            / (std::string("root-mleaderstyle-") + name + "-source-"
+                + encoding + ".dxf");
+        dx_data stringData;
+        dx_iface stringReader;
+        if (!generateRootMLeaderStyleControl(stringSource, binary)
+            || !stringReader.fileImport(stringSource.string(), &stringData,
+                false))
+            return fail(std::string("could not import MLEADERSTYLE ")
+                + name + " source");
+        auto stringStyle = std::find_if(stringData.mLeaderStyles.begin(),
+            stringData.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        auto stringRaw = std::find_if(stringData.rawNamedResourceObjects.begin(),
+            stringData.rawNamedResourceObjects.end(),
+            [](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == 0x1Cu;
+            });
+        if (stringStyle == stringData.mLeaderStyles.end()
+            || stringRaw == stringData.rawNamedResourceObjects.end()
+            || (*stringStyle).*member != sourceValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " source value/body is missing");
+        const auto sourceField = std::find_if(stringRaw->groups.begin(),
+            stringRaw->groups.end(), [code](const DRW_Variant& field) {
+                return field.code() == code;
+            });
+        if (sourceField == stringRaw->groups.end())
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " raw group is missing");
+        if (sourceField->type() != DRW_Variant::STRING
+            || sourceField->content.s == nullptr
+            || *sourceField->content.s != sourceValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " raw string does not match its typed source");
+        if (std::count_if(stringRaw->groups.begin(), stringRaw->groups.end(),
+                [code](const DRW_Variant& field) {
+                    return field.code() == code;
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " raw group is repeated");
+        const std::size_t fieldSlot = static_cast<std::size_t>(
+            sourceField - stringRaw->groups.begin());
+        const DRW_RawDxfObject originalRaw = *stringRaw;
+        (*stringStyle).*member = requestedValue;
+        const auto stringOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-output-"
+                + encoding + ".dxf");
+        const std::string sentinel = std::string(
+            "existing MLEADERSTYLE ") + name + " output survives\n";
+        const auto seedSentinel = [&]() {
+            std::ofstream previous(stringOutput,
+                std::ios::binary | std::ios::trunc);
+            return previous && static_cast<bool>(previous << sentinel);
+        };
+        const auto sentinelSurvives = [&]() {
+            std::ifstream previous(stringOutput, std::ios::binary);
+            const std::string preserved(
+                (std::istreambuf_iterator<char>(previous)),
+                std::istreambuf_iterator<char>());
+            return !previous.bad() && preserved == sentinel;
+        };
+        if (!seedSentinel())
+            return fail(std::string("could not seed MLEADERSTYLE ")
+                + name + " refusal");
+        stringRaw->groups[fieldSlot] = DRW_Variant(
+            code, UTF8STRING(requestedValue));
+        if (stringRaw->hasRawValues && !binary)
+            stringRaw->rawValues[fieldSlot] = requestedValue;
+        dx_iface stringWriter;
+        if (stringWriter.fileExport(stringOutput.string(), DRW::AC1027,
+                binary, &stringData, false, true)
+            || !sentinelSurvives())
+            return fail(std::string("conflicting raw and typed MLEADERSTYLE ")
+                + name + " was accepted");
+        *stringRaw = originalRaw;
+
+        const std::array<std::string, 2> invalidValues{{
+            std::string("\xC3\xA9", 2u), "line\nbreak"
+        }};
+        for (const std::string& invalidValue : invalidValues) {
+            (*stringStyle).*member = invalidValue;
+            if (!seedSentinel()
+                || stringWriter.fileExport(stringOutput.string(),
+                    DRW::AC1027, binary, &stringData, false, true)
+                || !sentinelSurvives())
+                return fail(std::string("unsupported MLEADERSTYLE ") + name
+                    + " text was accepted");
+        }
+        (*stringStyle).*member = requestedValue;
+        if (!stringWriter.fileExport(stringOutput.string(), DRW::AC1027,
+                binary, &stringData, false, true))
+            return fail(std::string("same-adapter MLEADERSTYLE ") + name
+                + " retry failed: "
+                + stringWriter.extensionGraphFailureDetail());
+
+        dx_data stringReadback;
+        dx_iface stringOutputReader;
+        if (!stringOutputReader.fileImport(stringOutput.string(),
+                &stringReadback, false))
+            return fail(std::string("could not read back MLEADERSTYLE ")
+                + name + " output");
+        const auto emittedStyle = std::find_if(
+            stringReadback.mLeaderStyles.begin(),
+            stringReadback.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (emittedStyle == stringReadback.mLeaderStyles.end()
+            || (*emittedStyle).*member != requestedValue)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " typed readback mismatch");
+        const auto emittedRaw = std::find_if(
+            stringReadback.rawNamedResourceObjects.begin(),
+            stringReadback.rawNamedResourceObjects.end(),
+            [handle = emittedStyle->handle](
+                    const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == handle;
+            });
+        if (emittedRaw == stringReadback.rawNamedResourceObjects.end()
+            || std::count_if(emittedRaw->groups.begin(), emittedRaw->groups.end(),
+                [code, &requestedValue](const DRW_Variant& field) {
+                    return field.code() == code
+                        && field.type() == DRW_Variant::STRING
+                        && field.content.s != nullptr
+                        && *field.content.s == requestedValue;
+                }) != 1)
+            return fail(std::string("MLEADERSTYLE ") + name
+                + " exact output field proof failed");
+
+        const auto crossOutput = directory
+            / (std::string("root-mleaderstyle-") + name + "-cross-"
+                + encoding + ".dxf");
+        dx_iface crossWriter;
+        dx_data crossReadback;
+        dx_iface crossReader;
+        if (!crossWriter.fileExport(crossOutput.string(), DRW::AC1027,
+                !binary, &stringData, false, true)
+            || !crossReader.fileImport(crossOutput.string(), &crossReadback,
+                false))
+            return fail(std::string("cross-format MLEADERSTYLE ") + name
+                + " output failed");
+        const auto crossStyle = std::find_if(crossReadback.mLeaderStyles.begin(),
+            crossReadback.mLeaderStyles.end(),
+            [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        return crossStyle != crossReadback.mLeaderStyles.end()
+            && (*crossStyle).*member == requestedValue;
     };
-    const auto descriptionSentinelSurvives = [&]() {
-        std::ifstream previous(descriptionOutput, std::ios::binary);
-        const std::string preserved(
-            (std::istreambuf_iterator<char>(previous)),
-            std::istreambuf_iterator<char>());
-        return !previous.bad() && preserved == descriptionSentinel;
-    };
-    if (!seedDescriptionSentinel())
-        return fail("could not seed MLEADERSTYLE description refusal");
-    stringRaw->groups[descriptionSlot] = DRW_Variant(
-        3, UTF8STRING(requestedDescription));
-    if (stringRaw->hasRawValues && !binary)
-        stringRaw->rawValues[descriptionSlot] = requestedDescription;
-    dx_iface stringWriter;
-    if (stringWriter.fileExport(descriptionOutput.string(), DRW::AC1027,
-            binary, &stringData, false, true)
-        || !descriptionSentinelSurvives())
-        return fail("conflicting raw and typed MLEADERSTYLE description was accepted");
-    *stringRaw = originalStringRaw;
-
-    const std::array<std::string, 2> invalidDescriptions{{
-        std::string("\xC3\xA9", 2u), "line\nbreak"
-    }};
-    for (const std::string& invalidDescription : invalidDescriptions) {
-        stringStyle->description = invalidDescription;
-        if (!seedDescriptionSentinel()
-            || stringWriter.fileExport(descriptionOutput.string(),
-                DRW::AC1027, binary, &stringData, false, true)
-            || !descriptionSentinelSurvives())
-            return fail("unsupported MLEADERSTYLE description text was accepted");
-    }
-    stringStyle->description = requestedDescription;
-    if (!stringWriter.fileExport(descriptionOutput.string(), DRW::AC1027,
-            binary, &stringData, false, true))
-        return fail("same-adapter MLEADERSTYLE description retry failed: "
-            + stringWriter.extensionGraphFailureDetail());
-
-    dx_data descriptionReadback;
-    dx_iface descriptionOutputReader;
-    if (!descriptionOutputReader.fileImport(descriptionOutput.string(),
-            &descriptionReadback, false))
-        return fail("could not read back MLEADERSTYLE description output");
-    const auto emittedDescriptionStyle = std::find_if(
-        descriptionReadback.mLeaderStyles.begin(),
-        descriptionReadback.mLeaderStyles.end(),
-        [](const DRW_MLeaderStyle& candidate) {
-            return candidate.name == "STANDARD";
-        });
-    if (emittedDescriptionStyle == descriptionReadback.mLeaderStyles.end()
-        || emittedDescriptionStyle->description != requestedDescription)
-        return fail("MLEADERSTYLE description typed readback mismatch");
-    const auto emittedDescriptionRaw = std::find_if(
-        descriptionReadback.rawNamedResourceObjects.begin(),
-        descriptionReadback.rawNamedResourceObjects.end(),
-        [handle = emittedDescriptionStyle->handle](
-                const DRW_RawDxfObject& candidate) {
-            return candidate.name == "MLEADERSTYLE"
-                && candidate.handle == handle;
-        });
-    if (emittedDescriptionRaw
-            == descriptionReadback.rawNamedResourceObjects.end()
-        || std::count_if(emittedDescriptionRaw->groups.begin(),
-            emittedDescriptionRaw->groups.end(),
-            [&requestedDescription](const DRW_Variant& field) {
-                return field.code() == 3
-                    && field.type() == DRW_Variant::STRING
-                    && field.content.s != nullptr
-                    && *field.content.s == requestedDescription;
-            }) != 1)
-        return fail("MLEADERSTYLE description exact output field proof failed");
-
-    const auto crossDescriptionOutput = directory
-        / ("root-mleaderstyle-description-cross-" + encoding + ".dxf");
-    dx_iface crossDescriptionWriter;
-    dx_data crossDescriptionReadback;
-    dx_iface crossDescriptionReader;
-    if (!crossDescriptionWriter.fileExport(crossDescriptionOutput.string(),
-            DRW::AC1027, !binary, &stringData, false, true)
-        || !crossDescriptionReader.fileImport(crossDescriptionOutput.string(),
-            &crossDescriptionReadback, false))
-        return fail("cross-format MLEADERSTYLE description output failed");
-    const auto crossDescriptionStyle = std::find_if(
-        crossDescriptionReadback.mLeaderStyles.begin(),
-        crossDescriptionReadback.mLeaderStyles.end(),
-        [](const DRW_MLeaderStyle& candidate) {
-            return candidate.name == "STANDARD";
-        });
-    if (crossDescriptionStyle == crossDescriptionReadback.mLeaderStyles.end()
-        || crossDescriptionStyle->description != requestedDescription)
-        return fail("cross-format MLEADERSTYLE description readback mismatch");
+    if (!verifyStringField(3, "description",
+            &DRW_MLeaderStyle::description, "source-style-description",
+            "edited-style-description")
+        || !verifyStringField(300, "default-text",
+            &DRW_MLeaderStyle::textDefault, "source-default-text",
+            "edited-default-text"))
+        return false;
 
     return true;
 }

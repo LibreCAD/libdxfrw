@@ -15998,7 +15998,7 @@ constexpr std::array<int, 26> mleaderInt32Codes{{
 constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
-constexpr std::array<int, 1> mleaderStringCodes{{3}};
+constexpr std::array<int, 2> mleaderStringCodes{{3, 300}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16094,8 +16094,9 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     }
 }
 
-const std::string& mleaderStringValue(const DRW_MLeaderStyle& style) noexcept {
-    return style.description;
+const std::string& mleaderStringValue(const DRW_MLeaderStyle& style,
+                                      int code) noexcept {
+    return code == 300 ? style.textDefault : style.description;
 }
 
 void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
@@ -16135,6 +16136,8 @@ void setMLeaderStringValue(DRW_MLeaderStyle& style, int code,
                            const std::string& value) {
     if (code == 3)
         style.description = value;
+    else if (code == 300)
+        style.textDefault = value;
 }
 
 double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
@@ -16186,8 +16189,8 @@ int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
     }
     int stringCode = 0;
     for (int code : mleaderStringCodes) {
-        if (mleaderStringValue(value)
-            == mleaderStringValue(original))
+        if (mleaderStringValue(value, code)
+            == mleaderStringValue(original, code))
             continue;
         if (stringCode != 0)
             return -1;
@@ -16380,7 +16383,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     ? true
                 : isMLeaderStringCode(editedCode)
                     ? isMLeaderAsciiString(
-                        mleaderStringValue(value))
+                        mleaderStringValue(value, editedCode))
                 : std::isfinite(mleaderDoubleValue(value, editedCode));
             if (!validValue
                 || !mleaderFieldSlot(*baseline->second, editedCode,
@@ -16477,7 +16480,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         mleaderInt32Value(original, editedCode));
                 } else if (isMLeaderStringCode(editedCode)) {
                     setMLeaderStringValue(normalized, editedCode,
-                        mleaderStringValue(original));
+                        mleaderStringValue(original, editedCode));
                 } else {
                     return false;
                 }
@@ -16496,7 +16499,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     : isMLeaderStringCode(editedCode)
                         ? rawField.content.s != nullptr
                             && *rawField.content.s
-                                == mleaderStringValue(original)
+                                == mleaderStringValue(original, editedCode)
                         : rawField.d_val()
                             == mleaderDoubleValue(original, editedCode);
                 if (!rawValueMatches)
@@ -16506,7 +16509,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         mleaderInt32Value(value, editedCode));
                 else if (isMLeaderStringCode(editedCode))
                     setMLeaderStringValue(projection, editedCode,
-                        mleaderStringValue(value));
+                        mleaderStringValue(value, editedCode));
                 else
                     setMLeaderDoubleValue(projection, editedCode,
                         mleaderDoubleValue(value, editedCode));
@@ -16551,7 +16554,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     dx_material_body::BodyWriter encoded(
                         binary, version, m_dxfMLeaderStyleState.codePage);
                     const std::string& editedString =
-                        mleaderStringValue(projection);
+                        mleaderStringValue(projection, editedCode);
                     if (!encoded.writeString(editedCode, editedString)
                         || encoded.groups.size() != 1u
                         || encoded.groups.front().code() != editedCode
@@ -16667,8 +16670,8 @@ bool dx_iface::inspectDxfMLeaderStyles(
                             return mleaderInt32Value(value, code)
                                 == mleaderInt32Value(source.projection, code);
                         if (isMLeaderStringCode(code))
-                            return mleaderStringValue(value)
-                                == mleaderStringValue(source.projection);
+                            return mleaderStringValue(value, code)
+                                == mleaderStringValue(source.projection, code);
                         return isMLeaderDoubleCode(code)
                             && std::isfinite(mleaderDoubleValue(value, code))
                             && mleaderDoubleValue(value, code)
