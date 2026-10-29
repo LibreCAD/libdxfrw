@@ -16283,15 +16283,13 @@ bool mlineRetargetGeometryOffsetsCompatible(const DRW_MLineStyle& original,
         && original.elements.size()==target.elements.size();
 }
 
-bool mlineRetargetGeometryAnglesCompatible(const DRW_MLineStyle& original,
+bool mlineRetargetGeometryProjectionCompatible(const DRW_MLineStyle& original,
         const DRW_MLineStyle& target) noexcept {
     if (!mlineRetargetGeometryKnown(original) || !mlineRetargetGeometryKnown(target)
         || !mlineFlagBitsEqual(original.flags,target.flags)
         || original.elements.size()!=target.elements.size()
-        || (retainedDoubleEqual(original.startAngle,target.startAngle)
-            && retainedDoubleEqual(original.endAngle,target.endAngle))) return false;
-    for (std::size_t i=0u;i<original.elements.size();++i)
-        if (!retainedDoubleEqual(original.elements[i].offset,target.elements[i].offset)) return false;
+        || !std::isfinite(original.startAngle) || !std::isfinite(original.endAngle)
+        || !std::isfinite(target.startAngle) || !std::isfinite(target.endAngle)) return false;
     return true;
 }
 
@@ -16480,7 +16478,7 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
             || !retainedDoubleEqual(before.endAngle,after.endAngle)))) return false;
     if (!appended && !removed) {
         if (retargetAngles) {
-            if (!mlineRetargetGeometryAnglesCompatible(before,after)) return false;
+            if (!mlineRetargetGeometryProjectionCompatible(before,after)) return false;
         } else if (!mlineRetargetGeometryOffsetsCompatible(before,after)) return false;
     } else if (appended) {
         for (std::size_t i=0u;i<before.elements.size();++i)
@@ -17657,9 +17655,10 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             if (!mlineGeometryEqual(value,original)
                 || !dxfAttdef::Decoder::sameEntityModel(value,original,variant)) return false;
             if (mlineRetargetGeometryEqual(old->original,planned.projection)) return true;
-            const bool offsetsCompatible=mlineRetargetGeometryOffsetsCompatible(old->original,planned.projection);
-            const bool anglesCompatible=mlineRetargetGeometryAnglesCompatible(old->original,planned.projection);
-            if (planned.countChanged || (!offsetsCompatible && !anglesCompatible)
+            const bool geometryCompatible=mlineRetargetGeometryProjectionCompatible(old->original,planned.projection);
+            const bool anglesChanged=!retainedDoubleEqual(old->original.startAngle,planned.projection.startAngle)
+                || !retainedDoubleEqual(old->original.endAngle,planned.projection.endAngle);
+            if (planned.countChanged || !geometryCompatible
                 || original.numLines==0u
                 || original.vertlist.size()>kMaxAdapterBasicTableItems/original.numLines
                 || !visit(original.vertlist.size()*original.numLines)
@@ -17668,7 +17667,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             if (!estimateTypedEntityRetainedBytes(original,sizeof(DRW_MLine),modelBytes)
                 || !chargeNamedResourceBytes(bytes,modelBytes)
                 || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection,
-                    false,false,anglesCompatible)) return false;
+                    false,false,anglesChanged)) return false;
             // Group 2 is redundant; only the authoritative 340 target changes.
             geometryProjection.styleHandle=value.styleHandle;
             geometryProjected=true;

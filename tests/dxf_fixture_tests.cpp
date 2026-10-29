@@ -34179,6 +34179,8 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
     constexpr double targetStartAngle=60.0,targetEndAngle=120.0;
     const auto input=dir/"retarget-angles-input.dxf",output=dir/"retarget-angles-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    const std::array<double,2> combinedOffsets{{1.5,-1.25}};
+    std::size_t combinedProfiles=0u,combinedReadbacks=0u,combinedRefusals=0u,combinedRetries=0u,combinedLate=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE retarget angles line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
@@ -34228,9 +34230,59 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.elements[0].offset=combinedOffsets[0];target.elements[1].offset=combinedOffsets[1];
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,combinedOffsets,targetStartAngle,targetEndAngle)
+            ||!caller.same(data))return fail(__LINE__);
+        ++combinedProfiles;++combinedReadbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.elements[0].offset=combinedOffsets[0];target.elements[1].offset=combinedOffsets[1];
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;target.flags=0;
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++combinedRefusals;target.flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,combinedOffsets,targetStartAngle,targetEndAngle)
+            ||!corrected.same(data))return fail(__LINE__);
+        ++combinedRetries;++combinedReadbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.elements[0].offset=combinedOffsets[0];target.elements[1].offset=combinedOffsets[1];
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++combinedLate;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,combinedOffsets,targetStartAngle,targetEndAngle)
+            ||!caller.same(data))return fail(__LINE__);
+        ++combinedRetries;++combinedReadbacks;
+    }
     std::cout<<"MLINE retarget angle profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+        <<"; late="<<late<<"; retries="<<retries<<"; combinedProfiles="<<combinedProfiles
+        <<"; combinedReadbacks="<<combinedReadbacks<<"; combinedRefusals="<<combinedRefusals
+        <<"; combinedLate="<<combinedLate<<"; combinedRetries="<<combinedRetries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u
+        &&combinedProfiles==4u&&combinedReadbacks==8u&&combinedRefusals==2u&&combinedLate==2u&&combinedRetries==4u;
 }
 bool runRetargetAnglesTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
