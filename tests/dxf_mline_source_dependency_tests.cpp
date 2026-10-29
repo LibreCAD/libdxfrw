@@ -51,6 +51,23 @@ public:
         return result;
     }
 };
+class DictionaryMutationAtFinalizeConsumer final:public Consumer {
+public:
+    dx_data* mutationTarget{nullptr};
+    bool injectAtFinalize{false},injected{false};
+    bool finalizeDxfWrite() override {
+        if(!injectAtFinalize)return dx_iface::finalizeDxfWrite();
+        if(!mutationTarget||mutationTarget->dictionaries.empty()
+            ||mutationTarget->dictionaries.front().m_entries.empty())return false;
+        auto& entry=mutationTarget->dictionaries.front().m_entries.front();
+        const auto savedHandle=entry.m_handle;
+        entry.m_handle=0xBu;
+        injected=true;
+        const bool result=dx_iface::finalizeDxfWrite();
+        entry.m_handle=savedHandle;
+        return result;
+    }
+};
 class SpoofingConsumer:public Consumer {
 public:
     bool corrupt=false,skip=false;
@@ -1668,7 +1685,163 @@ static int testMlineLayerCarrierGeometryGuard() {
       ? 0 : 11;
 }
 
+static int testMlineDictionaryCarrierGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-dictionary-carrier-geometry-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, rootRefusals = 0u, childRefusals = 0u;
+  unsigned lateRefusals = 0u, retries = 0u, readbacks = 0u;
+  const auto sameEntry = [](const DRW_Dictionary::Entry& a,
+                            const DRW_Dictionary::Entry& b) {
+    return a.m_name == b.m_name && a.m_handle == b.m_handle &&
+        a.m_dxfHandleCode == b.m_dxfHandleCode;
+  };
+  for (bool sourceBinary : {false, true}) {
+    const auto text = selectedMlineSourceText();
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 2;
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      DictionaryMutationAtFinalizeConsumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data) || !data.hasNamedObjectDictionary ||
+          data.namedObjectDictionary.m_entries.size() != 1u ||
+          data.dictionaries.size() != 1u || data.dictionaries.front().m_entries.empty())
+        return 4;
+      adapter.mutationTarget = &data;
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u)
+        return 5;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      const auto savedRootEntry = data.namedObjectDictionary.m_entries.front();
+      const auto savedChildEntries = data.dictionaries.front().m_entries;
+      const auto savedChildEntry = savedChildEntries.front();
+      if (savedRootEntry.m_name != "ACAD_MLINESTYLE")
+        return 6;
+
+      const std::string sentinel = "MLINE_DICTIONARY_CARRIER_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 7;
+      data.namedObjectDictionary.m_entries.front().m_handle = 0xBu;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          data.namedObjectDictionary.m_entries.front().m_handle != 0xBu ||
+          style->elements.front().offset != expectedOffset)
+        return 8;
+      ++rootRefusals;
+      data.namedObjectDictionary.m_entries.front() = savedRootEntry;
+
+      if (!writeFile(output, sentinel))
+        return 9;
+      data.dictionaries.front().m_entries.front().m_handle = 0xBu;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          data.dictionaries.front().m_entries.front().m_handle != 0xBu ||
+          style->elements.front().offset != expectedOffset)
+        return 10;
+      ++childRefusals;
+      data.dictionaries.front().m_entries.front() = savedChildEntry;
+
+      if (!writeFile(output, sentinel))
+        return 11;
+      adapter.injectAtFinalize = true;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          !adapter.injected ||
+          !sameEntry(data.dictionaries.front().m_entries.front(), savedChildEntry) ||
+          style->elements.front().offset != expectedOffset)
+        return 12;
+      ++lateRefusals;
+      adapter.injectAtFinalize = false;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 13;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback))
+        return 14;
+      if (!readback.hasNamedObjectDictionary)
+        return 14;
+      const auto outputRootEntry = std::find_if(
+          readback.namedObjectDictionary.m_entries.begin(),
+          readback.namedObjectDictionary.m_entries.end(),
+          [&](const auto& entry) { return entry.m_name == savedRootEntry.m_name; });
+      if (outputRootEntry == readback.namedObjectDictionary.m_entries.end() ||
+          std::count_if(readback.namedObjectDictionary.m_entries.begin(),
+              readback.namedObjectDictionary.m_entries.end(), [&](const auto& entry) {
+                return entry.m_name == savedRootEntry.m_name;
+              }) != 1u ||
+          outputRootEntry->m_dxfHandleCode != savedRootEntry.m_dxfHandleCode)
+        return 14;
+      const auto outputDictionary = std::find_if(readback.dictionaries.begin(),
+          readback.dictionaries.end(), [&](const auto& dictionary) {
+            return dictionary.handle == outputRootEntry->m_handle;
+          });
+      if (outputDictionary == readback.dictionaries.end() ||
+          std::count_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+              [&](const auto& dictionary) {
+                return dictionary.handle == outputRootEntry->m_handle;
+              }) != 1u ||
+          outputDictionary->m_entries.size() != savedChildEntries.size())
+        return 14;
+      for (const auto& expectedEntry : savedChildEntries) {
+        const auto actualEntry = std::find_if(outputDictionary->m_entries.begin(),
+            outputDictionary->m_entries.end(), [&](const auto& entry) {
+              return entry.m_name == expectedEntry.m_name;
+            });
+        const auto targetStyle = std::find_if(readback.mLineStyles.begin(),
+            readback.mLineStyles.end(), [&](const auto& value) {
+              return value.name == expectedEntry.m_name;
+            });
+        if (actualEntry == outputDictionary->m_entries.end() ||
+            actualEntry->m_dxfHandleCode != expectedEntry.m_dxfHandleCode ||
+            targetStyle == readback.mLineStyles.end() ||
+            actualEntry->m_handle != targetStyle->handle)
+          return 14;
+      }
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 15;
+      ++profiles;
+      ++retries;
+      ++readbacks;
+    }
+  }
+  std::cout << "MLINE dictionary-carrier geometry guard profiles=" << profiles
+            << " root-refusals=" << rootRefusals
+            << " child-refusals=" << childRefusals
+            << " late-refusals=" << lateRefusals
+            << " retries=" << retries << " readbacks=" << readbacks << '\n';
+  return profiles == 4u && rootRefusals == 4u && childRefusals == 4u &&
+      lateRefusals == 4u && retries == 4u && readbacks == 4u
+      ? 0 : 16;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-dictionary-carrier-geometry-guard")return testMlineDictionaryCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-layer-carrier-geometry-guard")return testMlineLayerCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-raw-section-geometry-guard")return testMlineRawSectionGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-deleted-consumer-geometry-guard")return testDeletedMlineConsumerGeometryGuard();

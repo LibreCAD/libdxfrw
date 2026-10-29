@@ -17138,17 +17138,18 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
             [](const auto& row){return row.second.geometryChanged;});
         if ((countChanged||geometryChanged)
             && !hasCompleteDxfMLineConsumerCensus(countChanged)) return false;
-        // LAYER application data and other source-backed metadata are possible
-        // opaque carriers for MLINESTYLE references. A modern geometry edit is
-        // admitted only when the selected source/live LAYER profile is intact.
-        // This deliberately remains a narrow admission profile: unqualified
-        // LAYER metadata refuses the edit rather than being replayed unchecked.
-        const bool layerSourceProfileSelected=m_wholeEnabled||m_legacyIdentityObservationEnabled;
-        if (geometryChanged && layerSourceProfileSelected
-            && !m_dxfMLineLayerSourceLivePreflightPassed) {
+        // LAYER application data and named-object dictionaries can carry
+        // MLINESTYLE references. A selected modern geometry edit is admitted
+        // only when both selected source/live proofs remain intact. This is a
+        // narrow fail-closed profile; unqualified dependencies refuse export.
+        const bool sourceLiveProfileSelected=m_wholeEnabled||m_legacyIdentityObservationEnabled;
+        if (geometryChanged && sourceLiveProfileSelected
+            && !m_dxfMLineDependencySourceLivePreflightPassed) {
             if (!mlineLayerSourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineStyleDictionarySourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)) return false;
-            m_dxfMLineLayerSourceLivePreflightPassed=true;
+            m_dxfMLineDependencySourceLivePreflightPassed=true;
         }
         if (std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),[](const auto& source){return source.second.dictionaryOrigin!=nullptr;})) {
             const auto structural=structuralSourceReport(*cData);
@@ -33272,9 +33273,11 @@ bool dx_iface::finalizeDxfWrite() {
     const bool mlineGeometryTransaction=needsDxfMLineNoRawSectionsGuard();
     if ((mlineGeometryTransaction
             && (!dxfW || !dxfW->dxfWriteNoRawSectionsObserved()))
-        || (mlineGeometryTransaction&&m_dxfMLineLayerSourceLivePreflightPassed
-            && !mlineLayerSourceLiveProof(*cData,
-                kMaxAdapterMLineDependencyProofWork,nullptr))
+        || (mlineGeometryTransaction&&m_dxfMLineDependencySourceLivePreflightPassed
+            && (!mlineLayerSourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineStyleDictionarySourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
@@ -34203,7 +34206,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
-    m_dxfMLineLayerSourceLivePreflightPassed=false;
+    m_dxfMLineDependencySourceLivePreflightPassed=false;
     m_dxfHeaderMaterialState={};
     m_dxfLayerMaterialState.clear();
     m_dxfFullStyleState.clear();m_dxfMaterialReferenceState.clear();
