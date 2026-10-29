@@ -218,6 +218,15 @@ set_tests_properties(libdxfrw_mline_consumed_style_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
+# Runtime-generated AC1027 2-to-3 consumed-style append profiles preserve
+# documented MLINE start/end-cap suppression flags. Prove ASCII/binary
+# output/readback, closed/unknown refusal, rollback, and same-adapter retry.
+add_test(NAME libdxfrw_mline_consumed_style_append_cap_flags
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-append-cap-flags)
+set_tests_properties(libdxfrw_mline_consumed_style_append_cap_flags PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Runtime-generated AC1027 profile for appending two tail elements to a style
 # consumed by open, uncut MLINEs. It checks offset rebasing, full parameter
 # arrays, output/readback and failure/retry behavior without committed fixtures.
