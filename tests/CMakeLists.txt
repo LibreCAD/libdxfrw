@@ -395,6 +395,19 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_multi_append_non_two P
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Extend the same two-tuple batch across generated non-two source counts 5..253.
+# Split the loop to keep each focused transaction test below its own timeout.
+add_test(NAME libdxfrw_mline_consumed_source_count_multi_append_5_127
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 5 127 2)
+set_tests_properties(libdxfrw_mline_consumed_source_count_multi_append_5_127 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_source_count_multi_append_128_253
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 128 253 2)
+set_tests_properties(libdxfrw_mline_consumed_source_count_multi_append_128_253 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 120)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
