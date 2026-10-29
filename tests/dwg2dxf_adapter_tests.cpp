@@ -34489,12 +34489,23 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     *lineWeightRaw = originalLineWeightRaw;
 
     lineWeightStyle->leaderColor = 1;
-    if (!seedTextColorSentinel()
-        || lineWeightWriter.fileExport(textColorOutput.string(),
-                                       DRW::AC1027, binary, &lineWeightData,
-                                       false, true)
-        || !textColorSentinelSurvives())
-        return fail("mixed MLEADERSTYLE group-91/group-93 edits were not refused");
+    if (!lineWeightWriter.fileExport(textColorOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true))
+        return fail("composed MLEADERSTYLE group-91/group-93 output failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data twoAciReadback;
+    dx_iface twoAciReader;
+    if (!twoAciReader.fileImport(textColorOutput.string(), &twoAciReadback,
+            false))
+        return fail("could not read back group-91/group-93 composition");
+    const auto twoAciStyle = std::find_if(twoAciReadback.mLeaderStyles.begin(),
+        twoAciReadback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (twoAciStyle == twoAciReadback.mLeaderStyles.end()
+        || twoAciStyle->leaderColor != 1 || twoAciStyle->textColor != 7
+        || twoAciStyle->blockColor != 0)
+        return fail("group-91/group-93 typed composition mismatch");
     lineWeightStyle->leaderColor = 0;
 
     lineWeightWriter.mutateTextColor = true;
@@ -34655,12 +34666,26 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     *lineWeightRaw = originalLineWeightRaw;
 
     lineWeightStyle->textColor = 1;
-    if (!seedBlockColorSentinel()
-        || lineWeightWriter.fileExport(blockColorOutput.string(),
-                                       DRW::AC1027, binary, &lineWeightData,
-                                       false, true)
-        || !blockColorSentinelSurvives())
-        return fail("mixed MLEADERSTYLE group-93/group-94 edits were not refused");
+    if (!lineWeightWriter.fileExport(blockColorOutput.string(), DRW::AC1027,
+            binary, &lineWeightData, false, true))
+        return fail("composed MLEADERSTYLE group-93/group-94 output failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data textBlockAciReadback;
+    dx_iface textBlockAciReader;
+    if (!textBlockAciReader.fileImport(blockColorOutput.string(),
+            &textBlockAciReadback, false))
+        return fail("could not read back group-93/group-94 composition");
+    const auto textBlockAciStyle = std::find_if(
+        textBlockAciReadback.mLeaderStyles.begin(),
+        textBlockAciReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (textBlockAciStyle == textBlockAciReadback.mLeaderStyles.end()
+        || textBlockAciStyle->leaderColor != 0
+        || textBlockAciStyle->textColor != 1
+        || textBlockAciStyle->blockColor != 7)
+        return fail("group-93/group-94 typed composition mismatch");
     lineWeightStyle->textColor = 0;
 
     lineWeightWriter.mutateBlockColor = true;
@@ -34784,6 +34809,116 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         if (previous.bad() || preserved != blockColorExtensionSentinel)
             return fail("MLEADERSTYLE block CMC-extension refusal replaced destination");
     }
+
+    const auto verifyAciComposition = [&](const std::filesystem::path& path) {
+        dx_data readback;
+        dx_iface aciReader;
+        if (!aciReader.fileImport(path.string(), &readback, false))
+            return fail("could not read back composed MLEADERSTYLE ACI fields");
+        const auto style = std::find_if(readback.mLeaderStyles.begin(),
+            readback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        if (style == readback.mLeaderStyles.end()
+            || style->leaderColor != 3 || style->textColor != 5
+            || style->blockColor != 7)
+            return fail("composed MLEADERSTYLE ACI typed fields mismatch");
+        const auto raw = std::find_if(readback.rawNamedResourceObjects.begin(),
+            readback.rawNamedResourceObjects.end(), [style](
+                    const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == style->handle;
+            });
+        if (raw == readback.rawNamedResourceObjects.end())
+            return fail("composed MLEADERSTYLE ACI raw output is missing");
+        for (const auto& expected :
+             std::array<std::pair<int, int>, 3>{{{91, 3}, {93, 5}, {94, 7}}}) {
+            if (std::count_if(raw->groups.begin(), raw->groups.end(),
+                    [&expected](const DRW_Variant& field) {
+                        return field.code() == expected.first
+                            && field.type() == DRW_Variant::INTEGER
+                            && field.i_val() == expected.second;
+                    }) != 1)
+                return fail("composed MLEADERSTYLE ACI physical field mismatch at group "
+                    + std::to_string(expected.first));
+        }
+        return true;
+    };
+    const auto aciCompositionOutput = directory
+        / ("root-mleaderstyle-aci-composition-" + encoding + ".dxf");
+    const std::string aciCompositionSentinel =
+        "existing composed MLEADERSTYLE ACI output survives\n";
+    const auto seedAciCompositionSentinel = [&]() {
+        std::ofstream previous(aciCompositionOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous
+            && static_cast<bool>(previous << aciCompositionSentinel);
+    };
+    const auto aciCompositionSentinelSurvives = [&]() {
+        std::ifstream previous(aciCompositionOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == aciCompositionSentinel;
+    };
+    lineWeightStyle->leaderColor = 3;
+    lineWeightStyle->textColor = 5;
+    lineWeightStyle->blockColor = 7;
+    if (!lineWeightWriter.fileExport(aciCompositionOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true)
+        || !verifyAciComposition(aciCompositionOutput))
+        return fail("composed MLEADERSTYLE ACI export/readback failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+
+    const auto conflictingAci = std::find_if(lineWeightRaw->groups.begin(),
+        lineWeightRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 93;
+        });
+    if (conflictingAci == lineWeightRaw->groups.end())
+        return fail("composed MLEADERSTYLE source lost group 93");
+    const std::size_t conflictingAciSlot = static_cast<std::size_t>(
+        conflictingAci - lineWeightRaw->groups.begin());
+    if (!seedAciCompositionSentinel())
+        return fail("could not seed composed MLEADERSTYLE ACI refusal");
+    lineWeightRaw->groups[conflictingAciSlot] = DRW_Variant(93, 1);
+    if (lineWeightRaw->hasRawValues && !binary)
+        lineWeightRaw->rawValues[conflictingAciSlot] = "1";
+    if (lineWeightWriter.fileExport(aciCompositionOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true)
+        || !aciCompositionSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE ACI source was published");
+    *lineWeightRaw = originalLineWeightRaw;
+    if (!lineWeightWriter.fileExport(aciCompositionOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true)
+        || !verifyAciComposition(aciCompositionOutput))
+        return fail("same-adapter MLEADERSTYLE ACI retry failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+
+    const auto aciCompositionCrossOutput = directory
+        / ("root-mleaderstyle-aci-composition-cross-" + encoding + ".dxf");
+    dx_iface aciCrossWriter;
+    if (!aciCrossWriter.fileExport(aciCompositionCrossOutput.string(),
+            DRW::AC1027, !binary, &lineWeightData, false, true)
+        || !verifyAciComposition(aciCompositionCrossOutput))
+        return fail("cross-format MLEADERSTYLE ACI composition failed: "
+            + aciCrossWriter.extensionGraphFailureDetail());
+
+    lineWeightWriter.mutateBlockColor = true;
+    if (!seedAciCompositionSentinel()
+        || lineWeightWriter.fileExport(aciCompositionOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true)
+        || !aciCompositionSentinelSurvives())
+        return fail("late composed MLEADERSTYLE ACI mutation was published");
+    lineWeightWriter.mutateBlockColor = false;
+    lineWeightStyle->blockColor = 7;
+    if (!lineWeightWriter.fileExport(aciCompositionOutput.string(),
+            DRW::AC1027, binary, &lineWeightData, false, true)
+        || !verifyAciComposition(aciCompositionOutput))
+        return fail("late composed MLEADERSTYLE ACI same-adapter retry failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    lineWeightStyle->leaderColor = 0;
+    lineWeightStyle->textColor = 0;
+    lineWeightStyle->blockColor = 0;
 
     // Group 174 is the left text attachment enum. Its bounded 0..8 domain is
     // confirmed by Autodesk's AcTextAttachmentType reference; this transaction

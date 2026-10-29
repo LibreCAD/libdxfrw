@@ -16323,6 +16323,10 @@ bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
         return true;
     if (std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode))
         return true;
+    // The three ACI CMC values are independent when each source field is a
+    // unique INTEGER and its containing CMC has no unmodeled extensions.
+    if (std::all_of(codes.begin(), codes.end(), isMLeaderColorCode))
+        return true;
 
     // Selected AC1027 profiles admit either or both independent group-90 and
     // group-92 INT32 scalars alongside mapped DOUBLE fields. Other mixed
@@ -16543,10 +16547,11 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     return false;
                 continue;
             }
-            // Multiple fields compose only for the mapped DOUBLE fields and
-            // the selected group-90/group-92 scalar family. Other mixed types
-            // can carry coupled semantics or references; keep those on their
-            // existing one-field transaction until separately qualified.
+            // Multiple fields compose only for mapped DOUBLE fields with the
+            // selected group-90/group-92 scalar family, or for the bounded ACI
+            // color-only family. Other mixed types can carry coupled semantics
+            // or references; keep those on their existing one-field
+            // transaction until separately qualified.
             if (!supportedMLeaderEditSet(editedCodes))
                 return false;
             for (const int editedCode : editedCodes) {
@@ -16648,9 +16653,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 changedMLeaderFieldCodes(value, original);
             if (!editedCodes.empty()) {
                 // Multiple-field composition is limited to mapped AC1027
-                // DOUBLE groups and the selected group-90/group-92 INT32
-                // scalars. Other edit sets keep their single-field contract
-                // until separately qualified.
+                // DOUBLE groups with selected group-90/group-92 INT32 scalars,
+                // or to the bounded ACI color-only family. Other edit sets
+                // keep their single-field contract until separately qualified.
                 if (version != DRW::AC1027
                     || !supportedMLeaderEditSet(editedCodes)
                     || !standardDwgCommonEqual(value, original, version,
