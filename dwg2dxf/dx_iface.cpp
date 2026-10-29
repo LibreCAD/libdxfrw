@@ -15989,7 +15989,7 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 4> mleaderInt32Codes{{90, 91, 92, 93}};
+constexpr std::array<int, 5> mleaderInt32Codes{{90, 91, 92, 93, 94}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16002,7 +16002,7 @@ bool isMLeaderInt32Code(int code) noexcept {
 }
 
 bool isMLeaderColorCode(int code) noexcept {
-    return code == 91 || code == 93;
+    return code == 91 || code == 93 || code == 94;
 }
 
 std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
@@ -16012,6 +16012,7 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 91: return style.leaderColor;
     case 92: return style.leaderLineWeight;
     case 93: return style.textColor;
+    case 94: return style.blockColor;
     default: return 0;
     }
 }
@@ -16023,6 +16024,7 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 91: style.leaderColor = value; break;
     case 92: style.leaderLineWeight = value; break;
     case 93: style.textColor = value; break;
+    case 94: style.blockColor = value; break;
     default: break;
     }
 }
@@ -16143,8 +16145,8 @@ bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
                 return false;
             continue;
         }
-        // Groups 91 and 93 are CMC fields. This transaction supports only
-        // their source-bound ACI groups; do not rewrite either if truecolor,
+        // Groups 91, 93 and 94 are CMC fields. This transaction supports only
+        // their source-bound ACI groups; do not rewrite if truecolor,
         // name/book, transparency or another CMC extension is also present.
         if (isMLeaderColorCode(code) && inStyleBody
             && fieldCode >= 420 && fieldCode <= 449)
@@ -16390,7 +16392,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 } else if (isMLeaderInt32Code(editedCode)) {
                     // BodyWriter stores generic 90-92 values as INTEGER64 for
                     // MATERIAL's unsigned color case. MLEADERSTYLE groups
-                    // 90-93 are signed INT32 fields (91/93 are ACI values),
+                    // 90-94 are signed INT32 fields (91/93/94 are ACI values),
                     // and the raw-carrier validator requires INTEGER.
                     source.output.groups[slot] = DRW_Variant(
                         editedCode, mleaderInt32Value(projection,
