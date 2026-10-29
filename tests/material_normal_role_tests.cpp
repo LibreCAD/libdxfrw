@@ -243,6 +243,24 @@ bool physicalMatrices(const std::filesystem::path& path,bool binary,std::size_t 
     }
     return true;
 }
+bool bothMatrices(const dx_data& data,const std::array<double,16>& diffuse,const std::array<double,16>& normal) {
+    const auto* m=target(data);return m&&m->m_hasDiffuseMapTransform&&m->m_hasNormalMapTransform
+        &&std::memcmp(m->m_diffuseMapTransform.data(),diffuse.data(),sizeof(diffuse))==0
+        &&std::memcmp(m->m_normalMapTransform.data(),normal.data(),sizeof(normal))==0;
+}
+bool physicalBoth(const std::filesystem::path& path,bool binary,const std::array<double,16>& diffuse,const std::array<double,16>& normal) {
+    std::ifstream stream(path,std::ios::binary);if(!stream)return false;if(binary)stream.seekg(22);
+    std::unique_ptr<dxfReader> reader=binary?std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        :std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool material=false,selected=false;int code=0;std::vector<double> values;
+    while(reader->readRec(&code)) {
+        if(code==0){const auto type=reader->getString();if(material&&selected)break;material=type=="MATERIAL";selected=false;}
+        else if(material&&code==1)selected=reader->getString()=="PeerMaterial";
+        else if(material&&selected&&code==43)values.push_back(reader->getDouble());
+    }
+    return selected&&values.size()==32u&&std::memcmp(values.data(),diffuse.data(),sizeof(diffuse))==0
+        &&std::memcmp(values.data()+16u,normal.data(),sizeof(normal))==0;
+}
 bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
@@ -270,11 +288,12 @@ bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
 }
 
 struct LateMaterialEdit final : dx_iface {
-    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false; unsigned phase = 0;
+    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false, diffuseMatrix = false; unsigned phase = 0;
     void mutate() {
         if (!active || !cData) return;
         for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
-            if (matrix) material.m_normalMapTransform[9] = 999.0;
+            if (diffuseMatrix) material.m_diffuseMapTransform[9] = 999.0;
+            else if (matrix) material.m_normalMapTransform[9] = 999.0;
             else if (filename) material.m_normalMapFileName = "late-normal.png";
             else if (autoTransform) material.m_normalMapAutoTransform = 3;
             else if (projection) material.m_normalMapProjection = 2;
@@ -401,6 +420,67 @@ bool run(const std::filesystem::path& dir) {
             if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                 || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
         }
+        // Both matrices have distinct source roles. Test individual, multiple,
+        // signed-zero and composed diffuse/normal edits on all wire routes.
+        for(bool outputBinary:{false,true})for(unsigned pattern=0;pattern<20u;++pattern) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;dx_iface adapter;
+            if(!adapter.fileImport(input.string(),&source,false)||!matrixState(source))return false;
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return false;auto diffuse=selected->m_diffuseMapTransform,normal=selected->m_normalMapTransform;
+            if(pattern<16u)diffuse[pattern]=700.0+pattern;
+            else if(pattern==16u)for(std::size_t i=0;i<16u;++i)diffuse[i]=-500.0-i;
+            else if(pattern==17u){diffuse[0]=11.0;diffuse[5]=22.0;diffuse[15]=33.0;}
+            else if(pattern==18u)diffuse[9]=-0.0;
+            else {diffuse[9]=777.0;normal[9]=888.0;selected->m_normalMapBlendFactor=.875;
+                selected->m_normalMapProjection=1;selected->m_normalMapTiling=1;selected->m_normalMapAutoTransform=1;
+                selected->m_normalMapFileName="edited-normal.png";}
+            selected->m_diffuseMapTransform=diffuse;selected->m_normalMapTransform=normal;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physicalBoth(output,outputBinary,diffuse,normal)||!bothMatrices(source,diffuse,normal))return false;
+            dx_data readback;dx_iface verifier;
+            if(!verifier.fileImport(output.string(),&readback,false)||!bothMatrices(readback,diffuse,normal))return false;
+        }
+        for(bool outputBinary:{false,true})for(unsigned fault=0;fault<7u;++fault) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false)||!matrixState(source))return false;
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return false;auto& raw=source.rawMaterialObjects.front();const auto savedRaw=raw;
+            selected->m_diffuseMapTransform[9]=777.0;
+            if(fault==0u)selected->m_diffuseMapTransform[9]=(std::numeric_limits<double>::quiet_NaN)();
+            if(fault==1u)selected->m_diffuseMapTransform[4]=(std::numeric_limits<double>::infinity)();
+            if(fault==2u)selected->m_normalMapTransform[4]=(std::numeric_limits<double>::infinity)();
+            if(fault==3u)selected->m_hasDiffuseMapTransform=false;
+            if(fault==4u)selected->m_hasNormalMapTransform=false;
+            if(fault>=5u){unsigned count=0u;for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()==43&&++count==(fault==5u?10u:26u)){
+                raw.groups[i]=DRW_Variant(43,888.0);if(raw.hasRawValues)raw.rawValues.at(i)="888";}}
+            const auto failedDiffuse=selected->m_diffuseMapTransform,failedNormal=selected->m_normalMapTransform;
+            const bool failedDiffusePresent=selected->m_hasDiffuseMapTransform,failedNormalPresent=selected->m_hasNormalMapTransform;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||std::memcmp(failedDiffuse.data(),selected->m_diffuseMapTransform.data(),sizeof(failedDiffuse))
+                ||std::memcmp(failedNormal.data(),selected->m_normalMapTransform.data(),sizeof(failedNormal))
+                ||failedDiffusePresent!=selected->m_hasDiffuseMapTransform||failedNormalPresent!=selected->m_hasNormalMapTransform)return false;
+            raw=savedRaw;for(std::size_t i=0;i<16u;++i){selected->m_diffuseMapTransform[i]=100.0+i;selected->m_normalMapTransform[i]=200.0+i;}
+            selected->m_diffuseMapTransform[9]=777.0;selected->m_hasDiffuseMapTransform=true;selected->m_hasNormalMapTransform=true;
+            const auto diffuse=selected->m_diffuseMapTransform,normal=selected->m_normalMapTransform;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)||!physicalBoth(output,outputBinary,diffuse,normal))return false;
+        }
+        for(unsigned phase=0;phase<3u;++phase) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1))return false;
+            dx_data source;LateMaterialEdit adapter;adapter.phase=phase;adapter.diffuseMatrix=true;
+            if(!adapter.fileImport(input.string(),&source,false)||!matrixState(source))return false;
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return false;selected->m_diffuseMapTransform[9]=777.0;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!adapter.hit)return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||selected->m_diffuseMapTransform[9]!=999.0)return false;
+            adapter.active=false;selected->m_diffuseMapTransform[9]=777.0;
+            const auto diffuse=selected->m_diffuseMapTransform,normal=selected->m_normalMapTransform;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!physicalBoth(output,sourceBinary,diffuse,normal))return false;
+        }
         // Two complete mapper matrices occur on opposite sides of the
         // inferred second 42. An edit replaces only the selected normal slot.
         for(bool outputBinary:{false,true})for(std::size_t index=0u;index<16u;++index) {
@@ -461,7 +541,7 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapTransform[9]=777.0;
             if(fault==0u)selected->m_normalMapTransform[9]=(std::numeric_limits<double>::quiet_NaN)();
             if(fault==1u)selected->m_normalMapTransform[4]=(std::numeric_limits<double>::infinity)();
-            if(fault==2u)selected->m_diffuseMapTransform[9]=888.0;
+            if(fault==2u)selected->m_diffuseMapTransform[9]=(std::numeric_limits<double>::infinity)();
             if(fault==3u)selected->m_hasNormalMapTransform=false;
             if(fault==4u||fault==5u){unsigned count=0u;for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()==43&&++count==(fault==4u?26u:10u)){
                 raw.groups[i]=DRW_Variant(43,888.0);if(raw.hasRawValues)raw.rawValues.at(i)="888";}}
