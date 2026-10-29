@@ -291,6 +291,14 @@ set_tests_properties(libdxfrw_mline_consumed_three_source_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 five-element source profile; append one tuple and
+# verify the complete consumer parameter arrays, output/readback and retries.
+add_test(NAME libdxfrw_mline_consumed_five_source_append
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-five-source-append)
+set_tests_properties(libdxfrw_mline_consumed_five_source_append PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
