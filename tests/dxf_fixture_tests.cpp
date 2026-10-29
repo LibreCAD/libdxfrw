@@ -31416,7 +31416,7 @@ Tags sourceWithManyEntityHandleXdata(bool binary,
 
 Tags sourceWithBlockEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
-        std::string_view targetOwner="203") {
+        std::string_view targetOwner="203",bool circle=false) {
     auto fields=source(binary);
     bool provider=false,selected=false,handleInserted=false;
     for(std::size_t i=0u;i<fields.size();++i) {
@@ -31457,18 +31457,29 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags line{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
-            {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
-            {10,"100.5"},{20,"2"},{30,"0"},
-            {11,"101.5"},{21,"3"},{31,"0"}};
+        const Tags entity=circle
+            ?Tags{{0,"CIRCLE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
+                {10,"50"},{20,"60"},{30,"7"},{40,"5"}}
+            :Tags{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
+                {10,"100.5"},{20,"2"},{30,"0"},
+                {11,"101.5"},{21,"3"},{31,"0"}};
         fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(endBlock),
-                      line.begin(),line.end());
+                      entity.begin(),entity.end());
         blockInserted=true;
         break;
     }
     if(!blockInserted)
         throw std::runtime_error("block-target container missing");
     return fields;
+}
+
+Tags sourceWithBlockCircleEntityHandleXdata(
+        bool binary,std::string_view targetBlock="AuthorityBlock",
+        std::string_view targetOwner="203") {
+    return sourceWithBlockEntityHandleXdata(
+        binary,targetBlock,targetOwner,true);
 }
 
 Tags sourceWithMixedSectionEntityHandleXdata(bool binary) {
@@ -32547,8 +32558,14 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
 }
 
 bool circleEntityHandleProviderProof(const std::filesystem::path& path,
-                                    bool binary,bool requireRemap) {
+                                    bool binary,bool requireRemap,
+                                    std::string_view targetBlock="*Model_Space") {
     if(!providerProof(path,binary))return false;
+    std::string targetBlockKey;
+    if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
+    const auto targetSection=targetBlockKey=="*model_space"
+        ||targetBlockKey=="*paper_space"
+        ?std::string_view("ENTITIES"):std::string_view("BLOCKS");
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto fieldValue=[](const auto& row,int code) {
         const auto field=std::find_if(row.fields.begin(),row.fields.end(),
@@ -32563,7 +32580,7 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
     const mlineStyleAuthorityControls::Row* style=nullptr;
     const mlineStyleAuthorityControls::Row* app=nullptr;
     const mlineStyleAuthorityControls::Row* appTable=nullptr;
-    const mlineStyleAuthorityControls::Row* modelSpace=nullptr;
+    const mlineStyleAuthorityControls::Row* ownerRecord=nullptr;
     const mlineStyleAuthorityControls::Row* circle=nullptr;
     for(const auto& row:rows) {
         if(row.type=="LTYPE"&&row.section=="TABLES"
@@ -32585,22 +32602,22 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
             std::string nameKey;
             if(!dx_symbol_output::nameKey(fieldValue(row,2),nameKey))
                 return false;
-            if(nameKey=="*model_space") {
-                if(modelSpace!=nullptr)return false;
-                modelSpace=&row;
+            if(nameKey==targetBlockKey) {
+                if(ownerRecord!=nullptr)return false;
+                ownerRecord=&row;
             }
         }
-        if(row.type=="CIRCLE"&&row.section=="ENTITIES"
+        if(row.type=="CIRCLE"&&row.section==targetSection
             &&realValue(row,10,50.0)&&realValue(row,20,60.0)
             &&realValue(row,30,7.0)&&realValue(row,40,5.0)) {
             if(circle!=nullptr)return false;
             circle=&row;
         }
     }
-    if(style==nullptr||app==nullptr||appTable==nullptr||modelSpace==nullptr
+    if(style==nullptr||app==nullptr||appTable==nullptr||ownerRecord==nullptr
         ||circle==nullptr||style->id.empty()||app->id.empty()
-        ||appTable->id.empty()||modelSpace->id.empty()||circle->id.empty()
-        ||circle->owner!=modelSpace->id
+        ||appTable->id.empty()||ownerRecord->id.empty()||circle->id.empty()
+        ||circle->owner!=ownerRecord->id
         ||(requireRemap?circle->id=="A900":circle->id!="A900"))
         return false;
     std::int64_t appFlags=1;
@@ -32617,23 +32634,39 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
     if(!reader.fileImport(path.string(),&actual,false)
         ||actual.mBlock==nullptr)return false;
     const auto ownerHandle=static_cast<std::uint32_t>(
-        std::stoul(modelSpace->id,nullptr,16));
+        std::stoul(ownerRecord->id,nullptr,16));
+    const auto matchesBlockName=[&](std::string_view name) {
+        std::string nameKey;
+        return dx_symbol_output::nameKey(name,nameKey)
+            &&nameKey==targetBlockKey;
+    };
+    const dx_ifaceBlock* container=nullptr;
+    if(targetSection=="ENTITIES") {
+        container=actual.mBlock;
+    } else {
+        for(const auto* block:actual.blocks)
+            if(block!=nullptr&&matchesBlockName(block->name)) {
+                if(container!=nullptr)return false;
+                container=block;
+            }
+    }
+    if(container==nullptr)return false;
     unsigned owners=0u,circles=0u,linetypes=0u;
     for(const auto& owner:actual.blockRecords)
-        if(owner.handle==ownerHandle&&owner.name=="*Model_Space")++owners;
-    const auto typedCircle=std::find_if(actual.mBlock->ent.begin(),
-        actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+        if(owner.handle==ownerHandle&&matchesBlockName(owner.name))++owners;
+    const auto typedCircle=std::find_if(container->ent.begin(),
+        container->ent.end(),[&](const DRW_Entity* entity) {
             return entity!=nullptr&&entity->eType==DRW::CIRCLE
                 &&entity->handle==std::stoul(circle->id,nullptr,16);
         });
-    const auto* typedModel=typedCircle==actual.mBlock->ent.end()?nullptr
+    const auto* typedModel=typedCircle==container->ent.end()?nullptr
         :dynamic_cast<const DRW_Circle*>(*typedCircle);
     if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Circle)
         ||typedModel->parentHandle!=ownerHandle
         ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
         ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0)
         return false;
-    for(const DRW_Entity* entity:actual.mBlock->ent)
+    for(const DRW_Entity* entity:container->ent)
         if(entity!=nullptr&&entity->eType==DRW::CIRCLE)++circles;
     for(const auto& record:actual.lineTypes)if(record.name=="EditDash") {
         if(record.extData.size()!=3u||record.extData[0]==nullptr
@@ -33395,11 +33428,13 @@ struct LateBlockXdataLineMutation:dx_iface {
     explicit LateBlockXdataLineMutation(
             std::string blockName="AuthorityBlock",
             std::uint32_t targetHandle=0xA900u,
-            std::uint32_t replacementHandle=0xA901u)
+            std::uint32_t replacementHandle=0xA901u,
+            DRW::ETYPE targetType=DRW::LINE)
         :targetBlock(std::move(blockName)),sourceHandle(targetHandle),
-         mutatedHandle(replacementHandle) {}
+         mutatedHandle(replacementHandle),entityType(targetType) {}
     std::string targetBlock;
     std::uint32_t sourceHandle{0u},mutatedHandle{0u};
+    DRW::ETYPE entityType{DRW::LINE};
     bool armed{true},mutated{false};
     void writeAppId()override {
         dx_iface::writeAppId();
@@ -33407,7 +33442,7 @@ struct LateBlockXdataLineMutation:dx_iface {
         for(auto* block:cData->blocks) {
             if(block==nullptr||block->name!=targetBlock)continue;
             for(DRW_Entity* entity:block->ent)
-                if(entity!=nullptr&&entity->eType==DRW::LINE
+                if(entity!=nullptr&&entity->eType==entityType
                     &&entity->handle==sourceHandle) {
                     entity->handle=mutatedHandle;mutated=true;return;
                 }
@@ -35598,10 +35633,133 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithBlockCircleEntityHandleXdata(sourceBinary),
+                  sourceBinary,"AC1027")
+            ||!circleEntityHandleProviderProof(input,sourceBinary,false,
+                                                 "AuthorityBlock")
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA source setup failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const auto namedBlock=std::find_if(data.blocks.begin(),data.blocks.end(),
+            [](const dx_ifaceBlock* block) {
+                std::string key;
+                return block!=nullptr
+                    &&dx_symbol_output::nameKey(block->name,key)
+                    &&key=="authorityblock";
+            });
+        auto* block=namedBlock==data.blocks.end()?nullptr:*namedBlock;
+        if(block==nullptr)return false;
+        const auto sourceCircle=std::find_if(block->ent.begin(),block->ent.end(),
+            [](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->eType==DRW::CIRCLE
+                    &&entity->handle==0xA900u;
+            });
+        const auto* typedSource=sourceCircle==block->ent.end()?nullptr
+            :dynamic_cast<const DRW_Circle*>(*sourceCircle);
+        if(typedSource==nullptr||typedSource->parentHandle!=0x203u
+            ||typedSource->basePoint.x!=50.0
+            ||typedSource->basePoint.y!=60.0
+            ||typedSource->basePoint.z!=7.0
+            ||typedSource->radious!=5.0
+            ||!DxIfaceMaterialReferenceTestAccess::
+                mlineXdataEntitySourceBound(adapter,data,0xA900u,0x203u,
+                                             true,DRW::CIRCLE)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA typed source identity failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const std::vector<std::uint32_t> targetHandles{0xA900u};
+        const auto outputProof=[&]() {
+            return adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                                      &data,false,true)
+                &&circleEntityHandleProviderProof(output,outputBinary,true,
+                                                   "AuthorityBlock")
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                    adapter,0x103u)
+                &&DxIfaceMaterialReferenceTestAccess::
+                    mlineLinetypeEntityProofBound(
+                        adapter,0x103u,targetHandles,true,DRW::CIRCLE);
+        };
+        if(!outputProof()) {
+            std::cerr<<"BLOCKS CIRCLE XDATA output/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        DRW_Entity* retained=*sourceCircle;
+        const auto restoreOffset=static_cast<std::size_t>(
+            std::distance(block->ent.begin(),sourceCircle));
+        block->ent.erase(sourceCircle);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restore=block->ent.begin();
+        std::advance(restore,static_cast<std::ptrdiff_t>(restoreOffset));
+        block->ent.insert(restore,retained);
+        if(!outputProof()) {
+            std::cerr<<"BLOCKS CIRCLE XDATA same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateBlockXdataLineMutation adapter{
+            "AuthorityBlock",0xA900u,0xA901u,DRW::CIRCLE};
+        dx_data data;
+        if(!write(input,sourceWithBlockCircleEntityHandleXdata(false),false,
+                  "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!circleEntityHandleProviderProof(input,false,false,
+                                                 "AuthorityBlock")
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
+                adapter,data,0xA900u,0x203u,true,DRW::CIRCLE)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA late-mutation refusal failed\n";
+            return false;
+        }
+        ++refusals;adapter.armed=false;
+        const auto namedBlock=std::find_if(data.blocks.begin(),data.blocks.end(),
+            [](const dx_ifaceBlock* block) {
+                std::string key;
+                return block!=nullptr
+                    &&dx_symbol_output::nameKey(block->name,key)
+                    &&key=="authorityblock";
+            });
+        if(namedBlock==data.blocks.end())return false;
+        for(DRW_Entity* entity:(*namedBlock)->ent)
+            if(entity!=nullptr&&entity->handle==0xA901u) {
+                entity->handle=0xA900u;break;
+            }
+        const std::vector<std::uint32_t> targetHandles{0xA900u};
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,
+                               &data,false,true)
+            ||!circleEntityHandleProviderProof(output,false,true,
+                                                "AuthorityBlock")
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::
+                mlineLinetypeEntityProofBound(
+                    adapter,0x103u,targetHandles,true,DRW::CIRCLE)) {
+            std::cerr<<"BLOCKS CIRCLE XDATA late-mutation retry failed\n";
+            return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==224u&&readbacks==501u&&refusals==277u&&retries==277u;
+    return profiles==228u&&readbacks==510u&&refusals==282u&&retries==282u;
 }
 
 bool runBudgetTemporary() {
