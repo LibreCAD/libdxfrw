@@ -189,9 +189,9 @@ set_tests_properties(libdxfrw_mline_consumed_style_multi_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
-# Runtime-generated AC1027 profile for removing one tail element from a style
-# used by open, uncut MLINEs. It checks bottom-justification rebasing, exact
-# output/readback, non-tail refusal, rollback and same-adapter retry.
+# Runtime-generated AC1027 profile for removing either element from a two-item
+# style used by open, uncut MLINEs. It checks parameter remapping, exact output,
+# zero-count refusal, rollback and same-adapter retry.
 add_test(NAME libdxfrw_mline_consumed_style_removal
     COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal)
 set_tests_properties(libdxfrw_mline_consumed_style_removal PROPERTIES
