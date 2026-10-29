@@ -16171,8 +16171,13 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     baseline->second->compatibility))
                 return false;
             const int editedCode = changedMLeaderDoubleCode(value, original);
-            if (editedCode == 0)
+            if (editedCode == 0) {
+                if (!standardDwgCommonEqual(value, original, version, false)
+                    || value.name != original.name
+                    || !mleaderPayloadEqual(value, original, version))
+                    return false;
                 continue;
+            }
             if (editedCode < 0)
                 return false;
             std::size_t baselineSlot = noMLeaderDoubleSlot;

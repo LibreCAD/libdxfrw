@@ -33096,6 +33096,14 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         return fail("combined MLEADERSTYLE scalar edits were not refused atomically");
     gapStyle->textHeight = 0.0;
 
+    gapStyle->landingEnabled = false;
+    if (!seedGapSentinel()
+        || gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
+                                &gapData, false, true)
+        || !gapSentinelSurvives())
+        return fail("unsupported MLEADERSTYLE boolean edit was not refused");
+    gapStyle->landingEnabled = true;
+
     gapWriter.mutateLandingGap = true;
     if (!seedGapSentinel()
         || gapWriter.fileExport(gapOutput.string(), DRW::AC1027, binary,
