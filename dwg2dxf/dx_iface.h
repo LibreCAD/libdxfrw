@@ -2300,9 +2300,17 @@ private:
         const DRW_LType* live{nullptr};
         DRW_LType model;
         std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
+        std::vector<std::uint32_t> appIdHandles;
+        std::uint32_t emitted{0},table{0};
+    };
+    struct DxfMLineAppIdSource {
+        const DRW_AppId* live{nullptr};
+        DRW_AppId model;
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::ResourceOriginAudit> origin;
         std::uint32_t emitted{0},table{0};
     };
     std::map<std::uint32_t,DxfMLineLinetypeSource> m_dxfMLineLinetypes;
+    std::map<std::uint32_t,DxfMLineAppIdSource> m_dxfMLineAppIds;
     bool m_dxfMLineLinetypesInspected{false};
     std::size_t m_dxfMLineLinetypeCount{0u};
     bool prepareDxfMLineLinetypes(std::size_t chargedBytes=0u) noexcept;
