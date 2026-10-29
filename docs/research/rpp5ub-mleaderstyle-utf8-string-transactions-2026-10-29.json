@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE UTF-8 string edits",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "1c7142a18b0c8daad498f9878f2e16f400b6b966",
+  "scope": "The existing source-bound AC1027 MLEADERSTYLE transactions for group-3 description and group-300 textDefault now admit well-formed UTF-8 scalar text, including BMP and supplementary-plane characters, while refusing malformed UTF-8 and C0/C1 controls.",
+  "fieldEvidence": {
+    "groupCodes": [3, 300],
+    "fieldRoles": {
+      "3": "MLeader Style Description",
+      "300": "Default MText Contents"
+    },
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference MLEADERSTYLE group-code table",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "encodingEvidence": "Autodesk documents UTF-8 string storage for AutoCAD 2007 DXF and later, which includes AC1027.",
+    "encodingEvidenceUrl": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "selectedTextDomain": "Well-formed UTF-8 scalar values without C0, DEL, or C1 control characters. AC1027 UTF-8 output only.",
+    "classification": "Autodesk field-role evidence plus runtime-authored source-bound transaction, exact output and readback evidence. Not independent producer, legacy code-page, native rendering/meaning, or consumer semantic qualification."
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The existing root-reachable MLEADERSTYLE baseline and unique physical string field must match. A replacement must be valid UTF-8 scalar text without C0, DEL, or C1 controls; the transaction may change only the selected group-3 or group-300 typed field.",
+    "projection": "Replace only the unique captured group-3 or group-300 STRING in the source-matched body. Preserve field order, opaque groups, other typed values and captured source identity. Missing/repeated fields, raw/typed conflict, mixed typed edits, unknown grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "Runtime-authored ASCII and binary AC1027 inputs are written to ASCII and binary output. The focused selector checks exact raw STRING output and typed readback for group 3 and group 300, including BMP characters, an em dash and supplementary-plane characters. No DWG/DXF fixture file is committed.",
+    "failureAndRetry": "Conflicting raw/typed values, malformed UTF-8, LF, embedded NUL and U+0085 each refuse and preserve a sentinel destination. Restoring a valid request permits the same adapter instance to retry successfully. Existing checks also exercise unique source fields and cross-format readback.",
+    "compatibility": "Untouched records retain raw replay. Existing source- and target-AC1027 gating, one edited MLEADERSTYLE field per transaction and mixed-type refusal remain. This does not change DWG-origin writes, other versions or consumers."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp creates source group 3 and group 300 at runtime; the focused test creates and removes its temporary input/output files.",
+    "implementationCommit": "5a2d56b04303e90595aa729ceabb104282c781ad",
+    "dwg2dxf/dx_iface.cpp": "062bbf547a5f1eaa7e3d66919caca620d8dd208b8db3eaff11c60d35e575bbfa",
+    "tests/dwg2dxf_adapter_tests.cpp": "d0c5cf0178376de38af9900df9feeb5bde58a65806bcdb484bdf4c17ce8a1817",
+    "adapterTestExecutableSha256": "aadeb5e7ed3cb5b7dd3f5b2b34e42848729960487cb06558188d0f034634a627"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "1/1 passed. Both string groups are exercised across ASCII/binary source and output, exact raw output and typed readback, malformed/control refusal, destination preservation and same-adapter retry."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The profile is limited to authored AC1027 DXF transactions for group 3 and group 300. It does not establish behavior for independent producers, other versions/code pages, Unicode normalization, MText rendering, native consumers, DWG editing or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select the next current P2 geometry/schema witness or another exact source-backed string profile; keep non-AC1027 text, producer variation and native meaning as separate evidence tasks."
+}

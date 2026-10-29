@@ -359,8 +359,9 @@ proof. Refused fields are not implemented editing support.
    `blockConnectionType` enum value in 0..1, or one group-170 `contentType`
    enum value in 0..3, group-271 `attachmentDirection` enum in 0..1,
    group-272 `bottomAttachment` enum in {9, 10}, group-273 `topAttachment`
-   enum in {9, 10}, group-3 printable-ASCII `description` or group-300
-   printable-ASCII `textDefault` string, or one existing Boolean-coded group
+   enum in {9, 10}, group-3 `description` or group-300 `textDefault` using
+   valid UTF-8 scalar text without C0/DEL/C1 controls, or one existing
+   Boolean-coded group
    290–298, or a group-340 `leaderLineTypeHandle` retarget to a unique
    source-bound LTYPE provider, or a group-341 `arrowHeadBlockHandle` retarget
    to a unique source-bound BLOCK_RECORD with a complete block body, or a
@@ -405,12 +406,15 @@ proof. Refused fields are not implemented editing support.
    Groups 272 and 273 independently change Center (9) to their documented
    underline/overline values (10), refuse both adjacent invalid values, and are
    bounded by [RPP-5lx](docs/research/rpp5lx-mleaderstyle-attachment-enum-transactions-2026-10-29.json).
-   Group-3 `description` edits are bounded to printable ASCII and refuse
-   non-ASCII/control text; see
-   [RPP-5ly](docs/research/rpp5ly-mleaderstyle-description-transaction-2026-10-29.json).
-   Group-300 `textDefault` edits use the same printable-ASCII admission with
-   independent raw/output/readback proof; see
-   [RPP-5lz](docs/research/rpp5lz-mleaderstyle-default-text-transaction-2026-10-29.json).
+   Earlier group-3 `description` and group-300 `textDefault` receipts
+   ([RPP-5ly](docs/research/rpp5ly-mleaderstyle-description-transaction-2026-10-29.json),
+   [RPP-5lz](docs/research/rpp5lz-mleaderstyle-default-text-transaction-2026-10-29.json))
+   established their source-bound ASCII transactions. The follow-up
+   [RPP-5ub](docs/research/rpp5ub-mleaderstyle-utf8-string-transactions-2026-10-29.json)
+   extends both AC1027 fields to well-formed UTF-8 scalar text, including
+   supplementary-plane characters, while rejecting malformed UTF-8 and C0,
+   DEL and C1 controls. It proves exact raw output, typed readback, the
+   ASCII/binary input/output cross-product, destination preservation and retry.
    The nine existing Boolean-coded groups 290–298 are independently flipped
    with exact raw/output/readback and retry controls by
    [RPP-5lv](docs/research/rpp5lv-mleaderstyle-boolean-transactions-2026-10-29.json).
@@ -446,8 +450,8 @@ proof. Refused fields are not implemented editing support.
    route. The selected group-340 through group-343 results do not qualify other
    handle roles. Remaining work includes
    contexts/defaults/repeated
-   values, other integer and handle fields, other string fields and
-   non-ASCII/code-page profiles, source-version grammars,
+   values, other integer and handle fields, other string fields, legacy
+   code-page/version profiles and source-version grammars,
    CMC/unknown extensions, and other STYLE/LTYPE/BLOCK_RECORD dependency edits.
    Preserve raw replay for untouched records.
    Autodesk's table identifies the DXF roles, but independently produced-source,
