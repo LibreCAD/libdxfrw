@@ -200,7 +200,7 @@ set_tests_properties(libdxfrw_mline_consumed_style_triple_append PROPERTIES
 
 # Runtime-generated AC1027 profile for appending four tail elements to a
 # consumed two-element style. It verifies six-element output/readback, exact
-# MLINE parameters, retry behavior and the adjacent 2-to-10 refusal.
+# MLINE parameters, retry behavior and the adjacent 2-to-11 refusal.
 add_test(NAME libdxfrw_mline_consumed_style_quad_append
     COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-quad-append)
 set_tests_properties(libdxfrw_mline_consumed_style_quad_append PROPERTIES
@@ -209,7 +209,7 @@ set_tests_properties(libdxfrw_mline_consumed_style_quad_append PROPERTIES
 
 # Runtime-generated AC1027 profile for appending five tail elements to a
 # consumed two-element style. It verifies seven-element output/readback, exact
-# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-10
+# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-11
 # refusal without committing fixture files.
 add_test(NAME libdxfrw_mline_consumed_style_quint_append
     COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-quint-append)
@@ -219,7 +219,7 @@ set_tests_properties(libdxfrw_mline_consumed_style_quint_append PROPERTIES
 
 # Runtime-generated AC1027 profile for appending six tail elements to a
 # consumed two-element style. It verifies eight-element output/readback, exact
-# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-10
+# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-11
 # refusal without committing fixture files.
 add_test(NAME libdxfrw_mline_consumed_style_sext_append
     COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-sext-append)
@@ -229,11 +229,21 @@ set_tests_properties(libdxfrw_mline_consumed_style_sext_append PROPERTIES
 
 # Runtime-generated AC1027 profile for appending seven tail elements to a
 # consumed two-element style. It verifies nine-element output/readback, exact
-# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-10
+# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-11
 # refusal without committing fixture files.
 add_test(NAME libdxfrw_mline_consumed_style_sept_append
     COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-sept-append)
 set_tests_properties(libdxfrw_mline_consumed_style_sept_append PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
+# Runtime-generated AC1027 profile for appending eight tail elements to a
+# consumed two-element style. It verifies ten-element output/readback, exact
+# provider and MLINE parameter fields, rollback/retry, and adjacent 2-to-11
+# refusal without committing fixture files.
+add_test(NAME libdxfrw_mline_consumed_style_oct_append
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-oct-append)
+set_tests_properties(libdxfrw_mline_consumed_style_oct_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
