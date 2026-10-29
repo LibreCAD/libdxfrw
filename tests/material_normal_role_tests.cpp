@@ -409,6 +409,66 @@ bool run(const std::filesystem::path& dir) {
                 || !typed(retry, false, 0.75, 4, 3, 4,
                           "normal-sentinel.png", wantedSource)) return false;
         }
+        // Qualify a composed source-selector and file-name edit on the same
+        // inferred-boundary tuple. This is a transport/profile proof only;
+        // the native meaning of selector 0/1 remains outside this test.
+        for (bool outputBinary : {false, true}) {
+            if (!author(input, sourceBinary, false, false, false, false, 0, 0,
+                        4, false, 3, 0u, 0, 0)) return false;
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false)
+                || !typed(source, false, 0.75, 4, 3, 4,
+                          "normal-sentinel.png", 0)) return false;
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials)
+                if (material.m_name == "PeerMaterial") {
+                    if (selected) return false;
+                    selected = &material;
+                }
+            if (!selected) return false;
+            const auto originalRaw = source.rawMaterialObjects.front();
+            const std::string wantedFile = "edited-normal-Ω.png";
+            selected->m_normalMapSource = 1u;
+            selected->m_normalMapFileName = wantedFile;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true)
+                || !physical(output, outputBinary, false, false, 0.75, 4, 3,
+                             4, wantedFile, 1)
+                || !typed(source, false, 0.75, 4, 3, 4, wantedFile, 1)) return false;
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !typed(readback, false, 0.75, 4, 3, 4, wantedFile, 1)) return false;
+
+            // A raw source-selector contradiction still refuses atomically;
+            // restoring the exact captured body permits same-adapter retry.
+            auto& raw = source.rawMaterialObjects.front();
+            unsigned selectorFields = 0u;
+            for (std::size_t i = 0u; i < raw.groups.size(); ++i) {
+                if (raw.groups[i].code() != 72 || ++selectorFields != 2u) continue;
+                raw.groups[i] = DRW_Variant(72, std::int32_t(2));
+                if (raw.hasRawValues) raw.rawValues.at(i) = "2";
+                break;
+            }
+            if (selectorFields != 2u) return false;
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+              sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                   &source, false, true)) return false;
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {});
+            saved.close();
+            if (savedBytes != "keep destination"
+                || selected->m_normalMapSource != 1u
+                || selected->m_normalMapFileName != wantedFile) return false;
+            raw = originalRaw;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true)
+                || !physical(output, outputBinary, false, false, 0.75, 4, 3,
+                             4, wantedFile, 1)) return false;
+            dx_data retry; dx_iface retryVerifier;
+            if (!retryVerifier.fileImport(output.string(), &retry, false)
+                || !typed(retry, false, 0.75, 4, 3, 4, wantedFile, 1)) return false;
+        }
         // A callback that changes the edited source after planning must not
         // publish; restoring the requested source permits same-adapter retry.
         for (bool outputBinary : {false, true}) for (unsigned phase = 0u; phase != 3u; ++phase) {

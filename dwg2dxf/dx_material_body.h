@@ -322,7 +322,10 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // markerless normal maps. For this captured, unchanged source only, allow
     // composed typed edits of both blends, projections, tilings, auto transforms,
     // file-backed diffuse/normal filenames and both mapper matrices without
-    // synthesizing a marker or opening the general writer grammar.
+    // synthesizing a marker or opening the general writer grammar. The normal
+    // source may change from Scene (0) to File (1) in the same transaction as
+    // its filename; the output remains a selected field-transport profile and
+    // does not qualify image loading or rendered meaning.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
         &&original.m_hasNormalMapSource&&original.m_hasNormalMapFileName
@@ -366,12 +369,16 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             || (diffuseFilenameEdit&&(!original.m_hasDiffuseMapSource||!original.m_hasDiffuseMapFileName
                 || original.m_diffuseMapSource!=1u || typed.m_diffuseMapSource!=1u))
             || (filenameEdit&&(!original.m_hasDiffuseMapFileName
-                || original.m_normalMapSource!=1u || typed.m_normalMapSource!=1u))
+                || !original.m_hasNormalMapSource || !original.m_hasNormalMapFileName
+                || typed.m_normalMapSource!=1u
+                || (original.m_normalMapSource!=1u && !normalSourceEdit)))
             || (normalSourceEdit&&(!original.m_hasDiffuseMapSource
                 || !original.m_hasNormalMapSource||!original.m_hasNormalMapFileName
                 || !typed.m_hasNormalMapSource||!typed.m_hasNormalMapFileName
-                || typed.m_normalMapSource>1u||blendEdit||projectionEdit||tilingEdit
-                ||autoEdit||filenameEdit||diffuseFilenameEdit||matrixEdit
+                || original.m_normalMapSource>1u||typed.m_normalMapSource>1u
+                ||blendEdit||projectionEdit||tilingEdit
+                ||autoEdit||(filenameEdit&&typed.m_normalMapSource!=1u)
+                ||diffuseFilenameEdit||matrixEdit
                 ||diffuseMatrixEdit||diffuseBlendEdit||diffuseProjectionEdit
                 ||diffuseTilingEdit||diffuseAutoEdit))
             || ((matrixEdit||diffuseMatrixEdit)&&(!original.m_hasDiffuseMapTransform||!original.m_hasNormalMapTransform
