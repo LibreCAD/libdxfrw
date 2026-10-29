@@ -472,6 +472,14 @@ set_tests_properties(libdxfrw_mline_consumed_style_single_from_five_removal PROP
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 profiles retain every ordered two-tuple subset
+# from a five-element consumed style; verify projection and transaction guards.
+add_test(NAME libdxfrw_mline_consumed_style_two_from_five_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-two-from-five-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_two_from_five_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profiles remove each element in turn from a
 # three-element style consumed by open, uncut MLINEs. Check parameter
 # reprojection, exact output/readback, rollback and retries across DXF encodings.
