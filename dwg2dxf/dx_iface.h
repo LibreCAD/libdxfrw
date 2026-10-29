@@ -2266,7 +2266,7 @@ private:
     bool prepareDxfMLineStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLineStyles() const noexcept;
-    bool hasCompleteDxfMLineCountCensus() const noexcept;
+    bool hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) const noexcept;
     bool needsDxfMLineConsumerInspection() const noexcept;
     bool inspectDxfMLineStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLineLinetypeSource {

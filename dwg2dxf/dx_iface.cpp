@@ -16921,10 +16921,11 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
     } catch (...) { return false; }
 }
 
-// A count edit must not infer "unused" from the live container alone: a
-// source MLINE can have been dropped, or an entire source scope unavailable.
-// This census covers ordinary MLINE records only, not opaque/proxy semantics.
-bool dx_iface::hasCompleteDxfMLineCountCensus() const noexcept {
+// Geometry/count edits must not infer "unused" from the live container alone:
+// a source MLINE can have been dropped, moved or duplicated, or an entire
+// source scope can be unavailable. This census covers ordinary MLINE records
+// only, not opaque/proxy semantics.
+bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) const noexcept {
     if (!cData || !cData->hasSingleSuccessfulNamedResourceImport()) return false;
     try {
         using Identity=DRW_DxfIdentitySource;
@@ -16948,6 +16949,15 @@ bool dx_iface::hasCompleteDxfMLineCountCensus() const noexcept {
             if (work>kMaxAdapterBasicTableItems || count>kMaxAdapterBasicTableItems-work) return false;
             work+=count;return true;
         };
+        std::unordered_set<std::uint32_t> geometryStyles;
+        if (!requireUnchangedModels) {
+            for (const auto& row:m_dxfMLineStyles) if (row.second.geometryChanged) {
+                if (!row.first || row.first==DRW::NoHandle || geometryStyles.size()>=kMaxAdapterBasicTableRecords
+                    || !visit(1u) || !chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
+                    || !geometryStyles.insert(row.first).second) return false;
+            }
+            if (geometryStyles.empty()) return false;
+        }
         const auto addLive=[&](const dx_ifaceBlock* block) {
             if (!block) return true;
             for (const auto* entity:block->ent) if (entity && entity->eType==DRW::MLINE) {
@@ -16979,13 +16989,24 @@ bool dx_iface::hasCompleteDxfMLineCountCensus() const noexcept {
             }
             if (identity.reason!=dx_block_membership::Reason::Matched || !shape.complete()
                 || original->handle!=identity.self || original->parentHandle!=identity.owner
-                || original->styleHandle!=shape.target
-                || !chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
+                || original->styleHandle!=shape.target) return false;
+            // Geometry edits need source/live presence for every consumer of
+            // the edited style, but must preserve the existing unused-style
+            // route when unrelated MLINEs are removed. Their own source and
+            // consumer transactions remain governed by the normal planners.
+            if (!requireUnchangedModels && !geometryStyles.count(shape.target)) return true;
+            if (!chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
                 || !visited.insert(identity.self).second) return false;
             const auto changed=m_dxfMLineStyles.find(shape.target);
             if (changed!=m_dxfMLineStyles.end() && changed->second.countChanged) return false;
             const auto found=live.find(identity.self);
             if (found==live.end() || found->second.block!=expected) return false;
+            // Geometry transactions need identity/scope completeness even if
+            // the live reference is being retargeted; the dedicated consumer
+            // planner validates that change against both original styles later
+            // in the same export. Count changes retain the stricter original
+            // model equality contract below.
+            if (!requireUnchangedModels) return true;
             const auto& value=*found->second.value;
             const auto variant=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
                 return standardDwgVariantEqual(a,b,cData->sourceVersion);
@@ -17069,7 +17090,7 @@ bool dx_iface::hasCompleteDxfMLineCountCensus() const noexcept {
                     || range.next>block.membership->members.size()) return false;
                 const auto& physical=block.children->records[range.first];
                 if (!asciiIdentifierEquals(physical.name,"MLINE")) continue;
-                if (!expected || range.next!=range.first+1u
+                if (range.next!=range.first+1u
                     || range.reason!=dx_block_membership::Reason::Matched || d>=block.delivery->dispatches.size()) return false;
                 const auto& dispatch=block.delivery->dispatches[d];
                 if (!span(dispatch.begin,physical.marker) || dispatch.end.ordinal!=physical.endOrdinal
@@ -17090,7 +17111,7 @@ bool dx_iface::hasCompleteDxfMLineCountCensus() const noexcept {
                     || !accept(physical,model->second.get(),expected)) return false;
             }
         }
-        return visited.size()==live.size();
+        return requireUnchangedModels ? visited.size()==live.size() : true;
     } catch (...) {return false;}
 }
 
@@ -17098,9 +17119,15 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
     if (m_dxfMLineStyles.empty()) return true;
     if (!hasUnchangedDxfNamedResourceState(m_dxfMLineStyleState)) return false;
     try {
-        if (std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),
-                [](const auto& row){return row.second.countChanged;})
-            && !hasCompleteDxfMLineCountCensus()) return false;
+        const bool countChanged=std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),
+            [](const auto& row){return row.second.countChanged;});
+        // Source/live consumer association for geometry edits is qualified on
+        // the AC1021+ route. Preserve the earlier-version raw-only transport.
+        const bool geometryChanged=cData->sourceVersion>=DRW::AC1021
+            && std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),
+            [](const auto& row){return row.second.geometryChanged;});
+        if ((countChanged||geometryChanged)
+            && !hasCompleteDxfMLineConsumerCensus(countChanged)) return false;
         if (std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),[](const auto& source){return source.second.dictionaryOrigin!=nullptr;})) {
             const auto structural=structuralSourceReport(*cData);
             if (!structural.namespaceReady || structural.state==StructuralSourceState::ContextMismatch

@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <list>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -133,6 +134,9 @@ static std::string sourceText() {
 }
 static bool writeFile(const std::filesystem::path& path,const std::string& bytes){
     std::ofstream out(path,std::ios::binary);out.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));return static_cast<bool>(out);
+}
+static std::string readFile(const std::filesystem::path& path){
+    std::ifstream in(path,std::ios::binary);return {(std::istreambuf_iterator<char>(in)),{}};
 }
 static bool encodeBinary(const std::string& text,std::string& result){
     std::ostringstream bytes(std::ios::binary);bytes.write("AutoCAD Binary DXF\r\n\x1a\0",22);
@@ -1197,7 +1201,202 @@ static int testMlineStyleBodiesLive() {
              : 17;
 }
 
+static int testDeletedMlineConsumerGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-deleted-consumer-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, refusals = 0u, retries = 0u, readbacks = 0u;
+  for (bool sourceBinary : {false, true}) {
+    auto tags = parseTags(sourceText());
+    for (const char *id : {"D100", "D101"}) {
+      const auto row = record(tags, "MLINE", id);
+      tags[field(tags, row, 2)].second = "RETARGET_STYLE";
+      tags[field(tags, row, 340)].second = "D2";
+    }
+    tags[field(tags, record(tags, "MLINESTYLE", "D"), 2)].second =
+        "EFFECTIVE_STYLE";
+    tags[field(tags, record(tags, "MLINESTYLE", "D2"), 2)].second =
+        "RETARGET_STYLE";
+    const auto text = serialize(tags);
+    std::string source = text;
+    if (sourceBinary) {
+      if (!encodeBinary(text, source))
+        return 2;
+    }
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      Consumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data))
+        return 4;
+      const auto sourceProof = DxIfaceMlineDependencyTestAccess::qualify(adapter, data);
+      if (sourceProof.result != Result::SourceCandidate) {
+        std::cerr << "MLINE removed-consumer source classification="
+                  << static_cast<int>(sourceProof.result) << '\n';
+        return 4;
+      }
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u)
+        return 5;
+      const auto originalOffset = style->elements.front().offset;
+      style->elements.front().offset = originalOffset + 0.25;
+
+      std::vector<std::pair<dx_ifaceBlock *, std::list<DRW_Entity *>>> savedEntities;
+      const auto removeConsumers = [&](dx_ifaceBlock *block) {
+        if (!block)
+          return;
+        savedEntities.emplace_back(block, block->ent);
+        block->ent.remove_if([](const DRW_Entity *entity) {
+          return entity && entity->eType == DRW::MLINE;
+        });
+      };
+      removeConsumers(data.mBlock);
+      for (auto *block : data.blocks)
+        removeConsumers(block);
+      std::size_t removed = 0u;
+      for (const auto &saved : savedEntities)
+        for (const auto *entity : saved.second)
+          if (entity && entity->eType == DRW::MLINE)
+            ++removed;
+      if (removed != 2u)
+        return 6;
+
+      const std::string sentinel = "MLINE_DELETED_CONSUMER_GEOMETRY_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 7;
+      const bool exported = adapter.fileExport(output.string(), DRW::AC1027,
+          outputBinary, &data, false, true);
+      if (exported || readFile(output) != sentinel ||
+          style->elements.front().offset != originalOffset + 0.25)
+        return 8;
+      ++profiles;
+      ++refusals;
+
+      for (auto &saved : savedEntities)
+        saved.first->ent = saved.second;
+      style->elements.front().offset = originalOffset;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 9;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback))
+        return 10;
+      std::size_t consumers = 0u;
+      const auto countConsumers = [&](const dx_ifaceBlock *block) {
+        if (block)
+          for (const auto *entity : block->ent)
+            if (entity && entity->eType == DRW::MLINE)
+              ++consumers;
+      };
+      countConsumers(readback.mBlock);
+      for (const auto *block : readback.blocks)
+        countConsumers(block);
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (consumers != 2u || restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != originalOffset)
+        return 11;
+      ++retries;
+      ++readbacks;
+    }
+  }
+  unsigned unusedProfiles = 0u;
+  for (bool sourceBinary : {false, true}) {
+    const auto text = serialize(parseTags(sourceText()));
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 13;
+    const auto input = dir / (sourceBinary ? "unused-source-binary.dxf" : "unused-source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 14;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "unused-binary-source-output-" : "unused-ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      Consumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data))
+        return 15;
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u)
+        return 16;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      std::size_t removed = 0u;
+      const auto removeConsumers = [&](dx_ifaceBlock *block) {
+        if (!block)
+          return;
+        block->ent.remove_if([&](const DRW_Entity *entity) {
+          if (entity && entity->eType == DRW::MLINE) {
+            ++removed;
+            return true;
+          }
+          return false;
+        });
+      };
+      removeConsumers(data.mBlock);
+      for (auto *block : data.blocks)
+        removeConsumers(block);
+      if (removed != 2u || !adapter.fileExport(output.string(), DRW::AC1027,
+              outputBinary, &data, false, true))
+        return 17;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback))
+        return 18;
+      std::size_t consumers = 0u;
+      const auto countConsumers = [&](const dx_ifaceBlock *block) {
+        if (block)
+          for (const auto *entity : block->ent)
+            if (entity && entity->eType == DRW::MLINE)
+              ++consumers;
+      };
+      countConsumers(readback.mBlock);
+      for (const auto *block : readback.blocks)
+        countConsumers(block);
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (consumers != 0u || restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 19;
+      ++unusedProfiles;
+    }
+  }
+  std::cout << "MLINE deleted-consumer geometry guard profiles=" << profiles
+            << " refusals=" << refusals << " retries=" << retries
+            << " readbacks=" << readbacks << " unused-style-controls=" << unusedProfiles << '\n';
+  return profiles == 4u && refusals == 4u && retries == 4u && readbacks == 4u
+      && unusedProfiles == 4u
+      ? 0 : 12;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-deleted-consumer-geometry-guard")return testDeletedMlineConsumerGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-style-body-source-live")return testMlineStyleBodiesLive();
     if(argc==2&&std::string(argv[1])=="--mline-style-dictionary-source-live")return testMlineStyleDictionaryLive();
     if(argc==2&&std::string(argv[1])=="--mline-root-dictionary-source-live")return testMlineRootDictionaryLive();
