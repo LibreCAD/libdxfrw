@@ -15989,10 +15989,34 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
+constexpr std::array<int, 2> mleaderInt32Codes{{90, 92}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
                      code) != mleaderDoubleCodes.end();
+}
+
+bool isMLeaderInt32Code(int code) noexcept {
+    return std::find(mleaderInt32Codes.begin(), mleaderInt32Codes.end(),
+                     code) != mleaderInt32Codes.end();
+}
+
+std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
+                               int code) noexcept {
+    switch (code) {
+    case 90: return style.maxLeaderPoints;
+    case 92: return style.leaderLineWeight;
+    default: return 0;
+    }
+}
+
+void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
+                          std::int32_t value) noexcept {
+    switch (code) {
+    case 90: style.maxLeaderPoints = value; break;
+    case 92: style.leaderLineWeight = value; break;
+    default: break;
+    }
 }
 
 double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
@@ -16031,11 +16055,20 @@ int changedMLeaderDoubleCode(const DRW_MLeaderStyle& value,
 int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
                             const DRW_MLeaderStyle& original) noexcept {
     const int doubleCode = changedMLeaderDoubleCode(value, original);
-    const bool lineWeightChanged =
-        value.leaderLineWeight != original.leaderLineWeight;
-    if (doubleCode < 0 || (doubleCode != 0 && lineWeightChanged))
+    if (doubleCode < 0)
         return -1;
-    return lineWeightChanged ? 92 : doubleCode;
+    int int32Code = 0;
+    for (int code : mleaderInt32Codes) {
+        if (mleaderInt32Value(value, code)
+            == mleaderInt32Value(original, code))
+            continue;
+        if (int32Code != 0)
+            return -1;
+        int32Code = code;
+    }
+    if (doubleCode != 0 && int32Code != 0)
+        return -1;
+    return int32Code != 0 ? int32Code : doubleCode;
 }
 
 void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
@@ -16060,7 +16093,7 @@ void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
 
 bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
         std::size_t& slot) noexcept {
-    if (!isMLeaderDoubleCode(code) && code != 92)
+    if (!isMLeaderDoubleCode(code) && !isMLeaderInt32Code(code))
         return false;
     slot = noMLeaderFieldSlot;
     const DRW_Variant::TYPE expectedType = isMLeaderDoubleCode(code)
@@ -16194,7 +16227,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             if (editedCode < 0)
                 return false;
             std::size_t baselineSlot = noMLeaderFieldSlot;
-            const bool validValue = editedCode == 92
+            const bool validValue = isMLeaderInt32Code(editedCode)
                 || std::isfinite(mleaderDoubleValue(value, editedCode));
             if (!validValue
                 || !mleaderFieldSlot(*baseline->second, editedCode,
@@ -16286,8 +16319,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         return false;
                     setMLeaderDoubleValue(normalized, editedCode,
                                          originalValue);
-                } else if (editedCode == 92) {
-                    normalized.leaderLineWeight = original.leaderLineWeight;
+                } else if (isMLeaderInt32Code(editedCode)) {
+                    setMLeaderInt32Value(normalized, editedCode,
+                        mleaderInt32Value(original, editedCode));
                 } else {
                     return false;
                 }
@@ -16298,14 +16332,15 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 std::size_t slot = noMLeaderFieldSlot;
                 if (!mleaderFieldSlot(raw, editedCode, slot)
                     || slot == noMLeaderFieldSlot
-                    || (editedCode == 92
+                    || (isMLeaderInt32Code(editedCode)
                         ? raw.groups[slot].i_val()
-                            != original.leaderLineWeight
+                            != mleaderInt32Value(original, editedCode)
                         : raw.groups[slot].d_val()
                             != mleaderDoubleValue(original, editedCode)))
                     return false;
-                if (editedCode == 92)
-                    projection.leaderLineWeight = value.leaderLineWeight;
+                if (isMLeaderInt32Code(editedCode))
+                    setMLeaderInt32Value(projection, editedCode,
+                        mleaderInt32Value(value, editedCode));
                 else
                     setMLeaderDoubleValue(projection, editedCode,
                         mleaderDoubleValue(value, editedCode));
@@ -16335,14 +16370,14 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                             != DRW_Variant::DOUBLE)
                         return false;
                     source.output.groups[slot] = encoded.groups.front();
-                } else if (editedCode == 92) {
+                } else if (isMLeaderInt32Code(editedCode)) {
                     // BodyWriter stores generic 90-92 values as INTEGER64 for
-                    // MATERIAL's unsigned color case. MLEADERSTYLE 92 is a
-                    // signed INT32 field and its raw-carrier validator
+                    // MATERIAL's unsigned color case. MLEADERSTYLE groups 90
+                    // and 92 are INT32 fields and their raw-carrier validator
                     // requires the ordinary INTEGER variant.
                     source.output.groups[slot] = DRW_Variant(
-                        92, static_cast<std::int32_t>(
-                            projection.leaderLineWeight));
+                        editedCode, mleaderInt32Value(projection,
+                                                      editedCode));
                 } else {
                     return false;
                 }
@@ -16437,9 +16472,9 @@ bool dx_iface::inspectDxfMLeaderStyles(
                         // selected typed role here without requiring source
                         // handles to equal their remapped output identities.
                         const int code = source.editedFieldCode;
-                        if (code == 92)
-                            return value.leaderLineWeight
-                                == source.projection.leaderLineWeight;
+                        if (isMLeaderInt32Code(code))
+                            return mleaderInt32Value(value, code)
+                                == mleaderInt32Value(source.projection, code);
                         return isMLeaderDoubleCode(code)
                             && std::isfinite(mleaderDoubleValue(value, code))
                             && mleaderDoubleValue(value, code)

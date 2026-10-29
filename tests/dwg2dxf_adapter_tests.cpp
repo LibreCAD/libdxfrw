@@ -33387,6 +33387,7 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     class LateMLeaderLineWeightWriter final : public dx_iface {
     public:
         bool mutateLineWeight{false};
+        bool mutateMaxLeaderPoints{false};
         void writeObjects() override {
             if (mutateLineWeight && cData != nullptr) {
                 const auto style = std::find_if(cData->mLeaderStyles.begin(),
@@ -33396,6 +33397,15 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                     });
                 if (style != cData->mLeaderStyles.end())
                     ++style->leaderLineWeight;
+            }
+            if (mutateMaxLeaderPoints && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == 0x1Cu;
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    ++style->maxLeaderPoints;
             }
             dx_iface::writeObjects();
         }
@@ -33487,6 +33497,131 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     if (crossLineWeightStyle == lineWeightCrossReadback.mLeaderStyles.end()
         || crossLineWeightStyle->leaderLineWeight != 50)
         return fail("cross-format MLEADERSTYLE lineweight was not preserved");
+
+    // Group 90 is the second mapped INT32 scalar on this same source profile.
+    // Restore group 92 to the source value so this remains a one-field edit.
+    lineWeightStyle->leaderLineWeight = 25;
+    lineWeightStyle->maxLeaderPoints = 7;
+    const auto sourceMaxLeaderPoints = std::find_if(
+        lineWeightRaw->groups.begin(), lineWeightRaw->groups.end(),
+        [](const DRW_Variant& field) { return field.code() == 90; });
+    if (sourceMaxLeaderPoints == lineWeightRaw->groups.end()
+        || sourceMaxLeaderPoints->type() != DRW_Variant::INTEGER
+        || sourceMaxLeaderPoints->i_val() != 0)
+        return fail("MLEADERSTYLE group-90 INTEGER source is missing");
+    const std::size_t sourceMaxLeaderPointsSlot = static_cast<std::size_t>(
+        sourceMaxLeaderPoints - lineWeightRaw->groups.begin());
+    const auto maxLeaderPointsOutput = directory
+        / ("root-mleaderstyle-max-leader-points-output-" + encoding + ".dxf");
+    const std::string maxLeaderPointsSentinel =
+        "existing MLEADERSTYLE max-leader-points output survives\n";
+    const auto seedMaxLeaderPointsSentinel = [&]() {
+        std::ofstream previous(maxLeaderPointsOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous
+            && static_cast<bool>(previous << maxLeaderPointsSentinel);
+    };
+    const auto maxLeaderPointsSentinelSurvives = [&]() {
+        std::ifstream previous(maxLeaderPointsOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == maxLeaderPointsSentinel;
+    };
+    if (!seedMaxLeaderPointsSentinel())
+        return fail("could not seed MLEADERSTYLE group-90 refusal");
+    lineWeightRaw->groups[sourceMaxLeaderPointsSlot] = DRW_Variant(90, 1);
+    if (lineWeightRaw->hasRawValues && !binary)
+        lineWeightRaw->rawValues[sourceMaxLeaderPointsSlot] = "1";
+    if (lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
+                                    DRW::AC1027, binary, &lineWeightData,
+                                    false, true)
+        || !maxLeaderPointsSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE group-90 edit was published");
+    *lineWeightRaw = originalLineWeightRaw;
+
+    lineWeightStyle->leaderLineWeight = 50;
+    if (!seedMaxLeaderPointsSentinel()
+        || lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
+                                       DRW::AC1027, binary, &lineWeightData,
+                                       false, true)
+        || !maxLeaderPointsSentinelSurvives())
+        return fail("mixed MLEADERSTYLE INT32 edits were not refused");
+    lineWeightStyle->leaderLineWeight = 25;
+
+    lineWeightWriter.mutateMaxLeaderPoints = true;
+    if (!seedMaxLeaderPointsSentinel()
+        || lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
+                                       DRW::AC1027, binary, &lineWeightData,
+                                       false, true)
+        || !maxLeaderPointsSentinelSurvives())
+        return fail("late MLEADERSTYLE max-leader-points mutation was published");
+    lineWeightWriter.mutateMaxLeaderPoints = false;
+    lineWeightStyle->maxLeaderPoints = 7;
+    if (!lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
+                                     DRW::AC1027, binary, &lineWeightData,
+                                     false, true))
+        return fail("same-adapter MLEADERSTYLE group-90 retry failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data maxLeaderPointsReadback;
+    dx_iface maxLeaderPointsReader;
+    if (!maxLeaderPointsReader.fileImport(maxLeaderPointsOutput.string(),
+                                          &maxLeaderPointsReadback, false))
+        return fail("could not read back MLEADERSTYLE group-90 output");
+    const auto emittedMaxLeaderPointsStyle = std::find_if(
+        maxLeaderPointsReadback.mLeaderStyles.begin(),
+        maxLeaderPointsReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedMaxLeaderPointsStyle == maxLeaderPointsReadback.mLeaderStyles.end()
+        || emittedMaxLeaderPointsStyle->maxLeaderPoints != 7
+        || emittedMaxLeaderPointsStyle->leaderLineWeight != 25)
+        return fail("MLEADERSTYLE group-90 readback lost edited or unchanged values");
+    const auto emittedMaxLeaderPointsRaw = std::find_if(
+        maxLeaderPointsReadback.rawNamedResourceObjects.begin(),
+        maxLeaderPointsReadback.rawNamedResourceObjects.end(),
+        [handle = emittedMaxLeaderPointsStyle->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (emittedMaxLeaderPointsRaw
+        == maxLeaderPointsReadback.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE group-90 raw output is missing");
+    const auto emittedMaxLeaderPointsCount = std::count_if(
+        emittedMaxLeaderPointsRaw->groups.begin(),
+        emittedMaxLeaderPointsRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 90
+                && field.type() == DRW_Variant::INTEGER
+                && field.i_val() == 7;
+        });
+    if (emittedMaxLeaderPointsCount != 1)
+        return fail("MLEADERSTYLE output does not contain group-90 INTEGER 7");
+
+    const auto maxLeaderPointsCrossOutput = directory
+        / ("root-mleaderstyle-max-leader-points-cross-" + encoding + ".dxf");
+    dx_iface maxLeaderPointsCrossWriter;
+    dx_data maxLeaderPointsCrossReadback;
+    dx_iface maxLeaderPointsCrossReader;
+    if (!maxLeaderPointsCrossWriter.fileExport(
+            maxLeaderPointsCrossOutput.string(), DRW::AC1027, !binary,
+            &lineWeightData, false, true)
+        || !maxLeaderPointsCrossReader.fileImport(
+            maxLeaderPointsCrossOutput.string(), &maxLeaderPointsCrossReadback,
+            false))
+        return fail("cross-format MLEADERSTYLE group-90 output failed");
+    const auto crossMaxLeaderPointsStyle = std::find_if(
+        maxLeaderPointsCrossReadback.mLeaderStyles.begin(),
+        maxLeaderPointsCrossReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossMaxLeaderPointsStyle
+            == maxLeaderPointsCrossReadback.mLeaderStyles.end()
+        || crossMaxLeaderPointsStyle->maxLeaderPoints != 7
+        || crossMaxLeaderPointsStyle->leaderLineWeight != 25)
+        return fail("cross-format MLEADERSTYLE group-90 output lost values");
 
     return true;
 }
