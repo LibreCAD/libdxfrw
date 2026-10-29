@@ -36466,7 +36466,7 @@ bool runConsumedSurvivorSubsetRemoval(const std::filesystem::path& dir,unsigned 
         const std::vector<int>& sourceColors,const std::vector<std::string>& sourceLinetypes) {
     if(sourceCount<2u||sourceCount>10u
         ||(sourceCount==9u&&targetCount>8u)
-        ||(sourceCount==10u&&targetCount>8u)
+        ||(sourceCount==10u&&targetCount>9u)
         ||targetCount==0u||targetCount>=sourceCount
         ||sourceOffsets.size()!=sourceCount||sourceColors.size()!=sourceCount
         ||sourceLinetypes.size()!=sourceCount)return false;
@@ -36600,7 +36600,7 @@ bool runConsumedSourceCountRemovalMatrixTemporary(unsigned sourceCount) {
     return passed;
 }
 bool runConsumedNineReductionTemporary(unsigned targetCount) {
-    if(targetCount==0u||targetCount>8u)return false;
+    if(targetCount==0u||targetCount>9u)return false;
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-nine-to-"+std::to_string(targetCount)+"-removal-"+
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -36624,7 +36624,7 @@ bool runConsumedNineReductionTemporary(unsigned targetCount) {
     return passed;
 }
 bool runConsumedTenReductionTemporary(unsigned targetCount) {
-    if(targetCount==0u||targetCount>8u)return false;
+    if(targetCount==0u||targetCount>9u)return false;
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-ten-to-one-removal-"+
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -45338,6 +45338,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-eight-from-ten-removal") {
         return mlineConsumedOffsetControls::runConsumedTenReductionTemporary(8u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-nine-from-ten-removal") {
+        return mlineConsumedOffsetControls::runConsumedTenReductionTemporary(9u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
