@@ -16078,6 +16078,7 @@ bool dxfRW::processDimStyle() {
     int code;
     std::string_view sectionstr;
     bool reading = false;
+    bool dimstyleIdentitySeen = false;
     DRW_Dimstyle dimSty;
     std::vector<DRW_Dimstyle> pendingDimStyles;
     std::set<std::uint32_t> seenHandles;
@@ -16113,6 +16114,7 @@ bool dxfRW::processDimStyle() {
                 // syncStructToVars() keeps whatever the map already holds, so
                 // reusing it imports every style with the first one's values.
                 dimSty = DRW_Dimstyle{};
+                dimstyleIdentitySeen = false;
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
                 for (const DRW_Dimstyle &entry : pendingDimStyles)
                     iface->addDimStyle(entry);
@@ -16121,6 +16123,15 @@ bool dxfRW::processDimStyle() {
                 return setError(DRW::BAD_READ_TABLES);
             }
         } else if (reading) {
+            // DIMSTYLE uses 105 for its self handle; code 5 is the legacy
+            // DIMBLK name. Application payload is consumed inside parseCode
+            // and does not pass through this top-level branch.
+            if (code == 105) {
+                if (dimstyleIdentitySeen || !reader->isValidHandleString()
+                    || !reader->registerSelfHandle())
+                    return setError(DRW::BAD_CODE_PARSED);
+                dimstyleIdentitySeen = true;
+            }
             if (!dimSty.parseCode(code, reader)) {
                 return setError( DRW::BAD_CODE_PARSED);
             }
