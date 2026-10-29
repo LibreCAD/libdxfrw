@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE ACI color composition",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "eaa9c94c86aea6fd356cf465925fd20fb1b31828",
+  "scope": "A runtime-authored AC1027 MLEADERSTYLE source admits ACI-only compositions among the unique existing INTEGER groups 91 leaderColor, 93 textColor and 94 blockColor. Pairwise subsets and the three-field composition are verified. ACI edits remain refused when their CMC source contains unmodeled extension fields.",
+  "fieldEvidence": {
+    "groupCodes": [91, 93, 94],
+    "fieldRoles": "Autodesk DXF group-code roles identify the leader, text and block CMC color fields. Existing source-bound single-field transactions establish ACI parsing, group uniqueness and CMC-extension refusal; this slice composes the three fields.",
+    "sourceEvidence": "The runtime-generated AC1027 source has one INTEGER value 0 for each of groups 91, 93 and 94 and no CMC extension codes 420–449. The selected values are 3, 5 and 7, respectively.",
+    "classification": "Source-bound AC1027 DXF transaction/output/readback evidence. It does not establish independent producer variation, native color interpretation/rendering, DWG editing, cross-version behavior, complete-document closure or a format support claim."
+  },
+  "contract": {
+    "admission": "All changed fields must be from the ACI-only set {91, 93, 94}; every source field must be unique, present in the immutable baseline with INTEGER type and unchanged in the raw carrier. Values remain in the existing ACI admission range 0..256. Any CMC extension code in the selected source body refuses the edit. Mixing ACI fields with DOUBLE, INT32 non-ACI, enum, Boolean, string or handle edits remains refused.",
+    "projection": "The writer restores edited ACI fields to original values in the normalized typed copy before proving all other typed payload unchanged, then emits each edited INTEGER into its source-matched raw field slot while retaining order and opaque fields.",
+    "outputAndReadback": "ASCII and binary sources each produce same-format and cross-format ASCII/binary output. Pairwise ACI edits and the full 91/93/94 composition are checked in typed readback; the three-field profile additionally checks exactly one physical INTEGER at each expected group code and value.",
+    "failureAndRetry": "The full composition refuses when the retained raw group-93 value conflicts with the immutable source; the destination sentinel survives and the same adapter succeeds after exact raw restoration. A late group-94 mutation also refuses atomically and succeeds after correction on the same adapter. Existing source profiles with CMC extension fields remain refused.",
+    "compatibility": "Untouched records retain their existing replay route. Admission is limited to AC1027 DXF and ACI-only group 91/93/94 compositions without CMC extensions; other mixed families and versions retain their existing contracts."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp authors inputs at test runtime; outputs are temporary and removed. No drawing fixture is committed.",
+    "implementationCommit": "eaa9c94c86aea6fd356cf465925fd20fb1b31828",
+    "dwg2dxf/dx_iface.cpp": "739c883045716c65e4c257998a4430a61f4231a0da255e3defb452bcf151e56d",
+    "tests/dwg2dxf_adapter_tests.cpp": "9b780aa22630bd5c0fcb305e891e9056db0ef5bab0575d8efbf5f3ca4ce4f254",
+    "adapterTestExecutableSha256": "51afc7be0d1fa3fb1bfd51d187daaebae7e2332f546877449507dc307288b1c7",
+    "dwg2dxfExecutableSha256": "6506d7318e9668f8b47951f77de0be391d73bc5ce0dcf92430cd5e30eb5a3979",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "1/1 passed in 2.44s; selector covers both source encodings, same-format and cross-format output, pairwise and three-field ACI edits, raw-conflict and late-mutation destination preservation/retry, and CMC-extension refusal."
+    },
+    "productBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target dwg2dxf -j2"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; the selected change adds no allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "This is selected transport evidence, not native color meaning or rendering proof.",
+    "CMC extension fields, ACI mixed with other field families, other versions, DWG-origin writes and complete-document conversion remain outside this profile.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select the next source-backed P2 field or geometry profile. Preserve fail-closed behavior for CMC extensions and unrelated mixed field families."
+}
