@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-175 textAngleType",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "32b66a84bb63de86be4d4b0fcb82c4874c8465d1",
+  "scope": "One runtime-authored AC1027 DXF source with a root-reachable STANDARD MLEADERSTYLE record. It contains one group-175 INTEGER textAngleType value 0, group-174 leftAttachment=0, group-178 rightAttachment=0 and an opaque group-302 tag. The selected transaction changes only textAngleType from 0 to 2; both attachment fields and all other encoded style values remain unchanged.",
+  "fieldEvidence": {
+    "groupCode": 175,
+    "field": "textAngleType",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies code 175 as Text Angle Type",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "valueDomainSource": "Autodesk AutoCAD 2008 ActiveX API history lists AcTextAngleType values: insertion angle=0, horizontal angle=1, always-right-reading angle=2",
+    "valueDomainUrl": "https://help.autodesk.com/cloudhelp/2023/JPN/AutoCAD-ActiveX/files/GUID-95D92244-7CC8-46A7-88AB-C5755EF779FE.htm",
+    "classification": "Authoritative Autodesk DXF field-role and enum-domain corroboration plus authored adapter transaction evidence; not independent producer or native annotation acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain exactly one existing group-175 INTEGER corresponding to parsed textAngleType. The target value must be in the documented enum range 0..2. textAngleType must be the only changed typed payload field; identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-175 value in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. Missing/repeated group 175, conflicting raw changes, simultaneous edits, values outside 0..2, unknown subclass grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "Inspect staged OBJECTS output against retained raw fields and mapped handles, then decode the emitted MLEADERSTYLE and require textAngleType to equal 2 while leftAttachment and rightAttachment remain 0. Fresh readback checks the typed value and exactly one literal group-175 INTEGER value 2. Both source encodings are exercised, with same-format output and ASCII/binary cross-format output.",
+    "failureAndRetry": "Changing captured raw group 175 from 0 to 1 while typed textAngleType requests 2 refuses and preserves a sentinel destination. Value 3 also refuses atomically. Restoring the original raw body and requesting valid value 2 permits same-adapter retry. The first focused run exposed that a shared attachment range admitted value 3; the guard was separated to enforce 0..2, after which the focused build and both selectors passed.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions or multiple changes on one record. DWG-origin writing is unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 175=0, group 174=0 and group 178=0 in the STANDARD source; ASCII and binary source files are generated locally from scratch at test runtime.",
+    "implementationCommit": "32b66a84bb63de86be4d4b0fcb82c4874c8465d1",
+    "dwg2dxf/dx_iface.cpp": "943347db4cb5648bd20f05407df74d4ae70d8cd40f6ccc160048f58c92a7599d",
+    "tests/dwg2dxf_adapter_tests.cpp": "193750ef9dc93339a57e62a24fcc3eb09628048a3ab5a02a7e225308637d409b",
+    "adapterTestExecutableSha256": "1d21c6f3d58c8f9f43736b1e5952af97241e9aa624a4b3f7d61b8b10c0a5e52a"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "Configured build-gcc; CMake 4.4.4, Unix Makefiles, Apple Clang 21.0.0 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The authored group-175 profile proves exact output/readback for ASCII and binary sources, same-format and cross-format output, raw-conflict rollback, invalid enum refusal, and corrected same-adapter retry."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies one authored AC1027 text-angle transaction only. It does not prove independent producer variation, native annotation orientation/readability, cross-version support, DWG editing, consumer acceptance or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a distinct current P2 source-backed geometry, schema or provider witness. Preserve the bounded enum range and AC1027-only admission."
+}
