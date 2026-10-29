@@ -17697,7 +17697,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 const bool append=style->second.countChanged && before
                     && before->elements.size()==2u
                     && (targetStyle.elements.size()==3u || targetStyle.elements.size()==4u
-                        || targetStyle.elements.size()==5u);
+                        || targetStyle.elements.size()==5u || targetStyle.elements.size()==6u);
                 const bool removeElements=style->second.countChanged && before
                     && ((before->elements.size()==2u && targetStyle.elements.size()==1u)
                         || (before->elements.size()==4u
