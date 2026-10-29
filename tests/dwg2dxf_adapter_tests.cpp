@@ -34164,12 +34164,49 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
     *lineWeightRaw = originalLineWeightRaw;
 
     lineWeightStyle->leaderLineWeight = 50;
-    if (!seedMaxLeaderPointsSentinel()
-        || lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
-                                       DRW::AC1027, binary, &lineWeightData,
-                                       false, true)
-        || !maxLeaderPointsSentinelSurvives())
-        return fail("mixed MLEADERSTYLE INT32 edits were not refused");
+    if (!lineWeightWriter.fileExport(maxLeaderPointsOutput.string(),
+                                     DRW::AC1027, binary, &lineWeightData,
+                                     false, true))
+        return fail("composed MLEADERSTYLE group-90/group-92 output failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data composedInt32Readback;
+    dx_iface composedInt32Reader;
+    if (!composedInt32Reader.fileImport(maxLeaderPointsOutput.string(),
+            &composedInt32Readback, false))
+        return fail("could not read back composed MLEADERSTYLE INT32 output");
+    const auto composedInt32Style = std::find_if(
+        composedInt32Readback.mLeaderStyles.begin(),
+        composedInt32Readback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (composedInt32Style == composedInt32Readback.mLeaderStyles.end()
+        || composedInt32Style->maxLeaderPoints != 7
+        || composedInt32Style->leaderLineWeight != 50)
+        return fail("composed MLEADERSTYLE INT32 readback lost edited values");
+    const auto composedInt32Raw = std::find_if(
+        composedInt32Readback.rawNamedResourceObjects.begin(),
+        composedInt32Readback.rawNamedResourceObjects.end(),
+        [handle = composedInt32Style->handle](
+            const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == handle;
+        });
+    if (composedInt32Raw
+        == composedInt32Readback.rawNamedResourceObjects.end()
+        || std::count_if(composedInt32Raw->groups.begin(),
+            composedInt32Raw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 90
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == 7;
+            }) != 1
+        || std::count_if(composedInt32Raw->groups.begin(),
+            composedInt32Raw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 92
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == 50;
+            }) != 1)
+        return fail("composed MLEADERSTYLE INT32 physical fields mismatch");
     lineWeightStyle->leaderLineWeight = 25;
 
     lineWeightWriter.mutateMaxLeaderPoints = true;
@@ -36207,11 +36244,38 @@ bool mleaderStyleDoubleCompositionTransaction(
                     + writer.extensionGraphFailureDetail());
 
             style->maxLeaderPoints = 5;
-            if (!seedSentinel()
-                || writer.fileExport(output.string(), DRW::AC1027,
+            if (!writer.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !verifyOutput(output, 5, 50))
+                return fail("simultaneous MLEADERSTYLE group-90/group-92 composition failed: "
+                    + writer.extensionGraphFailureDetail());
+
+            const auto conflictingLineWeight = std::find_if(
+                raw->groups.begin(), raw->groups.end(),
+                [](const DRW_Variant& candidate) {
+                    return candidate.code() == 92;
+                });
+            if (conflictingLineWeight == raw->groups.end())
+                return fail("composed MLEADERSTYLE source lost group 92");
+            const std::size_t conflictingLineWeightSlot =
+                static_cast<std::size_t>(
+                    conflictingLineWeight - raw->groups.begin());
+            if (!seedSentinel())
+                return fail("could not seed mixed-scalar MLEADERSTYLE refusal");
+            raw->groups[conflictingLineWeightSlot] = DRW_Variant(92, 26);
+            if (raw->hasRawValues && !sourceBinary)
+                raw->rawValues[conflictingLineWeightSlot] = "26";
+            if (writer.fileExport(output.string(), DRW::AC1027,
                     outputBinary, &data, false, true)
                 || !sentinelSurvives())
-                return fail("simultaneous MLEADERSTYLE group-90/group-92 edits were accepted");
+                return fail("conflicting group-92 mixed-scalar source was published");
+            *raw = baselineRaw;
+            if (!writer.fileExport(output.string(), DRW::AC1027,
+                    outputBinary, &data, false, true)
+                || !verifyOutput(output, 5, 50))
+                return fail("same-adapter mixed-scalar MLEADERSTYLE retry failed: "
+                    + writer.extensionGraphFailureDetail());
+
             style->maxLeaderPoints = 0;
             if (!writer.fileExport(output.string(), DRW::AC1027, outputBinary,
                     &data, false, true)

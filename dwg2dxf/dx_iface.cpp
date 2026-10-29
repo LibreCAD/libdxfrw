@@ -16324,14 +16324,21 @@ bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
     if (std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode))
         return true;
 
-    // Selected AC1027 profiles admit one of the independent group-90 or
+    // Selected AC1027 profiles admit either or both independent group-90 and
     // group-92 INT32 scalars alongside mapped DOUBLE fields. Other mixed
     // field families remain on their existing single-field routes.
     const std::size_t int32Count = static_cast<std::size_t>(std::count_if(
         codes.begin(), codes.end(), [](int code) {
             return !isMLeaderDoubleCode(code);
         }));
-    return int32Count == 1
+    const bool hasGroup90 = std::find(codes.begin(), codes.end(), 90)
+        != codes.end();
+    const bool hasGroup92 = std::find(codes.begin(), codes.end(), 92)
+        != codes.end();
+    const std::size_t expectedInt32Count =
+        static_cast<std::size_t>(hasGroup90)
+        + static_cast<std::size_t>(hasGroup92);
+    return expectedInt32Count != 0u && int32Count == expectedInt32Count
         && std::all_of(codes.begin(), codes.end(), [](int code) {
             return code == 90 || code == 92 || isMLeaderDoubleCode(code);
         });
@@ -16536,10 +16543,10 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     return false;
                 continue;
             }
-            // Multiple fields compose only for the independent scalar DOUBLE
-            // family. Mixed types can carry coupled semantics or references;
-            // keep those on the existing one-field transaction until separately
-            // qualified.
+            // Multiple fields compose only for the mapped DOUBLE fields and
+            // the selected group-90/group-92 scalar family. Other mixed types
+            // can carry coupled semantics or references; keep those on their
+            // existing one-field transaction until separately qualified.
             if (!supportedMLeaderEditSet(editedCodes))
                 return false;
             for (const int editedCode : editedCodes) {
@@ -16641,9 +16648,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 changedMLeaderFieldCodes(value, original);
             if (!editedCodes.empty()) {
                 // Multiple-field composition is limited to mapped AC1027
-                // DOUBLE groups, optionally with one selected group-90 or
-                // group-92 INT32 scalar. Other edit sets keep their
-                // single-field contract until separately qualified.
+                // DOUBLE groups and the selected group-90/group-92 INT32
+                // scalars. Other edit sets keep their single-field contract
+                // until separately qualified.
                 if (version != DRW::AC1027
                     || !supportedMLeaderEditSet(editedCodes)
                     || !standardDwgCommonEqual(value, original, version,
