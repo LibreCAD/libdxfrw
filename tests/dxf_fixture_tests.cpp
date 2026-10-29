@@ -34708,7 +34708,7 @@ bool retargetRemovalOutputProof(const std::filesystem::path& path,bool binary,
         unsigned sourceCount,unsigned removedIndex) {
     using Row=mlineStyleAuthorityControls::Row;
     const auto bad=[](int line){std::cerr<<"MLINE retarget removal output proof line="<<line<<'\n';return false;};
-    if(sourceCount<3u||sourceCount>5u||removedIndex>=sourceCount)return bad(__LINE__);
+    if(sourceCount<3u||sourceCount>6u||removedIndex>=sourceCount)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34875,7 +34875,8 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
     };
     const std::vector<std::pair<unsigned,unsigned>> selected{{3u,1u},
         {4u,0u},{4u,1u},{4u,2u},{4u,3u},
-        {5u,0u},{5u,1u},{5u,2u},{5u,3u},{5u,4u}};
+        {5u,0u},{5u,1u},{5u,2u},{5u,3u},{5u,4u},
+        {6u,0u},{6u,1u},{6u,2u},{6u,3u},{6u,4u},{6u,5u}};
     for(const auto& selection:selected)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!prepare(adapter,data,sourceBinary,selection.first,selection.second))return fail(__LINE__);
@@ -34885,9 +34886,9 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(unsigned removedIndex=0u;removedIndex<5u;++removedIndex)for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<6u;++removedIndex)for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!prepare(adapter,data,false,5u,removedIndex))return fail(__LINE__);
+        if(!prepare(adapter,data,false,6u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot correct(data);
         mlineRetargetControls::style(data,0xD2u).elements.front().offset+=.125;
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
@@ -34895,12 +34896,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
         ++refusals;correct.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary,5u,removedIndex)||!correct.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,6u,removedIndex)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(unsigned removedIndex=0u;removedIndex<5u;++removedIndex)for(bool outputBinary:{false,true}) {
+    for(unsigned removedIndex=0u;removedIndex<6u;++removedIndex)for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
-        if(!prepare(adapter,data,false,5u,removedIndex))return fail(__LINE__);
+        if(!prepare(adapter,data,false,6u,removedIndex))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         const auto consumers=mlineStyleAuthorityControls::consumers(data);
         if(consumers.size()!=2u)return fail(__LINE__);
@@ -34910,12 +34911,12 @@ bool runRetargetRemoval(const std::filesystem::path& dir) {
             ||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
         ++late;adapter.active=false;caller.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetRemovalOutputProof(output,outputBinary,5u,removedIndex)||!caller.same(data))return fail(__LINE__);
+            ||!retargetRemovalOutputProof(output,outputBinary,6u,removedIndex)||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     std::cout<<"MLINE retarget removal profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==40u&&readbacks==60u&&refusals==10u&&late==10u&&retries==20u;
+    return profiles==64u&&readbacks==88u&&refusals==12u&&late==12u&&retries==24u;
 }
 bool runRetargetRemovalTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
