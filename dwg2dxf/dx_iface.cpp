@@ -15631,13 +15631,34 @@ bool inspectNamedResourceOutput(dxfRW& writer,const dxfRW::DxfObjectsWriteView& 
         if (owner==state.dictionaries.end()) return false;
         owners.emplace(writer.remapHandle(owner->first),&owner->second);
     }
-    const auto map=[&writer](std::uint32_t key,std::uint32_t& actual) {
+    const auto map=[&writer,&state,family](std::uint32_t key,std::uint32_t& actual) {
         actual=writer.remapHandle(key);
         const auto* context=writer.getWritingContext();
         if (!context || context->ambiguousSourceHandles.count(key)) return false;
         // A dictionary's parent can be a successfully emitted table row.
         // remapHandle alone only knows structural/block replacements.
         bool bound=actual!=key;
+        if (family=="MLEADERSTYLE" && state.owner!=nullptr) {
+            const DRW_Block_Record* sourceBlockRecord=nullptr;
+            for (const DRW_Block_Record& record:state.owner->blockRecords) {
+                if (record.handle!=key) continue;
+                if (sourceBlockRecord!=nullptr) return false;
+                sourceBlockRecord=&record;
+            }
+            if (sourceBlockRecord!=nullptr) {
+                const std::string blockNameKey =
+                    layoutSymbolKey(sourceBlockRecord->name);
+                if (blockNameKey == "*MODEL_SPACE")
+                    actual=DRW::DxfModelSpaceBlockRecordHandle;
+                else if (blockNameKey == "*PAPER_SPACE")
+                    actual=DRW::DxfPaperSpaceBlockRecordHandle;
+                else
+                    actual=writer.getBlockRecordHandleToWrite(
+                        sourceBlockRecord->name);
+                if (actual==0u || actual==DRW::NoHandle) return false;
+                bound=true;
+            }
+        }
         for (const auto* aliases:{&context->sourceHandleToWrittenTableMap,
                 &context->sourceHandleToWrittenObjectMap,&context->sourceHandleToMintedMap}) {
             const auto found=aliases->find(key);
@@ -15679,8 +15700,10 @@ bool inspectNamedResourceOutput(dxfRW& writer,const dxfRW::DxfObjectsWriteView& 
         }
         if (!seen.insert(shape.handle).second) return false;
         const auto& source=*expected.at(shape.handle);
-        return dx_standard_output::rawScalarTransportEqual(source.output.groups,body,view,map,false,
-                DRW::kMaxDxfBinaryPayloadBytes,false,dx_standard_output::RawHandleTransport::ObjectScopes)
+        return dx_standard_output::rawScalarTransportEqual(
+                   source.output.groups,body,view,map,false,
+                   DRW::kMaxDxfBinaryPayloadBytes,false,
+                   dx_standard_output::RawHandleTransport::ObjectScopes)
             && visit(source,body);
     });
     return good && namesMatch && seen.size()==expected.size() && seenOwners.size()==owners.size();
@@ -15999,9 +16022,11 @@ constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 2> mleaderStringCodes{{3, 300}};
-constexpr std::array<int, 2> mleaderHandleCodes{{340, 342}};
+constexpr std::array<int, 3> mleaderHandleCodes{{340, 341, 342}};
 // MLEADERSTYLE's group 340 stores leaderLineTypeHandle.
 constexpr int mleaderLeaderLineTypeHandleCode = 340;
+// MLEADERSTYLE's group 341 stores arrowHeadBlockHandle.
+constexpr int mleaderArrowHeadBlockHandleCode = 341;
 // MLEADERSTYLE's group 342 stores textStyleHandle.
 constexpr int mleaderTextStyleHandleCode = 342;
 
@@ -16027,6 +16052,7 @@ bool isMLeaderStringCode(int code) noexcept {
 
 bool isMLeaderHandleCode(int code) noexcept {
     return code == mleaderLeaderLineTypeHandleCode
+        || code == mleaderArrowHeadBlockHandleCode
         || code == mleaderTextStyleHandleCode;
 }
 
@@ -16035,6 +16061,8 @@ std::uint32_t mleaderHandleValue(const DRW_MLeaderStyle& style,
     switch (code) {
     case mleaderLeaderLineTypeHandleCode:
         return style.leaderLineTypeHandle.ref;
+    case mleaderArrowHeadBlockHandleCode:
+        return style.arrowHeadBlockHandle.ref;
     case mleaderTextStyleHandleCode:
         return style.textStyleHandle.ref;
     default:
@@ -16047,6 +16075,9 @@ void setMLeaderHandleValue(DRW_MLeaderStyle& style, int code,
     switch (code) {
     case mleaderLeaderLineTypeHandleCode:
         style.leaderLineTypeHandle.ref = value;
+        break;
+    case mleaderArrowHeadBlockHandleCode:
+        style.arrowHeadBlockHandle.ref = value;
         break;
     case mleaderTextStyleHandleCode:
         style.textStyleHandle.ref = value;
@@ -16781,6 +16812,39 @@ bool dx_iface::inspectDxfMLeaderStyles(
                                     sourceHandle) != 0u)
                                 return false;
                             bool bound = expected != sourceHandle;
+                            if (code == mleaderArrowHeadBlockHandleCode) {
+                                if (cData == nullptr)
+                                    return false;
+                                const DRW_Block_Record* sourceBlockRecord =
+                                    nullptr;
+                                for (const DRW_Block_Record& record :
+                                     cData->blockRecords) {
+                                    if (record.handle != sourceHandle)
+                                        continue;
+                                    if (sourceBlockRecord != nullptr)
+                                        return false;
+                                    sourceBlockRecord = &record;
+                                }
+                                if (sourceBlockRecord == nullptr
+                                    || sourceBlockRecord->name.empty())
+                                    return false;
+                                const std::string blockNameKey =
+                                    layoutSymbolKey(sourceBlockRecord->name);
+                                if (blockNameKey == "*MODEL_SPACE")
+                                    expected =
+                                        DRW::DxfModelSpaceBlockRecordHandle;
+                                else if (blockNameKey == "*PAPER_SPACE")
+                                    expected =
+                                        DRW::DxfPaperSpaceBlockRecordHandle;
+                                else
+                                    expected =
+                                        dxfW->getBlockRecordHandleToWrite(
+                                            sourceBlockRecord->name);
+                                if (expected == 0u
+                                    || expected == DRW::NoHandle)
+                                    return false;
+                                bound = true;
+                            }
                             for (const auto* aliases : {
                                     &context->sourceHandleToWrittenTableMap,
                                     &context->sourceHandleToWrittenObjectMap,
