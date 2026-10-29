@@ -21952,6 +21952,11 @@ struct MlineLinetypeShape {
             xdataHasPayload=true;
             ++xdataFields;return true;
         }
+        if (code==1071) {
+            if (!xdata) return false;
+            xdataHasPayload=true;
+            ++xdataFields;return true;
+        }
         if (xdata) return false;
         if (code==5) return classes==0u && ++selves==1u;
         if (code==330) return classes==0u && ++owners==1u;
@@ -22014,9 +22019,17 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
             && value.extData[1] && value.extData[1]->code()==1070
             && value.extData[1]->type()==DRW_Variant::INTEGER
             && value.extData[1]->i_val()>=-32768 && value.extData[1]->i_val()<=32767;
+        const bool oneSignedLong=value.extData.size()==2u
+            && stringField(value.extData[0],1001) && !value.extData[0]->content.s->empty()
+            && value.extData[1] && value.extData[1]->code()==1071
+            && value.extData[1]->type()==DRW_Variant::INTEGER
+            && value.extData[1]->i_val()>=std::numeric_limits<std::int32_t>::min()
+            && value.extData[1]->i_val()<=std::numeric_limits<std::int32_t>::max();
         if (oneStructuredList) {
             appIdNames.emplace_back(*value.extData[0]->content.s);
         } else if (oneSignedShort) {
+            appIdNames.emplace_back(*value.extData[0]->content.s);
+        } else if (oneSignedLong) {
             appIdNames.emplace_back(*value.extData[0]->content.s);
         } else {
             if (value.extData.size()!=2u && value.extData.size()!=4u) return false;
@@ -22589,10 +22602,15 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                         && payloadField->code()==1070
                         && payloadField->type()==DRW_Variant::INTEGER
                         && payloadField->i_val()>=-32768 && payloadField->i_val()<=32767;
+                    const bool signedLongPayload=payloadField
+                        && payloadField->code()==1071
+                        && payloadField->type()==DRW_Variant::INTEGER
+                        && payloadField->i_val()>=std::numeric_limits<std::int32_t>::min()
+                        && payloadField->i_val()<=std::numeric_limits<std::int32_t>::max();
                     if (!appField || !payloadField || appField->code()!=1001
                         || appField->type()!=DRW_Variant::STRING || !appField->content.s
                         || appField->content.s->empty()
-                        || (!stringPayload && !signedShortPayload))
+                        || (!stringPayload && !signedShortPayload && !signedLongPayload))
                         return false;
                     if (!dx_symbol_output::nameKey(*appField->content.s,appKeys[i])
                         || (i!=0u && appKeys[i]==appKeys[0])) return false;
