@@ -146,7 +146,7 @@ bool originalCommon(const DRW_Material& value) {
         && *value.extData[1]->content.s == "original-xdata";
 }
 
-bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4) {
+bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4, const std::string& normalFile = "normal-sentinel.png") {
     const auto* m = target(data);
     return m && m->m_hasDiffuseMapBlendFactor && m->m_hasDiffuseMapSource
         && m->m_hasDiffuseMapFileName && m->m_hasDiffuseMapProjection
@@ -159,7 +159,7 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int no
         && m->m_hasNormalMapFileName && m->m_hasNormalMapProjection
         && m->m_hasNormalMapTiling && m->m_hasNormalMapAutoTransform
         && m->m_normalMapBlendFactor == normalBlend && m->m_normalMapSource == 1
-        && m->m_normalMapFileName == "normal-sentinel.png"
+        && m->m_normalMapFileName == normalFile
         && m->m_normalMapProjection == normalProjection && m->m_normalMapTiling == normalTiling
         && m->m_normalMapAutoTransform == normalAuto
         && m->m_hasNormalMapStrength == boundary
@@ -167,13 +167,14 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75, int no
 }
 
 bool physical(const std::filesystem::path& path, bool binary, bool boundary,
-              bool duplicateNormalBlend = false, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4) {
+              bool duplicateNormalBlend = false, double normalBlend = 0.75, int normalProjection = 4, int normalTiling = 3, int normalAuto = 4, const std::string& normalFile = "normal-sentinel.png") {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
     if (binary) stream.seekg(22);
     std::unique_ptr<dxfReader> reader = binary
         ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
         : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    reader->setVersion("AC1027",true);
     bool material = false, selected = false, eof = false;
     std::vector<double> blends;
     std::vector<int> sources, projections, tilings, transforms;
@@ -193,7 +194,7 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
             switch (code) {
             case 42: blends.push_back(reader->getDouble()); break;
             case 72: sources.push_back(reader->getInt32()); break;
-            case 3: files.push_back(reader->getString()); break;
+            case 3: files.push_back(reader->getUtf8String()); break;
             case 73: projections.push_back(reader->getInt32()); break;
             case 74: tilings.push_back(reader->getInt32()); break;
             case 75: transforms.push_back(reader->getInt32()); break;
@@ -208,7 +209,7 @@ bool physical(const std::filesystem::path& path, bool binary, bool boundary,
         : std::vector<double>{0.25, normalBlend};
     return selected && blends == expectedBlends
         && sources == std::vector<int>{0, 1}
-        && files == std::vector<std::string>{"diffuse-sentinel.png", "normal-sentinel.png"}
+        && files == std::vector<std::string>{"diffuse-sentinel.png", normalFile}
         && projections == std::vector<int>{2, normalProjection}
         && tilings == std::vector<int>{2, normalTiling}
         && transforms == std::vector<int>{2, normalAuto}
@@ -242,11 +243,12 @@ bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
 }
 
 struct LateMaterialEdit final : dx_iface {
-    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false; unsigned phase = 0;
+    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false; unsigned phase = 0;
     void mutate() {
         if (!active || !cData) return;
         for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
-            if (autoTransform) material.m_normalMapAutoTransform = 3;
+            if (filename) material.m_normalMapFileName = "late-normal.png";
+            else if (autoTransform) material.m_normalMapAutoTransform = 3;
             else if (projection) material.m_normalMapProjection = 2;
             else if (tiling) material.m_normalMapTiling = 2;
             else material.m_normalMapBlendFactor = 0.9375;
@@ -370,6 +372,88 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapBlendFactor = 0.75; selected->m_normalMapProjection = 4; selected->m_normalMapTiling = 3;
             if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                 || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+        }
+        // The two 3 fields belong to diffuse and file-backed normal map
+        // roles; preserve the first while editing the second with the target
+        // encoding's strict UTF-8/caret conversion.
+        for (bool outputBinary : {false,true}) for (const auto& wanted : std::vector<std::string>{
+                "edited-normal.png", "edited-normal-Ω.png", "escaped^A-normal.png", "literal-\\U+1234.png", ""}) {
+            if (!author(input,sourceBinary,false,false)) return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            dx_data source; dx_iface adapter;
+            if(!adapter.fileImport(input.string(),&source,false)||!typed(source,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);selected->m_normalMapFileName=wanted;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physical(output,outputBinary,false,false,.75,4,3,4,wanted)
+                ||!typed(source,false,.75,4,3,4,wanted))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            dx_data readback;dx_iface verifier;
+            if(!verifier.fileImport(output.string(),&readback,false)||!typed(readback,false,.75,4,3,4,wanted))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+        }
+        for(bool outputBinary:{false,true}) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,true))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            dx_data source;dx_iface adapter;
+            if(!adapter.fileImport(input.string(),&source,false)||!typed(source,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected||!originalCommon(*selected))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            const std::string wanted="edited-normal-Ω^A.png";selected->m_normalMapFileName=wanted;
+            selected->m_normalMapBlendFactor=.875;selected->m_normalMapProjection=1;selected->m_normalMapTiling=1;selected->m_normalMapAutoTransform=1;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physical(output,outputBinary,false,false,.875,1,1,1,wanted)||!typed(source,false,.875,1,1,1,wanted)
+                ||!originalCommon(*selected))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            dx_data readback;dx_iface verifier;
+            if(!verifier.fileImport(output.string(),&readback,false)||!typed(readback,false,.875,1,1,1,wanted)
+                ||!originalCommon(*target(readback)))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+        }
+        for(bool outputBinary:{false,true})for(unsigned fault=0u;fault!=7u;++fault) {
+            if(!author(input,sourceBinary,false,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);dx_data source;dx_iface adapter;
+            if(!adapter.fileImport(input.string(),&source,false)||!typed(source,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);auto& raw=source.rawMaterialObjects.front();const auto originalRaw=raw;
+            const std::string wanted="edited-normal-Ω.png";selected->m_normalMapFileName=wanted;
+            if(fault==0u)selected->m_normalMapFileName=std::string("nul\0name",8u);
+            if(fault==1u)selected->m_normalMapFileName=std::string("invalid\x80",8u);
+            if(fault==2u)selected->m_normalMapFileName.assign(2u*1024u*1024u,'x');
+            if(fault==3u)selected->m_diffuseMapFileName="different-diffuse.png";
+            if(fault==4u)selected->m_normalMapSource=0u;
+            if(fault==5u)selected->m_hasNormalMapFileName=false;
+            if(fault==6u){unsigned count=0u;for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()==3&&++count==2u){
+                    raw.groups[i]=DRW_Variant(3,UTF8STRING("conflicting-normal.png"));if(raw.hasRawValues)raw.rawValues.at(i)="conflicting-normal.png";}
+                if(count!=2u)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);}
+            const auto failedName=selected->m_normalMapFileName,failedDiffuse=selected->m_diffuseMapFileName;
+            const auto failedSource=selected->m_normalMapSource;const auto failedPresence=selected->m_hasNormalMapFileName;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            std::ifstream saved(output,std::ios::binary);const std::string savedBytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(savedBytes!="keep destination"||selected->m_normalMapFileName!=failedName||selected->m_diffuseMapFileName!=failedDiffuse
+                ||selected->m_normalMapSource!=failedSource||selected->m_hasNormalMapFileName!=failedPresence)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            raw=originalRaw;selected->m_normalMapFileName=wanted;selected->m_diffuseMapFileName="diffuse-sentinel.png";
+            selected->m_normalMapSource=1u;selected->m_hasNormalMapFileName=true;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physical(output,outputBinary,false,false,.75,4,3,4,wanted)||!typed(source,false,.75,4,3,4,wanted))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+        }
+        for(unsigned phase=0u;phase!=3u;++phase) {
+            if(!author(input,sourceBinary,false,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);dx_data source;LateMaterialEdit adapter;adapter.phase=phase;adapter.filename=true;
+            if(!adapter.fileImport(input.string(),&source,false)||!typed(source,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);const std::string wanted="edited-normal-Ω.png";selected->m_normalMapFileName=wanted;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!adapter.hit)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            std::ifstream saved(output,std::ios::binary);const std::string savedBytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(savedBytes!="keep destination")return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);adapter.active=false;selected->m_normalMapFileName=wanted;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)
+                ||!physical(output,sourceBinary,false,false,.75,4,3,4,wanted)||!typed(source,false,.75,4,3,4,wanted))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+        }
+        for(bool outputBinary:{false,true})for(int code:{291,301,469,62,420,430}) {
+            if(!author(input,sourceBinary,false,false,false,false,0,code))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);dx_data source;dx_iface adapter;
+            if(!adapter.fileImport(input.string(),&source,false)||!typed(source,false))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            DRW_Material* selected=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")selected=&item;
+            if(!selected)return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);selected->m_normalMapFileName="edited-normal.png";
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
+            std::ifstream saved(output,std::ios::binary);const std::string savedBytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(savedBytes!="keep destination")return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);selected->m_normalMapFileName="normal-sentinel.png";
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physical(output,outputBinary,false)||!orphanField(output,outputBinary,code))return (std::cerr<<"NAME_EDIT_FAIL line="<<__LINE__<<" source="<<sourceBinary<<"\n",false);
         }
         // Unmarked normal mapper 75 is source-bound after the second 42.
         // The 0x07 mask is the existing writer admission policy, not native
@@ -560,7 +644,7 @@ bool run(const std::filesystem::path& dir) {
                 if (fault == 0) selected->m_normalMapTiling = 0;
                 if (fault == 1) selected->m_normalMapTiling = 4;
                 if (fault == 2) selected->m_normalMapSource = 0;
-                if (fault == 3) selected->m_normalMapFileName = "changed-normal.png";
+                if (fault == 3) {selected->m_normalMapFileName = "changed-normal.png";selected->m_hasNormalMapFileName=false;}
                 if (fault == 4) selected->m_diffuseMapTiling = 3;
                 if (fault == 5) {
                     unsigned count = 0;
@@ -586,7 +670,7 @@ bool run(const std::filesystem::path& dir) {
                     || selected->m_normalMapFileName != failedName) return false;
                 raw = originalRaw; selected->m_normalMapTiling = static_cast<std::uint8_t>(to);
                 selected->m_diffuseMapTiling = 2; selected->m_normalMapProjection = 4; selected->m_normalMapBlendFactor = 0.75;
-                selected->m_normalMapSource = 1; selected->m_normalMapFileName = "normal-sentinel.png";
+                selected->m_normalMapSource = 1; selected->m_normalMapFileName = "normal-sentinel.png"; selected->m_hasNormalMapFileName=true;
                 if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                     || !physical(output, outputBinary, false, false, 0.75, 4, to) || !typed(source, false, 0.75, 4, to)) return false;
             }
