@@ -31158,6 +31158,9 @@ using namespace mlineLtypeProviderControls;
 constexpr const char* appName="MLINE_LTYPE_XDATA";
 constexpr const char* payload="provider-owned-xdata";
 constexpr std::uint32_t appRecordHandle=0x1F1u;
+constexpr const char* secondAppName="MLINE_LTYPE_XDATA_2";
+constexpr const char* secondPayload="second-provider-owned-xdata";
+constexpr std::uint32_t secondAppRecordHandle=0x1F2u;
 
 Tags source(bool binary) {
     auto fields=recipe(binary);
@@ -31202,6 +31205,50 @@ Tags source(bool binary) {
     throw std::runtime_error("LTYPE XDATA provider missing");
 }
 
+Tags sourceWithTwoPairs(bool binary) {
+    auto fields=source(binary);
+    std::size_t appTable=fields.size(),appEnd=fields.size();std::string tableHandle;
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]!=std::make_pair(0,std::string("TABLE"))
+            ||fields[i+1u]!=std::make_pair(2,std::string("APPID"))) continue;
+        appTable=i;
+        bool header=true;
+        for(std::size_t j=i+2u;j<fields.size();++j) {
+            if(fields[j].first==0) {
+                if(fields[j]==std::make_pair(0,std::string("ENDTAB"))) {
+                    appEnd=j;break;
+                }
+                header=false;continue;
+            }
+            if(header&&fields[j].first==5)tableHandle=fields[j].second;
+            if(header&&fields[j].first==70)
+                fields[j].second=std::to_string(std::stoi(fields[j].second)+1);
+        }
+        break;
+    }
+    if(appTable==fields.size()||appEnd==fields.size()||tableHandle.empty())
+        throw std::runtime_error("multiple-pair LTYPE APPID table missing");
+    const Tags secondRecord{{0,"APPID"},{5,"1F2"},{330,tableHandle},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},
+        {2,secondAppName},{70,"0"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(appEnd),
+        secondRecord.begin(),secondRecord.end());
+
+    bool provider=false,selected=false;std::size_t ltypeEnd=fields.size();
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i].first==0) {
+            if(selected) {ltypeEnd=i;break;}
+            provider=fields[i].second=="LTYPE";selected=false;
+        }
+        if(provider&&fields[i]==std::make_pair(2,std::string("EditDash")))selected=true;
+    }
+    if(!selected||ltypeEnd==fields.size())
+        throw std::runtime_error("multiple-pair LTYPE provider missing");
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(ltypeEnd),
+        {{1001,secondAppName},{1000,secondPayload}});
+    return fields;
+}
+
 bool providerXdataProof(const std::filesystem::path& path,bool binary,const std::string& appOwner="9") {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
@@ -31243,12 +31290,86 @@ bool providerXdataProof(const std::filesystem::path& path,bool binary,const std:
     return ltypes==1u&&appIds==1u;
 }
 
+bool twoPairProviderProof(const std::filesystem::path& path,bool binary,
+                          const std::string& appOwner="9") {
+    if(!providerProof(path,binary))return false;
+    const std::array<std::pair<std::string,std::string>,2> expected{{
+        {appName,payload},{secondAppName,secondPayload}}};
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const mlineStyleAuthorityControls::Row* selected=nullptr;
+    std::array<const mlineStyleAuthorityControls::Row*,2> providers{};
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE")for(const auto& field:row.fields)
+            if(field==std::make_pair(2,std::string("EditDash"))) {
+                if(selected)return false;selected=&row;
+            }
+        if(row.type!="APPID")continue;
+        for(std::size_t i=0u;i<expected.size();++i)
+            for(const auto& field:row.fields)if(field==std::make_pair(2,expected[i].first)) {
+                if(providers[i])return false;providers[i]=&row;
+            }
+    }
+    if(!selected||!providers[0]||!providers[1])return false;
+    std::vector<std::pair<int,std::string>> xdata;
+    for(const auto& field:selected->fields)if(field.first>=1000)xdata.push_back(field);
+    const std::vector<std::pair<int,std::string>> expectedXdata{
+        {1001,expected[0].first},{1000,expected[0].second},
+        {1001,expected[1].first},{1000,expected[1].second}};
+    if(xdata!=expectedXdata)return false;
+    const std::vector<int> appCodes{5,330,100,100,2,70};
+    for(std::size_t i=0u;i<expected.size();++i) {
+        std::vector<int> observed;
+        for(const auto& field:providers[i]->fields)observed.push_back(field.first);
+        if(observed!=appCodes||providers[i]->owner!=appOwner)return false;
+        const auto value=[&](int code) {
+            const auto field=std::find_if(providers[i]->fields.begin(),providers[i]->fields.end(),
+                [&](const auto& item){return item.first==code;});
+            return field==providers[i]->fields.end()?std::string{}:field->second;
+        };
+        std::int64_t flags=1;
+        if(value(5).empty()||value(2)!=expected[i].first
+            ||!dx_raster_output::integer(value(70),flags)||flags!=0)return false;
+    }
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false))return false;
+    unsigned linetypes=0u;
+    for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
+        if(value.extData.size()!=4u)return false;
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& app=value.extData[i*2u];const auto& text=value.extData[i*2u+1u];
+            if(!app||!text||app->code()!=1001||app->type()!=DRW_Variant::STRING
+                ||!app->content.s||*app->content.s!=expected[i].first
+                ||text->code()!=1000||text->type()!=DRW_Variant::STRING
+                ||!text->content.s||*text->content.s!=expected[i].second)return false;
+        }
+        ++linetypes;
+    }
+    if(linetypes!=1u)return false;
+    for(const auto& item:expected) {
+        unsigned matches=0u;
+        for(const auto& value:actual.appIds)if(value.name==item.first)++matches;
+        if(matches!=1u)return false;
+    }
+    return true;
+}
+
 struct LateAppIdMutation:dx_iface {
     bool armed{true},mutated{false};
     void writeAppId()override {
         dx_iface::writeAppId();
         if(!armed||!cData)return;
         for(auto& app:cData->appIds)if(app.name==appName){app.name="MUTATED_LTYPE_APPID";mutated=true;break;}
+    }
+};
+
+struct LateSecondAppIdMutation:dx_iface {
+    bool armed{true},mutated{false};
+    void writeAppId()override {
+        dx_iface::writeAppId();
+        if(!armed||!cData)return;
+        for(auto& app:cData->appIds)if(app.name==secondAppName) {
+            app.name="MUTATED_SECOND_LTYPE_APPID";mutated=true;break;
+        }
     }
 };
 
@@ -31281,6 +31402,38 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
         ++retries;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithTwoPairs(sourceBinary),sourceBinary,"AC1027")
+            ||!twoPairProviderProof(input,sourceBinary,"1F0")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=4u
+            ||std::count_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+                return value.handle==appRecordHandle||value.handle==secondAppRecordHandle;
+            })!=2)return false;
+        const auto savedAppIds=data.appIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!twoPairProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,secondAppRecordHandle))return false;
+        ++profiles;++readbacks;
+        data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+            return value.handle==secondAppRecordHandle;
+        }),data.appIds.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;data.appIds=savedAppIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!twoPairProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,secondAppRecordHandle))return false;
+        ++retries;++readbacks;
+    }
     {
         LateAppIdMutation adapter;dx_data data;
         if(!write(input,source(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false))return false;
@@ -31296,10 +31449,29 @@ bool runTemporary() {
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle))return false;
         ++retries;++readbacks;
     }
+    {
+        LateSecondAppIdMutation adapter;dx_data data;
+        if(!write(input,sourceWithTwoPairs(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return false;
+        ++refusals;
+        for(auto& app:data.appIds)if(app.name=="MUTATED_SECOND_LTYPE_APPID") {
+            app.name=secondAppName;break;
+        }
+        adapter.armed=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!twoPairProviderProof(output,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(adapter,secondAppRecordHandle))return false;
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==4u&&readbacks==9u&&refusals==5u&&retries==5u;
+    return profiles==8u&&readbacks==18u&&refusals==10u&&retries==10u;
 }
 }
 

@@ -21925,11 +21925,12 @@ struct MlineLinetypeShape {
     bool field(int code,std::string_view text={}) {
         if (code==999) return true;
         if (code==1001) {
-            if (classes!=2u || pending || xdata || text.empty()) return false;
+            if (classes!=2u || pending || text.empty()
+                || (xdata && xdataFields%2u!=0u)) return false;
             xdata=true;++xdataFields;return true;
         }
         if (code==1000) {
-            if (!xdata || xdataFields!=1u || text.size()>255u) return false;
+            if (!xdata || xdataFields%2u!=1u || text.size()>255u) return false;
             ++xdataFields;return true;
         }
         if (xdata) return false;
@@ -21954,7 +21955,8 @@ struct MlineLinetypeShape {
     }
     bool complete(std::size_t count,std::size_t expectedXdataFields=0u) const {
         return classes==2u && selves==1u && owners==1u && (!pending || allowOmittedDashFlags) && dashes==count
-            && xdataFields==expectedXdataFields
+            && (expectedXdataFields==0u || expectedXdataFields==2u || expectedXdataFields==4u)
+            && xdataFields==expectedXdataFields && xdataFields%2u==0u
             && std::all_of(headers.begin(),headers.end(),[](bool v){return v;});
     }
 };
@@ -21966,25 +21968,33 @@ bool simpleMlineAppId(const DRW_AppId& value) {
 }
 
 bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw,
-                         std::string& appIdName) {
-    appIdName.clear();
+                         std::vector<std::string_view>& appIdNames) {
+    appIdNames.clear();
     if ((value.flags!=0 && value.flags!=64) || value.alignment!=65 || value.size<0
         || static_cast<std::size_t>(value.size)!=value.path.size()
         || value.path.size()!=value.segments.size() || !value.shapeHandles.empty()
         || value.synchronizedLengthCount()!=value.path.size()
         || value.retainedSegmentTextCount()!=value.path.size()
-        || !value.appData.empty() || value.extData.size()>2u || !value.reactorHandles.empty()
+        || !value.appData.empty() || (value.extData.size()!=0u && value.extData.size()!=2u
+            && value.extData.size()!=4u) || !value.reactorHandles.empty()
         || value.xDictHandle!=0u || value.xrefBlockHandle.ref!=0u || value.xrefBlockHandle.ref64!=0u) return false;
     if (!value.extData.empty()) {
-        if (value.extData.size()!=2u || !value.extData[0] || !value.extData[1]
-            || value.extData[0]->code()!=1001 || value.extData[0]->type()!=DRW_Variant::STRING
-            || value.extData[0]->content.s==nullptr || value.extData[0]->content.s->empty()
-            || value.extData[0]->content.s->size()>255u
-            || value.extData[0]->content.s->find('\0')!=std::string::npos
-            || value.extData[1]->code()!=1000 || value.extData[1]->type()!=DRW_Variant::STRING
-            || value.extData[1]->content.s==nullptr || value.extData[1]->content.s->size()>255u
-            || value.extData[1]->content.s->find('\0')!=std::string::npos) return false;
-        appIdName=*value.extData[0]->content.s;
+        for (std::size_t i=0u;i<value.extData.size();i+=2u) {
+            if (!value.extData[i] || !value.extData[i+1u]
+                || value.extData[i]->code()!=1001
+                || value.extData[i]->type()!=DRW_Variant::STRING
+                || value.extData[i]->content.s==nullptr
+                || value.extData[i]->content.s->empty()
+                || value.extData[i]->content.s->size()>255u
+                || value.extData[i]->content.s->find('\0')!=std::string::npos
+                || value.extData[i+1u]->code()!=1000
+                || value.extData[i+1u]->type()!=DRW_Variant::STRING
+                || value.extData[i+1u]->content.s==nullptr
+                || value.extData[i+1u]->content.s->size()>255u
+                || value.extData[i+1u]->content.s->find('\0')!=std::string::npos)
+                return false;
+            appIdNames.emplace_back(*value.extData[i]->content.s);
+        }
     }
     for (std::size_t i=0u;i<value.path.size();++i) {
         const auto& segment=value.segments[i];
@@ -22295,11 +22305,49 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
         using F=dx_tableResourceFamily;using K=dxfRW::DxfResourceSourceView::Kind;
         const auto& source=cData->m_tableDxfSource;
         std::map<std::uint32_t,const DRW_LType*> candidates;
-        std::map<std::uint32_t,std::uint32_t> candidateAppIds;
+        std::map<std::uint32_t,std::vector<std::uint32_t>> candidateAppIds;
         std::size_t work=0u;
         const auto visit=[&](std::size_t amount) {
             if (work>kMaxAdapterBasicTableItems || amount>kMaxAdapterBasicTableItems-work) return false;
             work+=amount;return true;
+        };
+        enum class AppIdResult {Bound,Unqualified,LimitFailure};
+        const auto resolveAppId=[&](std::string_view name,std::uint32_t& handle) {
+            handle=0u;
+            std::string key;
+            if (!dx_symbol_output::nameKey(name,key)) return AppIdResult::Unqualified;
+            const auto named=source.resourceNames.find({F::AppId,key});
+            if (named==source.resourceNames.end() || !named->second)
+                return AppIdResult::Unqualified;
+            handle=named->second;
+            const auto resource=source.resources.find(handle);
+            const auto origin=source.resourceOriginAudits.find(handle);
+            if (resource==source.resources.end() || origin==source.resourceOriginAudits.end())
+                return AppIdResult::Unqualified;
+            const auto& app=resource->second;const auto& audit=origin->second;
+            if (app.family!=F::AppId || app.awaitingSymbol || app.invalidName || app.ambiguousName
+                || !app.rawTypedMatched || app.rawTypedMismatch || !app.raw || !app.model
+                || !audit || !audit->input || !audit->bodyMatched || !audit->stateComplete
+                || !audit->originBound || !audit->input->paired || audit->input->kind!=K::AppId
+                || !audit->input->context || !audit->input->context->captured
+                || audit->input->context->sourceVersion!=cData->sourceVersion)
+                return AppIdResult::Unqualified;
+            const auto* model=dynamic_cast<const DRW_AppId*>(app.model.get());
+            if (!model) return AppIdResult::Unqualified;
+            std::size_t typedBytes=0u,items=0u,rawBytes=0u;
+            if (!estimateAppIdTypedBytes(*model,typedBytes,items)
+                || !estimateRawDxfObjectBytes(*app.raw,rawBytes)
+                || !visit(items) || !visit(app.raw->groups.size())
+                || !chargeNamedResourceBytes(bytes,typedBytes)
+                || !chargeNamedResourceBytes(bytes,rawBytes))
+                return AppIdResult::LimitFailure;
+            std::string modelKey;
+            if (!model->handle || model->handle!=handle || !simpleMlineAppId(*model)
+                || !dx_symbol_output::nameKey(model->name,modelKey) || modelKey!=key)
+                return AppIdResult::Unqualified;
+            if (!chargeNamedResourceBytes(bytes,sizeof(DxfMLineAppIdSource)+16u*sizeof(void*)))
+                return AppIdResult::LimitFailure;
+            return AppIdResult::Bound;
         };
         for (auto& style:m_dxfMLineStyles) {
             style.second.linetypesBound=false;
@@ -22354,57 +22402,56 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                             if (!estimateLTypeTypedBytes(*model,typed,items) || !estimateRawDxfObjectBytes(*r.raw,raw)
                                 || !visit(items) || !visit(r.raw->groups.size())
                                 || !chargeNamedResourceBytes(bytes,typed) || !chargeNamedResourceBytes(bytes,raw)) return false;
-                            std::string appIdName;
-                            if (!model->handle || model->handle!=handle || !simpleMlineLinetype(*model,*r.raw,appIdName)) model=nullptr;
-                            if (model && !appIdName.empty()) {
-                                std::string appIdKey;
-                                std::uint32_t appIdHandle=0u;
-                                const auto appReference=std::find_if(r.references.begin(),r.references.end(),[](const auto& ref) {
-                                    return ref.kind==dx_tableResourceRole::AppIdName && ref.code==1001;
-                                });
-                                if (std::count_if(r.references.begin(),r.references.end(),[](const auto& ref) {
-                                        return ref.kind==dx_tableResourceRole::AppIdName && ref.code==1001;
-                                    })!=1 || appReference==r.references.end() || appReference->groupIndex>=r.raw->groups.size()
-                                    || r.raw->groups[appReference->groupIndex].code()!=1001
-                                    || !dx_symbol_output::nameKey(appIdName,appIdKey)) model=nullptr;
-                                if (model) {
-                                    const auto& rawApp=r.raw->groups[appReference->groupIndex];
-                                    if (rawApp.type()!=DRW_Variant::STRING || !rawApp.content.s || *rawApp.content.s!=appIdName) model=nullptr;
-                                }
-                                const auto appNamed=source.resourceNames.find({F::AppId,appIdKey});
-                                if (model && appNamed!=source.resourceNames.end()) appIdHandle=appNamed->second;
-                                else if (model) model=nullptr;
-                                const auto appResource=source.resources.find(appIdHandle);
-                                const auto appOrigin=source.resourceOriginAudits.find(appIdHandle);
-                                const DRW_AppId* appModel=nullptr;
-                                if (model && appResource!=source.resources.end() && appOrigin!=source.resourceOriginAudits.end()) {
-                                    const auto& app=appResource->second;const auto& audit=appOrigin->second;
-                                    if (app.family==F::AppId && !app.awaitingSymbol && !app.invalidName && !app.ambiguousName
-                                        && app.rawTypedMatched && !app.rawTypedMismatch && app.raw && app.model
-                                        && audit && audit->input && audit->bodyMatched && audit->stateComplete && audit->originBound
-                                        && audit->input->paired && audit->input->kind==K::AppId
-                                        && audit->input->context && audit->input->context->captured
-                                        && audit->input->context->sourceVersion==cData->sourceVersion)
-                                        appModel=dynamic_cast<const DRW_AppId*>(app.model.get());
-                                    if (appModel) {
-                                        std::size_t typedApp=0u,itemsApp=0u,rawAppBytes=0u;
-                                        if (!estimateAppIdTypedBytes(*appModel,typedApp,itemsApp)
-                                            || !estimateRawDxfObjectBytes(*app.raw,rawAppBytes)
-                                            || !visit(itemsApp) || !visit(app.raw->groups.size())
-                                            || !chargeNamedResourceBytes(bytes,typedApp)
-                                            || !chargeNamedResourceBytes(bytes,rawAppBytes)) return false;
-                                        std::string providerKey;
-                                        if (!appModel->handle || appModel->handle!=appIdHandle
-                                            || !simpleMlineAppId(*appModel)
-                                            || !dx_symbol_output::nameKey(appModel->name,providerKey)
-                                            || providerKey!=appIdKey) appModel=nullptr;
+                            std::vector<std::string_view> appIdNames;
+                            if (!model->handle || model->handle!=handle
+                                || !simpleMlineLinetype(*model,*r.raw,appIdNames)) model=nullptr;
+                            if (model) {
+                                std::vector<std::uint32_t> appIdHandles;
+                                if (!appIdNames.empty()) {
+                                    if (appIdNames.size()>2u || !visit(appIdNames.size())
+                                        || !chargeNamedResourceBytes(bytes,
+                                            appIdNames.size()*(sizeof(std::uint32_t)
+                                                +sizeof(std::string_view)+512u)))
+                                        return false;
+                                    std::array<std::size_t,2> referenceSlots{};
+                                    std::size_t referenceCount=0u;
+                                    for (const auto& reference:r.references) {
+                                        if (reference.kind!=dx_tableResourceRole::AppIdName
+                                            || reference.code!=1001) continue;
+                                        if (referenceCount==referenceSlots.size()) {
+                                            model=nullptr;break;
+                                        }
+                                        referenceSlots[referenceCount++]=reference.groupIndex;
+                                    }
+                                    std::set<std::string> distinctAppIds;
+                                    if (referenceCount!=appIdNames.size()) model=nullptr;
+                                    for (std::size_t i=0u;model && i<appIdNames.size();++i) {
+                                        const auto slot=referenceSlots[i];
+                                        std::string appIdKey;
+                                        if (slot>=r.raw->groups.size()
+                                            || r.raw->groups[slot].code()!=1001
+                                            || r.raw->groups[slot].type()!=DRW_Variant::STRING
+                                            || !r.raw->groups[slot].content.s
+                                            || *r.raw->groups[slot].content.s!=appIdNames[i]
+                                            || !dx_symbol_output::nameKey(appIdNames[i],appIdKey)
+                                            || !distinctAppIds.insert(appIdKey).second) {
+                                            model=nullptr;break;
+                                        }
+                                        std::uint32_t appIdHandle=0u;
+                                        const auto resolved=resolveAppId(appIdNames[i],appIdHandle);
+                                        if (resolved==AppIdResult::LimitFailure) return false;
+                                        if (resolved!=AppIdResult::Bound) {
+                                            model=nullptr;break;
+                                        }
+                                        appIdHandles.push_back(appIdHandle);
                                     }
                                 }
-                                if (model && !appModel) model=nullptr;
-                                if (model && (!chargeNamedResourceBytes(bytes,sizeof(DxfMLineAppIdSource)+16u*sizeof(void*))
-                                    || !chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)))) return false;
-                                if (model) candidateAppIds.emplace(handle,appIdHandle);
-                            } else if (model) candidateAppIds.emplace(handle,0u);
+                                if (model) {
+                                    if (!chargeNamedResourceBytes(bytes,
+                                            appIdHandles.size()*sizeof(std::uint32_t))) return false;
+                                    candidateAppIds.emplace(handle,std::move(appIdHandles));
+                                }
+                            }
                         }
                     }
                     candidate=candidates.emplace(handle,model).first;
@@ -22419,18 +22466,20 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                 DxfMLineLinetypeSource row;row.model=*candidates.at(handle);row.origin=source.resourceOriginAudits.at(handle);
                 const auto appId=candidateAppIds.find(handle);
                 if (appId==candidateAppIds.end()) return false;
-                if (appId->second) {
-                    row.appIdHandles.push_back(appId->second);
-                    const auto app=source.resources.find(appId->second);
-                    const auto origin=source.resourceOriginAudits.find(appId->second);
+                if (!chargeNamedResourceBytes(bytes,
+                        appId->second.size()*sizeof(std::uint32_t))) return false;
+                row.appIdHandles=appId->second;
+                for (const auto appIdHandle:row.appIdHandles) {
+                    const auto app=source.resources.find(appIdHandle);
+                    const auto origin=source.resourceOriginAudits.find(appIdHandle);
                     if (app==source.resources.end() || origin==source.resourceOriginAudits.end() || !origin->second
                         || !app->second.model) return false;
-                    if (!m_dxfMLineAppIds.count(appId->second)) {
+                    if (!m_dxfMLineAppIds.count(appIdHandle)) {
                         const auto* appModel=dynamic_cast<const DRW_AppId*>(app->second.model.get());
                         if (!appModel) return false;
                         DxfMLineAppIdSource appRow;appRow.model=*appModel;
                         appRow.origin=origin->second;
-                        m_dxfMLineAppIds.emplace(appId->second,std::move(appRow));
+                        m_dxfMLineAppIds.emplace(appIdHandle,std::move(appRow));
                     }
                 }
                 m_dxfMLineLinetypes.emplace(handle,std::move(row));
@@ -22467,8 +22516,9 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
         const auto& origins=cData->m_tableDxfSource.resourceOriginAudits;
         std::size_t appReferenceCount=0u;
         for (const auto& row:m_dxfMLineLinetypes) {
-            if (row.second.appIdHandles.size()>1u) return false;
-            if (!row.second.appIdHandles.empty()) ++appReferenceCount;
+            if (row.second.appIdHandles.size()>2u
+                || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()) return false;
+            appReferenceCount+=row.second.appIdHandles.size();
         }
         std::vector<std::uint32_t> referencedAppIds;
         referencedAppIds.reserve(appReferenceCount);
@@ -22482,14 +22532,25 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
             if (row.second.model.extData.empty()) {
                 if (!row.second.appIdHandles.empty()) return false;
             } else {
-                if (row.second.model.extData.size()!=2u || row.second.appIdHandles.size()!=1u
-                    || !row.second.model.extData.front() || !row.second.model.extData.front()->content.s) return false;
-                std::string appKey;
-                if (!dx_symbol_output::nameKey(*row.second.model.extData.front()->content.s,appKey)) return false;
-                const auto appName=cData->m_tableDxfSource.resourceNames.find({dx_tableResourceFamily::AppId,appKey});
-                if (appName==cData->m_tableDxfSource.resourceNames.end()
-                    || appName->second!=row.second.appIdHandles.front()) return false;
-                referencedAppIds.push_back(row.second.appIdHandles.front());
+                if (row.second.appIdHandles.empty()
+                    || row.second.model.extData.size()!=row.second.appIdHandles.size()*2u) return false;
+                std::array<std::string,2> appKeys{};
+                for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
+                    const auto& appField=row.second.model.extData[i*2u];
+                    const auto& payloadField=row.second.model.extData[i*2u+1u];
+                    if (!appField || !payloadField || appField->code()!=1001
+                        || appField->type()!=DRW_Variant::STRING || !appField->content.s
+                        || appField->content.s->empty() || payloadField->code()!=1000
+                        || payloadField->type()!=DRW_Variant::STRING || !payloadField->content.s)
+                        return false;
+                    if (!dx_symbol_output::nameKey(*appField->content.s,appKeys[i])
+                        || (i!=0u && appKeys[i]==appKeys[0])) return false;
+                    const auto appName=cData->m_tableDxfSource.resourceNames.find(
+                        {dx_tableResourceFamily::AppId,appKeys[i]});
+                    if (appName==cData->m_tableDxfSource.resourceNames.end()
+                        || appName->second!=row.second.appIdHandles[i]) return false;
+                    referencedAppIds.push_back(row.second.appIdHandles[i]);
+                }
             }
         }
         std::size_t found=0u;
