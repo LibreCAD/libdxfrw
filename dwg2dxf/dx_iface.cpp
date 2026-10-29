@@ -21945,11 +21945,11 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
             || segment.xOffset!=0.0 || segment.yOffset!=0.0 || segment.rotation!=0.0 || segment.scale!=1.0) return false;
     }
     const auto key=layoutSymbolKey(value.name);
-    // The selected ByLayer/Continuous profiles normalize their advisory
-    // referenced bit because canonical rows are emitted with flags0. Keep
-    // ByBlock and other canonical metadata outside this profile.
+    // Autodesk defines group-70 bit 64 as an advisory referenced marker and
+    // permits writers to omit it. Normalize it for all three canonical rows;
+    // other canonical metadata remains outside this profile.
     if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
-        && ((key=="BYBLOCK" && value.flags!=0) || !value.path.empty()
+        && (!value.path.empty()
             || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
     // Omitted source flags mean zero. Actual output uses the strict default
     // policy so this writer's explicit fields remain independently checked.

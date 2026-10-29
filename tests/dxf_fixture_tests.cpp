@@ -31218,7 +31218,7 @@ bool canonicalFlagsNormalized(const std::filesystem::path& path,bool binary) {
         if(matches!=1u){std::cerr<<"canonical LTYPE wire row count name="<<expected.first<<" matches="<<matches<<'\n';return false;}
     }
     dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)){std::cerr<<"canonical LTYPE output readback failed\n";return false;}
-    const std::array<std::string,2> selected{{"ByLayer","Continuous"}};
+    const std::array<std::string,3> selected{{"ByBlock","ByLayer","Continuous"}};
     for(const auto& expected:selected) {
         unsigned matches=0u;
         for(const auto& value:actual.lineTypes)if(value.name==expected) {
@@ -32164,6 +32164,41 @@ Tags withFlags(Tags fields,const std::string& handle,int flags) {
     if(changed!=1u)throw std::runtime_error("LTYPE referenced source flag missing");return fields;
 }
 Tags recipe(bool binary,int flags=64) {return withFlags(mlineLtypeEditControls::recipe(binary),"103",flags);}
+Tags byBlockRecipe(bool binary) {
+    auto fields=mlineStyleAuthorityControls::recipe(binary);
+    std::size_t table=fields.size(),tableEnd=fields.size();
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]!=std::make_pair(0,std::string("TABLE"))
+            ||fields[i+1u]!=std::make_pair(2,std::string("LTYPE")))continue;
+        table=i;
+        for(std::size_t j=i+2u;j<fields.size();++j) {
+            if(fields[j].first==0&&fields[j].second=="LTYPE")break;
+            if(fields[j].first==70)fields[j].second="3";
+        }
+        for(std::size_t j=i+2u;j<fields.size();++j)
+            if(fields[j]==std::make_pair(0,std::string("ENDTAB"))) {
+                tableEnd=j;break;
+            }
+        break;
+    }
+    if(table==fields.size()||tableEnd==fields.size())
+        throw std::runtime_error("ByBlock LTYPE table boundaries missing");
+    const Tags row{{0,"LTYPE"},{5,"103"},{330,"100"},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbLinetypeTableRecord"},
+        {2,"ByBlock"},{70,"64"},{3,""},{72,"65"},
+        {73,"0"},{40,"0"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tableEnd),
+        row.begin(),row.end());
+    bool style=false,replaced=false;
+    for(auto& field:fields) {
+        if(field.first==0)style=field.second=="MLINESTYLE";
+        if(style&&field.first==6&&field.second=="ByLayer") {
+            field.second="ByBlock";replaced=true;break;
+        }
+    }
+    if(!replaced)throw std::runtime_error("ByBlock MLINESTYLE reference missing");
+    return fields;
+}
 bool sourceFlags(const Tags& fields,const std::string& handle,int expected) {
     bool selected=false;unsigned found=0u;
     for(const auto& field:fields) {
@@ -32319,11 +32354,55 @@ bool run(const std::filesystem::path& dir) {
         if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,0x103u)
             ||!complete(binary,{{"EditDash","EditDash"}})||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);++readbacks;++edits;++composition;
     }
+    const mlineStyleBodyTransactionControls::LtypeNames byBlockNames{{"ByBlock","Continuous"}};
+    const auto byBlockProof=[&](bool binary,
+            const mlineStyleBodyTransactionControls::LtypeNames& names) {
+        return mlineStyleAuthorityControls::proof(output,binary,"EFFECTIVE_STYLE",
+                false,false,"AC1027","OLD_ENTITY_NAME",names[0],names[1])
+            &&mlineLtypeEditControls::canonicalFlagsNormalized(output,binary);
+    };
+    std::size_t byBlockProfiles=0u,byBlockReadbacks=0u;
+    std::size_t byBlockRefusals=0u,byBlockRetries=0u;
+    for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
+        dx_iface adapter;dx_data data;const auto fields=byBlockRecipe(sourceBinary);
+        if(!sourceFlags(fields,"103",64)||!write(input,fields,sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||mlineLtypeProviderControls::provider(data).name!="ByBlock"
+            ||mlineLtypeProviderControls::provider(data).flags!=64
+            ||!mlineStyleAuthorityControls::proof(input,sourceBinary,
+                "EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",
+                byBlockNames[0],byBlockNames[1]))return fail(__LINE__);
+        const auto style=data.mLineStyles.front();
+        const auto raw=mlineStyleBodyTransactionControls::raw(data);
+        const auto lines=data.lineTypes;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!byBlockProof(binary,byBlockNames)
+            ||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);
+        ++byBlockProfiles;++byBlockReadbacks;
+        mlineLtypeProviderControls::provider(data).flags=0;
+        const auto mutatedLines=data.lineTypes;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!mlineLtypeEditControls::caller(data,style,raw,mutatedLines))
+            return fail(__LINE__);
+        ++byBlockRefusals;data.lineTypes=lines;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!byBlockProof(binary,byBlockNames)
+            ||!A::mlineLinetypeProofBound(adapter,0x103u)
+            ||!mlineLtypeEditControls::caller(data,style,raw,lines))return fail(__LINE__);
+        ++byBlockReadbacks;++byBlockRetries;
+    }
     std::cout<<"MLINE LTYPE referenced flag profiles="<<profiles<<"; readbacks="<<readbacks<<"; edits="<<edits<<"; copied="<<copied
         <<"; late="<<late<<"; unqualified="<<unqualified<<"; canonical="<<canonical<<"; retries="<<retries
-        <<"; corruptions="<<corruptions<<"; composition="<<composition<<'\n';
+        <<"; corruptions="<<corruptions<<"; composition="<<composition
+        <<"; ByBlock profiles="<<byBlockProfiles<<"; readbacks="<<byBlockReadbacks
+        <<"; refusals="<<byBlockRefusals<<"; retries="<<byBlockRetries<<'\n';
     return profiles==4u&&readbacks==76u&&edits==14u&&copied==6u&&late==24u&&unqualified==6u&&canonical==8u
-        &&retries==44u&&corruptions==6u&&composition==2u;
+        &&retries==44u&&corruptions==6u&&composition==2u
+        &&byBlockProfiles==4u&&byBlockReadbacks==8u&&byBlockRefusals==4u
+        &&byBlockRetries==4u;
 }
 bool runTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
