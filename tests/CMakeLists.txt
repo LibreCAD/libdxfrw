@@ -642,6 +642,14 @@ set_tests_properties(libdxfrw_mline_consumed_style_removal_matrix_eight PROPERTI
     LABELS "dxf;fast;transaction"
     TIMEOUT 90)
 
+# Extend single-survivor removal to a nine-element style, covering all nine
+# survivor positions through the established exact-output and retry inspector.
+add_test(NAME libdxfrw_mline_consumed_style_single_from_nine_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-single-from-nine-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_single_from_nine_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+
 # Runtime-generated AC1027 profiles remove each element in turn from a
 # three-element style consumed by open, uncut MLINEs. Check parameter
 # reprojection, exact output/readback, rollback and retries across DXF encodings.
