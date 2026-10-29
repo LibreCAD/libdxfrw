@@ -141,8 +141,14 @@ proof. Refused fields are not implemented editing support.
    qualifies one reordered simple-provider header profile in ASCII/binary input
    and canonical output. These lanes have separate focused CTests. Remaining
    work is other header permutations/optional placements, other group-70 flags,
-   and metadata/application/XDATA profiles separately from the selected simple
-   grammar. [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
+   and metadata/application/XDATA profiles outside the selected single-APPID
+   plus single-string profile. [RPP-5ue](docs/research/rpp5ue-mline-ltype-provider-appid-xdata-2026-10-29.json)
+   qualifies one runtime-generated AC1027 simple LTYPE with ordered groups
+   1001/1000 and a bare, source-bound APPID provider. ASCII/binary source and
+   output combinations verify exact emitted rows, readback, missing-provider
+   refusal and destination-safe retries, including a late APPID mutation. Other
+   XDATA groups, multiple APPID groups, APPID metadata, LTYPE schemas and
+   versions remain open. [RPP-5qy](docs/research/rpp5qy-mline-ltype-text-style-provider-2026-10-29.json)
    qualifies one runtime-generated AC1027 text-bearing complex LTYPE profile:
    source group 340 binds its STYLE provider, exact output binds the remapped
    STYLE identity, and fresh readback verifies the selected segment and MLINE
