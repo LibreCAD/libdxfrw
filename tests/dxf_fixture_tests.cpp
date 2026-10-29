@@ -33971,6 +33971,57 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
     }
     return fields;
 }
+Tags retargetAppendRecipe(bool binary,unsigned sourceCount) {
+    auto fields=retargetRecipe(binary);
+    if(sourceCount==2u)return fields;
+    if(sourceCount!=3u)throw std::runtime_error("unsupported retarget append source count");
+    const std::array<double,3> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25}};
+    for(const auto& handle:std::array<std::string,2>{{"D","D2"}}) {
+        std::size_t begin=0u,end=0u;
+        if(!recordSpan(fields,"MLINESTYLE",handle,begin,end))throw std::runtime_error("three-element retarget style missing");
+        setRecordValue(fields,begin,end,71,"3");
+        const auto count=std::find(fields.begin()+static_cast<std::ptrdiff_t>(begin),
+            fields.begin()+static_cast<std::ptrdiff_t>(end),std::make_pair(71,std::string("3")));
+        if(count==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget count missing");
+        auto tuple=count+1;
+        for(unsigned i=0u;i<2u;++i) {
+            if(std::distance(tuple,fields.begin()+static_cast<std::ptrdiff_t>(end))<3
+                ||tuple->first!=49||(tuple+1)->first!=62||(tuple+2)->first!=6)
+                throw std::runtime_error("three-element retarget source tuple missing");
+            tuple+=3;
+        }
+        fields.insert(tuple,{{49,number(offsets.back())},{62,"4"},{6,"ByLayer"}});
+    }
+    for(const auto& handle:std::array<std::string,2>{{"D100","D101"}}) {
+        std::size_t begin=0u,end=0u;
+        if(!recordSpan(fields,"MLINE",handle,begin,end))throw std::runtime_error("three-element retarget consumer missing");
+        const unsigned profile=handle=="D100"?0u:1u;
+        setRecordValue(fields,begin,end,73,"3");
+        const auto marker=std::find(fields.begin()+static_cast<std::ptrdiff_t>(begin),
+            fields.begin()+static_cast<std::ptrdiff_t>(end),std::make_pair(100,std::string("AcDbMline")));
+        if(marker==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget MLINE subclass missing");
+        const auto basePoint=std::find_if(marker+1,fields.begin()+static_cast<std::ptrdiff_t>(end),
+            [](const auto& field){return field.first==10;});
+        if(basePoint==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget base point missing");
+        Tags generated;const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+        generated.insert(generated.end(),{{10,number(vertices.front().first.x)},{20,number(vertices.front().first.y)},
+            {30,number(vertices.front().first.z)},{210,number(ext.x)},{220,number(ext.y)},{230,number(ext.z)}});
+        const double shift=justification(profile)==2u?1.25:0.0;
+        for(unsigned vertex=0u;vertex<vertices.size();++vertex) {
+            const auto& point=vertices[vertex].first;const auto& direction=vertices[vertex].second;
+            const auto miterVector=miter(profile,vertices,vertex);
+            generated.insert(generated.end(),{{11,number(point.x)},{21,number(point.y)},{31,number(point.z)},
+                {12,number(direction.x)},{22,number(direction.y)},{32,number(direction.z)},
+                {13,number(miterVector.x)},{23,number(miterVector.y)},{33,number(miterVector.z)}});
+            for(const double offset:offsets)generated.insert(generated.end(),{{74,"2"},
+                {41,number(parameterForStyle(profile,vertex,offset,shift,90.0,90.0))},{41,number(0.0)},{75,"0"}});
+        }
+        const auto suffix=static_cast<std::size_t>(basePoint-fields.begin());
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(suffix),fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(suffix),generated.begin(),generated.end());
+    }
+    return fields;
+}
 bool retargetOutputProof(const std::filesystem::path& path,bool binary,
         const std::array<double,2>& targetOffsets=afterOffsets,double targetStartAngle=90.0,double targetEndAngle=90.0,
         int targetFlags=2) {
@@ -34057,8 +34108,9 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
     }
     return true;
 }
-bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary) {
+bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary,unsigned sourceCount=2u) {
     const auto bad=[](int line){std::cerr<<"retarget append output proof mismatch line="<<line<<'\n';return false;};
+    if(sourceCount!=2u&&sourceCount!=3u)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34083,37 +34135,49 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary) {
         }
         return selected;
     };
+    std::vector<double> sourceOffsets{beforeOffsets[0],beforeOffsets[1]};
+    std::vector<int> sourceColors{1,3};
+    std::vector<std::string> sourceLinetypes{"ByLayer","Continuous"};
+    if(sourceCount==3u){sourceOffsets.push_back(-1.25);sourceColors.push_back(4);sourceLinetypes.push_back("ByLayer");}
+    std::vector<double> targetOffsets=sourceOffsets;targetOffsets.push_back(sourceCount==2u?-1.25:-2.25);
+    std::vector<int> targetColors{5,7,4};
+    std::vector<std::string> targetLinetypes{"ByLayer","Continuous","ByLayer"};
+    if(sourceCount==3u){targetColors.push_back(4);targetLinetypes.push_back("ByLayer");}
+    const unsigned targetCount=sourceCount+1u;
     if(styleCount!=2u||!root||!oldStyle||!targetStyle)return bad(__LINE__);
     owner=entry(*root,"ACAD_MLINESTYLE");
     if(!owner||owner->type!="DICTIONARY"||owner->owner!=root->id
         ||oldStyle->owner!=owner->id||targetStyle->owner!=owner->id
         ||entry(*owner,"EFFECTIVE_STYLE")!=oldStyle||entry(*owner,"RETARGET_STYLE")!=targetStyle)return bad(__LINE__);
     if(values(*oldStyle,70).size()!=1u||std::stod(values(*oldStyle,70).front())!=2.0
-        ||values(*oldStyle,71).size()!=1u||std::stod(values(*oldStyle,71).front())!=2.0
-        ||values(*oldStyle,49).size()!=2u)return bad(__LINE__);
+        ||values(*oldStyle,71).size()!=1u||std::stoul(values(*oldStyle,71).front())!=sourceCount
+        ||values(*oldStyle,49).size()!=sourceCount)return bad(__LINE__);
+    for(std::size_t i=0u;i<sourceOffsets.size();++i)
+        if(!close(std::stod(values(*oldStyle,49)[i]),sourceOffsets[i]))return bad(__LINE__);
     if(values(*targetStyle,70).size()!=1u||std::stod(values(*targetStyle,70).front())!=2.0
-        ||values(*targetStyle,71).size()!=1u||std::stod(values(*targetStyle,71).front())!=3.0
+        ||values(*targetStyle,71).size()!=1u||std::stoul(values(*targetStyle,71).front())!=targetCount
         ||values(*targetStyle,51).size()!=1u||std::stod(values(*targetStyle,51).front())!=90.0
         ||values(*targetStyle,52).size()!=1u||std::stod(values(*targetStyle,52).front())!=90.0
-        ||values(*targetStyle,49).size()!=3u)return bad(__LINE__);
-    if(!close(std::stod(values(*oldStyle,49)[0]),beforeOffsets[0])
-        ||!close(std::stod(values(*oldStyle,49)[1]),beforeOffsets[1]))return bad(__LINE__);
-    const std::array<double,3> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25}};
-    const std::array<int,3> colors{{5,7,4}};
-    const std::array<std::string,3> linetypes{{"ByLayer","Continuous","ByLayer"}};
-    for(std::size_t i=0u;i<offsets.size();++i)
-        if(!close(std::stod(values(*targetStyle,49)[i]),offsets[i]))return bad(__LINE__);
-    std::vector<std::pair<int,std::string>> tuples;bool body=false,started=false;
-    for(const auto& field:targetStyle->fields) {
-        if(field.first==100){body=field.second=="AcDbMlineStyle";continue;}
-        if(!body)continue;if(field.first==49)started=true;
-        if(started&&(field.first==49||field.first==62||field.first==6))tuples.push_back(field);
-    }
-    if(tuples.size()!=9u)return bad(__LINE__);
-    for(std::size_t i=0u;i<offsets.size();++i)
-        if(tuples[3u*i].first!=49||!close(std::stod(tuples[3u*i].second),offsets[i])
-            ||tuples[3u*i+1u].first!=62||std::stoi(tuples[3u*i+1u].second)!=colors[i]
-            ||tuples[3u*i+2u]!=std::make_pair(6,linetypes[i]))return bad(__LINE__);
+        ||values(*targetStyle,49).size()!=targetCount)return bad(__LINE__);
+    for(std::size_t i=0u;i<targetOffsets.size();++i)
+        if(!close(std::stod(values(*targetStyle,49)[i]),targetOffsets[i]))return bad(__LINE__);
+    const auto checkTuples=[&](const Row& style,const std::vector<double>& offsets,
+            const std::vector<int>& colors,const std::vector<std::string>& linetypes) {
+        std::vector<std::pair<int,std::string>> tuples;bool body=false,started=false;
+        for(const auto& field:style.fields) {
+            if(field.first==100){body=field.second=="AcDbMlineStyle";continue;}
+            if(!body)continue;if(field.first==49)started=true;
+            if(started&&(field.first==49||field.first==62||field.first==6))tuples.push_back(field);
+        }
+        if(tuples.size()!=offsets.size()*3u)return false;
+        for(std::size_t i=0u;i<offsets.size();++i)
+            if(tuples[3u*i].first!=49||!close(std::stod(tuples[3u*i].second),offsets[i])
+                ||tuples[3u*i+1u].first!=62||std::stoi(tuples[3u*i+1u].second)!=colors[i]
+                ||tuples[3u*i+2u]!=std::make_pair(6,linetypes[i]))return false;
+        return true;
+    };
+    if(!checkTuples(*oldStyle,sourceOffsets,sourceColors,sourceLinetypes)
+        ||!checkTuples(*targetStyle,targetOffsets,targetColors,targetLinetypes))return bad(__LINE__);
     const auto targetHandle=static_cast<std::uint32_t>(std::stoul(targetStyle->id,nullptr,16));
     unsigned entityConsumers=0u,blockConsumers=0u;
     for(const auto& row:rows)if(row.type=="MLINE") {
@@ -34122,19 +34186,20 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary) {
         if(profile>1u||ownerRow==ids.end()||ownerRow->second->type!="BLOCK_RECORD"
             ||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{targetStyle->id}
-            ||values(row,73).size()!=1u||std::stod(values(row,73).front())!=3.0
-            ||values(row,74).size()!=9u||values(row,75).size()!=9u
-            ||values(row,41).size()!=18u||!values(row,42).empty()
+            ||values(row,73).size()!=1u||std::stoul(values(row,73).front())!=targetCount
+            ||values(row,74).size()!=targetCount*3u||values(row,75).size()!=targetCount*3u
+            ||values(row,41).size()!=targetCount*3u*2u||!values(row,42).empty()
             ||values(row,13).size()!=3u||values(row,23).size()!=3u||values(row,33).size()!=3u)return bad(__LINE__);
         for(const auto& count:values(row,74))if(std::stod(count)!=2.0)return bad(__LINE__);
         for(const auto& count:values(row,75))if(std::stod(count)!=0.0)return bad(__LINE__);
         const auto space=values(*ownerRow->second,2);
         if((profile==0u&&space!=std::vector<std::string>{"*Model_Space"})
             ||(profile==1u&&space!=std::vector<std::string>{"AuthorityBlock"}))return bad(__LINE__);
-        const double shift=justification(profile)==2u?1.25:0.0;
+        const double minimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
+        const double shift=justification(profile)==2u?-minimum:0.0;
         std::size_t at=0u;
-        for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<offsets.size();++element)
-            if(!close(std::stod(values(row,41)[at++]),parameterForStyle(profile,vertex,offsets[element],shift,90.0,90.0))
+        for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<targetCount;++element)
+            if(!close(std::stod(values(row,41)[at++]),parameterForStyle(profile,vertex,targetOffsets[element],shift,90.0,90.0))
                 ||std::stod(values(row,41)[at++])!=0.0)return bad(__LINE__);
         const auto vertices=geometry(profile);
         for(unsigned vertex=0u;vertex<3u;++vertex) {
@@ -34153,11 +34218,11 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary) {
         if(style.handle==targetHandle&&style.name=="RETARGET_BODY")decodedTarget=&style;
         if(style.name=="OLD_BODY_NAME")decodedOld=&style;
     }
-    if(!decodedTarget||!decodedOld||decodedTarget->flags!=2||decodedTarget->elements.size()!=3u
-        ||decodedOld->elements.size()!=2u)return bad(__LINE__);
-    for(std::size_t i=0u;i<offsets.size();++i)
-        if(!close(decodedTarget->elements[i].offset,offsets[i])||decodedTarget->elements[i].color!=colors[i]
-            ||decodedTarget->elements[i].linetype!=linetypes[i])return bad(__LINE__);
+    if(!decodedTarget||!decodedOld||decodedTarget->flags!=2||decodedTarget->elements.size()!=targetCount
+        ||decodedOld->elements.size()!=sourceCount)return bad(__LINE__);
+    for(std::size_t i=0u;i<targetOffsets.size();++i)
+        if(!close(decodedTarget->elements[i].offset,targetOffsets[i])||decodedTarget->elements[i].color!=targetColors[i]
+            ||decodedTarget->elements[i].linetype!=targetLinetypes[i])return bad(__LINE__);
     const auto lines=mlineStyleAuthorityControls::consumers(actual);
     if(lines.size()!=2u)return bad(__LINE__);
     const auto sameCoord=[](const DRW_Coord& actual,const Vec& expected) {
@@ -34166,17 +34231,18 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary) {
     for(const auto* line:lines) {
         const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
         if(profile>1u||line->styleHandle!=targetHandle||line->styleName!="OLD_ENTITY_NAME"
-            ||line->numLines!=3u||line->numVerts!=3u||line->vertlist.size()!=3u)return bad(__LINE__);
-        const double shift=justification(profile)==2u?1.25:0.0;const auto vertices=geometry(profile);
+            ||line->numLines!=targetCount||line->numVerts!=3u||line->vertlist.size()!=3u)return bad(__LINE__);
+        const double minimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
+        const double shift=justification(profile)==2u?-minimum:0.0;const auto vertices=geometry(profile);
         for(unsigned vertex=0u;vertex<3u;++vertex) {
             const auto& point=line->vertlist[vertex];
-            if(point.segParms.size()!=offsets.size()||point.areaFillParms.size()!=offsets.size()
+            if(point.segParms.size()!=targetCount||point.areaFillParms.size()!=targetCount
                 ||!sameCoord(point.position,vertices[vertex].first)
                 ||!sameCoord(point.vertexDir,vertices[vertex].second)
                 ||!sameCoord(point.miterDir,miter(profile,vertices,vertex,90.0,90.0)))return bad(__LINE__);
-            for(unsigned element=0u;element<offsets.size();++element)
+            for(unsigned element=0u;element<targetCount;++element)
                 if(point.segParms[element].size()!=2u
-                    ||!close(point.segParms[element][0],parameterForStyle(profile,vertex,offsets[element],shift,90.0,90.0))
+                    ||!close(point.segParms[element][0],parameterForStyle(profile,vertex,targetOffsets[element],shift,90.0,90.0))
                     ||point.segParms[element][1]!=0.0||!point.areaFillParms[element].empty())return bad(__LINE__);
         }
     }
@@ -34193,27 +34259,27 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
         std::cerr<<"MLINE retarget append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
-    const auto append=[](dx_data& data) {
+    const auto append=[](dx_data& data,unsigned sourceCount) {
         auto& target=mlineRetargetControls::style(data,0xD2u);
-        if(target.elements.size()!=2u)throw std::runtime_error("retarget append source arity");
-        auto added=target.elements.front();added.offset=-1.25;added.color=4;
+        if(target.elements.size()!=sourceCount)throw std::runtime_error("retarget append source arity");
+        auto added=target.elements.front();added.offset=sourceCount==2u?-1.25:-2.25;added.color=4;
         target.elements.push_back(std::move(added));
     };
-    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!write(input,retargetRecipe(sourceBinary),sourceBinary,"AC1027")
+        if(!write(input,retargetAppendRecipe(sourceBinary,sourceCount),sourceBinary,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
-        mlineRetargetControls::request(data,3u);append(data);
+        mlineRetargetControls::request(data,3u);append(data,sourceCount);
         const mlineRetargetControls::Snapshot caller(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetAppendOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
-        if(!write(input,retargetRecipe(false),false,"AC1027")
+        if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
-        mlineRetargetControls::request(data,3u);append(data);
+        mlineRetargetControls::request(data,3u);append(data,sourceCount);
         const mlineRetargetControls::Snapshot correct(data);
         mlineRetargetControls::style(data,0xD2u).elements[0].offset+=.125;
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
@@ -34221,14 +34287,14 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
         ++refusals;correct.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetAppendOutputProof(output,outputBinary)||!correct.same(data))return fail(__LINE__);
+            ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u})for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
-        if(!write(input,retargetRecipe(false),false,"AC1027")
+        if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
-        mlineRetargetControls::request(data,3u);append(data);
+        mlineRetargetControls::request(data,3u);append(data,sourceCount);
         const mlineRetargetControls::Snapshot caller(data);
         const auto consumers=mlineStyleAuthorityControls::consumers(data);
         if(consumers.size()!=2u)return fail(__LINE__);
@@ -34238,12 +34304,12 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!hit||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
         ++late;adapter.active=false;caller.restore(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!retargetAppendOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     std::cout<<"MLINE retarget append profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+    return profiles==8u&&readbacks==16u&&refusals==4u&&late==4u&&retries==8u;
 }
 bool runRetargetAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
