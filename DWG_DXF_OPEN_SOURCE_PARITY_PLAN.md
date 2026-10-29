@@ -354,8 +354,10 @@ prevents nested application fields from selecting or hiding that profile.
 The [block-cell alignment slice](docs/research/rpp5ip-ac1018-table-block-alignment-2026-10-28.json)
 adds the source-witnessed `0x01` and group 170 path. The later
 [block-count presence slice](docs/research/rpp5iq-ac1018-table-block-count-presence-2026-10-28.json)
-preserves explicit `179=0` for a bounded authenticated source profile; its
-absence semantics and broader presence cases remain open. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
+preserves explicit `179=0` for a bounded authenticated source profile; the
+[provenance review fix](docs/research/rpp5ir-ac1018-table-source-provenance-review-2026-10-28.json)
+authenticates the original publication and rejects changed source context.
+Absence semantics and broader presence cases remain open. The [merge review fixes](docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json)
 reject excess cell descriptors and bound sparse-grid range allocation; a
 [writer guard](docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json)
 also refuses unoccupied zero spans it would otherwise normalize. A further
