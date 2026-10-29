@@ -1030,6 +1030,7 @@ private:
     std::map<std::uint32_t,std::shared_ptr<const NamedResourceBodyBaseline>> m_dictionaryVarBodyBaselines;
     std::map<std::uint32_t,std::shared_ptr<const NamedResourceBodyBaseline>> m_scaleBodyBaselines;
     std::map<std::uint32_t,std::shared_ptr<const NamedResourceBodyBaseline>> m_mlineStyleBodyBaselines;
+    std::map<std::uint32_t,std::shared_ptr<const NamedResourceBodyBaseline>> m_mleaderStyleBodyBaselines;
     std::size_t m_namedResourceBaselineBytes{0u};
     // Immutable-by-API callback baselines for three-way MATERIAL body edits.
     // These do not certify original producers or native rendering semantics.

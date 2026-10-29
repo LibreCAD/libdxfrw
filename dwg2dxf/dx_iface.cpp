@@ -52,6 +52,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dwgutil.h"
 #include "intern/dwgbuffer.h"
+#include "intern/dwgbufferw.h"
 #include "intern/dwgreader.h"
 #include "intern/dxftablecontent.h"
 #include "intern/dxffield.h"
@@ -15983,6 +15984,345 @@ bool dx_iface::inspectDxfScales(const dxfRW::DxfObjectsWriteView& view) noexcept
 }
 
 namespace {
+constexpr std::size_t noMLeaderTextHeightSlot =
+    (std::numeric_limits<std::size_t>::max)();
+
+bool mleaderTextHeightSlot(const DRW_RawDxfObject& raw,
+        std::size_t& slot) noexcept {
+    slot = noMLeaderTextHeightSlot;
+    unsigned applicationDepth = 0u;
+    unsigned styleMarkers = 0u;
+    unsigned textHeightFields = 0u;
+    bool inStyleBody = false;
+    for (std::size_t i = 0u; i < raw.groups.size(); ++i) {
+        const auto& field = raw.groups[i];
+        const int code = field.code();
+        if (code == 102) {
+            if (field.type() != DRW_Variant::STRING || !field.content.s)
+                return false;
+            const std::string& value = *field.content.s;
+            if (value == "}") {
+                if (applicationDepth == 0u)
+                    return false;
+                --applicationDepth;
+            } else if (!value.empty() && value.front() == '{') {
+                if (++applicationDepth > DRW::kMaxDxfApplicationGroupNesting)
+                    return false;
+            } else {
+                return false;
+            }
+            continue;
+        }
+        if (applicationDepth != 0u)
+            continue;
+        if (code >= 1000) {
+            inStyleBody = false;
+            continue;
+        }
+        if (code == 100) {
+            if (field.type() != DRW_Variant::STRING || !field.content.s)
+                return false;
+            inStyleBody = *field.content.s == "AcDbMLeaderStyle";
+            if (inStyleBody && ++styleMarkers != 1u)
+                return false;
+            continue;
+        }
+        if (!inStyleBody || code != 45)
+            continue;
+        if (field.type() != DRW_Variant::DOUBLE
+            || !std::isfinite(field.d_val())
+            || ++textHeightFields != 1u)
+            return false;
+        slot = i;
+    }
+    return applicationDepth == 0u && styleMarkers == 1u
+        && textHeightFields <= 1u;
+}
+
+bool mleaderPayloadEqual(const DRW_MLeaderStyle& left,
+        const DRW_MLeaderStyle& right, DRW::Version version) {
+    dwgBufferW leftBody, leftStrings, leftHandles;
+    dwgBufferW rightBody, rightStrings, rightHandles;
+    return left.encodeDwg(version, &leftBody, &leftStrings, &leftHandles)
+        && right.encodeDwg(version, &rightBody, &rightStrings, &rightHandles)
+        && leftBody.data() == rightBody.data()
+        && leftBody.bitPos() == rightBody.bitPos()
+        && leftStrings.data() == rightStrings.data()
+        && leftStrings.bitPos() == rightStrings.bitPos()
+        && leftHandles.data() == rightHandles.data()
+        && leftHandles.bitPos() == rightHandles.bitPos();
+}
+
+bool sameNamedResourceRaw(const DRW_RawDxfObject& left,
+        const DRW_RawDxfObject& right) noexcept {
+    if (left.name != right.name || left.handle != right.handle
+        || left.parentHandle != right.parentHandle
+        || left.m_version != right.m_version
+        || left.hasRawValues != right.hasRawValues
+        || left.rawValues != right.rawValues
+        || left.groups.size() != right.groups.size())
+        return false;
+    for (std::size_t i = 0u; i < left.groups.size(); ++i)
+        if (!retainedVariantEqual(left.groups[i], right.groups[i]))
+            return false;
+    return true;
+}
+} // namespace
+
+bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
+        DRW::DxfTextWritePolicy policy) noexcept {
+    (void)policy; // The selected group-45 role is numeric and codec-independent.
+    m_dxfMLeaderStyles.clear();
+    m_dxfMLeaderStyleState = {};
+    m_dxfMLeaderStylesInspected = false;
+    if (!cData)
+        return false;
+    if (cData->sourceFormat != dx_source_format::DXF
+        || m_extensionMLeaderStyleHandles.empty())
+        return true;
+    // Keep every pre-existing raw-replay route unchanged. This packet admits
+    // only a source- and target-AC1027 typed group-45 edit.
+    if (cData->sourceVersion != DRW::AC1027 || version != DRW::AC1027)
+        return true;
+    try {
+        const std::unordered_set<std::uint32_t> handles(
+            m_extensionMLeaderStyleHandles.begin(),
+            m_extensionMLeaderStyleHandles.end());
+        if (handles.size() != m_extensionMLeaderStyleHandles.size())
+            return false;
+        std::vector<std::uint32_t> changedHandles;
+        changedHandles.reserve(handles.size());
+        for (const DRW_MLeaderStyle& value : cData->mLeaderStyles) {
+            if (handles.count(value.handle) == 0u)
+                continue;
+            const auto baseline =
+                cData->m_mleaderStyleBodyBaselines.find(value.handle);
+            if (baseline == cData->m_mleaderStyleBodyBaselines.end()
+                || !baseline->second)
+                return false;
+            DRW_MLeaderStyle original;
+            const bool sourceBinary = !baseline->second->hasRawValues;
+            if (!dx_material_body::decodeRecord(*baseline->second, original,
+                    sourceBinary, baseline->second->codePage,
+                    baseline->second->encoding, baseline->second->policy,
+                    baseline->second->compatibility))
+                return false;
+            if (value.textHeight == original.textHeight)
+                continue;
+            std::size_t baselineSlot = noMLeaderTextHeightSlot;
+            if (!std::isfinite(value.textHeight)
+                || !mleaderTextHeightSlot(*baseline->second, baselineSlot)
+                || baselineSlot == noMLeaderTextHeightSlot)
+                return false;
+            changedHandles.push_back(value.handle);
+        }
+        if (changedHandles.empty())
+            return true;
+
+        std::size_t bytes = 0u;
+        if (!prepareDxfNamedResourceState(m_dxfMLeaderStyleState,
+                                          version, binary, bytes))
+            return false;
+        std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> raws;
+        for (const auto& raw : cData->rawNamedResourceObjects) {
+            if (handles.count(raw.handle) != 0u
+                && !raws.emplace(raw.handle, &raw).second)
+                return false;
+        }
+        const auto charge = [&bytes](std::size_t amount) {
+            return chargeNamedResourceBytes(bytes, amount);
+        };
+        for (const DRW_MLeaderStyle& value : cData->mLeaderStyles) {
+            if (std::find(changedHandles.begin(), changedHandles.end(),
+                          value.handle) == changedHandles.end())
+                continue;
+            const auto rawIt = raws.find(value.handle);
+            const auto baselineIt =
+                cData->m_mleaderStyleBodyBaselines.find(value.handle);
+            if (rawIt == raws.end()
+                || baselineIt == cData->m_mleaderStyleBodyBaselines.end()
+                || !baselineIt->second)
+                return false;
+            const DRW_RawDxfObject& raw = *rawIt->second;
+            const dx_data::NamedResourceBodyBaseline& baseline =
+                *baselineIt->second;
+            std::size_t rawBytes = 0u, typedBytes = 0u, baselineBytes = 0u;
+            if (!estimateRawDxfObjectBytes(raw, rawBytes)
+                || !estimateNamedResourceTypedBytes(value, typedBytes)
+                || !estimateRawDxfObjectBytes(baseline, baselineBytes)
+                || !charge(rawBytes) || !charge(typedBytes)
+                || !charge(baselineBytes))
+                return false;
+            if (!asciiIdentifierEquals(raw.name, "MLEADERSTYLE")
+                || raw.m_version != version || baseline.handle != raw.handle
+                || baseline.m_version != raw.m_version
+                || baseline.hasRawValues != raw.hasRawValues
+                || (raw.hasRawValues
+                    && raw.rawValues.size() != raw.groups.size())
+                || !sameNamedResourceRaw(raw, baseline))
+                return false;
+            DRW_TextCodec sourceCodec;
+            sourceCodec.setVersion(version, true);
+            if (sourceCodec.getVersion()
+                != static_cast<int>(baseline.codecVersion))
+                return false;
+
+            DRW_MLeaderStyle original, parsed;
+            const bool sourceBinary = !baseline.hasRawValues;
+            if (!dx_material_body::decodeRecord(baseline, original,
+                    sourceBinary, baseline.codePage, baseline.encoding,
+                    baseline.policy, baseline.compatibility)
+                || !dx_material_body::decodeRecord(raw, parsed, sourceBinary,
+                    baseline.codePage, baseline.encoding, baseline.policy,
+                    baseline.compatibility)
+                || !standardDwgCommonEqual(value, parsed, version, false)
+                || value.name != original.name
+                || parsed.name != original.name
+                || !mleaderPayloadEqual(parsed, original, version))
+                return false;
+
+            DRW_MLeaderStyle projection = original;
+            if (value.textHeight != original.textHeight) {
+                // The initial edit profile is deliberately source-bound to
+                // AC1027 and an existing, unique physical group 45. Other
+                // schemas/versions remain raw replay until independently
+                // admitted.
+                if (version != DRW::AC1027
+                    || !std::isfinite(value.textHeight))
+                    return false;
+                DRW_MLeaderStyle normalized = value;
+                normalized.textHeight = original.textHeight;
+                if (!standardDwgCommonEqual(value, original, version, false)
+                    || value.name != original.name
+                    || !mleaderPayloadEqual(normalized, original, version))
+                    return false;
+                std::size_t slot = noMLeaderTextHeightSlot;
+                if (!mleaderTextHeightSlot(raw, slot)
+                    || slot == noMLeaderTextHeightSlot
+                    || raw.groups[slot].d_val() != original.textHeight)
+                    return false;
+                projection.textHeight = value.textHeight;
+            }
+
+            DxfMLeaderStyleSource source;
+            source.model = value;
+            source.projection = projection;
+            source.raw = raw;
+            source.output = raw;
+            source.baseline = baselineIt->second;
+            if (projection.textHeight != original.textHeight) {
+                std::size_t slot = noMLeaderTextHeightSlot;
+                dx_material_body::BodyWriter encoded(
+                    binary, version, m_dxfMLeaderStyleState.codePage);
+                if (!mleaderTextHeightSlot(raw, slot)
+                    || !encoded.writeDouble(45, projection.textHeight)
+                    || encoded.groups.size() != 1u
+                    || encoded.groups.front().code() != 45
+                    || encoded.groups.front().type() != DRW_Variant::DOUBLE)
+                    return false;
+                source.output.groups[slot] = encoded.groups.front();
+                if (source.output.hasRawValues && !binary) {
+                    std::string spelling;
+                    if (!dx_material_body::spelling(
+                            source.output.groups[slot], spelling))
+                        return false;
+                    source.output.rawValues[slot] = std::move(spelling);
+                }
+                if (binary) {
+                    source.output.hasRawValues = false;
+                    source.output.rawValues.clear();
+                }
+            }
+            DRW_MLeaderStyle emitted;
+            if (!dx_material_body::decodeRecord(source.output, emitted,
+                    binary, m_dxfMLeaderStyleState.codePage,
+                    baseline.encoding, baseline.policy,
+                    baseline.compatibility)
+                || !standardDwgCommonEqual(value, emitted, version, false)
+                || value.name != emitted.name
+                || !mleaderPayloadEqual(projection, emitted, version)
+                || !m_dxfMLeaderStyles.emplace(
+                    value.handle, std::move(source)).second)
+                return false;
+        }
+        if (m_dxfMLeaderStyles.size() != changedHandles.size())
+            return false;
+        m_dxfMLeaderStyleState.owner = cData;
+        m_dxfMLeaderStyleState.generation = cData->importGeneration;
+        return hasUnchangedDxfMLeaderStyles();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::hasUnchangedDxfMLeaderStyles() const noexcept {
+    if (m_dxfMLeaderStyles.empty())
+        return true;
+    if (!hasUnchangedDxfNamedResourceState(m_dxfMLeaderStyleState))
+        return false;
+    try {
+        std::unordered_set<std::uint32_t> typed, raws;
+        for (const DRW_MLeaderStyle& value : cData->mLeaderStyles) {
+            const auto source = m_dxfMLeaderStyles.find(value.handle);
+            if (source == m_dxfMLeaderStyles.end())
+                continue;
+            const auto baseline =
+                cData->m_mleaderStyleBodyBaselines.find(value.handle);
+            if (baseline == cData->m_mleaderStyleBodyBaselines.end()
+                || baseline->second != source->second.baseline
+                || !typed.insert(value.handle).second
+                || !standardDwgCommonEqual(value, source->second.model,
+                                            cData->sourceVersion)
+                || !mleaderPayloadEqual(value, source->second.model,
+                                        cData->sourceVersion))
+                return false;
+        }
+        for (const DRW_RawDxfObject& raw : cData->rawNamedResourceObjects) {
+            const auto source = m_dxfMLeaderStyles.find(raw.handle);
+            if (source == m_dxfMLeaderStyles.end())
+                continue;
+            if (!raws.insert(raw.handle).second
+                || !sameNamedResourceRaw(raw, source->second.raw))
+                return false;
+        }
+        return typed.size() == m_dxfMLeaderStyles.size()
+            && raws.size() == typed.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDxfMLeaderStyles(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_dxfMLeaderStyles.empty())
+        return true;
+    if (!dxfW || m_dxfMLeaderStylesInspected
+        || !hasUnchangedDxfMLeaderStyles())
+        return false;
+    try {
+        m_dxfMLeaderStylesInspected = inspectNamedResourceOutput(
+            *dxfW, view, m_dxfMLeaderStyleState, m_dxfMLeaderStyles,
+            "MLEADERSTYLE", [&view](const auto& source,
+                                   std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeRecord<DRW_MLeaderStyle>(
+                    body, [&source](const auto& value) {
+                        // inspectNamedResourceOutput already proves every raw
+                        // source group and mapped handle survived. Decode the
+                        // selected typed role here without requiring source
+                        // handles to equal their remapped output identities.
+                        return std::isfinite(value.textHeight)
+                            && value.textHeight
+                                == source.projection.textHeight;
+                    });
+            });
+        return m_dxfMLeaderStylesInspected;
+    } catch (...) {
+        return false;
+    }
+}
+
+namespace {
 bool mlineFlagInRange(int value) noexcept { return value>=INT16_MIN && value<=UINT16_MAX; }
 bool mlineFlagBitsEqual(int a,int b) noexcept {
     return mlineFlagInRange(a) && mlineFlagInRange(b)
@@ -29975,10 +30315,12 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
             && data.m_version >= DRW::AC1014
             && (asciiIdentifierEquals(normalizedName, "DICTIONARYVAR")
                 || asciiIdentifierEquals(normalizedName, "SCALE")
-                || asciiIdentifierEquals(normalizedName, "MLINESTYLE"));
+                || asciiIdentifierEquals(normalizedName, "MLINESTYLE")
+                || asciiIdentifierEquals(normalizedName, "MLEADERSTYLE"));
         auto& bodyBaselines = asciiIdentifierEquals(normalizedName, "SCALE")
             ? cData->m_scaleBodyBaselines : asciiIdentifierEquals(normalizedName, "MLINESTYLE")
-                ? cData->m_mlineStyleBodyBaselines : cData->m_dictionaryVarBodyBaselines;
+                ? cData->m_mlineStyleBodyBaselines : asciiIdentifierEquals(normalizedName, "MLEADERSTYLE")
+                    ? cData->m_mleaderStyleBodyBaselines : cData->m_dictionaryVarBodyBaselines;
         dxfRW::DxfReadContext sourceContext;
         if (captureBaseline && (!cData->m_tableDxfSource.entitiesReadInput
             || !cData->m_tableDxfSource.entitiesReadInput->getDxfReadContext(sourceContext)
@@ -34827,6 +35169,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_customDxfDictionaryVarHandles.clear();m_dxfDictionaryVars.clear();m_dxfDictionaryVarOwner=nullptr;m_dxfDictionaryVarsInspected=false;
     m_dxfScales.clear(); m_dxfScaleState.dictionaries.clear(); m_dxfScaleState.owner=nullptr; m_dxfScalesInspected=false;
     m_dxfMLineStyles.clear(); m_dxfMLineStyleState={}; m_dxfMLineStylesInspected=false;
+    m_dxfMLeaderStyles.clear(); m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
@@ -35631,6 +35974,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDxfMLineStyles(v,binary,targetTextPolicy)) {
         reportPreflightFailure("MLINESTYLE current source/body transaction");
+        return false;
+    }
+    if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
+        reportPreflightFailure("MLEADERSTYLE current source/body transaction");
         return false;
     }
     if (hasAdmittedSpatialFilters) {
@@ -37558,7 +37905,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     const bool needsRenderingOutput = !cData->renderSettings.empty();
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_acdsDxfHistoryObjects.empty()
-            || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty() || !m_dxfMLineStyles.empty())
+            || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
+            || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput](const auto& view) {
             return hasUnchangedXrecordWriteSources()
                 && (!needsShadeOutput || inspectDxfShadeConsumers(view, "OBJECTS"))
@@ -37567,6 +37915,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && inspectDxfDictionaryVars(view)
                 && inspectDxfScales(view)
                 && inspectDxfMLineStyles(view)
+                && inspectDxfMLeaderStyles(view)
                 && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))

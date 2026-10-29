@@ -547,6 +547,11 @@ add_test(NAME libdxfrw_named_resource_import_evidence
         ${CMAKE_SOURCE_DIR}/tests/fixtures/dwg/rtext_arctext.dwg)
 set_tests_properties(libdxfrw_named_resource_import_evidence PROPERTIES
     LABELS "fast;dxf;graph;adapter;objects" TIMEOUT 30)
+add_test(NAME libdxfrw_mleaderstyle_writer_closure
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --mleaderstyle-writer-closure ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(libdxfrw_mleaderstyle_writer_closure PROPERTIES
+    LABELS "fast;dxf;graph;adapter;objects;mleader" TIMEOUT 30)
 add_test(NAME libdxfrw_dictionary_default_adapter_roundtrip
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --dictionary-default-adapter-roundtrip)

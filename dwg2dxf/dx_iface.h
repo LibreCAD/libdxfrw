@@ -1593,12 +1593,18 @@ public:
                     || !cData->hasSingleSuccessfulNamedResourceImport()
                     || !dxfW->writeMLeaderStyle(typedStyle))
                     return;
-            } else if (rawMatches != 1u || typedMatches != 1u
-                       || rawStyle == nullptr
-                       || !cData->hasSingleSuccessfulNamedResourceImport()
-                       || !dxfW->writeRawDxfObject(rawStyle)) {
-                dxfW->writeRawDxfObject(nullptr);
-                return;
+            } else {
+                const auto prepared = m_dxfMLeaderStyles.find(handle);
+                DRW_RawDxfObject* outputStyle = rawStyle;
+                if (prepared != m_dxfMLeaderStyles.end())
+                    outputStyle = &prepared->second.output;
+                if (rawMatches != 1u || typedMatches != 1u
+                    || rawStyle == nullptr
+                    || !cData->hasSingleSuccessfulNamedResourceImport()
+                    || !dxfW->writeRawDxfObject(outputStyle)) {
+                    dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
             }
         }
         std::unordered_set<std::uint32_t> visualStyleHandles;
@@ -2247,6 +2253,18 @@ private:
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfScales() const noexcept;
     bool inspectDxfScales(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DxfMLeaderStyleSource {
+        DRW_MLeaderStyle model, projection;
+        DRW_RawDxfObject raw, output;
+        std::shared_ptr<const dx_data::NamedResourceBodyBaseline> baseline;
+    };
+    std::unordered_map<std::uint32_t,DxfMLeaderStyleSource> m_dxfMLeaderStyles;
+    DxfNamedResourceState m_dxfMLeaderStyleState;
+    bool m_dxfMLeaderStylesInspected{false};
+    bool prepareDxfMLeaderStyles(DRW::Version version, bool binary,
+        DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
+    bool hasUnchangedDxfMLeaderStyles() const noexcept;
+    bool inspectDxfMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;

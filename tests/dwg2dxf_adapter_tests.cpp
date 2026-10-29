@@ -11553,7 +11553,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool binary, bool includeTargets = true,
                                      int wrongReferenceKind = 0,
                                      bool includeMLeader = false,
-                                     bool includeSecondStyle = false);
+                                     bool includeSecondStyle = false,
+                                     double standardTextHeight = 0.0);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -31872,7 +31873,8 @@ bool rootMLineStyleWriterClosure(const std::filesystem::path& directory,
     dx_iface resolvedNameWriter;
     if (!resolvedNameWriter.fileExport(resolvedNameOutput.string(),
             DRW::AC1027, binary, &missingNameSource, false, true))
-        return fail("MLINE code-340 target did not recover its redundant style name");
+        return fail("MLINE code-340 target did not recover its redundant style name: "
+            + resolvedNameWriter.extensionGraphFailureDetail());
     dx_data resolvedNameReadback;
     dx_iface resolvedNameReader;
     if (!resolvedNameReader.fileImport(resolvedNameOutput.string(),
@@ -32042,7 +32044,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool binary, bool includeTargets,
                                      int wrongReferenceKind,
                                      bool includeMLeader,
-                                     bool includeSecondStyle) {
+                                     bool includeSecondStyle,
+                                     double standardTextHeight) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32158,6 +32161,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         writer->writeString(342, wrongReferenceKind == 3 ? "1F" : "31");
         writer->writeString(343, wrongReferenceKind == 4 ? "31" : "1E");
     }
+    if (standardTextHeight != 0.0)
+        writer->writeDouble(45, standardTextHeight);
     writer->writeString(302, "preserve-mleader-opaque-tag");
     if (includeSecondStyle) {
         writer->writeString(0, "MLEADERSTYLE");
@@ -32828,6 +32833,159 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
             return fail("wrong-kind MLEADERSTYLE rejection replaced destination");
     }
 
+    const auto editSource = directory
+        / ("root-mleaderstyle-text-height-source-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(editSource, binary, true, 0, false,
+                                         true, 1.25))
+        return false;
+    dx_data editData;
+    dx_iface editReader;
+    if (!editReader.fileImport(editSource.string(), &editData, false)
+        || !editData.hasSingleSuccessfulNamedResourceImport())
+        return fail("could not import MLEADERSTYLE text-height edit source");
+    auto editStyle = std::find_if(editData.mLeaderStyles.begin(),
+        editData.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+            return candidate.handle == 0x1Cu
+                && candidate.name == "STANDARD";
+        });
+    auto editRaw = std::find_if(editData.rawNamedResourceObjects.begin(),
+        editData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (editStyle == editData.mLeaderStyles.end()
+        || editStyle->textHeight != 1.25
+        || editRaw == editData.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE text-height witness did not import as expected");
+    const DRW_RawDxfObject originalEditRaw = *editRaw;
+    const auto sourceHeight = std::find_if(editRaw->groups.begin(),
+        editRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 45;
+        });
+    if (sourceHeight == editRaw->groups.end()
+        || sourceHeight->type() != DRW_Variant::DOUBLE
+        || sourceHeight->d_val() != 1.25)
+        return fail("MLEADERSTYLE source has no unique group-45 witness");
+    const std::size_t sourceHeightSlot = static_cast<std::size_t>(
+        sourceHeight - editRaw->groups.begin());
+    editStyle->textHeight = 4.5;
+
+    const auto editOutput = directory
+        / ("root-mleaderstyle-text-height-output-" + encoding + ".dxf");
+    const std::string editSentinel =
+        "existing MLEADERSTYLE text-height output survives\n";
+    class LateMLeaderStyleWriter final : public dx_iface {
+    public:
+        bool mutateTextHeight{false};
+        void writeObjects() override {
+            if (mutateTextHeight && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == 0x1Cu;
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    style->textHeight += 1.0;
+            }
+            dx_iface::writeObjects();
+        }
+    } editWriter;
+    {
+        std::ofstream previous(editOutput, std::ios::binary | std::ios::trunc);
+        if (!previous || !(previous << editSentinel))
+            return fail("could not seed MLEADERSTYLE text-height refusal");
+    }
+    editRaw->groups[sourceHeightSlot] = DRW_Variant(45, 2.25);
+    if (editRaw->hasRawValues && !binary)
+        editRaw->rawValues[sourceHeightSlot] = "2.25";
+    if (editWriter.fileExport(editOutput.string(), DRW::AC1027, binary,
+                              &editData, false, true))
+        return fail("conflicting raw and typed MLEADERSTYLE group 45 was accepted");
+    {
+        std::ifstream previous(editOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        if (previous.bad() || preserved != editSentinel)
+            return fail("MLEADERSTYLE group-45 refusal replaced destination");
+    }
+    *editRaw = originalEditRaw;
+
+    editWriter.mutateTextHeight = true;
+    if (editWriter.fileExport(editOutput.string(), DRW::AC1027, binary,
+                              &editData, false, true))
+        return fail("late MLEADERSTYLE text-height mutation was published");
+    {
+        std::ifstream previous(editOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        if (previous.bad() || preserved != editSentinel)
+            return fail("late MLEADERSTYLE edit replaced destination");
+    }
+    editWriter.mutateTextHeight = false;
+    editStyle->textHeight = 4.5;
+    if (!editWriter.fileExport(editOutput.string(), DRW::AC1027, binary,
+                               &editData, false, true))
+        return fail("same-adapter MLEADERSTYLE text-height retry failed: "
+            + editWriter.extensionGraphFailureDetail());
+    dx_data editReadback;
+    dx_iface editOutputReader;
+    if (!editOutputReader.fileImport(editOutput.string(), &editReadback, false)
+        || !assertRootedReadback(editReadback, true, 4.5, true))
+        return fail("MLEADERSTYLE text-height output lost its rooted graph or value");
+    const auto outputStyle = std::find_if(editReadback.mLeaderStyles.begin(),
+        editReadback.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (outputStyle == editReadback.mLeaderStyles.end())
+        return fail("MLEADERSTYLE output STANDARD identity is missing");
+    const auto outputRaw = std::find_if(
+        editReadback.rawNamedResourceObjects.begin(),
+        editReadback.rawNamedResourceObjects.end(),
+        [&outputStyle](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == outputStyle->handle;
+        });
+    if (outputRaw == editReadback.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE output raw body handle was not found");
+    const auto emittedHeightCount = std::count_if(
+        outputRaw->groups.begin(), outputRaw->groups.end(),
+            [](const DRW_Variant& field) {
+                return field.code() == 45
+                    && field.type() == DRW_Variant::DOUBLE
+                    && field.d_val() == 4.5;
+            });
+    const bool retainedOpaqueTag = std::any_of(
+        outputRaw->groups.begin(), outputRaw->groups.end(),
+            [](const DRW_Variant& field) {
+                return field.code() == 302
+                    && field.type() == DRW_Variant::STRING
+                    && field.c_str() != nullptr
+                    && std::string(field.c_str())
+                        == "preserve-mleader-opaque-tag";
+            });
+    if (emittedHeightCount != 1 || !retainedOpaqueTag)
+        return fail("MLEADERSTYLE output field/opaque-body proof failed: group45="
+            + std::to_string(emittedHeightCount) + " opaque="
+            + (retainedOpaqueTag ? "yes" : "no"));
+
+    // Exercise both cross-format directions as the focused selector runs once
+    // for each source encoding: ASCII→binary and binary→ASCII.
+    const auto crossOutput = directory
+        / ("root-mleaderstyle-text-height-cross-" + encoding + ".dxf");
+    dx_iface crossWriter;
+    if (!crossWriter.fileExport(crossOutput.string(), DRW::AC1027, !binary,
+                                &editData, false, true))
+        return fail("cross-format MLEADERSTYLE text-height export failed: "
+            + crossWriter.extensionGraphFailureDetail());
+    dx_data crossReadback;
+    dx_iface crossReader;
+    if (!crossReader.fileImport(crossOutput.string(), &crossReadback, false)
+        || !assertRootedReadback(crossReadback, true, 4.5, true))
+        return fail("cross-format MLEADERSTYLE output lost its rooted graph or value");
+
     return true;
 }
 
@@ -33004,6 +33162,24 @@ bool namedResourceImportEvidence(const std::filesystem::path& directory,
             return fail("source completeness was conflated with an unqualified CMC output policy");
     }
     return true;
+}
+
+bool mLeaderStyleWriterClosureFocused(
+        const std::filesystem::path& parentDirectory) {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    const auto directory = parentDirectory
+        / ("mleaderstyle-focused-" + std::to_string(nonce));
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    if (error)
+        return fail("could not create focused MLEADERSTYLE test directory");
+    bool passed = rootMLeaderStyleWriterClosure(directory, false)
+        && rootMLeaderStyleWriterClosure(directory, true);
+    std::filesystem::remove_all(directory, error);
+    if (error)
+        return fail("could not remove focused MLEADERSTYLE scratch files");
+    return passed;
 }
 
 bool visualStyleGraphRejectsDanglingReference(
@@ -34702,6 +34878,9 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--named-resource-import-evidence")
         return namedResourceImportEvidence(argv[2], argc == 4 ? argv[3] : "")
             ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--mleaderstyle-writer-closure")
+        return mLeaderStyleWriterClosureFocused(argv[2]) ? 0 : 1;
     if (argc != 3) {
         std::cerr << "usage: dwg2dxf_adapter_tests --generate|--verify <file>\n";
         return 2;
