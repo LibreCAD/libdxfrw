@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLINE ByBlock provider with LTYPE group-70 bit 64",
+  "date": "2026-10-29",
+  "status": "AC1027_BYBLOCK_FLAG64_NORMALIZATION_QUALIFIED",
+  "codeCommit": "9a626e939cc57851bdd2c3c27e66bfbe3182d188",
+  "scope": "The source-bound simple-LTYPE admission now includes a ByBlock provider whose group 70 contains only advisory referenced bit 64. Its canonical emitted ByBlock row uses group-70 flags 0, and the MLINESTYLE provider reference plus both selected consumers remain bound.",
+  "fieldEvidence": {
+    "groupCode": 70,
+    "field": "LTYPE standard flags",
+    "source": "Autodesk AutoCAD LTYPE DXF reference states that bit 64 marks a linetype referenced by an entity during the last edit, may be ignored by readers, and need not be set by writers.",
+    "sourceUrl": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+    "classification": "Authoritative field semantics plus runtime-authored source-bound AC1027 provider/output/consumer evidence; not native rendering qualification or a general LTYPE support claim."
+  },
+  "contract": {
+    "admission": "Source and target must be AC1027. The selected unique ByBlock LTYPE source has flags exactly 64, zero pattern elements, empty description and no extra metadata. The captured MLINESTYLE contains ByBlock and Continuous as its two providers, and the source identity, dictionary ownership, body and consumer bindings must match.",
+    "projection": "The selected ByBlock source provider is mapped to the canonical output row. Its advisory source flag is normalized to zero, matching the existing mandatory ByBlock/ByLayer/Continuous output rows. Other source fields, style references, geometry and consumer body data remain source-equal.",
+    "outputAndReadback": "Runtime-generated ASCII and binary AC1027 sources are written to both ASCII and binary outputs. The test checks the source flag, unique selected provider binding, exact canonical output handles and owner, group-70 flags 0 for all three canonical rows, the MLINESTYLE's ByBlock/Continuous references, both source consumers and fresh typed readback.",
+    "failureAndRetry": "Changing the selected typed ByBlock provider's flags after capture refuses export and preserves the destination sentinel. Restoring the captured provider model lets the same adapter retry and pass the same output and readback checks.",
+    "compatibility": "The change applies only to selected simple AC1027 canonical providers. Existing ByLayer/Continuous profiles remain covered. It does not alter other group-70 bits, arbitrary ByBlock records, earlier versions, complex LTYPE records or raw replay of untouched records."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "byBlockRecipe in tests/dxf_fixture_tests.cpp creates a unique ByBlock provider at runtime, sets group 70 to 64, and binds the AC1027 MLINESTYLE to it. Temporary DWG/DXF inputs and outputs are removed by the focused test.",
+    "implementationCommit": "9a626e939cc57851bdd2c3c27e66bfbe3182d188",
+    "dwg2dxf/dx_iface.cpp": "c9237b8b4ee08559e7dd5a0c5d08e48c166fb722faae973e483ebb21a8400cd4",
+    "tests/dxf_fixture_tests.cpp": "39fd2660243c991b0ee58fbbda1ed9efbcb08d06a01872409165834f327235c7",
+    "fixtureTestExecutableSha256": "11f6661af20ab0666ac14e00a5990e8c41ba0fd4f5d6dd7af62babf4b1bfa5f6"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_referenced_flags$' --output-on-failure",
+      "summary": "1/1 passed. Existing referenced-flag profiles and the added ByBlock AC1027 profile cover all ASCII/binary input/output combinations, exact canonical rows, source-bound style and consumer references, fresh readback, sentinel refusal and same-adapter retry."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence is limited to the generated simple AC1027 ByBlock profile with exactly group-70 flags 64. It does not qualify other flags, arbitrary ByBlock LTYPE schemas, producer variation, native rendering, earlier versions, DWG editing or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select the next exact witnessed MLINESTYLE/consumer or LTYPE schema gap; keep native rendering and broader LTYPE flags/provider profiles separate."
+}
