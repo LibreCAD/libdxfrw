@@ -287,8 +287,13 @@ and graph closure remain separate. The [DIMSTYLE identity receipt](docs/research
 registers top-level group 105 and retains group 5 as the legacy DIMBLK name;
 the witnessed six AC1018 identities are now observed as accepted. Collisions
 with later typed entities still follow their existing softened import behavior.
-The AC1018 namespace remains gated; identity, ownership and output proof do
-not follow from this registration alone.
+The [TABLE-control identity receipt](docs/research/rpp5it-table-control-identity-2026-10-28.json)
+registers selected outer control handles, including skipped unknown tables,
+and preserves application payload scoping. The selected AC1018 source now has
+no outer/unobserved candidates, but that observation does not establish a
+qualified namespace or ownership. Duplicate control/object identities now fail
+import; ordinary typed-entity duplicate handling remains unchanged. Original
+target, graph closure and output proof remain separate gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,

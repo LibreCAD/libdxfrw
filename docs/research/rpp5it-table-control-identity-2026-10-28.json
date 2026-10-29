@@ -1,0 +1,138 @@
+{
+  "purpose": "Source-bound TABLE control identity registration evidence; not a graph or export qualification.",
+  "code_commit": "5e97b0c4cd05c782b0d24a89f71953fad892f01c",
+  "committed_source_sha256": {
+    "src/libdxfrw.cpp": "010f232932cedbc508fc1d94f2235156ffeb3fefeaaef51a0c26b0b1aea3d6bb",
+    "tests/identity_source_controls.h": "057ea6c6bd3dafdbaacbd6a51489a0deef40744d58634ba4408a29784e49578d",
+    "tests/table_control_identity_controls.h": "877e089a4efe1694b8364a83c358c182f7fa2abd56d164013c61f58a06765445"
+  },
+  "implementation": "Stack-only header tracker registers valid outer group 5 for supported and skipped unknown TABLE controls before the first row; scoped group 102 payload and XDATA are excluded, and group 5 in DIMSTYLE rows remains a name. Ambiguous application scopes are treated conservatively. No public reader layout or callback API is added.",
+  "real_source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sample_commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance_limit": "Repository sample; native authoring provenance is not independently certified.",
+    "census": "Complete: 6 sections, 995 records, 1003 candidates; EOF ordinal 45077. All nine selected TABLE controls are outer/accepted and this sample has zero remaining outer/unobserved candidates. Other scopes and AC1018 graph authority remain separate.",
+    "controls": [
+      {
+        "name": "VPORT",
+        "handle": "8",
+        "span": [
+          12203,
+          12306
+        ]
+      },
+      {
+        "name": "LTYPE",
+        "handle": "5",
+        "span": [
+          12912,
+          12975
+        ]
+      },
+      {
+        "name": "LAYER",
+        "handle": "2",
+        "span": [
+          15021,
+          15120
+        ]
+      },
+      {
+        "name": "STYLE",
+        "handle": "3",
+        "span": [
+          19954,
+          20017
+        ]
+      },
+      {
+        "name": "VIEW",
+        "handle": "6",
+        "span": [
+          21327,
+          21389
+        ]
+      },
+      {
+        "name": "UCS",
+        "handle": "7",
+        "span": [
+          21829,
+          21890
+        ]
+      },
+      {
+        "name": "APPID",
+        "handle": "9",
+        "span": [
+          21901,
+          21964
+        ]
+      },
+      {
+        "name": "DIMSTYLE",
+        "handle": "A",
+        "span": [
+          26392,
+          26521
+        ]
+      },
+      {
+        "name": "BLOCK_RECORD",
+        "handle": "1",
+        "span": [
+          28821,
+          28891
+        ]
+      }
+    ],
+    "probe_source_sha256": "2264c870cc1759f629f65374ae4aa26700f4a812a065f21268519aeea4137b19",
+    "probe_binary_sha256": "a0bbb87d10a614e8dbb54f9ee056f655122095b820bc2e968d91821d02a3ab32",
+    "stdout_sha256": "d335b3ed76766ece72d19b5091f67824a6d2e4d80356952a76d833e6f6eff560",
+    "adapter_object_sha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9",
+    "normal_library_sha256": "351c4671d60ef0aaf2278fe693600c5ed536fbef90e5541ea5b266e586b7e394"
+  },
+  "collision_counterfactual": {
+    "source": "Locally authored scratch DXFs: TABLE control and XRECORD share handle 10; unique controls use 20. No drawings committed.",
+    "input_sha256": {
+      "AC1018_duplicate": "74ee266bbe394545fc20d14c27c4ebee1c96e5fae27c2d64546d7c9eb0d3765d",
+      "AC1018_unique": "c8ee6e62929fc7718c1f4a79e8746c8b1a60286affbb467c60fc16deb1b84b49",
+      "AC1032_duplicate": "6dfcecb0be61bf49a024fdf0b3f7b8a79ca81453dffc9498aaad54912e6fb6e7",
+      "AC1032_unique": "8502ecdf9e3a35c611cf3b3dc39e53745c36eef41e9ff8eafd55441570dc5241"
+    },
+    "before": "Both duplicate inputs read successfully; TABLE candidate was outer/unobserved, XRECORD outer/accepted. AC1032 physical audit nevertheless remained unqualified with one duplicate.",
+    "after": "Both duplicate imports fail with error 14; unique inputs succeed. A prior LAYER callback can already have run: no transaction rollback is claimed.",
+    "probe_source_sha256": "10c5f200b11c8328b4ad27e4de8b749f508f71ee1332091151aa7a36435830f0",
+    "before_binary_sha256": "77c985df9b52e68342dbe4128de6f5645108d8c37b542ff7ad27c95d5af79f1a",
+    "before_stdout_sha256": "b6ec5167b6215063fc8f64d22daf1b02bb222be78b268da4e91a8630427685ac",
+    "after_binary_sha256": "61eee0f5133871a53246c706859ba679e369c52d2f53794623b8ffa221d499f5",
+    "after_stdout_sha256": "625674f3a3a5a23dc66818c38aca7de10d9f4d326465e7bb677a198c23411f44"
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_dimstyle_subclass_wire_census"
+    ],
+    "normal": "5/5 passed",
+    "normal_executable_sha256": "ef0de41702389e991b98863dd73544e586503f7cac23ae4861ac7b52be9275c3",
+    "normal_log_sha256": "4901cfaff8de12e865554f2d1cf3b4307ff66b52d7d8120df7fd2b1d780b2605",
+    "asan": "5/5 passed",
+    "asan_options": "halt_on_error=1:detect_leaks=0",
+    "asan_executable_sha256": "d550abf9583de3b0466814d40fc366438554900a18da185f7b02e30a412d558a",
+    "asan_library_sha256": "ac68fe98b821442fd44c6c6c8b02d13524ee2fc9ac54425d76e2d6614717b3b0",
+    "asan_log_sha256": "c23f62dbaf595d11477d7f0c448d13c2c80c672adb7f4a9f610ffa2463ab741f",
+    "focused_control_counts": "4 version/encoding matrices, 8 object collisions, 8 corrected same-adapter retries, 8 nested-scope cases, 16 null/absent/invalid/wide cases. Tests include all nine known and an unknown table, and both section orders.",
+    "scope": "Focused cohort only; no full-suite claim."
+  },
+  "compatibility_and_limits": [
+    "Valid selected 2D imports remain accepted; malformed duplicate TABLE/object self handles now fail under the existing registry policy. Absent, null and invalid header handles retain tested tolerant behavior; a valid wide handle is not truncated.",
+    "Existing softened duplicate typed-entity handling is unchanged; physical ambiguity remains unqualified.",
+    "The selected AC1018 source census does not establish adapter original-identity authority, target types, ownership, closure, output preservation or general format support.",
+    "No external or locally generated drawing fixture was committed."
+  ]
+}
