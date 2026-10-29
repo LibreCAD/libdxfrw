@@ -572,7 +572,7 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
         tags.insert(self+1,{330,"1F"});
         if(!write(source,tags,sourceBinary))return fail("source output");
         for(bool outputBinary:{false,true})for(bool strict:{false,true}) {
-            dx_iface io;dx_data data;
+            TableLegacyCountLateProbe io;dx_data data;
             if(!io.fileImport(source.string(),&data,false)||data.tables.size()!=1u
                 ||!data.tables.front().m_semanticContentComplete)return fail("source import");
             DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";data.blockRecords.push_back(model);
@@ -602,6 +602,18 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
             if(!io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check()
                 ||identities!=tableExportIdentities(data)||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("exact output");
             ++positives;
+            for(unsigned fault=0u;fault<6u;++fault) {
+                const auto version=data.sourceVersion;const auto format=data.sourceFormat;const auto generation=data.importGeneration;
+                if(fault==0u)data.sourceVersion=DRW::AC1021;
+                if(fault==1u)data.sourceFormat=dx_source_format::DWG;
+                io.mutateVersion=fault==2u;io.mutateFormat=fault==3u;
+                if(fault==4u)++data.importGeneration;io.mutateGeneration=fault==5u;
+                if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)
+                    ||!tableExportSentinel(out)||identities!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("source provenance mutation");
+                data.sourceVersion=version;data.sourceFormat=format;data.importGeneration=generation;io.mutateVersion=io.mutateFormat=io.mutateGeneration=false;
+                if(!io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("provenance retry");
+            }
             // An identity-preserving body mutation cannot inherit stale source
             // presence. Correcting it must permit the same io/data retry.
             for(unsigned fault=0;fault<3u;++fault) {
@@ -616,6 +628,32 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
                 if(!io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("retry");
                 ++retries;
             }
+        }
+        // A copied callback carrier cannot impersonate the codec publication,
+        // including one that forges the declared source revision.
+        for(unsigned fault=1u;fault<=4u;++fault) {
+            TableLegacyCountLateProbe io;io.sourceFault=fault;dx_data forged;
+            if(!write(source,tags,sourceBinary)||!io.fileImport(source.string(),&forged,false)||forged.tables.size()!=1u)return fail("forged import");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";forged.blockRecords.push_back(model);
+            const auto saved=tableExportIdentities(forged);const DRW_Table before(forged.tables.front());
+            if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,sourceBinary,&forged,false,false)
+                ||!tableExportSentinel(out)||saved!=tableExportIdentities(forged)
+                ||!DxIfaceTableSourceTestAccess::sameTableBody(before,forged.tables.front()))return fail("forged source escaped");
+            io.sourceFault=0u;dx_data fresh;
+            if(!io.fileImport(source.string(),&fresh,false)||fresh.tables.size()!=1u)return fail("forged retry import");
+            fresh.blockRecords.push_back(model);
+            if(!io.fileExport(out.string(),DRW::AC1018,sourceBinary,&fresh,false,false))return fail("forged retry export");
+        }
+        {
+            TableLegacyCountLateProbe io;io.suppressHeader=true;dx_data noHeader;
+            if(!write(source,tags,sourceBinary)||!io.fileImport(source.string(),&noHeader,false)||noHeader.tables.size()!=1u)return fail("suppressed header import");
+            DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";noHeader.blockRecords.push_back(model);
+            if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,sourceBinary,&noHeader,false,false)
+                ||!tableExportSentinel(out))return fail("suppressed header escaped");
+            io.suppressHeader=false;dx_data fresh;
+            if(!io.fileImport(source.string(),&fresh,false)||fresh.tables.size()!=1u)return fail("header retry import");
+            fresh.blockRecords.push_back(model);
+            if(!io.fileExport(out.string(),DRW::AC1018,sourceBinary,&fresh,false,false))return fail("header retry export");
         }
         // Ambiguous or incomplete override spelling cannot be authenticated.
         for(unsigned fault=0u;fault<4u;++fault) {

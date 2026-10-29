@@ -265,13 +265,30 @@ bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir) {
 
 // Selected physical 179=0 source spelling; no native default claim.
 struct TableLegacyCountLateProbe final:dx_iface {
-    bool mutateScale=false,mutateHandle=false;
+    bool mutateScale=false,mutateHandle=false,mutateVersion=false,mutateFormat=false,mutateGeneration=false,suppressHeader=false;
+    unsigned sourceFault=0u;
+    void addHeader(const DRW_Header* header) override {
+        if(!suppressHeader)dx_iface::addHeader(header);
+    }
+    void addDxfTableSource(const DRW_Table& table,const DRW_RawDxfObject& raw) override {
+        if(!sourceFault){dx_iface::addDxfTableSource(table,raw);return;}
+        DRW_RawDxfObject copied(raw);
+        if(sourceFault==1u)copied.m_version=DRW::AC1021;
+        if(sourceFault==2u)++copied.handle;
+        if(sourceFault==3u)++copied.parentHandle;
+        dx_iface::addDxfTableSource(table,copied);
+    }
     void writeEntities() override {
         auto& t=cData->tables.front();const auto oldHandle=t.handle;const double oldScale=t.m_content.m_rows[0].m_cells[0].m_blockScale;
+        const auto version=cData->sourceVersion;const auto format=cData->sourceFormat;const auto generation=cData->importGeneration;
         if(mutateScale)t.m_content.m_rows[0].m_cells[0].m_blockScale=2.;
         if(mutateHandle)++t.handle;
+        if(mutateVersion)cData->sourceVersion=DRW::AC1021;
+        if(mutateFormat)cData->sourceFormat=dx_source_format::DWG;
+        if(mutateGeneration)++cData->importGeneration;
         dx_iface::writeEntities();
         t.handle=oldHandle;t.m_content.m_rows[0].m_cells[0].m_blockScale=oldScale;
+        cData->sourceVersion=version;cData->sourceFormat=format;cData->importGeneration=generation;
     }
 };
 struct TableLegacyCountDirectProbe final:dx_iface {
@@ -340,6 +357,47 @@ bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
             ++lateRefusals;io.mutateScale=io.mutateHandle=false;
             if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("late retry");
             ++retries;
+        }
+        if(form==0u) {
+            for(unsigned fault=0u;fault<6u;++fault) {
+                const auto version=data.sourceVersion;const auto format=data.sourceFormat;const auto generation=data.importGeneration;
+                if(fault==0u)data.sourceVersion=DRW::AC1021;
+                if(fault==1u)data.sourceFormat=dx_source_format::DWG;
+                io.mutateVersion=fault==2u;io.mutateFormat=fault==3u;
+                if(fault==4u)++data.importGeneration;io.mutateGeneration=fault==5u;
+                if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)
+                    ||!tableExportSentinel(output)||identities!=tableExportIdentities(data)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("source provenance mutation");
+                data.sourceVersion=version;data.sourceFormat=format;data.importGeneration=generation;io.mutateVersion=io.mutateFormat=io.mutateGeneration=false;
+                if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("provenance retry");
+            }
+            for(unsigned fault=1u;fault<=4u;++fault) {
+                io.sourceFault=fault;dx_data forged;
+                if(!write(source,tags,inputBinary)||!io.fileImport(source.string(),&forged,false)||forged.tables.size()!=1u)return fail("forged import");
+                forged.blockRecords.push_back(model);forged.blockRecords.push_back(record);
+                auto* forgedBlock=new dx_ifaceBlock();forgedBlock->name=record.name;forgedBlock->parentHandle=record.handle;forged.blocks.push_back(forgedBlock);
+                const auto saved=tableExportIdentities(forged);const DRW_Table before(forged.tables.front());
+                if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&forged,false,strict)
+                    ||!tableExportSentinel(output)||saved!=tableExportIdentities(forged)
+                    ||!DxIfaceTableSourceTestAccess::sameTableBody(before,forged.tables.front()))return fail("forged source escaped");
+                io.sourceFault=0u;dx_data fresh;
+                if(!io.fileImport(source.string(),&fresh,false)||fresh.tables.size()!=1u)return fail("forged retry import");
+                fresh.blockRecords.push_back(model);fresh.blockRecords.push_back(record);
+                auto* freshBlock=new dx_ifaceBlock();freshBlock->name=record.name;freshBlock->parentHandle=record.handle;fresh.blocks.push_back(freshBlock);
+                if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&fresh,false,strict))return fail("forged retry export");
+            }
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)||!check())return fail("provenance final retry");
+            io.suppressHeader=true;dx_data noHeader;
+            if(!io.fileImport(source.string(),&noHeader,false)||noHeader.tables.size()!=1u)return fail("suppressed header import");
+            noHeader.blockRecords.push_back(model);noHeader.blockRecords.push_back(record);
+            auto* noHeaderBlock=new dx_ifaceBlock();noHeaderBlock->name=record.name;noHeaderBlock->parentHandle=record.handle;noHeader.blocks.push_back(noHeaderBlock);
+            if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&noHeader,false,strict)
+                ||!tableExportSentinel(output))return fail("suppressed header escaped");
+            io.suppressHeader=false;dx_data fresh;
+            if(!io.fileImport(source.string(),&fresh,false)||fresh.tables.size()!=1u)return fail("header retry import");
+            fresh.blockRecords.push_back(model);fresh.blockRecords.push_back(record);
+            auto* freshBlock=new dx_ifaceBlock();freshBlock->name=record.name;freshBlock->parentHandle=record.handle;fresh.blocks.push_back(freshBlock);
+            if(!io.fileExport(output.string(),DRW::AC1018,outputBinary,&fresh,false,strict))return fail("header retry export");
         }
         // A source that was already incomplete still takes the historical
         // compatible INSERT projection instead of the selected TABLE path.

@@ -24813,7 +24813,13 @@ void dx_iface::addDxfTableSource(const DRW_Table& table,
         || !chargeTableSource(bytes, raw.groups.size(), 2u)) {
         source.failed = true; return;
     }
-    if (raw.m_version == DRW::AC1018) {
+    dxfRW::DxfReadContext captureContext;
+    if (!source.entitiesReadInput || !source.entitiesReadInput->getDxfReadContext(captureContext)) {
+        source.contextFailed = true; return;
+    }
+    // The active codec context is authoritative: a callback may forward a
+    // copied or altered raw record, so do not select validation by raw version.
+    if (captureContext.sourceVersion == DRW::AC1018) {
         if (source.selectionWork > source.maxWork
             || raw.groups.size() > (source.maxWork - source.selectionWork) / 2u) {
             source.failed = true; return;
@@ -24824,6 +24830,7 @@ void dx_iface::addDxfTableSource(const DRW_Table& table,
             || view.phase != dxfRW::DxfTableSourceView::Phase::Source
             || view.model != &table || view.source != &raw || !currentBlock
             || view.inBlock != (currentBlock != cData->mBlock)
+            || raw.m_version != captureContext.sourceVersion
             || raw.handle != table.handle || raw.parentHandle != table.parentHandle) {
             source.contextFailed = true; return;
         }
@@ -25059,7 +25066,12 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew
         && data.dxfReadOutcome.error == DRW::BAD_NONE;
-    source.version = source.successful ? data.sourceVersion : DRW::UNKNOWNV;
+    // Preserve the actual accepted legacy revision even if a consumer omits
+    // or edits the delivered HEADER and its public version falls back.
+    source.version = source.successful
+        ? (data.dxfReadOutcome.sourceVersion == DRW::AC1018
+            ? DRW::AC1018 : data.sourceVersion)
+        : DRW::UNKNOWNV;
     source.reader = nullptr;
     source.entitiesReadInput = nullptr;
     m_tableSourceReadData = nullptr;
@@ -31729,9 +31741,10 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
     // Join captured selected sources once to live complete TABLE identities.
     // A missing source with no unmatched live table is an ordinary deletion;
     // an unmatched live table makes a deleted-versus-rekeyed identity ambiguous.
-    if (targetVersion == DRW::AC1018 && data.sourceFormat == dx_source_format::DXF
-        && data.sourceVersion == DRW::AC1018) {
-        const auto& source = data.m_tableDxfSource;
+    const auto& tableSource = data.m_tableDxfSource;
+    if (targetVersion == DRW::AC1018 && tableSource.generation != 0u
+        && tableSource.version == DRW::AC1018) {
+        const auto& source = tableSource;
         // A failed source capture cannot establish whether a live TABLE had
         // an explicit zero. Do not silently emit a presence-dropping record.
         if (!data.tables.empty() && (source.failed || source.contextFailed))
@@ -31766,7 +31779,8 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
             scanWork += 3u * modelBytes;
             if (profile == LegacyZeroPresence::Invalid || duplicateLive || !source.closed || !source.successful
                 || source.failed || source.contextFailed || source.generation != 1u
-                || source.generation != data.importGeneration || source.version != DRW::AC1018)
+                || source.generation != data.importGeneration || source.version != DRW::AC1018
+                || data.sourceFormat != dx_source_format::DXF || data.sourceVersion != source.version)
                 return false;
             const auto live = m_tableFallbacks.find(item.first);
             if (live == m_tableFallbacks.end()) {
@@ -35863,14 +35877,15 @@ void dx_iface::writeEntity(DRW_Entity* e){
         auto* table = dynamic_cast<DRW_Table*>(e);
         const auto& source = cData->m_tableDxfSource;
         const auto found = source.tables.find(e->handle);
-        if (dxfW->getVersion() == DRW::AC1018 && cData->sourceFormat == dx_source_format::DXF
-            && cData->sourceVersion == DRW::AC1018 && found != source.tables.end()) {
+        if (dxfW->getVersion() == DRW::AC1018 && source.generation != 0u
+            && source.version == DRW::AC1018 && found != source.tables.end()) {
             std::vector<std::uint8_t> presence;
             const auto profile = legacyTableZeroPresence(found->second.raw,found->second.typed,presence);
             if (profile == LegacyZeroPresence::Invalid) written = dxfW->writeTable(nullptr);
             else if (profile == LegacyZeroPresence::Selected) {
                 if (!table || !source.closed || !source.successful || source.failed || source.contextFailed
                     || source.generation != 1u || source.generation != cData->importGeneration
+                    || cData->sourceFormat != dx_source_format::DXF || cData->sourceVersion != source.version
                     || !sameTableBodyModel(*table,found->second.typed,DRW::AC1018))
                     written = dxfW->writeTable(nullptr);
                 else written = dxfW->writeTableWithLegacySourcePresence(table,presence);
