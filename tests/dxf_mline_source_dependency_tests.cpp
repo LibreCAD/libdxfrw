@@ -5,6 +5,7 @@
 #include "dx_mline_ltype_source_live.h"
 #include "test_scratch.h"
 #include "intern/dxfwriter.h"
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -25,6 +26,7 @@ class DxIfaceMlineDependencyTestAccess {
 public:
     static bool rootDictionary(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineRootDictionarySourceLiveProof(d,work,used);}
     static bool styleDictionary(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineStyleDictionarySourceLiveProof(d,work,used);}
+    static bool styleBodies(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineStyleBodiesSourceLiveProof(d,work,used);}
     static bool layers(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLayerSourceLiveProof(d,work,used);}
     static bool ltypes(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLtypeSourceLiveProof(d,work,used);}
     static dx_mline_source_dependency::Proof qualify(const dx_iface& a,const dx_data& data,
@@ -985,7 +987,218 @@ static int testMlineStyleDictionaryLive() {
              : 15;
 }
 
+static int testMlineStyleBodiesLive() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-style-bodies-live", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  auto tags = parseTags(sourceText());
+  for (const char *id : {"D100", "D101"})
+    tags[field(tags, record(tags, "MLINE", id), 2)].second = "EFFECTIVE_STYLE";
+  tags[field(tags, record(tags, "MLINESTYLE", "D"), 2)].second =
+      "EFFECTIVE_STYLE";
+  tags[field(tags, record(tags, "MLINESTYLE", "D2"), 2)].second =
+      "RETARGET_STYLE";
+  const auto text = serialize(tags);
+  unsigned profiles = 0u, mutations = 0u, retries = 0u, rawTamper = 0u,
+           hiddenState = 0u, limits = 0u, listRefusals = 0u,
+           boundedRefusals = 0u;
+  for (bool binary : {false, true}) {
+    std::string bytes = text;
+    if (binary) {
+      std::string encoded;
+      if (!encodeBinary(text, encoded))
+        return 2;
+      bytes = std::move(encoded);
+    }
+    const auto path = dir / (binary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(path, bytes))
+      return 3;
+    Consumer adapter;
+    dx_data data;
+    if (!adapter.enableWholeDxfSourceObservation() ||
+        !adapter.enableLegacyDxfIdentityObservation() ||
+        !adapter.import(path.string(), data) ||
+        DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+            Result::SourceCandidate)
+      return 4;
+    std::size_t charged = 0u;
+    const auto check = [&](std::size_t work, std::size_t *used = nullptr) {
+      return DxIfaceMlineDependencyTestAccess::styleBodies(
+          adapter, data, work, used);
+    };
+    if (!check(512u * 1024u * 1024u, &charged) || !charged ||
+        !DxIfaceMlineDependencyTestAccess::styleDictionary(
+            adapter, data, charged, nullptr))
+      return 5;
+    std::size_t refused = 123u;
+    if (check(charged - 1u, &refused) || refused || !check(charged))
+      return 6;
+    ++limits;
+
+    const auto change = [&](std::uint32_t handle, const auto &modify) {
+      auto found = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [handle](const auto &value) { return value.handle == handle; });
+      if (found == data.mLineStyles.end())
+        return false;
+      const auto saved = *found;
+      modify(*found);
+      if (DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+              Result::SourceCandidate ||
+          !DxIfaceMlineDependencyTestAccess::styleDictionary(
+              adapter, data, charged, nullptr) ||
+          check(512u * 1024u * 1024u))
+        return false;
+      *found = saved;
+      if (!check(charged))
+        return false;
+      ++mutations;
+      ++retries;
+      return true;
+    };
+    const auto mutateStyle = [&](std::uint32_t handle) {
+      return change(handle, [](auto &v) { v.name += "_changed"; }) &&
+          change(handle, [](auto &v) { v.description += " changed"; }) &&
+          change(handle, [](auto &v) { v.flags ^= 1; }) &&
+          change(handle, [](auto &v) { v.startAngle += 1.0; }) &&
+          change(handle, [](auto &v) { v.endAngle += 1.0; }) &&
+          change(handle, [](auto &v) { v.fillColor = 7; }) &&
+          change(handle, [](auto &v) { v.elements.front().offset += 0.125; }) &&
+          change(handle, [](auto &v) { v.elements.front().color = 9; }) &&
+          change(handle, [](auto &v) { v.elements.front().linetype = "ByBlock"; }) &&
+          change(handle, [](auto &v) { v.handle = 0xEu; }) &&
+          change(handle, [](auto &v) { v.parentHandle = 0xBu; });
+    };
+    if (!mutateStyle(0xDu) || !mutateStyle(0xD2u))
+      return 7;
+
+    auto raw = std::find_if(data.rawNamedResourceObjects.begin(),
+        data.rawNamedResourceObjects.end(), [](const auto &value) {
+          return value.handle == 0xDu && value.name == "MLINESTYLE";
+        });
+    if (raw == data.rawNamedResourceObjects.end())
+      return 8;
+    const auto savedRaw = *raw;
+    constexpr std::size_t oversizedBytes = 256u * 1024u + 1u;
+    bool oversizedRaw = false;
+    for (std::size_t i = 0u; i < raw->groups.size(); ++i) {
+      if (raw->groups[i].code() == 3 &&
+          raw->groups[i].type() == DRW_Variant::STRING &&
+          raw->groups[i].content.s) {
+        raw->groups[i] = DRW_Variant(3, std::string(oversizedBytes, 'X'));
+        if (raw->hasRawValues)
+          raw->rawValues[i].assign(oversizedBytes, 'X');
+        oversizedRaw = true;
+        break;
+      }
+    }
+    if (!oversizedRaw || check(512u * 1024u * 1024u))
+      return 18;
+    *raw = savedRaw;
+    if (!check(charged))
+      return 19;
+    ++boundedRefusals;
+
+    bool changedRaw = false;
+    for (std::size_t i = 0u; i < raw->groups.size(); ++i) {
+      if (raw->groups[i].code() == 3 &&
+          raw->groups[i].type() == DRW_Variant::STRING &&
+          raw->groups[i].content.s) {
+        raw->groups[i] = DRW_Variant(3, "changed source description");
+        if (raw->hasRawValues)
+          raw->rawValues[i] = "changed source description";
+        changedRaw = true;
+        break;
+      }
+    }
+    if (!changedRaw || check(512u * 1024u * 1024u))
+      return 9;
+    *raw = savedRaw;
+    if (!check(charged))
+      return 10;
+    ++rawTamper;
+
+    auto first = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+        [](const auto &value) { return value.handle == 0xDu; });
+    if (first == data.mLineStyles.end())
+      return 11;
+    const auto savedDescription = first->description;
+    first->description.assign(oversizedBytes, 'X');
+    if (check(512u * 1024u * 1024u))
+      return 20;
+    first->description = savedDescription;
+    if (!check(charged))
+      return 21;
+    ++boundedRefusals;
+
+    const auto savedStyle = *first;
+    first->reset();
+    static_cast<DRW_TableEntry &>(*first) =
+        static_cast<const DRW_TableEntry &>(savedStyle);
+    first->flags = savedStyle.flags;
+    first->startAngle = savedStyle.startAngle;
+    first->endAngle = savedStyle.endAngle;
+    first->fillColor = savedStyle.fillColor;
+    first->fillColor24 = savedStyle.fillColor24;
+    first->fillColorMethod = savedStyle.fillColorMethod;
+    first->fillColorFlags = savedStyle.fillColorFlags;
+    first->fillColorName = savedStyle.fillColorName;
+    first->fillColorBookName = savedStyle.fillColorBookName;
+    first->fillColorDwgIndex = savedStyle.fillColorDwgIndex;
+    first->name = savedStyle.name;
+    first->description = savedStyle.description;
+    first->elements = savedStyle.elements;
+    if (DxIfaceMlineDependencyTestAccess::qualify(adapter, data).result !=
+            Result::SourceCandidate ||
+        !DxIfaceMlineDependencyTestAccess::styleDictionary(
+            adapter, data, charged, nullptr) ||
+        check(512u * 1024u * 1024u))
+      return 12;
+    *first = savedStyle;
+    if (!check(charged))
+      return 13;
+    ++hiddenState;
+
+    const auto savedStyles = data.mLineStyles;
+    data.mLineStyles.pop_back();
+    if (check(512u * 1024u * 1024u))
+      return 14;
+    data.mLineStyles = savedStyles;
+    if (!check(charged))
+      return 15;
+    ++listRefusals;
+
+    Consumer plain;
+    dx_data unobserved;
+    if (!plain.import(path.string(), unobserved) ||
+        DxIfaceMlineDependencyTestAccess::styleBodies(
+            plain, unobserved, 512u * 1024u * 1024u, nullptr))
+      return 16;
+    ++profiles;
+  }
+  std::cout << "MLINESTYLE body source/live profiles=" << profiles
+            << " mutations=" << mutations << " raw-tamper=" << rawTamper
+            << " hidden-state=" << hiddenState << " limits=" << limits
+            << " list-refusals=" << listRefusals
+            << " bounded-refusals=" << boundedRefusals
+            << " retries=" << retries << '\n';
+  return profiles == 2u && mutations == 44u && rawTamper == 2u &&
+                 hiddenState == 2u && limits == 2u && listRefusals == 2u &&
+                 boundedRefusals == 4u && retries == 44u
+             ? 0
+             : 17;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-style-body-source-live")return testMlineStyleBodiesLive();
     if(argc==2&&std::string(argv[1])=="--mline-style-dictionary-source-live")return testMlineStyleDictionaryLive();
     if(argc==2&&std::string(argv[1])=="--mline-root-dictionary-source-live")return testMlineRootDictionaryLive();
     if(argc==2&&std::string(argv[1])=="--layer-source-live")return testMlineLayerLive();
