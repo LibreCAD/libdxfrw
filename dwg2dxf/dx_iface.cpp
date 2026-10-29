@@ -17675,7 +17675,8 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 };
                 const auto& targetStyle=style->second.projection;
                 const bool append=style->second.countChanged && before
-                    && targetStyle.elements.size()>before->elements.size();
+                    && before->elements.size()==2u
+                    && (targetStyle.elements.size()==3u || targetStyle.elements.size()==4u);
                 const bool removeTail=style->second.countChanged && before
                     && before->elements.size()==targetStyle.elements.size()+1u;
                 std::size_t modelBytes=0u,appendBytes=0u;

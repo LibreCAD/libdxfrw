@@ -34187,10 +34187,10 @@ bool runConsumedAppendTemporary() {
 }
 bool runConsumedMultiAppend(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-multi-append-input.dxf",output=dir/"consumed-multi-append-output.dxf";
-    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u,boundaries=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE consumed multi-append line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
-            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<" boundaries="<<boundaries<<'\n';return false;
     };
     const auto append=[](dx_data& data) {
         if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u)return false;
@@ -34220,6 +34220,15 @@ bool runConsumedMultiAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
+        auto third=data.mLineStyles.front().elements.front();third.offset=-3.0;third.color=6;
+        data.mLineStyles.front().elements.push_back(std::move(third));const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++boundaries;
+    }
+    for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,recipe(false),false,"AC1027")||!adapter.fileImport(input.string(),&data,false)||!append(data))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
@@ -34233,8 +34242,8 @@ bool runConsumedMultiAppend(const std::filesystem::path& dir) {
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed multi-append profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
-        <<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u;
+        <<"; late="<<late<<"; retries="<<retries<<"; boundaries="<<boundaries<<'\n';
+    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u&&boundaries==2u;
 }
 bool runConsumedMultiAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
