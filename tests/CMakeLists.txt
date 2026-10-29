@@ -172,6 +172,15 @@ set_tests_properties(libdxfrw_mline_consumed_offset_cap_flags PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
+# Generated AC1027 sources isolate the interaction between group 71 and
+# group-72 vertex counts 2 and 4; the existing consumed-offset selector covers
+# the three-vertex profile. These runtime sources add no drawing fixtures.
+add_test(NAME libdxfrw_mline_vertex_flag_profiles
+    COMMAND libdxfrw_dxf_fixture_tests --mline-vertex-flag-profiles)
+set_tests_properties(libdxfrw_mline_vertex_flag_profiles PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Generated at runtime from the selected AC1027 MLINE profiles. This proves
 # offset reprojection when retargeting group 340, including documented
 # start/end-cap suppression flags, exact redundant group-2/reference/geometry
