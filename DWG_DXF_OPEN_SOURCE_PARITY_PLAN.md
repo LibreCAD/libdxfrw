@@ -63,7 +63,7 @@ external searches or a broad audit with no current failing witness.
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Opt-in ATTDEF, BLOCK endpoint and selected BLOCK_RECORD field profiles; real 6F8/6F2 and ATTRIB 705 | Bind original scope and BLOCK_RECORD targets, selected ATTDEF/ATTRIB compound ownership and APPID/LAYER roles; qualify actual output and failure/retry separately |
-| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused 1→0, simultaneous retained-element edit, consumed geometry or legacy operation to its source and exact expected output |
+| P2 — select next count/geometry operation | Existing style/consumer planners, original captures and residual refusal controls | Bind one still-refused simultaneous retained-element edit, consumed geometry or legacy operation to its source and exact expected output |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -138,7 +138,11 @@ proof. Refused fields are not implemented editing support.
    typed offset edits remain refused; qualify their original/context/codec and
    actual-output boundaries separately without removing established raw-only
    legacy transport. Modern unused-definition evidence does not qualify an
-   earlier version or consumed geometry.
+   earlier version or consumed geometry. Keep 1→0 edits refused: the
+   [peer audit](docs/research/rpp5iv-mline-zero-count-peer-audit-2026-10-28.json)
+   flags the selected zero-element outputs. This is not a native validity
+   verdict; unchanged-zero transport remains separate. Do not repeat that
+   unchanged audit; select another witnessed P2 operation.
 5. **Route-specific grammar and color evidence.** Confirm omitted/repeated `62/6`
    grammar with producer evidence. The current 255-element cap/strict masks remain
    admission policies. Fill and element CMC/truecolor mirrors are DWG-only model

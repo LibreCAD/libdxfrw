@@ -1,0 +1,37 @@
+{
+  "schema": "mline-zero-count-peer-audit-v1",
+  "date": "2026-10-28",
+  "status": "PEER_AUDIT_REJECTS_EDIT_RETAIN_REFUSAL",
+  "supportClaimsPromoted": false,
+  "scope": "Review of an uncommitted selected unused modern MLINESTYLE one-to-zero edit. The exploratory implementation was reversed; existing unchanged zero-count transport is a separate route.",
+  "witness": {
+    "source": "build/identity-review/mline-zero/authored-one.dxf",
+    "sourceSha256": "095c60e91ec99ffc9d25bcc51863d528d03d50b15ccebec7427d7dc21b87ff3a",
+    "asciiOutput": "build/identity-review/mline-zero/out-asc.dxf",
+    "asciiSha256": "8dcf96e0cdc6c729f59f504ef297a43c81791d69fd423692c2434985e8a4f3e3",
+    "binaryOutput": "build/identity-review/mline-zero/out-bin.dxf",
+    "binarySha256": "67224ee9f5e0f323eb100e4f688daaf3ecb2b0b8fa24d8a9c5ec205db1fccc7e",
+    "peerAuthoredZeroSha256": "1fe9b0065bf13059c3cc48793be16c326a9c33e09290e57dde75f6b7e3dcadd1",
+    "result": "Original PeerRetarget style has one element and no selected audit errors. Both proposed zero-element outputs, and independently peer-authored zero, are flagged by ezdxf 1.4.5 with INVALID_MLINESTYLE_ELEMENT_COUNT (216) for the selected style. The auditor may report the same object twice via distinct traversal paths; duplicate reports are not independent failures."
+  },
+  "audit": {
+    "source": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mline.py",
+    "autodeskReference": "https://help.autodesk.com/cloudhelp/2025/DEU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+    "note": "Autodesk DXF identifies group 71 as the element count but does not itself specify a zero-element admission rule. ezdxf explicitly flags an empty element list.",
+    "pythonSha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+    "mlineModuleSha256": "eee46cda3d1d2e3fa053cf4478f0bc0ed8b3df8d856b38490b2c446f57bc6038",
+    "auditModuleSha256": "96c5cef57d3fda1c8230554ba4fae38e8feee36c18a38b3d0ba8c813572d5773",
+    "independentReport": "build/identity-review/mline-zero/audit-report.json",
+    "independentReportSha256": "2f0b5b91b549fba9135e6ebbbe8fe76fecb8e8cd7e47430e7c4a20dc8bab3c70",
+    "observerSourceSha256": "41a91bc9e7e7c1497f855d3318705a9789cabd7e9576ca8d69c1b4dc8c78755b",
+    "secondReport": "build/identity-review/mline-zero/audit.json",
+    "secondReportSha256": "072e6e18379af9fb365d6b063f516e844a938b7481f063a5cdce80bc8b2d4f64",
+    "secondObserverSha256": "30d087950214eccb826656f05c9c2cf41c4740572e5263af30a510b13faef9e4"
+  },
+  "decision": "Retain atomic refusal of the 1\u21920 edit until distinguishing target-consumer evidence justifies changing it. Do not rerun this unchanged audit; pursue a different witnessed remaining P2 operation. This decision does not alter the pre-existing unchanged-zero transport path.",
+  "limitations": [
+    "Peer audit rejection is a concrete interoperability finding, not proof that AutoCAD itself refuses the record or that one-element styles are universally valid.",
+    "Successful raw readback is not native rendering or application acceptance.",
+    "All test input and output drawings remain in ignored scratch; no external fixture was committed."
+  ]
+}
