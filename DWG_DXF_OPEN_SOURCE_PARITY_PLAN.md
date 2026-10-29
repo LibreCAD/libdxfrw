@@ -455,6 +455,12 @@ and the first failing-stage diagnostic.
   refuse complete conversion atomically. No silent omission, guessed joins,
   synthetic missing entities or automatic flattening of 3D consumers' data.
 
+The [completed-section delivery guard](docs/research/rpp5iu-acds-source-delivery-2026-10-28.json)
+authenticates bounded ACDSDATA source delivery on an opt-in codec path. Its
+witness is synthetic opaque transport; uncompleted sections and native ACIS/ACDS
+semantics remain outside that evidence. The new codec layout requires consumer
+rebuild and ABI qualification.
+
 Reuse existing carrier/census/normal/transform and optional external harnesses.
 Research another reader only when a named missing semantic operation requires it;
 a wrapper around the same parser is not an independent oracle.
