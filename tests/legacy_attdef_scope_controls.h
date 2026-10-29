@@ -47,13 +47,18 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {5,"B1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"MY_BLOCK"},
         {70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"MY_BLOCK"},{1,""},{0,"ATTDEF"}});
     doc.insert(doc.end(),attr.begin(),attr.end());doc.insert(doc.end(),{{0,"ENDBLK"},{5,"B2"},{330,"B0"},
-        {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},{0,"EOF"}});
-    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u;
+        {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},{0,"SECTION"},{2,"OBJECTS"},
+        {0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
+        {0,"DICTIONARY"},{5,"D0"},{330,"B0"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {0,"ENDSEC"},{0,"EOF"}});
+    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u;
     for(bool binary:{false,true}){
         if(!write(path,doc,binary))return false;
         Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent))return false;++defaults;
         Probe selected;if(!selected.enableLegacyDxfIdentityObservation())return false;dx_data data;
-        if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)||!A::legacyNoPromotion(data))return false;++positives;
+        if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)||!A::legacyExtensionDictionaryBound(data)
+            ||!A::legacyNoPromotion(data))return false;
+        ++positives;
         // Exercise the index directly as well as the independently authenticated
         // callback: mutated callback data is rejected before index construction.
         const auto* physical=A::legacyCensus(data);if(!physical)return false;
@@ -127,7 +132,28 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             if(!write(path,doc,binary))return false;dx_data retry;
             if(!wrong.fileImport(path.string(),&retry,false)||!A::legacyJoin(retry))return false;++retries;
         }
+        for(unsigned fault=0u;fault<3u;++fault) {
+            auto changed=doc;
+            auto begin=changed.end();
+            for(auto at=changed.begin();at!=changed.end();++at)
+                if(at->code==0&&at->value=="DICTIONARY"&&std::next(at)!=changed.end()
+                    &&std::next(at)->code==5&&std::next(at)->value=="D0") {begin=at;break;}
+            if(begin==changed.end())return false;
+            if(fault==0u) {
+                auto end=std::find_if(std::next(begin),changed.end(),[](const Tag& t){return t.code==0;});
+                if(end==changed.end())return false;changed.erase(begin,end);
+            } else if(fault==1u) {
+                auto owner=std::find_if(std::next(begin),changed.end(),[](const Tag& t){return t.code==330;});
+                if(owner==changed.end())return false;owner->value="B9";
+            } else begin->value="XRECORD";
+            if(!write(path,changed,binary))return false;
+            Probe wrong;wrong.enableLegacyDxfIdentityObservation();dx_data rejected;
+            if(!wrong.fileImport(path.string(),&rejected,false)||A::legacyJoin(rejected)||!A::legacyJoinFailed(rejected))return false;
+            if(!write(path,doc,binary))return false;dx_data retry;
+            if(!wrong.fileImport(path.string(),&retry,false)||!A::legacyJoin(retry)||!A::legacyExtensionDictionaryBound(retry))return false;
+            ++dictionaryFaults;++retries;
+        }
     }
-    std::cout<<"AC1018 selected origin join profiles="<<positives<<" default="<<defaults<<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases<<" shared="<<shared<<" index="<<indexFaults<<" retries="<<retries<<'\n';
-    return positives==2u&&defaults==2u&&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u&&retries==42u;
+    std::cout<<"AC1018 selected origin join profiles="<<positives<<" default="<<defaults<<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases<<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
+    return positives==2u&&defaults==2u&&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u&&dictionaryFaults==6u&&retries==48u;
 }

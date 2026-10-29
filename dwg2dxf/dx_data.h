@@ -1407,9 +1407,12 @@ private:
         struct LegacyAttdefScopeJoin {
             std::shared_ptr<const IdentityInput> identity;
             std::shared_ptr<const StructuralInput> structural;
+            std::shared_ptr<const StructuralInput> extensionDictionaryStructural;
             std::shared_ptr<const AttdefOrigin> origin;
             std::size_t attdef{DRW_DxfIdentitySource::NoIndex},block{DRW_DxfIdentitySource::NoIndex};
             std::size_t endblk{DRW_DxfIdentitySource::NoIndex},record{DRW_DxfIdentitySource::NoIndex},table{DRW_DxfIdentitySource::NoIndex};
+            std::size_t extensionDictionary{DRW_DxfIdentitySource::NoIndex};
+            std::uint32_t extensionDictionaryHandle{0};
         };
         std::map<std::uint32_t,std::shared_ptr<const LegacyAttdefScopeJoin>> legacyAttdefScopeJoins;
         std::size_t legacyAttdefScopeBytes{0},legacyAttdefScopeWork{0};
@@ -1472,6 +1475,10 @@ private:
         std::map<std::uint32_t,StructuralPending> structuralPending;
         std::map<std::uint32_t,std::shared_ptr<const StructuralInput>> structuralInputs;
         std::vector<std::shared_ptr<const StructuralInput>> structuralInputOwners;
+        // Opt-in AC1018 BLOCK_RECORD XDICTIONARY targets only. Value zero
+        // records multiple owners; it is retained as ambiguous evidence and
+        // can never satisfy the selected source/owner join.
+        std::map<std::uint32_t,std::uint32_t> legacyBlockRecordExtensionDictionaries;
         std::map<std::uint32_t,std::shared_ptr<const StructuralAudit>> structuralAudits;
         std::vector<std::shared_ptr<const StructuralAudit>> structuralAuditOwners;
         std::size_t structuralRecords{0},structuralBytes{0},structuralWork{0};

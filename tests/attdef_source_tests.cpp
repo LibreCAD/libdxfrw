@@ -55,7 +55,20 @@ public:
         return x&&x->source?x->source.get():nullptr;
     }
     static bool legacyJoin(const dx_data& d,std::uint32_t h=0xA1u) {
-        const auto& s=d.m_tableDxfSource;return !s.legacyAttdefScopeFailed&&s.legacyAttdefScopeJoins.count(h)==1u;
+        const auto& s=d.m_tableDxfSource;return !s.legacyAttdefScopeFailed&&s.legacyAttdefScopeJoins.count(h)==1u
+            &&legacyExtensionDictionaryBound(d,h);
+    }
+    static bool legacyExtensionDictionaryBound(const dx_data& d,std::uint32_t h=0xA1u) {
+        const auto& s=d.m_tableDxfSource;const auto found=s.legacyAttdefScopeJoins.find(h);
+        if(found==s.legacyAttdefScopeJoins.end()||!found->second||!found->second->identity
+            ||!found->second->identity->source)return false;
+        const auto& join=*found->second;const auto input=s.structuralInputs.find(0xD0u);
+        const auto owner=s.legacyBlockRecordExtensionDictionaries.find(0xD0u);
+        return join.extensionDictionaryHandle==0xD0u&&join.extensionDictionary<join.identity->source->records.size()
+            &&join.extensionDictionaryStructural&&input!=s.structuralInputs.end()&&input->second
+            &&join.extensionDictionaryStructural.get()==input->second.get()&&input->second->paired
+            &&input->second->physicalStatus==DRW_DxfObjectPhysicalSource::Status::Complete
+            &&owner!=s.legacyBlockRecordExtensionDictionaries.end()&&owner->second==0xB0u;
     }
     static bool legacyJoinFailed(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeFailed;}
     static std::size_t legacyJoinCount(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeJoins.size();}

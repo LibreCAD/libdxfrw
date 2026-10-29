@@ -28484,10 +28484,13 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
     }
     if(!s.entitiesReadInput->getDxfReadContext(live))return;
     const bool block=view.kind==V::Kind::BlockRecord;
-    const bool legacy=live.sourceVersion==DRW::AC1018&&block;
-    if(legacy) {
+    const bool legacyBlock=live.sourceVersion==DRW::AC1018&&block;
+    const bool legacyDictionary=live.sourceVersion==DRW::AC1018
+        &&view.kind==V::Kind::Dictionary&&s.legacyBlockRecordExtensionDictionaries.count(value.handle)!=0u;
+    const bool legacy=legacyBlock||legacyDictionary;
+    if(legacyBlock) {
         if(source?!legacyBlockOptIn:s.structuralPending.count(value.handle)==0u)return;
-    } else if(live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
+    } else if(!legacyDictionary&&(live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032))return;
     if(view.model!=&value||view.phase!=(source?V::Phase::Source:V::Phase::Typed)||(source&&view.source!=raw)
         ||!value.handle||!view.source||view.source->handle!=value.handle||view.source->parentHandle!=value.parentHandle
         ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
@@ -28547,7 +28550,7 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         in.paired=retainedRawDxfObjectsEqual(*row.raw,*view.source)&&dxfBlockRecord::Decoder::observeCommonState(value)==state
             &&(block?blockRecordSourceEqual(static_cast<const DRW_Block_Record&>(value),static_cast<const DRW_Block_Record&>(*row.model),live.sourceVersion):
                 standardDwgModelsEqual(value,*row.model,live.sourceVersion,dwgObjType::DICTIONARY));
-        if(legacy&&in.paired&&!state.first&&!state.second) {
+        if(legacyBlock&&in.paired&&!state.first&&!state.second) {
             // Precharge reconstruction, decoder model and per-record work.
             std::size_t bytes=0u,work=8192u;
             if(!addAssociativeSlotBytes(rawBytes,3u,bytes)||!addAssociativeRetainedBytes(modelBytes,bytes)
@@ -28585,12 +28588,45 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
                     ||s.structuralWork>s.maxStructuralWork||profileWork>s.maxStructuralWork-s.structuralWork) {fail();return;}
                 s.structuralBytes+=profileBytes;s.structuralWork+=profileWork;
                 in.legacyBlockRecordProfile=dx_legacy_block_record_source::audit(*row.raw);
+                if(m_legacyIdentityObservationEnabled&&in.legacyBlockRecordProfile.complete()) {
+                    const auto target=std::find_if(in.legacyBlockRecordProfile.spans.begin(),in.legacyBlockRecordProfile.spans.end(),
+                        [](const auto& span){return span.role==dx_legacy_block_record_source::Role::ExtensionDictionary;});
+                    if(target==in.legacyBlockRecordProfile.spans.end()) {fail();return;}
+                    std::size_t bindingBytes=sizeof(std::pair<const std::uint32_t,std::uint32_t>)+4u*sizeof(void*);
+                    constexpr std::size_t bindingWork=128u;
+                    if(s.structuralBytes>s.maxStructuralBytes||bindingBytes>s.maxStructuralBytes-s.structuralBytes
+                        ||s.structuralWork>s.maxStructuralWork||bindingWork>s.maxStructuralWork-s.structuralWork) {fail();return;}
+                    try {
+                        const auto inserted=s.legacyBlockRecordExtensionDictionaries.emplace(target->handle,row.raw->handle);
+                        if(!inserted.second)inserted.first->second=0u;
+                    } catch(...) {fail();return;}
+                    s.structuralBytes+=bindingBytes;s.structuralWork+=bindingWork;
+                }
             }
         }
         in.index=s.structuralInputOwners.size();
         auto input=std::make_shared<const dx_data::TableDxfSourceCapture::StructuralInput>(std::move(in));
         s.structuralInputs.emplace(value.handle,input);s.structuralInputOwners.push_back(std::move(input));s.structuralPending.erase(found);
     }catch(...) {fail();}
+}
+
+namespace {
+bool legacyAttdefEmptyExtensionDictionaryBodyMatches(const DRW_Dictionary& model,
+        const DRW_RawDxfObject& raw,std::uint32_t handle,std::uint32_t owner,bool binary) noexcept {
+    if(typeid(model)!=typeid(DRW_Dictionary)||model.handle!=handle||model.parentHandle!=owner
+        ||model.hardOwner!=1||model.cloning!=1||!model.m_entries.empty()||model.countCap
+        ||!model.hasCompleteDxfEntries()||raw.m_version!=DRW::AC1018||raw.hasRawValues==binary
+        ||raw.name!="DICTIONARY"||raw.handle!=handle||raw.parentHandle!=owner
+        ||raw.groups.size()!=5u||raw.groups.size()!=raw.rawValues.size())return false;
+    const std::array<int,5> codes{{5,330,100,280,281}};
+    for(std::size_t i=0u;i<codes.size();++i)if(raw.groups[i].code()!=codes[i])return false;
+    std::uint32_t self=0u,actualOwner=0u;
+    return dx_legacy_block_record_source::handle(raw.groups[0],self)&&self==handle
+        &&dx_legacy_block_record_source::handle(raw.groups[1],actualOwner)&&actualOwner==owner
+        &&dx_legacy_block_record_source::text(raw.groups[2])=="AcDbDictionary"
+        &&raw.groups[3].type()==DRW_Variant::INTEGER&&raw.groups[3].i_val()==model.hardOwner
+        &&raw.groups[4].type()==DRW_Variant::INTEGER&&raw.groups[4].i_val()==model.cloning;
+}
 }
 
 void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
@@ -28700,8 +28736,62 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
             const auto self=index.ids.find(origin.handle);
             if(self==index.ids.end()||self->second.candidate>=physical.candidates.size()
                 ||originalChild.groups.size()!=originalChild.spans.size())continue;
+            const auto extensionSpan=std::find_if(input.legacyBlockRecordProfile.spans.begin(),input.legacyBlockRecordProfile.spans.end(),
+                [](const auto& span){return span.role==dx_legacy_block_record_source::Role::ExtensionDictionary;});
+            if(extensionSpan==input.legacyBlockRecordProfile.spans.end()||!extensionSpan->handle) {fail();return;}
+            const auto extensionHandle=extensionSpan->handle;
+            const auto selectedOwner=s.legacyBlockRecordExtensionDictionaries.find(extensionHandle);
+            const auto extensionStructural=s.structuralInputs.find(extensionHandle);
+            const auto extensionResource=s.resources.find(extensionHandle);
+            if(selectedOwner==s.legacyBlockRecordExtensionDictionaries.end()||selectedOwner->second!=origin.blockRecord
+                ||extensionStructural==s.structuralInputs.end()||!extensionStructural->second
+                ||extensionResource==s.resources.end()||extensionResource->second.family!=dx_tableResourceFamily::Dictionary) {fail();return;}
+            const auto& extensionInput=*extensionStructural->second;
+            const auto* extensionModel=dynamic_cast<const DRW_Dictionary*>(extensionResource->second.model.get());
+            const auto& extensionRaw=extensionResource->second.raw;
+            const auto& extensionPhysical=extensionInput.physical;
+            // This selected source and the generated controls use the exact
+            // empty, five-field dictionary body; other dictionary graphs and
+            // entry schemas remain outside this private join.
+            const auto* extensionRecord=dx_legacy_identity_join::record(physical,index,extensionHandle,
+                Source::Kind::Object,Source::Section::Objects,"DICTIONARY",1u);
+            const auto extensionHit=index.ids.find(extensionHandle);
+            if(!extensionRecord||extensionHit==index.ids.end()||extensionHit->second.record>=physical.records.size()
+                ||static_cast<std::size_t>(extensionRecord-physical.records.data())!=extensionHit->second.record
+                ||!extensionModel||!extensionRaw||!extensionPhysical
+                ||!legacyAttdefEmptyExtensionDictionaryBodyMatches(*extensionModel,*extensionRaw,extensionHandle,
+                    origin.blockRecord,identity->source->binary)
+                ||extensionPhysical->status!=DRW_DxfObjectPhysicalSource::Status::Complete
+                ||extensionPhysical->version!=DRW::AC1018||extensionPhysical->binary!=identity->source->binary
+                ||extensionPhysical->name!="DICTIONARY"||extensionPhysical->fields.size()!=5u
+                ||!blockDeliverySpanEqual(extensionPhysical->marker,extensionRecord->marker)
+                ||!blockDeliverySpanEqual(extensionPhysical->endMarker,extensionRecord->endMarker)
+                ||extensionInput.kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary||!extensionInput.paired
+                ||extensionInput.originalState.first||extensionInput.originalState.second
+                ||extensionInput.index>=s.structuralInputOwners.size()||!same(extensionStructural->second,s.structuralInputOwners[extensionInput.index])
+                ||!same(extensionInput.model,extensionResource->second.model)||!same(extensionInput.raw,extensionRaw)
+                ||!extensionInput.context||!sameContext(*extensionInput.context,*identity->context)
+                ||extensionInput.container!=&data||extensionInput.generation!=s.generation
+                ||extensionInput.containerId!=data.m_entitiesContainerIdentity.value
+                ||!same(extensionInput.physical,extensionInput.physicalOwner)
+                ||extensionInput.physicalStatus!=extensionPhysical->status
+                ||extensionHit->second.candidate>=physical.candidates.size()) {fail();return;}
+            const std::array<int,5> extensionCodes{{5,330,100,280,281}};
+            for(std::size_t field=0u;field<extensionCodes.size();++field) {
+                const auto& physicalField=extensionPhysical->fields[field];
+                const auto& rawField=extensionRaw->groups[field];
+                if(physicalField.code!=extensionCodes[field]||rawField.code()!=extensionCodes[field]
+                    ||physicalField.span.ignoredComment||!dx_legacy_identity_join::spanInside(physicalField.span,
+                        extensionRecord->marker,extensionRecord->endMarker)) {fail();return;}
+            }
+            std::uint32_t rawSelf=0u,rawOwner=0u;
+            if(!dx_legacy_block_record_source::handle(extensionRaw->groups[0],rawSelf)||rawSelf!=extensionHandle
+                ||!dx_legacy_block_record_source::handle(extensionRaw->groups[1],rawOwner)||rawOwner!=origin.blockRecord
+                ||!blockDeliverySpanEqual(extensionPhysical->fields[0].span,
+                    physical.candidates[extensionHit->second.candidate].span)) {fail();return;}
             std::size_t selfWork=0u;
             if(!addAssociativeSlotBytes(originalChild.groups.size(),128u,selfWork)
+                ||!addAssociativeSlotBytes(extensionRaw->groups.size(),128u,selfWork)
                 ||work>s.maxLegacyAttdefScopeWork||selfWork>s.maxLegacyAttdefScopeWork-work) {fail();return;}
             work+=selfWork;bool scalarMatched=false;
             for(std::size_t i=0u;i<originalChild.groups.size();++i)
@@ -28731,7 +28821,10 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
             auto saved=std::make_shared<Join>();saved->identity=identity;saved->structural=structural->second;saved->origin=attr.attdefOrigin;
             saved->attdef=static_cast<std::size_t>(a-physical.records.data());saved->block=static_cast<std::size_t>(b-physical.records.data());
             saved->endblk=static_cast<std::size_t>(e-physical.records.data());saved->record=static_cast<std::size_t>(r-physical.records.data());
-            saved->table=static_cast<std::size_t>(t-physical.records.data());s.legacyAttdefScopeJoins.emplace(item.first,std::move(saved));
+            saved->table=static_cast<std::size_t>(t-physical.records.data());
+            saved->extensionDictionary=static_cast<std::size_t>(extensionRecord-physical.records.data());
+            saved->extensionDictionaryHandle=extensionHandle;saved->extensionDictionaryStructural=extensionStructural->second;
+            s.legacyAttdefScopeJoins.emplace(item.first,std::move(saved));
         }
         s.legacyAttdefScopeBytes=bytes;s.legacyAttdefScopeWork=work;
     }catch(...) {fail();}
