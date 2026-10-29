@@ -26976,6 +26976,16 @@ void dx_iface::addRawDxfSection(const DRW_RawDxfSection& section) {
     const bool protectAcdsSource = cData->sourceFormat == dx_source_format::DXF
         && cData->dxfReadOutcome.attempted
         && sameAsciiName(section.m_name, "ACDSDATA");
+    if (m_tableSourceReadData == cData && cData->dxfReadOutcome.attempted) {
+        const auto* codec = cData->m_tableDxfSource.entitiesReadInput;
+        const auto* expected = codec ? codec->dxfActiveAcdsSource() : nullptr;
+        if ((expected != nullptr || sameAsciiName(section.m_name,"ACDSDATA"))
+            && (expected == nullptr || expected != &section)) {
+            cData->m_acdsRawDxfSectionCaptureFailed = true;
+            cData->rawDxfSectionCaptureFailed = true;
+            return;
+        }
+    }
     const auto reject = [this, protectAcdsSource]() noexcept {
         cData->rawDxfSectionCaptureFailed = true;
         if (protectAcdsSource)
@@ -30244,6 +30254,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dxfReadOutcome.requestedCodePagePolicy = codePagePolicy;
         dxfRW dxf(fileI.c_str());
         tableSource.entitiesReadInput=&dxf;
+        const std::size_t acdsBaselineStart = fData->m_acdsRawDxfSectionBaselines.size();
+        (void)dxf.enableDxfAcdsSourceLedger();
         dxf.setDxfCodePagePolicy(codePagePolicy);
         if (debug) {
             dxf.setDebug(DRW::DebugLevel::Debug);
@@ -30252,6 +30264,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         try {
             success = dxf.read(this, false);
         } catch (...) {
+            const auto& acds = dxf.dxfAcdsSourceLedger();
+            if (acds.failed || !acds.sections.empty())
+                fData->m_acdsRawDxfSectionCaptureFailed = true;
             fData->dxfReadOutcome.readThrew = true;
             if (fData->groups.size() != groupBegin)
                 fData->groupNameResolutionFailed = true;
@@ -30273,6 +30288,29 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dxfReadOutcome.readReturned = true;
         fData->dxfReadOutcome.operationSucceeded = success;
         snapshotDxfReadOutcome(*fData, dxf);
+        {
+            const auto& ledger = dxf.dxfAcdsSourceLedger();
+            bool valid = ledger.enabled && !ledger.failed
+                && (ledger.complete || ledger.sections.empty())
+                && acdsBaselineStart <= fData->m_acdsRawDxfSectionBaselines.size();
+            auto actual = fData->m_acdsRawDxfSectionBaselines.begin();
+            if (valid) std::advance(actual,static_cast<std::ptrdiff_t>(acdsBaselineStart));
+            for (const auto& expected : ledger.sections) {
+                if (!valid || actual == fData->m_acdsRawDxfSectionBaselines.end()) { valid=false; break; }
+                const auto& captured = actual->section;
+                if (actual->generation != fData->importGeneration
+                    || captured.m_name != expected.m_name || captured.m_version != expected.m_version
+                    || captured.m_hasRawValues != expected.m_hasRawValues
+                    || captured.m_rawValues != expected.m_rawValues
+                    || captured.m_groups.size() != expected.m_groups.size()) { valid=false; break; }
+                for (std::size_t i=0u;i<captured.m_groups.size();++i)
+                    if (!retainedVariantEqual(captured.m_groups[i],expected.m_groups[i])) { valid=false; break; }
+                if (!valid) break;
+                ++actual;
+            }
+            if (valid && actual != fData->m_acdsRawDxfSectionBaselines.end()) valid=false;
+            if (!valid) fData->m_acdsRawDxfSectionCaptureFailed = true;
+        }
         if (success)
             fData->sourceVersion = sourceVersionFromDxfHeader(
                 fData->headerC, dxf.getVersion());

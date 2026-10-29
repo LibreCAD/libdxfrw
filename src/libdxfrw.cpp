@@ -3422,10 +3422,68 @@ bool dxfRW::bindDxfWriteSourceObjectHandle(
     return true;
 }
 
+bool dxfRW::enableDxfAcdsSourceLedger(std::size_t records, std::size_t groups,
+                                        std::size_t bytes, std::size_t work) noexcept {
+    if (m_wholeOperationActive) return false;
+    m_dxfAcdsSourceLedger.enabled = true;
+    m_dxfAcdsSourceLedger.recordsLimit = records; m_dxfAcdsSourceLedger.groupsLimit = groups;
+    m_dxfAcdsSourceLedger.bytesLimit = bytes; m_dxfAcdsSourceLedger.workLimit = work;
+    resetDxfAcdsSourceLedger(); return true;
+}
+
+void dxfRW::resetDxfAcdsSourceLedger() noexcept {
+    auto& s = m_dxfAcdsSourceLedger;
+    s.failed = false; s.complete = false; s.groups = s.bytes = s.work = 0u;
+    s.sections.clear(); m_dxfAcdsActiveSource = nullptr;
+}
+
+bool dxfRW::captureDxfAcdsSection(const DRW_RawDxfSection& section) noexcept {
+    auto& s = m_dxfAcdsSourceLedger;
+    if (!s.enabled) return true;
+    if (s.failed || s.sections.size() >= s.recordsLimit || s.groups > s.groupsLimit
+        || section.m_groups.size() > s.groupsLimit - s.groups) { s.failed = true; return false; }
+    // Bound the sizing traversal itself before examining any payload. Copy and
+    // later equality work are separately charged after the sizes are known.
+    if (s.work > s.workLimit || section.m_groups.size() > s.workLimit - s.work
+        || section.m_rawValues.size() > s.workLimit - s.work - section.m_groups.size()) {
+        s.failed = true; return false;
+    }
+    const std::size_t scanWork = section.m_groups.size() + section.m_rawValues.size();
+    std::size_t bytes = 2u * sizeof(DRW_RawDxfSection) + 8u * sizeof(void*);
+    const auto charge = [&bytes,&s](std::size_t n) noexcept {
+        if (bytes > s.bytesLimit || n > s.bytesLimit - bytes) return false;
+        bytes += n; return true;
+    };
+    if (!charge(section.m_name.size())
+        || section.m_groups.size() > s.bytesLimit / sizeof(DRW_Variant)
+        || !charge(section.m_groups.size() * sizeof(DRW_Variant))
+        || section.m_rawValues.size() > s.bytesLimit / sizeof(UTF8STRING)
+        || !charge(section.m_rawValues.size() * sizeof(UTF8STRING))) { s.failed = true; return false; }
+    for (const auto& group : section.m_groups) {
+        std::size_t payload = 0u;
+        if (!group.estimateRetainedPayloadBytes(s.bytesLimit,payload) || !charge(payload)) {
+            s.failed = true; return false;
+        }
+    }
+    for (const auto& value : section.m_rawValues)
+        if (!charge(value.size())) { s.failed = true; return false; }
+    const std::size_t availableWork = s.workLimit - s.work - scanWork;
+    if (s.bytes > s.bytesLimit || bytes > s.bytesLimit - s.bytes
+        || bytes > availableWork / 2u
+        || section.m_groups.size() > availableWork - 2u * bytes) {
+        s.failed = true; return false;
+    }
+    try {
+        s.sections.push_back(section); s.groups += section.m_groups.size();
+        s.bytes += bytes; s.work += scanWork + 2u * bytes + section.m_groups.size(); return true;
+    } catch (...) { s.failed = true; return false; }
+}
+
 bool dxfRW::read(DRW_Interface *interface_, bool ext){
     WholeOperationScope operation(*this);
     if (!operation.admitted())
         return false;
+    resetDxfAcdsSourceLedger();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     m_textReadObservations = {};
     m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
@@ -3534,6 +3592,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     m_sourceVersion = reader->getSourceVersion();
     m_textReadObservations = reader->textReadObservations();
     m_readTextObservationsActive = false;
+    if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
     reader.reset();
     return isOk;
 }
@@ -3543,6 +3602,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     WholeOperationScope operation(*this);
     if (!operation.admitted())
         return false;
+    resetDxfAcdsSourceLedger();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
@@ -3611,6 +3671,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_sourceVersion = reader->getSourceVersion();
     m_textReadObservations = reader->textReadObservations();
     m_readTextObservationsActive = false;
+    if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
     reader.reset();
     return isOk;
 }
@@ -15245,6 +15306,14 @@ bool dxfRW::processRawDxfSection(std::string_view sectionName) {
             if (applicationDepth != 0)
                 return setError(DRW::BAD_CODE_PARSED);
             section.m_version = reader->getSourceVersion();
+            const bool captureAcds = m_dxfAcdsSourceLedger.enabled
+                && dxfKeywordEquals(section.m_name,"ACDSDATA");
+            if (captureAcds) (void)captureDxfAcdsSection(section);
+            struct SourceScope {
+                const DRW_RawDxfSection*& active;
+                ~SourceScope() { active = nullptr; }
+            } sourceScope{m_dxfAcdsActiveSource};
+            if (captureAcds) m_dxfAcdsActiveSource = &section;
             iface->addRawDxfSection(section);
             return true;
         }

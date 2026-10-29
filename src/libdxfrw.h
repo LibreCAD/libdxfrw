@@ -1005,6 +1005,22 @@ public:
     //! references must not guess which of multiple source entities it names.
     void markSourceHandleAmbiguous(std::uint32_t sourceHandle);
 
+    // Opt-in, bounded original ACDSDATA section capture for import delivery
+    // reconciliation. Default reads do not allocate this ledger. The active
+    // source pointer is borrowed only during the raw-section callback.
+    struct DxfAcdsSourceLedger {
+        bool enabled{false}, failed{false}, complete{false};
+        std::size_t recordsLimit{100000u}, groupsLimit{4000000u};
+        std::size_t bytesLimit{64u * 1024u * 1024u}, workLimit{128u * 1024u * 1024u};
+        std::size_t groups{0u}, bytes{0u}, work{0u};
+        std::vector<DRW_RawDxfSection> sections;
+    };
+    bool enableDxfAcdsSourceLedger(std::size_t records=100000u,
+        std::size_t groups=4000000u, std::size_t bytes=64u*1024u*1024u,
+        std::size_t work=128u*1024u*1024u) noexcept;
+    const DxfAcdsSourceLedger& dxfAcdsSourceLedger() const noexcept { return m_dxfAcdsSourceLedger; }
+    const DRW_RawDxfSection* dxfActiveAcdsSource() const noexcept { return m_dxfAcdsActiveSource; }
+
     DRW::Version getVersion() const;
     //! Accepted declared DXF source revision, not getVersion()'s codec version.
     //! UNKNOWNV until parsing returns, also after a callback throws. A returned
@@ -1721,6 +1737,10 @@ private:
     std::uint64_t m_reservationFailureGeneration {0};
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
+    DxfAcdsSourceLedger m_dxfAcdsSourceLedger;
+    const DRW_RawDxfSection* m_dxfAcdsActiveSource{nullptr};
+    bool captureDxfAcdsSection(const DRW_RawDxfSection&) noexcept;
+    void resetDxfAcdsSourceLedger() noexcept;
     DRW_DxfTextReadObservations m_textReadObservations;
     DRW::DxfTextWritePolicy m_dxfTextWritePolicy{DRW::DxfTextWritePolicy::Compatible};
     bool m_readTextObservationsActive {false};
