@@ -6191,7 +6191,7 @@ bool DRW_ImageDef::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     }
     case 5:
-        if (!reader->isValidHandleString())
+        if (!reader->isValidHandleString() || !reader->registerSelfHandle())
             return false;
         handle = reader->getHandleString();
         break;
