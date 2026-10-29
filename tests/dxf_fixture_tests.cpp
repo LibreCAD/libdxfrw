@@ -33972,7 +33972,8 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
     return fields;
 }
 bool retargetOutputProof(const std::filesystem::path& path,bool binary,
-        const std::array<double,2>& targetOffsets=afterOffsets,double targetStartAngle=90.0,double targetEndAngle=90.0) {
+        const std::array<double,2>& targetOffsets=afterOffsets,double targetStartAngle=90.0,double targetEndAngle=90.0,
+        int targetFlags=2) {
     const auto bad=[](int line){std::cerr<<"retarget output proof mismatch line="<<line<<'\n';return false;};
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
@@ -33995,7 +33996,7 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
     if(offsets.size()!=2u||!close(std::stod(offsets[0]),targetOffsets[0])
         ||!close(std::stod(offsets[1]),targetOffsets[1])||startAngles.size()!=1u||endAngles.size()!=1u
         ||!close(std::stod(startAngles.front()),targetStartAngle)||!close(std::stod(endAngles.front()),targetEndAngle)
-        ||values(*targetStyle,70).size()!=1u||std::stod(values(*targetStyle,70).front())!=2.0) {
+        ||values(*targetStyle,70).size()!=1u||std::stod(values(*targetStyle,70).front())!=targetFlags) {
         return bad(__LINE__);
     }
     const auto targetHandle=static_cast<std::uint32_t>(std::stoul(targetStyle->id,nullptr,16));
@@ -34026,7 +34027,8 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
         if(style.handle==targetHandle&&style.name=="RETARGET_BODY")decodedTarget=&style;
         if(style.name=="OLD_BODY_NAME")decodedOriginal=&style;
     }
-    if(!decodedTarget||!decodedOriginal||decodedTarget->elements.size()!=2u||decodedOriginal->elements.size()!=2u
+    if(!decodedTarget||!decodedOriginal||decodedTarget->flags!=targetFlags
+        ||decodedTarget->elements.size()!=2u||decodedOriginal->elements.size()!=2u
         ||!close(decodedTarget->elements[0].offset,targetOffsets[0])||!close(decodedTarget->elements[1].offset,targetOffsets[1])
         ||!close(decodedTarget->startAngle,targetStartAngle)||!close(decodedTarget->endAngle,targetEndAngle)
         ||!close(decodedOriginal->elements[0].offset,beforeOffsets[0])||!close(decodedOriginal->elements[1].offset,beforeOffsets[1]))return bad(__LINE__);
@@ -34179,6 +34181,7 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
     constexpr double targetStartAngle=60.0,targetEndAngle=120.0;
     const auto input=dir/"retarget-angles-input.dxf",output=dir/"retarget-angles-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
+    std::size_t flagOnlyRefusals=0u,flagOnlyRetries=0u;
     const std::array<double,2> combinedOffsets{{1.5,-1.25}};
     std::size_t combinedProfiles=0u,combinedReadbacks=0u,combinedRefusals=0u,combinedRetries=0u,combinedLate=0u;
     const auto fail=[&](int line) {
@@ -34230,6 +34233,27 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
+    // Isolate a documented MLINESTYLE flag change from angle, offset, arity,
+    // and consumer-geometry edits. Adding bit 16 requests a square start cap;
+    // the current projection must refuse rather than silently claim to model
+    // that rendering change. Restoring the source flag must permit retry.
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);auto& target=mlineRetargetControls::style(data,0xD2u);
+        if(target.flags!=2||target.elements.size()!=2u
+            ||!close(target.elements[0].offset,beforeOffsets[0])||!close(target.elements[1].offset,beforeOffsets[1])
+            ||!close(target.startAngle,90.0)||!close(target.endAngle,90.0))return fail(__LINE__);
+        target.flags=18;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++flagOnlyRefusals;target.flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!retargetOutputProof(output,outputBinary,beforeOffsets,90.0,90.0)
+            ||!corrected.same(data))return fail(__LINE__);
+        ++flagOnlyRetries;++readbacks;
+    }
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,retargetRecipe(sourceBinary),sourceBinary,"AC1027")
@@ -34280,9 +34304,11 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
     std::cout<<"MLINE retarget angle profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
         <<"; late="<<late<<"; retries="<<retries<<"; combinedProfiles="<<combinedProfiles
         <<"; combinedReadbacks="<<combinedReadbacks<<"; combinedRefusals="<<combinedRefusals
-        <<"; combinedLate="<<combinedLate<<"; combinedRetries="<<combinedRetries<<'\n';
-    return profiles==4u&&readbacks==8u&&refusals==2u&&late==2u&&retries==4u
-        &&combinedProfiles==4u&&combinedReadbacks==8u&&combinedRefusals==2u&&combinedLate==2u&&combinedRetries==4u;
+        <<"; combinedLate="<<combinedLate<<"; combinedRetries="<<combinedRetries
+        <<"; flagOnlyRefusals="<<flagOnlyRefusals<<"; flagOnlyRetries="<<flagOnlyRetries<<'\n';
+    return profiles==4u&&readbacks==10u&&refusals==2u&&late==2u&&retries==4u
+        &&combinedProfiles==4u&&combinedReadbacks==8u&&combinedRefusals==2u&&combinedLate==2u&&combinedRetries==4u
+        &&flagOnlyRefusals==2u&&flagOnlyRetries==2u;
 }
 bool runRetargetAnglesTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
