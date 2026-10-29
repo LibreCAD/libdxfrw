@@ -1215,6 +1215,7 @@ static int testDeletedMlineConsumerGeometryGuard() {
     }
   } cleanup{dir};
   unsigned profiles = 0u, refusals = 0u, retries = 0u, readbacks = 0u;
+  unsigned movedProfiles = 0u, movedRefusals = 0u, movedRetries = 0u, movedReadbacks = 0u;
   for (bool sourceBinary : {false, true}) {
     auto tags = parseTags(sourceText());
     for (const char *id : {"D100", "D101"}) {
@@ -1318,6 +1319,66 @@ static int testDeletedMlineConsumerGeometryGuard() {
         return 11;
       ++retries;
       ++readbacks;
+
+      const auto moved = std::find_if(data.mBlock->ent.begin(), data.mBlock->ent.end(),
+          [](const DRW_Entity *entity) { return entity && entity->handle == 0xD100u; });
+      const auto destinationBlock = std::find_if(data.blocks.begin(), data.blocks.end(),
+          [](const dx_ifaceBlock *block) { return block && block->handle == 0x300u; });
+      if (moved == data.mBlock->ent.end() || destinationBlock == data.blocks.end()) {
+        std::cerr << "MLINE moved-consumer setup missing: modelSpace="
+                  << static_cast<bool>(data.mBlock) << " moved="
+                  << (moved != data.mBlock->ent.end()) << " destination="
+                  << (destinationBlock != data.blocks.end()) << " blocks="
+                  << data.blocks.size() << '\n';
+        return 20;
+      }
+      auto *movedEntity = *moved;
+      const auto originalOwner = movedEntity->parentHandle;
+      data.mBlock->ent.erase(moved);
+      (*destinationBlock)->ent.push_back(movedEntity);
+      movedEntity->parentHandle = 0x203u;
+      style->elements.front().offset = originalOffset + 0.25;
+      const std::string movedSentinel = "MLINE_MOVED_CONSUMER_GEOMETRY_DESTINATION";
+      if (!writeFile(output, movedSentinel))
+        return 21;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != movedSentinel ||
+          style->elements.front().offset != originalOffset + 0.25)
+        return 22;
+      ++movedProfiles;
+      ++movedRefusals;
+
+      (*destinationBlock)->ent.remove(movedEntity);
+      data.mBlock->ent.push_back(movedEntity);
+      movedEntity->parentHandle = originalOwner;
+      style->elements.front().offset = originalOffset;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 23;
+      Consumer movedVerifier;
+      dx_data movedReadback;
+      if (!movedVerifier.import(output.string(), movedReadback))
+        return 24;
+      std::size_t movedConsumers = 0u;
+      const auto countMovedConsumers = [&](const dx_ifaceBlock *block) {
+        if (block)
+          for (const auto *entity : block->ent)
+            if (entity && entity->eType == DRW::MLINE)
+              ++movedConsumers;
+      };
+      countMovedConsumers(movedReadback.mBlock);
+      for (const auto *block : movedReadback.blocks)
+        countMovedConsumers(block);
+      const auto movedStyle = std::find_if(movedReadback.mLineStyles.begin(),
+          movedReadback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (movedConsumers != 2u || movedStyle == movedReadback.mLineStyles.end() ||
+          movedStyle->elements.size() != 2u ||
+          movedStyle->elements.front().offset != originalOffset)
+        return 25;
+      ++movedRetries;
+      ++movedReadbacks;
     }
   }
   unsigned unusedProfiles = 0u;
@@ -1389,9 +1450,13 @@ static int testDeletedMlineConsumerGeometryGuard() {
   }
   std::cout << "MLINE deleted-consumer geometry guard profiles=" << profiles
             << " refusals=" << refusals << " retries=" << retries
-            << " readbacks=" << readbacks << " unused-style-controls=" << unusedProfiles << '\n';
+            << " readbacks=" << readbacks << " moved-profiles=" << movedProfiles
+            << " moved-refusals=" << movedRefusals << " moved-retries=" << movedRetries
+            << " moved-readbacks=" << movedReadbacks
+            << " unused-style-controls=" << unusedProfiles << '\n';
   return profiles == 4u && refusals == 4u && retries == 4u && readbacks == 4u
-      && unusedProfiles == 4u
+      && movedProfiles == 4u && movedRefusals == 4u && movedRetries == 4u
+      && movedReadbacks == 4u && unusedProfiles == 4u
       ? 0 : 12;
 }
 
