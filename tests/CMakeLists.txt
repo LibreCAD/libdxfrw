@@ -480,6 +480,19 @@ set_tests_properties(libdxfrw_mline_consumed_style_two_from_five_removal PROPERT
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Continue the selected five-element source through the remaining nonzero
+# target counts; every ordered survivor subset is checked by the shared harness.
+add_test(NAME libdxfrw_mline_consumed_style_three_from_five_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-three-from-five-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_three_from_five_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+add_test(NAME libdxfrw_mline_consumed_style_four_from_five_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-four-from-five-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_four_from_five_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profiles remove each element in turn from a
 # three-element style consumed by open, uncut MLINEs. Check parameter
 # reprojection, exact output/readback, rollback and retries across DXF encodings.

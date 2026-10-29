@@ -36544,13 +36544,8 @@ bool runConsumedSingleFromFour(const std::filesystem::path& dir) {
         {beforeOffsets[0],beforeOffsets[1],-1.25,-2.0},{1,3,4,5},
         {"ByLayer","Continuous","ByLayer","Continuous"});
 }
-bool runConsumedSingleFromFive(const std::filesystem::path& dir) {
-    return runConsumedSurvivorSubsetRemoval(dir,5u,1u,fiveElementRecipe,
-        {beforeOffsets[0],beforeOffsets[1],-1.25,-2.0,-2.5},{1,3,4,5,6},
-        {"ByLayer","Continuous","ByLayer","Continuous","ByLayer"});
-}
-bool runConsumedTwoFromFive(const std::filesystem::path& dir) {
-    return runConsumedSurvivorSubsetRemoval(dir,5u,2u,fiveElementRecipe,
+bool runConsumedFiveReduction(const std::filesystem::path& dir,unsigned targetCount) {
+    return runConsumedSurvivorSubsetRemoval(dir,5u,targetCount,fiveElementRecipe,
         {beforeOffsets[0],beforeOffsets[1],-1.25,-2.0,-2.5},{1,3,4,5,6},
         {"ByLayer","Continuous","ByLayer","Continuous","ByLayer"});
 }
@@ -36562,20 +36557,13 @@ bool runConsumedSingleFromFourTemporary() {
     else std::cerr<<"MLINE consumed 4-to-1 removal artifacts: "<<dir<<'\n';
     return passed;
 }
-bool runConsumedSingleFromFiveTemporary() {
+bool runConsumedFiveReductionTemporary(unsigned targetCount) {
     const auto dir=std::filesystem::temp_directory_path()/
-        ("libdxfrw-mline-consumed-single-from-five-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::create_directory(dir);const bool passed=runConsumedSingleFromFive(dir);
+        ("libdxfrw-mline-consumed-five-to-"+std::to_string(targetCount)+"-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedFiveReduction(dir,targetCount);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
-    else std::cerr<<"MLINE consumed 5-to-1 removal artifacts: "<<dir<<'\n';
-    return passed;
-}
-bool runConsumedTwoFromFiveTemporary() {
-    const auto dir=std::filesystem::temp_directory_path()/
-        ("libdxfrw-mline-consumed-two-from-five-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::create_directory(dir);const bool passed=runConsumedTwoFromFive(dir);
-    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
-    else std::cerr<<"MLINE consumed 5-to-2 removal artifacts: "<<dir<<'\n';
+    else std::cerr<<"MLINE consumed 5-to-"<<targetCount<<" removal artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedThreeElementReduction(const std::filesystem::path& dir,unsigned targetCount) {
@@ -44955,10 +44943,16 @@ int main(int argc, char** argv) {
         return mlineConsumedOffsetControls::runConsumedSingleFromFourTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-single-from-five-removal") {
-        return mlineConsumedOffsetControls::runConsumedSingleFromFiveTemporary()?0:1;
+        return mlineConsumedOffsetControls::runConsumedFiveReductionTemporary(1u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-two-from-five-removal") {
-        return mlineConsumedOffsetControls::runConsumedTwoFromFiveTemporary()?0:1;
+        return mlineConsumedOffsetControls::runConsumedFiveReductionTemporary(2u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-three-from-five-removal") {
+        return mlineConsumedOffsetControls::runConsumedFiveReductionTemporary(3u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-four-from-five-removal") {
+        return mlineConsumedOffsetControls::runConsumedFiveReductionTemporary(4u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
