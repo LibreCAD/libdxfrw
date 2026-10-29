@@ -15999,6 +15999,8 @@ constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
 constexpr std::array<int, 2> mleaderStringCodes{{3, 300}};
+// MLEADERSTYLE's group 340 stores leaderLineTypeHandle.
+constexpr int mleaderLeaderLineTypeHandleCode = 340;
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16018,6 +16020,45 @@ bool isMLeaderBoolCode(int code) noexcept {
 bool isMLeaderStringCode(int code) noexcept {
     return std::find(mleaderStringCodes.begin(), mleaderStringCodes.end(),
                      code) != mleaderStringCodes.end();
+}
+
+bool isMLeaderHandleCode(int code) noexcept {
+    return code == mleaderLeaderLineTypeHandleCode;
+}
+
+std::uint32_t mleaderHandleValue(const DRW_MLeaderStyle& style,
+                                 int code) noexcept {
+    return code == mleaderLeaderLineTypeHandleCode
+        ? style.leaderLineTypeHandle.ref : 0u;
+}
+
+void setMLeaderHandleValue(DRW_MLeaderStyle& style, int code,
+                           std::uint32_t value) noexcept {
+    if (code == mleaderLeaderLineTypeHandleCode)
+        style.leaderLineTypeHandle.ref = value;
+}
+
+bool parseMLeaderHandleText(std::string_view text,
+                            std::uint32_t& value) noexcept {
+    if (text.empty())
+        return false;
+    std::uint64_t parsed = 0u;
+    for (const unsigned char character : text) {
+        unsigned digit = 0u;
+        if (character >= '0' && character <= '9')
+            digit = character - '0';
+        else if (character >= 'A' && character <= 'F')
+            digit = character - 'A' + 10u;
+        else if (character >= 'a' && character <= 'f')
+            digit = character - 'a' + 10u;
+        else
+            return false;
+        parsed = parsed * 16u + digit;
+        if (parsed > (std::numeric_limits<std::uint32_t>::max)())
+            return false;
+    }
+    value = static_cast<std::uint32_t>(parsed);
+    return true;
 }
 
 bool isMLeaderAsciiString(std::string_view value) noexcept {
@@ -16196,10 +16237,18 @@ int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
             return -1;
         stringCode = code;
     }
-    if (doubleCode != 0 && int32Code != 0)
+    const int handleCode = mleaderHandleValue(value,
+        mleaderLeaderLineTypeHandleCode)
+        == mleaderHandleValue(original, mleaderLeaderLineTypeHandleCode)
+        ? 0 : mleaderLeaderLineTypeHandleCode;
+    if ((doubleCode != 0 && int32Code != 0)
+        || (handleCode != 0
+            && (doubleCode != 0 || int32Code != 0 || stringCode != 0)))
         return -1;
     if (stringCode != 0 && (doubleCode != 0 || int32Code != 0))
         return -1;
+    if (handleCode != 0)
+        return handleCode;
     if (stringCode != 0)
         return stringCode;
     return int32Code != 0 ? int32Code : doubleCode;
@@ -16228,11 +16277,12 @@ void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
 bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
         std::size_t& slot) noexcept {
     if (!isMLeaderDoubleCode(code) && !isMLeaderInt32Code(code)
-        && !isMLeaderStringCode(code))
+        && !isMLeaderStringCode(code) && !isMLeaderHandleCode(code))
         return false;
     slot = noMLeaderFieldSlot;
     const DRW_Variant::TYPE expectedType = isMLeaderDoubleCode(code)
-        ? DRW_Variant::DOUBLE : isMLeaderStringCode(code)
+        ? DRW_Variant::DOUBLE
+        : (isMLeaderStringCode(code) || isMLeaderHandleCode(code))
             ? DRW_Variant::STRING : DRW_Variant::INTEGER;
     unsigned applicationDepth = 0u;
     unsigned styleMarkers = 0u;
@@ -16379,6 +16429,10 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                             >= mleaderEnumMinimum(editedCode)
                         && mleaderInt32Value(value, editedCode)
                             <= enumMaximum
+                : isMLeaderHandleCode(editedCode)
+                    ? mleaderHandleValue(value, editedCode) != 0u
+                        && mleaderHandleValue(value, editedCode)
+                            != (std::numeric_limits<std::uint32_t>::max)()
                 : isMLeaderInt32Code(editedCode)
                     ? true
                 : isMLeaderStringCode(editedCode)
@@ -16475,6 +16529,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         return false;
                     setMLeaderDoubleValue(normalized, editedCode,
                                          originalValue);
+                } else if (isMLeaderHandleCode(editedCode)) {
+                    setMLeaderHandleValue(normalized, editedCode,
+                        mleaderHandleValue(original, editedCode));
                 } else if (isMLeaderInt32Code(editedCode)) {
                     setMLeaderInt32Value(normalized, editedCode,
                         mleaderInt32Value(original, editedCode));
@@ -16496,6 +16553,15 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 const bool rawValueMatches = isMLeaderInt32Code(editedCode)
                     ? rawField.i_val()
                         == mleaderInt32Value(original, editedCode)
+                    : isMLeaderHandleCode(editedCode)
+                        ? rawField.content.s != nullptr
+                            && [&rawField, &original, editedCode]() {
+                                std::uint32_t parsed = 0u;
+                                return parseMLeaderHandleText(
+                                        *rawField.content.s, parsed)
+                                    && parsed == mleaderHandleValue(
+                                        original, editedCode);
+                            }()
                     : isMLeaderStringCode(editedCode)
                         ? rawField.content.s != nullptr
                             && *rawField.content.s
@@ -16507,6 +16573,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 if (isMLeaderInt32Code(editedCode))
                     setMLeaderInt32Value(projection, editedCode,
                         mleaderInt32Value(value, editedCode));
+                else if (isMLeaderHandleCode(editedCode))
+                    setMLeaderHandleValue(projection, editedCode,
+                        mleaderHandleValue(value, editedCode));
                 else if (isMLeaderStringCode(editedCode))
                     setMLeaderStringValue(projection, editedCode,
                         mleaderStringValue(value, editedCode));
@@ -16564,6 +16633,10 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         || *encoded.groups.front().content.s != editedString)
                         return false;
                     source.output.groups[slot] = encoded.groups.front();
+                } else if (isMLeaderHandleCode(editedCode)) {
+                    source.output.groups[slot] = DRW_Variant(editedCode,
+                        dxfW->toHexStrHandle(
+                            mleaderHandleValue(projection, editedCode)));
                 } else if (isMLeaderInt32Code(editedCode)) {
                     // BodyWriter stores generic 90-92 values as INTEGER64 for
                     // MATERIAL's unsigned color case. MLEADERSTYLE groups
@@ -16656,11 +16729,11 @@ bool dx_iface::inspectDxfMLeaderStyles(
     try {
         m_dxfMLeaderStylesInspected = inspectNamedResourceOutput(
             *dxfW, view, m_dxfMLeaderStyleState, m_dxfMLeaderStyles,
-            "MLEADERSTYLE", [&view](const auto& source,
+            "MLEADERSTYLE", [this, &view](const auto& source,
                                    std::string_view body) {
                 dx_standard_output::Decoder decoder(view);
                 return decoder.decodeRecord<DRW_MLeaderStyle>(
-                    body, [&source](const auto& value) {
+                    body, [this, &source](const auto& value) {
                         // inspectNamedResourceOutput already proves every raw
                         // source group and mapped handle survived. Decode the
                         // selected typed role here without requiring source
@@ -16672,6 +16745,35 @@ bool dx_iface::inspectDxfMLeaderStyles(
                         if (isMLeaderStringCode(code))
                             return mleaderStringValue(value, code)
                                 == mleaderStringValue(source.projection, code);
+                        if (isMLeaderHandleCode(code)) {
+                            if (dxfW == nullptr)
+                                return false;
+                            const std::uint32_t sourceHandle =
+                                mleaderHandleValue(source.projection, code);
+                            std::uint32_t expected =
+                                dxfW->remapHandle(sourceHandle);
+                            const auto* context = dxfW->getWritingContext();
+                            if (context == nullptr
+                                || context->ambiguousSourceHandles.count(
+                                    sourceHandle) != 0u)
+                                return false;
+                            bool bound = expected != sourceHandle;
+                            for (const auto* aliases : {
+                                    &context->sourceHandleToWrittenTableMap,
+                                    &context->sourceHandleToWrittenObjectMap,
+                                    &context->sourceHandleToMintedMap}) {
+                                const auto found = aliases->find(sourceHandle);
+                                if (found == aliases->end())
+                                    continue;
+                                if (bound && expected != found->second)
+                                    return false;
+                                expected = found->second;
+                                bound = true;
+                            }
+                            return bound && expected != 0u
+                                && expected != DRW::NoHandle
+                                && mleaderHandleValue(value, code) == expected;
+                        }
                         return isMLeaderDoubleCode(code)
                             && std::isfinite(mleaderDoubleValue(value, code))
                             && mleaderDoubleValue(value, code)
