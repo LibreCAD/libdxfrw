@@ -15989,8 +15989,8 @@ constexpr std::size_t noMLeaderFieldSlot =
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
 }};
-constexpr std::array<int, 13> mleaderInt32Codes{{
-    90, 91, 92, 93, 94, 171, 172, 173, 174, 175, 176, 177, 178
+constexpr std::array<int, 14> mleaderInt32Codes{{
+    90, 91, 92, 93, 94, 170, 171, 172, 173, 174, 175, 176, 177, 178
 }};
 
 bool isMLeaderDoubleCode(int code) noexcept {
@@ -16009,6 +16009,7 @@ bool isMLeaderColorCode(int code) noexcept {
 
 int mleaderEnumMaximum(int code) noexcept {
     switch (code) {
+    case 170: return 3;
     case 171:
     case 172:
     case 177: return 1;
@@ -16029,6 +16030,7 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     case 92: return style.leaderLineWeight;
     case 93: return style.textColor;
     case 94: return style.blockColor;
+    case 170: return style.contentType;
     case 171: return style.drawMLeaderOrder;
     case 172: return style.drawLeaderOrder;
     case 173: return style.leaderType;
@@ -16049,6 +16051,7 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 92: style.leaderLineWeight = value; break;
     case 93: style.textColor = value; break;
     case 94: style.blockColor = value; break;
+    case 170: style.contentType = static_cast<std::uint16_t>(value); break;
     case 171: style.drawMLeaderOrder = static_cast<std::uint16_t>(value); break;
     case 172: style.drawLeaderOrder = static_cast<std::uint16_t>(value); break;
     case 173: style.leaderType = static_cast<std::uint16_t>(value); break;

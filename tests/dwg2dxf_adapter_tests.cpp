@@ -34874,7 +34874,9 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
         return crossStyle != crossReadback.mLeaderStyles.end()
             && (*crossStyle).*member == requestedValue;
     };
-    if (!verifyControlEnum(171, "draw-mleader-order",
+    if (!verifyControlEnum(170, "content-type",
+            &DRW_MLeaderStyle::contentType, 0u, 3u, 4u)
+        || !verifyControlEnum(171, "draw-mleader-order",
             &DRW_MLeaderStyle::drawMLeaderOrder, 0u, 1u, 2u)
         || !verifyControlEnum(172, "draw-leader-order",
             &DRW_MLeaderStyle::drawLeaderOrder, 0u, 1u, 2u)
