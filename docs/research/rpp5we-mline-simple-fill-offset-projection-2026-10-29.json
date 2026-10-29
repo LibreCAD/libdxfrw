@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 selected AC1027 MLINE simple group-42 fill-boundary offset projection",
+  "date": "2026-10-29",
+  "status": "BOUNDED_SIMPLE_FILL_OFFSET_PROJECTION_QUALIFIED",
+  "evidenceCommit": "8729aa3a03b956628185aa719cb211a36651d2b7",
+  "productionChange": "The consumed-style MLINE offset projector now updates the first group-42 parameter alongside group 41 for one admitted profile: AC1027, two style elements, three vertices, flags 13, unchanged angles, and exactly two fill parameters [miter distance, zero start offset] for each element at each vertex. Cut intervals and other fill profiles remain refused.",
+  "scope": "Runtime-generated AC1027 DXF, two MLINE consumers (ENTITIES and BLOCKS), two style elements, three vertices, group-71 flags 13. Change the first style offset from 1.25 to 1.5 and project the simple group-42 boundary values with the same miter-distance rule used for group 41.",
+  "specEvidence": {
+    "primaryAuthority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "primaryUrl": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "relevantDefinition": "Groups 75/42 encode the count and values of each element's area-fill parameter list. Autodesk says group-42 values are interpreted identically to group 41; together across all line elements they define the fill boundary. A two-value uncut list therefore uses the same miter-distance and along-element start-offset roles as the admitted group-41 pair.",
+    "cutBoundaryCaution": "Autodesk documents that MLEDIT crossing cuts can produce two group-42 intervals per element. The ezdxf MLINE implementation says unchanged line-break data is preserved but editing removes line-break features: https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/mline.py (MLineVertex fill parameterization and lines 152-154). Accordingly, four-value cut intervals remain refused; this secondary implementation is cautionary evidence, not a projection oracle.",
+    "interpretation": "The implementation applies the source-validated group-41 miter-distance equation to the corresponding simple group-42 first parameter, retains the documented zero along-element offset, and requires every source value to match the admitted geometry. The receipt proves bounded DXF field transport only. It does not prove native fill rendering, arbitrary boundary regeneration, cut semantics or a broad format-support claim."
+  },
+  "contract": {
+    "admission": "AC1027 only; exactly two style elements; exactly three vertices; flags 13; no angle, count or style retarget; every element/vertex group-42 array has exactly two values and its source pair must equal [expected miter distance, 0]. The selected first style offset changes 1.25 to 1.5.",
+    "positiveOutputAndReadback": "Four combinations cross ASCII/binary input with ASCII/binary output. Both ENTITIES and BLOCKS consumers are checked. Physical tags verify group 75 counts, all group-42 and group-41 values, style offsets, group 71 and vertex count. Fresh typed readback verifies all geometry, style values and ordered group-42 arrays. Caller state is unchanged by export.",
+    "refusalAndRetry": "Four-value/two-interval cut profiles and a late final-vertex group-42/source-geometry mismatch each refuse across all four encoding combinations. Every refusal preserves a pre-existing destination and caller snapshot. Same-adapter retry after restoring the original style offset preserves the exact original group-42 payload and typed readback.",
+    "compatibility": "The directly affected eight-test MLINE cohort passes. Test drawings are generated at runtime; no external DWG/DXF fixture was committed. Existing unfilled offset, cap-flag, vertex, retarget, append and removal profiles remain passing."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "tests/dxf_fixture_tests.cpp generates the simple two-value source, the four-value cut source and a late inconsistent source from scratch. It writes ASCII/binary inputs and outputs, inspects physical tags and performs fresh typed imports.",
+    "evidenceCommit": "8729aa3a03b956628185aa719cb211a36651d2b7",
+    "dwg2dxf/dx_iface.cpp": "f9565181fb44f1ccdd3596c0fa9c0d90ab4600fa8f008ea8b15164c09c967f0a",
+    "tests/dxf_fixture_tests.cpp": "8de22a0c5e2058d96ac11def5a783126669cb0d97b2fbbca6e9a40fb71f1d7f8",
+    "tests/CMakeLists.txt": "f36da48d433e0d5a37f4ceb7d6c74ef26d3ddcf1a51e8345321f474353f67568",
+    "fixtureTestExecutableSha256": "5522d3a81e0c65bcb085927f5acb4186296c74631e19c71e591a6cbf4d7f9f2a",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_fill_parameter_profiles$' --output-on-failure",
+      "summary": "1/1 passed in 0.60s after the final test-source edit"
+    },
+    "affectedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(consumed_offset_projection|consumed_offset_cap_flags|vertex_flag_profiles|fill_parameter_profiles|retarget_offset_projection|retarget_angle_projection|consumed_style_append_cap_flags|consumed_style_removal_cap_flags)$' --output-on-failure",
+      "summary": "8/8 passed in 3.02s"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this scalar projection only writes already-validated vector elements and does not change allocation, ownership, lifetime or parser behavior."
+  },
+  "limitations": [
+    "Only the selected two-value uncut group-42 profile is projected. Four-value cut intervals, other parameter counts, other flag/count/version profiles, retargets, append/removal and alternative boundary shapes remain refused or unqualified.",
+    "No independently generated native MLINE rendering or consumer run was available; the authored vectors establish exact field transport, not native fill appearance.",
+    "No DWG behavior, general MLINE regeneration, native semantics or support promotion follows from this receipt."
+  ],
+  "next": "Select another ready local P2 schema/geometry witness from current evidence. Obtain a native producer/consumer example before extending group-42 projection to cut intervals or broader MLINE profiles."
+}
