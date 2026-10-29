@@ -34036,6 +34036,62 @@ Tags eightElementRecipe(bool binary) {
     }
     return fields;
 }
+Tags nineElementRecipe(bool binary) {
+    auto fields=eightElementRecipe(binary);
+    const std::array<double,9> offsets{{beforeOffsets[0],beforeOffsets[1],
+        -1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5}};
+    for(std::size_t begin=0u;begin<fields.size();) {
+        if(fields[begin].first!=0){++begin;continue;}
+        std::size_t end=begin+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[begin].second=="MLINESTYLE") {
+            setRecordValue(fields,begin,end,71,"9");
+            std::size_t lastLinetype=end;
+            for(std::size_t i=begin+1u;i<end;++i)
+                if(fields[i].first==6)lastLinetype=i;
+            if(lastLinetype==end)
+                throw std::runtime_error("nine-element MLINESTYLE source linetype missing");
+            const Tags tuple{{49,number(offsets.back())},{62,"10"},{6,"ByLayer"}};
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(lastLinetype+1u),
+                tuple.begin(),tuple.end());
+            end+=tuple.size();
+        } else if(fields[begin].second=="MLINE") {
+            setRecordValue(fields,begin,end,73,"9");
+            const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(begin+1u),
+                fields.begin()+static_cast<std::ptrdiff_t>(end),
+                [](const auto& field){return field.first==5;});
+            if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))
+                throw std::runtime_error("nine-element MLINE identity missing");
+            const unsigned profile=id->second=="D100"?0u:id->second=="D101"?1u:2u;
+            if(profile>1u)throw std::runtime_error("unexpected nine-element MLINE profile");
+            std::vector<std::size_t> tuples;
+            for(std::size_t i=begin+1u;i<end;++i)
+                if(fields[i].first==74)tuples.push_back(i);
+            if(tuples.size()!=24u)
+                throw std::runtime_error("eight-element MLINE source parameter count mismatch");
+            const double shift=justification(profile)==2u?4.5:0.0;
+            for(std::size_t i=0u;i<tuples.size();++i) {
+                const auto index=tuples[i];
+                if(fields[index+1u].first!=41||fields[index+2u].first!=41
+                    ||fields[index+3u].first!=75)
+                    throw std::runtime_error("eight-element MLINE source tuple mismatch");
+                fields[index+1u].second=number(parameterForOffset(
+                    profile,static_cast<unsigned>(i/8u),offsets[i%8u],shift));
+            }
+            for(std::size_t vertex=3u;vertex>0u;--vertex) {
+                const auto index=tuples[vertex*8u-1u]+4u;
+                const auto value=number(parameterForOffset(
+                    profile,static_cast<unsigned>(vertex-1u),offsets.back(),shift));
+                const Tags tuple{{74,"2"},{41,value},{41,number(0.0)},{75,"0"}};
+                fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(index),
+                    tuple.begin(),tuple.end());
+                end+=tuple.size();
+            }
+        }
+        begin=end;
+    }
+    return fields;
+}
 Tags threeElementRecipe(bool binary) {
     auto fields=fourElementRecipe(binary);
     for(std::size_t begin=0u;begin<fields.size();) {
@@ -35320,6 +35376,13 @@ bool runConsumedEightSourceAppend(const std::filesystem::path& dir) {
         {1.25,-.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5},{1,3,4,5,6,7,8,9,10},
         {"ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer","Continuous","ByLayer"});
 }
+bool runConsumedNineSourceAppend(const std::filesystem::path& dir) {
+    return runConsumedSourceCountAppend(dir,9u,nineElementRecipe,
+        {1.25,-.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5,-5.0},
+        {1,3,4,5,6,7,8,9,10,11},
+        {"ByLayer","Continuous","ByLayer","Continuous","ByLayer",
+         "Continuous","ByLayer","Continuous","ByLayer","Continuous"});
+}
 bool runConsumedFourSourceAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-four-source-append-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -35366,6 +35429,16 @@ bool runConsumedEightSourceAppendTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedEightSourceAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed eight-source append artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedNineSourceAppendTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-nine-source-append-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runConsumedNineSourceAppend(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed nine-source append artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedAppend(const std::filesystem::path& dir) {
@@ -44576,6 +44649,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-eight-source-append") {
         return mlineConsumedOffsetControls::runConsumedEightSourceAppendTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-nine-source-append") {
+        return mlineConsumedOffsetControls::runConsumedNineSourceAppendTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
