@@ -149,6 +149,12 @@ proof. Refused fields are not implemented editing support.
    the style unchanged; the current consumed-offset edit remains refused with
    the destination preserved. These are evidence for a required guard, not a
    claim that the committed adapter permits the geometry edit.
+   A [corrected-angle scratch witness](docs/research/rpp5jm-mline-consumed-live-counterexample-2026-10-28.json)
+   also demonstrates the stronger failure: after source classification, the
+   uncommitted projection accepts the consumed offset edit and emits either
+   live-only carrier in all four input/output encoding combinations. The same
+   edit remains refused atomically by the committed adapter. Keep that
+   prototype unintegrated until the complete live-to-output guard passes.
 
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
