@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | IMPLEMENT SOURCE GUARD, THEN QUALIFY | Consumed-style geometry has a witnessed projection but an actual hidden-dependency admission gap; remaining count, legacy, retarget/LTYPE and MLEADERSTYLE work stays open | Whole-source dependency evidence and audited admitted grammar; independent ready slices can proceed |
+| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | A selected source-only dependency grammar now refuses the hidden-340 witness; consumed geometry and remaining count, legacy, retarget/LTYPE and MLEADERSTYLE operations remain open | Authenticate live consumers and dependency state, emitted output and geometry; independent ready slices can proceed |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -63,7 +63,7 @@ external searches or a broad audit with no current failing witness.
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins and [ASCII source-name census](docs/research/rpp5ji-ac1018-selected-block-name-census-2026-10-28.json) | Resolve the BLOCK target, XDICTIONARY and APPID/LAYER separately before output or graph promotion |
-| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) and existing identity/delivery evidence | Join the accepted capture to origins, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
+| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json) | Bind original and live dependency/consumer inventories and actual output before considering the geometry projection; expand the source grammar only with separate evidence |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -133,21 +133,24 @@ proof. Refused fields are not implemented editing support.
    detected hidden `340` does not itself refuse a geometry edit. The source is
    private to the adapter and dependent binaries must rebuild. Remaining work:
 
-   - Join immutable evidence to the accepted whole import and existing source,
-     identity, dispatch and ownership origins. Audit a deliberately selected
-     complete document grammar: start with the locally authored modern witness's
-     HEADER, CLASSES, TABLES, BLOCKS, ENTITIES and OBJECTS records and ordinary
-     simple LINE/MLINE, dictionary, style and symbol bodies. Classify each
-     subclass and field role from format evidence; unknown sections/records/
-     fields, unqualified handle-bearing values, proxy/binary payloads, embedded
-     data and XDATA refuse. Admit application scopes only after their exact
-     semantics and references are proven; known structural reactor scopes need
-     their own validated grammar. Record-name or group-340-only scans are not
-     sufficient. Expand the grammar separately from this first subset.
-   - Add both-format controls for the concrete LAYER application `340` witness,
-     zero-live but captured consumers, proxy/unknown scopes, malformed and
-     missing evidence, quotas and unchanged destination/caller state with
-     same-adapter corrected retry. Only then port the bounded geometry prototype:
+   The [selected source-grammar receipt](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json)
+   binds a private `SourceCandidate` result to an accepted AC1027 source and
+   authenticated root, with strict section/record/field roles and bounded
+   work. It refuses the hidden `340` and the earlier inconsistent group-2
+   witness. This selected profile excludes CLASSES and many ordinary valid
+   DXF variants; exact ordering and spelling are admission restrictions. It is
+   not used by export, and changing live dictionaries or removing live entities
+   can leave the source-only result unchanged. No write or geometry claim follows.
+
+   - Expand the selected grammar only after authenticating each new section,
+     record, field, reference and application-scope role. Preserve refusal for
+     unknown/proxy/embedded/XDATA or unqualified dependencies; do not infer a
+     complete dependency graph from recognized record names or group `340`.
+   - Bind immutable original evidence to the complete live consumer and
+     dependency inventories, including zero-live but captured consumers,
+     newly added opaque records and late mutations. Add actual-output and
+     atomic refusal/retry controls before using the source result for writing.
+     Only then port the bounded geometry prototype:
      authenticate every live/original affected consumer, derive each first `41`
      from source geometry and justification, leave break/fill parameters and
      caller models unchanged, inspect actual BLOCKS/ENTITIES bytes, and recheck
