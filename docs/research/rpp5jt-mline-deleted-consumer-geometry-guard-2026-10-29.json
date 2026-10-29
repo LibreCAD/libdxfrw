@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jt MLINE deleted-consumer geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "e3b20317101c81a77e0aac2d13981a9335252cc8",
+  "scope": "A proof-only guard on the AC1021+ code path, currently evidenced for the selected AC1027 profile, for MLINESTYLE geometry edits. It prevents removal or movement of an original ordinary MLINE consumer from making a consumed style appear unused, while leaving unrelated consumer deletion and the existing originally-unused style route available. It does not enable consumed geometry or promote a support claim.",
+  "contract": {
+    "sourceBinding": "Uses the accepted same-read source identity, physical MLINE records, parser delivery and block-scope evidence. It selects original consumers by their source group-340 style handle and rejects an edited style when an original consumer is missing or has moved from its source block.",
+    "liveBinding": "For geometry-edited styles, the source/live census requires each original consumer to remain uniquely present in its expected scope, even when its live style reference is being retargeted. The existing consumer planner validates retarget compatibility later in the same export. Unrelated MLINE consumers are not required to remain live by this geometry census.",
+    "compatibility": "Count changes retain the prior strict all-consumer/model census. The geometry census is restricted to AC1021+ because earlier-version typed offset authority is not qualified; established pre-AC1021 raw-only transport remains unchanged.",
+    "failureBehavior": "A deleted or moved original consumer plus a consumed-style offset edit refuses before publication, preserves a pre-existing destination sentinel and retains the caller's edited style. Restoring the consumer scopes and original offset permits same-adapter retry. An originally-unused style edit still exports after unrelated MLINE deletion.",
+    "limits": "The census covers ordinary MLINE source records, not opaque/proxy references or all graph carriers. It does not authenticate the final staged document, prove emitted geometry, enable consumed offset changes, qualify native rendering, or establish whole-document dependency closure."
+  },
+  "controls": {
+    "consumedStyle": {
+      "sourceOutputProfiles": 4,
+      "matrix": [
+        "ASCII source -> ASCII DXF output",
+        "ASCII source -> binary DXF output",
+        "binary DXF source -> ASCII output",
+        "binary DXF source -> binary output"
+      ],
+      "originalConsumersRemoved": 2,
+      "atomicRefusals": 4,
+      "destinationSentinelPreserved": 4,
+      "callerEditPreservedOnRefusal": 4,
+      "sameAdapterCorrectedRetries": 4,
+      "readbacks": 4,
+      "readbackChecks": "Two MLINE consumers are present after retry and the selected style offset equals the restored source value.",
+      "preFixReproduction": "Before the guard was added, the consumed-style offset edit exported after both original MLINE consumers were removed. The focused regression returned its unexpected-export failure code.",
+      "movedOriginalConsumers": 1,
+      "movedAtomicRefusals": 4,
+      "movedDestinationSentinelPreserved": 4,
+      "movedCallerEditPreservedOnRefusal": 4,
+      "movedSameAdapterCorrectedRetries": 4,
+      "movedReadbacks": 4,
+      "movedReadbackChecks": "After restoring the original block scope and offset, both consumers are present and the selected offset equals the source value."
+    },
+    "originallyUnusedStyle": {
+      "sourceOutputProfiles": 4,
+      "unrelatedConsumersRemoved": 2,
+      "exports": 4,
+      "readbacks": 4,
+      "readbackChecks": "The output contains no MLINE consumers and retains the edited offset on the originally-unused style."
+    },
+    "fixturePolicy": "The AC1027 ASCII and binary DXF inputs are generated from locally authored in-test text under temporary scratch paths and removed by test cleanup. No external DWG/DXF fixtures were added or staged."
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "normal": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4",
+      "asan": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4"
+    },
+    "normal": {
+      "result": "PASS",
+      "count": "9/9",
+      "seconds": 1.11,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_mline_style_body_source_live",
+        "libdxfrw_mline_deleted_consumer_geometry_guard",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "9/9",
+      "seconds": 0.71,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_mline_style_body_source_live",
+        "libdxfrw_mline_deleted_consumer_geometry_guard",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ],
+      "sanitizer": "AddressSanitizer-instrumented targets"
+    },
+    "transactionSelector": {
+      "result": "PASS",
+      "selector": "build/libdxfrw_dxf_fixture_tests --mline-style-body-transactions",
+      "summary": "profiles=8; readbacks=567; refusals=140; retries=328; callbacks=88; presence=4; preparationFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=24; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1",
+      "compatibility": "Includes existing compatible retarget, unused-style, and AC1015 raw-only transport controls."
+    },
+    "repositoryChecks": {
+      "diffCheck": "PASS (git diff --check)",
+      "buildInventory": "PASS (631 released files)",
+      "buildInventorySelfTest": "PASS (18 refusal controls)",
+      "fixtureAdmission": "PASS (0 fixture index candidates checked)"
+    },
+    "directSelector": "PASS: profiles=4; deletion refusals=4; deletion retries=4; deletion readbacks=4; moved-consumer refusals=4; moved-consumer retries=4; moved-consumer readbacks=4; originally-unused-style controls=4."
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "12cdedc578a187806e6e9e871f32e89d935adad0c64b8a5b6d8d2de8b3cbab79",
+    "dwg2dxf/dx_iface.h": "4c1edd7d97578e740617f46ac91ba4f466a54cbd2e2e3c0d8177fa0dd9b2b2e2",
+    "tests/CMakeLists.txt": "9d3316c6a04fbcca97b1eba67590e314eb7233eee8817efef3d3c6df0a9df922",
+    "tests/dxf_mline_source_dependency_tests.cpp": "b4ca95d64c9333a4d93150fad484ed4f2a5ef6fecf0e1ecd5e9f123df33335c7"
+  },
+  "binaryBindings": {
+    "normalMlineTest": "639cd37b8a7b44612b372852b71bde754294680ff889c209f5d19af1395690a7",
+    "normalDxfFixtureTest": "b6de996a8d89dce0c2bc4ddf006e47ae6910a38ff0f4f95e1937a89e8155b6bc",
+    "normalWholeSourceTest": "4d3cc1bddc2614d5163418c597f236397e706938e2470d58e5eb694ff48c2d88",
+    "normalLegacyRelationTest": "f94be6ed320693cc4e6bdffcd53af22dca454a955491324a4d4e8af3d7d878a7",
+    "asanMlineTest": "c40d8e66e7f6e61375d602e7a3030f1b6884a94256bcec87ec6157ff9e5c85b2",
+    "asanDxfFixtureTest": "ed4e23b0fe07c32a6376d82f77ae71b46686709c46afcd9023b6e3f4da3ed0a2",
+    "asanWholeSourceTest": "d1236143239107d1d22f4defe76da85bc7a5c558d483b498241dfd479f351eb0",
+    "asanLegacyRelationTest": "d63582ff3d03cee239b425794a7fb36f957a18d560cdf955a24149c799d2f008"
+  },
+  "next": "Bind the remaining live graph carriers and original consumers to source and actual staged output, including raw sections, generated CLASSES and final HANDSEED. Then obtain independent emitted-geometry evidence before considering consumed offset edits; retain refusal for unsupported carriers, versions and native semantics.",
+  "testCommit": "9883d88064b8e4b79be648d89f54104189f4dd5f"
+}
