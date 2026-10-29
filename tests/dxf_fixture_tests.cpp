@@ -29566,10 +29566,8 @@ bool run(const std::filesystem::path& dir) {
     const auto fail=[&](int line){materialAllocationCountdown=-1;std::cerr<<"MLINESTYLE transaction line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks<<" refusals="<<refusals<<'\n';return false;};
     if(!mlineUnusedOffsetControls::run(dir))return fail(__LINE__);
     if(!mlineRetargetControls::run(dir))return fail(__LINE__);
-    if(!mlineLtypeReferencedFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeDefaultFlagControls::run(dir))return fail(__LINE__);
     if(!mlineLtypeEditControls::run(dir))return fail(__LINE__);
-    if(!mlineLtypeProviderControls::run(dir))return fail(__LINE__);
     for(bool sourceBinary:{false,true})for(bool binary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,recipe("AC1027",sourceBinary),sourceBinary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -30645,6 +30643,7 @@ void testMLineStyleAuthority(TestContext& t) {
 
 namespace mlineLtypeProviderControls {
 using namespace materialConsumerControls;
+using A=DxIfaceMaterialReferenceTestAccess;
 Tags withProvider(Tags fields,bool select=true) {
     bool table=false,style=false,first=false;
     auto at=fields.end();
@@ -30667,6 +30666,51 @@ Tags withProvider(Tags fields,bool select=true) {
     if(!first)throw std::runtime_error("MLINE custom LTYPE reference missing");return fields;
 }
 Tags recipe(bool binary){return withProvider(mlineStyleAuthorityControls::recipe(binary));}
+Tags reorderedRecipe(bool binary) {
+    auto fields=recipe(binary);
+    for(std::size_t begin=0u;begin+1u<fields.size();++begin) {
+        if(fields[begin]!=std::make_pair(0,std::string("LTYPE"))
+            ||fields[begin+1u]!=std::make_pair(5,std::string("103")))continue;
+        auto end=begin+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+        std::map<int,std::string> header;std::vector<std::pair<int,std::string>> dashes;unsigned classes=0u;
+        for(auto i=begin+1u;i<end;++i) {
+            const auto& field=fields[i];if(field.first==100){++classes;continue;}
+            if(classes!=2u)continue;
+            if(field.first==49||field.first==74)dashes.push_back(field);
+            else if(field.first==2||field.first==70||field.first==3||field.first==72||field.first==73||field.first==40) {
+                if(!header.emplace(field).second)throw std::runtime_error("duplicate LTYPE header in recipe");
+            }
+        }
+        constexpr int required[]={2,70,3,72,73,40};
+        for(const auto code:required)if(!header.count(code))throw std::runtime_error("LTYPE header missing in recipe");
+        if(dashes.size()!=4u)throw std::runtime_error("LTYPE dash sequence missing in recipe");
+        Tags reordered(fields.begin()+begin,fields.begin()+begin+5u);
+        for(const int code:{3,40,2,73,70,72})reordered.emplace_back(code,header.at(code));
+        reordered.insert(reordered.end(),dashes.begin(),dashes.end());
+        fields.erase(fields.begin()+begin,fields.begin()+end);
+        fields.insert(fields.begin()+begin,reordered.begin(),reordered.end());return fields;
+    }
+    throw std::runtime_error("custom LTYPE record missing from recipe");
+}
+bool headerOrder(const Tags& fields,const std::vector<int>& expected) {
+    for(std::size_t begin=0u;begin+1u<fields.size();++begin) {
+        if(fields[begin]!=std::make_pair(0,std::string("LTYPE"))
+            ||fields[begin+1u]!=std::make_pair(5,std::string("103")))continue;
+        std::vector<int> actual{fields[begin].first};auto end=begin+1u;
+        while(end<fields.size()&&fields[end].first!=0)actual.push_back(fields[end++].first);
+        if(actual!=expected){std::cerr<<"reordered LTYPE input fields=";for(const auto code:actual)std::cerr<<code<<',';std::cerr<<'\n';}
+        return actual==expected;
+    }
+    return false;
+}
+bool reorderedOutputHeaderOrder(const std::filesystem::path& path,bool binary) {
+    for(const auto& row:mlineStyleAuthorityControls::records(path,binary))if(row.type=="LTYPE") {
+        bool selected=false;for(const auto& field:row.fields)if(field==std::make_pair(2,std::string("EditDash")))selected=true;
+        if(!selected)continue;std::vector<int> actual{0};for(const auto& field:row.fields)actual.push_back(field.first);
+        return actual==std::vector<int>{0,5,330,100,100,2,70,3,72,73,40,49,74,49,74};
+    }
+    return false;
+}
 Tags plainRecipe(bool binary) {
     const auto source=recipe(binary);Tags fields;
     for(std::size_t i=0u;i<source.size();) {
@@ -30808,7 +30852,7 @@ struct Replay:dx_iface {
 bool run(const std::filesystem::path& dir) {
     const auto input=dir/"ltype-input.dxf",output=dir/"ltype-output.dxf";
     std::size_t profiles=0u,readbacks=0u,copyRefusals=0u,preflightRefusals=0u,lateRefusals=0u,retries=0u,corruptions=0u,compatibility=0u,sourceIndexRefusals=0u;
-    std::size_t plannerFaults=0u,plannerUnreached=0u,normalizedAdvisory=0u;
+    std::size_t plannerFaults=0u,plannerUnreached=0u,normalizedAdvisory=0u,reorderedProfiles=0u,reorderedReadbacks=0u;
     const auto fail=[&](int line){std::cerr<<"MLINE LTYPE provider line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
         <<" copyRefusals="<<copyRefusals<<" preflightRefusals="<<preflightRefusals<<" lateRefusals="<<lateRefusals
         <<" plannerFaults="<<plannerFaults<<" plannerUnreached="<<plannerUnreached<<" normalizedAdvisory="<<normalizedAdvisory<<'\n';return false;};
@@ -30832,6 +30876,19 @@ bool run(const std::filesystem::path& dir) {
                 ||!sameProvider(provider(data),original))return fail(__LINE__);++readbacks;++retries;
         }
         ++profiles;
+    }
+    for(bool binary:{false,true}) {
+        const auto fields=reorderedRecipe(binary);
+        if(!headerOrder(fields,{0,5,330,100,100,3,40,2,73,70,72,49,74,49,74}))return fail(__LINE__);
+        dx_iface adapter;dx_data data;
+        if(!write(input,fields,binary,"AC1027")||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
+        const auto original=provider(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)
+            ||!A::mlineLinetypeProofBound(adapter,0x103u)||!providerProof(output,binary)
+            ||!reorderedOutputHeaderOrder(output,binary)
+            ||!mlineStyleAuthorityControls::proof(output,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME","EditDash")
+            ||!sameProvider(provider(data),original)||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return fail(__LINE__);
+        ++reorderedProfiles;++reorderedReadbacks;
     }
     for(bool binary:{false,true})for(unsigned kind=0u;kind<8u;++kind) {
         dx_iface adapter;dx_data data;
@@ -30944,10 +31001,20 @@ bool run(const std::filesystem::path& dir) {
     std::cout<<"MLINE LTYPE provider profiles="<<profiles<<"; readbacks="<<readbacks<<"; copyRefusals="<<copyRefusals
         <<"; preflightRefusals="<<preflightRefusals<<"; lateRefusals="<<lateRefusals<<"; retries="<<retries
         <<"; corruptions="<<corruptions<<"; compatibility="<<compatibility<<"; sourceIndexRefusals="<<sourceIndexRefusals
-        <<"; plannerFaults="<<plannerFaults<<"; plannerUnreached="<<plannerUnreached<<"; normalizedAdvisory="<<normalizedAdvisory<<'\n';
+        <<"; plannerFaults="<<plannerFaults<<"; plannerUnreached="<<plannerUnreached<<"; normalizedAdvisory="<<normalizedAdvisory
+        <<"; reorderedProfiles="<<reorderedProfiles<<"; reorderedReadbacks="<<reorderedReadbacks<<'\n';
     return profiles==4u&&readbacks==93u&&copyRefusals==16u&&preflightRefusals==16u&&lateRefusals==40u
         &&retries==82u&&corruptions==38u&&compatibility==4u&&sourceIndexRefusals==2u
-        &&plannerFaults>0u&&plannerFaults+plannerUnreached==8u&&normalizedAdvisory==1u;
+        &&plannerFaults>0u&&plannerFaults+plannerUnreached==8u&&normalizedAdvisory==1u
+        &&reorderedProfiles==2u&&reorderedReadbacks==2u;
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-ltype-provider-profiles-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=run(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE LTYPE provider evidence: "<<dir<<'\n';
+    return passed;
 }
 }
 
@@ -31016,19 +31083,26 @@ bool canonicalFlagsNormalized(const std::filesystem::path& path,bool binary) {
                 if(field.first==70)flags.push_back(field.second);
             }
             if(names==std::vector<std::string>{expected.first}) {
-                if(row.id!=expected.second||row.owner!="5"||flags!=std::vector<std::string>{"0"})return false;
+                std::int64_t flag=0;
+                if(row.id!=expected.second||row.owner!="5"||flags.size()!=1u
+                    ||!dx_raster_output::integer(flags.front(),flag)||flag!=0) {
+                    std::cerr<<"canonical LTYPE wire mismatch name="<<expected.first<<" id="<<row.id
+                        <<" owner="<<row.owner<<" flags="<<(flags.empty()?"<missing>":flags.front())<<'\n';return false;
+                }
                 ++matches;
             }
         }
-        if(matches!=1u)return false;
+        if(matches!=1u){std::cerr<<"canonical LTYPE wire row count name="<<expected.first<<" matches="<<matches<<'\n';return false;}
     }
-    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false))return false;
-    for(const auto& expected:mandatory) {
+    dx_iface reader;dx_data actual;if(!reader.fileImport(path.string(),&actual,false)){std::cerr<<"canonical LTYPE output readback failed\n";return false;}
+    const std::array<std::string,2> selected{{"ByLayer","Continuous"}};
+    for(const auto& expected:selected) {
         unsigned matches=0u;
-        for(const auto& value:actual.lineTypes)if(value.name==expected.first) {
-            if(value.flags!=0)return false;++matches;
+        for(const auto& value:actual.lineTypes)if(value.name==expected) {
+            if(value.flags!=0){std::cerr<<"canonical LTYPE readback flags name="<<expected<<" flags="<<value.flags<<'\n';return false;}++matches;
         }
-        if(matches!=1u)return false;
+        if(matches!=1u){std::cerr<<"canonical LTYPE readback row count name="<<expected<<" matches="<<matches<<" names=";
+            for(const auto& value:actual.lineTypes)std::cerr<<value.name<<',';std::cerr<<'\n';return false;}
     }
     return true;
 }
@@ -31475,10 +31549,15 @@ bool run(const std::filesystem::path& dir) {
         const auto typed=data.mLineStyles;const auto raws=data.rawNamedResourceObjects;
         const auto check=[&] {
             const auto style=data.mLineStyles.front();const auto raw=mlineStyleBodyTransactionControls::raw(data);const auto lines=data.lineTypes;
-            if(!adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true)||!A::mlineLinetypeProofBound(adapter,sourceHandle)
-                ||!mlineLtypeEditControls::canonicalFlagsNormalized(output,binary)
-                ||!mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}})
-                ||!mlineLtypeEditControls::caller(data,style,raw,lines))return false;
+            const bool exported=adapter.fileExport(output.string(),DRW::AC1027,binary,&data,false,true);
+            const bool bound=exported&&A::mlineLinetypeProofBound(adapter,sourceHandle);
+            const bool normalized=bound&&mlineLtypeEditControls::canonicalFlagsNormalized(output,binary);
+            const bool decoded=normalized&&mlineLtypeEditControls::complete(output,binary,{{"ByLayer","Continuous"}});
+            const bool caller=decoded&&mlineLtypeEditControls::caller(data,style,raw,lines);
+            if(!caller)std::cerr<<"canonical LTYPE profile binary="<<binary<<" source="<<sourceHandle
+                <<" export="<<exported<<" bound="<<bound<<" normalized="<<normalized
+                <<" decoded="<<decoded<<" caller="<<caller<<'\n';
+            if(!caller)return false;
             ++readbacks;return true;
         };
         if(!check())return fail(__LINE__);
@@ -31519,6 +31598,14 @@ bool run(const std::filesystem::path& dir) {
         <<"; corruptions="<<corruptions<<"; composition="<<composition<<'\n';
     return profiles==4u&&readbacks==76u&&edits==14u&&copied==6u&&late==24u&&unqualified==6u&&canonical==8u
         &&retries==44u&&corruptions==6u&&composition==2u;
+}
+bool runTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-ltype-referenced-flags-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=run(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE LTYPE referenced-flag evidence: "<<dir<<'\n';
+    return passed;
 }
 }
 
@@ -45540,6 +45627,10 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mline-style-body-transactions") {
         TestContext context;testMLineStyleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-referenced-flags")
+        return mlineLtypeReferencedFlagControls::runTemporary()?0:1;
+    if (argc == 2 && std::string(argv[1]) == "--mline-ltype-provider-profiles")
+        return mlineLtypeProviderControls::runTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
     }

@@ -1869,6 +1869,14 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --mline-style-body-transactions)
     set_tests_properties(libdxfrw_mline_style_body_transactions PROPERTIES
         LABELS "fast;dxf;adapter;mline;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_mline_ltype_referenced_flags
+        COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-referenced-flags)
+    set_tests_properties(libdxfrw_mline_ltype_referenced_flags PROPERTIES
+        LABELS "fast;dxf;adapter;mline;linetype;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_mline_ltype_provider_profiles
+        COMMAND libdxfrw_dxf_fixture_tests --mline-ltype-provider-profiles)
+    set_tests_properties(libdxfrw_mline_ltype_provider_profiles PROPERTIES
+        LABELS "fast;dxf;adapter;mline;linetype;transaction;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_mline_style_authority
         COMMAND libdxfrw_dxf_fixture_tests --mline-style-authority)
     set_tests_properties(libdxfrw_mline_style_authority PROPERTIES
