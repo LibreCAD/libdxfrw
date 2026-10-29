@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected ATTDEF and 704/705/706 source joins; [BLOCK_RECORD/331 source relation](docs/research/rpp5jh-ac1018-blockref-whole-source-relation-2026-10-28.json) | Resolve target-name uniqueness, XDICTIONARY and APPID/LAYER separately before output or graph promotion |
+| P4a — AC1018 attribute provenance | Selected 704/705/706 joins and [ASCII source-name census](docs/research/rpp5ji-ac1018-selected-block-name-census-2026-10-28.json) | Resolve the BLOCK target, XDICTIONARY and APPID/LAYER separately before output or graph promotion |
 | P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) and existing identity/delivery evidence | Join the accepted capture to origins, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
@@ -424,8 +424,10 @@ same-read authority and must not promote a source relation.
 The [same-read source relation](docs/research/rpp5jh-ac1018-blockref-whole-source-relation-2026-10-28.json)
 now binds 6F2's captured BLOCK_RECORD body, original name and BLKREFS/331 to
 704's selected INSERT compound, with ASCII/binary, callback-spoof, quota and
-retry controls. This is source evidence only. Keep name uniqueness and target
-resolution separate, then bind XDICTIONARY 6F3
+retry controls. The [selected ASCII source-name census](docs/research/rpp5ji-ac1018-selected-block-name-census-2026-10-28.json)
+now counts the whole original BLOCK_RECORD table and rejects duplicate, invalid
+or non-ASCII names. This is source evidence, not native collation or BLOCK
+target resolution. Bind XDICTIONARY 6F3
 and APPID/LAYER targets and prove output and retry behavior without weakening
 the generic gates.
 
