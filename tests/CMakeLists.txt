@@ -162,6 +162,16 @@ set_tests_properties(libdxfrw_mline_consumed_offset_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
+# Generated at runtime from the selected AC1027 MLINE profile. This proves
+# consumed-style offset reprojection with documented cap-suppression flags,
+# exact physical group-71/group-41 output and semantic readback, refusal and
+# rollback for closed/unknown flags, and same-adapter retry behavior.
+add_test(NAME libdxfrw_mline_consumed_offset_cap_flags
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-offset-cap-flags)
+set_tests_properties(libdxfrw_mline_consumed_offset_cap_flags PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Generated at runtime from the selected AC1027 MLINE profiles. This proves
 # offset reprojection when retargeting group 340, including documented
 # start/end-cap suppression flags, exact redundant group-2/reference/geometry

@@ -38225,7 +38225,7 @@ Tags threeElementRecipe(bool binary) {
 bool close(double a,double b){return std::isfinite(a)&&std::isfinite(b)&&std::fabs(a-b)<=2e-5*(1.0+(std::max)(std::fabs(a),std::fabs(b)));}
 std::vector<std::string> values(const Row& row,int code){std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;}
 bool oneNumber(const Row& row,int code,double expected){const auto found=values(row,code);return found.size()==1u&&close(std::stod(found.front()),expected);}
-bool outputProof(const std::filesystem::path& path,bool binary) {
+bool outputProof(const std::filesystem::path& path,bool binary,int entityFlags=1) {
     const auto rows=mlineStyleAuthorityControls::records(path,binary);unsigned consumers=0u,styles=0u;
     for(const auto& row:rows) {
         if(row.type=="MLINESTYLE") {
@@ -38237,7 +38237,7 @@ bool outputProof(const std::filesystem::path& path,bool binary) {
         if(row.type!="MLINE")continue;
         const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;if(profile>1u)return false;
         if(row.section!=(profile?"BLOCKS":"ENTITIES")||!oneNumber(row,70,justification(profile))
-            ||!oneNumber(row,71,1)||!oneNumber(row,72,3)||!oneNumber(row,73,2)
+            ||!oneNumber(row,71,entityFlags)||!oneNumber(row,72,3)||!oneNumber(row,73,2)
             ||!oneNumber(row,40,scale(profile))||!values(row,42).empty())return false;
         const auto actual=values(row,41);if(actual.size()!=12u){std::cerr<<"output MLINE parameter count="<<actual.size()<<"\n";return false;}std::size_t at=0u;
         for(unsigned vertex=0u;vertex<3u;++vertex)for(unsigned element=0u;element<2u;++element)
@@ -38254,7 +38254,7 @@ bool outputProof(const std::filesystem::path& path,bool binary) {
     for(unsigned profile=0u;profile<2u;++profile) {
         const auto& line=*lines[profile];const auto points=geometry(profile);const auto ext=extrusion(profile);
         if(line.numVerts!=3u||line.numLines!=2u||line.vertlist.size()!=3u
-            ||line.justification!=justification(profile)||line.openClosed!=1u||!close(line.scale,scale(profile))
+            ||line.justification!=justification(profile)||line.openClosed!=entityFlags||!close(line.scale,scale(profile))
             ||!close(line.extPoint.x,ext.x)||!close(line.extPoint.y,ext.y)||!close(line.extPoint.z,ext.z)
             ||line.vertlist.front().position.x!=points.front().first.x||line.vertlist.front().position.y!=points.front().first.y
             ||line.vertlist.front().position.z!=points.front().first.z){std::cerr<<"output readback geometry header profile="<<profile<<" numVerts="<<line.numVerts<<" verts="<<line.vertlist.size()<<" scale="<<line.scale<<" just="<<line.justification<<"\n";return false;}
@@ -38968,6 +38968,81 @@ bool run(const std::filesystem::path& dir) {
     std::cout<<"MLINE consumed offset profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
         <<"; late="<<late<<"; retries="<<retries<<'\n';
     return profiles==4u&&readbacks==6u&&refusals==2u&&late==2u&&retries==2u;
+}
+bool runConsumedOffsetCapFlags(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-offset-caps-input.dxf",output=dir/"consumed-offset-caps-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed offset cap flags line="<<line<<" profiles="<<profiles
+            <<" readbacks="<<readbacks<<" refusals="<<refusals
+            <<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    for(const int entityFlags:{5,9,13})
+        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,recipe(sourceBinary,false,entityFlags),sourceBinary,"AC1027")
+                ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+                ||data.mLineStyles.front().elements.size()!=2u)return fail(__LINE__);
+            const auto lines=mlineStyleAuthorityControls::consumers(data);
+            if(lines.size()!=2u||lines[0]->openClosed!=entityFlags
+                ||lines[1]->openClosed!=entityFlags)return fail(__LINE__);
+            data.mLineStyles.front().elements[0].offset=afterOffsets[0];
+            const mlineRetargetControls::Snapshot caller(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!outputProof(output,outputBinary,entityFlags)||!caller.same(data))return fail(__LINE__);
+            ++profiles;++readbacks;
+        }
+    // Closed MLINEs and unknown group-71 bits remain refused. A fresh valid
+    // source is then exported through the same adapter instance.
+    for(const int entityFlags:{3,17})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false,false,entityFlags),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u)return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=afterOffsets[0];
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!caller.same(data))return fail(__LINE__);
+        ++refusals;
+        dx_iface correctedReader;dx_data correctedData;
+        if(!write(input,recipe(false,false,13),false,"AC1027")
+            ||!correctedReader.fileImport(input.string(),&correctedData,false)
+            ||correctedData.mLineStyles.size()!=1u)return fail(__LINE__);
+        correctedData.mLineStyles.front().elements[0].offset=afterOffsets[0];
+        const mlineRetargetControls::Snapshot corrected(correctedData);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&correctedData,false,true)
+            ||!outputProof(output,outputBinary,13)||!corrected.same(correctedData))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,recipe(false,false,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u)return fail(__LINE__);
+        data.mLineStyles.front().elements[0].offset=afterOffsets[0];
+        const mlineRetargetControls::Snapshot caller(data);
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProof(output,outputBinary,13)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed offset cap profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==12u&&readbacks==18u&&refusals==4u&&late==2u&&retries==6u;
+}
+bool runConsumedOffsetCapFlagsTemporary() {
+    const auto dir=std::filesystem::temp_directory_path() /
+        ("libdxfrw-mline-consumed-offset-caps-"
+         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runConsumedOffsetCapFlags(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed offset cap artifacts: "<<dir<<'\n';
+    return passed;
 }
 bool runTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -49840,6 +49915,9 @@ int main(int argc, char** argv) {
         return mlineLtypeMixedShapeTextControls::runReverseTemporary()?0:1;
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-projection") {
         return mlineConsumedOffsetControls::runTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-offset-cap-flags") {
+        return mlineConsumedOffsetControls::runConsumedOffsetCapFlagsTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-retarget-offset-projection") {
         return mlineConsumedOffsetControls::runRetargetOffsetTemporary()?0:1;

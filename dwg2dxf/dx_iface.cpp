@@ -17463,20 +17463,20 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 
 // Recompute the first, miter-distance parameter for an admitted open,
 // unfilled and uncut MLINE. Preserve documented start/end-cap suppression
-// flags on selected AC1027 angle and offset-only retarget paths; they do not
-// alter the segment parameter arrays. Other projections retain the plain-open
+// flags on selected AC1027 angle/offset retarget and consumed-style edit
+// paths; they do not alter the segment parameter arrays. Other projections retain the plain-open
 // profile until qualified separately. This is not a general MLINE regeneration
 // algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
         bool retargetAngles=false,bool retargetStyleRemoval=false,bool retargetOffsets=false,
-        bool appendCapFlags=false,bool removeCapFlags=false) {
+        bool appendCapFlags=false,bool removeCapFlags=false,bool consumedOffsetCapFlags=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
     if (!mlineProjectionOpenAndUncut(original)
         || (original.openClosed!=1 && !retargetAngles && !retargetOffsets
-            && !appendCapFlags && !removeCapFlags)
+            && !appendCapFlags && !removeCapFlags && !consumedOffsetCapFlags)
         || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
@@ -17485,6 +17485,9 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         || (retargetOffsets && (retargetAngles || appended || removed))
         || (appendCapFlags && (!appended || removed || retargetAngles || retargetOffsets))
         || (removeCapFlags && (!removed || appended || retargetAngles || retargetOffsets || appendCapFlags))
+        || (consumedOffsetCapFlags && (appended || removed || retargetAngles || retargetOffsets
+            || before.elements.size()!=2u || after.elements.size()!=2u
+            || (original.openClosed!=5 && original.openClosed!=9 && original.openClosed!=13)))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -18840,9 +18843,15 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && before->elements.size()==2u && targetStyle.elements.size()==3u;
                 const bool selectedCapFlagRemoval=before && version==DRW::AC1027 && removeElements
                     && before->elements.size()==2u && targetStyle.elements.size()==1u;
+                const bool selectedCapFlagOffsetEdit=before && version==DRW::AC1027
+                    && !append && !removeElements && before->elements.size()==2u
+                    && targetStyle.elements.size()==2u
+                    && (original->openClosed==5 || original->openClosed==9 || original->openClosed==13)
+                    && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
+                        || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
                 if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,
                         append,removeElements,false,false,false,selectedCapFlagAppend,
-                        selectedCapFlagRemoval)) return false;
+                        selectedCapFlagRemoval,selectedCapFlagOffsetEdit)) return false;
                 planned.geometryProjected=true;
             }
             return m_dxfMLineConsumers.emplace(value.handle,std::move(planned)).second;
