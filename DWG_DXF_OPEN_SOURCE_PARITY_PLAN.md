@@ -617,9 +617,10 @@ a wrapper around the same parser is not an independent oracle.
   required CI/release gates. Verify advertised claims against the actual receipts;
   source parity and successful packaging do not advertise format support.
 
-Reuse [the macOS extracted-build checkpoint](docs/research/rpp5fx-source-release-inventory-and-extracted-builds-2026-10-27.json)
-as historical static/shared/CMake/distcheck evidence. Refresh its affected binding
-at a package checkpoint; repairing the old inventory gap is no longer open work.
+The [source inventory repair](docs/research/rpp5jf-source-release-inventory-2026-10-28.json)
+includes the current library and converter headers and verifies a macOS CMake
+build from an inventory-only source copy. Refresh its binding at the next package
+checkpoint; the separate archive, shared-library and native-platform gates remain.
 Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel and native
 Linux GCC release remain **NOT_RUN**. Existing macOS/local/compile evidence cannot
 substitute for those runs.
