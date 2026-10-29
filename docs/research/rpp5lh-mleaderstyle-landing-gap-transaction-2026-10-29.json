@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 selected AC1027 MLEADERSTYLE landing-gap transaction",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "042f99801247284731ca8319f6ac0dc030837323",
+  "scope": "One runtime-authored AC1027 DXF source with two root-reachable MLEADERSTYLE records. STANDARD has one existing group-42 landingGap value 1.25 and an opaque group-302 tag; SECONDARY is unchanged. Supports a standalone typed landingGap change from 1.25 to 4.5.",
+  "fieldEvidence": {
+    "groupCode": 42,
+    "field": "landingGap",
+    "source": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group codes",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "classification": "DXF field role corroboration; not a producer sample or native semantic acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain one finite DOUBLE group 42 within exactly one AcDbMLeaderStyle subclass. landingGap must be the only changed typed payload field; table-entry identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-42 value in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. Missing or repeated group 42, unknown subclass grammar, non-AC1027 route, another typed edit, or a simultaneous group-45 edit remains outside this transaction.",
+    "outputAndReadback": "Inspect the staged OBJECTS body against every retained raw field and mapped handle, then decode the emitted MLEADERSTYLE and require group-42 landingGap to equal the planned value. Fresh readback proves the typed value, one literal group-42 field with value 4.5, and preservation of opaque group 302.",
+    "failureAndRetry": "An edited raw group 42 that differs from its immutable baseline refuses while preserving a sentinel destination. A simultaneous typed textHeight edit refuses atomically. A late typed landingGap mutation after preflight also refuses without replacing the destination; restoring the requested value permits same-adapter retry. The focused selector runs both source encodings and both target encodings, including ASCII-to-binary and binary-to-ASCII.",
+    "compatibility": "Untouched MLEADERSTYLE records keep the existing raw replay route. Transactions are not admitted for other source or target versions, nor are multiple scalar edits on one record. The typed DWG-origin writer and existing fail-closed behavior remain unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp, with two root dictionary entries, existing typed references, STANDARD group 42=1.25, SECONDARY with default landingGap, and distinct group-302 opaque tags; ASCII and binary inputs are generated locally from scratch.",
+    "implementationCommit": "042f99801247284731ca8319f6ac0dc030837323",
+    "dwg2dxf/dx_iface.cpp": "24f58692ce3348021072549947b7797434c47d1f24bf9886de5e3a4f3df4f7d1",
+    "dwg2dxf/dx_iface.h": "85d7026dfbcaae2ed860307436ab34b4ac74d559bfa5acae25b48c7f28d97949",
+    "tests/dwg2dxf_adapter_tests.cpp": "21daf2a0088b9c81f15ef71865841275c681253ba589588320705afe8bf16cbb",
+    "adapterTestExecutableSha256": "c5c944b7bbd1e84b194eefc0d58859cb0f461dd960a78ee5cb5d33b9bb4cc511"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Ninja, Clang with -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. Covers ASCII/binary sources, same-format output and cross-format readback, exact group-42 field and typed value, opaque group-302 retention, raw conflict sentinel rollback, combined group-42/group-45 refusal, late-mutation rollback and corrected same-adapter retry."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "This receipt qualifies one authored AC1027 adapter transaction and emitted DXF field only. It does not prove native landing-gap meaning or appearance, producer validity, cross-version support, DWG editing, full MLEADERSTYLE schema coverage, complete document closure or consumer acceptance.",
+    "No support claim is promoted; the support ledger remains closed."
+  ],
+  "next": "Select a distinct current P2 geometry, schema or provider witness. Keep group 42 and group 45 as separate single-field transactions and retain all unqualified fields on their existing route."
+}
