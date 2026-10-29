@@ -22286,6 +22286,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     switch (type) {
     case DRW::LINE:return "LINE";
     case DRW::CIRCLE:return "CIRCLE";
+    case DRW::ARC:return "ARC";
     default:return nullptr;
     }
 }
@@ -22295,7 +22296,18 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     switch (type) {
     case DRW::LINE:return DRW_DxfEntitiesCallback::addLine;
     case DRW::CIRCLE:return DRW_DxfEntitiesCallback::addCircle;
+    case DRW::ARC:return DRW_DxfEntitiesCallback::addArc;
     default:return DRW_DxfEntitiesCallback::Count;
+    }
+}
+
+DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
+        DRW::ETYPE type) noexcept {
+    switch (type) {
+    case DRW::LINE:return DRW_DxfBlockCallback::addLine;
+    case DRW::CIRCLE:return DRW_DxfBlockCallback::addCircle;
+    case DRW::ARC:return DRW_DxfBlockCallback::addArc;
+    default:return DRW_DxfBlockCallback::Count;
     }
 }
 
@@ -22309,6 +22321,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
     case DRW::CIRCLE:
         return dynamic_cast<const DRW_Circle*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Circle);
+    case DRW::ARC:
+        return dynamic_cast<const DRW_Arc*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Arc);
     default:return false;
     }
 }
@@ -22399,7 +22414,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
                 const auto rawType=event.record.name=="LINE"?DRW::LINE
-                    :event.record.name=="CIRCLE"?DRW::CIRCLE:DRW::UNKNOWN;
+                    :event.record.name=="CIRCLE"?DRW::CIRCLE
+                    :event.record.name=="ARC"?DRW::ARC:DRW::UNKNOWN;
                 if (dxfMLineXdataEntityRecordName(rawType)==nullptr
                     || event.record.handle==0u
                     || event.record.handle==DRW::NoHandle)
@@ -22442,7 +22458,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                 if (!chargeWork(1u)) return false;
                 const auto& event=manifest.events[index];
                 if (event.callback!=DRW_DxfEntitiesCallback::addLine
-                    &&event.callback!=DRW_DxfEntitiesCallback::addCircle)
+                    &&event.callback!=DRW_DxfEntitiesCallback::addCircle
+                    &&event.callback!=DRW_DxfEntitiesCallback::addArc)
                     continue;
                 const auto entityType=static_cast<DRW::ETYPE>(event.entityType);
                 const char* recordName=
@@ -22543,7 +22560,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         return false;
                     const auto& record=physical.records[range.first];
                     const auto entityType=record.name=="LINE"?DRW::LINE
-                        :record.name=="CIRCLE"?DRW::CIRCLE:DRW::UNKNOWN;
+                        :record.name=="CIRCLE"?DRW::CIRCLE
+                        :record.name=="ARC"?DRW::ARC:DRW::UNKNOWN;
                     const char* recordName=
                         dxfMLineXdataEntityRecordName(entityType);
                     if (recordName==nullptr) continue;
@@ -22566,9 +22584,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || !physicalHandle(record,5,sourceHandle)
                         || !physicalHandle(record,330,sourceOwner)
                         || event.dispatch!=dispatchIndex || !event.hasValue
-                        || event.callback!=(entityType==DRW::LINE
-                            ?DRW_DxfBlockCallback::addLine
-                            :DRW_DxfBlockCallback::addCircle)
+                        || event.callback
+                            !=dxfMLineXdataBlockEntityCallback(entityType)
                         || event.entityType!=static_cast<std::int32_t>(entityType)
                         || event.handle!=sourceHandle || event.owner!=sourceOwner
                         || sourceOwner!=block.recordModel->handle

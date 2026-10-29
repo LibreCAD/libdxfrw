@@ -31416,7 +31416,8 @@ Tags sourceWithManyEntityHandleXdata(bool binary,
 
 Tags sourceWithBlockEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
-        std::string_view targetOwner="203",bool circle=false) {
+        std::string_view targetOwner="203",
+        DRW::ETYPE entityType=DRW::LINE) {
     auto fields=source(binary);
     bool provider=false,selected=false,handleInserted=false;
     for(std::size_t i=0u;i<fields.size();++i) {
@@ -31457,10 +31458,15 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=circle
+        const Tags entity=entityType==DRW::CIRCLE
             ?Tags{{0,"CIRCLE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
                 {10,"50"},{20,"60"},{30,"7"},{40,"5"}}
+            :entityType==DRW::ARC
+            ?Tags{{0,"ARC"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
+                {100,"AcDbArc"},{10,"50"},{20,"60"},{30,"7"},
+                {40,"5"},{50,"15"},{51,"75"}}
             :Tags{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
                 {10,"100.5"},{20,"2"},{30,"0"},
@@ -31479,7 +31485,14 @@ Tags sourceWithBlockCircleEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
         std::string_view targetOwner="203") {
     return sourceWithBlockEntityHandleXdata(
-        binary,targetBlock,targetOwner,true);
+        binary,targetBlock,targetOwner,DRW::CIRCLE);
+}
+
+Tags sourceWithBlockArcEntityHandleXdata(
+        bool binary,std::string_view targetBlock="AuthorityBlock",
+        std::string_view targetOwner="203") {
+    return sourceWithBlockEntityHandleXdata(
+        binary,targetBlock,targetOwner,DRW::ARC);
 }
 
 Tags sourceWithMixedSectionEntityHandleXdata(bool binary) {
@@ -31575,6 +31588,40 @@ Tags sourceWithCircleEntityHandleXdata(bool binary) {
     }
     if(!circleInserted)
         throw std::runtime_error("CIRCLE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithArcEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,arcInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags arc{{0,"ARC"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
+            {100,"AcDbArc"},{10,"50"},{20,"60"},{30,"7"},
+            {40,"5"},{50,"15"},{51,"75"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      arc.begin(),arc.end());
+        arcInserted=true;
+        break;
+    }
+    if(!arcInserted)
+        throw std::runtime_error("ARC XDATA target source missing");
     return fields;
 }
 
@@ -32557,10 +32604,14 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
     return true;
 }
 
-bool circleEntityHandleProviderProof(const std::filesystem::path& path,
+bool singleCurveEntityHandleProviderProof(const std::filesystem::path& path,
                                     bool binary,bool requireRemap,
-                                    std::string_view targetBlock="*Model_Space") {
+                                    std::string_view targetBlock="*Model_Space",
+                                    DRW::ETYPE entityType=DRW::CIRCLE) {
     if(!providerProof(path,binary))return false;
+    if(entityType!=DRW::CIRCLE&&entityType!=DRW::ARC)return false;
+    const bool isArc=entityType==DRW::ARC;
+    const std::string_view recordName=isArc?"ARC":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     const auto targetSection=targetBlockKey=="*model_space"
@@ -32577,11 +32628,16 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
         return dx_raster_output::finiteReal(fieldValue(row,code),parsed)
             &&parsed==expected;
     };
+    const auto nearRealValue=[&](const auto& row,int code,double expected) {
+        double parsed=0.0;
+        return dx_raster_output::finiteReal(fieldValue(row,code),parsed)
+            &&std::abs(parsed-expected)<=1.0e-12;
+    };
     const mlineStyleAuthorityControls::Row* style=nullptr;
     const mlineStyleAuthorityControls::Row* app=nullptr;
     const mlineStyleAuthorityControls::Row* appTable=nullptr;
     const mlineStyleAuthorityControls::Row* ownerRecord=nullptr;
-    const mlineStyleAuthorityControls::Row* circle=nullptr;
+    const mlineStyleAuthorityControls::Row* curve=nullptr;
     for(const auto& row:rows) {
         if(row.type=="LTYPE"&&row.section=="TABLES"
             &&fieldValue(row,2)=="EditDash") {
@@ -32607,18 +32663,20 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
                 ownerRecord=&row;
             }
         }
-        if(row.type=="CIRCLE"&&row.section==targetSection
+        if(row.type==recordName&&row.section==targetSection
             &&realValue(row,10,50.0)&&realValue(row,20,60.0)
             &&realValue(row,30,7.0)&&realValue(row,40,5.0)) {
-            if(circle!=nullptr)return false;
-            circle=&row;
+            if(isArc&&(!nearRealValue(row,50,15.0)
+                ||!nearRealValue(row,51,75.0)))continue;
+            if(curve!=nullptr)return false;
+            curve=&row;
         }
     }
     if(style==nullptr||app==nullptr||appTable==nullptr||ownerRecord==nullptr
-        ||circle==nullptr||style->id.empty()||app->id.empty()
-        ||appTable->id.empty()||ownerRecord->id.empty()||circle->id.empty()
-        ||circle->owner!=ownerRecord->id
-        ||(requireRemap?circle->id=="A900":circle->id!="A900"))
+        ||curve==nullptr||style->id.empty()||app->id.empty()
+        ||appTable->id.empty()||ownerRecord->id.empty()||curve->id.empty()
+        ||curve->owner!=ownerRecord->id
+        ||(requireRemap?curve->id=="A900":curve->id!="A900"))
         return false;
     std::int64_t appFlags=1;
     if(!dx_raster_output::integer(fieldValue(*app,70),appFlags)
@@ -32627,7 +32685,7 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
     for(const auto& field:style->fields)
         if(field.first>=1000)physicalXdata.push_back(field);
     if(physicalXdata!=std::vector<std::pair<int,std::string>>{
-            {1001,appName},{1000,payload},{1005,circle->id}})
+            {1001,appName},{1000,payload},{1005,curve->id}})
         return false;
 
     dx_iface reader;dx_data actual;
@@ -32654,20 +32712,32 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
     unsigned owners=0u,circles=0u,linetypes=0u;
     for(const auto& owner:actual.blockRecords)
         if(owner.handle==ownerHandle&&matchesBlockName(owner.name))++owners;
-    const auto typedCircle=std::find_if(container->ent.begin(),
+    const auto typedCurve=std::find_if(container->ent.begin(),
         container->ent.end(),[&](const DRW_Entity* entity) {
-            return entity!=nullptr&&entity->eType==DRW::CIRCLE
-                &&entity->handle==std::stoul(circle->id,nullptr,16);
+            return entity!=nullptr&&entity->eType==entityType
+                &&entity->handle==std::stoul(curve->id,nullptr,16);
         });
-    const auto* typedModel=typedCircle==container->ent.end()?nullptr
-        :dynamic_cast<const DRW_Circle*>(*typedCircle);
-    if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Circle)
-        ||typedModel->parentHandle!=ownerHandle
-        ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
-        ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0)
-        return false;
+    if(typedCurve==container->ent.end())return false;
+    if(isArc) {
+        const auto* typedModel=dynamic_cast<const DRW_Arc*>(*typedCurve);
+        const double pi=std::acos(-1.0);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Arc)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
+            ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0
+            ||std::abs(typedModel->staangle-pi/12.0)>1.0e-12
+            ||std::abs(typedModel->endangle-5.0*pi/12.0)>1.0e-12)
+            return false;
+    } else {
+        const auto* typedModel=dynamic_cast<const DRW_Circle*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Circle)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
+            ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0)
+            return false;
+    }
     for(const DRW_Entity* entity:container->ent)
-        if(entity!=nullptr&&entity->eType==DRW::CIRCLE)++circles;
+        if(entity!=nullptr&&entity->eType==entityType)++circles;
     for(const auto& record:actual.lineTypes)if(record.name=="EditDash") {
         if(record.extData.size()!=3u||record.extData[0]==nullptr
             ||record.extData[1]==nullptr||record.extData[2]==nullptr
@@ -32683,7 +32753,7 @@ bool circleEntityHandleProviderProof(const std::filesystem::path& path,
             ||record.extData[2]->type()!=DRW_Variant::STRING
             ||record.extData[2]->content.s==nullptr
             ||std::stoul(*record.extData[2]->content.s,nullptr,16)
-                !=std::stoul(circle->id,nullptr,16))return false;
+                !=std::stoul(curve->id,nullptr,16))return false;
         ++linetypes;
     }
     return owners==1u&&circles==1u&&linetypes==1u;
@@ -33409,7 +33479,7 @@ struct LateNamedAppIdMutation:dx_iface {
     }
 };
 
-struct LateXdataLineMutation:dx_iface {
+struct LateXdataEntityMutation:dx_iface {
     bool armed{true},mutated{false};
     std::uint32_t sourceHandle{static_cast<std::uint32_t>(
         std::stoul(referencedLineHandle,nullptr,16))};
@@ -34680,7 +34750,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         if(!write(input,sourceWithEntityHandleXdata(false),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return false;
         sentinel(output);
@@ -34725,7 +34795,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         if(!write(input,sourceWithEntityHandleXdata(false,true),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return false;
         sentinel(output);
@@ -34770,7 +34840,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         adapter.sourceHandle=std::stoul(secondReferencedLineHandle,nullptr,16);
         if(!write(input,sourceWithEntityHandleXdata(false,true,true),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return false;
@@ -34873,7 +34943,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         adapter.sourceHandle=threeSourceHandles.back();
         if(!write(input,sourceWithEntityHandleXdata(false,true,true,true),
                   false,"AC1027")
@@ -34987,7 +35057,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         adapter.sourceHandle=fourSourceHandles.back();
         if(!write(input,sourceWithEntityHandleXdata(false,true,true,true,true),
                   false,"AC1027")
@@ -35100,7 +35170,7 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         adapter.sourceHandle=fiveSourceHandles.back();
         if(!write(input,sourceWithEntityHandleXdata(false,true,true,true,true,true),
                   false,"AC1027")
@@ -35217,7 +35287,7 @@ bool runTemporary() {
             ++retries;++readbacks;
         }
         {
-            LateXdataLineMutation adapter;dx_data data;
+            LateXdataEntityMutation adapter;dx_data data;
             adapter.sourceHandle=sourceHandleIds.back();
             if(!write(input,sourceWithManyEntityHandleXdata(
                            false,sourceHandles),false,"AC1027")
@@ -35538,7 +35608,7 @@ bool runTemporary() {
         dx_iface adapter;dx_data data;
         if(!write(input,sourceWithCircleEntityHandleXdata(sourceBinary),
                   sourceBinary,"AC1027")
-            ||!circleEntityHandleProviderProof(input,sourceBinary,false)
+            ||!singleCurveEntityHandleProviderProof(input,sourceBinary,false)
             ||!adapter.fileImport(input.string(),&data,false)
             ||data.mBlock==nullptr) {
             std::cerr<<"CIRCLE XDATA source setup failed: "
@@ -35564,7 +35634,7 @@ bool runTemporary() {
         }
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                                &data,false,true)
-            ||!circleEntityHandleProviderProof(output,outputBinary,true)
+            ||!singleCurveEntityHandleProviderProof(output,outputBinary,true)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
                 adapter,0x103u)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
@@ -35589,7 +35659,7 @@ bool runTemporary() {
         data.mBlock->ent.insert(restore,retained);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                                &data,false,true)
-            ||!circleEntityHandleProviderProof(output,outputBinary,true)
+            ||!singleCurveEntityHandleProviderProof(output,outputBinary,true)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
                 adapter,0x103u)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
@@ -35600,12 +35670,12 @@ bool runTemporary() {
         ++retries;++readbacks;
     }
     {
-        LateXdataLineMutation adapter;dx_data data;
+        LateXdataEntityMutation adapter;dx_data data;
         adapter.sourceHandle=0xA900u;
         if(!write(input,sourceWithCircleEntityHandleXdata(false),false,
                   "AC1027")
             ||!adapter.fileImport(input.string(),&data,false)
-            ||!circleEntityHandleProviderProof(input,false,false)
+            ||!singleCurveEntityHandleProviderProof(input,false,false)
             ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA900u,0x201u,false,DRW::CIRCLE)) {
             std::cerr<<"CIRCLE XDATA late-mutation source setup failed\n";
@@ -35624,7 +35694,7 @@ bool runTemporary() {
                 entity->handle=0xA900u;break;
             }
         if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
-            ||!circleEntityHandleProviderProof(output,false,true)
+            ||!singleCurveEntityHandleProviderProof(output,false,true)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
                 adapter,0x103u)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
@@ -35633,11 +35703,134 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    const std::vector<std::uint32_t> arcTargetHandles{0xA900u};
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithArcEntityHandleXdata(sourceBinary),
+                  sourceBinary,"AC1027")
+            ||!singleCurveEntityHandleProviderProof(input,sourceBinary,false,
+                "*Model_Space",DRW::ARC)
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mBlock==nullptr) {
+            std::cerr<<"ARC XDATA source setup failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const auto sourceArc=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->eType==DRW::ARC
+                    &&entity->handle==0xA900u;
+            });
+        const auto* typedSource=sourceArc==data.mBlock->ent.end()?nullptr
+            :dynamic_cast<const DRW_Arc*>(*sourceArc);
+        const double pi=std::acos(-1.0);
+        const bool sourceBound=DxIfaceMaterialReferenceTestAccess::
+            mlineXdataEntitySourceBound(adapter,data,0xA900u,0x201u,
+                                         false,DRW::ARC);
+        if(typedSource==nullptr||typeid(*typedSource)!=typeid(DRW_Arc)
+            ||typedSource->parentHandle!=0x201u
+            ||typedSource->basePoint.x!=50.0||typedSource->basePoint.y!=60.0
+            ||typedSource->basePoint.z!=7.0||typedSource->radious!=5.0
+            ||std::abs(typedSource->staangle-pi/12.0)>1.0e-12
+            ||std::abs(typedSource->endangle-5.0*pi/12.0)>1.0e-12
+            ||!sourceBound) {
+            std::cerr<<"ARC XDATA typed source identity failed: "
+                     <<sourceBinary<<' '<<outputBinary<<" arc="
+                     <<(typedSource!=nullptr)<<" type="
+                     <<(typedSource!=nullptr
+                        ?static_cast<int>(typedSource->eType):-1)
+                     <<" owner="<<(typedSource?typedSource->parentHandle:0u)
+                     <<" center="<<(typedSource?typedSource->basePoint.x:0.0)
+                     <<','<<(typedSource?typedSource->basePoint.y:0.0)
+                     <<','<<(typedSource?typedSource->basePoint.z:0.0)
+                     <<" radius="<<(typedSource?typedSource->radious:0.0)
+                     <<" angles="<<(typedSource?typedSource->staangle:0.0)
+                     <<','<<(typedSource?typedSource->endangle:0.0)
+                     <<" bound="<<sourceBound<<'\n';return false;
+        }
+        const bool exported=adapter.fileExport(output.string(),DRW::AC1027,
+            outputBinary,&data,false,true);
+        const bool providerProof=exported
+            &&singleCurveEntityHandleProviderProof(output,outputBinary,true,
+                "*Model_Space",DRW::ARC);
+        const bool ltypeProof=providerProof
+            &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u);
+        const bool targetProof=ltypeProof
+            &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,arcTargetHandles,false,DRW::ARC);
+        if(!exported||!providerProof||!ltypeProof||!targetProof) {
+            std::cerr<<"ARC XDATA output/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<" exported="<<exported
+                     <<" provider="<<providerProof<<" ltype="<<ltypeProof
+                     <<" target="<<targetProof<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        DRW_Entity* retained=*sourceArc;
+        const auto restoreOffset=static_cast<std::size_t>(
+            std::distance(data.mBlock->ent.begin(),sourceArc));
+        data.mBlock->ent.erase(sourceArc);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"ARC XDATA missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restore=data.mBlock->ent.begin();
+        std::advance(restore,static_cast<std::ptrdiff_t>(restoreOffset));
+        data.mBlock->ent.insert(restore,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!singleCurveEntityHandleProviderProof(output,outputBinary,true,
+                "*Model_Space",DRW::ARC)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,arcTargetHandles,false,DRW::ARC)) {
+            std::cerr<<"ARC XDATA same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataEntityMutation adapter;dx_data data;
+        adapter.sourceHandle=0xA900u;
+        if(!write(input,sourceWithArcEntityHandleXdata(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!singleCurveEntityHandleProviderProof(input,false,false,
+                "*Model_Space",DRW::ARC)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
+                adapter,data,0xA900u,0x201u,false,DRW::ARC)) {
+            std::cerr<<"ARC XDATA late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"ARC XDATA late-mutation refusal failed\n";return false;
+        }
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity!=nullptr&&entity->handle==0xA901u) {
+                entity->handle=0xA900u;break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!singleCurveEntityHandleProviderProof(output,false,true,
+                "*Model_Space",DRW::ARC)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,arcTargetHandles,false,DRW::ARC)) {
+            std::cerr<<"ARC XDATA late-mutation retry failed\n";return false;
+        }
+        ++retries;++readbacks;
+    }
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,sourceWithBlockCircleEntityHandleXdata(sourceBinary),
                   sourceBinary,"AC1027")
-            ||!circleEntityHandleProviderProof(input,sourceBinary,false,
+            ||!singleCurveEntityHandleProviderProof(input,sourceBinary,false,
                                                  "AuthorityBlock")
             ||!adapter.fileImport(input.string(),&data,false)) {
             std::cerr<<"BLOCKS CIRCLE XDATA source setup failed: "
@@ -35674,7 +35867,7 @@ bool runTemporary() {
         const auto outputProof=[&]() {
             return adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                                       &data,false,true)
-                &&circleEntityHandleProviderProof(output,outputBinary,true,
+                &&singleCurveEntityHandleProviderProof(output,outputBinary,true,
                                                    "AuthorityBlock")
                 &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
                     adapter,0x103u)
@@ -35714,7 +35907,7 @@ bool runTemporary() {
         if(!write(input,sourceWithBlockCircleEntityHandleXdata(false),false,
                   "AC1027")
             ||!adapter.fileImport(input.string(),&data,false)
-            ||!circleEntityHandleProviderProof(input,false,false,
+            ||!singleCurveEntityHandleProviderProof(input,false,false,
                                                  "AuthorityBlock")
             ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA900u,0x203u,true,DRW::CIRCLE)) {
@@ -35744,7 +35937,7 @@ bool runTemporary() {
         const std::vector<std::uint32_t> targetHandles{0xA900u};
         if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                &data,false,true)
-            ||!circleEntityHandleProviderProof(output,false,true,
+            ||!singleCurveEntityHandleProviderProof(output,false,true,
                                                 "AuthorityBlock")
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
                 adapter,0x103u)
@@ -35756,10 +35949,135 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    const double arcPi=std::acos(-1.0);
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithBlockArcEntityHandleXdata(sourceBinary),
+                  sourceBinary,"AC1027")
+            ||!singleCurveEntityHandleProviderProof(input,sourceBinary,false,
+                "AuthorityBlock",DRW::ARC)
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"BLOCKS ARC XDATA source setup failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const auto namedBlock=std::find_if(data.blocks.begin(),data.blocks.end(),
+            [](const dx_ifaceBlock* value) {
+                std::string key;
+                return value!=nullptr
+                    &&dx_symbol_output::nameKey(value->name,key)
+                    &&key=="authorityblock";
+            });
+        auto* block=namedBlock==data.blocks.end()?nullptr:*namedBlock;
+        if(block==nullptr)return false;
+        const auto sourceArc=std::find_if(block->ent.begin(),block->ent.end(),
+            [](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->eType==DRW::ARC
+                    &&entity->handle==0xA900u;
+            });
+        const auto* typedSource=sourceArc==block->ent.end()?nullptr
+            :dynamic_cast<const DRW_Arc*>(*sourceArc);
+        if(typedSource==nullptr||typeid(*typedSource)!=typeid(DRW_Arc)
+            ||typedSource->parentHandle!=0x203u
+            ||typedSource->basePoint.x!=50.0||typedSource->basePoint.y!=60.0
+            ||typedSource->basePoint.z!=7.0||typedSource->radious!=5.0
+            ||std::abs(typedSource->staangle-arcPi/12.0)>1.0e-12
+            ||std::abs(typedSource->endangle-5.0*arcPi/12.0)>1.0e-12
+            ||!DxIfaceMaterialReferenceTestAccess::
+                mlineXdataEntitySourceBound(adapter,data,0xA900u,0x203u,
+                                             true,DRW::ARC)) {
+            std::cerr<<"BLOCKS ARC XDATA typed source identity failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const std::vector<std::uint32_t> targetHandles{0xA900u};
+        const auto outputProof=[&]() {
+            return adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                                      &data,false,true)
+                &&singleCurveEntityHandleProviderProof(output,outputBinary,true,
+                    "AuthorityBlock",DRW::ARC)
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                    adapter,0x103u)
+                &&DxIfaceMaterialReferenceTestAccess::
+                    mlineLinetypeEntityProofBound(
+                        adapter,0x103u,targetHandles,true,DRW::ARC);
+        };
+        if(!outputProof()) {
+            std::cerr<<"BLOCKS ARC XDATA output/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        DRW_Entity* retained=*sourceArc;
+        const auto restoreOffset=static_cast<std::size_t>(
+            std::distance(block->ent.begin(),sourceArc));
+        block->ent.erase(sourceArc);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"BLOCKS ARC XDATA missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restore=block->ent.begin();
+        std::advance(restore,static_cast<std::ptrdiff_t>(restoreOffset));
+        block->ent.insert(restore,retained);
+        if(!outputProof()) {
+            std::cerr<<"BLOCKS ARC XDATA same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateBlockXdataLineMutation adapter{
+            "AuthorityBlock",0xA900u,0xA901u,DRW::ARC};
+        dx_data data;
+        if(!write(input,sourceWithBlockArcEntityHandleXdata(false),false,
+                  "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!singleCurveEntityHandleProviderProof(input,false,false,
+                "AuthorityBlock",DRW::ARC)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
+                adapter,data,0xA900u,0x203u,true,DRW::ARC)) {
+            std::cerr<<"BLOCKS ARC XDATA late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"BLOCKS ARC XDATA late-mutation refusal failed\n";
+            return false;
+        }
+        ++refusals;adapter.armed=false;
+        const auto namedBlock=std::find_if(data.blocks.begin(),data.blocks.end(),
+            [](const dx_ifaceBlock* value) {
+                std::string key;
+                return value!=nullptr
+                    &&dx_symbol_output::nameKey(value->name,key)
+                    &&key=="authorityblock";
+            });
+        if(namedBlock==data.blocks.end())return false;
+        for(DRW_Entity* entity:(*namedBlock)->ent)
+            if(entity!=nullptr&&entity->handle==0xA901u) {
+                entity->handle=0xA900u;break;
+            }
+        const std::vector<std::uint32_t> targetHandles{0xA900u};
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,
+                               &data,false,true)
+            ||!singleCurveEntityHandleProviderProof(output,false,true,
+                "AuthorityBlock",DRW::ARC)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::
+                mlineLinetypeEntityProofBound(
+                    adapter,0x103u,targetHandles,true,DRW::ARC)) {
+            std::cerr<<"BLOCKS ARC XDATA late-mutation retry failed\n";
+            return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==228u&&readbacks==510u&&refusals==282u&&retries==282u;
+    return profiles==236u&&readbacks==528u&&refusals==292u&&retries==292u;
 }
 
 bool runBudgetTemporary() {
