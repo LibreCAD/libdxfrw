@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 ATTRIB-to-ATTDEF source tag join",
+  "date": "2026-10-29",
+  "codeCommit": "0e9e025307c2ebff1615ab5e8e45d66c6180a05a",
+  "scope": "Private same-import original-source association between the selected ATTRIB group-2 tag and a unique matching ATTDEF tag inside the selected BLOCK/ENDBLK source endpoints, under an explicit ASCII-fold policy.",
+  "contract": {
+    "operation": "Require the existing authenticated compound and BLOCK endpoint proof. Check contiguous original child-record framing; parse each selected-scope ATTDEF physical self, outer owner and unique group-2 tag under the AcDbAttributeDefinition subclass; return a unique matching original handle only after the full census succeeds. Recognize noncanonical ASCII-case ATTDEF markers and conservatively refuse them rather than silently skipping them.",
+    "resource": "Reserve half of work and byte limits for the preceding endpoint proof and half for the new identity index, compound tag and physical child scans. Failures or quota exhaustion return no handle. The selected route requires zero repeated ATTDEF self admissions; other opt-in combinations are not qualified.",
+    "unqualified": "Child model/body completeness, native tag interpretation or collation, document graph, export, and general support."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "b6ba7ded29d1699ff54f32d0d392ebba1581e72c824e6fa78faa57913ce43740",
+    "adapterHeaderSha256": "9f5d7488dea9f7a2e2ccafff47ec30b0e53b54035e3a4462118f0fa25dcef225",
+    "testSourceSha256": "957f92a01f562c2db68dae114f7fd5419aaeda81c788632ce8ad51419a70677a",
+    "normalAdapterObjectSha256": "1fc09e6ce85f7ed5f66ae82316dbd8f6f89762decfc88687d1c2ce4e15785e0c",
+    "normalLibrarySha256": "753ad0aaba11ccb3ba0298199cd7ee4a29d0c6bcca4112756121c60033bee1eb",
+    "normalTestExecutableSha256": "49726cc67315357f00f1cfb1905ccac90f7617998dd9b3cd8cc19825d60d83b6",
+    "asanAdapterObjectSha256": "4413c3bf305c6d0f13adda6705e2b685952ec1febfbb3705b3ceaa219dd2eefe",
+    "asanLibrarySha256": "50878d1e08494db643e9b13cfc52d44ffc7b388d90d77b5288575b451e2beb2a",
+    "asanTestExecutableSha256": "c206e7df827201cad79deaf9be99a6f8df535da5490a64c5dac604b139892542"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII/binary changed/missing/duplicate tags, duplicate handles, wrong owner, unsupported extra subclass, unrelated-tag positive, cross-read/context substitution, exact/one-below quotas and fresh-data retry. A physical lowercase attdef with a colliding tag is accepted by the reader, passes the earlier endpoint proof, is refused by this census, and succeeds after correction. Other negative mutations are route-level; an earlier gate or import may reject before the final census.",
+    "chronology": "Final shared normal and ASan tests passed; real original, locally changed-tag and duplicate-case probes were refreshed against the rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p4-tag/peer.json",
+    "reportSha256": "20e66059e175c66d211a384cc6a6db01cd3060743b87aa808656ad3061fc9e7e",
+    "reportScriptSha256": "d00c392879f2890f21044e1812aea5e8073547413c36f1b108863ed1a8e31298",
+    "sharedLinkedProbeSha256": "b97b2ea2038f740b5a433ce51f78cfe811df7663109054531fbfc7e12199297e",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "originalSourceSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "changedSourceSha256": "7a46012cdf67e7b192e57ed2e26bff318591953b1f4d89c69196da85200b7f55",
+    "duplicateSourceSha256": "4a1d7d517335a4dd420bd2972674542eef8b22146d6be718254ee91b1f6b91c6",
+    "derivation": "Local changed-tag copy changes only ATTDEF 6F8 group 2 ATTINFO to OTHER_TAG. Separate duplicate-case copy adds an ATTDEF with distinct handle FA12AB and tag attinfo in the same block.",
+    "originalStdoutSha256": "47f6555a80672cfd4a8c522752344a2280591c0406b21c40c4146884c193cf29",
+    "changedAndDuplicateStdoutSha256": "171348e51842564a270f14e5415edbd8bcd6ae32c1d7a8c10105fef1d7be5241",
+    "observations": "Independent pre-setup projection finds selected ATTRIB 705 owner 704 tag ATTINFO and ATTDEF 6F8 owner 6F2 tag ATTINFO between BLOCK 6F4 and ENDBLK 6F9. Changed and duplicate copies separate the source tags or add a second ASCII-folded match. The shared-linked probe resolves only the original while preceding endpoint, relation, name, APPID and LAYER checks remain true for all three."
+  },
+  "references": [
+    {
+      "title": "Autodesk ATTDEF DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm"
+    },
+    {
+      "title": "Autodesk ATTRIB DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm"
+    }
+  ],
+  "limitations": [
+    "The source-name policy is not native tag collation or semantic qualification.",
+    "The repeated-admission count is limited to the observed route, with BLOCK source enabled and ATTDEF raw opt-in disabled; other route configurations fail closed.",
+    "The result does not establish complete child models, general ownership graph, output or native behavior. No external or derived drawing fixture is committed."
+  ]
+}

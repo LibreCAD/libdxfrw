@@ -62,7 +62,7 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json) and [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) | Resolve XDICTIONARY and block children, then bind live graph and output before promotion |
+| P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
 | P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json) | Bind original and live dependency/consumer inventories and actual output before considering the geometry projection; expand the source grammar only with separate evidence |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
@@ -481,8 +481,12 @@ output. The [selected BLOCK endpoint census](docs/research/rpp5jl-ac1018-selecte
 associates the original name and owner with BLOCK 6F4 and ENDBLK 6F9 under
 the admitted ASCII policy. Negative controls are route-level and may fail an
 earlier gate; the positive child control qualifies framing, not child completeness
-or meaning. Resolve block children and XDICTIONARY 6F3, then prove live graph,
-output and retry behavior without weakening the generic gates.
+or meaning. The [selected ATTRIB-to-ATTDEF source tag census](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json)
+binds original tag `ATTINFO` to ATTDEF 6F8 within those endpoints; it requires
+zero repeated ATTDEF self admissions on the selected opt-in route and refuses
+noncanonical-case ATTDEF markers. It does not qualify child models, native
+collation, graph or output. Resolve remaining child models and XDICTIONARY 6F3,
+then prove live graph, output and retry behavior without weakening the generic gates.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
