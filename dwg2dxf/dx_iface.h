@@ -1836,6 +1836,9 @@ private:
     // Selected source-name uniqueness only; no BLOCK or output authority.
     static bool legacyBlockRefUniqueSourceName(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t) noexcept;
+    // Selected original APPID provider name, not semantic/output authority.
+    static bool legacyCompoundAppIdSource(const dx_data&,std::uint32_t,std::uint32_t,
+        std::size_t,std::size_t,std::uint32_t&) noexcept;
     bool m_wholeEnabled{false};WholeSourceV2::Limits m_wholeLimits{};
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;

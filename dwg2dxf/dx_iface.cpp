@@ -26821,6 +26821,102 @@ bool dx_iface::legacyBlockRefUniqueSourceName(const dx_data& data,std::uint32_t 
  }catch(...) {return false;}
 }
 
+// Selected AC1018 ATTRIB APPID provider under an ASCII source-name census.
+// This is not a native collation, XDATA semantic, graph or output proof.
+bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t blockId,std::uint32_t insertId,
+        std::size_t limit,std::size_t bytesLimit,std::uint32_t& provider) noexcept {
+ provider=0u;try {
+  blockref_source_relation::Result relation;
+  // Conservative independent shares bound the aggregate of the prior relation
+  // and this census, even though each component fails without retaining state.
+  const auto workLimit=limit/2u,memLimit=bytesLimit/2u;
+  if(!legacyBlockRefSourceRelation(data,blockId,insertId,workLimit,memLimit,relation))return false;
+  const auto& s=data.m_tableDxfSource;const auto& census=*s.legacyIdentityObservation->source;
+  const auto& whole=*s.wholeInput->source;
+  const auto pay=[&](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
+   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
+  const auto validName=[](std::string_view text) noexcept {
+   if(text.empty()||text.size()>255u)return false;
+   for(unsigned char c:text)if(c<=32u||c>=127u||c=='\\')return false;return true;};
+  const auto parseHandle=[](std::string_view text,std::uint32_t& out) noexcept {
+   if(text.empty()||text.size()>16u)return false;std::uint64_t value=0u;
+   const auto p=std::from_chars(text.data(),text.data()+text.size(),value,16);
+   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!value||value>UINT32_MAX)return false;
+   out=static_cast<std::uint32_t>(value);return true;};
+  std::size_t work=0u,bytes=0u,depth=8u;for(auto n=census.candidates.size();n;n>>=1u)++depth;
+  if(!pay(census.records.size(),256u,work,workLimit)||!pay(census.sections.size(),256u,work,workLimit)
+    ||!pay(census.candidates.size(),128u*depth,work,workLimit)
+    ||!pay(census.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*),bytes,memLimit)
+    ||!pay(census.records.size(),sizeof(std::uint8_t),bytes,memLimit))return false;
+  for(const auto& c:census.candidates)if(!pay(c.lexeme.size(),4u,work,workLimit)||!pay(c.rawValue.size(),2u,work,workLimit))return false;
+  dx_legacy_identity_join::Index index;if(!dx_legacy_identity_join::buildIndex(census,index))return false;
+  using S=DRW_DxfIdentitySource;std::size_t tables=0u,tableIndex=S::NoIndex,tablesSection=S::NoIndex;
+  for(std::size_t i=0;i<census.sections.size();++i)if(census.sections[i].kind==S::Section::Tables){++tables;tablesSection=i;}
+  if(tables!=1u)return false;
+  for(std::size_t i=0;i<census.records.size();++i){const auto& r=census.records[i];
+   if(r.kind==S::Kind::TableControl&&r.section==tablesSection&&dx_legacy_identity_join::sameName(r.tableName,"APPID")){
+    if(tableIndex!=S::NoIndex)return false;tableIndex=i;}}
+  if(tableIndex==S::NoIndex)return false;
+  const auto j=s.legacyEntitiesCompoundJoins.find(insertId);
+  if(j==s.legacyEntitiesCompoundJoins.end()||!j->second||!j->second->audit
+   ||j->second->proof>=j->second->audit->proofs.size()||!j->second->audit->physical)return false;
+  const auto& proof=j->second->audit->proofs[j->second->proof];
+  if(proof.next<proof.first||proof.next-proof.first!=3u||proof.next>j->second->audit->physical->records.size())return false;
+  const auto& attribute=j->second->audit->physical->records[proof.first+1u];
+  if(!pay(attribute.groups.size(),256u,work,workLimit))return false;
+  for(const auto& group:attribute.groups)if(group.type()==DRW_Variant::STRING&&group.content.s
+    &&!pay(group.content.s->size(),4u,work,workLimit))return false;
+  dx_legacy_attribute_compound_profile::Roles roles;
+  if(!dx_legacy_attribute_compound_profile::attribute(attribute,DRW::AC1018,roles))return false;
+  const auto target=roles.appId;if(!pay(target.size(),2u,work,workLimit)||!validName(target))return false;
+  std::uint32_t tableHandle=0u;const auto& table=census.records[tableIndex];
+  for(const auto& item:index.ids)if(item.second.record==tableIndex&&!item.second.ambiguous&&item.first<=UINT32_MAX){
+   if(tableHandle)return false;tableHandle=static_cast<std::uint32_t>(item.first);}
+  if(!tableHandle||dx_legacy_identity_join::record(census,index,tableHandle,S::Kind::TableControl,S::Section::Tables,"TABLE",0u)!=&table)return false;
+  unsigned matches=0u;std::uint32_t matchedHandle=0u;
+  for(const auto& r:census.records){
+   // No record in the selected table may evade the name census by claiming
+   // an unknown row type. Its group-2 role is otherwise not qualified.
+   if(r.section==tablesSection&&r.table==tableIndex&&r.kind==S::Kind::TableRecord
+      &&!dx_legacy_identity_join::sameName(r.name,"APPID"))return false;
+   if(!dx_legacy_identity_join::sameName(r.name,"APPID"))continue;
+   if(r.kind!=S::Kind::TableRecord||r.section!=tablesSection||r.table!=tableIndex
+    ||!r.marker.ordinal||r.endMarker.ordinal<=r.marker.ordinal||r.endMarker.ordinal>whole.fieldCount())return false;
+   const auto first=r.marker.ordinal-1u,last=r.endMarker.ordinal-1u;if(last>=whole.fieldCount()||!pay(last-first+1u,256u,work,workLimit))return false;
+   const auto opening=whole.field(first),closing=whole.field(last);
+   if(opening.code!=0||opening.kind!=DxfReadRecordView::Text||!whole.bounds(opening)||whole.value(opening)!="APPID"
+    ||opening.ordinal!=r.marker.ordinal||opening.begin!=r.marker.beginOffset||opening.end!=r.marker.endOffset
+    ||closing.code!=0||closing.ordinal!=r.endMarker.ordinal||closing.begin!=r.endMarker.beginOffset||closing.end!=r.endMarker.endOffset)return false;
+   unsigned nesting=0u,selfCount=0u,ownerCount=0u,nameCount=0u;bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;
+   std::string_view name;std::size_t priorEnd=opening.end;
+   for(std::size_t i=first+1u;i<last;++i){const auto f=whole.field(i);
+    if(!whole.bounds(f)||f.ordinal!=i+1u||f.begin!=priorEnd||f.end<=f.begin||f.code==0)return false;priorEnd=f.end;
+    if(f.ignored){if(f.code!=999) return false;continue;}
+    if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
+     if(!pay(t.size(),2u,work,workLimit))return false;
+     if(t=="}"){if(!nesting)return false;--nesting;}
+     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}
+     else return false;continue;}
+    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+    if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
+     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbRegAppTableRecord"){if(body)return false;body=true;}else if(body)return false;continue;}
+    if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;
+     const auto spelling=whole.value(f);std::uint32_t h=0u;
+     if(!pay(spelling.size(),2u,work,workLimit)||!parseHandle(spelling,h))return false;
+     if(f.code==5){if(++selfCount!=1u)return false;self=h;}else{if(++ownerCount!=1u)return false;owner=h;}continue;}
+    if(f.code==2){if(!body||++nameCount!=1u||f.kind!=DxfReadRecordView::Text)return false;name=whole.value(f);
+     if(!pay(name.size(),4u,work,workLimit)||!validName(name))return false;}
+   }
+   // This selected captured route parses both raw and typed APPID values;
+   // require its observed one repeated self admission, not a general DXF rule.
+   if(priorEnd!=closing.begin||nesting||!body||selfCount!=1u||ownerCount!=1u||owner!=tableHandle||nameCount!=1u
+    ||dx_legacy_identity_join::record(census,index,self,S::Kind::TableRecord,S::Section::Tables,"APPID",1u)!=&r)return false;
+   if(dx_legacy_block_record_source::sameAsciiName(name,target)){++matches;matchedHandle=self;}
+  }
+  if(matches!=1u||!matchedHandle)return false;provider=matchedHandle;return true;
+ }catch(...) {provider=0u;return false;}
+}
+
 void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {
     auto& s=data.m_tableDxfSource;if(s.structuralCaptureFailed)return;
     const auto identities=identitySourceReport(data);
