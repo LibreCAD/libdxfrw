@@ -16780,21 +16780,29 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                     // bound its complete byte-sensitive cross-product first.
                     if (!chargeMlineComparisonWork(original.elements,value.elements.size(),
                             removalWork,kMaxAdapterBasicTableItems)) return false;
-                    // Two of offset, ACI and LTYPE must be unchanged for the
-                    // selected source. Match their union, comparing each
-                    // potentially long string at most once per candidate.
+                    // Prefer candidates with at least two unchanged anchors.
+                    // Only when no such candidate exists may one unchanged
+                    // LTYPE identify the source tuple, and that single-anchor
+                    // candidate must be unique. This admits the selected
+                    // unique retained-LTYPE profile without expanding
+                    // offset-only or ACI-only authority.
                     std::size_t previous=0u;
                     for (std::size_t i=0u;i<value.elements.size();++i) {
                         const auto& survivor=value.elements[i];
-                        std::size_t matched=0u,index=0u;
+                        std::size_t strongMatches=0u,strongIndex=0u,weakMatches=0u,weakIndex=0u;
                         for (std::size_t j=0u;j<original.elements.size();++j) {
                             const auto& source=original.elements[j];
                             const bool sameOffset=retainedDoubleEqual(source.offset,survivor.offset);
                             const bool sameColor=source.color==survivor.color;
-                            if (!sameOffset && !sameColor) continue;
-                            const bool pair=(sameOffset && sameColor) || source.linetype==survivor.linetype;
-                            if (pair && sameNonEditable(source,survivor)) {++matched;index=j;}
+                            const bool sameLinetype=source.linetype==survivor.linetype;
+                            const unsigned anchors=static_cast<unsigned>(sameOffset)
+                                +static_cast<unsigned>(sameColor)+static_cast<unsigned>(sameLinetype);
+                            if (!anchors||!sameNonEditable(source,survivor)) continue;
+                            if (anchors>=2u) {++strongMatches;strongIndex=j;}
+                            else if (sameLinetype) {++weakMatches;weakIndex=j;}
                         }
+                        const std::size_t matched=strongMatches?strongMatches:weakMatches;
+                        const std::size_t index=strongMatches?strongIndex:weakIndex;
                         if (matched!=1u || (i && index<=previous) || !std::isfinite(survivor.offset)) return false;
                         if ((survivor.color!=original.elements[index].color
                                 || !retainedDoubleEqual(survivor.offset,original.elements[index].offset))
