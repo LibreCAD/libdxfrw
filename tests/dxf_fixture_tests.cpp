@@ -31214,7 +31214,7 @@ Tags source(bool binary) {
     throw std::runtime_error("LTYPE XDATA provider missing");
 }
 
-Tags sourceWithEntityHandleXdata(bool binary) {
+Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false) {
     auto fields=source(binary);
     const Tags ordinary{{1001,appName},{1000,payload}};
     const auto first=std::search(fields.begin(),fields.end(),
@@ -31223,7 +31223,9 @@ Tags sourceWithEntityHandleXdata(bool binary) {
         throw std::runtime_error("LTYPE entity-reference XDATA pair missing");
     const auto at=fields.erase(first,
         first+static_cast<std::ptrdiff_t>(ordinary.size()));
-    const Tags typed{{1001,appName},{1005,referencedLineHandle}};
+    Tags typed{{1001,appName}};
+    if(includeStringPayload)typed.emplace_back(1000,payload);
+    typed.emplace_back(1005,referencedLineHandle);
     fields.insert(at,typed.begin(),typed.end());
     const Tags line{{0,"LINE"},{5,referencedLineHandle},{330,"201"},
         {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
@@ -31450,7 +31452,7 @@ bool providerXdataProof(const std::filesystem::path& path,bool binary,const std:
 }
 
 bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
-                               bool requireRemap) {
+                               bool requireRemap,bool includeStringPayload=false) {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
@@ -31479,8 +31481,10 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
         for(const auto& field:row.fields)if(field.first>=1000)result.push_back(field);
         return result;
     };
-    if(xdata(*selected)!=std::vector<std::pair<int,std::string>>{
-            {1001,appName},{1005,lineProvider->id}})return false;
+    std::vector<std::pair<int,std::string>> expectedXdata{{1001,appName}};
+    if(includeStringPayload)expectedXdata.emplace_back(1000,payload);
+    expectedXdata.emplace_back(1005,lineProvider->id);
+    if(xdata(*selected)!=expectedXdata)return false;
     if((!requireRemap&&lineProvider->id!=referencedLineHandle)
         ||(requireRemap&&lineProvider->id==referencedLineHandle))return false;
     std::vector<int> appCodes;
@@ -31501,15 +31505,23 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
     for(const auto& record:actual.blockRecords)
         if(record.handle==ownerHandle) {++owners;ownerName=record.name;}
     for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
-        if(value.extData.size()!=2u||!value.extData[0]||!value.extData[1]
+        const std::size_t expectedCount=includeStringPayload?3u:2u;
+        if(value.extData.size()!=expectedCount||!value.extData[0]
             ||value.extData[0]->code()!=1001
             ||value.extData[0]->type()!=DRW_Variant::STRING
             ||!value.extData[0]->content.s
-            ||*value.extData[0]->content.s!=appName
-            ||value.extData[1]->code()!=1005
+            ||*value.extData[0]->content.s!=appName)return false;
+        const std::size_t handleIndex=includeStringPayload?2u:1u;
+        if(includeStringPayload&&(!value.extData[1]
+            ||value.extData[1]->code()!=1000
             ||value.extData[1]->type()!=DRW_Variant::STRING
             ||!value.extData[1]->content.s
-            ||std::stoul(*value.extData[1]->content.s,nullptr,16)
+            ||*value.extData[1]->content.s!=payload))return false;
+        if(!value.extData[handleIndex]
+            ||value.extData[handleIndex]->code()!=1005
+            ||value.extData[handleIndex]->type()!=DRW_Variant::STRING
+            ||!value.extData[handleIndex]->content.s
+            ||std::stoul(*value.extData[handleIndex]->content.s,nullptr,16)
                 !=std::stoul(lineProvider->id,nullptr,16))return false;
         ++linetypes;
     }
@@ -32535,6 +32547,32 @@ bool runTemporary() {
         }
         ++profiles;++readbacks;
     }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithEntityHandleXdata(sourceBinary,true),sourceBinary,
+                  "AC1027")) {
+            std::cerr<<"composed LTYPE 1005 fixture write failed\n";return false;
+        }
+        if(!entityHandleProviderProof(input,sourceBinary,false,true)
+            ||!adapter.fileImport(input.string(),&data,false)||data.mBlock==nullptr) {
+            std::cerr<<"composed LTYPE 1005 source proof/import failed\n";return false;
+        }
+        const auto sourceLine=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->handle==std::stoul(
+                    referencedLineHandle,nullptr,16);
+            });
+        if(sourceLine==data.mBlock->ent.end())return false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)
+            ||!entityHandleProviderProof(output,outputBinary,true,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)) {
+            std::cerr<<"composed LTYPE 1005 output/readback proof failed source-binary="
+                <<sourceBinary<<" output-binary="<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+    }
     {
         dx_iface adapter;dx_data data;
         if(!write(input,sourceWithEntityHandleXdata(false),false,"AC1027")
@@ -32580,10 +32618,55 @@ bool runTemporary() {
                 adapter,0x103u))return false;
         ++retries;++readbacks;
     }
+    {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithEntityHandleXdata(false,true),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mBlock==nullptr)return false;
+        const auto line=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->handle==std::stoul(
+                    referencedLineHandle,nullptr,16);
+            });
+        if(line==data.mBlock->ent.end())return false;
+        DRW_Entity* retained=*line;const auto restoreBefore=std::next(line);
+        data.mBlock->ent.erase(line);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;
+        data.mBlock->ent.insert(restoreBefore,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!entityHandleProviderProof(output,false,true,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u))return false;
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataLineMutation adapter;dx_data data;
+        if(!write(input,sourceWithEntityHandleXdata(false,true),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity!=nullptr&&entity->handle==0xA901u) {
+                entity->handle=std::stoul(referencedLineHandle,nullptr,16);
+                break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!entityHandleProviderProof(output,false,true,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u))return false;
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==48u&&readbacks==102u&&refusals==54u&&retries==54u;
+    return profiles==52u&&readbacks==108u&&refusals==56u&&retries==56u;
 }
 }
 
