@@ -35457,10 +35457,9 @@ int consumedAppendColor(unsigned element) {
 bool runSelectedConsumedAppendSourceCounts(
         const std::filesystem::path& dir) {
     std::vector<unsigned> sourceCounts;
-    sourceCounts.reserve(53u);
-    for(unsigned sourceCount=13u;sourceCount<=64u;++sourceCount)
+    sourceCounts.reserve(116u);
+    for(unsigned sourceCount=13u;sourceCount<=128u;++sourceCount)
         sourceCounts.push_back(sourceCount);
-    sourceCounts.push_back(128u);
     for(const unsigned sourceCount:sourceCounts) {
         std::vector<double> offsets;
         std::vector<int> colors;
