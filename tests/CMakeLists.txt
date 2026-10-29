@@ -179,6 +179,15 @@ add_test(NAME libdxfrw_mline_consumed_style_append
 set_tests_properties(libdxfrw_mline_consumed_style_append PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Runtime-generated AC1027 profile for removing one tail element from a style
+# used by open, uncut MLINEs. It checks bottom-justification rebasing, exact
+# output/readback, non-tail refusal, rollback and same-adapter retry.
+add_test(NAME libdxfrw_mline_consumed_style_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
