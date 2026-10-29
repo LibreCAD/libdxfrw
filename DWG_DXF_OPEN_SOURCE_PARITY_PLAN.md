@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection is bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json); an offset-only geometry-changing MLINE `340` retarget in [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json); and a single appended element on a consumed style in [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json). Consumed-style count removals, multi-element appends, other retarget profiles, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Select one still-refused exact operation/profile and bind source, live graph, emitted output and a focused retry/refusal control |
+| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json), geometry-changing MLINE `340` retarget [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json), one-element append [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json), and exact one-tail removal [RPP-5ke](docs/research/rpp5ke-mline-consumed-style-tail-removal-2026-10-29.json) are bound to their selected profiles. Multi-element appends/removals, non-tail and other count changes, other retarget profiles, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Select one still-refused exact operation/profile and bind source, live graph, emitted output and a focused retry/refusal control |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,10 +61,10 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — next local geometry/schema witness | Reuse the source/live/carrier/staged-output receipts, [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json), [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json) and [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json) for the selected offset, retarget and one-element append profiles. | Prefer one exact still-refused consumed-style count removal, multi-element append, non-offset retarget, earlier-version, carrier/schema or MLEADERSTYLE witness; implement its missing layer with a focused generated-source test, output proof, refusal/retry control and bounded work |
+| P2 — next local geometry/schema witness | Reuse the source/live/carrier/staged-output receipts, [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json), [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json), [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json) and [RPP-5ke](docs/research/rpp5ke-mline-consumed-style-tail-removal-2026-10-29.json). | Prefer one exact still-refused multi-element append/removal, non-tail or other count edit, non-offset retarget, earlier-version, carrier/schema or MLEADERSTYLE witness; implement its missing layer with a focused generated-source test, output proof, refusal/retry control and bounded work |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
-| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and the selected consumed-offset/retarget/append receipts | Bind a still-refused consumed-style removal, multi-element append, both-field edit, dense-budget case, non-offset retarget or legacy operation to source and exact expected output; do not wait for full P2 dependency closure |
+| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and the selected consumed-offset/retarget/append/tail-removal receipts | Bind a still-refused non-tail or multi-element consumed-style removal, multi-element append, both-field edit, dense-budget case, non-offset retarget or legacy operation to source and exact expected output; do not wait for full P2 dependency closure |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -117,9 +117,12 @@ proof. Refused fields are not implemented editing support.
    element append to a consumed style are implemented for their exact open,
    uncut, unfilled profiles; see [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json),
    [RPP-5kc](docs/research/rpp5kc-mline-retarget-offset-projection-2026-10-29.json),
-   and [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json).
-   Still-refused work includes consumed-style count `71` removals and multi-element
-   appends, count `71` changes outside these selected profiles (including unused definitions),
+   [RPP-5kd](docs/research/rpp5kd-mline-consumed-style-append-2026-10-29.json),
+   and [RPP-5ke](docs/research/rpp5ke-mline-consumed-style-tail-removal-2026-10-29.json).
+   The exact AC1027 two-to-one tail removal is selected and covered for source-bound
+   open, uncut, unfilled consumers. Still-refused work includes multi-element
+   consumed-style removals/appends, non-tail and other count `71` edits, one-to-zero,
+   count changes outside the selected profiles (including unused definitions),
    retargets whose flags, angles, arity or other geometry differ, earlier-version
    authority, and other consumed-offset profiles. For each remaining operation, select
    one current source witness, bind every affected original/live consumer and
