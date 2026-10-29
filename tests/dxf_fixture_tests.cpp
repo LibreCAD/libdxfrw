@@ -33973,40 +33973,45 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
 }
 Tags retargetAppendRecipe(bool binary,unsigned sourceCount) {
     auto fields=retargetRecipe(binary);
+    if(sourceCount<2u||sourceCount>4u)throw std::runtime_error("unsupported retarget append source count");
+    std::vector<double> offsets{beforeOffsets[0],beforeOffsets[1]};
+    if(sourceCount>=3u)offsets.push_back(-1.25);
+    if(sourceCount>=4u)offsets.push_back(-2.0);
     if(sourceCount==2u)return fields;
-    if(sourceCount!=3u)throw std::runtime_error("unsupported retarget append source count");
-    const std::array<double,3> offsets{{beforeOffsets[0],beforeOffsets[1],-1.25}};
+    std::vector<std::pair<int,std::string>> extraTuples{{49,number(offsets[2])},{62,"4"},{6,"ByLayer"}};
+    if(sourceCount==4u)extraTuples.insert(extraTuples.end(),{{49,number(offsets[3])},{62,"5"},{6,"Continuous"}});
     for(const auto& handle:std::array<std::string,2>{{"D","D2"}}) {
         std::size_t begin=0u,end=0u;
-        if(!recordSpan(fields,"MLINESTYLE",handle,begin,end))throw std::runtime_error("three-element retarget style missing");
-        setRecordValue(fields,begin,end,71,"3");
+        if(!recordSpan(fields,"MLINESTYLE",handle,begin,end))throw std::runtime_error("multi-element retarget style missing");
+        setRecordValue(fields,begin,end,71,std::to_string(sourceCount));
         const auto count=std::find(fields.begin()+static_cast<std::ptrdiff_t>(begin),
-            fields.begin()+static_cast<std::ptrdiff_t>(end),std::make_pair(71,std::string("3")));
-        if(count==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget count missing");
+            fields.begin()+static_cast<std::ptrdiff_t>(end),std::make_pair(71,std::to_string(sourceCount)));
+        if(count==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("multi-element retarget count missing");
         auto tuple=count+1;
         for(unsigned i=0u;i<2u;++i) {
             if(std::distance(tuple,fields.begin()+static_cast<std::ptrdiff_t>(end))<3
                 ||tuple->first!=49||(tuple+1)->first!=62||(tuple+2)->first!=6)
-                throw std::runtime_error("three-element retarget source tuple missing");
+                throw std::runtime_error("multi-element retarget source tuple missing");
             tuple+=3;
         }
-        fields.insert(tuple,{{49,number(offsets.back())},{62,"4"},{6,"ByLayer"}});
+        fields.insert(tuple,extraTuples.begin(),extraTuples.end());
     }
     for(const auto& handle:std::array<std::string,2>{{"D100","D101"}}) {
         std::size_t begin=0u,end=0u;
-        if(!recordSpan(fields,"MLINE",handle,begin,end))throw std::runtime_error("three-element retarget consumer missing");
+        if(!recordSpan(fields,"MLINE",handle,begin,end))throw std::runtime_error("multi-element retarget consumer missing");
         const unsigned profile=handle=="D100"?0u:1u;
-        setRecordValue(fields,begin,end,73,"3");
+        setRecordValue(fields,begin,end,73,std::to_string(sourceCount));
         const auto marker=std::find(fields.begin()+static_cast<std::ptrdiff_t>(begin),
             fields.begin()+static_cast<std::ptrdiff_t>(end),std::make_pair(100,std::string("AcDbMline")));
-        if(marker==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget MLINE subclass missing");
+        if(marker==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("multi-element retarget MLINE subclass missing");
         const auto basePoint=std::find_if(marker+1,fields.begin()+static_cast<std::ptrdiff_t>(end),
             [](const auto& field){return field.first==10;});
-        if(basePoint==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("three-element retarget base point missing");
+        if(basePoint==fields.begin()+static_cast<std::ptrdiff_t>(end))throw std::runtime_error("multi-element retarget base point missing");
         Tags generated;const auto vertices=geometry(profile);const auto ext=extrusion(profile);
         generated.insert(generated.end(),{{10,number(vertices.front().first.x)},{20,number(vertices.front().first.y)},
             {30,number(vertices.front().first.z)},{210,number(ext.x)},{220,number(ext.y)},{230,number(ext.z)}});
-        const double shift=justification(profile)==2u?1.25:0.0;
+        const double minimum=*std::min_element(offsets.begin(),offsets.end());
+        const double shift=justification(profile)==2u?-minimum:0.0;
         for(unsigned vertex=0u;vertex<vertices.size();++vertex) {
             const auto& point=vertices[vertex].first;const auto& direction=vertices[vertex].second;
             const auto miterVector=miter(profile,vertices,vertex);
@@ -34110,7 +34115,7 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
 }
 bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary,unsigned sourceCount=2u) {
     const auto bad=[](int line){std::cerr<<"retarget append output proof mismatch line="<<line<<'\n';return false;};
-    if(sourceCount!=2u&&sourceCount!=3u)return bad(__LINE__);
+    if(sourceCount<2u||sourceCount>4u)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34138,11 +34143,18 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary,uns
     std::vector<double> sourceOffsets{beforeOffsets[0],beforeOffsets[1]};
     std::vector<int> sourceColors{1,3};
     std::vector<std::string> sourceLinetypes{"ByLayer","Continuous"};
-    if(sourceCount==3u){sourceOffsets.push_back(-1.25);sourceColors.push_back(4);sourceLinetypes.push_back("ByLayer");}
-    std::vector<double> targetOffsets=sourceOffsets;targetOffsets.push_back(sourceCount==2u?-1.25:-2.25);
-    std::vector<int> targetColors{5,7,4};
-    std::vector<std::string> targetLinetypes{"ByLayer","Continuous","ByLayer"};
-    if(sourceCount==3u){targetColors.push_back(4);targetLinetypes.push_back("ByLayer");}
+    std::vector<int> targetColors{5,7};
+    std::vector<std::string> targetLinetypes{"ByLayer","Continuous"};
+    for(unsigned element=2u;element<sourceCount;++element) {
+        const double offset=element==2u?-1.25:-2.0;
+        const int color=element==2u?4:5;
+        const std::string linetype=element==2u?"ByLayer":"Continuous";
+        sourceOffsets.push_back(offset);sourceColors.push_back(color);sourceLinetypes.push_back(linetype);
+        targetColors.push_back(color);targetLinetypes.push_back(linetype);
+    }
+    std::vector<double> targetOffsets=sourceOffsets;
+    targetOffsets.push_back(sourceCount==2u?-1.25:sourceCount==3u?-2.25:-3.0);
+    targetColors.push_back(4);targetLinetypes.push_back("ByLayer");
     const unsigned targetCount=sourceCount+1u;
     if(styleCount!=2u||!root||!oldStyle||!targetStyle)return bad(__LINE__);
     owner=entry(*root,"ACAD_MLINESTYLE");
@@ -34262,10 +34274,10 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
     const auto append=[](dx_data& data,unsigned sourceCount) {
         auto& target=mlineRetargetControls::style(data,0xD2u);
         if(target.elements.size()!=sourceCount)throw std::runtime_error("retarget append source arity");
-        auto added=target.elements.front();added.offset=sourceCount==2u?-1.25:-2.25;added.color=4;
+        auto added=target.elements.front();added.offset=sourceCount==2u?-1.25:sourceCount==3u?-2.25:-3.0;added.color=4;
         target.elements.push_back(std::move(added));
     };
-    for(unsigned sourceCount:{2u,3u})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(sourceBinary,sourceCount),sourceBinary,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
@@ -34275,7 +34287,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(unsigned sourceCount:{2u,3u})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -34290,7 +34302,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(unsigned sourceCount:{2u,3u})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u})for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -34309,7 +34321,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
     }
     std::cout<<"MLINE retarget append profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==8u&&readbacks==16u&&refusals==4u&&late==4u&&retries==8u;
+    return profiles==12u&&readbacks==24u&&refusals==6u&&late==6u&&retries==12u;
 }
 bool runRetargetAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
