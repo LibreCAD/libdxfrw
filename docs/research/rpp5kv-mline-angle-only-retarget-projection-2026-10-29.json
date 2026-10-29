@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kv selected angle-only MLINESTYLE retarget projection",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "6f03ccbb65b94789e81aa48b12615c30aaa02051",
+  "evidenceCommit": "6f03ccbb65b94789e81aa48b12615c30aaa02051",
+  "scope": "Adds a fail-closed AC1027 ordinary-Mline retarget profile for a target style whose only geometry difference is start/end angles. The selected 90/90 source-to-60/120 target updates endpoint miter vectors and group-41 intersection distances. This is exact output/readback evidence; it does not qualify arbitrary angle values, native CAD semantics, or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 is the MLINESTYLE pointer; group 13 is the per-vertex miter direction; group 41's first value is the distance from the segment vertex along the miter vector to the element path intersection. The reference does not prescribe this adapter's projection formula."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 51 and 52 are the MLINESTYLE start and end angles; group 70 contains the style flags."
+    }
+  ],
+  "contract": {
+    "admission": "Both source and target MLINESTYLE bodies and the original source-to-live entity/reference graph must pass the existing AC1027 source, owner, dictionary, provider and consumer checks. The target must have flags 2, the same element count and offsets as the original style, and at least one changed start/end angle. The selected regression changes target angles from 90/90 to 60/120 while preserving the two offsets [1.25,-0.75]. The ordinary MLINEs retarget through group 340; redundant group 2 remains unchanged.",
+    "geometry": "The exact selected entities are open, uncut and unfilled, have three source-bound vertices, positive finite scale, center/bottom justification and unit extrusion in two planes. Source directions, miters, parameters and geometry must match the source style. The projection retains source WCS vertex and segment directions, recomputes endpoint group-13 miter vectors using the target start/end angle, keeps the middle miter, and recomputes each first group-41 distance against the target miter intersection denominator. The second value of each pair remains zero and fill arrays remain empty. This formula is checked against a separately authored expected projection; Autodesk's field descriptions alone do not establish native semantic acceptance.",
+    "identityAndOutput": "Across ASCII/binary source and output combinations, output group 51=60 and group 52=120 are checked on the target style, along with unchanged flags, offsets, target identity and original style. Each MLINE retains its redundant source style name, points group 340 at the emitted target style, and emits all three expected group-13 vectors and all group-41 values. Fresh import verifies target style angles and consumer handles, names, geometry, miters and parameter arrays for model-space and named-block consumers.",
+    "failureAndRetry": "A target with incompatible flags refuses before publication and preserves destination/caller state; restoring flags permits same-adapter retry. A late consumer parameter mutation after entity emission refuses before publication; restoring the caller snapshot permits same-adapter retry. Both controls run with ASCII and binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Runtime-authored AC1027 DXF inputs and outputs are temporary and deleted on success. No DWG/DXF fixture is committed.",
+    "limits": "Only AC1027 source angles 90/90 to target 60/120, flags 2, equal two-element arity/offsets, and the exact open/uncut/unfilled profile are qualified. Other angle values, direct angle edits to a style that existing MLINEs still reference, angle-plus-offset edits, flag/arity differences, cuts, closures, fills, other carriers/versions, native CAD rendering, document closure and independent 3D semantics remain unqualified. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "angleAndGeometryProjection": "Both target angle fields change from 90 to 60 degrees at the start and from 90 to 120 degrees at the end. Exact emitted group-13 vectors and group-41 values are independently computed from the runtime-authored source geometry, target angles, target offsets, justification and scale. Readback verifies both changed endpoint miters and unchanged middle vertex geometry.",
+    "failureAndRetry": "Four source/output profiles and eight successful output/readback proofs; two incompatible-flag refusals and two late-consumer mutation refusals preserve destination/caller state; four same-adapter retries succeed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "cmake --build build-gcc --target dwg2dxf -j2",
+        "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2"
+      ]
+    },
+    "normalRetargetControls": {
+      "result": "PASS",
+      "summary": "2/2 angle-only and offset-only retarget projection selectors",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_(angle|offset)_projection$' --output-on-failure"
+    },
+    "normalGeometryCohort": {
+      "result": "PASS",
+      "summary": "24/24 affected MLINE style/body, consumer projection, retarget, append and removal selectors. Two selectors were rerun after building their separate source-dependency test executable.",
+      "commands": [
+        "ctest --test-dir build-gcc -R '^libdxfrw_mline_(style_body_transactions|style_authority|style_body_geometry_guard|style_body_source_live|consumed_offset_projection|retarget_offset_projection|retarget_angle_projection|consumed_style_append|consumed_style_multi_append|consumed_style_triple_append|consumed_style_quad_append|consumed_style_quint_append|consumed_style_sext_append|consumed_style_sept_append|consumed_style_oct_append|consumed_style_append_range|consumed_four_source_append|consumed_three_source_append|consumed_style_removal|consumed_style_multi_removal|consumed_style_three_removal|consumed_style_single_from_four_removal|consumed_three_to_two_removal|consumed_three_to_one_removal)$' --output-on-failure",
+        "cmake --build build-gcc --target libdxfrw_mline_source_dependency_tests -j2",
+        "ctest --test-dir build-gcc -R '^libdxfrw_mline_style_body_(geometry_guard|source_live)$' --output-on-failure"
+      ]
+    },
+    "asanRetargetControls": {
+      "result": "PASS",
+      "summary": "2/2 angle-only and offset-only retarget projection selectors",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_retarget_(angle|offset)_projection$' --output-on-failure"
+    },
+    "observedAngleSelector": "MLINE retarget angle profiles=4; readbacks=8; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "4bd04b76a48a7208598e940ec175555ac4dcd1e6364dc241c229fdeada8ca0d5",
+    "tests/CMakeLists.txt": "70f2c9ca881a91343914ffb9341593990e8333123dae1ed270e9ba4048a6e53d",
+    "tests/dxf_fixture_tests.cpp": "6b1c7bdf0c00ca359911268623c2b86730c9497207847fcae4ab704d7d535de6"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "30bafdc26740df1bd63118d8cb7a553849b34387a0bf75018d731726f28a3cd2",
+    "asanLibdxfrwDxfFixtureTests": "95bdd5026d898a4c72bd405ceee314ffbfe0a334758f5b165d65303342e18e25",
+    "normalDwg2dxf": "f65acfb2147d3e621b604c9b35fd73350d8cf2b814e4eb33cde0f26362478a0a"
+  },
+  "next": "Select a distinct current refused P2 operation and bind its exact source and missing layer. Priority candidates are a non-offset retarget with different flags or arity, the bounded dense-retained-byte case, or a retained-element composite edit that has an unambiguous source identity. Keep unsupported cases refused until the proof is complete."
+}
