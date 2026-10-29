@@ -94,6 +94,40 @@ public:
             &&join.extensionDictionaryModel->hasCompleteDwgEntries()==liveModel->hasCompleteDwgEntries()
             &&liveCount==1u;
     }
+    static bool legacyExtensionDictionaryOutput(const dx_data& d) {
+        const auto& source=d.m_tableDxfSource;
+        if(source.version!=DRW::AC1018||!source.successful||!source.closed
+            ||source.structuralCaptureFailed||d.dictionaryCaptureFailed)return false;
+        const DRW_Block_Record* blockRecord=nullptr;std::size_t blockRecordCount=0u;
+        for(const DRW_Block_Record& record:d.blockRecords)if(record.name=="MY_BLOCK") {
+            blockRecord=&record;++blockRecordCount;
+        }
+        if(blockRecordCount!=1u||blockRecord==nullptr||blockRecord->handle==0u
+            ||blockRecord->xDictHandle==0u)return false;
+        const auto owner=blockRecord->handle;
+        const auto dictionaryHandle=blockRecord->xDictHandle;
+        std::size_t ownerCount=0u,dictionaryCount=0u;
+        for(const DRW_Block_Record& record:d.blockRecords)if(record.handle==owner) {
+            ++ownerCount;
+            if(record.xDictHandle!=dictionaryHandle)return false;
+        }
+        for(const DRW_Dictionary& dictionary:d.dictionaries)if(dictionary.handle==dictionaryHandle) {
+            ++dictionaryCount;
+            if(dictionary.tType!=DRW::DICTIONARY||dictionary.parentHandle!=owner
+                ||dictionary.hardOwner!=1||dictionary.cloning!=1||!dictionary.m_entries.empty()
+                ||dictionary.countCap||!dictionary.hasCompleteDxfEntries())return false;
+        }
+        if(ownerCount!=1u||dictionaryCount!=1u)return false;
+        const auto dictionary=std::find_if(d.dictionaries.begin(),d.dictionaries.end(),
+            [dictionaryHandle](const DRW_Dictionary& value){return value.handle==dictionaryHandle;});
+        return dictionary!=d.dictionaries.end()&&dictionary->tType==DRW::DICTIONARY
+            &&dictionary->parentHandle==owner&&dictionary->hardOwner==1&&dictionary->cloning==1
+            &&dictionary->m_entries.empty()&&!dictionary->countCap&&dictionary->hasCompleteDxfEntries()
+            &&dictionary->name.empty()&&dictionary->flags==0&&dictionary->extData.empty()
+            &&dictionary->appData.empty()&&dictionary->reactorHandles.empty()
+            &&dictionary->xDictHandle==0u&&dictionary->extensionDictionaryFlag()==0u
+            &&dictionary->reactorCount()==0;
+    }
     static bool legacyJoinFailed(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeFailed;}
     static std::size_t legacyJoinCount(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeJoins.size();}
     static std::array<std::size_t,2> legacyJoinUsage(const dx_data& d) {const auto& s=d.m_tableDxfSource;return {s.legacyAttdefScopeBytes,s.legacyAttdefScopeWork};}

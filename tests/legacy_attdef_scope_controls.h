@@ -40,8 +40,10 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,"default"},{100,"AcDbAttributeDefinition"},
         {3,"prompt"},{2,"ATTINFO"},{70,"0"},{1001,"AcDbAttr"},{1000,"x"},{1070,"0"},{1070,"1"}};
     Tags doc{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},
-        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},
-        {0,"BLOCK_RECORD"}};
+        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"2"},
+        {0,"APPID"},{5,"A8"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"TEST_APP"},{70,"0"},
+        {0,"APPID"},{5,"A7"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},{0,"BLOCK_RECORD"}};
     doc.insert(doc.end(),tableRow.begin(),tableRow.end());
     doc.insert(doc.end(),{{0,"ENDTAB"},{0,"ENDSEC"},{0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},
         {5,"B1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"MY_BLOCK"},
@@ -59,10 +61,48 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)||!A::legacyExtensionDictionaryBound(data)
             ||!A::legacyNoPromotion(data))return false;
         ++positives;
+        const auto outputPath=path.parent_path()/(binary?"legacy-xdictionary-live-model-binary.dxf":"legacy-xdictionary-live-model-ascii.dxf");
+        dx_iface exporter;
         auto liveDictionary=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),
             [](const DRW_Dictionary& value){return value.handle==0xD0u;});
         if(liveDictionary==data.dictionaries.end())return false;
-        const auto ownerFlag=liveDictionary->hardOwner;liveDictionary->hardOwner=0;
+        const auto ownerFlag=liveDictionary->hardOwner;
+        const std::string sentinel="existing destination must survive preflight refusal";
+        {
+            std::ofstream destination(outputPath,std::ios::binary|std::ios::trunc);
+            if(!destination)return false;
+            destination.write(sentinel.data(),static_cast<std::streamsize>(sentinel.size()));
+            if(!destination)return false;
+        }
+        liveDictionary->hardOwner=0;
+        const bool refused=!exporter.fileExport(outputPath.string(),DRW::AC1018,binary,&data,false,false);
+        liveDictionary->hardOwner=ownerFlag;
+        if(!refused)return false;
+        {
+            std::ifstream destination(outputPath,std::ios::binary);
+            const std::string contents((std::istreambuf_iterator<char>(destination)),
+                std::istreambuf_iterator<char>());
+            if(contents!=sentinel)return false;
+        }
+        if(!exporter.fileExport(outputPath.string(),DRW::AC1018,binary,&data,false,false))return false;
+        Probe outputReader;outputReader.enableLegacyDxfIdentityObservation();dx_data outputData;
+        if(!outputReader.fileImport(outputPath.string(),&outputData,false)) {
+            std::cerr<<"selected XDICTIONARY output readback failed (binary="<<binary<<")\n";return false;
+        }
+        if(!A::legacyExtensionDictionaryOutput(outputData)) {
+            std::cerr<<"selected XDICTIONARY output proof failed (binary="<<binary<<") blockRecords="
+                <<outputData.blockRecords.size()<<" dictionaries="<<outputData.dictionaries.size()<<'\n';
+            for(const auto& record:outputData.blockRecords)std::cerr<<"  BLOCK_RECORD "<<record.name
+                <<" handle="<<record.handle<<" xdict="<<record.xDictHandle<<'\n';
+            for(const auto& dictionary:outputData.dictionaries)std::cerr<<"  DICTIONARY handle="
+                <<dictionary.handle<<" owner="<<dictionary.parentHandle<<" hard="
+                <<dictionary.hardOwner<<" clone="<<dictionary.cloning<<'\n';
+            return false;
+        }
+        liveDictionary=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),
+            [](const DRW_Dictionary& value){return value.handle==0xD0u;});
+        if(liveDictionary==data.dictionaries.end())return false;
+        liveDictionary->hardOwner=0;
         if(A::legacyExtensionDictionaryBound(data))return false;
         liveDictionary->hardOwner=ownerFlag;
         if(!A::legacyExtensionDictionaryBound(data))return false;

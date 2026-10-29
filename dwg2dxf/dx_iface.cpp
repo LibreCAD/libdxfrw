@@ -35967,6 +35967,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                      m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed,
                      m_preserveGraphSourceIdentities};
     cData = fData;
+    std::map<std::uint32_t,std::uint32_t> selectedLegacyBlockRecordXdicts;
     m_acdsHistoryObjects.clear();
     m_acdsDxfHistoryObjects.clear();
     m_acdsDxfHistoryClasses.clear();
@@ -36775,6 +36776,35 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << " detail=" << extensionGraphFailureDetail() << '\n';
         }
         return false;
+    }
+    // A source-bound AC1018 ATTDEF scope can authenticate one empty
+    // BLOCK_RECORD extension DICTIONARY. Stage only that selected child for
+    // output; arbitrary BLOCK_RECORD extension graphs remain unqualified.
+    if(cData->sourceFormat==dx_source_format::DXF
+        &&cData->m_tableDxfSource.version==DRW::AC1018
+        &&!cData->m_tableDxfSource.legacyAttdefScopeJoins.empty()) {
+        try {
+            for(const auto& entry:cData->m_tableDxfSource.legacyAttdefScopeJoins) {
+                const auto& join=entry.second;
+                if(!join||!legacyAttdefExtensionDictionaryLiveSource(*cData,entry.first)
+                    ||!join->origin||!join->origin->blockRecord||!join->extensionDictionaryHandle) {
+                    reportPreflightFailure("selected AC1018 ATTDEF XDICTIONARY live-source binding changed");
+                    return false;
+                }
+                const auto inserted=selectedLegacyBlockRecordXdicts.emplace(
+                    join->origin->blockRecord,join->extensionDictionaryHandle);
+                if(!inserted.second&&inserted.first->second!=join->extensionDictionaryHandle) {
+                    reportPreflightFailure("selected AC1018 BLOCK_RECORD has conflicting XDICTIONARY targets");
+                    return false;
+                }
+                if(std::find(m_extensionDictionaryHandles.begin(),m_extensionDictionaryHandles.end(),
+                        join->extensionDictionaryHandle)==m_extensionDictionaryHandles.end())
+                    m_extensionDictionaryHandles.push_back(join->extensionDictionaryHandle);
+            }
+        } catch(...) {
+            reportPreflightFailure("selected AC1018 XDICTIONARY staging allocation failed");
+            return false;
+        }
     }
     if(!prepareDxfDictionaryVars(v,binary,targetTextPolicy)) {
         reportPreflightFailure("DICTIONARYVAR current source/body transaction");
@@ -37823,6 +37853,23 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     };
     std::vector<DRW_Block_Record> sourceBlockRecords;
     sourceBlockRecords.reserve(cData->blockRecords.size());
+    for (const auto& selected : selectedLegacyBlockRecordXdicts) {
+        const DRW_Block_Record* sourceRecord = nullptr;
+        std::size_t matches = 0u;
+        for (const DRW_Block_Record& candidate : cData->blockRecords) {
+            if (candidate.handle != selected.first)
+                continue;
+            sourceRecord = &candidate;
+            ++matches;
+        }
+        if (matches != 1u || sourceRecord == nullptr
+            || (sourceRecord->xDictHandle != 0u
+                && sourceRecord->xDictHandle != selected.second)) {
+            reportPreflightFailure(
+                "selected AC1018 XDICTIONARY owner identity is missing or ambiguous");
+            return false;
+        }
+    }
     for (const DRW_Block_Record& source : cData->blockRecords) {
         // The codec's source-identity planner reads only these four fields.
         // Avoid deep-copying parser-only BLOCK_RECORD payloads such as the
@@ -37832,6 +37879,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         identity.name = source.name;
         identity.layoutHandle = source.layoutHandle;
         identity.xDictHandle = source.xDictHandle;
+        const auto selected = selectedLegacyBlockRecordXdicts.find(source.handle);
+        if (selected != selectedLegacyBlockRecordXdicts.end())
+            identity.xDictHandle = selected->second;
         sourceBlockRecords.push_back(std::move(identity));
     }
     for (const dx_ifaceBlock* block : cData->blocks) {
@@ -37847,7 +37897,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     std::unordered_set<std::uint32_t> sortOwners(
         m_sortOwnerHandles.begin(), m_sortOwnerHandles.end());
     for (DRW_Block_Record& record : sourceBlockRecords) {
-        if (sortOwners.count(record.handle) == 0)
+        const auto selected = selectedLegacyBlockRecordXdicts.find(record.handle);
+        if (selected != selectedLegacyBlockRecordXdicts.end())
+            record.xDictHandle = selected->second;
+        else if (sortOwners.count(record.handle) == 0)
             record.xDictHandle = 0;
     }
     std::unordered_set<std::uint32_t>().swap(sortOwners);
