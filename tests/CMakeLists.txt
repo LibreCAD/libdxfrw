@@ -181,6 +181,15 @@ set_tests_properties(libdxfrw_mline_vertex_flag_profiles PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
+# Nonempty group-42/75 source arrays remain outside consumed-style offset
+# projection. This runtime test binds atomic refusal and exact unchanged
+# readback after same-adapter retry; it makes no fill/cut semantic claim.
+add_test(NAME libdxfrw_mline_fill_offset_refusal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-fill-offset-refusal)
+set_tests_properties(libdxfrw_mline_fill_offset_refusal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Generated at runtime from the selected AC1027 MLINE profiles. This proves
 # offset reprojection when retargeting group 340, including documented
 # start/end-cap suppression flags, exact redundant group-2/reference/geometry
