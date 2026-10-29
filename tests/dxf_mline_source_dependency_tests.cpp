@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include "dx_mline_layer_source_live.h"
+#include "test_scratch.h"
 #include "intern/dxfwriter.h"
 #include <chrono>
 #include <filesystem>
@@ -13,11 +15,13 @@
 #include <vector>
 class DxWholeSourceTestAccess {
 public:
+    static auto& capture(dx_data& data){return data.m_tableDxfSource;}
     static void limits(dx_iface& a,WholeSourceV2::Limits value){a.m_wholeLimits=value;}
     static std::size_t peak(const dx_data& data){const auto& p=data.m_tableDxfSource.wholeInput;return p&&p->source?p->source->peakBytes():0u;}
 };
 class DxIfaceMlineDependencyTestAccess {
 public:
+    static bool layers(const dx_iface& a,const dx_data& d,std::size_t work,std::size_t* used) noexcept{return a.mlineLayerSourceLiveProof(d,work,used);}
     static dx_mline_source_dependency::Proof qualify(const dx_iface& a,const dx_data& data,
             dx_mline_source_dependency::Limits limits={}) noexcept{return a.mlineDependencySourceProof(data,limits);}
 };
@@ -183,7 +187,244 @@ static void insertLine(Tags& a) {
     a.insert(a.begin()+static_cast<std::ptrdiff_t>(where),line.begin(),line.end());
 }
 struct Scenario {std::string name;Tags tags;bool admit;};
-int main() {
+// Selected original-to-live LAYER relation, not writer authorization.
+class LayerSpoofConsumer final : public Consumer {
+public:
+  bool spoof = false;
+  void addDxfNamespaceSource(const DRW_TableEntry &model,
+                             const DRW_RawDxfObject &raw) override {
+    if (spoof && model.handle == 0x1E1u) {
+      auto &layer =
+          const_cast<DRW_Layer &>(static_cast<const DRW_Layer &>(model));
+      layer.color = 3;
+      auto &mutableRaw = const_cast<DRW_RawDxfObject &>(raw);
+      for (std::size_t i = 0u; i < mutableRaw.groups.size(); ++i)
+        if (mutableRaw.groups[i].code() == 62) {
+          mutableRaw.groups[i] = DRW_Variant(62, 3);
+          if (mutableRaw.hasRawValues)
+            mutableRaw.rawValues[i] = "3";
+        }
+    }
+    dx_iface::addDxfNamespaceSource(model, raw);
+  }
+};
+static int testMlineLayerLive() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-layer-live", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  auto original = parseTags(sourceText());
+  for (const char *id : {"D100", "D101"})
+    original[field(original, record(original, "MLINE", id), 2)].second =
+        "EFFECTIVE_STYLE";
+  original[field(original, record(original, "MLINESTYLE", "D"), 2)].second =
+      "EFFECTIVE_STYLE";
+  original[field(original, record(original, "MLINESTYLE", "D2"), 2)].second =
+      "RETARGET_STYLE";
+  const auto table = record(original, "TABLE", "1E0");
+  original[field(original, table, 70)].second = "2";
+  const auto begin = record(original, "LAYER", "1E1"),
+             end = afterRecord(original, begin);
+  Tags extra(original.begin() + static_cast<std::ptrdiff_t>(begin),
+             original.begin() + static_cast<std::ptrdiff_t>(end));
+  extra[field(extra, 0u, 5)].second = "1E2";
+  extra[field(extra, 0u, 2)].second = "SECOND";
+  original.insert(original.begin() + static_cast<std::ptrdiff_t>(end),
+                  extra.begin(), extra.end());
+  unsigned profiles = 0u, mutations = 0u, bodyTamper = 0u, retries = 0u,
+           limits = 0u;
+  for (bool binary : {false, true}) {
+    std::string bytes = serialize(original);
+    if (binary) {
+      std::string encoded;
+      if (!encodeBinary(bytes, encoded))
+        return 2;
+      bytes = std::move(encoded);
+    }
+    const auto path = dir / (binary ? "two-binary.dxf" : "two-ascii.dxf");
+    if (!writeFile(path, bytes))
+      return 3;
+    for (bool spoof : {false, true}) {
+      LayerSpoofConsumer adapter;
+      adapter.spoof = spoof;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(path.string(), data))
+        return 4;
+      const auto source =
+          DxIfaceMlineDependencyTestAccess::qualify(adapter, data);
+      auto &capture = DxWholeSourceTestAccess::capture(data);
+      const auto it = capture.resourceOriginAudits.find(0x1E1u);
+      if (source.result != Result::SourceCandidate ||
+          it == capture.resourceOriginAudits.end() || !it->second ||
+          !it->second->input || !it->second->input->raw ||
+          !it->second->input->sourceModel || !capture.wholeInput ||
+          !capture.identityInput || !capture.identityInput->source)
+        return 5;
+      const auto &audit = *it->second;
+      const auto &whole = *capture.wholeInput->source;
+      if (audit.physical >= capture.identityInput->source->records.size() ||
+          !audit.originBound || !audit.bodyMatched || !audit.stateComplete)
+        return 6;
+      const auto &record =
+          capture.identityInput->source->records[audit.physical];
+      const auto body =
+          mline_layer_relation::compare(whole, record, *audit.input->raw);
+      if ((body.result == mline_layer_relation::Result::Match) == spoof)
+        return 7;
+      std::size_t charged = 0u;
+      const auto check = [&](std::size_t work, std::size_t *used = nullptr) {
+        return DxIfaceMlineDependencyTestAccess::layers(adapter, data, work,
+                                                        used);
+      };
+      if (check(512u * 1024u * 1024u, &charged) == spoof)
+        return 8;
+      if (spoof) {
+        adapter.spoof = false;
+        dx_data fresh;
+        if (!adapter.import(path.string(), fresh) ||
+            !DxIfaceMlineDependencyTestAccess::layers(
+                adapter, fresh, 512u * 1024u * 1024u, nullptr))
+          return 9;
+        ++retries;
+        continue;
+      }
+      std::size_t refused = 123u;
+      if (!charged || check(charged - 1u, &refused) || refused ||
+          !check(charged))
+        return 10;
+      ++limits;
+      mline_layer_relation::Limits limit;
+      limit.work = body.charged - 1u;
+      if (mline_layer_relation::compare(whole, record, *audit.input->raw, limit)
+              .result != mline_layer_relation::Result::Limit)
+        return 11;
+      limit.work = body.charged;
+      if (mline_layer_relation::compare(whole, record, *audit.input->raw, limit)
+              .result != mline_layer_relation::Result::Match)
+        return 12;
+      ++limits;
+      for (std::size_t i = 0u; i < audit.input->raw->groups.size(); ++i) {
+        auto altered = *audit.input->raw;
+        const auto &v = altered.groups[i];
+        const int code = v.code();
+        if (v.type() == DRW_Variant::STRING && v.content.s)
+          altered.groups[i] = DRW_Variant(code, *v.content.s + "X");
+        else if (v.type() == DRW_Variant::INTEGER)
+          altered.groups[i] = DRW_Variant(code, v.i_val() + 1);
+        else if (v.type() == DRW_Variant::INTEGER64)
+          altered.groups[i] = DRW_Variant(code, v.i64_val() + 1);
+        else if (v.type() == DRW_Variant::DOUBLE)
+          altered.groups[i] = DRW_Variant(code, v.d_val() + 1.0);
+        else
+          return 13;
+        if (mline_layer_relation::compare(whole, record, altered).result !=
+            mline_layer_relation::Result::Refused)
+          return 14;
+        ++bodyTamper;
+        if (altered.hasRawValues) {
+          altered = *audit.input->raw;
+          altered.rawValues[i] += " ";
+          if (mline_layer_relation::compare(whole, record, altered).result !=
+              mline_layer_relation::Result::Refused)
+            return 15;
+          ++bodyTamper;
+        }
+      }
+      auto &first = data.layers.front();
+      const auto savedFirst = first;
+      const auto change = [&](const auto &modify) {
+        modify(first);
+        const bool rejected = !check(512u * 1024u * 1024u);
+        first = savedFirst;
+        if (!rejected || !check(charged))
+          return false;
+        ++mutations;
+        ++retries;
+        return true;
+      };
+      if (!change([](auto &v) { v.name = "OTHER"; }) ||
+          !change([](auto &v) { v.handle = 0x1E2u; }) ||
+          !change([](auto &v) { v.parentHandle = 0x1E2u; }) ||
+          !change([](auto &v) { v.flags ^= 1; }) ||
+          !change([](auto &v) { v.lineType = "ByLayer"; }) ||
+          !change([](auto &v) { v.color = 3; }) ||
+          !change([](auto &v) { v.color24 = 0; }) ||
+          !change([](auto &v) { v.colorName = "BOOK"; }) ||
+          !change([](auto &v) { v.plotF = !v.plotF; }) ||
+          !change([](auto &v) { v.handleMaterialS = "D"; }) ||
+          !change([](auto &v) { v.handlePlotS = "D"; }) ||
+          !change([](auto &v) { v.xDictHandle = 0xDu; }) ||
+          !change([](auto &v) { v.reactorHandles.push_back(0xDu); }) ||
+          !change([](auto &v) {
+            v.appData.push_back({{102, std::string("{TEST_HIDDEN")},
+                                 {340, std::string("D")},
+                                 {102, std::string("}")}});
+          }))
+        return 16;
+      auto second = std::next(data.layers.begin());
+      const auto savedSecond = *second;
+      second->handle = first.handle;
+      if (check(512u * 1024u * 1024u))
+        return 17;
+      *second = savedSecond;
+      if (!check(charged))
+        return 18;
+      ++mutations;
+      ++retries;
+      data.layers.erase(second);
+      if (check(512u * 1024u * 1024u))
+        return 19;
+      data.layers.push_back(savedSecond);
+      if (!check(charged))
+        return 20;
+      ++mutations;
+      ++retries;
+      auto added = savedSecond;
+      added.handle = 0x1E3u;
+      added.name = "THIRD";
+      data.layers.push_back(added);
+      if (check(512u * 1024u * 1024u))
+        return 21;
+      data.layers.pop_back();
+      if (!check(charged))
+        return 22;
+      ++mutations;
+      ++retries;
+      ++profiles;
+    }
+    Consumer ordinary;
+    dx_data plain;
+    if (!ordinary.import(path.string(), plain) ||
+        DxIfaceMlineDependencyTestAccess::layers(ordinary, plain,
+                                                 512u * 1024u * 1024u, nullptr))
+      return 23;
+    const auto output =
+        dir / (binary ? "default-binary.dxf" : "default-ascii.dxf");
+    if (!ordinary.fileExport(output.string(), DRW::AC1027, binary, &plain,
+                             false, true))
+      return 24;
+  }
+  std::cout << "layer source/live profiles=" << profiles
+            << " mutations=" << mutations << " body-tamper=" << bodyTamper
+            << " limits=" << limits << " retries=" << retries << '\n';
+  return profiles == 2u && mutations == 34u && limits == 4u && retries == 36u
+             ? 0
+             : 25;
+}
+
+int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--layer-source-live")return testMlineLayerLive();
+    if(argc!=1)return 26;
     const auto staleNames=parseTags(sourceText());auto original=staleNames;
     for(const char* id:{"D100","D101"})original[field(original,record(original,"MLINE",id),2)].second="EFFECTIVE_STYLE";
     original[field(original,record(original,"MLINESTYLE","D"),2)].second="EFFECTIVE_STYLE";

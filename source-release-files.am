@@ -61,6 +61,7 @@ EXTRA_DIST = \
     dwg2dxf/dx_legacy_blockref_source_relation.h \
     dwg2dxf/dx_legacy_identity_join.h \
     dwg2dxf/dx_material_body.h \
+    dwg2dxf/dx_mline_layer_source_live.h \
     dwg2dxf/dx_mline_source_dependency.h \
     dwg2dxf/dx_plotstyle_source.h \
     dwg2dxf/dx_raster_dwg_wire.h \

@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "dx_iface.h"
+#include "dx_mline_layer_source_live.h"
 #include "dx_legacy_blockref_source_relation.h"
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
@@ -26091,6 +26092,78 @@ dx_mline_source_dependency::Proof dx_iface::mlineDependencySourceProof(
     const auto& entry=original->m_entries.front();
     if(entry.m_name!="ACAD_MLINESTYLE"||entry.m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)return unavailable;
     return classify(input->source.get(),root,entry.m_handle,limits);
+}
+
+// Selected source/live LAYER evidence; not a write authorization.
+bool dx_iface::mlineLayerSourceLiveProof(const dx_data& data,std::size_t limit,std::size_t* charged) const noexcept {
+    if(charged)*charged=0u;
+    try {
+        const auto& s=data.m_tableDxfSource;
+        if(cData!=&data||!s.wholeInput||!s.wholeInput->source||!s.identityInput||!s.identityInput->source
+            ||!s.identityAudit||s.resourceOriginAudits.size()>64u||s.resourceOriginInputs.size()>64u
+            ||s.resources.size()>64u||s.identityInput->source->records.size()>64u||data.layers.size()>64u)return false;
+        const auto& whole=*s.wholeInput->source;
+        if(whole.fieldCount()>4096u||whole.peakBytes()>256u*1024u)return false;
+        // Classifier precharge, then bounded relation/census passes. These are
+        // logical work units, not CPU time or memory/RSS measurements.
+        std::size_t x=0u,y=0u,cost=0u;
+        if(!WholeSourceV2::product(whole.peakBytes(),512u,x)
+            ||!WholeSourceV2::product(whole.fieldCount(),256u,y)||!WholeSourceV2::sum(x,y,cost)
+            ||!WholeSourceV2::sum(cost,64u*64u*256u+8192u,cost)
+            ||!WholeSourceV2::product(whole.peakBytes(),2u*data.layers.size(),x)
+            ||!WholeSourceV2::sum(cost,x,cost)
+            ||!WholeSourceV2::product(whole.fieldCount(),32u*data.layers.size()+64u,y)
+            ||!WholeSourceV2::sum(cost,y,cost)||cost>limit)return false;
+        const auto same=[](const auto& a,const auto& b) noexcept {
+            return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+        };
+        // This O(number of layers) sizing pass visits no metadata payload:
+        // the selected source grammar excludes these mutable collections.
+        for(const auto& live:data.layers) {
+            if(!live.appData.empty()||!live.extData.empty()||!live.reactorHandles.empty()
+                ||!live.pendingAppIdResolutions.empty()||!live.pendingLayerRefResolutions.empty()
+                ||live.dwgNameSourceRetainedBytes())return false;
+            const auto found=s.resourceOriginAudits.find(live.handle);
+            if(found==s.resourceOriginAudits.end()||!found->second||!found->second->input)return false;
+            const auto* original=dynamic_cast<const DRW_Layer*>(found->second->input->sourceModel.get());
+            if(!original||!original->appData.empty()||!original->extData.empty()||!original->reactorHandles.empty()
+                ||!original->pendingAppIdResolutions.empty()||!original->pendingLayerRefResolutions.empty()
+                ||original->dwgNameSourceRetainedBytes())return false;
+            std::size_t bytes=0u,items=0u;
+            if(!estimateLayerTypedBytes(*original,bytes,items)||bytes>whole.peakBytes()+sizeof(DRW_Layer)+4096u
+                ||!WholeSourceV2::product(bytes,4u,x)||!WholeSourceV2::sum(cost,x,cost)||cost>limit)return false;
+        }
+        if(charged)*charged=cost;
+        if(mlineDependencySourceProof(data,{}).result!=dx_mline_source_dependency::Result::SourceCandidate
+            ||resourceOriginReport(data).state!=ResourceOriginState::OriginsBound)return false;
+        const auto contextEqual=[](const auto& a,const auto& b) noexcept {
+            return a.captured&&b.captured&&a.sourceVersion==b.sourceVersion&&a.codecVersion==b.codecVersion
+                &&a.codecCodePage==b.codecCodePage&&a.declaration==b.declaration&&a.hasDeclaration==b.hasDeclaration
+                &&a.compatibilityProfile==b.compatibilityProfile&&a.textEncoding==b.textEncoding
+                &&a.codePagePolicy==b.codePagePolicy&&a.applyExtrusion==b.applyExtrusion&&a.binary==b.binary;
+        };
+        if(!s.identityInput->context||!contextEqual(*s.identityInput->context,s.wholeInput->context))return false;
+        std::size_t sourceLayers=0u;
+        for(std::size_t i=0;i<whole.fieldCount();++i){const auto f=whole.field(i);
+            if(!f.ignored&&f.code==0&&f.kind==DxfReadRecordView::Text&&whole.bounds(f)&&whole.value(f)=="LAYER")++sourceLayers;}
+        if(sourceLayers!=data.layers.size())return false;
+        const auto& identity=*s.identityInput->source;
+        for(auto it=data.layers.begin();it!=data.layers.end();++it) {
+            const auto& live=*it;for(auto jt=std::next(it);jt!=data.layers.end();++jt)if(jt->handle==live.handle)return false;
+            const auto a=s.resourceOriginAudits.find(live.handle);if(a==s.resourceOriginAudits.end()||!a->second)return false;
+            const auto& audit=*a->second;const auto& input=audit.input;
+            if(!input||!input->raw||!input->sourceModel||!input->context||!audit.originBound||!audit.bodyMatched||!audit.stateComplete
+                ||!input->paired||audit.physical>=identity.records.size()||input->kind!=dxfRW::DxfResourceSourceView::Kind::Layer
+                ||input->container!=&data||input->generation!=data.importGeneration||input->containerId!=data.m_entitiesContainerIdentity.value
+                ||!same(audit.identities,s.identityAudit)||!contextEqual(*input->context,s.wholeInput->context)
+                ||input->context->binary!=whole.binary()||input->context->sourceVersion!=whole.version()
+                ||input->raw->handle!=live.handle)return false;
+            const auto* source=dynamic_cast<const DRW_Layer*>(input->sourceModel.get());if(!source)return false;
+            if(mline_layer_relation::compare(whole,identity.records[audit.physical],*input->raw).result!=mline_layer_relation::Result::Match
+                ||!layerSourceEqual(*source,live,data.sourceVersion))return false;
+        }
+        return true;
+    }catch(...) {return false;}
 }
 
 bool dx_iface::wantsWholeSource() const noexcept {
