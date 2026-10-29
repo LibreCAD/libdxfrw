@@ -36549,6 +36549,27 @@ bool runConsumedFiveReduction(const std::filesystem::path& dir,unsigned targetCo
         {beforeOffsets[0],beforeOffsets[1],-1.25,-2.0,-2.5},{1,3,4,5,6},
         {"ByLayer","Continuous","ByLayer","Continuous","ByLayer"});
 }
+bool runConsumedSourceCountRemovalMatrix(const std::filesystem::path& dir,unsigned sourceCount) {
+    if(sourceCount<6u||sourceCount>8u)return false;
+    std::vector<double> offsets;
+    std::vector<int> colors;
+    std::vector<std::string> linetypes;
+    offsets.reserve(sourceCount);colors.reserve(sourceCount);linetypes.reserve(sourceCount);
+    for(unsigned i=0u;i<sourceCount;++i) {
+        offsets.push_back(consumedAppendOffset(i));
+        colors.push_back(consumedAppendColor(i));
+        linetypes.emplace_back(i%2u==0u?"ByLayer":"Continuous");
+    }
+    const auto sourceRecipe=[sourceCount](bool binary) {
+        if(sourceCount==6u)return sixElementRecipe(binary);
+        if(sourceCount==7u)return sevenElementRecipe(binary);
+        return eightElementRecipe(binary);
+    };
+    for(unsigned targetCount=1u;targetCount<sourceCount;++targetCount)
+        if(!runConsumedSurvivorSubsetRemoval(dir,sourceCount,targetCount,sourceRecipe,
+                offsets,colors,linetypes))return false;
+    return true;
+}
 bool runConsumedSingleFromFourTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-consumed-single-from-four-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -36564,6 +36585,15 @@ bool runConsumedFiveReductionTemporary(unsigned targetCount) {
     std::filesystem::create_directory(dir);const bool passed=runConsumedFiveReduction(dir,targetCount);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed 5-to-"<<targetCount<<" removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedSourceCountRemovalMatrixTemporary(unsigned sourceCount) {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-removal-source-"+std::to_string(sourceCount)+"-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedSourceCountRemovalMatrix(dir,sourceCount);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed source-count removal artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedThreeElementReduction(const std::filesystem::path& dir,unsigned targetCount) {
@@ -44953,6 +44983,15 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-four-from-five-removal") {
         return mlineConsumedOffsetControls::runConsumedFiveReductionTemporary(4u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal-matrix-six") {
+        return mlineConsumedOffsetControls::runConsumedSourceCountRemovalMatrixTemporary(6u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal-matrix-seven") {
+        return mlineConsumedOffsetControls::runConsumedSourceCountRemovalMatrixTemporary(7u)?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal-matrix-eight") {
+        return mlineConsumedOffsetControls::runConsumedSourceCountRemovalMatrixTemporary(8u)?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;

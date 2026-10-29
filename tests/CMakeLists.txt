@@ -493,6 +493,24 @@ set_tests_properties(libdxfrw_mline_consumed_style_four_from_five_removal PROPER
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated full ordered-survivor matrices for six-, seven-, and
+# eight-element AC1027 source styles, with a separate bounded test per source.
+add_test(NAME libdxfrw_mline_consumed_style_removal_matrix_six
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal-matrix-six)
+set_tests_properties(libdxfrw_mline_consumed_style_removal_matrix_six PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_style_removal_matrix_seven
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal-matrix-seven)
+set_tests_properties(libdxfrw_mline_consumed_style_removal_matrix_seven PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_style_removal_matrix_eight
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal-matrix-eight)
+set_tests_properties(libdxfrw_mline_consumed_style_removal_matrix_eight PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+
 # Runtime-generated AC1027 profiles remove each element in turn from a
 # three-element style consumed by open, uncut MLINEs. Check parameter
 # reprojection, exact output/readback, rollback and retries across DXF encodings.
