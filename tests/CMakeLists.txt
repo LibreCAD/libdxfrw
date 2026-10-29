@@ -408,6 +408,24 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_multi_append_128_253 P
     LABELS "dxf;fast;transaction"
     TIMEOUT 120)
 
+# Qualify the selected three-tuple recipe across all non-two source counts
+# whose target count remains representable in the one-byte MLINESTYLE field.
+add_test(NAME libdxfrw_mline_consumed_source_count_triple_append_3_127
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 3 127 3)
+set_tests_properties(libdxfrw_mline_consumed_source_count_triple_append_3_127 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_source_count_triple_append_128_190
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 128 190 3)
+set_tests_properties(libdxfrw_mline_consumed_source_count_triple_append_128_190 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_source_count_triple_append_191_252
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 191 252 3)
+set_tests_properties(libdxfrw_mline_consumed_source_count_triple_append_191_252 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
