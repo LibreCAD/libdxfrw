@@ -15,7 +15,7 @@ class Capture final:public DxfReadRecordObserver {
     std::shared_ptr<DxfReadRetainedLease> lease;
     enum class State {Outside,SectionName,Body,Ended} state{State::Outside};
     std::size_t section{None},table{None},record{None},depth{0},nextOrdinal{1},lastOffset{0};
-    bool xdata{false},embedded{false};DRW_DxfPhysicalRecordSpan sectionMarker;
+    bool xdata{false},embedded{false},xrecordBody{false};DRW_DxfPhysicalRecordSpan sectionMarker;
     static bool equal(std::string_view a,std::string_view b) noexcept {
         if(a.size()!=b.size())return false;
         for(std::size_t i=0;i<a.size();++i) {
@@ -45,7 +45,7 @@ class Capture final:public DxfReadRecordObserver {
             auto& row=result.records[record];row.endMarker=span(v);
             if(row.kind==Source::Kind::TableControl&&row.tableName.empty())result.status=S::InvalidBoundary;
         }
-        record=None;depth=0;xdata=false;embedded=false;
+        record=None;depth=0;xdata=false;embedded=false;xrecordBody=false;
     }
     void marker(const DxfReadRecordView& v) {
         if(v.kind!=DxfReadRecordView::Text||v.text.empty()) {result.status=S::InvalidBoundary;return;}
@@ -111,25 +111,39 @@ class Capture final:public DxfReadRecordObserver {
         if(state!=State::Body) {result.status=S::InvalidBoundary;return;}
         const auto kind=result.sections[section].kind;
         if(kind==Source::Section::Header||kind==Source::Section::Classes)return;
+        if(xrecordBody) {
+            // XRECORD 102 and 100 are payload values; they do not open or
+            // close outer application/subclass scopes. Its first 1001 starts
+            // trailing XDATA, which the typed decoder requires to remain in
+            // the XDATA code range until the next record marker.
+            if(v.code==1001)xdata=true;
+            if(xdata&&v.code<1000) {result.status=S::InvalidBoundary;return;}
+            if(v.code!=5&&v.code!=105)return;
+        } else if(record!=None&&kind==Source::Section::Objects
+            &&equal(result.records[record].name,"XRECORD")&&!depth&&!xdata&&!embedded
+            &&v.code==100&&v.kind==DxfReadRecordView::Text&&v.text=="AcDbXrecord") {
+            xrecordBody=true;return;
+        }
         if(record!=None&&result.records[record].kind==Source::Kind::TableControl&&v.code==2&&depth==0&&!xdata&&!embedded) {
             auto& name=result.records[record].tableName;
             if(!name.empty()||v.text.empty()||!textCharge(0u,v.text)) {if(result.status==S::Collecting)result.status=S::InvalidBoundary;return;}
             name=v.text;
         }
-        if(v.code==102) {
+        if(!xrecordBody&&v.code==102) {
             if(v.text=="}") {if(!depth)result.status=S::InvalidBoundary;else --depth;}
             else if(!v.text.empty()&&v.text.front()=='{') {
                 if(depth==(std::numeric_limits<std::size_t>::max)())result.status=S::InvalidBoundary;else ++depth;
             }
             return;
         }
-        if(!depth&&v.code==1001)xdata=true;
-        if(!depth&&v.code==101)embedded=true;
+        if(!xrecordBody&&!depth&&v.code==1001)xdata=true;
+        if(!xrecordBody&&!depth&&v.code==101)embedded=true;
         if(v.code!=5&&v.code!=105)return;
         if(result.candidates.size()>=limits.candidates) {result.status=S::Quota;return;}
         if(!textCharge(sizeof(Source::Candidate),v.text,result.binary?std::string_view{}:v.raw))return;
         Source::Candidate candidate;candidate.record=record;candidate.section=section;candidate.code=v.code;
-        candidate.scope=record==None?Source::Scope::Unframed:depth?Source::Scope::Application:embedded?Source::Scope::Embedded:xdata?Source::Scope::Xdata:Source::Scope::Outer;
+        candidate.scope=record==None?Source::Scope::Unframed:xrecordBody?Source::Scope::OpaqueBody:
+            depth?Source::Scope::Application:embedded?Source::Scope::Embedded:xdata?Source::Scope::Xdata:Source::Scope::Outer;
         candidate.lexeme=v.text;if(!result.binary)candidate.rawValue=v.raw;candidate.span=span(v);
         result.candidates.push_back(std::move(candidate));if(record!=None)++result.records[record].candidates;
     }

@@ -6,6 +6,7 @@
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfentitiesdelivery.h"
 #include "intern/dxfobjectphysicalsource.h"
+#include "intern/dxfidentitysource.h"
 #include "intern/dxfrenderingsource.h"
 #include "test_scratch.h"
 

@@ -903,7 +903,9 @@ struct DRW_DxfIdentitySource {
   enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
   enum class Section : std::uint8_t {Header,Classes,Tables,Blocks,Entities,Objects,Other};
   enum class Kind : std::uint8_t {TableControl,TableRecord,Entity,Object,Unclassified};
-  enum class Scope : std::uint8_t {Outer,Application,Xdata,Embedded,Unframed};
+  // OpaqueBody is a physical XRECORD body candidate, not an outer identity.
+  // Consumers that do not recognize it must keep the namespace unqualified.
+  enum class Scope : std::uint8_t {Outer,Application,Xdata,Embedded,Unframed,OpaqueBody};
   enum class Admission : std::uint8_t {None,Unobserved=None,Accepted,Null,Duplicate,Invalid};
   static constexpr std::size_t NoIndex=(std::numeric_limits<std::size_t>::max)();
   static constexpr std::size_t None=NoIndex; // legacy spelling; NoIndex is macro-safe
