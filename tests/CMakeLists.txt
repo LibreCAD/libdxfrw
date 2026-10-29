@@ -318,6 +318,15 @@ add_test(NAME libdxfrw_mline_consumed_three_to_two_removal
 set_tests_properties(libdxfrw_mline_consumed_three_to_two_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
+
+# Runtime-generated AC1027 profile retains each possible element from a
+# three-element consumed style. Verify exact single-survivor parameter mapping,
+# output/readback, rollback and same-adapter retries.
+add_test(NAME libdxfrw_mline_consumed_three_to_one_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-three-to-one-removal)
+set_tests_properties(libdxfrw_mline_consumed_three_to_one_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}

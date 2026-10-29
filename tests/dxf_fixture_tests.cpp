@@ -35414,27 +35414,34 @@ bool runConsumedSingleFromFourTemporary() {
     else std::cerr<<"MLINE consumed 4-to-1 removal artifacts: "<<dir<<'\n';
     return passed;
 }
-bool runConsumedThreeToTwoRemoval(const std::filesystem::path& dir) {
-    const auto input=dir/"consumed-three-to-two-removal-input.dxf",output=dir/"consumed-three-to-two-removal-output.dxf";
+bool runConsumedThreeElementReduction(const std::filesystem::path& dir,unsigned targetCount) {
+    if(targetCount!=1u&&targetCount!=2u)return false;
+    const auto input=dir/("consumed-three-to-"+std::to_string(targetCount)+"-removal-input.dxf");
+    const auto output=dir/("consumed-three-to-"+std::to_string(targetCount)+"-removal-output.dxf");
     const std::vector<double> sourceOffsets{beforeOffsets[0],beforeOffsets[1],-1.25};
     const std::vector<int> sourceColors{1,3,4};
     const std::vector<std::string> sourceLinetypes{"ByLayer","Continuous","ByLayer"};
     std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
     const auto fail=[&](int line) {
-        std::cerr<<"MLINE consumed 3-to-2 removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+        std::cerr<<"MLINE consumed 3-to-"<<targetCount<<" removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
             <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
     };
-    const auto removeOne=[](dx_data& data,unsigned removed,std::vector<std::size_t>& survivors) {
-        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=3u||removed>=3u)return false;
+    const auto reduce=[](dx_data& data,unsigned selection,unsigned target,std::vector<std::size_t>& survivors) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=3u||selection>=3u
+            ||(target!=1u&&target!=2u))return false;
         auto& elements=data.mLineStyles.front().elements;
-        elements.erase(elements.begin()+static_cast<std::ptrdiff_t>(removed));
-        survivors.clear();for(std::size_t i=0u;i<3u;++i)if(i!=removed)survivors.push_back(i);
+        survivors.clear();
+        for(std::size_t i=0u;i<3u;++i)
+            if((target==1u&&i==selection)||(target==2u&&i!=selection))survivors.push_back(i);
+        for(std::size_t i=elements.size();i>0u;--i)
+            if(std::find(survivors.begin(),survivors.end(),i-1u)==survivors.end())
+                elements.erase(elements.begin()+static_cast<std::ptrdiff_t>(i-1u));
         return elements.size()==survivors.size();
     };
-    for(unsigned removed=0u;removed<3u;++removed)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+    for(unsigned selection=0u;selection<3u;++selection)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
         if(!write(input,threeElementRecipe(sourceBinary),sourceBinary,"AC1027")
-            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,removed,survivors))return fail(__LINE__);
+            ||!adapter.fileImport(input.string(),&data,false)||!reduce(data,selection,targetCount,survivors))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
             ||!multiRemovalOutputProof(output,outputBinary,survivors,sourceOffsets,sourceColors,sourceLinetypes)
@@ -35444,7 +35451,7 @@ bool runConsumedThreeToTwoRemoval(const std::filesystem::path& dir) {
     for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
         if(!write(input,threeElementRecipe(false),false,"AC1027")
-            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,1u,survivors))return fail(__LINE__);
+            ||!adapter.fileImport(input.string(),&data,false)||!reduce(data,1u,targetCount,survivors))return fail(__LINE__);
         data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
@@ -35457,7 +35464,7 @@ bool runConsumedThreeToTwoRemoval(const std::filesystem::path& dir) {
     for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;std::vector<std::size_t> survivors;
         if(!write(input,threeElementRecipe(false),false,"AC1027")
-            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,2u,survivors))return fail(__LINE__);
+            ||!adapter.fileImport(input.string(),&data,false)||!reduce(data,2u,targetCount,survivors))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
         if(lines.size()!=2u)return fail(__LINE__);
         adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
@@ -35469,9 +35476,12 @@ bool runConsumedThreeToTwoRemoval(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    std::cout<<"MLINE consumed 3-to-2 removal positions="<<profiles/4u<<"; profiles="<<profiles<<"; readbacks="<<readbacks
+    std::cout<<"MLINE consumed 3-to-"<<targetCount<<" removal selections="<<profiles/4u<<"; profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
     return profiles==12u&&readbacks==16u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runConsumedThreeToTwoRemoval(const std::filesystem::path& dir) {
+    return runConsumedThreeElementReduction(dir,2u);
 }
 bool runConsumedThreeToTwoRemovalTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
@@ -35479,6 +35489,14 @@ bool runConsumedThreeToTwoRemovalTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedThreeToTwoRemoval(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed 3-to-2 removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedThreeToOneRemovalTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-three-to-one-removal-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedThreeElementReduction(dir,1u);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed 3-to-1 removal artifacts: "<<dir<<'\n';
     return passed;
 }
 }
@@ -43724,6 +43742,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-two-removal") {
         return mlineConsumedOffsetControls::runConsumedThreeToTwoRemovalTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-three-to-one-removal") {
+        return mlineConsumedOffsetControls::runConsumedThreeToOneRemovalTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;
