@@ -31172,6 +31172,9 @@ constexpr std::uint32_t secondAppRecordHandle=0x1F2u;
 constexpr const char* thirdAppName="MLINE_LTYPE_XDATA_3";
 constexpr const char* thirdPayload="third-provider-owned-xdata";
 constexpr std::uint32_t thirdAppRecordHandle=0x1F3u;
+constexpr const char* fourthAppName="MLINE_LTYPE_XDATA_4";
+constexpr const char* fourthPayload="fourth-provider-owned-xdata";
+constexpr std::uint32_t fourthAppRecordHandle=0x1F4u;
 constexpr const char* referencedLineHandle="A900";
 constexpr const char* secondReferencedLineHandle="A902";
 constexpr const char* thirdReferencedLineHandle="A903";
@@ -31346,6 +31349,43 @@ Tags sourceWithThreePairs(bool binary) {
         throw std::runtime_error("second LTYPE XDATA pair missing");
     const auto after=pair+static_cast<std::ptrdiff_t>(secondPair.size());
     fields.insert(after,{{1001,thirdAppName},{1000,thirdPayload}});
+    return fields;
+}
+
+Tags sourceWithFourPairs(bool binary) {
+    auto fields=sourceWithThreePairs(binary);
+    std::size_t appTable=fields.size(),appEnd=fields.size();std::string tableHandle;
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]!=std::make_pair(0,std::string("TABLE"))
+            ||fields[i+1u]!=std::make_pair(2,std::string("APPID")))continue;
+        appTable=i;bool header=true;
+        for(std::size_t j=i+2u;j<fields.size();++j) {
+            if(fields[j].first==0) {
+                if(fields[j]==std::make_pair(0,std::string("ENDTAB"))) {
+                    appEnd=j;break;
+                }
+                header=false;continue;
+            }
+            if(header&&fields[j].first==5)tableHandle=fields[j].second;
+            if(header&&fields[j].first==70)
+                fields[j].second=std::to_string(std::stoi(fields[j].second)+1);
+        }
+        break;
+    }
+    if(appTable==fields.size()||appEnd==fields.size()||tableHandle.empty())
+        throw std::runtime_error("fourth-pair LTYPE APPID table missing");
+    const Tags fourthRecord{{0,"APPID"},{5,"1F4"},{330,tableHandle},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},
+        {2,fourthAppName},{70,"0"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(appEnd),
+        fourthRecord.begin(),fourthRecord.end());
+    const Tags thirdPair{{1001,thirdAppName},{1000,thirdPayload}};
+    const auto pair=std::search(fields.begin(),fields.end(),thirdPair.begin(),
+                                thirdPair.end());
+    if(pair==fields.end())
+        throw std::runtime_error("third LTYPE XDATA pair missing");
+    const auto after=pair+static_cast<std::ptrdiff_t>(thirdPair.size());
+    fields.insert(after,{{1001,fourthAppName},{1000,fourthPayload}});
     return fields;
 }
 
@@ -31760,7 +31800,7 @@ bool pairProviderProof(const std::filesystem::path& path,bool binary,
                        const std::vector<std::pair<std::string,std::string>>& expected,
                        const std::string& appOwner="9") {
     if(!providerProof(path,binary))return false;
-    if(expected.size()<2u||expected.size()>3u)return false;
+    if(expected.size()<2u||expected.size()>4u)return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
     std::vector<const mlineStyleAuthorityControls::Row*> providers(
@@ -31834,6 +31874,13 @@ bool threePairProviderProof(const std::filesystem::path& path,bool binary,
     return pairProviderProof(path,binary,
         {{appName,payload},{secondAppName,secondPayload},
          {thirdAppName,thirdPayload}},appOwner);
+}
+
+bool fourPairProviderProof(const std::filesystem::path& path,bool binary,
+                           const std::string& appOwner="9") {
+    return pairProviderProof(path,binary,
+        {{appName,payload},{secondAppName,secondPayload},
+         {thirdAppName,thirdPayload},{fourthAppName,fourthPayload}},appOwner);
 }
 
 bool nestedProviderProof(const std::filesystem::path& path,bool binary,
@@ -32117,6 +32164,17 @@ struct LateThirdAppIdMutation:dx_iface {
     }
 };
 
+struct LateFourthAppIdMutation:dx_iface {
+    bool armed{true},mutated{false};
+    void writeAppId()override {
+        dx_iface::writeAppId();
+        if(!armed||!cData)return;
+        for(auto& app:cData->appIds)if(app.name==fourthAppName) {
+            app.name="MUTATED_FOURTH_LTYPE_APPID";mutated=true;break;
+        }
+    }
+};
+
 struct LateXdataLineMutation:dx_iface {
     bool armed{true},mutated{false};
     std::uint32_t sourceHandle{static_cast<std::uint32_t>(
@@ -32235,6 +32293,53 @@ bool runTemporary() {
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
                                false,true)
             ||!threePairProviderProof(output,outputBinary)||!bound())return false;
+        ++retries;++readbacks;
+    }
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithFourPairs(sourceBinary),sourceBinary,"AC1027")
+            ||!fourPairProviderProof(input,sourceBinary,"1F0")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),data.lineTypes.end(),
+            [](const auto& value){return value.handle==0x103u;});
+        const auto providerCount=std::count_if(data.appIds.begin(),data.appIds.end(),
+            [](const auto& value) {
+                return value.handle==appRecordHandle
+                    ||value.handle==secondAppRecordHandle
+                    ||value.handle==thirdAppRecordHandle
+                    ||value.handle==fourthAppRecordHandle;
+            });
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=8u
+            ||providerCount!=4)return false;
+        const auto savedAppIds=data.appIds;
+        const auto bound=[&]() {
+            return DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                    adapter,0x103u)
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                    adapter,appRecordHandle)
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                    adapter,secondAppRecordHandle)
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                    adapter,thirdAppRecordHandle)
+                &&DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                    adapter,fourthAppRecordHandle);
+        };
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)
+            ||!fourPairProviderProof(output,outputBinary)||!bound())return false;
+        ++profiles;++readbacks;
+        data.appIds.erase(std::remove_if(data.appIds.begin(),data.appIds.end(),
+            [](const auto& value){return value.handle==fourthAppRecordHandle;}),
+            data.appIds.end());
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                              false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;data.appIds=savedAppIds;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)
+            ||!fourPairProviderProof(output,outputBinary)||!bound())return false;
         ++retries;++readbacks;
     }
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
@@ -32574,6 +32679,36 @@ bool runTemporary() {
                 adapter,secondAppRecordHandle)
             ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
                 adapter,thirdAppRecordHandle))return false;
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        LateFourthAppIdMutation adapter;dx_data data;
+        if(!write(input,sourceWithFourPairs(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false))return false;
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                              false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return false;
+        ++refusals;
+        for(auto& app:data.appIds)if(app.name=="MUTATED_FOURTH_LTYPE_APPID") {
+            app.name=fourthAppName;break;
+        }
+        adapter.armed=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,
+                               false,true)
+            ||!fourPairProviderProof(output,outputBinary)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                adapter,appRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                adapter,secondAppRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                adapter,thirdAppRecordHandle)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeAppIdProofBound(
+                adapter,fourthAppRecordHandle))return false;
         ++retries;++readbacks;
     }
     {
@@ -32955,7 +33090,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==60u&&readbacks==124u&&refusals==65u&&retries==64u;
+    return profiles==64u&&readbacks==134u&&refusals==71u&&retries==70u;
 }
 }
 
