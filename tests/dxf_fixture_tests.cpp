@@ -103,16 +103,19 @@ public:
     static bool mlineLinetypeEntityProofBound(
             const dx_iface& value,std::uint32_t source,
             const std::vector<std::uint32_t>& targets,
-            bool expectBlockSection=false) {
+            bool expectBlockSection=false,
+            DRW::ETYPE expectedType=DRW::LINE) {
         const auto row=value.m_dxfMLineLinetypes.find(source);
         if(row==value.m_dxfMLineLinetypes.end()
             ||row->second.xdataEntityHandles!=targets
             ||row->second.xdataEntityModels.size()!=targets.size()
             ||row->second.xdataEntityOwners.size()!=targets.size()
+            ||row->second.xdataEntityTypes.size()!=targets.size()
             ||row->second.xdataEntitySourceSections.size()!=targets.size())return false;
         for(std::size_t i=0u;i<targets.size();++i)
             if(row->second.xdataEntityModels[i]==nullptr
                 ||row->second.xdataEntityOwners[i]==0u
+                ||row->second.xdataEntityTypes[i]!=expectedType
                 ||row->second.xdataEntitySourceSections[i]
                     !=(expectBlockSection
                         ?dx_iface::DxfMLineXdataEntitySection::Blocks
@@ -130,11 +133,13 @@ public:
             ||targets.size()!=blockSections.size()
             ||row->second.xdataEntityModels.size()!=targets.size()
             ||row->second.xdataEntityOwners.size()!=targets.size()
+            ||row->second.xdataEntityTypes.size()!=targets.size()
             ||row->second.xdataEntitySourceSections.size()!=targets.size())
             return false;
         for(std::size_t i=0u;i<targets.size();++i)
             if(row->second.xdataEntityModels[i]==nullptr
                 ||row->second.xdataEntityOwners[i]==0u
+                ||row->second.xdataEntityTypes[i]!=DRW::LINE
                 ||row->second.xdataEntitySourceSections[i]
                     !=(blockSections[i]
                         ?dx_iface::DxfMLineXdataEntitySection::Blocks
@@ -142,14 +147,15 @@ public:
                 return false;
         return true;
     }
-    static bool mlineXdataLineSourceBound(
+    static bool mlineXdataEntitySourceBound(
             dx_iface& value,dx_data& data,std::uint32_t target,
-            std::uint32_t owner,bool expectBlockSection=true) {
+            std::uint32_t owner,bool expectBlockSection=true,
+            DRW::ETYPE expectedType=DRW::LINE) {
         auto* previous=value.cData;
         value.cData=&data;
-        std::map<std::uint32_t,dx_iface::DxfMLineXdataLineSource> sources;
+        std::map<std::uint32_t,dx_iface::DxfMLineXdataEntitySource> sources;
         std::size_t work=0u,bytes=0u;
-        const bool collected=value.collectDxfMLineXdataLineSources(
+        const bool collected=value.collectDxfMLineXdataEntitySources(
             sources,work,bytes);
         value.cData=previous;
         if(!collected)return false;
@@ -158,6 +164,7 @@ public:
             &&found->second.live->handle==target
             &&found->second.live->parentHandle==owner
             &&found->second.owner==owner
+            &&found->second.entityType==expectedType
             &&found->second.sourceSection
                 ==(expectBlockSection
                     ?dx_iface::DxfMLineXdataEntitySection::Blocks
@@ -31527,6 +31534,39 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary) {
     return fields;
 }
 
+Tags sourceWithCircleEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,circleInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags circle{{0,"CIRCLE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
+            {10,"50"},{20,"60"},{30,"7"},{40,"5"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      circle.begin(),circle.end());
+        circleInserted=true;
+        break;
+    }
+    if(!circleInserted)
+        throw std::runtime_error("CIRCLE XDATA target source missing");
+    return fields;
+}
+
 DRW_Line* blockTargetLine(dx_data& data,
                           std::string_view targetBlock="AuthorityBlock") {
     std::string expectedName;
@@ -32504,6 +32544,116 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
             ||(*parsedLine)->parentHandle!=ownerHandle)return false;
     }
     return true;
+}
+
+bool circleEntityHandleProviderProof(const std::filesystem::path& path,
+                                    bool binary,bool requireRemap) {
+    if(!providerProof(path,binary))return false;
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const auto fieldValue=[](const auto& row,int code) {
+        const auto field=std::find_if(row.fields.begin(),row.fields.end(),
+            [&](const auto& value){return value.first==code;});
+        return field==row.fields.end()?std::string{}:field->second;
+    };
+    const auto realValue=[&](const auto& row,int code,double expected) {
+        double parsed=0.0;
+        return dx_raster_output::finiteReal(fieldValue(row,code),parsed)
+            &&parsed==expected;
+    };
+    const mlineStyleAuthorityControls::Row* style=nullptr;
+    const mlineStyleAuthorityControls::Row* app=nullptr;
+    const mlineStyleAuthorityControls::Row* appTable=nullptr;
+    const mlineStyleAuthorityControls::Row* modelSpace=nullptr;
+    const mlineStyleAuthorityControls::Row* circle=nullptr;
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE"&&row.section=="TABLES"
+            &&fieldValue(row,2)=="EditDash") {
+            if(style!=nullptr)return false;
+            style=&row;
+        }
+        if(row.type=="APPID"&&row.section=="TABLES"
+            &&fieldValue(row,2)==appName) {
+            if(app!=nullptr)return false;
+            app=&row;
+        }
+        if(row.type=="TABLE"&&row.section=="TABLES"
+            &&fieldValue(row,2)=="APPID") {
+            if(appTable!=nullptr)return false;
+            appTable=&row;
+        }
+        if(row.type=="BLOCK_RECORD"&&row.section=="TABLES") {
+            std::string nameKey;
+            if(!dx_symbol_output::nameKey(fieldValue(row,2),nameKey))
+                return false;
+            if(nameKey=="*model_space") {
+                if(modelSpace!=nullptr)return false;
+                modelSpace=&row;
+            }
+        }
+        if(row.type=="CIRCLE"&&row.section=="ENTITIES"
+            &&realValue(row,10,50.0)&&realValue(row,20,60.0)
+            &&realValue(row,30,7.0)&&realValue(row,40,5.0)) {
+            if(circle!=nullptr)return false;
+            circle=&row;
+        }
+    }
+    if(style==nullptr||app==nullptr||appTable==nullptr||modelSpace==nullptr
+        ||circle==nullptr||style->id.empty()||app->id.empty()
+        ||appTable->id.empty()||modelSpace->id.empty()||circle->id.empty()
+        ||circle->owner!=modelSpace->id
+        ||(requireRemap?circle->id=="A900":circle->id!="A900"))
+        return false;
+    std::int64_t appFlags=1;
+    if(!dx_raster_output::integer(fieldValue(*app,70),appFlags)
+        ||appFlags!=0||app->owner!=appTable->id)return false;
+    std::vector<std::pair<int,std::string>> physicalXdata;
+    for(const auto& field:style->fields)
+        if(field.first>=1000)physicalXdata.push_back(field);
+    if(physicalXdata!=std::vector<std::pair<int,std::string>>{
+            {1001,appName},{1000,payload},{1005,circle->id}})
+        return false;
+
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)
+        ||actual.mBlock==nullptr)return false;
+    const auto ownerHandle=static_cast<std::uint32_t>(
+        std::stoul(modelSpace->id,nullptr,16));
+    unsigned owners=0u,circles=0u,linetypes=0u;
+    for(const auto& owner:actual.blockRecords)
+        if(owner.handle==ownerHandle&&owner.name=="*Model_Space")++owners;
+    const auto typedCircle=std::find_if(actual.mBlock->ent.begin(),
+        actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+            return entity!=nullptr&&entity->eType==DRW::CIRCLE
+                &&entity->handle==std::stoul(circle->id,nullptr,16);
+        });
+    const auto* typedModel=typedCircle==actual.mBlock->ent.end()?nullptr
+        :dynamic_cast<const DRW_Circle*>(*typedCircle);
+    if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Circle)
+        ||typedModel->parentHandle!=ownerHandle
+        ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
+        ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0)
+        return false;
+    for(const DRW_Entity* entity:actual.mBlock->ent)
+        if(entity!=nullptr&&entity->eType==DRW::CIRCLE)++circles;
+    for(const auto& record:actual.lineTypes)if(record.name=="EditDash") {
+        if(record.extData.size()!=3u||record.extData[0]==nullptr
+            ||record.extData[1]==nullptr||record.extData[2]==nullptr
+            ||record.extData[0]->code()!=1001
+            ||record.extData[0]->type()!=DRW_Variant::STRING
+            ||record.extData[0]->content.s==nullptr
+            ||*record.extData[0]->content.s!=appName
+            ||record.extData[1]->code()!=1000
+            ||record.extData[1]->type()!=DRW_Variant::STRING
+            ||record.extData[1]->content.s==nullptr
+            ||*record.extData[1]->content.s!=payload
+            ||record.extData[2]->code()!=1005
+            ||record.extData[2]->type()!=DRW_Variant::STRING
+            ||record.extData[2]->content.s==nullptr
+            ||std::stoul(*record.extData[2]->content.s,nullptr,16)
+                !=std::stoul(circle->id,nullptr,16))return false;
+        ++linetypes;
+    }
+    return owners==1u&&circles==1u&&linetypes==1u;
 }
 
 bool manyEntityHandleProviderProof(const std::filesystem::path& path,bool binary,
@@ -35108,7 +35258,7 @@ bool runTemporary() {
                 return false;
             }
             const bool sourceLineBound=
-                DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+                DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                     adapter,data,0xA900u,targetOwner);
             const bool exported=adapter.fileExport(output.string(),DRW::AC1027,
                                                     outputBinary,&data,false,true);
@@ -35239,9 +35389,9 @@ bool runTemporary() {
         if(model==data.mBlock->ent.end()||(*model)->parentHandle!=0x201u
             ||blockTarget==nullptr||blockTarget->handle!=0xA901u
             ||blockTarget->parentHandle!=0x203u
-            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA900u,0x201u,false)
-            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA901u,0x203u,true)) {
             std::cerr<<"mixed-section LINE XDATA source identity failed: "
                      <<sourceBinary<<'\n';return false;
@@ -35313,9 +35463,9 @@ bool runTemporary() {
         if(!write(input,sourceWithMixedSectionEntityHandleXdata(false),false,
                   "AC1027")
             ||!adapter.fileImport(input.string(),&data,false)
-            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA900u,0x201u,false)
-            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataLineSourceBound(
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
                 adapter,data,0xA901u,0x203u,true)) {
             std::cerr<<"mixed-section late-mutation source setup failed\n";
             return false;
@@ -35348,10 +35498,110 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    const std::vector<std::uint32_t> circleTargetHandles{0xA900u};
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithCircleEntityHandleXdata(sourceBinary),
+                  sourceBinary,"AC1027")
+            ||!circleEntityHandleProviderProof(input,sourceBinary,false)
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mBlock==nullptr) {
+            std::cerr<<"CIRCLE XDATA source setup failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        const auto sourceCircle=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                return entity!=nullptr&&entity->eType==DRW::CIRCLE
+                    &&entity->handle==0xA900u;
+            });
+        const auto* typedSource=sourceCircle==data.mBlock->ent.end()?nullptr
+            :dynamic_cast<const DRW_Circle*>(*sourceCircle);
+        if(typedSource==nullptr||typedSource->parentHandle!=0x201u
+            ||typedSource->basePoint.x!=50.0
+            ||typedSource->basePoint.y!=60.0
+            ||typedSource->basePoint.z!=7.0
+            ||typedSource->radious!=5.0
+            ||!DxIfaceMaterialReferenceTestAccess::
+                mlineXdataEntitySourceBound(adapter,data,0xA900u,0x201u,
+                                             false,DRW::CIRCLE)) {
+            std::cerr<<"CIRCLE XDATA typed source identity failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!circleEntityHandleProviderProof(output,outputBinary,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,circleTargetHandles,false,DRW::CIRCLE)) {
+            std::cerr<<"CIRCLE XDATA output/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        DRW_Entity* retained=*sourceCircle;
+        const auto restoreOffset=static_cast<std::size_t>(
+            std::distance(data.mBlock->ent.begin(),sourceCircle));
+        data.mBlock->ent.erase(sourceCircle);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"CIRCLE XDATA missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restore=data.mBlock->ent.begin();
+        std::advance(restore,static_cast<std::ptrdiff_t>(restoreOffset));
+        data.mBlock->ent.insert(restore,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!circleEntityHandleProviderProof(output,outputBinary,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,circleTargetHandles,false,DRW::CIRCLE)) {
+            std::cerr<<"CIRCLE XDATA same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataLineMutation adapter;dx_data data;
+        adapter.sourceHandle=0xA900u;
+        if(!write(input,sourceWithCircleEntityHandleXdata(false),false,
+                  "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!circleEntityHandleProviderProof(input,false,false)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineXdataEntitySourceBound(
+                adapter,data,0xA900u,0x201u,false,DRW::CIRCLE)) {
+            std::cerr<<"CIRCLE XDATA late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"CIRCLE XDATA late-mutation refusal failed\n";
+            return false;
+        }
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity!=nullptr&&entity->handle==0xA901u) {
+                entity->handle=0xA900u;break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!circleEntityHandleProviderProof(output,false,true)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,circleTargetHandles,false,DRW::CIRCLE)) {
+            std::cerr<<"CIRCLE XDATA late-mutation retry failed\n";return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==220u&&readbacks==492u&&refusals==272u&&retries==272u;
+    return profiles==224u&&readbacks==501u&&refusals==277u&&retries==277u;
 }
 
 bool runBudgetTemporary() {

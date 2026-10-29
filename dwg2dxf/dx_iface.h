@@ -2312,12 +2312,14 @@ private:
         std::vector<std::uint32_t> xdataEntityHandles;
         std::vector<const DRW_Entity*> xdataEntityModels;
         std::vector<std::uint32_t> xdataEntityOwners;
+        std::vector<DRW::ETYPE> xdataEntityTypes;
         std::vector<DxfMLineXdataEntitySection> xdataEntitySourceSections;
         std::uint32_t emitted{0},table{0};
     };
-    struct DxfMLineXdataLineSource {
+    struct DxfMLineXdataEntitySource {
         const DRW_Entity* live{nullptr};
         std::uint32_t owner{0u};
+        DRW::ETYPE entityType{DRW::UNKNOWN};
         DxfMLineXdataEntitySection sourceSection{
             DxfMLineXdataEntitySection::Entities};
     };
@@ -2341,8 +2343,8 @@ private:
     std::size_t m_dxfMLineLayerCount{0u};
     bool prepareDxfMLineLinetypes(std::size_t chargedBytes=0u) noexcept;
     bool hasUnchangedDxfMLineLinetypes() const noexcept;
-    bool collectDxfMLineXdataLineSources(
-        std::map<std::uint32_t,DxfMLineXdataLineSource>&,
+    bool collectDxfMLineXdataEntitySources(
+        std::map<std::uint32_t,DxfMLineXdataEntitySource>&,
         std::size_t&,std::size_t&) const noexcept;
     bool inspectDxfMLineLinetypes(const dxfRW::DxfTablesWriteView&) noexcept;
     bool preallocateDxfMLineLinetypeXdataEntityHandles();
