@@ -200,7 +200,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     // unambiguous. The general canonical writer deliberately does not emit
     // markerless normal maps. For this captured, unchanged source only, allow
     // composed typed edits of both blends, projections, tilings, auto transforms,
-    // file-backed normal filename and both mapper matrices without
+    // file-backed diffuse/normal filenames and both mapper matrices without
     // synthesizing a marker or opening the general writer grammar.
     if(unchanged&&!crossCaret&&!original.m_hasLuminance&&!original.m_hasNormalMapStrength
         &&original.m_hasDiffuseMapBlendFactor&&original.m_hasNormalMapBlendFactor
@@ -216,6 +216,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const bool tilingEdit=original.m_normalMapTiling!=typed.m_normalMapTiling;
         const bool autoEdit=original.m_normalMapAutoTransform!=typed.m_normalMapAutoTransform;
         const bool filenameEdit=original.m_normalMapFileName!=typed.m_normalMapFileName;
+        const bool diffuseFilenameEdit=original.m_diffuseMapFileName!=typed.m_diffuseMapFileName;
         const bool matrixEdit=!dxfMaterial::sameValue(original.m_normalMapTransform,typed.m_normalMapTransform);
         const bool diffuseMatrixEdit=!dxfMaterial::sameValue(original.m_diffuseMapTransform,typed.m_diffuseMapTransform);
         DRW_Material desired=original;
@@ -228,9 +229,10 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         if(tilingEdit)desired.m_normalMapTiling=typed.m_normalMapTiling;
         if(autoEdit)desired.m_normalMapAutoTransform=typed.m_normalMapAutoTransform;
         if(filenameEdit)desired.m_normalMapFileName=typed.m_normalMapFileName;
+        if(diffuseFilenameEdit)desired.m_diffuseMapFileName=typed.m_diffuseMapFileName;
         if(matrixEdit)desired.m_normalMapTransform=typed.m_normalMapTransform;
         if(diffuseMatrixEdit)desired.m_diffuseMapTransform=typed.m_diffuseMapTransform;
-        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit||matrixEdit||diffuseMatrixEdit||diffuseBlendEdit||diffuseProjectionEdit||diffuseTilingEdit||diffuseAutoEdit)
+        if(!(blendEdit||projectionEdit||tilingEdit||autoEdit||filenameEdit||diffuseFilenameEdit||matrixEdit||diffuseMatrixEdit||diffuseBlendEdit||diffuseProjectionEdit||diffuseTilingEdit||diffuseAutoEdit)
             || (diffuseBlendEdit&&!std::isfinite(typed.m_diffuseMapBlendFactor))
             || (diffuseProjectionEdit&&(typed.m_diffuseMapProjection<1u||typed.m_diffuseMapProjection>4u))
             || (diffuseTilingEdit&&(typed.m_diffuseMapTiling<1u||typed.m_diffuseMapTiling>3u))
@@ -238,6 +240,8 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             || (projectionEdit&&(typed.m_normalMapProjection<1u||typed.m_normalMapProjection>4u))
             || (tilingEdit&&(typed.m_normalMapTiling<1u||typed.m_normalMapTiling>3u))
             || (autoEdit&&(typed.m_normalMapAutoTransform & ~7u))
+            || (diffuseFilenameEdit&&(!original.m_hasDiffuseMapSource||!original.m_hasDiffuseMapFileName
+                || original.m_diffuseMapSource!=1u || typed.m_diffuseMapSource!=1u))
             || (filenameEdit&&(!original.m_hasDiffuseMapFileName
                 || original.m_normalMapSource!=1u || typed.m_normalMapSource!=1u))
             || ((matrixEdit||diffuseMatrixEdit)&&(!original.m_hasDiffuseMapTransform||!original.m_hasNormalMapTransform
@@ -285,7 +289,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                     if(matrixCount==matrixSlots.size()||field.type()!=DRW_Variant::DOUBLE){ok=false;break;}
                     matrixSlots[matrixCount++]=i;
                 }
-                if(filenameEdit&&code==3) {
+                if((filenameEdit||diffuseFilenameEdit)&&code==3) {
                     if(filenameCount==filenames.size()||field.type()!=DRW_Variant::STRING||!field.content.s){ok=false;break;}
                     filenames[filenameCount++]=i;
                 }
@@ -305,7 +309,7 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                 &&bound(0u,projectionEdit||diffuseProjectionEdit,original.m_hasDiffuseMapProjection,original.m_diffuseMapProjection,original.m_normalMapProjection)
                 &&bound(1u,tilingEdit||diffuseTilingEdit,original.m_hasDiffuseMapTiling,original.m_diffuseMapTiling,original.m_normalMapTiling)
                 &&bound(2u,autoEdit||diffuseAutoEdit,original.m_hasDiffuseMapAutoTransform,original.m_diffuseMapAutoTransform,original.m_normalMapAutoTransform)
-                &&(!filenameEdit || (filenameCount==2u && filenames[0]<blends[1] && filenames[1]>blends[1]))
+                &&(!(filenameEdit||diffuseFilenameEdit) || (filenameCount==2u && filenames[0]<blends[1] && filenames[1]>blends[1]))
                 &&(!(matrixEdit||diffuseMatrixEdit) || (matrixCount==32u && matrixSlots[15]<blends[1] && matrixSlots[16]>blends[1]))) {
                 output=raw;
                 const auto replace=[&](std::size_t index,DRW_Variant field) {
@@ -326,6 +330,12 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                         if(!dxfMaterial::sameValue(original.m_normalMapTransform[i],typed.m_normalMapTransform[i])
                             &&!replace(matrixSlots[16u+i],DRW_Variant(43,typed.m_normalMapTransform[i])))return false;
                     }
+                }
+                if(diffuseFilenameEdit) {
+                    BodyWriter filenameWriter(binary,baseline.m_version);
+                    if(!filenameWriter.writeUtf8String(3,typed.m_diffuseMapFileName)
+                        ||filenameWriter.hasWriteError()||filenameWriter.groups.size()!=1u
+                        ||!replace(filenames[0],std::move(filenameWriter.groups.front()))) return false;
                 }
                 if(filenameEdit) {
                     BodyWriter filenameWriter(binary,baseline.m_version);

@@ -19,7 +19,7 @@ namespace {
 bool author(const std::filesystem::path& path, bool binary, bool boundary,
             bool partial, bool incompleteNormal = false,
             bool procedural = false, unsigned malformed = 0, int orphanProcedure = 0,
-            int normalProjection = 4, bool sourceCommon = false, int normalTiling = 3, unsigned matrixMode = 0u) {
+            int normalProjection = 4, bool sourceCommon = false, int normalTiling = 3, unsigned matrixMode = 0u, int diffuseSource = 0) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) return false;
     if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
@@ -68,7 +68,7 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
     // First refraction marker before the diffuse tuple is complete, followed
     // by a second marker after it: the later one must not requalify the tuple.
     if (malformed == 1) ok = ok && writer->writeDouble(145, 1.0);
-    if (!partial) ok = ok && writer->writeInt16(72, 0);
+    if (!partial) ok = ok && writer->writeInt16(72, diffuseSource);
     if (malformed == 3) ok = ok && writer->writeInt16(72, 1);
     ok = ok && writer->writeString(3, "diffuse-sentinel.png")
         && writer->writeInt16(73, 2)
@@ -278,6 +278,20 @@ bool physicalDiffuseRoles(const std::filesystem::path& path,bool binary,double b
     return selected&&blends==std::vector<double>{blend,normalBlend}&&projections==std::vector<int>{projection,normalProjection}
         &&tilings==std::vector<int>{tiling,normalTiling}&&automatics==std::vector<int>{automatic,normalAuto};
 }
+bool physicalNames(const std::filesystem::path& path,bool binary,const std::string& diffuse,const std::string& normal) {
+    std::ifstream stream(path,std::ios::binary);if(!stream)return false;if(binary)stream.seekg(22);
+    std::unique_ptr<dxfReader> reader=binary?std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        :std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    reader->setVersion("AC1027",true);
+    bool material=false,selected=false;int code=0;std::vector<std::string> names;std::vector<int> sources;
+    while(reader->readRec(&code)) {
+        if(code==0){const auto type=reader->getString();if(material&&selected)break;material=type=="MATERIAL";selected=false;}
+        else if(material&&code==1)selected=reader->getString()=="PeerMaterial";
+        else if(material&&selected&&code==3)names.push_back(reader->getUtf8String());
+        else if(material&&selected&&code==72)sources.push_back(reader->getInt32());
+    }
+    return selected&&names==std::vector<std::string>{diffuse,normal}&&sources==std::vector<int>{1,1};
+}
 bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream) return false;
@@ -305,11 +319,12 @@ bool orphanField(const std::filesystem::path& path, bool binary, int wanted) {
 }
 
 struct LateMaterialEdit final : dx_iface {
-    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false, diffuseMatrix = false, diffuseBlend = false; unsigned phase = 0;
+    bool active = true, hit = false, projection = false, tiling = false, autoTransform = false, filename = false, matrix = false, diffuseMatrix = false, diffuseBlend = false, diffuseFilename = false; unsigned phase = 0;
     void mutate() {
         if (!active || !cData) return;
         for (auto& material : cData->materials) if (material.m_name == "PeerMaterial") {
-            if (diffuseMatrix) material.m_diffuseMapTransform[9] = 999.0;
+            if (diffuseFilename) material.m_diffuseMapFileName = "late-diffuse.png";
+            else if (diffuseMatrix) material.m_diffuseMapTransform[9] = 999.0;
             else if (diffuseBlend) material.m_diffuseMapBlendFactor = 0.9375;
             else if (matrix) material.m_normalMapTransform[9] = 999.0;
             else if (filename) material.m_normalMapFileName = "late-normal.png";
@@ -437,6 +452,79 @@ bool run(const std::filesystem::path& dir) {
             selected->m_normalMapBlendFactor = 0.75; selected->m_normalMapProjection = 4; selected->m_normalMapTiling = 3;
             if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary, &source, false, true)
                 || !physical(output, outputBinary, false) || !orphanField(output, outputBinary, code)) return false;
+        }
+        // The first 3 belongs to file-backed diffuse and the second to normal.
+        // Both export policies use strict encoding of the changed typed value.
+        for(bool outputBinary:{false,true})for(auto policy:{DRW::DxfTextWritePolicy::Compatible,DRW::DxfTextWritePolicy::RequireLossless})
+            for(const auto& wanted:std::vector<std::string>{"edited-diffuse.png","edited-diffuse-Ω.png","escaped^A.png","literal-\\U+1234.png",""}) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false)||!matrixState(source))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m||m->m_diffuseMapSource!=1u)return false;
+            m->m_diffuseMapFileName=wanted;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true,dx_dxfSourceTextPolicy::Compatible,policy))return false;
+            if(!physicalNames(output,outputBinary,wanted,"normal-sentinel.png"))return false;
+            dx_data readback;dx_iface verifier;if(!verifier.fileImport(output.string(),&readback,false))return false;
+            const auto* value=target(readback);if(!value||value->m_diffuseMapFileName!=wanted||value->m_normalMapFileName!="normal-sentinel.png"
+                ||value->m_diffuseMapSource!=1u||value->m_normalMapSource!=1u)return false;
+        }
+        for(bool outputBinary:{false,true}) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;
+            m->m_diffuseMapFileName="diffuse-Ω.png";m->m_normalMapFileName="normal-Ω.png";
+            m->m_diffuseMapBlendFactor=.5;m->m_normalMapBlendFactor=.875;m->m_diffuseMapProjection=1;m->m_normalMapProjection=1;
+            m->m_diffuseMapTiling=1;m->m_normalMapTiling=1;m->m_diffuseMapAutoTransform=1;m->m_normalMapAutoTransform=1;
+            m->m_diffuseMapTransform[9]=777.;m->m_normalMapTransform[9]=888.;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)
+                ||!physicalNames(output,outputBinary,"diffuse-Ω.png","normal-Ω.png"))return false;
+            dx_data readback;dx_iface verifier;if(!verifier.fileImport(output.string(),&readback,false))return false;
+            const auto* value=target(readback);if(!value||value->m_diffuseMapTransform[9]!=777.||value->m_normalMapTransform[9]!=888.
+                ||value->m_diffuseMapBlendFactor!=.5||value->m_normalMapBlendFactor!=.875)return false;
+        }
+        for(bool outputBinary:{false,true})for(unsigned fault=0;fault<9u;++fault) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1,1))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;
+            auto& raw=source.rawMaterialObjects.front();const auto savedRaw=raw;m->m_diffuseMapFileName="edited-diffuse.png";
+            if(fault==0u)m->m_diffuseMapFileName=std::string("nul\0name",8u);
+            if(fault==1u)m->m_diffuseMapFileName=std::string("invalid\x80",8u);
+            if(fault==2u)m->m_diffuseMapFileName.assign(2u*1024u*1024u,'x');
+            if(fault==3u)m->m_diffuseMapSource=0u;if(fault==4u)m->m_hasDiffuseMapFileName=false;
+            if(fault==5u)m->m_hasDiffuseMapSource=false;if(fault==6u)m->m_normalMapSource=0u;
+            if(fault>=7u){unsigned count=0u;for(std::size_t i=0;i<raw.groups.size();++i)if(raw.groups[i].code()==3&&++count==(fault==7u?1u:2u)){
+                raw.groups[i]=DRW_Variant(3,UTF8STRING("conflicting.png"));if(raw.hasRawValues)raw.rawValues[i]="conflicting.png";}}
+            const auto failedName=m->m_diffuseMapFileName;const auto failedSource=m->m_diffuseMapSource;
+            const bool failedNamePresence=m->m_hasDiffuseMapFileName,failedSourcePresence=m->m_hasDiffuseMapSource;
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||m->m_diffuseMapFileName!=failedName||m->m_diffuseMapSource!=failedSource
+                ||m->m_hasDiffuseMapFileName!=failedNamePresence||m->m_hasDiffuseMapSource!=failedSourcePresence)return false;
+            raw=savedRaw;m->m_diffuseMapFileName="edited-diffuse.png";m->m_diffuseMapSource=1u;m->m_hasDiffuseMapFileName=true;m->m_hasDiffuseMapSource=true;m->m_normalMapSource=1u;
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true)||!physicalNames(output,outputBinary,"edited-diffuse.png","normal-sentinel.png"))return false;
+        }
+        // The same filename edit cannot infer inactive scene-source semantics.
+        for(bool outputBinary:{false,true}) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1,0))return false;
+            dx_data source;dx_iface adapter;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m||m->m_diffuseMapSource!=0u)return false;
+            m->m_diffuseMapFileName="edited-diffuse.png";
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||m->m_diffuseMapFileName!="edited-diffuse.png")return false;
+            m->m_diffuseMapFileName="diffuse-sentinel.png";
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&source,false,true))return false;
+        }
+        for(unsigned phase=0;phase<3u;++phase) {
+            if(!author(input,sourceBinary,false,false,false,false,0,0,4,false,3,1,1))return false;
+            dx_data source;LateMaterialEdit adapter;adapter.phase=phase;adapter.diffuseFilename=true;if(!adapter.fileImport(input.string(),&source,false))return false;
+            DRW_Material* m=nullptr;for(auto& item:source.materials)if(item.m_name=="PeerMaterial")m=&item;if(!m)return false;m->m_diffuseMapFileName="edited-diffuse.png";
+            {std::ofstream sentinel(output,std::ios::binary|std::ios::trunc);sentinel<<"keep destination";}
+            if(adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!adapter.hit)return false;
+            std::ifstream saved(output,std::ios::binary);const std::string bytes(std::istreambuf_iterator<char>(saved),{});saved.close();
+            if(bytes!="keep destination"||m->m_diffuseMapFileName!="late-diffuse.png")return false;adapter.active=false;m->m_diffuseMapFileName="edited-diffuse.png";
+            if(!adapter.fileExport(output.string(),DRW::AC1027,sourceBinary,&source,false,true)||!physicalNames(output,sourceBinary,"edited-diffuse.png","normal-sentinel.png"))return false;
         }
         // Complete diffuse mapper scalars use the first of each repeated role.
         // Every subset composes with a simultaneous qualified normal edit.
