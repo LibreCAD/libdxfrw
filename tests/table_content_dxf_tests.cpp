@@ -98,6 +98,24 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    static const auto& legacyIdentity(const dx_data& data){return data.m_tableDxfSource.legacyIdentityObservation;}
+    static bool legacyIdentityFailed(const dx_data& data){return data.m_tableDxfSource.legacyIdentityCaptureFailed;}
+    static std::size_t legacyIdentityBytes(const dx_data& data){return data.m_tableDxfSource.legacyIdentityBytes;}
+    static std::size_t legacyIdentityWork(const dx_data& data){return data.m_tableDxfSource.legacyIdentityWork;}
+    static void mutateLegacyIdentity(dx_data& data,unsigned which) {
+        auto& s=data.m_tableDxfSource;
+        auto& input=const_cast<dx_data::TableDxfSourceCapture::IdentityInput&>(*s.legacyIdentityObservation);
+        if(which==0u)++data.importGeneration;
+        else if(which==1u)++s.generation;
+        else if(which==2u)s.contextFailed=true;
+        else if(which==3u)++data.m_entitiesContainerIdentity.value;
+        else if(which==4u)input.container=nullptr;
+        else if(which==5u)input.generation++;
+        else if(which==6u)s.legacyIdentityObservationOwner.reset();
+        else if(which==7u)s.legacyIdentitySourceOwner.reset();
+        else if(which==8u)const_cast<dx_data::TableDxfSourceCapture::EntitiesReadContext&>(*input.context).codecCodePage="BROKEN";
+        else if(which==9u)s.legacyIdentityReadInput=nullptr;
+    }
     static auto fullStyleSize(const dx_iface& writer){return std::make_pair(writer.m_dxfFullStyleState.sources.size(),writer.m_dxfFullStyleState.bytes);}
     static void fullStyleLimit(dx_iface& writer,std::size_t records,std::size_t bytes){writer.m_dxfFullStyleState.recordLimit=records;writer.m_dxfFullStyleState.byteLimit=bytes;}
     static bool fullStyleOutput(dx_iface& writer,const dxfRW::DxfObjectsWriteView& view,std::string_view section){return writer.inspectDxfFullStyles(view,section);}

@@ -43,6 +43,15 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler,
                  public DRW_DxfViewUcsSourceHandler {
 public:
+    // Explicit opt-in for an AC1018 whole-source identity observation.
+    // Private groundwork only; there is no public observation accessor and it
+    // establishes no namespace, ownership or output authority. Applies to
+    // later imports; never alter it during a read.
+    bool enableLegacyDxfIdentityObservation(bool enabled=true) noexcept {
+        if (m_tableSourceReadData) return false;
+        m_legacyIdentityObservationEnabled=enabled; return true;
+    }
+
     using RenderingInputState=dx_data::TableDxfSourceCapture::RenderingInputAudit::State;
     struct RenderingInputReport {
         RenderingInputState state{RenderingInputState::NotCaptured};
@@ -1823,6 +1832,7 @@ private:
     static bool hasMatchedTableSource(const dx_data&,const std::shared_ptr<const TableBody>&) noexcept;
     static bool chargeTableBody(dx_data&,std::size_t,std::size_t,std::size_t=0u) noexcept;
     dx_data* m_tableSourceReadData{nullptr};
+    bool m_legacyIdentityObservationEnabled{false};
     bool m_entitiesTableProjection{false};
     bool chargeEntitiesDelivery(std::size_t,std::size_t) noexcept;
     bool startEntitiesDeliveryScope(std::uint64_t) noexcept;

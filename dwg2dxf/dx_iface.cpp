@@ -25066,12 +25066,54 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew
         && data.dxfReadOutcome.error == DRW::BAD_NONE;
+    // This private diagnostic is useful only while it still belongs to the
+    // completed import. No downstream authority consumes it.
+    if(source.legacyIdentityObservation) {
+        const auto& input=source.legacyIdentityObservation;
+        const auto sameOwner=[](const auto& a,const auto& b) noexcept {
+            return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+        };
+        const auto& snapshot=source.legacyIdentityContextSnapshot;
+        const bool context=input->context&&snapshot&&input->context->captured&&snapshot->captured
+            &&std::tie(input->context->sourceVersion,input->context->codecVersion,input->context->codecCodePage,
+                input->context->declaration,input->context->hasDeclaration,input->context->compatibilityProfile,
+                input->context->textEncoding,input->context->codePagePolicy,input->context->applyExtrusion,input->context->binary)
+              ==std::tie(snapshot->sourceVersion,snapshot->codecVersion,snapshot->codecCodePage,
+                snapshot->declaration,snapshot->hasDeclaration,snapshot->compatibilityProfile,
+                snapshot->textEncoding,snapshot->codePagePolicy,snapshot->applyExtrusion,snapshot->binary);
+        const auto& outcome=data.dxfReadOutcome;
+        const bool valid=source.successful&&!source.contextFailed&&!source.legacyIdentityCaptureFailed
+            &&source.reader==this&&source.entitiesReadInput
+            &&source.entitiesReadInput==source.legacyIdentityReadInput&&cData==&data
+            &&source.generation==1u&&source.generation==data.importGeneration
+            &&sameOwner(input,source.legacyIdentityObservationOwner)
+            &&input->container==&data&&input->generation==source.generation
+            &&input->containerId&&input->containerId==data.m_entitiesContainerIdentity.value
+            &&input->source&&sameOwner(input->source,source.legacyIdentitySourceOwner)
+            &&context&&input->source->status==DRW_DxfIdentitySource::Status::Complete
+            &&input->source->eofMarker.ordinal&&input->source->version==DRW::AC1018
+            &&input->source->binary==snapshot->binary&&snapshot->sourceVersion==DRW::AC1018
+            &&snapshot->codecVersion==DRW::AC1015&&outcome.attempted&&outcome.readReturned
+            &&outcome.sourceVersion==snapshot->sourceVersion&&outcome.codecVersion==snapshot->codecVersion
+            &&outcome.requestedCodePagePolicy==snapshot->codePagePolicy
+            &&source.entitiesReadInput->getSourceVersion()==snapshot->sourceVersion
+            &&source.entitiesReadInput->getVersion()==snapshot->codecVersion;
+        if(!valid)source.legacyIdentityCaptureFailed=true;
+    }
     // Preserve the actual accepted legacy revision even if a consumer omits
     // or edits the delivered HEADER and its public version falls back.
+    if(!source.successful&&source.legacyIdentityObservation)source.legacyIdentityCaptureFailed=true;
+    if(!source.successful||source.legacyIdentityCaptureFailed) {
+        source.legacyIdentityObservation.reset();source.legacyIdentityObservationOwner.reset();
+        source.legacyIdentityContextSnapshot.reset();source.legacyIdentitySourceOwner.reset();
+        source.legacyIdentityReadInput=nullptr;
+        source.legacyIdentityBytes=source.legacyIdentityWork=0u;
+    }
     source.version = source.successful
         ? (data.dxfReadOutcome.sourceVersion == DRW::AC1018
             ? DRW::AC1018 : data.sourceVersion)
         : DRW::UNKNOWNV;
+    source.legacyIdentityReadInput = nullptr;
     source.reader = nullptr;
     source.entitiesReadInput = nullptr;
     m_tableSourceReadData = nullptr;
@@ -25892,10 +25934,76 @@ bool dx_iface::wantsDxfIdentitySource() const {
 }
 
 void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){s.identityCaptureFailed=true;};
+    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){
+        s.identityCaptureFailed=true;
+        if(s.legacyIdentityObservation) {
+            s.legacyIdentityCaptureFailed=true;
+            s.legacyIdentityObservation.reset();s.legacyIdentityObservationOwner.reset();
+            s.legacyIdentityContextSnapshot.reset();s.legacyIdentitySourceOwner.reset();
+            s.legacyIdentityReadInput=nullptr;
+            s.legacyIdentityBytes=s.legacyIdentityWork=0u;
+        }
+    };
     dxfRW::DxfReadContext live;
-    if(!tableSourceCaptureOpen()||!s.entitiesReadInput||s.entitiesReadInput->getDxfIdentitySourceView()!=&value
-        ||!s.entitiesReadInput->getDxfReadContext(live)||s.identityInput) {fail();return;}
+    if(!tableSourceCaptureOpen()||!s.entitiesReadInput
+        ||!s.entitiesReadInput->getDxfReadContext(live)) {fail();return;}
+    if(live.sourceVersion==DRW::AC1018) {
+        if(!m_legacyIdentityObservationEnabled)return;
+        const auto legacyFail=[&](){
+            s.legacyIdentityCaptureFailed=true;
+            s.legacyIdentityObservation.reset();s.legacyIdentityObservationOwner.reset();
+            s.legacyIdentityContextSnapshot.reset();s.legacyIdentitySourceOwner.reset();
+            s.legacyIdentityReadInput=nullptr;
+            s.legacyIdentityBytes=s.legacyIdentityWork=0u;
+        };
+        if(s.legacyIdentityCaptureFailed||s.contextFailed||s.generation!=1u
+            ||s.generation!=cData->importGeneration||s.legacyIdentityObservation
+            ||s.entitiesReadInput->getDxfIdentitySourceView()!=&value
+            ||value.status!=DRW_DxfIdentitySource::Status::Complete
+            ||value.version!=live.sourceVersion||value.binary!=live.binary
+            ||live.codecVersion!=DRW::AC1015||live.codecCodePage.size()>128u
+            ||!cData->m_entitiesContainerIdentity.value) {legacyFail();return;}
+        using Input=dx_data::TableDxfSourceCapture::IdentityInput;
+        using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+        // Charge count-dependent work before iterating any producer-controlled
+        // rows. The logical quota is independent of allocator capacity/RSS.
+        std::size_t bytes=sizeof(Input)+sizeof(value)+2u*sizeof(Context)+32u*sizeof(void*),work=0u;
+        if(!addAssociativeSlotBytes(value.sections.size(),sizeof(DRW_DxfIdentitySource::SectionSource),bytes)
+            ||!addAssociativeSlotBytes(value.records.size(),sizeof(DRW_DxfIdentitySource::Record),bytes)
+            ||!addAssociativeSlotBytes(value.candidates.size(),sizeof(DRW_DxfIdentitySource::Candidate),bytes)
+            ||!addAssociativeSlotBytes(value.sections.size(),128u,work)
+            ||!addAssociativeSlotBytes(value.records.size(),128u,work)
+            ||!addAssociativeSlotBytes(value.candidates.size(),128u,work)
+            ||bytes>s.maxIdentityBytes||work>s.maxIdentityWork) {legacyFail();return;}
+        const auto text=[&](std::string_view v) {
+            return addAssociativeRetainedBytes(v.size(),bytes)
+                &&addAssociativeRetainedBytes(v.size(),work)
+                &&bytes<=s.maxIdentityBytes&&work<=s.maxIdentityWork;
+        };
+        if(!text(live.codecCodePage)||!text(live.declaration)
+            ||!text(live.codecCodePage)||!text(live.declaration)) {legacyFail();return;}
+        for(const auto& row:value.sections)if(!text(row.name)) {legacyFail();return;}
+        for(const auto& row:value.records)if(!text(row.name)||!text(row.tableName)) {legacyFail();return;}
+        for(const auto& row:value.candidates)if(!text(row.lexeme)||!text(row.rawValue)) {legacyFail();return;}
+        if(!addAssociativeRetainedBytes(bytes,work)||work>s.maxIdentityWork) {legacyFail();return;}
+        try {
+            auto context=std::make_shared<Context>();context->sourceVersion=live.sourceVersion;context->codecVersion=live.codecVersion;
+            context->codecCodePage=live.codecCodePage;context->declaration=live.declaration;context->hasDeclaration=live.hasDeclaration;
+            context->compatibilityProfile=live.compatibilityProfile;context->textEncoding=live.textEncoding;context->codePagePolicy=live.codePagePolicy;
+            context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
+            auto snapshot=std::make_shared<const Context>(*context);
+            auto input=std::make_shared<Input>();input->container=cData;input->generation=s.generation;
+            input->containerId=cData->m_entitiesContainerIdentity.value;input->context=std::move(context);
+            input->source=std::make_shared<const DRW_DxfIdentitySource>(value);
+            s.legacyIdentityBytes=bytes;s.legacyIdentityWork=work;
+            s.legacyIdentityContextSnapshot=std::move(snapshot);
+            s.legacyIdentitySourceOwner=input->source;
+            s.legacyIdentityReadInput=s.entitiesReadInput;
+            s.legacyIdentityObservation=std::move(input);s.legacyIdentityObservationOwner=s.legacyIdentityObservation;
+        }catch(...) {legacyFail();}
+        return;
+    }
+    if(s.entitiesReadInput->getDxfIdentitySourceView()!=&value||s.identityInput) {fail();return;}
     if(live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
     if(value.status!=DRW_DxfIdentitySource::Status::Complete||value.version!=live.sourceVersion||value.binary!=live.binary
         ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u||!cData->m_entitiesContainerIdentity.value) {fail();return;}
@@ -30006,7 +30114,19 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
     if (fData == nullptr) return false;
+    const auto invalidateLegacy=[](dx_data& data) noexcept {
+        auto& source=data.m_tableDxfSource;
+        if(source.generation) {
+            source.legacyIdentityCaptureFailed=true;
+            source.legacyIdentityObservation.reset();source.legacyIdentityObservationOwner.reset();
+            source.legacyIdentityContextSnapshot.reset();source.legacyIdentitySourceOwner.reset();
+            source.legacyIdentityReadInput=nullptr;
+            source.legacyIdentityBytes=source.legacyIdentityWork=0u;
+        }
+    };
+    invalidateLegacy(*fData);
     if (m_tableSourceReadData != nullptr) {
+        if(m_tableSourceReadData!=fData)invalidateLegacy(*m_tableSourceReadData);
         m_tableSourceReadData->m_tableDxfSource.contextFailed = true;
         fData->m_tableDxfSource.contextFailed = true;
         return false;

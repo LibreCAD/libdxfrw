@@ -1388,6 +1388,16 @@ private:
             std::size_t missing{0},duplicates{0},unknown{0},admitted{0},unobserved{0},duplicateAdmissions{0},opaque{0},dimstyleNames{0};
             bool namespaceReady{false};
         };
+        // AC1018 opt-in observation only. Never consumed by modern identity,
+        // structural-origin, graph or output authority paths.
+        std::shared_ptr<const IdentityInput> legacyIdentityObservation,legacyIdentityObservationOwner;
+        // Independent private copies bind the context and source owners until
+        // successful import completion. No diagnostic accessor is provided.
+        std::shared_ptr<const EntitiesReadContext> legacyIdentityContextSnapshot;
+        std::shared_ptr<const DRW_DxfIdentitySource> legacyIdentitySourceOwner;
+        const dxfRW* legacyIdentityReadInput{nullptr};
+        std::size_t legacyIdentityBytes{0},legacyIdentityWork{0};
+        bool legacyIdentityCaptureFailed{false};
         std::shared_ptr<const IdentityInput> identityInput,identityInputOwner;
         std::shared_ptr<const IdentityAudit> identityAudit,identityAuditOwner;
         std::size_t identityBytes{0},identityWork{0};
