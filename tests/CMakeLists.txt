@@ -517,6 +517,8 @@ set_tests_properties(libdxfrw_attdef_legacy_adapter_capture PROPERTIES LABELS "d
 add_test(NAME libdxfrw_block_legacy_capture
     COMMAND libdxfrw_attdef_source_tests --legacy-block-capture)
 set_tests_properties(libdxfrw_block_legacy_capture PROPERTIES LABELS "dxf;adapter;fast")
+add_test(NAME libdxfrw_legacy_attdef_scope_join COMMAND libdxfrw_attdef_source_tests --legacy-attdef-scope)
+set_tests_properties(libdxfrw_legacy_attdef_scope_join PROPERTIES LABELS "dxf;adapter;source;identity;fast;generated")
 add_test(NAME libdxfrw_block_record_legacy_observation
     COMMAND libdxfrw_attdef_source_tests --legacy-block-record-observation)
 set_tests_properties(libdxfrw_block_record_legacy_observation PROPERTIES LABELS "dxf;adapter;fast")

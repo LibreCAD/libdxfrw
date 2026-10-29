@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include "dx_legacy_identity_join.h"
 #include "dx_standard_output.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfblockrecord.h"
@@ -49,6 +50,22 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    static const DRW_DxfIdentitySource* legacyCensus(const dx_data& d) {
+        const auto& x=d.m_tableDxfSource.legacyIdentityObservation;
+        return x&&x->source?x->source.get():nullptr;
+    }
+    static bool legacyJoin(const dx_data& d,std::uint32_t h=0xA1u) {
+        const auto& s=d.m_tableDxfSource;return !s.legacyAttdefScopeFailed&&s.legacyAttdefScopeJoins.count(h)==1u;
+    }
+    static bool legacyJoinFailed(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeFailed;}
+    static std::size_t legacyJoinCount(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeJoins.size();}
+    static std::array<std::size_t,2> legacyJoinUsage(const dx_data& d) {const auto& s=d.m_tableDxfSource;return {s.legacyAttdefScopeBytes,s.legacyAttdefScopeWork};}
+    static void legacyJoinLimit(dx_data& d,unsigned n,std::size_t limit) {auto& s=d.m_tableDxfSource;if(n)s.maxLegacyAttdefScopeWork=limit;else s.maxLegacyAttdefScopeBytes=limit;}
+    static bool legacyNoPromotion(const dx_data& d) {const auto& s=d.m_tableDxfSource;const auto a=s.resources.find(0xA1u),b=s.resources.find(0xB0u);
+        return !s.identityInput&&!s.identityAudit&&a!=s.resources.end()&&b!=s.resources.end()
+            &&a->second.attdefOriginState==dx_data::TableDxfSourceCapture::Resource::OriginState::PairBound
+            &&!b->second.rawTypedMatched&&b->second.rawTypedMismatch
+            &&!dx_iface::identitySourceReport(d).outputEligible&&!dx_iface::identitySourceReport(d).ownerTargetsResolved;}
     using BlockReconciliation=dx_data::TableDxfSourceCapture::BlockSource::Reconciliation;
     static const auto* resource(const dx_data& data) {
         const auto& rows=data.m_tableDxfSource.resources;
@@ -1466,6 +1483,8 @@ bool immutableCaptureTests(const std::filesystem::path& path) {
     return profiles==48u&&richProfiles==16u&&mutations==faults.size()&&callbacks==10u&&quotas==7u;
 }
 }
+#include "legacy_attdef_scope_controls.h"
+
 int main(int argc,char** argv) {
     const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
@@ -1474,6 +1493,7 @@ int main(int argc,char** argv) {
     const bool legacyAdapterCapture=argc==2&&std::string(argv[1])=="--legacy-adapter-capture";
     const bool equalAlignment=argc==2&&std::string(argv[1])=="--equal-alignment";
     const bool dualEmbedded=argc==2&&std::string(argv[1])=="--embedded-dual280";
+    const bool legacyJoin=argc==2&&std::string(argv[1])=="--legacy-attdef-scope";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
     const bool legacyBlockCapture=argc==2&&std::string(argv[1])=="--legacy-block-capture";
@@ -1496,7 +1516,7 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!legacyBlockRecordAdapter&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    if(argc!=1&&!legacyJoin&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!legacyBlockRecordAdapter&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
@@ -1518,6 +1538,7 @@ int main(int argc,char** argv) {
         acshScope?acshProjectionScopeTests(scratch/"generated.dxf"):
         rawWriter?rawApplicationWriterTests(scratch/"generated.dxf"):
         proxyScope?rawProxyScopeTests(scratch/"generated.dxf"):
+        legacyJoin?legacyAttdefScopeTests(scratch/"generated.dxf"):
         blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
         blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         legacyBlockCapture?legacyBlockCaptureTests(scratch/"generated.dxf"):

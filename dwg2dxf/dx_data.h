@@ -1389,6 +1389,20 @@ private:
             std::size_t missing{0},duplicates{0},unknown{0},admitted{0},unobserved{0},duplicateAdmissions{0},opaque{0},dimstyleNames{0};
             bool namespaceReady{false};
         };
+        // AC1018 selected, source-bound ATTDEF ownership evidence only.
+        // No namespace, graph or output eligibility is derived from this map.
+        struct StructuralInput;
+        struct LegacyAttdefScopeJoin {
+            std::shared_ptr<const IdentityInput> identity;
+            std::shared_ptr<const StructuralInput> structural;
+            std::shared_ptr<const AttdefOrigin> origin;
+            std::size_t attdef{DRW_DxfIdentitySource::NoIndex},block{DRW_DxfIdentitySource::NoIndex};
+            std::size_t endblk{DRW_DxfIdentitySource::NoIndex},record{DRW_DxfIdentitySource::NoIndex},table{DRW_DxfIdentitySource::NoIndex};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const LegacyAttdefScopeJoin>> legacyAttdefScopeJoins;
+        std::size_t legacyAttdefScopeBytes{0},legacyAttdefScopeWork{0};
+        std::size_t maxLegacyAttdefScopeBytes{64u*1024u*1024u},maxLegacyAttdefScopeWork{64u*1024u*1024u};
+        bool legacyAttdefScopeFailed{false};
         // AC1018 opt-in observation only. Never consumed by modern identity,
         // structural-origin, graph or output authority paths.
         std::shared_ptr<const IdentityInput> legacyIdentityObservation,legacyIdentityObservationOwner;

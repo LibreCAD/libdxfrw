@@ -1906,6 +1906,7 @@ private:
                            std::size_t records = 1u) noexcept;
     void finishTableSourceRead(bool success) noexcept;
     void finishIdentitySourceAudit(dx_data&) noexcept;
+    void finishLegacyAttdefScopeJoins(dx_data&) noexcept;
     void observeStructuralSource(const DRW_TableEntry&,bool source,const DRW_RawDxfObject* raw=nullptr,
                                  bool legacyBlockOptIn=false) noexcept;
     void finishStructuralSourceAudits(dx_data&) noexcept;
