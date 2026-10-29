@@ -16409,18 +16409,29 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
     return true;
 }
 
-// Recompute only the first, miter-distance parameter for an admitted open,
-// unfilled and uncut MLINE. This deliberately rejects any source geometry we
-// cannot derive from its WCS vertices and the original style. It is not a
-// general MLINE regeneration algorithm.
+// Recompute the first, miter-distance parameter for an admitted open,
+// unfilled and uncut MLINE. The optional single-element append extends the
+// per-vertex parameter arrays only after deriving the same source geometry.
+// This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
-        const DRW_MLineStyle& after,DRW_MLine& output) {
+        const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false) {
+    const bool appended=appendElement && after.elements.size()==before.elements.size()+1u;
     if (original.openClosed!=1 || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
-        || before.elements.size()!=after.elements.size() || original.vertlist.size()<2u
+        || (!appended && before.elements.size()!=after.elements.size())
+        || (appendElement && !appended) || original.vertlist.size()<2u
         || original.vertlist.size()!=original.numVerts || before.flags!=2 || after.flags!=2
-        || !mlineRetargetGeometryOffsetsCompatible(before,after)) return false;
+        || !mlineRetargetGeometryKnown(before) || !mlineRetargetGeometryKnown(after)
+        || !mlineFlagBitsEqual(before.flags,after.flags)
+        || !retainedDoubleEqual(before.startAngle,after.startAngle)
+        || !retainedDoubleEqual(before.endAngle,after.endAngle)) return false;
+    if (!appended) {
+        if (!mlineRetargetGeometryOffsetsCompatible(before,after)) return false;
+    } else {
+        for (std::size_t i=0u;i<before.elements.size();++i)
+            if (!retainedDoubleEqual(before.elements[i].offset,after.elements[i].offset)) return false;
+    }
     const auto norm=[](const DRW_Coord& v) {return std::hypot(std::hypot(v.x,v.y),v.z);};
     const auto dot=[](const DRW_Coord& a,const DRW_Coord& b) {return a.x*b.x+a.y*b.y+a.z*b.z;};
     const auto close=[](double a,double b) {return std::isfinite(a)&&std::isfinite(b)
@@ -16472,6 +16483,7 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
     for (const auto& element:before.elements) if (!std::isfinite(element.offset)) return false;
     for (const auto& element:after.elements) if (!std::isfinite(element.offset)) return false;
     output=original;
+    if (appended) output.numLines=static_cast<std::uint16_t>(after.elements.size());
     for (std::size_t v=0u;v<original.vertlist.size();++v) {
         const auto& input=original.vertlist[v];auto& projected=output.vertlist[v];
         const auto& normal=original.extPoint;const auto& direction=input.vertexDir;const auto& miter=input.miterDir;
@@ -16491,6 +16503,13 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
             const double replacement=(after.elements[i].offset+afterShift)*original.scale/signedMiter;
             if (!close(segment[0],expected)||!std::isfinite(replacement)) return false;
             projected.segParms[i][0]=replacement;
+        }
+        if (appended) {
+            const double replacement=(after.elements.back().offset+afterShift)*original.scale/signedMiter;
+            if (!std::isfinite(replacement)) return false;
+            projected.segParms.emplace_back(2u,0.0);
+            projected.segParms.back()[0]=replacement;
+            projected.areaFillParms.emplace_back();
         }
     }
     return true;
@@ -17168,13 +17187,12 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
             if (found==live.end() || found->second.block!=expected) return false;
             if (!chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
                 || !visited.insert(identity.self).second) return false;
-            const auto changed=m_dxfMLineStyles.find(shape.target);
-            if (changed!=m_dxfMLineStyles.end() && changed->second.countChanged) return false;
             // Geometry transactions need identity/scope completeness even if
             // the live reference is being retargeted; the dedicated consumer
             // planner validates that change against both original styles later
             // in the same export. Count changes retain the stricter original
-            // model equality contract below.
+            // model equality contract below; their projected output is checked
+            // only after the count-aware consumer plan has been built.
             if (!requireUnchangedModels) return true;
             const auto& value=*found->second.value;
             const auto variant=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
@@ -17359,8 +17377,8 @@ bool dx_iface::hasUnchangedDxfMLineStyles(bool deferConsumedGeometry) const noex
             for (const auto* entity:block->ent) if (entity && entity->eType==DRW::MLINE) {
                 const auto* mline=dynamic_cast<const DRW_MLine*>(entity);if (!mline) return false;
                 const auto source=m_dxfMLineStyles.find(mline->styleHandle);
-                if (source!=m_dxfMLineStyles.end() && source->second.geometryChanged) {
-                    if (source->second.countChanged) return false;
+                if (source!=m_dxfMLineStyles.end()
+                    && (source->second.geometryChanged || source->second.countChanged)) {
                     if (!deferConsumedGeometry) {
                         const auto planned=m_dxfMLineConsumers.find(mline->handle);
                         if (planned==m_dxfMLineConsumers.end() || planned->second.live!=mline
@@ -17614,23 +17632,36 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             // retarget proof above is sufficient and no offset projection is
             // applicable. Consumers that still reference the edited style
             // must pass the narrow geometry reprojection below.
-            if (style->second.geometryChanged && value.styleHandle==original->styleHandle) {
+            if ((style->second.geometryChanged || style->second.countChanged)
+                && value.styleHandle==original->styleHandle) {
                 const auto* before=geometrySourceStyle(original->styleHandle);
                 const auto variant=[&](const DRW_Variant& a,const DRW_Variant& b) {
                     return standardDwgVariantEqual(a,b,version);
                 };
-                std::size_t modelBytes=0u;
-                const bool admitted=!style->second.countChanged
+                const auto& targetStyle=style->second.projection;
+                const bool append=style->second.countChanged;
+                std::size_t modelBytes=0u,appendBytes=0u;
+                const auto retainedAppendBytes=[&]() {
+                    if (!append) return true;
+                    std::size_t perVertex=4u*sizeof(std::vector<double>)+2u*sizeof(double);
+                    return WholeSourceV2::product(original->vertlist.size(),perVertex,appendBytes)
+                        && chargeNamedResourceBytes(bytes,appendBytes);
+                };
+                const bool fieldScope=!append
+                    ? before && mlineFieldsEqual(*before,targetStyle,true,true,true,true,true,false)
+                    : before && targetStyle.elements.size()==before->elements.size()+1u;
+                const bool admitted=fieldScope
                     && mlineGeometryEqual(value,*original) && dxfAttdef::Decoder::sameEntityModel(value,*original,variant)
                     && mlineRetargetConsumerFields(physical.groups) && before
-                    && mlineFieldsEqual(*before,style->second.projection,true,true,true,true,true,false)
                     && original->numLines!=0u
-                    && original->vertlist.size()<=kMaxAdapterBasicTableItems/original->numLines
-                    && visitProjection(original->vertlist.size()*original->numLines)
-                    && chargeMlineComparisonWork(before->elements,1u,projectionWork,kMaxAdapterBasicTableItems)
+                    && !targetStyle.elements.empty()
+                    && targetStyle.elements.size()<=kMaxAdapterBasicTableItems
+                    && original->vertlist.size()<=kMaxAdapterBasicTableItems/targetStyle.elements.size()
+                    && visitProjection(original->vertlist.size()*targetStyle.elements.size())
+                    && chargeMlineComparisonWork(targetStyle.elements,1u,projectionWork,kMaxAdapterBasicTableItems)
                     && estimateTypedEntityRetainedBytes(*original,sizeof(DRW_MLine),modelBytes)
-                    && chargeNamedResourceBytes(bytes,modelBytes);
-                if (!admitted || !mlineReprojectUncut(*original,*before,style->second.projection,planned.projection)) return false;
+                    && chargeNamedResourceBytes(bytes,modelBytes) && retainedAppendBytes();
+                if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,append)) return false;
                 planned.geometryProjected=true;
             }
             return m_dxfMLineConsumers.emplace(value.handle,std::move(planned)).second;
@@ -36011,12 +36042,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                         || mline->styleHandle == DRW::NoHandle)
                         return false;
                     const auto style = styles.find(mline->styleHandle);
-                    if (style == styles.end()
-                        || reachableStyles.count(mline->styleHandle) != 1u
-                        || mline->numLines != style->second->elements.size()
+                    if (style==styles.end()) return false;
+                    const auto source=m_dxfMLineStyles.find(mline->styleHandle);
+                    const bool selectedAppend=source!=m_dxfMLineStyles.end()
+                        && source->second.countChanged && mline->numLines<style->second->elements.size();
+                    if (reachableStyles.count(mline->styleHandle) != 1u
+                        || (mline->numLines != style->second->elements.size() && !selectedAppend)
                         || (style->second->name.empty() && !m_mlineStyleNamesToWrite.count(mline->styleHandle)))
                         return false;
-                    const auto source=m_dxfMLineStyles.find(mline->styleHandle);
                     const bool authority=cData->sourceFormat==dx_source_format::DXF
                         && source!=m_dxfMLineStyles.end() && source->second.dictionaryOrigin;
                     if (!authority && !mline->styleName.empty()

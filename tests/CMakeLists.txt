@@ -170,6 +170,15 @@ add_test(NAME libdxfrw_mline_retarget_offset_projection
 set_tests_properties(libdxfrw_mline_retarget_offset_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Runtime-generated AC1027 profile for appending one style element consumed by
+# open, uncut MLINEs. It checks 73/74/41/75/42 output, bottom-offset rebasing,
+# readback, refusal and same-adapter retry without adding fixture drawings.
+add_test(NAME libdxfrw_mline_consumed_style_append
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-append)
+set_tests_properties(libdxfrw_mline_consumed_style_append PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
