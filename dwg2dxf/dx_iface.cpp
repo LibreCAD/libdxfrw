@@ -16293,6 +16293,19 @@ bool mlineRetargetGeometryProjectionCompatible(const DRW_MLineStyle& original,
     return true;
 }
 
+bool mlineRetargetGeometryAppendCompatible(const DRW_MLineStyle& original,
+        const DRW_MLineStyle& target) noexcept {
+    if (!mlineRetargetGeometryKnown(original) || !mlineRetargetGeometryKnown(target)
+        || original.flags!=2 || target.flags!=2 || !mlineFlagBitsEqual(original.flags,target.flags)
+        || !retainedDoubleEqual(original.startAngle,target.startAngle)
+        || !retainedDoubleEqual(original.endAngle,target.endAngle)
+        || original.elements.size()<2u || original.elements.size()>=UINT8_MAX
+        || target.elements.size()<=original.elements.size() || target.elements.size()>UINT8_MAX) return false;
+    for (std::size_t i=0u;i<original.elements.size();++i)
+        if (!retainedDoubleEqual(original.elements[i].offset,target.elements[i].offset)) return false;
+    return true;
+}
+
 bool mlineRetargetCommonOutputEqual(const DRW_MLine& model,const DRW_MLine& actual,
         dxfRW& writer,std::uint32_t handle,std::uint32_t owner,DRW::Version version) {
     // These temporaries are covered by the precharged consumer allowance.
@@ -17282,18 +17295,18 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
             if (found==live.end() || found->second.block!=expected) return false;
             if (!chargeNamedResourceBytes(bytes,sizeof(std::uint32_t)+16u*sizeof(void*))
                 || !visited.insert(identity.self).second) return false;
-            // Geometry transactions need identity/scope completeness even if
-            // the live reference is being retargeted; the dedicated consumer
-            // planner validates that change against both original styles later
-            // in the same export. Count changes retain the stricter original
-            // model equality contract below; their projected output is checked
-            // only after the count-aware consumer plan has been built.
+            // Count changes retain exact source geometry and entity data. A
+            // changed style handle is allowed only when it names another
+            // source-bound style whose geometry/count is in this transaction;
+            // the dedicated planner validates that retarget and its projected
+            // output later in the same export.
             if (!requireUnchangedModels) return true;
             const auto& value=*found->second.value;
             const auto variant=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
                 return standardDwgVariantEqual(a,b,cData->sourceVersion);
             };
-            return value.parentHandle==original->parentHandle && value.styleHandle==original->styleHandle
+            return value.parentHandle==original->parentHandle
+                && (value.styleHandle==original->styleHandle || affectedStyles.count(value.styleHandle)!=0u)
                 && value.styleName==original->styleName && mlineGeometryEqual(value,*original)
                 && dxfAttdef::Decoder::sameEntityModel(value,*original,variant);
         };
@@ -17656,18 +17669,33 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 || !dxfAttdef::Decoder::sameEntityModel(value,original,variant)) return false;
             if (mlineRetargetGeometryEqual(old->original,planned.projection)) return true;
             const bool geometryCompatible=mlineRetargetGeometryProjectionCompatible(old->original,planned.projection);
+            const bool appendCompatible=mlineRetargetGeometryAppendCompatible(old->original,planned.projection);
             const bool anglesChanged=!retainedDoubleEqual(old->original.startAngle,planned.projection.startAngle)
                 || !retainedDoubleEqual(old->original.endAngle,planned.projection.endAngle);
-            if (planned.countChanged || !geometryCompatible
+            const bool targetDefinitionAppend=planned.projection.elements.size()>target->original.elements.size();
+            const auto chargeAppendProjection=[&]() {
+                if (!appendCompatible) return true;
+                const std::size_t additions=planned.projection.elements.size()-old->original.elements.size();
+                std::size_t perElement=4u*sizeof(std::vector<double>)+2u*sizeof(double),perVertex=0u,appendBytes=0u;
+                return WholeSourceV2::product(additions,perElement,perVertex)
+                    && WholeSourceV2::product(original.vertlist.size(),perVertex,appendBytes)
+                    && chargeNamedResourceBytes(bytes,appendBytes);
+            };
+            if ((planned.countChanged && !targetDefinitionAppend) || (!geometryCompatible && !appendCompatible)
                 || original.numLines==0u
                 || original.vertlist.size()>kMaxAdapterBasicTableItems/original.numLines
                 || !visit(original.vertlist.size()*original.numLines)
-                || !chargeMlineComparisonWork(old->original.elements,1u,retargetWork,kMaxAdapterBasicTableItems)) return false;
+                || (appendCompatible && (original.vertlist.size()>kMaxAdapterBasicTableItems/planned.projection.elements.size()
+                    || !visit(original.vertlist.size()*planned.projection.elements.size())))
+                || !chargeMlineComparisonWork(old->original.elements,1u,retargetWork,kMaxAdapterBasicTableItems)
+                || (appendCompatible && !chargeMlineComparisonWork(planned.projection.elements,1u,retargetWork,
+                    kMaxAdapterBasicTableItems))) return false;
             std::size_t modelBytes=0u;
             if (!estimateTypedEntityRetainedBytes(original,sizeof(DRW_MLine),modelBytes)
                 || !chargeNamedResourceBytes(bytes,modelBytes)
+                || !chargeAppendProjection()
                 || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection,
-                    false,false,anglesChanged)) return false;
+                    appendCompatible,false,anglesChanged)) return false;
             // Group 2 is redundant; only the authoritative 340 target changes.
             geometryProjection.styleHandle=value.styleHandle;
             geometryProjected=true;

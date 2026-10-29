@@ -180,6 +180,15 @@ set_tests_properties(libdxfrw_mline_retarget_angle_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 MLINESTYLE retarget with one appended element.
+# Verify style ownership, group 73/74/75/41 output, preserved redundant names,
+# fresh readback, rollback and retry across source/output encodings.
+add_test(NAME libdxfrw_mline_retarget_append_projection
+    COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-append-projection)
+set_tests_properties(libdxfrw_mline_retarget_append_projection PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 profile for appending one style element consumed by
 # open, uncut MLINEs. It checks 73/74/41/75/42 output, bottom-offset rebasing,
 # readback, refusal and same-adapter retry without adding fixture drawings.
