@@ -11556,7 +11556,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeSecondStyle = false,
                                      double standardTextHeight = 0.0,
                                      double standardLandingGap = 0.0,
-                                     bool includeDoubleScalars = false);
+                                     bool includeDoubleScalars = false,
+                                     int standardLeaderLineWeight = 0);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32049,7 +32050,8 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeSecondStyle,
                                      double standardTextHeight,
                                      double standardLandingGap,
-                                     bool includeDoubleScalars) {
+                                     bool includeDoubleScalars,
+                                     int standardLeaderLineWeight) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32159,6 +32161,10 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeInt16(179, 2);
     writer->writeInt16(170, 0);
     writer->writeInt32(90, 0);
+    if (standardLeaderLineWeight != 0) {
+        writer->writeInt32(91, 0);
+        writer->writeInt32(92, standardLeaderLineWeight);
+    }
     if (includeTargets) {
         writer->writeString(340, wrongReferenceKind == 1 ? "1F" : "30");
         writer->writeString(341, wrongReferenceKind == 2 ? "30" : "1F");
@@ -33319,6 +33325,168 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                         + std::to_string(code));
         writeDoubleField(*scalarStyle, code, sourceValue);
     }
+
+    const auto lineWeightSource = directory
+        / ("root-mleaderstyle-lineweight-source-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(lineWeightSource, binary, true, 0,
+                                         false, true, 0.0, 0.0, false, 25))
+        return false;
+    dx_data lineWeightData;
+    dx_iface lineWeightReader;
+    if (!lineWeightReader.fileImport(lineWeightSource.string(),
+                                    &lineWeightData, false)
+        || !lineWeightData.hasSingleSuccessfulNamedResourceImport())
+        return fail("could not import MLEADERSTYLE lineweight source");
+    auto lineWeightStyle = std::find_if(
+        lineWeightData.mLeaderStyles.begin(), lineWeightData.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.handle == 0x1Cu
+                && candidate.name == "STANDARD";
+        });
+    auto lineWeightRaw = std::find_if(
+        lineWeightData.rawNamedResourceObjects.begin(),
+        lineWeightData.rawNamedResourceObjects.end(),
+        [](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == 0x1Cu;
+        });
+    if (lineWeightStyle == lineWeightData.mLeaderStyles.end()
+        || lineWeightStyle->leaderLineWeight != 25
+        || lineWeightRaw == lineWeightData.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE lineweight source did not import as expected");
+    const DRW_RawDxfObject originalLineWeightRaw = *lineWeightRaw;
+    const auto sourceLineWeight = std::find_if(
+        lineWeightRaw->groups.begin(), lineWeightRaw->groups.end(),
+        [](const DRW_Variant& field) {
+            return field.code() == 92;
+        });
+    if (sourceLineWeight == lineWeightRaw->groups.end()
+        || sourceLineWeight->type() != DRW_Variant::INTEGER
+        || sourceLineWeight->i_val() != 25)
+        return fail("MLEADERSTYLE group-92 INTEGER source is missing");
+    const std::size_t sourceLineWeightSlot = static_cast<std::size_t>(
+        sourceLineWeight - lineWeightRaw->groups.begin());
+    lineWeightStyle->leaderLineWeight = 50;
+    const auto lineWeightOutput = directory
+        / ("root-mleaderstyle-lineweight-output-" + encoding + ".dxf");
+    const std::string lineWeightSentinel =
+        "existing MLEADERSTYLE lineweight output survives\n";
+    const auto seedLineWeightSentinel = [&]() {
+        std::ofstream previous(lineWeightOutput,
+            std::ios::binary | std::ios::trunc);
+        return previous
+            && static_cast<bool>(previous << lineWeightSentinel);
+    };
+    const auto lineWeightSentinelSurvives = [&]() {
+        std::ifstream previous(lineWeightOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        return !previous.bad() && preserved == lineWeightSentinel;
+    };
+    class LateMLeaderLineWeightWriter final : public dx_iface {
+    public:
+        bool mutateLineWeight{false};
+        void writeObjects() override {
+            if (mutateLineWeight && cData != nullptr) {
+                const auto style = std::find_if(cData->mLeaderStyles.begin(),
+                    cData->mLeaderStyles.end(),
+                    [](const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == 0x1Cu;
+                    });
+                if (style != cData->mLeaderStyles.end())
+                    ++style->leaderLineWeight;
+            }
+            dx_iface::writeObjects();
+        }
+    } lineWeightWriter;
+    if (!seedLineWeightSentinel())
+        return fail("could not seed MLEADERSTYLE lineweight refusal");
+    lineWeightRaw->groups[sourceLineWeightSlot] = DRW_Variant(92, 26);
+    if (lineWeightRaw->hasRawValues && !binary)
+        lineWeightRaw->rawValues[sourceLineWeightSlot] = "26";
+    if (lineWeightWriter.fileExport(lineWeightOutput.string(), DRW::AC1027,
+                                    binary, &lineWeightData, false, true)
+        || !lineWeightSentinelSurvives())
+        return fail("conflicting MLEADERSTYLE group-92 edit was published");
+    *lineWeightRaw = originalLineWeightRaw;
+
+    lineWeightStyle->textHeight = 1.0;
+    if (!seedLineWeightSentinel()
+        || lineWeightWriter.fileExport(lineWeightOutput.string(), DRW::AC1027,
+                                       binary, &lineWeightData, false, true)
+        || !lineWeightSentinelSurvives())
+        return fail("mixed MLEADERSTYLE DOUBLE/INT32 edits were not refused");
+    lineWeightStyle->textHeight = 0.0;
+
+    lineWeightWriter.mutateLineWeight = true;
+    if (!seedLineWeightSentinel()
+        || lineWeightWriter.fileExport(lineWeightOutput.string(), DRW::AC1027,
+                                       binary, &lineWeightData, false, true)
+        || !lineWeightSentinelSurvives())
+        return fail("late MLEADERSTYLE lineweight mutation was published");
+    lineWeightWriter.mutateLineWeight = false;
+    lineWeightStyle->leaderLineWeight = 50;
+    if (!lineWeightWriter.fileExport(lineWeightOutput.string(), DRW::AC1027,
+                                     binary, &lineWeightData, false, true))
+        return fail("same-adapter MLEADERSTYLE lineweight retry failed: "
+            + lineWeightWriter.extensionGraphFailureDetail());
+    dx_data lineWeightReadback;
+    dx_iface lineWeightOutputReader;
+    if (!lineWeightOutputReader.fileImport(lineWeightOutput.string(),
+                                           &lineWeightReadback, false))
+        return fail("could not read back MLEADERSTYLE lineweight output");
+    const auto emittedLineWeightStyle = std::find_if(
+        lineWeightReadback.mLeaderStyles.begin(),
+        lineWeightReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (emittedLineWeightStyle == lineWeightReadback.mLeaderStyles.end()
+        || emittedLineWeightStyle->leaderLineWeight != 50)
+        return fail("MLEADERSTYLE lineweight readback lost group 92");
+    const std::uint32_t emittedLineWeightHandle =
+        emittedLineWeightStyle->handle;
+    const auto emittedLineWeightRaw = std::find_if(
+        lineWeightReadback.rawNamedResourceObjects.begin(),
+        lineWeightReadback.rawNamedResourceObjects.end(),
+        [emittedLineWeightHandle](const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == emittedLineWeightHandle;
+        });
+    if (emittedLineWeightRaw
+        == lineWeightReadback.rawNamedResourceObjects.end())
+        return fail("MLEADERSTYLE lineweight raw output is missing");
+    const auto emittedLineWeightCount = std::count_if(
+        emittedLineWeightRaw->groups.begin(),
+        emittedLineWeightRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 92
+                && field.type() == DRW_Variant::INTEGER
+                && field.i_val() == 50;
+        });
+    if (emittedLineWeightCount != 1)
+        return fail("MLEADERSTYLE output does not contain group-92 INTEGER 50");
+
+    const auto lineWeightCrossOutput = directory
+        / ("root-mleaderstyle-lineweight-cross-" + encoding + ".dxf");
+    dx_iface lineWeightCrossWriter;
+    dx_data lineWeightCrossReadback;
+    dx_iface lineWeightCrossReader;
+    if (!lineWeightCrossWriter.fileExport(lineWeightCrossOutput.string(),
+                                          DRW::AC1027, !binary,
+                                          &lineWeightData, false, true)
+        || !lineWeightCrossReader.fileImport(lineWeightCrossOutput.string(),
+                                             &lineWeightCrossReadback, false))
+        return fail("cross-format MLEADERSTYLE lineweight output failed");
+    const auto crossLineWeightStyle = std::find_if(
+        lineWeightCrossReadback.mLeaderStyles.begin(),
+        lineWeightCrossReadback.mLeaderStyles.end(),
+        [](const DRW_MLeaderStyle& candidate) {
+            return candidate.name == "STANDARD";
+        });
+    if (crossLineWeightStyle == lineWeightCrossReadback.mLeaderStyles.end()
+        || crossLineWeightStyle->leaderLineWeight != 50)
+        return fail("cross-format MLEADERSTYLE lineweight was not preserved");
 
     return true;
 }

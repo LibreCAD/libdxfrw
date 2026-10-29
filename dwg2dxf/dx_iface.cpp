@@ -15984,7 +15984,7 @@ bool dx_iface::inspectDxfScales(const dxfRW::DxfObjectsWriteView& view) noexcept
 }
 
 namespace {
-constexpr std::size_t noMLeaderDoubleSlot =
+constexpr std::size_t noMLeaderFieldSlot =
     (std::numeric_limits<std::size_t>::max)();
 constexpr std::array<int, 13> mleaderDoubleCodes{{
     40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143
@@ -16028,6 +16028,16 @@ int changedMLeaderDoubleCode(const DRW_MLeaderStyle& value,
     return changedCode;
 }
 
+int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
+                            const DRW_MLeaderStyle& original) noexcept {
+    const int doubleCode = changedMLeaderDoubleCode(value, original);
+    const bool lineWeightChanged =
+        value.leaderLineWeight != original.leaderLineWeight;
+    if (doubleCode < 0 || (doubleCode != 0 && lineWeightChanged))
+        return -1;
+    return lineWeightChanged ? 92 : doubleCode;
+}
+
 void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
                            double value) noexcept {
     switch (code) {
@@ -16048,11 +16058,13 @@ void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
     }
 }
 
-bool mleaderDoubleSlot(const DRW_RawDxfObject& raw, int code,
+bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
         std::size_t& slot) noexcept {
-    if (!isMLeaderDoubleCode(code))
+    if (!isMLeaderDoubleCode(code) && code != 92)
         return false;
-    slot = noMLeaderDoubleSlot;
+    slot = noMLeaderFieldSlot;
+    const DRW_Variant::TYPE expectedType = isMLeaderDoubleCode(code)
+        ? DRW_Variant::DOUBLE : DRW_Variant::INTEGER;
     unsigned applicationDepth = 0u;
     unsigned styleMarkers = 0u;
     unsigned matchingFields = 0u;
@@ -16092,8 +16104,9 @@ bool mleaderDoubleSlot(const DRW_RawDxfObject& raw, int code,
         }
         if (!inStyleBody || fieldCode != code)
             continue;
-        if (field.type() != DRW_Variant::DOUBLE
-            || !std::isfinite(field.d_val())
+        if (field.type() != expectedType
+            || (expectedType == DRW_Variant::DOUBLE
+                && !std::isfinite(field.d_val()))
             || ++matchingFields != 1u)
             return false;
         slot = i;
@@ -16134,7 +16147,7 @@ bool sameNamedResourceRaw(const DRW_RawDxfObject& left,
 
 bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy) noexcept {
-    (void)policy; // The selected group-45 role is numeric and codec-independent.
+    (void)policy; // Selected scalar fields are codec-independent.
     m_dxfMLeaderStyles.clear();
     m_dxfMLeaderStyleState = {};
     m_dxfMLeaderStylesInspected = false;
@@ -16144,7 +16157,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
         || m_extensionMLeaderStyleHandles.empty())
         return true;
     // Keep every pre-existing raw-replay route unchanged. This packet admits
-    // only a source- and target-AC1027 typed group-45 edit.
+    // only source- and target-AC1027 typed field edits.
     if (cData->sourceVersion != DRW::AC1027 || version != DRW::AC1027)
         return true;
     try {
@@ -16170,7 +16183,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     baseline->second->encoding, baseline->second->policy,
                     baseline->second->compatibility))
                 return false;
-            const int editedCode = changedMLeaderDoubleCode(value, original);
+            const int editedCode = changedMLeaderFieldCode(value, original);
             if (editedCode == 0) {
                 if (!standardDwgCommonEqual(value, original, version, false)
                     || value.name != original.name
@@ -16180,11 +16193,13 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             }
             if (editedCode < 0)
                 return false;
-            std::size_t baselineSlot = noMLeaderDoubleSlot;
-            if (!std::isfinite(mleaderDoubleValue(value, editedCode))
-                || !mleaderDoubleSlot(*baseline->second, editedCode,
-                                      baselineSlot)
-                || baselineSlot == noMLeaderDoubleSlot)
+            std::size_t baselineSlot = noMLeaderFieldSlot;
+            const bool validValue = editedCode == 92
+                || std::isfinite(mleaderDoubleValue(value, editedCode));
+            if (!validValue
+                || !mleaderFieldSlot(*baseline->second, editedCode,
+                                     baselineSlot)
+                || baselineSlot == noMLeaderFieldSlot)
                 return false;
             changedHandles.push_back(value.handle);
         }
@@ -16254,54 +16269,83 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 return false;
 
             DRW_MLeaderStyle projection = original;
-            const int editedCode = changedMLeaderDoubleCode(value, original);
+            const int editedCode = changedMLeaderFieldCode(value, original);
             if (editedCode != 0) {
-                // One mapped DOUBLE edit is source-bound to AC1027 and one
-                // unique existing physical group in the documented scalar
-                // set. Other schemas/versions remain on raw replay.
+                // One mapped field edit is source-bound to AC1027 and one
+                // unique existing physical group. Other schemas/versions
+                // remain on raw replay.
                 if (version != DRW::AC1027 || editedCode < 0)
                     return false;
-                const double editedValue =
-                    mleaderDoubleValue(value, editedCode);
-                const double originalValue =
-                    mleaderDoubleValue(original, editedCode);
-                if (!std::isfinite(editedValue))
-                    return false;
                 DRW_MLeaderStyle normalized = value;
-                setMLeaderDoubleValue(normalized, editedCode, originalValue);
+                if (isMLeaderDoubleCode(editedCode)) {
+                    const double editedValue =
+                        mleaderDoubleValue(value, editedCode);
+                    const double originalValue =
+                        mleaderDoubleValue(original, editedCode);
+                    if (!std::isfinite(editedValue))
+                        return false;
+                    setMLeaderDoubleValue(normalized, editedCode,
+                                         originalValue);
+                } else if (editedCode == 92) {
+                    normalized.leaderLineWeight = original.leaderLineWeight;
+                } else {
+                    return false;
+                }
                 if (!standardDwgCommonEqual(value, original, version, false)
                     || value.name != original.name
                     || !mleaderPayloadEqual(normalized, original, version))
                     return false;
-                std::size_t slot = noMLeaderDoubleSlot;
-                if (!mleaderDoubleSlot(raw, editedCode, slot)
-                    || slot == noMLeaderDoubleSlot
-                    || raw.groups[slot].d_val() != originalValue)
+                std::size_t slot = noMLeaderFieldSlot;
+                if (!mleaderFieldSlot(raw, editedCode, slot)
+                    || slot == noMLeaderFieldSlot
+                    || (editedCode == 92
+                        ? raw.groups[slot].i_val()
+                            != original.leaderLineWeight
+                        : raw.groups[slot].d_val()
+                            != mleaderDoubleValue(original, editedCode)))
                     return false;
-                setMLeaderDoubleValue(projection, editedCode, editedValue);
+                if (editedCode == 92)
+                    projection.leaderLineWeight = value.leaderLineWeight;
+                else
+                    setMLeaderDoubleValue(projection, editedCode,
+                        mleaderDoubleValue(value, editedCode));
             }
 
             DxfMLeaderStyleSource source;
             source.model = value;
             source.projection = projection;
-            source.editedDoubleCode = changedMLeaderDoubleCode(value,
-                                                               original);
+            source.editedFieldCode = changedMLeaderFieldCode(value, original);
             source.raw = raw;
             source.output = raw;
             source.baseline = baselineIt->second;
-            if (source.editedDoubleCode != 0) {
-                std::size_t slot = noMLeaderDoubleSlot;
-                dx_material_body::BodyWriter encoded(
-                    binary, version, m_dxfMLeaderStyleState.codePage);
-                const int editedCode = source.editedDoubleCode;
-                if (!mleaderDoubleSlot(raw, editedCode, slot)
-                    || !encoded.writeDouble(editedCode,
-                        mleaderDoubleValue(projection, editedCode))
-                    || encoded.groups.size() != 1u
-                    || encoded.groups.front().code() != editedCode
-                    || encoded.groups.front().type() != DRW_Variant::DOUBLE)
+            if (source.editedFieldCode != 0) {
+                std::size_t slot = noMLeaderFieldSlot;
+                const int editedCode = source.editedFieldCode;
+                if (!mleaderFieldSlot(raw, editedCode, slot)
+                    || slot == noMLeaderFieldSlot)
                     return false;
-                source.output.groups[slot] = encoded.groups.front();
+                if (isMLeaderDoubleCode(editedCode)) {
+                    dx_material_body::BodyWriter encoded(
+                        binary, version, m_dxfMLeaderStyleState.codePage);
+                    if (!encoded.writeDouble(editedCode,
+                            mleaderDoubleValue(projection, editedCode))
+                        || encoded.groups.size() != 1u
+                        || encoded.groups.front().code() != editedCode
+                        || encoded.groups.front().type()
+                            != DRW_Variant::DOUBLE)
+                        return false;
+                    source.output.groups[slot] = encoded.groups.front();
+                } else if (editedCode == 92) {
+                    // BodyWriter stores generic 90-92 values as INTEGER64 for
+                    // MATERIAL's unsigned color case. MLEADERSTYLE 92 is a
+                    // signed INT32 field and its raw-carrier validator
+                    // requires the ordinary INTEGER variant.
+                    source.output.groups[slot] = DRW_Variant(
+                        92, static_cast<std::int32_t>(
+                            projection.leaderLineWeight));
+                } else {
+                    return false;
+                }
                 if (source.output.hasRawValues && !binary) {
                     std::string spelling;
                     if (!dx_material_body::spelling(
@@ -16392,8 +16436,11 @@ bool dx_iface::inspectDxfMLeaderStyles(
                         // source group and mapped handle survived. Decode the
                         // selected typed role here without requiring source
                         // handles to equal their remapped output identities.
-                        const int code = source.editedDoubleCode;
-                        return code != 0
+                        const int code = source.editedFieldCode;
+                        if (code == 92)
+                            return value.leaderLineWeight
+                                == source.projection.leaderLineWeight;
+                        return isMLeaderDoubleCode(code)
                             && std::isfinite(mleaderDoubleValue(value, code))
                             && mleaderDoubleValue(value, code)
                                 == mleaderDoubleValue(source.projection, code);
