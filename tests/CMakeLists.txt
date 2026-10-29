@@ -435,6 +435,19 @@ set_tests_properties(libdxfrw_mline_consumed_source_count_triple_append_191_252 
     LABELS "dxf;fast;transaction"
     TIMEOUT 90)
 
+# Qualify a selected four-tuple batch across all non-two source counts whose
+# resulting MLINESTYLE count fits its one-byte field; split for bounded runtime.
+add_test(NAME libdxfrw_mline_consumed_source_count_quad_append_3_127
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 3 127 4)
+set_tests_properties(libdxfrw_mline_consumed_source_count_quad_append_3_127 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+add_test(NAME libdxfrw_mline_consumed_source_count_quad_append_128_251
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-source-count-append-range 128 251 4)
+set_tests_properties(libdxfrw_mline_consumed_source_count_quad_append_128_251 PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 90)
+
 # Runtime-generated AC1027 profile for removing either element from a two-item
 # style used by open, uncut MLINEs. It checks parameter remapping, exact output,
 # zero-count refusal, rollback and same-adapter retry.
