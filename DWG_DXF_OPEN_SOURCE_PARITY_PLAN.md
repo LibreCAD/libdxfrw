@@ -162,8 +162,13 @@ proof. Refused fields are not implemented editing support.
    with a STYLE dependency. The source/output ASCII/binary cross-product checks
    group-49/74 order, text fields, the remapped group-340 pointer, typed readback,
    MLINE consumers, missing-provider refusal, destination preservation and
-   same-adapter retry. Other mixed segment orders/counts, complex flags, optional
-   placements, shape/text combinations, providers and versions remain open.
+   same-adapter retry. [RPP-5rg](docs/research/rpp5rg-mline-ltype-mixed-text-first-2026-10-29.json)
+   qualifies the reverse two-element order (text then simple) across the same
+   ASCII/binary source/output cross-product, including exact ordered payload and
+   STYLE remap readback plus provider refusal/retry. Together these receipts
+   qualify both orders for this exact two-segment pair. Other mixed segment
+   counts, complex flags, optional placements, shape/text combinations,
+   providers and versions remain open.
    This establishes transport only; native font loading and rendered meaning
    remain unqualified.
    Start with one witnessed unsupported profile; retain advisory transport until
