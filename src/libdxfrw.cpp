@@ -21032,9 +21032,11 @@ bool dxfRW::processXRecord() {
             return true;
         }
 
-        const bool dataGroup = code == 102 && record.m_dxfBodySeen;
-        if (dataGroup
-                ? !(captureRawGroup(raw, code, /*validateHandles=*/true)
+        // XRECORD body groups are payload, not the object's common identity.
+        // In particular, body 5 and 330 must not register or infer identities.
+        if (record.m_dxfBodySeen
+                ? !(captureRawGroup(raw, code, /*validateHandles=*/true,
+                                    /*selfHandle=*/false, /*commonIdentity=*/false)
                     && record.parseCode(code, reader))
                 : !captureAndParseRawDxfGroup(raw, code, record))
             return setError(DRW::BAD_CODE_PARSED);
@@ -22675,7 +22677,7 @@ void applyProxyDxfCapture(DRW_ProxyObject& object,
 //type and uses rawValues only for ASCII source spellings. Also latches code 5
 //-> handle and code 330 -> parentHandle.
 bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
-                            bool validateHandles, bool selfHandle) {
+                            bool validateHandles, bool selfHandle, bool commonIdentity) {
     if (obj.groups.size() >= DRW::kMaxDxfRawRecordGroups)
         return false;
     if (obj.m_version == DRW::UNKNOWNV)
@@ -22712,7 +22714,7 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
             return false;
         }
     }
-    if (code == DRW::dxfCode::HANDLE && selfHandle) {
+    if (code == DRW::dxfCode::HANDLE && selfHandle && commonIdentity) {
         std::uint64_t rawHandle = 0;
         if (!parseRawDxfHandleLexeme(reader->getStringView(), rawHandle)) {
             recordOperationDiagnostic(
@@ -22806,11 +22808,11 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
             (void)obj.m_retainedTextLease->resizeTo(previousRetainedBytes);
         return false;
     }
-    if (5 == code && selfHandle && obj.handle == 0) {
+    if (5 == code && selfHandle && commonIdentity && obj.handle == 0) {
         // The raw group string remains authoritative when the handle does not
         // fit this legacy 32-bit convenience field.
         obj.handle = reader->getHandleString();
-    } else if (330 == code && obj.parentHandle == 0) {
+    } else if (330 == code && commonIdentity && obj.parentHandle == 0) {
         // Latch the OWNER 330 only — the one OUTSIDE any 102 {ACAD_REACTORS/
         // ACAD_XDICTIONARY} control group. Reactor 330s live at 102-group depth
         // >= 1. Presence, not a nonzero decoded value, closes the owner slot:

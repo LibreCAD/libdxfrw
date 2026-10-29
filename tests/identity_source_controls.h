@@ -97,11 +97,13 @@ bool identityPublicLifetime(unsigned& contexts) {
     return true;
 }
 #include "identity_xrecord_controls.h"
+#include "xrecord_payload_identity_controls.h"
 bool identitySourceTests(const std::filesystem::path& dir) {
     struct Stage {const char* name="matrix";bool done=false;~Stage(){if(!done)std::cerr<<"Identity source stage="<<name<<'\n';}} stage;
     using A=DxIfaceTableSourceTestAccess;using S=dx_iface::IdentitySourceState;
     const auto path=dir/"identity-source.dxf";unsigned profiles=0u,variants=0u,refusals=0u,limits=0u,contexts=0u,exceptions=0u;std::size_t spans=0u;long allocations=0;
     if(!identityXrecordTests(path))return false;
+    if(!xrecordPayloadIdentityTests(path))return false;
     const auto complete=[](const dx_data& d) {const auto r=dx_iface::identitySourceReport(d);
         return r.state==S::NamespaceReady&&r.records==15u&&r.identities==15u&&r.admitted==10u&&r.unobserved==5u
             &&r.opaque==2u&&r.dimstyleNames==1u&&!r.outputEligible&&!r.ownerTargetsResolved;};

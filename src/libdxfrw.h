@@ -1406,7 +1406,8 @@ public:
      * latches code 5 -> handle and code 330 -> parentHandle. */
     LIBDXFRW_TEST_SEAM_NOINLINE bool captureRawGroup(DRW_RawDxfObject &obj, int code,
                          bool validateHandles = false,
-                         bool selfHandle = true);
+                         bool selfHandle = true,
+                         bool commonIdentity = true);
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                                        std::list<std::list<DRW_Variant>> &appData,
                                        std::vector<std::uint32_t> &reactorHandles,

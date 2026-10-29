@@ -47,11 +47,10 @@ bool identityXrecordTests(const std::filesystem::path& path) {
             if(c.record>=source.records.size()||source.records[c.record].name!="XRECORD")continue;
             if(c.code==5&&c.lexeme=="41"&&c.scope==Scope::Outer)++outer;
             else if(c.code==5&&c.lexeme=="44"&&c.scope==Scope::Application)++application;
-            // The current raw XRECORD reader can report body code 5 as an
-            // accepted registry admission. Its physical scope still forbids
-            // treating that payload value as an outer identity.
+            // Body candidates are retained as opaque evidence, never as
+            // global self-handle admissions.
             else if(((c.code==5&&c.lexeme=="42")||(c.code==105&&c.lexeme=="43"))
-                &&c.scope==Scope::OpaqueBody)++body;
+                &&c.scope==Scope::OpaqueBody&&c.admission==Source::Admission::Unobserved)++body;
             else {std::cerr<<"unexpected XRECORD candidate code="<<c.code<<" lexeme="<<c.lexeme
                 <<" scope="<<static_cast<int>(c.scope)<<" admission="<<static_cast<int>(c.admission)<<'\n';return false;}
         }
