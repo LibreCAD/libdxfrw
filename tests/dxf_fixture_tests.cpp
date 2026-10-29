@@ -100,6 +100,19 @@ public:
                 return true;
         return false;
     }
+    static bool mlineLinetypeEntityProofBound(
+            const dx_iface& value,std::uint32_t source,
+            const std::vector<std::uint32_t>& targets) {
+        const auto row=value.m_dxfMLineLinetypes.find(source);
+        if(row==value.m_dxfMLineLinetypes.end()
+            ||row->second.xdataEntityHandles!=targets
+            ||row->second.xdataEntityModels.size()!=targets.size()
+            ||row->second.xdataEntityOwners.size()!=targets.size())return false;
+        for(std::size_t i=0u;i<targets.size();++i)
+            if(row->second.xdataEntityModels[i]==nullptr
+                ||row->second.xdataEntityOwners[i]==0u)return false;
+        return true;
+    }
     static bool mlineLinetypeLayerProofBound(const dx_iface& value,std::uint32_t source){
         const auto row=value.m_dxfMLineLayers.find(source);
         return row!=value.m_dxfMLineLayers.end()&&row->second.live
@@ -31802,7 +31815,9 @@ bool providerXdataProof(const std::filesystem::path& path,bool binary,const std:
 
 bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
                                bool requireRemap,bool includeStringPayload=false,
-                               bool includeSecondEntityHandle=false) {
+                               bool includeSecondEntityHandle=false,
+                               bool includeThirdEntityHandle=false) {
+    if(includeThirdEntityHandle&&!includeSecondEntityHandle)return false;
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const mlineStyleAuthorityControls::Row* selected=nullptr;
@@ -31823,9 +31838,11 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
             lineProviders.push_back(&row);
         }
     }
-    const std::vector<std::string> sourceHandles=includeSecondEntityHandle
-        ?std::vector<std::string>{referencedLineHandle,secondReferencedLineHandle}
-        :std::vector<std::string>{referencedLineHandle};
+    std::vector<std::string> sourceHandles{referencedLineHandle};
+    if(includeSecondEntityHandle)
+        sourceHandles.emplace_back(secondReferencedLineHandle);
+    if(includeThirdEntityHandle)
+        sourceHandles.emplace_back(thirdReferencedLineHandle);
     if(!selected||!appProvider||selected->id.empty()||appProvider->id.empty()
         ||lineProviders.size()!=sourceHandles.size())return false;
     const auto fieldValue=[](const auto& row,int code) {
@@ -31837,7 +31854,8 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
     emittedHandles.reserve(sourceHandles.size());
     std::string owner;
     for(const auto& sourceHandle:sourceHandles) {
-        const double startX=sourceHandle==referencedLineHandle?1.25:7.5;
+        const double startX=sourceHandle==referencedLineHandle?1.25
+            :sourceHandle==secondReferencedLineHandle?7.5:13.5;
         const mlineStyleAuthorityControls::Row* matched=nullptr;
         for(const auto* lineProvider:lineProviders) {
             double observedStartX=0.0;
@@ -33868,21 +33886,117 @@ bool runTemporary() {
                 adapter,0x103u))return false;
         ++retries;++readbacks;
     }
-    {
+    const std::vector<std::uint32_t> threeSourceHandles{
+        static_cast<std::uint32_t>(std::stoul(referencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(secondReferencedLineHandle,nullptr,16)),
+        static_cast<std::uint32_t>(std::stoul(thirdReferencedLineHandle,nullptr,16))};
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithEntityHandleXdata(
+                       sourceBinary,true,true,true),sourceBinary,"AC1027")
+            ||!entityHandleProviderProof(input,sourceBinary,false,true,true,true)) {
+            std::cerr<<"three-handle source proof failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        if(!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"three-handle source import failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),
+            data.lineTypes.end(),[](const auto& value) {
+                return value.handle==0x103u;
+            });
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=5u
+            ||!data.mBlock||std::count_if(data.mBlock->ent.begin(),
+                data.mBlock->ent.end(),[](const DRW_Entity* entity) {
+                    return entity&&entity->eType==DRW::LINE;
+                })!=3) {
+            std::cerr<<"three-handle typed source check failed: "<<sourceBinary<<'\n';
+            return false;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)) {
+            std::cerr<<"three-handle file export failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!entityHandleProviderProof(output,outputBinary,true,true,true,true)) {
+            std::cerr<<"three-handle positive export/readback failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,threeSourceHandles)) {
+            std::cerr<<"three-handle source binding failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        const auto target=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+                return entity&&entity->handle==threeSourceHandles.back();
+            });
+        if(target==data.mBlock->ent.end()) {
+            std::cerr<<"third source line not found for refusal probe\n";return false;
+        }
+        DRW_Entity* retained=*target;const auto restoreBefore=std::next(target);
+        data.mBlock->ent.erase(target);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            {std::cerr<<"three-handle missing-target refusal failed: "
+                      <<sourceBinary<<' '<<outputBinary<<'\n';return false;}
+        ++refusals;
+        data.mBlock->ent.insert(restoreBefore,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!entityHandleProviderProof(output,outputBinary,true,true,true,true)) {
+            std::cerr<<"three-handle same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,threeSourceHandles)) {
+            std::cerr<<"three-handle binding lost after retry: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataLineMutation adapter;dx_data data;
+        adapter.sourceHandle=threeSourceHandles.back();
         if(!write(input,sourceWithEntityHandleXdata(false,true,true,true),
                   false,"AC1027")
-            ||!adapter.fileImport(input.string(),&data,false))return false;
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"three-handle late-mutation source setup failed\n";
+            return false;
+        }
         sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
-            return false;
-        ++refusals;
+            {std::cerr<<"three-handle late-mutation refusal failed\n";return false;}
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity&&entity->handle==0xA901u) {
+                entity->handle=threeSourceHandles.back();break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!entityHandleProviderProof(output,false,true,true,true,true)) {
+            std::cerr<<"three-handle late-mutation retry failed\n";return false;
+        }
+        if(!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,threeSourceHandles)) {
+            std::cerr<<"three-handle binding lost after late retry\n";return false;
+        }
+        ++retries;++readbacks;
     }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==84u&&readbacks==183u&&refusals==100u&&retries==99u;
+    return profiles==88u&&readbacks==192u&&refusals==104u&&retries==104u;
 }
 
 bool runBudgetTemporary() {

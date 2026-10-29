@@ -21924,7 +21924,7 @@ struct MlineLinetypeShape {
     bool xdata{false};
     std::size_t xdataFields{0u};
     std::size_t xdataDepth{0u};
-    unsigned xdataHandleReferences{0u};
+    std::size_t xdataHandleReferences{0u};
     bool xdataHasPayload{false};
     int xdataCoordinateCode{0};
     unsigned xdataCoordinateComponent{0u};
@@ -21962,7 +21962,8 @@ struct MlineLinetypeShape {
             ++xdataFields;return true;
         }
         if (code==1005) {
-            if (!xdata || text.empty() || ++xdataHandleReferences>2u)
+            if (!xdata || text.empty()
+                || ++xdataHandleReferences>kMaxAdapterBasicTableItems)
                 return false;
             std::uint64_t handle=0u;
             const auto parsed=std::from_chars(
@@ -22073,7 +22074,8 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
             hasPayload=true;break;
         case 1005: {
             if (field->type()!=DRW_Variant::STRING || !field->content.s
-                || field->content.s->empty() || entityHandles.size()>=2u)
+                || field->content.s->empty()
+                || entityHandles.size()>=kMaxAdapterBasicTableItems)
                 return false;
             std::uint64_t handle=0u;
             const auto& text=*field->content.s;
@@ -23063,7 +23065,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                 || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()
                 || row.second.layerHandles.size()>2u
                 || layerReferenceCount>kMaxAdapterBasicTableItems-row.second.layerHandles.size()
-                || row.second.xdataEntityHandles.size()>2u
+                || row.second.xdataEntityHandles.size()>kMaxAdapterBasicTableItems
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityModels.size()
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityOwners.size()
                 || entityReferenceCount>kMaxAdapterBasicTableItems
