@@ -34114,20 +34114,30 @@ bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned r
     }
     return true;
 }
-bool multiRemovalOutputProof(const std::filesystem::path& path,bool binary) {
+bool multiRemovalOutputProof(const std::filesystem::path& path,bool binary,
+        const std::vector<std::size_t>& survivorIndices) {
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
     };
-    const std::array<double,2> offsets{{beforeOffsets[0],-2.0}};
-    const std::array<int,2> colors{{1,5}};
-    const std::array<std::string,2> linetypes{{"ByLayer","Continuous"}};
+    const std::array<double,4> sourceOffsets{{beforeOffsets[0],beforeOffsets[1],-1.25,-2.0}};
+    const std::array<int,4> sourceColors{{1,3,4,5}};
+    const std::array<std::string,4> sourceLinetypes{{"ByLayer","Continuous","ByLayer","Continuous"}};
+    if(survivorIndices.empty()||survivorIndices.size()>=sourceOffsets.size())return false;
+    std::vector<double> offsets;std::vector<int> colors;std::vector<std::string> linetypes;
+    std::size_t previousIndex=0u;bool havePrevious=false;
+    for(const auto index:survivorIndices) {
+        if(index>=sourceOffsets.size()||(havePrevious&&index<=previousIndex))return false;
+        offsets.push_back(sourceOffsets[index]);colors.push_back(sourceColors[index]);linetypes.push_back(sourceLinetypes[index]);
+        previousIndex=index;havePrevious=true;
+    }
+    const double targetMinimum=*std::min_element(offsets.begin(),offsets.end());
     const mlineStyleAuthorityControls::Row* style=nullptr;unsigned styles=0u,consumers=0u;
     for(const auto& row:rows)if(row.type=="MLINESTYLE") {
         style=&row;++styles;const auto elementCounts=values(row,71),actualOffsets=values(row,49);
         const auto actualColors=values(row,62),actualLinetypes=values(row,6);
         if(values(row,2)!=std::vector<std::string>{"OLD_BODY_NAME"}||elementCounts.size()!=1u
-            ||std::stod(elementCounts.front())!=2.0||actualOffsets.size()!=offsets.size()
+            ||std::stod(elementCounts.front())!=static_cast<double>(offsets.size())||actualOffsets.size()!=offsets.size()
             ||actualColors.size()!=colors.size()+1u||actualLinetypes.size()!=linetypes.size())return false;
         for(std::size_t i=0u;i<offsets.size();++i)
             if(!close(std::stod(actualOffsets[i]),offsets[i])||std::stoi(actualColors[i+1u])!=colors[i]
@@ -34142,11 +34152,12 @@ bool multiRemovalOutputProof(const std::filesystem::path& path,bool binary) {
         if(profile>1u||row.section!=(profile?"BLOCKS":"ENTITIES")
             ||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{outputHandle}
-            ||lineCounts.size()!=1u||std::stod(lineCounts.front())!=2.0
-            ||segmentCounts.size()!=6u||fillCounts.size()!=6u||parameters.size()!=12u||!values(row,42).empty())return false;
+            ||lineCounts.size()!=1u||std::stod(lineCounts.front())!=static_cast<double>(offsets.size())
+            ||segmentCounts.size()!=3u*offsets.size()||fillCounts.size()!=3u*offsets.size()
+            ||parameters.size()!=6u*offsets.size()||!values(row,42).empty())return false;
         for(const auto& count:segmentCounts)if(std::stod(count)!=2.0)return false;
         for(const auto& count:fillCounts)if(std::stod(count)!=0.0)return false;
-        const double shift=justification(profile)==2u?2.0:0.0;std::size_t at=0u;
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;std::size_t at=0u;
         for(unsigned vertex=0u;vertex<3u;++vertex)for(const double offset:offsets)
             if(!close(std::stod(parameters[at++]),parameterForOffset(profile,vertex,offset,shift))
                 ||std::stod(parameters[at++])!=0.0)return false;
@@ -34165,12 +34176,12 @@ bool multiRemovalOutputProof(const std::filesystem::path& path,bool binary) {
             return close(value.x,expected.x)&&close(value.y,expected.y)&&close(value.z,expected.z);
         };
         const auto vertices=geometry(profile);const auto ext=extrusion(profile);
-        if(profile>1u||line->numLines!=2u||line->numVerts!=3u||line->vertlist.size()!=3u
+        if(profile>1u||line->numLines!=offsets.size()||line->numVerts!=3u||line->vertlist.size()!=3u
             ||line->openClosed!=1u||!close(line->scale,scale(profile))
             ||!sameCoord(line->basePoint,vertices.front().first)||!sameCoord(line->extPoint,ext))return false;
-        const double shift=justification(profile)==2u?2.0:0.0;
+        const double shift=justification(profile)==2u?-targetMinimum:0.0;
         for(unsigned vertex=0u;vertex<3u;++vertex) {
-            const auto& point=line->vertlist[vertex];if(point.segParms.size()!=2u||point.areaFillParms.size()!=2u
+            const auto& point=line->vertlist[vertex];if(point.segParms.size()!=offsets.size()||point.areaFillParms.size()!=offsets.size()
                 ||!sameCoord(point.position,vertices[vertex].first)
                 ||!sameCoord(point.vertexDir,vertices[vertex].second)
                 ||!sameCoord(point.miterDir,miter(profile,vertices,vertex)))return false;
@@ -34464,7 +34475,7 @@ bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
             ||!adapter.fileImport(input.string(),&data,false)||!removeMiddleElements(data))return fail(__LINE__);
         const mlineRetargetControls::Snapshot caller(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!multiRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!multiRemovalOutputProof(output,outputBinary,{0u,3u})||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
@@ -34476,7 +34487,7 @@ bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
         ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!multiRemovalOutputProof(output,outputBinary)||!corrected.same(data))return fail(__LINE__);
+            ||!multiRemovalOutputProof(output,outputBinary,{0u,3u})||!corrected.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     for(bool outputBinary:{false,true}) {
@@ -34484,6 +34495,8 @@ bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
         if(!write(input,fourElementRecipe(false),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
             ||data.mLineStyles.front().elements.size()!=4u)return fail(__LINE__);
+        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
+        data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
         data.mLineStyles.front().elements.erase(data.mLineStyles.front().elements.begin()+1);
         const mlineRetargetControls::Snapshot caller(data);sentinel(output);
         if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
@@ -34501,7 +34514,7 @@ bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
             ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
         ++late;caller.restore(data);adapter.active=false;
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!multiRemovalOutputProof(output,outputBinary)||!caller.same(data))return fail(__LINE__);
+            ||!multiRemovalOutputProof(output,outputBinary,{0u,3u})||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
     std::cout<<"MLINE consumed multi-removal profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
@@ -34514,6 +34527,67 @@ bool runConsumedMultiRemovalTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedMultiRemoval(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed multi-removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedThreeRemoval(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-three-removal-input.dxf",output=dir/"consumed-three-removal-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed 4-to-3 removal line="<<line<<" profiles="<<profiles<<" readbacks="<<readbacks
+            <<" refusals="<<refusals<<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    const auto removeOne=[](dx_data& data,unsigned removed,std::vector<std::size_t>& survivors) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=4u||removed>=4u)return false;
+        auto& elements=data.mLineStyles.front().elements;
+        elements.erase(elements.begin()+static_cast<std::ptrdiff_t>(removed));
+        survivors.clear();for(std::size_t i=0u;i<4u;++i)if(i!=removed)survivors.push_back(i);
+        return elements.size()==survivors.size();
+    };
+    for(unsigned removed=0u;removed<4u;++removed)for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(sourceBinary),sourceBinary,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,removed,survivors))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!caller.same(data))return fail(__LINE__);
+        ++profiles;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,1u,survivors))return fail(__LINE__);
+        data.mLineStyles.front().flags=4;const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+        ++refusals;data.mLineStyles.front().flags=2;const mlineRetargetControls::Snapshot corrected(data);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!corrected.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;std::vector<std::size_t> survivors;
+        if(!write(input,fourElementRecipe(false),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||!removeOne(data,2u,survivors))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!multiRemovalOutputProof(output,outputBinary,survivors)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed 4-to-3 removal positions="<<profiles/4u<<"; profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==16u&&readbacks==20u&&refusals==2u&&late==2u&&retries==4u;
+}
+bool runConsumedThreeRemovalTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-three-removal-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);const bool passed=runConsumedThreeRemoval(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed 4-to-3 removal artifacts: "<<dir<<'\n';
     return passed;
 }
 }
@@ -42723,6 +42797,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-multi-removal") {
         return mlineConsumedOffsetControls::runConsumedMultiRemovalTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-three-removal") {
+        return mlineConsumedOffsetControls::runConsumedThreeRemovalTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--scale-body-transactions") {
         TestContext context;testScaleBodyTransactions(context);return context.failures == 0 ? 0 : 1;

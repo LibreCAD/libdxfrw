@@ -207,6 +207,15 @@ add_test(NAME libdxfrw_mline_consumed_style_multi_removal
 set_tests_properties(libdxfrw_mline_consumed_style_multi_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
+
+# Runtime-generated AC1027 profiles remove each possible element in turn from
+# a four-element style consumed by open, uncut MLINEs. The test checks unique
+# survivor maps, emitted fields/readback, rollback and retry in both DXF forms.
+add_test(NAME libdxfrw_mline_consumed_style_three_removal
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-three-removal)
+set_tests_properties(libdxfrw_mline_consumed_style_three_removal PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
