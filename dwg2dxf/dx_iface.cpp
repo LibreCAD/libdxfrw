@@ -17470,12 +17470,13 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
         bool retargetAngles=false,bool retargetStyleRemoval=false,bool retargetOffsets=false,
-        bool appendCapFlags=false) {
+        bool appendCapFlags=false,bool removeCapFlags=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
     if (!mlineProjectionOpenAndUncut(original)
-        || (original.openClosed!=1 && !retargetAngles && !retargetOffsets && !appendCapFlags)
+        || (original.openClosed!=1 && !retargetAngles && !retargetOffsets
+            && !appendCapFlags && !removeCapFlags)
         || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
@@ -17483,6 +17484,7 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         || (retargetAngles && (appended || removed))
         || (retargetOffsets && (retargetAngles || appended || removed))
         || (appendCapFlags && (!appended || removed || retargetAngles || retargetOffsets))
+        || (removeCapFlags && (!removed || appended || retargetAngles || retargetOffsets || appendCapFlags))
         || (appended && after.elements.size()>std::numeric_limits<std::uint16_t>::max())
         || (!appended && !removed && before.elements.size()!=after.elements.size())
         || original.vertlist.size()<2u
@@ -18836,8 +18838,11 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && chargeNamedResourceBytes(bytes,modelBytes) && retainedAppendBytes();
                 const bool selectedCapFlagAppend=before && version==DRW::AC1027 && append
                     && before->elements.size()==2u && targetStyle.elements.size()==3u;
+                const bool selectedCapFlagRemoval=before && version==DRW::AC1027 && removeElements
+                    && before->elements.size()==2u && targetStyle.elements.size()==1u;
                 if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,
-                        append,removeElements,false,false,false,selectedCapFlagAppend)) return false;
+                        append,removeElements,false,false,false,selectedCapFlagAppend,
+                        selectedCapFlagRemoval)) return false;
                 planned.geometryProjected=true;
             }
             return m_dxfMLineConsumers.emplace(value.handle,std::move(planned)).second;

@@ -586,6 +586,15 @@ set_tests_properties(libdxfrw_mline_consumed_style_removal PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
+# Runtime-generated AC1027 2-to-1 consumed-style removal profiles preserve
+# start/end-cap suppression flags and prove both survivor positions, exact
+# parameter output/readback, closed/unknown refusal, rollback and retry.
+add_test(NAME libdxfrw_mline_consumed_style_removal_cap_flags
+    COMMAND libdxfrw_dxf_fixture_tests --mline-consumed-style-removal-cap-flags)
+set_tests_properties(libdxfrw_mline_consumed_style_removal_cap_flags PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 30)
+
 # Runtime-generated AC1027 profile for removing two middle elements from a
 # four-element style used by open, uncut MLINEs. It checks ordered survivor
 # mapping, exact fields/readback, failure rollback, a narrow count boundary and

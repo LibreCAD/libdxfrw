@@ -39412,7 +39412,8 @@ bool appendOutputProof(const std::filesystem::path& path,bool binary,int entityF
     }
     return true;
 }
-bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned retainedElement=0u) {
+bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned retainedElement=0u,
+        int entityFlags=1) {
     if(retainedElement>1u)return false;
     const double retainedOffset=beforeOffsets[retainedElement];
     const int retainedColor=retainedElement?3:1;
@@ -39442,6 +39443,7 @@ bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned r
         if(profile>1u||row.section!=(profile?"BLOCKS":"ENTITIES")
             ||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{outputHandle}
+            ||values(row,71).size()!=1u||std::stoi(values(row,71).front())!=entityFlags
             ||lineCounts.size()!=1u||std::stod(lineCounts.front())!=1.0||!values(row,42).empty()) {std::cerr<<"consumed removal MLINE shape mismatch\n";return false;}
         const auto segmentCounts=values(row,74),fillCounts=values(row,75),parameters=values(row,41);
         if(segmentCounts.size()!=3u||fillCounts.size()!=3u||parameters.size()!=6u) {std::cerr<<"consumed removal MLINE array count mismatch\n";return false;}
@@ -39468,7 +39470,7 @@ bool removalOutputProof(const std::filesystem::path& path,bool binary,unsigned r
         };
         const auto vertices=geometry(profile);const auto ext=extrusion(profile);
         if(profile>1u||line->numLines!=1u||line->numVerts!=3u||line->vertlist.size()!=3u
-            ||line->openClosed!=1u||!close(line->scale,scale(profile))
+            ||line->openClosed!=entityFlags||!close(line->scale,scale(profile))
             ||!sameCoord(line->basePoint,vertices.front().first)||!sameCoord(line->extPoint,ext))return false;
         const double shift=justification(profile)==2u?-retainedOffset:0.0;
         for(unsigned vertex=0u;vertex<3u;++vertex) {
@@ -40787,6 +40789,87 @@ bool runConsumedRemovalTemporary() {
     std::filesystem::create_directory(dir);const bool passed=runConsumedRemoval(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE consumed removal artifacts: "<<dir<<'\n';
+    return passed;
+}
+bool runConsumedRemovalCapFlags(const std::filesystem::path& dir) {
+    const auto input=dir/"consumed-removal-caps-input.dxf",output=dir/"consumed-removal-caps-output.dxf";
+    std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
+    const auto fail=[&](int line) {
+        std::cerr<<"MLINE consumed removal cap flags line="<<line<<" profiles="<<profiles
+            <<" readbacks="<<readbacks<<" refusals="<<refusals
+            <<" late="<<late<<" retries="<<retries<<'\n';return false;
+    };
+    const auto removeElement=[](dx_data& data,unsigned removedElement) {
+        if(data.mLineStyles.size()!=1u||data.mLineStyles.front().elements.size()!=2u
+            ||removedElement>1u)return false;
+        auto& elements=data.mLineStyles.front().elements;
+        elements.erase(elements.begin()+static_cast<std::ptrdiff_t>(removedElement));
+        return true;
+    };
+    for(unsigned removedElement:{0u,1u})for(const int entityFlags:{5,9,13})
+        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,recipe(sourceBinary,false,entityFlags),sourceBinary,"AC1027")
+                ||!adapter.fileImport(input.string(),&data,false)
+                ||!removeElement(data,removedElement))return fail(__LINE__);
+            const auto lines=mlineStyleAuthorityControls::consumers(data);
+            if(lines.size()!=2u||lines[0]->openClosed!=entityFlags
+                ||lines[1]->openClosed!=entityFlags)return fail(__LINE__);
+            const mlineRetargetControls::Snapshot caller(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!removalOutputProof(output,outputBinary,1u-removedElement,entityFlags)
+                ||!caller.same(data))return fail(__LINE__);
+            ++profiles;++readbacks;
+        }
+    for(const int entityFlags:{3,17})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,recipe(false,false,entityFlags),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!removeElement(data,1u))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!caller.same(data))return fail(__LINE__);
+        ++refusals;
+        dx_iface correctedReader;dx_data correctedData;
+        if(!write(input,recipe(false,false,13),false,"AC1027")
+            ||!correctedReader.fileImport(input.string(),&correctedData,false)
+            ||!removeElement(correctedData,1u))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot corrected(correctedData);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&correctedData,false,true)
+            ||!removalOutputProof(output,outputBinary,0u,13)
+            ||!corrected.same(correctedData))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,recipe(false,false,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||!removeElement(data,1u))return fail(__LINE__);
+        const mlineRetargetControls::Snapshot caller(data);
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++late;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!removalOutputProof(output,outputBinary,0u,13)||!caller.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE consumed removal cap profiles="<<profiles<<"; readbacks="<<readbacks
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
+    return profiles==24u&&readbacks==30u&&refusals==4u&&late==2u&&retries==6u;
+}
+bool runConsumedRemovalCapFlagsTemporary() {
+    const auto dir=std::filesystem::temp_directory_path()/
+        ("libdxfrw-mline-consumed-removal-caps-"+
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(dir);
+    const bool passed=runConsumedRemovalCapFlags(dir);
+    if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
+    else std::cerr<<"MLINE consumed removal cap artifacts: "<<dir<<'\n';
     return passed;
 }
 bool runConsumedMultiRemoval(const std::filesystem::path& dir) {
@@ -49852,6 +49935,9 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal") {
         return mlineConsumedOffsetControls::runConsumedRemovalTemporary()?0:1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-removal-cap-flags") {
+        return mlineConsumedOffsetControls::runConsumedRemovalCapFlagsTemporary()?0:1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mline-consumed-style-multi-removal") {
         return mlineConsumedOffsetControls::runConsumedMultiRemovalTemporary()?0:1;
