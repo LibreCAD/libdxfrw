@@ -1460,7 +1460,95 @@ static int testDeletedMlineConsumerGeometryGuard() {
       ? 0 : 12;
 }
 
+static int testMlineRawSectionGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-raw-section-geometry-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, refusals = 0u, retries = 0u, readbacks = 0u;
+  for (bool sourceBinary : {false, true}) {
+    const auto text = serialize(parseTags(sourceText()));
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 2;
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      Consumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data))
+        return 4;
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u)
+        return 5;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      DRW_RawDxfSection raw;
+      raw.m_name = "CUSTOM_DEPENDENCY";
+      raw.m_version = DRW::AC1027;
+      raw.m_hasRawValues = true;
+      raw.m_groups.emplace_back(0, "OPAQUE_RECORD");
+      raw.m_groups.emplace_back(340, "D2");
+      raw.m_rawValues = {"OPAQUE_RECORD", "D2"};
+      data.rawDxfSections.push_back(raw);
+
+      const std::string sentinel = "MLINE_RAW_SECTION_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 6;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          style->elements.front().offset != expectedOffset ||
+          data.rawDxfSections.size() != 1u ||
+          data.rawDxfSections.front().m_groups.size() != 2u ||
+          data.rawDxfSections.front().m_groups[1].c_str() == nullptr ||
+          std::string(data.rawDxfSections.front().m_groups[1].c_str()) != "D2")
+        return 7;
+      ++profiles;
+      ++refusals;
+
+      data.rawDxfSections.clear();
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 8;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback) || !readback.rawDxfSections.empty())
+        return 9;
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 10;
+      ++retries;
+      ++readbacks;
+    }
+  }
+  std::cout << "MLINE raw-section geometry guard profiles=" << profiles
+            << " refusals=" << refusals << " retries=" << retries
+            << " readbacks=" << readbacks << '\n';
+  return profiles == 4u && refusals == 4u && retries == 4u && readbacks == 4u
+      ? 0 : 11;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-raw-section-geometry-guard")return testMlineRawSectionGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-deleted-consumer-geometry-guard")return testDeletedMlineConsumerGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-style-body-source-live")return testMlineStyleBodiesLive();
     if(argc==2&&std::string(argv[1])=="--mline-style-dictionary-source-live")return testMlineStyleDictionaryLive();

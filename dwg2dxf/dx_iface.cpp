@@ -17115,6 +17115,14 @@ bool dx_iface::hasCompleteDxfMLineConsumerCensus(bool requireUnchangedModels) co
     } catch (...) {return false;}
 }
 
+bool dx_iface::needsDxfMLineNoRawSectionsGuard() const noexcept {
+    return cData && cData->sourceFormat==dx_source_format::DXF
+        && cData->sourceVersion>=DRW::AC1021
+        && m_dxfMLineStyleState.version>=DRW::AC1021
+        && std::any_of(m_dxfMLineStyles.begin(),m_dxfMLineStyles.end(),
+            [](const auto& row){return row.second.geometryChanged;});
+}
+
 bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
     if (m_dxfMLineStyles.empty()) return true;
     if (!hasUnchangedDxfNamedResourceState(m_dxfMLineStyleState)) return false;
@@ -33245,7 +33253,9 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
-    if (!hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
+    if ((needsDxfMLineNoRawSectionsGuard()
+            && (!dxfW || !dxfW->dxfWriteNoRawSectionsObserved()))
+        || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
@@ -35760,6 +35770,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     dxfW = new dxfRW(file.c_str());
+    if (needsDxfMLineNoRawSectionsGuard()
+        && !dxfW->setDxfNoRawSectionsWriteGuard(true)) {
+        reportPreflightFailure("MLINE geometry edit requires the qualified no-raw-section profile");
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
+    }
     const DRW_Block* modelSpaceBlock = nullptr;
     const DRW_Block* paperSpaceBlock = nullptr;
     const DRW_Block* modelSpaceFooter = nullptr;

@@ -125,6 +125,9 @@ set_tests_properties(libdxfrw_mline_style_body_source_live PROPERTIES LABELS "dx
 add_test(NAME libdxfrw_mline_deleted_consumer_geometry_guard
     COMMAND libdxfrw_mline_source_dependency_tests --mline-deleted-consumer-geometry-guard)
 set_tests_properties(libdxfrw_mline_deleted_consumer_geometry_guard PROPERTIES LABELS "dxf;fast;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_mline_raw_section_geometry_guard
+    COMMAND libdxfrw_mline_source_dependency_tests --mline-raw-section-geometry-guard)
+set_tests_properties(libdxfrw_mline_raw_section_geometry_guard PROPERTIES LABELS "dxf;fast;transaction" TIMEOUT 30)
 add_executable(libdxfrw_whole_source_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_whole_source_tests.cpp
     ${_libdxfrw_test_adapter_source}
