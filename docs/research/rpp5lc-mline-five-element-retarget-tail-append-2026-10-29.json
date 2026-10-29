@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5lc selected AC1027 five-element MLINE retarget tail append",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "f9feaa5963812155320cbdace87eb39fbda8faf2",
+  "evidenceCommit": "f9feaa5963812155320cbdace87eb39fbda8faf2",
+  "scope": "Qualifies one source-bound AC1027 retarget from a five-element style to another source-bound style after appending one sixth tail element. Verifies exact output fields, ownership, fresh readback, source-edit refusal, late-mutation rollback and same-adapter retries. This remains a selected adapter profile, not native semantic qualification.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Groups 71 and 49 encode element count and offsets, with repeated 49/62/6 tuples; group 70 contains flags. These field definitions do not prescribe consumer-geometry regeneration."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 identifies the MLINESTYLE object; group 2 is its redundant name; group 73 records element count; groups 74/41 and 75/42 describe per-element segment and fill parameters; groups 13/23/33 carry vertex miter vectors."
+    }
+  ],
+  "contract": {
+    "admission": "Runtime-authored AC1027 source. The original and target style geometries each have flags 2, angles 90/90, and offsets [1.25,-0.75,-1.25,-2.0,-2.75]. The original tuple colors/LTYPEs are [1,3,4,5,6] and [ByLayer,Continuous,ByLayer,Continuous,ByLayer]; the target's source tuples use colors [5,7,4,5,6] with the same LTYPE order. Two source-bound MLINE consumers have three vertices and are owned by model space and a named block. The target edit appends offset -3.75, ACI 4, ByLayer. Consumers are retargeted by group-340 identity and retain their redundant group-2 names.",
+    "projection": "Require the exact 5-to-6 target tail append; preserve all five source offsets as an ordered prefix, flags 2, and angles 90/90. Recompute each consumer's first group-41 parameter against the target minimum offset (-3.75), retaining source positions, segment directions, miter vectors and zero second parameters. Bottom justification uses the resulting +3.75 shift. This is not a general MLINE regeneration algorithm.",
+    "outputAndReadback": "Across ASCII/binary source and output, verify source and target MLINESTYLE tuple fields and dictionary ownership/keys; both group-340 consumer references, unchanged group-2 names, group 73=6, exact groups 74/75/41 and miter groups 13/23/33; model-space/block ownership; and fresh import of both styles and consumers with the six-element target and projected parameters.",
+    "failureAndRetry": "For ASCII and binary output, an altered existing target offset refuses atomically, preserving destination sentinel and caller snapshot; restoring the original value permits same-adapter retry. Late consumer mutation also refuses atomically and succeeds after caller-state restoration. Four source/output encoding profiles, two source-edit refusals, two late-mutation refusals and four retries are present in the sourceCount==5 loop cases.",
+    "compatibility": "No public API or DRW_Interface virtual changes. DXF inputs and outputs are generated at runtime in a temporary directory and removed after successful test runs. No drawing fixtures are committed.",
+    "limits": "Evidence covers only AC1027 source count 5 to target count 6 by one tail append, the stated tuples and geometry, and two open/uncut/unfilled three-vertex consumers. Other source counts, append batches, angle/flag/offset edits, schemas, carriers, versions, native semantics, complete-document closure and broad support claims remain unqualified."
+  },
+  "controls": {
+    "profiles": [
+      "ASCII AC1027 source -> ASCII output",
+      "ASCII AC1027 source -> binary output",
+      "binary AC1027 source -> ASCII output",
+      "binary AC1027 source -> binary output"
+    ],
+    "observed": "This source-count-five slice has four initial output/readbacks, two source-edit rollback controls, two late-mutation rollback controls and four successful same-adapter retries (eight readbacks including retries). The selector aggregate for source counts 2 through 5 is profiles=16; readbacks=32; refusals=8; late=8; retries=16.",
+    "runtimeFixturePolicy": "The focused test creates the AC1027 drawing and all outputs at runtime. No testing drawing is committed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSuite": {
+      "result": "PASS",
+      "summary": "All four focused MLINE retarget/append tests passed (4/4); the retarget-append selector covers source counts 2 through 5.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(retarget_(angle|offset|append)_projection|consumed_style_append)$' --output-on-failure"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "tests/dxf_fixture_tests.cpp": "1e299b8866f93ed606b8082056937c9f2384d2191d78ffbe04b0a85aa3bf9f56",
+    "normalLibdxfrwDxfFixtureTests": "687fe46244bc6602e0dbf7135d1970d674a096280598c8f01607b2ac1a332d13"
+  },
+  "next": "Select a source-backed 6-to-7 retarget tail append or another exact P2 geometry operation; if no distinguishing source/expected output is ready, continue at the bounded dense retained-byte boundary. Keep selected evidence, refusal/retry controls, and claim scope separate."
+}
