@@ -17138,16 +17138,18 @@ bool dx_iface::hasUnchangedDxfMLineStyles() const noexcept {
             [](const auto& row){return row.second.geometryChanged;});
         if ((countChanged||geometryChanged)
             && !hasCompleteDxfMLineConsumerCensus(countChanged)) return false;
-        // LAYER application data and named-object dictionaries can carry
-        // MLINESTYLE references. A selected modern geometry edit is admitted
-        // only when both selected source/live proofs remain intact. This is a
-        // narrow fail-closed profile; unqualified dependencies refuse export.
+        // LAYER data, dictionaries and named-resource providers can affect
+        // MLINESTYLE meaning. A selected modern geometry edit is admitted only
+        // when each selected source/live proof remains intact. This is a narrow
+        // fail-closed profile; unqualified dependencies refuse export.
         const bool sourceLiveProfileSelected=m_wholeEnabled||m_legacyIdentityObservationEnabled;
         if (geometryChanged && sourceLiveProfileSelected
             && !m_dxfMLineDependencySourceLivePreflightPassed) {
             if (!mlineLayerSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)
                 || !mlineStyleDictionarySourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineLtypeSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)) return false;
             m_dxfMLineDependencySourceLivePreflightPassed=true;
         }
@@ -33277,6 +33279,8 @@ bool dx_iface::finalizeDxfWrite() {
             && (!mlineLayerSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)
                 || !mlineStyleDictionarySourceLiveProof(*cData,
+                    kMaxAdapterMLineDependencyProofWork,nullptr)
+                || !mlineLtypeSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDxfMLineLinetypes() || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)

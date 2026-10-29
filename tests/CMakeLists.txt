@@ -118,6 +118,10 @@ add_test(NAME libdxfrw_mline_dictionary_carrier_geometry_guard
     COMMAND libdxfrw_mline_source_dependency_tests --mline-dictionary-carrier-geometry-guard)
 set_tests_properties(libdxfrw_mline_dictionary_carrier_geometry_guard PROPERTIES
     LABELS "dxf;fast;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_mline_ltype_provider_geometry_guard
+    COMMAND libdxfrw_mline_source_dependency_tests --mline-ltype-provider-geometry-guard)
+set_tests_properties(libdxfrw_mline_ltype_provider_geometry_guard PROPERTIES
+    LABELS "dxf;fast;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_mline_ltype_source_live
     COMMAND libdxfrw_mline_source_dependency_tests --ltype-source-live)
 set_tests_properties(libdxfrw_mline_ltype_source_live PROPERTIES LABELS "dxf;fast" TIMEOUT 30)

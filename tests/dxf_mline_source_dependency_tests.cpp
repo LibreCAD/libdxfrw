@@ -68,6 +68,22 @@ public:
         return result;
     }
 };
+class LtypeMutationAtFinalizeConsumer final:public Consumer {
+public:
+    dx_data* mutationTarget{nullptr};
+    bool injectAtFinalize{false},injected{false};
+    bool finalizeDxfWrite() override {
+        if(!injectAtFinalize)return dx_iface::finalizeDxfWrite();
+        if(!mutationTarget||mutationTarget->lineTypes.empty())return false;
+        auto& lineType=mutationTarget->lineTypes.front();
+        const auto savedDescription=lineType.desc;
+        lineType.desc="FINALIZE_MUTATION";
+        injected=true;
+        const bool result=dx_iface::finalizeDxfWrite();
+        lineType.desc=savedDescription;
+        return result;
+    }
+};
 class SpoofingConsumer:public Consumer {
 public:
     bool corrupt=false,skip=false;
@@ -1840,7 +1856,115 @@ static int testMlineDictionaryCarrierGeometryGuard() {
       ? 0 : 16;
 }
 
+static int testMlineLtypeProviderGeometryGuard() {
+  std::error_code ec;
+  const auto dir = libdxfrw_test::reserveTestScratch(
+      std::filesystem::temp_directory_path(), "mline-ltype-provider-geometry-guard", ec);
+  if (ec || dir.empty())
+    return 1;
+  struct Cleanup {
+    std::filesystem::path path;
+    ~Cleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } cleanup{dir};
+  unsigned profiles = 0u, refusals = 0u, lateRefusals = 0u;
+  unsigned retries = 0u, readbacks = 0u;
+  for (bool sourceBinary : {false, true}) {
+    const auto text = selectedMlineSourceText();
+    std::string source = text;
+    if (sourceBinary && !encodeBinary(text, source))
+      return 2;
+    const auto input = dir / (sourceBinary ? "source-binary.dxf" : "source-ascii.dxf");
+    if (!writeFile(input, source))
+      return 3;
+    for (bool outputBinary : {false, true}) {
+      const auto output = dir / (std::string(sourceBinary ? "binary-source-output-" : "ascii-source-output-") +
+          (outputBinary ? "binary.dxf" : "ascii.dxf"));
+      LtypeMutationAtFinalizeConsumer adapter;
+      dx_data data;
+      if (!adapter.enableWholeDxfSourceObservation() ||
+          !adapter.enableLegacyDxfIdentityObservation() ||
+          !adapter.import(input.string(), data) || data.lineTypes.empty())
+        return 4;
+      adapter.mutationTarget = &data;
+      auto style = std::find_if(data.mLineStyles.begin(), data.mLineStyles.end(),
+          [](const auto &value) { return value.handle == 0xD2u; });
+      if (style == data.mLineStyles.end() || style->elements.size() != 2u)
+        return 5;
+      const auto expectedOffset = style->elements.front().offset + 0.25;
+      style->elements.front().offset = expectedOffset;
+      auto& lineType = data.lineTypes.front();
+      const auto savedLineType = lineType;
+
+      const std::string sentinel = "MLINE_LTYPE_PROVIDER_DESTINATION";
+      if (!writeFile(output, sentinel))
+        return 6;
+      lineType.desc = "PREFLIGHT_MUTATION";
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          lineType.desc != "PREFLIGHT_MUTATION" ||
+          style->elements.front().offset != expectedOffset)
+        return 7;
+      ++refusals;
+      lineType = savedLineType;
+
+      if (!writeFile(output, sentinel))
+        return 8;
+      adapter.injectAtFinalize = true;
+      if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true) || readFile(output) != sentinel ||
+          !adapter.injected || lineType.desc != savedLineType.desc ||
+          style->elements.front().offset != expectedOffset)
+        return 9;
+      ++lateRefusals;
+      adapter.injectAtFinalize = false;
+      if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+              &data, false, true))
+        return 10;
+      Consumer verifier;
+      dx_data readback;
+      if (!verifier.import(output.string(), readback))
+        return 11;
+      const auto restoredLineType = std::find_if(readback.lineTypes.begin(),
+          readback.lineTypes.end(), [&](const auto& value) {
+            return value.name == savedLineType.name;
+          });
+      if (restoredLineType == readback.lineTypes.end() ||
+          std::count_if(readback.lineTypes.begin(), readback.lineTypes.end(),
+              [&](const auto& value) { return value.name == savedLineType.name; }) != 1u ||
+          restoredLineType->desc != savedLineType.desc ||
+          restoredLineType->flags != savedLineType.flags ||
+          restoredLineType->size != savedLineType.size ||
+          restoredLineType->length != savedLineType.length ||
+          restoredLineType->alignment != savedLineType.alignment ||
+          restoredLineType->path != savedLineType.path ||
+          !restoredLineType->sameSelectedDxfEmptyPatternState(savedLineType))
+        return 12;
+      const auto restoredStyle = std::find_if(readback.mLineStyles.begin(),
+          readback.mLineStyles.end(), [](const auto &value) {
+            return value.handle == 0xD2u;
+          });
+      if (restoredStyle == readback.mLineStyles.end() ||
+          restoredStyle->elements.size() != 2u ||
+          restoredStyle->elements.front().offset != expectedOffset)
+        return 13;
+      ++profiles;
+      ++retries;
+      ++readbacks;
+    }
+  }
+  std::cout << "MLINE LTYPE-provider geometry guard profiles=" << profiles
+            << " refusals=" << refusals << " late-refusals=" << lateRefusals
+            << " retries=" << retries << " readbacks=" << readbacks << '\n';
+  return profiles == 4u && refusals == 4u && lateRefusals == 4u &&
+      retries == 4u && readbacks == 4u
+      ? 0 : 14;
+}
+
 int main(int argc,char** argv) {
+    if(argc==2&&std::string(argv[1])=="--mline-ltype-provider-geometry-guard")return testMlineLtypeProviderGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-dictionary-carrier-geometry-guard")return testMlineDictionaryCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-layer-carrier-geometry-guard")return testMlineLayerCarrierGeometryGuard();
     if(argc==2&&std::string(argv[1])=="--mline-raw-section-geometry-guard")return testMlineRawSectionGeometryGuard();
