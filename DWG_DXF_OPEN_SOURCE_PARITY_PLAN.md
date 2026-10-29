@@ -315,7 +315,9 @@ proof. Refused fields are not implemented editing support.
    290–298, or a group-340 `leaderLineTypeHandle` retarget to a unique
    source-bound LTYPE provider, or a group-341 `arrowHeadBlockHandle` retarget
    to a unique source-bound BLOCK_RECORD with a complete block body, or a
-   group-342 `textStyleHandle` retarget to a unique source-bound STYLE provider.
+   group-342 `textStyleHandle` retarget to a unique source-bound STYLE provider,
+   or a group-343 `blockHandle` retarget to a unique source-bound BLOCK_RECORD
+   with a complete block body.
    [RPP-5li](docs/research/rpp5li-mleaderstyle-double-fields-transaction-2026-10-29.json)
    provides per-code authored input, exact emitted-field and typed-readback
    evidence, with the other twelve mapped doubles unchanged. Earlier group-45
@@ -374,19 +376,22 @@ proof. Refused fields are not implemented editing support.
    same-adapter retry; fixed Model_Space/Paper_Space names use block-symbol key
    normalization in the shared MLEADERSTYLE output inspector. See
    [RPP-5mf](docs/research/rpp5mf-mleaderstyle-arrow-block-handle-transaction-2026-10-29.json).
+   The group-343 `blockHandle` transaction separately qualifies the same bounded
+   source/output and failure/retry contract against a unique BLOCK_RECORD and
+   owned block body; see
+   [RPP-5mg](docs/research/rpp5mg-mleaderstyle-block-handle-transaction-2026-10-29.json).
    Autodesk documents groups 290–297 field roles and the 290–299 Boolean type
    range; group 298 `textExtended` is recognized by the local parser/writer, but
    its field-specific role is not listed in that Autodesk table.
    One field per record is still the limit; missing/repeated fields, multiple
    changes, non-AC1027 routes, and unlisted fields remain refused or on their
-   existing route. The selected group-340, group-341 and group-342 results do not
-   qualify group 343 or other handle roles. Remaining work includes
+   existing route. The selected group-340 through group-343 results do not
+   qualify other handle roles. Remaining work includes
    contexts/defaults/repeated
    values, other integer and handle fields, other string fields and
    non-ASCII/code-page profiles, source-version grammars,
-   CMC/unknown extensions, group-343 `blockHandle`, and other
-   STYLE/LTYPE/BLOCK_RECORD dependency edits. Preserve raw replay for untouched
-   records.
+   CMC/unknown extensions, and other STYLE/LTYPE/BLOCK_RECORD dependency edits.
+   Preserve raw replay for untouched records.
    Autodesk's table identifies the DXF roles, but independently produced-source,
    native meaning, annotation, and cross-version evidence remain separate. These
    receipts promote no support claim.
