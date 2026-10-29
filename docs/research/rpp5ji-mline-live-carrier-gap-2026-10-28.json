@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 live carrier gaps for consumed MLINE geometry",
+  "date": "2026-10-28",
+  "status": "SCRATCH_ONLY_BLOCKED",
+  "codeCommit": null,
+  "scope": "SourceCandidate-classified, locally authored AC1027 source, tested across ASCII and binary import and export. Existing production correctly refuses the selected consumed-style offset edit. No geometry implementation is enabled.",
+  "authority": "The whole-source result describes only the accepted original decoded scalar stream. It is not a guarantee about mutable live models, the emitted output, native interpretation, or byte-exact original file.",
+  "witness": {
+    "sources": {
+      "ascii": "e00a524f65e66f729d064ab3c0148b05c384a4004f904491279884a41bf388a3",
+      "binary": "3cfc4321fd58e62be937c56b481636608803ac2409e9fe1625080c7b3c491bd9"
+    },
+    "generatorSha256": "22b1b74d6ac5a68fd83211c690727db90c675acb3ca1557dfdc325814d57d1ad",
+    "description": "Two open three-vertex consumers in distinct 3D extrusion planes, original style offsets 1.25 and -0.75. Style and MLINE names match their unique dictionary key. The style offset edit tested is 1.25 to 1.5. Source is adapted locally from prior authored witness; no fixture is committed."
+  },
+  "counterexamples": {
+    "method": "After successful import and SourceCandidate classification, append either a LAYER application group {TEST_HIDDEN / 340=D / } or a new TEST_PRIVATE raw section with a TEST_RECORD containing 340=D to the live model.",
+    "unchangedStyle": "For each of four input/output encoding combinations, the committed adapter successfully emitted both carriers; direct byte-level output inspection verified each group 340 maps to output MLINESTYLE D4. This is normal unrestricted authoring behavior; it is a counterexample to using the original source classification alone to authorize consumed geometry, not a claim of incorrect current output.",
+    "editedStyle": "With the consumed offset changed, the committed adapter refused and kept the existing destination sentinel for clean and both mutated carriers, across all four encoding combinations (12 refusal controls). The older independent scratch geometry prototype also refused this new name-consistent witness at its separate MLINE consumer binding. Therefore no successful unsafe consumed write of this particular new witness is claimed.",
+    "outputAudit": {
+      "ascii-to-ascii-clean": {
+        "sha256": "b1e204e22c15f682beaaa0380d8561967748551192a1a2047318f8eee1eea30d",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-ascii-layer": {
+        "sha256": "a770987324ff81d7bb230c9e100a2cd01a5cd112f9241ff75a61c85e8bde1010",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-ascii-raw-section": {
+        "sha256": "f1b48a85fd605dabb42554a60ea9c7aa4939cc5ad6ae00399601ce53e6aabb4f",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-clean": {
+        "sha256": "4318e63786daff5495f11d82336bb6c7e24d2671bfc9e1fd27d5c4839953984b",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-layer": {
+        "sha256": "eb78ad5790be6f9d5bf53dc45128387645a8566d2e46fc84affd9217c57c5f87",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-raw-section": {
+        "sha256": "cbb3560c8d5a44ab51115bd7ec56aab6108cab00280b7f030c310602048b8129",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-clean": {
+        "sha256": "255da15169fa6b320e15388d8a3a42ededa8544a4cfe417292b947033ae82877",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-layer": {
+        "sha256": "bc5dd582c406b143c70562f2f9c1dd301ec0bd8a1b3b237e84e9ee353582813a",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-raw-section": {
+        "sha256": "08704aa7840c9cec9d60d34fbd69b0a212afea0ff0b4a071cdb7f05215fcd51e",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-clean": {
+        "sha256": "305060d0e2312d89726aa7dd7ff9649fc8f0c61fc776cd84e7069f56a90dc925",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-layer": {
+        "sha256": "c079e082187edac263fce0d4b44d5618496b9d146b20204a8a1a515872edf76b",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-raw-section": {
+        "sha256": "e233fb38a1ac307865520c3cee269fa5218eac8f18c72982980b3a7e415a0dd6",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      }
+    },
+    "physicalAuditSha256": "549f773f58769373c5e56ced06d05b8a4efda60d251be51a62f2161f44991b55",
+    "physicalAuditScriptSha256": "a3a66d35543154b875b14094b740a0864923b0f84bb8f1a8af2423a7a32db042",
+    "carrierLogSha256": "a4806146c2e8172a71dab8a0179a1a6ae24e4a18cd45cc8b7087cc83f78c4d89",
+    "offsetLogSha256": "ea01625126503fce339c84aa5caef589499357229ba9a568eb4cbe4b7429941d"
+  },
+  "additionalBoundary": "Existing ordinary MLINE census charges a visit only for matching MLINEs despite traversing other entities; aggregate bounds must include every visited entity, record, group, container and byte-sensitive comparison, with precharge before allocation and scans.",
+  "prerequisite": "Before enabling consumed geometry, authenticate every admitted original/live root, dictionary, style, linetype, layer, block, entity and other emitted carrier to an accepted-read authority; reject unknown live objects, appData/XDATA and raw sections unless explicitly qualified. Census all original and current affected consumers even when none remain live, and reject deletion, movement, duplication and late mutation. Account for temporary ownership of raw sections transferred to the writer and check actual staged output at section/finalization. Preserve previously supported originally-unused style operations, precharge aggregate scans, test each refusal with unchanged destination and same-adapter corrected retry, and retain no native-rendering claim.",
+  "fixtures": "All drawings and output artifacts are locally generated in ignored scratch; no DWG/DXF file is committed.",
+  "claimsPromoted": false
+}

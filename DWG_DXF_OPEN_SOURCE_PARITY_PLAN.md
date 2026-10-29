@@ -142,14 +142,31 @@ proof. Refused fields are not implemented editing support.
    not used by export, and changing live dictionaries or removing live entities
    can leave the source-only result unchanged. No write or geometry claim follows.
 
+   The [live-carrier counterexamples](docs/research/rpp5ji-mline-live-carrier-gap-2026-10-28.json)
+   show that, after a classified source is imported, mutable LAYER application
+   data and a newly added raw section can each emit a group `340` reference to
+   the style. Both were reproduced for ASCII and binary inputs and outputs with
+   the style unchanged; the current consumed-offset edit remains refused with
+   the destination preserved. These are evidence for a required guard, not a
+   claim that the committed adapter permits the geometry edit.
+
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
      unknown/proxy/embedded/XDATA or unqualified dependencies; do not infer a
      complete dependency graph from recognized record names or group `340`.
-   - Bind immutable original evidence to the complete live consumer and
-     dependency inventories, including zero-live but captured consumers,
-     newly added opaque records and late mutations. Add actual-output and
-     atomic refusal/retry controls before using the source result for writing.
+   - Bind immutable original evidence to every admitted live graph carrier,
+     including root/style dictionaries, styles, providers, layers, blocks and
+     entities. Check application data, XDATA and unknown metadata, and refuse
+     newly added opaque objects or raw sections unless separately qualified.
+     Account for section ownership transferred to the writer and inspect staged
+     output; original classification alone cannot authenticate later mutations.
+     Include original consumers even when none remain live, and refuse deleted,
+     moved, duplicated or late-mutated consumers. Add ASCII/binary failure,
+     destination-sentinel and same-adapter corrected-retry controls. Charge
+     every visited entity and container, including non-MLINE entries, and all
+     group/byte scans before traversal or allocation. Keep this additional guard
+     scoped to originally consumed styles so it does not silently narrow the
+     existing originally-unused style operations.
      Only then port the bounded geometry prototype:
      authenticate every live/original affected consumer, derive each first `41`
      from source geometry and justification, leave break/fill parameters and
