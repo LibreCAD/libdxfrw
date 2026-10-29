@@ -98,6 +98,7 @@ dist_noinst_HEADERS = \
     intern/dxfblockrecord.h \
     intern/dxfcode.h \
     intern/dxfcompound.h \
+    intern/dxfentitiesauth.h \
     intern/dxfentitiesdelivery.h \
     intern/dxfentitiessource.h \
     intern/dxffield.h \

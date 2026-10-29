@@ -18,6 +18,10 @@ dist_noinst_HEADERS = \
     dx_dwg_class_wire.h \
     dx_iface.h \
     dx_layout_source_profile.h \
+    dx_legacy_attribute_compound_join.h \
+    dx_legacy_attribute_compound_profile.h \
+    dx_legacy_block_record_source_profile.h \
+    dx_legacy_identity_join.h \
     dx_material_body.h \
     dx_plotstyle_source.h \
     dx_raster_dwg_wire.h \
