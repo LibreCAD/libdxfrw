@@ -33971,12 +33971,16 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
     }
     return fields;
 }
+double retargetAppendSourceOffset(unsigned element) {
+    if(element==2u)return -1.25;
+    if(element>=3u)return -2.0-.75*static_cast<double>(element-3u);
+    throw std::runtime_error("retarget append source offset index");
+}
 Tags retargetAppendRecipe(bool binary,unsigned sourceCount) {
     auto fields=retargetRecipe(binary);
-    if(sourceCount<2u||sourceCount>6u)throw std::runtime_error("unsupported retarget append source count");
+    if(sourceCount<2u||sourceCount>7u)throw std::runtime_error("unsupported retarget append source count");
     std::vector<double> offsets{beforeOffsets[0],beforeOffsets[1]};
-    const std::array<double,4> extraOffsets{{-1.25,-2.0,-2.75,-3.5}};
-    for(unsigned element=2u;element<sourceCount;++element)offsets.push_back(extraOffsets[element-2u]);
+    for(unsigned element=2u;element<sourceCount;++element)offsets.push_back(retargetAppendSourceOffset(element));
     if(sourceCount==2u)return fields;
     std::vector<std::pair<int,std::string>> extraTuples;
     for(unsigned element=2u;element<sourceCount;++element)
@@ -34117,7 +34121,7 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
 }
 bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary,unsigned sourceCount=2u) {
     const auto bad=[](int line){std::cerr<<"retarget append output proof mismatch line="<<line<<'\n';return false;};
-    if(sourceCount<2u||sourceCount>6u)return bad(__LINE__);
+    if(sourceCount<2u||sourceCount>7u)return bad(__LINE__);
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
         std::vector<std::string> result;for(const auto& field:row.fields)if(field.first==code)result.push_back(field.second);return result;
@@ -34147,9 +34151,8 @@ bool retargetAppendOutputProof(const std::filesystem::path& path,bool binary,uns
     std::vector<std::string> sourceLinetypes{"ByLayer","Continuous"};
     std::vector<int> targetColors{5,7};
     std::vector<std::string> targetLinetypes{"ByLayer","Continuous"};
-    const std::array<double,4> extraOffsets{{-1.25,-2.0,-2.75,-3.5}};
     for(unsigned element=2u;element<sourceCount;++element) {
-        const double offset=extraOffsets[element-2u];
+        const double offset=retargetAppendSourceOffset(element);
         const int color=static_cast<int>(element)+2;
         const std::string linetype=(element%2u)==0u?"ByLayer":"Continuous";
         sourceOffsets.push_back(offset);sourceColors.push_back(color);sourceLinetypes.push_back(linetype);
@@ -34280,7 +34283,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
         auto added=target.elements.front();added.offset=sourceCount==2u?-1.25:target.elements.back().offset-1.0;added.color=4;
         target.elements.push_back(std::move(added));
     };
-    for(unsigned sourceCount:{2u,3u,4u,5u,6u})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u,5u,6u,7u})for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(sourceBinary,sourceCount),sourceBinary,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=2u)return fail(__LINE__);
@@ -34290,7 +34293,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!caller.same(data))return fail(__LINE__);
         ++profiles;++readbacks;
     }
-    for(unsigned sourceCount:{2u,3u,4u,5u,6u})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u,5u,6u,7u})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -34305,7 +34308,7 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
             ||!retargetAppendOutputProof(output,outputBinary,sourceCount)||!correct.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    for(unsigned sourceCount:{2u,3u,4u,5u,6u})for(bool outputBinary:{false,true}) {
+    for(unsigned sourceCount:{2u,3u,4u,5u,6u,7u})for(bool outputBinary:{false,true}) {
         Editing adapter;dx_data data;
         if(!write(input,retargetAppendRecipe(false,sourceCount),false,"AC1027")
             ||!adapter.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -34324,12 +34327,13 @@ bool runRetargetAppend(const std::filesystem::path& dir) {
     }
     std::cout<<"MLINE retarget append profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==20u&&readbacks==40u&&refusals==10u&&late==10u&&retries==20u;
+    return profiles==24u&&readbacks==48u&&refusals==12u&&late==12u&&retries==24u;
 }
 bool runRetargetAppendTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/
         ("libdxfrw-mline-retarget-append-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::create_directory(dir);const bool passed=runRetargetAppend(dir);
+    std::filesystem::create_directory(dir);
+    const bool passed=runRetargetAppend(dir);
     if(passed){std::error_code error;std::filesystem::remove_all(dir,error);}
     else std::cerr<<"MLINE retarget append artifacts: "<<dir<<'\n';
     return passed;
