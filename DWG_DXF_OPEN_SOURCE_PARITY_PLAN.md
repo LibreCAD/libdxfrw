@@ -297,7 +297,12 @@ and preserves application payload scoping. The selected AC1018 source now has
 no outer/unobserved candidates, but that observation does not establish a
 qualified namespace or ownership. Duplicate control/object identities now fail
 import; ordinary typed-entity duplicate handling remains unchanged. Original
-target, graph closure and output proof remain separate gates.
+target, graph closure and output proof remain separate gates. The [AC1018
+identity observation receipt](docs/research/rpp5iw-ac1018-identity-observation-2026-10-28.json)
+records the default-off, private retained census with completion authentication;
+it provides no public report or namespace authority. Next bind its scoped
+records to the selected BLOCK_RECORD, ATTDEF and target bodies under explicit
+uniqueness, type and owner checks, while keeping graph and output gates closed.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
