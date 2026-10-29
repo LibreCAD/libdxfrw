@@ -15998,6 +15998,7 @@ constexpr std::array<int, 26> mleaderInt32Codes{{
 constexpr std::array<int, 9> mleaderBoolCodes{{
     290, 291, 292, 293, 294, 295, 296, 297, 298
 }};
+constexpr std::array<int, 1> mleaderStringCodes{{3}};
 
 bool isMLeaderDoubleCode(int code) noexcept {
     return std::find(mleaderDoubleCodes.begin(), mleaderDoubleCodes.end(),
@@ -16012,6 +16013,17 @@ bool isMLeaderInt32Code(int code) noexcept {
 bool isMLeaderBoolCode(int code) noexcept {
     return std::find(mleaderBoolCodes.begin(), mleaderBoolCodes.end(),
                      code) != mleaderBoolCodes.end();
+}
+
+bool isMLeaderStringCode(int code) noexcept {
+    return std::find(mleaderStringCodes.begin(), mleaderStringCodes.end(),
+                     code) != mleaderStringCodes.end();
+}
+
+bool isMLeaderAsciiString(std::string_view value) noexcept {
+    return std::all_of(value.begin(), value.end(), [](unsigned char character) {
+        return character >= 0x20u && character <= 0x7Eu;
+    });
 }
 
 bool isMLeaderColorCode(int code) noexcept {
@@ -16082,6 +16094,10 @@ std::int32_t mleaderInt32Value(const DRW_MLeaderStyle& style,
     }
 }
 
+const std::string& mleaderStringValue(const DRW_MLeaderStyle& style) noexcept {
+    return style.description;
+}
+
 void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
                           std::int32_t value) noexcept {
     switch (code) {
@@ -16113,6 +16129,12 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
     case 298: style.textExtended = value != 0; break;
     default: break;
     }
+}
+
+void setMLeaderStringValue(DRW_MLeaderStyle& style, int code,
+                           const std::string& value) {
+    if (code == 3)
+        style.description = value;
 }
 
 double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
@@ -16162,8 +16184,21 @@ int changedMLeaderFieldCode(const DRW_MLeaderStyle& value,
             return -1;
         int32Code = code;
     }
+    int stringCode = 0;
+    for (int code : mleaderStringCodes) {
+        if (mleaderStringValue(value)
+            == mleaderStringValue(original))
+            continue;
+        if (stringCode != 0)
+            return -1;
+        stringCode = code;
+    }
     if (doubleCode != 0 && int32Code != 0)
         return -1;
+    if (stringCode != 0 && (doubleCode != 0 || int32Code != 0))
+        return -1;
+    if (stringCode != 0)
+        return stringCode;
     return int32Code != 0 ? int32Code : doubleCode;
 }
 
@@ -16189,11 +16224,13 @@ void setMLeaderDoubleValue(DRW_MLeaderStyle& style, int code,
 
 bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
         std::size_t& slot) noexcept {
-    if (!isMLeaderDoubleCode(code) && !isMLeaderInt32Code(code))
+    if (!isMLeaderDoubleCode(code) && !isMLeaderInt32Code(code)
+        && !isMLeaderStringCode(code))
         return false;
     slot = noMLeaderFieldSlot;
     const DRW_Variant::TYPE expectedType = isMLeaderDoubleCode(code)
-        ? DRW_Variant::DOUBLE : DRW_Variant::INTEGER;
+        ? DRW_Variant::DOUBLE : isMLeaderStringCode(code)
+            ? DRW_Variant::STRING : DRW_Variant::INTEGER;
     unsigned applicationDepth = 0u;
     unsigned styleMarkers = 0u;
     unsigned matchingFields = 0u;
@@ -16242,6 +16279,7 @@ bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
         if (field.type() != expectedType
             || (expectedType == DRW_Variant::DOUBLE
                 && !std::isfinite(field.d_val()))
+            || (expectedType == DRW_Variant::STRING && !field.content.s)
             || ++matchingFields != 1u)
             return false;
         slot = i;
@@ -16330,16 +16368,20 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 return false;
             std::size_t baselineSlot = noMLeaderFieldSlot;
             const int enumMaximum = mleaderEnumMaximum(editedCode);
-            const bool validValue = (isMLeaderColorCode(editedCode)
-                    ? mleaderInt32Value(value, editedCode) >= 0
-                        && mleaderInt32Value(value, editedCode) <= 256
-                    : enumMaximum >= 0
-                        ? mleaderInt32Value(value, editedCode)
-                                >= mleaderEnumMinimum(editedCode)
-                            && mleaderInt32Value(value, editedCode)
-                                <= enumMaximum
-                    : isMLeaderInt32Code(editedCode))
-                || std::isfinite(mleaderDoubleValue(value, editedCode));
+            const bool validValue = isMLeaderColorCode(editedCode)
+                ? mleaderInt32Value(value, editedCode) >= 0
+                    && mleaderInt32Value(value, editedCode) <= 256
+                : enumMaximum >= 0
+                    ? mleaderInt32Value(value, editedCode)
+                            >= mleaderEnumMinimum(editedCode)
+                        && mleaderInt32Value(value, editedCode)
+                            <= enumMaximum
+                : isMLeaderInt32Code(editedCode)
+                    ? true
+                : isMLeaderStringCode(editedCode)
+                    ? isMLeaderAsciiString(
+                        mleaderStringValue(value))
+                : std::isfinite(mleaderDoubleValue(value, editedCode));
             if (!validValue
                 || !mleaderFieldSlot(*baseline->second, editedCode,
                                      baselineSlot)
@@ -16433,6 +16475,9 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 } else if (isMLeaderInt32Code(editedCode)) {
                     setMLeaderInt32Value(normalized, editedCode,
                         mleaderInt32Value(original, editedCode));
+                } else if (isMLeaderStringCode(editedCode)) {
+                    setMLeaderStringValue(normalized, editedCode,
+                        mleaderStringValue(original));
                 } else {
                     return false;
                 }
@@ -16442,16 +16487,26 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     return false;
                 std::size_t slot = noMLeaderFieldSlot;
                 if (!mleaderFieldSlot(raw, editedCode, slot)
-                    || slot == noMLeaderFieldSlot
-                    || (isMLeaderInt32Code(editedCode)
-                        ? raw.groups[slot].i_val()
-                            != mleaderInt32Value(original, editedCode)
-                        : raw.groups[slot].d_val()
-                            != mleaderDoubleValue(original, editedCode)))
+                    || slot == noMLeaderFieldSlot)
+                    return false;
+                const DRW_Variant& rawField = raw.groups[slot];
+                const bool rawValueMatches = isMLeaderInt32Code(editedCode)
+                    ? rawField.i_val()
+                        == mleaderInt32Value(original, editedCode)
+                    : isMLeaderStringCode(editedCode)
+                        ? rawField.content.s != nullptr
+                            && *rawField.content.s
+                                == mleaderStringValue(original)
+                        : rawField.d_val()
+                            == mleaderDoubleValue(original, editedCode);
+                if (!rawValueMatches)
                     return false;
                 if (isMLeaderInt32Code(editedCode))
                     setMLeaderInt32Value(projection, editedCode,
                         mleaderInt32Value(value, editedCode));
+                else if (isMLeaderStringCode(editedCode))
+                    setMLeaderStringValue(projection, editedCode,
+                        mleaderStringValue(value));
                 else
                     setMLeaderDoubleValue(projection, editedCode,
                         mleaderDoubleValue(value, editedCode));
@@ -16490,6 +16545,20 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         || encoded.groups.front().code() != editedCode
                         || encoded.groups.front().type()
                             != DRW_Variant::INTEGER)
+                        return false;
+                    source.output.groups[slot] = encoded.groups.front();
+                } else if (isMLeaderStringCode(editedCode)) {
+                    dx_material_body::BodyWriter encoded(
+                        binary, version, m_dxfMLeaderStyleState.codePage);
+                    const std::string& editedString =
+                        mleaderStringValue(projection);
+                    if (!encoded.writeString(editedCode, editedString)
+                        || encoded.groups.size() != 1u
+                        || encoded.groups.front().code() != editedCode
+                        || encoded.groups.front().type()
+                            != DRW_Variant::STRING
+                        || encoded.groups.front().content.s == nullptr
+                        || *encoded.groups.front().content.s != editedString)
                         return false;
                     source.output.groups[slot] = encoded.groups.front();
                 } else if (isMLeaderInt32Code(editedCode)) {
@@ -16597,6 +16666,9 @@ bool dx_iface::inspectDxfMLeaderStyles(
                         if (isMLeaderInt32Code(code))
                             return mleaderInt32Value(value, code)
                                 == mleaderInt32Value(source.projection, code);
+                        if (isMLeaderStringCode(code))
+                            return mleaderStringValue(value)
+                                == mleaderStringValue(source.projection);
                         return isMLeaderDoubleCode(code)
                             && std::isfinite(mleaderDoubleValue(value, code))
                             && mleaderDoubleValue(value, code)
