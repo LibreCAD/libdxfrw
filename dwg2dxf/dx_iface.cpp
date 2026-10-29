@@ -16331,6 +16331,26 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 }
 } // namespace
 
+// Precharge the number of source elements and every byte that the selected
+// string comparisons could visit on each pass. Work remains unchanged on
+// failure; count admission precedes the sizing traversal itself.
+bool dx_iface::chargeMlineComparisonWork(const std::vector<DRW_MLineElement>& elements,
+        std::size_t passes,std::size_t& work,std::size_t limit) noexcept {
+    if (work>limit) return false;
+    if (!passes) return true;
+    const std::size_t perPassLimit=(limit-work)/passes;
+    std::size_t perPass=elements.size();
+    if (perPass>perPassLimit) return false;
+    for (const auto& element:elements) {
+        for (const auto* text:{&element.colorName,&element.colorBookName,&element.linetype}) {
+            if (text->size()>perPassLimit-perPass) return false;
+            perPass+=text->size();
+        }
+    }
+    work+=perPass*passes;
+    return true;
+}
+
 bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
         DRW::DxfTextWritePolicy policy) noexcept {
     m_dxfMLineStyles.clear();m_dxfMLineStyleState={};m_dxfMLineStylesInspected=false;
@@ -16442,42 +16462,63 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                         || added.linetype.empty() || !DRW_TextCodec::isUtf8ScalarText(added.linetype)) return false;
                 }
             } else if (remove) {
-                // Without per-element identities, a changed surviving tuple
-                // can represent either deletion combined with an edit. Admit
-                // only an exact match to exactly one original element and
-                // retain exact original raw tuple values and spellings.
+                // Reuse exact subsequence matching first. If a survivor's ACI
+                // changed, require its remaining tuple fields to identify one
+                // and only one original element across the entire source.
                 std::size_t originalTyped=0u,originalItems=0u;
-                const auto work=2u*original.elements.size();
-                if (removalWork>kMaxAdapterBasicTableItems || work>kMaxAdapterBasicTableItems-removalWork
+                if (!chargeMlineComparisonWork(original.elements,2u,removalWork,kMaxAdapterBasicTableItems)
                     || !estimateMLineStyleTypedBytes(original,originalTyped,originalItems)
                     || !chargeNamedResourceBytes(bytes,originalBytes)
                     || !chargeNamedResourceBytes(bytes,retained)
                     || !chargeNamedResourceBytes(bytes,retained)
                     || !chargeNamedResourceBytes(bytes,originalTyped)
                     || !chargeNamedResourceBytes(bytes,originalTyped)) return false;
-                removalWork+=work;
                 // Compare the non-element carrier exactly as before; element
                 // identity is established by the unique ordered embedding.
                 DRW_MLineStyle shape=original;shape.elements=value.elements;
                 if (!mlineFieldsEqual(value,shape,false,false,false,true,true,true)) return false;
-                const auto sameElement=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
-                    return retainedDoubleEqual(a.offset,b.offset) && a.color==b.color
+                const auto sameAnchor=[](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                    return retainedDoubleEqual(a.offset,b.offset)
                         && a.color24==b.color24 && a.colorMethod==b.colorMethod && a.colorFlags==b.colorFlags
                         && a.colorName==b.colorName && a.colorBookName==b.colorBookName
                         && a.colorDwgIndex==b.colorDwgIndex && a.linetype==b.linetype
                         && a.linetypeIndex==b.linetypeIndex && a.linetypeHandle==b.linetypeHandle;
                 };
-                std::size_t cursor=0u;
-                for (std::size_t i=0u;i<value.elements.size();++i) {
-                    while (cursor<original.elements.size() && !sameElement(original.elements[cursor],value.elements[i])) ++cursor;
-                    if (cursor==original.elements.size()) return false;
-                    survivorIndices[i]=cursor++;
-                }
-                cursor=original.elements.size();
-                for (std::size_t i=value.elements.size();i>0u;--i) {
-                    while (cursor>0u && !sameElement(original.elements[cursor-1u],value.elements[i-1u])) --cursor;
-                    if (!cursor || cursor-1u!=survivorIndices[i-1u]) return false;
-                    --cursor;
+                const auto sameElement=[&](const DRW_MLineElement& a,const DRW_MLineElement& b) {
+                    return a.color==b.color && sameAnchor(a,b);
+                };
+                const auto exactSubsequence=[&]() {
+                    std::size_t cursor=0u;
+                    for (std::size_t i=0u;i<value.elements.size();++i) {
+                        while (cursor<original.elements.size() && !sameElement(original.elements[cursor],value.elements[i])) ++cursor;
+                        if (cursor==original.elements.size()) return false;
+                        survivorIndices[i]=cursor++;
+                    }
+                    cursor=original.elements.size();
+                    for (std::size_t i=value.elements.size();i>0u;--i) {
+                        while (cursor>0u && !sameElement(original.elements[cursor-1u],value.elements[i-1u])) --cursor;
+                        if (!cursor || cursor-1u!=survivorIndices[i-1u]) return false;
+                        --cursor;
+                    }
+                    return true;
+                };
+                if (!exactSubsequence()) {
+                    // The fallback compares each survivor to every original;
+                    // bound its complete byte-sensitive cross-product first.
+                    if (!chargeMlineComparisonWork(original.elements,value.elements.size(),
+                            removalWork,kMaxAdapterBasicTableItems)) return false;
+                    std::size_t previous=0u;
+                    for (std::size_t i=0u;i<value.elements.size();++i) {
+                        const auto& survivor=value.elements[i];
+                        std::size_t matched=0u,index=0u;
+                        for (std::size_t j=0u;j<original.elements.size();++j) {
+                            if (sameAnchor(original.elements[j],survivor)) {++matched;index=j;}
+                        }
+                        if (matched!=1u || (i && index<=previous)) return false;
+                        if (survivor.color!=original.elements[index].color
+                            && (survivor.color<0 || survivor.color>256)) return false;
+                        survivorIndices[i]=index;previous=index;
+                    }
                 }
                 bool originalReactor=false,rawReactor=false;
                 std::array<std::array<std::size_t,3>,UINT8_MAX> before{},current{};
@@ -16734,6 +16775,11 @@ bool dx_iface::prepareDxfMLineStyles(DRW::Version version,bool binary,
                                 source.output.rawValues.at(destination)=std::move(source.output.rawValues.at(field));
                         }
                         ++destination;
+                    }
+                    if (target.elements[i].color!=value.elements[i].color) {
+                        if (!encoded.writeInt16(62,value.elements[i].color)
+                            || !replace(destination-2u,encoded.groups.back())) return false;
+                        target.elements[i].color=value.elements[i].color;
                     }
                 }
                 source.output.groups.resize(destination);

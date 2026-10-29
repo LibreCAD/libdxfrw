@@ -2217,6 +2217,8 @@ private:
     std::unordered_map<std::uint32_t,DxfMLineStyleSource> m_dxfMLineStyles;
     DxfNamedResourceState m_dxfMLineStyleState;
     bool m_dxfMLineStylesInspected{false};
+    static bool chargeMlineComparisonWork(const std::vector<DRW_MLineElement>& elements,
+        std::size_t passes,std::size_t& work,std::size_t limit) noexcept;
     bool prepareDxfMLineStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLineStyles() const noexcept;
