@@ -1,0 +1,69 @@
+{
+  "id": "RPP-5v1",
+  "title": "MLINE LTYPE APPID XDATA retained-byte refusal boundary",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_BUDGET_BOUNDARY",
+  "implementation_commits": [
+    "2ce114dd2c1e8336e12173ed06c39fec2d1e69ab",
+    "33f2102352f1b9f249bcd14442c1b147fc2375e9"
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII DXF; no repository drawing fixture is used or added.",
+    "over_budget_appid_providers": 2048,
+    "consumer": "EditDash simple LTYPE referenced by the selected MLINE profile; each provider is a distinct bare APPID with one following group-1000 XDATA string.",
+    "bounded_retry_profile": "After the over-budget refusal, the same dx_iface imports and exports a generated 16-provider source with exact output and fresh typed readback."
+  },
+  "budget_basis": {
+    "admission": "prepareDxfMLineLinetypes charges one (uint32_t + string_view + 512-byte provider allowance) unit per APPID name through chargeNamedResourceBytes, whose factor is 64 under the 64 MiB raw named-resource retained-byte cap.",
+    "selected_estimate_64_bit": "2048 * (4 + 16 + 512) * 64 = 69,730,304 bytes, greater than the 67,108,864-byte cap, before earlier charges are included.",
+    "scope_limit": "This proves one deliberately over-budget count and a later bounded retry; it does not establish a universal maximum provider count or every allocator/work boundary."
+  },
+  "proof": {
+    "input": "The generated 2,048-provider source imports successfully. The selected LTYPE has 4,096 typed XDATA values and exactly 2,048 matching APPID providers, so refusal is exercised during adapter output preparation rather than parser input admission.",
+    "refusal": "Export refuses the over-budget provider set and preserves a pre-existing destination sentinel with no transaction temporary left behind.",
+    "retry": "The same adapter imports a separate 16-provider source and successfully exports it; physical output and fresh typed readback verify all ordered APPID/string pairs.",
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "normal_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "budget_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-budget",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_(xdata|budget)$' --output-on-failure",
+      "result": "PASS (2/2, 6.42 seconds total)"
+    },
+    "normal_profile_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+      "result": "PASS (profiles=84; readbacks=183; refusals=100; retries=99)"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "asan_selectors": [
+      "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-budget",
+      "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata"
+    ],
+    "asan_result": "PASS for both selectors",
+    "asan_note": "This platform's sanitizer runtime aborts when detect_leaks=1 is requested; address-sanitizer checking passed with halt_on_error=1 and no leak-detection option.",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "head_commit": "33f2102352f1b9f249bcd14442c1b147fc2375e9",
+      "adapter_sha256": "57dd2e96dc6e5309124cc11b7c059a3350c954f3313fea24ca9ba602efd69f6c",
+      "test_source_sha256": "832b89b75d0a69b756ac506f47d191b78a8e1cbd3ee0e87beceae8963227477e",
+      "cmake_lists_sha256": "86d69b08401f0be2c2bdc7ca858d1df8e1a850339c17d7c20e84170266d77e24",
+      "normal_executable_sha256": "d3b7892ca69a0ff1aed46fe4075c334871ee0fe5e4f85d10dd68774f6074cfc1",
+      "asan_executable_sha256": "4c4e2ef5991cced0532f4a1261cefd2c9b5c09a25f2769a08415749dc8ca45cd",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    }
+  },
+  "next": "Select the next current P2 witness. Prefer the already authored three-entity-handle XDATA refusal as a source-bound multiplicity profile; either qualify it with exact remapped references/readback and atomic failure/retry, or retain refusal and proceed to a distinct current MLINE geometry/schema witness."
+}
