@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P6 AC1024 extended CLASSES header CRC offset",
+  "date": "2026-10-29",
+  "status": "CRC_OFFSET_CORRECTED; object failures remain separate",
+  "codeCommit": "1393c3749d03055d61f5393362ff58aa66e57b9f",
+  "scope": "For AC1024 with maintenance version greater than 3 and AC1032, account for the additional high-size RL when locating the CLASSES RS. Do not infer class-body or document support from the integrity correction.",
+  "specEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 10.2 R18+ (PDF page 87)",
+    "relevantRules": [
+      "The R2010+ maintenance-version-greater-than-3 class header includes an additional RL after the low size RL.",
+      "The class data follows the header and the RS CRC follows the class records.",
+      "With the optional RL, the class-data prefix grows from 20 to 24 bytes in the decoded section coordinates used by this parser."
+    ],
+    "crossCheck": "The parser's string footer uses the same 20/24-byte prefix as 159/191 bits before the end-bit position. Rounding that footer endpoint to a byte yields the class-data size plus the matching prefix."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader18.cpp",
+    "change": "Compute the optional high-size-RL predicate once and use a 24-byte CRC prefix when present; retain the 20-byte prefix otherwise.",
+    "commit": "1393c3749d03055d61f5393362ff58aa66e57b9f"
+  },
+  "sourceBindings": [
+    {
+      "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "observedAfterFix": "CLASSES CRC mismatch count 0; three custom object parse failures remain."
+    },
+    {
+      "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "observedAfterFix": "CLASSES CRC mismatch count 0; three AcDbShRevolve parse failures remain."
+    },
+    {
+      "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "observedAfterFix": "CLASSES CRC mismatch count 0; one BLOCKLOOKUPACTION and one ACDBPERSSUBENTMANAGER parse failure remain."
+    }
+  ],
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+        "result": "PASS"
+      }
+    ],
+    "focusedSamples": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1024_' --output-on-failure",
+      "result": "7/10 passed; the three failures each have classesCrcMismatch=0 and remain failed because objectParseFailures are 3, 3, and 2, respectively.",
+      "affectedCases": [
+        "visualization_-_condominium_with_skylight: ACSH_LOFT_CLASS twice and ACSH_REVOLVE_CLASS once",
+        "visualization_-_conference_room: ACSH_REVOLVE_CLASS three times",
+        "visualization_-_sun_and_sky_demo: BLOCKLOOKUPACTION and ACDBPERSSUBENTMANAGER"
+      ]
+    },
+    "focusedReaderMatrix": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "FAIL: three assertions for tracked ordinary_enc_AC1027 HEADER/NOD handling. They are retained as an open result and are not attributed to the AC1024 CRC edit."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "fixturePolicy": "No DWG/DXF fixture was added to Git. Local sample files were used only as source-bound observations."
+  },
+  "limits": [
+    "The focused AC1024 sample tests do not pass completely; the remaining object-body failures require separate witnessed investigations.",
+    "No typed-class, object-graph, DXF export, FreeCAD, native, 3D, or format-support claim is promoted.",
+    "The reader-matrix HEADER/NOD assertions remain unresolved and must be retested against their owning work."
+  ],
+  "next": "Start with the current AC1024 BLOCKLOOKUPACTION failure in visualization_-_sun_and_sky_demo.dwg (handle 559, observed type 528). Establish the source body profile for its 41-by-7 grid against an independent implementation before changing the transactional refusal; keep the ACDBPERSSUBENTMANAGER and ACSH_REVOLVE/LOFT failures as distinct profiles."
+}

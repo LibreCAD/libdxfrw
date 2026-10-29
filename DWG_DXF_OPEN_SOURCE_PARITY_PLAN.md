@@ -45,7 +45,7 @@ runs separately.
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
-| P6 | AUDIT / REPRODUCE | Residual writer/reader/semantic boundaries and independently qualified document semantics | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
+| P6 | AUDIT / REPRODUCE | The AC1024 extended-header CLASSES CRC offset is corrected in [RPP-5nb](docs/research/rpp5nb-ac1024-extended-class-size-crc-offset-2026-10-29.json). Next: qualify or preserve refusal for the current `BLOCKLOOKUPACTION` body witness before changing its grid parser. Keep the ACDBPERSSUBENTMANAGER and ACSH_REVOLVE/LOFT failures as separate profiles. | One current exact failing input/operation and its missing layer; selected field consistency does not qualify document closure |
 | P7 | LOCAL + EXTERNAL | ACIS/ACDS association, preservation and independent B-rep meaning | Source/owner joins from P4a; final output joins feed P4b |
 | P8 | PLATFORM / INTEGRATION | Consumer, packaging, ABI and native qualification | A composed source-stable candidate |
 | P9 | DEFERRED_EXTERNAL | Resolve the six J dispositions without weakening claim policy | Independent eligible evidence and native execution |
@@ -748,6 +748,18 @@ whole-adapter witness. Remaining boundaries include ambiguous all-hex names,
 duplicate STYLE-name identity, strict omitted-field document qualification and
 broader native/semantic evidence. Do not reinterpret preserved hexadecimal tokens
 as proof of wide-handle support or general document closure.
+
+The [AC1024 extended-header CLASSES receipt](docs/research/rpp5nb-ac1024-extended-class-size-crc-offset-2026-10-29.json)
+corrects the CRC byte offset when the optional high-size RL is present. Three
+locally available AC1024 sources now report no CLASSES CRC mismatch; this does
+not resolve their distinct custom-object parse failures or establish complete
+source coverage. The next ready reader witness is `BLOCKLOOKUPACTION` handle
+559/type 528 in `visualization_-_sun_and_sky_demo.dwg`: its current 41-by-7
+lookup-grid body fails the minimum inline data-bit preflight, while a diagnostic
+alternate-layout walk reaches the final flag and declared data/string ends. Check
+that body profile against an independent implementation before changing refusal
+behavior. Keep `ACDBPERSSUBENTMANAGER` and `ACSH_REVOLVE`/`ACSH_LOFT` failures
+separate; no testing drawing was added to Git.
 
 The rows below are remaining verification/qualification boundaries, not assertions
 that historical local fixes are still absent. For each row, check current code and
