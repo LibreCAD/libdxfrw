@@ -31586,17 +31586,19 @@ constexpr const char* shapeFile="ltypeshp.shx";
 constexpr const char* sourceHandle="1F3";
 using namespace mlineStyleAuthorityControls;
 
-Tags recipe(bool binary) {
+Tags recipe(bool binary,int shapeFlags) {
     auto fields=mlineLtypeTextStyleControls::recipe(binary);
     bool style=false,ltype=false;std::size_t removedText=0u;
     for(auto it=fields.begin();it!=fields.end();) {
         if(it->first==0){style=it->second=="STYLE";ltype=it->second=="LTYPE";}
-        if(style&&it->first==5&&it->second==sourceHandle)style=true;
-        if(ltype&&it->first==5&&it->second=="103")ltype=true;
+        else if(it->first==5) {
+            if(style)style=it->second==sourceHandle;
+            if(ltype)ltype=it->second=="103";
+        }
         if(style&&it->first==2)it->second=styleName;
         if(style&&it->first==70)it->second="1";
         if(style&&it->first==3)it->second=shapeFile;
-        if(ltype&&it->first==74)it->second="4";
+        if(ltype&&it->first==74)it->second=std::to_string(shapeFlags);
         if(ltype&&it->first==75)it->second="7";
         if(ltype&&it->first==9){it=fields.erase(it);++removedText;continue;}
         ++it;
@@ -31607,7 +31609,7 @@ Tags recipe(bool binary) {
 std::vector<std::string> values(const Row& row,int code) {
     std::vector<std::string> out;for(const auto& field:row.fields)if(field.first==code)out.push_back(field.second);return out;
 }
-bool proof(const std::filesystem::path& path,bool binary,bool output) {
+bool proof(const std::filesystem::path& path,bool binary,bool output,int shapeFlags) {
     const auto rows=records(path,binary);const Row* style=nullptr;const Row* ltype=nullptr;
     for(const auto& row:rows) {
         if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName}){if(style)return false;style=&row;}
@@ -31618,19 +31620,19 @@ bool proof(const std::filesystem::path& path,bool binary,bool output) {
         ||!numeric(*style,70,1)||values(*style,3)!=std::vector<std::string>{shapeFile}
         ||values(*ltype,3)!=std::vector<std::string>{"text-bearing source profile"}
         ||!numeric(*ltype,72,65)||!numeric(*ltype,73,1)||!numeric(*ltype,40,1.5)
-        ||!numeric(*ltype,49,1.5)||!numeric(*ltype,74,4)||!numeric(*ltype,75,7)
+        ||!numeric(*ltype,49,1.5)||!numeric(*ltype,74,shapeFlags)||!numeric(*ltype,75,7)
         ||values(*ltype,340)!=std::vector<std::string>{output?style->id:sourceHandle}
         ||!numeric(*ltype,46,.75)||!numeric(*ltype,50,.25)||!numeric(*ltype,44,.125)
         ||!numeric(*ltype,45,-.25)||!values(*ltype,9).empty())return false;
     return true;
 }
-bool model(dx_data& data,std::uint32_t styleHandle) {
+bool model(dx_data& data,std::uint32_t styleHandle,int shapeFlags) {
     const DRW_LType* ltype=nullptr;for(const auto& value:data.lineTypes)if(value.name==ltypeName){if(ltype)return false;ltype=&value;}
     const DRW_Textstyle* style=nullptr;for(const auto& value:data.textStyles)if(value.name==styleName){if(style)return false;style=&value;}
     if(!ltype||!style||style->handle!=styleHandle||style->flags!=1||style->font!=shapeFile
         ||ltype->size!=1||ltype->length!=1.5||ltype->path!=std::vector<double>{1.5}||ltype->segments.size()!=1u)return false;
     const auto& segment=ltype->segments.front();
-    return segment.length==1.5&&segment.shapeFlags==4&&segment.complexShapeCode==7
+    return segment.length==1.5&&segment.shapeFlags==shapeFlags&&segment.complexShapeCode==7
         &&segment.styleHandle.ref==styleHandle&&segment.styleHandle.ref64==styleHandle
         &&segment.scale==.75&&std::abs(segment.rotation-.25/ARAD)<1e-12
         &&segment.xOffset==.125&&segment.yOffset==-.25&&segment.text.empty()
@@ -31638,14 +31640,14 @@ bool model(dx_data& data,std::uint32_t styleHandle) {
         &&data.mLineStyles.front().elements.front().linetype==ltypeName
         &&mlineStyleAuthorityControls::consumers(data).size()==2u;
 }
-bool outputProof(const std::filesystem::path& path,bool binary) {
-    if(!proof(path,binary,true))return false;
+bool outputProof(const std::filesystem::path& path,bool binary,int shapeFlags) {
+    if(!proof(path,binary,true,shapeFlags))return false;
     const auto rows=records(path,binary);const Row* style=nullptr;
     for(const auto& row:rows)if(row.type=="STYLE"&&values(row,2)==std::vector<std::string>{styleName})style=&row;
     if(!style)return false;std::uint32_t handle=0;const auto parsed=std::from_chars(style->id.data(),style->id.data()+style->id.size(),handle,16);
     if(parsed.ec!=std::errc{}||parsed.ptr!=style->id.data()+style->id.size()||!handle)return false;
     dx_iface reader;dx_data actual;
-    return reader.fileImport(path.string(),&actual,false)&&model(actual,handle)
+    return reader.fileImport(path.string(),&actual,false)&&model(actual,handle,shapeFlags)
         &&mlineStyleAuthorityControls::proof(path,binary,"EFFECTIVE_STYLE",false,false,"AC1027","OLD_ENTITY_NAME",ltypeName,"Continuous");
 }
 bool runTemporary() {
@@ -31653,14 +31655,14 @@ bool runTemporary() {
         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(dir);const auto input=dir/"input.dxf",output=dir/"output.dxf";
     std::size_t profiles=0,readbacks=0,refusals=0,retries=0;
-    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
-        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary);
-        if(!write(input,fields,sourceBinary,"AC1027")||!proof(input,sourceBinary,false)
-            ||!adapter.fileImport(input.string(),&data,false)||!model(data,0x1F3u)
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true})for(int shapeFlags:{4,5}) {
+        dx_iface adapter;dx_data data;const auto fields=recipe(sourceBinary,shapeFlags);
+        if(!write(input,fields,sourceBinary,"AC1027")||!proof(input,sourceBinary,false,shapeFlags)
+            ||!adapter.fileImport(input.string(),&data,false)||!model(data,0x1F3u,shapeFlags)
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
         const auto original=mlineLtypeProviderControls::provider(data);
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!outputProof(output,outputBinary)
+            ||!outputProof(output,outputBinary,shapeFlags)
             ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
         ++profiles;++readbacks;const auto saved=data.textStyles;
@@ -31672,7 +31674,7 @@ bool runTemporary() {
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
         ++refusals;data.textStyles=saved;
         if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
-            ||!outputProof(output,outputBinary)||!model(data,0x1F3u)
+            ||!outputProof(output,outputBinary,shapeFlags)||!model(data,0x1F3u,shapeFlags)
             ||!mlineLtypeProviderControls::sameProvider(mlineLtypeProviderControls::provider(data),original)
             ||!mlineStyleAuthorityControls::callerUnchanged(data,"EFFECTIVE_STYLE"))return false;
         ++readbacks;++retries;
@@ -31680,7 +31682,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE complex shape LTYPE/STYLE profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; provider refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==4&&readbacks==8&&refusals==4&&retries==4;
+    return profiles==8&&readbacks==16&&refusals==8&&retries==8;
 }
 }
 

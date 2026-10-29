@@ -21,7 +21,7 @@
     "source_encoding": ["ASCII DXF", "binary DXF"],
     "output_encoding": ["ASCII DXF", "binary DXF"],
     "cross_product": "Both source encodings were exported to both output encodings.",
-    "linetype": "EditDash, one dash of 1.5, group 74 value 4, group 75 shape number 7, scale 0.75, rotation 0.25 radians on the wire, offsets 0.125/-0.25; no group 9 text value.",
+    "linetype": "EditDash, one dash of 1.5, group 74 values 4 (shape) and 5 (shape plus absolute-rotation bit), group 75 shape number 7, scale 0.75, rotation 0.25 radians on the wire, offsets 0.125/-0.25; no group 9 text value.",
     "style_provider": "ComplexShape at source handle 1F3, with group 70 bit 1 and shape-file name ltypeshp.shx.",
     "consumer": "The MLINESTYLE references EditDash; source MLINE consumers remain unchanged."
   },
@@ -30,10 +30,10 @@
     "output": "Physical output verifies the shape STYLE row, all selected LTYPE fields and group 340 equality with the emitted STYLE handle. A fresh read checks the remapped reference, shape flags/number, parameters, and MLINE consumers.",
     "failure_retry": "Removing the required STYLE provider causes export refusal and preserves the destination sentinel. Restoring it permits a successful same-adapter retry.",
     "counts": {
-      "profiles": 4,
-      "successful_readbacks": 8,
-      "missing_provider_refusals_with_destination_preservation": 4,
-      "same_adapter_retries": 4
+      "profiles": 8,
+      "successful_readbacks": 16,
+      "missing_provider_refusals_with_destination_preservation": 8,
+      "same_adapter_retries": 8
     }
   },
   "validation": {
@@ -44,7 +44,7 @@
     "no_repository_fixtures_added": true
   },
   "limits": [
-    "This qualifies transport and source/output STYLE identity for one AC1027 shape-LTYPE profile only; the named SHX resource is not included or loaded, so native shape rendering and shape-number meaning are unproven.",
-    "Other shape numbers/files, combined flags, multiple segments, field-order variants, other providers, versions, native rendering, and composed document closure remain open."
+    "This qualifies transport and source/output STYLE identity for two selected AC1027 shape-LTYPE flag profiles; it preserves the documented absolute-rotation bit but does not prove native orientation or rendering. The named SHX resource is not included or loaded, so shape-number meaning remains unproven.",
+    "Other shape numbers/files, combined flags beyond 4/5, multiple segments, field-order variants, other providers, versions, native rendering, and composed document closure remain open."
   ]
 }

@@ -146,11 +146,13 @@ proof. Refused fields are not implemented editing support.
    consumer. Missing-provider refusal preserves the destination and succeeds on
    same-adapter retry after correction. This does not qualify font availability
    or rendered text. [RPP-5qz](docs/research/rpp5qz-mline-ltype-shape-style-provider-2026-10-29.json)
-   separately qualifies one runtime-generated AC1027 shape-bearing segment with
-   a shape STYLE record whose flag/file fields and remapped group-340 identity
-   are checked in physical output and fresh readback; missing-provider refusal,
-   destination preservation and retry are covered. This does not establish SHX
-   availability, shape-number meaning or rendered output. Other shape numbers/
+   separately qualifies runtime-generated AC1027 shape-bearing segments for
+   group-74 values 4 and 5 (adding the documented absolute-rotation bit), with a
+   shape STYLE record whose flag/file fields and remapped group-340 identity are
+   checked in physical output and fresh readback. Missing-provider refusal,
+   destination preservation and retry cover both profiles. This preserves the
+   selected flag and wire angle; it does not establish SHX availability, native
+   orientation, shape-number meaning or rendered output. Other shape numbers/
    files, combined flags, field placements, multi-segment combinations, providers
    and versions remain open; earlier versions need source/context/codec evidence.
    Native units, font identity, collation, ByLayer/ByBlock inheritance and
