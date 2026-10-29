@@ -22054,7 +22054,7 @@ bool simpleMlineLinetypeXdata(const DRW_LType& value,
                 || field->content.s->find('\0')!=std::string::npos
                 || (application && (depth!=0u || !hasPayload))) return false;
             appIdNames.emplace_back(*field->content.s);
-            if (appIdNames.size()>6u) return false;
+            if (appIdNames.size()>7u) return false;
             application=true;hasPayload=false;continue;
         }
         if (!application) return false;
@@ -22812,12 +22812,12 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                 std::vector<const DRW_Entity*> entityModels;
                                 std::vector<std::uint32_t> entityOwners;
                                 if (!appIdNames.empty()) {
-                                    if (appIdNames.size()>6u || !visit(appIdNames.size())
+                                    if (appIdNames.size()>7u || !visit(appIdNames.size())
                                         || !chargeNamedResourceBytes(bytes,
                                             appIdNames.size()*(sizeof(std::uint32_t)
                                                 +sizeof(std::string_view)+512u)))
                                         return false;
-                                    std::array<std::size_t,6> referenceSlots{};
+                                    std::array<std::size_t,7> referenceSlots{};
                                     std::size_t referenceCount=0u;
                                     for (const auto& reference:r.references) {
                                         if (reference.kind!=dx_tableResourceRole::AppIdName
@@ -23057,7 +23057,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
         std::map<std::uint32_t,DxfMLineXdataLineSource> entityOrigins;
         std::size_t entityOriginWork=0u,entityOriginBytes=0u;
         for (const auto& row:m_dxfMLineLinetypes) {
-            if (row.second.appIdHandles.size()>6u
+            if (row.second.appIdHandles.size()>7u
                 || appReferenceCount>kMaxAdapterBasicTableItems-row.second.appIdHandles.size()
                 || row.second.layerHandles.size()>2u
                 || layerReferenceCount>kMaxAdapterBasicTableItems-row.second.layerHandles.size()
@@ -23090,7 +23090,7 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                     || appIdNames.empty()
                     || appIdNames.size()!=row.second.appIdHandles.size()
                     || entityHandles!=row.second.xdataEntityHandles) return false;
-                std::array<std::string,6> appKeys{};
+                std::array<std::string,7> appKeys{};
                 for (std::size_t i=0u;i<row.second.appIdHandles.size();++i) {
                     if (!dx_symbol_output::nameKey(appIdNames[i],appKeys[i])
                         || (i!=0u && appKeys[i]==appKeys[0])) return false;
