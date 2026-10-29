@@ -384,6 +384,7 @@ tests/dwg_reader_matrix_tests.cpp
 tests/dxf_entity_identity_test_helpers.h
 tests/dxf_fixture_tests.cpp
 tests/dxf_mline_source_dependency_tests.cpp
+tests/dxf_no_raw_sections_tests.cpp
 tests/dxf_symbol_output_tests.cpp
 tests/dxf_whole_source_tests.cpp
 tests/effective_ownership_controls.h

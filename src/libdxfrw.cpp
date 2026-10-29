@@ -2586,6 +2586,9 @@ public:
         // early validation failure, starts with a fresh omission snapshot.
         m_owner.m_leftOut.clear();
         m_owner.m_dxfWriteAttemptActive = true;
+        m_owner.m_dxfNoRawSectionsSelected = m_owner.m_dxfNoRawSectionsPolicy;
+        m_owner.m_dxfNoRawSectionsObserved = false;
+
     }
     ~WriteAttemptScope() noexcept {
         if (!m_committed) {
@@ -2596,6 +2599,8 @@ public:
             m_owner.m_writeError = true;
             m_owner.discardDxfWriteResults();
         }
+        m_owner.m_dxfNoRawSectionsSelected = false;
+        m_owner.m_dxfNoRawSectionsObserved = false;
         m_owner.m_dxfWriteAttemptActive = false;
     }
     void commit() noexcept { m_committed = true; }
@@ -3168,6 +3173,21 @@ void dxfRW::setDxfWriteRecordInventoryEnabled(
     }
     m_dxfWriteRecordInventoryEnabled = enabled;
     m_dxfWriteRecordInventoryLimit = maxHandles;
+}
+
+bool dxfRW::setDxfNoRawSectionsWriteGuard(bool enabled) noexcept {
+    if (m_wholeOperationActive || writer != nullptr) {
+        if (m_dxfWriteAttemptActive) m_writeError = true;
+        return false;
+    }
+    m_dxfNoRawSectionsPolicy = enabled;
+    return true;
+}
+
+bool dxfRW::dxfWriteNoRawSectionsObserved() const noexcept {
+    return m_dxfWriteAttemptActive && m_dxfWriteFinalizing
+        && m_dxfNoRawSectionsSelected && m_dxfNoRawSectionsObserved
+        && m_rawDxfSections.empty() && !m_writeError;
 }
 
 bool dxfRW::setDxfObjectsWriteInspector(DxfObjectsWriteInspector inspector) {
@@ -4441,6 +4461,9 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             return failWrite();
     }
     outputStage = "raw DXF section replay";
+    if (m_dxfNoRawSectionsSelected && !m_rawDxfSections.empty())
+        return failWrite();
+    if (m_dxfNoRawSectionsSelected) m_dxfNoRawSectionsObserved = true;
     for (const DRW_RawDxfSection &section : m_rawDxfSections) {
         if (!writeRawDxfSection(section) || writer->hasWriteError())
             return failWrite();
@@ -4494,7 +4517,9 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     m_dxfWriteFinalizing = true;
     outputStage = "consumer finalization callback";
     const bool accepted = iface->finalizeDxfWrite();
-    if (!accepted || m_writeError) {
+    if (!accepted || m_writeError
+        || (m_dxfNoRawSectionsSelected
+            && (!m_dxfNoRawSectionsObserved || !m_rawDxfSections.empty()))) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Callback, DRW::OperationCause::WriteFailure,
             "dxf-finalize-rejected", "the consumer did not accept the completed DXF write");

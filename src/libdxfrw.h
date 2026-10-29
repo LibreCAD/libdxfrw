@@ -614,6 +614,17 @@ public:
         m_dxfClasses = std::move(classes);
         m_dxfClassesFrozen = false;
     }
+    /** Default-off per-write admission. When enabled before a write, the
+     * codec refuses if any raw section is present at its replay boundary or
+     * after the finalization callback. This concerns only raw-section replay,
+     * not HEADER/CLASSES/TABLES/ENTITIES/OBJECTS content or native semantics.
+     * A policy change attempted during an operation fails the active write.
+     * Rebuild consumers: this adds private state to dxfRW. */
+    bool setDxfNoRawSectionsWriteGuard(bool enabled) noexcept;
+    /** A transient codec receipt, available only during the consumer's
+     * finalization callback after the replay boundary. A true result is
+     * tentative until publication and is not a document dependency proof. */
+    bool dxfWriteNoRawSectionsObserved() const noexcept;
     /*!< Register unmodeled DXF sections for same-version raw replay. */
     void setRawDxfSections(const std::vector<DRW_RawDxfSection> &sections) {
         if (!preflightDxfSetup())
@@ -1826,6 +1837,10 @@ private:
     // WholeOperationScope releases this phase on every admitted exit.
     bool m_dxfWriteFinalizing {false};
     bool m_dxfWriteInspecting {false};
+    bool m_dxfNoRawSectionsPolicy {false};
+    bool m_dxfNoRawSectionsSelected {false};
+    bool m_dxfNoRawSectionsObserved {false};
+
     DxfObjectsWriteInspector m_dxfObjectsWriteInspector;
     DxfEntitySectionsWriteInspector m_dxfEntitySectionsWriteInspector;
     DxfHeaderWriteInspector m_dxfHeaderWriteInspector;

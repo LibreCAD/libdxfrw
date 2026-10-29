@@ -85,6 +85,16 @@ set_tests_properties(dwg2dxf_version_policy PROPERTIES
 # Keep the concrete dwg2dxf adapter's cross-callback image link alive. The
 # source DXF is generated at test time, passed through the real CLI twice, and
 # read back through the same adapter; no image/DXF fixture is committed.
+# Default-off codec guard; generated drawings exercise the actual replay boundary.
+add_executable(libdxfrw_no_raw_sections_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_no_raw_sections_tests.cpp)
+target_compile_features(libdxfrw_no_raw_sections_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_no_raw_sections_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_no_raw_sections_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_no_raw_sections_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_no_raw_sections COMMAND libdxfrw_no_raw_sections_tests)
+set_tests_properties(libdxfrw_no_raw_sections PROPERTIES LABELS "dxf;fast;transaction" TIMEOUT 30)
+
 include(${CMAKE_SOURCE_DIR}/cmake/libdxfrwTestAdapter.cmake)
 add_executable(libdxfrw_mline_source_dependency_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_mline_source_dependency_tests.cpp
