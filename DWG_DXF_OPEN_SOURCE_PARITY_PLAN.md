@@ -198,7 +198,11 @@ and broader producer behavior remain unqualified.
    parser/writer policy, not independent proof of native normal-map bit meanings.
    The [file-backed normal filename edit](docs/research/rpp5ja-material-unmarked-normal-filename-2026-10-28.json)
    binds and rewrites the second group `3` when normal source is `1`, with strict
-   target text encoding and selected composition with those fields. Changing
+   target text encoding and selected composition with those fields. The [normal
+   matrix edit](docs/research/rpp5jb-material-unmarked-normal-matrix-2026-10-28.json)
+   binds the two selected 16-value group-`43` arrays and permits finite typed
+   normal-slot edits, including compositions with the five preceding fields; it
+   does not establish native matrix ordering, meaning or rendering. Changing
    group `72`, its coupling to filenames/procedural data, native rendering and
    other normal-map fields and source profiles require separate evidence. Its
    [procedural-field guard](docs/research/rpp5if-material-orphan-procedural-guard-2026-10-28.json)

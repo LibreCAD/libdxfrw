@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL normal matrix edit",
+  "date": "2026-10-28",
+  "codeCommit": "f9c6047593459acf7de7f34370a6708849ee4dd0",
+  "scope": "Unchanged captured modern-DXF MATERIAL source with a uniquely inferred complete normal tuple, exactly 16 diffuse and 16 normal group-43 fields and qualified common carrier; finite typed normal matrix edits alone or composed with selected normal blend, projection, tiling, auto-transform and source-1 filename edits.",
+  "contract": {
+    "operation": "Bind the first 16 outer group-43 values before the inferred second group-42 boundary to diffuse and the following 16 to normal; validate both against the captured original model, replace only changed normal slots, and re-decode and match the complete represented output model.",
+    "atomicity": "Nonfinite typed values, changed diffuse or presence, missing or extra group-43 fields, raw conflicts, changed source mode and late mutations refuse without replacing destination or caller state; corrected retries are exercised.",
+    "unqualified": "Native matrix ordering, interpretation or rendering; other normal-map source profiles, omitted/repeated variants, arbitrary versions and full-document conversion."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "b908275f959e48fbc95333314d47a5f3c112af6f14e7f900806e80fb4a3de564",
+    "testSourceSha256": "128ee97d55eda05b03e0671eadb517da4e63a3f34cd8533892644ddf135d8c93",
+    "normalAdapterObjectSha256": "8ba02b3bfb4b878efa2d1648893d159e382f8bd62aeb0756c6de22faaa347197",
+    "normalLibrarySha256": "3e771b88b7069039c9c75013cf25710f50570c53e7950ae45317ecde4dc1b67f",
+    "normalTestExecutableSha256": "828cfa31dbd370f8d1fc3e754ef3ea37753cbe3afd8beeaccb8c072d1aac85d4",
+    "asanAdapterObjectSha256": "7c9cc1d0f1adc9841605d4b1318ae27f802d4a49c8a7bb60d41f9f25b23ff1e0",
+    "asanLibrarySha256": "01130f377d4b1aa36f9d9c2c2b239758d5fe1ea3eb0b62b1c285c858117f9bd7",
+    "asanTestExecutableSha256": "ee936f5e5a3c26163a831bc900cbce22582009b8fe9ec1755d21da02d452ab6c"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS"
+    },
+    "asan": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "All 16 individual slots and multi-slot, all-slot and signed-zero edits; compositions with all subsets of five previously admitted fields; ASCII/binary input and output; nonfinite values, diffuse/presence mutations, raw conflicts, source-mode change, missing/extra matrices and late mutations with rollback and corrected retry.",
+    "chronology": "Normal and ASan ran frozen code committed above; the independent physical projection was refreshed against the rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p3-normal-matrix-scratch/independent.json",
+    "reportSha256": "5e78c3d7a3090eefda331bc8b2b3232c30c651c241103641f4a520110f0c61f2",
+    "reportScriptSha256": "d2556906c8001c5da4d20448c390b2318a859075d5dbdeab63087c1cc0eb8523",
+    "probeSourceSha256": "976060506060aa32f337e2423527c50e6720b79c4943684297672f0b5bb7aeda",
+    "sharedLinkedProbeSha256": "64f79cf1b9e0518f57ef9df55650b0ef0b8171c512c840efec0eb7502c2bccec",
+    "originalSourceSha256": "c9e44c4fea58eee1dd7c3e4c96f50e75f62101ad014a797dbb38cb7a7109f715",
+    "derivedInputSha256": "8ff19bb76258f63a11478e5f93efe0998f5dc5b954f43201bdcb2285523580bc",
+    "derivation": "Separately authored AC1027 source with distinct diffuse and normal group-43 sentinels; producer specular code corrected to 76. The derived input removes unrelated EZDXF_META root and DICTIONARY/DICTIONARYVAR objects; selected MATERIAL tags match the original before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "results": [
+      {
+        "format": "ascii",
+        "sha256": "b9b199fad5b26eeec6e65285198e716abd61fdbef4787bfb161d25c162c39c3a"
+      },
+      {
+        "format": "binary",
+        "sha256": "3587cc3b6366dbeff786022a09f7a5ee220560ceb980d195ba15cb320d30aabf"
+      }
+    ],
+    "observations": "Independent pre-setup physical-tag projection compared all 94 selected tags, unchanged except normal matrix slot 9, 209 to 777, in both actual outputs."
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    }
+  ],
+  "limitations": [
+    "The physical group role follows the selected authored source and existing modeled boundary; native normal-matrix ordering and semantics are not established by this evidence.",
+    "The derived source omits unrelated objects; no whole-document fidelity or wider producer-profile claim follows.",
+    "No native CAD rendering, DWG parity, arbitrary source version, or broad support claim follows. No drawing fixture is committed."
+  ]
+}
