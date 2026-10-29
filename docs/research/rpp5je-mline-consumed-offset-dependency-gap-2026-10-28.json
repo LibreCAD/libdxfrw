@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 consumed MLINESTYLE offset investigation and whole-source dependency blocker",
+  "date": "2026-10-28",
+  "status": "SCRATCH_ONLY_BLOCKED",
+  "codeCommit": null,
+  "scope": "Locally authored AC1027 source, same-version ASCII/binary targets and source/target encoding controls. This investigates a changed offset on a style consumed by one model-space MLINE and one named-block MLINE; no production implementation was integrated.",
+  "authorities": {
+    "mline": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "style": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+    "notes": "Style 70 bit 1 enables fill; bit 2 displays miters. The witness uses flags 2, uncut/open consumers and no fill/caps. Group 41 begins with signed distance along the miter, followed by segment/break parameters; group 42 represents fill parameters."
+  },
+  "witness": {
+    "sourceSha256": "16905d3057d5e1c70b22ec7a3ff8768520ac99df0fe75bc660d3c9f490edbb27",
+    "geometry": "Three non-collinear WCS vertices per consumer, distinct extrusion planes, scales 1.25 and 2.5, zero and bottom justifications; style offsets 1.25 and -0.75, with first offset edited to 1.5. Both consumers have no cuts or fill parameters. Independently checked group 41 against a signed perpendicular intersection equation and ezdxf 1.4.5 regenerated geometry. Not native CAD interpretation.",
+    "independentReportSha256": "3c61b560adda5097041653221334bf979f61daba812685f44fd0b1e0521e0c39",
+    "independentPeerReportSha256": "24b67869c7488149f6a14a04feace77e2c298a2c9501ad57cc19dbad7a461a3a",
+    "peerOutputSha256": "3c207bb670e627895fb9b04dbe0b6fc9091fce726e63d807616c02cc327b3610",
+    "actualAsciiSha256": "f4fdcb38961ef4675ac107b9c9ff63c92e52bd7308d9ac3d2375d0a0b2ff0ca8",
+    "actualBinarySha256": "aea19a63baf4a00b0e603ea7661046d34df258afc3652315846b8c0963b95480",
+    "limits": "These physical/readback checks were run against an earlier scratch build, not the later source-bound regression executable. They show selected geometry only, not whole-document dependency, native rendering or support."
+  },
+  "hiddenDependencyCounterexample": {
+    "source": "Locally authored simple source adds application data to LAYER: {TEST_HIDDEN, group 340 = D (the edited MLINESTYLE), }.",
+    "results": "ASCII and binary source imports both succeed and the experimental consumed-offset write succeeds, despite no qualified interpretation of this opaque style dependency. The whole source identity observer retains 5/105 identity candidates, not complete 340/XDATA/embedded/proxy payloads; ordinary MLINE census skips non-MLINE records. Thus this is a concrete unsafe admission, not evidence of a supported application interpretation.",
+    "required": "Keep the geometry prototype unintegrated until whole-source, field-role dependency evidence and a conservative validated admitted grammar reject this case."
+  },
+  "scratchRegression": {
+    "base": "Shared source after d70643b2 and d62f9ff4; source and test files are private scratch, not a committed slice.",
+    "selector": "--mline-consumed-offset-only",
+    "result": "PASS with experimental prototype; excludes whole-source safety and native semantics.",
+    "controls": {
+      "sourceTargetEncodingProfiles": 4,
+      "invalidGeometryRefusals": 18,
+      "missingConsumerEvidenceRefusals": 4,
+      "lateStyleMutations": 8,
+      "lateConsumerMutations": 16,
+      "corruptOutputProbes": 4,
+      "zeroLiveCapturedConsumers": 2,
+      "beforeAfterSectionHookTransientCases": 8,
+      "correctedSameAdapterRetries": 52
+    },
+    "atomicity": "Refusal cases verify destination sentinel and absence of a published temporary file. Checks cover unchanged caller snapshots when no external hook mutates them; hook-mutated caller state is explicitly restored before retry. Transient restored mutation after a completed section is allowed when the already-emitted projection and subsequent validation remain valid. The finalizer is virtual; no guarantee is made for an override that skips its base validation.",
+    "work": "Per-record immutable snapshot check replaces the original per-consumer full census; full preflight, section and final validations remain. The newest design still needs aggregate work-budget boundary tests and compatibility review before integration."
+  },
+  "scratchBindings": {
+    "adapterCppSha256": "2a81307c4ed39ed782dd8f768f8f84b272fc8aeec5e0c35e6b7f93245df17ac9",
+    "adapterHeaderSha256": "92e93e710260593e1f86d3573c552fd53a82722947e9f31b0fbcc44c9e4814e4",
+    "testSourceSha256": "24296913c8054d330b169a2793a65b2e957c1b4d320749a8f5eda33fccb8f5eb",
+    "adapterObjectSha256": "3bfe068712ebd9d9b0ccd017c5a4e263b593c1f3eb3528bf22107b34e187559a",
+    "testExecutableSha256": "f8c01d5e8840357bdf6dfa8c4e79212936fc0b191c141754bc550613b92115c7",
+    "testLogSha256": "7b46ebfe249996b7950286777f67bd112fa27bc2d52f9dceeeaa9ad37dabc2c1",
+    "sharedLibrarySha256": "cc5e4c13cabbb65170f6498ed9acf355084ddfdc056e3a017163c694aa32afd2"
+  },
+  "nextWork": "Add default-off bounded whole-read physical scalar evidence joined to accepted import, then a documented complete-source grammar rejecting unknown sections/records/fields, application/XDATA/proxy/embedded/binary payloads and unqualified references; qualify structural exceptions. Add the counterexample, quotas, failure/retry, output and compatibility controls before any geometry integration.",
+  "claimsPromoted": false,
+  "fixtures": "All source drawings, peer outputs and test artifacts remain in ignored local scratch; no DWG/DXF fixture is committed."
+}
