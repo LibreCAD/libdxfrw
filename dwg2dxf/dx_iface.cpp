@@ -21918,11 +21918,11 @@ bool simpleMlineLinetype(const DRW_LType& value,const DRW_RawDxfObject& raw) {
             || segment.xOffset!=0.0 || segment.yOffset!=0.0 || segment.rotation!=0.0 || segment.scale!=1.0) return false;
     }
     const auto key=layoutSymbolKey(value.name);
-    // Canonical linetypes are emitted as fixed rows with flags0, so their
-    // advisory referenced bit is normalized by the writer. Other canonical
-    // metadata still needs a source-to-output profile before admission.
+    // The selected ByLayer/Continuous profiles normalize their advisory
+    // referenced bit because canonical rows are emitted with flags0. Keep
+    // ByBlock and other canonical metadata outside this profile.
     if ((key=="BYBLOCK" || key=="BYLAYER" || key=="CONTINUOUS")
-        && (!value.path.empty()
+        && ((key=="BYBLOCK" && value.flags!=0) || !value.path.empty()
             || (value.desc!="" && !(key=="CONTINUOUS" && value.desc=="Solid line")))) return false;
     // Omitted source flags mean zero. Actual output uses the strict default
     // policy so this writer's explicit fields remain independently checked.
