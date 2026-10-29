@@ -760,6 +760,8 @@ double x;                 /*!< x coordinate, code 10 */
 *  Class to handle header vars
 *  @author Rallaz
 */
+namespace dxfEntitiesAuth { class VariantAccess; }
+
 class DRW_Variant {
 public:
     enum TYPE {
@@ -955,6 +957,7 @@ public:
     const std::vector<std::uint8_t>* binary() const { return &bdata; }
 
 private:
+    friend class dxfEntitiesAuth::VariantAccess;
     std::string sdata;
     DRW_Coord vdata;
     std::vector<std::uint8_t> bdata;

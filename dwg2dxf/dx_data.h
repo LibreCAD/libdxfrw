@@ -1235,6 +1235,7 @@ private:
         struct EntitiesSource {
             const void* container{nullptr};std::uint64_t generation{0},containerId{0};
             std::shared_ptr<const DRW_DxfEntitiesSource> physical;
+            dxfRW::DxfEntitiesDeliveryTicketPtr ticket;
         };
         struct EntitiesTableOrigin {
             std::size_t section{0},record{0};

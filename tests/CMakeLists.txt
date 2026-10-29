@@ -580,6 +580,18 @@ target_compile_options(libdxfrw_table_content_dxf_tests PRIVATE ${LIBDXFRW_WARNI
 target_include_directories(libdxfrw_table_content_dxf_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(libdxfrw_table_content_dxf_tests PRIVATE dxfrw)
+# Authentication controls use authored in-memory / temporary DXF records.
+foreach(facet codec adapter)
+    add_executable(libdxfrw_entities_ledger_${facet}_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/entities_ledger_${facet}_tests.cpp ${_libdxfrw_test_adapter_source})
+    target_compile_features(libdxfrw_entities_ledger_${facet}_tests PRIVATE cxx_std_17)
+    target_compile_options(libdxfrw_entities_ledger_${facet}_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_include_directories(libdxfrw_entities_ledger_${facet}_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../dwg2dxf)
+    target_link_libraries(libdxfrw_entities_ledger_${facet}_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_entities_ledger_${facet} COMMAND libdxfrw_entities_ledger_${facet}_tests)
+    set_tests_properties(libdxfrw_entities_ledger_${facet} PROPERTIES LABELS "fast;dxf;adapter;entities;authentication;generated" TIMEOUT 60)
+endforeach()
 add_executable(libdxfrw_acds_delivery_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/acds_delivery_tests.cpp ${_libdxfrw_test_adapter_source})
 target_compile_features(libdxfrw_acds_delivery_tests PRIVATE cxx_std_17)

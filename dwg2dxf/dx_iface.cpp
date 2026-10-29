@@ -22423,6 +22423,10 @@ void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
         ||value.version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
         ||!value.beginMarker.ordinal||value.beginMarker.ignoredComment||value.endMarker.ignoredComment
         ||value.beginMarker.beginOffset>=value.beginMarker.endOffset||value.endMarker.beginOffset>=value.endMarker.endOffset) {fail();return;}
+    dxfRW::DxfEntitiesDeliveryTicketPtr ticket;
+    if(value.version==DRW::AC1018&&m_legacyIdentityObservationEnabled) {
+        if(!s.entitiesReadInput||!(ticket=s.entitiesReadInput->dxfEntitiesSourceTicket(value))) {fail();return;}
+    }
     const auto first=value.records.empty()?value.endMarker:value.records.front().marker;
     if(!blockDeliverySpanEqual(first,value.beginMarker)) {fail();return;}
     if(!s.entitiesSources.empty()) {
@@ -22441,7 +22445,7 @@ void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
             ||s.entitiesWork>s.maxEntitiesWork||extra>s.maxEntitiesWork-s.entitiesWork) {fail();return;}
         s.entitiesBytes+=extra;s.entitiesWork+=extra;
         auto physical=std::make_shared<const DRW_DxfEntitiesSource>(value);const auto section=s.entitiesSources.size();
-        s.entitiesSources.push_back({cData,s.generation,cData->m_entitiesContainerIdentity.value,physical});
+        s.entitiesSources.push_back({cData,s.generation,cData->m_entitiesContainerIdentity.value,physical,ticket});
         for(std::size_t i=0;i<physical->records.size();++i) {
             const auto& record=physical->records[i];if(!dx_block_membership::equal(record.name,"ACAD_TABLE"))continue;
             const auto id=dx_block_membership::identity(record);
@@ -22514,8 +22518,10 @@ bool dx_iface::captureEntitiesReadContext() noexcept {
     auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
     if(p.context)return true;
     dxfRW::DxfReadContext live;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021
-        ||live.sourceVersion>DRW::AC1032||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u) {
+    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)
+        ||!((live.sourceVersion>=DRW::AC1021&&live.sourceVersion<=DRW::AC1032&&live.codecVersion==DRW::AC1021)
+            ||(m_legacyIdentityObservationEnabled&&live.sourceVersion==DRW::AC1018&&live.codecVersion==DRW::AC1015))
+        ||live.codecCodePage.size()>128u) {
         s.entitiesDeliveryCaptureFailed=true;return false;
     }
     using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
@@ -22642,6 +22648,11 @@ void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&
         ||value.status!=DRW_DxfEntitiesDeliverySource::Status::Complete||!value.scopeId
         ||s.entitiesSources.size()!=s.entitiesDeliveries.size()+1u){fail();return;}
     const auto section=s.entitiesDeliveries.size();const auto physical=s.entitiesSources[section].physical;
+    if(value.version==DRW::AC1018&&m_legacyIdentityObservationEnabled) {
+        const auto ticket=s.entitiesReadInput?s.entitiesReadInput->dxfEntitiesManifestTicket(value):dxfRW::DxfEntitiesDeliveryTicketPtr{};
+        const auto& sourceTicket=s.entitiesSources[section].ticket;
+        if(!ticket||ticket.get()!=sourceTicket.get()||ticket.owner_before(sourceTicket)||sourceTicket.owner_before(ticket)) {fail();return;}
+    }
     if(!physical||physical->scopeId!=value.scopeId||value.version!=physical->version||value.binary!=physical->binary
         ||!blockDeliverySpanEqual(value.beginMarker,physical->beginMarker)||!blockDeliverySpanEqual(value.endMarker,physical->endMarker)
         ||value.completedEvents!=value.events.size()){fail();return;}
@@ -30620,7 +30631,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         tableSource.entitiesReadInput=&dxf;
         const std::size_t acdsBaselineStart = fData->m_acdsRawDxfSectionBaselines.size();
         (void)dxf.enableDxfAcdsSourceLedger();
-        if(m_legacyIdentityObservationEnabled)(void)dxf.enableDxfIdentityDeliveryLedger();
+        if(m_legacyIdentityObservationEnabled) {
+            (void)dxf.enableDxfIdentityDeliveryLedger();
+            (void)dxf.enableDxfEntitiesDeliveryLedger();
+        }
         dxf.setDxfCodePagePolicy(codePagePolicy);
         if (debug) {
             dxf.setDebug(DRW::DebugLevel::Debug);
@@ -30664,6 +30678,19 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                 tableSource.legacyIdentityReadInput=nullptr;
                 tableSource.legacyIdentityBytes=tableSource.legacyIdentityWork=0u;
             }
+        }
+        if(m_legacyIdentityObservationEnabled&&success&&dxf.getSourceVersion()==DRW::AC1018) {
+            const auto state=dxf.dxfEntitiesDeliveryState();
+            bool valid=state.complete&&!state.failed&&state.scopes==tableSource.entitiesSources.size()
+                &&state.deliveryScopes==tableSource.entitiesDeliveries.size();
+            for(const auto& row:tableSource.entitiesSources) {
+                if(!valid||!row.physical||!dxf.dxfEntitiesSourceMatches(*row.physical,row.ticket)) {valid=false;break;}
+            }
+            for(const auto& row:tableSource.entitiesDeliveries) {
+                if(!valid||row.section>=tableSource.entitiesSources.size()||!row.delivery
+                    ||!dxf.dxfEntitiesManifestMatches(*row.delivery,tableSource.entitiesSources[row.section].ticket)) {valid=false;break;}
+            }
+            if(!valid) {tableSource.entitiesCaptureFailed=true;tableSource.entitiesDeliveryCaptureFailed=true;}
         }
         {
             const auto& ledger = dxf.dxfAcdsSourceLedger();

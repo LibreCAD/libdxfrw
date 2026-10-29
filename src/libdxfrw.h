@@ -1029,6 +1029,27 @@ public:
     DxfIdentityDeliveryTicketPtr dxfIdentityDeliveryTicket(const DRW_DxfIdentitySource&) const noexcept;
     bool dxfIdentityDeliveryMatches(const DRW_DxfIdentitySource&,const DxfIdentityDeliveryTicketPtr&) const noexcept;
 
+    // Default-off, per-section authentication of original ENTITIES physical
+    // and delivery publications. No geometry, namespace or support claim.
+    class DxfEntitiesDeliveryTicket {
+        friend class dxfRW;
+        DxfEntitiesDeliveryTicket(std::uint64_t generation,std::size_t index) noexcept:m_generation(generation),m_index(index) {}
+        std::uint64_t m_generation;std::size_t m_index;
+    };
+    using DxfEntitiesDeliveryTicketPtr=std::shared_ptr<const DxfEntitiesDeliveryTicket>;
+    struct DxfEntitiesDeliveryState {
+        bool enabled{false},failed{false},complete{false};std::uint64_t generation{0};
+        std::size_t scopes{0},deliveryScopes{0},records{0},groups{0},dispatches{0},events{0},bytes{0},work{0};
+    };
+    bool enableDxfEntitiesDeliveryLedger(std::size_t scopes=1024u,std::size_t records=100000u,
+        std::size_t groups=4000000u,std::size_t dispatches=100000u,std::size_t events=4000000u,
+        std::size_t bytes=64u*1024u*1024u,std::size_t work=128u*1024u*1024u) noexcept;
+    DxfEntitiesDeliveryState dxfEntitiesDeliveryState() const noexcept;
+    DxfEntitiesDeliveryTicketPtr dxfEntitiesSourceTicket(const DRW_DxfEntitiesSource&) const noexcept;
+    DxfEntitiesDeliveryTicketPtr dxfEntitiesManifestTicket(const DRW_DxfEntitiesDeliverySource&) const noexcept;
+    bool dxfEntitiesSourceMatches(const DRW_DxfEntitiesSource&,const DxfEntitiesDeliveryTicketPtr&) const noexcept;
+    bool dxfEntitiesManifestMatches(const DRW_DxfEntitiesDeliverySource&,const DxfEntitiesDeliveryTicketPtr&) const noexcept;
+
     // Opt-in, bounded original ACDSDATA section capture for import delivery
     // reconciliation. Default reads do not allocate this ledger. The active
     // source pointer is borrowed only during the raw-section callback.
@@ -1772,6 +1793,21 @@ private:
     DxfIdentityDeliveryLedger m_dxfIdentityDelivery;
     void beginDxfIdentityDelivery() noexcept;
     void captureDxfIdentityDelivery(const DRW_DxfIdentitySource&) noexcept;
+    struct DxfEntitiesDeliveryLedger {
+        struct Scope {DRW_DxfEntitiesSource source;DRW_DxfEntitiesDeliverySource delivery;
+            DxfEntitiesDeliveryTicketPtr ticket;bool delivered{false};};
+        DxfEntitiesDeliveryState state;
+        std::size_t maxScopes{1024u},maxRecords{100000u},maxGroups{4000000u},maxDispatches{100000u},maxEvents{4000000u};
+        std::size_t maxBytes{64u*1024u*1024u},maxWork{128u*1024u*1024u};
+        std::uint64_t sequence{0};std::vector<Scope> scopes;
+        const DRW_DxfEntitiesSource* sourcePublication{nullptr};
+        const DRW_DxfEntitiesDeliverySource* manifestPublication{nullptr};
+        DxfEntitiesDeliveryTicketPtr activeTicket;
+    };
+    DxfEntitiesDeliveryLedger m_dxfEntitiesDelivery;
+    void beginDxfEntitiesDelivery() noexcept;
+    std::size_t captureDxfEntitiesSource(const DRW_DxfEntitiesSource&) noexcept;
+    void captureDxfEntitiesManifest(std::size_t,const DRW_DxfEntitiesDeliverySource&) noexcept;
     DxfAcdsSourceLedger m_dxfAcdsSourceLedger;
     const DRW_RawDxfSection* m_dxfAcdsActiveSource{nullptr};
     bool captureDxfAcdsSection(const DRW_RawDxfSection&) noexcept;

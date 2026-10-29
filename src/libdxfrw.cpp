@@ -55,6 +55,7 @@
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
+#include "intern/dxfentitiesauth.h"
 #include "intern/dxfidentitysource.h"
 #include "intern/dxfobjectphysicalsource.h"
 #include "intern/dxfentitiesdelivery.h"
@@ -3422,6 +3423,112 @@ bool dxfRW::bindDxfWriteSourceObjectHandle(
     return true;
 }
 
+bool dxfRW::enableDxfEntitiesDeliveryLedger(std::size_t scopes,std::size_t records,std::size_t groups,
+        std::size_t dispatches,std::size_t events,std::size_t bytes,std::size_t work) noexcept {
+    if(m_wholeOperationActive)return false;auto& s=m_dxfEntitiesDelivery;
+    s.maxScopes=scopes;s.maxRecords=records;s.maxGroups=groups;s.maxDispatches=dispatches;s.maxEvents=events;
+    s.maxBytes=bytes;s.maxWork=work;s.state={};s.state.enabled=true;s.scopes.clear();
+    s.sourcePublication=nullptr;s.manifestPublication=nullptr;s.activeTicket.reset();return true;
+}
+void dxfRW::beginDxfEntitiesDelivery() noexcept {
+    auto& s=m_dxfEntitiesDelivery;const bool enabled=s.state.enabled;s.state={};s.state.enabled=enabled;s.scopes.clear();
+    s.sourcePublication=nullptr;s.manifestPublication=nullptr;s.activeTicket.reset();if(!enabled)return;
+    if(s.sequence==(std::numeric_limits<std::uint64_t>::max)()){s.state.failed=true;return;}s.state.generation=++s.sequence;
+}
+std::size_t dxfRW::captureDxfEntitiesSource(const DRW_DxfEntitiesSource& source) noexcept {
+    auto& s=m_dxfEntitiesDelivery;auto& state=s.state;constexpr auto none=(std::numeric_limits<std::size_t>::max)();
+    const auto fail=[&]() noexcept {state.failed=true;return none;};
+    if(!state.enabled||state.failed||!state.generation||source.status!=DRW_DxfEntitiesSource::Status::Complete
+        ||source.version!=DRW::AC1018||!source.scopeId||state.scopes>=s.maxScopes||state.records>s.maxRecords
+        ||source.records.size()>s.maxRecords-state.records)return fail();
+    std::size_t bytes=sizeof(DxfEntitiesDeliveryLedger::Scope)+sizeof(DxfEntitiesDeliveryTicket)+32u*sizeof(void*),work=0u,groups=0u;
+    const auto add=[&](std::size_t& x,std::size_t n,std::size_t limit) noexcept {if(x>limit||n>limit-x)return false;x+=n;return true;};
+    const auto slots=[&](std::size_t& x,std::size_t n,std::size_t size,std::size_t limit) noexcept {
+        return (!size||n<=limit/size)&&add(x,n*size,limit);};
+    if(state.bytes>s.maxBytes||bytes>s.maxBytes-state.bytes||state.work>s.maxWork
+        ||!slots(work,source.records.size(),128u,s.maxWork-state.work)
+        // Post-read source and manifest authentication each find the owner
+        // without dereferencing a caller-supplied (possibly aliased) pointer.
+        // Precharge the worst-case two scope scans before storing the scope.
+        ||!slots(work,s.maxScopes,128u,s.maxWork-state.work)
+        ||!slots(bytes,source.records.size(),sizeof(DRW_DxfPhysicalEntitySource)+8u*sizeof(void*),s.maxBytes-state.bytes))return fail();
+    for(const auto& row:source.records){
+        if(row.groups.size()!=row.rawValues.size()||row.groups.size()!=row.spans.size()
+            ||state.groups>s.maxGroups||groups>s.maxGroups-state.groups||row.groups.size()>s.maxGroups-state.groups-groups
+            ||!add(groups,row.groups.size(),s.maxGroups-state.groups)
+            ||!slots(work,row.groups.size(),128u,s.maxWork-state.work)
+            ||!slots(bytes,row.groups.size(),sizeof(DRW_Variant)+sizeof(UTF8STRING)+sizeof(DRW_DxfPhysicalRecordSpan)+8u*sizeof(void*),s.maxBytes-state.bytes)
+            ||!add(bytes,row.name.size(),s.maxBytes-state.bytes)||!add(bytes,1u,s.maxBytes-state.bytes))return fail();
+        for(std::size_t i=0u;i<row.groups.size();++i){std::size_t payload=0u;
+            if(!dxfEntitiesAuth::VariantAccess::canonical(row.groups[i])
+                ||!row.groups[i].estimateRetainedPayloadBytes(s.maxBytes,payload)
+                ||!add(bytes,payload,s.maxBytes-state.bytes)||!add(bytes,row.rawValues[i].size(),s.maxBytes-state.bytes)
+                ||!add(bytes,1u,s.maxBytes-state.bytes))return fail();
+        }
+    }
+    if(groups!=source.groups||bytes>(s.maxWork-state.work-work)/2u)return fail();work+=2u*bytes;
+    try {
+        DxfEntitiesDeliveryLedger::Scope scope;scope.source=source;
+        const auto index=s.scopes.size();scope.ticket=DxfEntitiesDeliveryTicketPtr(new DxfEntitiesDeliveryTicket(state.generation,index));
+        s.scopes.push_back(std::move(scope));++state.scopes;state.records+=source.records.size();state.groups+=groups;
+        state.bytes+=bytes;state.work+=work;return index;
+    }catch(...){return fail();}
+}
+void dxfRW::captureDxfEntitiesManifest(std::size_t index,const DRW_DxfEntitiesDeliverySource& value) noexcept {
+    auto& s=m_dxfEntitiesDelivery;auto& state=s.state;const auto fail=[&]() noexcept {state.failed=true;};
+    if(!state.enabled||state.failed||index>=s.scopes.size()||s.scopes[index].delivered
+        ||value.status!=DRW_DxfEntitiesDeliverySource::Status::Complete
+        ||value.scopeId!=s.scopes[index].source.scopeId||value.version!=s.scopes[index].source.version
+        ||value.binary!=s.scopes[index].source.binary||!dxfEntitiesAuth::span(value.beginMarker,s.scopes[index].source.beginMarker)
+        ||!dxfEntitiesAuth::span(value.endMarker,s.scopes[index].source.endMarker)
+        ||state.dispatches>s.maxDispatches||value.dispatches.size()>s.maxDispatches-state.dispatches
+        ||state.events>s.maxEvents||value.events.size()>s.maxEvents-state.events) {fail();return;}
+    std::size_t bytes=sizeof(value)+8u*sizeof(void*),work=0u;
+    const auto add=[&](std::size_t& x,std::size_t n,std::size_t limit) noexcept {if(x>limit||n>limit-x)return false;x+=n;return true;};
+    const auto slots=[&](std::size_t& x,std::size_t n,std::size_t size,std::size_t limit) noexcept {
+        return (!size||n<=limit/size)&&add(x,n*size,limit);};
+    if(state.bytes>s.maxBytes||bytes>s.maxBytes-state.bytes||state.work>s.maxWork
+        ||!slots(bytes,value.dispatches.size(),sizeof(DRW_DxfEntitiesDispatch)+4u*sizeof(void*),s.maxBytes-state.bytes)
+        ||!slots(bytes,value.events.size(),sizeof(DRW_DxfEntitiesDeliveryEvent)+4u*sizeof(void*),s.maxBytes-state.bytes)
+        ||!slots(work,value.dispatches.size(),64u,s.maxWork-state.work)||!slots(work,value.events.size(),64u,s.maxWork-state.work)
+        ||bytes>(s.maxWork-state.work-work)/2u) {fail();return;}work+=2u*bytes;
+    try {DRW_DxfEntitiesDeliverySource copy=value;s.scopes[index].delivery=std::move(copy);s.scopes[index].delivered=true;
+        ++state.deliveryScopes;state.dispatches+=value.dispatches.size();state.events+=value.events.size();state.bytes+=bytes;state.work+=work;
+    }catch(...){fail();}
+}
+dxfRW::DxfEntitiesDeliveryState dxfRW::dxfEntitiesDeliveryState() const noexcept {
+    if(m_wholeOperationActive){DxfEntitiesDeliveryState pending;pending.enabled=m_dxfEntitiesDelivery.state.enabled;return pending;}
+    return m_dxfEntitiesDelivery.state;
+}
+dxfRW::DxfEntitiesDeliveryTicketPtr dxfRW::dxfEntitiesSourceTicket(const DRW_DxfEntitiesSource& source) const noexcept {
+    const auto& s=m_dxfEntitiesDelivery;
+    return m_wholeOperationActive&&m_readTextObservationsActive&&s.sourcePublication==&source&&!s.state.failed?s.activeTicket:DxfEntitiesDeliveryTicketPtr{};
+}
+dxfRW::DxfEntitiesDeliveryTicketPtr dxfRW::dxfEntitiesManifestTicket(const DRW_DxfEntitiesDeliverySource& source) const noexcept {
+    const auto& s=m_dxfEntitiesDelivery;
+    return m_wholeOperationActive&&m_readTextObservationsActive&&s.manifestPublication==&source&&!s.state.failed?s.activeTicket:DxfEntitiesDeliveryTicketPtr{};
+}
+bool dxfRW::dxfEntitiesSourceMatches(const DRW_DxfEntitiesSource& value,const DxfEntitiesDeliveryTicketPtr& ticket) const noexcept {
+    const auto& s=m_dxfEntitiesDelivery;const auto& state=s.state;
+    if(m_wholeOperationActive||!state.enabled||state.failed||!state.complete||!ticket)return false;
+    for(std::size_t i=0u;i<s.scopes.size();++i) {
+        const auto& scope=s.scopes[i];
+        if(scope.ticket.get()!=ticket.get()||ticket.owner_before(scope.ticket)||scope.ticket.owner_before(ticket))continue;
+        return ticket->m_generation==state.generation&&ticket->m_index==i&&dxfEntitiesAuth::physical(scope.source,value);
+    }
+    return false;
+}
+bool dxfRW::dxfEntitiesManifestMatches(const DRW_DxfEntitiesDeliverySource& value,const DxfEntitiesDeliveryTicketPtr& ticket) const noexcept {
+    const auto& s=m_dxfEntitiesDelivery;const auto& state=s.state;
+    if(m_wholeOperationActive||!state.enabled||state.failed||!state.complete||!ticket)return false;
+    for(std::size_t i=0u;i<s.scopes.size();++i) {
+        const auto& scope=s.scopes[i];
+        if(scope.ticket.get()!=ticket.get()||ticket.owner_before(scope.ticket)||scope.ticket.owner_before(ticket))continue;
+        return scope.delivered&&ticket->m_generation==state.generation&&ticket->m_index==i&&dxfEntitiesAuth::manifest(scope.delivery,value);
+    }
+    return false;
+}
+
 bool dxfRW::enableDxfIdentityDeliveryLedger(std::size_t sections,std::size_t records,
         std::size_t candidates,std::size_t bytes,std::size_t work) noexcept {
     if(m_wholeOperationActive)return false;
@@ -3569,6 +3676,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         return false;
     resetDxfAcdsSourceLedger();
     beginDxfIdentityDelivery();
+    beginDxfEntitiesDelivery();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     m_textReadObservations = {};
     m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
@@ -3680,6 +3788,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
     if (m_dxfIdentityDelivery.state.enabled)
         m_dxfIdentityDelivery.state.complete = isOk && m_dxfIdentityDelivery.state.captured && !m_dxfIdentityDelivery.state.failed;
+    if (m_dxfEntitiesDelivery.state.enabled)
+        m_dxfEntitiesDelivery.state.complete = isOk && !m_dxfEntitiesDelivery.state.failed;
     reader.reset();
     return isOk;
 }
@@ -3691,6 +3801,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
         return false;
     resetDxfAcdsSourceLedger();
     beginDxfIdentityDelivery();
+    beginDxfEntitiesDelivery();
     beginOperationDiagnostic(DRW::OperationKind::Read);
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
@@ -3762,6 +3873,8 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     if (m_dxfAcdsSourceLedger.enabled) m_dxfAcdsSourceLedger.complete = isOk;
     if (m_dxfIdentityDelivery.state.enabled)
         m_dxfIdentityDelivery.state.complete = isOk && m_dxfIdentityDelivery.state.captured && !m_dxfIdentityDelivery.state.failed;
+    if (m_dxfEntitiesDelivery.state.enabled)
+        m_dxfEntitiesDelivery.state.complete = isOk && !m_dxfEntitiesDelivery.state.failed;
     reader.reset();
     return isOk;
 }
@@ -16982,13 +17095,33 @@ bool dxfRW::processEntities(bool isblock) {
     if(captureDelivery)iface=&entitiesEvents;
     const auto completeEntities=[&]() {
         iface=originalInterface;
+        const bool authenticate=captureEntities&&m_dxfEntitiesDelivery.state.enabled
+            &&entitiesSource.source().version==DRW::AC1018;
+        std::size_t authenticated=(std::numeric_limits<std::size_t>::max)();
+        struct ClearPublication {
+            DxfEntitiesDeliveryLedger& value;
+            ~ClearPublication(){value.sourcePublication=nullptr;value.manifestPublication=nullptr;value.activeTicket.reset();}
+        } clearPublication{m_dxfEntitiesDelivery};
         if(captureEntities) {
             entitiesSource.detach();
+            if(authenticate) {
+                authenticated=captureDxfEntitiesSource(entitiesSource.source());
+                if(authenticated<m_dxfEntitiesDelivery.scopes.size()) {
+                    m_dxfEntitiesDelivery.activeTicket=m_dxfEntitiesDelivery.scopes[authenticated].ticket;
+                    m_dxfEntitiesDelivery.sourcePublication=&entitiesSource.source();
+                }
+            }
             entitiesHandler->addDxfEntitiesSource(entitiesSource.source());
+            m_dxfEntitiesDelivery.sourcePublication=nullptr;
         }
         if(captureDelivery) {
             entitiesDelivery.complete(entitiesSource.source());
+            if(authenticate) {
+                captureDxfEntitiesManifest(authenticated,entitiesDelivery.source());
+                if(!m_dxfEntitiesDelivery.state.failed)m_dxfEntitiesDelivery.manifestPublication=&entitiesDelivery.source();
+            }
             deliveryHandler->addDxfEntitiesDeliverySource(entitiesDelivery.source());
+            m_dxfEntitiesDelivery.manifestPublication=nullptr;
         }
         return true;
     };
