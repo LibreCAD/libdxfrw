@@ -62,8 +62,8 @@ external searches or a broad audit with no current failing witness.
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
-| P4a — AC1018 attribute provenance | Selected ATTDEF and 704/705/706 source joins; a coordinated callback spoof defeats current 6F2 body pairing | First authenticate the same-read whole-source observer; bind its original 6F2 body to the structural capture before any BLKREFS/331 source relation. Target-name uniqueness, APPID/LAYER and output remain separate |
-| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); whole-read scalar capture and existing identity/delivery evidence | Capture and authenticate the whole original stream, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
+| P4a — AC1018 attribute provenance | Selected ATTDEF and 704/705/706 source joins; [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) | Bind original 6F2 body to the structural capture before any BLKREFS/331 source relation. Target-name uniqueness, APPID/LAYER and output remain separate |
+| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [same-read scalar observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json) and existing identity/delivery evidence | Join the accepted capture to origins, implement a conservative dependency grammar and demonstrate hidden-340 refusal/retry before considering projection integration |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
@@ -127,12 +127,12 @@ proof. Refused fields are not implemented editing support.
    scratch projection or promote claims until a dependency guard is complete.
    Implement this in independently verifiable slices:
 
-   - Add a default-off, codec-owned whole-read physical scalar observer, covering
-     every section and original value including HEADER and CLASSES, marker/field
-     spans, comments, version and encoding. Bound retained bytes, nodes and work
-     with overflow-checked accounting; quota/allocation/truncation and missing
-     or unjoined evidence fail closed for this operation while ordinary readers
-     and existing consumer interfaces retain their established behavior.
+   The [default-off decoded-scalar observer receipt](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json)
+   records capture and accepted-import binding. Its observed values and spans
+   are not a byte-exact file image, document grammar or dependency proof; a
+   detected hidden `340` does not itself refuse a geometry edit. The source is
+   private to the adapter and dependent binaries must rebuild. Remaining work:
+
    - Join immutable evidence to the accepted whole import and existing source,
      identity, dispatch and ownership origins. Audit a deliberately selected
      complete document grammar: start with the locally authored modern witness's
@@ -421,10 +421,10 @@ and profile all pass. A scratch comparison against a separately reopened
 whole-source stream detects this counterexample, but that comparison is not
 same-read authority and must not promote a source relation.
 
-First finish the shared default-off, codec-owned whole-source observer already
-needed by P2: authenticate its original values and spans across the accepted
-read, callback, context, owner and generation. Reuse it for a bounded exact
-BLOCK_RECORD body join; then bind 6F2's BLKREFS/331 and original name to 704
+Use the [same-read observer](docs/research/rpp5jg-whole-source-decoded-scalars-2026-10-28.json)
+for a bounded exact BLOCK_RECORD body join, verifying the original scalar scope,
+record boundaries and all roles against the selected capture. Then bind 6F2's
+BLKREFS/331 and original name to 704
 as a source relation with ASCII/binary, callback-spoof, quota and retry controls.
 Keep name uniqueness and target resolution separate, then bind XDICTIONARY 6F3
 and APPID/LAYER targets and prove output and retry behavior without weakening
