@@ -156,6 +156,13 @@ proof. Refused fields are not implemented editing support.
    edit remains refused atomically by the committed adapter. Keep that
    prototype unintegrated until the complete live-to-output guard passes.
 
+   The [default-off raw-section guard](docs/research/rpp5jn-no-raw-section-guard-2026-10-28.json)
+   can reject raw-section replay at the codec's actual replay boundary and
+   rechecks it after finalization. Its tentative receipt is available only
+   during finalization. It is a reusable prerequisite, not a complete output
+   or dependency proof, and it is not yet used to enable consumed geometry.
+   The added private codec state requires dependent binaries to rebuild.
+
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
      unknown/proxy/embedded/XDATA or unqualified dependencies; do not infer a
@@ -164,8 +171,11 @@ proof. Refused fields are not implemented editing support.
      including root/style dictionaries, styles, providers, layers, blocks and
      entities. Check application data, XDATA and unknown metadata, and refuse
      newly added opaque objects or raw sections unless separately qualified.
-     Account for section ownership transferred to the writer and inspect staged
-     output; original classification alone cannot authenticate later mutations.
+     Use the codec guard for the no-raw-section profile, including ownership
+     transferred to the writer; independently qualify the actual staged section
+     contents. In particular, authenticate generated CLASSES and account for
+     the final HANDSEED backpatch, which occurs after HEADER inspection.
+     Original classification alone cannot authenticate later mutations.
      Include original consumers even when none remain live, and refuse deleted,
      moved, duplicated or late-mutated consumers. Add ASCII/binary failure,
      destination-sentinel and same-adapter corrected-retry controls. Charge
