@@ -31319,6 +31319,44 @@ Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false,
     return fields;
 }
 
+Tags sourceWithManyEntityHandleXdata(bool binary,
+                                    const std::vector<std::string>& handles) {
+    if(handles.size()<2u)
+        throw std::runtime_error("multi-reference LTYPE XDATA needs at least two handles");
+    auto fields=source(binary);
+    const Tags ordinary{{1001,appName},{1000,payload}};
+    const auto first=std::search(fields.begin(),fields.end(),
+        ordinary.begin(),ordinary.end());
+    if(first==fields.end())
+        throw std::runtime_error("multi-reference LTYPE XDATA pair missing");
+    const auto at=fields.erase(first,
+        first+static_cast<std::ptrdiff_t>(ordinary.size()));
+    Tags typed{{1001,appName},{1000,payload}};
+    for(const auto& handle:handles)typed.emplace_back(1005,handle);
+    fields.insert(at,typed.begin(),typed.end());
+    auto end=fields.end();bool entities=false;
+    for(auto it=fields.begin();it!=fields.end();++it) {
+        if(*it==std::make_pair(2,std::string("ENTITIES")))entities=true;
+        else if(entities&&*it==std::make_pair(0,std::string("ENDSEC"))) {
+            end=it;break;
+        }
+    }
+    if(end==fields.end())
+        throw std::runtime_error("multi-reference LTYPE ENTITIES section missing");
+    std::size_t insertAt=static_cast<std::size_t>(end-fields.begin());
+    for(std::size_t i=0u;i<handles.size();++i) {
+        const double startX=i==0u?1.25:1.5+6.0*static_cast<double>(i);
+        const std::string x=std::to_string(startX);
+        const Tags line{{0,"LINE"},{5,handles[i]},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
+            {10,x},{20,"0"},{30,"0"},{11,x},{21,"1"},{31,"1"}};
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(insertAt),
+                      line.begin(),line.end());
+        insertAt+=line.size();
+    }
+    return fields;
+}
+
 Tags sourceWithTwoPairs(bool binary) {
     auto fields=source(binary);
     std::size_t appTable=fields.size(),appEnd=fields.size();std::string tableHandle;
@@ -31951,6 +31989,125 @@ bool entityHandleProviderProof(const std::filesystem::path& path,bool binary,
         const auto parsedLine=std::find_if(actual.mBlock->ent.begin(),
             actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
                 return entity!=nullptr&&entity->eType==DRW::LINE
+                    &&entity->handle==std::stoul(handle,nullptr,16);
+            });
+        if(parsedLine==actual.mBlock->ent.end()
+            ||(*parsedLine)->parentHandle!=ownerHandle)return false;
+    }
+    return true;
+}
+
+bool manyEntityHandleProviderProof(const std::filesystem::path& path,bool binary,
+                                  bool requireRemap,
+                                  const std::vector<std::string>& sourceHandles,
+                                  const std::string& appOwner="9") {
+    if(sourceHandles.size()<2u||!providerProof(path,binary))return false;
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    const mlineStyleAuthorityControls::Row* selected=nullptr;
+    const mlineStyleAuthorityControls::Row* appProvider=nullptr;
+    std::vector<const mlineStyleAuthorityControls::Row*> lineProviders;
+    for(const auto& row:rows) {
+        if(row.type=="LTYPE"&&row.section=="TABLES")
+            for(const auto& field:row.fields)
+                if(field==std::make_pair(2,std::string("EditDash"))) {
+                    if(selected)return false;selected=&row;
+                }
+        if(row.type=="APPID"&&row.section=="TABLES")
+            for(const auto& field:row.fields)
+                if(field==std::make_pair(2,std::string(appName))) {
+                    if(appProvider)return false;appProvider=&row;
+                }
+        if(row.type=="LINE"&&row.section=="ENTITIES")
+            lineProviders.push_back(&row);
+    }
+    if(!selected||!appProvider||selected->id.empty()||appProvider->id.empty()
+        ||lineProviders.size()!=sourceHandles.size())return false;
+    const auto fieldValue=[](const auto& row,int code) {
+        const auto field=std::find_if(row.fields.begin(),row.fields.end(),
+            [&](const auto& value){return value.first==code;});
+        return field==row.fields.end()?std::string{}:field->second;
+    };
+    std::vector<std::string> emittedHandles;
+    emittedHandles.reserve(sourceHandles.size());
+    std::string owner;
+    for(std::size_t i=0u;i<sourceHandles.size();++i) {
+        const double expectedStartX=i==0u?1.25:1.5+6.0*static_cast<double>(i);
+        const mlineStyleAuthorityControls::Row* matched=nullptr;
+        for(const auto* lineProvider:lineProviders) {
+            double observedStartX=0.0;
+            if(!dx_raster_output::finiteReal(fieldValue(*lineProvider,10),
+                                              observedStartX)
+                ||observedStartX!=expectedStartX)continue;
+            if(matched)return false;
+            matched=lineProvider;
+        }
+        if(matched==nullptr||matched->id.empty()||matched->owner.empty()
+            ||(!owner.empty()&&owner!=matched->owner)
+            ||(requireRemap&&matched->id==sourceHandles[i])
+            ||(!requireRemap&&matched->id!=sourceHandles[i]))return false;
+        owner=matched->owner;
+        if(std::find(emittedHandles.begin(),emittedHandles.end(),matched->id)
+            !=emittedHandles.end())return false;
+        emittedHandles.push_back(matched->id);
+    }
+    std::vector<std::pair<int,std::string>> expectedXdata{
+        {1001,appName},{1000,payload}};
+    for(const auto& handle:emittedHandles)expectedXdata.emplace_back(1005,handle);
+    std::vector<std::pair<int,std::string>> physicalXdata;
+    for(const auto& field:selected->fields)
+        if(field.first>=1000)physicalXdata.push_back(field);
+    std::vector<int> appCodes;
+    for(const auto& field:appProvider->fields)appCodes.push_back(field.first);
+    const auto appValue=[&](int code) {
+        const auto field=std::find_if(appProvider->fields.begin(),
+            appProvider->fields.end(),[&](const auto& value) {
+                return value.first==code;
+            });
+        return field==appProvider->fields.end()?std::string{}:field->second;
+    };
+    std::int64_t flags=1;
+    if(physicalXdata!=expectedXdata
+        ||appCodes!=std::vector<int>{5,330,100,100,2,70}
+        ||appProvider->owner!=appOwner||appValue(5).empty()
+        ||appValue(2)!=appName
+        ||!dx_raster_output::integer(appValue(70),flags)||flags!=0)return false;
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)||actual.mBlock==nullptr)return false;
+    const auto ownerHandle=static_cast<std::uint32_t>(std::stoul(owner,nullptr,16));
+    unsigned linetypes=0u,lines=0u,owners=0u;std::string ownerName;
+    for(const auto& record:actual.blockRecords)
+        if(record.handle==ownerHandle){++owners;ownerName=record.name;}
+    unsigned appIds=0u;
+    for(const auto& record:actual.appIds)
+        if(record.name==appName&&record.handle==std::stoul(appValue(5),nullptr,16))
+            ++appIds;
+    for(const auto& value:actual.lineTypes)if(value.name=="EditDash") {
+        if(value.extData.size()!=emittedHandles.size()+2u
+            ||!value.extData[0]||!value.extData[1]
+            ||value.extData[0]->code()!=1001
+            ||value.extData[0]->type()!=DRW_Variant::STRING
+            ||!value.extData[0]->content.s||*value.extData[0]->content.s!=appName
+            ||value.extData[1]->code()!=1000
+            ||value.extData[1]->type()!=DRW_Variant::STRING
+            ||!value.extData[1]->content.s||*value.extData[1]->content.s!=payload)
+            return false;
+        for(std::size_t i=0u;i<emittedHandles.size();++i) {
+            const auto* reference=value.extData[i+2u];
+            if(!reference||reference->code()!=1005
+                ||reference->type()!=DRW_Variant::STRING||!reference->content.s
+                ||std::stoul(*reference->content.s,nullptr,16)
+                    !=std::stoul(emittedHandles[i],nullptr,16))return false;
+        }
+        ++linetypes;
+    }
+    for(const DRW_Entity* entity:actual.mBlock->ent)
+        if(entity&&entity->eType==DRW::LINE)++lines;
+    if(linetypes!=1u||lines!=sourceHandles.size()||owners!=1u||appIds!=1u
+        ||ownerName!="*Model_Space")return false;
+    for(const auto& handle:emittedHandles) {
+        const auto parsedLine=std::find_if(actual.mBlock->ent.begin(),
+            actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+                return entity&&entity->eType==DRW::LINE
                     &&entity->handle==std::stoul(handle,nullptr,16);
             });
         if(parsedLine==actual.mBlock->ent.end()
@@ -34256,10 +34413,121 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
+    const std::vector<std::string> sixteenSourceHandles{
+        "A900","A902","A903","A904","A905","A906","A907","A908",
+        "A909","A90A","A90B","A90C","A90D","A90E","A90F","A910"};
+    std::vector<std::uint32_t> sixteenSourceHandleIds;
+    for(const auto& handle:sixteenSourceHandles)
+        sixteenSourceHandleIds.push_back(static_cast<std::uint32_t>(
+            std::stoul(handle,nullptr,16)));
+    for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,sourceWithManyEntityHandleXdata(
+                       sourceBinary,sixteenSourceHandles),sourceBinary,"AC1027")
+            ||!manyEntityHandleProviderProof(input,sourceBinary,false,
+                                               sixteenSourceHandles,"1F0")) {
+            std::cerr<<"sixteen-handle source proof failed: "
+                     <<sourceBinary<<'\n';return false;
+        }
+        if(!adapter.fileImport(input.string(),&data,false)||!data.mBlock) {
+            std::cerr<<"sixteen-handle source import failed: "
+                     <<sourceBinary<<'\n';return false;
+        }
+        const auto sourceLine=std::find_if(data.lineTypes.begin(),
+            data.lineTypes.end(),[](const auto& value) {
+                return value.handle==0x103u;
+            });
+        if(sourceLine==data.lineTypes.end()||sourceLine->extData.size()!=18u
+            ||std::count_if(data.mBlock->ent.begin(),data.mBlock->ent.end(),
+                [](const DRW_Entity* entity) {
+                    return entity&&entity->eType==DRW::LINE;
+                })!=16) {
+            std::cerr<<"sixteen-handle typed source check failed: "
+                     <<sourceBinary<<'\n';return false;
+        }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!manyEntityHandleProviderProof(output,outputBinary,true,
+                                              sixteenSourceHandles)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,sixteenSourceHandleIds)) {
+            std::cerr<<"sixteen-handle output/source binding failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++profiles;++readbacks;
+        const auto target=std::find_if(data.mBlock->ent.begin(),
+            data.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+                return entity&&entity->handle==sixteenSourceHandleIds.back();
+            });
+        if(target==data.mBlock->ent.end())return false;
+        DRW_Entity* retained=*target;
+        const auto restoreIndex=std::distance(data.mBlock->ent.begin(),target);
+        if(restoreIndex<0)return false;
+        const auto restoreOffset=static_cast<std::size_t>(restoreIndex);
+        data.mBlock->ent.erase(target);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                              &data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"sixteen-handle missing-target refusal failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++refusals;
+        auto restorePosition=data.mBlock->ent.begin();
+        std::advance(restorePosition,static_cast<std::ptrdiff_t>(restoreOffset));
+        data.mBlock->ent.insert(restorePosition,retained);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                               &data,false,true)
+            ||!manyEntityHandleProviderProof(output,outputBinary,true,
+                                              sixteenSourceHandles)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,sixteenSourceHandleIds)) {
+            std::cerr<<"sixteen-handle same-adapter retry failed: "
+                     <<sourceBinary<<' '<<outputBinary<<'\n';return false;
+        }
+        ++retries;++readbacks;
+    }
+    {
+        LateXdataLineMutation adapter;dx_data data;
+        adapter.sourceHandle=sixteenSourceHandleIds.back();
+        if(!write(input,sourceWithManyEntityHandleXdata(
+                       false,sixteenSourceHandles),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)) {
+            std::cerr<<"sixteen-handle late-mutation source setup failed\n";
+            return false;
+        }
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!adapter.mutated
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)) {
+            std::cerr<<"sixteen-handle late-mutation refusal failed\n";
+            return false;
+        }
+        ++refusals;adapter.armed=false;
+        for(DRW_Entity* entity:data.mBlock->ent)
+            if(entity&&entity->handle==0xA901u) {
+                entity->handle=sixteenSourceHandleIds.back();break;
+            }
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,
+                               &data,false,true)
+            ||!manyEntityHandleProviderProof(output,false,true,
+                                              sixteenSourceHandles)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeProofBound(
+                adapter,0x103u)
+            ||!DxIfaceMaterialReferenceTestAccess::mlineLinetypeEntityProofBound(
+                adapter,0x103u,sixteenSourceHandleIds)) {
+            std::cerr<<"sixteen-handle late-mutation retry failed\n";
+            return false;
+        }
+        ++retries;++readbacks;
+    }
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==100u&&readbacks==218u&&refusals==118u&&retries==118u;
+    return profiles==104u&&readbacks==227u&&refusals==123u&&retries==123u;
 }
 
 bool runBudgetTemporary() {
