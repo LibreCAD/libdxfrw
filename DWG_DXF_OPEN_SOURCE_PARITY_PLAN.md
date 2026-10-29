@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | The selected source-only grammar refuses the hidden-340 witness; the selected root and child ACAD_MLINESTYLE DICTIONARY now have source/live identity and body-state binding. MLINESTYLE bodies, remaining graph carriers, all-live dependency closure, actual output, consumed geometry, count/legacy/retarget operations, broader LTYPE provider/output profiles and MLEADERSTYLE remain open | Bind every affected consumer and carrier through actual emitted output and geometry; independent ready slices can proceed |
+| P2 | LIVE / OUTPUT GUARD, THEN QUALIFY | The selected source-only grammar refuses the hidden-340 witness; root and child ACAD_MLINESTYLE DICTIONARY and the selected AC1027 ASCII/binary MLINESTYLE bodies now have bounded source/live identity and body-state proofs. Remaining graph carriers, all-live dependency closure, actual output, consumed geometry, count/legacy/retarget operations, broader LTYPE provider/output profiles and MLEADERSTYLE remain open | Bind remaining carriers/consumers through actual emitted output and geometry; independent ready slices can proceed |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,7 +61,7 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json); [root DICTIONARY source/live proof](docs/research/rpp5jq-mline-root-dictionary-source-live-2026-10-29.json); [child ACAD_MLINESTYLE DICTIONARY source/live proof](docs/research/rpp5jr-mline-style-dictionary-source-live-2026-10-29.json) | Bind the selected MLINESTYLE body, then remaining graph carriers and consumers; prove actual emitted output before considering geometry. The selected dictionary proofs alone do not close dependencies |
+| P2 — consumed geometry prerequisite | [Scratch consumed-offset investigation](docs/research/rpp5je-mline-consumed-offset-dependency-gap-2026-10-28.json); [selected source-only grammar](docs/research/rpp5jh-mline-source-dependency-grammar-2026-10-28.json); [root DICTIONARY source/live proof](docs/research/rpp5jq-mline-root-dictionary-source-live-2026-10-29.json); [child ACAD_MLINESTYLE DICTIONARY source/live proof](docs/research/rpp5jr-mline-style-dictionary-source-live-2026-10-29.json); [selected MLINESTYLE body source/live proof](docs/research/rpp5js-mline-style-body-source-live-2026-10-29.json) | Bind remaining graph carriers and consumers, then prove actual emitted output before considering geometry. The selected source/live proofs alone do not close dependencies |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
 | P2 — independent geometry/count operation | Existing style/consumer planners, original captures and residual refusal controls | Bind another still-refused both-field edit, dense-budget case, or legacy operation to source and exact expected output; do not wait for consumed-geometry guard |
@@ -186,8 +186,19 @@ proof. Refused fields are not implemented editing support.
    state, copied-body mismatch, extra dictionary-list members and insufficient
    logical work in ASCII and binary DXF; restored state succeeds on the same
    adapter. Both checks remain proof-only and disconnected from export. The child
-   proof covers one dictionary relation, not the MLINESTYLE body or other graph
-   carriers, and neither closes live consumers, output or geometry.
+   proof covers one dictionary relation, not other graph carriers, and neither
+   closes live consumers, output or geometry.
+
+   The [selected MLINESTYLE body source/live proof](docs/research/rpp5js-mline-style-body-source-live-2026-10-29.json)
+   joins the AC1027 ASCII/binary source record and exact raw group sequence to
+   each selected captured baseline, the unique live MLINESTYLE model and its
+   selected child-dictionary entry. It refuses changed typed/raw fields,
+   incomplete parser-private state, list/count changes and over-bound mutable
+   text/raw payloads; corrected state retries on the same adapter. Its byte,
+   item and source-scan work is charged before body comparison. It remains a
+   private proof only: it is not connected to export, does not close MLINE or
+   other graph carriers, and does not qualify providers, emitted output,
+   consumed geometry, other profiles or native semantics.
 
    - Expand the selected grammar only after authenticating each new section,
      record, field, reference and application-scope role. Preserve refusal for
