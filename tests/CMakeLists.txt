@@ -189,6 +189,15 @@ set_tests_properties(libdxfrw_mline_retarget_append_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 60)
 
+# Runtime-generated AC1027 retarget to a separately named style with one
+# ordered element removed. Verify projected per-vertex parameters, exact
+# group-340/reference output, readback, refusal rollback and retry controls.
+add_test(NAME libdxfrw_mline_retarget_removal_projection
+    COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-removal-projection)
+set_tests_properties(libdxfrw_mline_retarget_removal_projection PROPERTIES
+    LABELS "dxf;fast;transaction"
+    TIMEOUT 60)
+
 # Runtime-generated AC1027 MLINE consumers qualify the documented closed and
 # cap-suppression group-71 edits in ASCII/binary, with literal output, fresh
 # readback, destination rollback and same-adapter retry. No fixture is stored.

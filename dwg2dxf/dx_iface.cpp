@@ -17206,6 +17206,35 @@ bool mlineRetargetGeometryAppendCompatible(const DRW_MLineStyle& original,
     return true;
 }
 
+bool mlineRetargetGeometryRemovalCompatible(const DRW_MLineStyle& original,
+        const DRW_MLineStyle& target) noexcept {
+    // Retargeting may select an ordered subset of a separately named style.
+    // Keep the first profile narrow: open, unfilled MLINEs with unchanged
+    // miter geometry and at least one retained element.
+    return mlineRetargetGeometryKnown(original) && mlineRetargetGeometryKnown(target)
+        && original.flags==2 && target.flags==2 && mlineFlagBitsEqual(original.flags,target.flags)
+        && retainedDoubleEqual(original.startAngle,target.startAngle)
+        && retainedDoubleEqual(original.endAngle,target.endAngle)
+        && original.elements.size()>=2u && original.elements.size()<=UINT8_MAX
+        && !target.elements.empty() && target.elements.size()<original.elements.size()
+        && target.elements.size()<=UINT8_MAX;
+}
+
+bool mlineRetargetElementsRemoved(const DRW_MLineStyle& before,const DRW_MLineStyle& after,
+        std::array<std::size_t,UINT8_MAX>& survivorIndices) noexcept {
+    if (!mlineRetargetGeometryRemovalCompatible(before,after)) return false;
+    std::size_t cursor=0u;
+    for (std::size_t i=0u;i<after.elements.size();++i) {
+        while (cursor<before.elements.size()
+            && (!std::isfinite(before.elements[cursor].offset)
+                || !std::isfinite(after.elements[i].offset)
+                || !retainedDoubleEqual(before.elements[cursor].offset,after.elements[i].offset))) ++cursor;
+        if (cursor==before.elements.size()) return false;
+        survivorIndices[i]=cursor++;
+    }
+    return true;
+}
+
 bool mlineRetargetCommonOutputEqual(const DRW_MLine& model,const DRW_MLine& actual,
         dxfRW& writer,std::uint32_t handle,std::uint32_t owner,DRW::Version version) {
     // These temporaries are covered by the precharged consumer allowance.
@@ -17372,7 +17401,7 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 // This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
-        bool retargetAngles=false) {
+        bool retargetAngles=false,bool retargetStyleRemoval=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
@@ -17396,7 +17425,9 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
     } else if (appended) {
         for (std::size_t i=0u;i<before.elements.size();++i)
             if (!retainedDoubleEqual(before.elements[i].offset,after.elements[i].offset)) return false;
-    } else if (!mlineElementsRemoved(before,after,survivorIndices)) {
+    } else if (!(retargetStyleRemoval
+            ?mlineRetargetElementsRemoved(before,after,survivorIndices)
+            :mlineElementsRemoved(before,after,survivorIndices))) {
         return false;
     }
     const auto norm=[](const DRW_Coord& v) {return std::hypot(std::hypot(v.x,v.y),v.z);};
@@ -18570,9 +18601,12 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
             if (mlineRetargetGeometryEqual(old->original,planned.projection)) return true;
             const bool geometryCompatible=mlineRetargetGeometryProjectionCompatible(old->original,planned.projection);
             const bool appendCompatible=mlineRetargetGeometryAppendCompatible(old->original,planned.projection);
+            const bool removalCompatible=version==DRW::AC1027
+                && mlineRetargetGeometryRemovalCompatible(old->original,planned.projection);
             const bool anglesChanged=!retainedDoubleEqual(old->original.startAngle,planned.projection.startAngle)
                 || !retainedDoubleEqual(old->original.endAngle,planned.projection.endAngle);
             const bool targetDefinitionAppend=planned.projection.elements.size()>target->original.elements.size();
+            const bool targetDefinitionRemoval=planned.projection.elements.size()<target->original.elements.size();
             const auto chargeAppendProjection=[&]() {
                 if (!appendCompatible) return true;
                 const std::size_t additions=planned.projection.elements.size()-old->original.elements.size();
@@ -18581,13 +18615,17 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && WholeSourceV2::product(original.vertlist.size(),perVertex,appendBytes)
                     && chargeNamedResourceBytes(bytes,appendBytes);
             };
-            if ((planned.countChanged && !targetDefinitionAppend) || (!geometryCompatible && !appendCompatible)
+            if ((planned.countChanged && !targetDefinitionAppend && !targetDefinitionRemoval)
+                || (!geometryCompatible && !appendCompatible && !removalCompatible)
                 || original.numLines==0u
                 || original.vertlist.size()>kMaxAdapterBasicTableItems/original.numLines
                 || !visit(original.vertlist.size()*original.numLines)
-                || (appendCompatible && (original.vertlist.size()>kMaxAdapterBasicTableItems/planned.projection.elements.size()
+                || ((appendCompatible || removalCompatible)
+                    && (original.vertlist.size()>kMaxAdapterBasicTableItems/planned.projection.elements.size()
                     || !visit(original.vertlist.size()*planned.projection.elements.size())))
                 || !chargeMlineComparisonWork(old->original.elements,1u,retargetWork,kMaxAdapterBasicTableItems)
+                || (removalCompatible && !chargeMlineComparisonWork(planned.projection.elements,1u,
+                    retargetWork,kMaxAdapterBasicTableItems))
                 || (appendCompatible && !chargeMlineComparisonWork(planned.projection.elements,1u,retargetWork,
                     kMaxAdapterBasicTableItems))) return false;
             std::size_t modelBytes=0u;
@@ -18595,7 +18633,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 || !chargeNamedResourceBytes(bytes,modelBytes)
                 || !chargeAppendProjection()
                 || !mlineReprojectUncut(original,old->original,planned.projection,geometryProjection,
-                    appendCompatible,false,anglesChanged)) return false;
+                    appendCompatible,removalCompatible,anglesChanged,removalCompatible)) return false;
             // Group 2 is redundant; only the authoritative 340 target changes.
             geometryProjection.styleHandle=value.styleHandle;
             geometryProjected=true;
