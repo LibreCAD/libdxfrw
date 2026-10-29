@@ -23,9 +23,12 @@
 
 #include "dwg_dxf_output_transaction.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
+#include <limits>
 #include <random>
 #include <string>
 
@@ -38,6 +41,7 @@
 #else
 #  include <fcntl.h>
 #  include <sys/stat.h>
+#  include <sys/types.h>
 #  include <unistd.h>
 #endif
 
@@ -88,7 +92,7 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
                        + std::to_string(random()) + "-" + std::to_string(attempt);
         int descriptor = -1;
         if (_wsopen_s(&descriptor, m_temporary.c_str(),
-                      _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
+                      _O_CREAT | _O_EXCL | _O_RDWR | _O_BINARY,
                       _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0
             || descriptor < 0)
             continue;
@@ -522,6 +526,59 @@ bool DwgDxfOutputTransaction::open() {
 #endif
         abort();
         return false;
+    }
+    return true;
+}
+
+bool DwgDxfOutputTransaction::verifyRange(
+    std::streamoff offset, std::string_view expected) {
+    if (!m_stream.is_open() || m_exclusiveDescriptor < 0 || offset < 0
+        || expected.size() > static_cast<std::uintmax_t>(
+               (std::numeric_limits<std::streamoff>::max)() - offset))
+        return false;
+    m_stream.flush();
+    if (!m_stream.good())
+        return false;
+    if (expected.empty()) {
+        const std::streampos current = m_stream.tellp();
+        return current != std::streampos(-1)
+            && static_cast<std::streamoff>(current) == offset;
+    }
+
+    char buffer[4096];
+    std::size_t compared = 0;
+    while (compared < expected.size()) {
+        const std::size_t count = std::min(sizeof(buffer),
+                                           expected.size() - compared);
+        std::size_t readTotal = 0;
+        while (readTotal < count) {
+#if defined(_WIN32)
+            const auto position = offset
+                + static_cast<std::streamoff>(compared + readTotal);
+            if (_lseeki64(m_exclusiveDescriptor, position, SEEK_SET)
+                != position)
+                return false;
+            const int readCount = _read(m_exclusiveDescriptor,
+                buffer + readTotal, static_cast<unsigned int>(count - readTotal));
+#else
+            const auto requestedPosition = offset
+                + static_cast<std::streamoff>(compared + readTotal);
+            const auto position = static_cast<off_t>(requestedPosition);
+            if (position < 0
+                || static_cast<std::streamoff>(position) != requestedPosition)
+                return false;
+            const ssize_t readCount = ::pread(m_exclusiveDescriptor,
+                buffer + readTotal, count - readTotal, position);
+#endif
+            if (readCount < 0 && errno == EINTR)
+                continue;
+            if (readCount <= 0)
+                return false;
+            readTotal += static_cast<std::size_t>(readCount);
+        }
+        if (std::memcmp(buffer, expected.data() + compared, count) != 0)
+            return false;
+        compared += count;
     }
     return true;
 }

@@ -280,8 +280,32 @@ public:
     // Inspect the exact materialized bytes before appending them. The view
     // expires on return; inspection must not mutate the writer or its stream.
     template <class Inspector> bool commit(Inspector&& inspect) {
+        return commitImpl(std::forward<Inspector>(inspect),
+                          [](std::streamoff, std::string_view) { return true; },
+                          false);
+    }
+
+    // Also verify that the appended parent-stream range exactly matches the
+    // bytes supplied to the inspector. The verifier runs after append; failure
+    // leaves rollback to the owning output transaction.
+    template <class Inspector, class AppendedVerifier>
+    bool commit(Inspector&& inspect, AppendedVerifier&& verifyAppended) {
+        return commitImpl(std::forward<Inspector>(inspect),
+                          std::forward<AppendedVerifier>(verifyAppended), true);
+    }
+
+private:
+    template <class Inspector, class AppendedVerifier>
+    bool commitImpl(Inspector&& inspect, AppendedVerifier&& verifyAppended,
+                    bool verifyParentRange) {
         if (m_state != State::Open || m_parent == nullptr
             || m_writer.hasWriteError() || !m_buffer.good()) {
+            abort();
+            return false;
+        }
+        const std::streampos start = verifyParentRange
+            ? m_parent->tellp() : std::streampos(-1);
+        if (verifyParentRange && start == std::streampos(-1)) {
             abort();
             return false;
         }
@@ -301,11 +325,19 @@ public:
             m_state = State::AppendFailed;
             return false;
         }
+        if (verifyParentRange
+            && !verifyAppended(static_cast<std::streamoff>(start),
+                               std::string_view(bytes))) {
+            m_writer.markWriteError();
+            m_state = State::AppendFailed;
+            return false;
+        }
         m_writer.restoreWriteError(m_previousError);
         m_state = State::Committed;
         return true;
     }
 
+public:
     void abort() {
         if (m_state == State::Committed || m_state == State::Aborted)
             return;

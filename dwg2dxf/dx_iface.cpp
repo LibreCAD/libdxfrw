@@ -37155,6 +37155,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
         || !m_dxfMLineLinetypes.empty());
+    if ((!m_dxfMLineStyles.empty() || needsDxfMLineConsumerInspection())
+        && !dxfW->setDxfStagedOutputAuthentication(true)) {
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
+    }
     if (m_dxfHeaderMaterialState.active && !dxfW->setDxfHeaderWriteInspector([this](const auto& view) {
             return inspectDxfHeaderMaterial(view);
         })) {

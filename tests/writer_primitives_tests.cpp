@@ -14,6 +14,7 @@
 #include "intern/dwgbufferw.h"
 #include "intern/drw_textcodec.h"
 #include "intern/dwg_dxf_output_transaction.h"
+#include "intern/dxfwriter.h"
 #include "intern/dwgsafety.h"
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter21.h"
@@ -566,6 +567,10 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         t.expect(transaction.open(),
                  "output transaction opens an exclusive temporary");
         transaction.stream() << "published";
+        t.expect(transaction.verifyRange(0, "published"),
+                 "output transaction reads back an exact staged range");
+        t.expect(!transaction.verifyRange(0, "publishEd"),
+                 "output transaction rejects a mismatched staged range");
         t.expect(transaction.commit(),
                  "output transaction commits a flushed temporary");
         t.expect(!transaction.isOpen(),
@@ -883,6 +888,72 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
     std::filesystem::remove(target, ignored);
 }
 
+void testStagedRangeAuthenticationRollbackAndRetry(TestContext& t) {
+    const std::filesystem::path target = transactionTestPath("staged-range");
+    std::error_code ignored;
+    std::filesystem::remove(target, ignored);
+    {
+        std::ofstream seed(target, std::ios::binary | std::ios::trunc);
+        seed << "original";
+    }
+
+    bool rejected = false;
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(), "mismatched staged range opens transaction");
+        if (transaction.isOpen()) {
+            dxfWriterAscii writer(&transaction.stream());
+            DxfWriterRecordScope section(writer);
+            t.expect(writer.writeString(0, "SECTION"),
+                     "staged section body materializes for mismatch control");
+            rejected = !section.commit(
+                [](std::string_view bytes) { return !bytes.empty(); },
+                [&transaction](std::streamoff offset, std::string_view bytes) {
+                    std::string mismatch(bytes);
+                    mismatch.front() ^= 1;
+                    return transaction.verifyRange(offset, mismatch);
+                });
+        }
+        t.expect(rejected,
+                 "post-append byte mismatch refuses staged section commit");
+        transaction.abort();
+    }
+    {
+        std::ifstream preserved(target, std::ios::binary);
+        const std::string value((std::istreambuf_iterator<char>(preserved)), {});
+        t.expect(value == "original",
+                 "staged section mismatch rolls back the published destination");
+    }
+
+    bool retried = false;
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(), "corrected staged range opens retry transaction");
+        if (transaction.isOpen()) {
+            dxfWriterAscii writer(&transaction.stream());
+            DxfWriterRecordScope section(writer);
+            t.expect(writer.writeString(0, "SECTION"),
+                     "retry section body materializes");
+            retried = section.commit(
+                [](std::string_view bytes) { return !bytes.empty(); },
+                [&transaction](std::streamoff offset, std::string_view bytes) {
+                    return transaction.verifyRange(offset, bytes);
+                });
+            t.expect(retried,
+                     "corrected exact staged bytes pass append authentication");
+            t.expect(retried && transaction.commit(),
+                     "authenticated retry publishes atomically");
+        }
+    }
+    {
+        std::ifstream published(target, std::ios::binary);
+        const std::string value((std::istreambuf_iterator<char>(published)), {});
+        t.expect(retried && value != "original" && !value.empty(),
+                 "authenticated retry replaces the sentinel destination");
+    }
+    std::filesystem::remove(target, ignored);
+}
+
 
 #if !defined(_WIN32)
 
@@ -1097,6 +1168,7 @@ int main() {
     testModernDictionaryStreamBoundary(context);
     testWriteRejectionDoesNotTouchDestination(context);
     testOutputTransactionPublicationAndRollback(context);
+    testStagedRangeAuthenticationRollbackAndRetry(context);
 #if !defined(_WIN32)
     // The _WIN32 branch creates its temporary in the target's own directory and
     // inherits the directory ACL; there is no umask and no mode to carry.

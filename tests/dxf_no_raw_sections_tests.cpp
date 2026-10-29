@@ -2,6 +2,7 @@
 // Synthetic write controls only; no drawing fixture is committed.
 #include "libdxfrw.h"
 #include "test_scratch.h"
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -13,6 +14,7 @@ class Bare : public DRW_Interface {
 public:
   dxfRW *codec = nullptr;
   int mode = 0;
+  int classesRead = 0;
   bool attempted = false, receipt = false;
   static DRW_RawDxfSection raw() {
     DRW_RawDxfSection s;
@@ -38,6 +40,7 @@ public:
     return true;
   }
   void addHeader(const DRW_Header *) override {}
+  void addDxfClass(const DRW_Class &) override { ++classesRead; }
   void addLType(const DRW_LType &) override {}
   void addLayer(const DRW_Layer &) override {}
   void addDimStyle(const DRW_Dimstyle &) override {}
@@ -180,6 +183,42 @@ int main() {
     ++checks;
     if (!c.setDxfNoRawSectionsWriteGuard(false))
       return 7;
+  }
+  DRW_Class generatedClass;
+  generatedClass.recName = "TEST_CUSTOM_RECORD";
+  generatedClass.className = "AcDbTestCustom";
+  generatedClass.appName = "TEST_APP";
+  generatedClass.instanceCount = 1;
+  if (!c.reserveHandle(0x20044u)
+      || !c.setDxfStagedOutputAuthentication(true))
+    return 8;
+  c.setDxfClasses({generatedClass});
+  for (bool binary : {false, true}) {
+    if (!c.write(&b, DRW::AC1027, binary)) {
+      const auto diagnostic = c.getLastDiagnostic();
+      std::cerr << "staged output authentication failed for binary=" << binary
+                << " stage=" << diagnostic.code << " " << diagnostic.message
+                << "\n";
+      return 9;
+    }
+    const std::string emitted = read(path);
+    if (emitted.find("TEST_CUSTOM_RECORD") == std::string::npos)
+      return 10;
+    char expectedHandseed[DRW_Header::kHandseedFieldWidth + 1];
+    std::snprintf(expectedHandseed, sizeof(expectedHandseed), "%08X",
+                  c.highWaterHandle());
+    if (std::string(expectedHandseed) == "00020000"
+        || emitted.find(expectedHandseed) == std::string::npos)
+      return 12;
+    dxfRW readbackCodec(path.c_str());
+    Bare readback;
+    if (!readbackCodec.read(&readback, false)
+        || readback.classesRead != 1) {
+      std::cerr << "staged output readback failed for binary=" << binary
+                << " classes=" << readback.classesRead
+                << "\n";
+      return 11;
+    }
   }
   std::cout << "raw-section guard checks=" << checks << " ASCII/binary pass\n";
 }

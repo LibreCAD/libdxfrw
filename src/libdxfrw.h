@@ -26,6 +26,7 @@
 #endif
 
 #include <functional>
+#include <ios>
 #include <list>
 #include <map>
 #include <array>
@@ -47,6 +48,7 @@
 class dxfReader;
 class DxfReadRetainedBudget;
 class dxfWriter;
+class DxfWriterRecordScope;
 class HandleAllocator;
 
 #if defined(_MSC_VER) && defined(LIBDXFRW_FORCE_TEST_SEAMS)
@@ -228,6 +230,13 @@ public:
     // inspector, ENTITIES keeps its ordinary streaming path. No new callback.
     using DxfEntitySectionsWriteInspector = std::function<bool(const DxfObjectsWriteView&, std::string_view)>;
     bool setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector);
+    /**
+     * Opt in to post-append verification of every generated DXF section body
+     * against the transaction's staged file, including CLASSES. The final
+     * HANDSEED backpatch is also read back before finalization. This is an
+     * internal integrity gate, not a document-completeness or consumer claim.
+     */
+    bool setDxfStagedOutputAuthentication(bool enabled);
     std::size_t dxfWriteRecordHandleCount(std::uint32_t handle) const noexcept;
     bool dxfWriteRecordHasIdentity(std::uint32_t handle,
                                    const std::string& recordName,
@@ -1845,6 +1854,15 @@ private:
     DxfEntitySectionsWriteInspector m_dxfEntitySectionsWriteInspector;
     DxfHeaderWriteInspector m_dxfHeaderWriteInspector;
     DxfTablesWriteInspector m_dxfTablesWriteInspector;
+    bool m_dxfStagedOutputAuthentication {false};
+    using DxfStagedRangeVerifier =
+        std::function<bool(std::streamoff, std::string_view)>;
+    DxfStagedRangeVerifier m_dxfStagedRangeVerifier;
+    bool verifyDxfStagedOutputRange(std::streamoff offset,
+                                    std::string_view bytes);
+    template <class Inspector>
+    bool commitDxfWriteSection(DxfWriterRecordScope& record,
+                               Inspector&& inspector);
     bool inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
                                 std::string_view bytes);
     bool m_dxfWriteRecordInventoryEnabled {false};

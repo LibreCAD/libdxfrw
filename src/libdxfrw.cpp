@@ -3218,6 +3218,30 @@ bool dxfRW::setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector i
     return true;
 }
 
+bool dxfRW::setDxfStagedOutputAuthentication(bool enabled) {
+    if (!preflightDxfSetup() || m_wholeOperationActive || writer != nullptr)
+        return failDxfWrite();
+    m_dxfStagedOutputAuthentication = enabled;
+    return true;
+}
+
+bool dxfRW::verifyDxfStagedOutputRange(
+        std::streamoff offset, std::string_view bytes) {
+    return m_dxfWriteAttemptActive && m_dxfStagedRangeVerifier
+        && m_dxfStagedRangeVerifier(offset, bytes);
+}
+
+template <class Inspector>
+bool dxfRW::commitDxfWriteSection(DxfWriterRecordScope& record,
+                                  Inspector&& inspector) {
+    if (!m_dxfStagedOutputAuthentication)
+        return record.commit(std::forward<Inspector>(inspector));
+    return record.commit(std::forward<Inspector>(inspector),
+        [this](std::streamoff offset, std::string_view bytes) {
+            return verifyDxfStagedOutputRange(offset, bytes);
+        });
+}
+
 bool dxfRW::inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
                                   std::string_view bytes) {
     if (!inspector) return true;
@@ -4199,6 +4223,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     WholeOperationScope operation(*this);
     if (!operation.admitted())
         return false;
+    const char* outputStage = "DXF write setup";
     try {
     WriteAttemptScope attempt(*this);
     beginOperationDiagnostic(DRW::OperationKind::Write);
@@ -4235,8 +4260,20 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         m_writeError = true;
         return setError(DRW::BAD_OPEN);
     }
+    struct StagedRangeVerifierScope {
+        DxfStagedRangeVerifier& verifier;
+        ~StagedRangeVerifierScope() { verifier = {}; }
+    } stagedRangeVerifierScope{m_dxfStagedRangeVerifier};
+    if (m_dxfStagedOutputAuthentication) {
+        m_dxfStagedRangeVerifier = [&output](std::streamoff offset,
+                                             std::string_view bytes) {
+            return output.verifyRange(offset, bytes);
+        };
+        if (!m_rawDxfSections.empty())
+            return setError(DRW::BAD_OPEN);
+    }
     std::ofstream& filestr = output.stream();
-    const char* outputStage = "DXF writer initialization";
+    outputStage = "DXF writer initialization";
     const auto failWrite = [&]() {
         if (writer != nullptr && writer->textFailure() != dxfWriter::TextFailure::NoFailure) {
             const auto failure = writer->textFailure();
@@ -4361,7 +4398,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     outputStage = "HEADER emission";
     if (!writeRequiredString(0, "SECTION"))
         return failWrite();
-    if (m_dxfHeaderWriteInspector) {
+    if (m_dxfHeaderWriteInspector || m_dxfStagedOutputAuthentication) {
         const bool staged = [&]() {
             const auto parent = filestr.tellp();
             if (parent == std::streampos(-1)) return false;
@@ -4378,7 +4415,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
                     return false;
                 absoluteSeed = std::streampos(base + relative);
             }
-            if (!record.commit([this](std::string_view bytes) {
+            if (!commitDxfWriteSection(record, [this](std::string_view bytes) {
                     return inspectDxfWriteSection(m_dxfHeaderWriteInspector, bytes);
                 })) return false;
             header.m_handseedValueOffset = absoluteSeed;
@@ -4397,6 +4434,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         if (!writeRequiredString(0, "SECTION")
             || !writeRequiredString(2, "CLASSES"))
             return failWrite();
+        DxfWriterRecordScope classes(*writer);
         //Emit a CLASS record for each custom (non-fixed) object class actually
         //present in the output. Without these, AutoCAD/ODA silently drop the
         //corresponding OBJECTS instances (the entry and instance must co-exist).
@@ -4405,6 +4443,9 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             if (!cls.write(writer.get(), version) || writer->hasWriteError())
                 return failWrite();
         }
+        if (!commitDxfWriteSection(classes,
+                [](std::string_view) { return true; }))
+            return failWrite();
         if (!writeRequiredString(0, "ENDSEC"))
             return failWrite();
     }
@@ -4428,18 +4469,20 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         || !writeRequiredString(2, "ENTITIES"))
         return failWrite();
     outputStage = "ENTITIES callbacks";
-    if (m_dxfEntitySectionsWriteInspector) {
+    if (m_dxfEntitySectionsWriteInspector || m_dxfStagedOutputAuthentication) {
       // Unwind byte/state scopes before failWrite resets their writer owner.
       const bool staged = [&]() {
         RecordStateScope state(*this);
         DxfWriterRecordScope record(*writer);
         iface->writeEntities();
         const auto inspect = [this](std::string_view bytes) {
+            if (!m_dxfEntitySectionsWriteInspector) return true;
             return inspectDxfWriteSection([this](const auto& view) {
                 return m_dxfEntitySectionsWriteInspector(view, "ENTITIES");
             }, bytes);
         };
-        if (m_writeError || writer->hasWriteError() || !record.commit(inspect)) return false;
+        if (m_writeError || writer->hasWriteError()
+            || !commitDxfWriteSection(record, inspect)) return false;
         state.commit();
         return true;
       }();
@@ -4498,6 +4541,16 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         filestr.seekp(resume);
         if (!filestr.good())
             return failWrite();
+        if (m_dxfStagedOutputAuthentication) {
+            const auto offset = static_cast<std::streamoff>(
+                header.m_handseedValueOffset);
+            if (offset < 0
+                || !output.verifyRange(offset,
+                    std::string_view(buf, DRW_Header::kHandseedFieldWidth)))
+                return failWrite();
+        }
+    } else if (m_dxfStagedOutputAuthentication) {
+        return failWrite();
     }
     outputStage = "file flush";
     filestr.flush();
@@ -4552,23 +4605,30 @@ catch (const std::bad_alloc&) {
     setError(DRW::BAD_OPEN);
     return false;
 }
-catch (const std::exception&) {
+catch (const std::exception& exception) {
     writer.reset();
     m_writeError = true;
+    char failureMessage[128];
+    snprintf(failureMessage, sizeof(failureMessage),
+             "exception during %.64s: %.56s", outputStage,
+             exception.what());
     recordOperationDiagnostic(DRW::OperationPhase::Callback,
                               DRW::OperationCause::CallbackException,
                               "callback-exception",
-                              "a consumer callback threw during DXF write");
+                              failureMessage);
     setError(DRW::BAD_OPEN);
     return false;
 }
 catch (...) {
     writer.reset();
     m_writeError = true;
+    char failureMessage[128];
+    snprintf(failureMessage, sizeof(failureMessage),
+             "an exception escaped during %.96s", outputStage);
     recordOperationDiagnostic(DRW::OperationPhase::Callback,
                               DRW::OperationCause::CallbackException,
                               "callback-exception",
-                              "a consumer callback threw during DXF write");
+                              failureMessage);
     setError(DRW::BAD_OPEN);
     return false;
 }
@@ -14240,7 +14300,7 @@ bool dxfRW::writeTables() {
         if (hasWriteFailure())
             return false;
     }
-    if (hasWriteFailure() || !record.commit([this](std::string_view bytes) {
+    if (hasWriteFailure() || !commitDxfWriteSection(record, [this](std::string_view bytes) {
             return inspectDxfWriteSection(m_dxfTablesWriteInspector, bytes);
         })) {
         m_writeError = true;
@@ -14489,7 +14549,8 @@ bool dxfRW::writeBlocks() {
             return m_dxfEntitySectionsWriteInspector(view, "BLOCKS");
         }, bytes);
     };
-    if (m_writeError || writer->hasWriteError() || !record.commit(inspect)) {
+    if (m_writeError || writer->hasWriteError()
+        || !commitDxfWriteSection(record, inspect)) {
         m_writeError = true;
         return false;
     }
@@ -15031,7 +15092,7 @@ bool dxfRW::writeObjects() {
     const auto inspect = [this](std::string_view bytes) {
         return inspectDxfWriteSection(m_dxfObjectsWriteInspector, bytes);
     };
-    if (!preflightDxfWrite() || !record.commit(inspect)) {
+    if (!preflightDxfWrite() || !commitDxfWriteSection(record, inspect)) {
         m_writeError = true;
         return false;
     }

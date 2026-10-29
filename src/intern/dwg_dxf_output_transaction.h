@@ -29,6 +29,7 @@
 #include <ios>
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 /// Owns the temporary output and publishes it only after a complete flush.
 /// The destination is never opened with truncation, so a failed write cannot
@@ -43,6 +44,8 @@ public:
     DwgDxfOutputTransaction& operator=(const DwgDxfOutputTransaction&) = delete;
 
     bool open();
+    /** Flush and compare a bounded byte range in the owned temporary file. */
+    bool verifyRange(std::streamoff offset, std::string_view expected);
     bool commit();
     void abort() noexcept;
 
