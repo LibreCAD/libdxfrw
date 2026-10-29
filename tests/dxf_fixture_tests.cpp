@@ -38285,7 +38285,8 @@ void setStyleValues(Tags& fields,const std::string& handle) {
     setRecordValue(fields,begin,end,49,number(beforeOffsets[0]),0u);
     setRecordValue(fields,begin,end,49,number(beforeOffsets[1]),1u);
 }
-Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=false) {
+Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=false,
+        int entityFlags=1) {
     auto fields=mlineRetargetControls::recipe(binary);
     const auto geometryFields=recipe(binary,corrupt);
     for(const auto& handle:std::array<std::string,2>{{"D100","D101"}}) {
@@ -38307,6 +38308,12 @@ Tags retargetRecipe(bool binary,bool corrupt=false,bool targetOffsetDiffers=fals
         fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(destinationSuffix),
             geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceSuffix),
             geometryFields.begin()+static_cast<std::ptrdiff_t>(sourceEnd));
+    }
+    for(const auto& handle:std::array<std::string,2>{{"D100","D101"}}) {
+        std::size_t begin=0u,end=0u;
+        if(!recordSpan(fields,"MLINE",handle,begin,end))
+            throw std::runtime_error("retarget entity-flag consumer missing");
+        setRecordValue(fields,begin,end,71,std::to_string(entityFlags));
     }
     setStyleValues(fields,"D");setStyleValues(fields,"D2");
     if(targetOffsetDiffers) {
@@ -38381,7 +38388,7 @@ Tags retargetAppendRecipe(bool binary,unsigned sourceCount) {
 }
 bool retargetOutputProof(const std::filesystem::path& path,bool binary,
         const std::array<double,2>& targetOffsets=afterOffsets,double targetStartAngle=90.0,double targetEndAngle=90.0,
-        int targetFlags=2) {
+        int targetFlags=2,int entityFlags=1) {
     const auto bad=[](int line){std::cerr<<"retarget output proof mismatch line="<<line<<'\n';return false;};
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto values=[](const mlineStyleAuthorityControls::Row& row,int code) {
@@ -38410,9 +38417,11 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
     const auto targetHandle=static_cast<std::uint32_t>(std::stoul(targetStyle->id,nullptr,16));
     for(const auto& row:rows)if(row.type=="MLINE") {
         const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
+        if(!oneNumber(row,71,static_cast<double>(entityFlags)))return bad(__LINE__);
         if(profile>1u||values(row,2)!=std::vector<std::string>{"OLD_ENTITY_NAME"}
             ||values(row,340)!=std::vector<std::string>{targetStyle->id}
-            ||row.section!=(profile?"BLOCKS":"ENTITIES")||!values(row,42).empty())return bad(__LINE__);
+            ||row.section!=(profile?"BLOCKS":"ENTITIES")||!values(row,42).empty())
+            return bad(__LINE__);
         const auto actual=values(row,41),mitersX=values(row,13),mitersY=values(row,23),mitersZ=values(row,33);
         if(actual.size()!=12u||mitersX.size()!=3u||mitersY.size()!=3u||mitersZ.size()!=3u)return bad(__LINE__);
         const double targetMinimum=*std::min_element(targetOffsets.begin(),targetOffsets.end());
@@ -38444,7 +38453,7 @@ bool retargetOutputProof(const std::filesystem::path& path,bool binary,
     for(const auto* line:lines) {
         const unsigned profile=line->justification==1u?0u:line->justification==2u?1u:2u;
         if(profile>1u||line->styleHandle!=targetHandle||line->styleName!="OLD_ENTITY_NAME"
-            ||line->numVerts!=3u||line->numLines!=2u||line->openClosed!=1u||line->vertlist.size()!=3u
+            ||line->numVerts!=3u||line->numLines!=2u||line->openClosed!=entityFlags||line->vertlist.size()!=3u
             ||!close(line->scale,scale(profile)))return bad(__LINE__);
         const auto sameCoord=[](const DRW_Coord& actual,const Vec& expected) {
             return close(actual.x,expected.x)&&close(actual.y,expected.y)&&close(actual.z,expected.z);
@@ -39033,6 +39042,7 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
     const auto input=dir/"retarget-angles-input.dxf",output=dir/"retarget-angles-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,retries=0u,late=0u;
     std::size_t flagOnlyRefusals=0u,flagOnlyRetries=0u;
+    std::size_t capProfiles=0u,capReadbacks=0u,capRefusals=0u,capRetries=0u,capLate=0u;
     const std::array<double,2> combinedOffsets{{1.5,-1.25}};
     std::size_t combinedProfiles=0u,combinedReadbacks=0u,combinedRefusals=0u,combinedRetries=0u,combinedLate=0u;
     const auto fail=[&](int line) {
@@ -39152,14 +39162,99 @@ bool runRetargetAngles(const std::filesystem::path& dir) {
             ||!caller.same(data))return fail(__LINE__);
         ++combinedRetries;++combinedReadbacks;
     }
+    // MLINE group 71 values 5, 9 and 13 retain the documented open/has-vertices
+    // bit while suppressing the start cap, end cap, or both. These flags do
+    // not add cuts to the element parameter arrays; prove the normal angle
+    // retarget projection still updates endpoint miters and group-41 values.
+    for(const int entityFlags:{5,9,13})
+        for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,retargetRecipe(sourceBinary,false,false,entityFlags),
+                    sourceBinary,"AC1027")
+                ||!adapter.fileImport(input.string(),&data,false)
+                ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+            const auto sourceLines=mlineStyleAuthorityControls::consumers(data);
+            if(sourceLines.size()!=2u
+                ||sourceLines[0]->openClosed!=entityFlags
+                ||sourceLines[1]->openClosed!=entityFlags)return fail(__LINE__);
+            mlineRetargetControls::request(data,3u);
+            auto& target=mlineRetargetControls::style(data,0xD2u);
+            target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+            const mlineRetargetControls::Snapshot caller(data);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
+                    &data,false,true)
+                ||!retargetOutputProof(output,outputBinary,beforeOffsets,
+                    targetStartAngle,targetEndAngle,2,entityFlags)
+                ||!caller.same(data))return fail(__LINE__);
+            ++capProfiles;++capReadbacks;
+        }
+    // Closed or unknown group-71 bits remain fail-closed. A corrected source
+    // profile succeeds on the same adapter after each refusal.
+    for(const int entityFlags:{3,17}) {
+        dx_iface adapter;dx_data data;
+        if(!write(input,retargetRecipe(false,false,false,entityFlags),false,
+                "AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,false,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)
+            ||!caller.same(data))return fail(__LINE__);
+        ++capRefusals;
+        dx_iface correctedReader;
+        dx_data correctedData;
+        if(!write(input,retargetRecipe(false,false,false,13),false,"AC1027")
+            ||!correctedReader.fileImport(input.string(),&correctedData,false)
+            ||correctedData.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(correctedData,3u);
+        auto& correctedTarget=mlineRetargetControls::style(correctedData,0xD2u);
+        correctedTarget.startAngle=targetStartAngle;
+        correctedTarget.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot corrected(correctedData);
+        if(!adapter.fileExport(output.string(),DRW::AC1027,false,&correctedData,false,true)
+            ||!retargetOutputProof(output,false,beforeOffsets,targetStartAngle,
+                targetEndAngle,2,13)
+            ||!corrected.same(correctedData))return fail(__LINE__);
+        ++capRetries;++capReadbacks;
+    }
+    {
+        Editing adapter;dx_data data;
+        if(!write(input,retargetRecipe(false,false,false,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)
+            ||data.mLineStyles.size()!=2u)return fail(__LINE__);
+        mlineRetargetControls::request(data,3u);
+        auto& target=mlineRetargetControls::style(data,0xD2u);
+        target.startAngle=targetStartAngle;target.endAngle=targetEndAngle;
+        const mlineRetargetControls::Snapshot caller(data);
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u)return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};
+        sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,true,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))
+            return fail(__LINE__);
+        ++capLate;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,true,&data,false,true)
+            ||!retargetOutputProof(output,true,beforeOffsets,targetStartAngle,
+                targetEndAngle,2,13)
+            ||!caller.same(data))return fail(__LINE__);
+        ++capRetries;++capReadbacks;
+    }
     std::cout<<"MLINE retarget angle profiles="<<profiles<<"; readbacks="<<readbacks<<"; refusals="<<refusals
         <<"; late="<<late<<"; retries="<<retries<<"; combinedProfiles="<<combinedProfiles
         <<"; combinedReadbacks="<<combinedReadbacks<<"; combinedRefusals="<<combinedRefusals
         <<"; combinedLate="<<combinedLate<<"; combinedRetries="<<combinedRetries
-        <<"; flagOnlyRefusals="<<flagOnlyRefusals<<"; flagOnlyRetries="<<flagOnlyRetries<<'\n';
+        <<"; flagOnlyRefusals="<<flagOnlyRefusals<<"; flagOnlyRetries="<<flagOnlyRetries
+        <<"; capProfiles="<<capProfiles<<"; capReadbacks="<<capReadbacks
+        <<"; capRefusals="<<capRefusals<<"; capLate="<<capLate
+        <<"; capRetries="<<capRetries<<'\n';
     return profiles==4u&&readbacks==10u&&refusals==2u&&late==2u&&retries==4u
         &&combinedProfiles==4u&&combinedReadbacks==8u&&combinedRefusals==2u&&combinedLate==2u&&combinedRetries==4u
-        &&flagOnlyRefusals==2u&&flagOnlyRetries==2u;
+        &&flagOnlyRefusals==2u&&flagOnlyRetries==2u&&capProfiles==12u
+        &&capReadbacks==15u&&capRefusals==2u&&capLate==1u&&capRetries==3u;
 }
 bool runRetargetAnglesTemporary() {
     const auto dir=std::filesystem::temp_directory_path()/

@@ -171,9 +171,9 @@ set_tests_properties(libdxfrw_mline_retarget_offset_projection PROPERTIES
     LABELS "dxf;fast;transaction"
     TIMEOUT 30)
 
-# Runtime-generated AC1027 retarget profile changes only the selected target's
-# start/end angles. Verify endpoint miter and group-41 reprojection, exact output,
-# refusal/rollback and same-adapter retry across source/output encodings.
+# Runtime-generated AC1027 retarget profile changes the target's start/end
+# angles and verifies projections with documented MLINE cap-suppression flags.
+# Check endpoint miters, group-41 values, exact output, and failure/retry.
 add_test(NAME libdxfrw_mline_retarget_angle_projection
     COMMAND libdxfrw_dxf_fixture_tests --mline-retarget-angle-projection)
 set_tests_properties(libdxfrw_mline_retarget_angle_projection PROPERTIES

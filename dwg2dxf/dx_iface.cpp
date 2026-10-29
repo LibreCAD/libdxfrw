@@ -17292,6 +17292,15 @@ bool mlineRetargetElementsRemoved(const DRW_MLineStyle& before,const DRW_MLineSt
     return true;
 }
 
+bool mlineProjectionOpenAndUncut(const DRW_MLine& value) noexcept {
+    // DXF group 71 bit 1 says vertices exist, bit 2 closes the polyline, and
+    // bits 4/8 suppress the start/end caps. Cap suppression does not add cuts
+    // to the per-vertex element parameter arrays projected below.
+    if (value.openClosed < 0 || value.openClosed > 0x0F) return false;
+    const auto flags = static_cast<unsigned>(value.openClosed);
+    return (flags & 0x01u) != 0u && (flags & 0x02u) == 0u;
+}
+
 bool mlineRetargetCommonOutputEqual(const DRW_MLine& model,const DRW_MLine& actual,
         dxfRW& writer,std::uint32_t handle,std::uint32_t owner,DRW::Version version) {
     // These temporaries are covered by the precharged consumer allowance.
@@ -17453,16 +17462,19 @@ bool mlineGeometryEqual(const DRW_MLine& a,const DRW_MLine& b,bool output=false)
 }
 
 // Recompute the first, miter-distance parameter for an admitted open,
-// unfilled and uncut MLINE. A tail append or ordered element removal projects
-// per-vertex parameter arrays only after deriving the same source geometry.
-// This is not a general MLINE regeneration algorithm.
+// unfilled and uncut MLINE. Preserve documented start/end-cap suppression
+// flags on the selected angle-retarget path; they do not alter the segment
+// parameter arrays. Other projections retain the plain-open profile until
+// qualified separately. This is not a general MLINE regeneration algorithm.
 bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         const DRW_MLineStyle& after,DRW_MLine& output,bool appendElement=false,bool removeElements=false,
         bool retargetAngles=false,bool retargetStyleRemoval=false) {
     const bool appended=appendElement && after.elements.size()>before.elements.size();
     const bool removed=removeElements && before.elements.size()>after.elements.size() && !after.elements.empty();
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
-    if (original.openClosed!=1 || (original.justification!=1u && original.justification!=2u)
+    if (!mlineProjectionOpenAndUncut(original)
+        || (original.openClosed!=1 && !retargetAngles)
+        || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
         || (appendElement && (!appended || removeElements)) || (removeElements && !removed)
