@@ -41,7 +41,7 @@ runs separately.
 
 | ID | State | Next concrete result | Dependency |
 | --- | --- | --- | --- |
-| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection, geometry-changing MLINE `340` retarget, append/removal profiles and append count/source-count evidence are bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json). [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json) adds one unused-style AC1027 four-to-one removal whose retained tuple changes offset and ACI while a unique unchanged LTYPE anchors its source identity. This includes one angle-only retarget from 90/90 to 60/120 degrees with unchanged flags, two-element arity and offsets. The implementation admits appends from 2..254 source elements to a larger target of at most 255; selected append source counts are 2, 3 and 4. Selected removals are 2→1, 3→1/2 and 4→1/2/3. Target-255 and 256 refusal are covered for source count 2. Other source counts/append batches/removals, count-71 edits, other angle profiles, differing flags/arity, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Select a current non-offset retarget refusal with source-backed expected semantics; otherwise return to the dense retained-byte case. Bind exact source, output/readback and failure/retry evidence |
+| P2 | LIVE / SELECT NEXT WITNESS | Selected AC1027 consumed-style offset reprojection, geometry-changing MLINE `340` retarget, append/removal profiles and append count/source-count evidence are bound in [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json). [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json) adds one unused-style AC1027 four-to-one removal whose retained tuple changes offset and ACI while a unique unchanged LTYPE anchors its source identity. [RPP-5kx](docs/research/rpp5kx-mline-combined-angle-offset-retarget-2026-10-29.json) qualifies one consumed-style retarget combining 90/90→60/120 angles with offsets 1.25/-0.75→1.5/-1.25, equal flags and two-element arity. The implementation admits appends from 2..254 source elements to a larger target of at most 255; selected append source counts are 2, 3 and 4. Selected removals are 2→1, 3→1/2 and 4→1/2/3. Target-255 and 256 refusal are covered for source count 2. Other source counts/append batches/removals, count-71 edits, other angle/offset profiles, differing flags/arity, legacy authority, other MLINE carriers/schemas, broader LTYPE providers and MLEADERSTYLE remain open. | Select a current flags/arity or other-geometry retarget refusal with source-backed expected semantics; otherwise return to the dense retained-byte case. Bind exact source, output/readback and failure/retry evidence |
 | P3 | SELECT PROFILE, THEN IMPLEMENT | Remaining Normal Map variants and material providers; earlier adapter-route qualification | Current distinguishing source and focused regression |
 | P4 | SELECT MISSING LAYER | P4a: remaining original attribute and other body profiles; P4b: compose document closure | One current distinguishing source, missing role or representation layer, and expected output |
 | P5 | LOCAL WORK + EVIDENCE | Remaining rendering and TABLE semantics | Existing source index/P4a; do not wait for full P4b closure |
@@ -61,10 +61,10 @@ external searches or a broad audit with no current failing witness.
 
 | Slice, in implementation order | Entry points / existing control | Exit condition |
 | --- | --- | --- |
-| P2 — next local geometry/schema witness | Reuse source/live/carrier/staged-output receipts [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json), plus the selected unique-LTYPE composite removal [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json). Appends are admitted in code for source counts 2..254 and targets through 255; selected source counts are 2, 3 and 4. Selected consumed removals are 2→1, all 3→1/2 survivor positions, and 4→1/2/3. | Select a source-backed non-offset retarget refusal; if none is ready, revisit the dense retained-byte case. Bind exact source/provider/consumers, output/readback and rollback/retry |
+| P2 — next local geometry/schema witness | Reuse source/live/carrier/staged-output receipts [RPP-5kb](docs/research/rpp5kb-mline-consumed-offset-projection-2026-10-29.json) through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json), plus [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json) and [RPP-5kx](docs/research/rpp5kx-mline-combined-angle-offset-retarget-2026-10-29.json). Appends are admitted in code for source counts 2..254 and targets through 255; selected source counts are 2, 3 and 4. Selected consumed removals are 2→1, all 3→1/2 survivor positions, and 4→1/2/3. | Select a source-backed flags/arity or other-geometry retarget refusal; if none is ready, revisit the dense retained-byte case. Bind exact source/provider/consumers, output/readback and rollback/retry |
 | P4a — select next original profile | Existing attribute source/compound census, exact spans and refusal diagnostics | Bind one secondary `AcDbXrecord`, column-bearing, other-order/version or unequal-alignment source to the missing layer before implementing it |
 | P4a — AC1018 attribute provenance | Selected 704/705/706 joins, ASCII source-name census, [ATTRIB APPID provider](docs/research/rpp5jj-ac1018-selected-attribute-appid-2026-10-28.json) and [compound LAYER providers](docs/research/rpp5jk-ac1018-selected-compound-layer-2026-10-28.json), [BLOCK endpoints](docs/research/rpp5jl-ac1018-selected-block-endpoints-2026-10-29.json) and [ATTDEF source tag](docs/research/rpp5jm-ac1018-selected-attdef-tag-2026-10-29.json) | Resolve XDICTIONARY and remaining child models, then bind live graph and output before promotion |
-| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and selected consumed-offset/retarget/append/removal receipts through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json), plus [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json) | Select a current source-backed non-offset retarget refusal; if unavailable, use the bounded dense-budget refusal. Bind exact source and expected output; do not wait for full P2 dependency closure |
+| P2 — independent geometry/count operation | Existing style/consumer planners, original captures, residual refusal controls, and selected consumed-offset/retarget/append/removal receipts through [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json), plus [RPP-5kw](docs/research/rpp5kw-mline-unique-ltype-composite-removal-2026-10-29.json) and [RPP-5kx](docs/research/rpp5kx-mline-combined-angle-offset-retarget-2026-10-29.json) | Select a current source-backed flags/arity or other-geometry retarget refusal; if unavailable, use the bounded dense-budget refusal. Bind exact source and expected output; do not wait for full P2 dependency closure |
 | P3 — select one MATERIAL profile | Existing field-role receipts, physical projector and producer recipe | Reproduce a remaining omitted/partial/refraction or earlier-route profile with an exact expected field role; implement only its missing layer |
 | P6 — select another witnessed boundary | Current writer/reader and consumer evidence, including the retained DIMSTYLE profiles | Reproduce an unresolved operation and its owning layer; do not treat a selected successful compatible export as whole-document qualification |
 
@@ -140,8 +140,9 @@ proof. Refused fields are not implemented editing support.
    [RPP-5kr](docs/research/rpp5kr-mline-consumed-style-four-source-append-2026-10-29.json),
    [RPP-5ks](docs/research/rpp5ks-mline-consumed-style-three-source-append-2026-10-29.json), and
    [RPP-5kt](docs/research/rpp5kt-mline-consumed-style-three-to-two-removal-2026-10-29.json), and
-   [RPP-5ku](docs/research/rpp5ku-mline-consumed-style-three-to-one-removal-2026-10-29.json), and
-   [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json).
+   [RPP-5ku](docs/research/rpp5ku-mline-consumed-style-three-to-one-removal-2026-10-29.json),
+   [RPP-5kv](docs/research/rpp5kv-mline-angle-only-retarget-projection-2026-10-29.json), and
+   [RPP-5kx](docs/research/rpp5kx-mline-combined-angle-offset-retarget-2026-10-29.json).
    Selected AC1027 profiles include appending one through eight elements to a consumed
    two-element style; removing either element from a two-element style to one
    survivor; removing each possible element from a three-element style to its
@@ -178,6 +179,8 @@ proof. Refused fields are not implemented editing support.
    count changes outside the selected profiles (including unused definitions),
    retargets whose flags, angles, arity or other geometry differ beyond the
    selected angle-only 90/90→60/120 profile with equal flags, arity and offsets,
+   and the selected combined 90/90→60/120 angle plus
+   [1.25,-0.75]→[1.5,-1.25] offset profile with flags 2 and two elements,
    earlier-version
    authority, and other consumed-offset profiles. For each remaining operation, select
    one current source witness, bind every affected original/live consumer and
@@ -189,7 +192,10 @@ proof. Refused fields are not implemented editing support.
    from selected offset or retarget evidence. RPP-5kv separately checks target
    style groups `51/52`, emitted MLINE group `340`, endpoint group `13`, group
    `41`, and fresh readback; it does not qualify arbitrary angles, angle-plus-
-   offset edits, incompatible flags/arity, native rendering, or other MLINE
+   offset edits. RPP-5kx checks combined target groups `49/51/52`, consumer
+   group `340`, endpoint group `13`, group `41`, and fresh readback for its
+   exact two-consumer profile. Neither receipt qualifies other numeric
+   combinations, incompatible flags/arity, native rendering, or other MLINE
    carriers and versions.
 
    Reuse the [selected unused-style append](docs/research/rpp5hk-mline-unused-append-2026-10-28.json),
