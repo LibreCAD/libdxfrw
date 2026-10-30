@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — recursive graph/output closure | Close remaining recursive references outside source-audited AC1024 profiles; qualify nonempty action-body, action-dependency, and owned-parameter references on matched inputs; then serialize and read back the complete reachable graph. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — recursive graph/output closure | Close remaining associative dependency targets and owner routes, including generic dependency references to entities and block-parameter objects; qualify nonempty action-prefix references on matched inputs; then serialize and read back the complete reachable graph. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -69,16 +69,17 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Residual associative closure:** resolve remaining recursive reference
-   families. A new nonempty action-body, action-dependency, or owned-parameter
-   profile requires a physical source witness before its target type and owner
-   route can be qualified. Reopen a completed provider only when a new physical
-   witness reproduces a raw node or boundary mismatch. Enforce duplicate-ID,
-   missing-target, expected-type, common-owner, reciprocal-edge, bounded-work
-   and cycle rules only where the source profile requires them. Keep version-2
-   nonzero-seed registry layouts raw until their framing is proven. Keep
-   investigation DWGs out of committed fixtures; bind regressions to eligible
-   repository inputs or locally authored fixtures.
+1. **Residual associative closure:** qualify remaining generic dependency
+   targets, owner routes, and link fields against physical source witnesses,
+   including entity and block-parameter targets. A nonempty action-body,
+   action-dependency, or owned-parameter profile requires a source witness before
+   its target type and owner route can be qualified. Reopen a completed provider
+   only when a new physical witness reproduces a raw node or boundary mismatch.
+   Enforce duplicate-ID, missing-target, expected-type, common-owner,
+   reciprocal-edge, bounded-work and cycle rules only where the source profile
+   requires them. Keep version-2 nonzero-seed registry layouts raw until their
+   framing is proven. Keep investigation DWGs out of committed fixtures; bind
+   regressions to eligible repository inputs or locally authored fixtures.
 2. **Associative output:** bind source identity and required fields to actual
    emitted object records, remap every edge consistently, and retain strict
    refusal until the complete reachable graph is serialized and verified by
