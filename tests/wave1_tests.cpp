@@ -3192,6 +3192,114 @@ void testMLeaderStyleVersionAndHandleRemapping(TestContext& t) {
     }
 }
 
+void testMLeaderStyleEnumDomains(TestContext& t) {
+    struct EnumField {
+        std::uint16_t DRW_MLeaderStyle::*member;
+        int groupCode;
+        const char* label;
+    };
+    const std::array<EnumField, 3> fields{{
+        {&DRW_MLeaderStyle::drawMLeaderOrder, 171, "draw multi-leader order"},
+        {&DRW_MLeaderStyle::drawLeaderOrder, 172, "draw leader order"},
+        {&DRW_MLeaderStyle::blockConnectionType, 177,
+            "block content connection type"}
+    }};
+    const auto fileTags = [](const std::filesystem::path& path, bool binary) {
+        std::ifstream input(path, std::ios::binary);
+        std::string bytes((std::istreambuf_iterator<char>(input)), {});
+        if (binary && bytes.size() >= 22u)
+            bytes.erase(0u, 22u);
+        bool ended = false;
+        return numericWireProjection(bytes, binary, ended);
+    };
+    const auto fieldValueIs = [](const std::vector<std::string>& tags,
+                                 int groupCode, int value) {
+        const auto begin = std::find(tags.begin(), tags.end(), "0:MLEADERSTYLE");
+        if (begin == tags.end())
+            return false;
+        const auto end = std::find_if(std::next(begin), tags.end(),
+            [](const std::string& tag) {
+                return tag.compare(0u, 2u, "0:") == 0;
+            });
+        const std::string expected = std::to_string(groupCode) + ":"
+            + std::to_string(value);
+        return std::find(std::next(begin), end, expected) != end;
+    };
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mleader-style-enum-"
+            + std::to_string(std::chrono::steady_clock::now()
+                .time_since_epoch().count()) + ".dxf");
+
+    class RetryInterface final : public dx_iface {
+    public:
+        RetryInterface() {
+            cData = &data;
+            currentBlock = data.mBlock;
+            style.handle = 0xA600u;
+            style.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            style.name = "ENUM_DOMAIN_MLEADERSTYLE";
+            style.styleVersion = 2;
+        }
+        void writeObjects() override {
+            (void)dxfW->writeMLeaderStyle(&style);
+        }
+        dx_data data;
+        DRW_MLeaderStyle style;
+    } iface;
+
+    unsigned refusals = 0u;
+    unsigned retries = 0u;
+    for (const bool binary : {false, true}) {
+        for (const EnumField& field : fields) {
+            for (const std::uint16_t invalid : {std::uint16_t{2},
+                                                std::uint16_t{65535}}) {
+                iface.style.drawMLeaderOrder = 0;
+                iface.style.drawLeaderOrder = 0;
+                iface.style.blockConnectionType = 0;
+                iface.style.*(field.member) = invalid;
+                const std::string sentinel = "KEEP_MLEADERSTYLE_DESTINATION";
+                { std::ofstream out(path, std::ios::binary); out << sentinel; }
+                const bool written = iface.fileExport(
+                    path.string(), DRW::AC1027, binary, &iface.data, false);
+                std::ifstream saved(path, std::ios::binary);
+                const bool destinationPreserved =
+                    std::string(std::istreambuf_iterator<char>(saved), {})
+                        == sentinel;
+                const std::string refusalLabel =
+                    "MLEADERSTYLE rejects invalid "
+                    + std::string(field.label)
+                    + " without publishing or editing the model";
+                t.expect(!written && destinationPreserved
+                             && iface.style.*(field.member) == invalid,
+                         refusalLabel.c_str());
+                if (written || !destinationPreserved)
+                    continue;
+                ++refusals;
+
+                const int corrected = invalid == 2u ? 1 : 0;
+                iface.style.*(field.member) = corrected;
+                const bool retried = iface.fileExport(
+                    path.string(), DRW::AC1027, binary, &iface.data, false);
+                const auto tags = retried ? fileTags(path, binary)
+                                          : std::vector<std::string>{};
+                const bool physicalValue = retried
+                    && fieldValueIs(tags, field.groupCode, corrected);
+                const std::string retryLabel =
+                    "same-adapter MLEADERSTYLE corrected enum retry emits group "
+                    + std::to_string(field.groupCode);
+                t.expect(retried && physicalValue,
+                         retryLabel.c_str());
+                if (retried && physicalValue)
+                    ++retries;
+            }
+        }
+    }
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    t.expect(refusals == 12u && retries == 12u,
+             "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
+}
+
 void testMLeaderWriterMinimumVersion(TestContext& t) {
     std::vector<std::string> asciiProjection;
     std::vector<std::string> emptyContentAsciiProjection;
@@ -13871,6 +13979,7 @@ int main(int argc, char** argv) {
         testMLeaderDxfCmcColorLossGuard(focused);
         testMLeaderStyleDxfCmcColorLossGuard(focused);
         testMLeaderWriterReferenceHandleRemapping(focused);
+        testMLeaderStyleEnumDomains(focused);
         std::cout << "MLEADER writer validation: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
