@@ -37558,7 +37558,9 @@ bool runTemporary() {
         ||!runMixedTargetProfile(false,false,false,"3DLINE/MESH",
             {DRW::THREEDLINE,DRW::MESH},true,true,false,false)
         ||!runMixedTargetProfile(false,false,false,"MESH/3DLINE",
-            {DRW::MESH,DRW::THREEDLINE},false,false,true,true))return false;
+            {DRW::MESH,DRW::THREEDLINE},false,false,true,true)
+        ||!runMixedTargetProfile(false,false,false,"MESH/MESH",
+            {DRW::MESH,DRW::MESH},false,true,true,false))return false;
     const std::vector<std::uint32_t> circleTargetHandles{0xA900u};
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -38626,7 +38628,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==368u&&readbacks==845u&&refusals==477u&&retries==477u;
+    return profiles==372u&&readbacks==858u&&refusals==486u&&retries==486u;
 }
 
 bool runBudgetTemporary() {
