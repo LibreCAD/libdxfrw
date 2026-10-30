@@ -1,0 +1,36 @@
+{
+  "id": "RPP-5yg",
+  "date": "2026-10-30",
+  "scope": "One childless AC1027 DXF-origin FIELD referenced by one TABLECONTENT type-2 value and rewritten by dx_iface.",
+  "sourceProfile": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "generatedAtRuntime": true,
+    "fieldCount": 1,
+    "fieldLists": 0,
+    "rawFieldLists": 0,
+    "fieldOwner": "ACAD_NOD handle C",
+    "fieldValue": {"evaluatorId": "AcExpr", "fieldCode": "%<test-expression>%", "type": 4, "value": "42"},
+    "fieldDependencies": {"children": 0, "objectReferences": 0, "childValues": 0},
+    "rawTypedIdentity": "One successful import receipt pairs the single typed FIELD to the single raw FIELD by handle, owner, family and source version; its ordered 24-group schema is checked.",
+    "genericAutoCadFieldGraph": "Not complete: the source intentionally has no FIELDLIST. Admission is limited to the exact childless direct TABLECONTENT reference profile."
+  },
+  "rewriteAndReadback": {
+    "version": "AC1027",
+    "inputOutputEncodingPairs": ["ASCII to ASCII", "Binary to Binary"],
+    "handleRemap": {"FIELD 1740": "2740", "TABLECONTENT 1724": "2724"},
+    "physicalOutput": "The rewritten FIELD precedes its TABLECONTENT consumer; the consumer writes type 2 and exact group-340 target 2740.",
+    "typedReadback": "The rewritten FIELD and TABLECONTENT are decoded; the type-2 content handle resolves to FIELD 2740.",
+    "failureAndRetry": "Mutating the imported typed FIELD handle breaks its raw/typed identity pair; export refuses with destination-sentinel preservation. Restoring the source identity succeeds on the same adapter.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only the exact AC1027 childless FIELD schema and same-encoding ASCII or binary rewrite are qualified. FIELDLIST, children, object references, child values, other owners, versions and cross-encoding rewrites remain outside this profile.",
+    "A cached FIELD string does not establish expression evaluation or native CAD rendering.",
+    "The overall TABLECONTENT implementation remains a bounded subset; TABLESTYLE/CELLSTYLEMAP, units, margins, borders, other cell compositions and native rendering are not established."
+  ]
+}

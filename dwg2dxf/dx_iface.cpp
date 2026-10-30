@@ -24926,11 +24926,17 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
     r.state=audit->namespaceReady?S::NamespaceReady:S::Unqualified;return r;
 }
 
-bool dx_iface::hasAuthoredTableContentFieldProfile(
+bool dx_iface::hasSimpleTableContentFieldProfile(
         const dx_data& data) const noexcept {
-    if (data.sourceFormat != dx_source_format::Unknown
+    const bool adapterAuthored =
+        data.sourceFormat == dx_source_format::Unknown
+        && data.rawFields.empty() && data.rawFieldLists.empty();
+    const bool importedDxf = data.sourceFormat == dx_source_format::DXF
+        && data.hasSingleSuccessfulFieldCarrierImport()
+        && data.rawFields.size() == 1u;
+    if ((!adapterAuthored && !importedDxf)
         || data.fields.size() != 1u || !data.fieldLists.empty()
-        || !data.rawFields.empty() || !data.rawFieldLists.empty()
+        || !data.rawFieldLists.empty()
         || std::any_of(data.tables.begin(), data.tables.end(),
             [](const DRW_Table& table) {
                 return !table.m_content.m_fieldHandles.empty();
@@ -24943,10 +24949,36 @@ bool dx_iface::hasAuthoredTableContentFieldProfile(
         || data.fieldCarrierImport.typedResourceLimitExceeded)
         return false;
     const DRW_Field& field = data.fields.front();
+    if (adapterAuthored) {
+        if (field.parentHandle != 0u)
+            return false;
+    } else {
+        if (!data.hasNamedObjectDictionary
+            || data.namedObjectDictionary.handle
+                != DRW::DwgNamedObjectsDictionaryHandle
+            || field.parentHandle != data.namedObjectDictionary.handle)
+            return false;
+        static constexpr std::array<int, 24> kSimpleFieldRawCodes{{
+            5, 330, 100, 1, 2, 90, 97, 91, 92, 94, 95, 96,
+            300, 93, 7, 93, 90, 1, 94, 300, 302, 304, 301, 98}};
+        const DRW_RawDxfObject& raw = data.rawFields.front();
+        if (!asciiIdentifierEquals(raw.name, "FIELD")
+            || raw.handle != field.handle
+            || raw.parentHandle != field.parentHandle
+            || raw.m_version != data.sourceVersion
+            || raw.groups.size() != kSimpleFieldRawCodes.size())
+            return false;
+        for (std::size_t index = 0u;
+             index < kSimpleFieldRawCodes.size(); ++index) {
+            if (raw.groups[index].code() != kSimpleFieldRawCodes[index])
+                return false;
+        }
+    }
     std::size_t retainedBytes = 0u;
     std::size_t itemCount = 0u;
     if (field.handle == 0u || field.handle == DRW::NoHandle
-        || field.parentHandle != 0u || !field.reactorHandles.empty()
+        || (adapterAuthored && field.parentHandle != 0u)
+        || !field.reactorHandles.empty()
         || field.xDictHandle != 0u || !field.appData.empty()
         || !field.extData.empty() || !field.m_childHandles.empty()
         || !field.m_objectHandles.empty() || !field.m_childValues.empty()
@@ -40027,7 +40059,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         });
     if (hasFieldCarriers || hasTableFieldReferences
         || hasTableContentFieldReferences) {
-        if (!hasAuthoredTableContentFieldProfile(*cData)) {
+        if (!hasSimpleTableContentFieldProfile(*cData)) {
             if (cData->sourceFormat == dx_source_format::DXF) {
                 if (!cData->hasSingleSuccessfulFieldCarrierImport()) {
                     reportPreflightFailure(

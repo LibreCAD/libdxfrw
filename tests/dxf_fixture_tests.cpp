@@ -53753,6 +53753,208 @@ void testDataLinkAdapterExport(TestContext& t) {
     }
 }
 
+void testDxfOriginTableContentFieldReplay(TestContext& t) {
+    class HandleMappingInterface final : public dx_iface {
+    public:
+        std::map<std::uint32_t, std::uint32_t> remap;
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setHandleRemap(remap);
+        }
+    };
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto sourcePath = std::filesystem::temp_directory_path()
+            / ("libdxfrw-field-source-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const auto replayPath = std::filesystem::temp_directory_path()
+            / ("libdxfrw-field-replay-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path source;
+            std::filesystem::path replay;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(source, error);
+                std::filesystem::remove(replay, error);
+            }
+        } cleanup{sourcePath, replayPath};
+
+        dx_data authored;
+        DRW_Field field;
+        field.handle = 0x740u;
+        field.m_evaluatorId = "AcExpr";
+        field.m_fieldCode = "%<test-expression>%";
+        field.m_value.m_dataType = 4;
+        field.m_value.m_value.addString(1, "42");
+        authored.fields.push_back(field);
+
+        DRW_TableContentObject tableContent;
+        tableContent.handle = 0x724u;
+        tableContent.m_parseComplete = true;
+        tableContent.m_semanticContentComplete = true;
+        tableContent.m_content.m_name = "field content";
+        tableContent.m_content.m_description = "one field reference";
+        tableContent.m_content.m_columns.emplace_back();
+        tableContent.m_content.m_columns.front().m_name = "Field";
+        DRW_TableRow row;
+        DRW_TableCell cell;
+        DRW_TableCellContent reference;
+        reference.m_type = 2;
+        reference.m_handle = field.handle;
+        cell.m_contents.push_back(reference);
+        row.m_cells.push_back(cell);
+        tableContent.m_content.m_rows.push_back(row);
+        auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
+        metadata->m_columns.resize(1u);
+        metadata->m_columns.front().m_style.m_type = 3;
+        metadata->m_rows.resize(1u);
+        metadata->m_rows.front().m_scope.m_style.m_type = 2;
+        metadata->m_rows.front().m_cells.resize(1u);
+        metadata->m_rows.front().m_cells.front().m_scope.m_style.m_type = 1;
+        metadata->m_rows.front().m_cells.front().m_contentFormats.resize(1u);
+        metadata->m_tableStyle.m_type = 4;
+        tableContent.m_dxfMetadata = std::move(metadata);
+        authored.tableContents.push_back(std::move(tableContent));
+        authored.standaloneTableContentPresent = true;
+        authored.tableContentRetainedRecords = 1u;
+
+        HandleMappingInterface sourceWriter;
+        sourceWriter.remap = {{0x724u, 0x1724u}, {0x740u, 0x1740u}};
+        const bool sourceWritten = sourceWriter.fileExport(
+            sourcePath.string(), DRW::AC1027, binary, &authored, false);
+        dx_iface sourceReader;
+        dx_data imported;
+        const bool sourceImported = sourceWritten
+            && sourceReader.fileImport(sourcePath.string(), &imported, false);
+        static constexpr std::array<int, 24> simpleFieldRawCodes{{
+            5, 330, 100, 1, 2, 90, 97, 91, 92, 94, 95, 96,
+            300, 93, 7, 93, 90, 1, 94, 300, 302, 304, 301, 98}};
+        bool pairedRawProfile = sourceImported
+            && imported.sourceFormat == dx_source_format::DXF
+            && imported.sourceVersion == DRW::AC1027
+            && imported.hasSingleSuccessfulFieldCarrierImport()
+            && !imported.hasCompleteAutoCadFieldGraph()
+            && imported.hasNamedObjectDictionary
+            && imported.namedObjectDictionary.handle
+                == DRW::DwgNamedObjectsDictionaryHandle
+            && imported.fields.size() == 1u
+            && imported.fields.front().parentHandle
+                == imported.namedObjectDictionary.handle
+            && imported.fieldLists.empty() && imported.rawFields.size() == 1u
+            && imported.rawFieldLists.empty()
+            && imported.rawFields.front().handle == 0x1740u
+            && imported.rawFields.front().parentHandle
+                == imported.fields.front().parentHandle
+            && imported.rawFields.front().m_version == DRW::AC1027
+            && imported.rawFields.front().groups.size()
+                == simpleFieldRawCodes.size();
+        if (pairedRawProfile) {
+            for (std::size_t index = 0u;
+                 index < simpleFieldRawCodes.size(); ++index) {
+                if (imported.rawFields.front().groups[index].code()
+                    != simpleFieldRawCodes[index]) {
+                    pairedRawProfile = false;
+                    break;
+                }
+            }
+        }
+        t.expect(pairedRawProfile,
+                 binary
+                     ? "binary DXF FIELD has paired raw/typed identity and the selected childless schema"
+                     : "ASCII DXF FIELD has paired raw/typed identity and the selected childless schema");
+
+        HandleMappingInterface replayWriter;
+        replayWriter.remap = {{0x1724u, 0x2724u}, {0x1740u, 0x2740u}};
+        const std::string sentinel = "preserve FIELD replay destination";
+        {
+            std::ofstream output(replayPath, std::ios::binary);
+            output.write(sentinel.data(),
+                         static_cast<std::streamsize>(sentinel.size()));
+        }
+        bool sourceIdentityMutationRefused = false;
+        if (!imported.fields.empty()) {
+            imported.fields.front().handle = 0x1741u;
+            sourceIdentityMutationRefused = !replayWriter.fileExport(
+                replayPath.string(), DRW::AC1027, binary, &imported, false);
+            imported.fields.front().handle = 0x1740u;
+        }
+        std::ifstream refusedInput(replayPath, std::ios::binary);
+        const std::string refusedOutput(
+            (std::istreambuf_iterator<char>(refusedInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(sourceIdentityMutationRefused && refusedOutput == sentinel,
+                 "DXF-origin FIELD identity mutation refuses atomically");
+
+        const bool replayWritten = replayWriter.fileExport(
+            replayPath.string(), DRW::AC1027, binary, &imported, false);
+        FixtureInterface replayReader;
+        dx_data replayed;
+        const bool replayImported = replayWritten
+            && replayReader.fileImport(replayPath.string(), &replayed, false);
+        const DRW_TableContentObject* emittedContent = nullptr;
+        for (const DRW_TableContentObject& content : replayed.tableContents) {
+            if (content.handle == 0x2724u)
+                emittedContent = &content;
+        }
+        bool typedLink = replayImported && replayed.fields.size() == 1u
+            && replayed.fields.front().handle == 0x2740u
+            && emittedContent != nullptr
+            && emittedContent->m_content.m_rows.size() == 1u
+            && emittedContent->m_content.m_rows.front().m_cells.size() == 1u;
+        if (typedLink) {
+            const auto& contents = emittedContent->m_content.m_rows.front()
+                .m_cells.front().m_contents;
+            typedLink = contents.size() == 1u
+                && contents.front().m_type == 2
+                && contents.front().m_handle == 0x2740u;
+        }
+        const auto tags = materialBodyControls::physicalTags(replayPath, binary);
+        std::size_t fieldIndex = tags.size();
+        std::size_t tableContentIndex = tags.size();
+        for (std::size_t index = 0u; index + 1u < tags.size(); ++index) {
+            if (tags[index] == std::make_pair(0, std::string("FIELD"))
+                && tags[index + 1u]
+                    == std::make_pair(5, std::string("2740")))
+                fieldIndex = index;
+            if (tags[index]
+                    == std::make_pair(0, std::string("TABLECONTENT"))
+                && tags[index + 1u]
+                    == std::make_pair(5, std::string("2724")))
+                tableContentIndex = index;
+        }
+        bool exactWireReference = fieldIndex < tableContentIndex;
+        if (exactWireReference) {
+            bool matched = false;
+            for (std::size_t index = tableContentIndex + 1u;
+                 index + 3u < tags.size() && tags[index].first != 0; ++index) {
+                if (tags[index].first != 90
+                    || tags[index + 1u]
+                        != std::make_pair(340, std::string("2740")))
+                    continue;
+                try {
+                    matched = std::stoi(tags[index].second) == 2;
+                } catch (...) {
+                    matched = false;
+                }
+                if (matched)
+                    break;
+            }
+            exactWireReference = matched;
+        }
+        t.expect(replayWritten,
+                 "DXF-origin simple FIELD replay passes export preflight");
+        t.expect(replayImported,
+                 "DXF-origin simple FIELD replay output imports");
+        t.expect(typedLink && exactWireReference,
+                 binary
+                     ? "binary DXF-origin FIELD replays with exact remapped reference and typed readback"
+                     : "ASCII DXF-origin FIELD replays with exact remapped reference and typed readback");
+    }
+}
+
 bool generateGeneratedObjectCommonCarriers(const std::filesystem::path& output,
                                            DRW::Version version, bool binary) {
     class GeneratedCommonInterface final : public dx_iface {
@@ -58328,6 +58530,7 @@ int main(int argc, char** argv) {
         TestContext context;
         testTypedDataLinkWriter(context);
         testDataLinkAdapterExport(context);
+        testDxfOriginTableContentFieldReplay(context);
         std::cout << "Generated DATALINK writer and adapter routes: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
