@@ -1863,6 +1863,12 @@ private:
     // Selected original APPID provider name, not semantic/output authority.
     static bool legacyCompoundAppIdSource(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t,std::uint32_t&) noexcept;
+    // Selected original BLOCK_RECORD EED APPID dependency, source-only.
+    enum class LegacyBlockRecordAppIdResult : std::uint8_t {NotSelected,Matched,Rejected,Failed};
+    static LegacyBlockRecordAppIdResult legacyBlockRecordAppIdSource(const dx_data&,std::uint32_t,
+        std::size_t,std::size_t,
+        std::shared_ptr<const dx_data::TableDxfSourceCapture::LegacyBlockRecordAppIdJoin>&) noexcept;
+    void finishLegacyBlockRecordAppIdJoins(dx_data&) noexcept;
     // Selected original INSERT/ATTRIB/SEQEND layer providers only.
     static bool legacyCompoundLayerSources(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t,std::array<std::uint32_t,3>&) noexcept;

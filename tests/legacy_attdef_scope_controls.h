@@ -88,7 +88,26 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
     if(blockRecordTable==outputDoc.end())return false;
     auto blockRecordCount=std::find_if(std::next(blockRecordTable),outputDoc.end(),[](const Tag& t){return t.code==70;});
     if(blockRecordCount==outputDoc.end())return false;blockRecordCount->value="1";
+    const auto findRecord=[](Tags& tags,const char* name,const char* handle) {
+        for(auto it=tags.begin();it!=tags.end();++it)
+            if(it->code==0&&it->value==name&&std::next(it)!=tags.end()
+                &&std::next(it)->code==5&&std::next(it)->value==handle)return it;
+        return tags.end();
+    };
+    const auto setAppIdTableCount=[](Tags& tags,const char* count) {
+        for(auto table=tags.begin();table!=tags.end();++table) {
+            if(table->code!=0||table->value!="TABLE")continue;
+            auto end=std::find_if(std::next(table),tags.end(),[](const Tag& tag){return tag.code==0;});
+            if(end==tags.end())return false;
+            auto name=std::find_if(std::next(table),end,[](const Tag& tag){return tag.code==2;});
+            if(name==end||name->value!="APPID")continue;
+            auto entries=std::find_if(std::next(name),end,[](const Tag& tag){return tag.code==70;});
+            if(entries==end)return false;entries->value=count;return true;
+        }
+        return false;
+    };
     unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u,liveModelFaults=0u,dependencyChains=0u,dependencyFaults=0u,sortEntsFaults=0u,ownerChainFaults=0u;
+    unsigned appIdJoins=0u,appIdRefusals=0u,appIdRetries=0u;
     for(bool binary:{false,true}){
         if(!write(path,doc,binary))return false;
         Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent)
@@ -117,6 +136,71 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         }
         ++dependencyChains;
         ++positives;
+        Probe appIdProbe;
+        if(!appIdProbe.enableWholeDxfSourceObservation()
+            ||!appIdProbe.enableLegacyDxfIdentityObservation())return false;
+        dx_data appIdData;
+        if(!appIdProbe.fileImport(path.string(),&appIdData,false)
+            ||!A::legacyBlockRecordAppIdJoinBound(appIdData)
+            ||A::legacyBlockRecordAppIdJoinCount(appIdData)!=1u
+            ||!A::legacyBlockRecordAppIdQuotaControls(appIdData)
+            ||A::legacyBlockRecordAppIdCaptureFailed(appIdData)) {
+            std::cerr<<"selected AC1018 BLOCK_RECORD APPID source join failed (binary="<<binary<<") joins="
+                <<A::legacyBlockRecordAppIdJoinCount(appIdData)<<" captureFailed="
+                <<A::legacyBlockRecordAppIdCaptureFailed(appIdData)<<'\n';
+            return false;
+        }
+        ++appIdJoins;
+        for(unsigned fault=0u;fault<4u;++fault) {
+            auto changed=doc;
+            if(fault==0u) {
+                auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                if(end==changed.end())return false;changed.erase(first,end);
+                if(!setAppIdTableCount(changed,"2"))return false;
+            } else if(fault==1u) {
+                auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto tableEnd=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0&&tag.value=="ENDTAB";});
+                if(end==changed.end()||tableEnd==changed.end())return false;
+                Tags duplicate(first,end);
+                auto handle=std::find_if(duplicate.begin(),duplicate.end(),[](const Tag& tag){return tag.code==5;});
+                if(handle==duplicate.end())return false;handle->value="A5";
+                changed.insert(tableEnd,duplicate.begin(),duplicate.end());
+                if(!setAppIdTableCount(changed,"4"))return false;
+            } else if(fault==2u) {
+                auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto owner=std::find_if(std::next(first),end,[](const Tag& tag){return tag.code==330;});
+                if(end==changed.end()||owner==end)return false;owner->value="A8";
+            } else {
+                auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto name=std::find_if(std::next(first),end,[](const Tag& tag){return tag.code==2;});
+                if(end==changed.end()||name==end)return false;name->value="OTHER_APP";
+            }
+            if(!write(path,changed,binary))return false;
+            Probe invalid;
+            if(!invalid.enableWholeDxfSourceObservation()
+                ||!invalid.enableLegacyDxfIdentityObservation())return false;
+            dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)
+                ||!A::legacyBlockRecordAppIdJoinAbsent(rejected)
+                ||A::legacyBlockRecordAppIdCaptureFailed(rejected)) {
+                std::cerr<<"BLOCK_RECORD APPID dependency fault was admitted or capture failed: "
+                    <<fault<<" (binary="<<binary<<")\n";return false;
+            }
+            ++appIdRefusals;
+            if(!write(path,doc,binary))return false;
+            dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)
+                ||!A::legacyBlockRecordAppIdJoinBound(retry)
+                ||A::legacyBlockRecordAppIdCaptureFailed(retry)) {
+                std::cerr<<"BLOCK_RECORD APPID same-adapter retry failed: "<<fault
+                    <<" (binary="<<binary<<")\n";return false;
+            }
+            ++appIdRetries;
+        }
         if(!write(path,outputDoc,binary))return false;
         dx_data data;
         if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)
@@ -355,10 +439,13 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
     std::cout<<"AC1018 selected origin join profiles="<<positives<<" xdictionary chains="<<dependencyChains
         <<" chain faults="<<dependencyFaults<<" SORTENTSTABLE faults="<<sortEntsFaults
         <<" owner-chain faults="<<ownerChainFaults
+        <<" BLOCK_RECORD APPID joins="<<appIdJoins<<" refusal controls="<<appIdRefusals
+        <<" same-adapter retries="<<appIdRetries
         <<" live-model-controls="<<liveModelFaults<<" default="<<defaults
         <<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases
         <<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
-    return positives==2u&&dependencyChains==2u&&dependencyFaults==12u&&sortEntsFaults==8u&&ownerChainFaults==4u&&liveModelFaults==4u&&defaults==2u
+    return positives==2u&&dependencyChains==2u&&dependencyFaults==12u&&sortEntsFaults==8u&&ownerChainFaults==4u
+        &&appIdJoins==2u&&appIdRefusals==8u&&appIdRetries==8u&&liveModelFaults==4u&&defaults==2u
         &&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u
         &&dictionaryFaults==6u&&retries==72u;
 }

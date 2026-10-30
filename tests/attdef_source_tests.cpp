@@ -175,6 +175,78 @@ public:
             &&!dx_iface::identitySourceReport(d).outputEligible
             &&!dx_iface::identitySourceReport(d).ownerTargetsResolved;
     }
+    static bool legacyBlockRecordAppIdJoinBound(const dx_data& d,std::uint32_t ownerHandle=0xC1u,
+            std::uint32_t providerHandle=0xA6u) {
+        const auto& source=d.m_tableDxfSource;
+        const auto found=source.legacyBlockRecordAppIdJoins.find(ownerHandle);
+        const auto owner=source.structuralInputs.find(ownerHandle);
+        const auto provider=source.resources.find(providerHandle);
+        if(found==source.legacyBlockRecordAppIdJoins.end()||!found->second
+            ||owner==source.structuralInputs.end()||!owner->second
+            ||provider==source.resources.end()||!provider->second.model||!provider->second.raw
+            ||!source.legacyIdentityObservation||!source.wholeInput||!source.wholeInput->source)return false;
+        const auto& join=*found->second;
+        const auto& census=*source.legacyIdentityObservation->source;
+        if(join.identity.get()!=source.legacyIdentityObservation.get()
+            ||join.wholeInput.get()!=source.wholeInput.get()
+            ||join.ownerStructural.get()!=owner->second.get()
+            ||join.providerModel.get()!=provider->second.model.get()
+            ||join.providerRaw.get()!=provider->second.raw.get()
+            ||join.ownerHandle!=ownerHandle||join.providerHandle!=providerHandle
+            ||join.ownerRecord>=census.records.size()||join.tableRecord>=census.records.size()
+            ||join.providerRecord>=census.records.size()
+            ||join.ownerAppIdNameGroup>=owner->second->raw->groups.size()
+            ||census.records[join.ownerRecord].name!="BLOCK_RECORD"
+            ||census.records[join.tableRecord].kind!=DRW_DxfIdentitySource::Kind::TableControl
+            ||census.records[join.tableRecord].tableName!="APPID"
+            ||census.records[join.providerRecord].name!="APPID"
+            ||census.records[join.providerRecord].table!=join.tableRecord
+            ||join.tableHandle==0u||provider->second.raw->handle!=providerHandle
+            ||provider->second.raw->parentHandle!=join.tableHandle
+            ||provider->second.model->handle!=providerHandle
+            ||provider->second.model->parentHandle!=join.tableHandle
+            ||owner->second->legacyBlockRecordProfile.spans.empty())return false;
+        const auto& appIdName=owner->second->raw->groups[join.ownerAppIdNameGroup];
+        if(appIdName.code()!=1001||appIdName.type()!=DRW_Variant::STRING||!appIdName.content.s
+            ||*appIdName.content.s!="ACAD")return false;
+        if(!join.ownerAppIdNameOrdinal||!join.providerNameOrdinal)return false;
+        const auto ownerField=source.wholeInput->source->field(join.ownerAppIdNameOrdinal-1u);
+        const auto providerField=source.wholeInput->source->field(join.providerNameOrdinal-1u);
+        if(!source.wholeInput->source->bounds(ownerField)
+            ||!source.wholeInput->source->bounds(providerField)
+            ||ownerField.code!=1001||ownerField.begin!=join.ownerAppIdNameBegin
+            ||ownerField.end!=join.ownerAppIdNameEnd
+            ||source.wholeInput->source->value(ownerField)!="ACAD"
+            ||providerField.code!=2||providerField.begin!=join.providerNameBegin
+            ||providerField.end!=join.providerNameEnd
+            ||source.wholeInput->source->value(providerField)!="ACAD")return false;
+        const auto* model=dynamic_cast<const DRW_AppId*>(provider->second.model.get());
+        std::size_t live=0u;
+        for(const auto& item:d.appIds)if(item.handle==providerHandle)++live;
+        return model&&model->name=="ACAD"&&live==1u&&!source.legacyBlockRecordAppIdCaptureFailed
+            &&!dx_iface::identitySourceReport(d).outputEligible
+            &&!dx_iface::identitySourceReport(d).ownerTargetsResolved;
+    }
+    static bool legacyBlockRecordAppIdQuotaControls(const dx_data& d,std::uint32_t ownerHandle=0xC1u,
+            std::uint32_t providerHandle=0xA6u) {
+        using Join=dx_data::TableDxfSourceCapture::LegacyBlockRecordAppIdJoin;
+        std::shared_ptr<const Join> result;
+        if(dx_iface::legacyBlockRecordAppIdSource(d,ownerHandle,0u,0u,result)
+                !=dx_iface::LegacyBlockRecordAppIdResult::Failed||result)return false;
+        if(dx_iface::legacyBlockRecordAppIdSource(d,ownerHandle,64u*1024u*1024u,
+                64u*1024u*1024u,result)!=dx_iface::LegacyBlockRecordAppIdResult::Matched
+            ||!result||result->providerHandle!=providerHandle||result->ownerHandle!=ownerHandle)return false;
+        return true;
+    }
+    static bool legacyBlockRecordAppIdJoinAbsent(const dx_data& d,std::uint32_t ownerHandle=0xC1u) {
+        return !d.m_tableDxfSource.legacyBlockRecordAppIdJoins.count(ownerHandle);
+    }
+    static std::size_t legacyBlockRecordAppIdJoinCount(const dx_data& d) {
+        return d.m_tableDxfSource.legacyBlockRecordAppIdJoins.size();
+    }
+    static bool legacyBlockRecordAppIdCaptureFailed(const dx_data& d) {
+        return d.m_tableDxfSource.legacyBlockRecordAppIdCaptureFailed;
+    }
     static bool legacyXDictionaryChainFailed(const dx_data& d) {
         return d.m_tableDxfSource.legacyBlockRecordXDictionaryFailed;
     }
