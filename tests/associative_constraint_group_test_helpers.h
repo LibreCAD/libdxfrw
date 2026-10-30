@@ -1,6 +1,7 @@
 #ifndef LIBDXFRW_TESTS_ASSOCIATIVE_CONSTRAINT_GROUP_TEST_HELPERS_H
 #define LIBDXFRW_TESTS_ASSOCIATIVE_CONSTRAINT_GROUP_TEST_HELPERS_H
 
+#include <array>
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -27,6 +28,16 @@ struct Node {
     std::int32_t datumLineIndex = 0;
     bool hasDatumLineBody = false;
     bool hasDatumLineDirection = true;
+    bool hasRigidSetBody = false;
+    bool hasRigidSetReservedFlag = true;
+    bool rigidSetReservedFlag = false;
+    bool hasRigidSetTransform = true;
+    std::array<double, 16> rigidSetTransform{};
+    bool hasRigidSetGeometryCount = true;
+    std::int32_t declaredRigidSetGeometryCount =
+        std::numeric_limits<std::int32_t>::min();
+    bool hasRigidSetGeometryIds = true;
+    std::vector<std::int32_t> rigidSetGeometryIds;
     bool hasRadiusDiameterBody = false;
     bool hasRadiusDiameterMode = true;
     std::uint8_t radiusDiameterMode = 0u;
@@ -185,6 +196,27 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.put3BitDouble(node.point);
             if (node.hasDatumLineDirection)
                 object.put3BitDouble(node.direction);
+        } else if (node.hasRigidSetBody) {
+            object.putBitLong(node.geometryNodeId);
+            if (node.hasRigidSetReservedFlag)
+                object.putBit(node.rigidSetReservedFlag ? 1u : 0u);
+            if (node.hasRigidSetTransform) {
+                for (const double value : node.rigidSetTransform)
+                    object.putBitDouble(value);
+            }
+            if (node.hasRigidSetGeometryCount) {
+                const std::int32_t geometryCount =
+                    node.declaredRigidSetGeometryCount
+                            != std::numeric_limits<std::int32_t>::min()
+                        ? node.declaredRigidSetGeometryCount
+                        : static_cast<std::int32_t>(
+                              node.rigidSetGeometryIds.size());
+                object.putBitLong(geometryCount);
+                if (node.hasRigidSetGeometryIds) {
+                    for (const auto geometryId : node.rigidSetGeometryIds)
+                        object.putBitLong(geometryId);
+                }
+            }
         } else if (node.hasGeometricalBody) {
             object.putBitLong(node.ownerId);
             object.putBit(node.isImplied ? 1u : 0u);
@@ -242,7 +274,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
                                        node.valueDependencyHandle));
             object.putHandle(reference(node.dimensionDependencyCode,
                                        node.dimensionDependencyHandle));
-        } else if (node.hasDatumLineBody) {
+        } else if (node.hasDatumLineBody || node.hasRigidSetBody) {
             object.putHandle(reference(node.geometryDependencyCode,
                                        node.geometryDependencyHandle));
         } else if (node.hasImplicitPointBody || node.hasBoundedLineBody

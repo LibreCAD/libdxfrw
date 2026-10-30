@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Investigate the next observed AC1024 profile, `AcConstrainedRigidSet` node 768 in the civil witness; establish its body and handle boundaries from source evidence before implementing, then close source-required descendants and serialize/read back the complete reachable graph. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Close the source-required geometry references and owners for `AcConstrainedRigidSet` IDs 767, 769 and 771, then finish recursive graph closure and serialize/read back the complete reachable graph. Reopen inline-node decoding only on a new source-matched failure. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -69,16 +69,16 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Remaining constraint-node bodies and residual associative closure:** the
-   next unsupported source-order profile is `AcConstrainedRigidSet` node 768 in
-   `civil_example-imperial.dwg` (SHA256
-   `45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc`). It is
-   the only occurrence in the current local AC1024 sample census. Probe its
-   complete body span, handle-stream position, and connection targets. Consult
-   ODA v5.4.1, the class contract, and pinned independent readers for a matching
-   layout; require another physical witness if available. Implement only a
-   source-backed profile, retaining other versions and variants raw. Continue
-   in source order, closing each source-required descendant before advancing.
+1. **Residual associative closure:** the currently traversed AC1024 v0 inline
+   constraint nodes are typed in the architectural witness (174/174) and civil
+   witness (147/147), including `AcConstrainedRigidSet` node 768. Its bounded
+   body/handle profile is recorded in
+   `docs/research/p4-ac1024-assoc-node-rigid-set-2026-10-30.json`. This closes
+   the current inline-node decoder queue only; it does not establish family or
+   version-wide coverage. The next action is to resolve the RigidSet geometry
+   IDs 767, 769 and 771 to source-required target roles, types and owners, then
+   close each required descendant before advancing. Reopen node decoding only
+   when a new physical witness reproduces a raw node or boundary mismatch.
    Validate connection roles and targets; enforce duplicate-ID, missing-target,
    expected-type, common-owner, reciprocal-edge, bounded-work and cycle rules
    only where the source profile requires them. Keep version-2 nonzero-seed

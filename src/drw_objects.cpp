@@ -135,6 +135,11 @@ bool isAssociativeConstrainedDatumLine(std::string_view className) {
         className, "AcConstrainedDatumLine");
 }
 
+bool isAssociativeConstrainedRigidSet(std::string_view className) {
+    return equalsAsciiCaseInsensitive(
+        className, "AcConstrainedRigidSet");
+}
+
 bool isAssociativeConstrainedArc(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcConstrainedArc");
 }
@@ -27398,6 +27403,123 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         bodyProbe = nodeBodyProbe;
                         groupStringProbe = nodeStringProbe;
                         handleProbe = datumLineHandleProbe;
+                        ++decodedHandleCount;
+                        continue;
+                    }
+                    if (isAssociativeConstrainedRigidSet(
+                            node.m_className)) {
+                        dwgBuffer rigidHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle geometryDependency;
+                        std::int32_t geometryNodeId = 0;
+                        bool reserved = false;
+                        std::array<double, 16> transform{};
+                        std::int32_t geometryCount = -1;
+                        std::vector<std::int32_t> geometryIds;
+                        const std::uint64_t bodyStartBit =
+                            currentObjectDwgBit(&nodeBodyProbe);
+                        const std::uint64_t handleStartBit =
+                            currentObjectDwgBit(&rigidHandleProbe);
+                        bool rigidSetParsed = readBoundedObjectHandle(
+                                rigidHandleProbe, 0u, false,
+                                geometryDependency, handleEndBit)
+                            && geometryDependency.code
+                                   == DRW::DwgSoftPointer
+                            && geometryDependency.ref64 == 0u
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryNodeId)
+                            && readBitWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                reserved);
+                        for (double& value : transform) {
+                            if (!rigidSetParsed)
+                                break;
+                            rigidSetParsed = readBitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                value);
+                        }
+                        if (rigidSetParsed) {
+                            rigidSetParsed = readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryCount);
+                            if (rigidSetParsed
+                                && !isValidAssocCount(geometryCount)) {
+                                boundedCountOverflow = true;
+                                rigidSetParsed = false;
+                            }
+                        }
+                        if (rigidSetParsed) {
+                            rigidSetParsed = countFitsObjectBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryCount, 8u);
+                        }
+                        if (rigidSetParsed
+                            && !DRW::reserve(geometryIds, geometryCount)) {
+                            allocationFailure = true;
+                            rigidSetParsed = false;
+                        }
+                        for (std::int32_t index = 0;
+                             rigidSetParsed && index < geometryCount; ++index) {
+                            std::int32_t geometryId = 0;
+                            rigidSetParsed = readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryId);
+                            if (rigidSetParsed)
+                                geometryIds.push_back(geometryId);
+                        }
+                        if (!rigidSetParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::RigidSet;
+                        node.m_hasGeometryDependency = true;
+                        node.m_geometryDependencyCode =
+                            geometryDependency.code;
+                        node.m_geometryDependencyHandle =
+                            geometryDependency.ref64;
+                        node.m_geometryNodeId = geometryNodeId;
+                        node.m_hasRigidSetReservedFlag = true;
+                        node.m_rigidSetReservedFlag = reserved;
+                        node.m_hasRigidSetTransform = true;
+                        node.m_rigidSetTransform = transform;
+                        node.m_rigidSetGeometryIds =
+                            std::move(geometryIds);
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 constrained rigid set decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" dependency=");
+                        DRW_DBG(static_cast<unsigned>(geometryDependency.code));
+                        DRW_DBG("/"); DRW_DBG(geometryDependency.ref64);
+                        DRW_DBG(" geometryNodeId=");
+                        DRW_DBG(geometryNodeId); DRW_DBG(" reserved=");
+                        DRW_DBG(reserved); DRW_DBG(" transform=");
+                        for (std::size_t index = 0;
+                             index < transform.size(); ++index) {
+                            if (index != 0u)
+                                DRW_DBG(",");
+                            DRW_DBG(transform[index]);
+                        }
+                        DRW_DBG(" geometryIds=");
+                        for (std::size_t index = 0;
+                             index < node.m_rigidSetGeometryIds.size();
+                             ++index) {
+                            if (index != 0u)
+                                DRW_DBG(",");
+                            DRW_DBG(node.m_rigidSetGeometryIds[index]);
+                        }
+                        DRW_DBG(" bodyStartBit="); DRW_DBG(bodyStartBit);
+                        DRW_DBG(" bodyEndBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                        DRW_DBG(" handleStartBit=");
+                        DRW_DBG(handleStartBit); DRW_DBG(" handleEndBit=");
+                        DRW_DBG(currentObjectDwgBit(&rigidHandleProbe));
+                        DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = rigidHandleProbe;
                         ++decodedHandleCount;
                         continue;
                     }

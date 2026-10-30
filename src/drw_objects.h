@@ -7125,7 +7125,8 @@ struct DRW_AssociativeConstraintNode {
     Circle,
     Arc,
     Distance,
-    Vertical
+    Vertical,
+    RigidSet
   };
 
   UTF8STRING m_className;
@@ -7169,6 +7170,13 @@ struct DRW_AssociativeConstraintNode {
   std::int32_t m_pointIndex = 0;
   std::int32_t m_curveNodeId = 0;
   bool m_classDataParsed = false;
+  bool m_hasRigidSetReservedFlag = false;
+  bool m_rigidSetReservedFlag = false;
+  bool m_hasRigidSetTransform = false;
+  // The 16 AC1024 values in source wire order; no row/column convention is
+  // inferred here.
+  std::array<double, 16> m_rigidSetTransform{};
+  std::vector<std::int32_t> m_rigidSetGeometryIds;
 };
 
 //! Shell parser for ACDBASSOC* action/dependency/action-param objects.

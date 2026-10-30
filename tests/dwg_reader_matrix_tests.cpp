@@ -11912,6 +11912,177 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                      : "missing Vertical datum-line index stays raw and preserves following-OBJECT recovery");
     }
 
+    for (int rigidSetMode = 0; rigidSetMode < 5; ++rigidSetMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 800;
+        profile.actions.clear();
+
+        Node rigidSet;
+        rigidSet.id = 768;
+        rigidSet.className = "AcConstrainedRigidSet";
+        rigidSet.hasRigidSetBody = true;
+        rigidSet.geometryDependencyCode = rigidSetMode == 1
+            ? DRW::DwgHardPointer : DRW::DwgSoftPointer;
+        rigidSet.geometryDependencyHandle = 0u;
+        rigidSet.geometryNodeId = 0;
+        rigidSet.rigidSetReservedFlag = false;
+        rigidSet.rigidSetTransform = {{
+            1.0, 0.0, 0.0, 384.02944432664754,
+            0.0, 1.0, 0.0, 167.53646572387899,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        }};
+        rigidSet.rigidSetGeometryIds = {767, 769, 771};
+        if (rigidSetMode == 2) {
+            rigidSet.hasRigidSetTransform = false;
+            rigidSet.hasRigidSetGeometryCount = false;
+            rigidSet.hasRigidSetGeometryIds = false;
+        } else if (rigidSetMode == 3) {
+            rigidSet.declaredRigidSetGeometryCount = 3;
+            rigidSet.rigidSetGeometryIds = {767, 769};
+        } else if (rigidSetMode == 4) {
+            rigidSet.declaredRigidSetGeometryCount = -1;
+            rigidSet.rigidSetGeometryIds.clear();
+        }
+        profile.nodes.push_back(rigidSet);
+
+        Node implicitPoint;
+        if (rigidSetMode == 0) {
+            implicitPoint.id = 772;
+            implicitPoint.connections = {768};
+            implicitPoint.className = "AcConstrainedImplicitPoint";
+            implicitPoint.hasImplicitPointBody = true;
+            implicitPoint.geometryDependencyCode = DRW::DwgSoftPointer;
+            implicitPoint.geometryDependencyHandle = 0xA007u;
+            implicitPoint.geometryNodeId = 0;
+            implicitPoint.hasPoint = true;
+            implicitPoint.point = DRW_Coord(5.0, 6.0, 7.0);
+            implicitPoint.pointType = 1u;
+            implicitPoint.pointIndex = 2;
+            implicitPoint.curveNodeId = 767;
+            profile.nodes.push_back(implicitPoint);
+        }
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 rigid-set profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto parsedSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto rawSource = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = rigidSetMode == 0;
+        const std::size_t expectedNodeCount = expectedComplete ? 2u : 1u;
+        bool nodesMatch = parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintNodes.size() == expectedNodeCount;
+        if (nodesMatch) {
+            const auto& parsedRigidSet =
+                parsedSource->m_constraintNodes.front();
+            nodesMatch = parsedRigidSet.m_className
+                    == "AcConstrainedRigidSet"
+                && parsedRigidSet.m_nodeId == 768
+                && parsedRigidSet.m_connections.empty()
+                && parsedRigidSet.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodesMatch = nodesMatch
+                    && parsedRigidSet.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::RigidSet
+                    && parsedRigidSet.m_hasGeometryDependency
+                    && parsedRigidSet.m_geometryDependencyCode
+                           == DRW::DwgSoftPointer
+                    && parsedRigidSet.m_geometryDependencyHandle == 0u
+                    && parsedRigidSet.m_geometryNodeId == 0
+                    && parsedRigidSet.m_hasRigidSetReservedFlag
+                    && !parsedRigidSet.m_rigidSetReservedFlag
+                    && parsedRigidSet.m_hasRigidSetTransform
+                    && parsedRigidSet.m_rigidSetTransform
+                           == rigidSet.rigidSetTransform
+                    && parsedRigidSet.m_rigidSetGeometryIds
+                           == std::vector<std::int32_t>{767, 769, 771};
+                if (nodesMatch) {
+                    const auto& parsedPoint =
+                        parsedSource->m_constraintNodes[1];
+                    nodesMatch = parsedPoint.m_className
+                            == "AcConstrainedImplicitPoint"
+                        && parsedPoint.m_nodeId == 772
+                        && parsedPoint.m_dataKind
+                               == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                        && parsedPoint.m_hasGeometryDependency
+                        && parsedPoint.m_geometryDependencyCode
+                               == DRW::DwgSoftPointer
+                        && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                        && parsedPoint.m_hasPoint
+                        && parsedPoint.m_point.x == 5.0
+                        && parsedPoint.m_point.y == 6.0
+                        && parsedPoint.m_point.z == 7.0
+                        && parsedPoint.m_pointType == 1u
+                        && parsedPoint.m_pointIndex == 2
+                        && parsedPoint.m_curveNodeId == 767;
+                }
+            } else {
+                nodesMatch = nodesMatch
+                    && parsedRigidSet.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Unsupported
+                    && !parsedRigidSet.m_hasGeometryDependency
+                    && !parsedRigidSet.m_hasRigidSetTransform
+                    && parsedRigidSet.m_rigidSetGeometryIds.empty();
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintGroupBodyParsed == expectedComplete
+            && parsedSource->m_constraintNodeCount
+                   == static_cast<std::int32_t>(expectedNodeCount)
+            && parsedSource->m_constraintNodesParsed == expectedComplete
+            && nodesMatch
+            && rawSource != profileSink.raw.end()
+            && !rawSource->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 expectedComplete
+                     ? "RigidSet null soft pointer, ordered transform, geometry IDs and following handle decode exactly"
+                     : rigidSetMode == 1
+                         ? "RigidSet wrong handle role stays raw and recovers the following object"
+                         : rigidSetMode == 2
+                             ? "truncated RigidSet transform stays raw and recovers the following object"
+                         : rigidSetMode == 3
+                             ? "truncated RigidSet geometry-ID list stays raw and recovers the following object"
+                             : "negative RigidSet geometry count stays raw and recovers the following object");
+    }
+
     for (std::uint8_t mode = 0u; mode <= 3u; ++mode) {
         Options profile;
         profile.classNumber = classNumber;
