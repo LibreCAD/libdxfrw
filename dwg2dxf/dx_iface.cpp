@@ -24926,7 +24926,71 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
     r.state=audit->namespaceReady?S::NamespaceReady:S::Unqualified;return r;
 }
 
-bool dx_iface::tableContentAttributeSourcesClosed(
+bool dx_iface::hasAuthoredTableContentFieldProfile(
+        const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::Unknown
+        || data.fields.size() != 1u || !data.fieldLists.empty()
+        || !data.rawFields.empty() || !data.rawFieldLists.empty()
+        || std::any_of(data.tables.begin(), data.tables.end(),
+            [](const DRW_Table& table) {
+                return !table.m_content.m_fieldHandles.empty();
+            })
+        || data.fieldCarrierTypedCaptureFailed
+        || data.rawFieldCarrierCaptureFailed
+        || data.fieldCarrierImport.captureFailed
+        || data.fieldCarrierImport.resourceLimitExceeded
+        || data.fieldCarrierImport.typedCaptureFailed
+        || data.fieldCarrierImport.typedResourceLimitExceeded)
+        return false;
+    const DRW_Field& field = data.fields.front();
+    std::size_t retainedBytes = 0u;
+    std::size_t itemCount = 0u;
+    if (field.handle == 0u || field.handle == DRW::NoHandle
+        || field.parentHandle != 0u || !field.reactorHandles.empty()
+        || field.xDictHandle != 0u || !field.appData.empty()
+        || !field.extData.empty() || !field.m_childHandles.empty()
+        || !field.m_objectHandles.empty() || !field.m_childValues.empty()
+        || !field.m_formatString.empty()
+        || field.m_evaluationOptionFlags != 0
+        || field.m_filingOptionFlags != 0 || field.m_fieldStateFlags != 0
+        || field.m_evaluationStatusFlags != 0
+        || field.m_evaluationErrorCode != 0
+        || !field.m_evaluationErrorMessage.empty()
+        || field.m_value.m_dataType != 4
+        || field.m_value.m_formatFlags != 0
+        || field.m_value.m_dataSize != 0u || field.m_value.m_unitType != 0
+        || field.m_value.m_value.type() != DRW_Variant::STRING
+        || field.m_value.m_value.c_str() == nullptr
+        || !field.m_value.m_formatString.empty()
+        || !field.m_value.m_valueString.empty()
+        || field.m_value.m_handle != 0u || !field.m_value.m_rawData.empty()
+        || !field.m_valueString.empty() || field.m_valueStringLength != 0
+        || !estimateFieldTypedBytes(field, retainedBytes, itemCount)
+        || retainedBytes > kMaxAdapterFieldTypedRetainedBytes
+        || itemCount > kMaxAdapterFieldTypedItems)
+        return false;
+
+    std::size_t referenceCount = 0u;
+    for (const DRW_TableContentObject& table : data.tableContents) {
+        for (const DRW_TableRow& row : table.m_content.m_rows) {
+            for (const DRW_TableCell& cell : row.m_cells) {
+                for (const DRW_TableCellContent& content : cell.m_contents) {
+                    if (content.m_type != 2)
+                        continue;
+                    ++referenceCount;
+                    if (content.m_handle != field.handle
+                        || cell.m_contents.size() != 1u
+                        || cell.m_hasLinkedData
+                        || !cell.m_attributes.empty())
+                        return false;
+                }
+            }
+        }
+    }
+    return referenceCount == 1u;
+}
+
+bool dx_iface::tableContentDirectReferencesClosed(
         const DRW_TableContentObject& tableContent) const noexcept {
     if (cData == nullptr || dxfW == nullptr)
         return false;
@@ -24935,6 +24999,37 @@ bool dx_iface::tableContentAttributeSourcesClosed(
         return false;
     for (const DRW_TableRow& row : tableContent.m_content.m_rows) {
         for (const DRW_TableCell& cell : row.m_cells) {
+            for (const DRW_TableCellContent& content : cell.m_contents) {
+                if (content.m_type != 2)
+                    continue;
+                if (cell.m_contents.size() != 1u
+                    || cell.m_hasLinkedData || !cell.m_attributes.empty()
+                    || content.m_handle == 0u
+                    || content.m_handle == DRW::NoHandle)
+                    return false;
+                const DRW_Field* field = nullptr;
+                for (const DRW_Field& candidate : cData->fields) {
+                    if (candidate.handle != content.m_handle)
+                        continue;
+                    if (field != nullptr)
+                        return false;
+                    field = &candidate;
+                }
+                const auto emitted = context->sourceHandleToWrittenObjectMap
+                    .find(content.m_handle);
+                if (field == nullptr
+                    || context->ambiguousSourceHandles.count(
+                           content.m_handle) != 0u
+                    || context->sourceHandleToMintedMap.count(
+                           content.m_handle) != 0u
+                    || context->sourceHandleToWrittenTableMap.count(
+                           content.m_handle) != 0u
+                    || emitted
+                        == context->sourceHandleToWrittenObjectMap.end()
+                    || emitted->second == 0u
+                    || emitted->second == DRW::NoHandle)
+                    return false;
+            }
             if (cell.m_attributes.empty())
                 continue;
             if (cell.m_contents.empty() || cell.m_contents.size() > 2u
@@ -39920,29 +40015,42 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         [](const DRW_Table& table) {
             return !table.m_content.m_fieldHandles.empty();
         });
-    if (hasFieldCarriers || hasTableFieldReferences) {
-        if (cData->sourceFormat == dx_source_format::DXF) {
-            if (!cData->hasSingleSuccessfulFieldCarrierImport()) {
+    const bool hasTableContentFieldReferences = std::any_of(
+        cData->tableContents.begin(), cData->tableContents.end(),
+        [](const DRW_TableContentObject& table) {
+            for (const DRW_TableRow& row : table.m_content.m_rows)
+                for (const DRW_TableCell& cell : row.m_cells)
+                    for (const DRW_TableCellContent& content : cell.m_contents)
+                        if (content.m_type == 2)
+                            return true;
+            return false;
+        });
+    if (hasFieldCarriers || hasTableFieldReferences
+        || hasTableContentFieldReferences) {
+        if (!hasAuthoredTableContentFieldProfile(*cData)) {
+            if (cData->sourceFormat == dx_source_format::DXF) {
+                if (!cData->hasSingleSuccessfulFieldCarrierImport()) {
+                    reportPreflightFailure(
+                        "FIELD/FIELDLIST typed/raw identity-owner pairing");
+                    return false;
+                }
+                if (hasFieldCarriers
+                    && !cData->hasCompleteAutoCadFieldGraph()) {
+                    reportPreflightFailure(
+                        "AutoCAD FIELDLIST/entity/TABLE/child graph closure");
+                    return false;
+                }
+            }
+            if (cData->sourceFormat == dx_source_format::DXF
+                && !hasFieldCarriers) {
                 reportPreflightFailure(
-                    "FIELD/FIELDLIST typed/raw identity-owner pairing");
+                    "TABLE group-344 references have no FIELD/FIELDLIST carriers");
                 return false;
             }
-            if (hasFieldCarriers
-                && !cData->hasCompleteAutoCadFieldGraph()) {
-                reportPreflightFailure(
-                    "AutoCAD FIELDLIST/entity/TABLE/child graph closure");
-                return false;
-            }
-        }
-        if (cData->sourceFormat == dx_source_format::DXF
-            && !hasFieldCarriers) {
             reportPreflightFailure(
-                "TABLE group-344 references have no FIELD/FIELDLIST carriers");
+                "FIELD/FIELDLIST carriers have no qualified DXF serializer");
             return false;
         }
-        reportPreflightFailure(
-            "FIELD/FIELDLIST carriers have no qualified DXF serializer");
-        return false;
     }
     if (!prepareTableFallbackGraph(*cData, v)) {
         reportPreflightFailure(

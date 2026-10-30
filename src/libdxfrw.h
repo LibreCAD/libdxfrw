@@ -1940,6 +1940,7 @@ private:
     bool m_dxfBlockSectionActive {false};
     bool m_dxfBlockSectionComplete {false};
     std::vector<DRW_Block_Record> m_sourceBlockRecords;
+    std::unordered_set<std::uint32_t> m_writtenDxfFieldSourceHandles;
     std::unique_ptr<DRW_Block> m_fixedModelSpaceBlockBegin;
     std::unique_ptr<DRW_Block> m_fixedPaperSpaceBlockBegin;
     std::unique_ptr<DRW_Block> m_fixedModelSpaceBlockEnd;

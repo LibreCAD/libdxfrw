@@ -52647,7 +52647,9 @@ void testDataLinkAdapterExport(TestContext& t) {
                                   {0x720u, 0x1720u},
                                   {0x721u, 0x1721u},
                                   {0x722u, 0x1722u},
-                                  {0x723u, 0x1723u}});
+                                  {0x723u, 0x1723u},
+                                  {0x724u, 0x1724u},
+                                  {0x740u, 0x1740u}});
         }
     };
 
@@ -52901,8 +52903,46 @@ void testDataLinkAdapterExport(TestContext& t) {
         mixedMetadata->m_tableStyle.m_type = 4;
         mixedContent.m_dxfMetadata = std::move(mixedMetadata);
         source.tableContents.push_back(std::move(mixedContent));
+        DRW_Field field;
+        field.handle = 0x740u;
+        field.m_evaluatorId = "AcExpr";
+        field.m_fieldCode = "%<test-expression>%";
+        field.m_value.m_dataType = 4;
+        field.m_value.m_value.addString(1, "42");
+        source.fields.push_back(field);
+
+        DRW_TableContentObject fieldContent;
+        fieldContent.handle = 0x724u;
+        fieldContent.m_parseComplete = true;
+        fieldContent.m_semanticContentComplete = true;
+        fieldContent.m_content.m_name = "field content";
+        fieldContent.m_content.m_description = "one field reference";
+        fieldContent.m_content.m_columns.emplace_back();
+        fieldContent.m_content.m_columns.front().m_name = "Field";
+        DRW_TableRow fieldRow;
+        DRW_TableCell fieldCell;
+        DRW_TableCellContent fieldValue;
+        fieldValue.m_type = 2;
+        fieldValue.m_handle = field.handle;
+        fieldCell.m_contents.push_back(fieldValue);
+        fieldRow.m_cells.push_back(fieldCell);
+        fieldContent.m_content.m_rows.push_back(fieldRow);
+        auto fieldMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        fieldMetadata->m_columns.resize(1u);
+        fieldMetadata->m_columns.front().m_style.m_type = 3;
+        fieldMetadata->m_rows.resize(1u);
+        fieldMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        fieldMetadata->m_rows.front().m_cells.resize(1u);
+        fieldMetadata->m_rows.front().m_cells.front().m_scope
+            .m_style.m_type = 1;
+        fieldMetadata->m_rows.front().m_cells.front()
+            .m_contentFormats.resize(1u);
+        fieldMetadata->m_tableStyle.m_type = 4;
+        fieldContent.m_dxfMetadata = std::move(fieldMetadata);
+        source.tableContents.push_back(std::move(fieldContent));
         source.standaloneTableContentPresent = true;
-        source.tableContentRetainedRecords = 4u;
+        source.tableContentRetainedRecords = 5u;
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -53041,6 +53081,29 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && duplicateAttdefPreserved == sentinel,
                  "adapter refuses duplicate TABLECONTENT ATTDEF targets");
         secondBlockAttribute.m_attdefHandle = secondAttributeDefinition->handle;
+        DRW_TableCellContent& tableFieldReference = source.tableContents[4]
+            .m_content.m_rows.front().m_cells.front().m_contents.front();
+        tableFieldReference.m_handle = 0x7FFFu;
+        const bool missingFieldRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream missingFieldInput(path, std::ios::binary);
+        const std::string missingFieldPreserved(
+            (std::istreambuf_iterator<char>(missingFieldInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(missingFieldRefused && missingFieldPreserved == sentinel,
+                 "adapter refuses TABLECONTENT references to an absent FIELD object");
+        tableFieldReference.m_handle = 0x740u;
+        source.fields.front().m_evaluationOptionFlags = 1;
+        const bool unsupportedFieldStateRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream unsupportedFieldStateInput(path, std::ios::binary);
+        const std::string unsupportedFieldStatePreserved(
+            (std::istreambuf_iterator<char>(unsupportedFieldStateInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(unsupportedFieldStateRefused
+                     && unsupportedFieldStatePreserved == sentinel,
+                 "adapter refuses unqualified FIELD state without replacing destination");
+        source.fields.front().m_evaluationOptionFlags = 0;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -53071,6 +53134,139 @@ void testDataLinkAdapterExport(TestContext& t) {
                 return false;
             }
         };
+        const auto objectSpan = [&outputFields](const std::string& name,
+                const std::string& handle, std::size_t& begin,
+                std::size_t& end) {
+            for (std::size_t i = 0u; i + 1u < outputFields.size(); ++i) {
+                if (outputFields[i] != std::make_pair(0, name))
+                    continue;
+                std::size_t stop = i + 1u;
+                bool matchingHandle = false;
+                while (stop < outputFields.size()
+                    && outputFields[stop].first != 0) {
+                    matchingHandle = matchingHandle
+                        || outputFields[stop]
+                            == std::make_pair(5, handle);
+                    ++stop;
+                }
+                if (matchingHandle) {
+                    begin = i;
+                    end = stop;
+                    return true;
+                }
+            }
+            return false;
+        };
+        const auto containsOrderedFields = [&outputFields](std::size_t begin,
+                std::size_t end,
+                const std::vector<std::pair<int, std::string>>& expected) {
+            std::size_t cursor = begin;
+            for (const auto& field : expected) {
+                const auto matches = [&field](
+                        const std::pair<int, std::string>& actual) {
+                    if (actual.first != field.first)
+                        return false;
+                    switch (field.first) {
+                    case 90:
+                    case 91:
+                    case 92:
+                    case 93:
+                    case 94:
+                    case 95:
+                    case 96:
+                    case 97:
+                    case 98:
+                        try {
+                            return std::stoi(actual.second)
+                                == std::stoi(field.second);
+                        } catch (...) {
+                            return false;
+                        }
+                    default:
+                        return actual.second == field.second;
+                    }
+                };
+                while (cursor < end && !matches(outputFields[cursor]))
+                    ++cursor;
+                if (cursor == end)
+                    return false;
+                ++cursor;
+            }
+            return true;
+        };
+        std::size_t fieldBegin = outputFields.size();
+        std::size_t fieldEnd = outputFields.size();
+        std::size_t fieldContentBegin = outputFields.size();
+        std::size_t fieldContentEnd = outputFields.size();
+        const bool fieldAndConsumerSpans = objectSpan(
+                "FIELD", "1740", fieldBegin, fieldEnd)
+            && objectSpan("TABLECONTENT", "1724", fieldContentBegin,
+                          fieldContentEnd);
+        const bool exactFieldWire = fieldAndConsumerSpans
+            && fieldBegin < fieldContentBegin
+            && containsOrderedFields(fieldBegin, fieldEnd,
+                {{100, "AcDbField"}, {1, "AcExpr"},
+                 {2, "%<test-expression>%"}, {90, "0"}, {97, "0"},
+                 {93, "0"}, {7, "ACFD_FIELD_VALUE"}, {93, "0"},
+                 {90, "4"}, {1, "42"}, {94, "0"},
+                 {304, "ACVALUE_END"}, {301, ""}, {98, "0"}});
+        bool exactFieldReferenceWire = false;
+        if (fieldAndConsumerSpans) {
+            for (std::size_t i = fieldContentBegin;
+                 i + 5u < fieldContentEnd; ++i) {
+                if (outputFields[i]
+                        != std::make_pair(302, std::string("CONTENT"))
+                    || outputFields[i + 1u]
+                        != std::make_pair(1,
+                            std::string("CELLCONTENT_BEGIN")))
+                    continue;
+                exactFieldReferenceWire =
+                    integerFieldEquals(outputFields[i + 2u], 90, 2)
+                    && outputFields[i + 3u]
+                        == std::make_pair(340, std::string("1740"))
+                    && integerFieldEquals(outputFields[i + 4u], 91, 0)
+                    && outputFields[i + 5u]
+                        == std::make_pair(309,
+                            std::string("CELLCONTENT_END"));
+                break;
+            }
+        }
+        const DRW_Field* emittedField = nullptr;
+        for (const DRW_Field& field : readback.fields) {
+            if (field.handle == 0x1740u)
+                emittedField = &field;
+        }
+        const DRW_TableContentObject* emittedFieldContent = nullptr;
+        for (const DRW_TableContentObject& value : readback.tableContents) {
+            if (value.handle == 0x1724u)
+                emittedFieldContent = &value;
+        }
+        bool typedFieldReferenceMatch = emittedField != nullptr
+            && emittedFieldContent != nullptr
+            && emittedField->m_evaluatorId == "AcExpr"
+            && emittedField->m_fieldCode == "%<test-expression>%"
+            && emittedField->m_value.m_dataType == 4
+            && emittedField->m_value.m_value.type() == DRW_Variant::STRING
+            && emittedField->m_value.m_value.c_str() == std::string("42");
+        if (typedFieldReferenceMatch) {
+            const auto& fieldContents = emittedFieldContent->m_content
+                .m_rows.front().m_cells.front().m_contents;
+            typedFieldReferenceMatch = fieldContents.size() == 1u
+                && fieldContents.front().m_type == 2
+                && fieldContents.front().m_handle == emittedField->handle;
+        }
+        t.expect(exactFieldWire,
+                 binary
+                     ? "binary FIELD is emitted before its consumer with exact scalar wire fields"
+                     : "ASCII FIELD is emitted before its consumer with exact scalar wire fields");
+        t.expect(exactFieldReferenceWire,
+                 binary
+                     ? "binary TABLECONTENT writes the exact remapped type-2 FIELD handle"
+                     : "ASCII TABLECONTENT writes the exact remapped type-2 FIELD handle");
+        t.expect(typedFieldReferenceMatch,
+                 binary
+                     ? "binary FIELD and TABLECONTENT type-2 reference survive typed readback"
+                     : "ASCII FIELD and TABLECONTENT type-2 reference survive typed readback");
         const auto pointFieldsMatch = [&](int dataType, int dataSize,
                 const std::vector<std::pair<int, double>>& coordinates) {
             const std::size_t coordinateCount = coordinates.size();
@@ -53212,7 +53408,8 @@ void testDataLinkAdapterExport(TestContext& t) {
                 break;
         }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 4u
+                     && readback.tableContents.size() == 5u
+                     && readback.fields.size() == 1u
                      && exactPointFields && exactDateFields
                      && exactContentFormatFields
                      && exactRichContentFormatFields,
@@ -53443,7 +53640,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
-        if (readback.tableContents.size() == 4u) {
+        if (readback.tableContents.size() == 5u) {
             const DRW_TableContentObject* linked = nullptr;
             const DRW_TableContentObject* plainText = nullptr;
             for (const DRW_TableContentObject& value : readback.tableContents) {

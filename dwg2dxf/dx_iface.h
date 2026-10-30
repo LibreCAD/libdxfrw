@@ -1828,8 +1828,18 @@ public:
             if (!dxfW->writeDataLink(&dataLink))
                 return;
         }
+        if (!cData->fields.empty()) {
+            if (!hasAuthoredTableContentFieldProfile(*cData)) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+            for (DRW_Field& field : cData->fields) {
+                if (!dxfW->writeField(&field))
+                    return;
+            }
+        }
         for (DRW_TableContentObject& content : cData->tableContents) {
-            if (!tableContentAttributeSourcesClosed(content)) {
+            if (!tableContentDirectReferencesClosed(content)) {
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }
@@ -1854,7 +1864,8 @@ private:
     bool mlineStyleBodiesSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLayerSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLtypeSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
-    bool tableContentAttributeSourcesClosed(
+    bool hasAuthoredTableContentFieldProfile(const dx_data&) const noexcept;
+    bool tableContentDirectReferencesClosed(
         const DRW_TableContentObject&) const noexcept;
     dx_mline_source_dependency::Proof mlineDependencySourceProof(const dx_data&,
         dx_mline_source_dependency::Limits={}) const noexcept;

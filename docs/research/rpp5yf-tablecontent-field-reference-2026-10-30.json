@@ -1,0 +1,47 @@
+{
+  "id": "RPP-5yf",
+  "date": "2026-10-30",
+  "scope": "One adapter-authored AC1027 FIELD object referenced by one TABLECONTENT type-2 value.",
+  "profile": {
+    "sourceFormat": "Unknown (adapter-authored typed model)",
+    "fieldCount": 1,
+    "field": {
+      "handle": "0x740",
+      "evaluatorId": "AcExpr",
+      "fieldCode": "%<test-expression>%",
+      "valueType": 4,
+      "value": "42",
+      "children": 0,
+      "objectReferences": 0,
+      "childValues": 0
+    },
+    "tableContent": {
+      "handle": "0x724",
+      "contentType": 2,
+      "fieldHandle": "0x740",
+      "cellContentCount": 1,
+      "attributes": 0,
+      "linkedData": false
+    }
+  },
+  "outputAndReadback": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "handleRemap": {"0x740": "0x1740", "0x724": "0x1724"},
+    "fieldIdentityGate": "The low-level writer records only successfully written FIELD source identities for type-2 closure; the adapter profile additionally rejects non-default FIELD state.",
+    "physicalOutput": "The FIELD object is checked to precede its TABLECONTENT consumer; its AcDbField evaluator/code, empty dependency counts, type-4 string value, and terminators are checked in order. The TABLECONTENT content span checks type 2, group 340 = 1740, zero attributes, and the content terminator.",
+    "typedReadback": "FIELD handle/evaluator/code/value and TABLECONTENT handle/type-2 target resolve to the same remapped FIELD identity.",
+    "failureAndRetry": "An absent FIELD target and a non-default unqualified FIELD state are each refused while preserving the destination sentinel; correcting the target/state then succeeds with the same adapter.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "This profile is intentionally limited to one adapter-authored simple FIELD and one direct TABLECONTENT reference. DXF-origin FIELD/FIELDLIST graph replay and more complex FIELD dependency graphs remain refused or unqualified.",
+    "The serialized cached string does not prove expression evaluation or native CAD rendering.",
+    "Other TABLECONTENT content orderings, TABLESTYLE/CELLSTYLEMAP dependencies, units, margins, borders and broader schemas remain open."
+  ]
+}
