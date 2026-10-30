@@ -3196,26 +3196,34 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     struct EnumField {
         std::uint16_t DRW_MLeaderStyle::*member;
         int groupCode;
+        std::uint16_t minimum;
         std::uint16_t maximum;
+        bool omitZero;
         const char* label;
     };
-    const std::array<EnumField, 10> fields{{
-        {&DRW_MLeaderStyle::contentType, 170, 3, "content type"},
-        {&DRW_MLeaderStyle::drawMLeaderOrder, 171, 1,
+    const std::array<EnumField, 12> fields{{
+        {&DRW_MLeaderStyle::contentType, 170, 0, 3, false, "content type"},
+        {&DRW_MLeaderStyle::drawMLeaderOrder, 171, 0, 1, false,
             "draw multi-leader order"},
-        {&DRW_MLeaderStyle::drawLeaderOrder, 172, 1,
+        {&DRW_MLeaderStyle::drawLeaderOrder, 172, 0, 1, false,
             "draw leader order"},
-        {&DRW_MLeaderStyle::leaderType, 173, 2, "leader type"},
-        {&DRW_MLeaderStyle::leftAttachment, 174, 8, "left attachment"},
-        {&DRW_MLeaderStyle::textAngleType, 175, 2, "text angle type"},
-        {&DRW_MLeaderStyle::textAlignmentType, 176, 2,
+        {&DRW_MLeaderStyle::leaderType, 173, 0, 2, false, "leader type"},
+        {&DRW_MLeaderStyle::leftAttachment, 174, 0, 8, false,
+            "left attachment"},
+        {&DRW_MLeaderStyle::textAngleType, 175, 0, 2, false,
+            "text angle type"},
+        {&DRW_MLeaderStyle::textAlignmentType, 176, 0, 2, false,
             "text alignment type"},
-        {&DRW_MLeaderStyle::blockConnectionType, 177, 1,
+        {&DRW_MLeaderStyle::blockConnectionType, 177, 0, 1, false,
             "block content connection type"},
-        {&DRW_MLeaderStyle::rightAttachment, 178, 8,
+        {&DRW_MLeaderStyle::rightAttachment, 178, 0, 8, false,
             "right attachment"},
-        {&DRW_MLeaderStyle::attachmentDirection, 271, 1,
-            "attachment direction"}
+        {&DRW_MLeaderStyle::attachmentDirection, 271, 0, 1, false,
+            "attachment direction"},
+        {&DRW_MLeaderStyle::bottomAttachment, 272, 9, 10, true,
+            "bottom attachment"},
+        {&DRW_MLeaderStyle::topAttachment, 273, 9, 10, true,
+            "top attachment"}
     }};
     const auto fileTags = [](const std::filesystem::path& path, bool binary) {
         std::ifstream input(path, std::ios::binary);
@@ -3237,6 +3245,21 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
         const std::string expected = std::to_string(groupCode) + ":"
             + std::to_string(value);
         return std::find(std::next(begin), end, expected) != end;
+    };
+    const auto fieldCodeIsAbsent = [](const std::vector<std::string>& tags,
+                                      int groupCode) {
+        const auto begin = std::find(tags.begin(), tags.end(), "0:MLEADERSTYLE");
+        if (begin == tags.end())
+            return false;
+        const auto end = std::find_if(std::next(begin), tags.end(),
+            [](const std::string& tag) {
+                return tag.compare(0u, 2u, "0:") == 0;
+            });
+        const std::string prefix = std::to_string(groupCode) + ":";
+        return std::find_if(std::next(begin), end,
+            [&prefix](const std::string& tag) {
+                return tag.compare(0u, prefix.size(), prefix) == 0;
+            }) == end;
     };
     const auto path = std::filesystem::temp_directory_path()
         / ("libdxfrw-mleader-style-enum-"
@@ -3264,10 +3287,11 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     unsigned retries = 0u;
     for (const bool binary : {false, true}) {
         for (const EnumField& field : fields) {
-            const auto firstInvalid = static_cast<std::uint16_t>(
-                field.maximum + 1u);
-            for (const std::uint16_t invalid : {firstInvalid,
-                                                std::uint16_t{65535}}) {
+            const std::vector<std::uint16_t> invalidValues = field.minimum == 9
+                ? std::vector<std::uint16_t>{8, 11, 65535}
+                : std::vector<std::uint16_t>{
+                      static_cast<std::uint16_t>(field.maximum + 1u), 65535};
+            for (const std::uint16_t invalid : invalidValues) {
                 iface.style.contentType = 0;
                 iface.style.drawMLeaderOrder = 0;
                 iface.style.drawLeaderOrder = 0;
@@ -3278,6 +3302,8 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                 iface.style.textAlignmentType = 0;
                 iface.style.blockConnectionType = 0;
                 iface.style.attachmentDirection = 0;
+                iface.style.topAttachment = 0;
+                iface.style.bottomAttachment = 0;
                 iface.style.*(field.member) = invalid;
                 const std::string sentinel = "KEEP_MLEADERSTYLE_DESTINATION";
                 { std::ofstream out(path, std::ios::binary); out << sentinel; }
@@ -3298,15 +3324,19 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                     continue;
                 ++refusals;
 
-                const int corrected = invalid == firstInvalid
+                int corrected = invalid == field.maximum + 1u
                     ? field.maximum : 0;
+                if (field.minimum == 9)
+                    corrected = invalid == 8 ? 9 : invalid == 11 ? 10 : 0;
                 iface.style.*(field.member) = corrected;
                 const bool retried = iface.fileExport(
                     path.string(), DRW::AC1027, binary, &iface.data, false);
                 const auto tags = retried ? fileTags(path, binary)
                                           : std::vector<std::string>{};
-                const bool physicalValue = retried
-                    && fieldValueIs(tags, field.groupCode, corrected);
+                const bool physicalValue = retried && (corrected == 0
+                    && field.omitZero
+                    ? fieldCodeIsAbsent(tags, field.groupCode)
+                    : fieldValueIs(tags, field.groupCode, corrected));
                 const std::string retryLabel =
                     "same-adapter MLEADERSTYLE corrected enum retry emits group "
                     + std::to_string(field.groupCode);
@@ -3319,7 +3349,7 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
-    t.expect(refusals == 40u && retries == 40u,
+    t.expect(refusals == 52u && retries == 52u,
              "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
 }
 
