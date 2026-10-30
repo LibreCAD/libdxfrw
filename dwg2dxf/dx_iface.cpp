@@ -22380,6 +22380,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::INSERT:return "INSERT";
     case DRW::RAY:return "RAY";
     case DRW::XLINE:return "XLINE";
+    case DRW::SOLID:return "SOLID";
     default:return nullptr;
     }
 }
@@ -22400,6 +22401,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
     case DRW::RAY:return DRW_DxfEntitiesCallback::addRay;
     case DRW::XLINE:return DRW_DxfEntitiesCallback::addXline;
+    case DRW::SOLID:return DRW_DxfEntitiesCallback::addSolid;
     default:return DRW_DxfEntitiesCallback::Count;
     }
 }
@@ -22420,6 +22422,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
     case DRW::RAY:return DRW_DxfBlockCallback::addRay;
     case DRW::XLINE:return DRW_DxfBlockCallback::addXline;
+    case DRW::SOLID:return DRW_DxfBlockCallback::addSolid;
     default:return DRW_DxfBlockCallback::Count;
     }
 }
@@ -22472,6 +22475,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
     case DRW::XLINE:
         return dynamic_cast<const DRW_Xline*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Xline);
+    case DRW::SOLID:
+        return dynamic_cast<const DRW_Solid*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Solid);
     default:return false;
     }
 }
@@ -22592,7 +22598,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     :event.record.name=="HELIX"?DRW::HELIX
                     :event.record.name=="INSERT"?DRW::INSERT
                     :event.record.name=="RAY"?DRW::RAY
-                    :event.record.name=="XLINE"?DRW::XLINE:DRW::UNKNOWN;
+                    :event.record.name=="XLINE"?DRW::XLINE
+                    :event.record.name=="SOLID"?DRW::SOLID:DRW::UNKNOWN;
                 if (dxfMLineXdataEntityRecordName(rawType)==nullptr
                     || event.record.handle==0u
                     || event.record.handle==DRW::NoHandle)
@@ -22755,7 +22762,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addHelix
                     &&event.callback!=DRW_DxfEntitiesCallback::addInsert
                     &&event.callback!=DRW_DxfEntitiesCallback::addRay
-                    &&event.callback!=DRW_DxfEntitiesCallback::addXline)
+                    &&event.callback!=DRW_DxfEntitiesCallback::addXline
+                    &&event.callback!=DRW_DxfEntitiesCallback::addSolid)
                     continue;
                 const auto entityType=static_cast<DRW::ETYPE>(event.entityType);
                 const char* recordName=
@@ -22896,7 +22904,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         :record.name=="HELIX"?DRW::HELIX
                         :record.name=="INSERT"?DRW::INSERT
                         :record.name=="RAY"?DRW::RAY
-                        :record.name=="XLINE"?DRW::XLINE:DRW::UNKNOWN;
+                        :record.name=="XLINE"?DRW::XLINE
+                        :record.name=="SOLID"?DRW::SOLID:DRW::UNKNOWN;
                     const char* recordName=
                         dxfMLineXdataEntityRecordName(entityType);
                     if (recordName==nullptr) continue;
