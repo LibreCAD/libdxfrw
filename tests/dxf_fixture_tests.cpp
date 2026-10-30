@@ -31458,7 +31458,14 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::POINT
+        const Tags entity=entityType==DRW::E3DFACE
+            ?Tags{{0,"3DFACE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbFace"},
+                {10,"1"},{20,"2"},{30,"3"},
+                {11,"4"},{21,"2"},{31,"6"},
+                {12,"4"},{22,"5"},{32,"9"},
+                {13,"1"},{23,"5"},{33,"6"},{70,"5"}}
+            :entityType==DRW::POINT
             ?Tags{{0,"POINT"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},
                 {10,"50"},{20,"60"},{30,"7"}}
@@ -31503,6 +31510,13 @@ Tags sourceWithBlockPointEntityHandleXdata(
         std::string_view targetOwner="203") {
     return sourceWithBlockEntityHandleXdata(
         binary,targetBlock,targetOwner,DRW::POINT);
+}
+
+Tags sourceWithBlock3dFaceEntityHandleXdata(
+        bool binary,std::string_view targetBlock="AuthorityBlock",
+        std::string_view targetOwner="203") {
+    return sourceWithBlockEntityHandleXdata(
+        binary,targetBlock,targetOwner,DRW::E3DFACE);
 }
 
 Tags sourceWithBlockArcEntityHandleXdata(
@@ -31714,6 +31728,42 @@ Tags sourceWithPointEntityHandleXdata(bool binary) {
     }
     if(!pointInserted)
         throw std::runtime_error("POINT XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWith3dFaceEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,faceInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags face{{0,"3DFACE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbFace"},
+            {10,"1"},{20,"2"},{30,"3"},
+            {11,"4"},{21,"2"},{31,"6"},
+            {12,"4"},{22,"5"},{32,"9"},
+            {13,"1"},{23,"5"},{33,"6"},{70,"5"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      face.begin(),face.end());
+        faceInserted=true;
+        break;
+    }
+    if(!faceInserted)
+        throw std::runtime_error("3DFACE XDATA target source missing");
     return fields;
 }
 
@@ -32756,13 +32806,15 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     std::string_view targetBlock="*Model_Space",
                                     DRW::ETYPE entityType=DRW::CIRCLE) {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::POINT&&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
+    if(entityType!=DRW::POINT&&entityType!=DRW::E3DFACE
+        &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE)return false;
     const bool isPoint=entityType==DRW::POINT;
+    const bool isFace=entityType==DRW::E3DFACE;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
-    const std::string_view recordName=isPoint?"POINT":isArc?"ARC"
-        :isEllipse?"ELLIPSE":"CIRCLE";
+    const std::string_view recordName=isPoint?"POINT":isFace?"3DFACE"
+        :isArc?"ARC":isEllipse?"ELLIPSE":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     const auto targetSection=targetBlockKey=="*model_space"
@@ -32815,7 +32867,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             }
         }
         const double fullTurn=2.0*std::acos(-1.0);
-        const bool expectedGeometry=isPoint
+        std::int64_t edgeFlags=0;
+        const bool expectedGeometry=isFace
+            ?realValue(row,10,1.0)&&realValue(row,20,2.0)
+                &&realValue(row,30,3.0)&&realValue(row,11,4.0)
+                &&realValue(row,21,2.0)&&realValue(row,31,6.0)
+                &&realValue(row,12,4.0)&&realValue(row,22,5.0)
+                &&realValue(row,32,9.0)&&realValue(row,13,1.0)
+                &&realValue(row,23,5.0)&&realValue(row,33,6.0)
+                &&dx_raster_output::integer(fieldValue(row,70),edgeFlags)
+                &&edgeFlags==5
+            :isPoint
             ?realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)
             :isEllipse
@@ -32895,6 +32957,18 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||std::abs(typedModel->endparam-fullTurn)>1.0e-12
             ||!exactEllipseEndParameter(path,binary,targetSection,curve->id,
                 ownerRecord->id,fullTurn))
+            return false;
+    } else if(isFace) {
+        const auto* typedModel=dynamic_cast<const DRW_3Dface*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_3Dface)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=1.0||typedModel->basePoint.y!=2.0
+            ||typedModel->basePoint.z!=3.0||typedModel->secPoint.x!=4.0
+            ||typedModel->secPoint.y!=2.0||typedModel->secPoint.z!=6.0
+            ||typedModel->thirdPoint.x!=4.0||typedModel->thirdPoint.y!=5.0
+            ||typedModel->thirdPoint.z!=9.0||typedModel->fourPoint.x!=1.0
+            ||typedModel->fourPoint.y!=5.0||typedModel->fourPoint.z!=6.0
+            ||typedModel->invisibleflag!=5||typedModel->thickness!=0.0)
             return false;
     } else if(isArc) {
         const auto* typedModel=dynamic_cast<const DRW_Arc*>(*typedCurve);
@@ -36278,7 +36352,9 @@ bool runTemporary() {
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
                                      bool inNamedBlock) {
         const std::string_view entityName=entityType==DRW::ELLIPSE
-            ?std::string_view("ELLIPSE"):std::string_view("POINT");
+            ?std::string_view("ELLIPSE")
+            :entityType==DRW::POINT?std::string_view("POINT")
+            :std::string_view("3DFACE");
         const std::string_view targetBlock=inNamedBlock
             ?std::string_view("AuthorityBlock")
             :std::string_view("*Model_Space");
@@ -36289,7 +36365,9 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::ELLIPSE
                 ?sourceWithEllipseEntityHandleXdata(binary)
-                :sourceWithPointEntityHandleXdata(binary);
+                :entityType==DRW::POINT
+                    ?sourceWithPointEntityHandleXdata(binary)
+                    :sourceWith3dFaceEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
             if(entityType==DRW::ELLIPSE) {
@@ -36302,13 +36380,25 @@ bool runTemporary() {
                     &&typed->ratio==0.5&&typed->staparam==0.0
                     &&std::abs(typed->endparam-ellipseTurn)<=1.0e-12;
             }
-            const auto* typed=dynamic_cast<const DRW_Point*>(entity);
-            return typed!=nullptr&&typeid(*typed)==typeid(DRW_Point)
+            if(entityType==DRW::POINT) {
+                const auto* typed=dynamic_cast<const DRW_Point*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Point)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==50.0&&typed->basePoint.y==60.0
+                    &&typed->basePoint.z==7.0&&typed->thickness==0.0
+                    &&typed->extPoint.x==0.0&&typed->extPoint.y==0.0
+                    &&typed->extPoint.z==1.0&&typed->xAxisAngle==0.0;
+            }
+            const auto* typed=dynamic_cast<const DRW_3Dface*>(entity);
+            return typed!=nullptr&&typeid(*typed)==typeid(DRW_3Dface)
                 &&typed->parentHandle==targetOwner
-                &&typed->basePoint.x==50.0&&typed->basePoint.y==60.0
-                &&typed->basePoint.z==7.0&&typed->thickness==0.0
-                &&typed->extPoint.x==0.0&&typed->extPoint.y==0.0
-                &&typed->extPoint.z==1.0&&typed->xAxisAngle==0.0;
+                &&typed->basePoint.x==1.0&&typed->basePoint.y==2.0
+                &&typed->basePoint.z==3.0&&typed->secPoint.x==4.0
+                &&typed->secPoint.y==2.0&&typed->secPoint.z==6.0
+                &&typed->thirdPoint.x==4.0&&typed->thirdPoint.y==5.0
+                &&typed->thirdPoint.z==9.0&&typed->fourPoint.x==1.0
+                &&typed->fourPoint.y==5.0&&typed->fourPoint.z==6.0
+                &&typed->invisibleflag==5&&typed->thickness==0.0;
         };
         for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
             dx_iface adapter;dx_data data;
@@ -36485,13 +36575,14 @@ bool runTemporary() {
         }
         return true;
     };
-    for(const DRW::ETYPE entityType:{DRW::ELLIPSE,DRW::POINT})
+    for(const DRW::ETYPE entityType:{
+            DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==252u&&readbacks==564u&&refusals==312u&&retries==312u;
+    return profiles==260u&&readbacks==582u&&refusals==322u&&retries==322u;
 }
 
 bool runBudgetTemporary() {
