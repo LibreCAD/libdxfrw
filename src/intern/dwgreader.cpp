@@ -13343,27 +13343,39 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               // body; unmodeled subclasses retain their source body raw:
               // ACTION/NETWORK/DEPENDENCY/GEOMDEPENDENCY/PERSSUBENT
               // and the action-param variants decode structured
-              // fields; all other subclasses (surface/array action
-              // bodies, generic action params, value/variable deps,
-              // 2d-constraint groups) run the shared prefix
-              // (suffix-inferred in parseDwg) and are preserved
-              // byte-for-byte by the raw shelf below.
+              // fields. The AC1024 2d-constraint group has a typed fixed
+              // header/action prefix; unqualified node payloads remain
+              // explicitly partial and raw-preserved. Other
+              // subclasses (surface/array action bodies, generic action
+              // params, value/variable deps) run the shared prefix and are
+              // preserved byte-for-byte by the raw shelf below.
               DRW_AssociativeObject e(rn);
               ret = parseTableEntry(e);
               if (ret) {
                 intfa.addAssociativeObject(e);
-                // A validated outer frame can retain an explicitly partial
-                // prefix. Publish that case as a Raw carrier, not as proof
-                // of typed payload completeness; the optional prefix callback
-                // above still exposes its Partial status to diagnostic users.
+                // A validated outer frame can retain a typed prefix whose
+                // class-specific tail is incomplete. Keep that raw carrier
+                // explicitly unvalidated so the prefix callback does not
+                // imply semantic completeness.
                 const bool partialPersistentPrefix = rn == "ACDBPERSSUBENTMANAGER"
                     && std::any_of(e.m_prefixStatuses.begin(), e.m_prefixStatuses.end(),
                         [](const DRW_AssociativePrefixStatus& status) {
                           return status.m_status
                               == DRW_AssociativePrefixStatus::ParseStatus::Partial;
                         });
+                const bool partialConstraintGroupBody =
+                    rn == "ACDBASSOC2DCONSTRAINTGROUP"
+                    && std::any_of(e.m_prefixStatuses.begin(),
+                        e.m_prefixStatuses.end(),
+                        [](const DRW_AssociativePrefixStatus& status) {
+                          return status.m_kind
+                                  == DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup
+                              && status.m_status
+                                  != DRW_AssociativePrefixStatus::ParseStatus::Complete;
+                        });
                 intfa.addUnsupportedObject(makeRawObject(
-                    oType, cit->second, !partialPersistentPrefix));
+                    oType, cit->second,
+                    !partialPersistentPrefix && !partialConstraintGroupBody));
               } else {
                 // The outer OBJECTS frame and common handle tail were
                 // validated before dispatch. Preserve the bounded source

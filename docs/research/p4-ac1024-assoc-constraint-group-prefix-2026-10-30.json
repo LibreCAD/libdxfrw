@@ -1,0 +1,107 @@
+{
+  "id": "p4-ac1024-assoc-constraint-group-prefix-2026-10-30",
+  "date": "2026-10-30",
+  "status": "PARTIAL_PROFILE_ONLY",
+  "support_claim_effect": "none",
+  "scope": "Bound the AC1024 ACDBASSOC2DCONSTRAINTGROUP reader to its fixed header and action handles; retain unqualified node payloads as raw and unvalidated.",
+  "source_samples": [
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "constraint_group_records": 4,
+      "action_counts": [7, 7, 50, 7],
+      "debug_log_sha256": "57902972bcd4497fedb09c424eb7f89bbcc684ba0f1c914d660ec774d638aeff"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "constraint_group_records": 3,
+      "action_counts": [9, 45, 9],
+      "debug_log_sha256": "4542d53af969ffd90bef63ed3460c0d0a9b64a588f2b9edd34616b6e8dd8bac1"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "constraint_group_records": 1,
+      "action_counts": [88],
+      "debug_log_sha256": "78711f44b97502e69520d00f694dfca47ad33c47f5a2642f06b656acd4c74eb1"
+    }
+  ],
+  "authoritative_spec_check": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "pages": 279,
+    "class_specific_layout_search_terms": [
+      "ACDBASSOC2DCONSTRAINTGROUP",
+      "AcDbAssoc2dConstraintGroup",
+      "ConstraintGroupNode"
+    ],
+    "result": "No class-specific body layout found; ODA remains authoritative for generic DWG primitives."
+  },
+  "independent_layout_comparison": [
+    {
+      "implementation": "LibreDWG",
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schema_path": "src/dwg2.spec",
+      "schema_sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "declared_profile": "After the action list, a node count is followed by node ID, status, connection count and connection vector fields.",
+      "source_projection": {
+        "json_path": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "group_handle": "42B",
+        "group_version": 0,
+        "node_count": 523,
+        "first_node": {
+          "node_id": 399,
+          "status": 50,
+          "connections": []
+        }
+      },
+      "peer_dxf_path": "/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+      "peer_dxf_sha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+      "observed_peer_dxf_value": "The first node's projected connection field is 1073741825 (0x40000001), followed by zero-valued node records; this conflicts with the JSON empty-vector projection."
+    },
+    {
+      "implementation": "acadrust",
+      "repository": "https://github.com/hakanaktt/acadrust",
+      "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+      "reader_path": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+      "reader_blob_sha": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+      "test_path": "tests/associative_constraint_group.rs",
+      "test_blob_sha": "8bb5772b72377353be421ae5f42815d71b1e459b",
+      "declared_profile": "The version-0 reader consumes a next-node-ID, then an inline node count and per-node class-name text, node ID, connection data and class-specific data; its version-2 inline path has a separate count/class-name/node sequence.",
+      "same_sample_execution": "not run; source inspection only",
+      "qualification": "Independent code disagrees with the LibreDWG profile; neither source alone resolves the local AC1024 sample."
+    }
+  ],
+  "implementation": {
+    "current_behavior": [
+      "Decode the AC1024 fixed group header and bounded action-handle list.",
+      "Require the empirical hard-ownership code for non-null action references.",
+      "Mark version-0 groups partial before interpreting their node tail.",
+      "Mark nonempty version-2 node bodies partial because class-specific node data is not decoded.",
+      "Only report a complete typed body for the version-2 zero-node profile.",
+      "Publish incomplete profiles with an explicitly unvalidated raw carrier while preserving the following OBJECT record."
+    ],
+    "not_implemented": [
+      "Version-0 and nonempty version-2 node layouts",
+      "Constraint-node class-specific fields and connection semantics",
+      "Full associative descendant/network closure",
+      "Associative DXF serialization and readback"
+    ]
+  },
+  "validation": {
+    "build_command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+    "build_result": "passed",
+    "focused_test_command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+    "focused_test_result": "1/1 passed (0.42 s); locally generated AC1024 frames cover a version-2 empty-node group, over-bound action count, nonempty node tail, version-0 raw retention and following-object recovery.",
+    "real_source_command": "build/dwg2dxf/dwg2dxf <AC1024 source> -y -d -v2010 <temporary DXF>",
+    "real_source_result": "All three group-containing inputs retained every callback and had no object parse failures. Associative preflight refused output with dwg-associative-graph-not-serialized. Audits reported 14/14, 13/13 and 17/17 selected body→dependency→group→network edges; complete associative output is still absent.",
+    "diff_check": "git diff --check passed"
+  },
+  "next_action": "Run an independent reader against these exact AC1024 source bytes, or obtain a separately authored AC1024 witness, and correlate node body/string/handle streams before implementing the node layout. Keep strict refusal active."
+}

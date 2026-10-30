@@ -7088,7 +7088,8 @@ struct DRW_AssociativePrefixStatus {
     AcDbEvalExpr,
     AcDbShHistoryNode,
     AcShActionBody,
-    AcDbAssocDependencyBody
+    AcDbAssocDependencyBody,
+    AcDbAssoc2dConstraintGroup
   };
 
   enum class ParseStatus {
@@ -7148,6 +7149,14 @@ public:
   std::uint16_t m_dependencyBodyVersion = 0;
   std::uint16_t m_dimBaseVersion = 0;
   bool m_dimensionDependencyBodyParsed = false;
+  bool m_constraintGroupBodyParsed = false;
+  std::int32_t m_constraintGroupVersion = 0;
+  bool m_constraintGroupFlag = false;
+  std::array<DRW_Coord, 3> m_constraintWorkplane{};
+  std::uint32_t m_constraintGroupReference = 0;
+  std::int32_t m_constraintActionCount = 0;
+  std::vector<std::uint32_t> m_constraintActions;
+  std::int32_t m_constraintNodeCount = 0;
   std::int32_t m_geometryStatus = 0;
   std::uint32_t m_owningNetworkHandle = 0;
   std::uint32_t m_actionBodyHandle = 0;
@@ -7195,6 +7204,14 @@ private:
     m_dependencyBodyVersion = o.m_dependencyBodyVersion;
     m_dimBaseVersion = o.m_dimBaseVersion;
     m_dimensionDependencyBodyParsed = o.m_dimensionDependencyBodyParsed;
+    m_constraintGroupBodyParsed = o.m_constraintGroupBodyParsed;
+    m_constraintGroupVersion = o.m_constraintGroupVersion;
+    m_constraintGroupFlag = o.m_constraintGroupFlag;
+    m_constraintWorkplane = o.m_constraintWorkplane;
+    m_constraintGroupReference = o.m_constraintGroupReference;
+    m_constraintActionCount = o.m_constraintActionCount;
+    m_constraintActions = o.m_constraintActions;
+    m_constraintNodeCount = o.m_constraintNodeCount;
     m_geometryStatus = o.m_geometryStatus;
     m_owningNetworkHandle = o.m_owningNetworkHandle;
     m_actionBodyHandle = o.m_actionBodyHandle;

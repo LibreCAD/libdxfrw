@@ -44,6 +44,7 @@
 #include "intern/dwg_header_time.h"
 #include "intern/dwgobjectframe.h"
 #include "persistent_manager_test_helpers.h"
+#include "associative_constraint_group_test_helpers.h"
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter18.h"
 #include "intern/dwgwriter21.h"
@@ -10572,6 +10573,232 @@ private:
     bool forward;
 };
 
+class AssociativeConstraintGroupDispatchReader final : public dwgReader24 {
+public:
+    explicit AssociativeConstraintGroupDispatchReader(
+        std::vector<std::uint8_t>& bytes, std::uint16_t classNumber)
+        : dwgReader24(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()),
+                      nullptr) {
+        version = DRW::AC1024;
+        decoder.setVersion(version, false);
+        auto definition = std::make_unique<DRW_Class>();
+        definition->classNum = classNumber;
+        definition->recName = "ACDBASSOC2DCONSTRAINTGROUP";
+        definition->className = "AcDbAssoc2dConstraintGroup";
+        definition->entityFlag = 0;
+        if (classesmap.emplace(classNumber, definition.get()).second)
+            definition.release();
+    }
+
+    bool readObjects(
+        std::vector<std::uint8_t>& bytes,
+        const std::vector<std::tuple<std::uint32_t, std::uint32_t,
+                                     std::uint64_t>>& frames,
+        DRW_Interface& sink) {
+        objObjectMap.clear();
+        m_dwgSourceFrameIndexes.clear();
+        m_dwgSourceFrameLedger.clear();
+        for (const auto& frame : frames) {
+            const auto handle = std::get<0>(frame);
+            const auto offset = std::get<1>(frame);
+            const auto ordinal = std::get<2>(frame);
+            objHandle source(0u, handle, offset, ordinal);
+            source.sourceOffsetSpace = DRW_DwgFrameOffsetSpace::DecodedBuffer;
+            if (!objObjectMap.emplace(handle, source).second)
+                return false;
+            DRW_DwgFrameCoverageEntry entry;
+            entry.m_handle = handle;
+            entry.m_sourceOffset = offset;
+            entry.m_sourceMapOrdinal = ordinal;
+            entry.m_sourceOffsetSpace = source.sourceOffsetSpace;
+            m_dwgSourceFrameIndexes.emplace(handle,
+                                             m_dwgSourceFrameLedger.size());
+            m_dwgSourceFrameLedger.push_back(entry);
+        }
+        m_dwgFrameCoverageStatus = DRW_DwgFrameCoverageStatus::InProgress;
+        dwgBuffer input(bytes.data(), bytes.size(), &decoder);
+        return dwgReader::readDwgObjects(sink, &input);
+    }
+
+    std::size_t objectFailures() const { return m_objectParseFailures; }
+};
+
+void testAssociativeConstraintGroupGenerated(TestContext& t) {
+    using namespace associative_constraint_group_test;
+    constexpr std::uint16_t classNumber = 602u;
+    constexpr std::uint32_t sourceHandle = 0xA100u;
+    constexpr std::uint32_t sentinelHandle = 0xA101u;
+    Options source;
+    source.classNumber = classNumber;
+    source.handle = sourceHandle;
+    Options sentinel;
+    sentinel.classNumber = classNumber;
+    sentinel.handle = sentinelHandle;
+    sentinel.actions.clear();
+    sentinel.nodes.clear();
+
+    Frame sourceObject;
+    Frame sentinelObject;
+    std::vector<std::uint8_t> sourceFrame;
+    std::vector<std::uint8_t> sentinelFrame;
+    const bool built = makeFrame(source, sourceObject)
+        && wrapFrame(sourceObject, sourceFrame)
+        && makeFrame(sentinel, sentinelObject)
+        && wrapFrame(sentinelObject, sentinelFrame);
+    t.expect(built,
+             "AC1024 constraint-group input and sentinel are generated from scratch");
+    if (!built)
+        return;
+
+    const auto sentinelOffset =
+        static_cast<std::uint32_t>(sourceFrame.size());
+    std::vector<std::uint8_t> bytes = sourceFrame;
+    bytes.insert(bytes.end(), sentinelFrame.begin(), sentinelFrame.end());
+    AssociativeConstraintGroupDispatchReader reader(bytes, classNumber);
+    PersistentManagerDispatchSink sink;
+    const bool read = reader.readObjects(bytes,
+        {{sourceHandle, 0u, 0u},
+         {sentinelHandle, sentinelOffset, 1u}}, sink);
+    const auto parsed = std::find_if(
+        sink.typed.begin(), sink.typed.end(),
+        [](const DRW_AssociativeObject& value) {
+            return value.handle == sourceHandle;
+        });
+    const auto parsedSentinel = std::find_if(
+        sink.typed.begin(), sink.typed.end(),
+        [](const DRW_AssociativeObject& value) {
+            return value.handle == sentinelHandle;
+        });
+    const bool groupMatches = parsed != sink.typed.end()
+        && parsed->m_recordName == "ACDBASSOC2DCONSTRAINTGROUP"
+        && parsed->m_classVersion == 1u
+        && parsed->m_constraintGroupBodyParsed
+        && parsed->m_constraintGroupVersion == source.groupVersion
+        && parsed->m_constraintGroupFlag == source.groupFlag
+        && parsed->m_constraintWorkplane[0].x == 0.0
+        && parsed->m_constraintWorkplane[1].x == 1.0
+        && parsed->m_constraintWorkplane[2].y == 1.0
+        && parsed->m_constraintGroupReference == source.groupReference
+        && parsed->m_constraintActions == source.actions
+        && parsed->m_constraintNodeCount == 0
+        && parsed->m_prefixStatuses.size() == 2u
+        && parsed->m_prefixStatuses.back().m_kind
+               == DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup
+        && parsed->m_prefixStatuses.back().m_status
+               == DRW_AssociativePrefixStatus::ParseStatus::Complete
+        && parsed->m_prefixStatuses.back().m_decodedHandleCount == 2u
+        && parsed->m_prefixStatuses.back().m_decodedCountValue == 0
+        && parsedSentinel != sink.typed.end()
+        && parsedSentinel->m_constraintGroupBodyParsed
+        && parsedSentinel->m_constraintActions.empty()
+        && sink.raw.size() == 2u && reader.objectFailures() == 0u;
+    t.expect(read && groupMatches,
+             "AC1024 version-2 constraint-group fixed fields, action roles and empty-node boundary decode exactly");
+    if (!groupMatches)
+        std::cerr << "AC1024 associative constraint-group generated profile failed: read="
+                  << read << " typed=" << sink.typed.size()
+                  << " raw=" << sink.raw.size()
+                  << " failures=" << reader.objectFailures()
+                  << " sourceFound=" << (parsed != sink.typed.end());
+    if (!groupMatches && parsed != sink.typed.end()) {
+        std::cerr << " bodyParsed=" << parsed->m_constraintGroupBodyParsed
+                  << " version=" << parsed->m_constraintGroupVersion
+                  << " actions=" << parsed->m_constraintActions.size()
+                  << " nodeCount=" << parsed->m_constraintNodeCount
+                  << " statuses=" << parsed->m_prefixStatuses.size();
+        if (!parsed->m_prefixStatuses.empty())
+            std::cerr << " lastStatus=" << static_cast<int>(
+                parsed->m_prefixStatuses.back().m_status)
+                      << " decodedHandles=" << parsed->m_prefixStatuses.back()
+                          .m_decodedHandleCount
+                      << " decodedCount=" << parsed->m_prefixStatuses.back()
+                          .m_decodedCountValue;
+        std::cerr << '\n';
+    } else if (!groupMatches) {
+        std::cerr << '\n';
+    }
+
+    for (int profileMode = 0; profileMode < 3; ++profileMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.actions.clear();
+        profile.nodes.clear();
+        if (profileMode == 0)
+            profile.declaredActionCount = 100001;
+        else if (profileMode == 1)
+            profile.nodes = {{7, 1u, -1, {4}}};
+        else {
+            profile.groupVersion = 0;
+        }
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 constraint-group profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool recovered = profileRead
+            && profileReader.objectFailures() == 0u
+            && profileSink.typed.size() == 2u
+            && partialSource != profileSink.typed.end()
+            && !partialSource->m_constraintGroupBodyParsed
+            && partialSource->m_prefixStatuses.size() == 2u
+            && partialSource->m_prefixStatuses.back().m_status
+                   == (profileMode == 0
+                       ? DRW_AssociativePrefixStatus::ParseStatus::BoundedCountOverflow
+                       : DRW_AssociativePrefixStatus::ParseStatus::Partial)
+            && (profileMode != 0
+                || partialSource->m_constraintActionCount == 100001)
+            && (profileMode != 1
+                || partialSource->m_constraintNodeCount == 1)
+            && (profileMode != 2
+                || (partialSource->m_constraintGroupVersion == 0
+                    && partialSource->m_prefixStatuses.back().m_decodedCountValue
+                           == -1))
+            && partialRaw != profileSink.raw.end()
+            && !partialRaw->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                })
+            && profileSink.raw.size() == 2u
+            && profileReader.objectFailures() == 0u;
+        t.expect(recovered,
+                 profileMode == 0
+                     ? "over-bound constraint action counts publish a partial raw carrier and preserve the following OBJECT"
+                     : profileMode == 1
+                         ? "nonempty constraint-node payloads remain raw until their class-specific layout is qualified"
+                         : "version-0 node framing remains raw until its competing layouts are resolved");
+    }
+}
+
 void testPersistentManagerPrefixDispatch(TestContext& t) {
     using namespace persistent_manager_test;
     for (const std::uint16_t ordinal : {601u, 667u}) {
@@ -14048,6 +14275,14 @@ int main(int argc, char** argv) {
         TestContext focused;
         testPersistentManagerPrefixDispatch(focused);
         std::cout << "Persistent manager bounded-prefix dispatch: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-constraint-group-generated") {
+        TestContext focused;
+        testAssociativeConstraintGroupGenerated(focused);
+        std::cout << "Generated AC1024 associative constraint-group profile: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }

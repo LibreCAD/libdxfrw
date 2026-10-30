@@ -25320,6 +25320,14 @@ void DRW_AssociativeObject::reset() {
     m_dependencyBodyVersion = 0;
     m_dimBaseVersion = 0;
     m_dimensionDependencyBodyParsed = false;
+    m_constraintGroupBodyParsed = false;
+    m_constraintGroupVersion = 0;
+    m_constraintGroupFlag = false;
+    m_constraintWorkplane = {};
+    m_constraintGroupReference = 0;
+    m_constraintActionCount = 0;
+    m_constraintActions.clear();
+    m_constraintNodeCount = 0;
     m_geometryStatus = 0;
     m_owningNetworkHandle = 0;
     m_actionBodyHandle = 0;
@@ -25461,6 +25469,29 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         [handleEndBit](dwgBuffer *handleBuffer, std::uint32_t& value) {
             return readObjectHandleRefTransactional(handleBuffer, value,
                                                     handleEndBit);
+        };
+    const auto readHandleTransactionalWithCode =
+        [handleEndBit](dwgBuffer *handleBuffer, std::uint32_t& value,
+                       std::uint8_t expectedCode, bool nullAllowed) {
+            if (handleBuffer == nullptr || !handleBuffer->isGood())
+                return false;
+            dwgBuffer probe = handleBuffer->forkIndependent();
+            dwgHandle parsed;
+            if (!readBoundedObjectHandle(probe, 0u, false, parsed,
+                                         handleEndBit))
+                return false;
+            if (parsed.code != expectedCode
+                && !(nullAllowed && parsed.ref == 0u)) {
+                DRW_DBG("Associative handle role mismatch code/ref/expected=");
+                DRW_DBG(static_cast<unsigned>(parsed.code)); DRW_DBG("/");
+                DRW_DBG(parsed.ref); DRW_DBG("/");
+                DRW_DBG(static_cast<unsigned>(expectedCode));
+                DRW_DBG("\n");
+                return false;
+            }
+            value = parsed.ref;
+            *handleBuffer = probe;
+            return true;
         };
     auto appendPrefixStatus = [&](DRW_AssociativePrefixStatus::Kind kind,
                                   std::uint64_t startBit,
@@ -26431,6 +26462,176 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         // repeated 330 handle count used by DXF. Do not consume hBuff here;
         // commonHandlesOk above owns that stream and publishes its owner,
         // reactors, and extension dictionary below.
+    } else if (rn == "ACDBASSOC2DCONSTRAINTGROUP"
+               && version == DRW::AC1024) {
+        if (!readActionFields())
+            return fail();
+
+        const std::uint64_t groupStartBit = currentObjectDwgBit(buf);
+        dwgBuffer bodyProbe = *buf;
+        dwgBuffer handleProbe = hBuff;
+        std::int32_t groupVersion = 0;
+        bool groupFlag = false;
+        std::array<DRW_Coord, 3> workplane{};
+        std::uint32_t groupReference = 0u;
+        std::int32_t actionCount = 0;
+        std::int32_t nodeCount = 0;
+        std::vector<std::uint32_t> actions;
+        size_t decodedHandleCount = 0u;
+        size_t groupStage = 0u;
+        bool boundedCountOverflow = false;
+        bool allocationFailure = false;
+        const auto groupStep = [&groupStage](bool ok) {
+            if (ok)
+                ++groupStage;
+            return ok;
+        };
+        bool complete = objectDataEndKnown
+            && groupStep(readBitLongWithinBody(&bodyProbe, version,
+                                               objectDataEnd, groupVersion))
+            && groupStep(readBitWithinBody(&bodyProbe, version, objectDataEnd,
+                                           groupFlag))
+            && groupStep(read3BitDoubleWithinBody(
+                &bodyProbe, version, objectDataEnd, workplane[0]))
+            && groupStep(read3BitDoubleWithinBody(
+                &bodyProbe, version, objectDataEnd, workplane[1]))
+            && groupStep(read3BitDoubleWithinBody(
+                &bodyProbe, version, objectDataEnd, workplane[2]))
+            && groupStep(readHandleTransactionalWithCode(
+                &handleProbe, groupReference, DRW::DwgSoftPointer, true))
+            && groupStep(readBitLongWithinBody(&bodyProbe, version,
+                                               objectDataEnd, actionCount));
+        const bool actionCountRead = complete;
+        if (complete) {
+            if (!isValidAssocCount(actionCount)) {
+                boundedCountOverflow = true;
+                complete = false;
+            } else if (static_cast<std::uint64_t>(actionCount)
+                       > minimumHandleCountBudgetWithin(&handleProbe,
+                                                       handleEndBit)) {
+                complete = false;
+            } else {
+                ++groupStage;
+            }
+        }
+        if (complete) {
+            if (!DRW::reserve(actions, actionCount)) {
+                complete = false;
+                allocationFailure = true;
+            }
+            for (std::int32_t i = 0; complete && i < actionCount; ++i) {
+                std::uint32_t actionHandle = 0u;
+                // The AC1024 source handle stream uses hard-ownership code 3
+                // for this field, matching its DXF 360 carrier. A peer schema
+                // labels the handle code 4, so retain the empirically read
+                // source role for this exact profile instead of copying that
+                // inconsistent declaration.
+                if (!readHandleTransactionalWithCode(
+                        &handleProbe, actionHandle, DRW::DwgHardOwnership,
+                        false)
+                    || actionHandle == 0u) {
+                    complete = false;
+                    break;
+                }
+                actions.push_back(actionHandle);
+                ++decodedHandleCount;
+            }
+            if (complete)
+                ++groupStage;
+        }
+        bool nodeCountRead = false;
+        // Version 0 is present in AC1024 sources, but its inline-node framing
+        // is not specified by ODA and independent readers disagree about the
+        // extra node-ID/class-name fields. Do not treat the current fixed-node
+        // schema as valid for it. Nonempty version-2 node payloads also carry
+        // class-specific data that this bounded prefix reader does not decode.
+        if (complete && groupVersion != 2)
+            complete = false;
+        if (complete) {
+            nodeCountRead = readBitLongWithinBody(
+                &bodyProbe, version, objectDataEnd, nodeCount);
+            complete = nodeCountRead;
+            if (complete && !isValidAssocCount(nodeCount)) {
+                boundedCountOverflow = true;
+                complete = false;
+            } else if (complete
+                       && !countFitsObjectBody(&bodyProbe, version,
+                                               objectDataEnd, nodeCount,
+                                               12u)) {
+                complete = false;
+            } else if (complete) {
+                ++groupStage;
+            }
+        }
+        if (complete && nodeCount != 0)
+            complete = false;
+        const bool prefixWithinBounds = bodyProbe.isGood()
+            && handleProbe.isGood()
+            && objectBodyFitsSize(currentObjectDwgBit(&bodyProbe),
+                                  objectDataEnd);
+        complete = complete && prefixWithinBounds;
+        const auto groupParseStatus = complete
+            ? DRW_AssociativePrefixStatus::ParseStatus::Complete
+            : boundedCountOverflow
+                ? DRW_AssociativePrefixStatus::ParseStatus::BoundedCountOverflow
+                : DRW_AssociativePrefixStatus::ParseStatus::Partial;
+        auto groupStatus = makeAssocPrefixStatus(
+            DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
+            groupStartBit, currentObjectDwgBit(&bodyProbe),
+            groupParseStatus, m_classVersion,
+            decodedHandleCount + (groupReference != 0u ? 1u : 0u),
+            0u, nodeCountRead ? nodeCount : -1);
+        groupStatus.m_sourceAssumption =
+            "AC1024 ACDBASSOC2DCONSTRAINTGROUP fixed header and action handles; node framing is not qualified and remains raw";
+        if (!complete) {
+            DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP decode partial stage=");
+            DRW_DBG(groupStage); DRW_DBG(" bodyBit=");
+            DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG(" handleBit=");
+            DRW_DBG(currentObjectDwgBit(&handleProbe)); DRW_DBG("\n");
+            if (!prefixWithinBounds || allocationFailure) {
+                m_prefixStatuses.push_back(groupStatus);
+                return fail();
+            }
+            m_constraintGroupVersion = groupVersion;
+            m_constraintGroupFlag = groupFlag;
+            m_constraintWorkplane = workplane;
+            m_constraintGroupReference = groupReference;
+            m_constraintActionCount = actionCountRead ? actionCount : 0;
+            m_constraintActions = std::move(actions);
+            m_constraintNodeCount = nodeCountRead ? nodeCount : 0;
+            m_prefixStatuses.push_back(groupStatus);
+            if (commonHandlesOk) {
+                parentHandle = parsedParentHandle;
+                reactorHandles = std::move(parsedReactors);
+                xDictHandle = parsedXDictHandle;
+            }
+            DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP handles parent/owningNetwork/actions=");
+            DRW_DBG(parentHandle); DRW_DBG("/");
+            DRW_DBG(m_owningNetworkHandle); DRW_DBG("/");
+            DRW_DBG(m_constraintActions.size()); DRW_DBG(" first/last=");
+            if (!m_constraintActions.empty()) {
+                DRW_DBG(m_constraintActions.front()); DRW_DBG("/");
+                DRW_DBG(m_constraintActions.back());
+            }
+            DRW_DBG("\n");
+            return true;
+        }
+
+        *buf = bodyProbe;
+        hBuff = handleProbe;
+        m_constraintGroupBodyParsed = true;
+        m_constraintGroupVersion = groupVersion;
+        m_constraintGroupFlag = groupFlag;
+        m_constraintWorkplane = workplane;
+        m_constraintGroupReference = groupReference;
+        m_constraintActionCount = actionCount;
+        m_constraintActions = std::move(actions);
+        m_constraintNodeCount = nodeCount;
+        m_prefixStatuses.push_back(groupStatus);
+        DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP version/actions/nodeCount=");
+        DRW_DBG(m_constraintGroupVersion); DRW_DBG("/");
+        DRW_DBG(m_constraintActions.size()); DRW_DBG("/");
+        DRW_DBG(m_constraintNodeCount); DRW_DBG("\n");
     } else if (endsWith(rn, "ACTIONPARAM")) {
         // Generic action-param subclass (edge / path / face / object /
         // asmbody / ...): decode the shared AcDbAssocActionParam prefix, then
@@ -26477,6 +26678,17 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         parentHandle = parsedParentHandle;
         reactorHandles = std::move(parsedReactors);
         xDictHandle = parsedXDictHandle;
+    }
+    if (rn == "ACDBASSOC2DCONSTRAINTGROUP") {
+        DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP handles parent/owningNetwork/actions=");
+        DRW_DBG(parentHandle); DRW_DBG("/");
+        DRW_DBG(m_owningNetworkHandle); DRW_DBG("/");
+        DRW_DBG(m_constraintActions.size()); DRW_DBG("\n");
+    } else if (rn == "ACDBASSOCNETWORK") {
+        DRW_DBG("ACDBASSOCNETWORK handles self/parent/owningNetwork/actions=");
+        DRW_DBG(handle); DRW_DBG("/"); DRW_DBG(parentHandle); DRW_DBG("/");
+        DRW_DBG(m_owningNetworkHandle); DRW_DBG("/");
+        DRW_DBG(m_actions.size()); DRW_DBG("\n");
     }
     DRW_DBG("ACDBASSOC shell: "); DRW_DBG(m_recordName.c_str()); DRW_DBG("\n");
     return ret;
