@@ -64,12 +64,12 @@ Independent P6–P9 qualification can proceed when its inputs are ready; it does
 Keep only these residuals; prior selected MLINESTYLE and MLEADERSTYLE transport
 profiles are recorded in their receipts.
 
-1. **MLINESTYLE edits and source schemas:** support the remaining witnessed flags,
-   angles, offsets, retargets and element insert/remove operations through the
-   shared consumer projection and transaction path. Retain refusal for unsupported
-   legacy routes, carriers or version grammars. Replace exhaustive per-count tests
-   with representative small, boundary and aggregate-budget cases unless the
-   algorithm has count-specific branches.
+1. **MLINESTYLE edits and source schemas:** resolve only still-failing witnessed
+   source/schema and edit cases through the shared consumer projection and
+   transaction path. Retain refusal for unsupported legacy routes, carriers or
+   version grammars. Replace exhaustive per-count tests with representative small,
+   boundary and aggregate-budget cases unless the algorithm has count-specific
+   branches.
 2. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
    source profiles, APPID metadata and value/chunk forms; resolve additional
    code-1005 target types, mixed target sets, section combinations and reference

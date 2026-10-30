@@ -17967,23 +17967,34 @@ bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
 }
 
 bool DRW_MLineStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    constexpr std::uint8_t flagsField = 0x01u;
+    constexpr std::uint8_t descriptionField = 0x02u;
+    constexpr std::uint8_t fillColorField = 0x04u;
+    constexpr std::uint8_t startAngleField = 0x08u;
+    constexpr std::uint8_t endAngleField = 0x10u;
     switch (code) {
     case 70:
+        if ((dxfStyleFieldsSeen & flagsField) != 0u)
+            return false;
         flags = reader->getInt32();
+        dxfStyleFieldsSeen |= flagsField;
         break;
     case 3:
+        if ((dxfStyleFieldsSeen & descriptionField) != 0u)
+            return false;
         if (!replaceDxfRetainedStringField(
                 reader, m_dxfRetainedDescriptionBytes, description,
                 reader->getUtf8String()))
             return false;
+        dxfStyleFieldsSeen |= descriptionField;
         break;
     case 62:
         //Before the first element (no 49 seen) 62 is the style fill color;
         //after a 49 it is the current element's color.
         if (elements.empty()) {
-            if (dxfFillColorSeen)
+            if ((dxfStyleFieldsSeen & fillColorField) != 0u)
                 return false;
-            dxfFillColorSeen = true;
+            dxfStyleFieldsSeen |= fillColorField;
             fillColor = reader->getInt32();
             fillColor24 = -1;
             fillColorMethod = 0;
@@ -18002,10 +18013,16 @@ bool DRW_MLineStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         }
         break;
     case 51:
+        if ((dxfStyleFieldsSeen & startAngleField) != 0u)
+            return false;
         startAngle = reader->getDouble();
+        dxfStyleFieldsSeen |= startAngleField;
         break;
     case 52:
+        if ((dxfStyleFieldsSeen & endAngleField) != 0u)
+            return false;
         endAngle = reader->getDouble();
+        dxfStyleFieldsSeen |= endAngleField;
         break;
     case 71:
         if (dxfElementCountSeen)

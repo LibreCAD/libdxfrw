@@ -1245,6 +1245,11 @@ add_test(NAME libdxfrw_mleaderstyle_boolean_source_domain
         --mleaderstyle-boolean-source-domain)
 set_tests_properties(libdxfrw_mleaderstyle_boolean_source_domain PROPERTIES
     LABELS "fast;dxf;adapter;objects;mleader;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_mlinestyle_duplicate_singleton_fields
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --mlinestyle-duplicate-singleton-fields)
+set_tests_properties(libdxfrw_mlinestyle_duplicate_singleton_fields PROPERTIES
+    LABELS "fast;dxf;adapter;objects;mlinestyle;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_dictionary_default_adapter_roundtrip
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --dictionary-default-adapter-roundtrip)

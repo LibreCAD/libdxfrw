@@ -6195,7 +6195,7 @@ public:
     elements.clear();
     dxfDeclaredElementCount = -1;
     dxfElementCountSeen = false;
-    dxfFillColorSeen = false;
+    dxfStyleFieldsSeen = 0u;
     dxfElementFieldMasks.clear();
     DRW_TableEntry::reset();
   }
@@ -6233,7 +6233,9 @@ public:
 private:
   int dxfDeclaredElementCount = -1;
   bool dxfElementCountSeen = false;
-  bool dxfFillColorSeen = false;
+  // Bit mask for singleton DXF fields: flags, description, fill color,
+  // start angle and end angle. Element tuples have their own per-item masks.
+  std::uint8_t dxfStyleFieldsSeen = 0u;
   std::vector<std::uint8_t> dxfElementFieldMasks;
   // Logical bytes retained by DXF-parsed description text only.
   std::size_t m_dxfRetainedDescriptionBytes {0u};

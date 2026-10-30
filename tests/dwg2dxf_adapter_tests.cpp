@@ -31582,7 +31582,8 @@ bool sameMLineVectorPayload(const DRW_MLine& actual) {
 bool generateRootMLineStyleControl(const std::filesystem::path& path,
                                    bool binary, int reorderedFamily = 0,
                                    int duplicateComponentCode = 0,
-                                   bool lateLineCount = false) {
+                                   bool lateLineCount = false,
+                                   int duplicateStyleCode = 0) {
     const bool includeVectorPayload = reorderedFamily != 0
         || duplicateComponentCode != 0;
     std::ofstream output(path, std::ios::binary);
@@ -31727,11 +31728,23 @@ bool generateRootMLineStyleControl(const std::filesystem::path& path,
     writer->writeString(100, "AcDbMlineStyle");
     writer->writeString(2, "STANDARD");
     writer->writeInt16(70, 0);
+    if (duplicateStyleCode == 70)
+        writer->writeInt16(70, 0);
     writer->writeString(3, "generated rooted mline style");
+    if (duplicateStyleCode == 3)
+        writer->writeString(3, "generated rooted mline style");
     writer->writeInt16(62, 256);
+    if (duplicateStyleCode == 62)
+        writer->writeInt16(62, 256);
     writer->writeDouble(51, 0.0);
+    if (duplicateStyleCode == 51)
+        writer->writeDouble(51, 0.0);
     writer->writeDouble(52, 0.0);
+    if (duplicateStyleCode == 52)
+        writer->writeDouble(52, 0.0);
     writer->writeInt16(71, includeVectorPayload ? 2 : 1);
+    if (duplicateStyleCode == 71)
+        writer->writeInt16(71, includeVectorPayload ? 2 : 1);
     writer->writeDouble(49, 0.5);
     writer->writeInt16(62, 0);
     writer->writeString(6, "CONTINUOUS");
@@ -31744,6 +31757,54 @@ bool generateRootMLineStyleControl(const std::filesystem::path& path,
     writer->writeString(0, "ENDSEC");
     writer->writeString(0, "EOF");
     return !writer->hasWriteError() && output.good();
+}
+
+bool mLineStyleDuplicateSingletonFields() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto scratch = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mlinestyle-duplicate-fields-"
+           + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(scratch, error) || error)
+        return fail("could not reserve MLINESTYLE duplicate-field scratch");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup{scratch};
+
+    const std::array<int, 6> singletonCodes{{70, 3, 62, 51, 52, 71}};
+    dx_iface reader;
+    for (const int code : singletonCodes) {
+        for (const bool binary : {false, true}) {
+            const auto input = scratch
+                / ("duplicate-" + std::to_string(code)
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!generateRootMLineStyleControl(input, binary, 0, 0, false,
+                                               code))
+                return fail("could not create duplicate MLINESTYLE field "
+                            + std::to_string(code));
+            dx_data rejected;
+            if (reader.fileImport(input.string(), &rejected, false)
+                || !rejected.mLineStyles.empty())
+                return fail("MLINESTYLE accepted duplicate singleton group "
+                            + std::to_string(code));
+        }
+    }
+
+    const auto valid = scratch / "valid.dxf";
+    if (!generateRootMLineStyleControl(valid, false))
+        return false;
+    dx_data corrected;
+    if (!reader.fileImport(valid.string(), &corrected, false)
+        || corrected.mLineStyles.size() != 1u
+        || corrected.mLineStyles.front().elements.size() != 1u)
+        return fail("valid MLINESTYLE did not retry through the same adapter");
+    return true;
 }
 
 bool generateUnusedCurrentMLineStyleControl(
@@ -38731,6 +38792,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--mleaderstyle-boolean-source-domain")
         return mLeaderStyleBooleanSourceDomain() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--mlinestyle-duplicate-singleton-fields")
+        return mLineStyleDuplicateSingletonFields() ? 0 : 1;
     if (argc != 3) {
         std::cerr << "usage: dwg2dxf_adapter_tests --generate|--verify <file>\n";
         return 2;
