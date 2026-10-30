@@ -2033,6 +2033,11 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         cachedText.m_value.m_value = DRW_Variant(
             1, UTF8STRING(cachedText.m_text));
         linked.m_contents.push_back(cachedText);
+        DRW_TableCellContent cachedInteger;
+        cachedInteger.m_type = 1;
+        cachedInteger.m_value.m_dataType = 1;
+        cachedInteger.m_value.m_value = DRW_Variant(91, 42);
+        linked.m_contents.push_back(cachedInteger);
         exporter.addTableContent(table);
 
         if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
@@ -2055,6 +2060,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         bool sawCachedContentType = false;
         bool sawCachedValueMarker = false;
         bool sawCachedString = false;
+        bool sawCachedInteger = false;
         for (const AttdefWireTag& tag : wire) {
             if (tag.code == 0) {
                 inDataLink = tag.text == "DATALINK";
@@ -2076,6 +2082,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
                 sawCachedContentType = false;
                 sawCachedValueMarker = false;
                 sawCachedString = false;
+                sawCachedInteger = false;
             } else if (inLinkedCell && tag.code == 92) {
                 cellLinkedFlag = static_cast<int>(tag.integer);
             } else if (inLinkedCell && tag.code == 340
@@ -2105,6 +2112,9 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             } else if (inLinkedCell && inCellContent && tag.code == 1
                        && tag.text == "cached-north-west") {
                 sawCachedString = true;
+            } else if (inLinkedCell && inCellContent && tag.code == 91
+                       && tag.integer == 42) {
+                sawCachedInteger = true;
             } else if (inLinkedCell && tag.code == 309
                        && tag.text == "CELLCONTENT_END") {
                 inCellContent = false;
@@ -2116,18 +2126,18 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
                 if (cellLinkedFlag == 1
                     && linkedTarget == "1710"
                     && (linkedRows != 2 || linkedColumns != 3
-                        || linkedUnknown != -5 || linkedContentCount != 1))
+                        || linkedUnknown != -5 || linkedContentCount != 2))
                     return fail("linked cell output fields differ");
                 if (cellLinkedFlag == 1
                     && (!sawCachedContentType || !sawCachedValueMarker
-                        || !sawCachedString))
+                        || !sawCachedString || !sawCachedInteger))
                     return fail("cached linked-cell value wire fields differ");
                 inLinkedCell = false;
             }
         }
         if (!sawEmittedDataLink
             || cellLinkedFlags != std::vector<int>{1, 0, 0, 0}
-            || cellContentCounts != std::vector<int>{1, 1, 1, 1})
+            || cellContentCounts != std::vector<int>{2, 1, 1, 1})
             return fail("remapped DATALINK output/reference differs");
 
         dx_iface reader;
@@ -2156,9 +2166,13 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             || linkedReadback.m_linkedDataRowCount != 2
             || linkedReadback.m_linkedDataColumnCount != 3
             || linkedReadback.m_linkedDataUnknown != -5
-            || linkedReadback.m_contents.size() != 1u
+            || linkedReadback.m_contents.size() != 2u
             || linkedReadback.m_contents[0].m_text != "cached-north-west"
             || linkedReadback.m_contents[0].m_value.m_dataType != 4
+            || linkedReadback.m_contents[1].m_value.m_dataType != 1
+            || linkedReadback.m_contents[1].m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || linkedReadback.m_contents[1].m_value.m_value.i_val() != 42
             || lowerRight.m_hasLinkedData
             || lowerRight.m_contents.size() != 1u
             || lowerRight.m_contents.front().m_text != "south-east"
@@ -2196,7 +2210,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             || retried.tableContents.front().m_content.m_rows[0]
                     .m_cells[0].m_dataLinkHandle != 0x1710u
             || retried.tableContents.front().m_content.m_rows[0]
-                    .m_cells[0].m_contents.size() != 1u)
+                    .m_cells[0].m_contents.size() != 2u)
             return fail("corrected linked-grid retry readback differs");
     }
     return true;

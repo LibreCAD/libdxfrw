@@ -1,17 +1,17 @@
 {
   "id": "RPP-5yz",
   "date": "2026-10-30",
-  "title": "Bounded cached scalar string in linked TABLECONTENT cell",
+  "title": "Bounded multiple cached scalar contents in linked TABLECONTENT cell",
   "scope": {
     "operation": "Write one cached scalar content in a linked-data cell inside a rectangular TABLECONTENT grid.",
-    "profile": "Generated 2x2 AC1032 table: one linked cell carrying one cached string, three scalar string cells, and one DATALINK; ASCII and binary DXF.",
+    "profile": "Generated 2x2 AC1032 table: one linked cell carrying a cached string followed by an integer, three scalar string cells, and one DATALINK; ASCII and binary DXF.",
     "authority": "ODA Open Design Specification for .dwg files v5.4.1, section 20.4.97.3: linked-target fields are conditional on the linked flag, followed by the cell-content count and content sequence.",
     "handle_remap": {
       "table_content": "0x5A0 to 0x15A0",
       "data_link": "0x710 to 0x1710"
     },
     "limits": [
-      "One linked cell and one cached scalar string in the generated profile",
+      "One linked cell and the selected two-item string-then-integer content sequence",
       "One unique emitted DATALINK target",
       "No linked-cell block references, attributes, geometry, formatting, or multiple cached contents"
     ],
@@ -19,7 +19,7 @@
   },
   "implementation": [
     "Classify the table shape before applying the legacy single-cell content checks; the multi-cell path now reaches its own complete grid validator.",
-    "Allow a linked grid cell to carry the already-supported scalar content profile while retaining DATALINK handle validation and graph-closure preflight.",
+    "Allow a linked grid cell to carry an ordered sequence of already-supported scalar contents while retaining DATALINK handle validation and graph-closure preflight.",
     "Emit linked metadata and the unconditional group 95 content count/list independently."
   ],
   "evidence": {
@@ -27,13 +27,13 @@
     "committed_fixture_files": false,
     "ascii_and_binary": true,
     "physical_wire": [
-      "The linked cell emits 92=1, remapped 340=0x1710, 93=2, 94=3, 96=-5 and 95=1.",
-      "The linked cell's content sequence emits scalar type 1, the VALUE marker and the exact cached string cached-north-west.",
+      "The linked cell emits 92=1, remapped 340=0x1710, 93=2, 94=3, 96=-5 and 95=2.",
+      "The ordered content sequence emits scalar type 1 and the VALUE marker for the exact string cached-north-west, followed by scalar type 1 and integer value 42.",
       "One DATALINK record is emitted at 0x1710; all four cell content counts and linked flags are checked."
     ],
-    "typed_readback": "The TABLECONTENT handle is 0x15A0; the linked cell points to DATALINK 0x1710, retains row/column metadata 2/3 and unknown value -5, and reads back the cached string with data type 4. Scalar peer values remain present.",
+    "typed_readback": "The TABLECONTENT handle is 0x15A0; the linked cell points to DATALINK 0x1710, retains row/column metadata 2/3 and unknown value -5, and reads back ordered string data type 4 plus integer data type 1/value 42. Scalar peer values remain present.",
     "failure_control": "Changing the linked-cell target to absent handle 0x799 is refused; an existing destination sentinel and the caller's changed source model remain unchanged.",
-    "retry_control": "Restoring the valid source target lets the same adapter export again; the linked graph and cached string read back intact."
+    "retry_control": "Restoring the valid source target lets the same adapter export again; the linked graph and both cached contents read back intact."
   },
   "validation": {
     "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
@@ -50,6 +50,6 @@
   ],
   "remaining": [
     "The parent P5 rendering/TABLE phase remains open.",
-    "This receipt does not qualify multiple linked cells, multiple cached contents, other cached value types, broader DATALINK semantics, native TABLE rendering, or DWG output."
+    "This receipt does not qualify multiple linked cells, other content sequences/types, block/field/attribute/geometry payloads on linked cells, broader DATALINK semantics, native TABLE rendering, or DWG output."
   ]
 }
