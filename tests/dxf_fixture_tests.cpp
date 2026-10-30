@@ -31458,7 +31458,11 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::CIRCLE
+        const Tags entity=entityType==DRW::POINT
+            ?Tags{{0,"POINT"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},
+                {10,"50"},{20,"60"},{30,"7"}}
+            :entityType==DRW::CIRCLE
             ?Tags{{0,"CIRCLE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},
                 {10,"50"},{20,"60"},{30,"7"},{40,"5"}}
@@ -31492,6 +31496,13 @@ Tags sourceWithBlockCircleEntityHandleXdata(
         std::string_view targetOwner="203") {
     return sourceWithBlockEntityHandleXdata(
         binary,targetBlock,targetOwner,DRW::CIRCLE);
+}
+
+Tags sourceWithBlockPointEntityHandleXdata(
+        bool binary,std::string_view targetBlock="AuthorityBlock",
+        std::string_view targetOwner="203") {
+    return sourceWithBlockEntityHandleXdata(
+        binary,targetBlock,targetOwner,DRW::POINT);
 }
 
 Tags sourceWithBlockArcEntityHandleXdata(
@@ -31670,6 +31681,39 @@ Tags sourceWithEllipseEntityHandleXdata(bool binary) {
     }
     if(!ellipseInserted)
         throw std::runtime_error("ELLIPSE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithPointEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,pointInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags point{{0,"POINT"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},
+            {10,"50"},{20,"60"},{30,"7"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      point.begin(),point.end());
+        pointInserted=true;
+        break;
+    }
+    if(!pointInserted)
+        throw std::runtime_error("POINT XDATA target source missing");
     return fields;
 }
 
@@ -32712,11 +32756,12 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     std::string_view targetBlock="*Model_Space",
                                     DRW::ETYPE entityType=DRW::CIRCLE) {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
+    if(entityType!=DRW::POINT&&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE)return false;
+    const bool isPoint=entityType==DRW::POINT;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
-    const std::string_view recordName=isArc?"ARC"
+    const std::string_view recordName=isPoint?"POINT":isArc?"ARC"
         :isEllipse?"ELLIPSE":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
@@ -32770,7 +32815,10 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             }
         }
         const double fullTurn=2.0*std::acos(-1.0);
-        const bool expectedGeometry=isEllipse
+        const bool expectedGeometry=isPoint
+            ?realValue(row,10,50.0)&&realValue(row,20,60.0)
+                &&realValue(row,30,7.0)
+            :isEllipse
             ?realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)&&realValue(row,11,8.0)
                 &&realValue(row,21,0.0)&&realValue(row,31,0.0)
@@ -32857,6 +32905,15 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||typedModel->basePoint.z!=7.0||typedModel->radious!=5.0
             ||std::abs(typedModel->staangle-pi/12.0)>1.0e-12
             ||std::abs(typedModel->endangle-5.0*pi/12.0)>1.0e-12)
+            return false;
+    } else if(isPoint) {
+        const auto* typedModel=dynamic_cast<const DRW_Point*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Point)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=50.0||typedModel->basePoint.y!=60.0
+            ||typedModel->basePoint.z!=7.0||typedModel->thickness!=0.0
+            ||typedModel->extPoint.x!=0.0||typedModel->extPoint.y!=0.0
+            ||typedModel->extPoint.z!=1.0||typedModel->xAxisAngle!=0.0)
             return false;
     } else {
         const auto* typedModel=dynamic_cast<const DRW_Circle*>(*typedCurve);
@@ -36218,52 +36275,65 @@ bool runTemporary() {
         return found==data.blocks.end()?nullptr:*found;
     };
     const double ellipseTurn=2.0*std::acos(-1.0);
-    const auto runEllipseSection=[&](bool inNamedBlock) {
+    const auto runGeometrySection=[&](DRW::ETYPE entityType,
+                                     bool inNamedBlock) {
+        const std::string_view entityName=entityType==DRW::ELLIPSE
+            ?std::string_view("ELLIPSE"):std::string_view("POINT");
         const std::string_view targetBlock=inNamedBlock
             ?std::string_view("AuthorityBlock")
             :std::string_view("*Model_Space");
         const std::uint32_t targetOwner=inNamedBlock?0x203u:0x201u;
         const auto makeSource=[&](bool binary) {
-            return inNamedBlock
-                ?sourceWithBlockEllipseEntityHandleXdata(binary)
-                :sourceWithEllipseEntityHandleXdata(binary);
+            if(inNamedBlock)
+                return sourceWithBlockEntityHandleXdata(binary,targetBlock,
+                    "203",entityType);
+            return entityType==DRW::ELLIPSE
+                ?sourceWithEllipseEntityHandleXdata(binary)
+                :sourceWithPointEntityHandleXdata(binary);
+        };
+        const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::ELLIPSE) {
+                const auto* typed=dynamic_cast<const DRW_Ellipse*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Ellipse)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==50.0&&typed->basePoint.y==60.0
+                    &&typed->basePoint.z==7.0&&typed->secPoint.x==8.0
+                    &&typed->secPoint.y==0.0&&typed->secPoint.z==0.0
+                    &&typed->ratio==0.5&&typed->staparam==0.0
+                    &&std::abs(typed->endparam-ellipseTurn)<=1.0e-12;
+            }
+            const auto* typed=dynamic_cast<const DRW_Point*>(entity);
+            return typed!=nullptr&&typeid(*typed)==typeid(DRW_Point)
+                &&typed->parentHandle==targetOwner
+                &&typed->basePoint.x==50.0&&typed->basePoint.y==60.0
+                &&typed->basePoint.z==7.0&&typed->thickness==0.0
+                &&typed->extPoint.x==0.0&&typed->extPoint.y==0.0
+                &&typed->extPoint.z==1.0&&typed->xAxisAngle==0.0;
         };
         for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
             dx_iface adapter;dx_data data;
             if(!write(input,makeSource(sourceBinary),sourceBinary,"AC1027")
                 ||!singleGeometryEntityProviderProof(input,sourceBinary,false,
-                    targetBlock,DRW::ELLIPSE)
+                    targetBlock,entityType)
                 ||!adapter.fileImport(input.string(),&data,false)) {
-                std::cerr<<"ELLIPSE XDATA source setup failed: "
+                std::cerr<<entityName<<" XDATA source setup failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
             dx_ifaceBlock* container=inNamedBlock?authorityBlock(data):data.mBlock;
             if(container==nullptr)return false;
-            const auto sourceEllipse=std::find_if(
+            const auto sourceEntity=std::find_if(
                 container->ent.begin(),container->ent.end(),
-                [](const DRW_Entity* entity) {
-                    return entity!=nullptr&&entity->eType==DRW::ELLIPSE
+                [&](const DRW_Entity* entity) {
+                    return entity!=nullptr&&entity->eType==entityType
                         &&entity->handle==0xA900u;
                 });
-            const auto* typedSource=sourceEllipse==container->ent.end()?nullptr
-                :dynamic_cast<const DRW_Ellipse*>(*sourceEllipse);
-            if(typedSource==nullptr
-                ||typeid(*typedSource)!=typeid(DRW_Ellipse)
-                ||typedSource->parentHandle!=targetOwner
-                ||typedSource->basePoint.x!=50.0
-                ||typedSource->basePoint.y!=60.0
-                ||typedSource->basePoint.z!=7.0
-                ||typedSource->secPoint.x!=8.0
-                ||typedSource->secPoint.y!=0.0
-                ||typedSource->secPoint.z!=0.0
-                ||typedSource->ratio!=0.5
-                ||typedSource->staparam!=0.0
-                ||std::abs(typedSource->endparam-ellipseTurn)>1.0e-12
+            if(sourceEntity==container->ent.end()
+                ||!typedGeometryMatches(*sourceEntity)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,0xA900u,
-                        targetOwner,inNamedBlock,DRW::ELLIPSE)) {
-                std::cerr<<"ELLIPSE XDATA typed source identity failed: "
+                        targetOwner,inNamedBlock,entityType)) {
+                std::cerr<<entityName<<" XDATA typed source identity failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
@@ -36271,42 +36341,42 @@ bool runTemporary() {
             const auto outputProof=[&]() {
                 if(!adapter.fileExport(output.string(),DRW::AC1027,
                                        outputBinary,&data,false,true)) {
-                    std::cerr<<"ELLIPSE XDATA export stage failed\n";
+                    std::cerr<<entityName<<" XDATA export stage failed\n";
                     return false;
                 }
                 if(!singleGeometryEntityProviderProof(output,outputBinary,
-                        true,targetBlock,DRW::ELLIPSE)) {
-                    std::cerr<<"ELLIPSE XDATA physical/typed proof failed\n";
+                        true,targetBlock,entityType)) {
+                    std::cerr<<entityName<<" XDATA physical/typed proof failed\n";
                     return false;
                 }
                 if(!DxIfaceMaterialReferenceTestAccess::
                         mlineLinetypeProofBound(adapter,0x103u)) {
-                    std::cerr<<"ELLIPSE XDATA LTYPE proof failed\n";
+                    std::cerr<<entityName<<" XDATA LTYPE proof failed\n";
                     return false;
                 }
                 if(!DxIfaceMaterialReferenceTestAccess::
                         mlineLinetypeEntityProofBound(adapter,0x103u,
-                            targetHandles,inNamedBlock,DRW::ELLIPSE)) {
-                    std::cerr<<"ELLIPSE XDATA target join proof failed\n";
+                            targetHandles,inNamedBlock,entityType)) {
+                    std::cerr<<entityName<<" XDATA target join proof failed\n";
                     return false;
                 }
                 return true;
             };
             if(!outputProof()) {
-                std::cerr<<"ELLIPSE XDATA output/readback failed: "
+                std::cerr<<entityName<<" XDATA output/readback failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
             ++profiles;++readbacks;
-            DRW_Entity* retained=*sourceEllipse;
+            DRW_Entity* retained=*sourceEntity;
             const auto restoreOffset=static_cast<std::size_t>(
-                std::distance(container->ent.begin(),sourceEllipse));
-            container->ent.erase(sourceEllipse);sentinel(output);
+                std::distance(container->ent.begin(),sourceEntity));
+            container->ent.erase(sourceEntity);sentinel(output);
             if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,
                                   &data,false,true)
                 ||!dictionaryVarTransactionControls::
                     keptWithoutTemporary(output)) {
-                std::cerr<<"ELLIPSE XDATA missing-target refusal failed: "
+                std::cerr<<entityName<<" XDATA missing-target refusal failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
@@ -36315,7 +36385,7 @@ bool runTemporary() {
             std::advance(restore,static_cast<std::ptrdiff_t>(restoreOffset));
             container->ent.insert(restore,retained);
             if(!outputProof()) {
-                std::cerr<<"ELLIPSE XDATA same-adapter retry failed: "
+                std::cerr<<entityName<<" XDATA same-adapter retry failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
@@ -36327,11 +36397,12 @@ bool runTemporary() {
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
-                    targetBlock,DRW::ELLIPSE)
+                    targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,0xA900u,
-                        targetOwner,false,DRW::ELLIPSE)) {
-                std::cerr<<"ENTITIES ELLIPSE late-mutation setup failed\n";
+                        targetOwner,false,entityType)) {
+                std::cerr<<"ENTITIES "<<entityName
+                         <<" late-mutation setup failed\n";
                 return false;
             }
             sentinel(output);
@@ -36340,7 +36411,8 @@ bool runTemporary() {
                 ||!adapter.mutated
                 ||!dictionaryVarTransactionControls::
                     keptWithoutTemporary(output)) {
-                std::cerr<<"ENTITIES ELLIPSE late-mutation refusal failed\n";
+                std::cerr<<"ENTITIES "<<entityName
+                         <<" late-mutation refusal failed\n";
                 return false;
             }
             ++refusals;adapter.armed=false;
@@ -36352,28 +36424,30 @@ bool runTemporary() {
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
-                    targetBlock,DRW::ELLIPSE)
+                    targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeEntityProofBound(adapter,0x103u,
-                        targetHandles,false,DRW::ELLIPSE)) {
-                std::cerr<<"ENTITIES ELLIPSE late-mutation retry failed\n";
+                        targetHandles,false,entityType)) {
+                std::cerr<<"ENTITIES "<<entityName
+                         <<" late-mutation retry failed\n";
                 return false;
             }
             ++retries;++readbacks;
         } else {
             LateBlockXdataLineMutation adapter{
-                "AuthorityBlock",0xA900u,0xA901u,DRW::ELLIPSE};
+                "AuthorityBlock",0xA900u,0xA901u,entityType};
             dx_data data;
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
-                    targetBlock,DRW::ELLIPSE)
+                    targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,0xA900u,
-                        targetOwner,true,DRW::ELLIPSE)) {
-                std::cerr<<"BLOCKS ELLIPSE late-mutation setup failed\n";
+                        targetOwner,true,entityType)) {
+                std::cerr<<"BLOCKS "<<entityName
+                         <<" late-mutation setup failed\n";
                 return false;
             }
             sentinel(output);
@@ -36382,7 +36456,8 @@ bool runTemporary() {
                 ||!adapter.mutated
                 ||!dictionaryVarTransactionControls::
                     keptWithoutTemporary(output)) {
-                std::cerr<<"BLOCKS ELLIPSE late-mutation refusal failed\n";
+                std::cerr<<"BLOCKS "<<entityName
+                         <<" late-mutation refusal failed\n";
                 return false;
             }
             ++refusals;adapter.armed=false;
@@ -36396,24 +36471,27 @@ bool runTemporary() {
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
-                    targetBlock,DRW::ELLIPSE)
+                    targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeEntityProofBound(adapter,0x103u,
-                        targetHandles,true,DRW::ELLIPSE)) {
-                std::cerr<<"BLOCKS ELLIPSE late-mutation retry failed\n";
+                        targetHandles,true,entityType)) {
+                std::cerr<<"BLOCKS "<<entityName
+                         <<" late-mutation retry failed\n";
                 return false;
             }
             ++retries;++readbacks;
         }
         return true;
     };
-    if(!runEllipseSection(false)||!runEllipseSection(true))return false;
+    for(const DRW::ETYPE entityType:{DRW::ELLIPSE,DRW::POINT})
+        if(!runGeometrySection(entityType,false)
+            ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==244u&&readbacks==546u&&refusals==302u&&retries==302u;
+    return profiles==252u&&readbacks==564u&&refusals==312u&&retries==312u;
 }
 
 bool runBudgetTemporary() {

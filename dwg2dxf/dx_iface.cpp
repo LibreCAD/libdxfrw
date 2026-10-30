@@ -22284,6 +22284,7 @@ namespace {
 
 const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POINT:return "POINT";
     case DRW::LINE:return "LINE";
     case DRW::CIRCLE:return "CIRCLE";
     case DRW::ARC:return "ARC";
@@ -22295,6 +22296,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
 DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POINT:return DRW_DxfEntitiesCallback::addPoint;
     case DRW::LINE:return DRW_DxfEntitiesCallback::addLine;
     case DRW::CIRCLE:return DRW_DxfEntitiesCallback::addCircle;
     case DRW::ARC:return DRW_DxfEntitiesCallback::addArc;
@@ -22306,6 +22308,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
 DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POINT:return DRW_DxfBlockCallback::addPoint;
     case DRW::LINE:return DRW_DxfBlockCallback::addLine;
     case DRW::CIRCLE:return DRW_DxfBlockCallback::addCircle;
     case DRW::ARC:return DRW_DxfBlockCallback::addArc;
@@ -22318,6 +22321,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
                                     DRW::ETYPE type) noexcept {
     if (entity==nullptr||entity->eType!=type)return false;
     switch (type) {
+    case DRW::POINT:
+        return dynamic_cast<const DRW_Point*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Point);
     case DRW::LINE:
         return dynamic_cast<const DRW_Line*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Line);
@@ -22419,7 +22425,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             if (block==nullptr) return true;
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
-                const auto rawType=event.record.name=="LINE"?DRW::LINE
+                const auto rawType=event.record.name=="POINT"?DRW::POINT
+                    :event.record.name=="LINE"?DRW::LINE
                     :event.record.name=="CIRCLE"?DRW::CIRCLE
                     :event.record.name=="ARC"?DRW::ARC
                     :event.record.name=="ELLIPSE"?DRW::ELLIPSE:DRW::UNKNOWN;
@@ -22464,7 +22471,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             for (std::size_t index=0u;index<manifest.events.size();++index) {
                 if (!chargeWork(1u)) return false;
                 const auto& event=manifest.events[index];
-                if (event.callback!=DRW_DxfEntitiesCallback::addLine
+                if (event.callback!=DRW_DxfEntitiesCallback::addPoint
+                    &&event.callback!=DRW_DxfEntitiesCallback::addLine
                     &&event.callback!=DRW_DxfEntitiesCallback::addCircle
                     &&event.callback!=DRW_DxfEntitiesCallback::addArc
                     &&event.callback!=DRW_DxfEntitiesCallback::addEllipse)
@@ -22567,7 +22575,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || range.next>block.membership->members.size())
                         return false;
                     const auto& record=physical.records[range.first];
-                    const auto entityType=record.name=="LINE"?DRW::LINE
+                    const auto entityType=record.name=="POINT"?DRW::POINT
+                        :record.name=="LINE"?DRW::LINE
                         :record.name=="CIRCLE"?DRW::CIRCLE
                         :record.name=="ARC"?DRW::ARC
                         :record.name=="ELLIPSE"?DRW::ELLIPSE:DRW::UNKNOWN;
