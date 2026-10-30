@@ -26015,8 +26015,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && ent->parentHandle != DRW::DwgNamedObjectsDictionaryHandle)
         || !ent->reactorHandles.empty() || ent->xDictHandle != 0u
         || !ent->appData.empty() || !ent->extData.empty()
-        || ent->m_content.m_columns.size() != 1u
-        || ent->m_content.m_rows.size() != 1u
+        || ent->m_content.m_columns.empty()
+        || ent->m_content.m_rows.empty()
         || !ent->m_content.m_fieldHandles.empty()
         || !ent->m_content.m_mergedRanges.empty()
         || !ent->m_content.m_subrecordRanges.empty()
@@ -26030,7 +26030,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     if (!safeText(column.m_name) || column.m_styleId != 0
         || column.m_overrideStyleType != 3
         || !std::isfinite(column.m_width) || column.m_width < 0.0
-        || row.m_cells.size() != 1u || row.m_styleId != 0
+        || row.m_cells.size() != ent->m_content.m_columns.size()
+        || row.m_styleId != 0
         || row.m_overrideStyleType != 2
         || !std::isfinite(row.m_height) || row.m_height < 0.0)
     {
@@ -26190,6 +26191,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     }();
     const bool emptyLinkedCell = cell.m_hasLinkedData
         && cell.m_contents.empty();
+    const bool emptyPlainCell = !cell.m_hasLinkedData
+        && cell.m_contents.empty() && cell.m_attributes.empty();
     contentFormatTextBytes = plainContentTextBytes;
     if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
         || cell.m_autoFit || cell.m_mergedWidth != 0
@@ -26199,7 +26202,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
-        || (!emptyLinkedCell && !plainScalarContents
+        || (!emptyLinkedCell && !emptyPlainCell && !plainScalarContents
             && !blockContentWithAttributes && !fieldContentWithReference)
         || (cell.m_hasLinkedData
             && (cell.m_dataLinkHandle == 0u
@@ -26234,8 +26237,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
 
     if (ent->m_dxfMetadata) {
         const DRW_TableContentDxfMetadata& metadata = *ent->m_dxfMetadata;
-        if (metadata.m_columns.size() != 1u || metadata.m_rows.size() != 1u
-            || metadata.m_rows.front().m_cells.size() != 1u
+        if (metadata.m_columns.size() != ent->m_content.m_columns.size()
+            || metadata.m_rows.size() != ent->m_content.m_rows.size()
+            || metadata.m_rows.front().m_cells.size() != row.m_cells.size()
             || !scopeIsDefault(metadata.m_columns.front(), 3)
             || !scopeIsDefault(metadata.m_rows.front().m_scope, 2)
             || !cellStyleIsSupported(
@@ -26467,6 +26471,256 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && (!contentFormat || writeContentFormat(*contentFormat))
             && writer->writeString(309, "FORMATTEDCELLCONTENT_END");
     };
+    const bool multiCellTable = ent->m_content.m_columns.size() != 1u
+        || ent->m_content.m_rows.size() != 1u
+        || ent->m_content.m_rows.front().m_cells.size() != 1u;
+    if (multiCellTable) {
+        // TABLECONTENT already has a row/column grid in the typed model and
+        // decoder. Support the common scalar grid without weakening the
+        // source-bound handling for linked, block and FIELD references below.
+        constexpr std::size_t maxWritableCells = 10000u;
+        const std::size_t columnCount = ent->m_content.m_columns.size();
+        const std::size_t rowCount = ent->m_content.m_rows.size();
+        if (columnCount == 0u || columnCount > 1000u || rowCount == 0u
+            || rowCount > 10000u || rowCount > maxWritableCells / columnCount
+            || (ent->m_dxfMetadata
+                && (ent->m_dxfMetadata->m_columns.size() != columnCount
+                    || ent->m_dxfMetadata->m_rows.size() != rowCount
+                    || ent->m_dxfMetadata->m_linkedDataUnknown92 != 0
+                    || !styleIsDefault(ent->m_dxfMetadata->m_tableStyle, 4))))
+            return failDxfWrite();
+
+        const auto cellPropertiesSupported = [&safeText, &defaultBorder](
+                const DRW_TableCell& cell) {
+            return cell.m_type == 0 && cell.m_edgeFlags == 0
+                && !cell.m_isMerged && !cell.m_autoFit
+                && cell.m_mergedWidth == 0 && cell.m_mergedHeight == 0
+                && cell.m_rotation == 0.0 && safeText(cell.m_toolTip)
+                && cell.m_textStyleName.empty() && cell.m_styleId == 0
+                && cell.m_overrideStyleType == 1
+                && cell.m_virtualEdgeFlags == 0 && cell.m_overrideFlags == 0u
+                && cell.m_valueHandle == 0u && cell.m_textStyleHandle == 0u
+                && cell.m_textStyleOverrideHandle == 0u
+                && cell.m_blockHandle == 0u && !cell.m_hasLinkedData
+                && cell.m_dataLinkHandle == 0u
+                && cell.m_linkedDataRowCount == 0
+                && cell.m_linkedDataColumnCount == 0
+                && cell.m_linkedDataUnknown == 0
+                && cell.m_blockScale == 1.0 && cell.m_width == 0.0
+                && cell.m_height == 0.0 && cell.m_geometryFlags == 0u
+                && cell.m_geometryHandle == 0u
+                && cell.m_geometryRecordFlags == 0u
+                && cell.m_geometryTopLeft.x == 0.0
+                && cell.m_geometryTopLeft.y == 0.0
+                && cell.m_geometryTopLeft.z == 0.0
+                && cell.m_geometryCenter.x == 0.0
+                && cell.m_geometryCenter.y == 0.0
+                && cell.m_geometryCenter.z == 0.0
+                && cell.m_contentWidth == 0.0 && cell.m_contentHeight == 0.0
+                && cell.m_geometryWidth == 0.0 && cell.m_geometryHeight == 0.0
+                && cell.m_textColorRgb == -1 && cell.m_textColorMethod == 0u
+                && cell.m_fillColorRgb == -1 && cell.m_fillColorMethod == 0u
+                && !cell.m_backgroundEnabled && cell.m_textAlignment == 0
+                && cell.m_textHeight == 0.0 && cell.m_attributes.empty()
+                && std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
+                               defaultBorder);
+        };
+
+        plainContentTextBytes = 0u;
+        std::size_t totalContents = 0u;
+        for (std::size_t columnIndex = 0u; columnIndex < columnCount;
+             ++columnIndex) {
+            const DRW_TableColumn& column =
+                ent->m_content.m_columns[columnIndex];
+            if (!safeText(column.m_name) || column.m_styleId != 0
+                || column.m_overrideStyleType != 3
+                || !std::isfinite(column.m_width) || column.m_width < 0.0
+                || (ent->m_dxfMetadata
+                    && !scopeIsDefault(
+                        ent->m_dxfMetadata->m_columns[columnIndex], 3)))
+                return failDxfWrite();
+        }
+        for (std::size_t rowIndex = 0u; rowIndex < rowCount; ++rowIndex) {
+            const DRW_TableRow& row = ent->m_content.m_rows[rowIndex];
+            if (row.m_cells.size() != columnCount || row.m_styleId != 0
+                || row.m_overrideStyleType != 2
+                || !std::isfinite(row.m_height) || row.m_height < 0.0
+                || (ent->m_dxfMetadata
+                    && (ent->m_dxfMetadata->m_rows[rowIndex].m_cells.size()
+                            != columnCount
+                        || !scopeIsDefault(
+                            ent->m_dxfMetadata->m_rows[rowIndex].m_scope, 2))))
+                return failDxfWrite();
+            for (std::size_t columnIndex = 0u; columnIndex < columnCount;
+                 ++columnIndex) {
+                const DRW_TableCell& cell = row.m_cells[columnIndex];
+                if (!cellPropertiesSupported(cell)
+                    || cell.m_contents.size() > 10000u - totalContents)
+                    return failDxfWrite();
+                totalContents += cell.m_contents.size();
+                for (const DRW_TableCellContent& content : cell.m_contents) {
+                    if (!plainScalarContentIsSupported(content))
+                        return failDxfWrite();
+                }
+                if (ent->m_dxfMetadata) {
+                    const auto& detail = ent->m_dxfMetadata->m_rows[rowIndex]
+                        .m_cells[columnIndex];
+                    if (!cellStyleIsSupported(detail.m_scope)
+                        || !detail.m_geometry.empty()
+                        || detail.m_contentFormats.size()
+                            != cell.m_contents.size())
+                        return failDxfWrite();
+                }
+            }
+        }
+        contentFormatTextBytes = plainContentTextBytes;
+        if (ent->m_dxfMetadata) {
+            for (const auto& row : ent->m_dxfMetadata->m_rows) {
+                for (const auto& cell : row.m_cells) {
+                    for (const auto& format : cell.m_contentFormats) {
+                        if (format && !contentFormatIsSupported(*format))
+                            return failDxfWrite();
+                    }
+                }
+            }
+        }
+
+        const std::uint32_t handle = remapObjectHandle(ent->handle);
+        if (handle == 0u || handle == DRW::NoHandle
+            || isDxfFixedOutputHandle(handle) || !reserveHandle(handle))
+            return failDxfWrite();
+
+        const auto columnScope = [ent](std::size_t index)
+                -> const DRW_TableContentDxfMetadata::Scope* {
+            return ent->m_dxfMetadata
+                ? &ent->m_dxfMetadata->m_columns[index] : nullptr;
+        };
+        const auto rowScope = [ent](std::size_t index)
+                -> const DRW_TableContentDxfMetadata::Scope* {
+            return ent->m_dxfMetadata
+                ? &ent->m_dxfMetadata->m_rows[index].m_scope : nullptr;
+        };
+        const auto cellScope = [ent](std::size_t row, std::size_t column)
+                -> const DRW_TableContentDxfMetadata::Cell* {
+            return ent->m_dxfMetadata
+                ? &ent->m_dxfMetadata->m_rows[row].m_cells[column] : nullptr;
+        };
+
+        DxfWriterRecordScope record(*writer);
+        RecordStateScope state(*this, ent);
+        if (!writer->writeString(0, "TABLECONTENT")
+            || !writer->writeString(5, toHexStr(handle))
+            || !writeTableEntryAppData(*ent))
+            return failDxfWrite();
+        writeObjectOwner(ent->parentHandle == DRW::NoHandle
+                ? 0u : ent->parentHandle);
+        if (writer->hasWriteError()
+            || !writer->writeString(100, "AcDbLinkedData")
+            || !writer->writeUtf8String(1, ent->m_content.m_name)
+            || !writer->writeUtf8String(300, ent->m_content.m_description)
+            || !writer->writeString(100, "AcDbLinkedTableData")
+            || !writer->writeInt32(90,
+                static_cast<std::int32_t>(columnCount)))
+            return failDxfWrite();
+
+        for (std::size_t columnIndex = 0u; columnIndex < columnCount;
+             ++columnIndex) {
+            const DRW_TableColumn& column =
+                ent->m_content.m_columns[columnIndex];
+            if (!writer->writeString(300, "COLUMN")
+                || !writer->writeString(1, "LINKEDTABLEDATACOLUMN_BEGIN")
+                || !writer->writeUtf8String(300, column.m_name)
+                || !writeCustomScope(columnScope(columnIndex))
+                || !writer->writeString(309, "LINKEDTABLEDATACOLUMN_END")
+                || !writer->writeString(1,
+                    "FORMATTEDTABLEDATACOLUMN_BEGIN")
+                || !writer->writeString(300, "COLUMNTABLEFORMAT")
+                || !writeStyle(3, nullptr)
+                || !writer->writeString(309,
+                    "FORMATTEDTABLEDATACOLUMN_END")
+                || !writer->writeString(1, "TABLECOLUMN_BEGIN")
+                || !writer->writeInt32(90, column.m_styleId)
+                || !writer->writeDouble(40, column.m_width)
+                || !writer->writeString(309, "TABLECOLUMN_END"))
+                return failDxfWrite();
+        }
+        if (!writer->writeInt32(91, static_cast<std::int32_t>(rowCount)))
+            return failDxfWrite();
+        for (std::size_t rowIndex = 0u; rowIndex < rowCount; ++rowIndex) {
+            const DRW_TableRow& row = ent->m_content.m_rows[rowIndex];
+            if (!writer->writeString(301, "ROW")
+                || !writer->writeString(1, "LINKEDTABLEDATAROW_BEGIN")
+                || !writer->writeInt32(90,
+                    static_cast<std::int32_t>(row.m_cells.size())))
+                return failDxfWrite();
+            for (std::size_t columnIndex = 0u;
+                 columnIndex < columnCount; ++columnIndex) {
+                const DRW_TableCell& cell = row.m_cells[columnIndex];
+                const auto* detail = cellScope(rowIndex, columnIndex);
+                if (!writer->writeString(300, "CELL")
+                    || !writer->writeString(1,
+                        "LINKEDTABLEDATACELL_BEGIN")
+                    || !writer->writeInt32(90, cell.m_flags)
+                    || !writer->writeUtf8String(300, cell.m_toolTip)
+                    || !writeCustomScope(detail ? &detail->m_scope : nullptr)
+                    || !writer->writeInt32(92, 0)
+                    || !writer->writeInt32(95,
+                        static_cast<std::int32_t>(cell.m_contents.size())))
+                    return failDxfWrite();
+                for (std::size_t contentIndex = 0u;
+                     contentIndex < cell.m_contents.size(); ++contentIndex) {
+                    const DRW_TableStyleContentFormat* contentFormat =
+                        detail && detail->m_contentFormats[contentIndex]
+                        ? detail->m_contentFormats[contentIndex].get() : nullptr;
+                    if (!writeContent(cell.m_contents[contentIndex],
+                                      contentFormat, cell.m_attributes,
+                                      contentIndex))
+                        return failDxfWrite();
+                }
+                if (!writer->writeString(309,
+                        "LINKEDTABLEDATACELL_END")
+                    || !writer->writeString(1,
+                        "FORMATTEDTABLEDATACELL_BEGIN")
+                    || !writer->writeString(300, "CELLTABLEFORMAT")
+                    || !writeStyle(1, detail
+                        ? &detail->m_scope.m_style : nullptr)
+                    || !writer->writeString(309,
+                        "FORMATTEDTABLEDATACELL_END")
+                    || !writer->writeString(1, "TABLECELL_BEGIN")
+                    || !writer->writeInt32(90, cell.m_styleId)
+                    || !writer->writeInt32(91,
+                        static_cast<int>(cell.m_geometryFlags))
+                    || !writer->writeString(309, "TABLECELL_END"))
+                    return failDxfWrite();
+            }
+            if (!writeCustomScope(rowScope(rowIndex))
+                || !writer->writeString(309, "LINKEDTABLEDATAROW_END")
+                || !writer->writeString(1,
+                    "FORMATTEDTABLEDATAROW_BEGIN")
+                || !writer->writeString(300, "ROWTABLEFORMAT")
+                || !writeStyle(2, nullptr)
+                || !writer->writeString(309,
+                    "FORMATTEDTABLEDATAROW_END")
+                || !writer->writeString(1, "TABLEROW_BEGIN")
+                || !writer->writeInt32(90, row.m_styleId)
+                || !writer->writeDouble(40, row.m_height)
+                || !writer->writeString(309, "TABLEROW_END"))
+                return failDxfWrite();
+        }
+        if (!writer->writeInt32(92, ent->m_dxfMetadata
+                ? ent->m_dxfMetadata->m_linkedDataUnknown92 : 0)
+            || !writer->writeString(100, "AcDbFormattedTableData")
+            || !writer->writeString(300, "TABLEFORMAT")
+            || !writeStyle(4, nullptr)
+            || !writer->writeInt32(90, 0)
+            || !writer->writeString(100, "AcDbTableContent")
+            || !writer->writeString(340, "0")
+            || writer->hasWriteError() || !preflightDxfWrite()
+            || !record.commit())
+            return failDxfWrite();
+        state.commit();
+        return true;
+    }
     const auto* contentFormats = ent->m_dxfMetadata
         ? &ent->m_dxfMetadata->m_rows.front().m_cells.front().m_contentFormats
         : nullptr;

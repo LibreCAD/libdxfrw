@@ -1855,6 +1855,144 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "render_preset_output_controls.h"
 #include "render_preset_graph_output_controls.h"
 
+DRW_TableContentObject tableContentScalarGrid() {
+    DRW_TableContentObject table;
+    table.handle = 0x5A0u;
+    table.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+    table.m_parseComplete = true;
+    table.m_semanticContentComplete = true;
+    table.m_content.m_name = "generated-grid";
+    table.m_content.m_columns = {{"left", 12.0}, {"right", 18.0}};
+    table.m_content.m_rows.resize(2u);
+    const std::array<std::array<const char*, 2>, 2> values{{
+        {{"", "north-east"}},
+        {{"south-west", "south-east"}}
+    }};
+    for (std::size_t rowIndex = 0u; rowIndex < values.size(); ++rowIndex) {
+        DRW_TableRow& row = table.m_content.m_rows[rowIndex];
+        row.m_height = 5.0 + static_cast<double>(rowIndex);
+        row.m_cells.resize(2u);
+        for (std::size_t columnIndex = 0u; columnIndex < 2u; ++columnIndex) {
+            if (*values[rowIndex][columnIndex] == '\0')
+                continue;
+            DRW_TableCellContent content;
+            content.m_type = 1;
+            content.m_text = values[rowIndex][columnIndex];
+            content.m_value.m_dataType = 4;
+            content.m_value.m_value = DRW_Variant(
+                1, UTF8STRING(values[rowIndex][columnIndex]));
+            row.m_cells[columnIndex].m_contents.push_back(content);
+        }
+    }
+    return table;
+}
+
+bool tableContentGridWriteTests(const std::filesystem::path& dir) {
+    const auto fail = [](const char* why) {
+        std::cerr << "TABLECONTENT scalar grid: " << why << '\n';
+        return false;
+    };
+    const auto path = dir / "scalar-grid.dxf";
+    const auto expected = [](const dx_data& data) {
+        if (data.tableContents.size() != 1u)
+            return false;
+        const DRW_TableContentObject& table = data.tableContents.front();
+        if (table.m_content.m_name != "generated-grid"
+            || table.m_content.m_columns.size() != 2u
+            || table.m_content.m_rows.size() != 2u)
+            return false;
+        const std::array<std::array<const char*, 2>, 2> values{{
+            {{"", "north-east"}},
+            {{"south-west", "south-east"}}
+        }};
+        for (std::size_t row = 0u; row < 2u; ++row) {
+            if (table.m_content.m_rows[row].m_cells.size() != 2u)
+                return false;
+            for (std::size_t column = 0u; column < 2u; ++column) {
+                const auto& cell = table.m_content.m_rows[row].m_cells[column];
+                if (*values[row][column] == '\0') {
+                    if (!cell.m_contents.empty())
+                        return false;
+                    continue;
+                }
+                if (cell.m_contents.size() != 1u
+                    || cell.m_contents.front().m_type != 1
+                    || cell.m_contents.front().m_text != values[row][column]
+                    || cell.m_contents.front().m_value.m_dataType != 4
+                    || cell.m_contents.front().m_value.m_value.type()
+                        != DRW_Variant::STRING
+                    || cell.m_contents.front().m_value.m_value.c_str() == nullptr
+                    || std::string(cell.m_contents.front().m_value.m_value.c_str())
+                        != cell.m_contents.front().m_text)
+                    return false;
+            }
+        }
+        return true;
+    };
+    for (bool binary : {false, true}) {
+        dx_data data;
+        dx_iface exporter;
+        exporter.cData = &data;
+        exporter.currentBlock = data.mBlock;
+        exporter.addTableContent(tableContentScalarGrid());
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                 &data, false))
+            return fail("2x2 scalar table export failed");
+        const auto wire = attdefWireTags(path, binary);
+        const auto countTag = [&wire](int code, const char* value) {
+            return std::count_if(wire.begin(), wire.end(),
+                [code, value](const AttdefWireTag& tag) {
+                    return tag.code == code && tag.text == value;
+                });
+        };
+        if (countTag(0, "TABLECONTENT") != 1
+            || countTag(1, "LINKEDTABLEDATACOLUMN_BEGIN") != 2
+            || countTag(1, "LINKEDTABLEDATAROW_BEGIN") != 2
+            || countTag(1, "LINKEDTABLEDATACELL_BEGIN") != 4
+            || countTag(309, "LINKEDTABLEDATACELL_END") != 4)
+            return fail("wire grid markers/counts differ");
+        dx_iface reader;
+        dx_data parsed;
+        if (!reader.fileImport(path.string(), &parsed, false)
+            || !expected(parsed))
+            return fail("ASCII/binary 2x2 readback differs");
+
+        DRW_TableCellContent& damaged = data.tableContents.front()
+            .m_content.m_rows[1].m_cells[1].m_contents.front();
+        const DRW_TableCellContent original = damaged;
+        damaged.m_text.clear();
+        damaged.m_value.m_dataType = 2;
+        damaged.m_value.m_value = DRW_Variant(
+            140, std::numeric_limits<double>::quiet_NaN());
+        const std::string sentinel = "PRESERVE_TABLECONTENT_GRID_DESTINATION";
+        { std::ofstream out(path, std::ios::binary); out << sentinel; }
+        if (exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                &data, false))
+            return fail("non-finite scalar was accepted");
+        if (damaged.m_text.size() != 0u
+            || damaged.m_value.m_dataType != 2
+            || damaged.m_value.m_value.type() != DRW_Variant::DOUBLE
+            || !std::isnan(damaged.m_value.m_value.d_val())
+            || data.tableContents.size() != 1u
+            || data.tableContents.front().m_content.m_rows.size() != 2u
+            || data.tableContents.front().m_content.m_rows[0].m_cells.size()
+                != 2u)
+            return fail("failed export changed caller table model");
+        { std::ifstream in(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(in), {}) != sentinel)
+              return fail("failed export changed destination"); }
+        damaged = original;
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                 &data, false))
+            return fail("same-writer corrected retry failed");
+        dx_data retried;
+        if (!reader.fileImport(path.string(), &retried, false)
+            || !expected(retried))
+            return fail("corrected retry readback differs");
+    }
+    return true;
+}
+
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
 Tags richMapSource(const std::string& version) {
@@ -3487,6 +3625,7 @@ int main(int argc,char** argv) {
     const bool tableBodies=argc==2 && std::string(argv[1])=="--table-bodies";
     const bool tableProfiles=argc==2 && std::string(argv[1])=="--table-profiles";
     const bool tableValueScopes=argc==2 && std::string(argv[1])=="--table-value-scopes";
+    const bool tableGridWrite=argc==2 && std::string(argv[1])=="--table-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
     const bool tableValueProfiles=argc==2 && std::string(argv[1])=="--table-value-profiles";
@@ -3510,12 +3649,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

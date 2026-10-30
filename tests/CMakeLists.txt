@@ -1705,6 +1705,10 @@ add_test(NAME libdxfrw_table_value_metadata_scopes
     COMMAND libdxfrw_table_content_dxf_tests --table-value-scopes)
 set_tests_properties(libdxfrw_table_value_metadata_scopes PROPERTIES
     LABELS "fast;dxf;adapter;source;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_grid_write
+    COMMAND libdxfrw_table_content_dxf_tests --table-grid-write)
+set_tests_properties(libdxfrw_table_content_grid_write PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_table_export_reuse
     COMMAND libdxfrw_table_content_dxf_tests --table-export-reuse)
 set_tests_properties(libdxfrw_table_export_reuse PROPERTIES
