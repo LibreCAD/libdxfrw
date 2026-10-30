@@ -31542,6 +31542,22 @@ Tags sourceWithBlockEntityHandleXdata(
                 {10,"1"},{20,"2"},{30,"3"},
                 {10,"3"},{20,"2"},{30,"1"},
                 {10,"4"},{20,"0"},{30,"0"}}
+            :entityType==DRW::HELIX
+            ?Tags{{0,"HELIX"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbSpline"},
+                {70,"0"},{71,"3"},{72,"8"},{73,"4"},{74,"0"},
+                {42,"0.000001"},{43,"0.000001"},{44,"0.000001"},
+                {40,"0"},{40,"0"},{40,"0"},{40,"0"},
+                {40,"1"},{40,"1"},{40,"1"},{40,"1"},
+                {10,"0"},{20,"0"},{30,"0"},
+                {10,"1"},{20,"2"},{30,"3"},
+                {10,"3"},{20,"2"},{30,"1"},
+                {10,"4"},{20,"0"},{30,"0"},
+                {100,"AcDbHelix"},{90,"1"},{91,"0"},
+                {10,"0"},{20,"0"},{30,"0"},
+                {11,"1"},{21,"0"},{31,"0"},
+                {12,"0"},{22,"0"},{32,"1"},
+                {40,"1"},{41,"2"},{42,"1.5"},{290,"1"},{280,"1"}}
             :Tags{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
                 {10,"100.5"},{20,"2"},{30,"0"},
@@ -31768,6 +31784,51 @@ Tags sourceWithSplineEntityHandleXdata(bool binary) {
     }
     if(!splineInserted)
         throw std::runtime_error("SPLINE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithHelixEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,helixInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags helix{{0,"HELIX"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbSpline"},
+            {70,"0"},{71,"3"},{72,"8"},{73,"4"},{74,"0"},
+            {42,"0.000001"},{43,"0.000001"},{44,"0.000001"},
+            {40,"0"},{40,"0"},{40,"0"},{40,"0"},
+            {40,"1"},{40,"1"},{40,"1"},{40,"1"},
+            {10,"0"},{20,"0"},{30,"0"},
+            {10,"1"},{20,"2"},{30,"3"},
+            {10,"3"},{20,"2"},{30,"1"},
+            {10,"4"},{20,"0"},{30,"0"},
+            {100,"AcDbHelix"},{90,"1"},{91,"0"},
+            {10,"0"},{20,"0"},{30,"0"},
+            {11,"1"},{21,"0"},{31,"0"},
+            {12,"0"},{22,"0"},{32,"1"},
+            {40,"1"},{41,"2"},{42,"1.5"},{290,"1"},{280,"1"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      helix.begin(),helix.end());
+        helixInserted=true;
+        break;
+    }
+    if(!helixInserted)
+        throw std::runtime_error("HELIX XDATA target source missing");
     return fields;
 }
 
@@ -32991,7 +33052,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::LWPOLYLINE
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
-        &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE)return false;
+        &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE
+        &&entityType!=DRW::HELIX)return false;
     const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
@@ -32999,9 +33061,11 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
     const bool isSpline=entityType==DRW::SPLINE;
+    const bool isHelix=entityType==DRW::HELIX;
     const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
-        :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE":"CIRCLE";
+        :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
+        :isHelix?"HELIX":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     const auto targetSection=targetBlockKey=="*model_space"
@@ -33041,6 +33105,13 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             if(!dx_raster_output::integer(field.second,parsed))return false;
             actual.push_back(parsed);
         }
+        return actual==expected;
+    };
+    const auto textValuesMatch=[&](const auto& row,int code,
+                                   const std::vector<std::string>& expected) {
+        std::vector<std::string> actual;
+        for(const auto& field:row.fields)
+            if(field.first==code)actual.push_back(field.second);
         return actual==expected;
     };
     const mlineStyleAuthorityControls::Row* style=nullptr;
@@ -33139,8 +33210,40 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&nearRealValue(row,42,1.0e-7)
                 &&nearRealValue(row,43,1.0e-7)
                 &&nearRealValue(row,44,1.0e-7)
+            :isHelix
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDbSpline","AcDbHelix"})
+                &&integerValuesMatch(row,70,{0})
+                &&integerValuesMatch(row,71,{3})
+                &&integerValuesMatch(row,72,{8})
+                &&integerValuesMatch(row,73,{4})
+                &&integerValuesMatch(row,74,{0})
+                &&integerValuesMatch(row,90,{1})
+                &&integerValuesMatch(row,91,{0})
+                &&integerValuesMatch(row,290,{1})
+                &&integerValuesMatch(row,280,{1})
+                &&realValuesMatch(row,40,{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0})
+                &&realValuesMatch(row,41,{2.0})
+                &&realValuesMatch(row,42,{1.0e-6,1.5})
+                &&realValuesMatch(row,43,{1.0e-6})
+                &&realValuesMatch(row,44,{1.0e-6})
+                &&realValuesMatch(row,10,{0.0,1.0,3.0,4.0,0.0})
+                &&realValuesMatch(row,20,{0.0,2.0,2.0,0.0,0.0})
+                &&realValuesMatch(row,30,{0.0,3.0,1.0,0.0,0.0})
+                &&realValuesMatch(row,11,{1.0})
+                &&realValuesMatch(row,21,{0.0})
+                &&realValuesMatch(row,31,{0.0})
+                &&realValuesMatch(row,12,{0.0})
+                &&realValuesMatch(row,22,{0.0})
+                &&realValuesMatch(row,32,{1.0})
             :realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)&&realValue(row,40,5.0);
+        if(isHelix&&row.type=="HELIX"&&row.section==targetSection
+            &&!expectedGeometry) {
+            std::cerr<<"HELIX physical fields failed:";
+            for(const auto& field:row.fields)
+                std::cerr<<' '<<field.first<<'='<<field.second;
+            std::cerr<<'\n';
+        }
         if(row.type==recordName&&row.section==targetSection
             &&expectedGeometry) {
             if(isArc&&(!nearRealValue(row,50,15.0)
@@ -33236,6 +33339,37 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||textStyle->width!=0.8||textStyle->oblique!=3.0
             ||textStyle->lastHeight!=2.5||textStyle->genFlag!=0)
             return false;
+    } else if(isHelix) {
+        const auto* typedModel=dynamic_cast<const DRW_Helix*>(*typedCurve);
+        const std::array<DRW_Coord,4> expectedControls{{
+            DRW_Coord(0.0,0.0,0.0),DRW_Coord(1.0,2.0,3.0),
+            DRW_Coord(3.0,2.0,1.0),DRW_Coord(4.0,0.0,0.0)}};
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Helix)
+            ||typedModel->parentHandle!=ownerHandle||typedModel->flags!=0
+            ||typedModel->degree!=3||typedModel->nknots!=8
+            ||typedModel->ncontrol!=4||typedModel->nfit!=0
+            ||typedModel->tolknot!=1.0e-6
+            ||typedModel->tolcontrol!=1.0e-6
+            ||typedModel->tolfit!=1.0e-6
+            ||typedModel->knotslist
+                !=std::vector<double>{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0}
+            ||typedModel->controllist.size()!=expectedControls.size()
+            ||!typedModel->fitlist.empty()
+            ||typedModel->m_majorVersion!=1||typedModel->m_maintVersion!=0
+            ||typedModel->axisBasePt.x!=0.0||typedModel->axisBasePt.y!=0.0
+            ||typedModel->axisBasePt.z!=0.0||typedModel->startPt.x!=1.0
+            ||typedModel->startPt.y!=0.0||typedModel->startPt.z!=0.0
+            ||typedModel->axisVector.x!=0.0||typedModel->axisVector.y!=0.0
+            ||typedModel->axisVector.z!=1.0||typedModel->radius!=1.0
+            ||typedModel->turns!=2.0||typedModel->turnHeight!=1.5
+            ||!typedModel->handedness||typedModel->constraintType!=1u)
+            return false;
+        for(std::size_t i=0u;i<expectedControls.size();++i) {
+            const auto& actual=typedModel->controllist[i];
+            if(actual==nullptr||actual->x!=expectedControls[i].x
+                ||actual->y!=expectedControls[i].y
+                ||actual->z!=expectedControls[i].z)return false;
+        }
     } else if(isSpline) {
         const auto* typedModel=dynamic_cast<const DRW_Spline*>(*typedCurve);
         const std::array<DRW_Coord,4> expectedControls{{
@@ -36694,6 +36828,7 @@ bool runTemporary() {
             ?std::string_view("TEXT")
             :entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
+            :entityType==DRW::HELIX?std::string_view("HELIX")
             :entityType==DRW::SPLINE?std::string_view("SPLINE")
             :entityType==DRW::POINT?std::string_view("POINT")
             :entityType==DRW::E3DFACE?std::string_view("3DFACE")
@@ -36710,6 +36845,8 @@ bool runTemporary() {
                 ?sourceWithTextEntityHandleXdata(binary)
                 :entityType==DRW::ELLIPSE
                 ?sourceWithEllipseEntityHandleXdata(binary)
+                :entityType==DRW::HELIX
+                ?sourceWithHelixEntityHandleXdata(binary)
                 :entityType==DRW::SPLINE
                 ?sourceWithSplineEntityHandleXdata(binary)
                 :entityType==DRW::POINT
@@ -36753,10 +36890,46 @@ bool runTemporary() {
                     ||typed->parentHandle!=targetOwner||typed->flags!=0
                     ||typed->degree!=3||typed->nknots!=8
                     ||typed->ncontrol!=4||typed->nfit!=0
+                    ||typed->tolknot!=1.0e-7
+                    ||typed->tolcontrol!=1.0e-7
+                    ||typed->tolfit!=1.0e-7
                     ||typed->knotslist
                         !=std::vector<double>{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0}
                     ||typed->controllist.size()!=expected.size()
                     ||!typed->fitlist.empty())return false;
+                for(std::size_t i=0u;i<expected.size();++i) {
+                    const auto& point=typed->controllist[i];
+                    if(point==nullptr||point->x!=expected[i].x
+                        ||point->y!=expected[i].y
+                        ||point->z!=expected[i].z)return false;
+                }
+                return true;
+            }
+            if(entityType==DRW::HELIX) {
+                const auto* typed=dynamic_cast<const DRW_Helix*>(entity);
+                const std::array<DRW_Coord,4> expected{{
+                    DRW_Coord(0.0,0.0,0.0),DRW_Coord(1.0,2.0,3.0),
+                    DRW_Coord(3.0,2.0,1.0),DRW_Coord(4.0,0.0,0.0)}};
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_Helix)
+                    ||typed->parentHandle!=targetOwner||typed->flags!=0
+                    ||typed->degree!=3||typed->nknots!=8
+                    ||typed->ncontrol!=4||typed->nfit!=0
+                    ||typed->tolknot!=1.0e-6
+                    ||typed->tolcontrol!=1.0e-6
+                    ||typed->tolfit!=1.0e-6
+                    ||typed->knotslist
+                        !=std::vector<double>{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0}
+                    ||typed->controllist.size()!=expected.size()
+                    ||!typed->fitlist.empty()
+                    ||typed->m_majorVersion!=1||typed->m_maintVersion!=0
+                    ||typed->axisBasePt.x!=0.0||typed->axisBasePt.y!=0.0
+                    ||typed->axisBasePt.z!=0.0||typed->startPt.x!=1.0
+                    ||typed->startPt.y!=0.0||typed->startPt.z!=0.0
+                    ||typed->axisVector.x!=0.0||typed->axisVector.y!=0.0
+                    ||typed->axisVector.z!=1.0||typed->radius!=1.0
+                    ||typed->turns!=2.0||typed->turnHeight!=1.5
+                    ||!typed->handedness||typed->constraintType!=1u)
+                    return false;
                 for(std::size_t i=0u;i<expected.size();++i) {
                     const auto& point=typed->controllist[i];
                     if(point==nullptr||point->x!=expected[i].x
@@ -36988,14 +37161,15 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::TEXT,DRW::ELLIPSE,DRW::SPLINE,DRW::POINT,DRW::E3DFACE,
+            DRW::TEXT,DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
+            DRW::POINT,DRW::E3DFACE,
             DRW::LWPOLYLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==284u&&readbacks==636u&&refusals==352u&&retries==352u;
+    return profiles==292u&&readbacks==654u&&refusals==362u&&retries==362u;
 }
 
 bool runBudgetTemporary() {
