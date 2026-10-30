@@ -18364,6 +18364,13 @@ bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
 bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // AcDbMLeaderStyle DXF.  All-scalar record (handles via 340-343); code map
     // matches the per-field comments on the class + dwgTs's MLEADERSTYLE decode.
+    const auto readBoolean = [&reader](bool& value) {
+        const int raw = reader->getInt32();
+        if (raw < 0 || raw > 1)
+            return false;
+        value = raw == 1;
+        return true;
+    };
     switch (code) {
     case 179: styleVersion = reader->getInt32(); break;
     case 170: contentType = reader->getInt32(); break;
@@ -18384,9 +18391,9 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         leaderColorDwgMetadataPresent = false;
         break;
     case 92:  leaderLineWeight = reader->getInt32(); break;
-    case 290: landingEnabled = (reader->getInt32() != 0); break;
+    case 290: return readBoolean(landingEnabled);
     case 42:  landingGap = reader->getDouble(); break;
-    case 291: autoIncludeLanding = (reader->getInt32() != 0); break;
+    case 291: return readBoolean(autoIncludeLanding);
     case 43:  landingDistance = reader->getDouble(); break;
     case 3:
         if (!replaceDxfRetainedStringField(
@@ -18416,8 +18423,8 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         textColorDwgMetadataPresent = false;
         break;
     case 45:  textHeight = reader->getDouble(); break;
-    case 292: textFrameEnabled = (reader->getInt32() != 0); break;
-    case 297: alwaysAlignTextLeft = (reader->getInt32() != 0); break;
+    case 292: return readBoolean(textFrameEnabled);
+    case 297: return readBoolean(alwaysAlignTextLeft);
     case 46:  alignSpace = reader->getDouble(); break;
     case 94:
         blockColor = reader->getInt32();
@@ -18432,18 +18439,18 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
     case 47:  blockScale.x = reader->getDouble(); break;
     case 49:  blockScale.y = reader->getDouble(); break;
     case 140: blockScale.z = reader->getDouble(); break;
-    case 293: blockScaleEnabled = (reader->getInt32() != 0); break;
+    case 293: return readBoolean(blockScaleEnabled);
     case 141: blockRotation = reader->getDouble(); break;
-    case 294: blockRotationEnabled = (reader->getInt32() != 0); break;
+    case 294: return readBoolean(blockRotationEnabled);
     case 177: blockConnectionType = reader->getInt32(); break;
     case 142: scaleFactor = reader->getDouble(); break;
-    case 295: propertyChanged = (reader->getInt32() != 0); break;
-    case 296: isAnnotative = (reader->getInt32() != 0); break;
+    case 295: return readBoolean(propertyChanged);
+    case 296: return readBoolean(isAnnotative);
     case 143: breakSize = reader->getDouble(); break;
     case 271: attachmentDirection = reader->getInt32(); break;
     case 273: topAttachment = reader->getInt32(); break;
     case 272: bottomAttachment = reader->getInt32(); break;
-    case 298: textExtended = (reader->getInt32() != 0); break;
+    case 298: return readBoolean(textExtended);
     case 340: leaderLineTypeHandle.ref = reader->getHandleString(); break;
     case 341: arrowHeadBlockHandle.ref = reader->getHandleString(); break;
     case 342: textStyleHandle.ref = reader->getHandleString(); break;

@@ -1240,6 +1240,11 @@ add_test(NAME libdxfrw_mleaderstyle_writer_closure
         --mleaderstyle-writer-closure ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(libdxfrw_mleaderstyle_writer_closure PROPERTIES
     LABELS "fast;dxf;graph;adapter;objects;mleader" TIMEOUT 30)
+add_test(NAME libdxfrw_mleaderstyle_boolean_source_domain
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --mleaderstyle-boolean-source-domain)
+set_tests_properties(libdxfrw_mleaderstyle_boolean_source_domain PROPERTIES
+    LABELS "fast;dxf;adapter;objects;mleader;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_dictionary_default_adapter_roundtrip
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --dictionary-default-adapter-roundtrip)

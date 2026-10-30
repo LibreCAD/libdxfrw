@@ -33115,6 +33115,124 @@ bool mleaderStyleBlockRecordHandleTransaction(
     return true;
 }
 
+bool mLeaderStyleBooleanSourceDomain() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto scratch = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mleaderstyle-bool-domain-"
+           + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(scratch, error) || error)
+        return fail("could not reserve MLEADERSTYLE boolean scratch directory");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup{scratch};
+
+    const auto generate = [](const std::filesystem::path& path,
+                             int invalidCode, int invalidValue,
+                             bool binary) {
+        const auto ascii = binary
+            ? std::filesystem::path(path.string() + ".ascii") : path;
+        if (!generateRootMLeaderStyleControl(ascii, false, true, 0, false,
+                                             false))
+            return false;
+        if (binary) {
+            std::ifstream input(ascii, std::ios::binary);
+            if (!input)
+                return false;
+            const std::string drawing{
+                std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>()};
+            if (!writeBinaryDxfControl(path.string(), drawing, "AC1027"))
+                return false;
+        }
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return false;
+        std::string contents{
+            std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>()};
+        const bool validValue = invalidCode == 291 || invalidCode == 293
+            || invalidCode == 295 || invalidCode == 297;
+        if (binary) {
+            const auto code = static_cast<std::uint16_t>(invalidCode);
+            const std::array<char, 3> expected{{
+                static_cast<char>(code & 0xFFu),
+                static_cast<char>((code >> 8u) & 0xFFu),
+                static_cast<char>(validValue ? 1 : 0)
+            }};
+            const auto field = std::search(contents.begin(), contents.end(),
+                expected.begin(), expected.end());
+            if (field == contents.end()
+                || std::search(std::next(field), contents.end(),
+                    expected.begin(), expected.end()) != contents.end())
+                return false;
+            *(field + 2) = static_cast<char>(invalidValue & 0xFF);
+        } else {
+            const std::string existing = std::to_string(invalidCode) + "\n"
+                + (validValue ? "1\n" : "0\n");
+            const auto field = contents.find(existing);
+            if (field == std::string::npos)
+                return false;
+            const std::string replacement = std::to_string(invalidCode)
+                + "\n" + std::to_string(invalidValue) + "\n";
+            contents.replace(field, existing.size(), replacement);
+        }
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        return output && static_cast<bool>(output.write(
+            contents.data(), static_cast<std::streamsize>(contents.size())));
+    };
+    const std::array<int, 9> booleanCodes{{
+        290, 291, 292, 293, 294, 295, 296, 297, 298
+    }};
+    dx_iface reader;
+    for (const int code : booleanCodes) {
+        for (const bool binary : {false, true}) {
+            const auto input = scratch
+                / ("invalid-" + std::to_string(code)
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!generate(input, code, 2, binary))
+                return fail("could not create invalid MLEADERSTYLE boolean "
+                            + std::to_string(code));
+            dx_data rejected;
+            if (reader.fileImport(input.string(), &rejected, false)
+                || !rejected.mLeaderStyles.empty())
+                return fail("MLEADERSTYLE accepted non-boolean group code "
+                            + std::to_string(code));
+        }
+    }
+    const auto negative = scratch / "invalid-negative-290.dxf";
+    if (!generate(negative, 290, -1, false))
+        return fail("could not create negative MLEADERSTYLE boolean control");
+    dx_data negativeRejected;
+    if (reader.fileImport(negative.string(), &negativeRejected, false)
+        || !negativeRejected.mLeaderStyles.empty())
+        return fail("MLEADERSTYLE accepted negative group 290");
+
+    const auto valid = scratch / "valid.dxf";
+    if (!generateRootMLeaderStyleControl(valid, false, true, 0, false,
+                                         false))
+        return fail("could not create valid MLEADERSTYLE boolean control");
+    dx_data corrected;
+    if (!reader.fileImport(valid.string(), &corrected, false)
+        || corrected.mLeaderStyles.size() != 1u)
+        return fail("corrected MLEADERSTYLE booleans did not retry through "
+                    "the same adapter");
+    const auto& style = corrected.mLeaderStyles.front();
+    if (style.landingEnabled || !style.autoIncludeLanding
+        || style.textFrameEnabled || !style.blockScaleEnabled
+        || style.blockRotationEnabled || !style.propertyChanged
+        || style.isAnnotative || !style.alwaysAlignTextLeft
+        || style.textExtended)
+        return fail("valid MLEADERSTYLE boolean values changed in parsing");
+    return true;
+}
+
 bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                                    bool binary) {
     const std::string encoding = binary ? "bin" : "ascii";
@@ -38610,6 +38728,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--mleaderstyle-writer-closure")
         return mLeaderStyleWriterClosureFocused(argv[2]) ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--mleaderstyle-boolean-source-domain")
+        return mLeaderStyleBooleanSourceDomain() ? 0 : 1;
     if (argc != 3) {
         std::cerr << "usage: dwg2dxf_adapter_tests --generate|--verify <file>\n";
         return 2;
