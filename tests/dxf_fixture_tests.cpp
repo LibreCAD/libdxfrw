@@ -52740,6 +52740,18 @@ void testDataLinkAdapterExport(TestContext& t) {
         doubleValue.m_value.m_dataType = 2;
         doubleValue.m_value.m_value.addDouble(140, 3.125);
         textCell.m_contents.push_back(std::move(doubleValue));
+        DRW_TableCellContent point2dValue;
+        point2dValue.m_type = 1;
+        point2dValue.m_value.m_dataType = 16;
+        point2dValue.m_value.m_dataSize = 16u;
+        point2dValue.m_value.m_value.addCoord(11, DRW_Coord(2.5, -4.25, 0.0));
+        textCell.m_contents.push_back(std::move(point2dValue));
+        DRW_TableCellContent point3dValue;
+        point3dValue.m_type = 1;
+        point3dValue.m_value.m_dataType = 32;
+        point3dValue.m_value.m_dataSize = 24u;
+        point3dValue.m_value.m_value.addCoord(11, DRW_Coord(0.125, -2.75, 5.5));
+        textCell.m_contents.push_back(std::move(point3dValue));
         textRow.m_cells.push_back(std::move(textCell));
         textContent.m_content.m_rows.push_back(std::move(textRow));
         source.tableContents.push_back(std::move(textContent));
@@ -52801,14 +52813,92 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && invalidTextValuePreserved == sentinel,
                  "adapter refuses unsupported TABLECONTENT value without replacing destination");
         cadValue.m_dataType = 4;
+        DRW_CadValue& point3dCadValue = source.tableContents[1]
+            .m_content.m_rows.front().m_cells.front().m_contents[4].m_value;
+        point3dCadValue.m_value.coord()->z =
+            std::numeric_limits<double>::infinity();
+        const bool invalidPointRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream invalidPointInput(path, std::ios::binary);
+        const std::string invalidPointPreserved(
+            (std::istreambuf_iterator<char>(invalidPointInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(invalidPointRefused && invalidPointPreserved == sentinel,
+                 "adapter refuses non-finite TABLECONTENT point without replacing destination");
+        point3dCadValue.m_value.coord()->z = 5.5;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
         dx_data readback;
         const bool imported = exported
             && reader.fileImport(path.string(), &readback, false);
+        const auto outputFields = materialBodyControls::physicalTags(path, binary);
+        std::size_t contentBegin = outputFields.size();
+        std::size_t contentEnd = outputFields.size();
+        for (std::size_t i = 0u; i + 1u < outputFields.size(); ++i) {
+            if (outputFields[i] == std::make_pair(0, std::string("TABLECONTENT"))
+                && outputFields[i + 1u] == std::make_pair(5, std::string("1721"))) {
+                contentBegin = i + 1u;
+                contentEnd = contentBegin;
+                while (contentEnd < outputFields.size()
+                    && outputFields[contentEnd].first != 0)
+                    ++contentEnd;
+                break;
+            }
+        }
+        const auto pointFieldsMatch = [&](int dataType, int dataSize,
+                const std::vector<std::pair<int, double>>& coordinates) {
+            const std::size_t coordinateCount = coordinates.size();
+            const auto integerEquals = [](const std::pair<int, std::string>& field,
+                    int code, int expected) {
+                if (field.first != code)
+                    return false;
+                try {
+                    return std::stoi(field.second) == expected;
+                } catch (...) {
+                    return false;
+                }
+            };
+            if (contentBegin == outputFields.size()
+                || contentEnd > outputFields.size())
+                return false;
+            for (std::size_t i = contentBegin; i < contentEnd; ++i) {
+                if (!integerEquals(outputFields[i], 90, dataType))
+                    continue;
+                const std::size_t end = i + 1u + coordinateCount + 1u;
+                if (end >= contentEnd
+                    || !integerEquals(outputFields[i + 1u], 92, dataSize))
+                    continue;
+                bool matches = true;
+                for (std::size_t coordinate = 0u;
+                     coordinate < coordinateCount; ++coordinate) {
+                    const auto& field = outputFields[i + 2u + coordinate];
+                    if (field.first != coordinates[coordinate].first) {
+                        matches = false;
+                        break;
+                    }
+                    try {
+                        if (std::stod(field.second) != coordinates[coordinate].second) {
+                            matches = false;
+                            break;
+                        }
+                    } catch (...) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches && integerEquals(outputFields[end], 94, 0))
+                    return true;
+            }
+            return false;
+        };
+        const bool exactPointFields = pointFieldsMatch(16, 16,
+                {{11, 2.5}, {21, -4.25}})
+            && pointFieldsMatch(32, 24,
+                {{11, 0.125}, {21, -2.75}, {31, 5.5}});
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 2u,
+                     && readback.tableContents.size() == 2u
+                     && exactPointFields,
                  "adapter emits linked TABLECONTENT and multiple plain scalar values");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
@@ -52872,7 +52962,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             t.expect(plainText->parentHandle
                          == DRW::DwgNamedObjectsDictionaryHandle
                          && plainText->m_content.m_name == "plain text content"
-                         && actualTextCell.m_contents.size() == 3u
+                     && actualTextCell.m_contents.size() == 5u
                          && actualTextCell.m_contents.front().m_type == 1
                          && actualTextCell.m_contents.front().m_text
                              == "adapter-authored text"
@@ -52892,8 +52982,22 @@ void testDataLinkAdapterExport(TestContext& t) {
                          && actualTextCell.m_contents[2].m_value.m_value.type()
                              == DRW_Variant::DOUBLE
                          && actualTextCell.m_contents[2].m_value.m_value.d_val()
-                             == 3.125,
-                     "ordered TABLECONTENT string, integer, and real values survive readback");
+                             == 3.125
+                         && actualTextCell.m_contents[3].m_value.m_dataType == 16
+                         && actualTextCell.m_contents[3].m_value.m_dataSize == 16u
+                         && actualTextCell.m_contents[3].m_value.m_value.type()
+                             == DRW_Variant::COORD
+                         && actualTextCell.m_contents[3].m_value.m_value.coord()->x == 2.5
+                         && actualTextCell.m_contents[3].m_value.m_value.coord()->y == -4.25
+                         && actualTextCell.m_contents[3].m_value.m_value.coord()->z == 0.0
+                         && actualTextCell.m_contents[4].m_value.m_dataType == 32
+                         && actualTextCell.m_contents[4].m_value.m_dataSize == 24u
+                         && actualTextCell.m_contents[4].m_value.m_value.type()
+                             == DRW_Variant::COORD
+                         && actualTextCell.m_contents[4].m_value.m_value.coord()->x == 0.125
+                         && actualTextCell.m_contents[4].m_value.m_value.coord()->y == -2.75
+                         && actualTextCell.m_contents[4].m_value.m_value.coord()->z == 5.5,
+                     "ordered TABLECONTENT scalar and point values preserve physical fields and typed readback");
         }
     }
 }

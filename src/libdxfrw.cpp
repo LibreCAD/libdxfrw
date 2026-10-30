@@ -25909,23 +25909,25 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             const DRW_TableCellContent& content) {
         const DRW_CadValue& value = content.m_value;
         if (content.m_type != 1 || content.m_handle != 0u
-            || value.m_formatFlags != 0 || value.m_dataSize != 0u
-            || value.m_unitType != 0 || !value.m_formatString.empty()
-            || !value.m_valueString.empty() || value.m_handle != 0u
-            || !value.m_rawData.empty())
+            || value.m_formatFlags != 0 || value.m_unitType != 0
+            || !value.m_formatString.empty()
+            || !value.m_valueString.empty() || value.m_handle != 0u)
             return false;
         switch (value.m_dataType) {
         case 1:
-            return content.m_text.empty()
+            return content.m_text.empty() && value.m_dataSize == 0u
+                && value.m_rawData.empty()
                 && value.m_value.type() == DRW_Variant::INTEGER
                 && value.m_value.code() == 91;
         case 2:
-            return content.m_text.empty()
+            return content.m_text.empty() && value.m_dataSize == 0u
+                && value.m_rawData.empty()
                 && value.m_value.type() == DRW_Variant::DOUBLE
                 && value.m_value.code() == 140
                 && std::isfinite(value.m_value.d_val());
         case 4:
-            if (content.m_text.size()
+            if (value.m_dataSize != 0u || !value.m_rawData.empty()
+                || content.m_text.size()
                 > DRW::kMaxDxfBinaryPayloadBytes - plainContentTextBytes)
                 return false;
             plainContentTextBytes += content.m_text.size();
@@ -25934,6 +25936,23 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && value.m_value.c_str() != nullptr
                 && content.m_text == value.m_value.c_str()
                 && safeText(content.m_text);
+        case 16:
+        case 32: {
+            const std::uint32_t expectedSize =
+                static_cast<std::uint32_t>(value.m_dataType == 16 ? 16 : 24);
+            if (!content.m_text.empty()
+                || (value.m_dataSize != 0u
+                    && value.m_dataSize != expectedSize)
+                || !value.m_rawData.empty()
+                || value.m_value.type() != DRW_Variant::COORD
+                || value.m_value.code() != 11)
+                return false;
+            const DRW_Coord* point = value.m_value.coord();
+            return point != nullptr && std::isfinite(point->x)
+                && std::isfinite(point->y)
+                && (value.m_dataType == 16 ? point->z == 0.0
+                    : std::isfinite(point->z));
+        }
         default:
             return false;
         }
