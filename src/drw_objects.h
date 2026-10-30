@@ -7087,7 +7087,8 @@ struct DRW_AssociativePrefixStatus {
     AcDbAssocActionBody,
     AcDbEvalExpr,
     AcDbShHistoryNode,
-    AcShActionBody
+    AcShActionBody,
+    AcDbAssocDependencyBody
   };
 
   enum class ParseStatus {
@@ -7144,6 +7145,9 @@ protected:
 public:
   UTF8STRING m_recordName;
   std::uint16_t m_classVersion = 0;
+  std::uint16_t m_dependencyBodyVersion = 0;
+  std::uint16_t m_dimBaseVersion = 0;
+  bool m_dimensionDependencyBodyParsed = false;
   std::int32_t m_geometryStatus = 0;
   std::uint32_t m_owningNetworkHandle = 0;
   std::uint32_t m_actionBodyHandle = 0;
@@ -7185,6 +7189,9 @@ private:
   void copyPersistentFields(const DRW_AssociativeObject& o) {
     m_recordName = o.m_recordName;
     m_classVersion = o.m_classVersion;
+    m_dependencyBodyVersion = o.m_dependencyBodyVersion;
+    m_dimBaseVersion = o.m_dimBaseVersion;
+    m_dimensionDependencyBodyParsed = o.m_dimensionDependencyBodyParsed;
     m_geometryStatus = o.m_geometryStatus;
     m_owningNetworkHandle = o.m_owningNetworkHandle;
     m_actionBodyHandle = o.m_actionBodyHandle;

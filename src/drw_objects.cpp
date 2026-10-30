@@ -25317,6 +25317,9 @@ void DRW_AssociativeObject::reset() {
     DRW_TableEntry::reset();
     tType = DRW::ASSOCIATIVEOBJECT;
     m_classVersion = 0;
+    m_dependencyBodyVersion = 0;
+    m_dimBaseVersion = 0;
+    m_dimensionDependencyBodyParsed = false;
     m_geometryStatus = 0;
     m_owningNetworkHandle = 0;
     m_actionBodyHandle = 0;
@@ -26010,6 +26013,71 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
             geomStartBit, prefixStatusFromGood(complete), m_classVersion,
             0, 0, 0);
+    } else if (rn == "ACDBASSOCDIMDEPENDENCYBODY"
+               || rn == "ASSOCDIMDEPENDENCYBODY") {
+        const std::uint64_t startBit = currentObjectDwgBit(buf);
+        const bool separateStringBuffer = sBuf != buf;
+        dwgBuffer bodyProbe = *buf;
+        dwgBuffer stringProbe = *sBuf;
+        dwgBuffer *textProbe = separateStringBuffer ? &stringProbe
+                                                    : &bodyProbe;
+        const std::uint32_t bodyEnd = objectDataEndKnown
+            ? objectDataEnd : boundedBodyEnd;
+        std::int32_t dependencyBodyVersion = 0;
+        std::int32_t dimBaseVersion = 0;
+        std::int32_t classVersion = 0;
+        UTF8STRING bodyName;
+        const bool modern = version > DRW::AC1018;
+        const bool complete = (!modern || objectDataEndKnown)
+            && readBitShortWithinBody(&bodyProbe, version, bodyEnd,
+                                      dependencyBodyVersion)
+            && readBitShortWithinBody(&bodyProbe, version, bodyEnd,
+                                      dimBaseVersion)
+            && readVariableTextWithinBounds(
+                &bodyProbe, textProbe, version, boundedBodyEnd,
+                stringDataEnd, bodyName)
+            && readBitShortWithinBody(&bodyProbe, version, bodyEnd,
+                                      classVersion)
+            && dependencyBodyVersion >= 0
+            && dimBaseVersion >= 0
+            && classVersion >= 0
+            && dependencyBodyVersion
+                   <= std::numeric_limits<std::uint16_t>::max()
+            && dimBaseVersion <= std::numeric_limits<std::uint16_t>::max()
+            && classVersion <= std::numeric_limits<std::uint16_t>::max()
+            && bodyProbe.isGood() && textProbe->isGood()
+            && objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodyEnd)
+            && objectBodyFitsSize(currentObjectDwgBit(textProbe),
+                                  stringDataEnd);
+        const auto status = makeAssocPrefixStatus(
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody,
+            startBit,
+            complete ? currentObjectDwgBit(&bodyProbe) : currentObjectDwgBit(buf),
+            prefixStatusFromGood(complete),
+            static_cast<std::uint16_t>(std::max(0, classVersion)),
+            0, complete ? 4u : 0u, 0);
+        m_prefixStatuses.push_back(status);
+        if (!complete)
+            return fail();
+
+        *buf = bodyProbe;
+        if (separateStringBuffer)
+            *sBuf = stringProbe;
+        m_dependencyBodyVersion =
+            static_cast<std::uint16_t>(dependencyBodyVersion);
+        m_dimBaseVersion = static_cast<std::uint16_t>(dimBaseVersion);
+        m_classVersion = static_cast<std::uint16_t>(classVersion);
+        name = std::move(bodyName);
+        m_dimensionDependencyBodyParsed = true;
+        DRW_DBG("ACDBASSOCDIMDEPENDENCYBODY span/handle/owner/versions/name=");
+        DRW_DBG(startBit); DRW_DBG("/");
+        DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG("/");
+        DRW_DBG(handle); DRW_DBG("/");
+        DRW_DBG(parsedParentHandle); DRW_DBG("/");
+        DRW_DBG(m_dependencyBodyVersion); DRW_DBG("/");
+        DRW_DBG(m_dimBaseVersion); DRW_DBG("/");
+        DRW_DBG(m_classVersion); DRW_DBG("/");
+        DRW_DBG(name.c_str()); DRW_DBG("\n");
     } else if (m_recordName == "ACDBASSOCALIGNEDDIMACTIONBODY") {
         const std::uint64_t startBit = currentObjectDwgBit(buf);
         dwgBuffer bodyProbe = *buf;
@@ -26391,8 +26459,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         if (!readActionFields())
             return fail();
     } else {
-        // Any other ACDBASSOC* (surface / array action bodies, dependency
-        // bodies, array parameters, ...): the shared table-entry prefix has
+        // Any other ACDBASSOC* (surface / array action bodies, unmodeled
+        // dependency bodies, array parameters, ...): the shared prefix has
         // already run; record a Missing marker and let the raw shelf preserve
         // the opaque body verbatim (matches dwgTs readAssociativityBody's
         // default -> undefined -> raw-shell path).

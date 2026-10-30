@@ -2948,6 +2948,16 @@ bool isCenterLineActionBodyClass(const DRW_Class *objectClass) {
              "CENTERLINEACTIONBODY";
 }
 
+bool isAssociativeDimensionDependencyBodyClass(
+    const DRW_Class *objectClass) {
+  if (objectClass == nullptr)
+    return false;
+  return normalizeDwgClassToken(objectClass->recName) ==
+             "ASSOCDIMDEPENDENCYBODY" ||
+         normalizeDwgClassToken(objectClass->className) ==
+             "ASSOCDIMDEPENDENCYBODY";
+}
+
 bool objectContextKindFromClassNames(const std::string &recName,
                                      const std::string &className,
                                      DRW_ObjectContextData::Kind &kind) {
@@ -13324,10 +13334,13 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               }
               break;
             }
-            if (rn.rfind("ACDBASSOC", 0) == 0 ||
+            if (isAssociativeDimensionDependencyBodyClass(cit->second) ||
+                rn.rfind("ACDBASSOC", 0) == 0 ||
                 rn == "ACDBPERSSUBENTMANAGER" || centerLineActionBody) {
               // Every ACDBASSOC* associativity class (plus the bare
-              // PERSSUBENTMANAGER) routes to the shell parser:
+              // PERSSUBENTMANAGER) routes to the shell parser. The selected
+              // ACDBASSOCDIMDEPENDENCYBODY profile has a typed four-field
+              // body; unmodeled subclasses retain their source body raw:
               // ACTION/NETWORK/DEPENDENCY/GEOMDEPENDENCY/PERSSUBENT
               // and the action-param variants decode structured
               // fields; all other subclasses (surface/array action

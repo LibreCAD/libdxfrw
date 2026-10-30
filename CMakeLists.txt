@@ -1270,6 +1270,11 @@ if(LIBDXFRW_BUILD_TESTS)
             --associative-action-value-kinds)
     set_tests_properties(libdxfrw_associative_action_value_kinds PROPERTIES
         LABELS "fast;dwg;object-vectors" TIMEOUT 10)
+    add_test(NAME libdxfrw_associative_dimension_dependency_body
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --associative-dimension-dependency-body)
+    set_tests_properties(libdxfrw_associative_dimension_dependency_body PROPERTIES
+        LABELS "fast;dwg;object-vectors;associative;generated" TIMEOUT 10)
     add_test(NAME libdxfrw_table_break_data_flag_domain
         COMMAND libdxfrw_dwg_object_vectors_tests
             --table-break-data-flag-domain)

@@ -895,6 +895,74 @@ struct AssociativeActionFrame {
     std::uint64_t bodySentinelBit {0};
 };
 
+struct AssociativeDimensionDependencyBodyFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits {0};
+    std::uint64_t bodyStartBit {0};
+};
+
+bool makeAssociativeDimensionDependencyBodyFrame(
+        DRW::Version version, std::int16_t dependencyBodyVersion,
+        std::int16_t dimBaseVersion, const UTF8STRING& name,
+        std::int16_t classVersion,
+        AssociativeDimensionDependencyBodyFrame& frame,
+        bool malformedName = false) {
+    DRW_TextCodec codec;
+    codec.setVersion(version, false);
+    dwgBufferW object(&codec), body(&codec), strings(&codec), handles(&codec);
+
+    body.putBitShort(dependencyBodyVersion);
+    body.putBitShort(dimBaseVersion);
+    if (malformedName)
+        strings.putBitShort(512); // Declares UTF-16 data beyond this stream.
+    else
+        strings.putVariableText(version, name);
+    body.putBitShort(classVersion);
+    body.put3Bits(0b101u);
+
+    object.putObjType(version, 1u);
+    dwgHandle objectHandle;
+    objectHandle.ref = 0xA100u;
+    object.putHandle(objectHandle);
+    object.putBitShort(0u); // no EED
+    object.putBitLong(0); // no reactors
+    object.putBit(1u); // no extension dictionary
+    if (version > DRW::AC1024)
+        object.putBit(0u); // no AcDs data
+    frame.bodyStartBit = object.bitCount();
+    appendBits(object, body);
+    object.alignToByte();
+
+    strings.alignToByte();
+    object.putBytes(strings.data().data(), strings.size());
+    for (int bit = 0; bit < 7; ++bit)
+        object.putBit(0u);
+    const std::uint64_t stringBitSize = strings.size() * 8u + 7u;
+    if (stringBitSize > std::numeric_limits<std::uint16_t>::max())
+        return false;
+    object.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
+    object.putBit(1u); // bounded R2007+ string stream
+
+    const auto putHandle = [&handles](std::uint8_t code, std::uint32_t ref) {
+        dwgHandle handle;
+        handle.code = code;
+        handle.size = 2;
+        handle.ref = ref;
+        handle.ref64 = ref;
+        handles.putHandle(handle);
+    };
+    putHandle(DRW::DwgHardOwnership, 0xA200u); // dependency owns this body
+    putHandle(DRW::DwgSoftPointer, 0xA201u); // following-handle sentinel
+    handles.alignToByte();
+    if (!object.isGood() || !handles.isGood()
+        || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    frame.handleBits = static_cast<std::uint32_t>(handles.bitCount());
+    appendBits(object, handles);
+    frame.bytes = object.data();
+    return object.isGood();
+}
+
 bool makeAssociativeActionFrame(DRW::Version version, std::int16_t groupCode,
                                 AssociativeActionFrame& frame) {
     DRW_TextCodec codec;
@@ -1535,6 +1603,88 @@ void testAssociativeActionUnsupportedValueKinds(TestContext& t) {
             }
         }
     }
+}
+
+void testAssociativeDimensionDependencyBody(TestContext& t) {
+    const UTF8STRING sourceName = "BOLTHOLE=1\"";
+    AssociativeDimensionDependencyBodyFrame frame;
+    const bool built = makeAssociativeDimensionDependencyBodyFrame(
+        DRW::AC1024, 1, 1, sourceName, 1, frame);
+    t.expect(built,
+             "AC1024 associative dimension-dependency-body source profile builds");
+    if (!built)
+        return;
+
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1024, false);
+    dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+    AssociativeCodecProbe parsed("ASSOCDIMDEPENDENCYBODY");
+    parsed.m_dimensionDependencyBodyParsed = true;
+    parsed.m_dependencyBodyVersion = 99u;
+    const bool read = parsed.parseDwg(
+        DRW::AC1024, &input, frame.handleBits);
+    t.expect(read && input.isGood()
+                 && parsed.handle == 0xA100u
+                 && parsed.parentHandle == 0xA200u
+                 && parsed.m_dimensionDependencyBodyParsed
+                 && parsed.m_dependencyBodyVersion == 1u
+                 && parsed.m_dimBaseVersion == 1u
+                 && parsed.name == sourceName
+                 && parsed.m_classVersion == 1u
+                 && parsed.m_prefixStatuses.size() == 1u
+                 && parsed.m_prefixStatuses.front().m_kind
+                     == DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody
+                 && parsed.m_prefixStatuses.front().m_status
+                     == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                 && parsed.m_prefixStatuses.front().m_decodedValueCount == 4u
+                 && input.get3Bits() == 0b101u && input.isGood(),
+             "AC1024 body fields, common owner, exact body end, and sentinel decode");
+
+    AssociativeCodecProbe copied(parsed);
+    AssociativeCodecProbe assigned("ASSOCDIMDEPENDENCYBODY");
+    assigned = parsed;
+    t.expect(copied.m_dimensionDependencyBodyParsed
+                 && copied.m_dependencyBodyVersion == 1u
+                 && copied.m_dimBaseVersion == 1u
+                 && copied.name == sourceName
+                 && copied.m_classVersion == 1u
+                 && assigned.m_dimensionDependencyBodyParsed
+                 && assigned.m_dependencyBodyVersion == 1u
+                 && assigned.m_dimBaseVersion == 1u
+                 && assigned.name == sourceName
+                 && assigned.m_classVersion == 1u,
+             "dimension-dependency-body fields survive copy and assignment");
+
+    AssociativeDimensionDependencyBodyFrame malformedFrame;
+    const bool malformedBuilt = makeAssociativeDimensionDependencyBodyFrame(
+        DRW::AC1024, 1, 1, sourceName, 1, malformedFrame, true);
+    t.expect(malformedBuilt,
+             "malformed AC1024 dependency-body string control builds");
+    if (!malformedBuilt)
+        return;
+    DRW_TextCodec malformedCodec;
+    malformedCodec.setVersion(DRW::AC1024, false);
+    dwgBuffer malformedInput(malformedFrame.bytes.data(),
+                             malformedFrame.bytes.size(), &malformedCodec);
+    t.expect(!parsed.parseDwg(DRW::AC1024, &malformedInput,
+                              malformedFrame.handleBits)
+                 && !malformedInput.isGood()
+                 && !parsed.m_dimensionDependencyBodyParsed
+                 && parsed.m_dependencyBodyVersion == 0u
+                 && parsed.m_dimBaseVersion == 0u
+                 && parsed.name.empty()
+                 && parsed.m_classVersion == 0u,
+             "truncated name refuses atomically and clears prior body state");
+
+    DRW_TextCodec retryCodec;
+    retryCodec.setVersion(DRW::AC1024, false);
+    dwgBuffer retryInput(frame.bytes.data(), frame.bytes.size(), &retryCodec);
+    t.expect(parsed.parseDwg(DRW::AC1024, &retryInput, frame.handleBits)
+                 && retryInput.isGood()
+                 && parsed.m_dimensionDependencyBodyParsed
+                 && parsed.name == sourceName
+                 && parsed.m_classVersion == 1u,
+             "valid dependency-body retry succeeds after rejected input");
 }
 
 struct DbColorFrame {
@@ -16690,6 +16840,15 @@ int main(int argc, char** argv) {
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1])
+            == "--associative-dimension-dependency-body") {
+        TestContext context;
+        testAssociativeDimensionDependencyBody(context);
+        std::cout << "Associative dimension-dependency-body profile: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--dbcolor-unsupported-method-refusal") {
         TestContext context;
         testDbColorUnsupportedMethodRefusal(context);
@@ -17174,6 +17333,7 @@ int main(int argc, char** argv) {
     testObjectContextBaseBits(context);
     testPersistentManagerExactFooter(context);
     testAssociativeActionUnsupportedValueKinds(context);
+    testAssociativeDimensionDependencyBody(context);
     testEnColorReservedFlagsRefusal(context);
     testDbColorUnsupportedMethodRefusal(context);
     testMLineStyleCmcRetention(context);

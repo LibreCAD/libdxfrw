@@ -41,50 +41,51 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P2 | OPEN — witness-gated | No implementation packet is selected. Reopen only after a current physical source reproduces a parser, binding, or output loss in MLINESTYLE, LTYPE/XDATA, or MLEADERSTYLE. | Capture exact source field/role, failing operation, expected output, and owning selector before editing. |
-| P4 | OPEN — research next | Complete a bounded source census and select one physically witnessed unmatched record/dependency, or record that the census found no implementation-ready gap. | Bind exact source bytes, current loss, expected output, and owning selector before coding. |
+| P4 | OPEN — graph/output closure | Close the AC1024 associative dimension-body → dependency → constraint-group → network joins, then provide a valid DXF output route for the complete required graph. | Do not emit a body without its reachable owners/references. Use the local sample only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
-| P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
+| P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
 | P9 | DEFERRED_EXTERNAL | Resolve J256, J260, J268, J284, J293 and J295 only with eligible independent evidence; external results remain non-promoting until claim gates pass. | Follow `metadata/external-evidence-resolution-v1.json`. |
 
 ### Immediate implementation order
 
-1. **P4 — bounded original-source census.** Review retained source/census evidence and select one current unmatched record or dependency with an exact source-to-output mismatch. Prepare its implementation brief before coding. If no such gap is present in the retained sources, record that result and move to the next independently ready qualification task.
-2. **P2 — wait for a new source-witnessed defect.** The current P2 evidence has no selected failing profile. Do not reopen by count, field permutation, or a stale candidate; resume only when an existing repository sample or a locally authored source reproduces a current parser, binding, or emitted-output loss.
-
-The previously suggested ATTDEF secondary-Xrecord candidate has no physical
-witness in the retained corpus and is not an implementation-ready item. Do not
-infer a parser loss from documentation-only fields or generated controls.
+1. **P4 — close the associative graph and output route.** Join each typed body to its owning `ACDBASSOCDEPENDENCY` by explicit handles and the dependency's body reference; then follow the dependency owner to `ACDBASSOC2DCONSTRAINTGROUP` and the network root. Account for all required reachable associative descendants and their DXF handles/fields before admitting output. Do not emit the body alone or infer edges from adjacent handle values.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
-## P2 — nested named-resource bodies
+## Parked P2 — nested named-resource bodies
 
-P2 has no currently selected implementation packet. Keep it parked. Reopen it
-only when a current physical input reproduces a parser refusal, wrong target/role
-binding, or emitted-field mismatch in MLINESTYLE, LTYPE/XDATA, or MLEADERSTYLE.
-The receipt for that witness must
-name the source bytes, operation, exact fields/roles, expected result, and owning
-selector before code work begins. Use the existing source binding, edit planner,
-serializer and focused selectors; do not add count-only or equivalent-field
-profiles. Native MLINE caps/joins/offsets and MLEADER annotation behavior remain
-consumer-semantic gates, not P2 transport tasks.
+There is no selected P2 implementation packet, so this phase is not an item in
+the active execution queue. Reopen it only when a current physical input
+reproduces a parser refusal, wrong target/role binding, or emitted-field mismatch
+in MLINESTYLE, LTYPE/XDATA, or MLEADERSTYLE. The witness must name its source
+bytes, operation, exact fields/roles, expected result, and owning selector before
+code work begins. Reuse the existing source binding, edit planner, serializer,
+and focused selectors; do not add count-only or equivalent-field profiles.
+Native MLINE caps/joins/offsets and MLEADER annotation behavior remain separate
+consumer-semantic gates.
 
 ## P4 — original bodies and complete document closure
 
-P4a supplies source/context/role providers; P4b composes those providers with the
-existing local record providers and P5 output. Do not create parallel capture or
-graph engines.
+P4 supplies source/context/role providers and composes them with the existing
+local record providers and P5 output. Do not create parallel capture or graph
+engines.
 
-1. **Original coverage:** use the current source census to select one physically
-   evidenced unmatched TABLE, LAYOUT, object or other required record. Do not
-   infer a lost field from raw/typed mismatch flags or generated controls alone.
-   Include child records, terminators, unsupported/dropped records and unused
-   definitions. Bind physical span, typed model, original owner and source
-   profile; classify the gap as parser, model, origin join, semantic evidence or
-   output evidence before coding.
+1. **Associative dimension-body graph and output:** close the AC1024 joins from
+   each `ACDBASSOCDIMDEPENDENCYBODY` to its `ACDBASSOCDEPENDENCY` through the
+   dependency's explicit `dep_body` reference, then to the owning
+   `ACDBASSOC2DCONSTRAINTGROUP` and `ACDBASSOCNETWORK`. Account for every required
+   reachable record and reference before implementing a DXF route with remapped
+   identities and exact fields; otherwise retain strict refusal.
+   `dx_iface::addAssociativeObject` currently declines to retain DWG-origin
+   shells. Use ODA v5.4.1 as authority for documented DWG layouts and source
+   spans plus peer parsers only as corroboration where this class is not
+   described. Do not infer support from raw/typed mismatch flags or generated
+   controls alone. Do not commit the local investigation sample as a fixture;
+   bind committed regressions to eligible repository inputs or locally authored
+   fixtures. See the [reader-profile receipt](docs/research/p4-ac1024-assoc-dim-dependency-body-reader-2026-10-30.json)
+   for completed parser evidence; that work is not part of this queue.
 2. **Dependencies:** resolve required STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    image/reactor/material/style, document/control/name/application, XDATA/EED and
    CEPSNID/CEPSNTYPE roles. Preserve hard/soft ownership and absent versus null.
