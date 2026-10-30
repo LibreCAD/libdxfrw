@@ -1,0 +1,104 @@
+{
+  "id": "RPP-5xq",
+  "title": "AC1027 classic POLYLINE compound LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "8fc34f247a348ffc37ffd3345f28d824da4ee93d",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One classic 2D POLYLINE compound target in model-space ENTITIES and named AuthorityBlock BLOCKS, across all four source/output encoding pairs.",
+    "linetype": "Source-bound simple LTYPE with the existing MLINE_LTYPE_XDATA APPID provider.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "One ordered group-1005 soft-pointer to source handle 0xA900.",
+      "references": [
+        {"code": 1005, "source_handle": "0xA900", "target": "model-space POLYLINE or named-block POLYLINE, selected per profile"}
+      ]
+    },
+    "targets": [
+      {
+        "type": "POLYLINE",
+        "subtype": "AcDb2dPolyline",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "owner_handle": "0x201",
+        "flags": 1,
+        "elevation": 4.0,
+        "thickness": 0.75,
+        "default_widths": [0.25, 0.5],
+        "vertices": [
+          {"handle": "0xA901", "owner": "0xA900", "point": [1.0, 2.0, 0.0], "widths": [0.5, 0.75], "bulge": 0.25, "identifier": 3},
+          {"handle": "0xA902", "owner": "0xA900", "point": [5.0, 2.0, 0.0], "widths": [0.25, 0.5], "bulge": -0.375, "identifier": 5},
+          {"handle": "0xA903", "owner": "0xA900", "point": [3.0, 7.0, 0.0], "widths": [0.75, 0.25], "bulge": 0.5, "identifier": 7}
+        ],
+        "seqend": {"handle": "0xA904", "owner": "0xA900", "layer": "SEQ_FOOTER", "aci": 4}
+      },
+      {
+        "type": "POLYLINE",
+        "source_handle": "0xA900",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "owner_handle": "0x203",
+        "fields": "Same selected classic 2D POLYLINE root, ordered VERTEX chain and SEQEND profile as the model-space target."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical source records bind the code-1005 reference to the exact POLYLINE root. The compound audit binds its callback, contiguous three-VERTEX sequence, child identities and root ownership, and SEQEND identity/ownership. Typed import checks exact DRW_Polyline, DRW_Vertex and DRW_SeqEnd types and selected root/child fields.",
+    "output": "For each ASCII/binary source/output pair, physical output checks the remapped root/child/footer handles, section, owner chain, subclass, root widths/elevation/thickness/flags, ordered vertex geometry/widths/bulges/identifiers, and remapped group-1005 reference. Canonical output omits default vertex group 70 value 0; fresh typed readback verifies its unchanged zero meaning and all selected fields.",
+    "failure_retry": "Removing the target independently refuses export and preserves the existing destination, then succeeds on same-adapter retry for all eight placement/encoding profiles. A separate late-handle mutation refuses without replacing the destination and succeeds after source identity restoration.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 420,
+      "whole_focused_test_readbacks": 966,
+      "whole_focused_test_refusals": 546,
+      "whole_focused_test_retries": 546
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 24.97 seconds); selector asserts the whole-test counts above"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "asan_ctest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 57.48 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "8fc34f247a348ffc37ffd3345f28d824da4ee93d",
+      "source_sha256": {
+        "dwg2dxf/dx_compound_source_profile.h": "8baa8ab9def69088d89dff2d06886d37c128b7b142fcd2e87ec149fd5191b622",
+        "dwg2dxf/dx_iface.cpp": "d96d801189ce460a2e21c1690d09f14952cff06ca97ec8f7cbcf0705277944a0",
+        "tests/dxf_fixture_tests.cpp": "3d1db9c96a049c195a33c30f7ac63437c09227f3de7c650686f14f1a97e4e330"
+      },
+      "normal_executable_sha256": "5296c23eb97b0c82170eaa49cd8d96bce44430059ff1a2007b4f7f32b74e302e",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "asan_executable_sha256": "33a257d7b45a8f1fce803b0a0cecc00610042adc4278205363b8958846791a06",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 classic 2D POLYLINE profile with three 2D vertices and one SEQEND in model-space ENTITIES and named AuthorityBlock BLOCKS, for the authored ASCII/binary source/output combinations. Other POLYLINE subtypes, flags, vertex counts, versions, target pairings and XDATA compositions remain open.",
+    "The source classifier now recognizes group 39 thickness in the common AcDbEntity portion before the POLYLINE subclass; this does not qualify other entity-specific common-field profiles.",
+    "This is selected identity, owner, field transport, output/readback and transaction evidence. It does not establish polyline rendering, independent CAD semantics, recursive document closure or any general DWG/DXF support claim."
+  ],
+  "next": "Select a bounded remaining code-1005 target profile with a distinctive current source/parser/output gap; keep selected transport evidence separate from native semantics and document closure."
+}
