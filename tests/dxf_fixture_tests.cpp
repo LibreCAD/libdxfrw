@@ -31570,6 +31570,16 @@ Tags sourceWithBlockEntityHandleXdata(
                 {2,"NestedTargetBlock"},{10,"3.5"},{20,"-2.25"},
                 {30,"7.75"},{41,"2"},{42,"0.5"},{43,"1.5"},
                 {50,"30"},{70,"1"},{71,"1"},{44,"0"},{45,"0"}}
+            :entityType==DRW::RAY
+            ?Tags{{0,"RAY"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbRay"},
+                {10,"100.5"},{20,"2"},{30,"3.75"},
+                {11,"0.6"},{21,"0"},{31,"0.8"}}
+            :entityType==DRW::XLINE
+            ?Tags{{0,"XLINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbXline"},
+                {10,"100.5"},{20,"2"},{30,"3.75"},
+                {11,"0.6"},{21,"0"},{31,"0.8"}}
             :Tags{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
                 {10,"100.5"},{20,"2"},{30,"0"},
@@ -31967,6 +31977,40 @@ Tags sourceWithInsertEntityHandleXdata(bool binary) {
     }
     if(!insertInserted)
         throw std::runtime_error("INSERT XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithInfiniteLineEntityHandleXdata(bool binary,bool xline) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,entityInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags entity{{0,xline?"XLINE":"RAY"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,xline?"AcDbXline":"AcDbRay"},
+            {10,"100.5"},{20,"2"},{30,"3.75"},
+            {11,"0.6"},{21,"0"},{31,"0.8"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      entity.begin(),entity.end());
+        entityInserted=true;
+        break;
+    }
+    if(!entityInserted)
+        throw std::runtime_error("RAY/XLINE XDATA target source missing");
     return fields;
 }
 
@@ -33192,7 +33236,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE
-        &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT)return false;
+        &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
+        &&entityType!=DRW::RAY&&entityType!=DRW::XLINE)return false;
     const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
@@ -33202,10 +33247,13 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isSpline=entityType==DRW::SPLINE;
     const bool isHelix=entityType==DRW::HELIX;
     const bool isInsert=entityType==DRW::INSERT;
+    const bool isRay=entityType==DRW::RAY;
+    const bool isXline=entityType==DRW::XLINE;
     const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
-        :isHelix?"HELIX":isInsert?"INSERT":"CIRCLE";
+        :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
+        :isXline?"XLINE":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     std::string insertBlockKey;
@@ -33396,6 +33444,15 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&realValuesMatch(row,12,{0.0})
                 &&realValuesMatch(row,22,{0.0})
                 &&realValuesMatch(row,32,{1.0})
+            :(isRay||isXline)
+            ?textValuesMatch(row,100,{"AcDbEntity",
+                isRay?"AcDbRay":"AcDbXline"})
+                &&realValuesMatch(row,10,{100.5})
+                &&realValuesMatch(row,20,{2.0})
+                &&realValuesMatch(row,30,{3.75})
+                &&nearRealValue(row,11,0.6)
+                &&nearRealValue(row,21,0.0)
+                &&nearRealValue(row,31,0.8)
             :realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)&&realValue(row,40,5.0);
         if(isHelix&&row.type=="HELIX"&&row.section==targetSection
@@ -33672,6 +33729,21 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||typedModel->basePoint.z!=7.0||typedModel->thickness!=0.0
             ||typedModel->extPoint.x!=0.0||typedModel->extPoint.y!=0.0
             ||typedModel->extPoint.z!=1.0||typedModel->xAxisAngle!=0.0)
+            return false;
+    } else if(isRay||isXline) {
+        const auto* typedModel=dynamic_cast<const DRW_Ray*>(*typedCurve);
+        const DRW_Entity* typedEntity=*typedCurve;
+        const bool exactType=isRay
+            ?typeid(*typedEntity)==typeid(DRW_Ray)
+            :typeid(*typedEntity)==typeid(DRW_Xline);
+        if(typedModel==nullptr||!exactType
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=100.5
+            ||typedModel->basePoint.y!=2.0
+            ||typedModel->basePoint.z!=3.75
+            ||std::abs(typedModel->secPoint.x-0.6)>1.0e-12
+            ||std::abs(typedModel->secPoint.y)>1.0e-12
+            ||std::abs(typedModel->secPoint.z-0.8)>1.0e-12)
             return false;
     } else {
         const auto* typedModel=dynamic_cast<const DRW_Circle*>(*typedCurve);
@@ -37077,6 +37149,10 @@ bool runTemporary() {
             ?std::string_view("TEXT")
             :entityType==DRW::INSERT
             ?std::string_view("INSERT")
+            :entityType==DRW::RAY
+            ?std::string_view("RAY")
+            :entityType==DRW::XLINE
+            ?std::string_view("XLINE")
             :entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
             :entityType==DRW::HELIX?std::string_view("HELIX")
@@ -37101,6 +37177,10 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::RAY
+                ?sourceWithInfiniteLineEntityHandleXdata(binary,false)
+                :entityType==DRW::XLINE
+                ?sourceWithInfiniteLineEntityHandleXdata(binary,true)
                 :entityType==DRW::TEXT
                 ?sourceWithTextEntityHandleXdata(binary)
                 :entityType==DRW::ELLIPSE
@@ -37131,6 +37211,20 @@ bool runTemporary() {
                     &&typed->colcount==1&&typed->rowcount==1
                     &&typed->colspace==0.0&&typed->rowspace==0.0
                     &&typed->attlist.empty()&&!typed->seqEndEntity;
+            }
+            if(entityType==DRW::RAY||entityType==DRW::XLINE) {
+                const auto* typed=dynamic_cast<const DRW_Ray*>(entity);
+                const bool exactType=entityType==DRW::RAY
+                    ?typeid(*entity)==typeid(DRW_Ray)
+                    :typeid(*entity)==typeid(DRW_Xline);
+                return typed!=nullptr&&exactType
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==100.5
+                    &&typed->basePoint.y==2.0
+                    &&typed->basePoint.z==3.75
+                    &&typed->secPoint.x==0.6
+                    &&typed->secPoint.y==0.0
+                    &&typed->secPoint.z==0.8;
             }
             if(entityType==DRW::TEXT) {
                 const auto* typed=dynamic_cast<const DRW_Text*>(entity);
@@ -37285,15 +37379,31 @@ bool runTemporary() {
                     return entity!=nullptr&&entity->eType==entityType
                         &&entity->handle==targetEntityHandle;
                 });
-            if(sourceEntity==container->ent.end()
-                ||!typedGeometryMatches(*sourceEntity)
-                ||!DxIfaceMaterialReferenceTestAccess::
+            const bool sourceGeometryMatches=sourceEntity!=container->ent.end()
+                &&typedGeometryMatches(*sourceEntity);
+            const bool sourceOriginBound=sourceEntity!=container->ent.end()
+                &&DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
-                        targetOwner,inNamedBlock,entityType,
-                        targetBlockRecord)) {
+                        targetOwner,inNamedBlock,entityType,targetBlockRecord);
+            if(sourceEntity==container->ent.end()||!sourceGeometryMatches
+                ||!sourceOriginBound) {
                 std::cerr<<entityName<<" XDATA typed source identity failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
-                         <<outputBinary<<'\n';return false;
+                         <<outputBinary<<" found="
+                         <<(sourceEntity!=container->ent.end())
+                         <<" geometry="<<sourceGeometryMatches
+                         <<" sourceOrigin="<<sourceOriginBound;
+                if(sourceEntity!=container->ent.end()) {
+                    const DRW_Entity* entity=*sourceEntity;
+                    std::cerr<<" handle="<<entity->handle<<" owner="
+                        <<entity->parentHandle<<" type="<<entity->eType;
+                    const auto* line=dynamic_cast<const DRW_Line*>(entity);
+                    if(line!=nullptr)std::cerr<<" base=("<<line->basePoint.x
+                        <<','<<line->basePoint.y<<','<<line->basePoint.z
+                        <<") direction=("<<line->secPoint.x<<','
+                        <<line->secPoint.y<<','<<line->secPoint.z<<')';
+                }
+                std::cerr<<'\n';return false;
             }
             const std::vector<std::uint32_t> targetHandles{targetEntityHandle};
             const auto outputProof=[&]() {
@@ -37540,7 +37650,7 @@ bool runTemporary() {
     for(const DRW::ETYPE entityType:{
             DRW::TEXT,DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
             DRW::POINT,DRW::E3DFACE,
-            DRW::LWPOLYLINE})
+            DRW::LWPOLYLINE,DRW::RAY,DRW::XLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     if(!runGeometrySection(DRW::INSERT,false)
@@ -37548,7 +37658,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==300u&&readbacks==672u&&refusals==372u&&retries==372u;
+    return profiles==316u&&readbacks==708u&&refusals==392u&&retries==392u;
 }
 
 bool runBudgetTemporary() {

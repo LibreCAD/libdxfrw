@@ -22378,6 +22378,8 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::SPLINE:return "SPLINE";
     case DRW::HELIX:return "HELIX";
     case DRW::INSERT:return "INSERT";
+    case DRW::RAY:return "RAY";
+    case DRW::XLINE:return "XLINE";
     default:return nullptr;
     }
 }
@@ -22396,6 +22398,8 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::SPLINE:return DRW_DxfEntitiesCallback::addSpline;
     case DRW::HELIX:return DRW_DxfEntitiesCallback::addHelix;
     case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
+    case DRW::RAY:return DRW_DxfEntitiesCallback::addRay;
+    case DRW::XLINE:return DRW_DxfEntitiesCallback::addXline;
     default:return DRW_DxfEntitiesCallback::Count;
     }
 }
@@ -22414,6 +22418,8 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::SPLINE:return DRW_DxfBlockCallback::addSpline;
     case DRW::HELIX:return DRW_DxfBlockCallback::addHelix;
     case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
+    case DRW::RAY:return DRW_DxfBlockCallback::addRay;
+    case DRW::XLINE:return DRW_DxfBlockCallback::addXline;
     default:return DRW_DxfBlockCallback::Count;
     }
 }
@@ -22460,6 +22466,12 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
             &&insert->rowspace==0.0&&insert->attlist.empty()
             &&!insert->seqEndEntity;
     }
+    case DRW::RAY:
+        return dynamic_cast<const DRW_Ray*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Ray);
+    case DRW::XLINE:
+        return dynamic_cast<const DRW_Xline*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Xline);
     default:return false;
     }
 }
@@ -22578,7 +22590,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     :event.record.name=="ELLIPSE"?DRW::ELLIPSE
                     :event.record.name=="SPLINE"?DRW::SPLINE
                     :event.record.name=="HELIX"?DRW::HELIX
-                    :event.record.name=="INSERT"?DRW::INSERT:DRW::UNKNOWN;
+                    :event.record.name=="INSERT"?DRW::INSERT
+                    :event.record.name=="RAY"?DRW::RAY
+                    :event.record.name=="XLINE"?DRW::XLINE:DRW::UNKNOWN;
                 if (dxfMLineXdataEntityRecordName(rawType)==nullptr
                     || event.record.handle==0u
                     || event.record.handle==DRW::NoHandle)
@@ -22739,7 +22753,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addEllipse
                     &&event.callback!=DRW_DxfEntitiesCallback::addSpline
                     &&event.callback!=DRW_DxfEntitiesCallback::addHelix
-                    &&event.callback!=DRW_DxfEntitiesCallback::addInsert)
+                    &&event.callback!=DRW_DxfEntitiesCallback::addInsert
+                    &&event.callback!=DRW_DxfEntitiesCallback::addRay
+                    &&event.callback!=DRW_DxfEntitiesCallback::addXline)
                     continue;
                 const auto entityType=static_cast<DRW::ETYPE>(event.entityType);
                 const char* recordName=
@@ -22878,7 +22894,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         :record.name=="ELLIPSE"?DRW::ELLIPSE
                         :record.name=="SPLINE"?DRW::SPLINE
                         :record.name=="HELIX"?DRW::HELIX
-                        :record.name=="INSERT"?DRW::INSERT:DRW::UNKNOWN;
+                        :record.name=="INSERT"?DRW::INSERT
+                        :record.name=="RAY"?DRW::RAY
+                        :record.name=="XLINE"?DRW::XLINE:DRW::UNKNOWN;
                     const char* recordName=
                         dxfMLineXdataEntityRecordName(entityType);
                     if (recordName==nullptr) continue;
