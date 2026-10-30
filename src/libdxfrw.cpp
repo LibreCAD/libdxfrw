@@ -25999,8 +25999,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         const bool noBorders = style.m_borders.empty();
         const bool selectedBorder = style.m_borders.size() == 1u
             && isSelectedTopInvisibleBorder(style.m_borders.front());
-        const bool selectedTableContentFormat = type == 4
-            && style.m_contentFormat.m_valueFormatString.empty()
+        const bool selectedStyleContentFormat =
+            !formatIsDefault(style.m_contentFormat)
             && contentFormatIsSupported(style.m_contentFormat);
         return styleIsDefault(style, type)
                 || (style.m_type == type && style.m_hasData
@@ -26010,13 +26010,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && cmcIsDefault(style.m_backgroundColorCmc)
                     && style.m_contentLayout == 0u
                     && (formatIsDefault(style.m_contentFormat)
-                        || selectedTableContentFormat)
+                        || selectedStyleContentFormat)
                     && (marginsSupported || marginsAbsent)
                     && (noBorders
                         || (allowSelectedCellBorder && selectedBorder))
                     && (marginsSupported
                         || (allowSelectedCellBorder && selectedBorder)
-                        || selectedTableContentFormat)
+                        || selectedStyleContentFormat)
                     && style.m_id == 0 && style.m_styleClass == 0
                     && style.m_name.empty());
     };
@@ -26659,8 +26659,29 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         }
         contentFormatTextBytes = plainContentTextBytes;
         if (ent->m_dxfMetadata) {
+            // Recheck style formats after cell values are counted so both
+            // payload classes share the aggregate text budget.
+            const auto styleContentFormatIsSupported =
+                    [&contentFormatIsSupported, &formatIsDefault](
+                        const DRW_TableStyleCellStyle& style) {
+                return formatIsDefault(style.m_contentFormat)
+                    || contentFormatIsSupported(style.m_contentFormat);
+            };
+            if (!styleContentFormatIsSupported(
+                    ent->m_dxfMetadata->m_tableStyle))
+                return failDxfWrite();
+            for (const auto& column : ent->m_dxfMetadata->m_columns) {
+                if (!styleContentFormatIsSupported(column.m_style))
+                    return failDxfWrite();
+            }
             for (const auto& row : ent->m_dxfMetadata->m_rows) {
+                if (!styleContentFormatIsSupported(
+                        row.m_scope.m_style))
+                    return failDxfWrite();
                 for (const auto& cell : row.m_cells) {
+                    if (!styleContentFormatIsSupported(
+                            cell.m_scope.m_style))
+                        return failDxfWrite();
                     for (const auto& format : cell.m_contentFormats) {
                         if (format && !contentFormatIsSupported(*format))
                             return failDxfWrite();
