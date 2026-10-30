@@ -7117,7 +7117,8 @@ struct DRW_AssociativeConstraintNode {
   enum class DataKind {
     Unsupported,
     Geometrical,
-    ImplicitPoint
+    ImplicitPoint,
+    BoundedLine
   };
 
   UTF8STRING m_className;
@@ -7134,6 +7135,10 @@ struct DRW_AssociativeConstraintNode {
   std::int32_t m_geometryNodeId = 0;
   bool m_hasPoint = false;
   DRW_Coord m_point;
+  DRW_Coord m_direction;
+  bool m_isRay = false;
+  DRW_Coord m_startPoint;
+  DRW_Coord m_endPoint;
   std::uint8_t m_pointType = 0;
   std::int32_t m_pointIndex = 0;
   std::int32_t m_curveNodeId = 0;

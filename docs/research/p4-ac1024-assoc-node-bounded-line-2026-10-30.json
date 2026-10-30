@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-bounded-line-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constrained bounded-line prefix",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode source-order AcConstrainedBoundedLine node bodies with exact dependency handle role and geometry fields, while retaining the incomplete associative graph raw.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "serializedNodeIndex": 8,
+    "nodeId": 295,
+    "connections": [297, 299, 408]
+  },
+  "independentReader": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "runtime": "official macOS ARM64 Rust 1.99.1",
+    "harnessSource": "/private/tmp/libdxfrw-acadrust-qualifier/src/main.rs",
+    "harnessSourceSha256": "14fde9d771cccd88ba8afc6e62a3bfb19461fb4d4518a468e1780d08b32ca484",
+    "harnessSha256": "fc05c3db378015bcc96963bc754e94d148ea0bab56d0ec1d7bd890d682155712",
+    "outputSha256": "3104d8fbef0b2038a465da1846fc7009207bb8d3a3e3e0022a00a4ea12c1d93b",
+    "outputIndexNote": "Peer node[0] is an empty in-memory sentinel; node[8] is the ninth vector entry and the eighth serialized node."
+  },
+  "sourceProfile": {
+    "peerDecodedNode": "BoundedLine { geometry_dependency: Handle(1518), geometry_node_id: 0, point: (89.85816226224345, 26.072948833487143, 0.0), direction: (0.0, 1.0, 0.0), is_ray: false, start_point: (89.85816226224345, 26.072948833487143, 0.0), end_point: (89.85816226224344, 49.072948833487146, 0.0) }",
+    "localHandleStreamProbe": {
+      "method": "forked the bounded handle stream at the unknown-class boundary and decoded without committing the probe",
+      "code": 4,
+      "size": 2,
+      "reference": 1518,
+      "handleBit": 218252,
+      "diagnosticLogSha256": "fe8685b286e2c405d0bad9deb36291817395d37110194fd3af70c3f186bcb552",
+      "interpretation": "ODA v5.4.1 defines code 4 as a soft pointer. The source witness uses a non-null soft-pointer reference for this BoundedLine geometry dependency."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "result": "ODA documents generic DWG primitives and typed handle roles, but not this associative node class body."
+    },
+    "limitations": [
+      "The independent peer profile is structural evidence only and does not qualify a consumer or promote a support claim.",
+      "The class body is implemented for the observed non-null code-4 profile; unsupported handle variants remain raw.",
+      "Other node classes, full associative closure, DXF serialization and consumer meaning remain unqualified."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "Geometry dependency as a present code-4 soft pointer with its 64-bit reference.",
+      "Geometry node ID (BL).",
+      "Point (3BD), direction (3BD), ray flag (B), start point (3BD), and end point (3BD)."
+    ],
+    "failureBehavior": "A generated code-5 dependency remains untyped/raw and the following OBJECT is recovered.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "generatedControls": [
+      "From-scratch BoundedLine checks node ID, connections, dependency handle code/reference, geometry node ID, point, direction, ray flag, start point and end point.",
+      "Wrong handle code preserves the raw carrier and following-object recovery.",
+      "Existing implicit-point, simple geometrical, framing, count-bound and unknown-class controls remain green."
+    ],
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-ac1024-boundedline-normal.dxf",
+      "result": "Expected strict refusal. Trace decodes 29 node envelopes with 28 typed node bodies, then leaves the remaining group raw; no DXF was created.",
+      "logSha256": "e59e6ab1f7eb714492e5dea45728c9cf36fef9d6567980b90137dfc375b8f192"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-ac1024-boundedline-asan.dxf",
+      "result": "Same strict refusal and partial node trace; no AddressSanitizer diagnostic and no DXF output.",
+      "logSha256": "e59e6ab1f7eb714492e5dea45728c9cf36fef9d6567980b90137dfc375b8f192"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "f7aa25cc81fc9269033b33dd854ecd13f02c857182bd2d6209c33cd61a330b5c",
+    "src/drw_objects.h": "52e25e3e8ff3a75ee82277c968682082131e709b344501d45a58fdde58e95034",
+    "tests/associative_constraint_group_test_helpers.h": "09c6cda199325cfdcbd5878b93fb9a18e65dac09d93eb43f26398cd5a01211bd",
+    "tests/dwg_reader_matrix_tests.cpp": "1351fd414996131e1f3fec25bb0e9792c3a16a446a6b69e84686a02430493405",
+    "build/dwg2dxf/dwg2dxf": "af9f875af8d1b64223e66e98c9e3268388eb134e210a7ed0fe51d76ed8a2ee08",
+    "build/libdxfrw_dwg_reader_matrix_tests": "c827f00047dd36e220ee7ae43b6ef91058b55dde5e2c4e9f1912605394fcb09b",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "e5e8c1e0c6bf4724b77ecb09d8fe4842c00669504fbcdf347b886bb67ff4f52c",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "6dde25bb3aaf6c25e80a343ec49b4f0a224696b7b27abb86d9bdced0977bf32c"
+  },
+  "nextAction": "Implement AcConstrainedArc at source-order node ID 163 (connections [165, 167, 169, 170]); establish its exact geometry-dependency code, field types and bounded body/handle spans."
+}

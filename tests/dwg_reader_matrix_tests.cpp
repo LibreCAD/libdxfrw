@@ -11034,6 +11034,118 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             std::cerr << '\n';
         }
     }
+
+    for (int boundedLineMode = 0; boundedLineMode < 2; ++boundedLineMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+        Node boundedLine;
+        boundedLine.id = 295;
+        boundedLine.connections = {297, 299, 408};
+        boundedLine.className = "AcConstrainedBoundedLine";
+        boundedLine.hasBoundedLineBody = true;
+        boundedLine.geometryDependencyCode = boundedLineMode == 0
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        boundedLine.geometryDependencyHandle = 1518u;
+        boundedLine.geometryNodeId = 0;
+        boundedLine.point = DRW_Coord(89.85816226224345,
+                                      26.072948833487143, 0.0);
+        boundedLine.direction = DRW_Coord(0.0, 1.0, 0.0);
+        boundedLine.isRay = false;
+        boundedLine.startPoint = boundedLine.point;
+        boundedLine.endPoint = DRW_Coord(89.85816226224344,
+                                         49.072948833487146, 0.0);
+        profile.nodes.push_back(boundedLine);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 bounded-line profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = boundedLineMode == 0;
+        bool nodeMatches = partialSource != profileSink.typed.end()
+            && partialSource->m_constraintNodes.size() == 1u;
+        if (nodeMatches) {
+            const auto& node = partialSource->m_constraintNodes.front();
+            nodeMatches = node.m_className == "AcConstrainedBoundedLine"
+                && node.m_nodeId == 295
+                && node.m_connections
+                       == std::vector<std::int32_t>{297, 299, 408}
+                && node.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodeMatches = nodeMatches
+                    && node.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::BoundedLine
+                    && node.m_hasGeometryDependency
+                    && node.m_geometryDependencyCode == DRW::DwgSoftPointer
+                    && node.m_geometryDependencyHandle == 1518u
+                    && node.m_geometryNodeId == 0
+                    && node.m_hasPoint
+                    && node.m_point.x == boundedLine.point.x
+                    && node.m_point.y == boundedLine.point.y
+                    && node.m_point.z == boundedLine.point.z
+                    && node.m_direction.x == 0.0
+                    && node.m_direction.y == 1.0
+                    && node.m_direction.z == 0.0
+                    && !node.m_isRay
+                    && node.m_startPoint.x == boundedLine.startPoint.x
+                    && node.m_startPoint.y == boundedLine.startPoint.y
+                    && node.m_startPoint.z == boundedLine.startPoint.z
+                    && node.m_endPoint.x == boundedLine.endPoint.x
+                    && node.m_endPoint.y == boundedLine.endPoint.y
+                    && node.m_endPoint.z == boundedLine.endPoint.z;
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && partialSource != profileSink.typed.end()
+            && partialSource->m_constraintGroupBodyParsed == expectedComplete
+            && partialSource->m_constraintNodeCount == 1
+            && partialSource->m_constraintNodesParsed == expectedComplete
+            && nodeMatches
+            && partialRaw != profileSink.raw.end()
+            && !partialRaw->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 boundedLineMode == 0
+                     ? "bounded-line code-4 dependency and all witnessed vectors and flags decode exactly"
+                     : "bounded-line wrong handle role preserves raw data and following-object recovery");
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

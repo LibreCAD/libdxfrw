@@ -29,6 +29,11 @@ struct Node {
     std::uint8_t pointType = 0u;
     std::int32_t pointIndex = 0;
     std::int32_t curveNodeId = 0;
+    bool hasBoundedLineBody = false;
+    DRW_Coord direction;
+    bool isRay = false;
+    DRW_Coord startPoint;
+    DRW_Coord endPoint;
 };
 
 struct Options {
@@ -146,6 +151,13 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putRawChar8(node.pointType);
             object.putBitLong(node.pointIndex);
             object.putBitLong(node.curveNodeId);
+        } else if (node.hasBoundedLineBody) {
+            object.putBitLong(node.geometryNodeId);
+            object.put3BitDouble(node.point);
+            object.put3BitDouble(node.direction);
+            object.putBit(node.isRay ? 1u : 0u);
+            object.put3BitDouble(node.startPoint);
+            object.put3BitDouble(node.endPoint);
         }
     }
     if (!appendStringStream(object, strings))
@@ -163,7 +175,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     for (const auto action : options.actions)
         object.putHandle(reference(DRW::DwgHardOwnership, action));
     for (const auto& node : options.nodes) {
-        if (node.hasImplicitPointBody)
+        if (node.hasImplicitPointBody || node.hasBoundedLineBody)
             object.putHandle(reference(node.geometryDependencyCode,
                                        node.geometryDependencyHandle));
     }

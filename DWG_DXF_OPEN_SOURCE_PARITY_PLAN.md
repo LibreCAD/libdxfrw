@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Decode the remaining observed AC1024 constraint-node profiles, starting with `AcConstrainedBoundedLine`; close source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Decode the remaining observed AC1024 constraint-node profiles, starting with `AcConstrainedArc`; close source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -70,23 +70,23 @@ local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
 1. **Remaining constraint-node bodies and residual associative closure:** start
-   with `AcConstrainedBoundedLine` (node ID 295, connections 297/299/408) in the
-   mechanical AC1024 witness. Establish its body, string and handle-stream
-   consumption plus exact dependency role against the source-matched runtime
-   and ODA primitives before implementation. Verify the witnessed geometry
-   dependency, node ID, point, direction, ray flag, start point and end point;
-   add typed state only for proven fields, preserve absent versus null, and keep
-   unsupported variants raw. Continue in source order, proving each class's
-   boundaries before advancing. Keep version-2 nonzero-seed registry layouts
-   raw until their separate framing is proven. Validate each connection's node
-   role and target; reject duplicate IDs or missing targets only where the
-   source profile establishes those invariants. Close each source-required
-   descendant with bounded handle, expected-type, common-owner and reciprocal-
-   relation checks where required; reject wrong roles and unbounded cycles. Use
-   ODA v5.4.1 for documented layouts and independent peer evidence only where
-   the class is undocumented. Keep investigation DWGs out of committed
-   fixtures; bind regressions to eligible repository inputs or locally authored
-   fixtures.
+   with `AcConstrainedArc` (node ID 163, connections 165/167/169/170) in the
+   mechanical AC1024 witness. Establish its exact handle role and body/string/
+   handle-stream consumption from the source-matched runtime and ODA primitives
+   before implementation. The peer profile exposes a geometry dependency,
+   geometry node ID, center, normal, direction, radius, start/end parameters,
+   reserved value, and start/end points; bind each field to its exact wire type
+   and presence. Add typed state only for proven fields and keep unsupported
+   variants raw. Continue in source order, proving each class's boundaries
+   before advancing. Keep version-2 nonzero-seed registry layouts raw until
+   their separate framing is proven. Validate each connection's node role and
+   target; reject duplicate IDs or missing targets only where the source
+   profile establishes those invariants. Close each source-required descendant
+   with bounded handle, expected-type, common-owner and reciprocal-relation
+   checks where required; reject wrong roles and unbounded cycles. Use ODA
+   v5.4.1 for documented layouts and independent peer evidence only where the
+   class is undocumented. Keep investigation DWGs out of committed fixtures;
+   bind regressions to eligible repository inputs or locally authored fixtures.
 2. **Associative output:** bind source identity and required fields to actual
    emitted object records, remap every edge consistently, and retain strict
    refusal until the complete reachable graph is serialized and verified by

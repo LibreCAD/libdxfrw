@@ -107,6 +107,11 @@ bool isAssociativeConstrainedImplicitPoint(std::string_view className) {
                                       "AcConstrainedImplicitPoint");
 }
 
+bool isAssociativeConstrainedBoundedLine(std::string_view className) {
+    return equalsAsciiCaseInsensitive(className,
+                                      "AcConstrainedBoundedLine");
+}
+
 bool splitColorBookEntryName(const UTF8STRING& value,
                              UTF8STRING& bookName,
                              UTF8STRING& colorName) {
@@ -26789,6 +26794,68 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         node.m_pointType = pointType;
                         node.m_pointIndex = pointIndex;
                         node.m_curveNodeId = curveNodeId;
+                        node.m_classDataParsed = true;
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = nodeHandleProbe;
+                        ++decodedHandleCount;
+                        continue;
+                    }
+                    if (isAssociativeConstrainedBoundedLine(
+                            node.m_className)) {
+                        dwgBuffer nodeHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle geometryDependency;
+                        std::int32_t geometryNodeId = 0;
+                        DRW_Coord point;
+                        DRW_Coord direction;
+                        bool isRay = false;
+                        DRW_Coord startPoint;
+                        DRW_Coord endPoint;
+                        const bool handleRead = readBoundedObjectHandle(
+                            nodeHandleProbe, 0u, false, geometryDependency,
+                            handleEndBit)
+                            && geometryDependency.code
+                                   == DRW::DwgSoftPointer
+                            && geometryDependency.ref64 != 0u;
+                        const bool boundedLineParsed = handleRead
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryNodeId)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd, point)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                direction)
+                            && readBitWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                isRay)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                startPoint)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                endPoint);
+                        if (!boundedLineParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::BoundedLine;
+                        node.m_hasGeometryDependency = true;
+                        node.m_geometryDependencyCode =
+                            geometryDependency.code;
+                        node.m_geometryDependencyHandle =
+                            geometryDependency.ref64;
+                        node.m_geometryNodeId = geometryNodeId;
+                        node.m_hasPoint = true;
+                        node.m_point = point;
+                        node.m_direction = direction;
+                        node.m_isRay = isRay;
+                        node.m_startPoint = startPoint;
+                        node.m_endPoint = endPoint;
                         node.m_classDataParsed = true;
                         constraintNodes.push_back(std::move(node));
                         bodyProbe = nodeBodyProbe;
