@@ -52637,6 +52637,84 @@ void testTypedDataLinkWriter(TestContext& t) {
     }
 }
 
+void testDataLinkAdapterExport(TestContext& t) {
+    class DataLinkAdapter final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setHandleRemap({{0x710u, 0x1710u}});
+        }
+    };
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-datalink-adapter-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+
+        dx_data source;
+        DRW_DataLink link;
+        link.handle = 0x710u;
+        link.m_dataAdapter = "EXCEL";
+        link.m_description = "adapter-owned DATALINK";
+        link.m_connectionString = "inert://adapter-control.xlsx";
+        link.m_option = 3;
+        link.m_updateOption = 2;
+        link.m_updateStatus = "ready";
+        link.m_customDataCount = 1;
+        source.dataLinks.push_back(link);
+
+        const std::string sentinel = "preserve adapter destination";
+        {
+            std::ofstream output(path, std::ios::binary);
+            output.write(sentinel.data(),
+                         static_cast<std::streamsize>(sentinel.size()));
+        }
+        DataLinkAdapter writer;
+        const bool refused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream preservedInput(path, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(preservedInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(refused && preserved == sentinel,
+                 "adapter refuses DATALINK count mismatch without replacing destination");
+
+        source.dataLinks.front().m_customDataCount = 0;
+        const bool exported = writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        FixtureInterface reader;
+        dx_data readback;
+        const bool imported = exported
+            && reader.fileImport(path.string(), &readback, false);
+        t.expect(exported && imported && readback.dataLinks.size() == 1u,
+                 "adapter emits reference-free DATALINK profile and reads it back");
+        if (readback.dataLinks.size() == 1u) {
+            const DRW_DataLink& result = readback.dataLinks.front();
+            t.expect(result.handle == 0x1710u
+                         && result.parentHandle
+                             == DRW::DwgNamedObjectsDictionaryHandle
+                         && result.m_dataAdapter == "EXCEL"
+                         && result.m_description == "adapter-owned DATALINK"
+                         && result.m_connectionString
+                             == "inert://adapter-control.xlsx"
+                         && result.m_option == 3 && result.m_updateOption == 2
+                         && result.m_updateStatus == "ready"
+                         && result.m_customDataCount == 0
+                         && result.m_customData.empty(),
+                     "adapter DATALINK output preserves fields, remapped identity, and root owner");
+        }
+    }
+}
+
 bool generateGeneratedObjectCommonCarriers(const std::filesystem::path& output,
                                            DRW::Version version, bool binary) {
     class GeneratedCommonInterface final : public dx_iface {
@@ -57208,6 +57286,14 @@ int main(int argc, char** argv) {
                                            encoding == "binary");
         return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--datalink-roundtrip") {
+        TestContext context;
+        testTypedDataLinkWriter(context);
+        testDataLinkAdapterExport(context);
+        std::cout << "Generated DATALINK writer and adapter routes: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc != 1)
         return 2;
     TestContext context;
@@ -57324,6 +57410,7 @@ int main(int argc, char** argv) {
     testLinetypeExtensionGraphRoundTrip(context);
     testCanonicalLinetypeCommonScope(context);
     testTypedDataLinkWriter(context);
+    testDataLinkAdapterExport(context);
     testTypedObjectCommonGraphs(context);
     testGeneratedObjectCommonCarriers(context);
     testIncompleteLinetypeExtensionGraphRejected(context);

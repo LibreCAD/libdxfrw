@@ -1824,6 +1824,10 @@ public:
             if (!dxfW->writeSortEntsTable(&table))
                 return;
         }
+        for (DRW_DataLink& dataLink : cData->dataLinks) {
+            if (!dxfW->writeDataLink(&dataLink))
+                return;
+        }
     }
     virtual void writeAppId() override{
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)

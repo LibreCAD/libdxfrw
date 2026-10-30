@@ -39592,9 +39592,26 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
-    if (!cData->dataLinks.empty()) {
+    if (std::any_of(cData->dataLinks.begin(), cData->dataLinks.end(),
+            [](const DRW_DataLink& link) {
+                // This first adapter route admits only connection metadata
+                // with no graph edges. DATALINK custom targets, hard-owner,
+                // reactors, extension dictionaries and XDATA remain refused
+                // until their output closure is planned as a graph.
+                return link.handle == 0 || link.handle == DRW::NoHandle
+                    || link.m_dataAdapter.empty()
+                    || link.m_customDataCount != 0
+                    || !link.m_customData.empty()
+                    || link.m_hardOwnerHandle != 0
+                    || (link.parentHandle != 0
+                        && link.parentHandle
+                            != DRW::DwgNamedObjectsDictionaryHandle)
+                    || !link.reactorHandles.empty()
+                    || link.xDictHandle != 0
+                    || !link.appData.empty() || !link.extData.empty();
+            })) {
         reportPreflightFailure(
-            "DATALINK objects have no qualified DXF object-graph serializer");
+            "DATALINK profile has unresolved owner/custom-data/common-metadata edges");
         return false;
     }
     if (cData->rawDxfEntityCaptureFailed) {
