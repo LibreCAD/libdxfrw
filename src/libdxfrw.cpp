@@ -26036,6 +26036,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
 
     const DRW_TableColumn& column = ent->m_content.m_columns.front();
     const DRW_TableRow& row = ent->m_content.m_rows.front();
+    const bool multiCellTable = ent->m_content.m_columns.size() != 1u
+        || ent->m_content.m_rows.size() != 1u
+        || row.m_cells.size() != 1u;
     if (!safeText(column.m_name) || column.m_styleId != 0
         || column.m_overrideStyleType != 3
         || !std::isfinite(column.m_width) || column.m_width < 0.0
@@ -26203,7 +26206,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     const bool emptyPlainCell = !cell.m_hasLinkedData
         && cell.m_contents.empty() && cell.m_attributes.empty();
     contentFormatTextBytes = plainContentTextBytes;
-    if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
+    // These first-cell checks describe only the legacy 1x1 profile. Rectangular
+    // tables are validated in full by the multi-cell path below.
+    if (!multiCellTable
+        && (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
         || cell.m_autoFit || cell.m_mergedWidth != 0
         || cell.m_mergedHeight != 0 || cell.m_rotation != 0.0
         || !safeText(cell.m_toolTip) || !cell.m_textStyleName.empty()
@@ -26240,11 +26246,11 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && !fieldContentWithReference
             && (!cell.m_attributes.empty() || !cell.m_contents.empty()))
         || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
-                        defaultBorder)) {
+                        defaultBorder))) {
         return failDxfWrite();
     }
 
-    if (ent->m_dxfMetadata) {
+    if (!multiCellTable && ent->m_dxfMetadata) {
         const DRW_TableContentDxfMetadata& metadata = *ent->m_dxfMetadata;
         if (metadata.m_columns.size() != ent->m_content.m_columns.size()
             || metadata.m_rows.size() != ent->m_content.m_rows.size()
@@ -26480,13 +26486,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && (!contentFormat || writeContentFormat(*contentFormat))
             && writer->writeString(309, "FORMATTEDCELLCONTENT_END");
     };
-    const bool multiCellTable = ent->m_content.m_columns.size() != 1u
-        || ent->m_content.m_rows.size() != 1u
-        || ent->m_content.m_rows.front().m_cells.size() != 1u;
     if (multiCellTable) {
         // TABLECONTENT already has a row/column grid in the typed model and
-        // decoder. Support scalar cells and empty linked-data cells whose
-        // DATALINK graph is admitted by the adapter preflight.
+        // decoder. A linked-data cell may also carry its own cached scalar
+        // contents; the linked target and content list have separate fields.
         constexpr std::size_t maxWritableCells = 10000u;
         const std::size_t columnCount = ent->m_content.m_columns.size();
         const std::size_t rowCount = ent->m_content.m_rows.size();
@@ -26513,8 +26516,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && cell.m_blockHandle == 0u
                 && (cell.m_hasLinkedData
                     ? (cell.m_dataLinkHandle != 0u
-                        && cell.m_dataLinkHandle != DRW::NoHandle
-                        && cell.m_contents.empty())
+                        && cell.m_dataLinkHandle != DRW::NoHandle)
                     : (cell.m_dataLinkHandle == 0u
                         && cell.m_linkedDataRowCount == 0
                         && cell.m_linkedDataColumnCount == 0
@@ -26743,8 +26745,11 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || !writer->writeInt32(90, 0)
             || !writer->writeString(100, "AcDbTableContent")
             || !writer->writeString(340, "0")
-            || writer->hasWriteError() || !preflightDxfWrite()
-            || !record.commit())
+            || writer->hasWriteError())
+            return failDxfWrite();
+        if (!preflightDxfWrite())
+            return failDxfWrite();
+        if (!record.commit())
             return failDxfWrite();
         state.commit();
         return true;

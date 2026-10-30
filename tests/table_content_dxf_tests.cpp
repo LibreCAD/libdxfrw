@@ -2026,23 +2026,35 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         linked.m_linkedDataRowCount = 2;
         linked.m_linkedDataColumnCount = 3;
         linked.m_linkedDataUnknown = -5;
+        DRW_TableCellContent cachedText;
+        cachedText.m_type = 1;
+        cachedText.m_text = "cached-north-west";
+        cachedText.m_value.m_dataType = 4;
+        cachedText.m_value.m_value = DRW_Variant(
+            1, UTF8STRING(cachedText.m_text));
+        linked.m_contents.push_back(cachedText);
         exporter.addTableContent(table);
 
         if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
-                                 &data, false))
-            return fail("2x2 linked/scalar table export failed");
+                                 &data, false)) {
+            return fail("2x2 linked table with cached scalar values failed");
+        }
         const auto wire = attdefWireTags(path, binary);
         bool sawEmittedDataLink = false;
         bool inDataLink = false;
         bool inLinkedCell = false;
-        bool sawLinkedFlag = false;
-        bool sawLinkedTarget = false;
-        bool sawLinkedRows = false;
-        bool sawLinkedColumns = false;
-        bool sawLinkedUnknown = false;
         int cellLinkedFlag = -1;
-        unsigned linkedCells = 0u;
         std::vector<int> cellLinkedFlags;
+        std::string linkedTarget;
+        int linkedRows = 0;
+        int linkedColumns = 0;
+        int linkedUnknown = 0;
+        int linkedContentCount = -1;
+        std::vector<int> cellContentCounts;
+        bool inCellContent = false;
+        bool sawCachedContentType = false;
+        bool sawCachedValueMarker = false;
+        bool sawCachedString = false;
         for (const AttdefWireTag& tag : wire) {
             if (tag.code == 0) {
                 inDataLink = tag.text == "DATALINK";
@@ -2054,43 +2066,68 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             if (tag.code == 1
                 && tag.text == "LINKEDTABLEDATACELL_BEGIN") {
                 inLinkedCell = true;
-                sawLinkedFlag = false;
-                sawLinkedTarget = false;
-                sawLinkedRows = false;
-                sawLinkedColumns = false;
-                sawLinkedUnknown = false;
                 cellLinkedFlag = -1;
+                linkedTarget.clear();
+                linkedRows = 0;
+                linkedColumns = 0;
+                linkedUnknown = 0;
+                linkedContentCount = -1;
+                inCellContent = false;
+                sawCachedContentType = false;
+                sawCachedValueMarker = false;
+                sawCachedString = false;
             } else if (inLinkedCell && tag.code == 92) {
                 cellLinkedFlag = static_cast<int>(tag.integer);
-                sawLinkedFlag = cellLinkedFlag == 1;
             } else if (inLinkedCell && tag.code == 340
-                       && tag.text == "1710") {
-                sawLinkedTarget = true;
-            } else if (inLinkedCell && tag.code == 93
-                       && tag.integer == 2) {
-                sawLinkedRows = true;
-            } else if (inLinkedCell && tag.code == 94
-                       && tag.integer == 3) {
-                sawLinkedColumns = true;
-            } else if (inLinkedCell && tag.code == 96
-                       && tag.integer == -5) {
-                sawLinkedUnknown = true;
+                       && linkedContentCount == -1) {
+                linkedTarget = tag.text;
+            } else if (inLinkedCell && linkedContentCount == -1
+                       && tag.code == 93) {
+                linkedRows = static_cast<int>(tag.integer);
+            } else if (inLinkedCell && linkedContentCount == -1
+                       && tag.code == 94) {
+                linkedColumns = static_cast<int>(tag.integer);
+            } else if (inLinkedCell && linkedContentCount == -1
+                       && tag.code == 96) {
+                linkedUnknown = static_cast<int>(tag.integer);
+            } else if (inLinkedCell && tag.code == 95) {
+                linkedContentCount = static_cast<int>(tag.integer);
+                cellContentCounts.push_back(linkedContentCount);
+            } else if (inLinkedCell && tag.code == 1
+                       && tag.text == "CELLCONTENT_BEGIN") {
+                inCellContent = true;
+            } else if (inLinkedCell && inCellContent && tag.code == 90) {
+                sawCachedContentType = sawCachedContentType
+                    || tag.integer == 1;
+            } else if (inLinkedCell && inCellContent && tag.code == 300
+                       && tag.text == "VALUE") {
+                sawCachedValueMarker = true;
+            } else if (inLinkedCell && inCellContent && tag.code == 1
+                       && tag.text == "cached-north-west") {
+                sawCachedString = true;
+            } else if (inLinkedCell && tag.code == 309
+                       && tag.text == "CELLCONTENT_END") {
+                inCellContent = false;
             } else if (inLinkedCell && tag.code == 309
                        && tag.text == "LINKEDTABLEDATACELL_END") {
                 if (cellLinkedFlag == -1)
                     return fail("cell output omitted linked-data flag");
                 cellLinkedFlags.push_back(cellLinkedFlag);
-                if (sawLinkedFlag)
-                    ++linkedCells;
-                inLinkedCell = false;
-                if (sawLinkedFlag
-                    && (!sawLinkedTarget || !sawLinkedRows
-                        || !sawLinkedColumns || !sawLinkedUnknown))
+                if (cellLinkedFlag == 1
+                    && linkedTarget == "1710"
+                    && (linkedRows != 2 || linkedColumns != 3
+                        || linkedUnknown != -5 || linkedContentCount != 1))
                     return fail("linked cell output fields differ");
+                if (cellLinkedFlag == 1
+                    && (!sawCachedContentType || !sawCachedValueMarker
+                        || !sawCachedString))
+                    return fail("cached linked-cell value wire fields differ");
+                inLinkedCell = false;
             }
         }
-        if (!sawEmittedDataLink || linkedCells != 1u
-            || cellLinkedFlags != std::vector<int>{1, 0, 0, 0})
+        if (!sawEmittedDataLink
+            || cellLinkedFlags != std::vector<int>{1, 0, 0, 0}
+            || cellContentCounts != std::vector<int>{1, 1, 1, 1})
             return fail("remapped DATALINK output/reference differs");
 
         dx_iface reader;
@@ -2119,20 +2156,23 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             || linkedReadback.m_linkedDataRowCount != 2
             || linkedReadback.m_linkedDataColumnCount != 3
             || linkedReadback.m_linkedDataUnknown != -5
-            || !linkedReadback.m_contents.empty()
+            || linkedReadback.m_contents.size() != 1u
+            || linkedReadback.m_contents[0].m_text != "cached-north-west"
+            || linkedReadback.m_contents[0].m_value.m_dataType != 4
+            || lowerRight.m_hasLinkedData
+            || lowerRight.m_contents.size() != 1u
+            || lowerRight.m_contents.front().m_text != "south-east"
             || scalarPeer.m_contents.size() != 1u
             || scalarPeer.m_contents.front().m_text != "north-east"
             || lowerLeft.m_contents.size() != 1u
-            || lowerLeft.m_contents.front().m_text != "south-west"
-            || lowerRight.m_contents.size() != 1u
-            || lowerRight.m_contents.front().m_text != "south-east")
-            return fail("typed linked/scalar cell readback differs");
+            || lowerLeft.m_contents.front().m_text != "south-west")
+            return fail("typed linked/cached/scalar cell readback differs");
 
+        const std::string sentinel = "PRESERVE_TABLECONTENT_LINKED_GRID";
         DRW_TableCell& damaged = data.tableContents.front()
             .m_content.m_rows[0].m_cells[0];
         const std::uint32_t originalHandle = damaged.m_dataLinkHandle;
         damaged.m_dataLinkHandle = 0x799u;
-        const std::string sentinel = "PRESERVE_TABLECONTENT_LINKED_GRID";
         { std::ofstream out(path, std::ios::binary); out << sentinel; }
         if (exporter.fileExport(path.string(), DRW::AC1032, binary,
                                 &data, false))
@@ -2154,7 +2194,9 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             || !retried.tableContents.front().m_content.m_rows[0]
                     .m_cells[0].m_hasLinkedData
             || retried.tableContents.front().m_content.m_rows[0]
-                    .m_cells[0].m_dataLinkHandle != 0x1710u)
+                    .m_cells[0].m_dataLinkHandle != 0x1710u
+            || retried.tableContents.front().m_content.m_rows[0]
+                    .m_cells[0].m_contents.size() != 1u)
             return fail("corrected linked-grid retry readback differs");
     }
     return true;
