@@ -7177,6 +7177,9 @@ public:
   std::uint32_t m_dependencyHandle = 0;
   std::uint32_t m_readDependencyHandle = 0;
   std::uint32_t m_writeDependencyHandle = 0;
+  // ACDBASSOCDEPENDENCY's explicit dep_body handle, kept distinct from its
+  // owner and read/write dependency references for graph closure.
+  std::uint32_t m_dependencyBodyHandle = 0;
   std::uint32_t m_rNodeHandle = 0;
   std::uint32_t m_dNodeHandle = 0;
   std::int32_t m_status = 0;
@@ -7218,6 +7221,7 @@ private:
     m_dependencyHandle = o.m_dependencyHandle;
     m_readDependencyHandle = o.m_readDependencyHandle;
     m_writeDependencyHandle = o.m_writeDependencyHandle;
+    m_dependencyBodyHandle = o.m_dependencyBodyHandle;
     m_rNodeHandle = o.m_rNodeHandle;
     m_dNodeHandle = o.m_dNodeHandle;
     m_status = o.m_status;

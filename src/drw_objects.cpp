@@ -25346,6 +25346,7 @@ void DRW_AssociativeObject::reset() {
     m_dependencyHandle = 0;
     m_readDependencyHandle = 0;
     m_writeDependencyHandle = 0;
+    m_dependencyBodyHandle = 0;
     m_rNodeHandle = 0;
     m_dNodeHandle = 0;
     m_status = 0;
@@ -25815,6 +25816,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             m_status = status;
             m_dependencyHandle = dependencyHandle;
             m_readDependencyHandle = readDependencyHandle;
+            m_dependencyBodyHandle = dependencyBodyHandle;
             // The legacy carrier has no separate node/dependency-body fields;
             // retain the historical public mapping for the first two refs.
             m_writeDependencyHandle = nodeHandle;
