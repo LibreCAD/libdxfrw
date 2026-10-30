@@ -3114,11 +3114,53 @@ void testMLeaderStyleVersionAndHandleRemapping(TestContext& t) {
                      "MLEADERSTYLE group 179 follows the R2010 target floor");
             t.expect(hasCode(tags, 298) == (version >= DRW::AC1027),
                      "MLEADERSTYLE group 298 follows the R2013 target floor");
+            t.expect(hasCode(tags, 271) == (version >= DRW::AC1024),
+                     "MLEADERSTYLE groups 271-273 follow the R2010 target floor");
+            t.expect(!hasCode(tags, 272) && !hasCode(tags, 273),
+                     "MLEADERSTYLE unset vertical attachments are omitted");
             if (!binary)
                 asciiProjection = tags;
             else
                 t.expect(tags == asciiProjection,
                          "versioned MLEADERSTYLE ASCII/binary fields agree exactly");
+        }
+    }
+
+    for (const bool binary : {false, true}) {
+        for (const DRW::Version version :
+             {DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
+            std::ostringstream output;
+            dxfRW writer("");
+            writer.version = version;
+            writer.binFile = binary;
+            writer.writer = binary
+                ? std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterBinary>(&output))
+                : std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterAscii>(&output));
+            DRW_MLeaderStyle style;
+            style.handle = 0xA000u;
+            style.parentHandle = 0xA001u;
+            style.name = "VERSIONED_VERTICAL_ATTACHMENT_MLEADERSTYLE";
+            style.attachmentDirection = 1;
+            style.bottomAttachment = 9;
+            style.topAttachment = 10;
+            const bool written = writer.writeMLeaderStyle(&style);
+            if (version < DRW::AC1024) {
+                t.expect(!written && output.str().empty(),
+                         "AC1021 refuses nondefault R2010 MLEADERSTYLE attachment data before output");
+                continue;
+            }
+            bool ended = false;
+            const auto tags = numericWireProjection(output.str(), binary, ended);
+            t.expect(written && hasCode(tags, 271)
+                         && std::find(tags.begin(), tags.end(), "271:1")
+                             != tags.end()
+                         && std::find(tags.begin(), tags.end(), "272:9")
+                             != tags.end()
+                         && std::find(tags.begin(), tags.end(), "273:10")
+                             != tags.end(),
+                     "R2010+ MLEADERSTYLE emits exact attachment groups 271-273");
         }
     }
 
@@ -3347,10 +3389,40 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
             }
         }
     }
-    std::error_code ignored;
-    std::filesystem::remove(path, ignored);
     t.expect(refusals == 52u && retries == 52u,
              "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
+
+    for (const bool binary : {false, true}) {
+        iface.style.attachmentDirection = 1;
+        iface.style.topAttachment = 10;
+        iface.style.bottomAttachment = 9;
+        const std::string sentinel = "KEEP_PRE_R2010_MLEADERSTYLE_DESTINATION";
+        { std::ofstream out(path, std::ios::binary); out << sentinel; }
+        const bool written = iface.fileExport(
+            path.string(), DRW::AC1021, binary, &iface.data, false);
+        std::ifstream saved(path, std::ios::binary);
+        const bool destinationPreserved =
+            std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel;
+        t.expect(!written && destinationPreserved
+                     && iface.style.attachmentDirection == 1
+                     && iface.style.topAttachment == 10
+                     && iface.style.bottomAttachment == 9,
+                 "AC1021 MLEADERSTYLE R2010 attachment refusal preserves destination and model");
+
+        iface.style.attachmentDirection = 0;
+        iface.style.topAttachment = 0;
+        iface.style.bottomAttachment = 0;
+        const bool retried = iface.fileExport(
+            path.string(), DRW::AC1021, binary, &iface.data, false);
+        const auto tags = retried ? fileTags(path, binary)
+                                  : std::vector<std::string>{};
+        t.expect(retried && fieldCodeIsAbsent(tags, 271)
+                     && fieldCodeIsAbsent(tags, 272)
+                     && fieldCodeIsAbsent(tags, 273),
+                 "same-adapter AC1021 retry omits unset R2010 attachment groups");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
 }
 
 void testMLeaderWriterMinimumVersion(TestContext& t) {

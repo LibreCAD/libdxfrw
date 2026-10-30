@@ -27544,13 +27544,16 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     const auto isDefaultOrVerticalAttachment = [](std::uint16_t value) {
         return value == 0 || (value >= 9 && value <= 10);
     };
+    const bool hasR2010AttachmentData = ent->attachmentDirection != 0
+        || ent->topAttachment != 0 || ent->bottomAttachment != 0;
     if (ent->contentType > 3 || ent->drawMLeaderOrder > 1
         || ent->drawLeaderOrder > 1 || ent->leaderType > 2
         || ent->leftAttachment > 8 || ent->rightAttachment > 8
         || ent->textAngleType > 2 || ent->textAlignmentType > 2
         || ent->blockConnectionType > 1 || ent->attachmentDirection > 1
         || !isDefaultOrVerticalAttachment(ent->topAttachment)
-        || !isDefaultOrVerticalAttachment(ent->bottomAttachment))
+        || !isDefaultOrVerticalAttachment(ent->bottomAttachment)
+        || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();
     // The published MLEADERSTYLE DXF table defines scalar color indices for
     // its three color fields, not CMC RGB/name/book extensions.
@@ -27671,11 +27674,13 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeBool(295, ent->propertyChanged);
     writer->writeBool(296, ent->isAnnotative);
     writer->writeDouble(143, ent->breakSize);
-    writer->writeInt16(271, ent->attachmentDirection);
-    if (ent->topAttachment != 0)
-        writer->writeInt16(273, ent->topAttachment);
-    if (ent->bottomAttachment != 0)
-        writer->writeInt16(272, ent->bottomAttachment);
+    if (version >= DRW::AC1024) {
+        writer->writeInt16(271, ent->attachmentDirection);
+        if (ent->topAttachment != 0)
+            writer->writeInt16(273, ent->topAttachment);
+        if (ent->bottomAttachment != 0)
+            writer->writeInt16(272, ent->bottomAttachment);
+    }
     if (version >= DRW::AC1027)
         writer->writeBool(298, ent->textExtended);
     if (!ent->extData.empty() && !writeExtData(ent->extData))
