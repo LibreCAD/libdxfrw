@@ -154,20 +154,25 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. Complete remaining linked-cell FIELD, block, attribute and geometry payloads.
-   For FIELD, finish profiles that extend beyond the simple childless FIELD and
-   string-scalar grid route; cover FIELDLIST/child graphs, additional source and
-   version forms, and multi-reference composition in the standalone 1x1 route.
-   Reuse the rooted reference planner and handle remapping; preserve unsupported
-   compositions with explicit refusal.
-2. Complete remaining CONTENTFORMAT strings and domain/property combinations,
+1. **FIELD:** finish profiles beyond the simple childless FIELD and string-scalar
+   grid route: FIELDLIST/child graphs, additional source/version forms, and
+   multi-reference composition in the standalone 1x1 route. Reuse the rooted
+   reference planner and handle remapping; preserve unsupported compositions
+   with explicit refusal.
+2. **Block-backed cells:** support attribute counts above two across the
+   serializer and adapter reference-closure check, using a consistent bounded
+   limit and aggregate work/output budgets. Preserve per-content index/order,
+   ATTDEF identity, ownership and remapping; prove missing, wrong-owner and
+   duplicate-target refusal plus corrected retry. Multiple block contents/cells
+   and block geometry payloads remain unqualified.
+3. Complete remaining CONTENTFORMAT strings and domain/property combinations,
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;
    keep unsupported styles refused until schema and wire order are known.
-3. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
+4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
    selected field projections. Preserve explicit zero and absence separately; do
    not infer visibility polarity from field transport.
-4. Qualify native TABLE rendering independently. Serializer readback does not
+5. Qualify native TABLE rendering independently. Serializer readback does not
    establish geometry, merge visibility or rendered style.
 
 ## P6 — residual semantic and version audit
