@@ -25960,9 +25960,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return scope.m_customData == 0 && scope.m_customItems.empty()
             && styleIsDefault(scope.m_style, type);
     };
-    const auto cellStyleIsSupported = [&scopeIsDefault,
+    const auto styleScopeWithMarginsIsSupported = [&scopeIsDefault,
             &cmcIsDefault, &formatIsDefault](
-            const DRW_TableContentDxfMetadata::Scope& scope) {
+            const DRW_TableContentDxfMetadata::Scope& scope, int type,
+            bool allowSelectedCellBorder) {
         const DRW_TableStyleCellStyle& style = scope.m_style;
         const auto validMargin = [](double value) {
             return std::isfinite(value) && value >= 0.0;
@@ -26000,8 +26001,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         const bool selectedBorder = style.m_borders.size() == 1u
             && isSelectedTopInvisibleBorder(style.m_borders.front());
         return scope.m_customData == 0 && scope.m_customItems.empty()
-            && (scopeIsDefault(scope, 1)
-                || (style.m_type == 1 && style.m_hasData
+            && (scopeIsDefault(scope, type)
+                || (style.m_type == type && style.m_hasData
                     && style.m_propertyOverrideFlags == 0u
                     && style.m_mergeFlags == 0u
                     && style.m_backgroundColor == 0
@@ -26009,10 +26010,20 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && style.m_contentLayout == 0u
                     && formatIsDefault(style.m_contentFormat)
                     && (marginsSupported || marginsAbsent)
-                    && (noBorders || selectedBorder)
-                    && (marginsSupported || selectedBorder)
+                    && (noBorders
+                        || (allowSelectedCellBorder && selectedBorder))
+                    && (marginsSupported
+                        || (allowSelectedCellBorder && selectedBorder))
                     && style.m_id == 0 && style.m_styleClass == 0
                     && style.m_name.empty()));
+    };
+    const auto cellStyleIsSupported = [&styleScopeWithMarginsIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope) {
+        return styleScopeWithMarginsIsSupported(scope, 1, true);
+    };
+    const auto rowStyleIsSupported = [&styleScopeWithMarginsIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope) {
+        return styleScopeWithMarginsIsSupported(scope, 2, false);
     };
     if (version < DRW::AC1021 || version > DRW::AC1032
         || !preflightTableEntry(ent) || ent->handle == 0u
@@ -26563,8 +26574,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 || (ent->m_dxfMetadata
                     && (ent->m_dxfMetadata->m_rows[rowIndex].m_cells.size()
                             != columnCount
-                        || !scopeIsDefault(
-                            ent->m_dxfMetadata->m_rows[rowIndex].m_scope, 2))))
+                        || !rowStyleIsSupported(
+                            ent->m_dxfMetadata->m_rows[rowIndex].m_scope))))
                 return failDxfWrite();
             for (std::size_t columnIndex = 0u; columnIndex < columnCount;
                  ++columnIndex) {
@@ -26723,12 +26734,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     || !writer->writeString(309, "TABLECELL_END"))
                     return failDxfWrite();
             }
+            const auto* rowDetail = rowScope(rowIndex);
             if (!writeCustomScope(rowScope(rowIndex))
                 || !writer->writeString(309, "LINKEDTABLEDATAROW_END")
                 || !writer->writeString(1,
                     "FORMATTEDTABLEDATAROW_BEGIN")
                 || !writer->writeString(300, "ROWTABLEFORMAT")
-                || !writeStyle(2, nullptr)
+                || !writeStyle(2, rowDetail ? &rowDetail->m_style : nullptr)
                 || !writer->writeString(309,
                     "FORMATTEDTABLEDATAROW_END")
                 || !writer->writeString(1, "TABLEROW_BEGIN")
