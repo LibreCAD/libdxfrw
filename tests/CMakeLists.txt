@@ -1721,6 +1721,10 @@ add_test(NAME libdxfrw_table_content_column_table_margin_write
     COMMAND libdxfrw_table_content_dxf_tests --table-column-table-margin-write)
 set_tests_properties(libdxfrw_table_content_column_table_margin_write PROPERTIES
     LABELS "fast;dxf;adapter;table;generated;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_table_style_format_write
+    COMMAND libdxfrw_table_content_dxf_tests --table-style-format-write)
+set_tests_properties(libdxfrw_table_content_table_style_format_write PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated;transaction;format" TIMEOUT 30)
 add_test(NAME libdxfrw_table_export_reuse
     COMMAND libdxfrw_table_content_dxf_tests --table-export-reuse)
 set_tests_properties(libdxfrw_table_export_reuse PROPERTIES

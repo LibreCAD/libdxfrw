@@ -25961,7 +25961,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && styleIsDefault(scope.m_style, type);
     };
     const auto styleWithMarginsIsSupported = [&styleIsDefault,
-            &cmcIsDefault, &formatIsDefault](
+            &cmcIsDefault, &formatIsDefault, &contentFormatIsSupported](
             const DRW_TableStyleCellStyle& style, int type,
             bool allowSelectedCellBorder) {
         const auto validMargin = [](double value) {
@@ -25999,6 +25999,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         const bool noBorders = style.m_borders.empty();
         const bool selectedBorder = style.m_borders.size() == 1u
             && isSelectedTopInvisibleBorder(style.m_borders.front());
+        const bool selectedTableContentFormat = type == 4
+            && style.m_contentFormat.m_valueFormatString.empty()
+            && contentFormatIsSupported(style.m_contentFormat);
         return styleIsDefault(style, type)
                 || (style.m_type == type && style.m_hasData
                     && style.m_propertyOverrideFlags == 0u
@@ -26006,12 +26009,14 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && style.m_backgroundColor == 0
                     && cmcIsDefault(style.m_backgroundColorCmc)
                     && style.m_contentLayout == 0u
-                    && formatIsDefault(style.m_contentFormat)
+                    && (formatIsDefault(style.m_contentFormat)
+                        || selectedTableContentFormat)
                     && (marginsSupported || marginsAbsent)
                     && (noBorders
                         || (allowSelectedCellBorder && selectedBorder))
                     && (marginsSupported
-                        || (allowSelectedCellBorder && selectedBorder))
+                        || (allowSelectedCellBorder && selectedBorder)
+                        || selectedTableContentFormat)
                     && style.m_id == 0 && style.m_styleClass == 0
                     && style.m_name.empty());
     };

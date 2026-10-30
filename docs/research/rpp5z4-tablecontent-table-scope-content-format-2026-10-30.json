@@ -1,0 +1,59 @@
+{
+  "id": "RPP-5z4",
+  "date": "2026-10-30",
+  "title": "Bounded TABLECONTENT table-scope CONTENTFORMAT output",
+  "scope": {
+    "operation": "Write one selected type-4 table-scope CONTENTFORMAT with no margin or border override.",
+    "profile": "Generated AC1027 2x2 scalar grid, ASCII and binary DXF.",
+    "source_basis": "The writer already serialized CONTENTFORMAT records and accepted the selected format values, but its table-style admission predicate also required margins or a selected border. That rejected a valid standalone table-scope format. This receipt qualifies the generated serializer profile, not native rendering semantics or producer completeness.",
+    "format": {
+      "property_override_flags": "0x1BF",
+      "property_flags": "0x100",
+      "value_data_type": 2,
+      "value_unit_type": 1,
+      "value_format_string": "",
+      "rotation": 0.125,
+      "block_scale": 2.0,
+      "cell_alignment": 5,
+      "content_color": 7,
+      "text_style_handle": 0,
+      "text_height": 3.25
+    },
+    "limits": [
+      "One table-scope type-4 CONTENTFORMAT with an empty value-format string",
+      "No table margins, borders, style dependencies or custom format text",
+      "AC1027 DXF output only"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no native CAD rendering, DWG serialization, or broader TABLESTYLE/CELLSTYLEMAP support claim."
+  },
+  "implementation": [
+    "Permit the selected table-scope format profile to pass style admission when margins are absent.",
+    "Retain the existing field-domain checks and reject unsupported unit values before writing."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": "The independent scalar walker checks the exact CONTENTFORMAT field order and values: 90, 91, 92, 93, empty 300 value-format string, 40, 140, 94, 62, 340 and 144, followed by CONTENTFORMAT_END.",
+    "typed_readback": "Fresh imports preserve table-scope type 4, hasData, all selected format values and the absent margin override.",
+    "failure_control": "Unit type 3 is refused in both encodings; a destination sentinel, table collection and explicit invalid caller value remain unchanged.",
+    "retry_control": "Restoring unit type 1 allows the same adapter to export successfully; fresh typed readback confirms the corrected unit."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_(grid_write|linked_grid_write|row_margin_write|column_table_margin_write|table_style_format_write)|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "6/6 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Other CONTENTFORMAT scopes and strings, native rendering, borders, TABLESTYLE/CELLSTYLEMAP dependencies and DWG output are not claimed."
+  ]
+}
