@@ -31527,7 +31527,16 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::POLYLINE
+        const Tags entity=entityType==DRW::ATTDEF
+            ?Tags{{0,"ATTDEF"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+                {10,"1.25"},{20,"2.5"},{30,"3.75"},{40,"2.5"},
+                {1,"TARGET_DEFAULT"},{7,"STANDARD"},{11,"4.5"},
+                {21,"5.5"},{31,"6.5"},{50,"30"},
+                {210,"0"},{220,"0"},{230,"1"},
+                {100,"AcDbAttributeDefinition"},{3,"TARGET_PROMPT"},
+                {2,"TARGET_TAG"},{70,"0"},{73,"0"},{74,"0"},{280,"0"}}
+            :entityType==DRW::POLYLINE
             ?Tags{{0,"POLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{39,"0.75"},
                 {100,"AcDb2dPolyline"},{10,"0"},{20,"0"},{30,"4"},
@@ -34049,6 +34058,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     bool multiInsert=false) {
     if(!providerProof(path,binary))return false;
     if(entityType!=DRW::POLYLINE
+        &&entityType!=DRW::ATTDEF
         &&entityType!=DRW::MPOLYGON&&entityType!=DRW::HATCH
         &&entityType!=DRW::TOLERANCE
         &&entityType!=DRW::LEADER
@@ -34064,6 +34074,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::RAY&&entityType!=DRW::XLINE
         &&entityType!=DRW::DXF_TRACE&&entityType!=DRW::SOLID)return false;
     const bool isPolyline=entityType==DRW::POLYLINE;
+    const bool isAttdef=entityType==DRW::ATTDEF;
     const bool isMPolygon=entityType==DRW::MPOLYGON;
     const bool isHatch=entityType==DRW::HATCH;
     const bool isTolerance=entityType==DRW::TOLERANCE;
@@ -34084,7 +34095,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isXline=entityType==DRW::XLINE;
     const bool isTrace=entityType==DRW::DXF_TRACE;
     const bool isSolid=entityType==DRW::SOLID;
-    const std::string_view recordName=isPolyline?"POLYLINE":isMPolygon?"MPOLYGON":isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
+    const std::string_view recordName=isPolyline?"POLYLINE":isAttdef?"ATTDEF":isMPolygon?"MPOLYGON":isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :is3DLine?"3DLINE":isMesh?"MESH":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
         :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
@@ -34192,7 +34203,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isPolyline
+        const bool expectedGeometry=isAttdef
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDbText",
+                                     "AcDbAttributeDefinition"})
+                &&fieldValue(row,1)=="TARGET_DEFAULT"
+                &&fieldValue(row,2)=="TARGET_TAG"
+                &&fieldValue(row,3)=="TARGET_PROMPT"
+                &&fieldValue(row,7)=="STANDARD"
+                &&realValue(row,10,1.25)&&realValue(row,20,2.5)
+                &&realValue(row,30,3.75)&&realValue(row,40,2.5)
+                &&integerValuesMatch(row,70,{0})
+            :isPolyline
             ?textValuesMatch(row,100,{"AcDbEntity","AcDb2dPolyline"})
                 &&integerValuesMatch(row,70,{1})
                 &&realValue(row,10,0.0)&&realValue(row,20,0.0)
@@ -34571,7 +34592,20 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     if(typedCurve==container->ent.end()) {
         return false;
     }
-    if(isPolyline) {
+    if(isAttdef) {
+        const auto* typedModel=dynamic_cast<const DRW_Attdef*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Attdef)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->text!="TARGET_DEFAULT"
+            ||typedModel->tag!="TARGET_TAG"
+            ||typedModel->prompt!="TARGET_PROMPT"
+            ||typedModel->style!="STANDARD"
+            ||typedModel->basePoint.x!=1.25
+            ||typedModel->basePoint.y!=2.5
+            ||typedModel->basePoint.z!=3.75
+            ||typedModel->height!=2.5||typedModel->attribFlags!=0)
+            return false;
+    } else if(isPolyline) {
         const auto* typedModel=dynamic_cast<const DRW_Polyline*>(*typedCurve);
         const auto* footer=typedModel?typedModel->seqEndEntity.get():nullptr;
         const std::array<DRW_Coord,3> expected{{
@@ -38672,6 +38706,8 @@ bool runTemporary() {
             ?std::string_view("MINSERT")
             :entityType==DRW::POLYLINE
             ?std::string_view("POLYLINE")
+            :entityType==DRW::ATTDEF
+            ?std::string_view("ATTDEF")
             :entityType==DRW::MPOLYGON
             ?std::string_view("MPOLYGON")
             :entityType==DRW::HATCH
@@ -38761,6 +38797,19 @@ bool runTemporary() {
                         :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::ATTDEF) {
+                const auto* typed=dynamic_cast<const DRW_Attdef*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Attdef)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->text=="TARGET_DEFAULT"
+                    &&typed->tag=="TARGET_TAG"
+                    &&typed->prompt=="TARGET_PROMPT"
+                    &&typed->style=="STANDARD"
+                    &&typed->basePoint.x==1.25
+                    &&typed->basePoint.y==2.5
+                    &&typed->basePoint.z==3.75
+                    &&typed->height==2.5&&typed->attribFlags==0;
+            }
             if(entityType==DRW::POLYLINE) {
                 const auto* typed=dynamic_cast<const DRW_Polyline*>(entity);
                 const std::array<DRW_Coord,3> expected{{
@@ -39434,6 +39483,7 @@ bool runTemporary() {
             DRW::SOLID})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
+    if(!runGeometrySection(DRW::ATTDEF,true))return false;
     if(!runGeometrySection(DRW::INSERT,false)
         ||!runGeometrySection(DRW::INSERT,true)
         ||!runGeometrySection(DRW::INSERT,false,true)
@@ -39441,7 +39491,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==428u&&readbacks==984u&&refusals==556u&&retries==556u;
+    return profiles==432u&&readbacks==993u&&refusals==561u&&retries==561u;
 }
 
 bool runBudgetTemporary() {

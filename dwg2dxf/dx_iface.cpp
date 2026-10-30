@@ -22386,6 +22386,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::SPLINE:return "SPLINE";
     case DRW::HELIX:return "HELIX";
     case DRW::INSERT:return "INSERT";
+    case DRW::ATTDEF:return "ATTDEF";
     case DRW::RAY:return "RAY";
     case DRW::XLINE:return "XLINE";
     case DRW::DXF_TRACE:return "TRACE";
@@ -22446,6 +22447,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::SPLINE:return DRW_DxfBlockCallback::addSpline;
     case DRW::HELIX:return DRW_DxfBlockCallback::addHelix;
     case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
+    case DRW::ATTDEF:return DRW_DxfBlockCallback::addAttDef;
     case DRW::RAY:return DRW_DxfBlockCallback::addRay;
     case DRW::XLINE:return DRW_DxfBlockCallback::addXline;
     case DRW::DXF_TRACE:return DRW_DxfBlockCallback::addTrace;
@@ -22536,6 +22538,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
             &&insert->attlist.empty()
             &&!insert->seqEndEntity;
     }
+    case DRW::ATTDEF:
+        return dynamic_cast<const DRW_Attdef*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Attdef);
     case DRW::RAY:
         return dynamic_cast<const DRW_Ray*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Ray);
@@ -22656,7 +22661,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             if (block==nullptr) return true;
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
-                const auto rawType=event.record.name=="POLYLINE"?DRW::POLYLINE
+                const auto rawType=event.record.name=="ATTDEF"?DRW::ATTDEF
+                    :event.record.name=="POLYLINE"?DRW::POLYLINE
                     :event.record.name=="MPOLYGON"?DRW::MPOLYGON
                     :event.record.name=="HATCH"?DRW::HATCH
                     :event.record.name=="TOLERANCE"?DRW::TOLERANCE
@@ -23044,7 +23050,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || range.next>block.membership->members.size())
                         return false;
                     const auto& record=physical.records[range.first];
-                    const auto entityType=record.name=="POLYLINE"?DRW::POLYLINE
+                    const auto entityType=record.name=="ATTDEF"?DRW::ATTDEF
+                        :record.name=="POLYLINE"?DRW::POLYLINE
                         :record.name=="MPOLYGON"?DRW::MPOLYGON
                         :record.name=="HATCH"?DRW::HATCH
                         :record.name=="TOLERANCE"?DRW::TOLERANCE
@@ -23075,7 +23082,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         ||requiredBlockTargets.count(candidateHandle)==0u)
                         continue;
                     const bool compoundPolyline=entityType==DRW::POLYLINE;
+                    const bool pairedAttdef=entityType==DRW::ATTDEF;
                     if ((!compoundPolyline
+                            &&!pairedAttdef
                             &&range.next!=range.first+1u)
                         || range.reason!=dx_block_membership::Reason::Matched
                         || dispatchIndex>=manifest.dispatches.size()) {
@@ -23089,13 +23098,16 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || (!compoundPolyline
                             &&(record.endOrdinal!=dispatch.end.ordinal
                                 ||record.endOffset!=dispatch.end.beginOffset))
-                        || dispatch.events!=1u
-                        || dispatch.firstEvent>=manifest.events.size()) {
+                        || dispatch.events!=(pairedAttdef?2u:1u)
+                        || dispatch.firstEvent>=manifest.events.size()
+                        || (pairedAttdef
+                            &&dispatch.firstEvent+1u>=manifest.events.size())) {
                         if (entityType==DRW::INSERT)
                             continue;
                         return false;
                     }
-                    const auto& event=manifest.events[dispatch.firstEvent];
+                    const auto& event=manifest.events[
+                        dispatch.firstEvent+(pairedAttdef?1u:0u)];
                     const auto& member=block.membership->members[range.first];
                     std::uint32_t sourceHandle=0u,sourceOwner=0u;
                     if (!chargeWork(record.groups.size()))
@@ -23105,6 +23117,19 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         if (entityType==DRW::INSERT)
                             continue;
                         return false;
+                    }
+                    if (pairedAttdef) {
+                        const auto& sourceEvent=
+                            manifest.events[dispatch.firstEvent];
+                        if (sourceEvent.dispatch!=dispatchIndex
+                            ||sourceEvent.callback
+                                !=DRW_DxfBlockCallback::AttdefSource
+                            ||!sourceEvent.hasValue
+                            ||sourceEvent.entityType
+                                !=static_cast<std::int32_t>(DRW::ATTDEF)
+                            ||sourceEvent.handle!=candidateHandle
+                            ||sourceEvent.owner!=block.recordModel->handle)
+                            return false;
                     }
                     if (event.dispatch!=dispatchIndex || !event.hasValue
                         || event.callback
@@ -23138,6 +23163,35 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     // because no authenticated origin was produced.
                     if (model==nullptr)
                         continue;
+                    if (pairedAttdef) {
+                        const auto resource=data.m_tableDxfSource.resources.find(
+                            sourceHandle);
+                        if (resource==data.m_tableDxfSource.resources.end()
+                            ||resource->second.family
+                                !=dx_tableResourceFamily::AttributeDefinition
+                            ||!resource->second.attdefModel
+                            ||!resource->second.raw)
+                            continue;
+                        const auto equal=[&](const DRW_Variant& a,
+                                             const DRW_Variant& b) noexcept {
+                            return standardDwgVariantEqual(
+                                a, b, resource->second.raw->m_version);
+                        };
+                        const auto* typed=dynamic_cast<const DRW_Attdef*>(model);
+                        if (!typed
+                            ||!dxfAttdef::Decoder::sameModel(
+                                *typed,*resource->second.attdefModel,equal))
+                            continue;
+                        const dx_data::TableDxfSourceCapture::AttdefSourcePins
+                            pins{resource->second.attdefModel,
+                                resource->second.raw,
+                                resource->second.attdefOrigin,
+                                resource->second.attdefReadContext,
+                                resource->second.attdefState,
+                                resource->second.attdefContext};
+                        if (!attdefPairReady(data,pins,item.first))
+                            continue;
+                    }
                     if (compoundPolyline) {
                         const auto* polyline=
                             dynamic_cast<const DRW_Polyline*>(model);
