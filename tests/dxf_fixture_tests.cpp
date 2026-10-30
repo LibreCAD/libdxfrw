@@ -31376,6 +31376,34 @@ Tags sourceWithEntityHandleXdata(bool binary,bool includeStringPayload=false,
     return fields;
 }
 
+Tags withXdataTargetTextStyle(Tags fields) {
+    std::size_t tablesEnd=fields.size();
+    bool inTables=false;
+    for(std::size_t i=0u;i+1u<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&fields[i+1u]==std::make_pair(2,std::string("TABLES"))) {
+            inTables=true;
+            continue;
+        }
+        if(inTables&&fields[i]==std::make_pair(0,std::string("ENDSEC"))) {
+            tablesEnd=i;
+            break;
+        }
+    }
+    if(tablesEnd==fields.size())
+        throw std::runtime_error("TEXT XDATA target TABLES section missing");
+    const Tags styleTable{{0,"TABLE"},{2,"STYLE"},{5,"1E2"},
+        {100,"AcDbSymbolTable"},{70,"1"},
+        {0,"STYLE"},{5,"1E3"},{330,"1E2"},
+        {100,"AcDbSymbolTableRecord"},{100,"AcDbTextStyleTableRecord"},
+        {2,"XDATA_TARGET_STYLE"},{70,"0"},{40,"0"},{41,"0.8"},
+        {50,"3"},{71,"0"},{42,"2.5"},{3,"txt"},{4,""},
+        {0,"ENDTAB"}};
+    fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(tablesEnd),
+                  styleTable.begin(),styleTable.end());
+    return fields;
+}
+
 Tags sourceWithManyEntityHandleXdata(bool binary,
                                     const std::vector<std::string>& handles) {
     if(handles.size()<2u)
@@ -31419,6 +31447,8 @@ Tags sourceWithBlockEntityHandleXdata(
         std::string_view targetOwner="203",
         DRW::ETYPE entityType=DRW::LINE) {
     auto fields=source(binary);
+    if(entityType==DRW::TEXT)
+        fields=withXdataTargetTextStyle(std::move(fields));
     bool provider=false,selected=false,handleInserted=false;
     for(std::size_t i=0u;i<fields.size();++i) {
         if(fields[i].first==0) {
@@ -31458,7 +31488,14 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::LWPOLYLINE
+        const Tags entity=entityType==DRW::TEXT
+            ?Tags{{0,"TEXT"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+                {10,"1.25"},{20,"2.5"},{30,"3.75"},{40,"2.5"},
+                {1,"TARGET-TEXT"},{50,"30"},{41,"1.25"},{51,"5"},
+                {7,"XDATA_TARGET_STYLE"},{71,"2"},{72,"2"},
+                {11,"4.5"},{21,"5.5"},{31,"6.5"},{73,"3"}}
+            :entityType==DRW::LWPOLYLINE
             ?Tags{{0,"LWPOLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbPolyline"},
                 {90,"3"},{70,"1"},{43,"0"},{38,"4"},
@@ -31610,6 +31647,43 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary) {
     }
     if(!blockInserted)
         throw std::runtime_error("mixed-section AuthorityBlock missing");
+    return fields;
+}
+
+Tags sourceWithTextEntityHandleXdata(bool binary) {
+    auto fields=withXdataTargetTextStyle(
+        sourceWithEntityHandleXdata(binary,true));
+    bool inEntities=false,textInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags text{{0,"TEXT"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+            {10,"1.25"},{20,"2.5"},{30,"3.75"},{40,"2.5"},
+            {1,"TARGET-TEXT"},{50,"30"},{41,"1.25"},{51,"5"},
+            {7,"XDATA_TARGET_STYLE"},{71,"2"},{72,"2"},
+            {11,"4.5"},{21,"5.5"},{31,"6.5"},{73,"3"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      text.begin(),text.end());
+        textInserted=true;
+        break;
+    }
+    if(!textInserted)
+        throw std::runtime_error("TEXT XDATA target source missing");
     return fields;
 }
 
@@ -32862,16 +32936,18 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     std::string_view targetBlock="*Model_Space",
                                     DRW::ETYPE entityType=DRW::CIRCLE) {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::POINT&&entityType!=DRW::LWPOLYLINE
+    if(entityType!=DRW::TEXT&&entityType!=DRW::POINT
+        &&entityType!=DRW::LWPOLYLINE
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE)return false;
+    const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
     const bool isFace=entityType==DRW::E3DFACE;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
-    const std::string_view recordName=isPoint?"POINT"
+    const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :isArc?"ARC":isEllipse?"ELLIPSE":"CIRCLE";
     std::string targetBlockKey;
@@ -32919,6 +32995,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const mlineStyleAuthorityControls::Row* app=nullptr;
     const mlineStyleAuthorityControls::Row* appTable=nullptr;
     const mlineStyleAuthorityControls::Row* ownerRecord=nullptr;
+    const mlineStyleAuthorityControls::Row* textStyleTable=nullptr;
+    const mlineStyleAuthorityControls::Row* textStyleRecord=nullptr;
     const mlineStyleAuthorityControls::Row* curve=nullptr;
     for(const auto& row:rows) {
         if(row.type=="LTYPE"&&row.section=="TABLES"
@@ -32936,6 +33014,16 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             if(appTable!=nullptr)return false;
             appTable=&row;
         }
+        if(row.type=="TABLE"&&row.section=="TABLES"
+            &&fieldValue(row,2)=="STYLE") {
+            if(textStyleTable!=nullptr)return false;
+            textStyleTable=&row;
+        }
+        if(row.type=="STYLE"&&row.section=="TABLES"
+            &&fieldValue(row,2)=="XDATA_TARGET_STYLE") {
+            if(textStyleRecord!=nullptr)return false;
+            textStyleRecord=&row;
+        }
         if(row.type=="BLOCK_RECORD"&&row.section=="TABLES") {
             std::string nameKey;
             if(!dx_symbol_output::nameKey(fieldValue(row,2),nameKey))
@@ -32947,7 +33035,18 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isLWPolyline
+        const bool expectedGeometry=isText
+            ?realValue(row,10,1.25)&&realValue(row,20,2.5)
+                &&realValue(row,30,3.75)&&realValue(row,40,2.5)
+                &&fieldValue(row,1)=="TARGET-TEXT"
+                &&realValue(row,50,30.0)&&realValue(row,41,1.25)
+                &&realValue(row,51,5.0)
+                &&fieldValue(row,7)=="XDATA_TARGET_STYLE"
+                &&integerValuesMatch(row,71,{2})
+                &&integerValuesMatch(row,72,{2})
+                &&realValue(row,11,4.5)&&realValue(row,21,5.5)
+                &&realValue(row,31,6.5)&&integerValuesMatch(row,73,{3})
+            :isLWPolyline
             ?integerValuesMatch(row,90,{3})
                 &&integerValuesMatch(row,70,{1})
                 &&realValuesMatch(row,38,{4.0})
@@ -32991,6 +33090,21 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         ||curve->owner!=ownerRecord->id
         ||(requireRemap?curve->id=="A900":curve->id!="A900"))
         return false;
+    if(isText) {
+        if(textStyleTable==nullptr||textStyleRecord==nullptr
+            ||textStyleTable->id.empty()||textStyleRecord->id.empty()
+            ||textStyleRecord->owner!=textStyleTable->id
+            ||fieldValue(*curve,7)!="XDATA_TARGET_STYLE"
+            ||fieldValue(*textStyleRecord,3)!="txt"
+            ||fieldValue(*textStyleRecord,4)!=""
+            ||!realValue(*textStyleRecord,40,0.0)
+            ||!realValue(*textStyleRecord,41,0.8)
+            ||!realValue(*textStyleRecord,50,3.0)
+            ||!integerValuesMatch(*textStyleRecord,70,{0})
+            ||!integerValuesMatch(*textStyleRecord,71,{0})
+            ||!realValue(*textStyleRecord,42,2.5))
+            return false;
+    }
     std::int64_t appFlags=1;
     if(!dx_raster_output::integer(fieldValue(*app,70),appFlags)
         ||appFlags!=0||app->owner!=appTable->id)return false;
@@ -33034,7 +33148,30 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         });
     if(typedCurve==container->ent.end())
         return false;
-    if(isEllipse) {
+    if(isText) {
+        const auto* typedModel=dynamic_cast<const DRW_Text*>(*typedCurve);
+        const auto textStyle=std::find_if(actual.textStyles.begin(),
+            actual.textStyles.end(),[](const DRW_Textstyle& value) {
+                return value.name=="XDATA_TARGET_STYLE";
+            });
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Text)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=1.25||typedModel->basePoint.y!=2.5
+            ||typedModel->basePoint.z!=3.75||typedModel->secPoint.x!=4.5
+            ||typedModel->secPoint.y!=5.5||typedModel->secPoint.z!=6.5
+            ||typedModel->height!=2.5||typedModel->text!="TARGET-TEXT"
+            ||typedModel->angle!=30.0||typedModel->widthscale!=1.25
+            ||typedModel->oblique!=5.0
+            ||typedModel->style!="XDATA_TARGET_STYLE"
+            ||typedModel->textgen!=2
+            ||typedModel->alignH!=DRW_Text::HRight
+            ||typedModel->alignV!=DRW_Text::VTop
+            ||textStyle==actual.textStyles.end()
+            ||textStyle->font!="txt"||textStyle->height!=0.0
+            ||textStyle->width!=0.8||textStyle->oblique!=3.0
+            ||textStyle->lastHeight!=2.5||textStyle->genFlag!=0)
+            return false;
+    } else if(isEllipse) {
         const auto* typedModel=dynamic_cast<const DRW_Ellipse*>(*typedCurve);
         const double fullTurn=2.0*std::acos(-1.0);
         if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Ellipse)
@@ -36465,7 +36602,9 @@ bool runTemporary() {
     const double ellipseTurn=2.0*std::acos(-1.0);
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
                                      bool inNamedBlock) {
-        const std::string_view entityName=entityType==DRW::ELLIPSE
+        const std::string_view entityName=entityType==DRW::TEXT
+            ?std::string_view("TEXT")
+            :entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
             :entityType==DRW::POINT?std::string_view("POINT")
             :entityType==DRW::E3DFACE?std::string_view("3DFACE")
@@ -36478,7 +36617,9 @@ bool runTemporary() {
             if(inNamedBlock)
                 return sourceWithBlockEntityHandleXdata(binary,targetBlock,
                     "203",entityType);
-            return entityType==DRW::ELLIPSE
+            return entityType==DRW::TEXT
+                ?sourceWithTextEntityHandleXdata(binary)
+                :entityType==DRW::ELLIPSE
                 ?sourceWithEllipseEntityHandleXdata(binary)
                 :entityType==DRW::POINT
                     ?sourceWithPointEntityHandleXdata(binary)
@@ -36487,6 +36628,21 @@ bool runTemporary() {
                         :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::TEXT) {
+                const auto* typed=dynamic_cast<const DRW_Text*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Text)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==1.25&&typed->basePoint.y==2.5
+                    &&typed->basePoint.z==3.75&&typed->secPoint.x==4.5
+                    &&typed->secPoint.y==5.5&&typed->secPoint.z==6.5
+                    &&typed->height==2.5&&typed->text=="TARGET-TEXT"
+                    &&typed->angle==30.0&&typed->widthscale==1.25
+                    &&typed->oblique==5.0
+                    &&typed->style=="XDATA_TARGET_STYLE"
+                    &&typed->textgen==2
+                    &&typed->alignH==DRW_Text::HRight
+                    &&typed->alignV==DRW_Text::VTop;
+            }
             if(entityType==DRW::ELLIPSE) {
                 const auto* typed=dynamic_cast<const DRW_Ellipse*>(entity);
                 return typed!=nullptr&&typeid(*typed)==typeid(DRW_Ellipse)
@@ -36720,13 +36876,14 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE,DRW::LWPOLYLINE})
+            DRW::TEXT,DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE,
+            DRW::LWPOLYLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==268u&&readbacks==600u&&refusals==332u&&retries==332u;
+    return profiles==276u&&readbacks==618u&&refusals==342u&&retries==342u;
 }
 
 bool runBudgetTemporary() {

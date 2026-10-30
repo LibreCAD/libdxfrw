@@ -22284,6 +22284,7 @@ namespace {
 
 const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::TEXT:return "TEXT";
     case DRW::POINT:return "POINT";
     case DRW::LWPOLYLINE:return "LWPOLYLINE";
     case DRW::E3DFACE:return "3DFACE";
@@ -22298,6 +22299,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
 DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::TEXT:return DRW_DxfEntitiesCallback::addText;
     case DRW::POINT:return DRW_DxfEntitiesCallback::addPoint;
     case DRW::LWPOLYLINE:return DRW_DxfEntitiesCallback::addLWPolyline;
     case DRW::E3DFACE:return DRW_DxfEntitiesCallback::add3dFace;
@@ -22312,6 +22314,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
 DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::TEXT:return DRW_DxfBlockCallback::addText;
     case DRW::POINT:return DRW_DxfBlockCallback::addPoint;
     case DRW::LWPOLYLINE:return DRW_DxfBlockCallback::addLWPolyline;
     case DRW::E3DFACE:return DRW_DxfBlockCallback::add3dFace;
@@ -22327,6 +22330,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
                                     DRW::ETYPE type) noexcept {
     if (entity==nullptr||entity->eType!=type)return false;
     switch (type) {
+    case DRW::TEXT:
+        return dynamic_cast<const DRW_Text*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Text);
     case DRW::POINT:
         return dynamic_cast<const DRW_Point*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Point);
@@ -22437,7 +22443,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             if (block==nullptr) return true;
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
-                const auto rawType=event.record.name=="POINT"?DRW::POINT
+                const auto rawType=event.record.name=="TEXT"?DRW::TEXT
+                    :event.record.name=="POINT"?DRW::POINT
                     :event.record.name=="LWPOLYLINE"?DRW::LWPOLYLINE
                     :event.record.name=="3DFACE"?DRW::E3DFACE
                     :event.record.name=="LINE"?DRW::LINE
@@ -22485,7 +22492,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             for (std::size_t index=0u;index<manifest.events.size();++index) {
                 if (!chargeWork(1u)) return false;
                 const auto& event=manifest.events[index];
-                if (event.callback!=DRW_DxfEntitiesCallback::addPoint
+                if (event.callback!=DRW_DxfEntitiesCallback::addText
+                    &&event.callback!=DRW_DxfEntitiesCallback::addPoint
                     &&event.callback!=DRW_DxfEntitiesCallback::addLWPolyline
                     &&event.callback!=DRW_DxfEntitiesCallback::add3dFace
                     &&event.callback!=DRW_DxfEntitiesCallback::addLine
@@ -22545,7 +22553,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
         // A code-1005 XDATA reference may target an entity inside a BLOCK.
         // ENTITIES has its own source/delivery facets; BLOCKS uses the
         // separately captured child stream and structural membership audit.
-        // Admit only simple, single-record LINE/CIRCLE targets after the
+        // Admit only explicitly supported single-record targets after the
         // section, callback, membership and owner identities agree.
         if (blockOriginReport(data).state==BlockOriginState::OriginsBound) {
             const auto& blocks=data.m_tableDxfSource.blockSources;
@@ -22591,7 +22599,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || range.next>block.membership->members.size())
                         return false;
                     const auto& record=physical.records[range.first];
-                    const auto entityType=record.name=="POINT"?DRW::POINT
+                    const auto entityType=record.name=="TEXT"?DRW::TEXT
+                        :record.name=="POINT"?DRW::POINT
                         :record.name=="LWPOLYLINE"?DRW::LWPOLYLINE
                         :record.name=="3DFACE"?DRW::E3DFACE
                         :record.name=="LINE"?DRW::LINE
