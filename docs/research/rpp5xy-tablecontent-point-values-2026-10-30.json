@@ -1,0 +1,64 @@
+{
+  "id": "RPP-5xy",
+  "title": "AC1027 TABLECONTENT 2D and 3D point values",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_ADAPTER_AUTHORED_SERIALIZATION_PROFILE",
+  "implementation_commit": "71c0b3e0384f05383bbaab786cf386270960d7fe",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-constructed in-memory DRW_TableContentObject; no DWG/DXF fixture file was added.",
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "record": "One unlinked 1x1 TABLECONTENT with ordered String, Long, Double, Point, and Point3d content values.",
+    "values": [
+      {
+        "data_type": 16,
+        "autodesk_name": "Point",
+        "data_size": 16,
+        "coordinates": {"11": 2.5, "21": -4.25}
+      },
+      {
+        "data_type": 32,
+        "autodesk_name": "Point3d",
+        "data_size": 24,
+        "coordinates": {"11": 0.125, "21": -2.75, "31": 5.5}
+      }
+    ],
+    "schema_references": [
+      "Autodesk AutoCAD .NET DataType enumeration maps Point to 0x10 and Point3d to 0x20: https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DataType.html",
+      "Autodesk DXF group-code reference defines 10-17, 20-27, and 30-37 as point/vector coordinate groups: https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+    ]
+  },
+  "proof": {
+    "output": "Both output encodings are checked for the exact dataType group 90, byte-size group 92, ordered X/Y[/Z] groups 11/21[/31], and unit group 94; fresh adapter readback checks type, size, coordinate variant, and each coordinate.",
+    "failure_retry": "A non-finite 3D Z coordinate refuses export and leaves the pre-existing destination sentinel byte-for-byte intact. Restoring Z and retrying on the same writer succeeds. Both ASCII and binary output routes run this control.",
+    "counts": {
+      "successful_profiles": 4,
+      "typed_readbacks": 4,
+      "nonfinite_refusals_with_destination_preservation": 2,
+      "same_writer_retries": 2
+    },
+    "repository_drawing_fixtures_added": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+      "result": "PASS"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_sha256": {
+      "src/libdxfrw.cpp": "51850beba6f49c0e061723c0321cb85d0b15c4901100bd5dd2a2f5c23e20fc7d",
+      "tests/dxf_fixture_tests.cpp": "9ea6a383297e09cc3d3a96dddb195270af48f16bfba422c0b2d1155a630ec12a2"
+    },
+    "focused_executable_sha256": "4f2bb6cb0261b3bfb7e14d572e492185282aa68834c29ef488cdc1ac8b63f5ea"
+  },
+  "limits": [
+    "This proves adapter-authored AC1027 DXF serialization and readback in one unlinked 1x1 profile; it does not prove native AutoCAD/FreeCAD interpretation or source-origin semantics.",
+    "The 8-byte Date type and all other unselected value types remain unqualified. Unit, format, content attributes, formatting overrides, linked-cell values, and broader table shapes remain outside this profile."
+  ],
+  "next": "Resolve the 8-byte Date value's model and DXF wire mapping before admitting it; then select one reproduced content-attribute or formatting refusal and implement its bounded dependency/output path."
+}
