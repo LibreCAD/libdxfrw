@@ -24926,6 +24926,91 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
     r.state=audit->namespaceReady?S::NamespaceReady:S::Unqualified;return r;
 }
 
+bool dx_iface::tableContentAttributeSourcesClosed(
+        const DRW_TableContentObject& tableContent) const noexcept {
+    if (cData == nullptr || dxfW == nullptr)
+        return false;
+    const DRW_WritingContext* context = dxfW->getWritingContext();
+    if (context == nullptr)
+        return false;
+    for (const DRW_TableRow& row : tableContent.m_content.m_rows) {
+        for (const DRW_TableCell& cell : row.m_cells) {
+            if (cell.m_attributes.empty())
+                continue;
+            if (cell.m_contents.size() != 1u
+                || cell.m_attributes.size() != 1u)
+                return false;
+            const DRW_TableCellContent& content = cell.m_contents.front();
+            const DRW_TableCellAttribute& attribute =
+                cell.m_attributes.front();
+            if (content.m_type != 4 || content.m_handle == 0u
+                || content.m_handle == DRW::NoHandle
+                || attribute.m_contentIndex != 0u || attribute.m_index != 1
+                || attribute.m_attdefHandle == 0u
+                || attribute.m_attdefHandle == DRW::NoHandle)
+                return false;
+
+            const DRW_Block_Record* blockRecord = nullptr;
+            for (const DRW_Block_Record& record : cData->blockRecords) {
+                if (record.handle != content.m_handle)
+                    continue;
+                if (blockRecord != nullptr)
+                    return false;
+                blockRecord = &record;
+            }
+            if (blockRecord == nullptr)
+                return false;
+
+            const dx_ifaceBlock* owningBlock = nullptr;
+            for (const dx_ifaceBlock* block : cData->blocks) {
+                if (block == nullptr || block->parentHandle != blockRecord->handle
+                    || block->name != blockRecord->name)
+                    continue;
+                if (owningBlock != nullptr)
+                    return false;
+                owningBlock = block;
+            }
+            if (owningBlock == nullptr)
+                return false;
+
+            const DRW_Attdef* definition = nullptr;
+            std::size_t definitionCount = 0u;
+            const auto inspect = [&](const dx_ifaceBlock* block) {
+                if (block == nullptr)
+                    return;
+                for (const DRW_Entity* entity : block->ent) {
+                    const auto* candidate =
+                        dynamic_cast<const DRW_Attdef*>(entity);
+                    if (candidate == nullptr
+                        || candidate->handle != attribute.m_attdefHandle)
+                        continue;
+                    ++definitionCount;
+                    if (block == owningBlock)
+                        definition = candidate;
+                }
+            };
+            inspect(owningBlock);
+            for (const dx_ifaceBlock* block : cData->blocks) {
+                if (block != owningBlock)
+                    inspect(block);
+            }
+            inspect(cData->mBlock);
+            const auto emitted = context->sourceHandleToMintedMap.find(
+                attribute.m_attdefHandle);
+            if (definitionCount != 1u || definition == nullptr
+                || definition->parentHandle != blockRecord->handle
+                || context->ambiguousSourceHandles.count(
+                       attribute.m_attdefHandle) != 0u
+                || context->writtenSourceEntityHandles.count(
+                       attribute.m_attdefHandle) != 1u
+                || emitted == context->sourceHandleToMintedMap.end()
+                || emitted->second == 0u || emitted->second == DRW::NoHandle)
+                return false;
+        }
+    }
+    return true;
+}
+
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
     using F=dx_tableResourceFamily;
     using S=TableBindingState;

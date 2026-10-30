@@ -26012,6 +26012,31 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         && !cell.m_contents.empty() && cell.m_contents.size() <= 10000u
         && std::all_of(cell.m_contents.begin(), cell.m_contents.end(),
                        plainScalarContentIsSupported);
+    const bool blockContentWithAttribute = [&]() {
+        if (cell.m_hasLinkedData || cell.m_contents.size() != 1u
+            || cell.m_attributes.size() != 1u)
+            return false;
+        const DRW_TableCellContent& content = cell.m_contents.front();
+        const DRW_TableCellAttribute& attribute = cell.m_attributes.front();
+        const DRW_CadValue& value = content.m_value;
+        if (content.m_type != 4 || content.m_handle == 0u
+            || content.m_handle == DRW::NoHandle || !content.m_text.empty()
+            || value.m_formatFlags != 0 || value.m_dataType != 0
+            || value.m_dataSize != 0u || value.m_unitType != 0
+            || value.m_value.type() != DRW_Variant::INVALID
+            || !value.m_formatString.empty() || !value.m_valueString.empty()
+            || value.m_handle != 0u || !value.m_rawData.empty()
+            || attribute.m_attdefHandle == 0u
+            || attribute.m_attdefHandle == DRW::NoHandle
+            || attribute.m_contentIndex != 0u || attribute.m_index != 1
+            || !safeText(attribute.m_text)
+            || plainContentTextBytes > DRW::kMaxDxfBinaryPayloadBytes
+            || attribute.m_text.size()
+                > DRW::kMaxDxfBinaryPayloadBytes - plainContentTextBytes)
+            return false;
+        plainContentTextBytes += attribute.m_text.size();
+        return true;
+    }();
     const bool emptyLinkedCell = cell.m_hasLinkedData
         && cell.m_contents.empty();
     contentFormatTextBytes = plainContentTextBytes;
@@ -26023,7 +26048,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
-        || (!emptyLinkedCell && !plainScalarContents)
+        || (!emptyLinkedCell && !plainScalarContents
+            && !blockContentWithAttribute)
         || (cell.m_hasLinkedData
             && (cell.m_dataLinkHandle == 0u
                 || cell.m_dataLinkHandle == DRW::NoHandle))
@@ -26046,8 +26072,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_textColorRgb != -1 || cell.m_textColorMethod != 0u
         || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
         || cell.m_backgroundEnabled || cell.m_textAlignment != 0
-        || cell.m_textHeight != 0.0 || !cell.m_attributes.empty()
-        || (!plainScalarContents && !cell.m_contents.empty())
+        || cell.m_textHeight != 0.0
+        || (!plainScalarContents && !blockContentWithAttribute
+            && (!cell.m_attributes.empty() || !cell.m_contents.empty()))
         || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
                         defaultBorder)) {
         return failDxfWrite();
@@ -26079,10 +26106,38 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     const std::uint32_t handle = remapObjectHandle(ent->handle);
     const std::uint32_t dataLinkHandle = cell.m_hasLinkedData
         ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
+    const std::uint32_t blockContentHandle = blockContentWithAttribute
+        ? remapObjectHandle(cell.m_contents.front().m_handle) : 0u;
+    const std::uint32_t attributeDefinitionHandle =
+        blockContentWithAttribute
+            ? remapObjectHandle(cell.m_attributes.front().m_attdefHandle)
+            : 0u;
+    bool blockContentReferencesClosed = !blockContentWithAttribute;
+    if (blockContentWithAttribute) {
+        const auto blockRecord = m_sourceBlockRecordHandles.find(
+            cell.m_contents.front().m_handle);
+        const auto attribute = m_writingContext.sourceHandleToMintedMap.find(
+            cell.m_attributes.front().m_attdefHandle);
+        blockContentReferencesClosed =
+            blockRecord != m_sourceBlockRecordHandles.end()
+            && blockRecord->second == blockContentHandle
+            && attribute != m_writingContext.sourceHandleToMintedMap.end()
+            && attribute->second == attributeDefinitionHandle
+            && m_writingContext.ambiguousSourceHandles.count(
+                   cell.m_attributes.front().m_attdefHandle) == 0u
+            && m_writingContext.writtenSourceEntityHandles.count(
+                   cell.m_attributes.front().m_attdefHandle) == 1u;
+    }
     if (handle == 0u || handle == DRW::NoHandle
         || isDxfFixedOutputHandle(handle)
         || (cell.m_hasLinkedData
             && (dataLinkHandle == 0u || dataLinkHandle == DRW::NoHandle))
+        || (blockContentWithAttribute
+            && (blockContentHandle == 0u
+                || blockContentHandle == DRW::NoHandle
+                || attributeDefinitionHandle == 0u
+                || attributeDefinitionHandle == DRW::NoHandle
+                || !blockContentReferencesClosed))
         || !reserveHandle(handle))
     {
         return failDxfWrite();
@@ -26128,18 +26183,51 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     };
     const auto writeContent = [this, &writeContentFormat](
             const DRW_TableCellContent& content,
-            const DRW_TableStyleContentFormat* contentFormat) {
+            const DRW_TableStyleContentFormat* contentFormat,
+            const std::vector<DRW_TableCellAttribute>& attributes,
+            std::size_t contentIndex) {
         const auto remapValueHandle = [this](std::uint32_t source) {
             return remapObjectHandle(source);
         };
-        return writer->writeString(302, "CONTENT")
-            && writer->writeString(1, "CELLCONTENT_BEGIN")
-            && writer->writeInt32(90, content.m_type)
-            && writer->writeString(300, "VALUE")
-            && writeDxfFieldValue(writer.get(), version, content.m_value,
-                                  remapValueHandle)
-            && writer->writeInt32(91, 0)
-            && writer->writeString(309, "CELLCONTENT_END")
+        std::size_t attributeCount = 0u;
+        for (const DRW_TableCellAttribute& attribute : attributes) {
+            if (attribute.m_contentIndex == contentIndex)
+                ++attributeCount;
+        }
+        if (attributeCount > 1u || (content.m_type != 1
+                && !(content.m_type == 4 && attributeCount == 1u)))
+            return false;
+        if (!writer->writeString(302, "CONTENT")
+            || !writer->writeString(1, "CELLCONTENT_BEGIN")
+            || !writer->writeInt32(90, content.m_type))
+            return false;
+        bool valueWritten = false;
+        if (content.m_type == 1) {
+            valueWritten = writer->writeString(300, "VALUE")
+                && writeDxfFieldValue(writer.get(), version, content.m_value,
+                                      remapValueHandle);
+        } else {
+            const std::uint32_t blockHandle =
+                remapObjectHandle(content.m_handle);
+            valueWritten = blockHandle != 0u
+                && blockHandle != DRW::NoHandle
+                && writer->writeString(340, toHexStr(blockHandle));
+        }
+        if (!valueWritten || !writer->writeInt32(91,
+                static_cast<std::int32_t>(attributeCount)))
+            return false;
+        for (const DRW_TableCellAttribute& attribute : attributes) {
+            if (attribute.m_contentIndex != contentIndex)
+                continue;
+            const std::uint32_t definitionHandle =
+                remapObjectHandle(attribute.m_attdefHandle);
+            if (definitionHandle == 0u || definitionHandle == DRW::NoHandle
+                || !writer->writeString(330, toHexStr(definitionHandle))
+                || !writer->writeUtf8String(301, attribute.m_text)
+                || !writer->writeInt32(92, attribute.m_index))
+                return false;
+        }
+        return writer->writeString(309, "CELLCONTENT_END")
             && writer->writeString(1, "FORMATTEDCELLCONTENT_BEGIN")
             && writer->writeInt16(170, contentFormat ? 1 : 0)
             && (!contentFormat || writeContentFormat(*contentFormat))
@@ -26203,11 +26291,12 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     if (!writer->writeInt32(95,
                 static_cast<std::int32_t>(cell.m_contents.size())))
         return failDxfWrite();
-    if (plainScalarContents) {
+    if (plainScalarContents || blockContentWithAttribute) {
         for (std::size_t index = 0; index < cell.m_contents.size(); ++index) {
             const auto* contentFormat = contentFormats
                 ? (*contentFormats)[index].get() : nullptr;
-            if (!writeContent(cell.m_contents[index], contentFormat))
+            if (!writeContent(cell.m_contents[index], contentFormat,
+                              cell.m_attributes, index))
                 return failDxfWrite();
         }
     }

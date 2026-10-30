@@ -52645,7 +52645,8 @@ void testDataLinkAdapterExport(TestContext& t) {
             dxfW->setHandleRemap({{0x710u, 0x1710u},
                                   {0x711u, 0x1711u},
                                   {0x720u, 0x1720u},
-                                  {0x721u, 0x1721u}});
+                                  {0x721u, 0x1721u},
+                                  {0x722u, 0x1722u}});
         }
     };
 
@@ -52795,8 +52796,61 @@ void testDataLinkAdapterExport(TestContext& t) {
         textRow.m_cells.push_back(std::move(textCell));
         textContent.m_content.m_rows.push_back(std::move(textRow));
         source.tableContents.push_back(std::move(textContent));
+        DRW_Block_Record attributeBlockRecord;
+        attributeBlockRecord.handle = 0x730u;
+        attributeBlockRecord.parentHandle = 0x1u;
+        attributeBlockRecord.name = "TABLE_ATTRIBUTE_BLOCK";
+        source.blockRecords.push_back(attributeBlockRecord);
+        dx_ifaceBlock* attributeBlock = new dx_ifaceBlock();
+        attributeBlock->handle = 0x731u;
+        attributeBlock->parentHandle = attributeBlockRecord.handle;
+        attributeBlock->name = attributeBlockRecord.name;
+        auto* attributeDefinition = new DRW_Attdef();
+        attributeDefinition->handle = 0x732u;
+        attributeDefinition->parentHandle = attributeBlockRecord.handle;
+        attributeDefinition->tag = "TABLE_TAG";
+        attributeDefinition->text = "default attribute";
+        attributeBlock->ent.push_back(attributeDefinition);
+        source.blocks.push_back(attributeBlock);
+
+        DRW_TableContentObject attributeContent;
+        attributeContent.handle = 0x722u;
+        attributeContent.m_parseComplete = true;
+        attributeContent.m_semanticContentComplete = true;
+        attributeContent.m_content.m_name = "block attribute content";
+        attributeContent.m_content.m_description = "one block attribute";
+        attributeContent.m_content.m_columns.emplace_back();
+        attributeContent.m_content.m_columns.front().m_name = "Block";
+        DRW_TableRow attributeRow;
+        DRW_TableCell attributeCell;
+        DRW_TableCellContent blockValue;
+        blockValue.m_type = 4;
+        blockValue.m_handle = attributeBlockRecord.handle;
+        attributeCell.m_contents.push_back(blockValue);
+        DRW_TableCellAttribute attributeValue;
+        attributeValue.m_attdefHandle = attributeDefinition->handle;
+        attributeValue.m_index = 1;
+        attributeValue.m_text = "table cell attribute";
+        attributeValue.m_contentIndex = 0u;
+        attributeCell.m_attributes.push_back(attributeValue);
+        attributeRow.m_cells.push_back(attributeCell);
+        attributeContent.m_content.m_rows.push_back(attributeRow);
+        auto attributeMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        attributeMetadata->m_columns.resize(1u);
+        attributeMetadata->m_columns.front().m_style.m_type = 3;
+        attributeMetadata->m_rows.resize(1u);
+        attributeMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        attributeMetadata->m_rows.front().m_cells.resize(1u);
+        attributeMetadata->m_rows.front().m_cells.front().m_scope
+            .m_style.m_type = 1;
+        attributeMetadata->m_rows.front().m_cells.front()
+            .m_contentFormats.resize(1u);
+        attributeMetadata->m_tableStyle.m_type = 4;
+        attributeContent.m_dxfMetadata = std::move(attributeMetadata);
+        source.tableContents.push_back(std::move(attributeContent));
         source.standaloneTableContentPresent = true;
-        source.tableContentRetainedRecords = 2u;
+        source.tableContentRetainedRecords = 3u;
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -52900,6 +52954,28 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && invalidFormatMaskPreserved == sentinel,
                  "adapter refuses cell-style-only TABLECONTENT format flags without replacing destination");
         richContentFormat->m_propertyOverrideFlags = 0x1BFu;
+        DRW_TableCellAttribute& blockAttribute = source.tableContents[2]
+            .m_content.m_rows.front().m_cells.front().m_attributes.front();
+        blockAttribute.m_attdefHandle = 0x7FFFu;
+        const bool missingAttdefRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream missingAttdefInput(path, std::ios::binary);
+        const std::string missingAttdefPreserved(
+            (std::istreambuf_iterator<char>(missingAttdefInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(missingAttdefRefused && missingAttdefPreserved == sentinel,
+                 "adapter refuses TABLECONTENT attributes with a missing ATTDEF target");
+        blockAttribute.m_attdefHandle = attributeDefinition->handle;
+        attributeDefinition->parentHandle = 0x733u;
+        const bool wrongOwnerRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream wrongOwnerInput(path, std::ios::binary);
+        const std::string wrongOwnerPreserved(
+            (std::istreambuf_iterator<char>(wrongOwnerInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(wrongOwnerRefused && wrongOwnerPreserved == sentinel,
+                 "adapter refuses TABLECONTENT ATTDEF targets owned by another BLOCK_RECORD");
+        attributeDefinition->parentHandle = attributeBlockRecord.handle;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -53071,11 +53147,107 @@ void testDataLinkAdapterExport(TestContext& t) {
                 break;
         }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 2u
+                     && readback.tableContents.size() == 3u
                      && exactPointFields && exactDateFields
                      && exactContentFormatFields
                      && exactRichContentFormatFields,
                  "adapter emits linked TABLECONTENT and plain scalar, point, Date, and content-format values");
+        const DRW_TableContentObject* blockAttributeContent = nullptr;
+        for (const DRW_TableContentObject& value : readback.tableContents) {
+            if (value.handle == 0x1722u)
+                blockAttributeContent = &value;
+        }
+        const dx_ifaceBlock* emittedAttributeBlock = nullptr;
+        const DRW_Attdef* emittedAttributeDefinition = nullptr;
+        for (const dx_ifaceBlock* block : readback.blocks) {
+            if (block == nullptr || block->name != attributeBlockRecord.name)
+                continue;
+            emittedAttributeBlock = block;
+            for (const DRW_Entity* entity : block->ent) {
+                if (const auto* definition =
+                        dynamic_cast<const DRW_Attdef*>(entity))
+                    emittedAttributeDefinition = definition;
+            }
+        }
+        std::size_t blockContentBegin = outputFields.size();
+        std::size_t blockContentEnd = outputFields.size();
+        for (std::size_t i = 0u; i + 1u < outputFields.size(); ++i) {
+            if (outputFields[i] == std::make_pair(0, std::string("TABLECONTENT"))
+                && outputFields[i + 1u]
+                    == std::make_pair(5, std::string("1722"))) {
+                blockContentBegin = i + 1u;
+                blockContentEnd = blockContentBegin;
+                while (blockContentEnd < outputFields.size()
+                    && outputFields[blockContentEnd].first != 0)
+                    ++blockContentEnd;
+                break;
+            }
+        }
+        const auto handleFieldEquals = [&outputFields](std::size_t index,
+                int code, std::uint32_t expected) {
+            if (index >= outputFields.size()
+                || outputFields[index].first != code)
+                return false;
+            try {
+                return std::stoul(outputFields[index].second, nullptr, 16)
+                    == expected;
+            } catch (...) {
+                return false;
+            }
+        };
+        bool exactBlockAttributeFields = false;
+        if (blockContentBegin < blockContentEnd
+            && blockContentBegin + 8u < blockContentEnd
+            && emittedAttributeBlock != nullptr
+            && emittedAttributeDefinition != nullptr) {
+            for (std::size_t i = blockContentBegin; i + 8u < blockContentEnd; ++i) {
+                if (outputFields[i]
+                        != std::make_pair(302, std::string("CONTENT"))
+                    || outputFields[i + 1u]
+                        != std::make_pair(1,
+                            std::string("CELLCONTENT_BEGIN")))
+                    continue;
+                exactBlockAttributeFields =
+                    integerFieldEquals(outputFields[i + 2u], 90, 4)
+                    && handleFieldEquals(i + 3u, 340,
+                        emittedAttributeBlock->parentHandle)
+                    && integerFieldEquals(outputFields[i + 4u], 91, 1)
+                    && handleFieldEquals(i + 5u, 330,
+                        emittedAttributeDefinition->handle)
+                    && outputFields[i + 6u]
+                        == std::make_pair(301,
+                            std::string("table cell attribute"))
+                    && integerFieldEquals(outputFields[i + 7u], 92, 1)
+                    && outputFields[i + 8u]
+                        == std::make_pair(309,
+                            std::string("CELLCONTENT_END"));
+                break;
+            }
+        }
+        bool blockAttributeReadback = false;
+        if (blockAttributeContent != nullptr
+            && emittedAttributeBlock != nullptr
+            && emittedAttributeDefinition != nullptr) {
+            const DRW_TableCell& actualCell = blockAttributeContent->m_content
+                .m_rows.front().m_cells.front();
+            blockAttributeReadback = actualCell.m_contents.size() == 1u
+                && actualCell.m_contents.front().m_type == 4
+                && actualCell.m_contents.front().m_handle
+                    == emittedAttributeBlock->parentHandle
+                && actualCell.m_attributes.size() == 1u
+                && actualCell.m_attributes.front().m_attdefHandle
+                    == emittedAttributeDefinition->handle
+                && actualCell.m_attributes.front().m_contentIndex == 0u
+                && actualCell.m_attributes.front().m_index == 1
+                && actualCell.m_attributes.front().m_text
+                    == "table cell attribute"
+                && emittedAttributeDefinition->parentHandle
+                    == emittedAttributeBlock->parentHandle;
+        }
+        t.expect(exactBlockAttributeFields && blockAttributeReadback,
+                 binary
+                     ? "binary TABLECONTENT block cell emits exact remapped ATTDEF fields and reads back ownership"
+                     : "ASCII TABLECONTENT block cell emits exact remapped ATTDEF fields and reads back ownership");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -53101,7 +53273,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
-        if (readback.tableContents.size() == 2u) {
+        if (readback.tableContents.size() == 3u) {
             const DRW_TableContentObject* linked = nullptr;
             const DRW_TableContentObject* plainText = nullptr;
             for (const DRW_TableContentObject& value : readback.tableContents) {
