@@ -1275,6 +1275,11 @@ if(LIBDXFRW_BUILD_TESTS)
             --associative-dimension-dependency-body)
     set_tests_properties(libdxfrw_associative_dimension_dependency_body PROPERTIES
         LABELS "fast;dwg;object-vectors;associative;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_associative_dependency_fields
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --associative-dependency-fields)
+    set_tests_properties(libdxfrw_associative_dependency_fields PROPERTIES
+        LABELS "fast;dwg;object-vectors;associative;generated" TIMEOUT 10)
     add_test(NAME libdxfrw_table_break_data_flag_domain
         COMMAND libdxfrw_dwg_object_vectors_tests
             --table-break-data-flag-domain)

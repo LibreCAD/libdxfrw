@@ -901,6 +901,85 @@ struct AssociativeDimensionDependencyBodyFrame {
     std::uint64_t bodyStartBit {0};
 };
 
+struct AssociativeDependencyFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits {0};
+    std::uint64_t bodyStartBit {0};
+};
+
+bool makeAssociativeDependencyFrame(
+        bool isReadDependency, bool isWriteDependency,
+        bool isAttachedToObject, bool isDelegatingToOwningAction,
+        bool namePresent, const UTF8STRING& name, std::int32_t bodyId,
+        AssociativeDependencyFrame& frame, bool malformedName = false) {
+    const DRW::Version version = DRW::AC1024;
+    DRW_TextCodec codec;
+    codec.setVersion(version, false);
+    dwgBufferW object(&codec), body(&codec), strings(&codec), handles(&codec);
+
+    body.putBitShort(2u); // dependency class version
+    body.putBitLong(0x123456); // status
+    body.putBit(isReadDependency ? 1u : 0u);
+    body.putBit(isWriteDependency ? 1u : 0u);
+    body.putBit(isAttachedToObject ? 1u : 0u);
+    body.putBit(isDelegatingToOwningAction ? 1u : 0u);
+    body.putBitLong(17); // order
+    body.putBit(namePresent ? 1u : 0u);
+    if (namePresent) {
+        if (malformedName)
+            strings.putBitShort(512); // truncated detached UTF-16 string
+        else
+            strings.putVariableText(version, name);
+    }
+    body.putBitLong(bodyId);
+    body.put3Bits(0b101u);
+
+    object.putObjType(version, 518u);
+    dwgHandle objectHandle;
+    objectHandle.ref = 0xA100u;
+    object.putHandle(objectHandle);
+    object.putBitShort(0u); // no EED
+    object.putBitLong(0); // no reactors
+    object.putBit(1u); // no extension dictionary
+    frame.bodyStartBit = object.bitCount();
+    appendBits(object, body);
+    object.alignToByte();
+
+    strings.alignToByte();
+    object.putBytes(strings.data().data(), strings.size());
+    for (int bit = 0; bit < 7; ++bit)
+        object.putBit(0u);
+    const std::uint64_t stringBitSize = strings.size() * 8u + 7u;
+    if (stringBitSize > std::numeric_limits<std::uint16_t>::max())
+        return false;
+    object.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
+    object.putBit(1u); // bounded R2007+ string stream
+
+    const auto putHandle = [&handles](std::uint8_t code,
+                                      std::uint32_t reference) {
+        dwgHandle handle;
+        handle.code = code;
+        handle.size = 2u;
+        handle.ref = reference;
+        handle.ref64 = reference;
+        handles.putHandle(handle);
+    };
+    putHandle(DRW::DwgHardOwnership, 0xA200u); // common owner
+    putHandle(DRW::DwgSoftPointer, 0xA210u); // dependent_on
+    putHandle(DRW::DwgSoftPointer, 0xA211u); // read_dependency
+    putHandle(DRW::DwgSoftPointer, 0xA212u); // node
+    putHandle(DRW::DwgHardOwnership, 0xA213u); // dependency_body
+    putHandle(DRW::DwgSoftPointer, 0xA214u); // following-handle sentinel
+    handles.alignToByte();
+    if (!object.isGood() || !handles.isGood()
+        || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    frame.handleBits = static_cast<std::uint32_t>(handles.bitCount());
+    appendBits(object, handles);
+    frame.bytes = object.data();
+    return object.isGood();
+}
+
 bool makeAssociativeDimensionDependencyBodyFrame(
         DRW::Version version, std::int16_t dependencyBodyVersion,
         std::int16_t dimBaseVersion, const UTF8STRING& name,
@@ -1685,6 +1764,186 @@ void testAssociativeDimensionDependencyBody(TestContext& t) {
                  && parsed.name == sourceName
                  && parsed.m_classVersion == 1u,
              "valid dependency-body retry succeeds after rejected input");
+}
+
+void testAssociativeDependencyFields(TestContext& t) {
+    struct Case {
+        bool isRead;
+        bool isWrite;
+        bool isAttached;
+        bool isDelegating;
+        bool namePresent;
+        UTF8STRING name;
+        std::int32_t bodyId;
+        const char* label;
+    };
+    const Case cases[] = {
+        {true, false, true, true, true, "dimension dependency", 31,
+         "populated optional name"},
+        {false, false, false, false, false, "", 0,
+         "absent optional name"},
+        {false, true, false, true, true, "", -7,
+         "present empty optional name"}
+    };
+
+    struct ParseResult {
+        bool read;
+        bool good;
+        int sentinel;
+        bool goodAfterSentinel;
+    };
+    const auto parse = [](const AssociativeDependencyFrame& frame,
+                          AssociativeCodecProbe& object) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1024, false);
+        dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+        const bool read = object.parseDwg(
+            DRW::AC1024, &input, frame.handleBits);
+        const bool good = input.isGood();
+        const int sentinel = good ? input.get3Bits() : -1;
+        return ParseResult{read, good, sentinel, input.isGood()};
+    };
+
+    for (const Case& item : cases) {
+        AssociativeDependencyFrame frame;
+        const bool built = makeAssociativeDependencyFrame(
+            item.isRead, item.isWrite, item.isAttached, item.isDelegating,
+            item.namePresent, item.name, item.bodyId, frame);
+        const std::string label = std::string("AC1024 dependency ")
+            + item.label;
+        t.expect(built, label + " generated frame builds");
+        if (!built)
+            continue;
+
+        AssociativeCodecProbe parsed("ACDBASSOCDEPENDENCY");
+        const ParseResult result = parse(frame, parsed);
+        const bool fieldsMatch = result.read && result.good
+            && parsed.m_dependencyFieldsParsed
+            && parsed.m_classVersion == 2u
+            && parsed.m_status == 0x123456
+            && parsed.m_dependencyIsRead == item.isRead
+            && parsed.m_dependencyIsWrite == item.isWrite
+            && parsed.m_dependencyIsAttachedToObject == item.isAttached
+            && parsed.m_dependencyIsDelegatingToOwningAction
+                == item.isDelegating
+            && parsed.m_dependencyOrder == 17
+            && parsed.m_dependencyNamePresent == item.namePresent
+            && parsed.m_dependencyName == item.name
+            && parsed.m_dependencyHandle == 0xA210u
+            && parsed.m_readDependencyHandle == 0xA211u
+            && parsed.m_dependencyNodeHandle == 0xA212u
+            && parsed.m_writeDependencyHandle == 0xA212u
+            && parsed.m_dependencyBodyHandle == 0xA213u
+            && parsed.m_dependencyBodyId == item.bodyId
+            && parsed.parentHandle == 0xA200u
+            && parsed.m_prefixStatuses.size() == 1u
+            && parsed.m_prefixStatuses.front().m_status
+                == DRW_AssociativePrefixStatus::ParseStatus::Complete
+            && parsed.m_prefixStatuses.front().m_decodedHandleCount == 4u
+            && result.sentinel == 0b101u && result.goodAfterSentinel;
+        t.expect(fieldsMatch, label + " retains all fields and reaches body sentinel");
+
+        DRW_TextCodec oracleCodec;
+        oracleCodec.setVersion(DRW::AC1024, false);
+        dwgBuffer bodyOracle(frame.bytes.data(), frame.bytes.size(),
+                             &oracleCodec);
+        const bool positioned = setBitPosition(bodyOracle, frame.bodyStartBit);
+        const auto rawClassVersion = bodyOracle.getBitShort();
+        const auto rawStatus = bodyOracle.getBitLong();
+        const bool rawIsRead = bodyOracle.getBit() != 0;
+        const bool rawIsWrite = bodyOracle.getBit() != 0;
+        const bool rawAttached = bodyOracle.getBit() != 0;
+        const bool rawDelegating = bodyOracle.getBit() != 0;
+        const auto rawOrder = bodyOracle.getBitLong();
+        const bool rawNamePresent = bodyOracle.getBit() != 0;
+        const auto rawBodyId = bodyOracle.getBitLong();
+        const int rawSentinel = bodyOracle.get3Bits();
+        t.expect(positioned && bodyOracle.isGood()
+                     && rawClassVersion == 2u
+                     && rawStatus == 0x123456
+                     && rawIsRead == item.isRead
+                     && rawIsWrite == item.isWrite
+                     && rawAttached == item.isAttached
+                     && rawDelegating == item.isDelegating
+                     && rawOrder == 17
+                     && rawNamePresent == item.namePresent
+                     && rawBodyId == item.bodyId && rawSentinel == 0b101,
+                 label + " independent body walk confirms wire order");
+
+        if (fieldsMatch) {
+            AssociativeCodecProbe copied(parsed);
+            AssociativeCodecProbe assigned("ACDBASSOCDEPENDENCY");
+            assigned = parsed;
+            const auto copyMatches = [&](const AssociativeCodecProbe& value) {
+                return value.m_dependencyFieldsParsed
+                    && value.m_status == 0x123456
+                    && value.m_dependencyIsRead == item.isRead
+                    && value.m_dependencyIsWrite == item.isWrite
+                    && value.m_dependencyIsAttachedToObject == item.isAttached
+                    && value.m_dependencyIsDelegatingToOwningAction
+                        == item.isDelegating
+                    && value.m_dependencyOrder == 17
+                    && value.m_dependencyNamePresent == item.namePresent
+                    && value.m_dependencyName == item.name
+                    && value.m_dependencyHandle == 0xA210u
+                    && value.m_readDependencyHandle == 0xA211u
+                    && value.m_writeDependencyHandle == 0xA212u
+                    && value.m_dependencyNodeHandle == 0xA212u
+                    && value.m_dependencyBodyHandle == 0xA213u
+                    && value.m_dependencyBodyId == item.bodyId
+                    && value.parentHandle == 0xA200u;
+            };
+            t.expect(copyMatches(copied) && copyMatches(assigned),
+                     label + " fields survive copy and assignment");
+        }
+    }
+
+    AssociativeDependencyFrame validFrame;
+    const bool validBuilt = makeAssociativeDependencyFrame(
+        true, false, true, false, true, "retry-name", 42, validFrame);
+    AssociativeDependencyFrame malformedFrame;
+    const bool malformedBuilt = makeAssociativeDependencyFrame(
+        true, false, true, false, true, "retry-name", 42,
+        malformedFrame, true);
+    t.expect(validBuilt && malformedBuilt,
+             "dependency field rollback and retry frames build");
+    if (!validBuilt || !malformedBuilt)
+        return;
+
+    AssociativeCodecProbe parsed("ACDBASSOCDEPENDENCY");
+    const ParseResult validResult = parse(validFrame, parsed);
+    t.expect(validResult.read && validResult.good
+                 && parsed.m_dependencyFieldsParsed
+                 && parsed.m_dependencyName == "retry-name",
+             "valid dependency baseline is retained before malformed retry");
+
+    const ParseResult malformedResult = parse(malformedFrame, parsed);
+    t.expect(!malformedResult.read && !malformedResult.good
+                 && !parsed.m_dependencyFieldsParsed
+                 && !parsed.m_dependencyIsRead
+                 && !parsed.m_dependencyIsWrite
+                 && !parsed.m_dependencyIsAttachedToObject
+                 && !parsed.m_dependencyIsDelegatingToOwningAction
+                 && parsed.m_status == 0
+                 && parsed.m_dependencyOrder == 0
+                 && !parsed.m_dependencyNamePresent
+                 && parsed.m_dependencyName.empty()
+                 && parsed.m_dependencyHandle == 0u
+                 && parsed.m_readDependencyHandle == 0u
+                 && parsed.m_writeDependencyHandle == 0u
+                 && parsed.m_dependencyNodeHandle == 0u
+                 && parsed.m_dependencyBodyHandle == 0u
+                 && parsed.m_dependencyBodyId == 0
+                 && parsed.m_prefixStatuses.empty(),
+             "truncated optional name clears dependency fields atomically");
+
+    const ParseResult retryResult = parse(validFrame, parsed);
+    t.expect(retryResult.read && retryResult.good
+                 && parsed.m_dependencyFieldsParsed
+                 && parsed.m_dependencyNamePresent
+                 && parsed.m_dependencyName == "retry-name"
+                 && parsed.m_dependencyBodyId == 42,
+             "valid dependency retry succeeds after rejected name stream");
 }
 
 struct DbColorFrame {
@@ -16849,6 +17108,14 @@ int main(int argc, char** argv) {
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--associative-dependency-fields") {
+        TestContext context;
+        testAssociativeDependencyFields(context);
+        std::cout << "Associative dependency base fields: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--dbcolor-unsupported-method-refusal") {
         TestContext context;
         testDbColorUnsupportedMethodRefusal(context);
@@ -17334,6 +17601,7 @@ int main(int argc, char** argv) {
     testPersistentManagerExactFooter(context);
     testAssociativeActionUnsupportedValueKinds(context);
     testAssociativeDimensionDependencyBody(context);
+    testAssociativeDependencyFields(context);
     testEnColorReservedFlagsRefusal(context);
     testDbColorUnsupportedMethodRefusal(context);
     testMLineStyleCmcRetention(context);

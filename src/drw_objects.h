@@ -7258,9 +7258,21 @@ public:
   std::uint32_t m_dependencyHandle = 0;
   std::uint32_t m_readDependencyHandle = 0;
   std::uint32_t m_writeDependencyHandle = 0;
+  // Completed AcDbAssocDependency body prefix. Name presence is separate from
+  // its string value so absent and explicitly empty names remain distinct.
+  bool m_dependencyFieldsParsed = false;
+  bool m_dependencyIsRead = false;
+  bool m_dependencyIsWrite = false;
+  bool m_dependencyIsAttachedToObject = false;
+  bool m_dependencyIsDelegatingToOwningAction = false;
+  std::int32_t m_dependencyOrder = 0;
+  bool m_dependencyNamePresent = false;
+  UTF8STRING m_dependencyName;
+  std::uint32_t m_dependencyNodeHandle = 0;
   // ACDBASSOCDEPENDENCY's explicit dep_body handle, kept distinct from its
   // owner and read/write dependency references for graph closure.
   std::uint32_t m_dependencyBodyHandle = 0;
+  std::int32_t m_dependencyBodyId = 0;
   std::uint32_t m_rNodeHandle = 0;
   std::uint32_t m_dNodeHandle = 0;
   std::int32_t m_status = 0;
@@ -7315,7 +7327,18 @@ private:
     m_dependencyHandle = o.m_dependencyHandle;
     m_readDependencyHandle = o.m_readDependencyHandle;
     m_writeDependencyHandle = o.m_writeDependencyHandle;
+    m_dependencyFieldsParsed = o.m_dependencyFieldsParsed;
+    m_dependencyIsRead = o.m_dependencyIsRead;
+    m_dependencyIsWrite = o.m_dependencyIsWrite;
+    m_dependencyIsAttachedToObject = o.m_dependencyIsAttachedToObject;
+    m_dependencyIsDelegatingToOwningAction =
+        o.m_dependencyIsDelegatingToOwningAction;
+    m_dependencyOrder = o.m_dependencyOrder;
+    m_dependencyNamePresent = o.m_dependencyNamePresent;
+    m_dependencyName = o.m_dependencyName;
+    m_dependencyNodeHandle = o.m_dependencyNodeHandle;
     m_dependencyBodyHandle = o.m_dependencyBodyHandle;
+    m_dependencyBodyId = o.m_dependencyBodyId;
     m_rNodeHandle = o.m_rNodeHandle;
     m_dNodeHandle = o.m_dNodeHandle;
     m_status = o.m_status;

@@ -25495,7 +25495,17 @@ void DRW_AssociativeObject::reset() {
     m_dependencyHandle = 0;
     m_readDependencyHandle = 0;
     m_writeDependencyHandle = 0;
+    m_dependencyFieldsParsed = false;
+    m_dependencyIsRead = false;
+    m_dependencyIsWrite = false;
+    m_dependencyIsAttachedToObject = false;
+    m_dependencyIsDelegatingToOwningAction = false;
+    m_dependencyOrder = 0;
+    m_dependencyNamePresent = false;
+    m_dependencyName.clear();
+    m_dependencyNodeHandle = 0;
     m_dependencyBodyHandle = 0;
+    m_dependencyBodyId = 0;
     m_rNodeHandle = 0;
     m_dNodeHandle = 0;
     m_status = 0;
@@ -25937,12 +25947,12 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::int32_t classVersion = 0;
         std::int32_t status = 0;
         std::int32_t order = 0;
-        bool ignoredReadDependency = false;
-        bool ignoredWriteDependency = false;
-        bool ignoredAttachedToObject = false;
-        bool ignoredDelegatingToOwningAction = false;
+        bool isReadDependency = false;
+        bool isWriteDependency = false;
+        bool isAttachedToObject = false;
+        bool isDelegatingToOwningAction = false;
         bool hasName = false;
-        UTF8STRING ignoredName;
+        UTF8STRING dependencyName;
         std::uint32_t dependencyHandle = 0;
         std::uint32_t readDependencyHandle = 0;
         std::uint32_t nodeHandle = 0;
@@ -25955,19 +25965,19 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             && classVersion >= 0 && classVersion <= 3
             && readBitLongWithinBody(&bodyProbe, version, objectDataEnd, status)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
-                                 ignoredReadDependency)
+                                 isReadDependency)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
-                                 ignoredWriteDependency)
+                                 isWriteDependency)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
-                                 ignoredAttachedToObject)
+                                 isAttachedToObject)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
-                                 ignoredDelegatingToOwningAction)
+                                 isDelegatingToOwningAction)
             && readBitLongWithinBody(&bodyProbe, version, objectDataEnd, order)
             && readHandleTransactional(&handleProbe, dependencyHandle)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd, hasName)
             && (!hasName || readVariableTextWithinBounds(
                 &bodyProbe, textProbe, version, boundedBodyEnd,
-                stringDataEnd, ignoredName))
+                stringDataEnd, dependencyName))
             && readHandleTransactional(&handleProbe, readDependencyHandle)
             && readHandleTransactional(&handleProbe, nodeHandle)
             && readHandleTransactional(&handleProbe, dependencyBodyHandle)
@@ -25986,11 +25996,22 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             hBuff = handleProbe;
             m_classVersion = static_cast<std::uint16_t>(classVersion);
             m_status = status;
+            m_dependencyFieldsParsed = true;
+            m_dependencyIsRead = isReadDependency;
+            m_dependencyIsWrite = isWriteDependency;
+            m_dependencyIsAttachedToObject = isAttachedToObject;
+            m_dependencyIsDelegatingToOwningAction =
+                isDelegatingToOwningAction;
+            m_dependencyOrder = order;
+            m_dependencyNamePresent = hasName;
+            m_dependencyName = std::move(dependencyName);
             m_dependencyHandle = dependencyHandle;
             m_readDependencyHandle = readDependencyHandle;
+            m_dependencyNodeHandle = nodeHandle;
             m_dependencyBodyHandle = dependencyBodyHandle;
-            // The legacy carrier has no separate node/dependency-body fields;
-            // retain the historical public mapping for the first two refs.
+            m_dependencyBodyId = dependencyBodyId;
+            // Preserve the historical public alias while retaining the exact
+            // node and dependency-body references in their dedicated fields.
             m_writeDependencyHandle = nodeHandle;
         }
         appendPrefixStatus(

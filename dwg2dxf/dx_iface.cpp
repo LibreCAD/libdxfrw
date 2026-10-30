@@ -12227,6 +12227,8 @@ bool estimateAssociativeTypedBytes(
                 sizeof(std::list<DRW_Variant>), estimate)
         || !addAssociativeRetainedBytes(object.m_recordName.size() + 1u,
                                         estimate)
+        || !addAssociativeRetainedBytes(object.m_dependencyName.size() + 1u,
+                                        estimate)
         || !addAssociativeSlotBytes(object.m_dependencies.size(),
                 sizeof(DRW_AssociativeHandleRef), estimate)
         || !addAssociativeSlotBytes(object.m_actions.size(),

@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — recursive graph/output closure | Close recursive graph dependencies not yet covered by source-matched providers, then serialize and read back the complete reachable graph with source identities and required fields bound to actual output records. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — associative output and recursive closure | Implement source-to-emitted identity/field binding and handle remapping for source-closed associative profiles; close additional descendants when the selected output profile actually reaches them, then verify the complete admitted graph by readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -69,31 +69,29 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Source admission:** admit additional associative body,
-   action-dependency, or owned-parameter grammar only when a physical source
-   witness identifies a nonempty or mismatched profile. For each new profile,
-   prove its class, target type, owner route, and exact fields before decoding;
-   reuse qualified source providers and reopen them only when a new physical
-   witness reproduces a mismatch. Apply duplicate-ID, missing-target,
-   expected-type, common-owner, reciprocal-edge, bounded-work and cycle checks
-   only where the witnessed profile requires them. Keep version-2 nonzero-seed
-   registry layouts raw until their framing is proven. Keep investigation DWGs
-   out of committed fixtures; bind regressions to eligible repository inputs or
-   locally authored fixtures.
-2. **Associative output:** bind source identity and required fields to actual
-   emitted object records, remap every edge consistently, and retain strict
-   refusal until the complete reachable graph is serialized and verified by
-   readback. Do not emit a partial graph or infer edges from adjacent handle
-   values.
-3. **Recursive closure:** resolve each required object's dependencies, including
-   dictionaries, XRECORDs, groups, layouts, picture blocks, nested INSERTs,
-   attributes, compound children and effective SORT order. Distinguish legal
-   reference cycles from invalid ownership and enforce bounded work once.
-4. **Identity and output:** bind source → planned → emitted identities, fields and
-   edges, including generated records and collisions. Keep 320–329 values as
-   payload unless an independently identified role proves otherwise. Verify actual
-   staged output rather than planned records alone.
-5. **Failure behavior:** reject missing reachable bodies, wrong owners/types/roles,
+1. **Source admission:** open another associative parser/schema packet only when
+   a physical source identifies a required nonempty or mismatched body,
+   action-dependency, owned-parameter, or versioned-registry profile. Prove its
+   class, target role, owner route, fields and bounded span before decoding; reuse
+   qualified providers. Keep version-2 nonzero-seed registry layouts raw until
+   their framing is proven. Keep investigation DWGs out of committed fixtures;
+   bind regressions to eligible repository inputs or locally authored fixtures.
+2. **Associative output and identity:** source-match required fields for each
+   emitted record and add only model fields proven missing by that profile; bind
+   source → planned → emitted identities and edges (including generated records
+   and collisions), remap all references, and verify actual staged output by
+   independent field inspection and readback. The immediate
+   implementation packet is source-record binding and serialization for the
+   audited AC1024 associative dependency and node profiles, retaining strict
+   refusal wherever a required descendant is unsupported. Do not emit a partial
+   graph or infer edges from adjacent handle values.
+3. **Recursive closure:** when output reaches a dependency without a qualified
+   provider, resolve that source-required role and its descendants. Reuse existing
+   dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,
+   compound-child and SORT-order providers; add only the missing edge/profile.
+   Distinguish legal reference cycles from invalid ownership and enforce bounded
+   work once.
+4. **Failure behavior:** reject missing reachable bodies, wrong owners/types/roles,
    aliases and late mutation where they invalidate the claimed conversion. Verify
    published-prefix behavior, destination/caller state, temporary cleanup and
    corrected retry.
@@ -148,7 +146,7 @@ receipt and code path already agree.
 | Geometry and clipping | SPLINE/NURBS/ELLIPSE/OCS/polyface/mesh semantics, completed-pool/domain validation and SPATIAL_FILTER/clipping beyond local field checks. |
 | Units and inheritance | LTYPE units/group-9 profiles, UCS base relations, transparency/ByLayer/ByBlock meaning, SCALE annotation/version/API boundaries and Template description/survey policies. |
 | Text and identity | Codepage/alias/recovery/header-order/opaque-text profiles; checked wide-identity rejection and additive API design; AC1012 DXF-output scope. |
-| Unknown/proxy/associative data | Version/edit/cache safety, unknown nested tables and associative replay. Additional proxy primitives need independent semantics, not cache-byte agreement. |
+| Unknown/proxy data | Version/edit/cache safety and unknown nested tables. Additional proxy primitives need independent semantics, not cache-byte agreement. Associative output and replay belong to P4. |
 | Safety and caller state | Residual copy/assembly/work/allocator bounds, diagnostics, rollback after published prefixes, source lifetime, platform numeric/string policy and scoped concurrency. |
 | CLI and oracle contracts | Exact option/overwrite admission, bounded batch results, output kinds, namespace/collision checks, partial-read diagnostics, pre-setup projections and implicit default/repair/skip/mask reporting. |
 
