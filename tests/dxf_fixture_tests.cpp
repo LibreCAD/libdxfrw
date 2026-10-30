@@ -52849,6 +52849,44 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
         setBlockCell(1u, 1u, blockRecordHandles[1]);
         source.tableContents.push_back(std::move(table));
 
+        DRW_TableContentObject repeatedBlockTable;
+        repeatedBlockTable.handle = 0x832u;
+        repeatedBlockTable.m_parseComplete = true;
+        repeatedBlockTable.m_semanticContentComplete = true;
+        repeatedBlockTable.m_content.m_name =
+            "repeated block content cell";
+        repeatedBlockTable.m_content.m_description =
+            "two identical block references followed by a string";
+        repeatedBlockTable.m_content.m_columns.resize(2u);
+        repeatedBlockTable.m_content.m_columns[0].m_name = "Blocks";
+        repeatedBlockTable.m_content.m_columns[1].m_name = "Scalar";
+        repeatedBlockTable.m_content.m_rows.resize(1u);
+        repeatedBlockTable.m_content.m_rows[0].m_cells.resize(2u);
+        DRW_TableCell& repeatedBlockCell =
+            repeatedBlockTable.m_content.m_rows[0].m_cells[0];
+        for (std::size_t index = 0u; index < 2u; ++index) {
+            DRW_TableCellContent blockContent;
+            blockContent.m_type = 4;
+            blockContent.m_handle = blockRecordHandles[0];
+            repeatedBlockCell.m_contents.push_back(std::move(blockContent));
+        }
+        DRW_TableCellContent repeatedBlockText;
+        repeatedBlockText.m_type = 1;
+        repeatedBlockText.m_text = "Cell with 2 blocks";
+        repeatedBlockText.m_value.m_dataType = 4;
+        repeatedBlockText.m_value.m_value.addString(
+            1, repeatedBlockText.m_text);
+        repeatedBlockCell.m_contents.push_back(std::move(repeatedBlockText));
+        DRW_TableCell& repeatedScalarCell =
+            repeatedBlockTable.m_content.m_rows[0].m_cells[1];
+        DRW_TableCellContent repeatedScalar;
+        repeatedScalar.m_type = 1;
+        repeatedScalar.m_text = "plain peer cell";
+        repeatedScalar.m_value.m_dataType = 4;
+        repeatedScalar.m_value.m_value.addString(1, repeatedScalar.m_text);
+        repeatedScalarCell.m_contents.push_back(std::move(repeatedScalar));
+        source.tableContents.push_back(std::move(repeatedBlockTable));
+
         const std::string sentinel = "table block-grid sentinel\n";
         const auto readFileBytes = [](const std::filesystem::path& file) {
             std::ifstream input(file, std::ios::binary);
@@ -52869,6 +52907,15 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
             path.string(), DRW::AC1027, binary, &source, false);
         const std::string missingPreserved = readFileBytes(path);
         firstBlockContent.m_handle = blockRecordHandles[0];
+
+        DRW_TableCellContent& secondRepeatedBlockContent =
+            source.tableContents.back().m_content.m_rows[0]
+                .m_cells[0].m_contents[1];
+        secondRepeatedBlockContent.m_handle = 0x7FFEu;
+        const bool missingRepeatedBlockRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        const std::string missingRepeatedPreserved = readFileBytes(path);
+        secondRepeatedBlockContent.m_handle = blockRecordHandles[0];
 
         const std::uint32_t originalOwner = source.blocks.front()->parentHandle;
         source.blocks.front()->parentHandle = blockRecordHandles[1];
@@ -52912,9 +52959,13 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
             && reader.fileImport(path.string(), &readback, false);
         const auto outputFields = materialBodyControls::physicalTags(path, binary);
         const DRW_TableContentObject* emittedTable = nullptr;
+        const DRW_TableContentObject* emittedRepeatedBlockTable = nullptr;
         for (const DRW_TableContentObject& candidate : readback.tableContents) {
             if (candidate.m_content.m_name == "block content grid")
                 emittedTable = &candidate;
+            if (candidate.m_content.m_name
+                == "repeated block content cell")
+                emittedRepeatedBlockTable = &candidate;
         }
         std::array<std::uint32_t, 2> emittedBlockRecords = {};
         std::array<std::uint32_t, 2> emittedAttributeDefinitions = {};
@@ -53045,6 +53096,114 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
             && wireBlockTargets[0] == emittedBlockRecords[0]
             && wireBlockTargets[1] == emittedBlockRecords[1];
 
+        bool exactRepeatedBlockContentWire = false;
+        if (emittedRepeatedBlockTable != nullptr) {
+            std::size_t repeatedBegin = outputFields.size();
+            std::size_t repeatedEnd = outputFields.size();
+            for (std::size_t index = 0u; index + 1u < outputFields.size();
+                 ++index) {
+                if (outputFields[index]
+                        != std::make_pair(0, std::string("TABLECONTENT")))
+                    continue;
+                std::uint32_t candidateHandle = 0u;
+                if (!handleFieldValue(outputFields, index + 1u, 5,
+                        candidateHandle)
+                    || candidateHandle != emittedRepeatedBlockTable->handle)
+                    continue;
+                repeatedBegin = index + 1u;
+                repeatedEnd = repeatedBegin;
+                while (repeatedEnd < outputFields.size()
+                    && outputFields[repeatedEnd].first != 0)
+                    ++repeatedEnd;
+                break;
+            }
+            std::vector<std::uint32_t> repeatedWireTargets;
+            std::size_t repeatedScalarCount = 0u;
+            bool exactRepeatedBlockContentCount = false;
+            exactRepeatedBlockContentWire = repeatedBegin < repeatedEnd;
+            if (exactRepeatedBlockContentWire) {
+                for (std::size_t index = repeatedBegin;
+                     index + 1u < repeatedEnd; ++index) {
+                    if (outputFields[index]
+                            != std::make_pair(1,
+                                std::string(
+                                    "LINKEDTABLEDATACELL_BEGIN")))
+                        continue;
+                    for (std::size_t member = index + 1u;
+                         member < repeatedEnd; ++member) {
+                        if (outputFields[member]
+                            == std::make_pair(302,
+                                std::string("CONTENT")))
+                            break;
+                        if (outputFields[member].first == 95) {
+                            exactRepeatedBlockContentCount =
+                                integerFieldEquals(outputFields[member],
+                                    95, 3);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                std::size_t contentCount = 0u;
+                for (std::size_t index = repeatedBegin;
+                     index + 2u < repeatedEnd; ++index) {
+                    if (outputFields[index]
+                            != std::make_pair(302,
+                                std::string("CONTENT"))
+                        || outputFields[index + 1u]
+                            != std::make_pair(1,
+                                std::string("CELLCONTENT_BEGIN")))
+                        continue;
+                    ++contentCount;
+                    if (!integerFieldEquals(outputFields[index + 2u],
+                            90, contentCount < 3u ? 4 : 1)) {
+                        exactRepeatedBlockContentWire = false;
+                        break;
+                    }
+                    if (contentCount < 3u) {
+                        std::uint32_t target = 0u;
+                        if (index + 4u >= repeatedEnd
+                            || !handleFieldValue(outputFields, index + 3u,
+                                340, target)
+                            || !integerFieldEquals(outputFields[index + 4u],
+                                91, 0)) {
+                            exactRepeatedBlockContentWire = false;
+                            break;
+                        }
+                        repeatedWireTargets.push_back(target);
+                    } else {
+                        const std::string expectedText = contentCount == 3u
+                            ? "Cell with 2 blocks" : "plain peer cell";
+                        bool foundExpectedText = false;
+                        for (std::size_t member = index + 3u;
+                             member < repeatedEnd
+                                && outputFields[member]
+                                    != std::make_pair(302,
+                                        std::string("CONTENT"));
+                             ++member) {
+                            foundExpectedText = foundExpectedText
+                                || outputFields[member]
+                                    == std::make_pair(1,
+                                        expectedText);
+                        }
+                        if (!foundExpectedText) {
+                            exactRepeatedBlockContentWire = false;
+                            break;
+                        }
+                        ++repeatedScalarCount;
+                    }
+                }
+                exactRepeatedBlockContentWire =
+                    exactRepeatedBlockContentWire
+                    && exactRepeatedBlockContentCount
+                    && contentCount == 4u
+                    && repeatedScalarCount == 2u
+                    && repeatedWireTargets.size() == 2u
+                    && repeatedWireTargets[0] == emittedBlockRecords[0]
+                    && repeatedWireTargets[1] == emittedBlockRecords[0];
+            }
+        }
+
         bool typedGridReadback = false;
         if (emittedTable != nullptr && emittedBlocks[0] && emittedBlocks[1]
             && emittedTable->m_content.m_rows.size() == 2u
@@ -53083,18 +53242,56 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
                 && secondScalarCell.m_contents.front().m_text
                     == "second row scalar";
         }
+        bool typedRepeatedBlockReadback = false;
+        if (emittedRepeatedBlockTable != nullptr
+            && emittedBlockRecords[0] != 0u
+            && emittedRepeatedBlockTable->m_content.m_rows.size() == 1u
+            && emittedRepeatedBlockTable->m_content.m_columns.size() == 2u) {
+            const DRW_TableRow& repeatedRow =
+                emittedRepeatedBlockTable->m_content.m_rows.front();
+            if (repeatedRow.m_cells.size() == 2u) {
+                const DRW_TableCell& repeatedCell = repeatedRow.m_cells[0];
+                const DRW_TableCell& scalarCell = repeatedRow.m_cells[1];
+                typedRepeatedBlockReadback =
+                    repeatedCell.m_contents.size() == 3u
+                    && repeatedCell.m_attributes.empty()
+                    && repeatedCell.m_contents[0].m_type == 4
+                    && repeatedCell.m_contents[0].m_handle
+                        == emittedBlockRecords[0]
+                    && repeatedCell.m_contents[1].m_type == 4
+                    && repeatedCell.m_contents[1].m_handle
+                        == emittedBlockRecords[0]
+                    && repeatedCell.m_contents[2].m_type == 1
+                    && repeatedCell.m_contents[2].m_text
+                        == "Cell with 2 blocks"
+                    && scalarCell.m_contents.size() == 1u
+                    && scalarCell.m_contents.front().m_type == 1
+                    && scalarCell.m_contents.front().m_text
+                        == "plain peer cell";
+            }
+        }
         t.expect(missingBlockRefused && missingPreserved == sentinel
                      && wrongOwnerRefused
                      && wrongOwnerPreserved == sentinel
                      && missingAttdefRefused
                      && missingAttdefPreserved == sentinel
                      && wrongAttdefOwnerRefused
-                     && wrongAttdefOwnerPreserved == sentinel
-                     && exported && imported && exactBlockContentWire
-                     && typedGridReadback,
+                     && wrongAttdefOwnerPreserved == sentinel,
+                 "TABLECONTENT block-grid reference and ATTDEF failures preserve the destination");
+        t.expect(missingRepeatedBlockRefused
+                     && missingRepeatedPreserved == sentinel,
+                 "TABLECONTENT repeated-block missing target refuses before replacing output");
+        t.expect(exported && imported,
+                 binary ? "binary TABLECONTENT block grids export and read back"
+                        : "ASCII TABLECONTENT block grids export and read back");
+        t.expect(exactBlockContentWire && typedGridReadback,
+                 "TABLECONTENT attributed block grid preserves exact wire references and typed readback");
+        t.expect(exactRepeatedBlockContentWire,
                  binary
-                     ? "binary TABLECONTENT grid preserves multiple block cells, exact references, and corrected retry"
-                     : "ASCII TABLECONTENT grid preserves multiple block cells, exact references, and corrected retry");
+                     ? "binary TABLECONTENT repeated-block cell preserves exact wire order"
+                     : "ASCII TABLECONTENT repeated-block cell preserves exact wire order");
+        t.expect(typedRepeatedBlockReadback,
+                 "TABLECONTENT repeated-block cell preserves typed readback");
     }
 }
 

@@ -45,7 +45,7 @@ subtasks are already complete.
 | P2 | OPEN | Close only source-witnessed MLINESTYLE, LTYPE/XDATA and MLEADERSTYLE losses that remain after current passing profiles are excluded. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
-| P5 | OPEN | Close remaining rendering metadata, FIELD/FIELDLIST, block CONTENT multiplicity and geometry, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
+| P5 | OPEN | Close remaining rendering metadata, FIELD/FIELDLIST, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -159,11 +159,10 @@ missing provider, remap, collision or composed output failure.
    multi-reference composition in the standalone 1x1 route. Reuse the rooted
    reference planner and handle remapping; preserve unsupported compositions
    with explicit refusal.
-2. **Block-backed cells:** support multiple block CONTENT records in one cell
-   only from a source or consumer witness; implement block geometry payloads
-   only when their layout and semantics are evidenced. Preserve per-content
-   attribute association, ATTDEF identity, ownership and remapping; keep
-   unsupported graphs refused.
+2. **Block geometry payloads:** find an independent source or consumer witness,
+   bind the exact field layout and semantics, and implement only that witnessed
+   profile. Keep unsupported geometry payloads refused while preserving current
+   block-reference and ATTDEF ownership validation.
 3. Complete remaining CONTENTFORMAT strings and domain/property combinations,
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;

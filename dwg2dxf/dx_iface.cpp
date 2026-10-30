@@ -25145,6 +25145,56 @@ bool dx_iface::tableContentDirectReferencesClosed(
     const DRW_WritingContext* context = dxfW->getWritingContext();
     if (context == nullptr)
         return false;
+    struct BlockBinding {
+        const DRW_Block_Record* record = nullptr;
+        const dx_ifaceBlock* block = nullptr;
+        std::size_t recordCount = 0u;
+        std::size_t blockCount = 0u;
+    };
+    std::unordered_map<std::uint32_t, BlockBinding> blockBindings;
+    std::size_t totalContents = 0u;
+    std::size_t totalAttributes = 0u;
+    try {
+        for (const DRW_TableRow& row : tableContent.m_content.m_rows) {
+            for (const DRW_TableCell& cell : row.m_cells) {
+                if (cell.m_contents.size() > 10000u - totalContents
+                    || cell.m_attributes.size() > 10000u - totalAttributes)
+                    return false;
+                totalContents += cell.m_contents.size();
+                totalAttributes += cell.m_attributes.size();
+                for (const DRW_TableCellContent& content : cell.m_contents) {
+                    if (content.m_type != 4)
+                        continue;
+                    if (content.m_handle == 0u
+                        || content.m_handle == DRW::NoHandle)
+                        return false;
+                    blockBindings.emplace(content.m_handle, BlockBinding{});
+                    if (blockBindings.size() > 10000u)
+                        return false;
+                }
+            }
+        }
+        for (const DRW_Block_Record& record : cData->blockRecords) {
+            const auto binding = blockBindings.find(record.handle);
+            if (binding == blockBindings.end())
+                continue;
+            binding->second.record = &record;
+            ++binding->second.recordCount;
+        }
+        for (const dx_ifaceBlock* block : cData->blocks) {
+            if (block == nullptr)
+                continue;
+            const auto binding = blockBindings.find(block->parentHandle);
+            if (binding == blockBindings.end()
+                || binding->second.record == nullptr
+                || block->name != binding->second.record->name)
+                continue;
+            binding->second.block = block;
+            ++binding->second.blockCount;
+        }
+    } catch (...) {
+        return false;
+    }
     for (const DRW_TableRow& row : tableContent.m_content.m_rows) {
         for (const DRW_TableCell& cell : row.m_cells) {
             const bool hasFieldReference = std::any_of(
@@ -25190,6 +25240,31 @@ bool dx_iface::tableContentDirectReferencesClosed(
                 });
             if (cell.m_attributes.empty() && !hasBlockContent)
                 continue;
+            const bool witnessedRepeatedBlockCell =
+                cell.m_attributes.empty() && !cell.m_hasLinkedData
+                && cell.m_contents.size() == 3u
+                && cell.m_contents[0].m_type == 4
+                && cell.m_contents[1].m_type == 4
+                && cell.m_contents[2].m_type == 1
+                && cell.m_contents[0].m_handle
+                    == cell.m_contents[1].m_handle;
+            if (witnessedRepeatedBlockCell) {
+                for (std::size_t index = 0u; index < 2u; ++index) {
+                    const DRW_TableCellContent& content =
+                        cell.m_contents[index];
+                    const auto binding = blockBindings.find(
+                        content.m_handle);
+                    if (content.m_handle == 0u
+                        || content.m_handle == DRW::NoHandle
+                        || binding == blockBindings.end()
+                        || binding->second.recordCount != 1u
+                        || binding->second.record == nullptr
+                        || binding->second.blockCount != 1u
+                        || binding->second.block == nullptr)
+                        return false;
+                }
+                continue;
+            }
             if (!hasBlockContent || cell.m_hasLinkedData
                 || cell.m_contents.empty() || cell.m_contents.size() > 2u
                 || cell.m_attributes.size() > maxTableCellAttributes)
@@ -25231,27 +25306,15 @@ bool dx_iface::tableContentDirectReferencesClosed(
                 return false;
             }
 
-            const DRW_Block_Record* blockRecord = nullptr;
-            for (const DRW_Block_Record& record : cData->blockRecords) {
-                if (record.handle != content.m_handle)
-                    continue;
-                if (blockRecord != nullptr)
-                    return false;
-                blockRecord = &record;
-            }
-            if (blockRecord == nullptr)
+            const auto binding = blockBindings.find(content.m_handle);
+            if (binding == blockBindings.end()
+                || binding->second.recordCount != 1u
+                || binding->second.record == nullptr
+                || binding->second.blockCount != 1u
+                || binding->second.block == nullptr)
                 return false;
-            const dx_ifaceBlock* owningBlock = nullptr;
-            for (const dx_ifaceBlock* block : cData->blocks) {
-                if (block == nullptr || block->parentHandle != blockRecord->handle
-                    || block->name != blockRecord->name)
-                    continue;
-                if (owningBlock != nullptr)
-                    return false;
-                owningBlock = block;
-            }
-            if (owningBlock == nullptr)
-                return false;
+            const DRW_Block_Record* blockRecord = binding->second.record;
+            const dx_ifaceBlock* owningBlock = binding->second.block;
             if (cell.m_attributes.empty())
                 continue;
 

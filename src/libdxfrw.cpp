@@ -26804,6 +26804,19 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             }
             return true;
         };
+        const auto witnessedRepeatedBlockCellIsSupported =
+                [&blockContentValueIsSupported](
+                    const DRW_TableCell& cell) {
+            return !cell.m_hasLinkedData && cell.m_attributes.empty()
+                && cell.m_contents.size() == 3u
+                && cell.m_contents[0].m_type == 4
+                && cell.m_contents[1].m_type == 4
+                && cell.m_contents[2].m_type == 1
+                && cell.m_contents[0].m_handle
+                    == cell.m_contents[1].m_handle
+                && blockContentValueIsSupported(cell.m_contents[0])
+                && blockContentValueIsSupported(cell.m_contents[1]);
+        };
 
         plainContentTextBytes = 0u;
         std::size_t totalContents = 0u;
@@ -26846,17 +26859,22 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     [](const DRW_TableCellContent& content) {
                         return content.m_type == 4;
                     });
+                const bool witnessedRepeatedBlockCell =
+                    witnessedRepeatedBlockCellIsSupported(cell);
                 if ((!cell.m_attributes.empty() && !hasBlockContent)
                     || (hasBlockContent
                         && (cell.m_hasLinkedData || cell.m_contents.empty()
-                            || cell.m_contents.size() > 2u
-                            || cell.m_contents.back().m_type != 4
-                            || (cell.m_contents.size() == 2u
-                                && cell.m_contents.front().m_type != 1)
-                            || !blockContentValueIsSupported(
-                                cell.m_contents.back())
-                            || !blockCellAttributesAreSupported(cell)
-                            || !blockContentTargetsAreClosed(cell))))
+                            || !blockContentTargetsAreClosed(cell)
+                            || (witnessedRepeatedBlockCell
+                                ? false
+                                : (cell.m_contents.size() > 2u
+                                    || cell.m_contents.back().m_type != 4
+                                    || (cell.m_contents.size() == 2u
+                                        && cell.m_contents.front().m_type != 1)
+                                    || !blockContentValueIsSupported(
+                                        cell.m_contents.back())
+                                    || !blockCellAttributesAreSupported(
+                                        cell))))))
                     return failDxfWrite();
                 for (const DRW_TableCellContent& content : cell.m_contents) {
                     if (content.m_type == 1) {
