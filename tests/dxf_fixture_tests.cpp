@@ -52644,7 +52644,8 @@ void testDataLinkAdapterExport(TestContext& t) {
             dx_iface::writeHeader(header);
             dxfW->setHandleRemap({{0x710u, 0x1710u},
                                   {0x711u, 0x1711u},
-                                  {0x720u, 0x1720u}});
+                                  {0x720u, 0x1720u},
+                                  {0x721u, 0x1721u}});
         }
     };
 
@@ -52713,8 +52714,27 @@ void testDataLinkAdapterExport(TestContext& t) {
         contentMetadata->m_tableStyle.m_type = 4;
         content.m_dxfMetadata = std::move(contentMetadata);
         source.tableContents.push_back(content);
+        DRW_TableContentObject textContent;
+        textContent.handle = 0x721u;
+        textContent.m_parseComplete = true;
+        textContent.m_semanticContentComplete = true;
+        textContent.m_content.m_name = "plain text content";
+        textContent.m_content.m_description = "one string value";
+        textContent.m_content.m_columns.emplace_back();
+        textContent.m_content.m_columns.front().m_name = "Value";
+        DRW_TableRow textRow;
+        DRW_TableCell textCell;
+        DRW_TableCellContent textValue;
+        textValue.m_type = 1;
+        textValue.m_text = "adapter-authored text";
+        textValue.m_value.m_dataType = 4;
+        textValue.m_value.m_value.addString(1, textValue.m_text);
+        textCell.m_contents.push_back(std::move(textValue));
+        textRow.m_cells.push_back(std::move(textCell));
+        textContent.m_content.m_rows.push_back(std::move(textRow));
+        source.tableContents.push_back(std::move(textContent));
         source.standaloneTableContentPresent = true;
-        source.tableContentRetainedRecords = 1u;
+        source.tableContentRetainedRecords = 2u;
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -52758,6 +52778,19 @@ void testDataLinkAdapterExport(TestContext& t) {
 
         source.tableContents.front().m_content.m_rows.front().m_cells.front()
             .m_dataLinkHandle = 0x710u;
+        DRW_CadValue& cadValue = source.tableContents[1]
+            .m_content.m_rows.front().m_cells.front().m_contents.front().m_value;
+        cadValue.m_dataType = 2;
+        const bool invalidTextValueRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream invalidTextValueInput(path, std::ios::binary);
+        const std::string invalidTextValuePreserved(
+            (std::istreambuf_iterator<char>(invalidTextValueInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(invalidTextValueRefused
+                     && invalidTextValuePreserved == sentinel,
+                 "adapter refuses unsupported TABLECONTENT value without replacing destination");
+        cadValue.m_dataType = 4;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -52765,8 +52798,8 @@ void testDataLinkAdapterExport(TestContext& t) {
         const bool imported = exported
             && reader.fileImport(path.string(), &readback, false);
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 1u,
-                 "adapter emits a linked TABLECONTENT with its closed DATALINK graph and reads it back");
+                     && readback.tableContents.size() == 2u,
+                 "adapter emits linked and plain-text TABLECONTENT cells and reads them back");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -52792,9 +52825,20 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
-        if (readback.tableContents.size() == 1u) {
-            const DRW_TableContentObject& actual =
-                readback.tableContents.front();
+        if (readback.tableContents.size() == 2u) {
+            const DRW_TableContentObject* linked = nullptr;
+            const DRW_TableContentObject* plainText = nullptr;
+            for (const DRW_TableContentObject& value : readback.tableContents) {
+                if (value.handle == 0x1720u)
+                    linked = &value;
+                else if (value.handle == 0x1721u)
+                    plainText = &value;
+            }
+            t.expect(linked != nullptr && plainText != nullptr,
+                     "adapter remaps both TABLECONTENT identities");
+            if (linked == nullptr || plainText == nullptr)
+                continue;
+            const DRW_TableContentObject& actual = *linked;
             const DRW_TableCell& actualCell =
                 actual.m_content.m_rows.front().m_cells.front();
             t.expect(actual.handle == 0x1720u
@@ -52813,6 +52857,21 @@ void testDataLinkAdapterExport(TestContext& t) {
                          && actualCell.m_linkedDataColumnCount == 3
                          && actualCell.m_linkedDataUnknown == -5,
                      "linked TABLECONTENT fields and DATALINK target survive remapping and readback");
+            const DRW_TableCell& actualTextCell = plainText->m_content
+                .m_rows.front().m_cells.front();
+            t.expect(plainText->parentHandle
+                         == DRW::DwgNamedObjectsDictionaryHandle
+                         && plainText->m_content.m_name == "plain text content"
+                         && actualTextCell.m_contents.size() == 1u
+                         && actualTextCell.m_contents.front().m_type == 1
+                         && actualTextCell.m_contents.front().m_text
+                             == "adapter-authored text"
+                         && actualTextCell.m_contents.front().m_value.m_dataType == 4
+                         && actualTextCell.m_contents.front().m_value.m_value.type()
+                             == DRW_Variant::STRING
+                         && actualTextCell.m_contents.front().m_value.m_value.c_str()
+                             == std::string("adapter-authored text"),
+                     "plain TABLECONTENT string value survives ASCII/binary readback");
         }
     }
 }

@@ -25903,6 +25903,24 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return border.m_lineWeight == 0 && border.m_visible
             && border.m_colorRgb == -1 && border.m_colorMethod == 0u;
     };
+    const DRW_TableCellContent* plainTextContent = nullptr;
+    if (!cell.m_hasLinkedData && cell.m_contents.size() == 1u) {
+        const DRW_TableCellContent& content = cell.m_contents.front();
+        const DRW_CadValue& value = content.m_value;
+        if (content.m_type == 1 && content.m_handle == 0u
+            && value.m_dataType == 4 && value.m_formatFlags == 0
+            && value.m_dataSize == 0u && value.m_unitType == 0
+            && value.m_formatString.empty() && value.m_valueString.empty()
+            && value.m_handle == 0u && value.m_rawData.empty()
+            && value.m_value.type() == DRW_Variant::STRING
+            && value.m_value.c_str() != nullptr
+            && content.m_text == value.m_value.c_str()
+            && safeText(content.m_text)) {
+            plainTextContent = &content;
+        }
+    }
+    const bool emptyLinkedCell = cell.m_hasLinkedData
+        && cell.m_contents.empty();
     if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
         || cell.m_autoFit || cell.m_mergedWidth != 0
         || cell.m_mergedHeight != 0 || cell.m_rotation != 0.0
@@ -25911,8 +25929,15 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
-        || !cell.m_hasLinkedData || cell.m_dataLinkHandle == 0u
-        || cell.m_dataLinkHandle == DRW::NoHandle
+        || (!emptyLinkedCell && plainTextContent == nullptr)
+        || (cell.m_hasLinkedData
+            && (cell.m_dataLinkHandle == 0u
+                || cell.m_dataLinkHandle == DRW::NoHandle))
+        || (!cell.m_hasLinkedData
+            && (cell.m_dataLinkHandle != 0u
+                || cell.m_linkedDataRowCount != 0
+                || cell.m_linkedDataColumnCount != 0
+                || cell.m_linkedDataUnknown != 0))
         || cell.m_blockScale != 1.0 || cell.m_width != 0.0
         || cell.m_height != 0.0 || cell.m_geometryFlags != 0u
         || cell.m_geometryHandle != 0u || cell.m_geometryRecordFlags != 0u
@@ -25928,7 +25953,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
         || cell.m_backgroundEnabled || cell.m_textAlignment != 0
         || cell.m_textHeight != 0.0 || !cell.m_attributes.empty()
-        || !cell.m_contents.empty()
+        || (plainTextContent == nullptr && !cell.m_contents.empty())
         || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
                         defaultBorder)) {
         return failDxfWrite();
@@ -25942,7 +25967,12 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || !scopeIsDefault(metadata.m_rows.front().m_scope, 2)
             || !scopeIsDefault(
                 metadata.m_rows.front().m_cells.front().m_scope, 1)
-            || !metadata.m_rows.front().m_cells.front().m_contentFormats.empty()
+            || metadata.m_rows.front().m_cells.front().m_contentFormats.size()
+                != cell.m_contents.size()
+            || std::any_of(
+                metadata.m_rows.front().m_cells.front().m_contentFormats.begin(),
+                metadata.m_rows.front().m_cells.front().m_contentFormats.end(),
+                [](const auto& format) { return format != nullptr; })
             || !metadata.m_rows.front().m_cells.front().m_geometry.empty()
             || !styleIsDefault(metadata.m_tableStyle, 4))
         {
@@ -25951,11 +25981,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     }
 
     const std::uint32_t handle = remapObjectHandle(ent->handle);
-    const std::uint32_t dataLinkHandle =
-        remapObjectHandle(cell.m_dataLinkHandle);
+    const std::uint32_t dataLinkHandle = cell.m_hasLinkedData
+        ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
     if (handle == 0u || handle == DRW::NoHandle
-        || isDxfFixedOutputHandle(handle) || dataLinkHandle == 0u
-        || dataLinkHandle == DRW::NoHandle || !reserveHandle(handle))
+        || isDxfFixedOutputHandle(handle)
+        || (cell.m_hasLinkedData
+            && (dataLinkHandle == 0u || dataLinkHandle == DRW::NoHandle))
+        || !reserveHandle(handle))
     {
         return failDxfWrite();
     }
@@ -25974,6 +26006,22 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && writer->writeString(1, "DATAMAP_BEGIN")
             && writer->writeInt32(90, 0)
             && writer->writeString(309, "DATAMAP_END");
+    };
+    const auto writeContent = [this](const DRW_TableCellContent& content) {
+        const auto remapValueHandle = [this](std::uint32_t source) {
+            return remapObjectHandle(source);
+        };
+        return writer->writeString(302, "CONTENT")
+            && writer->writeString(1, "CELLCONTENT_BEGIN")
+            && writer->writeInt32(90, content.m_type)
+            && writer->writeString(300, "VALUE")
+            && writeDxfFieldValue(writer.get(), version, content.m_value,
+                                  remapValueHandle)
+            && writer->writeInt32(91, 0)
+            && writer->writeString(309, "CELLCONTENT_END")
+            && writer->writeString(1, "FORMATTEDCELLCONTENT_BEGIN")
+            && writer->writeInt16(170, 0)
+            && writer->writeString(309, "FORMATTEDCELLCONTENT_END");
     };
     const auto columnScope = ent->m_dxfMetadata
         ? &ent->m_dxfMetadata->m_columns.front() : nullptr;
@@ -26017,13 +26065,22 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || !writeCustomScope(ent->m_dxfMetadata
                 ? &ent->m_dxfMetadata->m_rows.front().m_cells.front().m_scope
                 : nullptr)
-        || !writer->writeInt32(92, 1)
-        || !writer->writeString(340, toHexStr(dataLinkHandle))
-        || !writer->writeInt32(93, cell.m_linkedDataRowCount)
-        || !writer->writeInt32(94, cell.m_linkedDataColumnCount)
-        || !writer->writeInt32(96, cell.m_linkedDataUnknown)
-        || !writer->writeInt32(95, 0)
-        || !writer->writeString(309, "LINKEDTABLEDATACELL_END")
+        || !writer->writeInt32(92, cell.m_hasLinkedData ? 1 : 0)) {
+        return failDxfWrite();
+    }
+    if (cell.m_hasLinkedData
+        && (!writer->writeString(340, toHexStr(dataLinkHandle))
+            || !writer->writeInt32(93, cell.m_linkedDataRowCount)
+            || !writer->writeInt32(94, cell.m_linkedDataColumnCount)
+            || !writer->writeInt32(96, cell.m_linkedDataUnknown))) {
+        return failDxfWrite();
+    }
+    if (!writer->writeInt32(95,
+                static_cast<std::int32_t>(cell.m_contents.size())))
+        return failDxfWrite();
+    if (plainTextContent != nullptr && !writeContent(*plainTextContent))
+        return failDxfWrite();
+    if (!writer->writeString(309, "LINKEDTABLEDATACELL_END")
         || !writer->writeString(1, "FORMATTEDTABLEDATACELL_BEGIN")
         || !writer->writeString(300, "CELLTABLEFORMAT")
         || !writeStyle(1)
