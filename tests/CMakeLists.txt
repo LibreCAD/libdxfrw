@@ -3686,6 +3686,12 @@ add_test(NAME libdxfrw_associative_constraint_group_generated
 set_tests_properties(libdxfrw_associative_constraint_group_generated PROPERTIES
     LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
 
+add_test(NAME libdxfrw_associative_network_action_index_generated
+    COMMAND libdxfrw_dwg_reader_matrix_tests
+        --associative-network-action-index-generated)
+set_tests_properties(libdxfrw_associative_network_action_index_generated
+    PROPERTIES LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
+
 set(_assoc_custom_sample
     "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
 if(EXISTS "${_assoc_custom_sample}")

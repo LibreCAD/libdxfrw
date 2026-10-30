@@ -25478,6 +25478,9 @@ void DRW_AssociativeObject::reset() {
     m_actions.clear();
     m_ownedParams.clear();
     m_ownedActions.clear();
+    m_networkVersion = 0;
+    m_networkActionIndex = 0;
+    m_networkFieldsParsed = false;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -26088,7 +26091,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         } else {
             dwgBuffer bodyProbe = *buf;
             dwgBuffer handleProbe = hBuff;
-            std::int32_t ignoredNetworkVersion = 0;
+            std::int32_t networkVersion = 0;
             std::int32_t networkActionIndex = 0;
             std::int32_t actionCount = 0;
             std::int32_t ownedActionCount = 0;
@@ -26098,8 +26101,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             bool complete =
                 objectDataEndKnown
                 && readBitShortWithinBody(
-                    &bodyProbe, version, objectDataEnd,
-                    ignoredNetworkVersion)
+                    &bodyProbe, version, objectDataEnd, networkVersion)
                 && readBitLongWithinBody(
                     &bodyProbe, version, objectDataEnd,
                     networkActionIndex)
@@ -26167,7 +26169,15 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             }
             *buf = bodyProbe;
             hBuff = handleProbe;
-            m_actionIndex = networkActionIndex;
+            if (version == DRW::AC1024) {
+                m_networkVersion = networkVersion;
+                m_networkActionIndex = networkActionIndex;
+                m_networkFieldsParsed = true;
+            } else {
+                // Preserve the legacy projection on unqualified versions;
+                // only AC1024 has independent source-backed field bindings.
+                m_actionIndex = networkActionIndex;
+            }
             m_actions = std::move(actions);
             m_ownedActions = std::move(ownedActions);
             m_prefixStatuses.push_back(networkStatus);
@@ -27778,6 +27788,11 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         DRW_DBG(handle); DRW_DBG("/"); DRW_DBG(parentHandle); DRW_DBG("/");
         DRW_DBG(m_owningNetworkHandle); DRW_DBG("/");
         DRW_DBG(m_actions.size()); DRW_DBG("\n");
+        DRW_DBG("ACDBASSOCNETWORK action indexes base/network version/index parsed=");
+        DRW_DBG(m_actionIndex); DRW_DBG("/");
+        DRW_DBG(m_networkVersion); DRW_DBG("/");
+        DRW_DBG(m_networkActionIndex); DRW_DBG("/");
+        DRW_DBG(m_networkFieldsParsed); DRW_DBG("\n");
     }
     DRW_DBG("ACDBASSOC shell: "); DRW_DBG(m_recordName.c_str()); DRW_DBG("\n");
     return ret;

@@ -7238,6 +7238,12 @@ public:
   std::vector<DRW_AssociativeHandleRef> m_actions;
   std::vector<std::uint32_t> m_ownedParams;
   std::vector<std::uint32_t> m_ownedActions;
+  // Source-qualified AC1024 ACDBASSOCNETWORK version/index fields. Keep them
+  // distinct from the shared AcDbAssocAction prefix until other versions are
+  // independently bound.
+  std::int32_t m_networkVersion = 0;
+  std::int32_t m_networkActionIndex = 0;
+  bool m_networkFieldsParsed = false;
   // DXF PERSUBENTMGR stores associated subentities as repeated 330 handles.
   // Keep these separate from the scalar vectors in the fixed DWG type 1313
   // body; the dynamic DWG type 1248 remains an opaque shell.
@@ -7310,6 +7316,9 @@ private:
     m_actions = o.m_actions;
     m_ownedParams = o.m_ownedParams;
     m_ownedActions = o.m_ownedActions;
+    m_networkVersion = o.m_networkVersion;
+    m_networkActionIndex = o.m_networkActionIndex;
+    m_networkFieldsParsed = o.m_networkFieldsParsed;
     m_persistentSubentityCount = o.m_persistentSubentityCount;
     m_persistentSubentityHandles = o.m_persistentSubentityHandles;
     m_persistentUnknown0 = o.m_persistentUnknown0;
