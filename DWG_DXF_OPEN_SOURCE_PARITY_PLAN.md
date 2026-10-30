@@ -45,7 +45,7 @@ subtasks are already complete.
 | P2 | OPEN | Close current MLINESTYLE, LTYPE, MLEADERSTYLE and XDATA/1005 code gaps using witnessed source/output failures. Batch shared schema and transaction changes; do not create one implementation item per count or field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a current unmatched source record or dependency role. |
-| P5 | OPEN | Complete remaining rendering and TABLE content/style behavior, including bounded multi-link grids and composed format scopes. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
+| P5 | OPEN | Complete remaining rendering and TABLE content/style behavior, including unqualified linked-cell payloads and composed format scopes. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -152,18 +152,17 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. Complete remaining linked-cell content compositions: additional cached-value
-   sequences, multiple FIELD objects, repeated references in one cell, larger
-   reference sets, and block/field/attribute/geometry payloads. Reuse the current
-   rooted reference planner and handle remapping; preserve unsupported compositions
-   with explicit refusal.
-2. Complete format strings, units, margins, borders and override masks through a
-   shared grid/1x1 path. Cover meaningful scope combinations and version gates as
-   one bounded matrix; keep unsupported styles refused until schema and wire order
-   are known.
-3. Complete source-bound AC1018 TABLE bodies, merge/presence profiles and the
-   remaining cell-override masks. Preserve explicit zero and absence separately;
-   do not infer visibility polarity from field transport.
+1. Complete remaining linked-cell FIELD, block, attribute and geometry payloads.
+   For FIELD references, extend beyond two references, multiple FIELD objects and
+   repeated references within one cell. Reuse the rooted reference planner and
+   handle remapping; preserve unsupported compositions with explicit refusal.
+2. Complete remaining CONTENTFORMAT strings and domain/property combinations,
+   CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
+   Cover only source- or consumer-backed scope combinations and version gates;
+   keep unsupported styles refused until schema and wire order are known.
+3. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
+   selected field projections. Preserve explicit zero and absence separately; do
+   not infer visibility polarity from field transport.
 4. Qualify native TABLE rendering independently. Serializer readback does not
    establish geometry, merge visibility or rendered style.
 
