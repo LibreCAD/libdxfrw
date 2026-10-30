@@ -2309,6 +2309,19 @@ set_tests_properties(dwg2dxf_associative_strict_loss_gate PROPERTIES
     TIMEOUT 15
 )
 
+# Associative source handles share the document identity namespace with all
+# other captured object families; duplicate or cross-family aliases fail graph
+# preflight before any writer state is published.
+add_test(
+    NAME dwg2dxf_associative_source_handle_inventory
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --associative-source-handle-inventory
+)
+set_tests_properties(dwg2dxf_associative_source_handle_inventory PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative;identity"
+    TIMEOUT 15
+)
+
 if(TARGET dwg2dxf)
     # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
     # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.

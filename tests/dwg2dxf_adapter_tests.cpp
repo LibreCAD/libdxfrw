@@ -28061,6 +28061,98 @@ bool cellStyleMapTypedCaptureFailClosed() {
         "capture-failed");
 }
 
+bool associativeSourceHandleInventory() {
+    const auto makeAssociative = [](std::uint32_t handle) {
+        DRW_AssociativeObject object("ACDBASSOCNETWORK");
+        object.handle = handle;
+        return object;
+    };
+
+    dx_data uniqueDwg;
+    uniqueDwg.sourceFormat = dx_source_format::DWG;
+    uniqueDwg.dwgAssociativeObjects.push_back(makeAssociative(0x501u));
+    dx_iface uniqueDwgGraph;
+    if (!DxIfaceExtensionGraphTestAccess::prepare(
+            uniqueDwgGraph, uniqueDwg, false))
+        return fail("unique DWG associative identity was not admitted to the extension graph inventory");
+
+    dx_data uniqueDxf;
+    uniqueDxf.sourceFormat = dx_source_format::DXF;
+    uniqueDxf.associativeObjects.push_back(makeAssociative(0x502u));
+    dx_iface uniqueDxfGraph;
+    if (!DxIfaceExtensionGraphTestAccess::prepare(
+            uniqueDxfGraph, uniqueDxf, false))
+        return fail("unique DXF associative identity was not admitted to the extension graph inventory");
+
+    dx_data crossFamilyAlias;
+    crossFamilyAlias.sourceFormat = dx_source_format::DWG;
+    DRW_LType lineType;
+    lineType.handle = 0x503u;
+    crossFamilyAlias.lineTypes.push_back(lineType);
+    crossFamilyAlias.dwgAssociativeObjects.push_back(
+        makeAssociative(0x503u));
+    dx_iface crossFamilyGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            crossFamilyGraph, crossFamilyAlias, false)
+        || crossFamilyGraph.extensionGraphFailure()
+            != dx_iface::ExtensionGraphFailure::InvalidGraph
+        || crossFamilyGraph.extensionGraphFailureDetail().find(
+               "associative source handle") == std::string::npos)
+        return fail("associative handle alias with an LTYPE record was not rejected as a source identity collision");
+
+    dx_data dictionaryAlias;
+    dictionaryAlias.sourceFormat = dx_source_format::DWG;
+    DRW_Dictionary dictionary;
+    dictionary.handle = 0x504u;
+    dictionaryAlias.dictionaries.push_back(dictionary);
+    dictionaryAlias.dwgAssociativeObjects.push_back(
+        makeAssociative(dictionary.handle));
+    dx_iface dictionaryAliasGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            dictionaryAliasGraph, dictionaryAlias, false)
+        || dictionaryAliasGraph.extensionGraphFailure()
+            != dx_iface::ExtensionGraphFailure::InvalidGraph
+        || dictionaryAliasGraph.extensionGraphFailureDetail().find(
+               "DICTIONARY handle") == std::string::npos)
+        return fail("associative handle alias with a DICTIONARY record was not rejected as a source identity collision");
+
+    dx_data duplicateAssociative;
+    duplicateAssociative.sourceFormat = dx_source_format::DWG;
+    duplicateAssociative.dwgAssociativeObjects.push_back(
+        makeAssociative(0x505u));
+    duplicateAssociative.dwgAssociativeObjects.push_back(
+        makeAssociative(0x505u));
+    dx_iface duplicateGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            duplicateGraph, duplicateAssociative, false)
+        || duplicateGraph.extensionGraphFailure()
+            != dx_iface::ExtensionGraphFailure::InvalidGraph
+        || duplicateGraph.extensionGraphFailureDetail().find(
+               "associative source handle") == std::string::npos)
+        return fail("duplicate associative source identities were not rejected");
+
+    dx_data zeroHandle;
+    zeroHandle.sourceFormat = dx_source_format::DWG;
+    zeroHandle.dwgAssociativeObjects.push_back(makeAssociative(0u));
+    dx_iface zeroHandleGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            zeroHandleGraph, zeroHandle, false)
+        || zeroHandleGraph.extensionGraphFailure()
+            != dx_iface::ExtensionGraphFailure::InvalidGraph)
+        return fail("unaddressable associative source identity was admitted");
+
+    dx_data noHandle;
+    noHandle.sourceFormat = dx_source_format::DXF;
+    noHandle.associativeObjects.push_back(makeAssociative(DRW::NoHandle));
+    dx_iface noHandleGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            noHandleGraph, noHandle, false)
+        || noHandleGraph.extensionGraphFailure()
+            != dx_iface::ExtensionGraphFailure::InvalidGraph)
+        return fail("sentinel associative source identity was admitted");
+    return true;
+}
+
 bool cellStyleMapExtensionGraph() {
     const auto populate = [](dx_data& data, const std::string& key,
                              std::uint32_t mapParent) {
@@ -39488,6 +39580,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--cell-style-map-typed-capture-fail-closed")
         return cellStyleMapTypedCaptureFailClosed() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-source-handle-inventory")
+        return associativeSourceHandleInventory() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;

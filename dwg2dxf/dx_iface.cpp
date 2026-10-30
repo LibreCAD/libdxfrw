@@ -6867,6 +6867,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     + " while indexing LTYPE records");
             linetypeHandles.insert(lineType.handle);
         }
+        inventoryFamily = "associative object identities";
+        const std::vector<DRW_AssociativeObject>* associativeObjects = nullptr;
+        if (data->sourceFormat == dx_source_format::DWG)
+            associativeObjects = &data->dwgAssociativeObjects;
+        else if (data->sourceFormat == dx_source_format::DXF)
+            associativeObjects = &data->associativeObjects;
+        if (associativeObjects != nullptr) {
+            for (const DRW_AssociativeObject& object : *associativeObjects) {
+                if (!examineSourceRecord())
+                    return false;
+                if (object.handle == 0u || object.handle == DRW::NoHandle
+                    || !sourceHandles.insert(object.handle).second)
+                    return reject(ExtensionGraphFailure::InvalidGraph,
+                        "invalid, duplicate, or colliding associative source handle "
+                        + std::to_string(object.handle));
+            }
+        }
         inventoryFamily = "DICTIONARY records";
         for (const DRW_Dictionary& dictionary : data->dictionaries) {
             if (!examineSourceRecord())

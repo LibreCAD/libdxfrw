@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative graph output and recursive closure | Route the admitted AC1024 dependency, network, and version-0 constraint-group record writers through source-bound graph output with source → planned → emitted identity and reference remapping; close required descendants and verify staged output by independent field inspection and readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — associative graph output and recursive closure | Route the implemented AC1024 dependency, network, and version-0 constraint-group record encoders through source-bound graph output: reserve associative source identities before generated allocation, remap every reference, close required descendants, then verify staged output by independent field inspection and readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -76,13 +76,17 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Associative output and identity:** establish source → planned → emitted
-   identities before output. Route admitted AC1024 associative record writers,
-   including the version-0 inline constraint-node profiles, through the graph
-   planner; remap every reference, including generated records and collisions.
-   Verify actual staged output by independent field inspection and readback.
-   Keep strict refusal wherever a required descendant is unsupported. Do not
-   emit a partial graph or infer edges from adjacent handle values.
+2. **Associative output and identity:** the direct record encoders for the
+   admitted AC1024 dependency, network, and version-0 inline constraint-group
+   profiles are implemented; do not repeat their wire-serializer work. The
+   shared preflight inventory now rejects invalid, duplicate, and cross-family
+   associative source handles. Remaining: reserve associative source identities
+   in the DXF writer before generated allocation, then map source → planned →
+   emitted identities. Route the encoders through the graph planner and remap
+   every reference, including generated records and fixed-handle collisions.
+   Verify staged output by independent field inspection and readback. Keep strict
+   refusal wherever a required descendant is unsupported. Do not emit a partial
+   graph or infer edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
    provider, resolve that source-required role and its descendants. Reuse existing
    dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,
