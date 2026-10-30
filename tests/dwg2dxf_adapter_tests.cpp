@@ -33300,7 +33300,10 @@ bool replaceMLeaderStyleAsciiInteger(std::string& drawing, int code,
     const auto markerPosition = drawing.find(marker);
     if (markerPosition == std::string::npos)
         return false;
-    const std::string codeLine = std::to_string(code) + "\n";
+    std::string codeLine = std::to_string(code);
+    if (codeLine.size() < 3u)
+        codeLine.insert(0u, 3u - codeLine.size(), ' ');
+    codeLine.push_back('\n');
     const auto codePosition = drawing.find(
         codeLine, markerPosition + marker.size());
     if (codePosition == std::string::npos)
@@ -33309,20 +33312,23 @@ bool replaceMLeaderStyleAsciiInteger(std::string& drawing, int code,
     const auto valueEnd = drawing.find('\n', valueBegin);
     if (valueEnd == std::string::npos)
         return false;
-    if (drawing.find(codeLine, valueEnd + 1u) != std::string::npos)
+    const auto duplicate = drawing.find(codeLine, valueEnd + 1u);
+    if (duplicate != std::string::npos)
         return false;
     drawing.replace(valueBegin, valueEnd - valueBegin,
                     std::to_string(value));
     return true;
 }
 
-bool mLeaderStyleEnumMatches(const DRW_MLeaderStyle& style, int code,
-                             int value) {
+bool mLeaderStyleIntegerMatches(const DRW_MLeaderStyle& style, int code,
+                                std::int32_t value) {
     switch (code) {
+    case 90: return style.maxLeaderPoints == value;
     case 170: return style.contentType == value;
     case 171: return style.drawMLeaderOrder == value;
     case 172: return style.drawLeaderOrder == value;
     case 173: return style.leaderType == value;
+    case 92: return style.leaderLineWeight == value;
     case 175: return style.textAngleType == value;
     case 176: return style.textAlignmentType == value;
     case 177: return style.blockConnectionType == value;
@@ -33333,30 +33339,34 @@ bool mLeaderStyleEnumMatches(const DRW_MLeaderStyle& style, int code,
     }
 }
 
-bool mLeaderStyleIntegerEnumSourceDomains() {
+bool mLeaderStyleIntegerSourceDomains() {
     struct Domain {
         int code;
-        std::vector<int> valid;
-        int below;
-        int above;
+        std::vector<std::int32_t> valid;
+        std::vector<std::int32_t> invalid;
     };
-    const std::array<Domain, 10> domains{{
-        {170, {0, 1, 2, 3}, -1, 4},
-        {171, {0, 1}, -1, 2},
-        {172, {0, 1}, -1, 2},
-        {173, {0, 1, 2}, -1, 3},
-        {175, {0, 1, 2}, -1, 3},
-        {176, {0, 1, 2}, -1, 3},
-        {177, {0, 1}, -1, 2},
-        {271, {0, 1}, -1, 2},
-        {272, {0, 9, 10}, 8, 11},
-        {273, {0, 9, 10}, 8, 11},
+    const std::array<Domain, 12> domains{{
+        {90, {-1, 0, 2, std::numeric_limits<std::int32_t>::max()},
+             {std::numeric_limits<std::int32_t>::min(), -2, 1}},
+        {170, {0, 1, 2, 3}, {-1, 4}},
+        {171, {0, 1}, {-1, 2}},
+        {172, {0, 1}, {-1, 2}},
+        {173, {0, 1, 2}, {-1, 3}},
+        {92, {-3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
+              50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211},
+             {1, 4, 10, 212, -4, 65535}},
+        {175, {0, 1, 2}, {-1, 3}},
+        {176, {0, 1, 2}, {-1, 3}},
+        {177, {0, 1}, {-1, 2}},
+        {271, {0, 1}, {-1, 2}},
+        {272, {0, 9, 10}, {8, 11}},
+        {273, {0, 9, 10}, {8, 11}},
     }};
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
                            .count();
     const auto scratch = std::filesystem::temp_directory_path()
-        / ("libdxfrw-mleaderstyle-enum-domain-" + std::to_string(nonce));
+        / ("libdxfrw-mleaderstyle-integer-domain-" + std::to_string(nonce));
     std::error_code error;
     if (!std::filesystem::create_directory(scratch, error) || error)
         return fail("could not reserve MLEADERSTYLE enum scratch directory");
@@ -33369,10 +33379,12 @@ bool mLeaderStyleIntegerEnumSourceDomains() {
     } cleanup{scratch};
 
     const auto generate = [&](const std::filesystem::path& path, int code,
-                              int value, bool binary) {
+                              std::int32_t value, bool binary) {
         const auto ascii = binary
             ? std::filesystem::path(path.string() + ".ascii") : path;
-        if (!generateRootMLeaderStyleControl(ascii, false))
+        const bool hasLineWeight = code == 92;
+        if (!generateRootMLeaderStyleControl(ascii, false, true, 0, false,
+                false, 0.0, 0.0, false, hasLineWeight ? 25 : 0))
             return false;
         std::ifstream input(ascii, std::ios::binary);
         if (!input)
@@ -33391,14 +33403,14 @@ bool mLeaderStyleIntegerEnumSourceDomains() {
 
     dx_iface reader;
     for (const auto& domain : domains) {
-        for (const int invalidValue : {domain.below, domain.above}) {
+        for (const std::int32_t invalidValue : domain.invalid) {
             for (const bool binary : {false, true}) {
                 const auto path = scratch / ("invalid-"
                     + std::to_string(domain.code) + "-"
                     + std::to_string(invalidValue)
                     + (binary ? "-binary.dxf" : "-ascii.dxf"));
                 if (!generate(path, domain.code, invalidValue, binary))
-                    return fail("could not create invalid MLEADERSTYLE enum "
+                    return fail("could not create invalid MLEADERSTYLE integer "
                                 + std::to_string(domain.code));
                 dx_data rejected;
                 if (reader.fileImport(path.string(), &rejected, false)
@@ -33408,7 +33420,7 @@ bool mLeaderStyleIntegerEnumSourceDomains() {
                                 + std::to_string(invalidValue));
             }
         }
-        for (const int validValue : domain.valid) {
+        for (const std::int32_t validValue : domain.valid) {
             for (const bool binary : {false, true}) {
                 const auto path = scratch / ("valid-"
                     + std::to_string(domain.code) + "-"
@@ -33420,10 +33432,10 @@ bool mLeaderStyleIntegerEnumSourceDomains() {
                 dx_data accepted;
                 if (!reader.fileImport(path.string(), &accepted, false)
                     || accepted.mLeaderStyles.size() != 1u
-                    || !mLeaderStyleEnumMatches(
+                    || !mLeaderStyleIntegerMatches(
                         accepted.mLeaderStyles.front(), domain.code,
                         validValue))
-                    return fail("valid MLEADERSTYLE enum retry changed group "
+                    return fail("valid MLEADERSTYLE integer retry changed group "
                                 + std::to_string(domain.code) + " value "
                                 + std::to_string(validValue));
             }
@@ -38931,8 +38943,8 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--mleaderstyle-boolean-source-domain")
         return mLeaderStyleBooleanSourceDomain() ? 0 : 1;
     if (argc == 2
-        && std::string(argv[1]) == "--mleaderstyle-integer-enum-source-domains")
-        return mLeaderStyleIntegerEnumSourceDomains() ? 0 : 1;
+        && std::string(argv[1]) == "--mleaderstyle-integer-source-domains")
+        return mLeaderStyleIntegerSourceDomains() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--mlinestyle-duplicate-singleton-fields")
         return mLineStyleDuplicateSingletonFields() ? 0 : 1;

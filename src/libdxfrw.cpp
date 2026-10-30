@@ -694,15 +694,6 @@ bool isValidDxfLineWeight(DRW_LW_Conv::lineWidth value) {
     return false;
 }
 
-bool isValidDxfLineWeightValue(std::int32_t value) {
-    static const std::array<std::int32_t, 27> validValues{{
-        -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
-        50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211
-    }};
-    return std::find(validValues.begin(), validValues.end(), value)
-        != validValues.end();
-}
-
 // IMAGE and WIPEOUT emit the same DXF adjustment groups (281..283).
 // Their DXF percentage domain is narrower than the shared DWG RC carrier;
 // keep this admission check private to the DXF writers.
@@ -27759,20 +27750,19 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     // DXF targets omit the field and therefore can represent only that default.
     // Autodesk's MLeaderStyle API allows -1 (unlimited) or values >= 2.
     // Keep the library's existing 0 default representable for compatibility.
-    if (!DRW_MLeaderStyle::isValidDxfEnumValue(170, ent->contentType)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(171, ent->drawMLeaderOrder)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(172, ent->drawLeaderOrder)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(173, ent->leaderType)
-        || (ent->maxLeaderPoints != -1 && ent->maxLeaderPoints != 0
-            && ent->maxLeaderPoints < 2)
-        || !isValidDxfLineWeightValue(ent->leaderLineWeight)
+    if (!DRW_MLeaderStyle::isValidDxfIntegerValue(170, ent->contentType)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(171, ent->drawMLeaderOrder)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(172, ent->drawLeaderOrder)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(173, ent->leaderType)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(90, ent->maxLeaderPoints)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(92, ent->leaderLineWeight)
         || ent->leftAttachment > 8 || ent->rightAttachment > 8
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(175, ent->textAngleType)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(176, ent->textAlignmentType)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(177, ent->blockConnectionType)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(271, ent->attachmentDirection)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(272, ent->bottomAttachment)
-        || !DRW_MLeaderStyle::isValidDxfEnumValue(273, ent->topAttachment)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(175, ent->textAngleType)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(176, ent->textAlignmentType)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(177, ent->blockConnectionType)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(271, ent->attachmentDirection)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(272, ent->bottomAttachment)
+        || !DRW_MLeaderStyle::isValidDxfIntegerValue(273, ent->topAttachment)
         || ent->styleVersion != 2
         || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();
