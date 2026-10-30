@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-horizontal-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative horizontal-constraint node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_AND_FOCUSED_VALIDATED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 AcHorizontalConstraint body without consuming a node-specific handle; preserve incomplete groups and strict document-level refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "nodeId": 414,
+    "connections": [379]
+  },
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "The legacy geometric-constraint reader consumes owner ID (BL) and implied (B), omits the active bit, and reads datum-line index (BL) for AcHorizontalConstraint. The class has no node-specific handle."
+  },
+  "sourceProfile": {
+    "localDebugTrace": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/horizontal-final.dxf",
+      "logPath": "/private/tmp/horizontal-final.log",
+      "logSha256": "9b85c6216e88a834ca51611db133a23568c0cf9d613b6431653d3f6d35d8798a",
+      "node": {
+        "class": "AcHorizontalConstraint",
+        "id": 414,
+        "connections": [379],
+        "bodyStartBit": 8134,
+        "ownerId": 0,
+        "implied": false,
+        "activeFlag": "absent",
+        "datumLineIndex": 412,
+        "bodyEndBit": 8171
+      },
+      "handleStream": {
+        "bitBeforeNode": 218524,
+        "bitAfterNode": 218524,
+        "nodeSpecificHandle": "absent"
+      },
+      "nextBoundary": "AcRadiusDiameterConstraint node 135; full associative group remains partial."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "use": "Defines the primitive encodings used by the pinned peer layout; it does not establish this class-specific sequence."
+    },
+    "limitations": [
+      "This receipt covers the observed AC1024 version-0 inline profile only.",
+      "Other Horizontal variants and Vertical-specific layouts remain raw until separately witnessed.",
+      "Associative graph closure, DXF serialization/readback and consumer meaning remain unqualified; this receipt has no support-claim effect."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "DataKind::Horizontal, owner ID, implied flag, absent active flag, datum-line-index presence and value.",
+      "The body parser commits its fork only after all three fields fit the bounded object-data body; it consumes no handle."
+    ],
+    "failureBehavior": "A missing datum-line index leaves the node untyped and the group partial/raw; the next OBJECT is recovered.",
+    "generatedControls": [
+      "From-scratch valid Horizontal node checks exact class, ID, connection, owner, implied/active presence, datum index and complete group boundary.",
+      "A following implicit-point node retains its exact body fields and soft-pointer dependency, proving Horizontal consumes no handle and preserves stream alignment.",
+      "A from-scratch Horizontal node missing its datum index stays raw and the following OBJECT is recovered."
+    ],
+    "strictExport": "dwg-associative-graph-not-serialized remains active; the real drawing produces no DXF output.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with AddressSanitizer"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/horizontal-final.dxf",
+      "result": "Decodes Horizontal node 414 with datum-line index 412, advances to AcRadiusDiameterConstraint node 135, then refuses incomplete associative export; no DXF was created.",
+      "logSha256": "9b85c6216e88a834ca51611db133a23568c0cf9d613b6431653d3f6d35d8798a"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/horizontal-final-asan.dxf",
+      "result": "Same profile boundary and strict refusal; no AddressSanitizer diagnostic and no DXF was created.",
+      "logSha256": "9b85c6216e88a834ca51611db133a23568c0cf9d613b6431653d3f6d35d8798a"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "f0bb4865df30d027218c4f0e554da138cf3166d28a58051d0710ac6396062ab0",
+    "src/drw_objects.h": "20a530f136e13adb54c97cb08793d29d47a30e25115fd246e9dbd1a3276ecb17",
+    "tests/associative_constraint_group_test_helpers.h": "565ea14e298c8c1fd3e6c12154155047b4f14df307e7f77cc5a46760548755cc",
+    "tests/dwg_reader_matrix_tests.cpp": "4de82423d8dbd1f5a11f3a46e73e19b4f6339518d5ae630b81f7e7f3864cfb08",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9f8036e98a0e96320f07ed641329b22e5090a2ffee4477ac0c1f7b75d23635cc",
+    "build/dwg2dxf/dwg2dxf": "1e3c13e05399bcf23a5812a91419593fa0831dec3e0fd21e8c581ff9f5ffccb1",
+    "build/libdxfrw_dwg_reader_matrix_tests": "6ca4773a037224437a6a6bc61254ae0066a3272e97c6ff9622519f8a90eb7ea8",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "f1551b77c1e317d21ae7e0ff9e566d3a89ea321d467e03e9e5fb7e25020fffe8",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "607c85b8f02012c628c1bcfce7ae141f28e2461357d5619ffbe97168a2de77a4"
+  },
+  "nextAction": "Probe source-matched AcRadiusDiameterConstraint node 135 body, field roles, body span and handle behavior; do not infer wire layout from the class name."
+}

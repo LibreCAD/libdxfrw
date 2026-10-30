@@ -11612,6 +11612,150 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                      ? "R2010 circle body decodes all observed fields with the reserved double absent"
                      : "circle wrong dependency handle role preserves raw data and following-object recovery");
     }
+
+    for (int horizontalMode = 0; horizontalMode < 2; ++horizontalMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node horizontal;
+        horizontal.id = 414;
+        horizontal.connections = {379};
+        horizontal.className = "AcHorizontalConstraint";
+        horizontal.hasHorizontalBody = true;
+        horizontal.ownerId = 0;
+        horizontal.isImplied = false;
+        horizontal.datumLineIndex = 412;
+        horizontal.hasDatumLineIndex = horizontalMode == 0;
+        profile.nodes.push_back(horizontal);
+
+        Node implicitPoint;
+        if (horizontalMode == 0) {
+            implicitPoint.id = 415;
+            implicitPoint.connections = {414};
+            implicitPoint.className = "AcConstrainedImplicitPoint";
+            implicitPoint.hasImplicitPointBody = true;
+            implicitPoint.geometryDependencyCode = DRW::DwgSoftPointer;
+            implicitPoint.geometryDependencyHandle = 0xA007u;
+            implicitPoint.geometryNodeId = 0;
+            implicitPoint.hasPoint = true;
+            implicitPoint.point = DRW_Coord(5.0, 6.0, 7.0);
+            implicitPoint.pointType = 1u;
+            implicitPoint.pointIndex = 2;
+            implicitPoint.curveNodeId = 379;
+            profile.nodes.push_back(implicitPoint);
+        }
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 Horizontal profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = horizontalMode == 0;
+        bool nodesMatch = partialSource != profileSink.typed.end()
+            && partialSource->m_constraintNodes.size()
+                   == (expectedComplete ? 2u : 1u);
+        if (nodesMatch) {
+            const auto& parsedHorizontal =
+                partialSource->m_constraintNodes.front();
+            nodesMatch = parsedHorizontal.m_className
+                    == "AcHorizontalConstraint"
+                && parsedHorizontal.m_nodeId == 414
+                && parsedHorizontal.m_connections
+                       == std::vector<std::int32_t>{379}
+                && parsedHorizontal.m_ownerId == 0
+                && !parsedHorizontal.m_isImplied
+                && !parsedHorizontal.m_hasActiveFlag
+                && parsedHorizontal.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodesMatch = nodesMatch
+                    && parsedHorizontal.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Horizontal
+                    && parsedHorizontal.m_hasDatumLineIndex
+                    && parsedHorizontal.m_datumLineIndex == 412;
+                if (nodesMatch) {
+                    const auto& parsedPoint =
+                        partialSource->m_constraintNodes[1];
+                    nodesMatch = parsedPoint.m_className
+                            == "AcConstrainedImplicitPoint"
+                        && parsedPoint.m_nodeId == 415
+                        && parsedPoint.m_dataKind
+                               == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                        && parsedPoint.m_hasGeometryDependency
+                        && parsedPoint.m_geometryDependencyCode
+                               == DRW::DwgSoftPointer
+                        && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                        && parsedPoint.m_hasPoint
+                        && parsedPoint.m_point.x == 5.0
+                        && parsedPoint.m_point.y == 6.0
+                        && parsedPoint.m_point.z == 7.0
+                        && parsedPoint.m_pointType == 1u
+                        && parsedPoint.m_pointIndex == 2
+                        && parsedPoint.m_curveNodeId == 379;
+                }
+            } else {
+                nodesMatch = nodesMatch
+                    && parsedHorizontal.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Unsupported
+                    && !parsedHorizontal.m_hasDatumLineIndex;
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && partialSource != profileSink.typed.end()
+            && partialSource->m_constraintGroupBodyParsed == expectedComplete
+            && partialSource->m_constraintNodeCount
+                   == (expectedComplete ? 2 : 1)
+            && partialSource->m_constraintNodesParsed == expectedComplete
+            && partialSource->m_prefixStatuses.size() == 2u
+            && partialSource->m_prefixStatuses.back().m_status
+                   == (expectedComplete
+                       ? DRW_AssociativePrefixStatus::ParseStatus::Complete
+                       : DRW_AssociativePrefixStatus::ParseStatus::Partial)
+            && nodesMatch
+            && partialRaw != profileSink.raw.end()
+            && !partialRaw->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 horizontalMode == 0
+                     ? "Horizontal datum index decodes without a handle and preserves the following implicit-point fields and handle"
+                     : "missing Horizontal datum index stays raw and preserves following-OBJECT recovery");
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

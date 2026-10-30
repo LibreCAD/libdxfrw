@@ -7117,6 +7117,7 @@ struct DRW_AssociativeConstraintNode {
   enum class DataKind {
     Unsupported,
     Geometrical,
+    Horizontal,
     ImplicitPoint,
     BoundedLine,
     Circle,
@@ -7132,6 +7133,8 @@ struct DRW_AssociativeConstraintNode {
   bool m_isImplied = false;
   bool m_hasActiveFlag = false;
   bool m_isActive = false;
+  bool m_hasDatumLineIndex = false;
+  std::int32_t m_datumLineIndex = 0;
   bool m_hasGeometryDependency = false;
   std::uint8_t m_geometryDependencyCode = DRW::DwgNullReference;
   std::uint64_t m_geometryDependencyHandle = 0;

@@ -21,6 +21,9 @@ struct Node {
     bool isImplied = false;
     bool hasGeometricalBody = false;
     bool hasImplicitPointBody = false;
+    bool hasHorizontalBody = false;
+    bool hasDatumLineIndex = true;
+    std::int32_t datumLineIndex = 0;
     std::uint8_t geometryDependencyCode = DRW::DwgSoftPointer;
     std::uint32_t geometryDependencyHandle = 0u;
     std::int32_t geometryNodeId = 0;
@@ -161,6 +164,11 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putRawChar8(node.directionType);
             if (node.directionType != 0u)
                 object.put3BitDouble(node.distance);
+        } else if (node.hasHorizontalBody) {
+            object.putBitLong(node.ownerId);
+            object.putBit(node.isImplied ? 1u : 0u);
+            if (node.hasDatumLineIndex)
+                object.putBitLong(node.datumLineIndex);
         } else if (node.hasGeometricalBody) {
             object.putBitLong(node.ownerId);
             object.putBit(node.isImplied ? 1u : 0u);
