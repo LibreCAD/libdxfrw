@@ -25910,13 +25910,45 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return scope.m_customData == 0 && scope.m_customItems.empty()
             && styleIsDefault(scope.m_style, type);
     };
-    const auto cellMarginStyleIsSupported = [&scopeIsDefault,
+    const auto cellStyleIsSupported = [&scopeIsDefault,
             &cmcIsDefault, &formatIsDefault](
             const DRW_TableContentDxfMetadata::Scope& scope) {
         const DRW_TableStyleCellStyle& style = scope.m_style;
         const auto validMargin = [](double value) {
             return std::isfinite(value) && value >= 0.0;
         };
+        const bool marginsSupported = style.m_marginOverrideFlags == 1
+            && validMargin(style.m_verticalMargin)
+            && validMargin(style.m_horizontalMargin)
+            && validMargin(style.m_bottomMargin)
+            && validMargin(style.m_rightMargin)
+            && validMargin(style.m_marginHorizontalSpacing)
+            && validMargin(style.m_marginVerticalSpacing);
+        const bool marginsAbsent = style.m_marginOverrideFlags == 0
+            && style.m_verticalMargin == 0.0
+            && style.m_horizontalMargin == 0.0
+            && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
+            && style.m_marginHorizontalSpacing == 0.0
+            && style.m_marginVerticalSpacing == 0.0;
+        const auto isSelectedTopInvisibleBorder = [](
+                const DRW_TableStyleBorder& border) {
+            return border.m_edgeFlags == 1
+                && border.m_propertyOverrideFlags == 0x10
+                && border.m_borderType == 0 && border.m_color == 0
+                && border.m_colorCmc.m_rgb == -1
+                && border.m_colorCmc.m_name.empty()
+                && border.m_colorCmc.m_bookName.empty()
+                && border.m_colorCmc.m_method == 0u
+                && border.m_colorCmc.m_flags == 0u
+                && border.m_colorCmc.m_reservedIndex == 0u
+                && border.m_lineWeight == 0
+                && border.m_lineTypeHandle == 0u
+                && border.m_visible == 1
+                && border.m_doubleLineSpacing == 0.0;
+        };
+        const bool noBorders = style.m_borders.empty();
+        const bool selectedBorder = style.m_borders.size() == 1u
+            && isSelectedTopInvisibleBorder(style.m_borders.front());
         return scope.m_customData == 0 && scope.m_customItems.empty()
             && (scopeIsDefault(scope, 1)
                 || (style.m_type == 1 && style.m_hasData
@@ -25926,15 +25958,11 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && cmcIsDefault(style.m_backgroundColorCmc)
                     && style.m_contentLayout == 0u
                     && formatIsDefault(style.m_contentFormat)
-                    && style.m_marginOverrideFlags == 1
-                    && validMargin(style.m_verticalMargin)
-                    && validMargin(style.m_horizontalMargin)
-                    && validMargin(style.m_bottomMargin)
-                    && validMargin(style.m_rightMargin)
-                    && validMargin(style.m_marginHorizontalSpacing)
-                    && validMargin(style.m_marginVerticalSpacing)
+                    && (marginsSupported || marginsAbsent)
+                    && (noBorders || selectedBorder)
+                    && (marginsSupported || selectedBorder)
                     && style.m_id == 0 && style.m_styleClass == 0
-                    && style.m_name.empty() && style.m_borders.empty()));
+                    && style.m_name.empty()));
     };
     if (version < DRW::AC1021 || version > DRW::AC1032
         || !preflightTableEntry(ent) || ent->handle == 0u
@@ -26169,7 +26197,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || metadata.m_rows.front().m_cells.size() != 1u
             || !scopeIsDefault(metadata.m_columns.front(), 3)
             || !scopeIsDefault(metadata.m_rows.front().m_scope, 2)
-            || !cellMarginStyleIsSupported(
+            || !cellStyleIsSupported(
                 metadata.m_rows.front().m_cells.front().m_scope)
             || metadata.m_rows.front().m_cells.front().m_contentFormats.size()
                 != cell.m_contents.size()
@@ -26321,6 +26349,27 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             if (!writer->writeInt32(94,
                     static_cast<std::int32_t>(style->m_borders.size())))
                 return false;
+            for (const DRW_TableStyleBorder& border : style->m_borders) {
+                if (!writer->writeInt32(95, border.m_edgeFlags)
+                    || !writer->writeString(302, "GRIDFORMAT")
+                    || !writer->writeString(1, "GRIDFORMAT_BEGIN")
+                    || !writer->writeInt32(90,
+                        border.m_propertyOverrideFlags)
+                    || !writer->writeInt32(91, border.m_borderType)
+                    || !writer->writeInt16(62,
+                        static_cast<std::int16_t>(border.m_color))
+                    || (border.m_colorCmc.m_rgb >= 0
+                        && !writer->writeInt32(420,
+                            border.m_colorCmc.m_rgb))
+                    || !writer->writeInt32(92, border.m_lineWeight)
+                    || !writer->writeString(340,
+                        toHexStr(border.m_lineTypeHandle))
+                    || !writer->writeInt32(93, border.m_visible)
+                    || !writer->writeDouble(40,
+                        border.m_doubleLineSpacing)
+                    || !writer->writeString(309, "GRIDFORMAT_END"))
+                    return false;
+            }
         }
         return writer->writeString(309, "TABLEFORMAT_END");
     };

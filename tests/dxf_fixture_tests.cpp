@@ -52800,6 +52800,11 @@ void testDataLinkAdapterExport(TestContext& t) {
         cellMarginStyle.m_rightMargin = 0.5;
         cellMarginStyle.m_marginHorizontalSpacing = 0.625;
         cellMarginStyle.m_marginVerticalSpacing = 0.75;
+        DRW_TableStyleBorder invisibleTopBorder;
+        invisibleTopBorder.m_edgeFlags = 1;
+        invisibleTopBorder.m_propertyOverrideFlags = 0x10;
+        invisibleTopBorder.m_visible = 1;
+        cellMarginStyle.m_borders.push_back(invisibleTopBorder);
         contentCellMetadata.m_contentFormats.resize(
             textCell.m_contents.size());
         contentCellMetadata.m_contentFormats.front() = contentFormat;
@@ -53067,6 +53072,17 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && invalidCellMarginPreserved == sentinel,
                  "adapter refuses negative TABLECONTENT cell margins atomically");
         cellMarginStyle.m_horizontalMargin = 0.25;
+        cellMarginStyle.m_borders.front().m_propertyOverrideFlags = 0x40;
+        const bool invalidCellBorderRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream invalidCellBorderInput(path, std::ios::binary);
+        const std::string invalidCellBorderPreserved(
+            (std::istreambuf_iterator<char>(invalidCellBorderInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(invalidCellBorderRefused
+                     && invalidCellBorderPreserved == sentinel,
+                 "adapter refuses unqualified TABLECONTENT border flags atomically");
+        cellMarginStyle.m_borders.front().m_propertyOverrideFlags = 0x10;
         DRW_TableCellAttribute& blockAttribute = source.tableContents[2]
             .m_content.m_rows.front().m_cells.front().m_attributes.front();
         blockAttribute.m_attdefHandle = 0x7FFFu;
@@ -53428,8 +53444,8 @@ void testDataLinkAdapterExport(TestContext& t) {
             if (exactRichContentFormatFields)
                 break;
         }
-        bool exactCellMarginFields = false;
-        for (std::size_t i = contentBegin; i + 32u < contentEnd; ++i) {
+        bool exactCellStyleFields = false;
+        for (std::size_t i = contentBegin; i + 43u < contentEnd; ++i) {
             if (outputFields[i]
                     != std::make_pair(1, std::string("TABLEFORMAT_BEGIN"))
                 || !integerFieldEquals(outputFields[i + 1u], 90, 1)
@@ -53448,7 +53464,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             };
             static constexpr std::array<double, 6> margins{{
                 0.125, 0.25, 0.375, 0.5, 0.625, 0.75}};
-            exactCellMarginFields =
+            exactCellStyleFields =
                 integerFieldEquals(outputFields[i + 3u], 91, 0)
                 && integerFieldEquals(outputFields[i + 4u], 92, 0)
                 && integerFieldEquals(outputFields[i + 5u], 62, 0)
@@ -53481,15 +53497,32 @@ void testDataLinkAdapterExport(TestContext& t) {
                     == std::make_pair(1,
                         std::string("CELLMARGIN_BEGIN"));
             for (std::size_t margin = 0u;
-                 exactCellMarginFields && margin < margins.size(); ++margin)
-                exactCellMarginFields = realFieldEquals(
+                 exactCellStyleFields && margin < margins.size(); ++margin)
+                exactCellStyleFields = realFieldEquals(
                     i + 24u + margin, 40, margins[margin]);
-            exactCellMarginFields = exactCellMarginFields
+            exactCellStyleFields = exactCellStyleFields
                 && outputFields[i + 30u]
                     == std::make_pair(309,
                         std::string("CELLMARGIN_END"))
-                && integerFieldEquals(outputFields[i + 31u], 94, 0)
-                && outputFields[i + 32u]
+                && integerFieldEquals(outputFields[i + 31u], 94, 1)
+                && integerFieldEquals(outputFields[i + 32u], 95, 1)
+                && outputFields[i + 33u]
+                    == std::make_pair(302, std::string("GRIDFORMAT"))
+                && outputFields[i + 34u]
+                    == std::make_pair(1,
+                        std::string("GRIDFORMAT_BEGIN"))
+                && integerFieldEquals(outputFields[i + 35u], 90, 0x10)
+                && integerFieldEquals(outputFields[i + 36u], 91, 0)
+                && integerFieldEquals(outputFields[i + 37u], 62, 0)
+                && integerFieldEquals(outputFields[i + 38u], 92, 0)
+                && outputFields[i + 39u]
+                    == std::make_pair(340, std::string("0"))
+                && integerFieldEquals(outputFields[i + 40u], 93, 1)
+                && realFieldEquals(i + 41u, 40, 0.0)
+                && outputFields[i + 42u]
+                    == std::make_pair(309,
+                        std::string("GRIDFORMAT_END"))
+                && outputFields[i + 43u]
                     == std::make_pair(309,
                         std::string("TABLEFORMAT_END"));
             break;
@@ -53498,9 +53531,9 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && readback.tableContents.size() == 5u
                      && readback.fields.size() == 1u
                      && exactPointFields && exactDateFields
-                     && exactContentFormatFields && exactCellMarginFields
+                     && exactContentFormatFields && exactCellStyleFields
                      && exactRichContentFormatFields,
-                 "adapter emits linked TABLECONTENT, scalar/point/Date values, content formatting, and cell margins");
+                 "adapter emits linked TABLECONTENT, scalar/point/Date values, content formats, and cell style margins/borders");
         const DRW_TableContentObject* blockAttributeContent = nullptr;
         for (const DRW_TableContentObject& value : readback.tableContents) {
             if (value.handle == 0x1722u)
@@ -53826,10 +53859,15 @@ void testDataLinkAdapterExport(TestContext& t) {
                          && readbackCellStyle->m_rightMargin == 0.5
                          && readbackCellStyle->m_marginHorizontalSpacing
                              == 0.625
-                         && readbackCellStyle->m_marginVerticalSpacing == 0.75,
+                         && readbackCellStyle->m_marginVerticalSpacing == 0.75
+                         && readbackCellStyle->m_borders.size() == 1u
+                         && readbackCellStyle->m_borders.front().m_edgeFlags == 1
+                         && readbackCellStyle->m_borders.front()
+                             .m_propertyOverrideFlags == 0x10
+                         && readbackCellStyle->m_borders.front().m_visible == 1,
                      binary
-                         ? "binary TABLECONTENT cell-margin style reads back all six exact values"
-                         : "ASCII TABLECONTENT cell-margin style reads back all six exact values");
+                         ? "binary TABLECONTENT cell margins and top-border invisibility read back exactly"
+                         : "ASCII TABLECONTENT cell margins and top-border invisibility read back exactly");
             t.expect(readbackFormats != nullptr
                          && readbackFormats->size() == 6u
                          && readbackFormats->front()
