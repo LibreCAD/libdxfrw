@@ -335,8 +335,11 @@ struct dx_associativeDwgImportReceipt {
     std::size_t associativeNetworkActionTargetsVerified{0};
     std::size_t associativeNetworkParentEdgesVerified{0};
     std::size_t associativeNetworkRootRecords{0};
+    std::size_t associativeNetworkDictionaryEntryReferences{0};
+    std::size_t associativeNetworkDictionaryEntriesVerified{0};
     bool associativeNetworkActionLimitExceeded{false};
     bool associativeNetworkActionClosureComplete{false};
+    bool associativeNetworkDictionaryEntryClosureComplete{false};
     bool associativeNetworkParentChainsComplete{false};
     bool resourceLimitExceeded{false};
     bool captureFailed{false};
@@ -1033,6 +1036,11 @@ public:
     bool hasStandardDwgObjectCaptureFailure() const noexcept {
         return m_standardDwgObjectCaptureFailed;
     }
+    // Checks one exact, import-matched fixed DICTIONARY membership edge.
+    // It does not prove that the dictionary itself is rooted or writable.
+    bool hasCompleteDwgDictionaryEntry(std::uint32_t dictionaryHandle,
+                                       const char* entryName,
+                                       std::uint32_t targetHandle) const noexcept;
     // Read-only current-import source lease; null means no report, never an
     // empty/qualified CLASSES section. Mutable public class rows are separate.
     const DRW_DwgClassSourceReport* dwgClassSource() const noexcept {

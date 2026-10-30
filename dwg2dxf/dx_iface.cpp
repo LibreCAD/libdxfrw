@@ -13134,6 +13134,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         std::unordered_map<std::uint32_t, const DRW_AssociativeObject*>
             networksByHandle;
         networksByHandle.reserve(retained);
+        bool networkDictionaryEntriesComplete = true;
         for (std::size_t index = receipt.typedRange.begin;
              index < receipt.typedRange.end; ++index) {
             const DRW_AssociativeObject& object =
@@ -13143,8 +13144,20 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 ++receipt.associativeNetworkRecords;
                 if (object.m_owningNetworkHandle == 0u)
                     ++receipt.associativeNetworkRootRecords;
+                ++receipt.associativeNetworkDictionaryEntryReferences;
+                if (data.hasCompleteDwgDictionaryEntry(
+                        object.parentHandle, "ACAD_ASSOCNETWORK",
+                        object.handle))
+                    ++receipt.associativeNetworkDictionaryEntriesVerified;
+                else
+                    networkDictionaryEntriesComplete = false;
             }
         }
+        receipt.associativeNetworkDictionaryEntryClosureComplete =
+            receipt.associativeNetworkRecords > 0u
+            && networkDictionaryEntriesComplete
+            && receipt.associativeNetworkDictionaryEntriesVerified
+                == receipt.associativeNetworkDictionaryEntryReferences;
         bool networkActionListsComplete = true;
         bool networkActionTargetsComplete = true;
         for (const auto& networkEntry : networksByHandle) {
@@ -13269,7 +13282,8 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         }
         receipt.associativeNetworkParentChainsComplete =
             networkParentChainsComplete
-            && receipt.associativeNetworkActionClosureComplete;
+            && receipt.associativeNetworkActionClosureComplete
+            && receipt.associativeNetworkDictionaryEntryClosureComplete;
 
         bool actionListsComplete = true;
         bool actionTargetsComplete = true;
@@ -13422,6 +13436,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         receipt.selectedGraphEdgesComplete = false;
         receipt.constraintGroupActionClosureComplete = false;
         receipt.associativeNetworkActionClosureComplete = false;
+        receipt.associativeNetworkDictionaryEntryClosureComplete = false;
         receipt.associativeNetworkParentChainsComplete = false;
     }
 }
@@ -34614,6 +34629,51 @@ void dx_iface::addRawDxfSection(const DRW_RawDxfSection& section) {
     }
 }
 
+bool dx_data::hasCompleteDwgDictionaryEntry(
+        std::uint32_t dictionaryHandle, const char* entryName,
+        std::uint32_t targetHandle) const noexcept {
+    if (entryName == nullptr || entryName[0] == '\0'
+        || dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
+        || targetHandle == 0u || targetHandle == DRW::NoHandle
+        || sourceFormat != dx_source_format::DWG || importGeneration == 0u
+        || !dwgReadOutcome.attempted || !dwgReadOutcome.operationSucceeded
+        || dwgReadOutcome.sourceVersion == DRW::UNKNOWNV
+        || sourceVersion != dwgReadOutcome.sourceVersion
+        || m_standardDwgObjectCaptureFailed
+        || m_standardDwgObjectPayloadFailed)
+        return false;
+
+    const auto found = m_standardDwgObjectFrames.find(
+        {importGeneration, dictionaryHandle});
+    if (found == m_standardDwgObjectFrames.end())
+        return false;
+    const StandardDwgObjectFrame& frame = found->second;
+    if (frame.generation != importGeneration
+        || frame.raw.m_version != dwgReadOutcome.sourceVersion
+        || frame.raw.m_handle != dictionaryHandle
+        || frame.raw.m_objectType != dwgObjType::DICTIONARY
+        || !frame.publicationSeen || !frame.membershipSeen
+        || !frame.sourceProfileBound || !frame.payloadMatched
+        || !frame.typedBaseline
+        || !frame.dictionaryMembership.m_complete
+        || frame.dictionaryMembership.m_version
+            != dwgReadOutcome.sourceVersion
+        || frame.dictionaryMembership.m_dictionaryHandle != dictionaryHandle
+        || !frame.dictionaryMembership.m_hasSourceLocation)
+        return false;
+
+    bool matched = false;
+    for (const DRW_DwgDictionaryMembership::Entry& entry :
+         frame.dictionaryMembership.m_entries) {
+        if (entry.m_name != entryName)
+            continue;
+        if (matched || entry.m_handle != targetHandle)
+            return false;
+        matched = true;
+    }
+    return matched;
+}
+
 bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
     if (m_acdsRawDxfSectionCaptureFailed)
         return false;
@@ -40612,10 +40672,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << receipt.associativeNetworkParentEdgesVerified
                     << " associativeNetworkRootRecords="
                     << receipt.associativeNetworkRootRecords
+                    << " associativeNetworkDictionaryEntryReferences="
+                    << receipt.associativeNetworkDictionaryEntryReferences
+                    << " associativeNetworkDictionaryEntriesVerified="
+                    << receipt.associativeNetworkDictionaryEntriesVerified
                     << " associativeNetworkActionLimitExceeded="
                     << (receipt.associativeNetworkActionLimitExceeded ? 1 : 0)
                     << " associativeNetworkActionClosureComplete="
                     << (receipt.associativeNetworkActionClosureComplete ? 1 : 0)
+                    << " associativeNetworkDictionaryEntryClosureComplete="
+                    << (receipt.associativeNetworkDictionaryEntryClosureComplete
+                            ? 1 : 0)
                     << " associativeNetworkParentChainsComplete="
                     << (receipt.associativeNetworkParentChainsComplete ? 1 : 0)
                     << " selectedGraphEdgesComplete="
