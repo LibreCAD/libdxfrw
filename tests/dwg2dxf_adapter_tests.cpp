@@ -33294,6 +33294,144 @@ bool mLeaderStyleBooleanSourceDomain() {
     return true;
 }
 
+bool replaceMLeaderStyleAsciiInteger(std::string& drawing, int code,
+                                     int value) {
+    const std::string marker = "0\nMLEADERSTYLE\n";
+    const auto markerPosition = drawing.find(marker);
+    if (markerPosition == std::string::npos)
+        return false;
+    const std::string codeLine = std::to_string(code) + "\n";
+    const auto codePosition = drawing.find(
+        codeLine, markerPosition + marker.size());
+    if (codePosition == std::string::npos)
+        return false;
+    const auto valueBegin = codePosition + codeLine.size();
+    const auto valueEnd = drawing.find('\n', valueBegin);
+    if (valueEnd == std::string::npos)
+        return false;
+    if (drawing.find(codeLine, valueEnd + 1u) != std::string::npos)
+        return false;
+    drawing.replace(valueBegin, valueEnd - valueBegin,
+                    std::to_string(value));
+    return true;
+}
+
+bool mLeaderStyleEnumMatches(const DRW_MLeaderStyle& style, int code,
+                             int value) {
+    switch (code) {
+    case 170: return style.contentType == value;
+    case 171: return style.drawMLeaderOrder == value;
+    case 172: return style.drawLeaderOrder == value;
+    case 173: return style.leaderType == value;
+    case 175: return style.textAngleType == value;
+    case 176: return style.textAlignmentType == value;
+    case 177: return style.blockConnectionType == value;
+    case 271: return style.attachmentDirection == value;
+    case 272: return style.bottomAttachment == value;
+    case 273: return style.topAttachment == value;
+    default: return false;
+    }
+}
+
+bool mLeaderStyleIntegerEnumSourceDomains() {
+    struct Domain {
+        int code;
+        std::vector<int> valid;
+        int below;
+        int above;
+    };
+    const std::array<Domain, 10> domains{{
+        {170, {0, 1, 2, 3}, -1, 4},
+        {171, {0, 1}, -1, 2},
+        {172, {0, 1}, -1, 2},
+        {173, {0, 1, 2}, -1, 3},
+        {175, {0, 1, 2}, -1, 3},
+        {176, {0, 1, 2}, -1, 3},
+        {177, {0, 1}, -1, 2},
+        {271, {0, 1}, -1, 2},
+        {272, {0, 9, 10}, 8, 11},
+        {273, {0, 9, 10}, 8, 11},
+    }};
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto scratch = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mleaderstyle-enum-domain-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(scratch, error) || error)
+        return fail("could not reserve MLEADERSTYLE enum scratch directory");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup{scratch};
+
+    const auto generate = [&](const std::filesystem::path& path, int code,
+                              int value, bool binary) {
+        const auto ascii = binary
+            ? std::filesystem::path(path.string() + ".ascii") : path;
+        if (!generateRootMLeaderStyleControl(ascii, false))
+            return false;
+        std::ifstream input(ascii, std::ios::binary);
+        if (!input)
+            return false;
+        std::string drawing{
+            std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>()};
+        if (!replaceMLeaderStyleAsciiInteger(drawing, code, value))
+            return false;
+        if (binary)
+            return writeBinaryDxfControl(path.string(), drawing, "AC1027");
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        return output && static_cast<bool>(output.write(
+            drawing.data(), static_cast<std::streamsize>(drawing.size())));
+    };
+
+    dx_iface reader;
+    for (const auto& domain : domains) {
+        for (const int invalidValue : {domain.below, domain.above}) {
+            for (const bool binary : {false, true}) {
+                const auto path = scratch / ("invalid-"
+                    + std::to_string(domain.code) + "-"
+                    + std::to_string(invalidValue)
+                    + (binary ? "-binary.dxf" : "-ascii.dxf"));
+                if (!generate(path, domain.code, invalidValue, binary))
+                    return fail("could not create invalid MLEADERSTYLE enum "
+                                + std::to_string(domain.code));
+                dx_data rejected;
+                if (reader.fileImport(path.string(), &rejected, false)
+                    || !rejected.mLeaderStyles.empty())
+                    return fail("MLEADERSTYLE accepted invalid enum group "
+                                + std::to_string(domain.code) + " value "
+                                + std::to_string(invalidValue));
+            }
+        }
+        for (const int validValue : domain.valid) {
+            for (const bool binary : {false, true}) {
+                const auto path = scratch / ("valid-"
+                    + std::to_string(domain.code) + "-"
+                    + std::to_string(validValue)
+                    + (binary ? "-binary.dxf" : "-ascii.dxf"));
+                if (!generate(path, domain.code, validValue, binary))
+                    return fail("could not create valid MLEADERSTYLE enum "
+                                + std::to_string(domain.code));
+                dx_data accepted;
+                if (!reader.fileImport(path.string(), &accepted, false)
+                    || accepted.mLeaderStyles.size() != 1u
+                    || !mLeaderStyleEnumMatches(
+                        accepted.mLeaderStyles.front(), domain.code,
+                        validValue))
+                    return fail("valid MLEADERSTYLE enum retry changed group "
+                                + std::to_string(domain.code) + " value "
+                                + std::to_string(validValue));
+            }
+        }
+    }
+    return true;
+}
+
 bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                                    bool binary) {
     const std::string encoding = binary ? "bin" : "ascii";
@@ -38792,6 +38930,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--mleaderstyle-boolean-source-domain")
         return mLeaderStyleBooleanSourceDomain() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--mleaderstyle-integer-enum-source-domains")
+        return mLeaderStyleIntegerEnumSourceDomains() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--mlinestyle-duplicate-singleton-fields")
         return mLineStyleDuplicateSingletonFields() ? 0 : 1;

@@ -6252,6 +6252,9 @@ class DRW_MLeaderStyle : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   static constexpr std::uint16_t kDwgClassNum = 504;
+  //! Validate a represented MLEADERSTYLE DXF enum-like integer field.
+  [[nodiscard]] static bool isValidDxfEnumValue(
+      int code, std::int32_t value) noexcept;
 
   DRW_MLeaderStyle() { reset(); }
   void reset() {

@@ -27753,25 +27753,26 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         return rejectUnsupportedDxfWrite("MLEADERSTYLE");
     if (!preflightTableEntry(ent))
         return false;
-    const auto isDefaultOrVerticalAttachment = [](std::uint16_t value) {
-        return value == 0 || (value >= 9 && value <= 10);
-    };
     const bool hasR2010AttachmentData = ent->attachmentDirection != 0
         || ent->topAttachment != 0 || ent->bottomAttachment != 0;
     // ODA §20.4.87 assigns group 179 to R2010+ and expects value 2. Older
     // DXF targets omit the field and therefore can represent only that default.
     // Autodesk's MLeaderStyle API allows -1 (unlimited) or values >= 2.
     // Keep the library's existing 0 default representable for compatibility.
-    if (ent->contentType > 3 || ent->drawMLeaderOrder > 1
-        || ent->drawLeaderOrder > 1 || ent->leaderType > 2
+    if (!DRW_MLeaderStyle::isValidDxfEnumValue(170, ent->contentType)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(171, ent->drawMLeaderOrder)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(172, ent->drawLeaderOrder)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(173, ent->leaderType)
         || (ent->maxLeaderPoints != -1 && ent->maxLeaderPoints != 0
             && ent->maxLeaderPoints < 2)
         || !isValidDxfLineWeightValue(ent->leaderLineWeight)
         || ent->leftAttachment > 8 || ent->rightAttachment > 8
-        || ent->textAngleType > 2 || ent->textAlignmentType > 2
-        || ent->blockConnectionType > 1 || ent->attachmentDirection > 1
-        || !isDefaultOrVerticalAttachment(ent->topAttachment)
-        || !isDefaultOrVerticalAttachment(ent->bottomAttachment)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(175, ent->textAngleType)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(176, ent->textAlignmentType)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(177, ent->blockConnectionType)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(271, ent->attachmentDirection)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(272, ent->bottomAttachment)
+        || !DRW_MLeaderStyle::isValidDxfEnumValue(273, ent->topAttachment)
         || ent->styleVersion != 2
         || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();

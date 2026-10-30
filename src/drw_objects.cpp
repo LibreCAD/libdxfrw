@@ -18378,6 +18378,33 @@ bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
 // MLEADERSTYLE per ODA spec. Defensive parser following the MLEADER
 // convention: bound-check counts and treat misalignment as non-fatal so the
 // OBJECTS-section scan stays aligned even if a particular style record drifts.
+bool DRW_MLeaderStyle::isValidDxfEnumValue(
+        int code, std::int32_t value) noexcept {
+    struct Domain {
+        int code;
+        std::int32_t minimum;
+        std::int32_t maximum;
+        bool includeDefaultZero;
+    };
+    constexpr std::array<Domain, 10> domains{{
+        {170, 0, 3, false}, // content type
+        {171, 0, 1, false}, // draw MLeader order
+        {172, 0, 1, false}, // draw leader order
+        {173, 0, 2, false}, // leader type
+        {175, 0, 2, false}, // text angle type
+        {176, 0, 2, false}, // text alignment type
+        {177, 0, 1, false}, // block connection type
+        {271, 0, 1, false}, // MText attachment direction
+        {272, 9, 10, true}, // bottom attachment; zero is the local default
+        {273, 9, 10, true}, // top attachment; zero is the local default
+    }};
+    const auto domain = std::find_if(domains.begin(), domains.end(),
+        [code](const Domain& candidate) { return candidate.code == code; });
+    return domain != domains.end()
+        && ((domain->includeDefaultZero && value == 0)
+            || (value >= domain->minimum && value <= domain->maximum));
+}
+
 bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // AcDbMLeaderStyle DXF.  All-scalar record (handles via 340-343); code map
     // matches the per-field comments on the class + dwgTs's MLEADERSTYLE decode.
@@ -18388,15 +18415,22 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         value = raw == 1;
         return true;
     };
+    const auto readEnum = [&reader, code](std::uint16_t& value) {
+        const std::int32_t raw = reader->getInt32();
+        if (!DRW_MLeaderStyle::isValidDxfEnumValue(code, raw))
+            return false;
+        value = static_cast<std::uint16_t>(raw);
+        return true;
+    };
     switch (code) {
     case 179: styleVersion = reader->getInt32(); break;
-    case 170: contentType = reader->getInt32(); break;
-    case 171: drawMLeaderOrder = reader->getInt32(); break;
-    case 172: drawLeaderOrder = reader->getInt32(); break;
+    case 170: return readEnum(contentType);
+    case 171: return readEnum(drawMLeaderOrder);
+    case 172: return readEnum(drawLeaderOrder);
     case 90:  maxLeaderPoints = reader->getInt32(); break;
     case 40:  firstSegmentAngle = reader->getDouble(); break;
     case 41:  secondSegmentAngle = reader->getDouble(); break;
-    case 173: leaderType = reader->getInt32(); break;
+    case 173: return readEnum(leaderType);
     case 91:
         leaderColor = reader->getInt32();
         leaderColorRgb = -1;
@@ -18427,8 +18461,8 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         break;
     case 174: leftAttachment = reader->getInt32(); break;
     case 178: rightAttachment = reader->getInt32(); break;
-    case 175: textAngleType = reader->getInt32(); break;
-    case 176: textAlignmentType = reader->getInt32(); break;
+    case 175: return readEnum(textAngleType);
+    case 176: return readEnum(textAlignmentType);
     case 93:
         textColor = reader->getInt32();
         textColorRgb = -1;
@@ -18459,14 +18493,14 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
     case 293: return readBoolean(blockScaleEnabled);
     case 141: blockRotation = reader->getDouble(); break;
     case 294: return readBoolean(blockRotationEnabled);
-    case 177: blockConnectionType = reader->getInt32(); break;
+    case 177: return readEnum(blockConnectionType);
     case 142: scaleFactor = reader->getDouble(); break;
     case 295: return readBoolean(propertyChanged);
     case 296: return readBoolean(isAnnotative);
     case 143: breakSize = reader->getDouble(); break;
-    case 271: attachmentDirection = reader->getInt32(); break;
-    case 273: topAttachment = reader->getInt32(); break;
-    case 272: bottomAttachment = reader->getInt32(); break;
+    case 271: return readEnum(attachmentDirection);
+    case 273: return readEnum(topAttachment);
+    case 272: return readEnum(bottomAttachment);
     case 298: return readBoolean(textExtended);
     case 340: leaderLineTypeHandle.ref = reader->getHandleString(); break;
     case 341: arrowHeadBlockHandle.ref = reader->getHandleString(); break;

@@ -75,9 +75,9 @@ profiles are recorded in their receipts.
    code-1005 target types, mixed target sets, section combinations and reference
    cardinalities beyond the selected profiles. Exercise late mutation and missing
    providers through the existing rooted planner.
-3. **MLEADERSTYLE:** cover remaining non-boolean integer domains, handle roles,
-   absent/repeated/default values and version-specific fields through one
-   declarative domain table and shared writer validation. Keep native
+3. **MLEADERSTYLE:** cover source/field domains not yet represented by the shared
+   enum validator, handle roles, absent/repeated/default values and
+   version-specific fields through shared parser/writer validation. Keep native
    annotation/rendering claims separate.
 4. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
    annotation behavior only where intended consumer support requires it. Serializer
