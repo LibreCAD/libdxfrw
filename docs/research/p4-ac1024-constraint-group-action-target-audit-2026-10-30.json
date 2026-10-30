@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 constraint-group action target and owner audit",
+  "mode": "P4 bounded source-bound associative graph audit",
+  "baselineCommit": "5bd5066f",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Retain whether the AC1024 constraint-group action-handle list was fully decoded, independently of the unresolved node tail.",
+    "Resolve every decoded group action handle to one unique associative target with an empirically supported target class and direct group owner.",
+    "Keep associative DXF export refused; this audit does not qualify node bodies, complete graph closure, or a writer route."
+  ],
+  "evidence": {
+    "runtimeSources": [
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/architectural_example-imperial-assoc-action-audit.log",
+        "logSha256": "783ca8ccd33ba7b0738a6ec97b65826c235cc417b446031a133e81dc34d5f73f",
+        "callbacks": 120,
+        "constraintGroups": 4,
+        "actionListsParsed": 4,
+        "actionReferences": 71,
+        "actionTargetsVerified": 71,
+        "actionReferenceLimitExceeded": false,
+        "actionClosureComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [14, 14, 14, 14],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/civil_example-imperial-assoc-action-audit.log",
+        "logSha256": "d54f4dee3b2d3f4a8236048d483d5f6dca1077b839d8c7b21416d4b0ecdbeeae",
+        "callbacks": 104,
+        "constraintGroups": 3,
+        "actionListsParsed": 3,
+        "actionReferences": 63,
+        "actionTargetsVerified": 63,
+        "actionReferenceLimitExceeded": false,
+        "actionClosureComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [13, 13, 13, 13],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/mechanical_example-imperial-assoc-action-audit.log",
+        "logSha256": "29a9648afa822e164070d78eac95a71025aab4c4acd6abac5b118bb16e0085fa",
+        "callbacks": 138,
+        "constraintGroups": 1,
+        "actionListsParsed": 1,
+        "actionReferences": 88,
+        "actionTargetsVerified": 88,
+        "actionReferenceLimitExceeded": false,
+        "actionClosureComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [17, 17, 17, 17],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      }
+    ],
+    "targetRoleProfile": {
+      "actionHandleCode": 3,
+      "actionHandleRole": "hard ownership",
+      "targetRecordNames": [
+        "ACDBASSOCGEOMDEPENDENCY / ASSOCGEOMDEPENDENCY",
+        "ACDBASSOCDEPENDENCY / ASSOCDEPENDENCY",
+        "ACDBASSOCVALUEDEPENDENCY / ASSOCVALUEDEPENDENCY"
+      ],
+      "ownerRule": "Each action target's parentHandle equals the constraint-group handle.",
+      "independentPeerEvidence": {
+        "repository": "https://github.com/LibreDWG/libredwg",
+        "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "sourceProjection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "sourceProjectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "matchingInputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "observedTargetCounts": {
+          "ASSOCGEOMDEPENDENCY": 54,
+          "ASSOCDEPENDENCY": 17,
+          "ASSOCVALUEDEPENDENCY": 17
+        },
+        "scopeLimit": "Independent peer counts corroborate the mechanical sample's role set; the runtime audit independently checks all three local AC1024 imports."
+      }
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added an explicit parsed-state bit for the AC1024 action list and a bounded receipt audit for unique action handles, expected associative target classes and direct group ownership.",
+    "behaviorChanges": [
+      "The audit is independent of whether the subsequent constraint-node tail is qualified.",
+      "At most 100000 group action references are inspected per import; exceeding the audit bound leaves action closure incomplete and is reported.",
+      "The audit is observational and does not authorize or emit associative DXF records."
+    ],
+    "supportClaimPromoted": false,
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 generated AC1024 constraint-group test.",
+    "runtimeCommand": "build/dwg2dxf/dwg2dxf <AC1024 source> -y -d -v2010 <temporary DXF>",
+    "runtimeResult": "All action lists parsed; every listed action resolves to an allowed associative dependency class owned by its group in all three local AC1024 inputs. Each conversion remains refused with dwg-associative-graph-not-serialized.",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "These local DWGs are investigation inputs only and are not committed regression fixtures.",
+    "The audit does not qualify version-0 node framing or class-specific node fields and connections.",
+    "It does not establish complete network-root reachability, all associative descendants, associative DXF serialization, identity remapping, output readback, or native consumer semantics.",
+    "Strict associative export refusal remains active; no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Bounded target-class, handle-resolution and direct-owner checks for every parsed constraint-group action reference in the three AC1024 investigation inputs.",
+    "remainingP4Scope": "Resolve conflicting constraint-group node layouts; close other required associative descendants and network ancestry; implement complete-graph DXF output, remapping and readback or preserve strict refusal.",
+    "nextImplementationPacket": "Continue independent same-input evidence research for the AC1024 node-tail layout while classifying the next source-required associative descendants and root/network ancestry from the retained graph.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "878f53da79e7ff31ee6b206025e54edc4c710902ba11b1df380114e287775170",
+    "dwg2dxf/dx_iface.cpp": "ebb4546ec1a7ed22a06fcce8e1cb0730e242315d89acbc87d26897967ab3a41d",
+    "src/drw_objects.h": "488207ce8ddd1b6e73290086b749a7b150c5e88c01fc1b2f911908dfb568e94f",
+    "src/drw_objects.cpp": "872a2e93f324695dcb5553e9b54beb8f713174087e91fdfb725f72e21a277264",
+    "tests/dwg_reader_matrix_tests.cpp": "f8b43cabf8f952a9b1a1d2d482041a0b5fd653a422fe130c66d48c6de0679e40",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "8506d69ef58274a2767f48a1d270eb650d5cf8acb652ead0a0f6a380e3b70551",
+    "build/dwg2dxf/dwg2dxf": "dc5a14741552598db06810a1de7509a392813adf2cfddd6d1b97146fcf11f859"
+  },
+  "commitCreated": true,
+  "worktree": "Only the implementation, plan and receipt paths listed above should be staged; unrelated workspace contents and local DWG samples remain excluded."
+}

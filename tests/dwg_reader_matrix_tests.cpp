@@ -10679,6 +10679,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         && parsed->m_constraintWorkplane[1].x == 1.0
         && parsed->m_constraintWorkplane[2].y == 1.0
         && parsed->m_constraintGroupReference == source.groupReference
+        && parsed->m_constraintActionsParsed
         && parsed->m_constraintActions == source.actions
         && parsed->m_constraintNodeCount == 0
         && parsed->m_prefixStatuses.size() == 2u
@@ -10768,6 +10769,8 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && profileSink.typed.size() == 2u
             && partialSource != profileSink.typed.end()
             && !partialSource->m_constraintGroupBodyParsed
+            && partialSource->m_constraintActionsParsed
+                   == (profileMode != 0)
             && partialSource->m_prefixStatuses.size() == 2u
             && partialSource->m_prefixStatuses.back().m_status
                    == (profileMode == 0

@@ -9911,6 +9911,7 @@ bool isAssociativeDxfName(std::string_view name) noexcept {
 }
 
 constexpr std::size_t kMaxAssociativeRecords = 100000u;
+constexpr std::size_t kMaxAssociativeDwgActionReferences = 100000u;
 constexpr std::size_t kMaxAssociativeDxfRawGroups = 4000000u;
 constexpr std::size_t kMaxAssociativeOwnerNodes = 200000u;
 constexpr std::size_t kMaxAssociativeDictionaryEdges = 200000u;
@@ -13112,7 +13113,74 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                          "ASSOCDIMDEPENDENCYBODY"))
                 ++receipt.dimensionDependencyBodies;
         }
-        if (!uniqueAssociativeHandles || receipt.dimensionDependencyBodies == 0u)
+        if (!uniqueAssociativeHandles)
+            return;
+
+        bool actionListsComplete = true;
+        bool actionTargetsComplete = true;
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& group =
+                data.dwgAssociativeObjects[index];
+            if (!isRecord(group, "ACDBASSOC2DCONSTRAINTGROUP",
+                          "ASSOC2DCONSTRAINTGROUP"))
+                continue;
+            ++receipt.constraintGroupRecords;
+            if (!group.m_constraintActionsParsed
+                || group.m_constraintActionCount < 0
+                || static_cast<std::size_t>(group.m_constraintActionCount)
+                    != group.m_constraintActions.size()) {
+                actionListsComplete = false;
+                actionTargetsComplete = false;
+                continue;
+            }
+            ++receipt.constraintGroupActionListsParsed;
+            if (group.m_constraintActions.size()
+                > kMaxAssociativeDwgActionReferences
+                    - receipt.constraintGroupActionReferences) {
+                receipt.constraintGroupActionLimitExceeded = true;
+                actionTargetsComplete = false;
+                continue;
+            }
+            receipt.constraintGroupActionReferences +=
+                group.m_constraintActions.size();
+
+            std::unordered_set<std::uint32_t> uniqueActions;
+            uniqueActions.reserve(group.m_constraintActions.size());
+            for (std::uint32_t actionHandle : group.m_constraintActions) {
+                if (actionHandle == 0u || actionHandle == DRW::NoHandle
+                    || !uniqueActions.insert(actionHandle).second) {
+                    actionTargetsComplete = false;
+                    continue;
+                }
+                const auto actionIt = byHandle.find(actionHandle);
+                if (actionIt == byHandle.end()) {
+                    actionTargetsComplete = false;
+                    continue;
+                }
+                const DRW_AssociativeObject& action = *actionIt->second;
+                if ((!isRecord(action, "ACDBASSOCGEOMDEPENDENCY",
+                               "ASSOCGEOMDEPENDENCY")
+                     && !isRecord(action, "ACDBASSOCDEPENDENCY",
+                                  "ASSOCDEPENDENCY")
+                     && !isRecord(action, "ACDBASSOCVALUEDEPENDENCY",
+                                  "ASSOCVALUEDEPENDENCY"))
+                    || action.parentHandle != group.handle) {
+                    actionTargetsComplete = false;
+                    continue;
+                }
+                ++receipt.constraintGroupActionTargetsVerified;
+            }
+        }
+        receipt.constraintGroupActionClosureComplete =
+            receipt.constraintGroupRecords > 0u
+            && actionListsComplete && actionTargetsComplete
+            && !receipt.constraintGroupActionLimitExceeded
+            && receipt.constraintGroupActionListsParsed
+                == receipt.constraintGroupRecords
+            && receipt.constraintGroupActionTargetsVerified
+                == receipt.constraintGroupActionReferences;
+        if (receipt.dimensionDependencyBodies == 0u)
             return;
 
         for (std::size_t index = receipt.typedRange.begin;
@@ -13197,6 +13265,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 == receipt.dimensionDependencyBodies;
     } catch (...) {
         receipt.selectedGraphEdgesComplete = false;
+        receipt.constraintGroupActionClosureComplete = false;
     }
 }
 
@@ -40362,6 +40431,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << receipt.dependencyGroupEdges
                     << " groupNetworkEdges="
                     << receipt.groupNetworkEdges
+                    << " constraintGroupRecords="
+                    << receipt.constraintGroupRecords
+                    << " constraintGroupActionListsParsed="
+                    << receipt.constraintGroupActionListsParsed
+                    << " constraintGroupActionReferences="
+                    << receipt.constraintGroupActionReferences
+                    << " constraintGroupActionTargetsVerified="
+                    << receipt.constraintGroupActionTargetsVerified
+                    << " constraintGroupActionLimitExceeded="
+                    << (receipt.constraintGroupActionLimitExceeded ? 1 : 0)
+                    << " constraintGroupActionClosureComplete="
+                    << (receipt.constraintGroupActionClosureComplete ? 1 : 0)
                     << " selectedGraphEdgesComplete="
                     << (receipt.selectedGraphEdgesComplete ? 1 : 0)
                     << " limitExceeded="

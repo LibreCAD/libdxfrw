@@ -7155,6 +7155,7 @@ public:
   std::array<DRW_Coord, 3> m_constraintWorkplane{};
   std::uint32_t m_constraintGroupReference = 0;
   std::int32_t m_constraintActionCount = 0;
+  bool m_constraintActionsParsed = false;
   std::vector<std::uint32_t> m_constraintActions;
   std::int32_t m_constraintNodeCount = 0;
   std::int32_t m_geometryStatus = 0;
@@ -7210,6 +7211,7 @@ private:
     m_constraintWorkplane = o.m_constraintWorkplane;
     m_constraintGroupReference = o.m_constraintGroupReference;
     m_constraintActionCount = o.m_constraintActionCount;
+    m_constraintActionsParsed = o.m_constraintActionsParsed;
     m_constraintActions = o.m_constraintActions;
     m_constraintNodeCount = o.m_constraintNodeCount;
     m_geometryStatus = o.m_geometryStatus;

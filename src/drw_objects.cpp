@@ -25326,6 +25326,7 @@ void DRW_AssociativeObject::reset() {
     m_constraintWorkplane = {};
     m_constraintGroupReference = 0;
     m_constraintActionCount = 0;
+    m_constraintActionsParsed = false;
     m_constraintActions.clear();
     m_constraintNodeCount = 0;
     m_geometryStatus = 0;
@@ -26597,6 +26598,9 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             m_constraintWorkplane = workplane;
             m_constraintGroupReference = groupReference;
             m_constraintActionCount = actionCountRead ? actionCount : 0;
+            m_constraintActionsParsed = actionCountRead
+                && isValidAssocCount(actionCount)
+                && actions.size() == static_cast<std::size_t>(actionCount);
             m_constraintActions = std::move(actions);
             m_constraintNodeCount = nodeCountRead ? nodeCount : 0;
             m_prefixStatuses.push_back(groupStatus);
@@ -26625,6 +26629,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         m_constraintWorkplane = workplane;
         m_constraintGroupReference = groupReference;
         m_constraintActionCount = actionCount;
+        m_constraintActionsParsed = true;
         m_constraintActions = std::move(actions);
         m_constraintNodeCount = nodeCount;
         m_prefixStatuses.push_back(groupStatus);
