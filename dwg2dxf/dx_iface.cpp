@@ -22524,10 +22524,16 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
             &&typeid(*entity)==typeid(DRW_Helix);
     case DRW::INSERT: {
         const auto* insert=dynamic_cast<const DRW_Insert*>(entity);
+        // MINSERT is a DXF INSERT with a grid.  Its grid fields are preserved
+        // by writeInsert(), but code-1005 source binding must admit it before
+        // that writer can prove the target and referenced BLOCK_RECORD.  Keep
+        // attribute-bearing INSERT compounds on their separately qualified
+        // path.
         return insert!=nullptr&&typeid(*entity)==typeid(DRW_Insert)
-            &&!insert->isMInsert()&&insert->colcount==1
-            &&insert->rowcount==1&&insert->colspace==0.0
-            &&insert->rowspace==0.0&&insert->attlist.empty()
+            &&insert->colcount>0&&insert->rowcount>0
+            &&(insert->isMInsert()
+                ||(insert->colspace==0.0&&insert->rowspace==0.0))
+            &&insert->attlist.empty()
             &&!insert->seqEndEntity;
     }
     case DRW::RAY:

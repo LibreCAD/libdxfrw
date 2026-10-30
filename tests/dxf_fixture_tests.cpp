@@ -31484,7 +31484,7 @@ Tags sourceWithManyEntityHandleXdata(bool binary,
 Tags sourceWithBlockEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
         std::string_view targetOwner="203",
-        DRW::ETYPE entityType=DRW::LINE) {
+        DRW::ETYPE entityType=DRW::LINE,bool multiInsert=false) {
     auto fields=source(binary);
     if(entityType==DRW::TEXT)
         fields=withXdataTargetTextStyle(std::move(fields));
@@ -31679,10 +31679,13 @@ Tags sourceWithBlockEntityHandleXdata(
                 {40,"1"},{41,"2"},{42,"1.5"},{290,"1"},{280,"1"}}
             :entityType==DRW::INSERT
             ?Tags{{0,"INSERT"},{5,"A900"},{330,std::string(targetOwner)},
-                {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockReference"},
+                {100,"AcDbEntity"},{8,"0"},
+                {100,multiInsert?"AcDbMInsertBlock":"AcDbBlockReference"},
                 {2,"NestedTargetBlock"},{10,"3.5"},{20,"-2.25"},
                 {30,"7.75"},{41,"2"},{42,"0.5"},{43,"1.5"},
-                {50,"30"},{70,"1"},{71,"1"},{44,"0"},{45,"0"}}
+                {50,"30"},{70,multiInsert?"2":"1"},
+                {71,multiInsert?"3":"1"},
+                {44,multiInsert?"6":"0"},{45,multiInsert?"8":"0"}}
             :entityType==DRW::RAY
             ?Tags{{0,"RAY"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbRay"},
@@ -32395,7 +32398,7 @@ Tags sourceWithHelixEntityHandleXdata(bool binary) {
     return fields;
 }
 
-Tags sourceWithInsertEntityHandleXdata(bool binary) {
+Tags sourceWithInsertEntityHandleXdata(bool binary,bool multiInsert=false) {
     auto fields=sourceWithEntityHandleXdata(binary,true,true);
     const auto unusedReference=std::find(fields.begin(),fields.end(),
         std::make_pair(1005,std::string("A900")));
@@ -32448,10 +32451,12 @@ Tags sourceWithInsertEntityHandleXdata(bool binary) {
         while(end<fields.size()&&fields[end].first!=0)++end;
         if(end==fields.size())break;
         const Tags insert{{0,"INSERT"},{5,"A902"},{330,"201"},
-            {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockReference"},
+            {100,"AcDbEntity"},{8,"0"},
+            {100,multiInsert?"AcDbMInsertBlock":"AcDbBlockReference"},
             {2,"AuthorityBlock"},{10,"3.5"},{20,"-2.25"},{30,"7.75"},
             {41,"2"},{42,"0.5"},{43,"1.5"},{50,"30"},
-            {70,"1"},{71,"1"},{44,"0"},{45,"0"}};
+            {70,multiInsert?"2":"1"},{71,multiInsert?"3":"1"},
+            {44,multiInsert?"6":"0"},{45,multiInsert?"8":"0"}};
         fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
                      fields.begin()+static_cast<std::ptrdiff_t>(end));
         fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
@@ -34040,7 +34045,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     bool binary,bool requireRemap,
                                     std::string_view targetBlock="*Model_Space",
                                     DRW::ETYPE entityType=DRW::CIRCLE,
-                                    std::string_view insertBlockName="AuthorityBlock") {
+                                    std::string_view insertBlockName="AuthorityBlock",
+                                    bool multiInsert=false) {
     if(!providerProof(path,binary))return false;
     if(entityType!=DRW::POLYLINE
         &&entityType!=DRW::MPOLYGON&&entityType!=DRW::HATCH
@@ -34352,9 +34358,12 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&realValue(row,30,7.75)&&realValue(row,41,2.0)
                 &&realValue(row,42,0.5)&&realValue(row,43,1.5)
                 &&nearRealValue(row,50,30.0)
-                &&integerValuesMatch(row,70,{1})
-                &&integerValuesMatch(row,71,{1})
-                &&realValue(row,44,0.0)&&realValue(row,45,0.0)
+                &&textValuesMatch(row,100,{"AcDbEntity",multiInsert
+                    ?"AcDbMInsertBlock":"AcDbBlockReference"})
+                &&integerValuesMatch(row,70,{multiInsert?2:1})
+                &&integerValuesMatch(row,71,{multiInsert?3:1})
+                &&realValue(row,44,multiInsert?6.0:0.0)
+                &&realValue(row,45,multiInsert?8.0:0.0)
             :isHelix
             ?textValuesMatch(row,100,{"AcDbEntity","AcDbSpline","AcDbHelix"})
                 &&integerValuesMatch(row,70,{0})
@@ -34621,8 +34630,11 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||typedModel->xscale!=2.0||typedModel->yscale!=0.5
             ||typedModel->zscale!=1.5
             ||std::abs(typedModel->angle-pi/6.0)>1.0e-12
-            ||typedModel->colcount!=1||typedModel->rowcount!=1
-            ||typedModel->colspace!=0.0||typedModel->rowspace!=0.0
+            ||typedModel->colcount!=(multiInsert?2:1)
+            ||typedModel->rowcount!=(multiInsert?3:1)
+            ||typedModel->colspace!=(multiInsert?6.0:0.0)
+            ||typedModel->rowspace!=(multiInsert?8.0:0.0)
+            ||typedModel->isMInsert()!=multiInsert
             ||!typedModel->attlist.empty()||typedModel->seqEndEntity
             ||targetRecordCount!=1u||targetBlockCount!=1u)
             return false;
@@ -38654,8 +38666,11 @@ bool runTemporary() {
     };
     const double ellipseTurn=2.0*std::acos(-1.0);
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
-                                     bool inNamedBlock) {
-        const std::string_view entityName=entityType==DRW::POLYLINE
+                                     bool inNamedBlock,
+                                     bool multiInsert=false) {
+        const std::string_view entityName=multiInsert
+            ?std::string_view("MINSERT")
+            :entityType==DRW::POLYLINE
             ?std::string_view("POLYLINE")
             :entityType==DRW::MPOLYGON
             ?std::string_view("MPOLYGON")
@@ -38704,9 +38719,9 @@ bool runTemporary() {
         const auto makeSource=[&](bool binary) {
             if(inNamedBlock)
                 return sourceWithBlockEntityHandleXdata(binary,targetBlock,
-                    "203",entityType);
+                    "203",entityType,multiInsert);
             return entityType==DRW::INSERT
-                ?sourceWithInsertEntityHandleXdata(binary)
+                ?sourceWithInsertEntityHandleXdata(binary,multiInsert)
                 :entityType==DRW::POLYLINE
                 ?sourceWithPolylineEntityHandleXdata(binary)
                 :entityType==DRW::MPOLYGON
@@ -38794,8 +38809,11 @@ bool runTemporary() {
                     &&typed->xscale==2.0&&typed->yscale==0.5
                     &&typed->zscale==1.5
                     &&std::abs(typed->angle-pi/6.0)<=1.0e-12
-                    &&typed->colcount==1&&typed->rowcount==1
-                    &&typed->colspace==0.0&&typed->rowspace==0.0
+                    &&typed->colcount==(multiInsert?2:1)
+                    &&typed->rowcount==(multiInsert?3:1)
+                    &&typed->colspace==(multiInsert?6.0:0.0)
+                    &&typed->rowspace==(multiInsert?8.0:0.0)
+                    &&typed->isMInsert()==multiInsert
                     &&typed->attlist.empty()&&!typed->seqEndEntity;
             }
             if(entityType==DRW::THREEDLINE) {
@@ -39120,7 +39138,7 @@ bool runTemporary() {
                                            sourceBinary,"AC1027");
             const bool sourceProved=sourceWritten
                 &&singleGeometryEntityProviderProof(input,sourceBinary,false,
-                    targetBlock,entityType,insertBlockName);
+                    targetBlock,entityType,insertBlockName,multiInsert);
             const bool sourceImported=sourceProved
                 &&adapter.fileImport(input.string(),&data,false);
             if(!sourceWritten||!sourceProved||!sourceImported) {
@@ -39172,7 +39190,7 @@ bool runTemporary() {
                     return false;
                 }
                 if(!singleGeometryEntityProviderProof(output,outputBinary,
-                        true,targetBlock,entityType,insertBlockName)) {
+                        true,targetBlock,entityType,insertBlockName,multiInsert)) {
                     std::cerr<<entityName<<" XDATA physical/typed proof failed\n";
                     return false;
                 }
@@ -39225,7 +39243,7 @@ bool runTemporary() {
                 if(!write(input,makeSource(false),false,"AC1027")
                     ||!adapter.fileImport(input.string(),&data,false)
                     ||!singleGeometryEntityProviderProof(input,false,false,
-                        targetBlock,entityType,insertBlockName)
+                        targetBlock,entityType,insertBlockName,multiInsert)
                     ||!DxIfaceMaterialReferenceTestAccess::
                         mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
                             targetOwner,false,entityType,targetBlockRecord)) {
@@ -39252,7 +39270,7 @@ bool runTemporary() {
                 if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                        &data,false,true)
                     ||!singleGeometryEntityProviderProof(output,false,true,
-                        targetBlock,entityType,insertBlockName)
+                        targetBlock,entityType,insertBlockName,multiInsert)
                     ||!DxIfaceMaterialReferenceTestAccess::
                         mlineLinetypeProofBound(adapter,0x103u)
                     ||!DxIfaceMaterialReferenceTestAccess::
@@ -39268,7 +39286,7 @@ bool runTemporary() {
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
                         targetOwner,false,entityType,targetBlockRecord)) {
@@ -39295,7 +39313,7 @@ bool runTemporary() {
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
@@ -39314,7 +39332,7 @@ bool runTemporary() {
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
                         targetOwner,true,entityType,targetBlockRecord)) {
@@ -39346,7 +39364,7 @@ bool runTemporary() {
                 ||!adapter.fileExport(output.string(),DRW::AC1027,false,
                                       &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
@@ -39363,7 +39381,7 @@ bool runTemporary() {
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
                         targetOwner,true,entityType,targetBlockRecord)) {
@@ -39392,7 +39410,7 @@ bool runTemporary() {
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
-                    targetBlock,entityType,insertBlockName)
+                    targetBlock,entityType,insertBlockName,multiInsert)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
@@ -39417,11 +39435,13 @@ bool runTemporary() {
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     if(!runGeometrySection(DRW::INSERT,false)
-        ||!runGeometrySection(DRW::INSERT,true))return false;
+        ||!runGeometrySection(DRW::INSERT,true)
+        ||!runGeometrySection(DRW::INSERT,false,true)
+        ||!runGeometrySection(DRW::INSERT,true,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==420u&&readbacks==966u&&refusals==546u&&retries==546u;
+    return profiles==428u&&readbacks==984u&&refusals==556u&&retries==556u;
 }
 
 bool runBudgetTemporary() {
