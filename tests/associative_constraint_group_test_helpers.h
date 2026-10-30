@@ -35,6 +35,7 @@ struct Options {
     std::uint32_t groupReference = 0u;
     std::int32_t declaredActionCount = -1;
     std::vector<std::uint32_t> actions{0xA200u, 0xA201u};
+    std::int32_t nextNodeId = 0;
     std::int32_t declaredNodeCount = -1;
     std::vector<Node> nodes;
 };
@@ -78,6 +79,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     const std::int32_t nodeCount = options.declaredNodeCount >= 0
         ? options.declaredNodeCount
         : static_cast<std::int32_t>(options.nodes.size());
+    object.putBitLong(options.nextNodeId);
     object.putBitLong(nodeCount);
     for (const auto& node : options.nodes) {
         object.putBitLong(node.id);

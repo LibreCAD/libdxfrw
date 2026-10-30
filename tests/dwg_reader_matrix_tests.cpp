@@ -10681,6 +10681,8 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         && parsed->m_constraintGroupReference == source.groupReference
         && parsed->m_constraintActionsParsed
         && parsed->m_constraintActions == source.actions
+        && parsed->m_constraintNextNodeIdRead
+        && parsed->m_constraintNextNodeId == source.nextNodeId
         && parsed->m_constraintNodeCount == 0
         && parsed->m_prefixStatuses.size() == 2u
         && parsed->m_prefixStatuses.back().m_kind
@@ -10694,7 +10696,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         && parsedSentinel->m_constraintActions.empty()
         && sink.raw.size() == 2u && reader.objectFailures() == 0u;
     t.expect(read && groupMatches,
-             "AC1024 version-2 constraint-group fixed fields, action roles and empty-node boundary decode exactly");
+             "AC1024 version-2 constraint-group fixed fields, action roles, node-ID seed and empty-node boundary decode exactly");
     if (!groupMatches)
         std::cerr << "AC1024 associative constraint-group generated profile failed: read="
                   << read << " typed=" << sink.typed.size()
@@ -10719,7 +10721,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         std::cerr << '\n';
     }
 
-    for (int profileMode = 0; profileMode < 3; ++profileMode) {
+    for (int profileMode = 0; profileMode < 6; ++profileMode) {
         Options profile;
         profile.classNumber = classNumber;
         profile.handle = sourceHandle;
@@ -10727,10 +10729,20 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         profile.nodes.clear();
         if (profileMode == 0)
             profile.declaredActionCount = 100001;
-        else if (profileMode == 1)
-            profile.nodes = {{7, 1u, -1, {4}}};
-        else {
+        else if (profileMode == 1) {
             profile.groupVersion = 0;
+            profile.nextNodeId = 523;
+            profile.nodes = {{7, 1u, -1, {4}}};
+        } else if (profileMode == 2 || profileMode == 3) {
+            profile.groupVersion = 0;
+            profile.nextNodeId = 523;
+            if (profileMode == 3)
+                profile.declaredNodeCount = 100001;
+        } else if (profileMode == 4) {
+            profile.nextNodeId = 523;
+        } else {
+            profile.groupVersion = 0;
+            profile.nextNodeId = -1;
         }
         Frame profileObject;
         Frame nextObject;
@@ -10764,28 +10776,53 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             [](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
+        const bool completeProfile = profileMode == 2;
+        const auto expectedStatus = profileMode == 0 || profileMode == 3
+            ? DRW_AssociativePrefixStatus::ParseStatus::BoundedCountOverflow
+            : profileMode == 2
+                ? DRW_AssociativePrefixStatus::ParseStatus::Complete
+                : DRW_AssociativePrefixStatus::ParseStatus::Partial;
         const bool recovered = profileRead
             && profileReader.objectFailures() == 0u
             && profileSink.typed.size() == 2u
             && partialSource != profileSink.typed.end()
-            && !partialSource->m_constraintGroupBodyParsed
+            && partialSource->m_constraintGroupBodyParsed == completeProfile
             && partialSource->m_constraintActionsParsed
                    == (profileMode != 0)
             && partialSource->m_prefixStatuses.size() == 2u
             && partialSource->m_prefixStatuses.back().m_status
-                   == (profileMode == 0
-                       ? DRW_AssociativePrefixStatus::ParseStatus::BoundedCountOverflow
-                       : DRW_AssociativePrefixStatus::ParseStatus::Partial)
+                   == expectedStatus
             && (profileMode != 0
                 || partialSource->m_constraintActionCount == 100001)
             && (profileMode != 1
                 || partialSource->m_constraintNodeCount == 1)
+            && (profileMode == 0
+                || (partialSource->m_constraintNextNodeIdRead
+                    && partialSource->m_constraintNextNodeId
+                           == profile.nextNodeId))
             && (profileMode != 2
                 || (partialSource->m_constraintGroupVersion == 0
+                    && partialSource->m_constraintNodeCount == 0
+                    && partialSource->m_prefixStatuses.back().m_decodedCountValue
+                           == 0))
+            && (profileMode != 3
+                || (partialSource->m_constraintNodeCount == 100001
+                    && partialSource->m_prefixStatuses.back().m_decodedCountValue
+                           == 100001))
+            && (profileMode != 4
+                || (partialSource->m_constraintGroupVersion == 2
+                    && partialSource->m_constraintNextNodeIdRead
+                    && partialSource->m_constraintNextNodeId == 523
+                    && partialSource->m_prefixStatuses.back().m_decodedCountValue
+                           == -1))
+            && (profileMode != 5
+                || (partialSource->m_constraintGroupVersion == 0
+                    && partialSource->m_constraintNextNodeIdRead
+                    && partialSource->m_constraintNextNodeId == -1
                     && partialSource->m_prefixStatuses.back().m_decodedCountValue
                            == -1))
             && partialRaw != profileSink.raw.end()
-            && !partialRaw->m_typedPayloadValidated
+            && (completeProfile || !partialRaw->m_typedPayloadValidated)
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
                 [](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
@@ -10797,8 +10834,14 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                  profileMode == 0
                      ? "over-bound constraint action counts publish a partial raw carrier and preserve the following OBJECT"
                      : profileMode == 1
-                         ? "nonempty constraint-node payloads remain raw until their class-specific layout is qualified"
-                         : "version-0 node framing remains raw until its competing layouts are resolved");
+                         ? "nonempty version-0 constraint-node tails remain raw after bounded seed/count framing"
+                         : profileMode == 2
+                             ? "empty version-0 constraint groups decode their next-node-ID seed and inline zero count exactly"
+                             : profileMode == 3
+                                 ? "over-bound inline node counts preserve their raw carrier and following OBJECT"
+                                 : profileMode == 4
+                                     ? "version-2 nonzero seeds preserve possible registry layouts without consuming a count"
+                                     : "negative next-node-ID seeds preserve their raw carrier without consuming a node count");
     }
 }
 

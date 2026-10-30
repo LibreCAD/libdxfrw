@@ -7157,6 +7157,8 @@ public:
   std::int32_t m_constraintActionCount = 0;
   bool m_constraintActionsParsed = false;
   std::vector<std::uint32_t> m_constraintActions;
+  bool m_constraintNextNodeIdRead = false;
+  std::int32_t m_constraintNextNodeId = 0;
   std::int32_t m_constraintNodeCount = 0;
   std::int32_t m_geometryStatus = 0;
   std::uint32_t m_owningNetworkHandle = 0;
@@ -7213,6 +7215,8 @@ private:
     m_constraintActionCount = o.m_constraintActionCount;
     m_constraintActionsParsed = o.m_constraintActionsParsed;
     m_constraintActions = o.m_constraintActions;
+    m_constraintNextNodeIdRead = o.m_constraintNextNodeIdRead;
+    m_constraintNextNodeId = o.m_constraintNextNodeId;
     m_constraintNodeCount = o.m_constraintNodeCount;
     m_geometryStatus = o.m_geometryStatus;
     m_owningNetworkHandle = o.m_owningNetworkHandle;

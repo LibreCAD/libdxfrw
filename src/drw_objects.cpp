@@ -25328,6 +25328,8 @@ void DRW_AssociativeObject::reset() {
     m_constraintActionCount = 0;
     m_constraintActionsParsed = false;
     m_constraintActions.clear();
+    m_constraintNextNodeIdRead = false;
+    m_constraintNextNodeId = 0;
     m_constraintNodeCount = 0;
     m_geometryStatus = 0;
     m_owningNetworkHandle = 0;
@@ -26476,6 +26478,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::array<DRW_Coord, 3> workplane{};
         std::uint32_t groupReference = 0u;
         std::int32_t actionCount = 0;
+        std::int32_t nextNodeId = 0;
         std::int32_t nodeCount = 0;
         std::vector<std::uint32_t> actions;
         size_t decodedHandleCount = 0u;
@@ -26540,13 +26543,23 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             if (complete)
                 ++groupStage;
         }
+        bool nextNodeIdRead = false;
         bool nodeCountRead = false;
-        // Version 0 is present in AC1024 sources, but its inline-node framing
-        // is not specified by ODA and independent readers disagree about the
-        // extra node-ID/class-name fields. Do not treat the current fixed-node
-        // schema as valid for it. Nonempty version-2 node payloads also carry
-        // class-specific data that this bounded prefix reader does not decode.
-        if (complete && groupVersion != 2)
+        // The same-input AC1024 peer run shows a next-node-ID seed immediately
+        // before the inline node count. The seed is not the node count. Keep
+        // nonempty tails raw until their detached class names and class-specific
+        // data are decoded.
+        if (complete && groupVersion != 0 && groupVersion != 2)
+            complete = false;
+        if (complete) {
+            nextNodeIdRead = readBitLongWithinBody(
+                &bodyProbe, version, objectDataEnd, nextNodeId);
+            complete = nextNodeIdRead && nextNodeId >= 0;
+        }
+        // Version-2 groups with a nonzero seed may switch to the registered
+        // node-table layout. The next body value is then a root ID, not an
+        // inline count, so stop at the seed until that layout is implemented.
+        if (complete && groupVersion == 2 && nextNodeId != 0)
             complete = false;
         if (complete) {
             nodeCountRead = readBitLongWithinBody(
@@ -26558,13 +26571,17 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             } else if (complete
                        && !countFitsObjectBody(&bodyProbe, version,
                                                objectDataEnd, nodeCount,
-                                               12u)) {
+                                               groupVersion == 0 ? 16u : 24u)) {
                 complete = false;
             } else if (complete) {
                 ++groupStage;
             }
         }
-        if (complete && nodeCount != 0)
+        // The observed R2010 version-0 profile is inline. Only accept the
+        // version-2 empty inline prefix when its seed and count are both zero.
+        if (complete && ((groupVersion == 0 && nodeCount != 0)
+                         || (groupVersion == 2
+                             && (nodeCount != 0 || nextNodeId != 0))))
             complete = false;
         const bool prefixWithinBounds = bodyProbe.isGood()
             && handleProbe.isGood()
@@ -26583,11 +26600,16 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             decodedHandleCount + (groupReference != 0u ? 1u : 0u),
             0u, nodeCountRead ? nodeCount : -1);
         groupStatus.m_sourceAssumption =
-            "AC1024 ACDBASSOC2DCONSTRAINTGROUP fixed header and action handles; node framing is not qualified and remains raw";
+            "AC1024 ACDBASSOC2DCONSTRAINTGROUP fixed header, action handles and bounded node framing; unsupported node tails remain raw";
         if (!complete) {
             DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP decode partial stage=");
             DRW_DBG(groupStage); DRW_DBG(" bodyBit=");
-            DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG(" handleBit=");
+            DRW_DBG(currentObjectDwgBit(&bodyProbe));
+            DRW_DBG(" nextNodeIdRead/value=");
+            DRW_DBG(nextNodeIdRead); DRW_DBG("/"); DRW_DBG(nextNodeId);
+            DRW_DBG(" nodeCountRead/value=");
+            DRW_DBG(nodeCountRead); DRW_DBG("/"); DRW_DBG(nodeCount);
+            DRW_DBG(" handleBit=");
             DRW_DBG(currentObjectDwgBit(&handleProbe)); DRW_DBG("\n");
             if (!prefixWithinBounds || allocationFailure) {
                 m_prefixStatuses.push_back(groupStatus);
@@ -26602,6 +26624,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 && isValidAssocCount(actionCount)
                 && actions.size() == static_cast<std::size_t>(actionCount);
             m_constraintActions = std::move(actions);
+            m_constraintNextNodeIdRead = nextNodeIdRead;
+            m_constraintNextNodeId = nextNodeIdRead ? nextNodeId : 0;
             m_constraintNodeCount = nodeCountRead ? nodeCount : 0;
             m_prefixStatuses.push_back(groupStatus);
             if (commonHandlesOk) {
@@ -26631,6 +26655,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         m_constraintActionCount = actionCount;
         m_constraintActionsParsed = true;
         m_constraintActions = std::move(actions);
+        m_constraintNextNodeIdRead = true;
+        m_constraintNextNodeId = nextNodeId;
         m_constraintNodeCount = nodeCount;
         m_prefixStatuses.push_back(groupStatus);
         DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP version/actions/nodeCount=");
