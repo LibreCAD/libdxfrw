@@ -112,6 +112,10 @@ bool isAssociativeConstrainedBoundedLine(std::string_view className) {
                                       "AcConstrainedBoundedLine");
 }
 
+bool isAssociativeConstrainedArc(std::string_view className) {
+    return equalsAsciiCaseInsensitive(className, "AcConstrainedArc");
+}
+
 bool splitColorBookEntryName(const UTF8STRING& value,
                              UTF8STRING& bookName,
                              UTF8STRING& colorName) {
@@ -26864,9 +26868,109 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         ++decodedHandleCount;
                         continue;
                     }
+                    if (isAssociativeConstrainedArc(node.m_className)) {
+                        dwgBuffer nodeHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle geometryDependency;
+                        std::int32_t geometryNodeId = 0;
+                        DRW_Coord center;
+                        DRW_Coord normal;
+                        DRW_Coord direction;
+                        double radius = 0.0;
+                        double startParameter = 0.0;
+                        double endParameter = 0.0;
+                        DRW_Coord startPoint;
+                        DRW_Coord endPoint;
+                        const bool handleRead = readBoundedObjectHandle(
+                            nodeHandleProbe, 0u, false, geometryDependency,
+                            handleEndBit)
+                            && geometryDependency.code
+                                   == DRW::DwgSoftPointer
+                            && geometryDependency.ref64 != 0u;
+                        const bool arcParsed = handleRead
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryNodeId)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd, center)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd, normal)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                direction)
+                            && readBitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                radius)
+                            && readBitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                startParameter)
+                            && readBitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                endParameter)
+                            // The AC1024 version-0 inline profile omits the
+                            // reserved double used by the later registry form.
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                startPoint)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                endPoint);
+                        if (!arcParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::Arc;
+                        node.m_hasGeometryDependency = true;
+                        node.m_geometryDependencyCode =
+                            geometryDependency.code;
+                        node.m_geometryDependencyHandle =
+                            geometryDependency.ref64;
+                        node.m_geometryNodeId = geometryNodeId;
+                        node.m_center = center;
+                        node.m_normal = normal;
+                        node.m_direction = direction;
+                        node.m_radius = radius;
+                        node.m_startParameter = startParameter;
+                        node.m_endParameter = endParameter;
+                        node.m_hasReserved = false;
+                        node.m_reserved = 0.0;
+                        node.m_startPoint = startPoint;
+                        node.m_endPoint = endPoint;
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 constrained arc decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" dependency=");
+                        DRW_DBG(node.m_geometryDependencyHandle);
+                        DRW_DBG(" center="); DRW_DBG(center.x); DRW_DBG(",");
+                        DRW_DBG(center.y); DRW_DBG(","); DRW_DBG(center.z);
+                        DRW_DBG(" normal="); DRW_DBG(normal.x); DRW_DBG(",");
+                        DRW_DBG(normal.y); DRW_DBG(","); DRW_DBG(normal.z);
+                        DRW_DBG(" direction="); DRW_DBG(direction.x);
+                        DRW_DBG(","); DRW_DBG(direction.y); DRW_DBG(",");
+                        DRW_DBG(direction.z); DRW_DBG(" radius=");
+                        DRW_DBG(radius); DRW_DBG(" params=");
+                        DRW_DBG(startParameter); DRW_DBG(",");
+                        DRW_DBG(endParameter); DRW_DBG(" start=");
+                        DRW_DBG(startPoint.x); DRW_DBG(",");
+                        DRW_DBG(startPoint.y); DRW_DBG(",");
+                        DRW_DBG(startPoint.z); DRW_DBG(" end=");
+                        DRW_DBG(endPoint.x); DRW_DBG(",");
+                        DRW_DBG(endPoint.y); DRW_DBG(",");
+                        DRW_DBG(endPoint.z); DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = nodeHandleProbe;
+                        ++decodedHandleCount;
+                        continue;
+                    }
                     // The common node envelope is known, but the following
                     // class body is not. Keep this node prefix and preserve
                     // the remaining group bytes without guessing its span.
+                    DRW_DBG("AC1024 unsupported constraint node class=");
+                    DRW_DBG(node.m_className.c_str()); DRW_DBG(" id=");
+                    DRW_DBG(node.m_nodeId); DRW_DBG("\n");
                     constraintNodes.push_back(std::move(node));
                     bodyProbe = nodeBodyProbe;
                     groupStringProbe = nodeStringProbe;

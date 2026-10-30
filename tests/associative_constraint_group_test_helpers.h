@@ -34,6 +34,12 @@ struct Node {
     bool isRay = false;
     DRW_Coord startPoint;
     DRW_Coord endPoint;
+    bool hasArcBody = false;
+    DRW_Coord center;
+    DRW_Coord normal;
+    double radius = 0.0;
+    double startParameter = 0.0;
+    double endParameter = 0.0;
 };
 
 struct Options {
@@ -158,6 +164,16 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putBit(node.isRay ? 1u : 0u);
             object.put3BitDouble(node.startPoint);
             object.put3BitDouble(node.endPoint);
+        } else if (node.hasArcBody) {
+            object.putBitLong(node.geometryNodeId);
+            object.put3BitDouble(node.center);
+            object.put3BitDouble(node.normal);
+            object.put3BitDouble(node.direction);
+            object.putBitDouble(node.radius);
+            object.putBitDouble(node.startParameter);
+            object.putBitDouble(node.endParameter);
+            object.put3BitDouble(node.startPoint);
+            object.put3BitDouble(node.endPoint);
         }
     }
     if (!appendStringStream(object, strings))
@@ -175,7 +191,8 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     for (const auto action : options.actions)
         object.putHandle(reference(DRW::DwgHardOwnership, action));
     for (const auto& node : options.nodes) {
-        if (node.hasImplicitPointBody || node.hasBoundedLineBody)
+        if (node.hasImplicitPointBody || node.hasBoundedLineBody
+            || node.hasArcBody)
             object.putHandle(reference(node.geometryDependencyCode,
                                        node.geometryDependencyHandle));
     }
