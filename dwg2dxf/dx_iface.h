@@ -1828,6 +1828,10 @@ public:
             if (!dxfW->writeDataLink(&dataLink))
                 return;
         }
+        for (DRW_TableContentObject& content : cData->tableContents) {
+            if (!dxfW->writeTableContent(&content))
+                return;
+        }
     }
     virtual void writeAppId() override{
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)

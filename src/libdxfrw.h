@@ -417,6 +417,9 @@ public:
     /// Emits the typed AcDbDataLink object profile. Referenced custom-data
     /// targets must already have a valid source-to-output handle mapping.
     bool writeDataLink(DRW_DataLink *ent);
+    /// Emits a standalone TABLECONTENT object containing one linked cell,
+    /// with an empty value/format payload. The caller must emit its DATALINK.
+    bool writeTableContent(DRW_TableContentObject *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
     bool writeTextstyle(DRW_Textstyle *ent);

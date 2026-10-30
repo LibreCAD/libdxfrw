@@ -52643,7 +52643,8 @@ void testDataLinkAdapterExport(TestContext& t) {
         void writeHeader(DRW_Header& header) override {
             dx_iface::writeHeader(header);
             dxfW->setHandleRemap({{0x710u, 0x1710u},
-                                  {0x711u, 0x1711u}});
+                                  {0x711u, 0x1711u},
+                                  {0x720u, 0x1720u}});
         }
     };
 
@@ -52679,6 +52680,42 @@ void testDataLinkAdapterExport(TestContext& t) {
         reactorTarget.m_description = "reactor target DATALINK";
         source.dataLinks.push_back(reactorTarget);
 
+        DRW_TableContentObject content;
+        content.handle = 0x720u;
+        content.m_parseComplete = true;
+        content.m_semanticContentComplete = true;
+        content.m_content.m_name = "linked content";
+        content.m_content.m_description = "one linked cell";
+        content.m_content.m_columns.emplace_back();
+        content.m_content.m_columns.front().m_name = "External";
+        content.m_content.m_columns.front().m_width = 12.5;
+        DRW_TableRow tableRow;
+        tableRow.m_height = 4.5;
+        DRW_TableCell linkedCell;
+        linkedCell.m_flags = 7;
+        linkedCell.m_toolTip = "external cell";
+        linkedCell.m_hasLinkedData = true;
+        linkedCell.m_dataLinkHandle = 0x710u;
+        linkedCell.m_linkedDataRowCount = 2;
+        linkedCell.m_linkedDataColumnCount = 3;
+        linkedCell.m_linkedDataUnknown = -5;
+        tableRow.m_cells.push_back(linkedCell);
+        content.m_content.m_rows.push_back(tableRow);
+        auto contentMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        contentMetadata->m_columns.resize(1u);
+        contentMetadata->m_columns.front().m_style.m_type = 3;
+        contentMetadata->m_rows.resize(1u);
+        contentMetadata->m_rows.front().m_cells.resize(1u);
+        contentMetadata->m_rows.front().m_cells.front().m_scope
+            .m_style.m_type = 1;
+        contentMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        contentMetadata->m_tableStyle.m_type = 4;
+        content.m_dxfMetadata = std::move(contentMetadata);
+        source.tableContents.push_back(content);
+        source.standaloneTableContentPresent = true;
+        source.tableContentRetainedRecords = 1u;
+
         const std::string sentinel = "preserve adapter destination";
         {
             std::ofstream output(path, std::ios::binary);
@@ -52707,14 +52744,29 @@ void testDataLinkAdapterExport(TestContext& t) {
                  "adapter refuses unresolved DATALINK reactor without replacing destination");
 
         source.dataLinks.front().reactorHandles.front() = 0x711u;
+        source.tableContents.front().m_content.m_rows.front().m_cells.front()
+            .m_dataLinkHandle = 0x799u;
+        const bool missingDataLinkRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream missingDataLinkInput(path, std::ios::binary);
+        const std::string missingDataLinkPreserved(
+            (std::istreambuf_iterator<char>(missingDataLinkInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(missingDataLinkRefused
+                     && missingDataLinkPreserved == sentinel,
+                 "adapter refuses unresolved TABLECONTENT DATALINK without replacing destination");
+
+        source.tableContents.front().m_content.m_rows.front().m_cells.front()
+            .m_dataLinkHandle = 0x710u;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
         dx_data readback;
         const bool imported = exported
             && reader.fileImport(path.string(), &readback, false);
-        t.expect(exported && imported && readback.dataLinks.size() == 2u,
-                 "adapter emits a closed DATALINK reactor profile and reads it back");
+        t.expect(exported && imported && readback.dataLinks.size() == 2u
+                     && readback.tableContents.size() == 1u,
+                 "adapter emits a linked TABLECONTENT with its closed DATALINK graph and reads it back");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -52740,6 +52792,28 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
+        if (readback.tableContents.size() == 1u) {
+            const DRW_TableContentObject& actual =
+                readback.tableContents.front();
+            const DRW_TableCell& actualCell =
+                actual.m_content.m_rows.front().m_cells.front();
+            t.expect(actual.handle == 0x1720u
+                         && actual.parentHandle
+                             == DRW::DwgNamedObjectsDictionaryHandle
+                         && actual.m_content.m_name == "linked content"
+                         && actual.m_content.m_description == "one linked cell"
+                         && actual.m_content.m_columns.front().m_name == "External"
+                         && actual.m_content.m_columns.front().m_width == 12.5
+                         && actual.m_content.m_rows.front().m_height == 4.5
+                         && actualCell.m_flags == 7
+                         && actualCell.m_toolTip == "external cell"
+                         && actualCell.m_hasLinkedData
+                         && actualCell.m_dataLinkHandle == 0x1710u
+                         && actualCell.m_linkedDataRowCount == 2
+                         && actualCell.m_linkedDataColumnCount == 3
+                         && actualCell.m_linkedDataUnknown == -5,
+                     "linked TABLECONTENT fields and DATALINK target survive remapping and readback");
+        }
     }
 }
 

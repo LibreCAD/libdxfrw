@@ -559,6 +559,13 @@ public:
     // Semantic ACAD_TABLE snapshots retained separately from the established
     // DRW_Insert geometry fallback stored in each block's entity sequence.
     std::list<DRW_Table>tables;
+    // Standalone TABLECONTENT callbacks are retained for the bounded DXF
+    // object writer route. Their nested model and optional DXF companions are
+    // admitted under a container-lifetime record/byte budget.
+    std::vector<DRW_TableContentObject> tableContents;
+    std::size_t tableContentRetainedRecords{0};
+    std::size_t tableContentRetainedBytes{0};
+    bool tableContentCaptureFailed{false};
     // Retain decoded DATALINK callbacks so export can reject an unqualified
     // object graph instead of silently dropping external-data connections.
     std::vector<DRW_DataLink> dataLinks;

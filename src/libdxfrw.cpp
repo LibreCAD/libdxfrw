@@ -25822,6 +25822,244 @@ bool dxfRW::writeDataLink(DRW_DataLink *ent) {
     return true;
 }
 
+bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
+    const auto cmcIsDefault = [](const DRW_TableStyleCmcColor& color) {
+        return color.m_rgb == -1 && color.m_name.empty()
+            && color.m_bookName.empty() && color.m_method == 0u
+            && color.m_flags == 0u && color.m_reservedIndex == 0u;
+    };
+    const auto formatIsDefault = [&cmcIsDefault](
+            const DRW_TableStyleContentFormat& format) {
+        return format.m_propertyOverrideFlags == 0u
+            && format.m_propertyFlags == 0u && format.m_valueDataType == 0
+            && format.m_valueUnitType == 0
+            && format.m_valueFormatString.empty()
+            && format.m_rotation == 0.0 && format.m_blockScale == 1.0
+            && format.m_cellAlignment == 0 && format.m_contentColor == 0
+            && cmcIsDefault(format.m_contentColorCmc)
+            && format.m_textStyleHandle == 0u
+            && format.m_textHeight == 0.0;
+    };
+    const auto styleIsDefault = [&cmcIsDefault, &formatIsDefault](
+            const DRW_TableStyleCellStyle& style, int type) {
+        return style.m_type == type && !style.m_hasData
+            && style.m_propertyOverrideFlags == 0u
+            && style.m_mergeFlags == 0u && style.m_backgroundColor == 0
+            && cmcIsDefault(style.m_backgroundColorCmc)
+            && style.m_contentLayout == 0u
+            && formatIsDefault(style.m_contentFormat)
+            && style.m_marginOverrideFlags == 0
+            && style.m_verticalMargin == 0.0
+            && style.m_horizontalMargin == 0.0
+            && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
+            && style.m_marginHorizontalSpacing == 0.0
+            && style.m_marginVerticalSpacing == 0.0 && style.m_id == 0
+            && style.m_styleClass == 0 && style.m_name.empty()
+            && style.m_borders.empty();
+    };
+    const auto scopeIsDefault = [&styleIsDefault](
+            const DRW_TableContentDxfMetadata::Scope& scope, int type) {
+        return scope.m_customData == 0 && scope.m_customItems.empty()
+            && styleIsDefault(scope.m_style, type);
+    };
+    const auto safeText = [](const UTF8STRING& text) {
+        return text.size() <= 16u * 1024u * 1024u
+            && isSafeDxfRecordText(text);
+    };
+    if (version < DRW::AC1021 || version > DRW::AC1032
+        || !preflightTableEntry(ent) || ent->handle == 0u
+        || ent->handle == DRW::NoHandle || !ent->m_parseComplete
+        || !safeText(ent->m_content.m_name)
+        || !safeText(ent->m_content.m_description)
+        || (ent->parentHandle != 0u
+            && ent->parentHandle != DRW::NoHandle
+            && ent->parentHandle != DRW::DwgNamedObjectsDictionaryHandle)
+        || !ent->reactorHandles.empty() || ent->xDictHandle != 0u
+        || !ent->appData.empty() || !ent->extData.empty()
+        || ent->m_content.m_columns.size() != 1u
+        || ent->m_content.m_rows.size() != 1u
+        || !ent->m_content.m_fieldHandles.empty()
+        || !ent->m_content.m_mergedRanges.empty()
+        || !ent->m_content.m_subrecordRanges.empty()
+        || ent->m_content.m_tableStyleHandle != 0u
+        || ent->m_content.m_overrideStyleType != 4) {
+        return failDxfWrite();
+    }
+
+    const DRW_TableColumn& column = ent->m_content.m_columns.front();
+    const DRW_TableRow& row = ent->m_content.m_rows.front();
+    if (!safeText(column.m_name) || column.m_styleId != 0
+        || column.m_overrideStyleType != 3
+        || !std::isfinite(column.m_width) || column.m_width < 0.0
+        || row.m_cells.size() != 1u || row.m_styleId != 0
+        || row.m_overrideStyleType != 2
+        || !std::isfinite(row.m_height) || row.m_height < 0.0)
+    {
+        return failDxfWrite();
+    }
+
+    const DRW_TableCell& cell = row.m_cells.front();
+    const auto defaultBorder = [](const DRW_TableBorder& border) {
+        return border.m_lineWeight == 0 && border.m_visible
+            && border.m_colorRgb == -1 && border.m_colorMethod == 0u;
+    };
+    if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
+        || cell.m_autoFit || cell.m_mergedWidth != 0
+        || cell.m_mergedHeight != 0 || cell.m_rotation != 0.0
+        || !safeText(cell.m_toolTip) || !cell.m_textStyleName.empty()
+        || cell.m_styleId != 0 || cell.m_overrideStyleType != 1
+        || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
+        || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
+        || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
+        || !cell.m_hasLinkedData || cell.m_dataLinkHandle == 0u
+        || cell.m_dataLinkHandle == DRW::NoHandle
+        || cell.m_blockScale != 1.0 || cell.m_width != 0.0
+        || cell.m_height != 0.0 || cell.m_geometryFlags != 0u
+        || cell.m_geometryHandle != 0u || cell.m_geometryRecordFlags != 0u
+        || cell.m_geometryTopLeft.x != 0.0
+        || cell.m_geometryTopLeft.y != 0.0
+        || cell.m_geometryTopLeft.z != 0.0
+        || cell.m_geometryCenter.x != 0.0
+        || cell.m_geometryCenter.y != 0.0
+        || cell.m_geometryCenter.z != 0.0
+        || cell.m_contentWidth != 0.0 || cell.m_contentHeight != 0.0
+        || cell.m_geometryWidth != 0.0 || cell.m_geometryHeight != 0.0
+        || cell.m_textColorRgb != -1 || cell.m_textColorMethod != 0u
+        || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
+        || cell.m_backgroundEnabled || cell.m_textAlignment != 0
+        || cell.m_textHeight != 0.0 || !cell.m_attributes.empty()
+        || !cell.m_contents.empty()
+        || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
+                        defaultBorder)) {
+        return failDxfWrite();
+    }
+
+    if (ent->m_dxfMetadata) {
+        const DRW_TableContentDxfMetadata& metadata = *ent->m_dxfMetadata;
+        if (metadata.m_columns.size() != 1u || metadata.m_rows.size() != 1u
+            || metadata.m_rows.front().m_cells.size() != 1u
+            || !scopeIsDefault(metadata.m_columns.front(), 3)
+            || !scopeIsDefault(metadata.m_rows.front().m_scope, 2)
+            || !scopeIsDefault(
+                metadata.m_rows.front().m_cells.front().m_scope, 1)
+            || !metadata.m_rows.front().m_cells.front().m_contentFormats.empty()
+            || !metadata.m_rows.front().m_cells.front().m_geometry.empty()
+            || !styleIsDefault(metadata.m_tableStyle, 4))
+        {
+            return failDxfWrite();
+        }
+    }
+
+    const std::uint32_t handle = remapObjectHandle(ent->handle);
+    const std::uint32_t dataLinkHandle =
+        remapObjectHandle(cell.m_dataLinkHandle);
+    if (handle == 0u || handle == DRW::NoHandle
+        || isDxfFixedOutputHandle(handle) || dataLinkHandle == 0u
+        || dataLinkHandle == DRW::NoHandle || !reserveHandle(handle))
+    {
+        return failDxfWrite();
+    }
+
+    const auto writeStyle = [this](int type) {
+        return writer->writeString(1, "TABLEFORMAT_BEGIN")
+            && writer->writeInt32(90, type)
+            && writer->writeInt16(170, 0)
+            && writer->writeString(309, "TABLEFORMAT_END");
+    };
+    const auto writeCustomScope = [this](
+            const DRW_TableContentDxfMetadata::Scope* scope) {
+        const std::int32_t customData = scope ? scope->m_customData : 0;
+        return writer->writeInt32(91, customData)
+            && writer->writeString(301, "CUSTOMDATA")
+            && writer->writeString(1, "DATAMAP_BEGIN")
+            && writer->writeInt32(90, 0)
+            && writer->writeString(309, "DATAMAP_END");
+    };
+    const auto columnScope = ent->m_dxfMetadata
+        ? &ent->m_dxfMetadata->m_columns.front() : nullptr;
+    const auto rowScope = ent->m_dxfMetadata
+        ? &ent->m_dxfMetadata->m_rows.front().m_scope : nullptr;
+    DxfWriterRecordScope record(*writer);
+    RecordStateScope state(*this, ent);
+    if (!writer->writeString(0, "TABLECONTENT")
+        || !writer->writeString(5, toHexStr(handle))
+        || !writeTableEntryAppData(*ent))
+        return failDxfWrite();
+    writeObjectOwner(ent->parentHandle == DRW::NoHandle
+            ? 0u : ent->parentHandle);
+    if (writer->hasWriteError()
+        || !writer->writeString(100, "AcDbLinkedData")
+        || !writer->writeUtf8String(1, ent->m_content.m_name)
+        || !writer->writeUtf8String(300, ent->m_content.m_description)
+        || !writer->writeString(100, "AcDbLinkedTableData")
+        || !writer->writeInt32(90, 1)
+        || !writer->writeString(300, "COLUMN")
+        || !writer->writeString(1, "LINKEDTABLEDATACOLUMN_BEGIN")
+        || !writer->writeUtf8String(300, column.m_name)
+        || !writeCustomScope(columnScope)
+        || !writer->writeString(309, "LINKEDTABLEDATACOLUMN_END")
+        || !writer->writeString(1, "FORMATTEDTABLEDATACOLUMN_BEGIN")
+        || !writer->writeString(300, "COLUMNTABLEFORMAT")
+        || !writeStyle(3)
+        || !writer->writeString(309, "FORMATTEDTABLEDATACOLUMN_END")
+        || !writer->writeString(1, "TABLECOLUMN_BEGIN")
+        || !writer->writeInt32(90, column.m_styleId)
+        || !writer->writeDouble(40, column.m_width)
+        || !writer->writeString(309, "TABLECOLUMN_END")
+        || !writer->writeInt32(91, 1)
+        || !writer->writeString(301, "ROW")
+        || !writer->writeString(1, "LINKEDTABLEDATAROW_BEGIN")
+        || !writer->writeInt32(90, 1)
+        || !writer->writeString(300, "CELL")
+        || !writer->writeString(1, "LINKEDTABLEDATACELL_BEGIN")
+        || !writer->writeInt32(90, cell.m_flags)
+        || !writer->writeUtf8String(300, cell.m_toolTip)
+        || !writeCustomScope(ent->m_dxfMetadata
+                ? &ent->m_dxfMetadata->m_rows.front().m_cells.front().m_scope
+                : nullptr)
+        || !writer->writeInt32(92, 1)
+        || !writer->writeString(340, toHexStr(dataLinkHandle))
+        || !writer->writeInt32(93, cell.m_linkedDataRowCount)
+        || !writer->writeInt32(94, cell.m_linkedDataColumnCount)
+        || !writer->writeInt32(96, cell.m_linkedDataUnknown)
+        || !writer->writeInt32(95, 0)
+        || !writer->writeString(309, "LINKEDTABLEDATACELL_END")
+        || !writer->writeString(1, "FORMATTEDTABLEDATACELL_BEGIN")
+        || !writer->writeString(300, "CELLTABLEFORMAT")
+        || !writeStyle(1)
+        || !writer->writeString(309, "FORMATTEDTABLEDATACELL_END")
+        || !writer->writeString(1, "TABLECELL_BEGIN")
+        || !writer->writeInt32(90, cell.m_styleId)
+        || !writer->writeInt32(91, static_cast<int>(cell.m_geometryFlags))
+        || !writer->writeString(309, "TABLECELL_END")
+        || !writeCustomScope(rowScope)
+        || !writer->writeString(309, "LINKEDTABLEDATAROW_END")
+        || !writer->writeString(1, "FORMATTEDTABLEDATAROW_BEGIN")
+        || !writer->writeString(300, "ROWTABLEFORMAT")
+        || !writeStyle(2)
+        || !writer->writeString(309, "FORMATTEDTABLEDATAROW_END")
+        || !writer->writeString(1, "TABLEROW_BEGIN")
+        || !writer->writeInt32(90, row.m_styleId)
+        || !writer->writeDouble(40, row.m_height)
+        || !writer->writeString(309, "TABLEROW_END")
+        || !writer->writeInt32(92, ent->m_dxfMetadata
+                ? ent->m_dxfMetadata->m_linkedDataUnknown92 : 0)
+        || !writer->writeString(100, "AcDbFormattedTableData")
+        || !writer->writeString(300, "TABLEFORMAT")
+        || !writeStyle(4)
+        || !writer->writeInt32(90, 0)
+        || !writer->writeString(100, "AcDbTableContent")
+        || !writer->writeString(340, "0")) {
+        return failDxfWrite();
+    }
+    if (writer->hasWriteError() || !preflightDxfWrite()
+        || !record.commit()) {
+        return failDxfWrite();
+    }
+    state.commit();
+    return true;
+}
+
 bool dxfRW::writeDictionaryVar(DRW_DictionaryVar *ent) {
     if (version < DRW::AC1014 || !preflightTableEntry(ent)
         || ent->handle == 0) {

@@ -9943,6 +9943,9 @@ constexpr std::size_t kMaxAdapterDataLinkRecords = 100000u;
 constexpr std::size_t kMaxAdapterDataLinkItems = 1000000u;
 constexpr std::size_t kMaxAdapterDataLinkRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
+constexpr std::size_t kMaxAdapterTableContentRecords = 100000u;
+constexpr std::size_t kMaxAdapterTableContentRetainedBytes =
+    DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterXRecordRecords = 100000u;
 constexpr std::size_t kMaxAdapterXRecordItems = 1000000u;
 constexpr std::size_t kMaxAdapterXRecordRetainedBytes =
@@ -28807,6 +28810,29 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
     if (!cData) return;
     cData->standaloneTableContentPresent = true;
+    if (cData->tableContentCaptureFailed) return;
+    if (cData->tableContentRetainedRecords
+        >= kMaxAdapterTableContentRecords) {
+        cData->tableContentCaptureFailed = true;
+        return;
+    }
+    std::size_t estimatedBytes = 0u;
+    if (!estimateTableContentSourceBytes(data, estimatedBytes)
+        || cData->tableContentRetainedBytes
+            > kMaxAdapterTableContentRetainedBytes
+        || estimatedBytes > kMaxAdapterTableContentRetainedBytes
+                                - cData->tableContentRetainedBytes) {
+        cData->tableContentCaptureFailed = true;
+        return;
+    }
+    try {
+        cData->tableContents.push_back(data);
+        ++cData->tableContentRetainedRecords;
+        cData->tableContentRetainedBytes += estimatedBytes;
+    } catch (...) {
+        cData->tableContentCaptureFailed = true;
+        return;
+    }
     if (!tableSourceCaptureOpen()) return;
     auto& source = cData->m_tableDxfSource;
     std::size_t bytes = 0u;
@@ -39167,14 +39193,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "unmodeled OBJECTS record has no qualified owner/remap/output route");
         return false;
     }
-    if (cData->standaloneTableContentPresent
-        || cData->standaloneTableGeometryPresent) {
-        // This is an output completeness failure, not an optional strict
-        // owner policy: neither mode may claim to have preserved the table.
-        std::cerr << "DXF export refused: standalone "
-                  << (cData->standaloneTableContentPresent
-                          ? "TABLECONTENT" : "TABLEGEOMETRY")
-                  << " has no qualified replay path; output would be incomplete\n";
+    if (cData->standaloneTableGeometryPresent) {
+        std::cerr << "DXF export refused: standalone TABLEGEOMETRY "
+                     "has no qualified replay path; output would be incomplete\n";
+        return false;
+    }
+    if (cData->tableContentCaptureFailed
+        || (cData->standaloneTableContentPresent
+            && cData->tableContents.empty())) {
+        reportPreflightFailure(
+            "TABLECONTENT callback capture incomplete or over budget");
         return false;
     }
     if (cData->standaloneObjectContextDataPresent) {
@@ -39617,6 +39645,45 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if (!dataLinkReactorGraphClosed) {
         reportPreflightFailure(
             "DATALINK reactor target is not a unique emitted DATALINK");
+        return false;
+    }
+    bool tableContentDataLinkGraphClosed = true;
+    for (const DRW_TableContentObject& content : cData->tableContents) {
+        if ((cData->sourceFormat == dx_source_format::DWG
+             && !content.m_semanticContentComplete)
+            || content.m_content.m_columns.size() > 1000u
+            || content.m_content.m_rows.size() > 10000u) {
+            tableContentDataLinkGraphClosed = false;
+            break;
+        }
+        for (const DRW_TableRow& row : content.m_content.m_rows) {
+            if (row.m_cells.size()
+                != content.m_content.m_columns.size()) {
+                tableContentDataLinkGraphClosed = false;
+                break;
+            }
+            for (const DRW_TableCell& cell : row.m_cells) {
+                if (!cell.m_hasLinkedData)
+                    continue;
+                const auto target = dataLinkHandleCounts.find(
+                    cell.m_dataLinkHandle);
+                if (cell.m_dataLinkHandle == 0u
+                    || cell.m_dataLinkHandle == DRW::NoHandle
+                    || target == dataLinkHandleCounts.end()
+                    || target->second != 1u) {
+                    tableContentDataLinkGraphClosed = false;
+                    break;
+                }
+            }
+            if (!tableContentDataLinkGraphClosed)
+                break;
+        }
+        if (!tableContentDataLinkGraphClosed)
+            break;
+    }
+    if (!tableContentDataLinkGraphClosed) {
+        reportPreflightFailure(
+            "TABLECONTENT linked cell lacks one emitted DATALINK target or complete DWG semantics");
         return false;
     }
     if (std::any_of(cData->dataLinks.begin(), cData->dataLinks.end(),
@@ -42482,6 +42549,7 @@ bool dx_iface::planLeaderAnnotationHandles() {
             inventoryObjectHandleConflicts(cData->dictionaries);
             inventoryObjectHandleConflicts(cData->sortEntsTables);
             inventoryObjectHandleConflicts(cData->dataLinks);
+            inventoryObjectHandleConflicts(cData->tableContents);
             inventoryObjectHandleConflicts(cData->fields);
             inventoryObjectHandleConflicts(cData->fieldLists);
             inventoryObjectHandleConflicts(cData->dictionaryWithDefaults);
