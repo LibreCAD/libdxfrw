@@ -1,0 +1,76 @@
+{
+  "id": "RPP-5xs",
+  "title": "AC1027 named-BLOCKS ATTDEF LTYPE XDATA target binding",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "3150251f52b2b02ccc43f388a66c219cbd662f3f",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated original ASCII and binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One ATTDEF code-1005 target in a named AuthorityBlock BLOCKS record across all four source/output encoding pairs.",
+    "target": {
+      "type": "ATTDEF",
+      "handle": "0xA900",
+      "owner_block_record": "0x203",
+      "section": "BLOCKS",
+      "block": "AuthorityBlock",
+      "text": "TARGET_DEFAULT",
+      "tag": "TARGET_TAG",
+      "prompt": "TARGET_PROMPT",
+      "base_point": [1.25, 2.5, 3.75],
+      "height": 2.5,
+      "attribute_flags": 0
+    },
+    "xdata": {
+      "provider": "source-bound simple LTYPE EditDash and APPID MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "reference": {"code": 1005, "source_handle": "0xA900"}
+    }
+  },
+  "proof": {
+    "source": "Candidate indexing requires the physical ATTDEF span and owner, the named-BLOCKS membership row, the paired AttdefSource/addAttDef delivery events, a unique exact DRW_Attdef model equal to the captured pair, and attdefPairReady() for the originating block. The ATTDEF pair's independent source/profile/origin gate is retained; raw/typed pointer identity is not assumed.",
+    "output": "All four ASCII/binary input/output combinations verify emitted ATTDEF identity, BLOCKS section and remapped block-record owner, selected physical text/tag/prompt/point/height/flag fields, ordered LTYPE code-1005 remapping, and fresh typed ATTDEF/LTYPE readback.",
+    "failure_retry": "Each encoding pair removes the target and verifies destination preservation followed by same-adapter retry. An additional late handle mutation refuses with destination preservation and succeeds after restoring the target identity.",
+    "counts": {
+      "attdef_success_profiles": 4,
+      "attdef_readbacks_including_retry_and_mutation_retry": 9,
+      "attdef_refusals_with_destination_preservation": 5,
+      "attdef_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 432,
+      "whole_focused_test_readbacks": 993,
+      "whole_focused_test_refusals": 561,
+      "whole_focused_test_retries": 561
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 25.72 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "3150251f52b2b02ccc43f388a66c219cbd662f3f",
+      "source_sha256": {
+        "dwg2dxf/dx_iface.cpp": "29f06a1567d88b720b3a1503f00ce1505fbcf20066a6f5410125abe95c5ed003",
+        "tests/dxf_fixture_tests.cpp": "7f9332335cbd8b65dd350ced25cb1f57113d97cdddd616d54f8439a88bcccf69"
+      },
+      "normal_executable_sha256": "65c2be9ba516bcba72b4c4f88b22ff1d765e0342e010241fbdedfe39b9208315",
+      "converter_executable_sha256": "284a3fb46310ed858d3894e544655dd5e8d8e3e366a8e3d2b1128c5b091ccfad",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 named-BLOCKS ATTDEF source profile only. Standalone ENTITIES ATTDEF targets, other ATTDEF field/subclass/version profiles, and multiple-target combinations remain unqualified.",
+    "The selected transport proof does not establish ATTRIB/INSERT attribute association, ATTDEF editing support, recursive dependency closure, complete-document conversion, or independent CAD semantics.",
+    "P2 remains open for other code-1005 target types, mixed target sets and broader source/output profiles."
+  ],
+  "next": "Select the next current P2 target with a reproduced indexing or emitted-output gap; keep ENTITIES ATTDEF outside this block-pair implementation until it has its own source and dispatch proof."
+}
