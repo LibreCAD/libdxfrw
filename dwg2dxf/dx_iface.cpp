@@ -22377,6 +22377,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::ELLIPSE:return "ELLIPSE";
     case DRW::SPLINE:return "SPLINE";
     case DRW::HELIX:return "HELIX";
+    case DRW::INSERT:return "INSERT";
     default:return nullptr;
     }
 }
@@ -22394,6 +22395,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::ELLIPSE:return DRW_DxfEntitiesCallback::addEllipse;
     case DRW::SPLINE:return DRW_DxfEntitiesCallback::addSpline;
     case DRW::HELIX:return DRW_DxfEntitiesCallback::addHelix;
+    case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
     default:return DRW_DxfEntitiesCallback::Count;
     }
 }
@@ -22411,6 +22413,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::ELLIPSE:return DRW_DxfBlockCallback::addEllipse;
     case DRW::SPLINE:return DRW_DxfBlockCallback::addSpline;
     case DRW::HELIX:return DRW_DxfBlockCallback::addHelix;
+    case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
     default:return DRW_DxfBlockCallback::Count;
     }
 }
@@ -22449,6 +22452,14 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
     case DRW::HELIX:
         return dynamic_cast<const DRW_Helix*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Helix);
+    case DRW::INSERT: {
+        const auto* insert=dynamic_cast<const DRW_Insert*>(entity);
+        return insert!=nullptr&&typeid(*entity)==typeid(DRW_Insert)
+            &&!insert->isMInsert()&&insert->colcount==1
+            &&insert->rowcount==1&&insert->colspace==0.0
+            &&insert->rowspace==0.0&&insert->attlist.empty()
+            &&!insert->seqEndEntity;
+    }
     default:return false;
     }
 }
@@ -22495,6 +22506,25 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
         return count==1u;
     };
     try {
+        std::unordered_set<std::uint32_t> requiredBlockTargets;
+        for (const auto& item:data.m_tableDxfSource.resources) {
+            if (!chargeWork(1u)) return false;
+            if (item.second.family!=dx_tableResourceFamily::LineType)
+                continue;
+            for (const auto& reference:item.second.references) {
+                if (!chargeWork(1u)) return false;
+                if (reference.code!=1005
+                    ||reference.kind!=dx_tableResourceRole::XdataObjectId
+                    ||reference.value==0u||reference.value>UINT32_MAX)
+                    continue;
+                const auto handle=static_cast<std::uint32_t>(reference.value);
+                if (requiredBlockTargets.count(handle)==0u) {
+                    if (!chargeNamedResourceBytes(retainedBytes,2u))
+                        return false;
+                    requiredBlockTargets.insert(handle);
+                }
+            }
+        }
         std::map<std::uint32_t,std::pair<const DRW_Entity*,std::size_t>> liveTargets;
         std::map<std::uint32_t,const dx_ifaceBlock*> liveBlocks;
         const auto collectLive=[&](const dx_ifaceBlock* block) {
@@ -22547,7 +22577,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     :event.record.name=="ARC"?DRW::ARC
                     :event.record.name=="ELLIPSE"?DRW::ELLIPSE
                     :event.record.name=="SPLINE"?DRW::SPLINE
-                    :event.record.name=="HELIX"?DRW::HELIX:DRW::UNKNOWN;
+                    :event.record.name=="HELIX"?DRW::HELIX
+                    :event.record.name=="INSERT"?DRW::INSERT:DRW::UNKNOWN;
                 if (dxfMLineXdataEntityRecordName(rawType)==nullptr
                     || event.record.handle==0u
                     || event.record.handle==DRW::NoHandle)
@@ -22562,6 +22593,115 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
         if (!collectRaw(data.mBlock)) return false;
         for (const dx_ifaceBlock* block:data.blocks)
             if (!collectRaw(block)) return false;
+
+        const auto resolveInsertBlock=[&](std::string_view name,
+                std::uint32_t& blockRecordHandle) {
+            blockRecordHandle=0u;
+            std::string key;
+            if (name.empty()||name.size()>255u
+                ||!dx_symbol_output::nameKey(name,key)
+                ||key=="*model_space"||key=="*paper_space"
+                ||blockOriginReport(data).state!=BlockOriginState::OriginsBound)
+                return false;
+            using F=dx_tableResourceFamily;
+            const auto named=data.m_tableDxfSource.resourceNames.find(
+                {F::BlockRecord,key});
+            if (named==data.m_tableDxfSource.resourceNames.end()
+                ||named->second==0u||named->second==DRW::NoHandle)
+                return false;
+            blockRecordHandle=named->second;
+            const auto resource=data.m_tableDxfSource.resources.find(
+                blockRecordHandle);
+            const auto origin=data.m_tableDxfSource.structuralAudits.find(
+                blockRecordHandle);
+            if (resource==data.m_tableDxfSource.resources.end()
+                ||origin==data.m_tableDxfSource.structuralAudits.end()
+                ||resource->second.family!=F::BlockRecord
+                ||resource->second.awaitingSymbol
+                ||resource->second.invalidName||resource->second.ambiguousName
+                ||!resource->second.rawTypedMatched
+                ||resource->second.rawTypedMismatch
+                ||!resource->second.raw||!resource->second.model
+                ||!origin->second||!origin->second->input
+                ||!origin->second->bodyMatched
+                ||!origin->second->stateComplete
+                ||!origin->second->originBound
+                ||!origin->second->input->paired
+                ||origin->second->input->kind
+                    !=dxfRW::DxfStructuralSourceView::Kind::BlockRecord
+                ||origin->second->input->model.get()
+                    !=resource->second.model.get()
+                ||origin->second->input->raw.get()
+                    !=resource->second.raw.get()
+                ||!origin->second->input->context
+                ||!origin->second->input->context->captured
+                ||origin->second->input->context->sourceVersion
+                    !=data.sourceVersion)
+                return false;
+            const auto* sourceRecord=dynamic_cast<const DRW_Block_Record*>(
+                resource->second.model.get());
+            if (sourceRecord==nullptr||sourceRecord->handle!=blockRecordHandle
+                ||sourceRecord->name.empty()
+                ||!dx_block_membership::equal(name,sourceRecord->name))
+                return false;
+            std::string rawName;unsigned rawNames=0u;
+            for (const DRW_Variant& field:resource->second.raw->groups) {
+                if (!chargeWork(1u)) return false;
+                if (field.code()!=2) continue;
+                if (field.type()!=DRW_Variant::STRING||!field.content.s
+                    ||++rawNames!=1u) return false;
+                rawName=*field.content.s;
+            }
+            if (rawNames!=1u||rawName!=sourceRecord->name)
+                return false;
+            const DRW_Block_Record* liveRecord=nullptr;
+            std::size_t liveRecordCount=0u;
+            for (const DRW_Block_Record& value:data.blockRecords) {
+                if (!chargeWork(1u)) return false;
+                if (value.handle!=blockRecordHandle) continue;
+                ++liveRecordCount;liveRecord=&value;
+            }
+            if (liveRecordCount!=1u||liveRecord==nullptr
+                ||!blockRecordSourceEqual(*liveRecord,*sourceRecord,
+                                           data.sourceVersion))
+                return false;
+            const auto& blockSources=data.m_tableDxfSource.blockSources;
+            const dx_data::TableDxfSourceCapture::BlockSource* selected=nullptr;
+            std::uint32_t selectedHandle=0u;
+            std::size_t blockMatches=0u;
+            for (const auto& item:blockSources) {
+                if (!chargeWork(1u)) return false;
+                const auto& block=item.second;
+                if (!block.recordModel
+                    ||block.recordModel.get()!=resource->second.model.get()
+                    ||block.recordRaw.get()!=resource->second.raw.get())
+                    continue;
+                ++blockMatches;selected=&block;selectedHandle=item.first;
+            }
+            if (blockMatches!=1u||selected==nullptr
+                ||!selected->original||!selected->effective
+                ||!selected->footer||!selected->beginRaw
+                ||!selected->endRaw||!selected->children
+                ||!selected->delivery||!selected->membership
+                ||selected->reconciliation
+                    !=dx_data::TableDxfSourceCapture::BlockSource::Reconciliation::Matched
+                ||selected->original->handle!=selectedHandle
+                ||selected->effective->handle!=selectedHandle
+                ||selected->footer->handle==0u
+                ||selected->original->parentHandle!=blockRecordHandle
+                ||selected->footer->parentHandle!=blockRecordHandle
+                ||!dx_block_membership::equal(selected->effective->name,
+                                                sourceRecord->name)
+                ||!hasMatchedBlockMembership(data,selectedHandle))
+                return false;
+            const auto live=liveBlocks.find(selectedHandle);
+            if (live==liveBlocks.end()||live->second==nullptr
+                ||live->second->parentHandle!=blockRecordHandle
+                ||!dx_block_membership::equal(live->second->name,
+                                               selected->effective->name))
+                return false;
+            return true;
+        };
 
         for (std::size_t section=0u;
              section<data.m_tableDxfSource.entitiesDeliveries.size();++section) {
@@ -22598,7 +22738,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addArc
                     &&event.callback!=DRW_DxfEntitiesCallback::addEllipse
                     &&event.callback!=DRW_DxfEntitiesCallback::addSpline
-                    &&event.callback!=DRW_DxfEntitiesCallback::addHelix)
+                    &&event.callback!=DRW_DxfEntitiesCallback::addHelix
+                    &&event.callback!=DRW_DxfEntitiesCallback::addInsert)
                     continue;
                 const auto entityType=static_cast<DRW::ETYPE>(event.entityType);
                 const char* recordName=
@@ -22622,13 +22763,40 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     return false;
                 std::uint32_t sourceHandle=0u,sourceOwner=0u;
                 if (!physicalHandle(*record,5,sourceHandle)
-                    || !physicalHandle(*record,330,sourceOwner)
+                    ||requiredBlockTargets.count(sourceHandle)==0u)
+                    continue;
+                if (!physicalHandle(*record,330,sourceOwner)
                     || sourceHandle!=event.handle || sourceOwner!=event.owner)
                     return false;
                 const auto& observed=(*delivery.observed)[index];
                 const auto* sourceModel=observed.model.get();
                 const auto live=liveTargets.find(sourceHandle);
-                const auto identity=data.m_tableDxfSource.resources.find(sourceHandle);
+                const auto identity=data.m_tableDxfSource.resources.find(
+                    sourceHandle);
+                std::uint32_t referencedBlockRecord=0u;
+                if (entityType==DRW::INSERT) {
+                    const auto* insert=dynamic_cast<const DRW_Insert*>(sourceModel);
+                    std::string_view physicalName;unsigned nameCount=0u;
+                    for (const DRW_Variant& field:record->groups) {
+                        if (!chargeWork(1u)) return false;
+                        if (field.code()!=2) continue;
+                        if (field.type()!=DRW_Variant::STRING||!field.content.s
+                            ||++nameCount!=1u) return false;
+                        physicalName=*field.content.s;
+                    }
+                    if (!insert||nameCount!=1u
+                        ||physicalName!=insert->name
+                        ||live==liveTargets.end()
+                        ||live->second.first==nullptr
+                        ||live->second.second!=1u
+                        ||!dxfMLineXdataEntityTypeMatches(
+                            live->second.first,entityType)
+                        ||dynamic_cast<const DRW_Insert*>(
+                            live->second.first)->name!=insert->name
+                        ||!resolveInsertBlock(physicalName,
+                                               referencedBlockRecord))
+                        continue;
+                }
                 if (!observed.valueObserved || observed.modelUnavailable
                     || !dxfMLineXdataEntityTypeMatches(sourceModel,entityType)
                     || sourceModel->handle!=sourceHandle
@@ -22639,12 +22807,14 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     || rawTargetHandles.count(sourceHandle)!=0u
                     || identity==data.m_tableDxfSource.resources.end()
                     || identity->second.family!=dx_tableResourceFamily::Entity
-                    || identity->second.owner!=sourceOwner)
+                    || identity->second.owner!=sourceOwner) {
                     return false;
+                }
                 if (!chargeNamedResourceBytes(retainedBytes,2u)
                     || !result.emplace(sourceHandle,
                         DxfMLineXdataEntitySource{
                             live->second.first,sourceOwner,entityType,
+                            referencedBlockRecord,
                             DxfMLineXdataEntitySection::Entities}).second)
                     return false;
             }
@@ -22707,29 +22877,45 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         :record.name=="ARC"?DRW::ARC
                         :record.name=="ELLIPSE"?DRW::ELLIPSE
                         :record.name=="SPLINE"?DRW::SPLINE
-                        :record.name=="HELIX"?DRW::HELIX:DRW::UNKNOWN;
+                        :record.name=="HELIX"?DRW::HELIX
+                        :record.name=="INSERT"?DRW::INSERT:DRW::UNKNOWN;
                     const char* recordName=
                         dxfMLineXdataEntityRecordName(entityType);
                     if (recordName==nullptr) continue;
+                    std::uint32_t candidateHandle=0u;
+                    if (!physicalHandle(record,5,candidateHandle)
+                        ||requiredBlockTargets.count(candidateHandle)==0u)
+                        continue;
                     if (range.next!=range.first+1u
                         || range.reason!=dx_block_membership::Reason::Matched
-                        || dispatchIndex>=manifest.dispatches.size())
+                        || dispatchIndex>=manifest.dispatches.size()) {
+                        if (entityType==DRW::INSERT)
+                            continue;
                         return false;
+                    }
                     const auto& dispatch=manifest.dispatches[dispatchIndex];
                     if (!sameSpan(dispatch.begin,record.marker)
                         ||record.name!=recordName
                         || record.endOrdinal!=dispatch.end.ordinal
                         || record.endOffset!=dispatch.end.beginOffset
                         || dispatch.events!=1u
-                        || dispatch.firstEvent>=manifest.events.size())
+                        || dispatch.firstEvent>=manifest.events.size()) {
+                        if (entityType==DRW::INSERT)
+                            continue;
                         return false;
+                    }
                     const auto& event=manifest.events[dispatch.firstEvent];
                     const auto& member=block.membership->members[range.first];
                     std::uint32_t sourceHandle=0u,sourceOwner=0u;
-                    if (!chargeWork(record.groups.size())
-                        || !physicalHandle(record,5,sourceHandle)
-                        || !physicalHandle(record,330,sourceOwner)
-                        || event.dispatch!=dispatchIndex || !event.hasValue
+                    if (!chargeWork(record.groups.size()))
+                        return false;
+                    if (!physicalHandle(record,5,sourceHandle)
+                        || !physicalHandle(record,330,sourceOwner)) {
+                        if (entityType==DRW::INSERT)
+                            continue;
+                        return false;
+                    }
+                    if (event.dispatch!=dispatchIndex || !event.hasValue
                         || event.callback
                             !=dxfMLineXdataBlockEntityCallback(entityType)
                         || event.entityType!=static_cast<std::int32_t>(entityType)
@@ -22739,29 +22925,61 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || member.role!=dx_block_membership::Role::Primary
                         || member.ownerRole!=dx_block_membership::Owner::BlockRecord
                         || member.dispatch!=dispatchIndex || member.self!=sourceHandle
-                        || member.owner!=sourceOwner)
+                        || member.owner!=sourceOwner) {
+                        if (entityType==DRW::INSERT)
+                            continue;
                         return false;
+                    }
                     const DRW_Entity* model=nullptr;
                     for (const DRW_Entity* entity:liveBlock->ent) {
                         if (!chargeWork(1u)) return false;
                         if (entity==nullptr || entity->handle!=sourceHandle)
                             continue;
-                        if (model!=nullptr) return false;
+                        if (model!=nullptr) {model=nullptr;break;}
                         model=entity;
-                        if (!dxfMLineXdataEntityTypeMatches(model,entityType))
-                            return false;
+                        if (!dxfMLineXdataEntityTypeMatches(model,entityType)) {
+                            model=nullptr;break;
+                        }
                     }
+                    // Candidate indexing is permissive: an absent, ambiguous
+                    // or unsupported typed child is omitted here. If an XDATA
+                    // edge names it, the later source-reference join fails
+                    // because no authenticated origin was produced.
+                    if (model==nullptr)
+                        continue;
                     const auto live=liveTargets.find(sourceHandle);
                     if (model==nullptr || model->parentHandle!=sourceOwner
                         || live==liveTargets.end() || live->second.second!=1u
                         || live->second.first!=model
                         || live->second.first->parentHandle!=sourceOwner
                         || rawTargetHandles.count(sourceHandle)!=0u)
-                        return false;
+                        continue;
+                    std::uint32_t referencedBlockRecord=0u;
+                    if (entityType==DRW::INSERT) {
+                        const auto* insert=dynamic_cast<const DRW_Insert*>(model);
+                        std::string_view physicalName;unsigned nameCount=0u;
+                        bool invalidName=false;
+                        for (const DRW_Variant& field:record.groups) {
+                            if (field.code()!=2) continue;
+                            if (field.type()!=DRW_Variant::STRING
+                                ||!field.content.s||++nameCount!=1u) {
+                                invalidName=true;
+                                break;
+                            }
+                            physicalName=*field.content.s;
+                        }
+                        if (invalidName||!insert||nameCount!=1u
+                            ||physicalName!=insert->name
+                        ||dynamic_cast<const DRW_Insert*>(
+                            live->second.first)->name!=insert->name
+                            ||!resolveInsertBlock(physicalName,
+                                                   referencedBlockRecord))
+                            continue;
+                    }
                     if (!chargeNamedResourceBytes(retainedBytes,2u)
                         || !result.emplace(sourceHandle,
                             DxfMLineXdataEntitySource{model,sourceOwner,
-                                entityType,
+                                entityType,referencedBlockRecord,
                                 DxfMLineXdataEntitySection::Blocks}).second)
                         return false;
                 }
@@ -22772,7 +22990,6 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
         result.clear();work=0u;return false;
     }
 }
-
 namespace {
 
 bool layerSourceEqual(const DRW_Layer& a,const DRW_Layer& b,DRW::Version version) {
@@ -23064,6 +23281,8 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
         std::map<std::uint32_t,std::vector<DRW::ETYPE>> candidateEntityTypes;
         std::map<std::uint32_t,
             std::vector<DxfMLineXdataEntitySection>> candidateEntitySections;
+        std::map<std::uint32_t,std::vector<std::uint32_t>>
+            candidateEntityBlockRecords;
         bool entityOriginsReady=false;
         std::map<std::uint32_t,DxfMLineXdataEntitySource> entityOrigins;
         std::size_t entityOriginWork=0u;
@@ -23231,6 +23450,7 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                 std::vector<std::uint32_t> entityOwners;
                                 std::vector<DRW::ETYPE> entityTypes;
                                 std::vector<DxfMLineXdataEntitySection> entitySections;
+                                std::vector<std::uint32_t> entityBlockRecords;
                                 if (!appIdNames.empty()) {
                                     if (appIdNames.size()>kMaxAdapterBasicTableItems
                                         || !visit(appIdNames.size())
@@ -23350,6 +23570,8 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                         entityOwners.push_back(origin->second.owner);
                                         entityTypes.push_back(origin->second.entityType);
                                         entitySections.push_back(origin->second.sourceSection);
+                                        entityBlockRecords.push_back(
+                                            origin->second.referencedBlockRecord);
                                         ++referenceCount;
                                     }
                                     if (referenceCount!=entityHandles.size())
@@ -23372,6 +23594,8 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                                         handle,std::move(entityTypes));
                                     candidateEntitySections.emplace(
                                         handle,std::move(entitySections));
+                                    candidateEntityBlockRecords.emplace(
+                                        handle,std::move(entityBlockRecords));
                                 }
                             }
                         }
@@ -23400,15 +23624,20 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                 const auto entityOwners=candidateEntityOwners.find(handle);
                 const auto entityTypes=candidateEntityTypes.find(handle);
                 const auto entitySections=candidateEntitySections.find(handle);
+                const auto entityBlockRecords=
+                    candidateEntityBlockRecords.find(handle);
                 if (entityHandles==candidateEntityHandles.end()
                     || entityModels==candidateEntityModels.end()
                     || entityOwners==candidateEntityOwners.end()
                     || entityTypes==candidateEntityTypes.end()
                     || entitySections==candidateEntitySections.end()
+                    || entityBlockRecords==candidateEntityBlockRecords.end()
                     || entityHandles->second.size()!=entityModels->second.size()
                     || entityHandles->second.size()!=entityOwners->second.size()
                     || entityHandles->second.size()!=entityTypes->second.size()
                     || entityHandles->second.size()!=entitySections->second.size()
+                    || entityHandles->second.size()
+                        !=entityBlockRecords->second.size()
                     || !chargeNamedResourceBytes(bytes,
                         entityHandles->second.size()*sizeof(std::uint32_t))
                     || !chargeNamedResourceBytes(bytes,
@@ -23421,11 +23650,15 @@ bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
                         entitySections->second.size()
                             *sizeof(DxfMLineXdataEntitySection)))
                     return false;
+                if (!chargeNamedResourceBytes(bytes,
+                        entityBlockRecords->second.size()
+                            *sizeof(std::uint32_t))) return false;
                 row.xdataEntityHandles=entityHandles->second;
                 row.xdataEntityModels=entityModels->second;
                 row.xdataEntityOwners=entityOwners->second;
                 row.xdataEntityTypes=entityTypes->second;
                 row.xdataEntitySourceSections=entitySections->second;
+                row.xdataEntityBlockRecords=entityBlockRecords->second;
                 for (const auto appIdHandle:row.appIdHandles) {
                     const auto app=source.resources.find(appIdHandle);
                     const auto origin=source.resourceOriginAudits.find(appIdHandle);
@@ -23508,6 +23741,8 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityOwners.size()
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntityTypes.size()
                 || row.second.xdataEntityHandles.size()!=row.second.xdataEntitySourceSections.size()
+                || row.second.xdataEntityHandles.size()
+                    !=row.second.xdataEntityBlockRecords.size()
                 || entityReferenceCount>kMaxAdapterBasicTableItems
                     -row.second.xdataEntityHandles.size()) return false;
             appReferenceCount+=row.second.appIdHandles.size();
@@ -23582,7 +23817,9 @@ bool dx_iface::hasUnchangedDxfMLineLinetypes() const noexcept {
                     || origin->second.live!=row.second.xdataEntityModels[i]
                     || origin->second.owner!=row.second.xdataEntityOwners[i]
                     || origin->second.entityType!=row.second.xdataEntityTypes[i]
-                    || origin->second.sourceSection!=row.second.xdataEntitySourceSections[i])
+                    || origin->second.sourceSection!=row.second.xdataEntitySourceSections[i]
+                    || origin->second.referencedBlockRecord
+                        !=row.second.xdataEntityBlockRecords[i])
                     return false;
             }
         }
@@ -37308,6 +37545,86 @@ bool dx_iface::finalizeDxfWrite() {
         || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
+    const auto insertTargetBlockOutputBound=[this](
+            std::uint32_t blockRecordHandle,const DRW_Entity* target) {
+        if (cData==nullptr||dxfW==nullptr||blockRecordHandle==0u
+            ||blockRecordHandle==DRW::NoHandle) return false;
+        const auto* insert=dynamic_cast<const DRW_Insert*>(target);
+        const auto resource=cData->m_tableDxfSource.resources.find(
+            blockRecordHandle);
+        const auto structural=cData->m_tableDxfSource.structuralAudits.find(
+            blockRecordHandle);
+        if (insert==nullptr
+            ||resource==cData->m_tableDxfSource.resources.end()
+            ||structural==cData->m_tableDxfSource.structuralAudits.end()
+            ||!resource->second.raw||!resource->second.model
+            ||resource->second.family!=dx_tableResourceFamily::BlockRecord
+            ||!resource->second.rawTypedMatched
+            ||resource->second.rawTypedMismatch
+            ||!structural->second||!structural->second->originBound
+            ||!structural->second->input
+            ||structural->second->input->kind
+                !=dxfRW::DxfStructuralSourceView::Kind::BlockRecord
+            ||structural->second->input->model.get()
+                !=resource->second.model.get()
+            ||structural->second->input->raw.get()
+                !=resource->second.raw.get()) return false;
+        const auto* sourceRecord=dynamic_cast<const DRW_Block_Record*>(
+            resource->second.model.get());
+        if (sourceRecord==nullptr||sourceRecord->handle!=blockRecordHandle
+            ||!dx_block_membership::equal(insert->name,sourceRecord->name))
+            return false;
+        std::string key;
+        if (!dx_symbol_output::nameKey(sourceRecord->name,key)) return false;
+        const auto named=cData->m_tableDxfSource.resourceNames.find(
+            {dx_tableResourceFamily::BlockRecord,key});
+        if (named==cData->m_tableDxfSource.resourceNames.end()
+            ||named->second!=blockRecordHandle) return false;
+        std::size_t liveRecords=0u;
+        const DRW_Block_Record* liveRecord=nullptr;
+        for (const DRW_Block_Record& value:cData->blockRecords) {
+            if (value.handle!=blockRecordHandle) continue;
+            ++liveRecords;liveRecord=&value;
+        }
+        if (liveRecords!=1u||liveRecord==nullptr
+            ||!blockRecordSourceEqual(*liveRecord,*sourceRecord,
+                                       cData->sourceVersion)) return false;
+        const dx_data::TableDxfSourceCapture::BlockSource* definition=nullptr;
+        std::size_t definitions=0u;
+        for (const auto& item:cData->m_tableDxfSource.blockSources) {
+            if (!item.second.recordModel
+                ||item.second.recordModel.get()!=resource->second.model.get())
+                continue;
+            ++definitions;definition=&item.second;
+        }
+        if (definitions!=1u||definition==nullptr||!definition->original
+            ||!definition->footer||!definition->membership
+            ||definition->reconciliation
+                !=dx_data::TableDxfSourceCapture::BlockSource::Reconciliation::Matched
+            ||!hasMatchedBlockMembership(*cData,
+                                         definition->original->handle))
+            return false;
+        const auto emittedRecord=dxfW->getBlockRecordHandleToWrite(
+            sourceRecord->name);
+        const auto emittedBegin=dxfW->remapEntityHandle(
+            definition->original->handle);
+        const auto emittedEnd=dxfW->remapEntityHandle(
+            definition->footer->handle);
+        const bool emittedChecks=emittedRecord!=0u&&emittedRecord!=DRW::NoHandle
+            &&emittedBegin!=0u&&emittedBegin!=DRW::NoHandle
+            &&emittedEnd!=0u&&emittedEnd!=DRW::NoHandle
+            &&dxfW->dxfWriteRecordHandleCount(emittedRecord)==1u
+            &&dxfW->dxfWriteRecordHasIdentity(
+                emittedRecord,"BLOCK_RECORD","TABLES")
+            &&dxfW->dxfWriteRecordHasOwner(emittedRecord,1u)
+            &&dxfW->dxfWriteSourceEntityHasIdentity(
+                definition->original->handle,emittedBegin,"BLOCK","BLOCKS",
+                emittedRecord)
+            &&dxfW->dxfWriteSourceEntityHasIdentity(
+                definition->footer->handle,emittedEnd,"ENDBLK","BLOCKS",
+                emittedRecord);
+        return emittedChecks;
+    };
     for (const auto& row:m_dxfMLineLinetypes) {
         if (!dxfW || !row.second.emitted || row.second.table!=0x5u
             || dxfW->dxfWriteSourceLinetypeTargetHandle(row.first)!=row.second.emitted
@@ -37322,7 +37639,9 @@ bool dx_iface::finalizeDxfWrite() {
             || row.second.xdataEntityHandles.size()
                 !=row.second.xdataEntityTypes.size()
             || row.second.xdataEntityHandles.size()
-                !=row.second.xdataEntitySourceSections.size()) return false;
+                !=row.second.xdataEntitySourceSections.size()
+            || row.second.xdataEntityHandles.size()
+                !=row.second.xdataEntityBlockRecords.size()) return false;
         for (std::size_t i=0u;i<row.second.xdataEntityHandles.size();++i) {
             const auto source=row.second.xdataEntityHandles[i];
             const auto emitted=dxfW->remapEntityHandle(source);
@@ -37367,6 +37686,13 @@ bool dx_iface::finalizeDxfWrite() {
                 || dxfW->dxfWriteRecordHandleCount(emitted)!=1u
                 || !emittedIdentity || !emittedOwnerMatches
                 || !sourceIdentityMatches) return false;
+            if (row.second.xdataEntityTypes[i]==DRW::INSERT) {
+                if (!insertTargetBlockOutputBound(
+                        row.second.xdataEntityBlockRecords[i],
+                        row.second.xdataEntityModels[i])) return false;
+            } else if (row.second.xdataEntityBlockRecords[i]!=0u) {
+                return false;
+            }
         }
     }
     for (const auto& entry:m_dxfMLineConsumers) {
@@ -38291,7 +38617,9 @@ bool dx_iface::preallocateDxfMLineLinetypeXdataEntityHandles() {
             || row.second.xdataEntityHandles.size()
                 !=row.second.xdataEntityTypes.size()
             || row.second.xdataEntityHandles.size()
-                !=row.second.xdataEntitySourceSections.size()) return false;
+                !=row.second.xdataEntitySourceSections.size()
+            || row.second.xdataEntityHandles.size()
+                !=row.second.xdataEntityBlockRecords.size()) return false;
         for (std::size_t i=0u;i<row.second.xdataEntityHandles.size();++i) {
             if (row.second.xdataEntityHandles[i]==0u
                 || row.second.xdataEntityModels[i]==nullptr

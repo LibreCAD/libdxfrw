@@ -104,14 +104,16 @@ public:
             const dx_iface& value,std::uint32_t source,
             const std::vector<std::uint32_t>& targets,
             bool expectBlockSection=false,
-            DRW::ETYPE expectedType=DRW::LINE) {
+            DRW::ETYPE expectedType=DRW::LINE,
+            std::uint32_t expectedBlockRecord=0u) {
         const auto row=value.m_dxfMLineLinetypes.find(source);
         if(row==value.m_dxfMLineLinetypes.end()
             ||row->second.xdataEntityHandles!=targets
             ||row->second.xdataEntityModels.size()!=targets.size()
             ||row->second.xdataEntityOwners.size()!=targets.size()
             ||row->second.xdataEntityTypes.size()!=targets.size()
-            ||row->second.xdataEntitySourceSections.size()!=targets.size())return false;
+            ||row->second.xdataEntitySourceSections.size()!=targets.size()
+            ||row->second.xdataEntityBlockRecords.size()!=targets.size())return false;
         for(std::size_t i=0u;i<targets.size();++i)
             if(row->second.xdataEntityModels[i]==nullptr
                 ||row->second.xdataEntityOwners[i]==0u
@@ -119,7 +121,9 @@ public:
                 ||row->second.xdataEntitySourceSections[i]
                     !=(expectBlockSection
                         ?dx_iface::DxfMLineXdataEntitySection::Blocks
-                        :dx_iface::DxfMLineXdataEntitySection::Entities))
+                        :dx_iface::DxfMLineXdataEntitySection::Entities)
+                ||row->second.xdataEntityBlockRecords[i]
+                    !=expectedBlockRecord)
                 return false;
         return true;
     }
@@ -150,7 +154,8 @@ public:
     static bool mlineXdataEntitySourceBound(
             dx_iface& value,dx_data& data,std::uint32_t target,
             std::uint32_t owner,bool expectBlockSection=true,
-            DRW::ETYPE expectedType=DRW::LINE) {
+            DRW::ETYPE expectedType=DRW::LINE,
+            std::uint32_t expectedBlockRecord=0u) {
         auto* previous=value.cData;
         value.cData=&data;
         std::map<std::uint32_t,dx_iface::DxfMLineXdataEntitySource> sources;
@@ -165,6 +170,7 @@ public:
             &&found->second.live->parentHandle==owner
             &&found->second.owner==owner
             &&found->second.entityType==expectedType
+            &&found->second.referencedBlockRecord==expectedBlockRecord
             &&found->second.sourceSection
                 ==(expectBlockSection
                     ?dx_iface::DxfMLineXdataEntitySection::Blocks
@@ -31832,6 +31838,75 @@ Tags sourceWithHelixEntityHandleXdata(bool binary) {
     return fields;
 }
 
+Tags sourceWithInsertEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true,true);
+    const auto unusedReference=std::find(fields.begin(),fields.end(),
+        std::make_pair(1005,std::string("A900")));
+    if(unusedReference==fields.end())
+        throw std::runtime_error("INSERT XDATA target reference missing");
+    fields.erase(unusedReference);
+    bool unusedLineRemoved=false;
+    while(true) {
+        bool inEntities=false,removedRecord=false;
+        for(std::size_t i=0u;i<fields.size();++i) {
+            if(fields[i]==std::make_pair(0,std::string("SECTION"))
+                &&i+1u<fields.size()) {
+                inEntities=fields[i+1u]
+                    ==std::make_pair(2,std::string("ENTITIES"));
+                continue;
+            }
+            if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+                break;
+            if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+                ||i+1u>=fields.size()
+                ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+                continue;
+            std::size_t end=i+1u;
+            while(end<fields.size()&&fields[end].first!=0)++end;
+            if(end==fields.size())break;
+            fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                         fields.begin()+static_cast<std::ptrdiff_t>(end));
+            unusedLineRemoved=true;removedRecord=true;
+            break;
+        }
+        if(!removedRecord)break;
+    }
+    if(!unusedLineRemoved)
+        throw std::runtime_error("unused INSERT fixture line missing");
+    bool insertInEntities=false,insertInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            insertInEntities=fields[i+1u]
+                ==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(insertInEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!insertInEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A902")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags insert{{0,"INSERT"},{5,"A902"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockReference"},
+            {2,"AuthorityBlock"},{10,"3.5"},{20,"-2.25"},{30,"7.75"},
+            {41,"2"},{42,"0.5"},{43,"1.5"},{50,"30"},
+            {70,"1"},{71,"1"},{44,"0"},{45,"0"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      insert.begin(),insert.end());
+        insertInserted=true;
+        break;
+    }
+    if(!insertInserted)
+        throw std::runtime_error("INSERT XDATA target source missing");
+    return fields;
+}
+
 Tags sourceWithArcEntityHandleXdata(bool binary) {
     auto fields=sourceWithEntityHandleXdata(binary,true);
     bool inEntities=false,arcInserted=false;
@@ -33053,7 +33128,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE
-        &&entityType!=DRW::HELIX)return false;
+        &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT)return false;
     const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
@@ -33062,10 +33137,11 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isEllipse=entityType==DRW::ELLIPSE;
     const bool isSpline=entityType==DRW::SPLINE;
     const bool isHelix=entityType==DRW::HELIX;
+    const bool isInsert=entityType==DRW::INSERT;
     const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
-        :isHelix?"HELIX":"CIRCLE";
+        :isHelix?"HELIX":isInsert?"INSERT":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     const auto targetSection=targetBlockKey=="*model_space"
@@ -33118,6 +33194,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const mlineStyleAuthorityControls::Row* app=nullptr;
     const mlineStyleAuthorityControls::Row* appTable=nullptr;
     const mlineStyleAuthorityControls::Row* ownerRecord=nullptr;
+    const mlineStyleAuthorityControls::Row* referencedBlockRecord=nullptr;
     const mlineStyleAuthorityControls::Row* textStyleTable=nullptr;
     const mlineStyleAuthorityControls::Row* textStyleRecord=nullptr;
     const mlineStyleAuthorityControls::Row* curve=nullptr;
@@ -33154,6 +33231,10 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             if(nameKey==targetBlockKey) {
                 if(ownerRecord!=nullptr)return false;
                 ownerRecord=&row;
+            }
+            if(isInsert&&nameKey=="authorityblock") {
+                if(referencedBlockRecord!=nullptr)return false;
+                referencedBlockRecord=&row;
             }
         }
         const double fullTurn=2.0*std::acos(-1.0);
@@ -33210,6 +33291,15 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&nearRealValue(row,42,1.0e-7)
                 &&nearRealValue(row,43,1.0e-7)
                 &&nearRealValue(row,44,1.0e-7)
+            :isInsert
+            ?fieldValue(row,2)=="AuthorityBlock"
+                &&realValue(row,10,3.5)&&realValue(row,20,-2.25)
+                &&realValue(row,30,7.75)&&realValue(row,41,2.0)
+                &&realValue(row,42,0.5)&&realValue(row,43,1.5)
+                &&nearRealValue(row,50,30.0)
+                &&integerValuesMatch(row,70,{1})
+                &&integerValuesMatch(row,71,{1})
+                &&realValue(row,44,0.0)&&realValue(row,45,0.0)
             :isHelix
             ?textValuesMatch(row,100,{"AcDbEntity","AcDbSpline","AcDbHelix"})
                 &&integerValuesMatch(row,70,{0})
@@ -33256,8 +33346,30 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         ||curve==nullptr||style->id.empty()||app->id.empty()
         ||appTable->id.empty()||ownerRecord->id.empty()||curve->id.empty()
         ||curve->owner!=ownerRecord->id
-        ||(requireRemap?curve->id=="A900":curve->id!="A900"))
+        ||(requireRemap?curve->id==(isInsert?"A902":"A900")
+                       :curve->id!=(isInsert?"A902":"A900"))) {
         return false;
+    }
+    if(isInsert) {
+        unsigned begins=0u,ends=0u;
+        const mlineStyleAuthorityControls::Row* begin=nullptr;
+        const mlineStyleAuthorityControls::Row* end=nullptr;
+        if(referencedBlockRecord==nullptr||referencedBlockRecord->id.empty())
+            return false;
+        for(const auto& row:rows) {
+            if(row.section!="BLOCKS")continue;
+            if(row.type=="BLOCK"&&fieldValue(row,2)=="AuthorityBlock"
+                &&row.owner==referencedBlockRecord->id) {
+                ++begins;begin=&row;
+            }
+            if(row.type=="ENDBLK"
+                &&row.owner==referencedBlockRecord->id) {
+                ++ends;end=&row;
+            }
+        }
+        if(begins!=1u||ends!=1u||begin==nullptr||end==nullptr
+            ||begin->id.empty()||end->id.empty())return false;
+    }
     if(isText) {
         if(textStyleTable==nullptr||textStyleRecord==nullptr
             ||textStyleTable->id.empty()||textStyleRecord->id.empty()
@@ -33289,6 +33401,9 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         return false;
     const auto ownerHandle=static_cast<std::uint32_t>(
         std::stoul(ownerRecord->id,nullptr,16));
+    const auto referencedBlockHandle=isInsert
+        ?static_cast<std::uint32_t>(
+            std::stoul(referencedBlockRecord->id,nullptr,16)):0u;
     const auto matchesBlockName=[&](std::string_view name) {
         std::string nameKey;
         return dx_symbol_output::nameKey(name,nameKey)
@@ -33316,7 +33431,32 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         });
     if(typedCurve==container->ent.end())
         return false;
-    if(isText) {
+    if(isInsert) {
+        const auto* typedModel=dynamic_cast<const DRW_Insert*>(*typedCurve);
+        unsigned targetRecordCount=0u,targetBlockCount=0u;
+        for(const auto& record:actual.blockRecords)
+            if(record.handle==referencedBlockHandle
+                &&record.name=="AuthorityBlock")++targetRecordCount;
+        for(const auto* block:actual.blocks)
+            if(block!=nullptr
+                &&block->parentHandle==referencedBlockHandle
+                &&block->name=="AuthorityBlock")++targetBlockCount;
+        const double pi=std::acos(-1.0);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Insert)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->name!="AuthorityBlock"
+            ||typedModel->basePoint.x!=3.5
+            ||typedModel->basePoint.y!=-2.25
+            ||typedModel->basePoint.z!=7.75
+            ||typedModel->xscale!=2.0||typedModel->yscale!=0.5
+            ||typedModel->zscale!=1.5
+            ||std::abs(typedModel->angle-pi/6.0)>1.0e-12
+            ||typedModel->colcount!=1||typedModel->rowcount!=1
+            ||typedModel->colspace!=0.0||typedModel->rowspace!=0.0
+            ||!typedModel->attlist.empty()||typedModel->seqEndEntity
+            ||targetRecordCount!=1u||targetBlockCount!=1u)
+            return false;
+    } else if(isText) {
         const auto* typedModel=dynamic_cast<const DRW_Text*>(*typedCurve);
         const auto textStyle=std::find_if(actual.textStyles.begin(),
             actual.textStyles.end(),[](const DRW_Textstyle& value) {
@@ -34227,6 +34367,22 @@ struct LateXdataEntityMutation:dx_iface {
             if(entity!=nullptr&&entity->handle==sourceHandle) {
                 entity->handle=0xA901u;mutated=true;break;
             }
+        }
+    }
+};
+
+struct LateXdataInsertNameMutation:dx_iface {
+    bool armed{true},mutated{false};
+    void writeAppId()override {
+        dx_iface::writeAppId();
+        if(!armed||!cData||!cData->mBlock)return;
+        for(DRW_Entity* entity:cData->mBlock->ent) {
+            if(entity==nullptr||entity->eType!=DRW::INSERT
+        ||entity->handle!=0xA902u)continue;
+            auto* insert=dynamic_cast<DRW_Insert*>(entity);
+            if(insert==nullptr)return;
+            insert->name="MUTATED_INSERT_TARGET";
+            mutated=true;return;
         }
     }
 };
@@ -36826,6 +36982,8 @@ bool runTemporary() {
                                      bool inNamedBlock) {
         const std::string_view entityName=entityType==DRW::TEXT
             ?std::string_view("TEXT")
+            :entityType==DRW::INSERT
+            ?std::string_view("INSERT")
             :entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
             :entityType==DRW::HELIX?std::string_view("HELIX")
@@ -36837,11 +36995,17 @@ bool runTemporary() {
             ?std::string_view("AuthorityBlock")
             :std::string_view("*Model_Space");
         const std::uint32_t targetOwner=inNamedBlock?0x203u:0x201u;
+        const std::uint32_t targetBlockRecord=entityType==DRW::INSERT
+            ?0x203u:0u;
+        const std::uint32_t targetEntityHandle=entityType==DRW::INSERT
+            ?0xA902u:0xA900u;
         const auto makeSource=[&](bool binary) {
             if(inNamedBlock)
                 return sourceWithBlockEntityHandleXdata(binary,targetBlock,
                     "203",entityType);
-            return entityType==DRW::TEXT
+            return entityType==DRW::INSERT
+                ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::TEXT
                 ?sourceWithTextEntityHandleXdata(binary)
                 :entityType==DRW::ELLIPSE
                 ?sourceWithEllipseEntityHandleXdata(binary)
@@ -36856,6 +37020,22 @@ bool runTemporary() {
                         :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::INSERT) {
+                const auto* typed=dynamic_cast<const DRW_Insert*>(entity);
+                const double pi=std::acos(-1.0);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Insert)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->name=="AuthorityBlock"
+                    &&typed->basePoint.x==3.5
+                    &&typed->basePoint.y==-2.25
+                    &&typed->basePoint.z==7.75
+                    &&typed->xscale==2.0&&typed->yscale==0.5
+                    &&typed->zscale==1.5
+                    &&std::abs(typed->angle-pi/6.0)<=1.0e-12
+                    &&typed->colcount==1&&typed->rowcount==1
+                    &&typed->colspace==0.0&&typed->rowspace==0.0
+                    &&typed->attlist.empty()&&!typed->seqEndEntity;
+            }
             if(entityType==DRW::TEXT) {
                 const auto* typed=dynamic_cast<const DRW_Text*>(entity);
                 return typed!=nullptr&&typeid(*typed)==typeid(DRW_Text)
@@ -37001,18 +37181,19 @@ bool runTemporary() {
                 container->ent.begin(),container->ent.end(),
                 [&](const DRW_Entity* entity) {
                     return entity!=nullptr&&entity->eType==entityType
-                        &&entity->handle==0xA900u;
+                        &&entity->handle==targetEntityHandle;
                 });
             if(sourceEntity==container->ent.end()
                 ||!typedGeometryMatches(*sourceEntity)
                 ||!DxIfaceMaterialReferenceTestAccess::
-                    mlineXdataEntitySourceBound(adapter,data,0xA900u,
-                        targetOwner,inNamedBlock,entityType)) {
+                    mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
+                        targetOwner,inNamedBlock,entityType,
+                        targetBlockRecord)) {
                 std::cerr<<entityName<<" XDATA typed source identity failed: "
                          <<inNamedBlock<<' '<<sourceBinary<<' '
                          <<outputBinary<<'\n';return false;
             }
-            const std::vector<std::uint32_t> targetHandles{0xA900u};
+            const std::vector<std::uint32_t> targetHandles{targetEntityHandle};
             const auto outputProof=[&]() {
                 if(!adapter.fileExport(output.string(),DRW::AC1027,
                                        outputBinary,&data,false,true)) {
@@ -37031,7 +37212,8 @@ bool runTemporary() {
                 }
                 if(!DxIfaceMaterialReferenceTestAccess::
                         mlineLinetypeEntityProofBound(adapter,0x103u,
-                            targetHandles,inNamedBlock,entityType)) {
+                            targetHandles,inNamedBlock,entityType,
+                            targetBlockRecord)) {
                     std::cerr<<entityName<<" XDATA target join proof failed\n";
                     return false;
                 }
@@ -37067,15 +37249,58 @@ bool runTemporary() {
             ++retries;++readbacks;
         }
         if(!inNamedBlock) {
+            if(entityType==DRW::INSERT) {
+                LateXdataInsertNameMutation adapter;dx_data data;
+                if(!write(input,makeSource(false),false,"AC1027")
+                    ||!adapter.fileImport(input.string(),&data,false)
+                    ||!singleGeometryEntityProviderProof(input,false,false,
+                        targetBlock,entityType)
+                    ||!DxIfaceMaterialReferenceTestAccess::
+                        mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
+                            targetOwner,false,entityType,targetBlockRecord)) {
+                    std::cerr<<"ENTITIES INSERT late-name setup failed\n";
+                    return false;
+                }
+                sentinel(output);
+                if(adapter.fileExport(output.string(),DRW::AC1027,false,
+                                      &data,false,true)
+                    ||!adapter.mutated
+                    ||!dictionaryVarTransactionControls::
+                        keptWithoutTemporary(output)) {
+                    std::cerr<<"ENTITIES INSERT late-name refusal failed\n";
+                    return false;
+                }
+                ++refusals;adapter.armed=false;
+                for(DRW_Entity* entity:data.mBlock->ent) {
+                    if(entity==nullptr||entity->handle!=targetEntityHandle)continue;
+                    auto* insert=dynamic_cast<DRW_Insert*>(entity);
+                    if(insert==nullptr)return false;
+                    insert->name="AuthorityBlock";break;
+                }
+                const std::vector<std::uint32_t> targetHandles{targetEntityHandle};
+                if(!adapter.fileExport(output.string(),DRW::AC1027,false,
+                                       &data,false,true)
+                    ||!singleGeometryEntityProviderProof(output,false,true,
+                        targetBlock,entityType)
+                    ||!DxIfaceMaterialReferenceTestAccess::
+                        mlineLinetypeProofBound(adapter,0x103u)
+                    ||!DxIfaceMaterialReferenceTestAccess::
+                        mlineLinetypeEntityProofBound(adapter,0x103u,
+                            targetHandles,false,entityType,targetBlockRecord)) {
+                    std::cerr<<"ENTITIES INSERT late-name retry failed\n";
+                    return false;
+                }
+                ++retries;++readbacks;
+            } else {
             LateXdataEntityMutation adapter;dx_data data;
-            adapter.sourceHandle=0xA900u;
+            adapter.sourceHandle=targetEntityHandle;
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
                     targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
-                    mlineXdataEntitySourceBound(adapter,data,0xA900u,
-                        targetOwner,false,entityType)) {
+                    mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
+                        targetOwner,false,entityType,targetBlockRecord)) {
                 std::cerr<<"ENTITIES "<<entityName
                          <<" late-mutation setup failed\n";
                 return false;
@@ -37093,9 +37318,9 @@ bool runTemporary() {
             ++refusals;adapter.armed=false;
             for(DRW_Entity* entity:data.mBlock->ent)
                 if(entity!=nullptr&&entity->handle==0xA901u) {
-                    entity->handle=0xA900u;break;
+                    entity->handle=targetEntityHandle;break;
                 }
-            const std::vector<std::uint32_t> targetHandles{0xA900u};
+            const std::vector<std::uint32_t> targetHandles{targetEntityHandle};
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
@@ -37104,22 +37329,23 @@ bool runTemporary() {
                     mlineLinetypeProofBound(adapter,0x103u)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineLinetypeEntityProofBound(adapter,0x103u,
-                        targetHandles,false,entityType)) {
+                        targetHandles,false,entityType,targetBlockRecord)) {
                 std::cerr<<"ENTITIES "<<entityName
                          <<" late-mutation retry failed\n";
                 return false;
             }
             ++retries;++readbacks;
+            }
         } else {
             LateBlockXdataLineMutation adapter{
-                "AuthorityBlock",0xA900u,0xA901u,entityType};
+                "AuthorityBlock",targetEntityHandle,0xA901u,entityType};
             dx_data data;
             if(!write(input,makeSource(false),false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!singleGeometryEntityProviderProof(input,false,false,
                     targetBlock,entityType)
                 ||!DxIfaceMaterialReferenceTestAccess::
-                    mlineXdataEntitySourceBound(adapter,data,0xA900u,
+                    mlineXdataEntitySourceBound(adapter,data,targetEntityHandle,
                         targetOwner,true,entityType)) {
                 std::cerr<<"BLOCKS "<<entityName
                          <<" late-mutation setup failed\n";
@@ -37140,9 +37366,9 @@ bool runTemporary() {
             if(block==nullptr)return false;
             for(DRW_Entity* entity:block->ent)
                 if(entity!=nullptr&&entity->handle==0xA901u) {
-                    entity->handle=0xA900u;break;
+                    entity->handle=targetEntityHandle;break;
                 }
-            const std::vector<std::uint32_t> targetHandles{0xA900u};
+            const std::vector<std::uint32_t> targetHandles{targetEntityHandle};
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!singleGeometryEntityProviderProof(output,false,true,
@@ -37166,10 +37392,11 @@ bool runTemporary() {
             DRW::LWPOLYLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
+    if(!runGeometrySection(DRW::INSERT,false))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==292u&&readbacks==654u&&refusals==362u&&retries==362u;
+    return profiles==296u&&readbacks==663u&&refusals==367u&&retries==367u;
 }
 
 bool runBudgetTemporary() {

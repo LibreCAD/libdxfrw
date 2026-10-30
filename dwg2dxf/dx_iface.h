@@ -2321,12 +2321,14 @@ private:
         std::vector<std::uint32_t> xdataEntityOwners;
         std::vector<DRW::ETYPE> xdataEntityTypes;
         std::vector<DxfMLineXdataEntitySection> xdataEntitySourceSections;
+        std::vector<std::uint32_t> xdataEntityBlockRecords;
         std::uint32_t emitted{0},table{0};
     };
     struct DxfMLineXdataEntitySource {
         const DRW_Entity* live{nullptr};
         std::uint32_t owner{0u};
         DRW::ETYPE entityType{DRW::UNKNOWN};
+        std::uint32_t referencedBlockRecord{0u};
         DxfMLineXdataEntitySection sourceSection{
             DxfMLineXdataEntitySection::Entities};
     };
