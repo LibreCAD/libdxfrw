@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 complete constraint-group DXF record writer primitive",
+  "status": "LOCAL_WRITER_AND_WIRE_VERIFIED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "7fe3b156",
+  "scope": "Implement a direct DXF record writer for one source-backed AC1024 version-0 inline constraint-group profile when its action and group prefixes and every inline node body are complete. The primitive is not routed through dx_iface; whole-document associative export remains refused.",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "localTracePath": "/private/tmp/libdxfrw-p4-current-mechanical.log",
+    "localTraceSha256": "a7d5aa2235a6bc13b260b365dd8d75f71bc07a43178faa9c666012640684d85f",
+    "observedGroup": {
+      "handleHex": "42B",
+      "groupVersion": 0,
+      "nextNodeId": 523,
+      "nodeCount": 399,
+      "typedNodes": 399,
+      "actionCount": 88,
+      "allSelectedGraphEdgesComplete": true
+    },
+    "limitations": "The independent LibreDWG 0.14 DXF output drops class-specific node names/data and is not an exact node-wire oracle. Use it only for base group/action field corroboration; use the independent ACAD Rust DXF writer source mapping for node serialization and retain the limitations explicitly."
+  },
+  "independentSources": [
+    {
+      "repository": "LibreDWG",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "outputPath": "/private/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+      "outputSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7"
+    },
+    {
+      "repository": "acadrust",
+      "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+      "file": "src/io/dxf/writer/section_writer/associative.rs",
+      "sha256": "feb09ed71bbafa1b52dc4c47f240249b7e6f7544f953243ef8b6e0275426ec0d6",
+      "readerFile": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+      "readerSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+      "limits": "Independent implementation source establishes the intended DXF field order and AC1024 version-0 to DXF-version-2 normalization; it is not consumer or support-promotion evidence."
+    }
+  ],
+  "implementationBrief": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "profile": "AC1024 ACDBASSOC2DCONSTRAINTGROUP; complete AcDbAssocAction and AcDbAssoc2dConstraintGroup prefix statuses; version-0 inline node list; all node envelopes and class bodies parsed; no opaque node tail; empty action dependencies/owned parameters/value parameters/action body; bounded action/node/vector counts; reject unknown DataKind/class, unsupported node handle roles, extension-dictionary and generic appdata profiles.",
+    "fields": "Emit object owner/reactors, shared AcDbAssocAction fields, normalized DXF group version 2, flag/workplane/group dependency/action handles, next-node seed/count, node class-name and common envelope, then each admitted class body in wire order. Remap every handle by role and preserve null/absent distinctions admitted by the parser.",
+    "failure": "Use RecordStateScope and DxfWriterRecordScope. Reject incomplete/mutated/unresolved profiles atomically; failed bytes and identity bindings must roll back and corrected same-object retry must succeed.",
+    "selector": "--associative-constraint-group-writer",
+    "ctest": "libdxfrw_associative_constraint_group_writer",
+    "build": "cmake --build build --target libdxfrw_wave1_tests -j 4",
+    "validation": "In-memory ASCII and Binary expected numeric projections for each supported DataKind; literal group/action/node order and remapped owner/reactor/action/group/node references; absent optional fields, invalid node-kind combinations, unsupported version/incomplete profile, unresolved-reference rollback, late EED rollback and corrected retry. Keep whole-document DWG associative refusal active.",
+    "fixtures": "No persistent DWG/DXF fixture; generate all writer input in memory."
+  },
+  "implementationEvidence": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "The direct AC1024 version-0 constraint-group record primitive emits all admitted node DataKinds, validates exact class/DataKind and dependency roles, remaps handles, and rolls back record bytes and source identity on failure. It is not invoked by dx_iface and does not qualify whole-document output.",
+    "validation": [
+      {
+        "command": "cmake --build build --target libdxfrw_wave1_tests dwg2dxf -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_writer$' --output-on-failure",
+        "result": "PASS; 1/1 focused fast test, with exact ASCII/Binary projections for all 11 admitted DataKinds, handle remapping, optional-field absence, malformed-profile refusal, unresolved-reference rollback, and late EED failure/corrected retry"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_associative_(dependency|network|constraint_group)_writer$' --output-on-failure",
+        "result": "PASS; 3/3 adjacent associative writer regressions"
+      },
+      {
+        "command": "dwg2dxf on mechanical_example-imperial.dwg with AC1024 output",
+        "result": "PASS negative gate; exits 1 with dwg-associative-graph-not-serialized and does not publish the destination DXF"
+      }
+    ],
+    "fixturePolicy": "All writer test records are generated in memory; no DWG/DXF fixture was added.",
+    "sourceHashesSha256": {
+      "src/libdxfrw.h": "6bca608309cca68cdcdd1236eb9acc677a85cb08ac5f9fc3748056655cc9cc28",
+      "src/libdxfrw.cpp": "a7828228f71087dae9d58353fbbace2313a9ddf20b6fed2dba4d388f9a891d75",
+      "tests/wave1_tests.cpp": "2c6fce4e6b43b92761a75815212bfe8fbfa6c4fd1f15f3c3091debb6ab40739f",
+      "CMakeLists.txt": "4a29bf674ce04a1a1b686b5d5cc467f40ed0c496a14ac6c8ce3b2adf2a279187",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "133da5fcf33e863b4e18621b3e358cd603253f2a96ff21d434eb517f40416d42"
+    },
+    "remaining": "Source-bound graph planner routing, descendant closure, staged-output independent inspection/readback, and whole-operation publication/retry proof remain open under P4."
+  },
+  "nonGoals": [
+    "Do not add reader/parser fields or change DWG bytes in this packet.",
+    "Do not route any associative object through dx_iface.",
+    "Do not relax dwg-associative-graph-not-serialized.",
+    "Do not treat the LibreDWG group output as a complete node-data oracle."
+  ],
+  "baselineSourceHashesSha256": {
+    "src/libdxfrw.h": "8a55b1bf83f4ef5da684fef650137fad6ed9d5cae7373b615a5361f49a42e3d7",
+    "src/libdxfrw.cpp": "64fdc8548874dbc2a4ba2c2a97bd66e99c8563368bde5deeb0be3f4b89b1436e",
+    "tests/wave1_tests.cpp": "05cb488f24f385b197a60dab8edc287b160d2bcf09862034ecc49695bb150cea",
+    "CMakeLists.txt": "50352652433732e4942cbbe574041c4d5aebc690159c83da2e0acdbd78f702d5",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c274ea2b07c85bd27536974812ea34ca9a7fcccd595dd4a97785ce55ef3a726f"
+  }
+}

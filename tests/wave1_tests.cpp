@@ -2856,6 +2856,433 @@ void testAssociativeNetworkWriter(TestContext& t) {
              "late associative network EED failure rolls back and permits corrected retry on the same object");
 }
 
+void testAssociativeConstraintGroupWriter(TestContext& t) {
+    using Node = DRW_AssociativeConstraintNode;
+    const auto makeNode = [](const char* name, Node::DataKind kind,
+                             std::int32_t id) {
+        Node node;
+        node.m_className = name;
+        node.m_dataKind = kind;
+        node.m_nodeId = id;
+        node.m_classDataParsed = true;
+        return node;
+    };
+    const auto makeGroup = [&]() {
+        DRW_AssociativeObject group("ACDBASSOC2DCONSTRAINTGROUP");
+        group.handle = 0x500u;
+        group.parentHandle = 0x501u;
+        group.reactorHandles = {0x501u};
+        group.m_classVersion = 1u;
+        group.m_geometryStatus = 0;
+        group.m_owningNetworkHandle = 0x502u;
+        group.m_actionIndex = 4;
+        group.m_constraintGroupBodyParsed = true;
+        group.m_constraintGroupVersion = 0;
+        group.m_constraintGroupFlag = true;
+        group.m_constraintWorkplane = {{DRW_Coord(1.0, 2.0, 3.0),
+                                        DRW_Coord(4.0, 5.0, 6.0),
+                                        DRW_Coord(7.0, 8.0, 9.0)}};
+        group.m_constraintGroupReference = 0x503u;
+        group.m_constraintActionCount = 1;
+        group.m_constraintActionsParsed = true;
+        group.m_constraintActions = {0x504u};
+        group.m_constraintNextNodeIdRead = true;
+        group.m_constraintNextNodeId = 12;
+        group.m_constraintNodeCount = 11;
+        group.m_constraintNodesParsed = true;
+
+        Node geometric = makeNode(
+            "AcFixedConstraint", Node::DataKind::Geometrical, 1);
+        geometric.m_ownerId = 2;
+        geometric.m_isImplied = true;
+        geometric.m_connections = {3};
+        group.m_constraintNodes.push_back(geometric);
+
+        Node horizontal = makeNode(
+            "AcHorizontalConstraint", Node::DataKind::Horizontal, 2);
+        horizontal.m_ownerId = 3;
+        horizontal.m_hasDatumLineIndex = true;
+        horizontal.m_datumLineIndex = 4;
+        group.m_constraintNodes.push_back(horizontal);
+
+        Node vertical = makeNode(
+            "AcVerticalConstraint", Node::DataKind::Vertical, 3);
+        vertical.m_ownerId = 4;
+        vertical.m_hasDatumLineIndex = true;
+        vertical.m_datumLineIndex = 5;
+        group.m_constraintNodes.push_back(vertical);
+
+        Node radius = makeNode(
+            "AcRadiusDiameterConstraint", Node::DataKind::RadiusDiameter, 4);
+        radius.m_ownerId = 5;
+        radius.m_hasValueDependencyHandle = true;
+        radius.m_valueDependencyCode = DRW::DwgHardPointer;
+        radius.m_valueDependencyHandle = 0x510u;
+        radius.m_hasDimensionDependencyHandle = true;
+        radius.m_dimensionDependencyCode = DRW::DwgHardPointer;
+        radius.m_dimensionDependencyHandle = 0x511u;
+        radius.m_radiusDiameterMode = 2u;
+        group.m_constraintNodes.push_back(radius);
+
+        Node line = makeNode(
+            "AcConstrainedDatumLine", Node::DataKind::Line, 5);
+        line.m_hasGeometryDependency = true;
+        line.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        line.m_hasPoint = true;
+        line.m_point = DRW_Coord(1.0, 2.0, 3.0);
+        line.m_direction = DRW_Coord(0.0, 1.0, 0.0);
+        group.m_constraintNodes.push_back(line);
+
+        Node implicitPoint = makeNode(
+            "AcConstrainedImplicitPoint", Node::DataKind::ImplicitPoint, 6);
+        implicitPoint.m_hasGeometryDependency = true;
+        implicitPoint.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        implicitPoint.m_geometryDependencyHandle = 0x512u;
+        implicitPoint.m_geometryNodeId = 7;
+        implicitPoint.m_hasPoint = true;
+        implicitPoint.m_point = DRW_Coord(2.0, 3.0, 4.0);
+        implicitPoint.m_pointType = 2u;
+        implicitPoint.m_pointIndex = 3;
+        implicitPoint.m_curveNodeId = 4;
+        group.m_constraintNodes.push_back(implicitPoint);
+
+        Node boundedLine = makeNode(
+            "AcConstrainedBoundedLine", Node::DataKind::BoundedLine, 7);
+        boundedLine.m_hasGeometryDependency = true;
+        boundedLine.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        boundedLine.m_geometryDependencyHandle = 0x513u;
+        boundedLine.m_geometryNodeId = 8;
+        boundedLine.m_hasPoint = true;
+        boundedLine.m_point = DRW_Coord(1.0, 1.0, 1.0);
+        boundedLine.m_direction = DRW_Coord(0.0, 1.0, 0.0);
+        boundedLine.m_isRay = true;
+        boundedLine.m_startPoint = DRW_Coord(2.0, 2.0, 2.0);
+        boundedLine.m_endPoint = DRW_Coord(3.0, 3.0, 3.0);
+        group.m_constraintNodes.push_back(boundedLine);
+
+        Node circle = makeNode(
+            "AcConstrainedCircle", Node::DataKind::Circle, 8);
+        circle.m_hasGeometryDependency = true;
+        circle.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        circle.m_geometryDependencyHandle = 0x514u;
+        circle.m_geometryNodeId = 9;
+        circle.m_center = DRW_Coord(1.0, 2.0, 3.0);
+        circle.m_normal = DRW_Coord(0.0, 0.0, 1.0);
+        circle.m_direction = DRW_Coord(1.0, 0.0, 0.0);
+        circle.m_radius = 4.0;
+        circle.m_startParameter = 0.25;
+        circle.m_endParameter = 0.75;
+        group.m_constraintNodes.push_back(circle);
+
+        Node arc = makeNode("AcConstrainedArc", Node::DataKind::Arc, 9);
+        arc.m_hasGeometryDependency = true;
+        arc.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        arc.m_geometryDependencyHandle = 0x515u;
+        arc.m_geometryNodeId = 10;
+        arc.m_center = DRW_Coord(1.0, 2.0, 3.0);
+        arc.m_normal = DRW_Coord(0.0, 0.0, 1.0);
+        arc.m_direction = DRW_Coord(1.0, 0.0, 0.0);
+        arc.m_radius = 5.0;
+        arc.m_startParameter = 0.5;
+        arc.m_endParameter = 1.0;
+        arc.m_startPoint = DRW_Coord(2.0, 3.0, 4.0);
+        arc.m_endPoint = DRW_Coord(5.0, 6.0, 7.0);
+        group.m_constraintNodes.push_back(arc);
+
+        Node distance = makeNode(
+            "AcDistanceConstraint", Node::DataKind::Distance, 10);
+        distance.m_ownerId = 6;
+        distance.m_hasValueDependencyHandle = true;
+        distance.m_valueDependencyCode = DRW::DwgHardPointer;
+        distance.m_valueDependencyHandle = 0x516u;
+        distance.m_hasDimensionDependencyHandle = true;
+        distance.m_dimensionDependencyCode = DRW::DwgHardPointer;
+        distance.m_dimensionDependencyHandle = 0x517u;
+        distance.m_directionType = 1u;
+        distance.m_hasDistance = true;
+        distance.m_distance = DRW_Coord(6.0, 7.0, 8.0);
+        group.m_constraintNodes.push_back(distance);
+
+        Node rigid = makeNode(
+            "AcConstrainedRigidSet", Node::DataKind::RigidSet, 11);
+        rigid.m_hasGeometryDependency = true;
+        rigid.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        rigid.m_hasRigidSetReservedFlag = true;
+        rigid.m_rigidSetReservedFlag = true;
+        rigid.m_hasRigidSetTransform = true;
+        rigid.m_rigidSetTransform = {{1.0, 0.0, 0.0, 0.0,
+                                      0.0, 1.0, 0.0, 0.0,
+                                      0.0, 0.0, 1.0, 0.0,
+                                      0.0, 0.0, 0.0, 1.0}};
+        rigid.m_rigidSetGeometryIds = {2, 3};
+        group.m_constraintNodes.push_back(rigid);
+
+        DRW_AssociativePrefixStatus action;
+        action.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocAction;
+        action.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        action.m_classVersion = 1u;
+        action.m_decodedHandleCount = 2u;
+        DRW_AssociativePrefixStatus groupStatus;
+        groupStatus.m_kind =
+            DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup;
+        groupStatus.m_status =
+            DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        groupStatus.m_classVersion = 1u;
+        groupStatus.m_decodedHandleCount = 12u;
+        groupStatus.m_decodedValueCount = 11u;
+        groupStatus.m_decodedCountValue = 11;
+        group.m_prefixStatuses = {action, groupStatus};
+        return group;
+    };
+    const std::map<std::uint32_t, std::uint32_t> remap{
+        {0x500u, 0x3E8u}, {0x501u, 0x3E9u}, {0x502u, 0x3EAu},
+        {0x503u, 0x3EBu}, {0x504u, 0x3ECu}, {0x510u, 0x400u},
+        {0x511u, 0x401u}, {0x512u, 0x402u}, {0x513u, 0x403u},
+        {0x514u, 0x404u}, {0x515u, 0x405u}, {0x516u, 0x406u},
+        {0x517u, 0x407u}};
+
+    const auto number = [](int code, const char* value) {
+        return std::to_string(code) + ":" + value;
+    };
+    const auto doubleText = [](double value) {
+        std::ostringstream text;
+        text << std::hexfloat << value;
+        return text.str();
+    };
+    const auto doubleTag = [&number, &doubleText](int code, double value) {
+        const std::string text = doubleText(value);
+        return number(code, text.c_str());
+    };
+    const auto pointTags = [&number](std::vector<std::string>& tags,
+                                     int code, double x, double y, double z) {
+        const auto text = [](double value) {
+            std::ostringstream formatted;
+            formatted << std::hexfloat << value;
+            return formatted.str();
+        };
+        const std::string xText = text(x);
+        const std::string yText = text(y);
+        const std::string zText = text(z);
+        tags.push_back(number(code, xText.c_str()));
+        tags.push_back(number(code + 10, yText.c_str()));
+        tags.push_back(number(code + 20, zText.c_str()));
+    };
+    std::vector<std::string> expected{
+        "0:ACDBASSOC2DCONSTRAINTGROUP", "5:3E8",
+        "102:{ACAD_REACTORS", "330:3E9", "102:}", "330:3E9",
+        "100:AcDbAssocAction", "90:1", "90:0", "330:3EA", "360:0",
+        "90:4", "90:0", "90:0", "90:2", "70:1"};
+    pointTags(expected, 10, 1.0, 2.0, 3.0);
+    pointTags(expected, 10, 4.0, 5.0, 6.0);
+    pointTags(expected, 10, 7.0, 8.0, 9.0);
+    expected.insert(expected.end(), {"360:3EB", "90:1", "360:3EC",
+                                     "90:12", "90:11"});
+    const auto nodePrefix = [&expected, &number](const char* name, int id,
+                                                std::initializer_list<int> links) {
+        expected.push_back(number(1, name));
+        expected.push_back("330:3E8");
+        expected.push_back(number(90, std::to_string(id).c_str()));
+        expected.push_back(number(90, std::to_string(links.size()).c_str()));
+        for (const int link : links)
+            expected.push_back(number(90, std::to_string(link).c_str()));
+    };
+    nodePrefix("AcFixedConstraint", 1, {3});
+    expected.insert(expected.end(), {"90:2", "290:1", "290:0"});
+    nodePrefix("AcHorizontalConstraint", 2, {});
+    expected.insert(expected.end(), {"90:3", "290:0", "290:0", "90:4"});
+    nodePrefix("AcVerticalConstraint", 3, {});
+    expected.insert(expected.end(), {"90:4", "290:0", "290:0", "90:5"});
+    nodePrefix("AcRadiusDiameterConstraint", 4, {});
+    expected.insert(expected.end(), {"90:5", "290:0", "290:0", "340:400",
+                                     "340:401", "280:2"});
+    nodePrefix("AcConstrainedDatumLine", 5, {});
+    expected.insert(expected.end(), {"330:0", "90:0"});
+    pointTags(expected, 10, 1.0, 2.0, 3.0);
+    pointTags(expected, 10, 0.0, 1.0, 0.0);
+    nodePrefix("AcConstrainedImplicitPoint", 6, {});
+    expected.insert(expected.end(), {"330:402", "90:7"});
+    pointTags(expected, 10, 2.0, 3.0, 4.0);
+    expected.insert(expected.end(), {"280:2", "90:3", "90:4"});
+    nodePrefix("AcConstrainedBoundedLine", 7, {});
+    expected.insert(expected.end(), {"330:403", "90:8"});
+    pointTags(expected, 10, 1.0, 1.0, 1.0);
+    pointTags(expected, 10, 0.0, 1.0, 0.0);
+    expected.push_back("290:1");
+    pointTags(expected, 10, 2.0, 2.0, 2.0);
+    pointTags(expected, 11, 3.0, 3.0, 3.0);
+    nodePrefix("AcConstrainedCircle", 8, {});
+    expected.insert(expected.end(), {"330:404", "90:9"});
+    pointTags(expected, 10, 1.0, 2.0, 3.0);
+    pointTags(expected, 10, 0.0, 0.0, 1.0);
+    pointTags(expected, 10, 1.0, 0.0, 0.0);
+    expected.insert(expected.end(), {doubleTag(40, 4.0),
+                                     doubleTag(40, 0.25),
+                                     doubleTag(40, 0.75)});
+    nodePrefix("AcConstrainedArc", 9, {});
+    expected.insert(expected.end(), {"330:405", "90:10"});
+    pointTags(expected, 10, 1.0, 2.0, 3.0);
+    pointTags(expected, 10, 0.0, 0.0, 1.0);
+    pointTags(expected, 10, 1.0, 0.0, 0.0);
+    expected.insert(expected.end(), {doubleTag(40, 5.0),
+                                     doubleTag(40, 0.5),
+                                     doubleTag(40, 1.0)});
+    pointTags(expected, 10, 2.0, 3.0, 4.0);
+    pointTags(expected, 11, 5.0, 6.0, 7.0);
+    nodePrefix("AcDistanceConstraint", 10, {});
+    expected.insert(expected.end(), {"90:6", "290:0", "290:0", "340:406",
+                                     "340:407", "280:1"});
+    pointTags(expected, 10, 6.0, 7.0, 8.0);
+    nodePrefix("AcConstrainedRigidSet", 11, {});
+    expected.insert(expected.end(), {"330:0", "90:0", "290:1"});
+    for (const char* value : {"1", "0", "0", "0", "0", "1", "0", "0",
+                              "0", "0", "1", "0", "0", "0", "0", "1"})
+        expected.push_back(doubleTag(40, std::strtod(value, nullptr)));
+    expected.insert(expected.end(), {"90:2", "90:2", "90:3", "0:WIRE_END"});
+
+    for (const bool binary : {false, true}) {
+        DRW_AssociativeObject group = makeGroup();
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        dxfRW owner("");
+        owner.version = DRW::AC1024;
+        owner.binFile = binary;
+        owner.setHandleRemap(remap);
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        const bool wrote = owner.writeAssociativeConstraintGroup(&group)
+            && owner.writer->writeString(0, "WIRE_END");
+        bool ended = false;
+        const auto tags = numericWireProjection(output.str(), binary, ended);
+        if (!wrote || !ended || tags != expected) {
+            const auto mismatch = std::mismatch(tags.begin(), tags.end(),
+                                               expected.begin(), expected.end());
+            std::cerr << "constraint group diagnostic binary=" << binary
+                      << " wrote=" << wrote << " ended=" << ended
+                      << " actual=" << tags.size()
+                      << " expected=" << expected.size();
+            if (mismatch.first != tags.end()
+                && mismatch.second != expected.end())
+                std::cerr << " first mismatch actual=" << *mismatch.first
+                          << " expected=" << *mismatch.second;
+            std::cerr << '\n';
+        }
+        t.expect(wrote && ended && tags == expected,
+                 "AC1024 inline constraint-group writer matches every admitted node profile and remaps handles in ASCII and Binary");
+    }
+
+    DRW_AssociativeObject optionalAbsent = makeGroup();
+    optionalAbsent.m_constraintNodes[5].m_geometryDependencyHandle = 0u;
+    optionalAbsent.m_constraintNodes[5].m_hasPoint = false;
+    optionalAbsent.m_constraintNodes[9].m_directionType = 0u;
+    optionalAbsent.m_constraintNodes[9].m_hasDistance = false;
+    std::vector<std::string> expectedAbsent = expected;
+    const auto implicitName = std::find(expectedAbsent.begin(),
+                                        expectedAbsent.end(),
+                                        "1:AcConstrainedImplicitPoint");
+    bool optionalIndicesValid = implicitName != expectedAbsent.end();
+    if (optionalIndicesValid) {
+        const auto offset = static_cast<std::size_t>(
+            std::distance(expectedAbsent.begin(), implicitName));
+        expectedAbsent[offset + 4u] = "330:0";
+        expectedAbsent.erase(expectedAbsent.begin() +
+                                 static_cast<std::ptrdiff_t>(offset + 6u),
+                             expectedAbsent.begin() +
+                                 static_cast<std::ptrdiff_t>(offset + 9u));
+    }
+    const auto distanceName = std::find(expectedAbsent.begin(),
+                                        expectedAbsent.end(),
+                                        "1:AcDistanceConstraint");
+    optionalIndicesValid = optionalIndicesValid
+        && distanceName != expectedAbsent.end();
+    if (optionalIndicesValid) {
+        const auto offset = static_cast<std::size_t>(
+            std::distance(expectedAbsent.begin(), distanceName));
+        expectedAbsent[offset + 9u] = "280:0";
+        expectedAbsent.erase(expectedAbsent.begin() +
+                                 static_cast<std::ptrdiff_t>(offset + 10u),
+                             expectedAbsent.begin() +
+                                 static_cast<std::ptrdiff_t>(offset + 13u));
+    }
+    std::ostringstream optionalOutput;
+    dxfRW optionalWriter("");
+    optionalWriter.version = DRW::AC1024;
+    optionalWriter.setHandleRemap(remap);
+    optionalWriter.writer = std::make_unique<dxfWriterAscii>(&optionalOutput);
+    const bool optionalWritten = optionalIndicesValid
+        && optionalWriter.writeAssociativeConstraintGroup(&optionalAbsent)
+        && optionalWriter.writer->writeString(0, "WIRE_END");
+    bool optionalEnded = false;
+    const auto optionalTags = numericWireProjection(
+        optionalOutput.str(), false, optionalEnded);
+    t.expect(optionalWritten && optionalEnded
+                 && optionalTags == expectedAbsent,
+             "optional absent implicit-point and distance payloads stay absent in the AC1024 wire profile");
+
+    const auto rejectsBeforeOutput = [](DRW_AssociativeObject group) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1024;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        return !owner.writeAssociativeConstraintGroup(&group)
+            && output.str().empty();
+    };
+    DRW_AssociativeObject incomplete = makeGroup();
+    incomplete.m_constraintNodes.back().m_classDataParsed = false;
+    DRW_AssociativeObject wrongClass = makeGroup();
+    wrongClass.m_constraintNodes[0].m_className = "AcUnsupportedConstraint";
+    DRW_AssociativeObject wrongRole = makeGroup();
+    wrongRole.m_constraintNodes[3].m_valueDependencyCode =
+        DRW::DwgSoftPointer;
+    DRW_AssociativeObject wrongVersion = makeGroup();
+    wrongVersion.m_constraintGroupVersion = 2;
+    t.expect(rejectsBeforeOutput(incomplete)
+                 && rejectsBeforeOutput(wrongClass)
+                 && rejectsBeforeOutput(wrongRole)
+                 && rejectsBeforeOutput(wrongVersion),
+             "incomplete, mismatched, wrong-role, and unqualified version-2 constraint groups refuse before output");
+
+    DRW_AssociativeObject unresolved = makeGroup();
+    std::ostringstream unresolvedOutput;
+    dxfRW unresolvedWriter("");
+    unresolvedWriter.version = DRW::AC1024;
+    unresolvedWriter.setReferenceResolver(
+        [](std::uint32_t source) {
+            return source == 0x512u ? std::uint32_t{0} : source;
+        });
+    unresolvedWriter.writer = std::make_unique<dxfWriterAscii>(
+        &unresolvedOutput);
+    const bool unresolvedRolledBack =
+        !unresolvedWriter.writeAssociativeConstraintGroup(&unresolved)
+        && unresolvedOutput.str().empty() && unresolved.handle == 0x500u
+        && unresolvedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    t.expect(unresolvedRolledBack,
+             "unresolved inline-node reference rolls back the whole group record and source identity");
+
+    DRW_AssociativeObject lateFailure = makeGroup();
+    const bool invalidEedAdded = lateFailure.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedOutput;
+    dxfRW failedWriter("");
+    failedWriter.version = DRW::AC1024;
+    failedWriter.writer = std::make_unique<dxfWriterAscii>(&failedOutput);
+    const bool rolledBack = invalidEedAdded
+        && !failedWriter.writeAssociativeConstraintGroup(&lateFailure)
+        && failedOutput.str().empty() && lateFailure.handle == 0x500u
+        && failedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    lateFailure.clearExtData();
+    std::ostringstream retryOutput;
+    dxfRW retryWriter("");
+    retryWriter.version = DRW::AC1024;
+    retryWriter.writer = std::make_unique<dxfWriterAscii>(&retryOutput);
+    const bool retryOk = retryWriter.writeAssociativeConstraintGroup(&lateFailure)
+        && retryWriter.writer->writeString(0, "WIRE_END");
+    t.expect(rolledBack && retryOk
+                 && retryOutput.str().find("AcConstrainedRigidSet")
+                     != std::string::npos,
+             "late constraint-group EED failure rolls back bytes and identity, then corrected retry succeeds");
+}
+
 void expectTypedNumericWire(TestContext& t,
                            const std::function<bool(dxfRW&)>& emit,
                            const std::vector<std::string>& expected,
@@ -14625,6 +15052,14 @@ int main(int argc, char** argv) {
         TestContext focused;
         testAssociativeNetworkWriter(focused);
         std::cout << "AC1024 associative network writer: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-constraint-group-writer") {
+        TestContext focused;
+        testAssociativeConstraintGroupWriter(focused);
+        std::cout << "AC1024 associative constraint-group writer: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }

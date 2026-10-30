@@ -29127,6 +29127,522 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
     return true;
 }
 
+bool dxfRW::writeAssociativeConstraintGroup(DRW_AssociativeObject *ent) {
+    constexpr std::size_t kMaxAssociativeItems = 100000u;
+    const auto finitePoint = [](const DRW_Coord& point) {
+        return std::isfinite(point.x) && std::isfinite(point.y)
+            && std::isfinite(point.z);
+    };
+    const auto finiteValues = [](std::initializer_list<double> values) {
+        return std::all_of(values.begin(), values.end(),
+                           [](double value) {
+                               return std::isfinite(value);
+                           });
+    };
+    static constexpr std::array<const char*, 17> kGeometricalClasses{{
+        "AcCenterPointConstraint", "AcColinearConstraint",
+        "AcConcentricConstraint", "AcEqualCurvatureConstraint",
+        "AcEqualDistanceConstraint", "AcEqualHelpParameterConstraint",
+        "AcEqualLengthConstraint", "AcEqualRadiusConstraint",
+        "AcParallelConstraint", "AcFixedConstraint", "AcMidpointConstraint",
+        "AcNormalConstraint", "AcPerpendicularConstraint",
+        "AcPointCoincidenceConstraint", "AcPointCurveConstraint",
+        "AcSymmetricConstraint", "AcTangentConstraint"}};
+
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
+        || version != DRW::AC1024
+        || !dxfKeywordEquals(ent->m_recordName,
+                             "ACDBASSOC2DCONSTRAINTGROUP")
+        || !ent->m_constraintGroupBodyParsed
+        || ent->m_constraintGroupVersion != 0
+        || !ent->m_constraintActionsParsed
+        || !ent->m_constraintNextNodeIdRead
+        || !ent->m_constraintNodesParsed
+        || ent->m_constraintActionCount < 0
+        || ent->m_constraintNodeCount < 0
+        || ent->m_constraintActionCount
+            != static_cast<std::int32_t>(ent->m_constraintActions.size())
+        || ent->m_constraintNodeCount
+            != static_cast<std::int32_t>(ent->m_constraintNodes.size())
+        || ent->m_constraintActions.size() > kMaxAssociativeItems
+        || ent->m_constraintNodes.size() > kMaxAssociativeItems
+        || ent->reactorHandles.size() > kMaxAssociativeItems
+        || ent->m_classVersion != 1u
+        || ent->m_actionBodyHandle != 0u
+        || ent->m_maxDependencyIndex != 0
+        || !ent->m_dependencies.empty() || !ent->m_ownedParams.empty()
+        || !ent->m_ownedActions.empty() || ent->m_valueParamCount != 0u
+        || ent->m_valueParamsParsed || ent->m_actionParamPrefixParsed
+        || ent->m_singleDependencyActionParamParsed
+        || ent->m_compoundActionParamParsed || !ent->appData.empty()
+        || ent->xDictHandle != 0u || ent->m_prefixStatuses.size() != 2u
+        || !finitePoint(ent->m_constraintWorkplane[0])
+        || !finitePoint(ent->m_constraintWorkplane[1])
+        || !finitePoint(ent->m_constraintWorkplane[2])
+        || ent->m_constraintNextNodeId < 0
+        || ent->m_owningNetworkHandle == 0u
+        || ent->handle == 0u || ent->handle == DRW::NoHandle
+        || static_cast<std::uint32_t>(ent->parentHandle) == DRW::NoHandle)
+        return failDxfWrite();
+
+    const DRW_AssociativePrefixStatus& actionStatus =
+        ent->m_prefixStatuses[0];
+    const DRW_AssociativePrefixStatus& groupStatus =
+        ent->m_prefixStatuses[1];
+    if (actionStatus.m_kind
+            != DRW_AssociativePrefixStatus::Kind::AcDbAssocAction
+        || actionStatus.m_status
+            != DRW_AssociativePrefixStatus::ParseStatus::Complete
+        || actionStatus.m_classVersion != 1u
+        || actionStatus.m_decodedHandleCount != 2u
+        || actionStatus.m_decodedValueCount != 0u
+        || actionStatus.m_decodedCountValue != 0
+        || groupStatus.m_kind
+            != DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup
+        || groupStatus.m_status
+            != DRW_AssociativePrefixStatus::ParseStatus::Complete
+        || groupStatus.m_classVersion != 1u
+        || groupStatus.m_decodedValueCount != ent->m_constraintNodes.size()
+        || groupStatus.m_decodedCountValue != ent->m_constraintNodeCount)
+        return failDxfWrite();
+
+    std::size_t expectedHandleCount = ent->m_constraintActions.size()
+        + (ent->m_constraintGroupReference != 0u ? 1u : 0u);
+    for (const DRW_AssociativeConstraintNode& node :
+         ent->m_constraintNodes) {
+        const auto hasOnlyProfileFlags = [&](bool geometry, bool value,
+                                             bool dimension, bool datumLine,
+                                             bool point, bool distance,
+                                             bool reserved, bool rigidFlag,
+                                             bool rigidTransform) {
+            return node.m_hasGeometryDependency == geometry
+                && node.m_hasValueDependencyHandle == value
+                && node.m_hasDimensionDependencyHandle == dimension
+                && node.m_hasDatumLineIndex == datumLine
+                && node.m_hasPoint == point
+                && node.m_hasDistance == distance
+                && node.m_hasReserved == reserved
+                && node.m_hasRigidSetReservedFlag == rigidFlag
+                && node.m_hasRigidSetTransform == rigidTransform;
+        };
+        if (node.m_nodeId < 0 || !node.m_classDataParsed
+            || node.m_connections.size() > kMaxAssociativeItems
+            || node.m_hasActiveFlag)
+            return failDxfWrite();
+        switch (node.m_dataKind) {
+        case DRW_AssociativeConstraintNode::DataKind::Geometrical:
+            if (std::none_of(kGeometricalClasses.begin(),
+                             kGeometricalClasses.end(),
+                    [&node](const char* name) {
+                        return dxfKeywordEquals(node.m_className, name);
+                    }) || node.m_hasGeometryDependency
+                || node.m_hasValueDependencyHandle
+                || node.m_hasDimensionDependencyHandle
+                || !hasOnlyProfileFlags(false, false, false, false, false,
+                                        false, false, false, false))
+                return failDxfWrite();
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::Horizontal:
+        case DRW_AssociativeConstraintNode::DataKind::Vertical:
+            if (!dxfKeywordEquals(node.m_className,
+                    node.m_dataKind
+                            == DRW_AssociativeConstraintNode::DataKind::Horizontal
+                        ? "AcHorizontalConstraint"
+                        : "AcVerticalConstraint")
+                || !node.m_hasDatumLineIndex
+                || node.m_hasGeometryDependency
+                || node.m_hasValueDependencyHandle
+                || node.m_hasDimensionDependencyHandle
+                || !hasOnlyProfileFlags(false, false, false, true, false,
+                                        false, false, false, false))
+                return failDxfWrite();
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::RadiusDiameter:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcRadiusDiameterConstraint")
+                || !node.m_hasValueDependencyHandle
+                || !node.m_hasDimensionDependencyHandle
+                || node.m_valueDependencyCode != DRW::DwgHardPointer
+                || node.m_dimensionDependencyCode != DRW::DwgHardPointer
+                || node.m_valueDependencyHandle == 0u
+                || node.m_dimensionDependencyHandle == 0u
+                || node.m_radiusDiameterMode > 3u
+                || node.m_hasGeometryDependency
+                || node.m_hasDatumLineIndex
+                || !hasOnlyProfileFlags(false, true, true, false, false,
+                                        false, false, false, false))
+                return failDxfWrite();
+            expectedHandleCount += 2u;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::Line:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcConstrainedDatumLine")
+                || !node.m_hasGeometryDependency
+                || node.m_geometryDependencyCode != DRW::DwgSoftPointer
+                || node.m_geometryDependencyHandle != 0u
+                || !node.m_hasPoint || !finitePoint(node.m_point)
+                || !finitePoint(node.m_direction)
+                || node.m_isRay
+                || (node.m_direction.x == 0.0
+                    && node.m_direction.y == 0.0
+                    && node.m_direction.z == 0.0)
+                || node.m_hasValueDependencyHandle
+                || node.m_hasDimensionDependencyHandle
+                || !hasOnlyProfileFlags(true, false, false, false, true,
+                                        false, false, false, false))
+                return failDxfWrite();
+            ++expectedHandleCount;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::ImplicitPoint:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcConstrainedImplicitPoint")
+                || !node.m_hasGeometryDependency
+                || node.m_geometryDependencyCode != DRW::DwgSoftPointer
+                || node.m_geometryDependencyHandle
+                    > std::numeric_limits<std::uint32_t>::max()
+                || (node.m_geometryDependencyHandle == 0u
+                    && node.m_hasPoint)
+                || (node.m_hasPoint && !finitePoint(node.m_point))
+                || !hasOnlyProfileFlags(true, false, false, false,
+                                        node.m_hasPoint, false, false, false,
+                                        false))
+                return failDxfWrite();
+            ++expectedHandleCount;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::BoundedLine:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcConstrainedBoundedLine")
+                || !node.m_hasGeometryDependency
+                || node.m_geometryDependencyCode != DRW::DwgSoftPointer
+                || node.m_geometryDependencyHandle == 0u
+                || !node.m_hasPoint || !finitePoint(node.m_point)
+                || !finitePoint(node.m_direction)
+                || !finitePoint(node.m_startPoint)
+                || !finitePoint(node.m_endPoint)
+                || !hasOnlyProfileFlags(true, false, false, false, true,
+                                        false, false, false, false))
+                return failDxfWrite();
+            ++expectedHandleCount;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::Circle:
+        case DRW_AssociativeConstraintNode::DataKind::Arc:
+            if (!dxfKeywordEquals(node.m_className,
+                    node.m_dataKind
+                            == DRW_AssociativeConstraintNode::DataKind::Circle
+                        ? "AcConstrainedCircle" : "AcConstrainedArc")
+                || !node.m_hasGeometryDependency
+                || node.m_geometryDependencyCode != DRW::DwgSoftPointer
+                || node.m_geometryDependencyHandle == 0u
+                || !finitePoint(node.m_center) || !finitePoint(node.m_normal)
+                || !finitePoint(node.m_direction)
+                || !finiteValues({node.m_radius, node.m_startParameter,
+                                  node.m_endParameter})
+                || node.m_hasReserved || node.m_reserved != 0.0
+                || (node.m_dataKind
+                        == DRW_AssociativeConstraintNode::DataKind::Arc
+                    && (!finitePoint(node.m_startPoint)
+                        || !finitePoint(node.m_endPoint)))
+                || !hasOnlyProfileFlags(true, false, false, false, false,
+                                        false, false, false, false))
+                return failDxfWrite();
+            ++expectedHandleCount;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::Distance:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcDistanceConstraint")
+                || !node.m_hasValueDependencyHandle
+                || !node.m_hasDimensionDependencyHandle
+                || node.m_valueDependencyCode != DRW::DwgHardPointer
+                || node.m_dimensionDependencyCode != DRW::DwgHardPointer
+                || node.m_valueDependencyHandle == 0u
+                || node.m_dimensionDependencyHandle == 0u
+                || node.m_hasDistance != (node.m_directionType != 0u)
+                || (node.m_hasDistance && !finitePoint(node.m_distance))
+                || !hasOnlyProfileFlags(false, true, true, false, false,
+                                        node.m_hasDistance, false, false,
+                                        false))
+                return failDxfWrite();
+            expectedHandleCount += 2u;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::RigidSet:
+            if (!dxfKeywordEquals(node.m_className,
+                                  "AcConstrainedRigidSet")
+                || !node.m_hasGeometryDependency
+                || node.m_geometryDependencyCode != DRW::DwgSoftPointer
+                || node.m_geometryDependencyHandle != 0u
+                || !node.m_hasRigidSetReservedFlag
+                || !node.m_hasRigidSetTransform
+                || !std::all_of(node.m_rigidSetTransform.begin(),
+                                node.m_rigidSetTransform.end(),
+                                [](double value) {
+                                    return std::isfinite(value);
+                                })
+                || node.m_rigidSetGeometryIds.size() > kMaxAssociativeItems
+                || !hasOnlyProfileFlags(true, false, false, false, false,
+                                        false, false, true, true))
+                return failDxfWrite();
+            ++expectedHandleCount;
+            break;
+        case DRW_AssociativeConstraintNode::DataKind::Unsupported:
+            return failDxfWrite();
+        }
+    }
+    if (groupStatus.m_decodedHandleCount != expectedHandleCount)
+        return failDxfWrite();
+
+    const std::uint32_t sourceHandle = ent->handle;
+    const std::uint32_t sourceOwner =
+        static_cast<std::uint32_t>(ent->parentHandle);
+    if (sourceOwner == DRW::NoHandle)
+        return failDxfWrite();
+
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    try {
+        const std::uint32_t emittedHandle = remapObjectHandle(sourceHandle);
+        const std::uint32_t emittedOwner = sourceOwner == 0u
+            ? 0u : remapObjectHandle(sourceOwner);
+        if (emittedHandle == 0u || emittedHandle == DRW::NoHandle
+            || isDxfFixedOutputHandle(emittedHandle)
+            || (sourceOwner != 0u
+                && (emittedOwner == 0u || emittedOwner == DRW::NoHandle))
+            || !reserveHandle(emittedHandle)
+            || !bindDxfWriteSourceObjectHandle(sourceHandle, emittedHandle))
+            return failDxfWrite();
+
+        const auto remapReference = [this](std::uint64_t source,
+                                           std::uint32_t& emitted) {
+            if (source > std::numeric_limits<std::uint32_t>::max())
+                return false;
+            const std::uint32_t source32 = static_cast<std::uint32_t>(source);
+            emitted = source32 == 0u
+                ? 0u : (m_referenceResolver
+                    ? resolveReference(source32) : remapObjectHandle(source32));
+            return source32 == 0u
+                || (emitted != 0u && emitted != DRW::NoHandle);
+        };
+        std::uint32_t emittedNetwork = 0u;
+        std::uint32_t emittedGroupReference = 0u;
+        if (!remapReference(ent->m_owningNetworkHandle, emittedNetwork)
+            || emittedNetwork == 0u
+            || !remapReference(ent->m_constraintGroupReference,
+                               emittedGroupReference))
+            return failDxfWrite();
+
+        std::vector<std::uint32_t> emittedReactors;
+        emittedReactors.reserve(ent->reactorHandles.size());
+        for (const std::uint32_t source : ent->reactorHandles) {
+            std::uint32_t emitted = 0u;
+            if (!remapReference(source, emitted) || emitted == 0u)
+                return failDxfWrite();
+            emittedReactors.push_back(emitted);
+        }
+        std::vector<std::uint32_t> emittedActions;
+        emittedActions.reserve(ent->m_constraintActions.size());
+        for (const std::uint32_t source : ent->m_constraintActions) {
+            std::uint32_t emitted = 0u;
+            if (!remapReference(source, emitted) || emitted == 0u)
+                return failDxfWrite();
+            emittedActions.push_back(emitted);
+        }
+        struct EmittedNodeRefs {
+            std::uint32_t geometry = 0u;
+            std::uint32_t value = 0u;
+            std::uint32_t dimension = 0u;
+        };
+        std::vector<EmittedNodeRefs> emittedNodeRefs;
+        emittedNodeRefs.reserve(ent->m_constraintNodes.size());
+        for (const DRW_AssociativeConstraintNode& node :
+             ent->m_constraintNodes) {
+            EmittedNodeRefs refs;
+            if (node.m_hasGeometryDependency
+                && !remapReference(node.m_geometryDependencyHandle,
+                                   refs.geometry))
+                return failDxfWrite();
+            if (node.m_hasValueDependencyHandle
+                && !remapReference(node.m_valueDependencyHandle, refs.value))
+                return failDxfWrite();
+            if (node.m_hasDimensionDependencyHandle
+                && !remapReference(node.m_dimensionDependencyHandle,
+                                   refs.dimension))
+                return failDxfWrite();
+            emittedNodeRefs.push_back(refs);
+        }
+
+        const auto writePoint = [this](int code, const DRW_Coord& point) {
+            return writer->writeDouble(code, point.x)
+                && writer->writeDouble(code + 10, point.y)
+                && writer->writeDouble(code + 20, point.z);
+        };
+        if (!writer->writeString(0, "ACDBASSOC2DCONSTRAINTGROUP")
+            || !writer->writeString(5, toHexStr(emittedHandle)))
+            return failDxfWrite();
+        if (!emittedReactors.empty()) {
+            if (!writer->writeString(102, "{ACAD_REACTORS"))
+                return failDxfWrite();
+            for (const std::uint32_t reactor : emittedReactors) {
+                if (!writer->writeString(330, toHexStr(reactor)))
+                    return failDxfWrite();
+            }
+            if (!writer->writeString(102, "}"))
+                return failDxfWrite();
+        }
+        if (!writer->writeString(330, sourceOwner == 0u
+                    ? "C" : toHexStr(emittedOwner))
+            || !writer->writeString(100, "AcDbAssocAction")
+            || !writer->writeInt32(90,
+                                   static_cast<int>(ent->m_classVersion))
+            || !writer->writeInt32(90, ent->m_geometryStatus)
+            || !writer->writeString(330, toHexStr(emittedNetwork))
+            || !writer->writeString(360, "0")
+            || !writer->writeInt32(90, ent->m_actionIndex)
+            || !writer->writeInt32(90, ent->m_maxDependencyIndex)
+            || !writer->writeInt32(90, 0)
+            || !writer->writeInt32(90, 2)
+            || !writer->writeInt16(70,
+                                   ent->m_constraintGroupFlag ? 1 : 0)
+            || !writePoint(10, ent->m_constraintWorkplane[0])
+            || !writePoint(10, ent->m_constraintWorkplane[1])
+            || !writePoint(10, ent->m_constraintWorkplane[2])
+            || !writer->writeString(360, toHexStr(emittedGroupReference))
+            || !writer->writeInt32(90,
+                                   static_cast<int>(emittedActions.size())))
+            return failDxfWrite();
+        for (const std::uint32_t action : emittedActions) {
+            if (!writer->writeString(360, toHexStr(action)))
+                return failDxfWrite();
+        }
+        if (!writer->writeInt32(90, ent->m_constraintNextNodeId)
+            || !writer->writeInt32(90,
+                                   static_cast<int>(ent->m_constraintNodes.size())))
+            return failDxfWrite();
+
+        for (std::size_t index = 0;
+             index < ent->m_constraintNodes.size(); ++index) {
+            const DRW_AssociativeConstraintNode& node =
+                ent->m_constraintNodes[index];
+            const EmittedNodeRefs& refs = emittedNodeRefs[index];
+            if (!writer->writeString(1, node.m_className)
+                || !writer->writeString(330, toHexStr(emittedHandle))
+                || !writer->writeInt32(90, node.m_nodeId)
+                || !writer->writeInt32(90,
+                                       static_cast<int>(node.m_connections.size())))
+                return failDxfWrite();
+            for (const std::int32_t connection : node.m_connections) {
+                if (!writer->writeInt32(90, connection))
+                    return failDxfWrite();
+            }
+            switch (node.m_dataKind) {
+            case DRW_AssociativeConstraintNode::DataKind::Geometrical:
+                if (!writer->writeInt32(90, node.m_ownerId)
+                    || !writer->writeBool(290, node.m_isImplied)
+                    || !writer->writeBool(290, false))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Horizontal:
+            case DRW_AssociativeConstraintNode::DataKind::Vertical:
+                if (!writer->writeInt32(90, node.m_ownerId)
+                    || !writer->writeBool(290, node.m_isImplied)
+                    || !writer->writeBool(290, false)
+                    || !writer->writeInt32(90, node.m_datumLineIndex))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::RadiusDiameter:
+                if (!writer->writeInt32(90, node.m_ownerId)
+                    || !writer->writeBool(290, node.m_isImplied)
+                    || !writer->writeBool(290, false)
+                    || !writer->writeString(340, toHexStr(refs.value))
+                    || !writer->writeString(340, toHexStr(refs.dimension))
+                    || !writer->writeInt16(280,
+                                           node.m_radiusDiameterMode))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Line:
+                if (!writer->writeString(330, toHexStr(refs.geometry))
+                    || !writer->writeInt32(90, node.m_geometryNodeId)
+                    || !writePoint(10, node.m_point)
+                    || !writePoint(10, node.m_direction))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::ImplicitPoint:
+                if (!writer->writeString(330, toHexStr(refs.geometry))
+                    || !writer->writeInt32(90, node.m_geometryNodeId)
+                    || (node.m_hasPoint && !writePoint(10, node.m_point))
+                    || !writer->writeInt16(280, node.m_pointType)
+                    || !writer->writeInt32(90, node.m_pointIndex)
+                    || !writer->writeInt32(90, node.m_curveNodeId))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::BoundedLine:
+                if (!writer->writeString(330, toHexStr(refs.geometry))
+                    || !writer->writeInt32(90, node.m_geometryNodeId)
+                    || !writePoint(10, node.m_point)
+                    || !writePoint(10, node.m_direction)
+                    || !writer->writeBool(290, node.m_isRay)
+                    || !writePoint(10, node.m_startPoint)
+                    || !writePoint(11, node.m_endPoint))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Circle:
+            case DRW_AssociativeConstraintNode::DataKind::Arc:
+                if (!writer->writeString(330, toHexStr(refs.geometry))
+                    || !writer->writeInt32(90, node.m_geometryNodeId)
+                    || !writePoint(10, node.m_center)
+                    || !writePoint(10, node.m_normal)
+                    || !writePoint(10, node.m_direction)
+                    || !writer->writeDouble(40, node.m_radius)
+                    || !writer->writeDouble(40, node.m_startParameter)
+                    || !writer->writeDouble(40, node.m_endParameter)
+                    || (node.m_dataKind
+                            == DRW_AssociativeConstraintNode::DataKind::Arc
+                        && (!writePoint(10, node.m_startPoint)
+                            || !writePoint(11, node.m_endPoint))))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Distance:
+                if (!writer->writeInt32(90, node.m_ownerId)
+                    || !writer->writeBool(290, node.m_isImplied)
+                    || !writer->writeBool(290, false)
+                    || !writer->writeString(340, toHexStr(refs.value))
+                    || !writer->writeString(340, toHexStr(refs.dimension))
+                    || !writer->writeInt16(280, node.m_directionType)
+                    || (node.m_hasDistance
+                        && !writePoint(10, node.m_distance)))
+                    return failDxfWrite();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::RigidSet:
+                if (!writer->writeString(330, toHexStr(refs.geometry))
+                    || !writer->writeInt32(90, node.m_geometryNodeId)
+                    || !writer->writeBool(290, node.m_rigidSetReservedFlag))
+                    return failDxfWrite();
+                for (const double value : node.m_rigidSetTransform) {
+                    if (!writer->writeDouble(40, value))
+                        return failDxfWrite();
+                }
+                if (!writer->writeInt32(90, static_cast<int>(
+                        node.m_rigidSetGeometryIds.size())))
+                    return failDxfWrite();
+                for (const std::int32_t geometryId :
+                     node.m_rigidSetGeometryIds) {
+                    if (!writer->writeInt32(90, geometryId))
+                        return failDxfWrite();
+                }
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Unsupported:
+                return failDxfWrite();
+            }
+        }
+        if ((!ent->extData.empty() && !writeExtData(ent->extData))
+            || !preflightDxfWrite() || !record.commit())
+            return failDxfWrite();
+    } catch (...) {
+        return failDxfWrite();
+    }
+
+    state.commit();
+    return true;
+}
+
 bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
                                  const char *recordName) {
     if (!preflightTableEntry(ent)

@@ -731,6 +731,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_wave1_tests --associative-network-writer)
     set_tests_properties(libdxfrw_associative_network_writer PROPERTIES
         LABELS "fast;dxf;writer;associative;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_associative_constraint_group_writer
+        COMMAND libdxfrw_wave1_tests --associative-constraint-group-writer)
+    set_tests_properties(libdxfrw_associative_constraint_group_writer PROPERTIES
+        LABELS "fast;dxf;writer;associative;transaction;generated" TIMEOUT 15)
     add_test(NAME libdxfrw_dxf_tables_write_inspection
         COMMAND libdxfrw_symbol_output_tests --dxf-tables-write-inspection)
     set_tests_properties(libdxfrw_dxf_tables_write_inspection PROPERTIES
