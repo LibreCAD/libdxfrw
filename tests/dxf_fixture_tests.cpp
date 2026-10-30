@@ -52743,7 +52743,8 @@ void testDataLinkAdapterExport(TestContext& t) {
                                   {0x723u, 0x1723u},
                                   {0x724u, 0x1724u},
                                   {0x725u, 0x1725u},
-                                  {0x740u, 0x1740u}});
+                                  {0x740u, 0x1740u},
+                                  {0x741u, 0x1741u}});
         }
     };
 
@@ -53019,6 +53020,13 @@ void testDataLinkAdapterExport(TestContext& t) {
         field.m_value.m_dataType = 4;
         field.m_value.m_value.addString(1, "42");
         source.fields.push_back(field);
+        DRW_Field secondField;
+        secondField.handle = 0x741u;
+        secondField.m_evaluatorId = "AcExpr";
+        secondField.m_fieldCode = "%<second-test-expression>%";
+        secondField.m_value.m_dataType = 4;
+        secondField.m_value.m_value.addString(1, "84");
+        source.fields.push_back(secondField);
 
         DRW_TableContentObject fieldContent;
         fieldContent.handle = 0x724u;
@@ -53056,7 +53064,7 @@ void testDataLinkAdapterExport(TestContext& t) {
         gridFieldContent.m_semanticContentComplete = true;
         gridFieldContent.m_content.m_name = "grid field content";
         gridFieldContent.m_content.m_description =
-            "two field references in a rectangular grid";
+            "multiple fields and references in a rectangular grid";
         for (const char* name : {"First", "Second"}) {
             DRW_TableColumn gridColumn;
             gridColumn.m_name = name;
@@ -53072,6 +53080,33 @@ void testDataLinkAdapterExport(TestContext& t) {
                     reference.m_type = 2;
                     reference.m_handle = field.handle;
                     gridCell.m_contents.push_back(reference);
+                } else if (rowIndex == 0u && columnIndex == 1u) {
+                    DRW_TableCellContent scalar;
+                    scalar.m_type = 1;
+                    scalar.m_text = "north-east";
+                    scalar.m_value.m_dataType = 4;
+                    scalar.m_value.m_value.addString(1, scalar.m_text);
+                    gridCell.m_contents.push_back(scalar);
+                    DRW_TableCellContent reference;
+                    reference.m_type = 2;
+                    reference.m_handle = secondField.handle;
+                    gridCell.m_contents.push_back(reference);
+                } else if (rowIndex == 1u && columnIndex == 0u) {
+                    DRW_TableCellContent firstReference;
+                    firstReference.m_type = 2;
+                    firstReference.m_handle = field.handle;
+                    gridCell.m_contents.push_back(firstReference);
+                    DRW_TableCellContent scalar;
+                    scalar.m_type = 1;
+                    scalar.m_text = "between fields";
+                    scalar.m_value.m_dataType = 4;
+                    scalar.m_value.m_value.addString(1, scalar.m_text);
+                    gridCell.m_contents.push_back(scalar);
+                    DRW_TableCellContent secondReference;
+                    secondReference.m_type = 2;
+                    secondReference.m_handle = secondField.handle;
+                    gridCell.m_contents.push_back(secondReference);
+                    gridCell.m_contents.push_back(firstReference);
                 } else if (rowIndex == 1u && columnIndex == 1u) {
                     DRW_TableCellContent prefix;
                     prefix.m_type = 1;
@@ -53081,16 +53116,8 @@ void testDataLinkAdapterExport(TestContext& t) {
                     gridCell.m_contents.push_back(prefix);
                     DRW_TableCellContent reference;
                     reference.m_type = 2;
-                    reference.m_handle = field.handle;
+                    reference.m_handle = secondField.handle;
                     gridCell.m_contents.push_back(reference);
-                } else {
-                    DRW_TableCellContent scalar;
-                    scalar.m_type = 1;
-                    scalar.m_text = rowIndex == 0u
-                        ? "north-east" : "south-west";
-                    scalar.m_value.m_dataType = 4;
-                    scalar.m_value.m_value.addString(1, scalar.m_text);
-                    gridCell.m_contents.push_back(scalar);
                 }
                 gridRow.m_cells.push_back(std::move(gridCell));
             }
@@ -53306,7 +53333,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                      && source.tableContents.size() == 6u
                      && firstGridFieldReference.m_handle == 0x7FFFu
                      && source.tableContents[5].m_content.m_rows[1]
-                            .m_cells[1].m_contents[1].m_handle == 0x740u,
+                            .m_cells[1].m_contents[1].m_handle == 0x741u,
                  "adapter refuses a missing multi-cell FIELD target atomically");
         firstGridFieldReference.m_handle = 0x740u;
         source.fields.front().m_evaluationOptionFlags = 1;
@@ -53487,7 +53514,7 @@ void testDataLinkAdapterExport(TestContext& t) {
         std::size_t gridContentEnd = outputFields.size();
         const bool gridConsumerSpan = objectSpan("TABLECONTENT", "1725",
             gridContentBegin, gridContentEnd);
-        std::size_t exactGridReferenceCount = 0u;
+        std::vector<std::string> emittedGridReferenceHandles;
         for (std::size_t i = gridContentBegin;
              gridConsumerSpan && i + 5u < gridContentEnd; ++i) {
             if (outputFields[i]
@@ -53497,16 +53524,26 @@ void testDataLinkAdapterExport(TestContext& t) {
                         std::string("CELLCONTENT_BEGIN")))
                 continue;
             if (integerFieldEquals(outputFields[i + 2u], 90, 2)
-                && outputFields[i + 3u]
-                    == std::make_pair(340, std::string("1740"))
+                && outputFields[i + 3u].first == 340
                 && integerFieldEquals(outputFields[i + 4u], 91, 0)
                 && outputFields[i + 5u]
                     == std::make_pair(309,
                         std::string("CELLCONTENT_END")))
-                ++exactGridReferenceCount;
+                emittedGridReferenceHandles.push_back(
+                    outputFields[i + 3u].second);
         }
+        std::size_t secondFieldBegin = outputFields.size();
+        std::size_t secondFieldEnd = outputFields.size();
+        const bool bothFieldsPrecedeConsumer = objectSpan(
+                "FIELD", "1740", fieldBegin, fieldEnd)
+            && objectSpan("FIELD", "1741", secondFieldBegin, secondFieldEnd)
+            && fieldBegin < gridContentBegin
+            && secondFieldBegin < gridContentBegin;
+        const std::vector<std::string> expectedGridReferences{
+            "1740", "1741", "1740", "1741", "1740", "1741"};
         const bool exactGridFieldReferences = gridConsumerSpan
-            && fieldBegin < gridContentBegin && exactGridReferenceCount == 2u;
+            && bothFieldsPrecedeConsumer
+            && emittedGridReferenceHandles == expectedGridReferences;
         const DRW_TableContentObject* emittedGridFieldContent = nullptr;
         for (const DRW_TableContentObject& value : readback.tableContents) {
             if (value.handle == 0x1725u)
@@ -53519,20 +53556,55 @@ void testDataLinkAdapterExport(TestContext& t) {
         if (typedGridFieldReferences) {
             const auto& topLeft = emittedGridFieldContent->m_content
                 .m_rows[0].m_cells[0].m_contents;
+            const auto& topRight = emittedGridFieldContent->m_content
+                .m_rows[0].m_cells[1].m_contents;
+            const auto& bottomLeft = emittedGridFieldContent->m_content
+                .m_rows[1].m_cells[0].m_contents;
             const auto& bottomRight = emittedGridFieldContent->m_content
                 .m_rows[1].m_cells[1].m_contents;
             typedGridFieldReferences = topLeft.size() == 1u
                 && topLeft[0].m_type == 2
                 && topLeft[0].m_handle == 0x1740u
+                && topRight.size() == 2u
+                && topRight[0].m_type == 1
+                && topRight[0].m_text == "north-east"
+                && topRight[1].m_type == 2
+                && topRight[1].m_handle == 0x1741u
+                && bottomLeft.size() == 4u
+                && bottomLeft[0].m_type == 2
+                && bottomLeft[0].m_handle == 0x1740u
+                && bottomLeft[1].m_type == 1
+                && bottomLeft[1].m_text == "between fields"
+                && bottomLeft[2].m_type == 2
+                && bottomLeft[2].m_handle == 0x1741u
+                && bottomLeft[3].m_type == 2
+                && bottomLeft[3].m_handle == 0x1740u
                 && bottomRight.size() == 2u
                 && bottomRight[0].m_type == 1
                 && bottomRight[0].m_text == "grid field prefix"
                 && bottomRight[1].m_type == 2
-                && bottomRight[1].m_handle == 0x1740u
-                && emittedGridFieldContent->m_content.m_rows[0]
-                    .m_cells[1].m_contents.front().m_text == "north-east"
-                && emittedGridFieldContent->m_content.m_rows[1]
-                    .m_cells[0].m_contents.front().m_text == "south-west";
+                && bottomRight[1].m_handle == 0x1741u
+                && readback.fields.size() == 2u;
+            if (typedGridFieldReferences) {
+                const DRW_Field* firstReadbackField = nullptr;
+                const DRW_Field* secondReadbackField = nullptr;
+                for (const DRW_Field& candidate : readback.fields) {
+                    if (candidate.handle == 0x1740u)
+                        firstReadbackField = &candidate;
+                    else if (candidate.handle == 0x1741u)
+                        secondReadbackField = &candidate;
+                }
+                typedGridFieldReferences = firstReadbackField != nullptr
+                    && secondReadbackField != nullptr
+                    && firstReadbackField->m_fieldCode
+                        == "%<test-expression>%"
+                    && firstReadbackField->m_value.m_value.c_str()
+                        == std::string("42")
+                    && secondReadbackField->m_fieldCode
+                        == "%<second-test-expression>%"
+                    && secondReadbackField->m_value.m_value.c_str()
+                        == std::string("84");
+            }
         }
         t.expect(exactGridFieldReferences,
                  binary
@@ -53767,7 +53839,7 @@ void testDataLinkAdapterExport(TestContext& t) {
         }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
                      && readback.tableContents.size() == 6u
-                     && readback.fields.size() == 1u
+                     && readback.fields.size() == 2u
                      && exactPointFields && exactDateFields
                      && exactContentFormatFields && exactCellStyleFields
                      && exactRichContentFormatFields,
@@ -54443,6 +54515,13 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         field.m_value.m_dataType = 4;
         field.m_value.m_value.addString(1, "42");
         authored.fields.push_back(field);
+        DRW_Field secondField;
+        secondField.handle = 0x741u;
+        secondField.m_evaluatorId = "AcExpr";
+        secondField.m_fieldCode = "%<second-test-expression>%";
+        secondField.m_value.m_dataType = 4;
+        secondField.m_value.m_value.addString(1, "84");
+        authored.fields.push_back(secondField);
 
         DRW_TableContentObject tableContent;
         tableContent.handle = 0x724u;
@@ -54452,28 +54531,67 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         tableContent.m_content.m_description = "one field reference";
         tableContent.m_content.m_columns.emplace_back();
         tableContent.m_content.m_columns.front().m_name = "Field";
-        DRW_TableRow row;
-        DRW_TableCell cell;
         DRW_TableCellContent scalar;
         scalar.m_type = 1;
         scalar.m_text = "scalar before field";
         scalar.m_value.m_dataType = 4;
         scalar.m_value.m_value.addString(1, scalar.m_text);
-        cell.m_contents.push_back(scalar);
         DRW_TableCellContent reference;
         reference.m_type = 2;
         reference.m_handle = field.handle;
-        cell.m_contents.push_back(reference);
-        row.m_cells.push_back(cell);
-        tableContent.m_content.m_rows.push_back(row);
+        DRW_TableCellContent secondReference;
+        secondReference.m_type = 2;
+        secondReference.m_handle = secondField.handle;
+        DRW_TableColumn secondColumn;
+        secondColumn.m_name = "Second field";
+        tableContent.m_content.m_columns.push_back(secondColumn);
+        for (std::size_t rowIndex = 0u; rowIndex < 2u; ++rowIndex) {
+            DRW_TableRow row;
+            for (std::size_t columnIndex = 0u; columnIndex < 2u;
+                 ++columnIndex) {
+                DRW_TableCell cell;
+                if (rowIndex == 0u && columnIndex == 0u) {
+                    cell.m_contents.push_back(scalar);
+                    cell.m_contents.push_back(reference);
+                } else if (rowIndex == 0u && columnIndex == 1u) {
+                    cell.m_contents.push_back(secondReference);
+                } else if (rowIndex == 1u && columnIndex == 0u) {
+                    cell.m_contents.push_back(reference);
+                    DRW_TableCellContent middleScalar = scalar;
+                    middleScalar.m_text = "inside cell";
+                    middleScalar.m_value.m_value.addString(
+                        1, middleScalar.m_text);
+                    cell.m_contents.push_back(middleScalar);
+                    cell.m_contents.push_back(secondReference);
+                    cell.m_contents.push_back(reference);
+                } else {
+                    DRW_TableCellContent lastScalar = scalar;
+                    lastScalar.m_text = "last cell";
+                    lastScalar.m_value.m_value.addString(1, lastScalar.m_text);
+                    cell.m_contents.push_back(lastScalar);
+                }
+                row.m_cells.push_back(std::move(cell));
+            }
+            tableContent.m_content.m_rows.push_back(std::move(row));
+        }
         auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
-        metadata->m_columns.resize(1u);
-        metadata->m_columns.front().m_style.m_type = 3;
-        metadata->m_rows.resize(1u);
-        metadata->m_rows.front().m_scope.m_style.m_type = 2;
-        metadata->m_rows.front().m_cells.resize(1u);
-        metadata->m_rows.front().m_cells.front().m_scope.m_style.m_type = 1;
-        metadata->m_rows.front().m_cells.front().m_contentFormats.resize(2u);
+        metadata->m_columns.resize(2u);
+        for (auto& column : metadata->m_columns)
+            column.m_style.m_type = 3;
+        metadata->m_rows.resize(2u);
+        for (std::size_t rowIndex = 0u; rowIndex < 2u; ++rowIndex) {
+            auto& metadataRow = metadata->m_rows[rowIndex];
+            metadataRow.m_scope.m_style.m_type = 2;
+            metadataRow.m_cells.resize(2u);
+            for (std::size_t columnIndex = 0u; columnIndex < 2u;
+                 ++columnIndex) {
+                auto& metadataCell = metadataRow.m_cells[columnIndex];
+                metadataCell.m_scope.m_style.m_type = 1;
+                metadataCell.m_contentFormats.resize(
+                    tableContent.m_content.m_rows[rowIndex]
+                        .m_cells[columnIndex].m_contents.size());
+            }
+        }
         metadata->m_tableStyle.m_type = 4;
         tableContent.m_dxfMetadata = std::move(metadata);
         authored.tableContents.push_back(std::move(tableContent));
@@ -54481,7 +54599,8 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         authored.tableContentRetainedRecords = 1u;
 
         HandleMappingInterface sourceWriter;
-        sourceWriter.remap = {{0x724u, 0x1724u}, {0x740u, 0x1740u}};
+        sourceWriter.remap = {{0x724u, 0x1724u}, {0x740u, 0x1740u},
+                              {0x741u, 0x1741u}};
         const bool sourceWritten = sourceWriter.fileExport(
             sourcePath.string(), DRW::AC1027, binary, &authored, false);
         dx_iface sourceReader;
@@ -54499,10 +54618,13 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
             && imported.hasNamedObjectDictionary
             && imported.namedObjectDictionary.handle
                 == DRW::DwgNamedObjectsDictionaryHandle
-            && imported.fields.size() == 1u
-            && imported.fields.front().parentHandle
-                == imported.namedObjectDictionary.handle
-            && imported.fieldLists.empty() && imported.rawFields.size() == 1u
+            && imported.fields.size() == 2u
+            && std::all_of(imported.fields.begin(), imported.fields.end(),
+                [&imported](const DRW_Field& value) {
+                    return value.parentHandle
+                        == imported.namedObjectDictionary.handle;
+                })
+            && imported.fieldLists.empty() && imported.rawFields.size() == 2u
             && imported.rawFieldLists.empty()
             && imported.rawFields.front().handle == 0x1740u
             && imported.rawFields.front().parentHandle
@@ -54527,8 +54649,8 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         const DRW_TableCell* importedCell = nullptr;
         for (const DRW_TableContentObject& content : imported.tableContents) {
             if (content.handle != 0x1724u
-                || content.m_content.m_rows.size() != 1u
-                || content.m_content.m_rows.front().m_cells.size() != 1u)
+                || content.m_content.m_rows.size() != 2u
+                || content.m_content.m_rows.front().m_cells.size() != 2u)
                 continue;
             importedCell = &content.m_content.m_rows.front().m_cells.front();
         }
@@ -54537,14 +54659,25 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
             && importedCell->m_contents[0].m_type == 1
             && importedCell->m_contents[0].m_text == "scalar before field"
             && importedCell->m_contents[1].m_type == 2
-            && importedCell->m_contents[1].m_handle == 0x1740u;
+            && importedCell->m_contents[1].m_handle == 0x1740u
+            && imported.tableContents.front().m_content.m_rows[0]
+                .m_cells[1].m_contents.front().m_handle == 0x1741u
+            && imported.tableContents.front().m_content.m_rows[1]
+                .m_cells[0].m_contents.size() == 4u
+            && imported.tableContents.front().m_content.m_rows[1]
+                .m_cells[0].m_contents[0].m_handle == 0x1740u
+            && imported.tableContents.front().m_content.m_rows[1]
+                .m_cells[0].m_contents[2].m_handle == 0x1741u
+            && imported.tableContents.front().m_content.m_rows[1]
+                .m_cells[0].m_contents[3].m_handle == 0x1740u;
         t.expect(importedOrderedCellProfile,
                  binary
                      ? "binary source TABLECONTENT preserves scalar-then-FIELD input order and identity"
                      : "ASCII source TABLECONTENT preserves scalar-then-FIELD input order and identity");
 
         HandleMappingInterface replayWriter;
-        replayWriter.remap = {{0x1724u, 0x2724u}, {0x1740u, 0x2740u}};
+        replayWriter.remap = {{0x1724u, 0x2724u}, {0x1740u, 0x2740u},
+                              {0x1741u, 0x2741u}};
         const std::string sentinel = "preserve FIELD replay destination";
         {
             std::ofstream output(replayPath, std::ios::binary);
@@ -54576,19 +54709,26 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
             if (content.handle == 0x2724u)
                 emittedContent = &content;
         }
-        bool typedLink = replayImported && replayed.fields.size() == 1u
-            && replayed.fields.front().handle == 0x2740u
+        bool typedLink = replayImported && replayed.fields.size() == 2u
             && emittedContent != nullptr
-            && emittedContent->m_content.m_rows.size() == 1u
-            && emittedContent->m_content.m_rows.front().m_cells.size() == 1u;
+            && emittedContent->m_content.m_rows.size() == 2u
+            && emittedContent->m_content.m_rows.front().m_cells.size() == 2u;
         if (typedLink) {
             const auto& contents = emittedContent->m_content.m_rows.front()
+                .m_cells.front().m_contents;
+            const auto& repeatedContents = emittedContent->m_content.m_rows[1]
                 .m_cells.front().m_contents;
             typedLink = contents.size() == 2u
                 && contents[0].m_type == 1
                 && contents[0].m_text == "scalar before field"
                 && contents[1].m_type == 2
-                && contents[1].m_handle == 0x2740u;
+                && contents[1].m_handle == 0x2740u
+                && emittedContent->m_content.m_rows.front()
+                    .m_cells[1].m_contents.front().m_handle == 0x2741u
+                && repeatedContents.size() == 4u
+                && repeatedContents[0].m_handle == 0x2740u
+                && repeatedContents[2].m_handle == 0x2741u
+                && repeatedContents[3].m_handle == 0x2740u;
         }
         const auto tags = materialBodyControls::physicalTags(replayPath, binary);
         std::size_t fieldIndex = tags.size();
@@ -54673,11 +54813,10 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                 reverseContent = &content;
         }
         bool reverseTypedOrder = reverseImported
-            && reverseReadback.fields.size() == 1u
-            && reverseReadback.fields.front().handle == 0x2740u
+            && reverseReadback.fields.size() == 2u
             && reverseContent != nullptr
-            && reverseContent->m_content.m_rows.size() == 1u
-            && reverseContent->m_content.m_rows.front().m_cells.size() == 1u;
+            && reverseContent->m_content.m_rows.size() == 2u
+            && reverseContent->m_content.m_rows.front().m_cells.size() == 2u;
         if (reverseTypedOrder) {
             const auto& contents = reverseContent->m_content.m_rows.front()
                 .m_cells.front().m_contents;

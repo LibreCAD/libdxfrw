@@ -155,9 +155,11 @@ missing provider, remap, collision or composed output failure.
 **TABLE:**
 
 1. Complete remaining linked-cell FIELD, block, attribute and geometry payloads.
-   For FIELD references, extend beyond two references, multiple FIELD objects and
-   repeated references within one cell. Reuse the rooted reference planner and
-   handle remapping; preserve unsupported compositions with explicit refusal.
+   For FIELD, finish profiles that extend beyond the simple childless FIELD and
+   string-scalar grid route; cover FIELDLIST/child graphs, additional source and
+   version forms, and multi-reference composition in the standalone 1x1 route.
+   Reuse the rooted reference planner and handle remapping; preserve unsupported
+   compositions with explicit refusal.
 2. Complete remaining CONTENTFORMAT strings and domain/property combinations,
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;

@@ -1828,8 +1828,21 @@ public:
             if (!dxfW->writeDataLink(&dataLink))
                 return;
         }
+        std::unordered_set<std::uint32_t> tableFieldHandles;
         if (!cData->fields.empty()) {
             if (!hasSimpleTableContentFieldProfile(*cData)) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+            try {
+                tableFieldHandles.reserve(cData->fields.size());
+                for (const DRW_Field& field : cData->fields) {
+                    if (!tableFieldHandles.insert(field.handle).second) {
+                        dxfW->writeRawDxfObject(nullptr);
+                        return;
+                    }
+                }
+            } catch (...) {
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }
@@ -1839,7 +1852,8 @@ public:
             }
         }
         for (DRW_TableContentObject& content : cData->tableContents) {
-            if (!tableContentDirectReferencesClosed(content)) {
+            if (!tableContentDirectReferencesClosed(
+                    content, tableFieldHandles)) {
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }
@@ -1866,7 +1880,8 @@ private:
     bool mlineLtypeSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool hasSimpleTableContentFieldProfile(const dx_data&) const noexcept;
     bool tableContentDirectReferencesClosed(
-        const DRW_TableContentObject&) const noexcept;
+        const DRW_TableContentObject&,
+        const std::unordered_set<std::uint32_t>&) const noexcept;
     dx_mline_source_dependency::Proof mlineDependencySourceProof(const dx_data&,
         dx_mline_source_dependency::Limits={}) const noexcept;
     // Source relation only; no target uniqueness, graph or output authority.

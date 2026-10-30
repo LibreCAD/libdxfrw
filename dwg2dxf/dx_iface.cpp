@@ -24965,128 +24965,180 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
 
 bool dx_iface::hasSimpleTableContentFieldProfile(
         const dx_data& data) const noexcept {
-    const bool adapterAuthored =
-        data.sourceFormat == dx_source_format::Unknown
-        && data.rawFields.empty() && data.rawFieldLists.empty();
-    const bool importedDxf = data.sourceFormat == dx_source_format::DXF
-        && data.hasSingleSuccessfulFieldCarrierImport()
-        && data.rawFields.size() == 1u;
-    if ((!adapterAuthored && !importedDxf)
-        || data.fields.size() != 1u || !data.fieldLists.empty()
-        || !data.rawFieldLists.empty()
-        || std::any_of(data.tables.begin(), data.tables.end(),
-            [](const DRW_Table& table) {
-                return !table.m_content.m_fieldHandles.empty();
-            })
-        || data.fieldCarrierTypedCaptureFailed
-        || data.rawFieldCarrierCaptureFailed
-        || data.fieldCarrierImport.captureFailed
-        || data.fieldCarrierImport.resourceLimitExceeded
-        || data.fieldCarrierImport.typedCaptureFailed
-        || data.fieldCarrierImport.typedResourceLimitExceeded)
-        return false;
-    const DRW_Field& field = data.fields.front();
-    if (adapterAuthored) {
-        if (field.parentHandle != 0u)
-            return false;
-    } else {
-        if (!data.hasNamedObjectDictionary
-            || data.namedObjectDictionary.handle
-                != DRW::DwgNamedObjectsDictionaryHandle
-            || field.parentHandle != data.namedObjectDictionary.handle)
-            return false;
+    try {
+        constexpr std::size_t kMaxSimpleFields = 10000u;
+        constexpr std::size_t kMaxTableFieldReferences = 10000u;
         static constexpr std::array<int, 24> kSimpleFieldRawCodes{{
             5, 330, 100, 1, 2, 90, 97, 91, 92, 94, 95, 96,
             300, 93, 7, 93, 90, 1, 94, 300, 302, 304, 301, 98}};
-        const DRW_RawDxfObject& raw = data.rawFields.front();
-        if (!asciiIdentifierEquals(raw.name, "FIELD")
-            || raw.handle != field.handle
-            || raw.parentHandle != field.parentHandle
-            || raw.m_version != data.sourceVersion
-            || raw.groups.size() != kSimpleFieldRawCodes.size())
+        const bool adapterAuthored =
+            data.sourceFormat == dx_source_format::Unknown
+            && data.rawFields.empty() && data.rawFieldLists.empty();
+        const bool importedDxf = data.sourceFormat == dx_source_format::DXF
+            && data.hasSingleSuccessfulFieldCarrierImport()
+            && data.rawFields.size() == data.fields.size();
+        if ((!adapterAuthored && !importedDxf) || data.fields.empty()
+            || data.fields.size() > kMaxSimpleFields
+            || !data.fieldLists.empty() || !data.rawFieldLists.empty()
+            || std::any_of(data.tables.begin(), data.tables.end(),
+                [](const DRW_Table& table) {
+                    return !table.m_content.m_fieldHandles.empty();
+                })
+            || data.fieldCarrierTypedCaptureFailed
+            || data.rawFieldCarrierCaptureFailed
+            || data.fieldCarrierImport.captureFailed
+            || data.fieldCarrierImport.resourceLimitExceeded
+            || data.fieldCarrierImport.typedCaptureFailed
+            || data.fieldCarrierImport.typedResourceLimitExceeded)
             return false;
-        for (std::size_t index = 0u;
-             index < kSimpleFieldRawCodes.size(); ++index) {
-            if (raw.groups[index].code() != kSimpleFieldRawCodes[index])
-                return false;
-        }
-    }
-    std::size_t retainedBytes = 0u;
-    std::size_t itemCount = 0u;
-    if (field.handle == 0u || field.handle == DRW::NoHandle
-        || (adapterAuthored && field.parentHandle != 0u)
-        || !field.reactorHandles.empty()
-        || field.xDictHandle != 0u || !field.appData.empty()
-        || !field.extData.empty() || !field.m_childHandles.empty()
-        || !field.m_objectHandles.empty() || !field.m_childValues.empty()
-        || !field.m_formatString.empty()
-        || field.m_evaluationOptionFlags != 0
-        || field.m_filingOptionFlags != 0 || field.m_fieldStateFlags != 0
-        || field.m_evaluationStatusFlags != 0
-        || field.m_evaluationErrorCode != 0
-        || !field.m_evaluationErrorMessage.empty()
-        || field.m_value.m_dataType != 4
-        || field.m_value.m_formatFlags != 0
-        || field.m_value.m_dataSize != 0u || field.m_value.m_unitType != 0
-        || field.m_value.m_value.type() != DRW_Variant::STRING
-        || field.m_value.m_value.c_str() == nullptr
-        || !field.m_value.m_formatString.empty()
-        || !field.m_value.m_valueString.empty()
-        || field.m_value.m_handle != 0u || !field.m_value.m_rawData.empty()
-        || !field.m_valueString.empty() || field.m_valueStringLength != 0
-        || !estimateFieldTypedBytes(field, retainedBytes, itemCount)
-        || retainedBytes > kMaxAdapterFieldTypedRetainedBytes
-        || itemCount > kMaxAdapterFieldTypedItems)
-        return false;
+        if (importedDxf
+            && (!data.hasNamedObjectDictionary
+                || data.namedObjectDictionary.handle
+                    != DRW::DwgNamedObjectsDictionaryHandle))
+            return false;
 
-    std::size_t referenceCount = 0u;
-    for (const DRW_TableContentObject& table : data.tableContents) {
-        for (const DRW_TableRow& row : table.m_content.m_rows) {
-            for (const DRW_TableCell& cell : row.m_cells) {
-                for (std::size_t contentIndex = 0u;
-                     contentIndex < cell.m_contents.size(); ++contentIndex) {
-                    const DRW_TableCellContent& content =
-                        cell.m_contents[contentIndex];
-                    if (content.m_type != 2)
-                        continue;
-                    if (referenceCount >= 10000u)
-                        return false;
-                    ++referenceCount;
-                    if (content.m_handle != field.handle
-                        || cell.m_hasLinkedData
-                        || !cell.m_attributes.empty())
-                        return false;
-                    if (cell.m_contents.size() == 1u) {
-                        if (contentIndex != 0u)
-                            return false;
-                        continue;
-                    }
-                    if (cell.m_contents.size() != 2u)
-                        return false;
-                    const DRW_TableCellContent& scalar =
-                        cell.m_contents[contentIndex == 0u ? 1u : 0u];
-                    const DRW_CadValue& value = scalar.m_value;
-                    if (scalar.m_type != 1 || scalar.m_handle != 0u
-                        || value.m_dataType != 4
-                        || value.m_formatFlags != 0
-                        || value.m_dataSize != 0u || value.m_unitType != 0
-                        || value.m_value.type() != DRW_Variant::STRING
-                        || value.m_value.c_str() == nullptr
-                        || value.m_value.code() != 1
-                        || value.m_value.c_str() != scalar.m_text
-                        || !value.m_formatString.empty()
-                        || !value.m_valueString.empty()
-                        || value.m_handle != 0u || !value.m_rawData.empty())
+        std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawByHandle;
+        if (importedDxf) {
+            rawByHandle.reserve(data.rawFields.size());
+            for (const DRW_RawDxfObject& raw : data.rawFields) {
+                if (!asciiIdentifierEquals(raw.name, "FIELD")
+                    || raw.m_version != data.sourceVersion
+                    || raw.groups.size() != kSimpleFieldRawCodes.size()
+                    || (raw.hasRawValues
+                        && raw.rawValues.size() != raw.groups.size())
+                    || !rawByHandle.emplace(raw.handle, &raw).second)
+                    return false;
+                for (std::size_t index = 0u;
+                     index < kSimpleFieldRawCodes.size(); ++index) {
+                    if (raw.groups[index].code()
+                        != kSimpleFieldRawCodes[index])
                         return false;
                 }
             }
         }
+
+        std::unordered_map<std::uint32_t, std::size_t> referenceCounts;
+        referenceCounts.reserve(data.fields.size());
+        std::size_t retainedBytes = 0u;
+        std::size_t itemCount = 0u;
+        for (const DRW_Field& field : data.fields) {
+            if (field.handle == 0u || field.handle == DRW::NoHandle
+                || (adapterAuthored && field.parentHandle != 0u)
+                || (importedDxf
+                    && field.parentHandle
+                        != data.namedObjectDictionary.handle)
+                || !field.reactorHandles.empty()
+                || field.xDictHandle != 0u || !field.appData.empty()
+                || !field.extData.empty() || !field.m_childHandles.empty()
+                || !field.m_objectHandles.empty()
+                || !field.m_childValues.empty()
+                || !field.m_formatString.empty()
+                || field.m_evaluationOptionFlags != 0
+                || field.m_filingOptionFlags != 0
+                || field.m_fieldStateFlags != 0
+                || field.m_evaluationStatusFlags != 0
+                || field.m_evaluationErrorCode != 0
+                || !field.m_evaluationErrorMessage.empty()
+                || field.m_value.m_dataType != 4
+                || field.m_value.m_formatFlags != 0
+                || field.m_value.m_dataSize != 0u
+                || field.m_value.m_unitType != 0
+                || field.m_value.m_value.type() != DRW_Variant::STRING
+                || field.m_value.m_value.c_str() == nullptr
+                || !field.m_value.m_formatString.empty()
+                || !field.m_value.m_valueString.empty()
+                || field.m_value.m_handle != 0u
+                || !field.m_value.m_rawData.empty()
+                || !field.m_valueString.empty()
+                || field.m_valueStringLength != 0
+                || !referenceCounts.emplace(field.handle, 0u).second)
+                return false;
+            std::size_t fieldBytes = 0u;
+            std::size_t fieldItems = 0u;
+            if (!estimateFieldTypedBytes(field, fieldBytes, fieldItems)
+                || fieldBytes > kMaxAdapterFieldTypedRetainedBytes
+                    - retainedBytes
+                || fieldItems > kMaxAdapterFieldTypedItems - itemCount)
+                return false;
+            retainedBytes += fieldBytes;
+            itemCount += fieldItems;
+
+            if (importedDxf) {
+                const auto raw = rawByHandle.find(field.handle);
+                if (raw == rawByHandle.end()
+                    || raw->second->parentHandle != field.parentHandle)
+                    return false;
+            }
+        }
+
+        std::size_t referenceCount = 0u;
+        for (const DRW_TableContentObject& table : data.tableContents) {
+            const bool singleCellTable = table.m_content.m_columns.size() == 1u
+                && table.m_content.m_rows.size() == 1u
+                && table.m_content.m_rows.front().m_cells.size() == 1u;
+            for (const DRW_TableRow& row : table.m_content.m_rows) {
+                for (const DRW_TableCell& cell : row.m_cells) {
+                    const bool hasFieldReference = std::any_of(
+                        cell.m_contents.begin(), cell.m_contents.end(),
+                        [](const DRW_TableCellContent& content) {
+                            return content.m_type == 2;
+                        });
+                    if (!hasFieldReference)
+                        continue;
+                    if (cell.m_hasLinkedData || !cell.m_attributes.empty()
+                        || cell.m_contents.empty()
+                        || cell.m_contents.size() > kMaxTableFieldReferences
+                        || (singleCellTable && cell.m_contents.size() > 2u))
+                        return false;
+                    std::size_t cellReferenceCount = 0u;
+                    for (const DRW_TableCellContent& content : cell.m_contents) {
+                        if (content.m_type == 2) {
+                            if (referenceCount >= kMaxTableFieldReferences
+                                || (singleCellTable
+                                    && ++cellReferenceCount > 1u))
+                                return false;
+                            ++referenceCount;
+                            const auto field = referenceCounts.find(
+                                content.m_handle);
+                            if (content.m_handle == 0u
+                                || content.m_handle == DRW::NoHandle
+                                || field == referenceCounts.end()
+                                || field->second == kMaxTableFieldReferences)
+                                return false;
+                            ++field->second;
+                            continue;
+                        }
+                        if (content.m_type != 1)
+                            return false;
+                        const DRW_CadValue& value = content.m_value;
+                        if (content.m_handle != 0u || value.m_dataType != 4
+                            || value.m_formatFlags != 0
+                            || value.m_dataSize != 0u
+                            || value.m_unitType != 0
+                            || value.m_value.type() != DRW_Variant::STRING
+                            || value.m_value.c_str() == nullptr
+                            || value.m_value.code() != 1
+                            || value.m_value.c_str() != content.m_text
+                            || !value.m_formatString.empty()
+                            || !value.m_valueString.empty()
+                            || value.m_handle != 0u
+                            || !value.m_rawData.empty())
+                            return false;
+                    }
+                }
+            }
+        }
+        return referenceCount != 0u
+            && std::all_of(referenceCounts.begin(), referenceCounts.end(),
+                [](const auto& item) { return item.second != 0u; });
+    } catch (...) {
+        return false;
     }
-    return referenceCount != 0u;
 }
 
 bool dx_iface::tableContentDirectReferencesClosed(
-        const DRW_TableContentObject& tableContent) const noexcept {
+        const DRW_TableContentObject& tableContent,
+        const std::unordered_set<std::uint32_t>& fieldHandles) const noexcept {
     if (cData == nullptr || dxfW == nullptr)
         return false;
     const DRW_WritingContext* context = dxfW->getWritingContext();
@@ -25094,34 +25146,31 @@ bool dx_iface::tableContentDirectReferencesClosed(
         return false;
     for (const DRW_TableRow& row : tableContent.m_content.m_rows) {
         for (const DRW_TableCell& cell : row.m_cells) {
+            const bool hasFieldReference = std::any_of(
+                cell.m_contents.begin(), cell.m_contents.end(),
+                [](const DRW_TableCellContent& content) {
+                    return content.m_type == 2;
+                });
+            if (hasFieldReference
+                && (cell.m_hasLinkedData || !cell.m_attributes.empty()
+                    || cell.m_contents.empty()
+                    || cell.m_contents.size() > 10000u
+                    || std::any_of(cell.m_contents.begin(),
+                        cell.m_contents.end(),
+                        [](const DRW_TableCellContent& content) {
+                            return content.m_type != 1 && content.m_type != 2;
+                        })))
+                return false;
             for (const DRW_TableCellContent& content : cell.m_contents) {
                 if (content.m_type != 2)
                     continue;
-                const bool singleReference = cell.m_contents.size() == 1u
-                    && &content == &cell.m_contents.front();
-                const std::size_t contentIndex =
-                    &content == &cell.m_contents.front() ? 0u : 1u;
-                const bool pairedScalarAndReference =
-                    cell.m_contents.size() == 2u
-                    && cell.m_contents[contentIndex == 0u ? 1u : 0u]
-                        .m_type == 1;
-                if ((!singleReference && !pairedScalarAndReference)
-                    || cell.m_hasLinkedData || !cell.m_attributes.empty()
-                    || content.m_handle == 0u
-                    || content.m_handle == DRW::NoHandle)
+                if (content.m_handle == 0u
+                    || content.m_handle == DRW::NoHandle
+                    || fieldHandles.count(content.m_handle) != 1u)
                     return false;
-                const DRW_Field* field = nullptr;
-                for (const DRW_Field& candidate : cData->fields) {
-                    if (candidate.handle != content.m_handle)
-                        continue;
-                    if (field != nullptr)
-                        return false;
-                    field = &candidate;
-                }
                 const auto emitted = context->sourceHandleToWrittenObjectMap
                     .find(content.m_handle);
-                if (field == nullptr
-                    || context->ambiguousSourceHandles.count(
+                if (context->ambiguousSourceHandles.count(
                            content.m_handle) != 0u
                     || context->sourceHandleToMintedMap.count(
                            content.m_handle) != 0u
