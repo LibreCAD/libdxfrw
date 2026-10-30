@@ -31531,6 +31531,17 @@ Tags sourceWithBlockEntityHandleXdata(
                 {10,"50"},{20,"60"},{30,"7"},
                 {11,"8"},{21,"0"},{31,"0"},
                 {40,"0.5"},{41,"0"},{42,"6.283185307179586"}}
+            :entityType==DRW::SPLINE
+            ?Tags{{0,"SPLINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbSpline"},
+                {70,"0"},{71,"3"},{72,"8"},{73,"4"},{74,"0"},
+                {42,"1e-7"},{43,"1e-7"},{44,"1e-7"},
+                {40,"0"},{40,"0"},{40,"0"},{40,"0"},
+                {40,"1"},{40,"1"},{40,"1"},{40,"1"},
+                {10,"0"},{20,"0"},{30,"0"},
+                {10,"1"},{20,"2"},{30,"3"},
+                {10,"3"},{20,"2"},{30,"1"},
+                {10,"4"},{20,"0"},{30,"0"}}
             :Tags{{0,"LINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
                 {10,"100.5"},{20,"2"},{30,"0"},
@@ -31717,6 +31728,46 @@ Tags sourceWithCircleEntityHandleXdata(bool binary) {
     }
     if(!circleInserted)
         throw std::runtime_error("CIRCLE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithSplineEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,splineInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags spline{{0,"SPLINE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbSpline"},
+            {70,"0"},{71,"3"},{72,"8"},{73,"4"},{74,"0"},
+            {42,"1e-7"},{43,"1e-7"},{44,"1e-7"},
+            {40,"0"},{40,"0"},{40,"0"},{40,"0"},
+            {40,"1"},{40,"1"},{40,"1"},{40,"1"},
+            {10,"0"},{20,"0"},{30,"0"},
+            {10,"1"},{20,"2"},{30,"3"},
+            {10,"3"},{20,"2"},{30,"1"},
+            {10,"4"},{20,"0"},{30,"0"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      spline.begin(),spline.end());
+        splineInserted=true;
+        break;
+    }
+    if(!splineInserted)
+        throw std::runtime_error("SPLINE XDATA target source missing");
     return fields;
 }
 
@@ -32940,16 +32991,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::LWPOLYLINE
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
-        &&entityType!=DRW::ELLIPSE)return false;
+        &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE)return false;
     const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
     const bool isFace=entityType==DRW::E3DFACE;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
+    const bool isSpline=entityType==DRW::SPLINE;
     const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
-        :isArc?"ARC":isEllipse?"ELLIPSE":"CIRCLE";
+        :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
     const auto targetSection=targetBlockKey=="*model_space"
@@ -33074,6 +33126,19 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&realValue(row,21,0.0)&&realValue(row,31,0.0)
                 &&realValue(row,40,0.5)&&realValue(row,41,0.0)
                 &&nearRealValue(row,42,fullTurn)
+            :isSpline
+            ?integerValuesMatch(row,70,{0})
+                &&integerValuesMatch(row,71,{3})
+                &&integerValuesMatch(row,72,{8})
+                &&integerValuesMatch(row,73,{4})
+                &&integerValuesMatch(row,74,{0})
+                &&realValuesMatch(row,40,{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0})
+                &&realValuesMatch(row,10,{0.0,1.0,3.0,4.0})
+                &&realValuesMatch(row,20,{0.0,2.0,2.0,0.0})
+                &&realValuesMatch(row,30,{0.0,3.0,1.0,0.0})
+                &&nearRealValue(row,42,1.0e-7)
+                &&nearRealValue(row,43,1.0e-7)
+                &&nearRealValue(row,44,1.0e-7)
             :realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)&&realValue(row,40,5.0);
         if(row.type==recordName&&row.section==targetSection
@@ -33171,6 +33236,29 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||textStyle->width!=0.8||textStyle->oblique!=3.0
             ||textStyle->lastHeight!=2.5||textStyle->genFlag!=0)
             return false;
+    } else if(isSpline) {
+        const auto* typedModel=dynamic_cast<const DRW_Spline*>(*typedCurve);
+        const std::array<DRW_Coord,4> expectedControls{{
+            DRW_Coord(0.0,0.0,0.0),DRW_Coord(1.0,2.0,3.0),
+            DRW_Coord(3.0,2.0,1.0),DRW_Coord(4.0,0.0,0.0)}};
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Spline)
+            ||typedModel->parentHandle!=ownerHandle||typedModel->flags!=0
+            ||typedModel->degree!=3||typedModel->nknots!=8
+            ||typedModel->ncontrol!=4||typedModel->nfit!=0
+            ||typedModel->tolknot!=1.0e-7
+            ||typedModel->tolcontrol!=1.0e-7
+            ||typedModel->tolfit!=1.0e-7
+            ||typedModel->knotslist
+                !=std::vector<double>{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0}
+            ||typedModel->controllist.size()!=expectedControls.size()
+            ||!typedModel->fitlist.empty())
+            return false;
+        for(std::size_t i=0u;i<expectedControls.size();++i) {
+            const auto& actual=typedModel->controllist[i];
+            if(actual==nullptr||actual->x!=expectedControls[i].x
+                ||actual->y!=expectedControls[i].y
+                ||actual->z!=expectedControls[i].z)return false;
+        }
     } else if(isEllipse) {
         const auto* typedModel=dynamic_cast<const DRW_Ellipse*>(*typedCurve);
         const double fullTurn=2.0*std::acos(-1.0);
@@ -36606,6 +36694,7 @@ bool runTemporary() {
             ?std::string_view("TEXT")
             :entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
+            :entityType==DRW::SPLINE?std::string_view("SPLINE")
             :entityType==DRW::POINT?std::string_view("POINT")
             :entityType==DRW::E3DFACE?std::string_view("3DFACE")
             :std::string_view("LWPOLYLINE");
@@ -36621,6 +36710,8 @@ bool runTemporary() {
                 ?sourceWithTextEntityHandleXdata(binary)
                 :entityType==DRW::ELLIPSE
                 ?sourceWithEllipseEntityHandleXdata(binary)
+                :entityType==DRW::SPLINE
+                ?sourceWithSplineEntityHandleXdata(binary)
                 :entityType==DRW::POINT
                     ?sourceWithPointEntityHandleXdata(binary)
                     :entityType==DRW::E3DFACE
@@ -36652,6 +36743,27 @@ bool runTemporary() {
                     &&typed->secPoint.y==0.0&&typed->secPoint.z==0.0
                     &&typed->ratio==0.5&&typed->staparam==0.0
                     &&std::abs(typed->endparam-ellipseTurn)<=1.0e-12;
+            }
+            if(entityType==DRW::SPLINE) {
+                const auto* typed=dynamic_cast<const DRW_Spline*>(entity);
+                const std::array<DRW_Coord,4> expected{{
+                    DRW_Coord(0.0,0.0,0.0),DRW_Coord(1.0,2.0,3.0),
+                    DRW_Coord(3.0,2.0,1.0),DRW_Coord(4.0,0.0,0.0)}};
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_Spline)
+                    ||typed->parentHandle!=targetOwner||typed->flags!=0
+                    ||typed->degree!=3||typed->nknots!=8
+                    ||typed->ncontrol!=4||typed->nfit!=0
+                    ||typed->knotslist
+                        !=std::vector<double>{0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0}
+                    ||typed->controllist.size()!=expected.size()
+                    ||!typed->fitlist.empty())return false;
+                for(std::size_t i=0u;i<expected.size();++i) {
+                    const auto& point=typed->controllist[i];
+                    if(point==nullptr||point->x!=expected[i].x
+                        ||point->y!=expected[i].y
+                        ||point->z!=expected[i].z)return false;
+                }
+                return true;
             }
             if(entityType==DRW::POINT) {
                 const auto* typed=dynamic_cast<const DRW_Point*>(entity);
@@ -36876,14 +36988,14 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::TEXT,DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE,
+            DRW::TEXT,DRW::ELLIPSE,DRW::SPLINE,DRW::POINT,DRW::E3DFACE,
             DRW::LWPOLYLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==276u&&readbacks==618u&&refusals==342u&&retries==342u;
+    return profiles==284u&&readbacks==636u&&refusals==352u&&retries==352u;
 }
 
 bool runBudgetTemporary() {
