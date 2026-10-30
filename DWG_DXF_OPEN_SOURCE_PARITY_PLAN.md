@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Resolve the AC1024 constraint-group node-tail profile; close remaining source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Implement the independently observed AC1024 constraint-group inline node profile; close remaining source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -50,9 +50,9 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 ### Immediate implementation order
 
-1. **P4 — qualify AC1024 constraint-group node tails and finish associative closure.** Resolve the conflicting version-0 node-tail profiles before extending the current bounded prefix parser: LibreDWG `dwg2.spec` models a node count followed by node ID/status/connection-count/vector fields; the independent acadrust reader expects a next-node-ID, inline count, class-name strings and class-specific node data. The local AC1024 source/LibreDWG projections also disagree on the first node's connection data (`1073741825` appears in DXF while JSON reports an empty vector), and ODA v5.4.1 has no class-specific body layout. Run an independent reader on the same source bytes or obtain a separately authored AC1024 witness and correlate body, string and handle streams. Do not relax limits or infer zero connections. Close newly identified source-required descendants with bounded role/type/owner checks. Keep strict refusal until complete closure and remapped DXF output are proven.
+1. **P4 — implement the witnessed AC1024 constraint-node profile and finish associative closure.** The same-input acadrust runtime resolves the earlier node-tail conflict for the mechanical AC1024 sample: the source version-0 body carries a next-node-ID seed, then an inline count and class-name/node/connection/class-data entries. The decoded vector contains one empty sentinel plus 399 serialized nodes across 20 observed class families. Treat `next_node_id` as an ID seed, not a count. The older LibreDWG JSON and DXF projections disagree with each other and are not evidence for interpreting `1073741825` as a source connection. Implement bounded framing and typed fields/connection roles for the witnessed classes; verify body, string and handle bounds and preserve unknown tails as raw/unvalidated. Then close any remaining source-required descendants with bounded role/type/owner checks, and serialize/remap/read back the complete reachable graph. Keep strict refusal until closure and output proof pass.
 
-See the [AC1024 constraint-group profile receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the unresolved parser boundary and node-tail evidence.
+See the [AC1024 constraint-group node-tail runtime receipt](docs/research/p4-ac1024-assoc-node-tail-runtime-2026-10-30.json) for the same-input peer result and the [prefix receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the pre-implementation parser boundary. Verified body/dependency/group/network/action/dictionary/owner-chain slices are complete and remain in their linked receipts and Git history; do not repeat them as implementation tasks.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
@@ -74,17 +74,16 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Constraint-group node tails and residual associative closure:** resolve the
-   competing AC1024 version-0 node layouts and the observed `1073741825`
-   connection-field value using independent evidence against the same source
-   bytes. Correlate body, string and handle streams; preserve unsupported tails
-   as raw and unvalidated. Implement only the evidenced node profile with
-   bounded counts and explicit node-class and connection-reference roles. Close
-   each remaining source-required descendant. Validate each new edge by handle,
-   expected type, common owner and reciprocal relation where required; reject
-   duplicates, missing targets, wrong roles and unbounded cycles. Use ODA v5.4.1
-   for documented layouts and
-   independent peer evidence only where the class is undocumented. Keep local
+1. **Constraint-group node tails and residual associative closure:** implement
+   the same-input AC1024 inline profile recorded in the node-tail runtime receipt.
+   Bound the next-node-ID seed, inline node count, class-name strings, node IDs,
+   connection vectors and class-specific fields; distinguish the empty in-memory
+   sentinel from serialized nodes. Preserve unsupported tails as raw and
+   unvalidated. Close each remaining source-required descendant. Validate each
+   new edge by handle, expected type, common owner and reciprocal relation where
+   required; reject duplicates, missing targets, wrong roles and unbounded
+   cycles. Use ODA v5.4.1 for documented layouts and independent peer evidence
+   only where the class is undocumented. Keep local
    investigation DWGs out of committed fixtures; bind regressions to eligible
    repository inputs or locally authored fixtures.
 2. **Associative output:** bind source identity and required fields to actual
