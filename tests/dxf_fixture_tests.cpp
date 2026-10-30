@@ -31741,7 +31741,8 @@ Tags sourceWithBlockEllipseEntityHandleXdata(
 }
 
 Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
-                                             bool traceModelTarget=false) {
+                                             bool traceModelTarget=false,
+                                             bool faceBlockTarget=false) {
     auto fields=sourceWithManyEntityHandleXdata(binary,{"A900","A901"});
     bool inEntities=false,entityRemoved=false;
     for(std::size_t i=0u;i<fields.size();++i) {
@@ -31790,10 +31791,17 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags line{{0,"LINE"},{5,"A901"},{330,"203"},
-            {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
-            {10,"100.5"},{20,"2"},{30,"0"},
-            {11,"101.5"},{21,"3"},{31,"0"}};
+        const Tags line=faceBlockTarget
+            ?Tags{{0,"3DFACE"},{5,"A901"},{330,"203"},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbFace"},
+                {10,"100.5"},{20,"2"},{30,"0"},
+                {11,"101.5"},{21,"2"},{31,"0"},
+                {12,"101.5"},{22,"3"},{32,"0"},
+                {13,"100.5"},{23,"3"},{33,"0"},{70,"15"}}
+            :Tags{{0,"LINE"},{5,"A901"},{330,"203"},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbLine"},
+                {10,"100.5"},{20,"2"},{30,"0"},
+                {11,"101.5"},{21,"3"},{31,"0"}};
         fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(endBlock),
                       line.begin(),line.end());
         blockInserted=true;
@@ -32499,7 +32507,7 @@ bool blockEntityHandleProviderProof(const std::filesystem::path& path,
 
 bool mixedSectionEntityHandleProviderProof(
         const std::filesystem::path& path,bool binary,bool requireRemap,
-        bool traceModelTarget=false) {
+        bool traceModelTarget=false,bool faceBlockTarget=false) {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto value=[](const auto& row,int code) {
@@ -32568,7 +32576,24 @@ bool mixedSectionEntityHandleProviderProof(
             if(modelLine!=nullptr)return false;
             modelLine=&row;
         }
-        if(realValue(row,10,100.5)&&realValue(row,20,2.0)) {
+        const bool matchingBlockLine=!faceBlockTarget&&row.type=="LINE"
+            &&realValue(row,10,100.5)&&realValue(row,20,2.0);
+        const bool matchingBlockFace=faceBlockTarget&&row.type=="3DFACE"
+            &&realValue(row,10,100.5)&&realValue(row,20,2.0)
+            &&realValue(row,30,0.0)&&realValue(row,11,101.5)
+            &&realValue(row,21,2.0)&&realValue(row,31,0.0)
+            &&realValue(row,12,101.5)&&realValue(row,22,3.0)
+            &&realValue(row,32,0.0)&&realValue(row,13,100.5)
+            &&realValue(row,23,3.0)&&realValue(row,33,0.0);
+        if(matchingBlockLine||matchingBlockFace) {
+            if(matchingBlockFace) {
+                std::vector<std::string> subclasses;
+                for(const auto& field:row.fields)
+                    if(field.first==100)subclasses.push_back(field.second);
+                if(subclasses!=std::vector<std::string>{
+                        "AcDbEntity","AcDbFace"}
+                    ||!realValue(row,70,15.0))return false;
+            }
             if(blockLine!=nullptr)return false;
             blockLine=&row;
         }
@@ -32683,15 +32708,26 @@ bool mixedSectionEntityHandleProviderProof(
     if(named==actual.blocks.end())return false;
     const auto target=std::find_if((*named)->ent.begin(),(*named)->ent.end(),
         [&](const DRW_Entity* entity) {
-            return entity!=nullptr&&entity->eType==DRW::LINE
+            return entity!=nullptr
+                &&entity->eType==(faceBlockTarget?DRW::E3DFACE:DRW::LINE)
                 &&entity->handle==std::stoul(blockLine->id,nullptr,16);
         });
     const auto* typedBlock=target==(*named)->ent.end()?nullptr
         :dynamic_cast<const DRW_Line*>(*target);
-    if(typedBlock==nullptr||typedBlock->parentHandle!=namedOwner
-        ||typedBlock->basePoint.x!=100.5||typedBlock->basePoint.y!=2.0
-        ||typedBlock->secPoint.x!=101.5||typedBlock->secPoint.y!=3.0)
-        return false;
+    if(typedBlock==nullptr||typedBlock->parentHandle!=namedOwner)return false;
+    if(faceBlockTarget) {
+        const auto* face=dynamic_cast<const DRW_3Dface*>(*target);
+        if(face==nullptr||typeid(*face)!=typeid(DRW_3Dface)
+            ||face->basePoint.x!=100.5||face->basePoint.y!=2.0
+            ||face->basePoint.z!=0.0||face->secPoint.x!=101.5
+            ||face->secPoint.y!=2.0||face->secPoint.z!=0.0
+            ||face->thirdPoint.x!=101.5||face->thirdPoint.y!=3.0
+            ||face->thirdPoint.z!=0.0||face->fourPoint.x!=100.5
+            ||face->fourPoint.y!=3.0||face->fourPoint.z!=0.0
+            ||face->invisibleflag!=15)return false;
+    } else if(typedBlock->basePoint.x!=100.5
+        ||typedBlock->basePoint.y!=2.0||typedBlock->secPoint.x!=101.5
+        ||typedBlock->secPoint.y!=3.0)return false;
     return true;
 }
 
@@ -36864,10 +36900,12 @@ bool runTemporary() {
         }
         ++retries;++readbacks;
     }
-    {
-        const std::vector<DRW::ETYPE> targetTypes{
-            DRW::DXF_TRACE,DRW::LINE};
-        const auto mixedTypeProof=[&](const dx_iface& adapter) {
+    const auto runMixedTargetProfile=[&](
+            bool traceModelTarget,bool faceBlockTarget,
+            const char* profileName,const std::vector<DRW::ETYPE>& targetTypes) {
+        const auto modelType=traceModelTarget?DRW::DXF_TRACE:DRW::LINE;
+        const auto blockType=faceBlockTarget?DRW::E3DFACE:DRW::LINE;
+        const auto typedProof=[&](const dx_iface& adapter) {
             return DxIfaceMaterialReferenceTestAccess::
                 mlineLinetypeProofBound(adapter,0x103u)
                 &&DxIfaceMaterialReferenceTestAccess::
@@ -36879,66 +36917,91 @@ bool runTemporary() {
             for(bool outputBinary:{false,true}) {
                 dx_iface adapter;dx_data data;
                 if(!write(input,sourceWithMixedSectionEntityHandleXdata(
-                               sourceBinary,true),sourceBinary,"AC1027")) {
-                    std::cerr<<"mixed TRACE/LINE XDATA source write failed: "
-                             <<sourceBinary<<'\n';return false;
-                }
-                if(!providerProof(input,sourceBinary)) {
-                    std::cerr<<"mixed TRACE/LINE XDATA LTYPE source proof failed: "
-                             <<sourceBinary<<'\n';return false;
-                }
-                if(!mixedSectionEntityHandleProviderProof(
-                        input,sourceBinary,false,true)) {
-                    std::cerr<<"mixed TRACE/LINE XDATA physical source proof failed: "
-                             <<sourceBinary<<'\n';return false;
-                }
-                if(!adapter.fileImport(input.string(),&data,false)
+                               sourceBinary,traceModelTarget,faceBlockTarget),
+                          sourceBinary,"AC1027")
+                    ||!mixedSectionEntityHandleProviderProof(
+                        input,sourceBinary,false,traceModelTarget,
+                        faceBlockTarget)
+                    ||!adapter.fileImport(input.string(),&data,false)
                     ||data.mBlock==nullptr) {
-                    std::cerr<<"mixed TRACE/LINE XDATA source import failed: "
+                    std::cerr<<"mixed "<<profileName
+                             <<" XDATA source proof failed: "
                              <<sourceBinary<<'\n';return false;
                 }
-                const auto trace=std::find_if(data.mBlock->ent.begin(),
-                    data.mBlock->ent.end(),[](const DRW_Entity* entity) {
-                        return entity!=nullptr
-                            &&entity->eType==DRW::DXF_TRACE
+                const auto model=std::find_if(data.mBlock->ent.begin(),
+                    data.mBlock->ent.end(),[&](const DRW_Entity* entity) {
+                        return entity!=nullptr&&entity->eType==modelType
                             &&entity->handle==0xA900u;
                     });
-                auto* line=blockTargetLine(data,"AuthorityBlock");
-                const auto* typedTrace=trace==data.mBlock->ent.end()?nullptr
-                    :dynamic_cast<const DRW_Trace*>(*trace);
-                if(typedTrace==nullptr
-                    ||typeid(*typedTrace)!=typeid(DRW_Trace)
-                    ||typedTrace->parentHandle!=0x201u
-                    ||typedTrace->basePoint.x!=1.0
-                    ||typedTrace->basePoint.y!=2.0
-                    ||typedTrace->basePoint.z!=3.0
-                    ||typedTrace->secPoint.x!=4.0
-                    ||typedTrace->secPoint.y!=2.0
-                    ||typedTrace->secPoint.z!=3.0
-                    ||typedTrace->thirdPoint.y!=5.0
-                    ||typedTrace->thirdPoint.x!=4.0
-                    ||typedTrace->thirdPoint.z!=3.0
-                    ||typedTrace->fourPoint.x!=1.0
-                    ||typedTrace->fourPoint.y!=5.0
-                    ||typedTrace->fourPoint.z!=3.0
-                    ||line==nullptr||line->handle!=0xA901u
-                    ||line->parentHandle!=0x203u
+                const auto* typedModel=model==data.mBlock->ent.end()?nullptr
+                    :dynamic_cast<const DRW_Line*>(*model);
+                if(typedModel==nullptr||typedModel->parentHandle!=0x201u
                     ||!DxIfaceMaterialReferenceTestAccess::
                         mlineXdataEntitySourceBound(
-                            adapter,data,0xA900u,0x201u,false,
-                            DRW::DXF_TRACE)
-                    ||!DxIfaceMaterialReferenceTestAccess::
-                        mlineXdataEntitySourceBound(
-                            adapter,data,0xA901u,0x203u,true,DRW::LINE)) {
-                    std::cerr<<"mixed TRACE/LINE XDATA typed source proof failed: "
+                            adapter,data,0xA900u,0x201u,false,modelType)) {
+                    std::cerr<<"mixed "<<profileName
+                             <<" model target binding failed: "
                              <<sourceBinary<<'\n';return false;
                 }
+                if(traceModelTarget) {
+                    const auto* trace=dynamic_cast<const DRW_Trace*>(*model);
+                    if(trace==nullptr||typeid(*trace)!=typeid(DRW_Trace)
+                        ||trace->basePoint.x!=1.0||trace->basePoint.y!=2.0
+                        ||trace->basePoint.z!=3.0||trace->secPoint.x!=4.0
+                        ||trace->secPoint.y!=2.0||trace->secPoint.z!=3.0
+                        ||trace->thirdPoint.x!=4.0||trace->thirdPoint.y!=5.0
+                        ||trace->thirdPoint.z!=3.0||trace->fourPoint.x!=1.0
+                        ||trace->fourPoint.y!=5.0||trace->fourPoint.z!=3.0)
+                        return false;
+                } else if(typedModel->basePoint.x!=1.25
+                    ||typedModel->basePoint.y!=0.0
+                    ||typedModel->secPoint.x!=1.25
+                    ||typedModel->secPoint.y!=1.0
+                    ||typedModel->secPoint.z!=1.0)return false;
+
+                const auto namedBlock=std::find_if(data.blocks.begin(),
+                    data.blocks.end(),[](const dx_ifaceBlock* block) {
+                        std::string key;
+                        return block!=nullptr
+                            &&dx_symbol_output::nameKey(block->name,key)
+                            &&key=="authorityblock";
+                    });
+                if(namedBlock==data.blocks.end())return false;
+                const auto blockTarget=std::find_if((*namedBlock)->ent.begin(),
+                    (*namedBlock)->ent.end(),[&](const DRW_Entity* entity) {
+                        return entity!=nullptr&&entity->eType==blockType
+                            &&entity->handle==0xA901u;
+                    });
+                const auto* typedBlock=blockTarget==(*namedBlock)->ent.end()
+                    ?nullptr:dynamic_cast<const DRW_Line*>(*blockTarget);
+                if(typedBlock==nullptr||typedBlock->parentHandle!=0x203u
+                    ||!DxIfaceMaterialReferenceTestAccess::
+                        mlineXdataEntitySourceBound(
+                            adapter,data,0xA901u,0x203u,true,blockType))
+                    return false;
+                if(faceBlockTarget) {
+                    const auto* face=dynamic_cast<const DRW_3Dface*>(*blockTarget);
+                    if(face==nullptr||typeid(*face)!=typeid(DRW_3Dface)
+                        ||face->basePoint.x!=100.5||face->basePoint.y!=2.0
+                        ||face->basePoint.z!=0.0||face->secPoint.x!=101.5
+                        ||face->secPoint.y!=2.0||face->secPoint.z!=0.0
+                        ||face->thirdPoint.x!=101.5||face->thirdPoint.y!=3.0
+                        ||face->thirdPoint.z!=0.0||face->fourPoint.x!=100.5
+                        ||face->fourPoint.y!=3.0||face->fourPoint.z!=0.0
+                        ||face->invisibleflag!=15)return false;
+                } else if(typedBlock->basePoint.x!=100.5
+                    ||typedBlock->basePoint.y!=2.0
+                    ||typedBlock->secPoint.x!=101.5
+                    ||typedBlock->secPoint.y!=3.0)return false;
+
                 if(!adapter.fileExport(output.string(),DRW::AC1027,
                                        outputBinary,&data,false,true)
                     ||!mixedSectionEntityHandleProviderProof(
-                        output,outputBinary,true,true)
-                    ||!mixedTypeProof(adapter)) {
-                    std::cerr<<"mixed TRACE/LINE XDATA output proof failed: "
+                        output,outputBinary,true,traceModelTarget,
+                        faceBlockTarget)
+                    ||!typedProof(adapter)) {
+                    std::cerr<<"mixed "<<profileName
+                             <<" XDATA output proof failed: "
                              <<sourceBinary<<' '<<outputBinary<<'\n';
                     return false;
                 }
@@ -36959,7 +37022,7 @@ bool runTemporary() {
                                           outputBinary,&data,false,true)
                         ||!dictionaryVarTransactionControls::
                             keptWithoutTemporary(output)) {
-                        std::cerr<<"mixed TRACE/LINE "<<role
+                        std::cerr<<"mixed "<<profileName<<' '<<role
                                  <<" missing-target refusal failed: "
                                  <<sourceBinary<<' '<<outputBinary<<'\n';
                         return false;
@@ -36972,9 +37035,10 @@ bool runTemporary() {
                     if(!adapter.fileExport(output.string(),DRW::AC1027,
                                            outputBinary,&data,false,true)
                         ||!mixedSectionEntityHandleProviderProof(
-                            output,outputBinary,true,true)
-                        ||!mixedTypeProof(adapter)) {
-                        std::cerr<<"mixed TRACE/LINE "<<role
+                            output,outputBinary,true,traceModelTarget,
+                            faceBlockTarget)
+                        ||!typedProof(adapter)) {
+                        std::cerr<<"mixed "<<profileName<<' '<<role
                                  <<" same-adapter retry failed: "
                                  <<sourceBinary<<' '<<outputBinary<<'\n';
                         return false;
@@ -36982,33 +37046,28 @@ bool runTemporary() {
                     ++retries;++readbacks;
                     return true;
                 };
-                const auto namedBlock=std::find_if(data.blocks.begin(),
-                    data.blocks.end(),[](const dx_ifaceBlock* block) {
-                        std::string key;
-                        return block!=nullptr
-                            &&dx_symbol_output::nameKey(block->name,key)
-                            &&key=="authorityblock";
-                    });
-                if(namedBlock==data.blocks.end()
-                    ||!missingTargetRefusalRetry(data.mBlock->ent,0xA900u,
-                                                 "ENTITIES TRACE")
-                    ||!missingTargetRefusalRetry((*namedBlock)->ent,0xA901u,
-                                                 "BLOCKS LINE"))return false;
+                if(!missingTargetRefusalRetry(data.mBlock->ent,0xA900u,
+                                              "ENTITIES target")
+                    ||!missingTargetRefusalRetry((*namedBlock)->ent,
+                                                 0xA901u,"BLOCKS target"))
+                    return false;
             }
         {
             LateBlockXdataLineMutation adapter{
-                "AuthorityBlock",0xA901u,0xA902u};
+                "AuthorityBlock",0xA901u,0xA902u,blockType};
             dx_data data;
             if(!write(input,sourceWithMixedSectionEntityHandleXdata(
-                           false,true),false,"AC1027")
+                           false,traceModelTarget,faceBlockTarget),
+                      false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(
-                        adapter,data,0xA900u,0x201u,false,DRW::DXF_TRACE)
+                        adapter,data,0xA900u,0x201u,false,modelType)
                 ||!DxIfaceMaterialReferenceTestAccess::
                     mlineXdataEntitySourceBound(
-                        adapter,data,0xA901u,0x203u,true,DRW::LINE)) {
-                std::cerr<<"mixed TRACE/LINE late-mutation source setup failed\n";
+                        adapter,data,0xA901u,0x203u,true,blockType)) {
+                std::cerr<<"mixed "<<profileName
+                         <<" late-mutation source setup failed\n";
                 return false;
             }
             sentinel(output);
@@ -37017,7 +37076,8 @@ bool runTemporary() {
                 ||!adapter.mutated
                 ||!dictionaryVarTransactionControls::
                     keptWithoutTemporary(output)) {
-                std::cerr<<"mixed TRACE/LINE late-mutation refusal failed\n";
+                std::cerr<<"mixed "<<profileName
+                         <<" late-mutation refusal failed\n";
                 return false;
             }
             ++refusals;adapter.armed=false;
@@ -37030,21 +37090,27 @@ bool runTemporary() {
                 });
             if(namedBlock==data.blocks.end())return false;
             for(DRW_Entity* entity:(*namedBlock)->ent)
-                if(entity!=nullptr&&entity->eType==DRW::LINE
+                if(entity!=nullptr&&entity->eType==blockType
                     &&entity->handle==0xA902u) {
                     entity->handle=0xA901u;break;
                 }
             if(!adapter.fileExport(output.string(),DRW::AC1027,false,
                                    &data,false,true)
                 ||!mixedSectionEntityHandleProviderProof(
-                    output,false,true,true)
-                ||!mixedTypeProof(adapter)) {
-                std::cerr<<"mixed TRACE/LINE late-mutation retry failed\n";
+                    output,false,true,traceModelTarget,faceBlockTarget)
+                ||!typedProof(adapter)) {
+                std::cerr<<"mixed "<<profileName
+                         <<" late-mutation retry failed\n";
                 return false;
             }
             ++retries;++readbacks;
         }
-    }
+        return true;
+    };
+    if(!runMixedTargetProfile(true,false,"TRACE/LINE",
+            {DRW::DXF_TRACE,DRW::LINE})
+        ||!runMixedTargetProfile(false,true,"LINE/3DFACE",
+            {DRW::LINE,DRW::E3DFACE}))return false;
     const std::vector<std::uint32_t> circleTargetHandles{0xA900u};
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -38073,7 +38139,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==336u&&readbacks==757u&&refusals==421u&&retries==421u;
+    return profiles==340u&&readbacks==770u&&refusals==430u&&retries==430u;
 }
 
 bool runBudgetTemporary() {
