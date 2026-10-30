@@ -1,0 +1,58 @@
+{
+  "id": "RPP-5xz",
+  "title": "AC1027 TABLECONTENT type-8 Date payload",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_ADAPTER_AUTHORED_RAW_PAYLOAD_TRANSPORT",
+  "implementation_commit": "ba81f5007efff1361b108021ffb0ac10d6169162",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-constructed in-memory DRW_TableContentObject; no DWG/DXF fixture file was added.",
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "record": "One unlinked 1x1 TABLECONTENT with ordered String, Long, Double, Point, Point3d, and Date values.",
+    "value": {
+      "data_type": 8,
+      "meaning": "Date",
+      "storage": "Eight bytes retained as the signed-64-bit Date payload; this route preserves bytes without converting them to calendar fields.",
+      "payload_hex": "0807060504030201",
+      "payload_bytes": [8, 7, 6, 5, 4, 3, 2, 1]
+    },
+    "schema_references": [
+      "ODA Open Design Specification for DWG files v5.4.1, section 20.4.99: type 8 is Date, with a length and Int64 payload: https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "Autodesk AutoCAD .NET DataType enumeration maps Date to 8: https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DataType.html",
+      "Autodesk DXF group-code reference identifies 310-319 as binary chunks: https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+    ]
+  },
+  "proof": {
+    "output": "Both output encodings are checked for group 90 type 8, group 92 byte count 8, the exact group 310 payload 0807060504030201, and group 94 unit type 0. Fresh typed readback checks type 8, dataSize 8, and exact rawData bytes; the decoder intentionally does not invent a calendar interpretation.",
+    "failure_retry": "The final payload byte is removed while dataSize remains 8. Export refuses and preserves the destination sentinel byte-for-byte. Restoring the byte and retrying on the same writer succeeds. Both output encodings run this control.",
+    "counts": {
+      "successful_profiles": 2,
+      "typed_readbacks": 2,
+      "truncated_payload_refusals_with_destination_preservation": 2,
+      "same_writer_retries": 2
+    },
+    "repository_drawing_fixtures_added": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+      "result": "PASS"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_sha256": {
+      "src/libdxfrw.cpp": "8d73ade625b502ca76902f494044b9477f2a5770fb349fe254b89677f7848a6e",
+      "tests/dxf_fixture_tests.cpp": "958654ae52cef04c1d1af6e863383bb400c480893d2fc0ca4b681056dd20ffc5"
+    },
+    "focused_executable_sha256": "9af51bc4e9d2ffad98d364ac474adb1c879203f0900030c2056eca1fc7d1ce3a"
+  },
+  "limits": [
+    "This qualifies adapter-authored AC1027 DXF transport of one bounded Date byte profile. It does not prove native calendar interpretation or date range/epoch semantics.",
+    "Other TABLECONTENT value types, cell attributes, formats, linked values, table shapes, source-origin semantics, and native application behavior remain unqualified."
+  ],
+  "next": "Reproduce one current cell-attribute or formatting refusal and implement its smallest complete schema/output route with exact dependencies and readback; retain native interpretation as a separate gate."
+}
