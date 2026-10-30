@@ -52,7 +52,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 1. **P4 — qualify AC1024 constraint-group node tails and finish associative closure.** Resolve the conflicting version-0 node-tail profiles before extending the current bounded prefix parser: LibreDWG `dwg2.spec` models a node count followed by node ID/status/connection-count/vector fields; the independent acadrust reader expects a next-node-ID, inline count, class-name strings and class-specific node data. The local AC1024 source/LibreDWG projections also disagree on the first node's connection data (`1073741825` appears in DXF while JSON reports an empty vector), and ODA v5.4.1 has no class-specific body layout. Run an independent reader on the same source bytes or obtain a separately authored AC1024 witness and correlate body, string and handle streams. Do not relax limits or infer zero connections. Close newly identified source-required descendants with bounded role/type/owner checks. Keep strict refusal until complete closure and remapped DXF output are proven.
 
-See the [AC1024 constraint-group profile receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the unresolved parser boundary and node-tail evidence. Receipts for completed graph edges remain in `docs/research/` and Git history; they are not active plan items.
+See the [AC1024 constraint-group profile receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the unresolved parser boundary and node-tail evidence.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
