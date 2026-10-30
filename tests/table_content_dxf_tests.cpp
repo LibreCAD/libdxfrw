@@ -2155,6 +2155,185 @@ bool tableContentRowMarginWriteTests(const std::filesystem::path& dir) {
     return true;
 }
 
+bool tableContentColumnTableMarginWriteTests(
+        const std::filesystem::path& dir) {
+    const auto fail = [](const char* why) {
+        std::cerr << "TABLECONTENT column/table margin: " << why << '\n';
+        return false;
+    };
+    const std::array<double, 6> expectedMargins{{
+        0.875, 1.0, 1.125, 1.25, 1.375, 1.5
+    }};
+    for (int styleType : {3, 4}) {
+        for (bool binary : {false, true}) {
+            const auto path = dir / (styleType == 3
+                ? "column-margin.dxf" : "table-margin.dxf");
+            dx_data data;
+            dx_iface exporter;
+            exporter.cData = &data;
+            exporter.currentBlock = data.mBlock;
+            DRW_TableContentObject table = tableContentScalarGrid();
+            auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
+            metadata->m_columns.resize(table.m_content.m_columns.size());
+            for (auto& column : metadata->m_columns)
+                column.m_style.m_type = 3;
+            metadata->m_rows.resize(table.m_content.m_rows.size());
+            for (std::size_t row = 0; row < metadata->m_rows.size(); ++row) {
+                auto& detail = metadata->m_rows[row];
+                detail.m_scope.m_style.m_type = 2;
+                detail.m_cells.resize(table.m_content.m_rows[row].m_cells.size());
+                for (auto& cell : detail.m_cells)
+                    cell.m_scope.m_style.m_type = 1;
+                for (std::size_t column = 0;
+                     column < detail.m_cells.size(); ++column)
+                    detail.m_cells[column].m_contentFormats.resize(
+                        table.m_content.m_rows[row].m_cells[column]
+                            .m_contents.size());
+            }
+            metadata->m_tableStyle.m_type = 4;
+            DRW_TableStyleCellStyle& selectedStyle = styleType == 3
+                ? metadata->m_columns[0].m_style : metadata->m_tableStyle;
+            selectedStyle.m_hasData = true;
+            selectedStyle.m_marginOverrideFlags = 1;
+            selectedStyle.m_verticalMargin = expectedMargins[0];
+            selectedStyle.m_horizontalMargin = expectedMargins[1];
+            selectedStyle.m_bottomMargin = expectedMargins[2];
+            selectedStyle.m_rightMargin = expectedMargins[3];
+            selectedStyle.m_marginHorizontalSpacing = expectedMargins[4];
+            selectedStyle.m_marginVerticalSpacing = expectedMargins[5];
+            table.m_dxfMetadata = metadata;
+            exporter.addTableContent(table);
+
+            if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                     &data, false))
+                return fail("selected column/table margin export failed");
+
+            struct StyleWire {
+                int hasData = -1;
+                int marginFlags = -1;
+                std::vector<double> margins;
+            };
+            std::vector<StyleWire> targetStyles;
+            bool inStyle = false;
+            bool inMargin = false;
+            int wireStyleType = -1;
+            StyleWire wireStyle;
+            for (const AttdefWireTag& tag : attdefWireTags(path, binary)) {
+                if (tag.code == 1 && tag.text == "TABLEFORMAT_BEGIN") {
+                    inStyle = true;
+                    inMargin = false;
+                    wireStyleType = -1;
+                    wireStyle = StyleWire{};
+                } else if (inStyle && tag.code == 90
+                           && wireStyleType == -1) {
+                    wireStyleType = static_cast<int>(tag.integer);
+                } else if (inStyle && tag.code == 170
+                           && wireStyle.hasData == -1) {
+                    wireStyle.hasData = static_cast<int>(tag.integer);
+                } else if (inStyle && tag.code == 171
+                           && wireStyle.marginFlags == -1) {
+                    wireStyle.marginFlags = static_cast<int>(tag.integer);
+                } else if (inStyle && tag.code == 1
+                           && tag.text == "CELLMARGIN_BEGIN") {
+                    inMargin = true;
+                } else if (inMargin && tag.code == 40) {
+                    wireStyle.margins.push_back(tag.real);
+                } else if (inMargin && tag.code == 309
+                           && tag.text == "CELLMARGIN_END") {
+                    inMargin = false;
+                } else if (inStyle && tag.code == 309
+                           && tag.text == "TABLEFORMAT_END") {
+                    if (wireStyleType == styleType)
+                        targetStyles.push_back(wireStyle);
+                    inStyle = false;
+                }
+            }
+            const std::vector<int> expectedHasData = styleType == 3
+                ? std::vector<int>{1, 0} : std::vector<int>{1};
+            if (targetStyles.size() != expectedHasData.size())
+                return fail("selected TABLEFORMAT scope count differs");
+            for (std::size_t i = 0; i < targetStyles.size(); ++i) {
+                const bool selected = i == 0u;
+                if (targetStyles[i].hasData != expectedHasData[i]
+                    || (selected
+                        ? (targetStyles[i].marginFlags != 1
+                            || targetStyles[i].margins.size()
+                                != expectedMargins.size())
+                        : (targetStyles[i].marginFlags != -1
+                            || !targetStyles[i].margins.empty())))
+                    return fail("column/table TABLEFORMAT fields differ");
+                if (selected) {
+                    for (std::size_t j = 0; j < expectedMargins.size(); ++j) {
+                        if (targetStyles[i].margins[j] != expectedMargins[j])
+                            return fail("column/table CELLMARGIN value order differs");
+                    }
+                }
+            }
+
+            dx_iface reader;
+            dx_data parsed;
+            if (!reader.fileImport(path.string(), &parsed, false)
+                || parsed.tableContents.size() != 1u
+                || !parsed.tableContents.front().m_dxfMetadata)
+                return fail("column/table margin typed metadata missing");
+            const auto parsedStyle = [&]() -> const DRW_TableStyleCellStyle* {
+                const auto& readMetadata =
+                    *parsed.tableContents.front().m_dxfMetadata;
+                if (styleType == 3)
+                    return readMetadata.m_columns.empty() ? nullptr
+                        : &readMetadata.m_columns[0].m_style;
+                return &readMetadata.m_tableStyle;
+            };
+            const auto* readStyle = parsedStyle();
+            if (readStyle == nullptr || readStyle->m_type != styleType
+                || !readStyle->m_hasData
+                || readStyle->m_marginOverrideFlags != 1
+                || readStyle->m_verticalMargin != expectedMargins[0]
+                || readStyle->m_horizontalMargin != expectedMargins[1]
+                || readStyle->m_bottomMargin != expectedMargins[2]
+                || readStyle->m_rightMargin != expectedMargins[3]
+                || readStyle->m_marginHorizontalSpacing != expectedMargins[4]
+                || readStyle->m_marginVerticalSpacing != expectedMargins[5])
+                return fail("column/table typed margin readback differs");
+
+            const double originalHorizontalMargin =
+                selectedStyle.m_horizontalMargin;
+            selectedStyle.m_horizontalMargin = -0.25;
+            const std::string sentinel = "PRESERVE_TABLECONTENT_SCOPE_MARGIN";
+            { std::ofstream out(path, std::ios::binary); out << sentinel; }
+            if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                    &data, false))
+                return fail("negative column/table margin was accepted");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != sentinel)
+                  return fail("invalid scope margin export changed destination"); }
+            if (data.tableContents.size() != 1u
+                || selectedStyle.m_horizontalMargin != -0.25)
+                return fail("failed scope margin export changed caller model");
+            selectedStyle.m_horizontalMargin = originalHorizontalMargin;
+            if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                     &data, false))
+                return fail("same-adapter corrected scope margin retry failed");
+            dx_data retried;
+            if (!reader.fileImport(path.string(), &retried, false)
+                || retried.tableContents.size() != 1u
+                || !retried.tableContents.front().m_dxfMetadata)
+                return fail("corrected scope margin retry readback missing");
+            const auto& retriedMetadata =
+                *retried.tableContents.front().m_dxfMetadata;
+            const DRW_TableStyleCellStyle* retriedStyle = styleType == 3
+                ? (retriedMetadata.m_columns.empty() ? nullptr
+                    : &retriedMetadata.m_columns[0].m_style)
+                : &retriedMetadata.m_tableStyle;
+            if (retriedStyle == nullptr
+                || retriedStyle->m_horizontalMargin != originalHorizontalMargin)
+                return fail("corrected scope margin retry value differs");
+        }
+    }
+    return true;
+}
+
 bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
     const auto fail = [](const char* why) {
         std::cerr << "TABLECONTENT linked grid: " << why << '\n';
@@ -4052,6 +4231,7 @@ int main(int argc,char** argv) {
     const bool tableValueScopes=argc==2 && std::string(argv[1])=="--table-value-scopes";
     const bool tableGridWrite=argc==2 && std::string(argv[1])=="--table-grid-write";
     const bool tableRowMarginWrite=argc==2 && std::string(argv[1])=="--table-row-margin-write";
+    const bool tableColumnTableMarginWrite=argc==2 && std::string(argv[1])=="--table-column-table-margin-write";
     const bool tableLinkedGridWrite=argc==2 && std::string(argv[1])=="--table-linked-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
@@ -4076,12 +4256,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableRowMarginWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableRowMarginWrite?tableContentRowMarginWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableRowMarginWrite?tableContentRowMarginWriteTests(dir):tableColumnTableMarginWrite?tableContentColumnTableMarginWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

@@ -25960,11 +25960,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return scope.m_customData == 0 && scope.m_customItems.empty()
             && styleIsDefault(scope.m_style, type);
     };
-    const auto styleScopeWithMarginsIsSupported = [&scopeIsDefault,
+    const auto styleWithMarginsIsSupported = [&styleIsDefault,
             &cmcIsDefault, &formatIsDefault](
-            const DRW_TableContentDxfMetadata::Scope& scope, int type,
+            const DRW_TableStyleCellStyle& style, int type,
             bool allowSelectedCellBorder) {
-        const DRW_TableStyleCellStyle& style = scope.m_style;
         const auto validMargin = [](double value) {
             return std::isfinite(value) && value >= 0.0;
         };
@@ -26000,8 +25999,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         const bool noBorders = style.m_borders.empty();
         const bool selectedBorder = style.m_borders.size() == 1u
             && isSelectedTopInvisibleBorder(style.m_borders.front());
-        return scope.m_customData == 0 && scope.m_customItems.empty()
-            && (scopeIsDefault(scope, type)
+        return styleIsDefault(style, type)
                 || (style.m_type == type && style.m_hasData
                     && style.m_propertyOverrideFlags == 0u
                     && style.m_mergeFlags == 0u
@@ -26015,15 +26013,31 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && (marginsSupported
                         || (allowSelectedCellBorder && selectedBorder))
                     && style.m_id == 0 && style.m_styleClass == 0
-                    && style.m_name.empty()));
+                    && style.m_name.empty());
     };
-    const auto cellStyleIsSupported = [&styleScopeWithMarginsIsSupported](
-            const DRW_TableContentDxfMetadata::Scope& scope) {
-        return styleScopeWithMarginsIsSupported(scope, 1, true);
+    const auto scopeWithMarginsIsSupported = [&styleWithMarginsIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope, int type,
+            bool allowSelectedCellBorder) {
+        return scope.m_customData == 0 && scope.m_customItems.empty()
+            && styleWithMarginsIsSupported(scope.m_style, type,
+                                            allowSelectedCellBorder);
     };
-    const auto rowStyleIsSupported = [&styleScopeWithMarginsIsSupported](
+    const auto cellStyleIsSupported = [&scopeWithMarginsIsSupported](
             const DRW_TableContentDxfMetadata::Scope& scope) {
-        return styleScopeWithMarginsIsSupported(scope, 2, false);
+        return scopeWithMarginsIsSupported(scope, 1, true);
+    };
+    const auto rowStyleIsSupported = [&scopeWithMarginsIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope) {
+        return scopeWithMarginsIsSupported(scope, 2, false);
+    };
+    const auto columnStyleIsSupported = [&scopeWithMarginsIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope) {
+        return scopeWithMarginsIsSupported(scope, 3, false);
+    };
+    const auto tableStyleWithMarginsIsSupported =
+            [&styleWithMarginsIsSupported](
+                const DRW_TableStyleCellStyle& style) {
+        return styleWithMarginsIsSupported(style, 4, false);
     };
     if (version < DRW::AC1021 || version > DRW::AC1032
         || !preflightTableEntry(ent) || ent->handle == 0u
@@ -26510,7 +26524,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && (ent->m_dxfMetadata->m_columns.size() != columnCount
                     || ent->m_dxfMetadata->m_rows.size() != rowCount
                     || ent->m_dxfMetadata->m_linkedDataUnknown92 != 0
-                    || !styleIsDefault(ent->m_dxfMetadata->m_tableStyle, 4))))
+                    || !tableStyleWithMarginsIsSupported(
+                        ent->m_dxfMetadata->m_tableStyle))))
             return failDxfWrite();
 
         const auto cellPropertiesSupported = [&safeText, &defaultBorder](
@@ -26562,8 +26577,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 || column.m_overrideStyleType != 3
                 || !std::isfinite(column.m_width) || column.m_width < 0.0
                 || (ent->m_dxfMetadata
-                    && !scopeIsDefault(
-                        ent->m_dxfMetadata->m_columns[columnIndex], 3)))
+                    && !columnStyleIsSupported(
+                        ent->m_dxfMetadata->m_columns[columnIndex])))
                 return failDxfWrite();
         }
         for (std::size_t rowIndex = 0u; rowIndex < rowCount; ++rowIndex) {
@@ -26661,7 +26676,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 || !writer->writeString(1,
                     "FORMATTEDTABLEDATACOLUMN_BEGIN")
                 || !writer->writeString(300, "COLUMNTABLEFORMAT")
-                || !writeStyle(3, nullptr)
+                || !writeStyle(3, columnScope(columnIndex)
+                    ? &columnScope(columnIndex)->m_style : nullptr)
                 || !writer->writeString(309,
                     "FORMATTEDTABLEDATACOLUMN_END")
                 || !writer->writeString(1, "TABLECOLUMN_BEGIN")
@@ -26753,7 +26769,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 ? ent->m_dxfMetadata->m_linkedDataUnknown92 : 0)
             || !writer->writeString(100, "AcDbFormattedTableData")
             || !writer->writeString(300, "TABLEFORMAT")
-            || !writeStyle(4, nullptr)
+            || !writeStyle(4, ent->m_dxfMetadata
+                ? &ent->m_dxfMetadata->m_tableStyle : nullptr)
             || !writer->writeInt32(90, 0)
             || !writer->writeString(100, "AcDbTableContent")
             || !writer->writeString(340, "0")
