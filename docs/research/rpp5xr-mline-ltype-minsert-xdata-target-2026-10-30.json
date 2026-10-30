@@ -137,5 +137,5 @@
     "The source matcher now admits positive-count INSERT grids without attached ATTRIB or SEQEND children; the selected exact fields here do not qualify attribute-bearing compounds, arbitrary grid output, or native array placement semantics.",
     "This is selected source identity, block dependency, field transport, output/readback and transaction evidence. It does not establish independent CAD semantics, rendering, recursive document closure or any general DWG/DXF support claim."
   ],
-  "next": "Reproduce and classify the current ATTDEF raw/typed source mismatch as P4a work; identify the exact record, field span and missing parser/model/provider/role layer before implementation. Defer additional P2 profile-matrix expansion until a reproduced code gap is identified."
+  "next": "Select an actually unmapped original record or dependency role from the current source census. The selected dual-280 ATTDEF profile intentionally has rawTypedMatched=false while its source roles and typed model are checked separately; that flag alone is not evidence of a parser defect. Reproduce a specific missing field/role before coding, and defer additional P2 matrix expansion until a code gap is identified."
 }
