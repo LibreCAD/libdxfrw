@@ -576,6 +576,8 @@ public:
     bool writeAssociativeDependencyBody(DRW_AssociativeObject *ent);
     //! Emit the source-bound AC1024 ACDBASSOCNETWORK profile.
     bool writeAssociativeNetwork(DRW_AssociativeObject *ent);
+    //! Emit the fully consumed AC1024 ACDBASSOCVARIABLE real/int32 profile.
+    bool writeAssociativeVariable(DRW_AssociativeObject *ent);
     //! Emit the admitted AC1024 version-0 inline constraint-group profile.
     bool writeAssociativeConstraintGroup(DRW_AssociativeObject *ent);
     bool writeEvaluationGraph(DRW_EvaluationGraph *ent,

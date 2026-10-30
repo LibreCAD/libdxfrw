@@ -2931,6 +2931,167 @@ void testAssociativeNetworkWriter(TestContext& t) {
              "late associative network EED failure rolls back and permits corrected retry on the same object");
 }
 
+void testAssociativeVariableWriter(TestContext& t) {
+    const auto makeVariable = [](std::int32_t valueCode) {
+        DRW_AssociativeObject variable("ACDBASSOCVARIABLE");
+        variable.handle = 0xA001u;
+        variable.parentHandle = 0xA002u;
+        variable.reactorHandles = {0xA003u};
+        variable.m_classVersion = 1u;
+        variable.m_geometryStatus = 0;
+        variable.m_owningNetworkHandle = 0xA004u;
+        variable.m_actionBodyHandle = 0u;
+        variable.m_actionIndex = 6;
+        variable.m_maxDependencyIndex = 0;
+        variable.m_associativeVariableFieldsParsed = true;
+        variable.m_associativeVariableWireComplete = true;
+        variable.m_variableClassVersion = 2;
+        variable.m_variableName = "BOLTHOLE";
+        variable.m_variableExpression = "1";
+        variable.m_variableEvaluator = "AcDbCalc:1.0";
+        variable.m_variableDescription.clear();
+        variable.m_variableValueParsed = true;
+        variable.m_variableValueCode = valueCode;
+        variable.m_variableHasT78 = false;
+        variable.m_variableT78.clear();
+        variable.m_variableB290 = false;
+        if (valueCode == 40) {
+            variable.m_variableValueKind =
+                DRW_AssociativeObject::EvalVariantKind::Real;
+            variable.m_variableValueReal = 3.5;
+        } else {
+            variable.m_variableValueKind =
+                DRW_AssociativeObject::EvalVariantKind::Int32;
+            variable.m_variableValueInt32 = 7;
+        }
+        DRW_AssociativePrefixStatus action;
+        action.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocAction;
+        action.m_status =
+            DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        action.m_classVersion = 1u;
+        action.m_decodedHandleCount = 2u;
+        action.m_decodedCountValue = 0;
+        DRW_AssociativePrefixStatus body;
+        body.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable;
+        body.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        body.m_classVersion = 2u;
+        body.m_decodedValueCount = 10u;
+        body.m_decodedCountValue = 0;
+        variable.m_prefixStatuses = {action, body};
+        return variable;
+    };
+    const std::map<std::uint32_t, std::uint32_t> remap{
+        {0xA001u, 0x401u}, {0xA002u, 0x402u},
+        {0xA003u, 0x403u}, {0xA004u, 0x404u}};
+
+    DRW_Class variableClass;
+    dxfRW classProbe("");
+    t.expect(classProbe.dxfClassForRecordName(
+                 "ACDBASSOCVARIABLE", variableClass)
+                 && variableClass.className == "AcDbAssocVariable"
+                 && variableClass.proxyFlag == 1025
+                 && variableClass.entityFlag == 0,
+             "associative variable CLASS row matches the source metadata");
+
+    for (const bool binary : {false, true}) {
+        for (const std::int32_t valueCode : {40, 90}) {
+            DRW_AssociativeObject variable = makeVariable(valueCode);
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfRW owner("");
+            owner.version = DRW::AC1024;
+            owner.binFile = binary;
+            owner.setHandleRemap(remap);
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+
+            const bool wrote = owner.writeAssociativeVariable(&variable)
+                && owner.writer->writeString(0, "WIRE_END");
+            bool ended = false;
+            const auto tags = numericWireProjection(output.str(), binary,
+                                                    ended);
+            std::vector<std::string> expected{
+                "0:ACDBASSOCVARIABLE", "5:401",
+                "102:{ACAD_REACTORS", "330:403", "102:}",
+                "330:402", "100:AcDbAssocAction", "90:1", "90:0",
+                "330:404", "360:0", "90:6", "90:0", "90:0",
+                "100:AcDbAssocVariable", "90:2", "1:BOLTHOLE",
+                "1:1", "1:AcDbCalc:1.0", "1:",
+                "70:" + std::to_string(valueCode)};
+            expected.push_back(valueCode == 40
+                                   ? "40:0x1.cp+1" : "90:7");
+            expected.insert(expected.end(), {"290:0", "1:", "290:0",
+                                              "0:WIRE_END"});
+            t.expect(wrote && ended && tags == expected,
+                     "AC1024 associative variable emits exact real/int32 fields and remaps owner/reactor/network handles in ASCII and Binary");
+        }
+    }
+
+    const auto rejectedWithoutOutput = [](DRW::Version version,
+                                          DRW_AssociativeObject variable) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = version;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        return !owner.writeAssociativeVariable(&variable)
+            && output.str().empty();
+    };
+    DRW_AssociativeObject partial = makeVariable(40);
+    partial.m_associativeVariableWireComplete = false;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, partial),
+             "associative variable with an unclassified body suffix refuses atomically");
+    DRW_AssociativeObject unsupportedValue = makeVariable(40);
+    unsupportedValue.m_variableValueCode = 330;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedValue),
+             "unsupported associative variable EvalVariant refuses atomically");
+    DRW_AssociativeObject unsupportedVersion = makeVariable(90);
+    t.expect(rejectedWithoutOutput(DRW::AC1027, unsupportedVersion),
+             "unqualified associative variable output version refuses atomically");
+    DRW_AssociativeObject unsupportedXDictionary = makeVariable(40);
+    unsupportedXDictionary.xDictHandle = 0xA005u;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedXDictionary),
+             "associative variable with an unqualified extension dictionary refuses atomically");
+
+    DRW_AssociativeObject unresolved = makeVariable(40);
+    std::ostringstream unresolvedOutput;
+    dxfRW unresolvedWriter("");
+    unresolvedWriter.version = DRW::AC1024;
+    unresolvedWriter.setReferenceResolver([](std::uint32_t source) {
+        return source == 0xA004u ? std::uint32_t{0} : source;
+    });
+    unresolvedWriter.writer = std::make_unique<dxfWriterAscii>(
+        &unresolvedOutput);
+    t.expect(!unresolvedWriter.writeAssociativeVariable(&unresolved)
+                 && unresolvedOutput.str().empty()
+                 && unresolvedWriter.m_writingContext.sourceHandleToMintedMap.empty(),
+             "unresolved associative variable network reference rolls back bytes and source identity");
+
+    DRW_AssociativeObject retry = makeVariable(40);
+    const bool invalidEedAdded = retry.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedOutput;
+    dxfRW failedWriter("");
+    failedWriter.version = DRW::AC1024;
+    failedWriter.writer = std::make_unique<dxfWriterAscii>(&failedOutput);
+    const bool failedRolledBack = invalidEedAdded
+        && !failedWriter.writeAssociativeVariable(&retry)
+        && failedOutput.str().empty()
+        && retry.handle == 0xA001u
+        && failedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    retry.clearExtData();
+    std::ostringstream retryOutput;
+    dxfRW retryWriter("");
+    retryWriter.version = DRW::AC1024;
+    retryWriter.writer = std::make_unique<dxfWriterAscii>(&retryOutput);
+    const bool correctedRetry = retryWriter.writeAssociativeVariable(&retry)
+        && retryWriter.writer->writeString(0, "WIRE_END");
+    t.expect(failedRolledBack && correctedRetry
+                 && retryOutput.str().find("ACDBASSOCVARIABLE")
+                     != std::string::npos,
+             "late associative variable EED failure rolls back and allows corrected retry");
+}
+
 void testAssociativeDependencyBodyWriter(TestContext& t) {
     const auto makeBody = []() {
         DRW_AssociativeObject body("ASSOCDIMDEPENDENCYBODY");
@@ -15235,6 +15396,14 @@ int main(int argc, char** argv) {
         return focused.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--associative-variable-writer") {
+        TestContext focused;
+        testAssociativeVariableWriter(focused);
+        std::cout << "AC1024 associative variable writer: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--associative-dependency-body-writer") {
         TestContext focused;
         testAssociativeDependencyBodyWriter(focused);
@@ -15366,6 +15535,7 @@ int main(int argc, char** argv) {
     testIntegerValuedBooleanWireKinds(context);
     testAssociativeDependencyWriter(context);
     testAssociativeNetworkWriter(context);
+    testAssociativeVariableWriter(context);
     testDimensionAssociationGraphClosure(context);
     testCustomTextNumericWireKinds(context);
     testLayoutStyleNumericWireKinds(context);

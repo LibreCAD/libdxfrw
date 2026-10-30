@@ -25,8 +25,8 @@ conversion and native semantic acceptance are separate evidence levels.
 | External evidence | Six J items **DEFERRED_EXTERNAL** | Eligible independent semantic evidence and platform execution; external success alone cannot promote |
 | Whole objective | `fullObjectiveComplete=false` | All required local, consumer, platform and claim gates meet their actual scope |
 
-The resource ledger currently tracks nine families. Expand evidence rather than
-using that count as proof of completeness. Preserve the authorities in
+Use the resource ledger as an inventory aid, not as proof of completeness;
+expand it when evidence identifies another family. Preserve the authorities in
 [the support policy](docs/UPGRADE_SUPPORT.md),
 [the route matrix](metadata/support-matrix-v1.json),
 [claim status](metadata/qualified-format-status-v1.json),
@@ -47,8 +47,8 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative graph output and recursive closure | Route admitted associative encoders through source-bound graph output: bind each record and reference through source → planned → emitted identities, close required descendants, and verify staged output by independent field inspection and readback. The physical AC1024 `ACDBASSOCVARIABLE` profile now has typed known fields, but its remaining body bits are not classified and its writer is not admitted. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
-| P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
+| P4 | OPEN — associative graph output and recursive closure | Route admitted associative records through source-bound graph output: bind each record and reference through source → planned → emitted identities, close required descendants, and verify staged output by independent field inspection and readback. The physical AC1024 `ACDBASSOCVARIABLE` witness has an unclassified body suffix; keep it ineligible until its boundary and meaning are established. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -82,21 +82,19 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-   For the witnessed AC1024 `ACDBASSOCVARIABLE` version-2 profile, the name,
-   expression, evaluator, description, real/integer EvalVariant, and trailing
-   flags are captured. The mechanical witness still has unclassified body bits
-   after those fields; prove their boundary and meaning before marking the
-   record wire-complete or admitting a writer.
-2. **Associative output and identity:** connect the admitted AC1024 dependency,
-   geometry-dependency, dimension-dependency-body, network, and version-0 inline
-   constraint-group record encoders to the graph planner. The direct geometry-
-   dependency encoder currently admits only class version 0 with
-   `AcDbAssocSingleEdgePersSubentId`; do not expand that profile without a
-   source witness. Bind each serialized record from its
-   planned identity to its emitted identity, then remap every owner, reactor,
-   action, dependency, dictionary, and entity reference through that binding,
-   including generated records and fixed-handle collisions. Verify staged output
-   by independent field inspection and readback. Keep strict
+   The mechanical AC1024 `ACDBASSOCVARIABLE` witness has unclassified bits
+   after its known fields; prove the suffix boundary and meaning before marking
+   the record wire-complete or routing it through graph output.
+2. **Associative output and identity:** route each admitted associative record
+   through the graph planner, beginning with the fully consumed AC1024
+   `ACDBASSOCVARIABLE` real/int32 encoder. Bind the record and its owner,
+   reactors, and owning network from source through planned to emitted identity;
+   close any required extension-dictionary and descendant edges before enabling
+   this profile in document output. Keep current encoder profile limits; expand
+   only with a source witness. Remap every owner, reactor, action, dependency,
+   dictionary, and entity reference through that binding, including generated
+   records and fixed-handle collisions. Verify staged output by independent field
+   inspection and readback. Keep strict
    refusal wherever a required descendant is unsupported. Do not emit a partial
    graph or infer edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
