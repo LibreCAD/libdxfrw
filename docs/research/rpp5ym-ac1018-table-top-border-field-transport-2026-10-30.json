@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-30",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1018 TABLE cell top-border field transport",
+  "source_witness": {
+    "receipt": "docs/research/rpp5ie-ac1018-table-merge-visibility-2026-10-28.json",
+    "record": "AC1018 TABLE handle 528, zero-based cell 18",
+    "sha256": "8b3cf33e41b8d8e3505e2db7b2323bf2908507e03516142068b24243f710b72f",
+    "fields": {
+      "group177": 17504,
+      "group140": 4.0,
+      "group279": 40,
+      "group69": 63,
+      "group289": "absent"
+    },
+    "prior_gap": "The cell model defaulted top visibility to true without retaining whether group 289 existed; the AC1018 writer refused the 0x4460 profile."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/intern/dxftable.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "Retains explicit DXF cell visibility presence independently from the default bool value and includes presence in TABLE source/typed model equality.",
+      "Writes the selected AC1018 text-cell 0x4460 top-border profile with groups 69, 279 and 140.",
+      "Does not synthesize group 289 when absent; explicitly present group 289 values 0 and 1 are emitted and read back."
+    ],
+    "scope": "AC1018 0x4460 text cell with complete top-border color/lineweight and text-height fields; all other legacy border combinations remain refused."
+  },
+  "validation": {
+    "command": "./build/libdxfrw_dxf_fixture_tests --ac1018-table-top-border",
+    "result": "PASS",
+    "checks": [
+      "Missing top-border color is rejected with the destination sentinel and caller model preserved; correcting the field succeeds on the same adapter.",
+      "Runtime-authored ASCII and binary output contain 177=17504, 140=4, 69=63, and 279=40, with no 289 when absent; public import readback retains that absence.",
+      "Explicit 289=0 and 289=1 are each emitted in ASCII and read back with presence/value intact; binary output and readback also cover explicit 289=0."
+    ],
+    "fixture_policy": "All controls are generated in the test at runtime; no external DWG/DXF fixture is committed.",
+    "executable_sha256": "f95fc55719777dc7d6e54b7a21d8e0cd37b5bbea156691e173b96d2d3076ded6",
+    "test_source_sha256": "4ada4517e6df1b964c0318a3453344ed115d5a2089d0e3bd5158e5a5c480ef1e",
+    "code_sha256": {
+      "src/libdxfrw.cpp": "9cc4761dc37aa6b208520c7549f9ff4c5d5d72aa1ea3dd642533da64cfc784ef",
+      "src/drw_entities.cpp": "f83e0ad591922ea8bb6c1841c0aaee299b09a433466c4c211c86f7042a621e3f",
+      "src/intern/dxftable.h": "6c789d573106c15cbdfec4f165e328ec2121599b12e003d7c1adee55ce50d8bc",
+      "src/drw_entities.h": "3c509bc84fd68c765ca9e4654836201fa0d45ee703dc0d917c57a3150e0d1953"
+    }
+  },
+  "limitations": [
+    "The selected external paired DWG/DXF observation does not prove common save state or native visibility semantics.",
+    "An absent group 289 remains absence evidence only; no semantic default is inferred.",
+    "No TABLE support claim, full TABLE output eligibility, complete-document closure, or native rendering claim is promoted.",
+    "DRW_TableBorder public layout changed; ABI compatibility remains an open P8 qualification gate."
+  ]
+}

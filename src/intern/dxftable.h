@@ -107,7 +107,8 @@ private:
         for(std::size_t i=0;i<sizeof(x)/sizeof(x[0]);++i)if(!real(x[i],y[i]))return false;
         for(std::size_t i=0;i<a.m_borders.size();++i) {
             const auto& p=a.m_borders[i];const auto& q=b.m_borders[i];
-            if(std::tie(p.m_lineWeight,p.m_visible,p.m_colorRgb,p.m_colorMethod)!=std::tie(q.m_lineWeight,q.m_visible,q.m_colorRgb,q.m_colorMethod))return false;
+            if(std::tie(p.m_lineWeight,p.m_visible,p.m_colorRgb,p.m_colorMethod,p.m_hasDxfVisibility)
+                !=std::tie(q.m_lineWeight,q.m_visible,q.m_colorRgb,q.m_colorMethod,q.m_hasDxfVisibility))return false;
         }
         for(std::size_t i=0;i<a.m_attributes.size();++i) {
             const auto& p=a.m_attributes[i];const auto& q=b.m_attributes[i];

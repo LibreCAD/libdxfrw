@@ -11724,6 +11724,7 @@ bool DRW_Table::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             if (!readDxfBool(reader, value))
                 return false;
             cell->m_borders[borderIndex].m_visible = value;
+            cell->m_borders[borderIndex].m_hasDxfVisibility = true;
         } else {
             bool ignored = false;
             if (!readDxfBool(reader, ignored))

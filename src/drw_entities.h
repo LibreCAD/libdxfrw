@@ -1839,6 +1839,9 @@ struct DRW_TableBorder {
     bool m_visible = true;
     int m_colorRgb = -1;
     std::uint8_t m_colorMethod = 0;
+    // Preserve whether a DXF cell-visibility group was present. In particular,
+    // an omitted AC1018 group 289 is not rewritten as an explicit default.
+    bool m_hasDxfVisibility = false;
 };
 
 struct DRW_TableCell {
