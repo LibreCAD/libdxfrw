@@ -1,0 +1,91 @@
+{
+  "id": "RPP-5xc",
+  "title": "AC1027 MLINE LTYPE XDATA reference to TRACE entities",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d6d415212adf427bd7bb5375e6dc18a8bf5f767b",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One code-1005 XDATA soft pointer in the source-bound EditDash LTYPE to a TRACE in model-space ENTITIES or named AuthorityBlock BLOCKS.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handle": "0xA900"
+    },
+    "target": {
+      "type": "TRACE",
+      "subclass": "AcDbTrace",
+      "source_owners": {
+        "model_space": "0x201",
+        "AuthorityBlock": "0x203"
+      },
+      "corner_coordinates": "Selected default-extrusion source values: [1,2,3], [4,2,3], [4,5,3], [1,5,3]; physical DXF corner fields 10-13 and their Y/Z components are checked."
+    },
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output, for each source section.",
+    "runtime_fixture": "The focused test writes source drawings under a temporary directory and removes them; no test fixture file was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "TRACE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EA6FBCA8-1AD6-4FB2-B149-770313E93511.htm",
+        "relevant_rule": "Defines the AcDbTrace subclass, OCS corner points in groups 10 through 13 with Y/Z components, and optional thickness and extrusion fields."
+      },
+      {
+        "title": "About 1005 Group Codes (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-8243079C-B44F-493A-BAF7-1D11A6E6C78C.htm",
+        "relevant_rule": "An XDATA group-1005 handle has soft-pointer behavior and is translated when its host object is merged into another drawing."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector binds the physical TRACE record, exact DRW_Trace dynamic type, source handle 0xA900, source owner (model-space block record 0x201 or AuthorityBlock record 0x203), section, callback and unique live entity. All four source corner tuples are verified in the typed model.",
+    "output": "All eight section/encoding combinations verify the remapped code-1005 value against the emitted TRACE identity and owner, AcDbTrace subclass, all four physical corners, ordered LTYPE XDATA and fresh typed readback.",
+    "failure_retry": "Removing the target refuses output with destination preservation for all eight combinations; restoring the target permits same-adapter retry. Two additional controls mutate the target handle after APPID emission (one ASCII case per source section), require atomic refusal and destination preservation, restore the source handle, and retry successfully with complete output/readback proof.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 332,
+      "whole_focused_test_readbacks": 744,
+      "whole_focused_test_refusals": 412,
+      "whole_focused_test_retries": 412
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "d6d415212adf427bd7bb5375e6dc18a8bf5f767b",
+    "changes": "Adds DRW::DXF_TRACE record-name, exact dynamic-type and addTrace callback mappings to the existing code-1005 source collector and finalizer for ENTITIES and BLOCKS. Existing parser and writer callbacks are reused; no public API or consumer callback changed.",
+    "claim_boundary": "This qualifies only the selected AC1027 TRACE code-1005 transport and identity profile. It does not establish general code-1005 support, recursive document closure, native CAD meaning, broader OCS/extrusion behavior, other versions or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 19.93 seconds); aggregate assertions include all selected profiles and refusal/retry controls."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "adapter_source_sha256": "9e937916e3ad0ce41bececf96774d3fe83a3770b90b6f7551720f6d6111667cd",
+      "test_source_sha256": "4e4a250f0c3f6229d3bf1d81d8fa1bc18776be81e578c047c4c2b02149f1fb4e",
+      "normal_executable_sha256": "b91ceabbb74b792cc5471446a2cecada6a1409f71f7c961486fa22fa2d0763ca",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "focused_ctest_log_sha256": "e9899381f5f96b7c6ac3404e81a8a807c96d692f35c21518e23af88ac2abd4fd",
+      "plan_sha256_before_receipt_update": "1bf9da9d990880b6d3f34388869a14252368add86615f7191aa63a438fde7291"
+    }
+  },
+  "limits": [
+    "Only the selected AC1027 TRACE four-corner profile in model-space ENTITIES and named AuthorityBlock BLOCKS is qualified. Other TRACE shapes, mixed-target sets, XDATA compositions and versions remain open.",
+    "This evidence checks parsed and emitted corner fields with the default extrusion; it does not qualify native rendering or general OCS/extrusion behavior.",
+    "Successful source/output transport does not prove complete document dependency closure or support-claim eligibility."
+  ],
+  "next": "Select another distinct code-1005 target type or mixed-target profile from a current source witness; preserve exact source binding, emitted identity, readback, refusal, rollback and retry gates."
+}
