@@ -13406,9 +13406,96 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
             && receipt.associativeNetworkActionClosureComplete
             && receipt.associativeNetworkDictionaryEntryClosureComplete;
 
+        struct DwgAssociativeEntityLocation {
+            const DRW_Entity* entity{nullptr};
+            const dx_ifaceBlock* block{nullptr};
+        };
+        std::unordered_map<std::uint32_t, DwgAssociativeEntityLocation>
+            associativeEntitiesByHandle;
+        bool associativeEntityInventoryComplete =
+            !data.typedEntityCaptureFailed && data.mBlock != nullptr;
+        std::size_t associativeEntityWork = 0u;
+        const auto indexAssociativeEntities =
+            [&](const dx_ifaceBlock* block) {
+                if (block == nullptr) {
+                    associativeEntityInventoryComplete = false;
+                    return;
+                }
+                for (const DRW_Entity* entity : block->ent) {
+                    if (associativeEntityWork
+                        >= kMaxAssociativeDwgOwnerChainWork) {
+                        receipt.constraintGroupGeometryDependencyLimitExceeded =
+                            true;
+                        associativeEntityInventoryComplete = false;
+                        return;
+                    }
+                    ++associativeEntityWork;
+                    if (entity == nullptr || entity->handle == 0u
+                        || entity->handle == DRW::NoHandle
+                        || !associativeEntitiesByHandle.emplace(
+                            entity->handle,
+                            DwgAssociativeEntityLocation{entity, block}).second)
+                        associativeEntityInventoryComplete = false;
+                }
+            };
+        indexAssociativeEntities(data.mBlock);
+        for (const dx_ifaceBlock* block : data.blocks) {
+            if (receipt.constraintGroupGeometryDependencyLimitExceeded)
+                break;
+            indexAssociativeEntities(block);
+        }
+        const auto hasOneReactorBacklink = [](
+                const DRW_Entity& entity, std::uint32_t handle) {
+            return std::count(entity.reactorHandles.begin(),
+                              entity.reactorHandles.end(), handle) == 1;
+        };
+        const auto hasAssociativeEntityOwnerRoute =
+            [&](const DwgAssociativeEntityLocation& location) {
+                if (location.entity == nullptr || location.block == nullptr)
+                    return false;
+                const DRW_Entity& entity = *location.entity;
+                if (location.block == data.mBlock) {
+                    if (entity.space != DRW::ModelSpace
+                        && entity.space != DRW::PaperSpace)
+                        return false;
+                    const std::string expectedName = layoutSymbolKey(
+                        entity.space == DRW::PaperSpace
+                            ? "*PAPER_SPACE" : "*MODEL_SPACE");
+                    if (entity.parentHandle == 0u
+                        || entity.parentHandle == DRW::NoHandle) {
+                        return blockRecordHandlesUnique
+                            && blockRecordControlMembershipComplete
+                            && std::count_if(
+                            blockRecordsByHandle.begin(),
+                            blockRecordsByHandle.end(),
+                            [&expectedName](const auto& entry) {
+                                return layoutSymbolKey(entry.second->name)
+                                    == expectedName;
+                            }) == 1;
+                    }
+                    const auto owner =
+                        blockRecordsByHandle.find(entity.parentHandle);
+                    return blockRecordHandlesUnique
+                        && blockRecordControlMembershipComplete
+                        && owner != blockRecordsByHandle.end()
+                        && layoutSymbolKey(owner->second->name)
+                            == expectedName;
+                }
+                if (entity.parentHandle == 0u
+                    || entity.parentHandle == DRW::NoHandle
+                    || location.block->parentHandle != entity.parentHandle
+                    || !blockRecordHandlesUnique
+                    || !blockRecordControlMembershipComplete)
+                    return false;
+                return blockRecordsByHandle.find(entity.parentHandle)
+                    != blockRecordsByHandle.end();
+            };
+
         bool actionListsComplete = true;
         bool actionTargetsComplete = true;
         bool constraintNodeGraphComplete = true;
+        bool constraintGeometryDependencyGraphComplete =
+            associativeEntityInventoryComplete;
         std::size_t constraintNodeGroupsAudited = 0u;
         for (std::size_t index = receipt.typedRange.begin;
              index < receipt.typedRange.end; ++index) {
@@ -13424,8 +13511,10 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 // AC1024 inline-node graph audit.
                 if (!group.m_constraintNodesParsed
                     || group.m_constraintNodeCount != 0
-                    || !group.m_constraintNodes.empty())
+                    || !group.m_constraintNodes.empty()) {
                     constraintNodeGraphComplete = false;
+                    constraintGeometryDependencyGraphComplete = false;
+                }
             } else if (!group.m_constraintGroupBodyParsed
                        || !group.m_constraintNodesParsed
                        || group.m_constraintNodeCount < 0
@@ -13433,6 +13522,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                               group.m_constraintNodeCount)
                            != group.m_constraintNodes.size()) {
                 constraintNodeGraphComplete = false;
+                constraintGeometryDependencyGraphComplete = false;
             } else {
                 const auto& nodes = group.m_constraintNodes;
                 if (nodes.size()
@@ -13511,6 +13601,267 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                                           .constraintGroupNodeUndirectedEdgesVerified;
                             }
                         }
+                    }
+
+                    std::unordered_set<std::uint32_t>
+                        uniqueGeometryDependencies;
+                    uniqueGeometryDependencies.reserve(nodes.size());
+                    for (const DRW_AssociativeConstraintNode& node : nodes) {
+                        if (node.m_geometryDependencyHandle == 0u) {
+                            if (node.m_hasGeometryDependency
+                                && node.m_geometryDependencyCode
+                                    != DRW::DwgSoftPointer)
+                                constraintGeometryDependencyGraphComplete =
+                                    false;
+                            continue;
+                        }
+                        if (!node.m_hasGeometryDependency
+                            || node.m_geometryDependencyCode
+                                != DRW::DwgSoftPointer
+                            || node.m_geometryDependencyHandle
+                                > std::numeric_limits<std::uint32_t>::max()
+                            || receipt.constraintGroupGeometryDependencyReferences
+                                >= kMaxAssociativeDwgConstraintNodeWork) {
+                            constraintGeometryDependencyGraphComplete = false;
+                            if (receipt.constraintGroupGeometryDependencyReferences
+                                >= kMaxAssociativeDwgConstraintNodeWork)
+                                receipt.constraintGroupGeometryDependencyLimitExceeded =
+                                    true;
+                            continue;
+                        }
+
+                        const std::uint32_t dependencyHandle =
+                            static_cast<std::uint32_t>(
+                                node.m_geometryDependencyHandle);
+                        ++receipt.constraintGroupGeometryDependencyReferences;
+                        if (dependencyHandle == 0u
+                            || dependencyHandle == DRW::NoHandle
+                            || !uniqueGeometryDependencies.insert(
+                                dependencyHandle).second) {
+                            constraintGeometryDependencyGraphComplete =
+                                false;
+                            continue;
+                        }
+
+                        const auto dependencyIt =
+                            byHandle.find(dependencyHandle);
+                        if (dependencyIt == byHandle.end()) {
+                            constraintGeometryDependencyGraphComplete =
+                                false;
+                            continue;
+                        }
+                        const DRW_AssociativeObject& dependency =
+                            *dependencyIt->second;
+                        if (!isRecord(dependency,
+                                      "ACDBASSOCGEOMDEPENDENCY",
+                                      "ASSOCGEOMDEPENDENCY")
+                            || dependency.parentHandle != group.handle
+                            || !hasCompletePrefix(
+                                dependency,
+                                DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency)
+                            || !hasCompletePrefix(
+                                dependency,
+                                DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency)) {
+                            constraintGeometryDependencyGraphComplete =
+                                false;
+                            continue;
+                        }
+                        ++receipt
+                              .constraintGroupGeometryDependencyTargetsVerified;
+
+                        const std::size_t groupActionReferences =
+                            static_cast<std::size_t>(std::count(
+                                group.m_constraintActions.begin(),
+                                group.m_constraintActions.end(),
+                                dependencyHandle));
+                        if (!group.m_constraintActionsParsed
+                            || groupActionReferences != 1u) {
+                            constraintGeometryDependencyGraphComplete =
+                                false;
+                        } else {
+                            ++receipt
+                                  .constraintGroupGeometryDependencyActionEdgesVerified;
+                        }
+
+                        ++receipt.constraintGroupDependentOnObjectReferences;
+                        const auto dependentOn =
+                            associativeEntitiesByHandle.find(
+                                dependency.m_dependencyHandle);
+                        if (dependency.m_dependencyHandle == 0u
+                            || dependency.m_dependencyHandle
+                                == DRW::NoHandle
+                            || dependentOn
+                                == associativeEntitiesByHandle.end()) {
+                            constraintGeometryDependencyGraphComplete =
+                                false;
+                        } else {
+                            const DwgAssociativeEntityLocation& location =
+                                dependentOn->second;
+                            ++receipt
+                                  .constraintGroupDependentOnObjectTargetsVerified;
+                            if (hasAssociativeEntityOwnerRoute(location))
+                                ++receipt
+                                      .constraintGroupDependentOnObjectOwnerRoutesVerified;
+                            else
+                                constraintGeometryDependencyGraphComplete =
+                                    false;
+                            if (hasOneReactorBacklink(
+                                    *location.entity, dependencyHandle))
+                                ++receipt
+                                      .constraintGroupDependentOnObjectReactorBacklinksVerified;
+                            else
+                                constraintGeometryDependencyGraphComplete =
+                                    false;
+                        }
+
+                        const auto auditDependencyLink =
+                            [&](std::uint32_t targetHandle,
+                                bool isReadDependency) {
+                                if (targetHandle == 0u)
+                                    return;
+                                if (isReadDependency)
+                                    ++receipt
+                                          .constraintGroupReadDependencyReferences;
+                                else
+                                    ++receipt
+                                          .constraintGroupNodeHandleReferences;
+                                if (targetHandle == DRW::NoHandle
+                                    || receipt
+                                           .constraintGroupDependencyLinkReferences
+                                        >= kMaxAssociativeDwgConstraintNodeWork) {
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                    if (receipt
+                                            .constraintGroupDependencyLinkReferences
+                                        >= kMaxAssociativeDwgConstraintNodeWork)
+                                        receipt
+                                            .constraintGroupGeometryDependencyLimitExceeded =
+                                            true;
+                                    return;
+                                }
+                                ++receipt
+                                      .constraintGroupDependencyLinkReferences;
+
+                                const auto targetObject =
+                                    byHandle.find(targetHandle);
+                                const auto targetEntity =
+                                    associativeEntitiesByHandle.find(
+                                        targetHandle);
+                                if (targetObject != byHandle.end()
+                                    && targetEntity
+                                        != associativeEntitiesByHandle.end()) {
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                    return;
+                                }
+                                if (targetObject != byHandle.end()) {
+                                    const DRW_AssociativeObject& linked =
+                                        *targetObject->second;
+                                    if (!isRecord(
+                                            linked,
+                                            "ACDBASSOCGEOMDEPENDENCY",
+                                            "ASSOCGEOMDEPENDENCY")
+                                        || linked.parentHandle != group.handle
+                                        || linked.m_dependencyHandle
+                                            != dependency.m_dependencyHandle
+                                        || !hasCompletePrefix(
+                                            linked,
+                                            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency)
+                                        || !hasCompletePrefix(
+                                            linked,
+                                            DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency)) {
+                                        constraintGeometryDependencyGraphComplete =
+                                            false;
+                                        return;
+                                    }
+                                    ++receipt
+                                          .constraintGroupDependencyLinkTargetsVerified;
+                                    const std::size_t linkedActionReferences =
+                                        static_cast<std::size_t>(std::count(
+                                            group.m_constraintActions.begin(),
+                                            group.m_constraintActions.end(),
+                                            targetHandle));
+                                    if (!group.m_constraintActionsParsed
+                                        || linkedActionReferences != 1u) {
+                                        constraintGeometryDependencyGraphComplete =
+                                            false;
+                                        return;
+                                    }
+                                    ++receipt
+                                          .constraintGroupDependencyLinkActionEdgesVerified;
+                                    const bool reciprocal = isReadDependency
+                                        ? linked.m_writeDependencyHandle
+                                            == dependency.handle
+                                        : linked.m_readDependencyHandle
+                                            == dependency.handle;
+                                    if (!reciprocal) {
+                                        constraintGeometryDependencyGraphComplete =
+                                            false;
+                                        return;
+                                    }
+                                    ++receipt
+                                          .constraintGroupDependencyLinkReciprocalEdgesVerified;
+                                    return;
+                                }
+                                if (targetEntity ==
+                                    associativeEntitiesByHandle.end()) {
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                    return;
+                                }
+                                const DwgAssociativeEntityLocation& location =
+                                    targetEntity->second;
+                                ++receipt
+                                      .constraintGroupDependencyLinkTargetsVerified;
+                                ++receipt
+                                      .constraintGroupDependencyLinkEntityTargetsVerified;
+                                if (hasAssociativeEntityOwnerRoute(location))
+                                    ++receipt
+                                          .constraintGroupDependencyLinkEntityOwnerRoutesVerified;
+                                else
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                if (hasOneReactorBacklink(
+                                        *location.entity,
+                                        dependencyHandle))
+                                    ++receipt
+                                          .constraintGroupDependencyLinkEntityReactorBacklinksVerified;
+                                else
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                if (!isReadDependency
+                                    || dependentOn
+                                        == associativeEntitiesByHandle.end())
+                                    return;
+                                const DRW_Insert* insert =
+                                    dynamic_cast<const DRW_Insert*>(
+                                        dependentOn->second.entity);
+                                if (insert == nullptr
+                                    || location.block == data.mBlock)
+                                    return;
+                                const std::uint32_t referencedBlockRecord =
+                                    insert->blockRecH.ref;
+                                if (referencedBlockRecord != 0u
+                                    && referencedBlockRecord != DRW::NoHandle
+                                    && location.entity->parentHandle
+                                        == referencedBlockRecord
+                                    && location.block->parentHandle
+                                        == referencedBlockRecord
+                                    && blockRecordHandlesUnique
+                                    && blockRecordsByHandle.find(
+                                           referencedBlockRecord)
+                                        != blockRecordsByHandle.end()) {
+                                    ++receipt
+                                          .constraintGroupNestedReadOwnerEdgesVerified;
+                                } else {
+                                    constraintGeometryDependencyGraphComplete =
+                                        false;
+                                }
+                            };
+                        auditDependencyLink(
+                            dependency.m_readDependencyHandle, true);
+                        auditDependencyLink(
+                            dependency.m_writeDependencyHandle, false);
                     }
 
                     std::unordered_map<std::int32_t, std::int32_t>
@@ -13668,6 +14019,41 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 == receipt.constraintGroupRigidSetMemberReferences
             && receipt.constraintGroupRigidSetOwnershipEdgesVerified
                 == receipt.constraintGroupRigidSetMemberReferences;
+        receipt.constraintGroupGeometryDependencyClosureComplete =
+            receipt.constraintGroupRecords > 0u
+            && constraintNodeGroupsAudited == receipt.constraintGroupRecords
+            && receipt.constraintGroupNodeGraphClosureComplete
+            && receipt.constraintGroupActionClosureComplete
+            && associativeEntityInventoryComplete
+            && constraintGeometryDependencyGraphComplete
+            && !receipt.constraintGroupGeometryDependencyLimitExceeded
+            && receipt.constraintGroupGeometryDependencyReferences > 0u
+            && receipt.constraintGroupGeometryDependencyTargetsVerified
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupGeometryDependencyActionEdgesVerified
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupDependentOnObjectReferences
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupDependentOnObjectTargetsVerified
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupDependentOnObjectOwnerRoutesVerified
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupDependentOnObjectReactorBacklinksVerified
+                == receipt.constraintGroupGeometryDependencyReferences
+            && receipt.constraintGroupDependencyLinkReferences
+                == receipt.constraintGroupReadDependencyReferences
+                    + receipt.constraintGroupNodeHandleReferences
+            && receipt.constraintGroupDependencyLinkTargetsVerified
+                == receipt.constraintGroupDependencyLinkReferences
+            && receipt.constraintGroupDependencyLinkActionEdgesVerified
+                == receipt.constraintGroupDependencyLinkReciprocalEdgesVerified
+            && receipt.constraintGroupDependencyLinkActionEdgesVerified
+                + receipt.constraintGroupDependencyLinkEntityTargetsVerified
+                == receipt.constraintGroupDependencyLinkReferences
+            && receipt.constraintGroupDependencyLinkEntityOwnerRoutesVerified
+                == receipt.constraintGroupDependencyLinkEntityTargetsVerified
+            && receipt.constraintGroupDependencyLinkEntityReactorBacklinksVerified
+                == receipt.constraintGroupDependencyLinkEntityTargetsVerified;
         if (receipt.dimensionDependencyBodies == 0u)
             return;
 
@@ -13755,6 +14141,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         receipt.selectedGraphEdgesComplete = false;
         receipt.constraintGroupActionClosureComplete = false;
         receipt.constraintGroupNodeGraphClosureComplete = false;
+        receipt.constraintGroupGeometryDependencyClosureComplete = false;
         receipt.associativeNetworkActionClosureComplete = false;
         receipt.associativeNetworkDictionaryEntryClosureComplete = false;
         receipt.associativeNetworkDictionaryOwnerChainsComplete = false;
@@ -41154,6 +41541,54 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << (receipt.constraintGroupNodeLimitExceeded ? 1 : 0)
                     << " constraintGroupNodeGraphClosureComplete="
                     << (receipt.constraintGroupNodeGraphClosureComplete ? 1 : 0)
+                    << " constraintGroupGeometryDependencyReferences="
+                    << receipt.constraintGroupGeometryDependencyReferences
+                    << " constraintGroupGeometryDependencyTargetsVerified="
+                    << receipt.constraintGroupGeometryDependencyTargetsVerified
+                    << " constraintGroupGeometryDependencyActionEdgesVerified="
+                    << receipt
+                           .constraintGroupGeometryDependencyActionEdgesVerified
+                    << " constraintGroupDependentOnObjectReferences="
+                    << receipt.constraintGroupDependentOnObjectReferences
+                    << " constraintGroupDependentOnObjectTargetsVerified="
+                    << receipt.constraintGroupDependentOnObjectTargetsVerified
+                    << " constraintGroupDependentOnObjectOwnerRoutesVerified="
+                    << receipt
+                           .constraintGroupDependentOnObjectOwnerRoutesVerified
+                    << " constraintGroupDependentOnObjectReactorBacklinksVerified="
+                    << receipt
+                           .constraintGroupDependentOnObjectReactorBacklinksVerified
+                    << " constraintGroupReadDependencyReferences="
+                    << receipt.constraintGroupReadDependencyReferences
+                    << " constraintGroupNodeHandleReferences="
+                    << receipt.constraintGroupNodeHandleReferences
+                    << " constraintGroupDependencyLinkReferences="
+                    << receipt.constraintGroupDependencyLinkReferences
+                    << " constraintGroupDependencyLinkTargetsVerified="
+                    << receipt.constraintGroupDependencyLinkTargetsVerified
+                    << " constraintGroupDependencyLinkActionEdgesVerified="
+                    << receipt
+                           .constraintGroupDependencyLinkActionEdgesVerified
+                    << " constraintGroupDependencyLinkReciprocalEdgesVerified="
+                    << receipt
+                           .constraintGroupDependencyLinkReciprocalEdgesVerified
+                    << " constraintGroupDependencyLinkEntityTargetsVerified="
+                    << receipt
+                           .constraintGroupDependencyLinkEntityTargetsVerified
+                    << " constraintGroupDependencyLinkEntityOwnerRoutesVerified="
+                    << receipt
+                           .constraintGroupDependencyLinkEntityOwnerRoutesVerified
+                    << " constraintGroupDependencyLinkEntityReactorBacklinksVerified="
+                    << receipt
+                           .constraintGroupDependencyLinkEntityReactorBacklinksVerified
+                    << " constraintGroupNestedReadOwnerEdgesVerified="
+                    << receipt.constraintGroupNestedReadOwnerEdgesVerified
+                    << " constraintGroupGeometryDependencyLimitExceeded="
+                    << (receipt.constraintGroupGeometryDependencyLimitExceeded
+                            ? 1 : 0)
+                    << " constraintGroupGeometryDependencyClosureComplete="
+                    << (receipt.constraintGroupGeometryDependencyClosureComplete
+                            ? 1 : 0)
                     << " associativeNetworkRecords="
                     << receipt.associativeNetworkRecords
                     << " associativeNetworkActionListsParsed="
