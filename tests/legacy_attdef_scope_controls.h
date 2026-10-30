@@ -62,7 +62,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {0,"APPID"},{5,"A3"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbBlockRepBTag"},{70,"0"},
         {0,"APPID"},{5,"A9D"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbBlockRepETag"},{70,"0"},
         {0,"APPID"},{5,"A9C"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbDynamicBlockTrueName"},{70,"0"},{0,"ENDTAB"},
-        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"4"},{0,"BLOCK_RECORD"}};
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"5"},{0,"BLOCK_RECORD"}};
     doc.insert(doc.end(),tableRow.begin(),tableRow.end());
     doc.insert(doc.end(),{{0,"BLOCK_RECORD"},{5,"C1"},{102,"{ACAD_XDICTIONARY"},{360,"D1"},{102,"}"},
         {330,"B9"},{100,"AcDbSymbolTableRecord"},
@@ -73,6 +73,9 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {0,"BLOCK_RECORD"},{5,"A91"},{102,"{ACAD_XDICTIONARY"},{360,"A92"},{102,"}"},
         {330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*U18"},{340,"0"},
         {102,"{BLKREFS"},{331,"E1"},{102,"}"},{1001,"AcDbBlockRepBTag"},{1070,"1"},{1005,"A7E"},
+        {0,"BLOCK_RECORD"},{5,"A96"},{102,"{ACAD_XDICTIONARY"},{360,"A98"},{102,"}"},
+        {330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*U19"},{340,"0"},
+        {1001,"AcDbBlockRepBTag"},{1070,"1"},{1005,"A7E"},
         {0,"BLOCK_RECORD"},{5,"A7E"},{102,"{ACAD_XDICTIONARY"},{360,"A7F"},{102,"}"},
         {330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*U17"},{340,"0"},
         {310,std::string(254,'A')},
@@ -108,6 +111,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         outputDoc.erase(first,end);return true;
     };
     if(!eraseRecord("BLOCK_RECORD","C1")||!eraseRecord("BLOCK_RECORD","A91")
+        ||!eraseRecord("BLOCK_RECORD","A96")
         ||!eraseRecord("BLOCK_RECORD","A7E")||!eraseRecord("DICTIONARY","D1")
         ||!eraseRecord("SORTENTSTABLE","D4")||!eraseRecord("DICTIONARY","D2")
         ||!eraseRecord("XRECORD","D3"))return false;
@@ -176,8 +180,9 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             ||!A::legacyBlockRecordAppIdJoinBound(appIdData)
             ||!A::legacyBlockRecordAppIdSingleJoinBound(appIdData)
             ||!A::legacyBlockRecordAppIdXdataJoinBound(appIdData)
+            ||!A::legacyBlockRecordAppIdRepeatedTargetJoinBound(appIdData)
             ||!A::legacyBlockRecordAppIdFourNameJoinBound(appIdData)
-            ||A::legacyBlockRecordAppIdJoinCount(appIdData)!=3u
+            ||A::legacyBlockRecordAppIdJoinCount(appIdData)!=4u
             ||!A::legacyBlockRecordAppIdQuotaControls(appIdData)
             ||A::legacyBlockRecordAppIdCaptureFailed(appIdData)) {
             std::cerr<<"selected AC1018 BLOCK_RECORD APPID source join failed (binary="<<binary<<") joins="
@@ -185,6 +190,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                 <<A::legacyBlockRecordAppIdCaptureFailed(appIdData)
                 <<" dual="<<A::legacyBlockRecordAppIdJoinBound(appIdData)
                 <<" btag="<<A::legacyBlockRecordAppIdXdataJoinBound(appIdData)
+                <<" repeated-btag="<<A::legacyBlockRecordAppIdRepeatedTargetJoinBound(appIdData)
                 <<" four="<<A::legacyBlockRecordAppIdFourNameJoinBound(appIdData)<<'\n';
             return false;
         }
@@ -228,6 +234,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             dx_data rejected;
             if(!invalid.fileImport(path.string(),&rejected,false)
                 ||!A::legacyBlockRecordAppIdXdataJoinAbsent(rejected)
+                ||(fault==8u&&!A::legacyBlockRecordAppIdRepeatedTargetJoinAbsent(rejected))
                 ||A::legacyBlockRecordAppIdCaptureFailed(rejected)) {
                 std::cerr<<"BLOCK_RECORD EED group-1005 dependency fault was admitted or capture failed: "
                     <<fault<<" (binary="<<binary<<")\n";return false;
@@ -243,6 +250,39 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                     <<fault<<" (binary="<<binary<<")\n";return false;
             }
             ++xdataRetries;
+        }
+        for(unsigned fault=0u;fault<4u;++fault) {
+            auto changed=doc;Probe invalid;
+            auto owner=findRecord(changed,"BLOCK_RECORD","A96");if(owner==changed.end())return false;
+            auto end=std::find_if(std::next(owner),changed.end(),[](const Tag& tag){return tag.code==0;});
+            auto target=std::find_if(std::next(owner),end,[](const Tag& tag){return tag.code==1005;});
+            if(end==changed.end()||target==end)return false;
+            if(fault==0u)target->value="A91";
+            else if(fault==1u)target->value="B0";
+            else if(fault==2u)changed.insert(end,*target);
+            else {
+                auto appId=std::find_if(std::next(owner),end,[](const Tag& tag){return tag.code==1001;});
+                if(appId==end)return false;appId->value="OTHER_APP";
+            }
+            if(!write(path,changed,binary)
+                ||!invalid.enableWholeDxfSourceObservation()
+                ||!invalid.enableLegacyDxfIdentityObservation())return false;
+            dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)
+                ||!A::legacyBlockRecordAppIdRepeatedTargetJoinAbsent(rejected)
+                ||!A::legacyBlockRecordAppIdXdataJoinBound(rejected)
+                ||A::legacyBlockRecordAppIdCaptureFailed(rejected)) {
+                std::cerr<<"BLOCK_RECORD repeated-target EED role fault was admitted or capture failed: "
+                    <<fault<<" (binary="<<binary<<")\n";return false;
+            }
+            if(!write(path,doc,binary))return false;
+            dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)
+                ||!A::legacyBlockRecordAppIdRepeatedTargetJoinBound(retry)
+                ||A::legacyBlockRecordAppIdCaptureFailed(retry)) {
+                std::cerr<<"BLOCK_RECORD repeated-target same-adapter retry failed: "
+                    <<fault<<" (binary="<<binary<<")\n";return false;
+            }
         }
         const std::array<std::string,4> fourNameHandles{{"A9D","A9C","A5","A6"}};
         for(const auto& providerHandle:fourNameHandles)for(unsigned fault=0u;fault<4u;++fault) {

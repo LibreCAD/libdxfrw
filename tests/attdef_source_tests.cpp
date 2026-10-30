@@ -334,6 +334,34 @@ public:
     static bool legacyBlockRecordAppIdXdataJoinAbsent(const dx_data& d,std::uint32_t ownerHandle=0xA91u) {
         return !d.m_tableDxfSource.legacyBlockRecordAppIdJoins.count(ownerHandle);
     }
+    static bool legacyBlockRecordAppIdRepeatedTargetJoinBound(const dx_data& d) {
+        using Join=dx_data::TableDxfSourceCapture::LegacyBlockRecordAppIdJoin;
+        if(!legacyBlockRecordAppIdXdataJoinBound(d,0xA91u,0xA3u,0xA7Eu)
+            ||!legacyBlockRecordAppIdXdataJoinBound(d,0xA96u,0xA3u,0xA7Eu))return false;
+        const auto& joins=d.m_tableDxfSource.legacyBlockRecordAppIdJoins;
+        const auto first=joins.find(0xA91u),second=joins.find(0xA96u);
+        if(first==joins.end()||second==joins.end()||!first->second||!second->second)return false;
+        const Join& a=*first->second;const Join& b=*second->second;
+        const auto recordName=[](const std::shared_ptr<const DRW_RawDxfObject>& raw) {
+            if(!raw)return std::string_view{};
+            for(const auto& group:raw->groups)if(group.code()==2&&group.type()==DRW_Variant::STRING
+                &&group.content.s)return std::string_view(*group.content.s);
+            return std::string_view{};
+        };
+        const auto aOwner=d.m_tableDxfSource.structuralInputs.find(0xA91u);
+        const auto bOwner=d.m_tableDxfSource.structuralInputs.find(0xA96u);
+        return a.ownerRecord!=b.ownerRecord&&a.ownerHandle==0xA91u&&b.ownerHandle==0xA96u
+            &&a.xdataObjectId.handle==0xA7Eu&&b.xdataObjectId.handle==0xA7Eu
+            &&a.xdataObjectId.targetRecord==b.xdataObjectId.targetRecord
+            &&a.xdataObjectId.targetRaw.get()==b.xdataObjectId.targetRaw.get()
+            &&a.xdataObjectId.targetModel.get()==b.xdataObjectId.targetModel.get()
+            &&aOwner!=d.m_tableDxfSource.structuralInputs.end()
+            &&bOwner!=d.m_tableDxfSource.structuralInputs.end()
+            &&recordName(aOwner->second->raw)=="*U18"&&recordName(bOwner->second->raw)=="*U19";
+    }
+    static bool legacyBlockRecordAppIdRepeatedTargetJoinAbsent(const dx_data& d) {
+        return legacyBlockRecordAppIdXdataJoinAbsent(d,0xA96u);
+    }
     static bool legacyBlockRecordAppIdFourNameJoinBound(const dx_data& d,std::uint32_t ownerHandle=0xA7Eu) {
         const auto& source=d.m_tableDxfSource;
         const auto found=source.legacyBlockRecordAppIdJoins.find(ownerHandle);
