@@ -1,0 +1,70 @@
+{
+  "schema": "ac1018-blockrecord-xdictionary-nested-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "daaa00e98a8ab577d703960b037328e6fca024c4",
+  "scope": "Private, opt-in AC1018 source capture for one BLOCK_RECORD XDICTIONARY root with an ACAD_SORTENTS entry and a nested AcDbBlockTableRecordData dictionary containing one Edit XRECORD. No graph closure, staged output, native semantics or support claim is promoted.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "The pinned GitHub blob was fetched and inspected as text. It was not copied into the repository or used as a local conversion fixture.",
+    "records": [
+      {
+        "record": "BLOCK_RECORD A0B",
+        "lineSpan": "[4597,4641)",
+        "roles": "360 -> A0C under ACAD_XDICTIONARY; explicit null 340; four BLKREFS/331 values D2F, A43, 13ED, 13EE; ACAD EED DesignCenter Data with 1070 values 1 and 4"
+      },
+      {
+        "record": "DICTIONARY A0C",
+        "lineSpan": "[35711,35731)",
+        "roles": "parent 330 A0B; ordered hard-owner entries ACAD_SORTENTS/360 A0D and AcDbBlockTableRecordData/360 1459"
+      },
+      {
+        "record": "SORTENTSTABLE A0D",
+        "lineSpan": "[37345,37361)",
+        "roles": "reactor and owner 330 A0C; AcDbSortentsTable subclass; block owner 330 A0B"
+      },
+      {
+        "record": "DICTIONARY 1459",
+        "lineSpan": "[37361,37383)",
+        "roles": "reactor and owner 330 A0C; one Edit hard-owner entry to XRECORD 145A"
+      },
+      {
+        "record": "XRECORD 145A",
+        "lineSpan": "[45027,45049)",
+        "roles": "reactor and owner 330 1459; AcDbXrecord cloning 1; ordered group-1070 payload [0,1,1]"
+      }
+    ]
+  },
+  "implementation": {
+    "selectedOwner": "The opt-in BLOCK_RECORD source profile, replayed typed model, resource model/raw pair, complete read context, unique whole-read identity record and its BLOCK_RECORD TABLE control are checked together. The profile's sole group-360 span must name the retained root handle, and the retained model's xDictHandle must agree.",
+    "tablePhysicalLimit": "The per-object physical-field observer does not publish scalar spans for TABLES records. The owner is tied to the whole-read physical record marker/table-control identity plus its same-read paired raw/profile capture; this receipt does not claim a byte offset for the BLOCK_RECORD group-360 scalar.",
+    "nestedSource": "The selected root DICTIONARY is checked against its ordered raw and typed entries. SORTENTSTABLE is checked for its reactor, owner, block-owner role and empty sort arrays. The nested DICTIONARY and XRECORD are checked for exact reactor/owner fields, entry identity and ordered payload. Root and child dictionary OBJECTS records retain their physical field spans and identity-census records.",
+    "captureAndLimits": "Descendant hard-owner edges and retained chain state use bounded maps and the 64 MiB byte/work caps. Capture is AC1018-only and requires explicit legacy identity observation. Ordinary imports remain opted out. The private join is not consumed by output eligibility or support reporting.",
+    "runtimeFixture": "tests/legacy_attdef_scope_controls.h authors the selected profile from scratch at runtime and writes ASCII and binary inputs in temporary storage. It uses synthetic handles C1 and D1-D4, an empty SORTENTSTABLE, the nested Edit dictionary and XRECORD payload [0,1,1]. No external fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "buildResult": "PASS; target built successfully after the final source changes.",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "testResult": "PASS 1/1 (0.67 s); runtime-generated ASCII and binary profiles; 12 nested dictionary/XRECORD faults, 8 SORTENTSTABLE faults and 4 BLOCK_RECORD owner/target faults all refuse and pass corrected same-adapter retry. Existing positive source joins and no-promotion assertions also pass.",
+    "diffCheck": "PASS git diff --check before the implementation commit.",
+    "implementationCommit": "daaa00e98a8ab577d703960b037328e6fca024c4"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "f7e952b39217d33cbc8c9541bbd4c7a2c3e28ae951051d707983aa6a5e7f75be",
+    "dwg2dxf/dx_iface.h": "994adc08fc1a6a6920290488113603bd6719d99246757b292ede6f4ba659a245",
+    "dwg2dxf/dx_iface.cpp": "e7761972faa4cadd93928e20d6c3773b67273646a7b3aa0da75a51ea87a1dc84",
+    "tests/attdef_source_tests.cpp": "6ca8d68b29e575eb872960ca187904135f97c49db91a00bea66a80b79790d5c8",
+    "tests/legacy_attdef_scope_controls.h": "138cf12a1d4fada7bbca36d78afadd71a6a7e1a52ce338ea3d7a9a0eab84e490"
+  },
+  "limits": [
+    "The external sample establishes an independently inspected field-role profile only; it is not an end-to-end libdxfrw test or independent semantic/native acceptance run.",
+    "The authored runtime profile is a selected source-capture control, not a complete original BODY, dependency graph, emitted-output or consumer-semantic proof.",
+    "Only the exact selected root/SortentsTable/nested-Dictionary/XRECORD shape is retained. Other entry names, owner roles, XRECORD payloads, versions and dependency compositions remain unmatched.",
+    "No generic resource, owner-target, recursive-closure or output gate consumes this join. Existing output evidence remains limited to the separate empty-child profile in RPP-5rf.",
+    "No DWG/DXF fixture was committed and no DRW_Interface virtual was added."
+  ]
+}
