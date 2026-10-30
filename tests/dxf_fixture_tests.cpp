@@ -52646,7 +52646,8 @@ void testDataLinkAdapterExport(TestContext& t) {
                                   {0x711u, 0x1711u},
                                   {0x720u, 0x1720u},
                                   {0x721u, 0x1721u},
-                                  {0x722u, 0x1722u}});
+                                  {0x722u, 0x1722u},
+                                  {0x723u, 0x1723u}});
         }
     };
 
@@ -52861,8 +52862,47 @@ void testDataLinkAdapterExport(TestContext& t) {
         attributeMetadata->m_tableStyle.m_type = 4;
         attributeContent.m_dxfMetadata = std::move(attributeMetadata);
         source.tableContents.push_back(std::move(attributeContent));
+        DRW_TableContentObject mixedContent;
+        mixedContent.handle = 0x723u;
+        mixedContent.m_parseComplete = true;
+        mixedContent.m_semanticContentComplete = true;
+        mixedContent.m_content.m_name = "mixed scalar and block content";
+        mixedContent.m_content.m_description = "scalar before block value";
+        mixedContent.m_content.m_columns.emplace_back();
+        mixedContent.m_content.m_columns.front().m_name = "Mixed";
+        DRW_TableRow mixedRow;
+        DRW_TableCell mixedCell;
+        DRW_TableCellContent prefixValue;
+        prefixValue.m_type = 1;
+        prefixValue.m_text = "scalar before block";
+        prefixValue.m_value.m_dataType = 4;
+        prefixValue.m_value.m_value.addString(1, prefixValue.m_text);
+        mixedCell.m_contents.push_back(prefixValue);
+        mixedCell.m_contents.push_back(blockValue);
+        DRW_TableCellAttribute mixedAttribute;
+        mixedAttribute.m_attdefHandle = attributeDefinition->handle;
+        mixedAttribute.m_index = 1;
+        mixedAttribute.m_text = "mixed cell attribute";
+        mixedAttribute.m_contentIndex = 1u;
+        mixedCell.m_attributes.push_back(mixedAttribute);
+        mixedRow.m_cells.push_back(mixedCell);
+        mixedContent.m_content.m_rows.push_back(mixedRow);
+        auto mixedMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        mixedMetadata->m_columns.resize(1u);
+        mixedMetadata->m_columns.front().m_style.m_type = 3;
+        mixedMetadata->m_rows.resize(1u);
+        mixedMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        mixedMetadata->m_rows.front().m_cells.resize(1u);
+        mixedMetadata->m_rows.front().m_cells.front().m_scope
+            .m_style.m_type = 1;
+        mixedMetadata->m_rows.front().m_cells.front()
+            .m_contentFormats.resize(2u);
+        mixedMetadata->m_tableStyle.m_type = 4;
+        mixedContent.m_dxfMetadata = std::move(mixedMetadata);
+        source.tableContents.push_back(std::move(mixedContent));
         source.standaloneTableContentPresent = true;
-        source.tableContentRetainedRecords = 3u;
+        source.tableContentRetainedRecords = 4u;
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -53172,7 +53212,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                 break;
         }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 3u
+                     && readback.tableContents.size() == 4u
                      && exactPointFields && exactDateFields
                      && exactContentFormatFields
                      && exactRichContentFormatFields,
@@ -53294,6 +53334,90 @@ void testDataLinkAdapterExport(TestContext& t) {
                  binary
                      ? "binary TABLECONTENT block cell emits exact remapped ATTDEF fields and reads back ownership"
                      : "ASCII TABLECONTENT block cell emits exact remapped ATTDEF fields and reads back ownership");
+        const DRW_TableContentObject* mixedContentReadback = nullptr;
+        for (const DRW_TableContentObject& value : readback.tableContents) {
+            if (value.handle == 0x1723u)
+                mixedContentReadback = &value;
+        }
+        std::size_t mixedBegin = outputFields.size();
+        std::size_t mixedEnd = outputFields.size();
+        for (std::size_t i = 0u; i + 1u < outputFields.size(); ++i) {
+            if (outputFields[i] == std::make_pair(0, std::string("TABLECONTENT"))
+                && outputFields[i + 1u]
+                    == std::make_pair(5, std::string("1723"))) {
+                mixedBegin = i + 1u;
+                mixedEnd = mixedBegin;
+                while (mixedEnd < outputFields.size()
+                    && outputFields[mixedEnd].first != 0)
+                    ++mixedEnd;
+                break;
+            }
+        }
+        std::size_t firstContentStart = outputFields.size();
+        std::size_t secondContentStart = outputFields.size();
+        if (mixedBegin < mixedEnd) {
+            for (std::size_t i = mixedBegin; i + 1u < mixedEnd; ++i) {
+                if (outputFields[i]
+                        != std::make_pair(302, std::string("CONTENT"))
+                    || outputFields[i + 1u]
+                        != std::make_pair(1,
+                            std::string("CELLCONTENT_BEGIN")))
+                    continue;
+                if (firstContentStart == outputFields.size())
+                    firstContentStart = i;
+                else {
+                    secondContentStart = i;
+                    break;
+                }
+            }
+        }
+        bool exactMixedContentOrder = firstContentStart < secondContentStart
+            && secondContentStart + 8u < mixedEnd
+            && integerFieldEquals(outputFields[firstContentStart + 2u], 90, 1)
+            && integerFieldEquals(outputFields[secondContentStart + 2u], 90, 4)
+            && handleFieldEquals(secondContentStart + 3u, 340,
+                emittedAttributeBlock == nullptr ? 0u
+                    : emittedAttributeBlock->parentHandle)
+            && integerFieldEquals(outputFields[secondContentStart + 4u], 91, 1)
+            && handleFieldEquals(secondContentStart + 5u, 330,
+                emittedAttributeDefinition == nullptr ? 0u
+                    : emittedAttributeDefinition->handle)
+            && outputFields[secondContentStart + 6u]
+                == std::make_pair(301, std::string("mixed cell attribute"))
+            && integerFieldEquals(outputFields[secondContentStart + 7u], 92, 1);
+        for (std::size_t i = firstContentStart + 3u;
+             exactMixedContentOrder && i < secondContentStart; ++i) {
+            if (outputFields[i]
+                == std::make_pair(1, std::string("scalar before block")))
+                break;
+            if (i + 1u == secondContentStart)
+                exactMixedContentOrder = false;
+        }
+        bool mixedContentTypedMatch = false;
+        if (mixedContentReadback != nullptr
+            && emittedAttributeBlock != nullptr
+            && emittedAttributeDefinition != nullptr) {
+            const DRW_TableCell& actualCell = mixedContentReadback->m_content
+                .m_rows.front().m_cells.front();
+            mixedContentTypedMatch = actualCell.m_contents.size() == 2u
+                && actualCell.m_contents[0].m_type == 1
+                && actualCell.m_contents[0].m_text
+                    == "scalar before block"
+                && actualCell.m_contents[1].m_type == 4
+                && actualCell.m_contents[1].m_handle
+                    == emittedAttributeBlock->parentHandle
+                && actualCell.m_attributes.size() == 1u
+                && actualCell.m_attributes.front().m_attdefHandle
+                    == emittedAttributeDefinition->handle
+                && actualCell.m_attributes.front().m_contentIndex == 1u
+                && actualCell.m_attributes.front().m_index == 1
+                && actualCell.m_attributes.front().m_text
+                    == "mixed cell attribute";
+        }
+        t.expect(exactMixedContentOrder && mixedContentTypedMatch,
+                 binary
+                     ? "binary TABLECONTENT preserves scalar then block content order and per-content ATTDEF reference"
+                     : "ASCII TABLECONTENT preserves scalar then block content order and per-content ATTDEF reference");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -53319,7 +53443,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
-        if (readback.tableContents.size() == 3u) {
+        if (readback.tableContents.size() == 4u) {
             const DRW_TableContentObject* linked = nullptr;
             const DRW_TableContentObject* plainText = nullptr;
             for (const DRW_TableContentObject& value : readback.tableContents) {

@@ -24937,18 +24937,23 @@ bool dx_iface::tableContentAttributeSourcesClosed(
         for (const DRW_TableCell& cell : row.m_cells) {
             if (cell.m_attributes.empty())
                 continue;
-            if (cell.m_contents.size() != 1u
+            if (cell.m_contents.empty() || cell.m_contents.size() > 2u
                 || cell.m_attributes.empty()
                 || cell.m_attributes.size() > 2u)
                 return false;
-            const DRW_TableCellContent& content = cell.m_contents.front();
+            const std::size_t contentIndex = cell.m_contents.size() - 1u;
+            if (contentIndex != 0u
+                && cell.m_contents.front().m_type != 1)
+                return false;
+            const DRW_TableCellContent& content =
+                cell.m_contents[contentIndex];
             if (content.m_type != 4 || content.m_handle == 0u
                 || content.m_handle == DRW::NoHandle)
                 return false;
             for (std::size_t index = 0; index < cell.m_attributes.size(); ++index) {
                 const DRW_TableCellAttribute& attribute =
                     cell.m_attributes[index];
-                if (attribute.m_contentIndex != 0u
+                if (attribute.m_contentIndex != contentIndex
                     || attribute.m_index != static_cast<int>(index + 1u)
                     || attribute.m_attdefHandle == 0u
                     || attribute.m_attdefHandle == DRW::NoHandle)

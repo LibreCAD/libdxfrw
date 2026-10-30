@@ -26008,15 +26008,28 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             return false;
         }
     };
+    const std::size_t textBytesBeforePlainContents = plainContentTextBytes;
     const bool plainScalarContents = !cell.m_hasLinkedData
         && !cell.m_contents.empty() && cell.m_contents.size() <= 10000u
         && std::all_of(cell.m_contents.begin(), cell.m_contents.end(),
                        plainScalarContentIsSupported);
-    const bool blockContentWithAttribute = [&]() {
-        if (cell.m_hasLinkedData || cell.m_contents.size() != 1u
+    std::size_t blockContentIndex = 0u;
+    const bool blockContentWithAttributes = [&]() {
+        if (cell.m_hasLinkedData || cell.m_contents.empty()
+            || cell.m_contents.size() > 2u
             || cell.m_attributes.empty() || cell.m_attributes.size() > 2u)
             return false;
-        const DRW_TableCellContent& content = cell.m_contents.front();
+        blockContentIndex = cell.m_contents.size() - 1u;
+        if (blockContentIndex != 0u) {
+            // The all-scalar probe above may have counted this prefix before
+            // rejecting the trailing block content. Recount it once for the
+            // selected mixed-content profile.
+            plainContentTextBytes = textBytesBeforePlainContents;
+            if (!plainScalarContentIsSupported(cell.m_contents.front()))
+                return false;
+        }
+        const DRW_TableCellContent& content =
+            cell.m_contents[blockContentIndex];
         const DRW_CadValue& value = content.m_value;
         if (content.m_type != 4 || content.m_handle == 0u
             || content.m_handle == DRW::NoHandle || !content.m_text.empty()
@@ -26031,7 +26044,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 cell.m_attributes[index];
             if (attribute.m_attdefHandle == 0u
                 || attribute.m_attdefHandle == DRW::NoHandle
-                || attribute.m_contentIndex != 0u
+                || attribute.m_contentIndex != blockContentIndex
                 || attribute.m_index != static_cast<int>(index + 1u)
                 || !safeText(attribute.m_text)
                 || plainContentTextBytes
@@ -26060,7 +26073,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
         || (!emptyLinkedCell && !plainScalarContents
-            && !blockContentWithAttribute)
+            && !blockContentWithAttributes)
         || (cell.m_hasLinkedData
             && (cell.m_dataLinkHandle == 0u
                 || cell.m_dataLinkHandle == DRW::NoHandle))
@@ -26084,7 +26097,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
         || cell.m_backgroundEnabled || cell.m_textAlignment != 0
         || cell.m_textHeight != 0.0
-        || (!plainScalarContents && !blockContentWithAttribute
+        || (!plainScalarContents && !blockContentWithAttributes
             && (!cell.m_attributes.empty() || !cell.m_contents.empty()))
         || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
                         defaultBorder)) {
@@ -26117,12 +26130,12 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     const std::uint32_t handle = remapObjectHandle(ent->handle);
     const std::uint32_t dataLinkHandle = cell.m_hasLinkedData
         ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
-    const std::uint32_t blockContentHandle = blockContentWithAttribute
-        ? remapObjectHandle(cell.m_contents.front().m_handle) : 0u;
-    bool blockContentReferencesClosed = !blockContentWithAttribute;
-    if (blockContentWithAttribute) {
+    const std::uint32_t blockContentHandle = blockContentWithAttributes
+        ? remapObjectHandle(cell.m_contents[blockContentIndex].m_handle) : 0u;
+    bool blockContentReferencesClosed = !blockContentWithAttributes;
+    if (blockContentWithAttributes) {
         const auto blockRecord = m_sourceBlockRecordHandles.find(
-            cell.m_contents.front().m_handle);
+            cell.m_contents[blockContentIndex].m_handle);
         blockContentReferencesClosed =
             blockRecord != m_sourceBlockRecordHandles.end()
             && blockRecord->second == blockContentHandle;
@@ -26145,7 +26158,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || isDxfFixedOutputHandle(handle)
         || (cell.m_hasLinkedData
             && (dataLinkHandle == 0u || dataLinkHandle == DRW::NoHandle))
-        || (blockContentWithAttribute
+        || (blockContentWithAttributes
             && (blockContentHandle == 0u
                 || blockContentHandle == DRW::NoHandle
                 || !blockContentReferencesClosed))
@@ -26302,7 +26315,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     if (!writer->writeInt32(95,
                 static_cast<std::int32_t>(cell.m_contents.size())))
         return failDxfWrite();
-    if (plainScalarContents || blockContentWithAttribute) {
+    if (plainScalarContents || blockContentWithAttributes) {
         for (std::size_t index = 0; index < cell.m_contents.size(); ++index) {
             const auto* contentFormat = contentFormats
                 ? (*contentFormats)[index].get() : nullptr;
