@@ -36,16 +36,15 @@ using that count as proof of completeness. Preserve the authorities in
 ## Execution queue
 
 This is an open-work queue. Completed implementations and their evidence stay in
-Git history and `docs/research/`; do not restate them here. “Phase open” means its
-remaining scope below still blocks that phase's exit gate, even when several
-subtasks are already complete.
+Git history and `docs/research/`; do not restate them here. A phase remains open
+only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P2 | OPEN | Close only source-witnessed MLINESTYLE, LTYPE/XDATA and MLEADERSTYLE losses that remain after current passing profiles are excluded. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
-| P5 | OPEN | Close remaining rendering metadata, FIELD/FIELDLIST, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
+| P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -154,10 +153,12 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **FIELD:** finish profiles beyond the simple childless FIELD and string-scalar
-   grid route: FIELDLIST/child graphs and additional source/version forms. Reuse
-   the rooted reference planner and handle remapping; preserve unsupported
-   compositions with explicit refusal.
+1. **FIELDLIST and remaining FIELD profiles:** implement only remaining FIELDLIST
+   membership and child/object graphs, or other source/version body and value
+   profiles when an independent source or consumer witness identifies the missing
+   behavior. Reuse the rooted reference planner and handle remapping; preserve
+   unsupported compositions with explicit refusal. Native expression evaluation
+   and TABLE rendering remain separate semantic qualifications.
 2. **Block geometry payloads:** find an independent source or consumer witness,
    bind the exact field layout and semantics, and implement only that witnessed
    profile. Keep unsupported geometry payloads refused while preserving current
