@@ -31760,11 +31760,16 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
                                              bool faceBlockTarget=false,
                                              bool solidBlockTarget=false,
                                              bool threeDLineModelTarget=false,
-                                             bool meshBlockTarget=false) {
-    if((traceModelTarget&&threeDLineModelTarget)
+                                             bool meshBlockTarget=false,
+                                             bool meshModelTarget=false,
+                                             bool threeDLineBlockTarget=false) {
+    if(static_cast<unsigned>(traceModelTarget)
+            +static_cast<unsigned>(threeDLineModelTarget)
+            +static_cast<unsigned>(meshModelTarget)>1u
         ||static_cast<unsigned>(faceBlockTarget)
             +static_cast<unsigned>(solidBlockTarget)
-            +static_cast<unsigned>(meshBlockTarget)>1u)
+            +static_cast<unsigned>(meshBlockTarget)
+            +static_cast<unsigned>(threeDLineBlockTarget)>1u)
         throw std::runtime_error("invalid mixed-section target profile");
     auto fields=sourceWithManyEntityHandleXdata(binary,{"A900","A901"});
     bool inEntities=false,entityRemoved=false;
@@ -31828,6 +31833,12 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
                 {11,"101.5"},{21,"2"},{31,"0"},
                 {12,"101.5"},{22,"3"},{32,"0"},
                 {13,"100.5"},{23,"3"},{33,"0"}}
+            :threeDLineBlockTarget
+            ?Tags{{0,"3DLINE"},{5,"A901"},{330,"203"},
+                {100,"AcDbEntity"},{8,"0"},
+                {10,"1.5"},{20,"-2"},{30,"3.25"},
+                {11,"4.5"},{21,"5.5"},{31,"-6.5"},
+                {39,"0.75"},{210,"0"},{220,"1"},{230,"0"}}
             :meshBlockTarget
             ?Tags{{0,"MESH"},{5,"A901"},{330,"203"},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbSubDMesh"},
@@ -31848,7 +31859,7 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
     }
     if(!blockInserted)
         throw std::runtime_error("mixed-section AuthorityBlock missing");
-    if(traceModelTarget||threeDLineModelTarget) {
+    if(traceModelTarget||threeDLineModelTarget||meshModelTarget) {
         bool traceInserted=false;
         inEntities=false;
         for(std::size_t i=0u;i<fields.size();++i) {
@@ -31872,6 +31883,15 @@ Tags sourceWithMixedSectionEntityHandleXdata(bool binary,
                     {10,"1.5"},{20,"-2"},{30,"3.25"},
                     {11,"4.5"},{21,"5.5"},{31,"-6.5"},
                     {39,"0.75"},{210,"0"},{220,"1"},{230,"0"}}
+                :meshModelTarget
+                ?Tags{{0,"MESH"},{5,"A900"},{330,"201"},
+                    {100,"AcDbEntity"},{8,"0"},{100,"AcDbSubDMesh"},
+                    {71,"2"},{72,"1"},{91,"2"},{92,"3"},
+                    {10,"1"},{20,"2"},{30,"3"},
+                    {10,"4"},{20,"2"},{30,"6"},
+                    {10,"4"},{20,"5"},{30,"9"},
+                    {93,"4"},{90,"3"},{90,"0"},{90,"1"},{90,"2"},
+                    {94,"0"},{95,"0"},{90,"0"}}
                 :Tags{{0,"TRACE"},{5,"A900"},{330,"201"},
                     {100,"AcDbEntity"},{8,"0"},{100,"AcDbTrace"},
                     {10,"1"},{20,"2"},{30,"3"},
@@ -32627,7 +32647,8 @@ bool mixedSectionEntityHandleProviderProof(
         const std::filesystem::path& path,bool binary,bool requireRemap,
         bool traceModelTarget=false,bool faceBlockTarget=false,
         bool solidBlockTarget=false,bool threeDLineModelTarget=false,
-        bool meshBlockTarget=false) {
+        bool meshBlockTarget=false,bool meshModelTarget=false,
+        bool threeDLineBlockTarget=false) {
     if(!providerProof(path,binary))return false;
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     const auto value=[](const auto& row,int code) {
@@ -32697,7 +32718,26 @@ bool mixedSectionEntityHandleProviderProof(
                 ||row.id.empty()||!blockRecords.emplace(nameKey,row.id).second)
                 return false;
         }
-        if(threeDLineModelTarget&&row.type=="3DLINE"
+        if(meshModelTarget&&row.type=="MESH"
+            &&realValuesMatch(row,10,{1.0,4.0,4.0})
+            &&realValuesMatch(row,20,{2.0,2.0,5.0})
+            &&realValuesMatch(row,30,{3.0,6.0,9.0})
+            &&integerValuesMatch(row,71,{2})
+            &&integerValuesMatch(row,72,{1})
+            &&integerValuesMatch(row,91,{2})
+            &&integerValuesMatch(row,92,{3})
+            &&integerValuesMatch(row,93,{4})
+            &&integerValuesMatch(row,90,{3,0,1,2,0})
+            &&integerValuesMatch(row,94,{0})
+            &&integerValuesMatch(row,95,{0})) {
+            std::vector<std::string> subclasses;
+            for(const auto& field:row.fields)
+                if(field.first==100)subclasses.push_back(field.second);
+            if(subclasses!=std::vector<std::string>{
+                    "AcDbEntity","AcDbSubDMesh"}
+                ||modelLine!=nullptr)return false;
+            modelLine=&row;
+        } else if(threeDLineModelTarget&&row.type=="3DLINE"
             &&realValue(row,10,1.5)&&realValue(row,20,-2.0)
             &&realValue(row,30,3.25)&&realValue(row,11,4.5)
             &&realValue(row,21,5.5)&&realValue(row,31,-6.5)
@@ -32720,13 +32760,14 @@ bool mixedSectionEntityHandleProviderProof(
             if(modelLine!=nullptr)return false;
             modelLine=&row;
         } else if(!traceModelTarget&&!threeDLineModelTarget
+            &&!meshModelTarget
             &&row.type=="LINE"
             &&realValue(row,10,1.25)&&realValue(row,20,0.0)) {
             if(modelLine!=nullptr)return false;
             modelLine=&row;
         }
         const bool matchingBlockLine=!faceBlockTarget&&!solidBlockTarget
-            &&!meshBlockTarget&&row.type=="LINE"
+            &&!meshBlockTarget&&!threeDLineBlockTarget&&row.type=="LINE"
             &&realValue(row,10,100.5)&&realValue(row,20,2.0);
         const bool matchingBlockFace=faceBlockTarget&&row.type=="3DFACE"
             &&realValue(row,10,100.5)&&realValue(row,20,2.0)
@@ -32754,8 +32795,15 @@ bool mixedSectionEntityHandleProviderProof(
             &&integerValuesMatch(row,90,{3,0,1,2,0})
             &&integerValuesMatch(row,94,{0})
             &&integerValuesMatch(row,95,{0});
+        const bool matchingBlock3DLine=threeDLineBlockTarget
+            &&row.type=="3DLINE"&&realValue(row,10,1.5)
+            &&realValue(row,20,-2.0)&&realValue(row,30,3.25)
+            &&realValue(row,11,4.5)&&realValue(row,21,5.5)
+            &&realValue(row,31,-6.5)&&realValue(row,39,0.75)
+            &&realValue(row,210,0.0)&&realValue(row,220,1.0)
+            &&realValue(row,230,0.0);
         if(matchingBlockLine||matchingBlockFace||matchingBlockSolid
-            ||matchingBlockMesh) {
+            ||matchingBlockMesh||matchingBlock3DLine) {
             if(matchingBlockFace) {
                 std::vector<std::string> subclasses;
                 for(const auto& field:row.fields)
@@ -32863,13 +32911,31 @@ bool mixedSectionEntityHandleProviderProof(
     const auto model=std::find_if(actual.mBlock->ent.begin(),
         actual.mBlock->ent.end(),[&](const DRW_Entity* entity) {
             return entity!=nullptr
-                &&entity->eType==(threeDLineModelTarget?DRW::THREEDLINE
+                &&entity->eType==(meshModelTarget?DRW::MESH
+                    :threeDLineModelTarget?DRW::THREEDLINE
                     :traceModelTarget?DRW::DXF_TRACE:DRW::LINE)
                 &&entity->handle==std::stoul(modelLine->id,nullptr,16);
         });
     if(model==actual.mBlock->ent.end()
         ||(*model)->parentHandle!=modelOwner)return false;
-    if(threeDLineModelTarget) {
+    if(meshModelTarget) {
+        const auto* typedModel=dynamic_cast<const DRW_Mesh*>(*model);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Mesh)
+            ||typedModel->parentHandle!=modelOwner||typedModel->version!=2u
+            ||!typedModel->blendCrease||typedModel->subdivisionLevel!=2
+            ||typedModel->vertices.size()!=3u
+            ||typedModel->faces!=std::vector<std::vector<std::int32_t>>{{0,1,2}}
+            ||!typedModel->edges.empty()||!typedModel->creases.empty()
+            ||!typedModel->propertyOverrides.empty())return false;
+        const std::array<DRW_Coord,3> expected{{
+            DRW_Coord(1.0,2.0,3.0),DRW_Coord(4.0,2.0,6.0),
+            DRW_Coord(4.0,5.0,9.0)}};
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& vertex=typedModel->vertices[i];
+            if(vertex.x!=expected[i].x||vertex.y!=expected[i].y
+                ||vertex.z!=expected[i].z)return false;
+        }
+    } else if(threeDLineModelTarget) {
         const auto* typedModel=dynamic_cast<const DRW_3DLine*>(*model);
         if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_3DLine)
             ||typedModel->parentHandle!=modelOwner
@@ -32908,7 +32974,8 @@ bool mixedSectionEntityHandleProviderProof(
             return entity!=nullptr
                 &&entity->eType==(faceBlockTarget?DRW::E3DFACE
                     :solidBlockTarget?DRW::SOLID
-                    :meshBlockTarget?DRW::MESH:DRW::LINE)
+                    :meshBlockTarget?DRW::MESH
+                    :threeDLineBlockTarget?DRW::THREEDLINE:DRW::LINE)
                 &&entity->handle==std::stoul(blockLine->id,nullptr,16);
         });
     if(target==(*named)->ent.end()
@@ -32930,6 +32997,16 @@ bool mixedSectionEntityHandleProviderProof(
             if(vertex.x!=expected[i].x||vertex.y!=expected[i].y
                 ||vertex.z!=expected[i].z)return false;
         }
+    } else if(threeDLineBlockTarget) {
+        const auto* typedBlock=dynamic_cast<const DRW_3DLine*>(*target);
+        if(typedBlock==nullptr||typeid(*typedBlock)!=typeid(DRW_3DLine)
+            ||typedBlock->parentHandle!=namedOwner
+            ||typedBlock->basePoint.x!=1.5||typedBlock->basePoint.y!=-2.0
+            ||typedBlock->basePoint.z!=3.25||typedBlock->secPoint.x!=4.5
+            ||typedBlock->secPoint.y!=5.5||typedBlock->secPoint.z!=-6.5
+            ||typedBlock->thickness!=0.75||typedBlock->extPoint.x!=0.0
+            ||typedBlock->extPoint.y!=1.0||typedBlock->extPoint.z!=0.0)
+            return false;
     } else if(faceBlockTarget) {
         const auto* face=dynamic_cast<const DRW_3Dface*>(*target);
         if(face==nullptr||typeid(*face)!=typeid(DRW_3Dface)
@@ -37183,12 +37260,15 @@ bool runTemporary() {
     const auto runMixedTargetProfile=[&](
             bool traceModelTarget,bool faceBlockTarget,bool solidBlockTarget,
             const char* profileName,const std::vector<DRW::ETYPE>& targetTypes,
-            bool threeDLineModelTarget,bool meshBlockTarget) {
-        const auto modelType=threeDLineModelTarget?DRW::THREEDLINE
+            bool threeDLineModelTarget,bool meshBlockTarget,
+            bool meshModelTarget,bool threeDLineBlockTarget) {
+        const auto modelType=meshModelTarget?DRW::MESH
+            :threeDLineModelTarget?DRW::THREEDLINE
             :traceModelTarget?DRW::DXF_TRACE:DRW::LINE;
         const auto blockType=faceBlockTarget?DRW::E3DFACE
             :solidBlockTarget?DRW::SOLID
-            :meshBlockTarget?DRW::MESH:DRW::LINE;
+            :meshBlockTarget?DRW::MESH
+            :threeDLineBlockTarget?DRW::THREEDLINE:DRW::LINE;
         const auto typedProof=[&](const dx_iface& adapter) {
             return DxIfaceMaterialReferenceTestAccess::
                 mlineLinetypeProofBound(adapter,0x103u)
@@ -37203,12 +37283,14 @@ bool runTemporary() {
                 if(!write(input,sourceWithMixedSectionEntityHandleXdata(
                                sourceBinary,traceModelTarget,faceBlockTarget,
                                solidBlockTarget,threeDLineModelTarget,
-                               meshBlockTarget),
+                               meshBlockTarget,meshModelTarget,
+                               threeDLineBlockTarget),
                           sourceBinary,"AC1027")
                     ||!mixedSectionEntityHandleProviderProof(
                         input,sourceBinary,false,traceModelTarget,
                         faceBlockTarget,solidBlockTarget,
-                        threeDLineModelTarget,meshBlockTarget)
+                        threeDLineModelTarget,meshBlockTarget,
+                        meshModelTarget,threeDLineBlockTarget)
                     ||!adapter.fileImport(input.string(),&data,false)
                     ||data.mBlock==nullptr) {
                     std::cerr<<"mixed "<<profileName
@@ -37229,7 +37311,24 @@ bool runTemporary() {
                              <<" model target binding failed: "
                              <<sourceBinary<<'\n';return false;
                 }
-                if(threeDLineModelTarget) {
+                if(meshModelTarget) {
+                    const auto* mesh=dynamic_cast<const DRW_Mesh*>(*model);
+                    if(mesh==nullptr||typeid(*mesh)!=typeid(DRW_Mesh)
+                        ||mesh->version!=2u||!mesh->blendCrease
+                        ||mesh->subdivisionLevel!=2||mesh->vertices.size()!=3u
+                        ||mesh->faces
+                            !=std::vector<std::vector<std::int32_t>>{{0,1,2}}
+                        ||!mesh->edges.empty()||!mesh->creases.empty()
+                        ||!mesh->propertyOverrides.empty())return false;
+                    const std::array<DRW_Coord,3> expected{{
+                        DRW_Coord(1.0,2.0,3.0),DRW_Coord(4.0,2.0,6.0),
+                        DRW_Coord(4.0,5.0,9.0)}};
+                    for(std::size_t i=0u;i<expected.size();++i) {
+                        const auto& vertex=mesh->vertices[i];
+                        if(vertex.x!=expected[i].x||vertex.y!=expected[i].y
+                            ||vertex.z!=expected[i].z)return false;
+                    }
+                } else if(threeDLineModelTarget) {
                     const auto* line=dynamic_cast<const DRW_3DLine*>(*model);
                     if(line==nullptr||typeid(*line)!=typeid(DRW_3DLine)
                         ||line->basePoint.x!=1.5||line->basePoint.y!=-2.0
@@ -37292,6 +37391,15 @@ bool runTemporary() {
                         if(vertex.x!=expected[i].x||vertex.y!=expected[i].y
                             ||vertex.z!=expected[i].z)return false;
                     }
+                } else if(threeDLineBlockTarget) {
+                    const auto* line=dynamic_cast<const DRW_3DLine*>(*blockTarget);
+                    if(line==nullptr||typeid(*line)!=typeid(DRW_3DLine)
+                        ||line->basePoint.x!=1.5||line->basePoint.y!=-2.0
+                        ||line->basePoint.z!=3.25||line->secPoint.x!=4.5
+                        ||line->secPoint.y!=5.5||line->secPoint.z!=-6.5
+                        ||line->thickness!=0.75||line->extPoint.x!=0.0
+                        ||line->extPoint.y!=1.0||line->extPoint.z!=0.0)
+                        return false;
                 } else if(faceBlockTarget) {
                     const auto* face=dynamic_cast<const DRW_3Dface*>(*blockTarget);
                     if(face==nullptr||typeid(*face)!=typeid(DRW_3Dface)
@@ -37324,7 +37432,8 @@ bool runTemporary() {
                     ||!mixedSectionEntityHandleProviderProof(
                         output,outputBinary,true,traceModelTarget,
                         faceBlockTarget,solidBlockTarget,
-                        threeDLineModelTarget,meshBlockTarget)
+                        threeDLineModelTarget,meshBlockTarget,
+                        meshModelTarget,threeDLineBlockTarget)
                     ||!typedProof(adapter)) {
                     std::cerr<<"mixed "<<profileName
                              <<" XDATA output proof failed: "
@@ -37363,7 +37472,8 @@ bool runTemporary() {
                         ||!mixedSectionEntityHandleProviderProof(
                             output,outputBinary,true,traceModelTarget,
                             faceBlockTarget,solidBlockTarget,
-                            threeDLineModelTarget,meshBlockTarget)
+                            threeDLineModelTarget,meshBlockTarget,
+                            meshModelTarget,threeDLineBlockTarget)
                         ||!typedProof(adapter)) {
                         std::cerr<<"mixed "<<profileName<<' '<<role
                                  <<" same-adapter retry failed: "
@@ -37386,7 +37496,8 @@ bool runTemporary() {
             if(!write(input,sourceWithMixedSectionEntityHandleXdata(
                            false,traceModelTarget,faceBlockTarget,
                            solidBlockTarget,threeDLineModelTarget,
-                           meshBlockTarget),
+                           meshBlockTarget,meshModelTarget,
+                           threeDLineBlockTarget),
                       false,"AC1027")
                 ||!adapter.fileImport(input.string(),&data,false)
                 ||!DxIfaceMaterialReferenceTestAccess::
@@ -37427,7 +37538,8 @@ bool runTemporary() {
                                    &data,false,true)
                 ||!mixedSectionEntityHandleProviderProof(
                     output,false,true,traceModelTarget,faceBlockTarget,
-                    solidBlockTarget,threeDLineModelTarget,meshBlockTarget)
+                    solidBlockTarget,threeDLineModelTarget,meshBlockTarget,
+                    meshModelTarget,threeDLineBlockTarget)
                 ||!typedProof(adapter)) {
                 std::cerr<<"mixed "<<profileName
                          <<" late-mutation retry failed\n";
@@ -37438,13 +37550,15 @@ bool runTemporary() {
         return true;
     };
     if(!runMixedTargetProfile(true,false,false,"TRACE/LINE",
-            {DRW::DXF_TRACE,DRW::LINE},false,false)
+            {DRW::DXF_TRACE,DRW::LINE},false,false,false,false)
         ||!runMixedTargetProfile(false,true,false,"LINE/3DFACE",
-            {DRW::LINE,DRW::E3DFACE},false,false)
+            {DRW::LINE,DRW::E3DFACE},false,false,false,false)
         ||!runMixedTargetProfile(true,false,true,"TRACE/SOLID",
-            {DRW::DXF_TRACE,DRW::SOLID},false,false)
+            {DRW::DXF_TRACE,DRW::SOLID},false,false,false,false)
         ||!runMixedTargetProfile(false,false,false,"3DLINE/MESH",
-            {DRW::THREEDLINE,DRW::MESH},true,true))return false;
+            {DRW::THREEDLINE,DRW::MESH},true,true,false,false)
+        ||!runMixedTargetProfile(false,false,false,"MESH/3DLINE",
+            {DRW::MESH,DRW::THREEDLINE},false,false,true,true))return false;
     const std::vector<std::uint32_t> circleTargetHandles{0xA900u};
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         dx_iface adapter;dx_data data;
@@ -38512,7 +38626,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==364u&&readbacks==832u&&refusals==468u&&retries==468u;
+    return profiles==368u&&readbacks==845u&&refusals==477u&&retries==477u;
 }
 
 bool runBudgetTemporary() {
