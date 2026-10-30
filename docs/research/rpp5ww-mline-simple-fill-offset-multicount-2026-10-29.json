@@ -1,0 +1,119 @@
+{
+  "id": "RPP-5ww",
+  "title": "AC1027 simple MLINE group-42 offset projection across selected element counts",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "implementation_commit": "23f06e63eb3c22d472f60b2e3fc80a7fc41d24b6",
+  "scope": {
+    "version": "AC1027",
+    "route": "Direct same-count edit of one source-bound consumed MLINESTYLE, with simple two-value group-42 arrays on every vertex and element.",
+    "selected_source_counts": [
+      2,
+      3,
+      8,
+      255
+    ],
+    "selected_flag_count_profiles": {
+      "2": [
+        1,
+        5,
+        9,
+        13
+      ],
+      "3": [
+        1,
+        5,
+        9,
+        13
+      ],
+      "8": [
+        13
+      ],
+      "255": [
+        13
+      ]
+    },
+    "selected_vertices": {
+      "2-element baseline": [
+        2,
+        3,
+        4
+      ],
+      "3-element profile": [
+        3
+      ],
+      "8-element profile": [
+        3
+      ],
+      "255-element profile": [
+        3
+      ]
+    },
+    "encoding_matrix": "Each selected positive count/flag profile crosses ASCII and binary input with ASCII and binary output.",
+    "runtime_fixture": "The regression generator authors AC1027 DXF inputs from scratch under a temporary directory. No DWG/DXF fixture file was added to Git."
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "rules": {
+      "group75": "Declares the number of area-fill parameters for the current MLINE element at each vertex.",
+      "group42": "Carries the ordered area-fill parameter values; Autodesk defines their parameterization identically to group 41.",
+      "projection": "For this selected two-value uncut profile, apply the verified group-41 miter-distance projection to the corresponding group-42 first value and retain the zero along-element offset.",
+      "limitation": "This field rule does not independently qualify native rendering or arbitrary fill-boundary regeneration."
+    }
+  },
+  "implementation": {
+    "admission": "The AC1027 simple-fill offset path now accepts equal source and target style counts from 2 through 255 when every source vertex carries exactly one two-value group-42 pair per style element, flags are 1/5/9/13, vertices number 2 through 4, and the existing open/uncut geometry, source identity and transaction checks pass. Count 2 remains covered by RPP-5we. Other versions, changed counts, retargets, append/removal, closed/unknown flags, and non-simple fill profiles remain outside this admission.",
+    "projection": "The selected multi-count profiles change only the final ordered style offset by +0.25. Every corresponding group-41 and group-42 first parameter is checked against the output geometry; each second parameter remains zero. The style count and all MLINE group-75 counts remain exact.",
+    "physicalAndReadbackProof": "Both source consumers (ENTITIES and BLOCKS) are checked. Physical output verifies ordered style offsets, consumer flags and counts, all group-41 values, group-75 counts and group-42 values. Fresh typed readback verifies style element values and per-vertex segment/fill arrays. The selected cross-product covers ASCII/binary input and output.",
+    "failureAndRetry": "The existing group-42 cut-interval and inconsistent-source refusals remain covered. At count 255, a late mutation of the last fill parameter during ENTITIES emission fails without replacing the existing destination. Restoring the captured caller state and retrying through the same adapter succeeds with exact physical output and readback.",
+    "testCounts": {
+      "positiveProfilesIncludingCount2Baseline": 72,
+      "newMultiElementProfiles": 24,
+      "successfulReadbacksIncludingRetry": 81,
+      "refusals": 9,
+      "lateMutationRefusals": 1,
+      "sameAdapterRetries": 9
+    }
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalCohort": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_fill_parameter_profiles|libdxfrw_mline_consumed_offset_projection|libdxfrw_mline_consumed_offset_cap_flags)$' --output-on-failure",
+      "result": "PASS 3/3 (7.19 s)"
+    },
+    "normalRuntimeCounts": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-fill-parameter-profiles",
+      "result": "PASS; 72 projections including 24 multi-element profiles; 9 refusals; 9 retries; 81 readbacks; one late-mutation refusal"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanSelector": {
+      "command": "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --mline-fill-parameter-profiles",
+      "result": "PASS (exit 0; same focused runtime counts)"
+    },
+    "diffCheck": "PASS git diff --check before code commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "0c604845f3b9ae9197eb6988a083e4876d3fb7336bec0eaf7eff9a9bad2c835f",
+    "tests/dxf_fixture_tests.cpp": "7d98e87bb001b3789882a071770f6c819523aa0ea15402035cde5f964967194b",
+    "normalExecutableSha256": "8624b36cbeeb3643d48c7833b98aac07f69cc4f5a38b60c669f9169acb4e1fa1",
+    "normalCMakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+    "normalCompiler": "/usr/bin/g++",
+    "asanExecutableSha256": "89ef1de15fcc1f5d8c579db730d9f206f8063aff0817535c1fc377666f956e95",
+    "asanCMakeCacheSha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68",
+    "asanCompilerAndFlags": "/usr/bin/c++; -fsanitize=address -fno-omit-frame-pointer"
+  },
+  "limits": [
+    "Counts 4 through 7 and 9 through 254 are structurally admitted by the same loop but are not individually enumerated here; count/vertex/flag cross-products outside the listed selections remain unqualified.",
+    "The bounded route covers only AC1027, open uncut consumers, vertices 2 through 4 and exactly two fill parameters per element. Four-value cut intervals, other parameter shapes, changed-count edits, retargets, and other versions remain refused or unqualified.",
+    "No native producer/rendering, DWG behavior, complete-document closure or format-support claim follows from this selected runtime-authored DXF transport evidence."
+  ]
+}
