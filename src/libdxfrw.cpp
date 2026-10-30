@@ -694,6 +694,15 @@ bool isValidDxfLineWeight(DRW_LW_Conv::lineWidth value) {
     return false;
 }
 
+bool isValidDxfLineWeightValue(std::int32_t value) {
+    static const std::array<std::int32_t, 27> validValues{{
+        -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
+        50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211
+    }};
+    return std::find(validValues.begin(), validValues.end(), value)
+        != validValues.end();
+}
+
 // IMAGE and WIPEOUT emit the same DXF adjustment groups (281..283).
 // Their DXF percentage domain is narrower than the shared DWG RC carrier;
 // keep this admission check private to the DXF writers.
@@ -27548,6 +27557,7 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         || ent->topAttachment != 0 || ent->bottomAttachment != 0;
     if (ent->contentType > 3 || ent->drawMLeaderOrder > 1
         || ent->drawLeaderOrder > 1 || ent->leaderType > 2
+        || !isValidDxfLineWeightValue(ent->leaderLineWeight)
         || ent->leftAttachment > 8 || ent->rightAttachment > 8
         || ent->textAngleType > 2 || ent->textAlignmentType > 2
         || ent->blockConnectionType > 1 || ent->attachmentDirection > 1

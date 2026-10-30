@@ -3450,6 +3450,62 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
             }
         }
     }
+
+    constexpr std::array<std::int32_t, 27> validLineWeights{{
+        -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
+        50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211
+    }};
+    for (const bool binary : {false, true}) {
+        for (const std::int32_t lineWeight : validLineWeights) {
+            std::ostringstream output;
+            dxfRW writer("");
+            writer.version = DRW::AC1027;
+            writer.binFile = binary;
+            writer.writer = binary
+                ? std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterBinary>(&output))
+                : std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterAscii>(&output));
+            DRW_MLeaderStyle style;
+            style.handle = 0xA700u;
+            style.parentHandle = 0xA701u;
+            style.name = "LINEWEIGHT_DOMAIN_MLEADERSTYLE";
+            style.leaderLineWeight = lineWeight;
+            const bool written = writer.writeMLeaderStyle(&style);
+            bool ended = false;
+            const auto tags = numericWireProjection(output.str(), binary, ended);
+            t.expect(written
+                         && std::find(tags.begin(), tags.end(),
+                             "92:" + std::to_string(lineWeight)) != tags.end(),
+                     "MLEADERSTYLE writes each documented DXF lineweight value");
+        }
+    }
+
+    for (const bool binary : {false, true}) {
+        for (const std::int32_t invalid : {1, 4, 10, 212, -4, 65535}) {
+            iface.style.leaderLineWeight = invalid;
+            const std::string sentinel = "KEEP_MLEADERSTYLE_LINEWEIGHT_DESTINATION";
+            { std::ofstream out(path, std::ios::binary); out << sentinel; }
+            const bool written = iface.fileExport(
+                path.string(), DRW::AC1027, binary, &iface.data, false);
+            std::ifstream saved(path, std::ios::binary);
+            const bool destinationPreserved =
+                std::string(std::istreambuf_iterator<char>(saved), {})
+                    == sentinel;
+            t.expect(!written && destinationPreserved
+                         && iface.style.leaderLineWeight == invalid,
+                     "MLEADERSTYLE refuses invalid lineweight before publication");
+
+            const std::int32_t corrected = invalid == -4 ? -3 : 50;
+            iface.style.leaderLineWeight = corrected;
+            const bool retried = iface.fileExport(
+                path.string(), DRW::AC1027, binary, &iface.data, false);
+            const auto tags = retried ? fileTags(path, binary)
+                                      : std::vector<std::string>{};
+            t.expect(retried && fieldValueIs(tags, 92, corrected),
+                     "same-adapter MLEADERSTYLE lineweight retry emits exact group 92");
+        }
+    }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
 }

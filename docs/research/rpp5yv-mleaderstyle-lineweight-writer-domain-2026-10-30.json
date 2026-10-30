@@ -1,0 +1,47 @@
+{
+  "id": "RPP-5yv",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE leader-line weight writer domain",
+  "scope": {
+    "operation": "Validate group-92 leaderLineWeight against the DXF lineweight domain before direct MLEADERSTYLE output.",
+    "target_version": "AC1027",
+    "field": {
+      "group_code": 92,
+      "name": "leaderLineWeight",
+      "valid_values": [-3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211],
+      "internal_only_rejected": [-4]
+    },
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.87 maps group 92 to leader line weight. Autodesk identifies the MLEADERSTYLE setter parameter as AcDb::LineWeight and publishes the exact LineWeight enum values; kLnWtByDIPs (-4) is for internal use only.",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__setLeaderLineWeight_AcDb__LineWeight.html",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb__LineWeight.html"
+    ],
+    "claim_boundary": "Group-92 direct-writer domain and emitted values only; no lineweight display/plot or whole-document support claim."
+  },
+  "implementation": [
+    "Reject values outside the 27 published DXF lineweight values before emitting the MLEADERSTYLE record.",
+    "Preserve each valid signed integer group-92 wire value exactly."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "valid_domain": "All 27 published DXF lineweight values are accepted and emitted exactly in both encodings.",
+    "invalid_values": [1, 4, 10, 212, -4, 65535],
+    "refusal": "Each invalid value preserves a destination sentinel and leaves the caller field unchanged.",
+    "retry": "The same dx_iface retries with a corrected valid value; output contains exact group 92.",
+    "matrix": "27 valid values × two encodings, plus six invalid values × two encodings with destination-safe refusal and same-adapter retry."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.62 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Other MLEADERSTYLE integer fields, source-presence profiles, dependencies, versions and native semantics remain open."
+  ]
+}
