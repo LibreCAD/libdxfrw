@@ -52529,6 +52529,114 @@ void testTypedObjectCommonGraphs(TestContext& t) {
     }
 }
 
+void testTypedDataLinkWriter(TestContext& t) {
+    class TypedDataLinkWriter final : public dx_iface {
+    public:
+        DRW_DataLink dataLink;
+        bool emitted {false};
+
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setHandleRemap({{0x700u, 0x1700u},
+                                  {0x701u, 0x1701u}});
+        }
+
+        void writeObjects() override {
+            emitted = dxfW != nullptr && dxfW->writeDataLink(&dataLink);
+        }
+    };
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-datalink-writer-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+
+        TypedDataLinkWriter writer;
+        writer.dataLink.handle = 0x700u;
+        writer.dataLink.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        writer.dataLink.m_dataAdapter = "EXCEL";
+        writer.dataLink.m_description = "typed data link";
+        writer.dataLink.m_tooltip = "typed tooltip";
+        writer.dataLink.m_connectionString = "inert://generated-control.xlsx";
+        writer.dataLink.m_option = 7;
+        writer.dataLink.m_updateOption = 511;
+        writer.dataLink.m_value92 = -3;
+        writer.dataLink.m_year = 2026;
+        writer.dataLink.m_month = 10;
+        writer.dataLink.m_day = 30;
+        writer.dataLink.m_hour = 23;
+        writer.dataLink.m_minute = 59;
+        writer.dataLink.m_seconds = 1;
+        writer.dataLink.m_milliseconds = 250;
+        writer.dataLink.m_pathOption = 3;
+        writer.dataLink.m_value93 = 19;
+        writer.dataLink.m_updateStatus = "ready";
+        writer.dataLink.m_customDataCount = 2;
+        writer.dataLink.m_customData.push_back(
+            {0x701u, "generated custom target"});
+
+        const std::string sentinel = "preserve destination on refusal";
+        {
+            std::ofstream output(path, std::ios::binary);
+            output.write(sentinel.data(),
+                         static_cast<std::streamsize>(sentinel.size()));
+        }
+        dx_data source;
+        const bool refused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream preservedInput(path, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(preservedInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(refused && preserved == sentinel,
+                 "DATALINK count mismatch refuses atomically and preserves the destination");
+
+        writer.dataLink.m_customDataCount = 1;
+        const bool exported = writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        FixtureInterface reader;
+        dx_data readback;
+        const bool imported = exported
+            && reader.fileImport(path.string(), &readback, false);
+        t.expect(exported && writer.emitted && imported
+                     && readback.dataLinks.size() == 1u,
+                 "typed DATALINK writer exports and reads back through the public callback");
+        if (readback.dataLinks.size() == 1u) {
+            const DRW_DataLink& value = readback.dataLinks.front();
+            t.expect(value.handle == 0x1700u
+                         && value.parentHandle
+                             == DRW::DwgNamedObjectsDictionaryHandle
+                         && value.m_dataAdapter == "EXCEL"
+                         && value.m_description == "typed data link"
+                         && value.m_tooltip == "typed tooltip"
+                         && value.m_connectionString
+                             == "inert://generated-control.xlsx"
+                         && value.m_option == 7 && value.m_updateOption == 511
+                         && value.m_value92 == -3 && value.m_year == 2026
+                         && value.m_month == 10 && value.m_day == 30
+                         && value.m_hour == 23 && value.m_minute == 59
+                         && value.m_seconds == 1 && value.m_milliseconds == 250
+                         && value.m_pathOption == 3 && value.m_value93 == 19
+                         && value.m_updateStatus == "ready"
+                         && value.m_customDataCount == 1
+                         && value.m_customData.size() == 1u
+                         && value.m_customData.front().m_targetHandle == 0x1701u
+                         && value.m_customData.front().m_text
+                             == "generated custom target",
+                     "DATALINK fields, owner, and remapped custom target round-trip exactly");
+        }
+    }
+}
+
 bool generateGeneratedObjectCommonCarriers(const std::filesystem::path& output,
                                            DRW::Version version, bool binary) {
     class GeneratedCommonInterface final : public dx_iface {
@@ -57215,6 +57323,7 @@ int main(int argc, char** argv) {
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
     testCanonicalLinetypeCommonScope(context);
+    testTypedDataLinkWriter(context);
     testTypedObjectCommonGraphs(context);
     testGeneratedObjectCommonCarriers(context);
     testIncompleteLinetypeExtensionGraphRejected(context);

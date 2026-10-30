@@ -414,6 +414,9 @@ public:
     bool writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent);
     bool writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent);
     bool writeXRecord(DRW_XRecord *ent);
+    /// Emits the typed AcDbDataLink object profile. Referenced custom-data
+    /// targets must already have a valid source-to-output handle mapping.
+    bool writeDataLink(DRW_DataLink *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
     bool writeTextstyle(DRW_Textstyle *ent);

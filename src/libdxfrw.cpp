@@ -25732,6 +25732,96 @@ bool dxfRW::writeScale(DRW_Scale *ent) {
     return true;
 }
 
+bool dxfRW::writeDataLink(DRW_DataLink *ent) {
+    if (version < DRW::AC1014 || !preflightTableEntry(ent)
+        || ent->handle == 0 || ent->handle == DRW::NoHandle
+        || ent->m_dataAdapter.empty()
+        || ent->m_customDataCount < 0
+        || ent->m_customDataCount > DRW_DataLink::kMaxCustomDataCount
+        || static_cast<std::size_t>(ent->m_customDataCount)
+            != ent->m_customData.size()
+        || ent->m_customData.size()
+            > static_cast<std::size_t>(DRW_DataLink::kMaxCustomDataCount))
+        return failDxfWrite();
+
+    const std::uint32_t handle = remapObjectHandle(ent->handle);
+    const std::uint32_t hardOwner = ent->m_hardOwnerHandle == 0
+        ? 0 : remapObjectHandle(ent->m_hardOwnerHandle);
+    if (handle == 0 || handle == DRW::NoHandle
+        || isDxfFixedOutputHandle(handle)
+        || (ent->m_hardOwnerHandle != 0
+            && (hardOwner == 0 || hardOwner == DRW::NoHandle))
+        || !reserveHandle(handle))
+        return failDxfWrite();
+
+    std::vector<std::uint32_t> targets;
+    try {
+        targets.reserve(ent->m_customData.size());
+        for (const DRW_DataLinkCustomData& item : ent->m_customData) {
+            if (item.m_targetHandle == 0
+                || item.m_targetHandle == DRW::NoHandle)
+                return failDxfWrite();
+            const std::uint32_t target = remapObjectHandle(item.m_targetHandle);
+            if (target == 0 || target == DRW::NoHandle)
+                return failDxfWrite();
+            targets.push_back(target);
+        }
+    } catch (...) {
+        return failDxfWrite();
+    }
+
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    if (!writer->writeString(0, "DATALINK")
+        || !writer->writeString(5, toHexStr(handle))
+        || !writeTableEntryAppData(*ent))
+        return failDxfWrite();
+    writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+    if (writer->hasWriteError()
+        || !writer->writeString(100, "AcDbObject")
+        || !writer->writeString(100, "AcDbDataLink")
+        || !writer->writeUtf8String(1, ent->m_dataAdapter)
+        || !writer->writeUtf8String(300, ent->m_description)
+        || !writer->writeUtf8String(301, ent->m_tooltip)
+        || !writer->writeUtf8String(302, ent->m_connectionString)
+        || !writer->writeInt32(90, ent->m_option)
+        || !writer->writeInt32(91, ent->m_updateOption)
+        || !writer->writeInt32(92, ent->m_value92)
+        || !writer->writeInt16(170, ent->m_year)
+        || !writer->writeInt16(171, ent->m_month)
+        || !writer->writeInt16(172, ent->m_day)
+        || !writer->writeInt16(173, ent->m_hour)
+        || !writer->writeInt16(174, ent->m_minute)
+        || !writer->writeInt16(175, ent->m_seconds)
+        || !writer->writeInt16(176, ent->m_milliseconds)
+        || !writer->writeInt16(177, ent->m_pathOption)
+        || !writer->writeInt32(93, ent->m_value93)
+        || !writer->writeUtf8String(304, ent->m_updateStatus)
+        || !writer->writeInt32(94, ent->m_customDataCount))
+        return failDxfWrite();
+
+    if (!ent->m_customData.empty()) {
+        if (!writer->writeString(305, "CUSTOMDATA"))
+            return failDxfWrite();
+        for (std::size_t index = 0; index < ent->m_customData.size(); ++index) {
+            const DRW_DataLinkCustomData& item = ent->m_customData[index];
+            if (!writer->writeString(330, toHexStr(targets[index]))
+                || !writer->writeUtf8String(304, item.m_text))
+                return failDxfWrite();
+        }
+        if (!writer->writeString(309, "DATAMAP_END"))
+            return failDxfWrite();
+    }
+    if (hardOwner != 0 && !writer->writeString(360, toHexStr(hardOwner)))
+        return failDxfWrite();
+    if (!ent->extData.empty() && !writeExtData(ent->extData))
+        return failDxfWrite();
+    if (!preflightDxfWrite() || !record.commit())
+        return failDxfWrite();
+    state.commit();
+    return true;
+}
+
 bool dxfRW::writeDictionaryVar(DRW_DictionaryVar *ent) {
     if (version < DRW::AC1014 || !preflightTableEntry(ent)
         || ent->handle == 0) {
