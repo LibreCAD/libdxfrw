@@ -310,6 +310,27 @@ struct dx_associativeDxfImportReceipt {
     bool successful{false};
 };
 
+// Binds typed DWG associative callbacks to one import attempt. This records
+// bounded source-model retention only; graph closure and DXF output admission
+// remain separate gates.
+struct dx_associativeDwgImportReceipt {
+    std::uint64_t generation{0};
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    dx_importedRecordRange typedRange;
+    std::size_t typedCallbacks{0};
+    std::size_t retainedBytes{0};
+    std::size_t dimensionDependencyBodies{0};
+    std::size_t bodyDependencyEdges{0};
+    std::size_t dependencyGroupEdges{0};
+    std::size_t groupNetworkEdges{0};
+    bool resourceLimitExceeded{false};
+    bool captureFailed{false};
+    bool successful{false};
+    bool captureComplete{false};
+    bool graphAuditAttempted{false};
+    bool selectedGraphEdgesComplete{false};
+};
+
 // Import provenance for the four named-resource records whose raw DXF
 // companions are retained by this adapter. Payload/profile qualification is a
 // separate gate and is intentionally not represented here.
@@ -460,6 +481,7 @@ public:
     std::size_t typedTableRetainedBytes{0};
     bool typedEntityCaptureFailed{false};
     dx_associativeDxfImportReceipt associativeDxfImport;
+    dx_associativeDwgImportReceipt associativeDwgImport;
     dx_visualStyleImportReceipt visualStyleImport;
     dx_namedResourceImportReceipt namedResourceImport;
     dx_materialImportReceipt materialImport;
@@ -668,6 +690,12 @@ public:
     // Strict output remains closed until a replay profile is qualified.
     std::vector<DRW_AssociativeObject> associativeObjects;
     std::vector<DRW_RawDxfObject> rawAssociativeObjects;
+    // DWG typed associative callbacks are retained separately from DXF
+    // callback pairs so a DWG source graph can be joined without weakening
+    // the DXF raw/typed receipt contract.
+    std::vector<DRW_AssociativeObject> dwgAssociativeObjects;
+    std::size_t dwgAssociativeTypedRetainedBytes{0};
+    bool dwgAssociativeCaptureFailed{false};
     // Preserve clipped-reference filter callbacks and DXF tag companions.
     // Export remains fail-closed until graph admission and serialization exist.
     std::vector<DRW_SpatialFilter> spatialFilters;

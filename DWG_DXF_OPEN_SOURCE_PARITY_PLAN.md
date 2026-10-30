@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Retain and validate the AC1024 associative dimension-body → dependency → constraint-group → network graph, then provide a valid DXF output route for the complete required graph. | Do not emit a body without its reachable owners/references. Use the local sample only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Verify the retained AC1024 associative dimension-body → dependency → constraint-group → network graph against a source-bound import, close all required descendants, then provide a valid DXF output route for the complete graph. | Do not emit a body without its reachable owners/references. Use the local sample only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -50,7 +50,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 ### Immediate implementation order
 
-1. **P4 — close the associative graph and output route.** Retain and index the required DWG associative objects; validate body → dependency via the explicit `dep_body` handle, dependency → constraint group via ownership, and constraint group → network via its explicit network reference/owner. Account for all required reachable associative descendants and their DXF handles/fields before admitting output. Do not emit the body alone or infer edges from adjacent handle values.
+1. **P4 — close the associative graph and output route.** Verify the bounded DWG callback receipt and AC1024 edge audit against a source-matched import; require body → dependency via explicit `dep_body`, dependency → constraint group via ownership, and constraint group → network via its explicit network reference/owner. Then close every required reachable descendant and implement the complete DXF route with remapped handles and exact fields. Do not emit the body alone or infer edges from adjacent handle values.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
@@ -72,22 +72,24 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Associative dimension-body graph and output:** retain and index all required
-   DWG associative callbacks, then validate the AC1024 edges from each
-   `ACDBASSOCDIMDEPENDENCYBODY` through the dependency's explicit `dep_body`
-   handle, dependency owner to `ACDBASSOC2DCONSTRAINTGROUP`, and the group's
-   explicit owning-network reference/owner to `ACDBASSOCNETWORK`. Require one
-   source object per handle, the expected record type and owner at each edge,
-   and complete reachable descendants before admitting output. Implement the
-   whole required graph's DXF serialization with remapped identities and exact
-   fields, or retain strict refusal. `dx_iface::addAssociativeObject` currently
-   declines DWG-origin shells. Use ODA v5.4.1 as authority for documented DWG
-   layouts and peer parsers only as corroboration where this class is not
-   described. Do not commit local investigation samples as fixtures; bind
-   committed regressions to eligible repository inputs or locally authored
-   fixtures. See the [body reader receipt](docs/research/p4-ac1024-assoc-dim-dependency-body-reader-2026-10-30.json)
-   and [dependency edge receipt](docs/research/p4-ac1024-assoc-dependency-body-edge-2026-10-30.json)
-   for completed field parsing; graph closure and DXF output remain open.
+1. **Associative dimension-body graph and output:** verify the new bounded DWG
+   associative callback receipt and AC1024 edge audit against a source-matched
+   import. Require each `ACDBASSOCDIMDEPENDENCYBODY` to join through the
+   dependency's explicit `dep_body` handle, dependency owner to
+   `ACDBASSOC2DCONSTRAINTGROUP`, and group owning-network reference/owner to
+   `ACDBASSOCNETWORK`; verify unique handles, record roles, reciprocal network
+   action membership and all required descendants. Extend closure beyond this
+   selected edge profile, then implement the whole required DXF graph route
+   with remapped identities and exact fields, or retain strict refusal. Use ODA
+   v5.4.1 as authority for documented DWG layouts and peer parsers only as
+   corroboration where this class is not described. Do not commit local
+   investigation samples as fixtures; bind committed regressions to eligible
+   repository inputs or locally authored fixtures. See the [body reader
+   receipt](docs/research/p4-ac1024-assoc-dim-dependency-body-reader-2026-10-30.json),
+   [dependency edge receipt](docs/research/p4-ac1024-assoc-dependency-body-edge-2026-10-30.json),
+   and [associative capture receipt](docs/research/p4-ac1024-assoc-capture-graph-audit-2026-10-30.json)
+   for parser and adapter implementation evidence; runtime graph qualification
+   and DXF output remain open.
 2. **Dependencies:** resolve required STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    image/reactor/material/style, document/control/name/application, XDATA/EED and
    CEPSNID/CEPSNTYPE roles. Preserve hard/soft ownership and absent versus null.

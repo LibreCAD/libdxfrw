@@ -9910,7 +9910,7 @@ bool isAssociativeDxfName(std::string_view name) noexcept {
         || asciiIdentifierStartsWith(name, "ASSOC");
 }
 
-constexpr std::size_t kMaxAssociativeDxfRecords = 100000u;
+constexpr std::size_t kMaxAssociativeRecords = 100000u;
 constexpr std::size_t kMaxAssociativeDxfRawGroups = 4000000u;
 constexpr std::size_t kMaxAssociativeOwnerNodes = 200000u;
 constexpr std::size_t kMaxAssociativeDictionaryEdges = 200000u;
@@ -13050,6 +13050,156 @@ void completeAssociativeDxfImportReceipt(dx_data& data,
     receipt.captureComplete = true;
 }
 
+void completeAssociativeDwgImportReceipt(dx_data& data,
+                                         bool success) noexcept {
+    dx_associativeDwgImportReceipt& receipt = data.associativeDwgImport;
+    receipt.sourceVersion = success
+        ? data.sourceVersion : data.dwgReadOutcome.sourceVersion;
+    receipt.typedRange.end = data.dwgAssociativeObjects.size();
+    receipt.successful = success;
+    receipt.captureComplete = false;
+    receipt.captureFailed = receipt.captureFailed
+        || data.dwgAssociativeCaptureFailed;
+    if (!success || receipt.captureFailed || receipt.resourceLimitExceeded
+        || receipt.generation != data.importGeneration
+        || receipt.sourceVersion == DRW::UNKNOWNV
+        || receipt.typedRange.end < receipt.typedRange.begin)
+        return;
+    const std::size_t retained =
+        receipt.typedRange.end - receipt.typedRange.begin;
+    if (retained != receipt.typedCallbacks)
+        return;
+    receipt.captureComplete = true;
+    if (receipt.sourceVersion != DRW::AC1024)
+        return;
+
+    receipt.graphAuditAttempted = true;
+    try {
+        std::unordered_map<std::uint32_t, const DRW_AssociativeObject*> byHandle;
+        std::unordered_map<std::uint32_t, std::size_t> dependencyBodyOwners;
+        byHandle.reserve(retained);
+        dependencyBodyOwners.reserve(retained);
+        bool uniqueAssociativeHandles = true;
+        const auto isRecord = [](const DRW_AssociativeObject& object,
+                                 const char* fullName,
+                                 const char* shortName) {
+            return sameAsciiName(object.m_recordName, fullName)
+                || sameAsciiName(object.m_recordName, shortName);
+        };
+        const auto hasCompletePrefix = [](
+                const DRW_AssociativeObject& object,
+                DRW_AssociativePrefixStatus::Kind kind) {
+            return std::any_of(
+                object.m_prefixStatuses.begin(), object.m_prefixStatuses.end(),
+                [kind](const DRW_AssociativePrefixStatus& status) {
+                    return status.m_kind == kind
+                        && status.m_status
+                            == DRW_AssociativePrefixStatus::ParseStatus::Complete;
+                });
+        };
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& object =
+                data.dwgAssociativeObjects[index];
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || !byHandle.emplace(object.handle, &object).second)
+                uniqueAssociativeHandles = false;
+            if (isRecord(object, "ACDBASSOCDEPENDENCY", "ASSOCDEPENDENCY")
+                && object.m_dependencyBodyHandle != 0u
+                && object.m_dependencyBodyHandle != DRW::NoHandle)
+                ++dependencyBodyOwners[object.m_dependencyBodyHandle];
+            if (isRecord(object, "ACDBASSOCDIMDEPENDENCYBODY",
+                         "ASSOCDIMDEPENDENCYBODY"))
+                ++receipt.dimensionDependencyBodies;
+        }
+        if (!uniqueAssociativeHandles || receipt.dimensionDependencyBodies == 0u)
+            return;
+
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& body =
+                data.dwgAssociativeObjects[index];
+            if (!isRecord(body, "ACDBASSOCDIMDEPENDENCYBODY",
+                          "ASSOCDIMDEPENDENCYBODY"))
+                continue;
+            if (!body.m_dimensionDependencyBodyParsed
+                || body.handle == 0u || body.handle == DRW::NoHandle
+                || body.parentHandle == 0u
+                || body.parentHandle == DRW::NoHandle)
+                continue;
+            const auto dependencyIt = byHandle.find(body.parentHandle);
+            if (dependencyIt == byHandle.end())
+                continue;
+            const DRW_AssociativeObject& dependency = *dependencyIt->second;
+            const auto bodyReferenceCount =
+                dependencyBodyOwners.find(body.handle);
+            if (!isRecord(dependency, "ACDBASSOCDEPENDENCY",
+                          "ASSOCDEPENDENCY")
+                || dependency.m_dependencyBodyHandle != body.handle
+                || bodyReferenceCount == dependencyBodyOwners.end()
+                || bodyReferenceCount->second != 1u
+                || !hasCompletePrefix(
+                    dependency,
+                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency))
+                continue;
+            ++receipt.bodyDependencyEdges;
+
+            const auto groupIt = byHandle.find(dependency.parentHandle);
+            if (groupIt == byHandle.end())
+                continue;
+            const DRW_AssociativeObject& group = *groupIt->second;
+            if (!isRecord(group, "ACDBASSOC2DCONSTRAINTGROUP",
+                          "ASSOC2DCONSTRAINTGROUP")
+                || !hasCompletePrefix(
+                    group, DRW_AssociativePrefixStatus::Kind::AcDbAssocAction))
+                continue;
+            ++receipt.dependencyGroupEdges;
+
+            if (group.m_owningNetworkHandle == 0u
+                || group.m_owningNetworkHandle == DRW::NoHandle
+                || group.parentHandle != group.m_owningNetworkHandle)
+                continue;
+            const auto networkIt = byHandle.find(
+                group.m_owningNetworkHandle);
+            if (networkIt == byHandle.end())
+                continue;
+            const DRW_AssociativeObject& network = *networkIt->second;
+            if (!isRecord(network, "ACDBASSOCNETWORK", "ASSOCNETWORK")
+                || !hasCompletePrefix(
+                    network, DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                || !hasCompletePrefix(
+                    network, DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork))
+                continue;
+            const std::size_t groupReferences = static_cast<std::size_t>(
+                std::count_if(
+                    network.m_actions.begin(), network.m_actions.end(),
+                    [&group](const DRW_AssociativeHandleRef& action) {
+                        return action.m_handle == group.handle;
+                    }));
+            const std::size_t ownedGroupReferences = static_cast<std::size_t>(
+                std::count_if(
+                    network.m_actions.begin(), network.m_actions.end(),
+                    [&group](const DRW_AssociativeHandleRef& action) {
+                        return action.m_handle == group.handle
+                            && action.m_isOwned;
+                    }));
+            if (groupReferences != 1u || ownedGroupReferences != 1u)
+                continue;
+            ++receipt.groupNetworkEdges;
+        }
+        receipt.selectedGraphEdgesComplete =
+            receipt.dimensionDependencyBodies > 0u
+            && receipt.bodyDependencyEdges
+                == receipt.dimensionDependencyBodies
+            && receipt.dependencyGroupEdges
+                == receipt.dimensionDependencyBodies
+            && receipt.groupNetworkEdges
+                == receipt.dimensionDependencyBodies;
+    } catch (...) {
+        receipt.selectedGraphEdgesComplete = false;
+    }
+}
+
 void completeSpatialFilterImportReceipt(dx_data& data,
                                         bool success) noexcept {
     dx_spatialFilterImportReceipt& receipt = data.spatialFilterImport;
@@ -13381,10 +13531,10 @@ bool validateSpatialFilterOwnerGraph(
     return true;
 }
 
+template <typename Receipt>
 void incrementAssociativeCallbackCount(
-        std::size_t& count,
-        dx_associativeDxfImportReceipt& receipt) noexcept {
-    if (count >= kMaxAssociativeDxfRecords) {
+        std::size_t& count, Receipt& receipt) noexcept {
+    if (count >= kMaxAssociativeRecords) {
         receipt.resourceLimitExceeded = true;
         return;
     }
@@ -13542,10 +13692,36 @@ void dx_iface::addAssociativeObject(
         return;
     if (cData->sourceFormat != dx_source_format::DXF) {
         if (cData->sourceFormat == dx_source_format::DWG) {
-            DRW_DBG("DWG associative shell not retained for DXF replay: handle="
-                    + std::to_string(data.handle) + " record="
-                    + data.m_recordName + " owner="
-                    + std::to_string(data.parentHandle));
+            dx_associativeDwgImportReceipt& receipt =
+                cData->associativeDwgImport;
+            if (receipt.generation != cData->importGeneration)
+                receipt.captureFailed = true;
+            incrementAssociativeCallbackCount(receipt.typedCallbacks,
+                                              receipt);
+            if (receipt.resourceLimitExceeded || receipt.captureFailed
+                || cData->dwgAssociativeCaptureFailed)
+                return;
+            std::size_t estimatedBytes = 0;
+            if (!estimateAssociativeTypedBytes(data, estimatedBytes)
+                || cData->dwgAssociativeObjects.size()
+                       >= kMaxAssociativeRecords
+                || cData->dwgAssociativeTypedRetainedBytes
+                       > kMaxAssociativeDxfRetainedBytes
+                || estimatedBytes
+                       > kMaxAssociativeDxfRetainedBytes
+                             - cData->dwgAssociativeTypedRetainedBytes) {
+                receipt.resourceLimitExceeded = true;
+                cData->dwgAssociativeCaptureFailed = true;
+                return;
+            }
+            try {
+                cData->dwgAssociativeObjects.push_back(data);
+                cData->dwgAssociativeTypedRetainedBytes += estimatedBytes;
+                receipt.retainedBytes += estimatedBytes;
+            } catch (...) {
+                receipt.captureFailed = true;
+                cData->dwgAssociativeCaptureFailed = true;
+            }
         }
         return;
     }
@@ -37305,6 +37481,12 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     if (!fData->associativeObjects.empty()
         || !fData->rawAssociativeObjects.empty())
         fData->associativeDxfImport.captureFailed = true;
+    fData->associativeDwgImport = {};
+    fData->associativeDwgImport.generation = fData->importGeneration;
+    fData->associativeDwgImport.typedRange.begin =
+        fData->dwgAssociativeObjects.size();
+    fData->associativeDwgImport.captureFailed =
+        fData->dwgAssociativeCaptureFailed;
     fData->sourceFormat = dx_source_format::Unknown;
     fData->sourceVersion = DRW::UNKNOWNV;
     unsigned int found = fileI.find_last_of(".");
@@ -37552,6 +37734,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         return success;
     } else if (fileExt == "DWG"){
         fData->sourceFormat = dx_source_format::DWG;
+        fData->associativeDwgImport.sourceVersion = DRW::UNKNOWNV;
         fData->visualStyleImport.sourceFormat = fData->sourceFormat;
         //loads dwg
         dwgRW dwg(fileI.c_str());
@@ -37595,6 +37778,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         finishDictionaryDefaultImport(success);
         finishFieldCarrierImport(success);
         finishSpatialFilterImport(success);
+        completeAssociativeDwgImportReceipt(*fData, success);
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
             try {
@@ -40083,6 +40267,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         spatialFilterReceipt.ownerGraphFailure.clear();
         hasAdmittedSpatialFilters = true;
     }
+    const bool requireCompleteDwgRead =
+        readCompletenessPolicy == dx_dwgReadCompletenessPolicy::RequireComplete
+        || (readCompletenessPolicy == dx_dwgReadCompletenessPolicy::Legacy
+            && requireResolvedOwners);
     if (requireResolvedOwners
         && cData->sourceFormat == dx_source_format::DXF) {
         const dx_associativeDxfImportReceipt& receipt =
@@ -40137,6 +40325,51 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 }
                 return false;
             }
+        }
+    }
+    if (requireCompleteDwgRead
+        && cData->sourceFormat == dx_source_format::DWG) {
+        const dx_associativeDwgImportReceipt& receipt =
+            cData->associativeDwgImport;
+        const std::size_t stored = cData->dwgAssociativeObjects.size();
+        if (receipt.typedCallbacks != 0u || stored != 0u
+            || receipt.resourceLimitExceeded || receipt.captureFailed
+            || cData->dwgAssociativeCaptureFailed) {
+            const bool receiptMatchesImport =
+                receipt.generation == cData->importGeneration
+                && receipt.sourceVersion == cData->sourceVersion
+                && receipt.successful && receipt.captureComplete
+                && receipt.typedRange.begin <= receipt.typedRange.end
+                && receipt.typedRange.end == stored
+                && stored - receipt.typedRange.begin
+                    == receipt.typedCallbacks;
+            try {
+                std::cerr
+                    << "DXF export preflight failed: "
+                       "dwg-associative-graph-not-serialized"
+                    << " generation=" << receipt.generation
+                    << " callbacks=" << receipt.typedCallbacks
+                    << " stored=" << stored
+                    << " receiptMatches=" << (receiptMatchesImport ? 1 : 0)
+                    << " captureComplete="
+                    << (receipt.captureComplete ? 1 : 0)
+                    << " graphAuditAttempted="
+                    << (receipt.graphAuditAttempted ? 1 : 0)
+                    << " bodies=" << receipt.dimensionDependencyBodies
+                    << " bodyDependencyEdges="
+                    << receipt.bodyDependencyEdges
+                    << " dependencyGroupEdges="
+                    << receipt.dependencyGroupEdges
+                    << " groupNetworkEdges="
+                    << receipt.groupNetworkEdges
+                    << " selectedGraphEdgesComplete="
+                    << (receipt.selectedGraphEdgesComplete ? 1 : 0)
+                    << " limitExceeded="
+                    << (receipt.resourceLimitExceeded ? 1 : 0) << '\n';
+            } catch (...) {
+                // Reporting cannot authorize lossy publication.
+            }
+            return false;
         }
     }
     const bool hasNamedResourceRecords =
@@ -40238,10 +40471,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             }
         }
     }
-    const bool requireCompleteDwgRead =
-        readCompletenessPolicy == dx_dwgReadCompletenessPolicy::RequireComplete
-        || (readCompletenessPolicy == dx_dwgReadCompletenessPolicy::Legacy
-            && requireResolvedOwners);
     if (cData->sourceFormat == dx_source_format::DWG
         && readCompletenessPolicy
                == dx_dwgReadCompletenessPolicy::AllowPartial
