@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-dim-dependency-body-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative dimension dependency body direct DXF writer",
+  "status": "DIRECT_RECORD_WRITER_VERIFIED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "a3b6d703",
+  "scope": "Write the exact source-backed AC1024 ASSOCDIMDEPENDENCYBODY profile already decoded by DRW_AssociativeObject. This closes only the standalone record serializer; source-bound graph routing, complete document output, readback, and consumer qualification remain open.",
+  "sourceEvidence": {
+    "input": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation input; not committed.",
+      "trace": {
+        "path": "/private/tmp/libdxfrw-p4-current-mechanical.log",
+        "sha256": "a7d5aa2235a6bc13b260b365dd8d75f71bc07a43178faa9c666012640684d85f",
+        "observation": "The AC1024 trace contains 17 ASSOCDIMDEPENDENCYBODY records. Each reports a 39-byte span, 69-bit framed body, owner and self handles, dependency-body/base/class versions 1/1/1, and its source name."
+      }
+    },
+    "independentOutput": {
+      "producer": "LibreDWG 0.14",
+      "path": "/private/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+      "sha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+      "observation": "The independent DXF output contains the record name, owner, AcDbAssocDependencyBody / AcDbImpAssocDimDependencyBodyBase / AcDbAssocDimDependencyBody subclass order, three version fields, and matching name values. This is field-order and transport corroboration only."
+    },
+    "independentWriterSource": {
+      "repository": "ACADRust",
+      "source": "/private/tmp/libdxfrw-cargo/git/checkouts/acadrust-088101b71314caec/5b58ed2/src/io/dxf/writer/section_writer/associative.rs",
+      "sha256": "feb09ed71bbafa1b52dc4c47f240249b7e6f7544f953243ef8b6e0275426ec0d",
+      "observation": "The independent source emits the same three subclasses, version positions, and name position. Its group-90 helper width differs from this implementation, so it is not used as evidence for numeric group-code width."
+    },
+    "formatRule": {
+      "source": "Autodesk DXF Reference, Group Codes",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "rule": "Group codes 90 through 99 carry 32-bit integer values; the writer therefore uses the 32-bit integer API for all three version values."
+    }
+  },
+  "implementationEvidence": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "Added a direct AC1024 writer that admits only the complete parsed 1/1/1 version profile and exact dependency-body prefix; writes the body name, owner, reactor list and subclass/version fields; remaps self, owner and reactor handles; and rejects unsupported versions, partial prefixes, invalid identities, and unparsed bodies. Record rollback restores output and source-handle binding after a late EED failure, and corrected retry succeeds.",
+    "wireProjection": [
+      "0:ASSOCDIMDEPENDENCYBODY",
+      "5:<remapped self>",
+      "330:<remapped owner>",
+      "102:{ACAD_REACTORS / 330:<remapped reactor> / 102:}",
+      "100:AcDbAssocDependencyBody / 90:<32-bit version>",
+      "100:AcDbImpAssocDimDependencyBodyBase / 90:<32-bit version> / 1:<name>",
+      "100:AcDbAssocDimDependencyBody / 90:<32-bit version>"
+    ],
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "git diff --check",
+      "cmake --build build --target libdxfrw_wave1_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_associative_(dependency|network|dependency_body|constraint_group)_writer$' --output-on-failure"
+    ],
+    "results": {
+      "diffCheck": "PASS",
+      "focusedBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 4/4 in 0.50 seconds. The dependency-body selector covers ASCII and Binary field projections, handle remapping, incomplete parse/version/prefix rejection, atomic failure, and corrected retry; neighboring associative writer selectors remain green.",
+      "fullSuites": "NOT_RUN per the fast-validation plan.",
+      "readback": "NOT_RUN; the direct serializer is not yet routed through the source-bound graph writer."
+    }
+  },
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "The source-backed AC1024 dimension dependency-body direct record encoder and its focused ASCII/Binary, remapping, refusal, rollback, and retry proof.",
+    "remainingP4Scope": "Reserve associative source identities before generated allocation; route admitted encoders through the graph planner; remap all references; close the full required descendant graph; inspect staged output independently and read it back; verify whole-operation publication and retry.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "ac863fcd67ff4693d428927d7fe2138ff58b99bd4b10737da6785aca49f975f9",
+    "src/libdxfrw.h": "c845f34196ad0e167606950928be762fe3b7871448015d30c7b08a915274468c",
+    "tests/wave1_tests.cpp": "4687018496b88365ef3f3c8aa627e0c4d5b1bc9cb4f9d96019a8238f9cc9a8c8",
+    "CMakeLists.txt": "1951745030ae189601dd05dabce7376a88466b60a4399b086a56c6bcdd12c341",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ec3207584d465126e65763e411498fa66ad10fec6f109404f2d4579cd22c91d0"
+  },
+  "nonGoals": [
+    "Do not claim associative graph output or complete DWG-to-DXF conversion from a direct record writer.",
+    "Do not infer other versions or associative subclasses from this AC1024 profile.",
+    "Do not change the strict refusal gate for incomplete required graphs.",
+    "Do not claim CAD semantic, native platform, LibreCAD, LibreCAD_3, FreeCAD, ABI, or release qualification."
+  ]
+}

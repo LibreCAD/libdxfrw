@@ -2692,6 +2692,16 @@ void testAssociativeNetworkWriter(TestContext& t) {
     }
     t.expect(classRowsMatch,
              "AC1024 associative network family CLASS rows match source and independent peer flags");
+    DRW_Class dependencyBodyClass;
+    t.expect(dxfRW::dxfClassForRecordName(
+                 "ACDBASSOCDIMDEPENDENCYBODY", dependencyBodyClass)
+                 && dependencyBodyClass.recName
+                     == "ACDBASSOCDIMDEPENDENCYBODY"
+                 && dependencyBodyClass.className
+                     == "AcDbAssocDimDependencyBody"
+                 && dependencyBodyClass.proxyFlag == 1153
+                 && dependencyBodyClass.entityFlag == 0,
+             "AC1024 dimension dependency-body CLASS row matches its source metadata");
     const auto makeNetwork = []() {
         DRW_AssociativeObject network("ACDBASSOCNETWORK");
         network.handle = 0x9BDu;
@@ -2854,6 +2864,110 @@ void testAssociativeNetworkWriter(TestContext& t) {
                  && retryOutput.str().find("ACDBASSOCNETWORK")
                      != std::string::npos,
              "late associative network EED failure rolls back and permits corrected retry on the same object");
+}
+
+void testAssociativeDependencyBodyWriter(TestContext& t) {
+    const auto makeBody = []() {
+        DRW_AssociativeObject body("ASSOCDIMDEPENDENCYBODY");
+        body.handle = 0x8A1u;
+        body.parentHandle = 0x8A0u;
+        body.reactorHandles = {0x8A2u};
+        body.name = "BOLTHOLE";
+        body.m_dependencyBodyVersion = 1u;
+        body.m_dimBaseVersion = 1u;
+        body.m_classVersion = 1u;
+        body.m_dimensionDependencyBodyParsed = true;
+        DRW_AssociativePrefixStatus status;
+        status.m_kind =
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody;
+        status.m_bitSize = 30u;
+        status.m_classVersion = 1u;
+        status.m_status =
+            DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        status.m_decodedValueCount = 4u;
+        body.m_prefixStatuses = {status};
+        return body;
+    };
+    const std::map<std::uint32_t, std::uint32_t> remap{
+        {0x8A1u, 0x301u}, {0x8A0u, 0x302u}, {0x8A2u, 0x303u}};
+
+    for (const bool binary : {false, true}) {
+        DRW_AssociativeObject body = makeBody();
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        dxfRW owner("");
+        owner.version = DRW::AC1024;
+        owner.binFile = binary;
+        owner.setHandleRemap(remap);
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+
+        const bool wrote = owner.writeAssociativeDependencyBody(&body)
+            && owner.writer->writeString(0, "WIRE_END");
+        bool ended = false;
+        const auto tags = numericWireProjection(output.str(), binary, ended);
+        const std::vector<std::string> expected{
+            "0:ASSOCDIMDEPENDENCYBODY", "5:301", "330:302",
+            "102:{ACAD_REACTORS", "330:303", "102:}",
+            "100:AcDbAssocDependencyBody", "90:1",
+            "100:AcDbImpAssocDimDependencyBodyBase", "90:1",
+            "1:BOLTHOLE", "100:AcDbAssocDimDependencyBody", "90:1",
+            "0:WIRE_END"};
+        t.expect(wrote && ended && tags == expected,
+                 "AC1024 dimension dependency-body preserves source fields and remaps its owner/reactor in ASCII and Binary");
+    }
+
+    const auto rejectedWithoutOutput = [](DRW::Version version,
+                                          DRW_AssociativeObject body) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = version;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        return !owner.writeAssociativeDependencyBody(&body)
+            && output.str().empty();
+    };
+    DRW_AssociativeObject incomplete = makeBody();
+    incomplete.m_dimensionDependencyBodyParsed = false;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, incomplete),
+             "incomplete dimension dependency-body parse refuses atomically");
+    DRW_AssociativeObject unsupportedVersion = makeBody();
+    unsupportedVersion.m_dimBaseVersion = 2u;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedVersion),
+             "unqualified dimension dependency-body version refuses atomically");
+    DRW_AssociativeObject partialPrefix = makeBody();
+    partialPrefix.m_prefixStatuses.front().m_status =
+        DRW_AssociativePrefixStatus::ParseStatus::Partial;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, partialPrefix),
+             "partial dimension dependency-body prefix refuses atomically");
+    DRW_AssociativeObject wrongOutputVersion = makeBody();
+    t.expect(rejectedWithoutOutput(DRW::AC1027, wrongOutputVersion),
+             "unqualified dimension dependency-body output version refuses atomically");
+
+    DRW_AssociativeObject retry = makeBody();
+    const bool invalidEedAdded = retry.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedOutput;
+    dxfRW failedWriter("");
+    failedWriter.version = DRW::AC1024;
+    failedWriter.writer = std::make_unique<dxfWriterAscii>(&failedOutput);
+    const bool lateFailureRolledBack = invalidEedAdded
+        && !failedWriter.writeAssociativeDependencyBody(&retry)
+        && failedOutput.str().empty() && retry.handle == 0x8A1u
+        && failedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    retry.clearExtData();
+    std::ostringstream retryOutput;
+    dxfRW correctedWriter("");
+    correctedWriter.version = DRW::AC1024;
+    correctedWriter.writer =
+        std::make_unique<dxfWriterAscii>(&retryOutput);
+    const bool correctedRetry =
+        correctedWriter.writeAssociativeDependencyBody(&retry)
+        && correctedWriter.writer->writeString(0, "WIRE_END");
+    t.expect(lateFailureRolledBack && correctedRetry
+                 && retryOutput.str().find("ASSOCDIMDEPENDENCYBODY")
+                     != std::string::npos,
+             "late dependency-body EED failure rolls back and permits corrected retry on the same object");
 }
 
 void testAssociativeConstraintGroupWriter(TestContext& t) {
@@ -15052,6 +15166,14 @@ int main(int argc, char** argv) {
         TestContext focused;
         testAssociativeNetworkWriter(focused);
         std::cout << "AC1024 associative network writer: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-dependency-body-writer") {
+        TestContext focused;
+        testAssociativeDependencyBodyWriter(focused);
+        std::cout << "AC1024 associative dependency-body writer: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }

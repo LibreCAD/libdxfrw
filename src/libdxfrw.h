@@ -571,6 +571,8 @@ public:
     //! Emit the AC1024 AcDbAssocDependency shared prefix for the exact
     //! ACDBASSOCDEPENDENCY and ACDBASSOCVALUEDEPENDENCY profiles.
     bool writeAssociativeDependency(DRW_AssociativeObject *ent);
+    //! Emit the source-backed AC1024 dimension dependency-body profile.
+    bool writeAssociativeDependencyBody(DRW_AssociativeObject *ent);
     //! Emit the source-bound AC1024 ACDBASSOCNETWORK profile.
     bool writeAssociativeNetwork(DRW_AssociativeObject *ent);
     //! Emit the admitted AC1024 version-0 inline constraint-group profile.

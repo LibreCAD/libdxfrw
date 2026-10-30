@@ -28976,6 +28976,77 @@ bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
     return true;
 }
 
+bool dxfRW::writeAssociativeDependencyBody(DRW_AssociativeObject *ent) {
+    const bool recordNameMatches = ent != nullptr
+        && (dxfKeywordEquals(ent->m_recordName,
+                             "ACDBASSOCDIMDEPENDENCYBODY")
+            || dxfKeywordEquals(ent->m_recordName,
+                                "ASSOCDIMDEPENDENCYBODY"));
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
+        || version != DRW::AC1024 || !recordNameMatches
+        || !ent->m_dimensionDependencyBodyParsed
+        || ent->m_dependencyBodyVersion != 1u
+        || ent->m_dimBaseVersion != 1u || ent->m_classVersion != 1u
+        || ent->name.size() > DRW::kMaxDxfBinaryPayloadBytes
+        || ent->handle == 0u || ent->handle == DRW::NoHandle
+        || static_cast<std::uint32_t>(ent->parentHandle) == DRW::NoHandle
+        || ent->m_prefixStatuses.size() != 1u) {
+        return failDxfWrite();
+    }
+
+    const DRW_AssociativePrefixStatus& bodyStatus =
+        ent->m_prefixStatuses.front();
+    if (bodyStatus.m_kind
+            != DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody
+        || bodyStatus.m_status
+            != DRW_AssociativePrefixStatus::ParseStatus::Complete
+        || bodyStatus.m_bitSize == 0u
+        || bodyStatus.m_classVersion != 1u
+        || bodyStatus.m_decodedHandleCount != 0u
+        || bodyStatus.m_decodedValueCount != 4u
+        || bodyStatus.m_decodedCountValue != 0) {
+        return failDxfWrite();
+    }
+
+    const std::uint32_t sourceHandle = ent->handle;
+    const std::uint32_t emittedHandle = remapObjectHandle(sourceHandle);
+    const std::uint32_t sourceOwner =
+        static_cast<std::uint32_t>(ent->parentHandle);
+    if (emittedHandle == 0u || emittedHandle == DRW::NoHandle
+        || isDxfFixedOutputHandle(emittedHandle)
+        || (sourceOwner != 0u
+            && (remapObjectHandle(sourceOwner) == 0u
+                || remapObjectHandle(sourceOwner) == DRW::NoHandle)))
+        return failDxfWrite();
+
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    if (!reserveHandle(emittedHandle)
+        || !bindDxfWriteSourceObjectHandle(sourceHandle, emittedHandle))
+        return failDxfWrite();
+
+    if (!writer->writeString(0, "ASSOCDIMDEPENDENCYBODY")
+        || !writer->writeString(5, toHexStr(emittedHandle)))
+        return failDxfWrite();
+    writeObjectOwner(sourceOwner);
+    if (writer->hasWriteError() || !writeTableEntryAppData(*ent)
+        || !writer->writeString(100, "AcDbAssocDependencyBody")
+        || !writer->writeInt32(
+            90, static_cast<int>(ent->m_dependencyBodyVersion))
+        || !writer->writeString(
+            100, "AcDbImpAssocDimDependencyBodyBase")
+        || !writer->writeInt32(90, static_cast<int>(ent->m_dimBaseVersion))
+        || !writer->writeUtf8String(1, ent->name)
+        || !writer->writeString(100, "AcDbAssocDimDependencyBody")
+        || !writer->writeInt32(90, static_cast<int>(ent->m_classVersion))
+        || (!ent->extData.empty() && !writeExtData(ent->extData))
+        || !preflightDxfWrite() || !record.commit())
+        return failDxfWrite();
+
+    state.commit();
+    return true;
+}
+
 bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
     constexpr std::size_t kMaxAssociativeReferences = 100000u;
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
