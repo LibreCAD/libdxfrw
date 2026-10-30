@@ -27576,8 +27576,12 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         || ent->topAttachment != 0 || ent->bottomAttachment != 0;
     // ODA §20.4.87 assigns group 179 to R2010+ and expects value 2. Older
     // DXF targets omit the field and therefore can represent only that default.
+    // Autodesk's MLeaderStyle API allows -1 (unlimited) or values >= 2.
+    // Keep the library's existing 0 default representable for compatibility.
     if (ent->contentType > 3 || ent->drawMLeaderOrder > 1
         || ent->drawLeaderOrder > 1 || ent->leaderType > 2
+        || (ent->maxLeaderPoints != -1 && ent->maxLeaderPoints != 0
+            && ent->maxLeaderPoints < 2)
         || !isValidDxfLineWeightValue(ent->leaderLineWeight)
         || ent->leftAttachment > 8 || ent->rightAttachment > 8
         || ent->textAngleType > 2 || ent->textAlignmentType > 2

@@ -3479,6 +3479,52 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
         }
     }
 
+    constexpr std::array<std::int32_t, 4> validMaxLeaderPoints{{
+        -1, 0, 2, std::numeric_limits<std::int32_t>::max()
+    }};
+    constexpr std::array<std::int32_t, 3> invalidMaxLeaderPoints{{
+        std::numeric_limits<std::int32_t>::min(), -2, 1
+    }};
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
+        for (const bool binary : {false, true}) {
+            for (const std::int32_t maxPoints : validMaxLeaderPoints) {
+                iface.style.maxLeaderPoints = maxPoints;
+                const bool written = iface.fileExport(
+                    path.string(), version, binary, &iface.data, false);
+                const auto tags = written ? fileTags(path, binary)
+                                          : std::vector<std::string>{};
+                t.expect(written && fieldValueIs(tags, 90, maxPoints),
+                         "MLEADERSTYLE emits each valid maximum leader-points boundary exactly");
+            }
+
+            for (const std::int32_t invalid : invalidMaxLeaderPoints) {
+                iface.style.maxLeaderPoints = invalid;
+                const std::string sentinel =
+                    "KEEP_MLEADERSTYLE_MAX_LEADER_POINTS_DESTINATION";
+                { std::ofstream out(path, std::ios::binary); out << sentinel; }
+                const bool written = iface.fileExport(
+                    path.string(), version, binary, &iface.data, false);
+                std::ifstream saved(path, std::ios::binary);
+                const bool destinationPreserved =
+                    std::string(std::istreambuf_iterator<char>(saved), {})
+                        == sentinel;
+                t.expect(!written && destinationPreserved
+                             && iface.style.maxLeaderPoints == invalid,
+                         "MLEADERSTYLE refuses invalid maximum leader points without mutation");
+
+                iface.style.maxLeaderPoints = 2;
+                const bool retried = iface.fileExport(
+                    path.string(), version, binary, &iface.data, false);
+                const auto tags = retried ? fileTags(path, binary)
+                                          : std::vector<std::string>{};
+                t.expect(retried && fieldValueIs(tags, 90, 2),
+                         "same-adapter MLEADERSTYLE maximum leader-points retry emits group 90");
+            }
+        }
+    }
+    iface.style.maxLeaderPoints = 0;
+
     constexpr std::array<std::int32_t, 27> validLineWeights{{
         -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
         50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211
