@@ -60,6 +60,7 @@
 #include "intern/dxfviewucs.h"
 #include "intern/dxfrenderingsource.h"
 #include "intern/dxfrendersettings.h"
+#include "intern/dxfmleadercolor.h"
 
 namespace {
 
@@ -16293,6 +16294,222 @@ void setMLeaderStringValue(DRW_MLeaderStyle& style, int code,
         style.textDefault = value;
 }
 
+bool mleaderColorFieldsEqual(const DRW_MLeaderStyle& style, int code,
+                             const dxfMLeaderColor::Value& value) noexcept {
+    switch (code) {
+    case 91:
+        return style.leaderColor == value.index
+            && style.leaderColorRgb == value.rgb24
+            && style.leaderColorDwgMethod == value.method
+            && style.leaderColorDwgFlags == 0u
+            && style.leaderColorDwgIndex == 0u
+            && !style.leaderColorDwgMetadataPresent
+            && style.leaderColorName.empty()
+            && style.leaderColorBookName.empty();
+    case 93:
+        return style.textColor == value.index
+            && style.textColorRgb == value.rgb24
+            && style.textColorDwgMethod == value.method
+            && style.textColorDwgFlags == 0u
+            && style.textColorDwgIndex == 0u
+            && !style.textColorDwgMetadataPresent
+            && style.textColorName.empty()
+            && style.textColorBookName.empty();
+    case 94:
+        return style.blockColor == value.index
+            && style.blockColorRgb == value.rgb24
+            && style.blockColorDwgMethod == value.method
+            && style.blockColorDwgFlags == 0u
+            && style.blockColorDwgIndex == 0u
+            && !style.blockColorDwgMetadataPresent
+            && style.blockColorName.empty()
+            && style.blockColorBookName.empty();
+    default:
+        return false;
+    }
+}
+
+bool mleaderColorValuesEqual(const DRW_MLeaderStyle& left,
+                             const DRW_MLeaderStyle& right,
+                             int code) noexcept {
+    switch (code) {
+    case 91:
+        return left.leaderColor == right.leaderColor
+            && left.leaderColorRgb == right.leaderColorRgb
+            && left.leaderColorDwgMethod == right.leaderColorDwgMethod
+            && left.leaderColorDwgFlags == right.leaderColorDwgFlags
+            && left.leaderColorDwgIndex == right.leaderColorDwgIndex
+            && left.leaderColorDwgMetadataPresent
+                == right.leaderColorDwgMetadataPresent
+            && left.leaderColorName == right.leaderColorName
+            && left.leaderColorBookName == right.leaderColorBookName;
+    case 93:
+        return left.textColor == right.textColor
+            && left.textColorRgb == right.textColorRgb
+            && left.textColorDwgMethod == right.textColorDwgMethod
+            && left.textColorDwgFlags == right.textColorDwgFlags
+            && left.textColorDwgIndex == right.textColorDwgIndex
+            && left.textColorDwgMetadataPresent
+                == right.textColorDwgMetadataPresent
+            && left.textColorName == right.textColorName
+            && left.textColorBookName == right.textColorBookName;
+    case 94:
+        return left.blockColor == right.blockColor
+            && left.blockColorRgb == right.blockColorRgb
+            && left.blockColorDwgMethod == right.blockColorDwgMethod
+            && left.blockColorDwgFlags == right.blockColorDwgFlags
+            && left.blockColorDwgIndex == right.blockColorDwgIndex
+            && left.blockColorDwgMetadataPresent
+                == right.blockColorDwgMetadataPresent
+            && left.blockColorName == right.blockColorName
+            && left.blockColorBookName == right.blockColorBookName;
+    default:
+        return false;
+    }
+}
+
+bool copyMLeaderColorField(DRW_MLeaderStyle& destination,
+                           const DRW_MLeaderStyle& source, int code) {
+    dxfMLeaderColor::Value color{
+        mleaderInt32Value(source, code), -1, 0u};
+    std::uint8_t sourceMethod = 0u;
+    std::uint8_t flags = 0u;
+    std::uint16_t index = 0u;
+    bool metadataPresent = false;
+    const UTF8STRING* name = nullptr;
+    const UTF8STRING* bookName = nullptr;
+    const bool valid = [&]() {
+        switch (code) {
+        case 91:
+            color.rgb24 = source.leaderColorRgb;
+            sourceMethod = color.method = source.leaderColorDwgMethod;
+            flags = source.leaderColorDwgFlags;
+            index = source.leaderColorDwgIndex;
+            metadataPresent = source.leaderColorDwgMetadataPresent;
+            name = &source.leaderColorName;
+            bookName = &source.leaderColorBookName;
+            break;
+        case 93:
+            color.rgb24 = source.textColorRgb;
+            sourceMethod = color.method = source.textColorDwgMethod;
+            flags = source.textColorDwgFlags;
+            index = source.textColorDwgIndex;
+            metadataPresent = source.textColorDwgMetadataPresent;
+            name = &source.textColorName;
+            bookName = &source.textColorBookName;
+            break;
+        case 94:
+            color.rgb24 = source.blockColorRgb;
+            sourceMethod = color.method = source.blockColorDwgMethod;
+            flags = source.blockColorDwgFlags;
+            index = source.blockColorDwgIndex;
+            metadataPresent = source.blockColorDwgMetadataPresent;
+            name = &source.blockColorName;
+            bookName = &source.blockColorBookName;
+            break;
+        default:
+            return false;
+        }
+        return dxfMLeaderColor::isValid(color);
+    }();
+    const bool hasUnrepresentedMetadata = color.rgb24 >= 0 || flags != 0u
+        || index != 0u || metadataPresent
+        || (name != nullptr && !name->empty())
+        || (bookName != nullptr && !bookName->empty());
+    const bool staleScalarMethod = !valid && !hasUnrepresentedMetadata
+        && (sourceMethod == 0xC0u || sourceMethod == 0xC1u
+            || sourceMethod == 0xC3u);
+    if (!valid && !staleScalarMethod)
+        return false;
+    if (staleScalarMethod)
+        color = {mleaderInt32Value(source, code), -1, 0u};
+
+    setMLeaderInt32Value(destination, code, color.index);
+    switch (code) {
+    case 91:
+        destination.leaderColorRgb = color.rgb24;
+        destination.leaderColorDwgMethod = color.method;
+        destination.leaderColorDwgFlags = valid
+            ? source.leaderColorDwgFlags : 0u;
+        destination.leaderColorDwgIndex = valid
+            ? source.leaderColorDwgIndex : 0u;
+        destination.leaderColorDwgMetadataPresent = valid
+            && source.leaderColorDwgMetadataPresent;
+        destination.leaderColorName = valid ? source.leaderColorName : "";
+        destination.leaderColorBookName = valid
+            ? source.leaderColorBookName : "";
+        break;
+    case 93:
+        destination.textColorRgb = color.rgb24;
+        destination.textColorDwgMethod = color.method;
+        destination.textColorDwgFlags = valid ? source.textColorDwgFlags : 0u;
+        destination.textColorDwgIndex = valid ? source.textColorDwgIndex : 0u;
+        destination.textColorDwgMetadataPresent = valid
+            && source.textColorDwgMetadataPresent;
+        destination.textColorName = valid ? source.textColorName : "";
+        destination.textColorBookName = valid ? source.textColorBookName : "";
+        break;
+    case 94:
+        destination.blockColorRgb = color.rgb24;
+        destination.blockColorDwgMethod = color.method;
+        destination.blockColorDwgFlags = valid ? source.blockColorDwgFlags : 0u;
+        destination.blockColorDwgIndex = valid ? source.blockColorDwgIndex : 0u;
+        destination.blockColorDwgMetadataPresent = valid
+            && source.blockColorDwgMetadataPresent;
+        destination.blockColorName = valid ? source.blockColorName : "";
+        destination.blockColorBookName = valid ? source.blockColorBookName : "";
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+bool encodeMLeaderColorField(const DRW_MLeaderStyle& style, int code,
+                             std::int32_t& raw) noexcept {
+    dxfMLeaderColor::Value color{mleaderInt32Value(style, code), -1, 0u};
+    const UTF8STRING* name = nullptr;
+    const UTF8STRING* bookName = nullptr;
+    std::uint8_t flags = 0u;
+    std::uint16_t index = 0u;
+    bool metadataPresent = false;
+    switch (code) {
+    case 91:
+        color.rgb24 = style.leaderColorRgb;
+        color.method = style.leaderColorDwgMethod;
+        name = &style.leaderColorName;
+        bookName = &style.leaderColorBookName;
+        flags = style.leaderColorDwgFlags;
+        index = style.leaderColorDwgIndex;
+        metadataPresent = style.leaderColorDwgMetadataPresent;
+        break;
+    case 93:
+        color.rgb24 = style.textColorRgb;
+        color.method = style.textColorDwgMethod;
+        name = &style.textColorName;
+        bookName = &style.textColorBookName;
+        flags = style.textColorDwgFlags;
+        index = style.textColorDwgIndex;
+        metadataPresent = style.textColorDwgMetadataPresent;
+        break;
+    case 94:
+        color.rgb24 = style.blockColorRgb;
+        color.method = style.blockColorDwgMethod;
+        name = &style.blockColorName;
+        bookName = &style.blockColorBookName;
+        flags = style.blockColorDwgFlags;
+        index = style.blockColorDwgIndex;
+        metadataPresent = style.blockColorDwgMetadataPresent;
+        break;
+    default:
+        return false;
+    }
+    return name != nullptr && bookName != nullptr && name->empty()
+        && bookName->empty() && flags == 0u && index == 0u
+        && (!metadataPresent || color.method != 0u)
+        && dxfMLeaderColor::encodeDxf(color, raw);
+}
+
 double mleaderDoubleValue(const DRW_MLeaderStyle& style, int code) noexcept {
     switch (code) {
     case 40: return style.firstSegmentAngle;
@@ -16320,6 +16537,9 @@ void setMLeaderInt32Value(DRW_MLeaderStyle& style, int code,
                           std::int32_t value) noexcept;
 void setMLeaderStringValue(DRW_MLeaderStyle& style, int code,
                            const std::string& value);
+bool mleaderColorValuesEqual(const DRW_MLeaderStyle& left,
+                             const DRW_MLeaderStyle& right,
+                             int code) noexcept;
 
 std::vector<int> changedMLeaderFieldCodes(
         const DRW_MLeaderStyle& value,
@@ -16335,8 +16555,11 @@ std::vector<int> changedMLeaderFieldCodes(
         changedCodes.push_back(code);
     }
     for (int code : mleaderInt32Codes) {
-        if (mleaderInt32Value(value, code)
-            == mleaderInt32Value(original, code))
+        const bool equal = isMLeaderColorCode(code)
+            ? mleaderColorValuesEqual(value, original, code)
+            : mleaderInt32Value(value, code)
+                == mleaderInt32Value(original, code);
+        if (equal)
             continue;
         changedCodes.push_back(code);
     }
@@ -16360,7 +16583,7 @@ bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
         return true;
     if (std::all_of(codes.begin(), codes.end(), isMLeaderDoubleCode))
         return true;
-    // The three ACI CMC values are independent when each source field is a
+    // The three packed CMC values are independent when each source field is a
     // unique INTEGER and its containing CMC has no unmodeled extensions.
     if (std::all_of(codes.begin(), codes.end(), isMLeaderColorCode))
         return true;
@@ -16388,7 +16611,7 @@ bool supportedMLeaderEditSet(const std::vector<int>& codes) noexcept {
         });
 }
 
-void copyMLeaderField(DRW_MLeaderStyle& destination,
+bool copyMLeaderField(DRW_MLeaderStyle& destination,
                       const DRW_MLeaderStyle& source, int code) {
     if (isMLeaderDoubleCode(code))
         setMLeaderDoubleValue(destination, code,
@@ -16396,17 +16619,29 @@ void copyMLeaderField(DRW_MLeaderStyle& destination,
     else if (isMLeaderHandleCode(code))
         setMLeaderHandleValue(destination, code,
                               mleaderHandleValue(source, code));
+    else if (isMLeaderColorCode(code))
+        return copyMLeaderColorField(destination, source, code);
     else if (isMLeaderInt32Code(code))
         setMLeaderInt32Value(destination, code,
                              mleaderInt32Value(source, code));
     else if (isMLeaderStringCode(code))
         setMLeaderStringValue(destination, code,
                               mleaderStringValue(source, code));
+    else
+        return false;
+    return true;
 }
 
 bool mleaderRawFieldMatches(const DRW_Variant& field,
                             const DRW_MLeaderStyle& original,
                             int code) noexcept {
+    if (isMLeaderColorCode(code)) {
+        if (field.type() != DRW_Variant::INTEGER)
+            return false;
+        dxfMLeaderColor::Value parsed;
+        return dxfMLeaderColor::decodeDxf(field.i_val(), parsed)
+            && mleaderColorFieldsEqual(original, code, parsed);
+    }
     if (isMLeaderInt32Code(code))
         return field.i_val() == mleaderInt32Value(original, code);
     if (isMLeaderHandleCode(code)) {
@@ -16491,8 +16726,9 @@ bool mleaderFieldSlot(const DRW_RawDxfObject& raw, int code,
             continue;
         }
         // Groups 91, 93 and 94 are CMC fields. This transaction supports only
-        // their source-bound ACI groups; do not rewrite if truecolor,
-        // name/book, transparency or another CMC extension is also present.
+        // their source-bound packed color groups; do not rewrite if a separate
+        // truecolor, name/book, transparency or another CMC extension is also
+        // present.
         if (isMLeaderColorCode(code) && inStyleBody
             && fieldCode >= 420 && fieldCode <= 449)
             return false;
@@ -16588,7 +16824,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 continue;
             }
             // Multiple fields compose only for mapped DOUBLE fields with the
-            // selected group-90/group-92 scalar family, the bounded ACI
+            // selected group-90/group-92 scalar family, the bounded packed
             // color-only family, or the description/default-text pair. Other
             // mixed types can carry coupled semantics or references; keep
             // those on their existing one-field transaction until separately
@@ -16599,8 +16835,14 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                 std::size_t baselineSlot = noMLeaderFieldSlot;
                 const int enumMaximum = mleaderEnumMaximum(editedCode);
                 const bool validValue = isMLeaderColorCode(editedCode)
-                    ? mleaderInt32Value(value, editedCode) >= 0
-                        && mleaderInt32Value(value, editedCode) <= 256
+                    ? [&]() {
+                        DRW_MLeaderStyle normalized = value;
+                        std::int32_t rawColor = 0;
+                        return copyMLeaderColorField(normalized, value,
+                                   editedCode)
+                            && encodeMLeaderColorField(normalized, editedCode,
+                                                       rawColor);
+                    }()
                     : enumMaximum >= 0
                         ? mleaderInt32Value(value, editedCode)
                                 >= mleaderEnumMinimum(editedCode)
@@ -16695,7 +16937,7 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
             if (!editedCodes.empty()) {
                 // Multiple-field composition is limited to mapped AC1027
                 // DOUBLE groups with selected group-90/group-92 INT32 scalars,
-                // the bounded ACI color-only family, or the description and
+                // the bounded packed-color-only family, or the description and
                 // default-text string pair. Other edit sets keep their
                 // single-field contract until separately qualified.
                 if (version != DRW::AC1027
@@ -16710,14 +16952,16 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                         && !std::isfinite(
                             mleaderDoubleValue(value, editedCode)))
                         return false;
-                    copyMLeaderField(normalized, original, editedCode);
+                    if (!copyMLeaderField(normalized, original, editedCode))
+                        return false;
                     std::size_t slot = noMLeaderFieldSlot;
                     if (!mleaderFieldSlot(raw, editedCode, slot)
                         || slot == noMLeaderFieldSlot
                         || !mleaderRawFieldMatches(raw.groups[slot],
                                                    original, editedCode))
                         return false;
-                    copyMLeaderField(projection, value, editedCode);
+                    if (!copyMLeaderField(projection, value, editedCode))
+                        return false;
                 }
                 if (!mleaderPayloadEqual(normalized, original, version))
                     return false;
@@ -16725,6 +16969,12 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
 
             DxfMLeaderStyleSource source;
             source.model = value;
+            for (const int editedCode : editedCodes) {
+                if (isMLeaderColorCode(editedCode)
+                    && !copyMLeaderColorField(source.model, value,
+                                              editedCode))
+                    return false;
+            }
             source.projection = projection;
             source.editedFieldCodes = editedCodes;
             source.raw = raw;
@@ -16777,11 +17027,17 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     source.output.groups[slot] = DRW_Variant(editedCode,
                         dxfW->toHexStrHandle(
                             mleaderHandleValue(projection, editedCode)));
+                } else if (isMLeaderColorCode(editedCode)) {
+                    std::int32_t rawColor = 0;
+                    if (!encodeMLeaderColorField(projection, editedCode,
+                                                 rawColor))
+                        return false;
+                    source.output.groups[slot] =
+                        DRW_Variant(editedCode, rawColor);
                 } else if (isMLeaderInt32Code(editedCode)) {
                     // BodyWriter stores generic 90-92 values as INTEGER64 for
-                    // MATERIAL's unsigned color case. MLEADERSTYLE groups
-                    // 90-94 are signed INT32 fields (91/93/94 are ACI values),
-                    // and the raw-carrier validator requires INTEGER.
+                    // MATERIAL's unsigned color case. Other MLEADERSTYLE
+                    // numeric fields are signed INT32 values.
                     source.output.groups[slot] = DRW_Variant(
                         editedCode, mleaderInt32Value(projection,
                                                       editedCode));
@@ -16805,7 +17061,8 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
                     binary, m_dxfMLeaderStyleState.codePage,
                     baseline.encoding, baseline.policy,
                     baseline.compatibility)
-                || !standardDwgCommonEqual(value, emitted, version, false)
+                || !standardDwgCommonEqual(projection, emitted, version,
+                                           false)
                 || value.name != emitted.name
                 || !mleaderPayloadEqual(projection, emitted, version)
                 || !m_dxfMLeaderStyles.emplace(
@@ -16835,12 +17092,19 @@ bool dx_iface::hasUnchangedDxfMLeaderStyles() const noexcept {
                 continue;
             const auto baseline =
                 cData->m_mleaderStyleBodyBaselines.find(value.handle);
+            DRW_MLeaderStyle normalized = value;
+            for (const int editedCode : source->second.editedFieldCodes) {
+                if (isMLeaderColorCode(editedCode)
+                    && !copyMLeaderColorField(normalized, value,
+                                              editedCode))
+                    return false;
+            }
             if (baseline == cData->m_mleaderStyleBodyBaselines.end()
                 || baseline->second != source->second.baseline
                 || !typed.insert(value.handle).second
-                || !standardDwgCommonEqual(value, source->second.model,
+                || !standardDwgCommonEqual(normalized, source->second.model,
                                             cData->sourceVersion)
-                || !mleaderPayloadEqual(value, source->second.model,
+                || !mleaderPayloadEqual(normalized, source->second.model,
                                         cData->sourceVersion))
                 return false;
         }

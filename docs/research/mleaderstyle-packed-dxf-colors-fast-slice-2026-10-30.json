@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE packed DXF color transport",
+  "mode": "P2 local parser, writer and source-bound adapter slice",
+  "baselineCommit": "3cb0fe42",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "1362960f0c9d6ea4b3d616ec2284c9c621126199e46161944d92ee8578aa2212",
+  "scope": [
+    "Parse and write MLEADERSTYLE groups 91, 93 and 94 as legacy scalar or packed C0-C3 DXF colors.",
+    "Carry represented color method, scalar index and RGB values through source-bound replay, ASCII/Binary conversion, scalar and RGB edits, and typed serialization.",
+    "Refuse unrepresented color names, book names, flags, reserved metadata indices and unknown packed methods rather than dropping them."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLEADERSTYLE DXF group codes",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+        "supports": "Maps MLEADERSTYLE groups 91, 93 and 94 to leader-line, text and block-content colors; it does not specify the packed C0-C3 payload decoding."
+      },
+      {
+        "title": "Pinned ezdxf 1.4.5 raw-color decoder and MLEADERSTYLE schema",
+        "url": "https://pypi.org/project/ezdxf/1.4.5/",
+        "localFiles": [
+          {
+            "path": "build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/colors.py",
+            "sha256": "2dc20b764a7ca766f9719f954974e46348595669a4ae8eb7dd4da512e0ed16fb",
+            "functions": "decode_raw_color_int (lines 161-172) maps C0/C1 to BYLAYER/BYBLOCK, C2 to the low 24-bit RGB value and C3 to the low byte ACI value."
+          },
+          {
+            "path": "build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mleader.py",
+            "sha256": "9303d33c49ab200f22e2f659c05f7c2f61a197c821618b8e6e2012183ab05a59",
+            "schema": "MLEADERSTYLE attributes map leader_color, text_color and block_color to groups 91, 93 and 94."
+          }
+        ],
+        "interpretation": "Used as independent implementation evidence for raw-color decoding, not as a native CAD semantic or whole-document support certificate."
+      },
+      {
+        "title": "Pinned peer AC1027 ASCII token witness",
+        "path": "build/rpp5gh-evidence/normal-peer-final/peer-AC1027-asc.dxf",
+        "sha256": "82e11f0c8c7cdebbe2ef4258154981746046d500fa97c6dd892a09357ee2c750",
+        "observation": "MLEADERSTYLE handle 2C has groups 91, 93 and 94 with raw C1 BYBLOCK values. This is a physical token witness only; an unrelated invalid MATERIAL group 73 prevents treating this file as a complete semantic read."
+      }
+    ],
+    "sourceCreation": "All discriminating C0/C1/C2/C3 controls were generated locally from scratch at test runtime in temporary storage. No persistent drawing fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dxfmleadercolor.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added a shared internal decoder/encoder for scalar and packed MLEADERSTYLE colors. C0/C1 decode by method and ignore lower payload bits; C2 uses 24-bit RGB; C3 uses the low-byte ACI value, including ACI zero. The source adapter detects typed color edits, preserves untouched raw groups, canonicalizes edited packed colors, and fails closed when color metadata is not represented by the DXF projection.",
+    "behaviorChanges": [
+      "Groups 91/93/94 now parse C0 BYLAYER, C1 BYBLOCK, C2 RGB and C3 ACI values instead of treating every signed packed value as an invalid scalar.",
+      "The low-level writer emits canonical packed values from typed color state and retains the legacy scalar forms.",
+      "The adapter supports untouched ASCII/Binary replay and cross-format conversion, one-field scalar and RGB edits, typed serialization, destination-preserving refusal and same-adapter retry.",
+      "Generated controls cover ignored C0/C1 payloads, ignored upper C3 payload bytes, C3 ACI zero, and canonical typed output."
+    ],
+    "publicApiOrLayoutChanged": false,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror build.",
+      "focusedCTest": "PASS 1/1 in 2.82 seconds; selector runs ASCII and Binary source routes.",
+      "profile": "PASS for unchanged same-format output, ASCII/Binary conversion, scalar and RGB edits, typed serializer output, exact packed group values, output readback, refusal preserving an existing destination and corrected retry.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentSemanticConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The profile covers MLEADERSTYLE packed DXF colors only; it does not establish native MLEADER annotation or rendering semantics.",
+    "Unknown packed methods and color name/book/flags/reserved-index metadata remain refused.",
+    "The peer drawing is only a raw token witness and is not a successful complete semantic document; generated controls establish local parser/writer behavior, not native application acceptance.",
+    "No LibreCAD, LibreCAD_3, FreeCAD, platform, ABI, whole-document, full-suite or support-claim gate is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "MLEADERSTYLE groups 91/93/94 scalar and packed C0-C3 parser, writer and source-bound replay/edit/typed output behavior within the tested profile.",
+    "remainingP2Scope": "Current witnessed LTYPE/XDATA or remaining MLEADERSTYLE source/field semantics; the P2 gate remains open.",
+    "nextImplementationPacket": "Reproduce one current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch; if no code loss reproduces, move to the P3 MATERIAL source/provider gap.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1362960f0c9d6ea4b3d616ec2284c9c621126199e46161944d92ee8578aa2212",
+    "src/intern/dxfmleadercolor.h": "0d639d42ce2cbb33722bf0d0f106ca65cc08e34b3e40034cb6451006613ade28",
+    "dwg2dxf/dx_iface.cpp": "59813b6f421aff9cb580534c3c5c3bd887a91843bd75cfd5ce5f63c4b5ea8bc1",
+    "src/drw_objects.cpp": "7019b24f98a50076819180375025a73a0c1830b530dd9ad30565626623598e1a",
+    "src/libdxfrw.cpp": "71dde486de855f40100ddbe308969f934f79b0d0dfc6eddcf8368efeea0ce6d4",
+    "tests/dwg2dxf_adapter_tests.cpp": "37216accb35e7080d350c69dc405bfb148d2c008867351e4fedbf87ded753b64"
+  },
+  "commitCreated": true,
+  "worktree": "Only the listed implementation, generated-test, plan and receipt files are part of this slice; unrelated untracked files were not staged."
+}

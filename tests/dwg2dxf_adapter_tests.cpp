@@ -11566,7 +11566,10 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeBlockColorExtension = false,
                                      bool includeAlternateLineType = false,
                                      bool includeAlternateTextStyle = false,
-                                     bool includeAlternateBlockRecord = false);
+                                     bool includeAlternateBlockRecord = false,
+                                     std::int32_t rawLeaderColor = 0,
+                                     std::int32_t rawTextColor = 0,
+                                     std::int32_t rawBlockColor = 0);
 
 bool readDxfObjectsRecordOrder(
     const std::filesystem::path& path, bool binary,
@@ -32333,7 +32336,10 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
                                      bool includeBlockColorExtension,
                                      bool includeAlternateLineType,
                                      bool includeAlternateTextStyle,
-                                     bool includeAlternateBlockRecord) {
+                                     bool includeAlternateBlockRecord,
+                                     std::int32_t rawLeaderColor,
+                                     std::int32_t rawTextColor,
+                                     std::int32_t rawBlockColor) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create root MLEADERSTYLE control");
@@ -32540,18 +32546,18 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
     writer->writeString(3, "source-style-description");
     writer->writeString(300, "source-default-text");
     if (standardLeaderLineWeight != 0) {
-        writer->writeInt32(91, 0);
+        writer->writeInt32(91, rawLeaderColor);
         if (includeLeaderColorExtension)
             writer->writeInt32(420, 0x123456);
         writer->writeInt32(92, standardLeaderLineWeight);
     }
     if (includeTextColorField) {
-        writer->writeInt32(93, 0);
+        writer->writeInt32(93, rawTextColor);
         if (includeTextColorExtension)
             writer->writeInt32(420, 0x654321);
     }
     if (includeBlockColorField) {
-        writer->writeInt32(94, 0);
+        writer->writeInt32(94, rawBlockColor);
         if (includeBlockColorExtension)
             writer->writeInt32(420, 0x234567);
     }
@@ -37309,6 +37315,383 @@ bool mleaderStyleDoubleCompositionTransaction(
         || fail("composed MLEADERSTYLE late-failure control did not run");
 }
 
+bool mleaderStylePackedColorProjection(
+        const std::filesystem::path& directory, bool binary) {
+    constexpr std::int32_t byBlock = -1056959948;
+    constexpr std::int32_t canonicalByBlock = -1056964608;
+    constexpr std::int32_t rgbColor = -1038994346;
+    constexpr std::int32_t editedRgbColor = -1028928017;
+    constexpr std::int32_t aciColor = -1022217209;
+    constexpr std::int32_t canonicalAciColor = -1023410169;
+    const std::string encoding = binary ? "bin" : "ascii";
+    const auto source = directory
+        / ("root-mleaderstyle-packed-color-source-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(source, binary, true, 0, false,
+            false, 0.0, 0.0, false, 25, false, true, false, true, false,
+            false, false, false, byBlock, rgbColor, aciColor))
+        return false;
+
+    const auto findStyle = [](dx_data& data) -> DRW_MLeaderStyle* {
+        const auto found = std::find_if(data.mLeaderStyles.begin(),
+            data.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
+                return candidate.name == "STANDARD";
+            });
+        return found == data.mLeaderStyles.end() ? nullptr : &*found;
+    };
+    const auto verifyColors = [&findStyle](dx_data& data,
+            int leaderIndex, std::int32_t leaderRgb,
+            std::uint8_t leaderMethod, std::int32_t expectedLeaderRaw,
+            std::int32_t textRgb, std::int32_t expectedTextRaw,
+            std::int32_t expectedBlockRaw) {
+        const DRW_MLeaderStyle* style = findStyle(data);
+        if (style == nullptr || style->leaderColor != leaderIndex
+            || style->leaderColorRgb != leaderRgb
+            || style->leaderColorDwgMethod != leaderMethod
+            || style->textColor != 256
+            || style->textColorRgb != textRgb
+            || style->textColorDwgMethod != 0xC2u
+            || style->blockColor != 7
+            || style->blockColorRgb != -1
+            || style->blockColorDwgMethod != 0xC3u
+            || style->maxLeaderPoints != 0
+            || style->leaderLineWeight != 25)
+            return fail("MLEADERSTYLE packed color typed fields changed: leader="
+                + std::to_string(style == nullptr ? -999 : style->leaderColor)
+                + "/" + std::to_string(leaderIndex) + " rgb="
+                + std::to_string(style == nullptr ? -999 : style->leaderColorRgb)
+                + "/" + std::to_string(leaderRgb) + " method="
+                + std::to_string(style == nullptr ? 0u
+                    : static_cast<unsigned>(style->leaderColorDwgMethod))
+                + "/" + std::to_string(static_cast<unsigned>(leaderMethod))
+                + " text=" + std::to_string(style == nullptr ? -999
+                    : style->textColor) + "/"
+                + std::to_string(style == nullptr ? -999 : style->textColorRgb)
+                + " block=" + std::to_string(style == nullptr ? -999
+                    : style->blockColor) + "/"
+                + std::to_string(style == nullptr ? -999 : style->blockColorRgb));
+        const auto raw = std::find_if(data.rawNamedResourceObjects.begin(),
+            data.rawNamedResourceObjects.end(), [style](
+                    const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == style->handle;
+            });
+        if (raw == data.rawNamedResourceObjects.end())
+            return fail("MLEADERSTYLE packed color raw source is missing");
+        const std::array<std::pair<int, std::int32_t>, 3> expected{{
+            {91, expectedLeaderRaw}, {93, expectedTextRaw},
+            {94, expectedBlockRaw}}};
+        for (const auto& field : expected) {
+            const auto count = std::count_if(raw->groups.begin(),
+                raw->groups.end(), [&field](const DRW_Variant& candidate) {
+                    return candidate.code() == field.first
+                        && candidate.type() == DRW_Variant::INTEGER
+                        && candidate.i_val() == field.second;
+                });
+            if (count != 1)
+                return fail("MLEADERSTYLE packed color raw field mismatch at group "
+                    + std::to_string(field.first) + " count="
+                    + std::to_string(count) + " expected="
+                    + std::to_string(field.second));
+        }
+        return true;
+    };
+
+    dx_iface reader;
+    dx_data imported;
+    if (!reader.fileImport(source.string(), &imported, false)
+        || !imported.hasSingleSuccessfulNamedResourceImport()
+        || !verifyColors(imported, 0, -1, 0xC1u, byBlock,
+                         0x00123456, rgbColor, aciColor))
+        return fail("could not import the witnessed MLEADERSTYLE raw colors");
+
+    const auto verifyExport = [&verifyColors](
+            const std::filesystem::path& output,
+            int leaderIndex, std::int32_t leaderRgb,
+            std::uint8_t leaderMethod, std::int32_t expectedLeaderRaw,
+            std::int32_t textRgb, std::int32_t expectedTextRaw,
+            std::int32_t expectedBlockRaw) {
+        dx_data readback;
+        dx_iface outputReader;
+        if (!outputReader.fileImport(output.string(), &readback, false)
+            || !verifyColors(readback, leaderIndex, leaderRgb, leaderMethod,
+                             expectedLeaderRaw, textRgb, expectedTextRaw,
+                             expectedBlockRaw))
+            return fail("MLEADERSTYLE packed colors failed output readback");
+        return true;
+    };
+    const auto untouchedOutput = directory
+        / ("root-mleaderstyle-packed-color-untouched-" + encoding + ".dxf");
+    dx_iface untouchedWriter;
+    if (!untouchedWriter.fileExport(untouchedOutput.string(), DRW::AC1027,
+                                    binary, &imported, false, true))
+        return fail("untouched MLEADERSTYLE packed colors did not round trip: "
+            + untouchedWriter.extensionGraphFailureDetail());
+    if (!verifyExport(untouchedOutput, 0, -1, 0xC1u, byBlock,
+                      0x00123456, rgbColor, aciColor))
+        return false;
+    const auto crossOutput = directory
+        / ("root-mleaderstyle-packed-color-cross-" + encoding + ".dxf");
+    dx_iface crossWriter;
+    if (!crossWriter.fileExport(crossOutput.string(), DRW::AC1027,
+                                !binary, &imported, false, true))
+        return fail("cross-format MLEADERSTYLE packed colors failed: "
+            + crossWriter.extensionGraphFailureDetail());
+    if (!verifyExport(crossOutput, 0, -1, 0xC1u, byBlock,
+                      0x00123456, rgbColor, aciColor))
+        return false;
+
+    dx_data editedData;
+    if (!reader.fileImport(source.string(), &editedData, false))
+        return fail("could not reload packed-color edit source");
+    DRW_MLeaderStyle* editedStyle = findStyle(editedData);
+    if (editedStyle == nullptr)
+        return fail("packed-color edit source lost STANDARD style");
+    editedStyle->leaderColor = 7;
+    const auto editedOutput = directory
+        / ("root-mleaderstyle-packed-color-edited-" + encoding + ".dxf");
+    dx_iface editedWriter;
+    if (!editedWriter.fileExport(editedOutput.string(), DRW::AC1027, binary,
+                                 &editedData, false, true))
+        return fail("one-field MLEADERSTYLE packed-color edit lost other colors: "
+            + editedWriter.extensionGraphFailureDetail());
+    if (!verifyExport(editedOutput, 7, -1, 0u, 7,
+                      0x00123456, rgbColor, aciColor))
+        return false;
+
+    dx_data rgbEditedData;
+    if (!reader.fileImport(source.string(), &rgbEditedData, false))
+        return fail("could not reload packed RGB edit source");
+    DRW_MLeaderStyle* rgbEditedStyle = findStyle(rgbEditedData);
+    if (rgbEditedStyle == nullptr)
+        return fail("packed RGB edit source lost STANDARD style");
+    rgbEditedStyle->textColorRgb = 0x00ABCDEF;
+    const auto rgbEditedOutput = directory
+        / ("root-mleaderstyle-packed-color-rgb-edited-" + encoding + ".dxf");
+    dx_iface rgbEditedWriter;
+    if (!rgbEditedWriter.fileExport(rgbEditedOutput.string(), DRW::AC1027,
+                                    binary, &rgbEditedData, false, true))
+        return fail("MLEADERSTYLE packed RGB edit was rejected: "
+            + rgbEditedWriter.extensionGraphFailureDetail());
+    if (!verifyExport(rgbEditedOutput, 0, -1, 0xC1u, byBlock,
+                      0x00ABCDEF, editedRgbColor, aciColor))
+        return false;
+
+    dx_data typedSource;
+    if (!reader.fileImport(source.string(), &typedSource, false))
+        return fail("could not reload typed MLEADERSTYLE color source");
+    typedSource.rawNamedResourceObjects.clear();
+    typedSource.sourceFormat = dx_source_format::DWG;
+    typedSource.sourceVersion = DRW::AC1027;
+    setSyntheticNamedResourceDwgReceipt(typedSource, DRW::AC1027);
+    const auto typedOutput = directory
+        / ("root-mleaderstyle-packed-color-typed-" + encoding + ".dxf");
+    dx_iface typedWriter;
+    if (!typedWriter.fileExport(typedOutput.string(), DRW::AC1027, binary,
+                                &typedSource, false, true))
+        return fail("typed MLEADERSTYLE packed colors were rejected: "
+            + typedWriter.extensionGraphFailureDetail());
+    if (!verifyExport(typedOutput, 0, -1, 0xC1u, canonicalByBlock,
+                      0x00123456, rgbColor, canonicalAciColor))
+        return false;
+
+    constexpr std::int32_t aciZeroSourceRaw = -1022217216;
+    constexpr std::int32_t aciZeroCanonicalRaw = -1023410176;
+    const auto aciZeroSource = directory
+        / ("root-mleaderstyle-packed-color-aci-zero-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(aciZeroSource, binary, true, 0,
+            false, false, 0.0, 0.0, false, 25, false, false, false, true,
+            false, false, false, false, 0, 0, aciZeroSourceRaw))
+        return false;
+    dx_data aciZeroData;
+    if (!reader.fileImport(aciZeroSource.string(), &aciZeroData, false))
+        return fail("could not import MLEADERSTYLE ACI-zero packed color");
+    DRW_MLeaderStyle* aciZeroStyle = findStyle(aciZeroData);
+    const auto aciZeroRaw = aciZeroStyle == nullptr
+        ? aciZeroData.rawNamedResourceObjects.end()
+        : std::find_if(aciZeroData.rawNamedResourceObjects.begin(),
+            aciZeroData.rawNamedResourceObjects.end(),
+            [aciZeroStyle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == aciZeroStyle->handle;
+            });
+    if (aciZeroStyle == nullptr || aciZeroStyle->blockColor != 0
+        || aciZeroStyle->blockColorRgb != -1
+        || aciZeroStyle->blockColorDwgMethod != 0xC3u
+        || aciZeroRaw == aciZeroData.rawNamedResourceObjects.end()
+        || std::count_if(aciZeroRaw->groups.begin(), aciZeroRaw->groups.end(),
+            [](const DRW_Variant& field) {
+                return field.code() == 94
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == aciZeroSourceRaw;
+            }) != 1)
+        return fail("MLEADERSTYLE ACI-zero source color changed");
+    aciZeroData.rawNamedResourceObjects.clear();
+    aciZeroData.sourceFormat = dx_source_format::DWG;
+    aciZeroData.sourceVersion = DRW::AC1027;
+    setSyntheticNamedResourceDwgReceipt(aciZeroData, DRW::AC1027);
+    const auto aciZeroOutput = directory
+        / ("root-mleaderstyle-packed-color-aci-zero-output-" + encoding
+            + ".dxf");
+    dx_iface aciZeroWriter;
+    if (!aciZeroWriter.fileExport(aciZeroOutput.string(), DRW::AC1027,
+            binary, &aciZeroData, false, true))
+        return fail("typed MLEADERSTYLE ACI-zero color was rejected: "
+            + aciZeroWriter.extensionGraphFailureDetail());
+    dx_data aciZeroReadback;
+    dx_iface aciZeroReader;
+    if (!aciZeroReader.fileImport(aciZeroOutput.string(), &aciZeroReadback,
+            false))
+        return fail("could not read back typed MLEADERSTYLE ACI-zero color");
+    DRW_MLeaderStyle* aciZeroOutputStyle = findStyle(aciZeroReadback);
+    const auto aciZeroOutputRaw = aciZeroOutputStyle == nullptr
+        ? aciZeroReadback.rawNamedResourceObjects.end()
+        : std::find_if(aciZeroReadback.rawNamedResourceObjects.begin(),
+            aciZeroReadback.rawNamedResourceObjects.end(),
+            [aciZeroOutputStyle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == aciZeroOutputStyle->handle;
+            });
+    if (aciZeroOutputStyle == nullptr || aciZeroOutputStyle->blockColor != 0
+        || aciZeroOutputStyle->blockColorDwgMethod != 0xC3u
+        || aciZeroOutputRaw == aciZeroReadback.rawNamedResourceObjects.end()
+        || std::count_if(aciZeroOutputRaw->groups.begin(),
+            aciZeroOutputRaw->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 94
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == aciZeroCanonicalRaw;
+            }) != 1)
+        return fail("typed MLEADERSTYLE ACI-zero color changed on output");
+
+    constexpr std::int32_t byLayer = -1073741824;
+    constexpr std::int32_t byLayerSourceRaw = -1073737164;
+    const auto byLayerSource = directory
+        / ("root-mleaderstyle-packed-color-bylayer-" + encoding + ".dxf");
+    if (!generateRootMLeaderStyleControl(byLayerSource, binary, true, 0,
+            false, false, 0.0, 0.0, false, 25, false, false, false, false,
+            false, false, false, false, byLayerSourceRaw, 0, 0))
+        return false;
+    dx_data byLayerData;
+    if (!reader.fileImport(byLayerSource.string(), &byLayerData, false))
+        return fail("could not import MLEADERSTYLE BYLAYER packed color");
+    DRW_MLeaderStyle* byLayerStyle = findStyle(byLayerData);
+    if (byLayerStyle == nullptr || byLayerStyle->leaderColor != 256
+        || byLayerStyle->leaderColorRgb != -1
+        || byLayerStyle->leaderColorDwgMethod != 0xC0u)
+        return fail("MLEADERSTYLE BYLAYER packed color typed fields changed");
+    const auto byLayerSourceRawObject = std::find_if(
+        byLayerData.rawNamedResourceObjects.begin(),
+        byLayerData.rawNamedResourceObjects.end(), [byLayerStyle](
+                const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == byLayerStyle->handle;
+        });
+    if (byLayerSourceRawObject == byLayerData.rawNamedResourceObjects.end()
+        || std::count_if(byLayerSourceRawObject->groups.begin(),
+            byLayerSourceRawObject->groups.end(), [](const DRW_Variant& field) {
+                return field.code() == 91
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == byLayerSourceRaw;
+            }) != 1)
+        return fail("MLEADERSTYLE BYLAYER source payload was not retained");
+    byLayerData.rawNamedResourceObjects.clear();
+    byLayerData.sourceFormat = dx_source_format::DWG;
+    byLayerData.sourceVersion = DRW::AC1027;
+    setSyntheticNamedResourceDwgReceipt(byLayerData, DRW::AC1027);
+    const auto byLayerOutput = directory
+        / ("root-mleaderstyle-packed-color-bylayer-output-" + encoding + ".dxf");
+    dx_iface byLayerWriter;
+    if (!byLayerWriter.fileExport(byLayerOutput.string(), DRW::AC1027,
+            binary, &byLayerData, false, true))
+        return fail("typed MLEADERSTYLE BYLAYER color was rejected: "
+            + byLayerWriter.extensionGraphFailureDetail());
+    dx_data byLayerReadback;
+    dx_iface byLayerOutputReader;
+    if (!byLayerOutputReader.fileImport(byLayerOutput.string(),
+            &byLayerReadback, false))
+        return fail("could not read back typed MLEADERSTYLE BYLAYER color");
+    DRW_MLeaderStyle* byLayerOutputStyle = findStyle(byLayerReadback);
+    const auto byLayerRaw = byLayerOutputStyle == nullptr
+        ? byLayerReadback.rawNamedResourceObjects.end()
+        : std::find_if(byLayerReadback.rawNamedResourceObjects.begin(),
+            byLayerReadback.rawNamedResourceObjects.end(),
+            [byLayerOutputStyle](const DRW_RawDxfObject& candidate) {
+                return candidate.name == "MLEADERSTYLE"
+                    && candidate.handle == byLayerOutputStyle->handle;
+            });
+    if (byLayerOutputStyle == nullptr
+        || byLayerOutputStyle->leaderColor != 256
+        || byLayerOutputStyle->leaderColorDwgMethod != 0xC0u
+        || byLayerRaw == byLayerReadback.rawNamedResourceObjects.end()
+        || std::count_if(byLayerRaw->groups.begin(), byLayerRaw->groups.end(),
+            [](const DRW_Variant& field) {
+                return field.code() == 91
+                    && field.type() == DRW_Variant::INTEGER
+                    && field.i_val() == byLayer;
+            }) != 1)
+        return fail("typed MLEADERSTYLE BYLAYER packed color changed on output");
+
+    dx_data retryData;
+    if (!reader.fileImport(source.string(), &retryData, false))
+        return fail("could not reload packed-color failure/retry source");
+    DRW_MLeaderStyle* retryStyle = findStyle(retryData);
+    if (retryStyle == nullptr)
+        return fail("packed-color retry source lost STANDARD style");
+    auto retryRaw = std::find_if(retryData.rawNamedResourceObjects.begin(),
+        retryData.rawNamedResourceObjects.end(), [retryStyle](
+                const DRW_RawDxfObject& candidate) {
+            return candidate.name == "MLEADERSTYLE"
+                && candidate.handle == retryStyle->handle;
+        });
+    if (retryRaw == retryData.rawNamedResourceObjects.end())
+        return fail("packed-color retry source has no raw body");
+    const DRW_RawDxfObject originalRaw = *retryRaw;
+    const auto rawLeader = std::find_if(retryRaw->groups.begin(),
+        retryRaw->groups.end(), [](const DRW_Variant& field) {
+            return field.code() == 91;
+        });
+    if (rawLeader == retryRaw->groups.end()
+        || rawLeader->type() != DRW_Variant::INTEGER
+        || rawLeader->i_val() != byBlock)
+        return fail("packed-color retry source has no exact group-91 witness");
+    const std::size_t leaderSlot = static_cast<std::size_t>(
+        rawLeader - retryRaw->groups.begin());
+    retryRaw->groups[leaderSlot] = DRW_Variant(91, 7);
+    if (retryRaw->hasRawValues && !binary)
+        retryRaw->rawValues[leaderSlot] = "7";
+    retryStyle->leaderColor = 7;
+    const auto retryOutput = directory
+        / ("root-mleaderstyle-packed-color-retry-" + encoding + ".dxf");
+    const std::string sentinel =
+        "existing packed-color output must survive refusal\n";
+    {
+        std::ofstream previous(retryOutput,
+            std::ios::binary | std::ios::trunc);
+        if (!previous || !(previous << sentinel))
+            return fail("could not seed packed-color output sentinel");
+    }
+    dx_iface retryWriter;
+    if (retryWriter.fileExport(retryOutput.string(), DRW::AC1027, binary,
+                               &retryData, false, true))
+        return fail("mutated packed-color source and typed edit were accepted");
+    {
+        std::ifstream previous(retryOutput, std::ios::binary);
+        const std::string preserved(
+            (std::istreambuf_iterator<char>(previous)),
+            std::istreambuf_iterator<char>());
+        if (previous.bad() || preserved != sentinel)
+            return fail("packed-color refusal replaced the existing destination");
+    }
+    *retryRaw = originalRaw;
+    if (!retryWriter.fileExport(retryOutput.string(), DRW::AC1027, binary,
+                                &retryData, false, true))
+        return fail("same-adapter packed-color corrected retry failed: "
+            + retryWriter.extensionGraphFailureDetail());
+    if (!verifyExport(retryOutput, 7, -1, 0u, 7,
+                      0x00123456, rgbColor, aciColor))
+        return false;
+    return true;
+}
+
 bool mLeaderStyleWriterClosureFocused(
         const std::filesystem::path& parentDirectory) {
     const auto nonce = std::chrono::steady_clock::now()
@@ -37319,8 +37702,11 @@ bool mLeaderStyleWriterClosureFocused(
     std::filesystem::create_directories(directory, error);
     if (error)
         return fail("could not create focused MLEADERSTYLE test directory");
-    bool passed = rootMLeaderStyleWriterClosure(directory, false)
-        && rootMLeaderStyleWriterClosure(directory, true);
+    bool passed = mleaderStylePackedColorProjection(directory, false)
+        && mleaderStylePackedColorProjection(directory, true);
+    if (passed)
+        passed = rootMLeaderStyleWriterClosure(directory, false)
+            && rootMLeaderStyleWriterClosure(directory, true);
     if (passed)
         passed = mleaderStyleDoubleCompositionTransaction(directory);
     if (passed)

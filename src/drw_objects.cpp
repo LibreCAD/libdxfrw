@@ -35,6 +35,7 @@
 #include "intern/dwgreader.h"
 #include "intern/dwgsafety.h"
 #include "intern/dwgvaluekind.h"
+#include "intern/dxfmleadercolor.h"
 
 namespace {
 
@@ -18439,6 +18440,27 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         value = raw;
         return true;
     };
+    const auto readColor = [&reader](int& color,
+                                           std::int32_t& rgb24,
+                                           std::uint8_t& method,
+                                           std::uint8_t& flags,
+                                           std::uint16_t& index,
+                                           bool& metadataPresent,
+                                           UTF8STRING& name,
+                                           UTF8STRING& bookName) {
+        dxfMLeaderColor::Value parsed;
+        if (!dxfMLeaderColor::decodeDxf(reader->getInt32(), parsed))
+            return false;
+        color = parsed.index;
+        rgb24 = parsed.rgb24;
+        method = parsed.method;
+        flags = 0u;
+        index = 0u;
+        metadataPresent = false;
+        name.clear();
+        bookName.clear();
+        return true;
+    };
     switch (code) {
     case 179: styleVersion = reader->getInt32(); break;
     case 170: return readDomainInteger(contentType);
@@ -18449,15 +18471,10 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
     case 41:  secondSegmentAngle = reader->getDouble(); break;
     case 173: return readDomainInteger(leaderType);
     case 91:
-        leaderColor = reader->getInt32();
-        leaderColorRgb = -1;
-        leaderColorName.clear();
-        leaderColorBookName.clear();
-        leaderColorDwgMethod = 0;
-        leaderColorDwgFlags = 0u;
-        leaderColorDwgIndex = 0u;
-        leaderColorDwgMetadataPresent = false;
-        break;
+        return readColor(leaderColor, leaderColorRgb,
+                         leaderColorDwgMethod, leaderColorDwgFlags,
+                         leaderColorDwgIndex, leaderColorDwgMetadataPresent,
+                         leaderColorName, leaderColorBookName);
     case 92:  return readDomainInt32(leaderLineWeight);
     case 290: return readBoolean(landingEnabled);
     case 42:  landingGap = reader->getDouble(); break;
@@ -18481,29 +18498,19 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
     case 175: return readDomainInteger(textAngleType);
     case 176: return readDomainInteger(textAlignmentType);
     case 93:
-        textColor = reader->getInt32();
-        textColorRgb = -1;
-        textColorName.clear();
-        textColorBookName.clear();
-        textColorDwgMethod = 0;
-        textColorDwgFlags = 0u;
-        textColorDwgIndex = 0u;
-        textColorDwgMetadataPresent = false;
-        break;
+        return readColor(textColor, textColorRgb, textColorDwgMethod,
+                         textColorDwgFlags, textColorDwgIndex,
+                         textColorDwgMetadataPresent, textColorName,
+                         textColorBookName);
     case 45:  textHeight = reader->getDouble(); break;
     case 292: return readBoolean(textFrameEnabled);
     case 297: return readBoolean(alwaysAlignTextLeft);
     case 46:  alignSpace = reader->getDouble(); break;
     case 94:
-        blockColor = reader->getInt32();
-        blockColorRgb = -1;
-        blockColorName.clear();
-        blockColorBookName.clear();
-        blockColorDwgMethod = 0;
-        blockColorDwgFlags = 0u;
-        blockColorDwgIndex = 0u;
-        blockColorDwgMetadataPresent = false;
-        break;
+        return readColor(blockColor, blockColorRgb, blockColorDwgMethod,
+                         blockColorDwgFlags, blockColorDwgIndex,
+                         blockColorDwgMetadataPresent, blockColorName,
+                         blockColorBookName);
     case 47:  blockScale.x = reader->getDouble(); break;
     case 49:  blockScale.y = reader->getDouble(); break;
     case 140: blockScale.z = reader->getDouble(); break;

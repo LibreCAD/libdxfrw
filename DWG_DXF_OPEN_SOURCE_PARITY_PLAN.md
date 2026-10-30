@@ -77,7 +77,9 @@ remaining operation that demonstrates a code loss.
    mutation and missing providers on that same path.
 2. **MLEADERSTYLE:** cover remaining source/field semantics: handle roles,
    absent/default values and version-specific fields through shared parser/writer
-   validation. Keep native annotation/rendering claims separate.
+   validation. Packed group 91/93/94 scalar/RGB colors for methods C0-C3 are
+   complete and out of this queue; reopen only for a new failing witness. Keep
+   native annotation/rendering claims separate.
 3. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
    annotation behavior only where intended consumer support requires it. Serializer
    readback is not native semantics.

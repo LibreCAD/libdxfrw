@@ -57,6 +57,7 @@
 #include "intern/dxfentitiessource.h"
 #include "intern/dxfwholesource.h"
 #include "intern/dxfentitiesauth.h"
+#include "intern/dxfmleadercolor.h"
 #include "intern/dxfidentitysource.h"
 #include "intern/dxfobjectphysicalsource.h"
 #include "intern/dxfentitiesdelivery.h"
@@ -27937,42 +27938,44 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         || ent->styleVersion != 2
         || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();
-    // The published MLEADERSTYLE DXF table defines scalar color indices for
-    // its three color fields, not CMC RGB/name/book extensions.
-    const auto hasUnrepresentedColor = [](
+    // MLEADERSTYLE stores colors as packed raw-color group values. Preserve
+    // the scalar compatibility form and map the documented C0-C3 color
+    // methods; CMC names, flags and reserved indices have no field here.
+    const auto encodeColor = [](
             int scalar, std::int32_t rgb24, const UTF8STRING& name,
             const UTF8STRING& bookName, std::uint8_t sourceMethod,
             std::uint8_t flags, std::uint16_t reservedIndex,
-            bool metadataPresent) {
-        if (scalar < 0 || scalar > 256 || rgb24 != -1 || !name.empty()
-            || !bookName.empty() || flags != 0u || reservedIndex != 0u)
-            return true;
-        if (sourceMethod == 0u)
-            return metadataPresent;
-        const std::uint8_t scalarMethod = scalar == 256 ? 0xC0u
-            : scalar == 0 ? 0xC1u : 0xC3u;
-        return sourceMethod != scalarMethod;
+            bool metadataPresent, std::int32_t& raw) {
+        if (!name.empty() || !bookName.empty() || flags != 0u
+            || reservedIndex != 0u
+            || (metadataPresent && sourceMethod == 0u))
+            return false;
+        return dxfMLeaderColor::encodeDxf(
+            {scalar, rgb24, sourceMethod}, raw);
     };
-    if (hasUnrepresentedColor(
+    std::int32_t leaderColorRaw = 0;
+    std::int32_t textColorRaw = 0;
+    std::int32_t blockColorRaw = 0;
+    if (!encodeColor(
             ent->leaderColor, ent->leaderColorRgb, ent->leaderColorName,
             ent->leaderColorBookName, ent->leaderColorDwgMethod,
             ent->leaderColorDwgFlags, ent->leaderColorDwgIndex,
-            ent->leaderColorDwgMetadataPresent)
-        || hasUnrepresentedColor(
+            ent->leaderColorDwgMetadataPresent, leaderColorRaw)
+        || !encodeColor(
             ent->textColor, ent->textColorRgb, ent->textColorName,
             ent->textColorBookName, ent->textColorDwgMethod,
             ent->textColorDwgFlags, ent->textColorDwgIndex,
-            ent->textColorDwgMetadataPresent)
-        || hasUnrepresentedColor(
+            ent->textColorDwgMetadataPresent, textColorRaw)
+        || !encodeColor(
             ent->blockColor, ent->blockColorRgb, ent->blockColorName,
             ent->blockColorBookName, ent->blockColorDwgMethod,
             ent->blockColorDwgFlags, ent->blockColorDwgIndex,
-            ent->blockColorDwgMetadataPresent)) {
+            ent->blockColorDwgMetadataPresent, blockColorRaw)) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Tables,
             DRW::OperationCause::ValidationFailure,
             "unrepresentable-mleaderstyle-dxf-cmc-color",
-            "MLEADERSTYLE DXF class fields serialize scalar colors only; non-scalar CMC methods, RGB, optional names, flags, and reserved indices cannot be preserved",
+            "MLEADERSTYLE DXF color is outside the packed C0-C3 raw-color forms or carries unrepresentable CMC names, flags, or reserved indices",
             0, false, ent->handle, ent->handle != DRW::NoHandle);
         return failDxfWrite();
     }
@@ -28018,7 +28021,7 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeDouble(40, ent->firstSegmentAngle);
     writer->writeDouble(41, ent->secondSegmentAngle);
     writer->writeInt16(173, ent->leaderType);
-    writer->writeInt32(91, ent->leaderColor);
+    writer->writeInt32(91, leaderColorRaw);
     if (leaderLineTypeHandle != 0)
         writer->writeString(340, toHexStr(leaderLineTypeHandle));
     writer->writeInt32(92, ent->leaderLineWeight);
@@ -28037,14 +28040,14 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     writer->writeInt16(178, ent->rightAttachment);
     writer->writeInt16(175, ent->textAngleType);
     writer->writeInt16(176, ent->textAlignmentType);
-    writer->writeInt32(93, ent->textColor);
+    writer->writeInt32(93, textColorRaw);
     writer->writeDouble(45, ent->textHeight);
     writer->writeBool(292, ent->textFrameEnabled);
     writer->writeBool(297, ent->alwaysAlignTextLeft);
     writer->writeDouble(46, ent->alignSpace);
     if (blockHandle != 0)
         writer->writeString(343, toHexStr(blockHandle));
-    writer->writeInt32(94, ent->blockColor);
+    writer->writeInt32(94, blockColorRaw);
     writer->writeDouble(47, ent->blockScale.x);
     writer->writeDouble(49, ent->blockScale.y);
     writer->writeDouble(140, ent->blockScale.z);
