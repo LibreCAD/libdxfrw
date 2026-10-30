@@ -1,0 +1,38 @@
+{
+  "id": "RPP-5yi",
+  "date": "2026-10-30",
+  "scope": "One AC1027 TABLECONTENT cell with one direct FIELD reference followed by one string scalar.",
+  "sourceProfile": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "generatedAtRuntime": true,
+    "field": {"handle": "0x740", "owner": "ACAD_NOD handle C", "evaluatorId": "AcExpr", "fieldCode": "%<test-expression>%", "valueType": 4, "value": "42"},
+    "cell": {
+      "tableContentHandle": "0x724",
+      "orderedTypes": [2, 1],
+      "scalar": "scalar before field",
+      "fieldHandle": "0x740",
+      "attributes": 0,
+      "linkedData": false
+    },
+    "fieldImportEvidence": "The FIELD is imported from a successful raw/typed identity pair matching the selected childless 24-group source schema; the caller reorders the typed cell contents before export."
+  },
+  "rewriteAndReadback": {
+    "version": "AC1027",
+    "inputOutputEncodingPairs": ["ASCII to ASCII", "Binary to Binary"],
+    "handleRemap": {"FIELD 1740": "2740", "TABLECONTENT 1724": "2724"},
+    "physicalOutput": "The emitted FIELD precedes TABLECONTENT. The first CELLCONTENT span is type 2 with group 340 = 2740; the next is type 1 with the exact scalar text.",
+    "typedReadback": "Fresh output readback preserves [FIELD reference, string scalar] order and binds the field handle to the remapped FIELD identity.",
+    "failureAndRetry": "Mutating the imported FIELD identity refuses atomically and preserves the destination sentinel; restoring the source identity allows same-adapter retry. The accepted reverse content order is then written successfully.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only one direct FIELD and one type-1 string scalar in an AC1027 cell are qualified, with same-encoding ASCII/binary rewrites. Other input orderings, scalar types, extra contents and FIELD graph shapes remain open.",
+    "FIELD expression evaluation and native table rendering are not established.",
+    "TABLESTYLE/CELLSTYLEMAP, linked-data schemas, units, margins, borders and other TABLE schemas remain open."
+  ]
+}

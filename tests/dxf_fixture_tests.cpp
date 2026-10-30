@@ -53772,15 +53772,20 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         const auto replayPath = std::filesystem::temp_directory_path()
             / ("libdxfrw-field-replay-" + std::to_string(nonce)
                + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const auto reverseReplayPath = std::filesystem::temp_directory_path()
+            / ("libdxfrw-field-reverse-replay-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
         struct Cleanup {
             std::filesystem::path source;
             std::filesystem::path replay;
+            std::filesystem::path reverseReplay;
             ~Cleanup() {
                 std::error_code error;
                 std::filesystem::remove(source, error);
                 std::filesystem::remove(replay, error);
+                std::filesystem::remove(reverseReplay, error);
             }
-        } cleanup{sourcePath, replayPath};
+        } cleanup{sourcePath, replayPath, reverseReplayPath};
 
         dx_data authored;
         DRW_Field field;
@@ -53912,27 +53917,6 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         t.expect(sourceIdentityMutationRefused && refusedOutput == sentinel,
                  "DXF-origin FIELD identity mutation refuses atomically");
 
-        bool reverseOrderRefused = false;
-        if (!imported.tableContents.empty()
-            && !imported.tableContents.front().m_content.m_rows.empty()
-            && !imported.tableContents.front().m_content.m_rows.front()
-                    .m_cells.empty()
-            && imported.tableContents.front().m_content.m_rows.front()
-                    .m_cells.front().m_contents.size() == 2u) {
-            auto& contents = imported.tableContents.front().m_content.m_rows
-                .front().m_cells.front().m_contents;
-            std::swap(contents[0], contents[1]);
-            reverseOrderRefused = !replayWriter.fileExport(
-                replayPath.string(), DRW::AC1027, binary, &imported, false);
-            std::swap(contents[0], contents[1]);
-        }
-        std::ifstream reverseOrderInput(replayPath, std::ios::binary);
-        const std::string reverseOrderOutput(
-            (std::istreambuf_iterator<char>(reverseOrderInput)),
-            std::istreambuf_iterator<char>());
-        t.expect(reverseOrderRefused && reverseOrderOutput == sentinel,
-                 "DXF-origin FIELD cell reverse order refuses atomically");
-
         const bool replayWritten = replayWriter.fileExport(
             replayPath.string(), DRW::AC1027, binary, &imported, false);
         FixtureInterface replayReader;
@@ -54023,6 +54007,106 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                  binary
                      ? "binary DXF-origin FIELD replays with exact remapped reference and typed readback"
                      : "ASCII DXF-origin FIELD replays with exact remapped reference and typed readback");
+
+        auto& reverseContents = imported.tableContents.front().m_content
+            .m_rows.front().m_cells.front().m_contents;
+        std::swap(reverseContents[0], reverseContents[1]);
+        const bool reverseWritten = replayWriter.fileExport(
+            reverseReplayPath.string(), DRW::AC1027, binary, &imported,
+            false);
+        FixtureInterface reverseReader;
+        dx_data reverseReadback;
+        const bool reverseImported = reverseWritten
+            && reverseReader.fileImport(reverseReplayPath.string(),
+                                        &reverseReadback, false);
+        const DRW_TableContentObject* reverseContent = nullptr;
+        for (const DRW_TableContentObject& content : reverseReadback.tableContents) {
+            if (content.handle == 0x2724u)
+                reverseContent = &content;
+        }
+        bool reverseTypedOrder = reverseImported
+            && reverseReadback.fields.size() == 1u
+            && reverseReadback.fields.front().handle == 0x2740u
+            && reverseContent != nullptr
+            && reverseContent->m_content.m_rows.size() == 1u
+            && reverseContent->m_content.m_rows.front().m_cells.size() == 1u;
+        if (reverseTypedOrder) {
+            const auto& contents = reverseContent->m_content.m_rows.front()
+                .m_cells.front().m_contents;
+            reverseTypedOrder = contents.size() == 2u
+                && contents[0].m_type == 2
+                && contents[0].m_handle == 0x2740u
+                && contents[1].m_type == 1
+                && contents[1].m_text == "scalar before field";
+        }
+        const auto reverseTags = materialBodyControls::physicalTags(
+            reverseReplayPath, binary);
+        std::size_t reverseFieldIndex = reverseTags.size();
+        std::size_t reverseTableContentIndex = reverseTags.size();
+        for (std::size_t index = 0u; index + 1u < reverseTags.size(); ++index) {
+            if (reverseTags[index] == std::make_pair(0, std::string("FIELD"))
+                && reverseTags[index + 1u]
+                    == std::make_pair(5, std::string("2740")))
+                reverseFieldIndex = index;
+            if (reverseTags[index]
+                    == std::make_pair(0, std::string("TABLECONTENT"))
+                && reverseTags[index + 1u]
+                    == std::make_pair(5, std::string("2724")))
+                reverseTableContentIndex = index;
+        }
+        bool reverseWireOrder = reverseFieldIndex < reverseTableContentIndex;
+        if (reverseWireOrder) {
+            std::size_t firstContent = reverseTags.size();
+            std::size_t secondContent = reverseTags.size();
+            std::size_t contentEnd = reverseTableContentIndex + 1u;
+            while (contentEnd < reverseTags.size()
+                   && reverseTags[contentEnd].first != 0)
+                ++contentEnd;
+            for (std::size_t index = reverseTableContentIndex + 1u;
+                 index + 2u < contentEnd; ++index) {
+                if (reverseTags[index]
+                    != std::make_pair(302, std::string("CONTENT")))
+                    continue;
+                if (firstContent == reverseTags.size())
+                    firstContent = index;
+                else {
+                    secondContent = index;
+                    break;
+                }
+            }
+            const auto integerEquals = [&reverseTags](std::size_t index,
+                    int code, int expected) {
+                if (index >= reverseTags.size()
+                    || reverseTags[index].first != code)
+                    return false;
+                try {
+                    return std::stoi(reverseTags[index].second) == expected;
+                } catch (...) {
+                    return false;
+                }
+            };
+            const auto scalarValue = std::find(
+                reverseTags.begin()
+                    + static_cast<std::ptrdiff_t>(secondContent),
+                reverseTags.begin() + static_cast<std::ptrdiff_t>(contentEnd),
+                std::make_pair(1, std::string("scalar before field")));
+            reverseWireOrder = firstContent < secondContent
+                && firstContent + 3u < secondContent
+                && integerEquals(firstContent + 2u, 90, 2)
+                && reverseTags[firstContent + 3u]
+                    == std::make_pair(340, std::string("2740"))
+                && secondContent + 2u < contentEnd
+                && integerEquals(secondContent + 2u, 90, 1)
+                && scalarValue
+                    != reverseTags.begin()
+                        + static_cast<std::ptrdiff_t>(contentEnd);
+        }
+        t.expect(reverseWritten && reverseImported,
+                 "DXF-origin FIELD-then-scalar replay passes and imports");
+        t.expect(reverseTypedOrder && reverseWireOrder,
+                 binary
+                     ? "binary DXF-origin FIELD-then-scalar preserves remapped reference and physical/readback order"
+                     : "ASCII DXF-origin FIELD-then-scalar preserves remapped reference and physical/readback order");
     }
 }
 

@@ -25022,11 +25022,10 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                             return false;
                         continue;
                     }
-                    if (cell.m_contents.size() != 2u
-                        || contentIndex != 1u)
+                    if (cell.m_contents.size() != 2u)
                         return false;
                     const DRW_TableCellContent& scalar =
-                        cell.m_contents.front();
+                        cell.m_contents[contentIndex == 0u ? 1u : 0u];
                     const DRW_CadValue& value = scalar.m_value;
                     if (scalar.m_type != 1 || scalar.m_handle != 0u
                         || value.m_dataType != 4
@@ -25061,10 +25060,13 @@ bool dx_iface::tableContentDirectReferencesClosed(
                     continue;
                 const bool singleReference = cell.m_contents.size() == 1u
                     && &content == &cell.m_contents.front();
-                const bool scalarThenReference = cell.m_contents.size() == 2u
-                    && &content == &cell.m_contents.back()
-                    && cell.m_contents.front().m_type == 1;
-                if ((!singleReference && !scalarThenReference)
+                const std::size_t contentIndex =
+                    &content == &cell.m_contents.front() ? 0u : 1u;
+                const bool pairedScalarAndReference =
+                    cell.m_contents.size() == 2u
+                    && cell.m_contents[contentIndex == 0u ? 1u : 0u]
+                        .m_type == 1;
+                if ((!singleReference && !pairedScalarAndReference)
                     || cell.m_hasLinkedData || !cell.m_attributes.empty()
                     || content.m_handle == 0u
                     || content.m_handle == DRW::NoHandle)

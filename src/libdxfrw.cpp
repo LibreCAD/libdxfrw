@@ -26072,10 +26072,15 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             // type-2 reference. Revalidate the selected ordered composition
             // once so its string payload shares the normal byte budget.
             plainContentTextBytes = textBytesBeforePlainContents;
-            if (!plainScalarContentIsSupported(cell.m_contents.front())
-                || cell.m_contents.front().m_value.m_dataType != 4)
+            const std::size_t scalarIndex =
+                cell.m_contents.front().m_type == 1 ? 0u : 1u;
+            fieldContentIndex = scalarIndex == 0u ? 1u : 0u;
+            const DRW_TableCellContent& scalar =
+                cell.m_contents[scalarIndex];
+            if (cell.m_contents[fieldContentIndex].m_type != 2
+                || !plainScalarContentIsSupported(scalar)
+                || scalar.m_value.m_dataType != 4)
                 return false;
-            fieldContentIndex = 1u;
         }
         const DRW_TableCellContent& content =
             cell.m_contents[fieldContentIndex];
