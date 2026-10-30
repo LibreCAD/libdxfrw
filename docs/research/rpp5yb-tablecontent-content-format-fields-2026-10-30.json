@@ -1,0 +1,76 @@
+{
+  "id": "RPP-5yb",
+  "date": "2026-10-30",
+  "scope": "Bounded AC1027 TABLECONTENT per-value content-format transport in ASCII and binary DXF.",
+  "specification": {
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "section": "20.4.101.3 Content format",
+    "basis": "Group 90 content-property mask admits the content-format bits through 0x100; group 91 is the auto-scale property bit; groups 92/93 are value data/unit types; groups 300, 40, 140, 94, 62/420, 340, and 144 carry format string, rotation, block scale, alignment, color, text-style handle, and text height. This receipt establishes serialized field transport only."
+  },
+  "admission": {
+    "propertyOverrideMask": "0x000..0x1ff",
+    "propertyFlagsMask": "0x000..0x100 and must be selected by propertyOverrideMask",
+    "valueDataTypes": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
+    "valueUnitTypes": [0, 1, 2, 4, 8, 16, 32, 65536],
+    "formatStringMaximumBytes": 1048576,
+    "contentColor": "ACI 0..256 with optional group-420 true color 0..0xffffff; named CMC strings remain refused",
+    "textStyleHandle": "0 only; unresolved nonzero references remain refused",
+    "alignment": "1..9",
+    "rotationBlockScaleAndHeight": "finite; text height must be nonnegative",
+    "aggregatePayloadTextBudget": "Content strings plus format strings remain bounded by the DXF binary payload cap"
+  },
+  "authoredPositiveProfile": {
+    "contentOrdinal": 2,
+    "propertyOverrideFlags": 447,
+    "propertyFlags": 256,
+    "valueDataType": 2,
+    "valueUnitType": 1,
+    "valueFormatString": "%0.2f",
+    "rotation": 0.125,
+    "blockScale": 2,
+    "alignment": 5,
+    "aciColor": 0,
+    "trueColor": 1193046,
+    "textStyleHandle": 0,
+    "textHeight": 3.25
+  },
+  "output": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertedFields": [
+      [170, 1],
+      [90, 447],
+      [91, 256],
+      [92, 2],
+      [93, 1],
+      [300, "%0.2f"],
+      [40, 0.125],
+      [140, 2],
+      [94, 5],
+      [62, 0],
+      [420, 1193046],
+      [340, "0"],
+      [144, 3.25]
+    ],
+    "typedReadback": "All admitted profile fields above match the retained content-format metadata at ordinal 2. The output also retains the separate alignment-only profile from RPP-5ya."
+  },
+  "negativeControls": [
+    {
+      "mutation": "Set alignment to 0.",
+      "result": "Refusal preserves the sentinel destination; restoring alignment 2 permits same-writer retry."
+    },
+    {
+      "mutation": "Set group-90 property override mask to cell-style-only bit 0x200.",
+      "result": "Refusal preserves the sentinel destination; restoring the selected content mask permits same-writer retry."
+    }
+  ],
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "generatedFixtureFilesCommitted": false
+  },
+  "limitations": [
+    "No AutoCAD/ODA native layout or rendering result is asserted.",
+    "Nonzero text-style handles, named CMC color fields, cell attributes, TABLESTYLE/CELLSTYLEMAP dependencies, units/margins/borders, and other unqualified source profiles remain refused or unqualified.",
+    "This is not complete TABLECONTENT or whole-document conversion evidence."
+  ]
+}

@@ -25823,6 +25823,12 @@ bool dxfRW::writeDataLink(DRW_DataLink *ent) {
 }
 
 bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
+    const auto safeText = [](const UTF8STRING& text) {
+        return text.size() <= 16u * 1024u * 1024u
+            && isSafeDxfRecordText(text);
+    };
+    std::size_t plainContentTextBytes = 0u;
+    std::size_t contentFormatTextBytes = 0u;
     const auto cmcIsDefault = [](const DRW_TableStyleCmcColor& color) {
         return color.m_rgb == -1 && color.m_name.empty()
             && color.m_bookName.empty() && color.m_method == 0u
@@ -25840,21 +25846,46 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && format.m_textStyleHandle == 0u
             && format.m_textHeight == 0.0;
     };
-    const auto contentFormatIsSupported = [&cmcIsDefault](
+    const auto contentFormatIsSupported = [&safeText, &contentFormatTextBytes](
             const DRW_TableStyleContentFormat& format) {
-        // One spec-bounded transport profile: alignment override only.
-        // ODA §20.4.101.3 assigns 0x10 to alignment. Other format properties
-        // remain refused until their own bounded output profiles are proven.
-        return format.m_propertyOverrideFlags == 0x10u
-            && format.m_propertyFlags == 0u
-            && format.m_valueDataType == 0
-            && format.m_valueUnitType == 0
-            && format.m_valueFormatString.empty()
-            && format.m_rotation == 0.0 && format.m_blockScale == 1.0
-            && format.m_cellAlignment == 2 && format.m_contentColor == 0
-            && cmcIsDefault(format.m_contentColorCmc)
-            && format.m_textStyleHandle == 0u
-            && format.m_textHeight == 0.0;
+        const DRW_TableStyleCmcColor& color = format.m_contentColorCmc;
+        const auto validDataType = [](int value) {
+            switch (value) {
+            case 0: case 1: case 2: case 4: case 8: case 16:
+            case 32: case 64: case 128: case 256: case 512:
+                return true;
+            default:
+                return false;
+            }
+        };
+        const auto validUnitType = [](int value) {
+            return value == 0 || value == 1 || value == 2 || value == 4
+                || value == 8 || value == 0x10 || value == 0x20
+                || value == 0x10000;
+        };
+        const bool validColor = format.m_contentColor >= 0
+            && format.m_contentColor <= 256 && color.m_rgb >= -1
+            && color.m_rgb <= 0xFFFFFF && color.m_name.empty()
+            && color.m_bookName.empty() && color.m_method == 0u
+            && color.m_flags == 0u && color.m_reservedIndex == 0u;
+        if ((format.m_propertyOverrideFlags & ~std::uint32_t{0x1FFu}) != 0u
+            || (format.m_propertyFlags & ~std::uint32_t{0x100u}) != 0u
+            || (format.m_propertyFlags & ~format.m_propertyOverrideFlags) != 0u
+            || !validDataType(format.m_valueDataType)
+            || !validUnitType(format.m_valueUnitType)
+            || format.m_valueFormatString.size() > 1024u * 1024u
+            || !safeText(format.m_valueFormatString)
+            || format.m_valueFormatString.size()
+                > DRW::kMaxDxfBinaryPayloadBytes - contentFormatTextBytes
+            || !std::isfinite(format.m_rotation)
+            || !std::isfinite(format.m_blockScale)
+            || format.m_cellAlignment < 1 || format.m_cellAlignment > 9
+            || !validColor || format.m_textStyleHandle != 0u
+            || !std::isfinite(format.m_textHeight)
+            || format.m_textHeight < 0.0)
+            return false;
+        contentFormatTextBytes += format.m_valueFormatString.size();
+        return true;
     };
     const auto styleIsDefault = [&cmcIsDefault, &formatIsDefault](
             const DRW_TableStyleCellStyle& style, int type) {
@@ -25877,10 +25908,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             const DRW_TableContentDxfMetadata::Scope& scope, int type) {
         return scope.m_customData == 0 && scope.m_customItems.empty()
             && styleIsDefault(scope.m_style, type);
-    };
-    const auto safeText = [](const UTF8STRING& text) {
-        return text.size() <= 16u * 1024u * 1024u
-            && isSafeDxfRecordText(text);
     };
     if (version < DRW::AC1021 || version > DRW::AC1032
         || !preflightTableEntry(ent) || ent->handle == 0u
@@ -25919,7 +25946,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return border.m_lineWeight == 0 && border.m_visible
             && border.m_colorRgb == -1 && border.m_colorMethod == 0u;
     };
-    std::size_t plainContentTextBytes = 0u;
     const auto plainScalarContentIsSupported = [&safeText,
             &plainContentTextBytes](
             const DRW_TableCellContent& content) {
@@ -25988,6 +26014,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                        plainScalarContentIsSupported);
     const bool emptyLinkedCell = cell.m_hasLinkedData
         && cell.m_contents.empty();
+    contentFormatTextBytes = plainContentTextBytes;
     if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
         || cell.m_autoFit || cell.m_mergedWidth != 0
         || cell.m_mergedHeight != 0 || cell.m_rotation != 0.0
@@ -26092,6 +26119,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && writer->writeInt32(94, format.m_cellAlignment)
             && writer->writeInt16(62,
                 static_cast<std::int16_t>(format.m_contentColor))
+            && (format.m_contentColorCmc.m_rgb < 0
+                || writer->writeInt32(420,
+                    format.m_contentColorCmc.m_rgb))
             && writer->writeString(340, toHexStr(format.m_textStyleHandle))
             && writer->writeDouble(144, format.m_textHeight)
             && writer->writeString(309, "CONTENTFORMAT_END");
