@@ -31607,6 +31607,16 @@ Tags sourceWithBlockEntityHandleXdata(
                 {210,"0"},{220,"0"},{230,"1"},
                 {100,"AcDbAttributeDefinition"},{3,"TARGET_PROMPT"},
                 {2,"TARGET_TAG"},{70,"0"},{73,"0"},{74,"0"},{280,"0"}}
+            :entityType==DRW::WIPEOUT
+            ?Tags{{0,"WIPEOUT"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbWipeout"},{90,"0"},
+                {10,"1"},{20,"2"},{30,"3"},
+                {11,"4"},{21,"5"},{31,"6"},
+                {12,"0"},{22,"0"},{32,"1"},{13,"10"},{23,"20"},
+                {340,"0"},{70,"0"},{280,"1"},{281,"60"},
+                {282,"55"},{283,"5"},{360,"0"},
+                {71,"2"},{91,"3"},{14,"0"},{24,"0"},
+                {14,"2"},{24,"0"},{14,"1"},{24,"1"},{290,"0"}}
             :entityType==DRW::POLYLINE
             ?Tags{{0,"POLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{39,"0.75"},
@@ -39617,6 +39627,7 @@ bool runTemporary() {
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     if(!runGeometrySection(DRW::WIPEOUT,false)
+        ||!runGeometrySection(DRW::WIPEOUT,true)
         ||!runGeometrySection(DRW::ATTDEF,false)
         ||!runGeometrySection(DRW::ATTDEF,true))return false;
     if(!runGeometrySection(DRW::INSERT,false)
@@ -39626,7 +39637,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==440u&&readbacks==1011u&&refusals==571u&&retries==571u;
+    return profiles==444u&&readbacks==1020u&&refusals==576u&&retries==576u;
 }
 
 bool runBudgetTemporary() {

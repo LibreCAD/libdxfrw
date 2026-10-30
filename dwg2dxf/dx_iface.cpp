@@ -22451,6 +22451,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::HELIX:return DRW_DxfBlockCallback::addHelix;
     case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
     case DRW::ATTDEF:return DRW_DxfBlockCallback::addAttDef;
+    case DRW::WIPEOUT:return DRW_DxfBlockCallback::addWipeout;
     case DRW::RAY:return DRW_DxfBlockCallback::addRay;
     case DRW::XLINE:return DRW_DxfBlockCallback::addXline;
     case DRW::DXF_TRACE:return DRW_DxfBlockCallback::addTrace;
@@ -23110,6 +23111,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         return false;
                     const auto& record=physical.records[range.first];
                     const auto entityType=record.name=="ATTDEF"?DRW::ATTDEF
+                        :record.name=="WIPEOUT"?DRW::WIPEOUT
                         :record.name=="POLYLINE"?DRW::POLYLINE
                         :record.name=="MPOLYGON"?DRW::MPOLYGON
                         :record.name=="HATCH"?DRW::HATCH
@@ -26707,10 +26709,11 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 const bool insert=dx_block_membership::equal(name,"INSERT")||dx_block_membership::equal(name,"MINSERT");
                 const bool point=dx_block_membership::equal(name,"POINT"),line=dx_block_membership::equal(name,"LINE");
                 const bool viewport=dx_block_membership::equal(name,"VIEWPORT");
+                const bool wipeout=dx_block_membership::equal(name,"WIPEOUT");
                 const bool attdef=dx_block_membership::equal(name,"ATTDEF");proof.attributeDefinition=attdef;
                 proof.tablePrimary=dx_block_membership::equal(name,"ACAD_TABLE");
                 proof.compound=polyline||insert;
-                proof.primary=point||line||viewport;
+                proof.primary=point||line||viewport||wipeout;
                 if(proof.tablePrimary) {
                     const auto body=s.tableBodies.find(audit->members[proof.first].self);
                     proof.state=State::ModelUnavailable;
@@ -26779,7 +26782,8 @@ void dx_iface::finishEntitiesCompoundAudits(dx_data& data) noexcept {
                 else {
                     const auto& event=row.delivery->events[proof.event];
                     const auto callback=polyline?DRW_DxfEntitiesCallback::addPolyline:insert?DRW_DxfEntitiesCallback::addInsert
-                        :point?DRW_DxfEntitiesCallback::addPoint:viewport?DRW_DxfEntitiesCallback::addViewport:DRW_DxfEntitiesCallback::addLine;
+                        :point?DRW_DxfEntitiesCallback::addPoint:viewport?DRW_DxfEntitiesCallback::addViewport
+                        :wipeout?DRW_DxfEntitiesCallback::addWipeout:DRW_DxfEntitiesCallback::addLine;
                     if(event.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser||event.callback!=callback
                         ||event.handle!=root.self||event.owner!=root.owner)proof.state=State::Callback;
                 }
