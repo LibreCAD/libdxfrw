@@ -22386,6 +22386,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::SPLINE:return "SPLINE";
     case DRW::HELIX:return "HELIX";
     case DRW::INSERT:return "INSERT";
+    case DRW::VIEWPORT:return "VIEWPORT";
     case DRW::ATTDEF:return "ATTDEF";
     case DRW::WIPEOUT:return "WIPEOUT";
     case DRW::RAY:return "RAY";
@@ -22418,6 +22419,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::SPLINE:return DRW_DxfEntitiesCallback::addSpline;
     case DRW::HELIX:return DRW_DxfEntitiesCallback::addHelix;
     case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
+    case DRW::VIEWPORT:return DRW_DxfEntitiesCallback::addViewport;
     case DRW::ATTDEF:return DRW_DxfEntitiesCallback::addAttDef;
     case DRW::WIPEOUT:return DRW_DxfEntitiesCallback::addWipeout;
     case DRW::RAY:return DRW_DxfEntitiesCallback::addRay;
@@ -22450,6 +22452,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::SPLINE:return DRW_DxfBlockCallback::addSpline;
     case DRW::HELIX:return DRW_DxfBlockCallback::addHelix;
     case DRW::INSERT:return DRW_DxfBlockCallback::addInsert;
+    case DRW::VIEWPORT:return DRW_DxfBlockCallback::addViewport;
     case DRW::ATTDEF:return DRW_DxfBlockCallback::addAttDef;
     case DRW::WIPEOUT:return DRW_DxfBlockCallback::addWipeout;
     case DRW::RAY:return DRW_DxfBlockCallback::addRay;
@@ -22542,6 +22545,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
             &&insert->attlist.empty()
             &&!insert->seqEndEntity;
     }
+    case DRW::VIEWPORT:
+        return dynamic_cast<const DRW_Viewport*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Viewport);
     case DRW::ATTDEF:
         return dynamic_cast<const DRW_Attdef*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Attdef);
@@ -22864,6 +22870,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addSpline
                     &&event.callback!=DRW_DxfEntitiesCallback::addHelix
                     &&event.callback!=DRW_DxfEntitiesCallback::addInsert
+                    &&event.callback!=DRW_DxfEntitiesCallback::addViewport
                     &&event.callback!=DRW_DxfEntitiesCallback::addWipeout
                     &&event.callback!=DRW_DxfEntitiesCallback::addRay
                     &&event.callback!=DRW_DxfEntitiesCallback::addXline
@@ -23112,6 +23119,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     const auto& record=physical.records[range.first];
                     const auto entityType=record.name=="ATTDEF"?DRW::ATTDEF
                         :record.name=="WIPEOUT"?DRW::WIPEOUT
+                        :record.name=="VIEWPORT"?DRW::VIEWPORT
                         :record.name=="POLYLINE"?DRW::POLYLINE
                         :record.name=="MPOLYGON"?DRW::MPOLYGON
                         :record.name=="HATCH"?DRW::HATCH

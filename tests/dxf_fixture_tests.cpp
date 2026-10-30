@@ -31552,6 +31552,47 @@ Tags sourceWithWipeoutEntityHandleXdata(bool binary) {
     return fields;
 }
 
+Tags viewportXdataTarget(std::string_view owner) {
+    return {{0,"VIEWPORT"},{5,"A900"},{330,std::string(owner)},
+        {100,"AcDbEntity"},{8,"0"},{100,"AcDbViewport"},
+        {10,"4"},{20,"5"},{30,"0"},{40,"205"},{41,"156"},
+        {68,"1"},{69,"42"},{12,"128.5"},{22,"97.5"},
+        {16,"0"},{26,"0"},{36,"1"},
+        {17,"0"},{27,"0"},{37,"0"},{45,"50"}};
+}
+
+Tags sourceWithViewportEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,viewportInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]
+                ==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags viewport=viewportXdataTarget("201");
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      viewport.begin(),viewport.end());
+        viewportInserted=true;
+        break;
+    }
+    if(!viewportInserted)
+        throw std::runtime_error("VIEWPORT XDATA target source missing");
+    return fields;
+}
+
 Tags sourceWithBlockEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
         std::string_view targetOwner="203",
@@ -31617,6 +31658,8 @@ Tags sourceWithBlockEntityHandleXdata(
                 {282,"55"},{283,"5"},{360,"0"},
                 {71,"2"},{91,"3"},{14,"0"},{24,"0"},
                 {14,"2"},{24,"0"},{14,"1"},{24,"1"},{290,"0"}}
+            :entityType==DRW::VIEWPORT
+            ?viewportXdataTarget(targetOwner)
             :entityType==DRW::POLYLINE
             ?Tags{{0,"POLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{39,"0.75"},
@@ -34152,6 +34195,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE
         &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
+        &&entityType!=DRW::VIEWPORT
         &&entityType!=DRW::RAY&&entityType!=DRW::XLINE
         &&entityType!=DRW::WIPEOUT
         &&entityType!=DRW::DXF_TRACE&&entityType!=DRW::SOLID)return false;
@@ -34173,6 +34217,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isSpline=entityType==DRW::SPLINE;
     const bool isHelix=entityType==DRW::HELIX;
     const bool isInsert=entityType==DRW::INSERT;
+    const bool isViewport=entityType==DRW::VIEWPORT;
     const bool isWipeout=entityType==DRW::WIPEOUT;
     const bool isRay=entityType==DRW::RAY;
     const bool isXline=entityType==DRW::XLINE;
@@ -34181,7 +34226,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const std::string_view recordName=isPolyline?"POLYLINE":isAttdef?"ATTDEF":isMPolygon?"MPOLYGON":isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :is3DLine?"3DLINE":isMesh?"MESH":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
-        :isHelix?"HELIX":isInsert?"INSERT":isWipeout?"WIPEOUT":isRay?"RAY"
+        :isHelix?"HELIX":isInsert?"INSERT":isViewport?"VIEWPORT":isWipeout?"WIPEOUT":isRay?"RAY"
         :isXline?"XLINE":isTrace?"TRACE":isSolid?"SOLID":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
@@ -34530,6 +34575,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&realValuesMatch(row,14,{0.0,2.0,1.0})
                 &&realValuesMatch(row,24,{0.0,0.0,1.0})
                 &&integerValuesMatch(row,290,{0})
+            :isViewport
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDbViewport"})
+                &&realValue(row,10,4.0)&&realValue(row,20,5.0)
+                &&realValue(row,40,205.0)&&realValue(row,41,156.0)
+                &&integerValuesMatch(row,68,{1})
+                &&integerValuesMatch(row,69,{42})
+                &&realValue(row,12,128.5)&&realValue(row,22,97.5)
+                &&realValue(row,16,0.0)&&realValue(row,26,0.0)
+                &&realValue(row,36,1.0)&&realValue(row,17,0.0)
+                &&realValue(row,27,0.0)&&realValue(row,37,0.0)
+                &&realValue(row,45,50.0)
             :realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)&&realValue(row,40,5.0);
         if(isHelix&&row.type=="HELIX"&&row.section==targetSection
@@ -34722,6 +34778,19 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||typedModel->brightness!=60||typedModel->contrast!=55
             ||typedModel->fade!=5||typedModel->clip!=1
             ||typedModel->clipMode)return false;
+    } else if(isViewport) {
+        const auto* typedModel=dynamic_cast<const DRW_Viewport*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Viewport)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=4.0||typedModel->basePoint.y!=5.0
+            ||typedModel->pswidth!=205.0||typedModel->psheight!=156.0
+            ||typedModel->vpstatus!=1||typedModel->vpID!=42
+            ||typedModel->centerPX!=128.5||typedModel->centerPY!=97.5
+            ||typedModel->viewDir.x!=0.0||typedModel->viewDir.y!=0.0
+            ||typedModel->viewDir.z!=1.0
+            ||typedModel->viewTarget.x!=0.0||typedModel->viewTarget.y!=0.0
+            ||typedModel->viewTarget.z!=0.0||typedModel->viewHeight!=50.0)
+            return false;
     } else if(isPolyline) {
         const auto* typedModel=dynamic_cast<const DRW_Polyline*>(*typedCurve);
         const auto* footer=typedModel?typedModel->seqEndEntity.get():nullptr;
@@ -38843,6 +38912,8 @@ bool runTemporary() {
             ?std::string_view("MESH")
             :entityType==DRW::INSERT
             ?std::string_view("INSERT")
+            :entityType==DRW::VIEWPORT
+            ?std::string_view("VIEWPORT")
             :entityType==DRW::WIPEOUT
             ?std::string_view("WIPEOUT")
             :entityType==DRW::RAY
@@ -38877,6 +38948,8 @@ bool runTemporary() {
                     "203",entityType,multiInsert);
             return entityType==DRW::ATTDEF
                 ?sourceWithAttdefEntityHandleXdata(binary)
+                :entityType==DRW::VIEWPORT
+                ?sourceWithViewportEntityHandleXdata(binary)
                 :entityType==DRW::WIPEOUT
                 ?sourceWithWipeoutEntityHandleXdata(binary)
                 :entityType==DRW::INSERT
@@ -38920,6 +38993,19 @@ bool runTemporary() {
                         :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::VIEWPORT) {
+                const auto* typed=dynamic_cast<const DRW_Viewport*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_Viewport)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==4.0&&typed->basePoint.y==5.0
+                    &&typed->pswidth==205.0&&typed->psheight==156.0
+                    &&typed->vpstatus==1&&typed->vpID==42
+                    &&typed->centerPX==128.5&&typed->centerPY==97.5
+                    &&typed->viewDir.x==0.0&&typed->viewDir.y==0.0
+                    &&typed->viewDir.z==1.0
+                    &&typed->viewTarget.x==0.0&&typed->viewTarget.y==0.0
+                    &&typed->viewTarget.z==0.0&&typed->viewHeight==50.0;
+            }
             if(entityType==DRW::WIPEOUT) {
                 const auto* typed=dynamic_cast<const DRW_Wipeout*>(entity);
                 return typed!=nullptr&&typeid(*typed)==typeid(DRW_Wipeout)
@@ -39626,7 +39712,9 @@ bool runTemporary() {
             DRW::SOLID})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
-    if(!runGeometrySection(DRW::WIPEOUT,false)
+    if(!runGeometrySection(DRW::VIEWPORT,false)
+        ||!runGeometrySection(DRW::VIEWPORT,true)
+        ||!runGeometrySection(DRW::WIPEOUT,false)
         ||!runGeometrySection(DRW::WIPEOUT,true)
         ||!runGeometrySection(DRW::ATTDEF,false)
         ||!runGeometrySection(DRW::ATTDEF,true))return false;
@@ -39637,7 +39725,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==444u&&readbacks==1020u&&refusals==576u&&retries==576u;
+    return profiles==452u&&readbacks==1038u&&refusals==586u&&retries==586u;
 }
 
 bool runBudgetTemporary() {
