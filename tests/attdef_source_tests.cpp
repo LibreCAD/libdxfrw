@@ -128,6 +128,89 @@ public:
             &&dictionary->xDictHandle==0u&&dictionary->extensionDictionaryFlag()==0u
             &&dictionary->reactorCount()==0;
     }
+    static bool legacyXDictionaryChainBound(const dx_data& d,std::uint32_t ownerHandle=0xC1u,
+            std::uint32_t rootHandle=0xD1u,std::uint32_t childHandle=0xD2u,
+            std::uint32_t xrecordHandle=0xD3u,std::uint32_t sortEntsHandle=0xD4u) {
+        const auto& source=d.m_tableDxfSource;const auto found=source.legacyBlockRecordXDictionaryChains.find(ownerHandle);
+        if(found==source.legacyBlockRecordXDictionaryChains.end()||!found->second||!source.legacyIdentityObservation
+            ||!source.legacyIdentityObservation->source||found->second->identity.get()!=source.legacyIdentityObservation.get())return false;
+        const auto& chain=*found->second;const auto ownerInput=source.structuralInputs.find(ownerHandle);
+        const auto ownerResource=source.resources.find(ownerHandle);const auto root=source.structuralInputs.find(rootHandle);
+        const auto child=source.structuralInputs.find(childHandle);const auto rootResource=source.resources.find(rootHandle);
+        const auto childResource=source.resources.find(childHandle);const auto xrecordResource=source.resources.find(xrecordHandle);
+        const auto sortEntsOwner=source.legacyBlockRecordDictionaryOwners.find(sortEntsHandle);
+        const auto owner=source.legacyBlockRecordExtensionDictionaries.find(rootHandle);
+        const auto nestedOwner=source.legacyBlockRecordDictionaryOwners.find(childHandle);
+        std::size_t rootLive=0u,childLive=0u,xrecordLive=0u,sortEntsLive=0u,sortEntsRaw=0u;
+        for(const auto& value:d.dictionaries){if(value.handle==rootHandle)++rootLive;if(value.handle==childHandle)++childLive;}
+        for(const auto& value:d.xRecords)if(value.handle==xrecordHandle)++xrecordLive;
+        const DRW_SortEntsTable* sortEntsModel=nullptr;const DRW_RawDxfObject* sortEntsRawModel=nullptr;
+        for(const auto& value:d.sortEntsTables)if(value.handle==sortEntsHandle){++sortEntsLive;sortEntsModel=&value;}
+        for(const auto& value:d.rawSortEntsTables)if(value.handle==sortEntsHandle){++sortEntsRaw;sortEntsRawModel=&value;}
+        const auto& census=*source.legacyIdentityObservation->source;
+        return chain.ownerHandle==ownerHandle&&chain.rootHandle==rootHandle&&chain.childHandle==childHandle
+            &&chain.xrecordHandle==xrecordHandle&&chain.sortEntsHandle==sortEntsHandle
+            &&chain.blockRecord<census.records.size()&&chain.root<census.records.size()
+            &&chain.sortEnts<census.records.size()&&chain.child<census.records.size()&&chain.xrecord<census.records.size()
+            &&owner!=source.legacyBlockRecordExtensionDictionaries.end()&&owner->second==ownerHandle
+            &&nestedOwner!=source.legacyBlockRecordDictionaryOwners.end()&&nestedOwner->second==rootHandle
+            &&sortEntsOwner!=source.legacyBlockRecordDictionaryOwners.end()&&sortEntsOwner->second==rootHandle
+            &&ownerInput!=source.structuralInputs.end()&&ownerInput->second
+            &&chain.ownerStructural.get()==ownerInput->second.get()
+            &&chain.ownerStructural->legacyBlockRecordReplayMatched
+            &&chain.ownerStructural->legacyBlockRecordProfile.complete()
+            &&ownerResource!=source.resources.end()&&ownerResource->second.model&&ownerResource->second.raw
+            &&root!=source.structuralInputs.end()&&root->second&&chain.rootStructural.get()==root->second.get()
+            &&child!=source.structuralInputs.end()&&child->second&&chain.childStructural.get()==child->second.get()
+            &&rootResource!=source.resources.end()&&rootResource->second.model
+            &&childResource!=source.resources.end()&&childResource->second.model
+            &&xrecordResource!=source.resources.end()&&xrecordResource->second.model
+            &&chain.rootModel&&chain.childModel&&chain.sortEntsModel&&chain.sortEntsRaw
+            &&chain.xrecordModel&&chain.xrecordRaw&&sortEntsLive==1u&&sortEntsRaw==1u
+            &&sortEntsModel&&sortEntsRawModel&&chain.sortEntsModel->handle==sortEntsHandle
+            &&chain.sortEntsRaw->handle==sortEntsHandle
+            &&sortEntsModel->m_blockOwnerHandle==ownerHandle&&sortEntsModel->parentHandle==rootHandle
+            &&sortEntsRawModel->handle==chain.sortEntsRaw->handle
+            &&rootLive==1u&&childLive==1u&&xrecordLive==1u
+            &&!dx_iface::identitySourceReport(d).outputEligible
+            &&!dx_iface::identitySourceReport(d).ownerTargetsResolved;
+    }
+    static bool legacyXDictionaryChainFailed(const dx_data& d) {
+        return d.m_tableDxfSource.legacyBlockRecordXDictionaryFailed;
+    }
+    static std::size_t legacyXDictionaryChainCount(const dx_data& d) {
+        return d.m_tableDxfSource.legacyBlockRecordXDictionaryChains.size();
+    }
+    static std::array<bool,3> legacyXDictionaryCaptureFlags(const dx_data& d) {
+        const auto& s=d.m_tableDxfSource;
+        return {s.structuralCaptureFailed,s.resourceCaptureFailed,s.resourceProofCaptureFailed};
+    }
+    static std::array<std::size_t,14> legacyXDictionaryDiscovery(const dx_data& d) {
+        const auto& s=d.m_tableDxfSource;
+        return {s.legacyBlockRecordExtensionDictionaries.count(0xD1u),
+            s.legacyBlockRecordDictionaryOwners.count(0xD2u),s.structuralInputs.count(0xD1u),
+            s.structuralInputs.count(0xD2u),s.resources.count(0xD1u),s.resources.count(0xD2u),
+            s.resources.count(0xD3u),s.legacyBlockRecordDictionaryOwners.size(),
+            s.structuralInputs.count(0xC1u),s.resources.count(0xC1u),d.blockRecords.size(),
+            s.legacyBlockRecordDictionaryOwners.count(0xD4u),d.sortEntsTables.size(),d.rawSortEntsTables.size()};
+    }
+    static std::array<std::uint32_t,5> legacyXDictionaryOwnerState(const dx_data& d) {
+        const auto& s=d.m_tableDxfSource;const auto input=s.structuralInputs.find(0xC1u);
+        const auto resource=s.resources.find(0xC1u);std::array<std::uint32_t,5> out{};
+        if(input!=s.structuralInputs.end()&&input->second) {
+            out[0]=input->second->legacyBlockRecordReplayMatched?1u:0u;
+            out[1]=input->second->legacyBlockRecordProfile.complete()?1u:0u;
+            std::size_t spans=0u;
+            for(const auto& span:input->second->legacyBlockRecordProfile.spans)
+                if(span.role==dx_legacy_block_record_source::Role::ExtensionDictionary){++spans;out[2]=span.handle;}
+            out[3]=static_cast<std::uint32_t>(spans);
+        }
+        if(resource!=s.resources.end()&&resource->second.model) {
+            const auto* model=dynamic_cast<const DRW_Block_Record*>(resource->second.model.get());
+            if(model)out[4]=model->xDictHandle;
+        }
+        return out;
+    }
     static bool legacyJoinFailed(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeFailed;}
     static std::size_t legacyJoinCount(const dx_data& d) {return d.m_tableDxfSource.legacyAttdefScopeJoins.size();}
     static std::array<std::size_t,2> legacyJoinUsage(const dx_data& d) {const auto& s=d.m_tableDxfSource;return {s.legacyAttdefScopeBytes,s.legacyAttdefScopeWork};}

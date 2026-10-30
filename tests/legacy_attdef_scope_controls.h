@@ -40,27 +40,87 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,"default"},{100,"AcDbAttributeDefinition"},
         {3,"prompt"},{2,"ATTINFO"},{70,"0"},{1001,"AcDbAttr"},{1000,"x"},{1070,"0"},{1070,"1"}};
     Tags doc{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},
-        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"2"},
+        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"3"},
         {0,"APPID"},{5,"A8"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"TEST_APP"},{70,"0"},
-        {0,"APPID"},{5,"A7"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},{0,"ENDTAB"},
-        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"1"},{0,"BLOCK_RECORD"}};
+        {0,"APPID"},{5,"A7"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},
+        {0,"APPID"},{5,"A6"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"ACAD"},{70,"0"},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"2"},{0,"BLOCK_RECORD"}};
     doc.insert(doc.end(),tableRow.begin(),tableRow.end());
-    doc.insert(doc.end(),{{0,"ENDTAB"},{0,"ENDSEC"},{0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},
+    doc.insert(doc.end(),{{0,"BLOCK_RECORD"},{5,"C1"},{102,"{ACAD_XDICTIONARY"},{360,"D1"},{102,"}"},
+        {330,"B9"},{100,"AcDbSymbolTableRecord"},
+        {100,"AcDbBlockTableRecord"},{2,"*U18"},{340,"0"},
+        {102,"{BLKREFS"},{331,"B1"},{102,"}"},
+        {1001,"ACAD"},{1000,"DesignCenter Data"},{1002,"{"},{1070,"1"},{1070,"4"},{1002,"}"},
+        {0,"ENDTAB"},{0,"ENDSEC"},{0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},
         {5,"B1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"MY_BLOCK"},
         {70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"MY_BLOCK"},{1,""},{0,"ATTDEF"}});
     doc.insert(doc.end(),attr.begin(),attr.end());doc.insert(doc.end(),{{0,"ENDBLK"},{5,"B2"},{330,"B0"},
         {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},{0,"SECTION"},{2,"OBJECTS"},
         {0,"DICTIONARY"},{5,"C"},{330,"0"},{100,"AcDbDictionary"},{280,"0"},{281,"1"},
         {0,"DICTIONARY"},{5,"D0"},{330,"B0"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {0,"DICTIONARY"},{5,"D1"},{330,"C1"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {3,"ACAD_SORTENTS"},{360,"D4"},{3,"AcDbBlockTableRecordData"},{360,"D2"},
+        {0,"SORTENTSTABLE"},{5,"D4"},{102,"{ACAD_REACTORS"},{330,"D1"},{102,"}"},
+        {330,"D1"},{100,"AcDbSortentsTable"},{330,"C1"},
+        {0,"DICTIONARY"},{5,"D2"},{102,"{ACAD_REACTORS"},{330,"D1"},{102,"}"},
+        {330,"D1"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},{3,"Edit"},{360,"D3"},
+        {0,"XRECORD"},{5,"D3"},{102,"{ACAD_REACTORS"},{330,"D2"},{102,"}"},
+        {330,"D2"},{100,"AcDbXrecord"},{280,"1"},{1070,"0"},{1070,"1"},{1070,"1"},
         {0,"ENDSEC"},{0,"EOF"}});
-    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u,liveModelFaults=0u;
+    Tags outputDoc=doc;
+    const auto eraseRecord=[&](const char* name,const char* handle) {
+        auto first=outputDoc.end();
+        for(auto it=outputDoc.begin();it!=outputDoc.end();++it)
+            if(it->code==0&&it->value==name&&std::next(it)!=outputDoc.end()
+                &&std::next(it)->code==5&&std::next(it)->value==handle) {first=it;break;}
+        if(first==outputDoc.end())return false;
+        auto end=std::find_if(std::next(first),outputDoc.end(),[](const Tag& t){return t.code==0;});
+        if(end==outputDoc.end())return false;
+        outputDoc.erase(first,end);return true;
+    };
+    if(!eraseRecord("BLOCK_RECORD","C1")||!eraseRecord("DICTIONARY","D1")
+        ||!eraseRecord("SORTENTSTABLE","D4")||!eraseRecord("DICTIONARY","D2")
+        ||!eraseRecord("XRECORD","D3"))return false;
+    auto blockRecordTable=outputDoc.end();
+    for(auto it=outputDoc.begin();it!=outputDoc.end();++it)
+        if(it->code==0&&it->value=="TABLE"&&std::next(it)!=outputDoc.end()
+            &&std::next(it)->code==2&&std::next(it)->value=="BLOCK_RECORD") {blockRecordTable=it;break;}
+    if(blockRecordTable==outputDoc.end())return false;
+    auto blockRecordCount=std::find_if(std::next(blockRecordTable),outputDoc.end(),[](const Tag& t){return t.code==70;});
+    if(blockRecordCount==outputDoc.end())return false;blockRecordCount->value="1";
+    unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u,liveModelFaults=0u,dependencyChains=0u,dependencyFaults=0u,sortEntsFaults=0u,ownerChainFaults=0u;
     for(bool binary:{false,true}){
         if(!write(path,doc,binary))return false;
-        Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent))return false;++defaults;
-        Probe selected;if(!selected.enableLegacyDxfIdentityObservation())return false;dx_data data;
-        if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)||!A::legacyExtensionDictionaryBound(data)
-            ||!A::legacyNoPromotion(data))return false;
+        Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent)
+            ||A::legacyXDictionaryChainBound(absent))return false;
+        ++defaults;
+        Probe selected;if(!selected.enableLegacyDxfIdentityObservation())return false;dx_data chainData;
+        if(!selected.fileImport(path.string(),&chainData,false))return false;
+        if(!A::legacyJoin(chainData)||!A::legacyExtensionDictionaryBound(chainData)||!A::legacyXDictionaryChainBound(chainData)
+            ||A::legacyXDictionaryChainFailed(chainData)||!A::legacyNoPromotion(chainData)) {
+            const auto capture=A::legacyXDictionaryCaptureFlags(chainData);
+            const auto discovery=A::legacyXDictionaryDiscovery(chainData);
+            const auto ownerState=A::legacyXDictionaryOwnerState(chainData);
+            std::cerr<<"selected AC1018 chain join failed (binary="<<binary<<") chains="
+                <<A::legacyXDictionaryChainCount(chainData)<<" chainFailed="<<A::legacyXDictionaryChainFailed(chainData)
+                <<" structuralFailed="<<capture[0]<<" resourceFailed="<<capture[1]<<" resourceProofFailed="<<capture[2]
+                <<" rootOwner="<<discovery[0]<<" childOwner="<<discovery[1]<<" rootStructural="<<discovery[2]
+                <<" childStructural="<<discovery[3]<<" rootResource="<<discovery[4]<<" childResource="<<discovery[5]
+                <<" xrecordResource="<<discovery[6]<<" descendantEdges="<<discovery[7]
+                <<" ownerStructural="<<discovery[8]<<" ownerResource="<<discovery[9]<<" blockRecords="<<discovery[10]
+                <<" sortentsOwner="<<discovery[11]<<" sortentsTyped="<<discovery[12]<<" sortentsRaw="<<discovery[13]
+                <<" ownerReplay="<<ownerState[0]<<" ownerProfile="<<ownerState[1]<<" ownerXdictSpan="<<ownerState[2]
+                <<" ownerXdictSpanCount="<<ownerState[3]<<" ownerModelXdict="<<ownerState[4]
+                <<" oldJoin="<<A::legacyJoin(chainData)<<" oldDictionary="<<A::legacyExtensionDictionaryBound(chainData)
+                <<" noPromotion="<<A::legacyNoPromotion(chainData)<<'\n';
+            return false;
+        }
+        ++dependencyChains;
         ++positives;
+        if(!write(path,outputDoc,binary))return false;
+        dx_data data;
+        if(!selected.fileImport(path.string(),&data,false)||!A::legacyJoin(data)
+            ||A::legacyXDictionaryChainBound(data))return false;
         const auto outputPath=path.parent_path()/(binary?"legacy-xdictionary-live-model-binary.dxf":"legacy-xdictionary-live-model-ascii.dxf");
         dx_iface exporter;
         auto liveDictionary=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),
@@ -165,7 +225,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {
             auto variant=doc;const auto at=std::find_if(variant.begin(),variant.end(),[](const Tag& t){return t.code==0&&t.value=="ENDBLK";});
             if(at==variant.end())return false;Tags extra;
-            for(unsigned n=0u;n<15u;++n){auto child=attr;std::ostringstream handle;handle<<std::hex<<std::uppercase<<(0xC0u+n);
+            for(unsigned n=0u;n<15u;++n){auto child=attr;std::ostringstream handle;handle<<std::hex<<std::uppercase<<(0xF0u+n);
                 child.front().value=handle.str();extra.push_back({0,"ATTDEF"});extra.insert(extra.end(),child.begin(),child.end());}
             variant.insert(at,extra.begin(),extra.end());if(!write(path,variant,binary))return false;
             Probe many;many.enableLegacyDxfIdentityObservation();dx_data baseline;
@@ -206,7 +266,99 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             if(!wrong.fileImport(path.string(),&retry,false)||!A::legacyJoin(retry)||!A::legacyExtensionDictionaryBound(retry))return false;
             ++dictionaryFaults;++retries;
         }
+        for(unsigned fault=0u;fault<6u;++fault) {
+            auto changed=doc;
+            auto first=changed.end();
+            for(auto it=changed.begin();it!=changed.end();++it)
+                if(it->code==0&&it->value==(fault<=2u?"DICTIONARY":"XRECORD")
+                    &&std::next(it)!=changed.end()&&std::next(it)->code==5
+                    &&std::next(it)->value==(fault<=2u?"D2":"D3")) {first=it;break;}
+            if(first==changed.end())return false;
+            if(fault==0u) {auto end=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==0;});
+                if(end==changed.end())return false;changed.erase(first,end);}
+            else if(fault==1u) {auto owner=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==330;});
+                if(owner==changed.end())return false;owner->value="C1";}
+            else if(fault==2u) {auto target=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==360;});
+                if(target==changed.end())return false;target->code=350;}
+            else if(fault==3u) {auto end=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==0;});
+                if(end==changed.end())return false;changed.erase(first,end);}
+            else if(fault==4u) {auto owner=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==330;});
+                if(owner==changed.end())return false;owner->value="D1";}
+            else {auto payload=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==1070;});
+                if(payload==changed.end())return false;payload->value="2";}
+            if(!write(path,changed,binary))return false;
+            Probe invalid;invalid.enableLegacyDxfIdentityObservation();dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)) {std::cerr<<"nested dictionary fault control did not parse: "<<fault<<'\n';return false;}
+            if(A::legacyXDictionaryChainBound(rejected)){std::cerr<<"nested dictionary fault control was admitted: "<<fault<<'\n';return false;}
+            if(!write(path,doc,binary))return false;dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)||!A::legacyXDictionaryChainBound(retry)
+                ||A::legacyXDictionaryChainFailed(retry))return false;
+            ++dependencyFaults;++retries;
+        }
+        for(unsigned fault=0u;fault<4u;++fault) {
+            auto changed=doc;
+            if(fault==0u) {
+                auto first=std::find_if(changed.begin(),changed.end(),[](const Tag& t){return t.code==0&&t.value=="SORTENTSTABLE";});
+                if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==0;});
+                if(end==changed.end())return false;changed.erase(first,end);
+            } else if(fault==1u||fault==2u) {
+                auto first=std::find_if(changed.begin(),changed.end(),[](const Tag& t){return t.code==0&&t.value=="SORTENTSTABLE";});
+                if(first==changed.end())return false;
+                auto body=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==100&&t.value=="AcDbSortentsTable";});
+                if(body==changed.end())return false;
+                auto owner=fault==1u?std::find_if(std::next(body),changed.end(),[](const Tag& t){return t.code==330;})
+                    :std::find_if(std::next(first),body,[](const Tag& t){return t.code==330;});
+                if(owner==changed.end())return false;owner->value="D2";
+            } else {
+                auto first=changed.end();
+                for(auto at=changed.begin();at!=changed.end();++at)
+                    if(at->code==0&&at->value=="DICTIONARY"&&std::next(at)!=changed.end()
+                        &&std::next(at)->code==5&&std::next(at)->value=="D1") {first=at;break;}
+                if(first==changed.end())return false;
+                auto target=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==360;});
+                if(target==changed.end())return false;target->code=350;
+            }
+            if(!write(path,changed,binary))return false;
+            Probe invalid;invalid.enableLegacyDxfIdentityObservation();dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)) {std::cerr<<"SORTENTSTABLE fault control did not parse: "<<fault<<'\n';return false;}
+            if(A::legacyXDictionaryChainBound(rejected)){std::cerr<<"SORTENTSTABLE fault control was admitted: "<<fault<<'\n';return false;}
+            if(!write(path,doc,binary))return false;dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)||!A::legacyXDictionaryChainBound(retry)
+                ||A::legacyXDictionaryChainFailed(retry))return false;
+            ++sortEntsFaults;++retries;
+        }
+        for(unsigned fault=0u;fault<2u;++fault) {
+            auto changed=doc;auto first=changed.end();
+            for(auto at=changed.begin();at!=changed.end();++at)
+                if(at->code==0&&at->value=="BLOCK_RECORD"&&std::next(at)!=changed.end()
+                    &&std::next(at)->code==5&&std::next(at)->value=="C1") {first=at;break;}
+            if(first==changed.end())return false;
+            auto end=std::find_if(std::next(first),changed.end(),[](const Tag& t){return t.code==0;});
+            if(end==changed.end())return false;
+            const int targetCode=fault==0u?330:360;
+            auto target=std::find_if(std::next(first),end,[targetCode](const Tag& t){return t.code==targetCode;});
+            if(target==end)return false;
+            target->value=fault==0u?"B8":"D0";
+            if(!write(path,changed,binary))return false;
+            Probe invalid;invalid.enableLegacyDxfIdentityObservation();dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)
+                ||A::legacyXDictionaryChainBound(rejected)) {
+                std::cerr<<"BLOCK_RECORD XDICTIONARY owner fault was admitted: "<<fault<<'\n';return false;
+            }
+            if(!write(path,doc,binary))return false;dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)||!A::legacyXDictionaryChainBound(retry)
+                ||A::legacyXDictionaryChainFailed(retry))return false;
+            ++ownerChainFaults;++retries;
+        }
     }
-    std::cout<<"AC1018 selected origin join profiles="<<positives<<" live-model-controls="<<liveModelFaults<<" default="<<defaults<<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases<<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
-    return positives==2u&&liveModelFaults==4u&&defaults==2u&&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u&&dictionaryFaults==6u&&retries==48u;
+    std::cout<<"AC1018 selected origin join profiles="<<positives<<" xdictionary chains="<<dependencyChains
+        <<" chain faults="<<dependencyFaults<<" SORTENTSTABLE faults="<<sortEntsFaults
+        <<" owner-chain faults="<<ownerChainFaults
+        <<" live-model-controls="<<liveModelFaults<<" default="<<defaults
+        <<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases
+        <<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
+    return positives==2u&&dependencyChains==2u&&dependencyFaults==12u&&sortEntsFaults==8u&&ownerChainFaults==4u&&liveModelFaults==4u&&defaults==2u
+        &&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u
+        &&dictionaryFaults==6u&&retries==72u;
 }

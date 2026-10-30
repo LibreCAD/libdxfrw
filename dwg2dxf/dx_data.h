@@ -1483,11 +1483,35 @@ private:
         // records multiple owners; it is retained as ambiguous evidence and
         // can never satisfy the selected source/owner join.
         std::map<std::uint32_t,std::uint32_t> legacyBlockRecordExtensionDictionaries;
+        // Selected hard-owner descendants of an opted-in AC1018 BLOCK_RECORD
+        // XDICTIONARY. This is source capture only; it does not admit output.
+        std::map<std::uint32_t,std::uint32_t> legacyBlockRecordDictionaryOwners;
         std::map<std::uint32_t,std::shared_ptr<const StructuralAudit>> structuralAudits;
         std::vector<std::shared_ptr<const StructuralAudit>> structuralAuditOwners;
         std::size_t structuralRecords{0},structuralBytes{0},structuralWork{0};
         std::size_t maxStructuralRecords{100000u},maxStructuralBytes{64u*1024u*1024u},maxStructuralWork{64u*1024u*1024u};
         bool structuralCaptureFailed{false};
+        struct LegacyBlockRecordXDictionaryChain {
+            std::shared_ptr<const IdentityInput> identity;
+            std::shared_ptr<const StructuralInput> ownerStructural,rootStructural,childStructural;
+            std::shared_ptr<const DRW_Dictionary> rootModel,childModel;
+            std::shared_ptr<const DRW_SortEntsTable> sortEntsModel;
+            std::shared_ptr<const DRW_RawDxfObject> sortEntsRaw;
+            std::shared_ptr<const DRW_XRecord> xrecordModel;
+            std::shared_ptr<const DRW_RawDxfObject> xrecordRaw;
+            std::size_t blockRecord{DRW_DxfIdentitySource::NoIndex};
+            std::size_t root{DRW_DxfIdentitySource::NoIndex};
+            std::size_t sortEnts{DRW_DxfIdentitySource::NoIndex};
+            std::size_t child{DRW_DxfIdentitySource::NoIndex};
+            std::size_t xrecord{DRW_DxfIdentitySource::NoIndex};
+            std::uint32_t ownerHandle{0},rootHandle{0},sortEntsHandle{0},childHandle{0},xrecordHandle{0};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const LegacyBlockRecordXDictionaryChain>>
+            legacyBlockRecordXDictionaryChains;
+        std::size_t legacyBlockRecordXDictionaryBytes{0},legacyBlockRecordXDictionaryWork{0};
+        std::size_t maxLegacyBlockRecordXDictionaryBytes{64u*1024u*1024u};
+        std::size_t maxLegacyBlockRecordXDictionaryWork{64u*1024u*1024u};
+        bool legacyBlockRecordXDictionaryFailed{false};
         struct LayoutRoleAudit {
             enum class State {NotCaptured,Reading,ImportFailed,ContextMismatch,SourceNotReady,CaptureFailed,NoLayouts,
                 MissingRoot,AmbiguousRoot,MissingBody,MissingLayoutDictionary,WrongOwner,InvalidNames,ReferenceMismatch,Matched};

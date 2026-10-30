@@ -28071,6 +28071,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.structuralPending.clear();
     if(source.successful)finishStructuralSourceAudits(data);
     if(source.successful)finishLegacyAttdefScopeJoins(data);
+    if(source.successful)finishLegacyBlockRecordXDictionaryChains(data);
     if(source.successful)finishLegacyEntitiesCompoundJoins(data);
     if(!source.plotSourcePending.empty())source.plotSourceCaptureFailed=true;
     source.plotSourcePending.clear();
@@ -29795,8 +29796,14 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
     if(!s.entitiesReadInput->getDxfReadContext(live))return;
     const bool block=view.kind==V::Kind::BlockRecord;
     const bool legacyBlock=live.sourceVersion==DRW::AC1018&&block;
+    const auto extensionOwner=s.legacyBlockRecordExtensionDictionaries.find(value.handle);
+    const auto dictionaryOwner=s.legacyBlockRecordDictionaryOwners.find(value.handle);
     const bool legacyDictionary=live.sourceVersion==DRW::AC1018
-        &&view.kind==V::Kind::Dictionary&&s.legacyBlockRecordExtensionDictionaries.count(value.handle)!=0u;
+        &&view.kind==V::Kind::Dictionary
+        &&(extensionOwner!=s.legacyBlockRecordExtensionDictionaries.end()
+            ||dictionaryOwner!=s.legacyBlockRecordDictionaryOwners.end());
+    const std::uint32_t expectedDictionaryOwner=extensionOwner!=s.legacyBlockRecordExtensionDictionaries.end()
+        ?extensionOwner->second:(dictionaryOwner!=s.legacyBlockRecordDictionaryOwners.end()?dictionaryOwner->second:0u);
     const bool legacy=legacyBlock||legacyDictionary;
     if(legacyBlock) {
         if(source?!legacyBlockOptIn:s.structuralPending.count(value.handle)==0u)return;
@@ -29805,6 +29812,8 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         ||!value.handle||!view.source||view.source->handle!=value.handle||view.source->parentHandle!=value.parentHandle
         ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
         ||live.codecVersion!=(legacy?DRW::AC1015:DRW::AC1021)||live.codecCodePage.size()>128u
+        ||(legacyDictionary&&(!expectedDictionaryOwner||value.parentHandle!=expectedDictionaryOwner
+            ||view.source->parentHandle!=expectedDictionaryOwner))
         ||(block?(typeid(value)!=typeid(DRW_Block_Record)||value.tType!=DRW::BLOCK_RECORD):
                    ((view.kind!=V::Kind::RootDictionary&&view.kind!=V::Kind::Dictionary)||typeid(value)!=typeid(DRW_Dictionary)||value.tType!=DRW::DICTIONARY))) {fail();return;}
     const bool first=block?source:!source;
@@ -29916,7 +29925,22 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
         }
         in.index=s.structuralInputOwners.size();
         auto input=std::make_shared<const dx_data::TableDxfSourceCapture::StructuralInput>(std::move(in));
-        s.structuralInputs.emplace(value.handle,input);s.structuralInputOwners.push_back(std::move(input));s.structuralPending.erase(found);
+        s.structuralInputs.emplace(value.handle,input);s.structuralInputOwners.push_back(input);s.structuralPending.erase(found);
+        if(legacyDictionary&&input->paired) {
+            const auto* dictionary=dynamic_cast<const DRW_Dictionary*>(input->model.get());
+            if(!dictionary||!dictionary->hasCompleteDxfEntries()) {fail();return;}
+            for(const auto& entry:dictionary->m_entries) {
+                if(entry.m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                    ||!entry.m_handle||entry.m_handle==DRW::NoHandle)continue;
+                std::size_t bytes=sizeof(std::pair<const std::uint32_t,std::uint32_t>)+4u*sizeof(void*);
+                constexpr std::size_t work=128u;
+                if(s.structuralBytes>s.maxStructuralBytes||bytes>s.maxStructuralBytes-s.structuralBytes
+                    ||s.structuralWork>s.maxStructuralWork||work>s.maxStructuralWork-s.structuralWork) {fail();return;}
+                const auto inserted=s.legacyBlockRecordDictionaryOwners.emplace(entry.m_handle,dictionary->handle);
+                if(!inserted.second)inserted.first->second=0u;
+                s.structuralBytes+=bytes;s.structuralWork+=work;
+            }
+        }
     }catch(...) {fail();}
 }
 
@@ -30253,6 +30277,352 @@ void dx_iface::finishLegacyAttdefScopeJoins(dx_data& data) noexcept {
         }
         s.legacyAttdefScopeBytes=bytes;s.legacyAttdefScopeWork=work;
     }catch(...) {fail();}
+}
+
+void dx_iface::finishLegacyBlockRecordXDictionaryChains(dx_data& data) noexcept {
+    using Source=DRW_DxfIdentitySource;
+    using Capture=dx_data::TableDxfSourceCapture;
+    using Chain=Capture::LegacyBlockRecordXDictionaryChain;
+    auto& s=data.m_tableDxfSource;
+    if(s.version!=DRW::AC1018||!s.legacyIdentityObservation||s.legacyIdentityCaptureFailed)return;
+    const auto fail=[&]() noexcept {
+        s.legacyBlockRecordXDictionaryFailed=true;
+        s.legacyBlockRecordXDictionaryChains.clear();
+        s.legacyBlockRecordXDictionaryBytes=s.legacyBlockRecordXDictionaryWork=0u;
+    };
+    const auto same=[](const auto& a,const auto& b) noexcept {
+        return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);
+    };
+    const auto sameContext=[](const Capture::EntitiesReadContext& a,
+                              const Capture::EntitiesReadContext& b) noexcept {
+        return a.captured&&b.captured
+            &&std::tie(a.sourceVersion,a.codecVersion,a.codecCodePage,a.declaration,a.hasDeclaration,
+                a.compatibilityProfile,a.textEncoding,a.codePagePolicy,a.binary,a.applyExtrusion)
+              ==std::tie(b.sourceVersion,b.codecVersion,b.codecCodePage,b.declaration,b.hasDeclaration,
+                b.compatibilityProfile,b.textEncoding,b.codePagePolicy,b.binary,b.applyExtrusion);
+    };
+    const auto groupText=[](const DRW_Variant& value,const char* text) noexcept {
+        return value.type()==DRW_Variant::STRING&&value.c_str()&&std::string_view(value.c_str())==text;
+    };
+    const auto exactReactorAppData=[&](const DRW_TableEntry& value,std::uint32_t expected) noexcept {
+        if(value.appData.size()!=1u||value.reactorHandles.size()!=1u
+            ||value.reactorHandles[0]!=expected)return false;
+        const auto& group=value.appData.front();
+        if(group.size()!=3u)return false;
+        auto item=group.begin();
+        if(item->code()!=102||!groupText(*item,"ACAD_REACTORS"))return false;
+        ++item;std::uint32_t handle=0u;
+        if(item->code()!=330||!dx_legacy_block_record_source::handle(*item,handle)||handle!=expected)return false;
+        ++item;return item->code()==102&&groupText(*item,"}");
+    };
+    const auto identity=s.legacyIdentityObservation;
+    if(!same(identity,s.legacyIdentityObservationOwner)||!identity->source||!identity->context
+        ||!same(identity->source,s.legacyIdentitySourceOwner)||!identity->deliveryTicket
+        ||!s.legacyIdentityContextSnapshot||identity->container!=&data||identity->generation!=s.generation
+        ||s.generation!=data.importGeneration||identity->containerId!=data.m_entitiesContainerIdentity.value
+        ||identity->context->sourceVersion!=DRW::AC1018||identity->context->codecVersion!=DRW::AC1015
+        ||identity->context->binary!=identity->source->binary
+        ||!sameContext(*identity->context,*s.legacyIdentityContextSnapshot)
+        ||s.structuralCaptureFailed||s.resourceCaptureFailed||s.resourceProofCaptureFailed) {fail();return;}
+
+    try {
+        const auto& census=*identity->source;
+        std::size_t bytes=0u,work=0u;
+        std::size_t contextText=0u,perEdgeWork=256u,edgeScanWork=0u;
+        if(!addAssociativeRetainedBytes(identity->context->codecCodePage.size(),contextText)
+            ||!addAssociativeRetainedBytes(identity->context->declaration.size(),contextText)
+            ||contextText>kMaxAssociativeDxfRetainedBytes/6u
+            ||!addAssociativeRetainedBytes(contextText*6u,perEdgeWork)
+            ||!addAssociativeSlotBytes(data.sortEntsTables.size(),64u,perEdgeWork)
+            ||!addAssociativeSlotBytes(data.rawSortEntsTables.size(),64u,perEdgeWork)
+            ||!addAssociativeSlotBytes(data.dictionaries.size(),128u,perEdgeWork)
+            ||!addAssociativeSlotBytes(data.xRecords.size(),64u,perEdgeWork)
+            ||!addAssociativeSlotBytes(s.legacyBlockRecordExtensionDictionaries.size(),perEdgeWork,edgeScanWork)
+            ||!addAssociativeSlotBytes(1u,contextText*2u,work)
+            ||!addAssociativeRetainedBytes(edgeScanWork,work)
+            ||!addAssociativeSlotBytes(census.records.size(),64u,work)
+            ||!addAssociativeSlotBytes(census.candidates.size(),64u,work)
+            ||work>s.maxLegacyBlockRecordXDictionaryWork) {fail();return;}
+        dx_legacy_identity_join::Index index;
+        if(!dx_legacy_identity_join::buildIndex(census,index)) {fail();return;}
+        std::map<std::uint32_t,std::shared_ptr<const Chain>> chains;
+        for(const auto& edge:s.legacyBlockRecordExtensionDictionaries) {
+            const std::uint32_t rootHandle=edge.first,ownerHandle=edge.second;
+            const auto rootResource=s.resources.find(rootHandle);
+            const auto rootInput=s.structuralInputs.find(rootHandle);
+            if(rootResource==s.resources.end()||rootInput==s.structuralInputs.end()||!rootInput->second
+                ||rootResource->second.family!=dx_tableResourceFamily::Dictionary) {continue;}
+            const auto root=std::dynamic_pointer_cast<const DRW_Dictionary>(rootResource->second.model);
+            const auto& rootRaw=rootResource->second.raw;
+            if(!root||!rootRaw||root->m_entries.size()!=2u
+                ||root->m_entries[0].m_name!="ACAD_SORTENTS"
+                ||root->m_entries[0].m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                ||!root->m_entries[0].m_handle
+                ||root->m_entries[1].m_name!="AcDbBlockTableRecordData"
+                ||root->m_entries[1].m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                ||!root->m_entries[1].m_handle)continue;
+            const std::uint32_t sortEntsHandle=root->m_entries[0].m_handle;
+            const std::uint32_t childHandle=root->m_entries[1].m_handle;
+            const auto childOwner=s.legacyBlockRecordDictionaryOwners.find(childHandle);
+            const auto childResource=s.resources.find(childHandle);
+            const auto childInput=s.structuralInputs.find(childHandle);
+            if(childOwner==s.legacyBlockRecordDictionaryOwners.end()||childOwner->second!=rootHandle
+                ||childResource==s.resources.end()||childInput==s.structuralInputs.end()||!childInput->second
+                ||childResource->second.family!=dx_tableResourceFamily::Dictionary) {fail();return;}
+            const auto child=std::dynamic_pointer_cast<const DRW_Dictionary>(childResource->second.model);
+            const auto& childRaw=childResource->second.raw;
+            if(!child||!childRaw||child->m_entries.size()!=1u||child->m_entries[0].m_name!="Edit"
+                ||child->m_entries[0].m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                ||!child->m_entries[0].m_handle) {fail();return;}
+            const std::uint32_t xrecordHandle=child->m_entries[0].m_handle;
+            const auto xrecordResource=s.resources.find(xrecordHandle);
+            if(xrecordResource==s.resources.end()||xrecordResource->second.family!=dx_tableResourceFamily::XRecord
+                ||!xrecordResource->second.model||!xrecordResource->second.raw) {fail();return;}
+            const auto xrecord=std::dynamic_pointer_cast<const DRW_XRecord>(xrecordResource->second.model);
+            const auto& xrecordRaw=xrecordResource->second.raw;
+            std::size_t sortEntsCount=0u,sortEntsRawCount=0u;
+            const DRW_SortEntsTable* sortEnts=nullptr;
+            const DRW_RawDxfObject* sortEntsRaw=nullptr;
+            for(const auto& table:data.sortEntsTables)if(table.handle==sortEntsHandle) {
+                ++sortEntsCount;sortEnts=&table;
+            }
+            for(const auto& raw:data.rawSortEntsTables)if(raw.handle==sortEntsHandle) {
+                ++sortEntsRawCount;sortEntsRaw=&raw;
+            }
+            const bool binary=census.binary;
+            const auto exactRaw=[&](const DRW_RawDxfObject& raw,std::uint32_t self,std::uint32_t owner,
+                                    bool dictionary,bool rootBody) noexcept {
+                if(raw.m_version!=DRW::AC1018||raw.hasRawValues==binary||raw.handle!=self
+                    ||raw.parentHandle!=owner||raw.groups.size()!=(rootBody?9u:10u)
+                    ||raw.rawValues.size()!=raw.groups.size())return false;
+                const auto handleAt=[&](std::size_t at,std::uint32_t expected) {
+                    std::uint32_t value=0u;return at<raw.groups.size()
+                        &&dx_legacy_block_record_source::handle(raw.groups[at],value)&&value==expected;
+                };
+                if(raw.groups[0].code()!=5||!handleAt(0u,self))return false;
+                if(rootBody) {
+                    return raw.name=="DICTIONARY"&&raw.groups[1].code()==330&&handleAt(1u,owner)
+                        &&raw.groups[2].code()==100&&groupText(raw.groups[2],"AcDbDictionary")
+                        &&raw.groups[3].code()==280&&raw.groups[3].type()==DRW_Variant::INTEGER&&raw.groups[3].i_val()==1
+                        &&raw.groups[4].code()==281&&raw.groups[4].type()==DRW_Variant::INTEGER&&raw.groups[4].i_val()==1
+                        &&raw.groups[5].code()==3&&groupText(raw.groups[5],"ACAD_SORTENTS")
+                        &&raw.groups[6].code()==360&&handleAt(6u,sortEntsHandle)
+                        &&raw.groups[7].code()==3&&groupText(raw.groups[7],"AcDbBlockTableRecordData")
+                        &&raw.groups[8].code()==360&&handleAt(8u,childHandle);
+                }
+                if(raw.groups[1].code()!=102||!groupText(raw.groups[1],"{ACAD_REACTORS")
+                    ||raw.groups[2].code()!=330||!handleAt(2u,owner)||raw.groups[3].code()!=102
+                    ||!groupText(raw.groups[3],"}")||raw.groups[4].code()!=330||!handleAt(4u,owner)
+                    ||raw.groups[5].code()!=100)return false;
+                if(dictionary) return raw.name=="DICTIONARY"&&groupText(raw.groups[5],"AcDbDictionary")
+                    &&raw.groups[6].code()==280&&raw.groups[6].type()==DRW_Variant::INTEGER&&raw.groups[6].i_val()==1
+                    &&raw.groups[7].code()==281&&raw.groups[7].type()==DRW_Variant::INTEGER&&raw.groups[7].i_val()==1
+                    &&raw.groups[8].code()==3&&groupText(raw.groups[8],"Edit")
+                    &&raw.groups[9].code()==360&&handleAt(9u,xrecordHandle);
+                return raw.name=="XRECORD"&&groupText(raw.groups[5],"AcDbXrecord")
+                    &&raw.groups[6].code()==280&&raw.groups[6].type()==DRW_Variant::INTEGER&&raw.groups[6].i_val()==1
+                    &&raw.groups[7].code()==1070&&raw.groups[7].type()==DRW_Variant::INTEGER&&raw.groups[7].i_val()==0
+                    &&raw.groups[8].code()==1070&&raw.groups[8].type()==DRW_Variant::INTEGER&&raw.groups[8].i_val()==1
+                    &&raw.groups[9].code()==1070&&raw.groups[9].type()==DRW_Variant::INTEGER&&raw.groups[9].i_val()==1;
+            };
+            const auto exactSortEntsRaw=[&](const DRW_RawDxfObject& raw) noexcept {
+                const auto handleAt=[&](std::size_t at,std::uint32_t expected) {
+                    std::uint32_t value=0u;return at<raw.groups.size()
+                        &&dx_legacy_block_record_source::handle(raw.groups[at],value)&&value==expected;
+                };
+                return raw.m_version==DRW::AC1018&&raw.hasRawValues!=binary
+                    &&raw.name=="SORTENTSTABLE"&&raw.handle==sortEntsHandle&&raw.parentHandle==rootHandle
+                    &&raw.groups.size()==7u&&raw.rawValues.size()==raw.groups.size()
+                    &&raw.groups[0].code()==5&&handleAt(0u,sortEntsHandle)
+                    &&raw.groups[1].code()==102&&groupText(raw.groups[1],"{ACAD_REACTORS")
+                    &&raw.groups[2].code()==330&&handleAt(2u,rootHandle)
+                    &&raw.groups[3].code()==102&&groupText(raw.groups[3],"}")
+                    &&raw.groups[4].code()==330&&handleAt(4u,rootHandle)
+                    &&raw.groups[5].code()==100&&groupText(raw.groups[5],"AcDbSortentsTable")
+                    &&raw.groups[6].code()==330&&handleAt(6u,ownerHandle);
+            };
+            if(root->tType!=DRW::DICTIONARY||root->handle!=rootHandle||root->parentHandle!=ownerHandle
+                ||root->hardOwner!=1||root->cloning!=1||root->countCap||!root->hasCompleteDxfEntries()
+                ||!root->name.empty()||root->flags!=0||!root->extData.empty()||!root->appData.empty()
+                ||!root->reactorHandles.empty()||root->xDictHandle!=0u||root->extensionDictionaryFlag()!=0u
+                ||rootRaw->handle!=rootHandle||rootRaw->parentHandle!=ownerHandle
+                ||!exactRaw(*rootRaw,rootHandle,ownerHandle,true,true)
+                ||sortEntsCount!=1u||sortEntsRawCount!=1u||!sortEnts||!sortEntsRaw
+                ||sortEnts->tType!=DRW::SORTENTSTABLE||sortEnts->handle!=sortEntsHandle
+                ||sortEnts->parentHandle!=rootHandle||sortEnts->m_blockOwnerHandle!=ownerHandle
+                ||!sortEnts->m_entityHandles.empty()||!sortEnts->m_sortHandles.empty()
+                ||!sortEnts->name.empty()||sortEnts->flags!=0||!sortEnts->extData.empty()
+                ||sortEnts->xDictHandle!=0u||sortEnts->extensionDictionaryFlag()!=0u
+                ||!exactReactorAppData(*sortEnts,rootHandle)
+                ||!exactSortEntsRaw(*sortEntsRaw)
+                ||child->tType!=DRW::DICTIONARY||child->handle!=childHandle||child->parentHandle!=rootHandle
+                ||child->hardOwner!=1||child->cloning!=1||child->countCap||!child->hasCompleteDxfEntries()
+                ||!child->name.empty()||child->flags!=0||!child->extData.empty()
+                ||child->xDictHandle!=0u||child->extensionDictionaryFlag()!=0u
+                ||!exactReactorAppData(*child,rootHandle)
+                ||childRaw->handle!=childHandle||childRaw->parentHandle!=rootHandle
+                ||!exactRaw(*childRaw,childHandle,rootHandle,true,false)
+                ||xrecord->tType!=DRW::XRECORD||xrecord->handle!=xrecordHandle||xrecord->parentHandle!=childHandle
+                ||xrecord->m_cloning!=1||!exactReactorAppData(*xrecord,childHandle)
+                ||!xrecord->name.empty()||xrecord->flags!=0||!xrecord->extData.empty()
+                ||xrecord->xDictHandle!=0u||xrecord->extensionDictionaryFlag()!=0u
+                ||xrecord->m_dataEntries.size()!=3u||xrecord->m_values.size()!=3u
+                ||!xrecord->m_handleValues.empty()||!xrecord->m_rawData.empty()||xrecord->m_rawDataValid
+                ||!exactRaw(*xrecordRaw,xrecordHandle,childHandle,false,false)
+                ) {fail();return;}
+            for(std::size_t i=0u;i<3u;++i)if(xrecord->m_dataEntries[i].code()!=1070
+                ||xrecord->m_dataEntries[i].type()!=DRW_Variant::INTEGER
+                ||xrecord->m_dataEntries[i].i_val()!=static_cast<int>(i==0u?0u:1u)
+                ||xrecord->m_values[i].code()!=1070||xrecord->m_values[i].type()!=DRW_Variant::INTEGER
+                ||xrecord->m_values[i].i_val()!=static_cast<int>(i==0u?0u:1u)) {fail();return;}
+
+            const auto rootStructural=rootInput->second,childStructural=childInput->second;
+            const auto contextMatches=[&](const std::shared_ptr<const Capture::StructuralInput>& input,
+                                          const DRW_RawDxfObject& raw,const char* name) {
+                return input&&input->paired&&input->kind==dxfRW::DxfStructuralSourceView::Kind::Dictionary
+                    &&input->container==&data&&input->generation==s.generation
+                    &&input->containerId==identity->containerId&&input->context
+                    &&sameContext(*input->context,*identity->context)
+                    &&input->physicalStatus==DRW_DxfObjectPhysicalSource::Status::Complete
+                    &&input->physical&&same(input->physical,input->physicalOwner)
+                    &&input->physical->version==DRW::AC1018&&input->physical->binary==binary
+                    &&input->physical->name==name&&input->physical->fields.size()==raw.groups.size()
+                    &&input->index<s.structuralInputOwners.size()
+                    &&same(input,s.structuralInputOwners[input->index]);
+            };
+            if(!contextMatches(rootStructural,*rootRaw,"DICTIONARY")
+                ||!contextMatches(childStructural,*childRaw,"DICTIONARY")) {fail();return;}
+            const auto physicalMatches=[&](const auto& input,const DRW_RawDxfObject& raw,
+                                           const Source::Record& record) {
+                const auto& physical=*input->physical;
+                if(!blockDeliverySpanEqual(physical.marker,record.marker)
+                    ||!blockDeliverySpanEqual(physical.endMarker,record.endMarker))return false;
+                for(std::size_t i=0u;i<physical.fields.size();++i)
+                    if(physical.fields[i].code!=raw.groups[i].code()
+                        ||physical.fields[i].span.ignoredComment
+                        ||!dx_legacy_identity_join::spanInside(physical.fields[i].span,
+                            record.marker,record.endMarker))return false;
+                return true;
+            };
+            const auto ownerInput=s.structuralInputs.find(ownerHandle);
+            const auto ownerResource=s.resources.find(ownerHandle);
+            const auto* ownerRecord=dx_legacy_identity_join::record(census,index,ownerHandle,
+                Source::Kind::TableRecord,Source::Section::Tables,"BLOCK_RECORD",0u);
+            const auto* rootRecord=dx_legacy_identity_join::record(census,index,rootHandle,
+                Source::Kind::Object,Source::Section::Objects,"DICTIONARY",1u);
+            const auto* sortEntsRecord=dx_legacy_identity_join::record(census,index,sortEntsHandle,
+                Source::Kind::Object,Source::Section::Objects,"SORTENTSTABLE",1u);
+            const auto* childRecord=dx_legacy_identity_join::record(census,index,childHandle,
+                Source::Kind::Object,Source::Section::Objects,"DICTIONARY",1u);
+            const auto* xrecordRecord=dx_legacy_identity_join::record(census,index,xrecordHandle,
+                Source::Kind::Object,Source::Section::Objects,"XRECORD",1u);
+            if(ownerInput==s.structuralInputs.end()||!ownerInput->second
+                ||ownerResource==s.resources.end()||ownerResource->second.family!=dx_tableResourceFamily::BlockRecord
+                ||!ownerResource->second.model||!ownerResource->second.raw) {fail();return;}
+            const auto ownerStructural=ownerInput->second;
+            const auto ownerModel=std::dynamic_pointer_cast<const DRW_Block_Record>(ownerResource->second.model);
+            const auto& ownerRaw=ownerResource->second.raw;
+            const auto* ownerTableRecord=ownerModel&&ownerRecord
+                ?dx_legacy_identity_join::record(census,index,ownerModel->parentHandle,
+                    Source::Kind::TableControl,Source::Section::Tables,"TABLE",0u):nullptr;
+            const dx_legacy_block_record_source::Span* extensionSpan=nullptr;
+            std::size_t extensionSpanCount=0u;
+            for(const auto& span:ownerStructural->legacyBlockRecordProfile.spans)
+                if(span.role==dx_legacy_block_record_source::Role::ExtensionDictionary) {
+                    ++extensionSpanCount;extensionSpan=&span;
+                }
+            // TABLES records do not publish DRW_DxfObjectPhysicalSource fields;
+            // bind this selected row through its physical census record/table
+            // control and the same-read paired raw/profile capture instead.
+            if(!ownerRecord||!ownerTableRecord||ownerRecord->table>=census.records.size()
+                ||ownerTableRecord!=&census.records[ownerRecord->table]
+                ||!dx_legacy_identity_join::sameName(ownerTableRecord->tableName,"BLOCK_RECORD")
+                ||!ownerModel||!ownerRaw||!ownerStructural->paired
+                ||ownerStructural->kind!=dxfRW::DxfStructuralSourceView::Kind::BlockRecord
+                ||!ownerStructural->legacyBlockRecordReplayMatched
+                ||!ownerStructural->legacyBlockRecordProfile.complete()||extensionSpanCount!=1u||!extensionSpan
+                ||ownerStructural->originalState.first||ownerStructural->originalState.second
+                ||ownerStructural->container!=&data||ownerStructural->generation!=s.generation
+                ||ownerStructural->containerId!=identity->containerId||!ownerStructural->context
+                ||!sameContext(*ownerStructural->context,*identity->context)
+                ||ownerStructural->index>=s.structuralInputOwners.size()
+                ||!same(ownerStructural,s.structuralInputOwners[ownerStructural->index])
+                ||!same(ownerStructural->model,ownerResource->second.model)
+                ||!same(ownerStructural->raw,ownerRaw)
+                ||ownerRaw->m_version!=DRW::AC1018||ownerRaw->name!="BLOCK_RECORD"
+                ||ownerRaw->hasRawValues==census.binary||ownerRaw->handle!=ownerHandle
+                ||ownerRaw->parentHandle!=ownerModel->parentHandle
+                ||ownerModel->tType!=DRW::BLOCK_RECORD||ownerModel->handle!=ownerHandle
+                ||ownerModel->xDictHandle!=rootHandle||extensionSpan->handle!=rootHandle
+                ||extensionSpan->index>=ownerRaw->groups.size()
+                ||ownerRaw->groups[extensionSpan->index].code()!=360
+                ) {fail();return;}
+            std::uint32_t rawExtensionHandle=0u;
+            if(!dx_legacy_block_record_source::handle(ownerRaw->groups[extensionSpan->index],rawExtensionHandle)
+                ||rawExtensionHandle!=rootHandle) {fail();return;}
+            if(!rootRecord||!sortEntsRecord||!childRecord||!xrecordRecord
+                ||rootRecord->marker.ordinal>=childRecord->marker.ordinal
+                ||rootRecord->marker.ordinal>=sortEntsRecord->marker.ordinal
+                ||sortEntsRecord->marker.ordinal>=childRecord->marker.ordinal
+                ||childRecord->marker.ordinal>=xrecordRecord->marker.ordinal
+                ||!physicalMatches(rootStructural,*rootRaw,*rootRecord)
+                ||!physicalMatches(childStructural,*childRaw,*childRecord)) {fail();return;}
+            std::size_t liveRootCount=0u,liveChildCount=0u,liveXrecordCount=0u;
+            const DRW_Dictionary* liveRoot=nullptr;const DRW_Dictionary* liveChild=nullptr;
+            const DRW_XRecord* liveXrecord=nullptr;
+            for(const auto& dictionary:data.dictionaries) {
+                if(dictionary.handle==rootHandle){++liveRootCount;liveRoot=&dictionary;}
+                if(dictionary.handle==childHandle){++liveChildCount;liveChild=&dictionary;}
+            }
+            for(const auto& record:data.xRecords)if(record.handle==xrecordHandle) {
+                ++liveXrecordCount;liveXrecord=&record;
+            }
+            const auto sameDictionary=[&](const DRW_Dictionary* live,const DRW_Dictionary& source,
+                                          std::uint32_t handle,std::uint32_t parent) {
+                return live&&live->tType==DRW::DICTIONARY&&live->handle==handle&&live->parentHandle==parent
+                    &&live->hardOwner==1&&live->cloning==1&&!live->countCap&&live->hasCompleteDxfEntries()
+                    &&live->sameSelectedDxfEntryState(source)&&standardDwgModelsEqual(*live,source,DRW::AC1018,dwgObjType::DICTIONARY);
+            };
+            if(liveRootCount!=1u||liveChildCount!=1u||liveXrecordCount!=1u
+                ||!sameDictionary(liveRoot,*root,rootHandle,ownerHandle)
+                ||!sameDictionary(liveChild,*child,childHandle,rootHandle)
+                ||!liveXrecord||!standardDwgModelsEqual(*liveXrecord,*xrecord,DRW::AC1018,dwgObjType::XRECORD)) {fail();return;}
+            std::size_t retained=sizeof(Chain)+8u*sizeof(void*),rootBytes=0u,childBytes=0u,xrecordBytes=0u,sortEntsBytes=0u,sortEntsItems=0u;
+            std::size_t items=0u;
+            if(!estimateDictionaryTypedBytes(*root,rootBytes,items)
+                ||!estimateDictionaryTypedBytes(*child,childBytes,items)
+                ||!estimateXRecordTypedBytes(*xrecord,xrecordBytes,items)
+                ||!estimateSortEntsTypedBytes(*sortEnts,sortEntsBytes,sortEntsItems)
+                ||!addAssociativeRetainedBytes(rootBytes,retained)
+                ||!addAssociativeRetainedBytes(childBytes,retained)
+                ||!addAssociativeRetainedBytes(xrecordBytes,retained)
+                ||!addAssociativeRetainedBytes(sortEntsBytes,retained)
+                ||!addAssociativeRetainedBytes(rootRaw->groups.size()*sizeof(DRW_Variant),retained)
+                ||!addAssociativeRetainedBytes(childRaw->groups.size()*sizeof(DRW_Variant),retained)
+                ||!addAssociativeRetainedBytes(xrecordRaw->groups.size()*sizeof(DRW_Variant),retained)
+                ||!addAssociativeRetainedBytes(sortEntsRaw->groups.size()*sizeof(DRW_Variant),retained)
+                ||bytes>s.maxLegacyBlockRecordXDictionaryBytes
+                ||retained>s.maxLegacyBlockRecordXDictionaryBytes-bytes) {fail();return;}
+            auto saved=std::make_shared<Chain>();saved->identity=identity;
+            saved->ownerStructural=ownerStructural;
+            saved->rootStructural=rootStructural;saved->childStructural=childStructural;
+            saved->rootModel=root;saved->childModel=child;
+            saved->sortEntsModel=std::make_shared<const DRW_SortEntsTable>(*sortEnts);
+            saved->sortEntsRaw=std::make_shared<const DRW_RawDxfObject>(*sortEntsRaw);
+            saved->xrecordModel=xrecord;saved->xrecordRaw=xrecordRaw;
+            saved->blockRecord=static_cast<std::size_t>(ownerRecord-census.records.data());
+            saved->root=static_cast<std::size_t>(rootRecord-census.records.data());
+            saved->sortEnts=static_cast<std::size_t>(sortEntsRecord-census.records.data());
+            saved->child=static_cast<std::size_t>(childRecord-census.records.data());
+            saved->xrecord=static_cast<std::size_t>(xrecordRecord-census.records.data());
+            saved->ownerHandle=ownerHandle;saved->rootHandle=rootHandle;saved->sortEntsHandle=sortEntsHandle;
+            saved->childHandle=childHandle;saved->xrecordHandle=xrecordHandle;
+            if(!chains.emplace(ownerHandle,std::move(saved)).second) {fail();return;}
+            bytes+=retained;
+        }
+        s.legacyBlockRecordXDictionaryChains.swap(chains);
+        s.legacyBlockRecordXDictionaryBytes=bytes;s.legacyBlockRecordXDictionaryWork=work;
+    } catch(...) {fail();}
 }
 
 void dx_iface::finishLegacyEntitiesCompoundJoins(dx_data& data) noexcept {
