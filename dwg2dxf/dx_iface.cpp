@@ -22372,6 +22372,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::LWPOLYLINE:return "LWPOLYLINE";
     case DRW::E3DFACE:return "3DFACE";
     case DRW::LINE:return "LINE";
+    case DRW::THREEDLINE:return "3DLINE";
     case DRW::CIRCLE:return "CIRCLE";
     case DRW::ARC:return "ARC";
     case DRW::ELLIPSE:return "ELLIPSE";
@@ -22394,6 +22395,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::LWPOLYLINE:return DRW_DxfEntitiesCallback::addLWPolyline;
     case DRW::E3DFACE:return DRW_DxfEntitiesCallback::add3dFace;
     case DRW::LINE:return DRW_DxfEntitiesCallback::addLine;
+    case DRW::THREEDLINE:return DRW_DxfEntitiesCallback::add3DLine;
     case DRW::CIRCLE:return DRW_DxfEntitiesCallback::addCircle;
     case DRW::ARC:return DRW_DxfEntitiesCallback::addArc;
     case DRW::ELLIPSE:return DRW_DxfEntitiesCallback::addEllipse;
@@ -22416,6 +22418,7 @@ DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
     case DRW::LWPOLYLINE:return DRW_DxfBlockCallback::addLWPolyline;
     case DRW::E3DFACE:return DRW_DxfBlockCallback::add3dFace;
     case DRW::LINE:return DRW_DxfBlockCallback::addLine;
+    case DRW::THREEDLINE:return DRW_DxfBlockCallback::add3DLine;
     case DRW::CIRCLE:return DRW_DxfBlockCallback::addCircle;
     case DRW::ARC:return DRW_DxfBlockCallback::addArc;
     case DRW::ELLIPSE:return DRW_DxfBlockCallback::addEllipse;
@@ -22449,6 +22452,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
     case DRW::LINE:
         return dynamic_cast<const DRW_Line*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Line);
+    case DRW::THREEDLINE:
+        return dynamic_cast<const DRW_3DLine*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_3DLine);
     case DRW::CIRCLE:
         return dynamic_cast<const DRW_Circle*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Circle);
@@ -22597,6 +22603,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     :event.record.name=="LWPOLYLINE"?DRW::LWPOLYLINE
                     :event.record.name=="3DFACE"?DRW::E3DFACE
                     :event.record.name=="LINE"?DRW::LINE
+                    :event.record.name=="3DLINE"?DRW::THREEDLINE
                     :event.record.name=="CIRCLE"?DRW::CIRCLE
                     :event.record.name=="ARC"?DRW::ARC
                     :event.record.name=="ELLIPSE"?DRW::ELLIPSE
@@ -22762,6 +22769,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addLWPolyline
                     &&event.callback!=DRW_DxfEntitiesCallback::add3dFace
                     &&event.callback!=DRW_DxfEntitiesCallback::addLine
+                    &&event.callback!=DRW_DxfEntitiesCallback::add3DLine
                     &&event.callback!=DRW_DxfEntitiesCallback::addCircle
                     &&event.callback!=DRW_DxfEntitiesCallback::addArc
                     &&event.callback!=DRW_DxfEntitiesCallback::addEllipse
@@ -22905,6 +22913,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         :record.name=="LWPOLYLINE"?DRW::LWPOLYLINE
                         :record.name=="3DFACE"?DRW::E3DFACE
                         :record.name=="LINE"?DRW::LINE
+                        :record.name=="3DLINE"?DRW::THREEDLINE
                         :record.name=="CIRCLE"?DRW::CIRCLE
                         :record.name=="ARC"?DRW::ARC
                         :record.name=="ELLIPSE"?DRW::ELLIPSE

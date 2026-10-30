@@ -31551,6 +31551,12 @@ Tags sourceWithBlockEntityHandleXdata(
                 {11,"4"},{21,"2"},{31,"6"},
                 {12,"4"},{22,"5"},{32,"9"},
                 {13,"1"},{23,"5"},{33,"6"},{70,"5"}}
+            :entityType==DRW::THREEDLINE
+            ?Tags{{0,"3DLINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},
+                {10,"1.5"},{20,"-2"},{30,"3.25"},
+                {11,"4.5"},{21,"5.5"},{31,"-6.5"},
+                {39,"0.75"},{210,"0"},{220,"1"},{230,"0"}}
             :entityType==DRW::POINT
             ?Tags{{0,"POINT"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},
@@ -31921,6 +31927,41 @@ Tags sourceWithCircleEntityHandleXdata(bool binary) {
     }
     if(!circleInserted)
         throw std::runtime_error("CIRCLE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWith3DLineEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,lineInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags line{{0,"3DLINE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},
+            {10,"1.5"},{20,"-2"},{30,"3.25"},
+            {11,"4.5"},{21,"5.5"},{31,"-6.5"},
+            {39,"0.75"},{210,"0"},{220,"1"},{230,"0"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      line.begin(),line.end());
+        lineInserted=true;
+        break;
+    }
+    if(!lineInserted)
+        throw std::runtime_error("3DLINE XDATA target source missing");
     return fields;
 }
 
@@ -33469,6 +33510,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     if(entityType!=DRW::TEXT&&entityType!=DRW::POINT
         &&entityType!=DRW::LWPOLYLINE
         &&entityType!=DRW::E3DFACE
+        &&entityType!=DRW::THREEDLINE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE&&entityType!=DRW::SPLINE
         &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
@@ -33478,6 +33520,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isPoint=entityType==DRW::POINT;
     const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
     const bool isFace=entityType==DRW::E3DFACE;
+    const bool is3DLine=entityType==DRW::THREEDLINE;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
     const bool isSpline=entityType==DRW::SPLINE;
@@ -33489,7 +33532,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isSolid=entityType==DRW::SOLID;
     const std::string_view recordName=isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
-        :isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
+        :is3DLine?"3DLINE":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
         :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
         :isXline?"XLINE":isTrace?"TRACE":isSolid?"SOLID":"CIRCLE";
     std::string targetBlockKey;
@@ -33625,6 +33668,12 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                 &&realValue(row,23,5.0)&&realValue(row,33,6.0)
                 &&dx_raster_output::integer(fieldValue(row,70),edgeFlags)
                 &&edgeFlags==5
+            :is3DLine
+            ?realValue(row,10,1.5)&&realValue(row,20,-2.0)
+                &&realValue(row,30,3.25)&&realValue(row,11,4.5)
+                &&realValue(row,21,5.5)&&realValue(row,31,-6.5)
+                &&realValue(row,39,0.75)&&realValue(row,210,0.0)
+                &&realValue(row,220,1.0)&&realValue(row,230,0.0)
             :isPoint
             ?realValue(row,10,50.0)&&realValue(row,20,60.0)
                 &&realValue(row,30,7.0)
@@ -33961,6 +34010,16 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||typedModel->thirdPoint.z!=9.0||typedModel->fourPoint.x!=1.0
             ||typedModel->fourPoint.y!=5.0||typedModel->fourPoint.z!=6.0
             ||typedModel->invisibleflag!=5||typedModel->thickness!=0.0)
+            return false;
+    } else if(is3DLine) {
+        const auto* typedModel=dynamic_cast<const DRW_3DLine*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_3DLine)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->basePoint.x!=1.5||typedModel->basePoint.y!=-2.0
+            ||typedModel->basePoint.z!=3.25||typedModel->secPoint.x!=4.5
+            ||typedModel->secPoint.y!=5.5||typedModel->secPoint.z!=-6.5
+            ||typedModel->thickness!=0.75||typedModel->extPoint.x!=0.0
+            ||typedModel->extPoint.y!=1.0||typedModel->extPoint.z!=0.0)
             return false;
     } else if(isArc) {
         const auto* typedModel=dynamic_cast<const DRW_Arc*>(*typedCurve);
@@ -37647,6 +37706,8 @@ bool runTemporary() {
                                      bool inNamedBlock) {
         const std::string_view entityName=entityType==DRW::TEXT
             ?std::string_view("TEXT")
+            :entityType==DRW::THREEDLINE
+            ?std::string_view("3DLINE")
             :entityType==DRW::INSERT
             ?std::string_view("INSERT")
             :entityType==DRW::RAY
@@ -37681,6 +37742,8 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::THREEDLINE
+                ?sourceWith3DLineEntityHandleXdata(binary)
                 :entityType==DRW::RAY
                 ?sourceWithInfiniteLineEntityHandleXdata(binary,false)
                 :entityType==DRW::XLINE
@@ -37719,6 +37782,16 @@ bool runTemporary() {
                     &&typed->colcount==1&&typed->rowcount==1
                     &&typed->colspace==0.0&&typed->rowspace==0.0
                     &&typed->attlist.empty()&&!typed->seqEndEntity;
+            }
+            if(entityType==DRW::THREEDLINE) {
+                const auto* typed=dynamic_cast<const DRW_3DLine*>(entity);
+                return typed!=nullptr&&typeid(*typed)==typeid(DRW_3DLine)
+                    &&typed->parentHandle==targetOwner
+                    &&typed->basePoint.x==1.5&&typed->basePoint.y==-2.0
+                    &&typed->basePoint.z==3.25&&typed->secPoint.x==4.5
+                    &&typed->secPoint.y==5.5&&typed->secPoint.z==-6.5
+                    &&typed->thickness==0.75&&typed->extPoint.x==0.0
+                    &&typed->extPoint.y==1.0&&typed->extPoint.z==0.0;
             }
             if(entityType==DRW::RAY||entityType==DRW::XLINE) {
                 const auto* typed=dynamic_cast<const DRW_Ray*>(entity);
@@ -38178,7 +38251,7 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::TEXT,DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
+            DRW::TEXT,DRW::THREEDLINE,DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
             DRW::POINT,DRW::E3DFACE,
             DRW::LWPOLYLINE,DRW::RAY,DRW::XLINE,DRW::DXF_TRACE,
             DRW::SOLID})
@@ -38189,7 +38262,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==344u&&readbacks==783u&&refusals==439u&&retries==439u;
+    return profiles==352u&&readbacks==801u&&refusals==449u&&retries==449u;
 }
 
 bool runBudgetTemporary() {
