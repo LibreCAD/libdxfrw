@@ -44633,6 +44633,26 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if (debug) {
         dxfW->setDebug(DRW::DebugLevel::Debug);
     }
+    const std::vector<DRW_AssociativeObject>* associativeSourceObjects =
+        nullptr;
+    if (cData->sourceFormat == dx_source_format::DWG)
+        associativeSourceObjects = &cData->dwgAssociativeObjects;
+    else if (cData->sourceFormat == dx_source_format::DXF)
+        associativeSourceObjects = &cData->associativeObjects;
+    // Associative source IDs participate in the shared DXF identity space,
+    // even while strict graph closure still keeps these records from output.
+    // Reserve them before collision replacements and generated records mint IDs.
+    if (associativeSourceObjects != nullptr) {
+        for (const DRW_AssociativeObject& object :
+             *associativeSourceObjects) {
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || !dxfW->reserveHandle(object.handle)) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
+        }
+    }
     for (const DRW_Dictionary& dictionary : cData->dictionaries) {
         if (dictionary.handle != 0 && !dxfW->reserveHandle(dictionary.handle)) {
             delete dxfW;
@@ -45061,6 +45081,28 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             delete dxfW;
             dxfW = nullptr;
             return false;
+        }
+    }
+    if (associativeSourceObjects != nullptr) {
+        for (const DRW_AssociativeObject& object :
+             *associativeSourceObjects) {
+            const std::uint32_t sourceHandle = object.handle;
+            // Store an explicit source->planned identity for every admitted
+            // associative record. Fixed structural collisions receive a
+            // replacement; noncolliding identities remain stable.
+            if (handleRemap.count(sourceHandle) != 0u
+                || !remapFixedCollision(sourceHandle)) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
+            const auto planned = handleRemap.find(sourceHandle);
+            if (planned == handleRemap.end()
+                && !registerRemap(sourceHandle, sourceHandle)) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
         }
     }
     std::unordered_set<std::uint32_t> rawEntityHandles;

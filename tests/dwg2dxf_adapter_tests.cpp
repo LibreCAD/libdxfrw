@@ -28153,6 +28153,85 @@ bool associativeSourceHandleInventory() {
     return true;
 }
 
+bool associativeSourceHandleReservation() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto directory = std::filesystem::temp_directory_path();
+    const auto pathFor = [&directory, nonce](const char* suffix) {
+        return directory / (std::string("libdxfrw-associative-reservation-")
+            + std::to_string(nonce) + suffix + ".dxf");
+    };
+    const auto baselinePath = pathFor("-baseline");
+    const auto identityPath = pathFor("-identity");
+    const auto fixedPath = pathFor("-fixed");
+    struct Cleanup {
+        std::array<std::filesystem::path, 3> paths;
+        ~Cleanup() {
+            for (const auto& path : paths) {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        }
+    } cleanup{{baselinePath, identityPath, fixedPath}};
+
+    const auto exportLineAndReadHandle = [](const std::filesystem::path& path,
+                                            bool addAssociative,
+                                            std::uint32_t associativeHandle,
+                                            std::uint32_t& lineHandle) {
+        dx_data source;
+        source.sourceFormat = dx_source_format::DWG;
+        source.sourceVersion = DRW::AC1024;
+        auto* line = new DRW_Line();
+        line->layer = "0";
+        line->basePoint = DRW_Coord(1.0, 2.0, 0.0);
+        line->secPoint = DRW_Coord(3.0, 4.0, 0.0);
+        source.mBlock->ent.push_back(line);
+        if (addAssociative) {
+            DRW_AssociativeObject object("ACDBASSOCNETWORK");
+            object.handle = associativeHandle;
+            source.dwgAssociativeObjects.push_back(std::move(object));
+        }
+
+        dx_iface writer;
+        if (!writer.fileExport(path.string(), DRW::AC1024, false,
+                               &source, false))
+            return false;
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &readback, false)
+            || readback.mBlock == nullptr)
+            return false;
+        std::size_t lines = 0u;
+        for (const DRW_Entity* entity : readback.mBlock->ent) {
+            if (entity != nullptr && entity->eType == DRW::LINE) {
+                lineHandle = entity->handle;
+                ++lines;
+            }
+        }
+        return lines == 1u && lineHandle != 0u
+            && lineHandle != DRW::NoHandle;
+    };
+
+    std::uint32_t baselineLineHandle = 0u;
+    if (!exportLineAndReadHandle(baselinePath, false, 0u,
+                                 baselineLineHandle))
+        return fail("could not export/read the generated LINE allocator baseline");
+
+    std::uint32_t identityLineHandle = 0u;
+    if (!exportLineAndReadHandle(identityPath, true, baselineLineHandle,
+                                 identityLineHandle)
+        || identityLineHandle == baselineLineHandle)
+        return fail("associative source identity was not reserved before generated LINE allocation");
+
+    std::uint32_t fixedCollisionLineHandle = 0u;
+    if (!exportLineAndReadHandle(fixedPath, true, 0x10u,
+                                 fixedCollisionLineHandle)
+        || fixedCollisionLineHandle == baselineLineHandle)
+        return fail("fixed-handle associative source did not reserve its remapped output identity");
+    return true;
+}
+
 bool cellStyleMapExtensionGraph() {
     const auto populate = [](dx_data& data, const std::string& key,
                              std::uint32_t mapParent) {
@@ -39583,6 +39662,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--associative-source-handle-inventory")
         return associativeSourceHandleInventory() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-source-handle-reservation")
+        return associativeSourceHandleReservation() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;

@@ -2322,6 +2322,16 @@ set_tests_properties(dwg2dxf_associative_source_handle_inventory PROPERTIES
     TIMEOUT 15
 )
 
+add_test(
+    NAME dwg2dxf_associative_source_handle_reservation
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --associative-source-handle-reservation
+)
+set_tests_properties(dwg2dxf_associative_source_handle_reservation PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative;identity;writer"
+    TIMEOUT 15
+)
+
 if(TARGET dwg2dxf)
     # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
     # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.
