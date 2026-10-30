@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative output and recursive closure | Implement source-to-emitted identity/field binding and handle remapping for source-closed associative profiles; close additional descendants when the selected output profile actually reaches them, then verify the complete admitted graph by readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — associative serialization and recursive closure | Bind audited AC1024 associative dependency/node source identities and required fields to emitted records; remap references, close any additional descendants reached by the selected output profile, and verify the admitted graph by readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -76,15 +76,14 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Associative output and identity:** source-match required fields for each
-   emitted record and add only model fields proven missing by that profile; bind
-   source → planned → emitted identities and edges (including generated records
-   and collisions), remap all references, and verify actual staged output by
-   independent field inspection and readback. The immediate
-   implementation packet is source-record binding and serialization for the
-   audited AC1024 associative dependency and node profiles, retaining strict
-   refusal wherever a required descendant is unsupported. Do not emit a partial
-   graph or infer edges from adjacent handle values.
+2. **Associative output and identity:** bind source → planned → emitted
+   identities and required fields for the audited AC1024 associative dependency
+   and node profiles, including generated records and collisions; serialize the
+   records, remap every reference, and verify actual staged output by independent
+   field inspection and readback. Add a model field only if the selected output
+   profile proves a required value is still missing. Keep strict refusal wherever
+   a required descendant is unsupported. Do not emit a partial graph or infer
+   edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
    provider, resolve that source-required role and its descendants. Reuse existing
    dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,
