@@ -2463,6 +2463,210 @@ std::vector<std::string> numericWireProjection(const std::string& bytes,
     return result;
 }
 
+void testAssociativeDependencyWriter(TestContext& t) {
+    const auto handleText = [](std::uint32_t handle) {
+        std::ostringstream value;
+        value << std::uppercase << std::hex << handle;
+        return value.str();
+    };
+    const auto remap = std::map<std::uint32_t, std::uint32_t>{
+        {0x100u, 0x3E8u}, {0x101u, 0x3E9u}, {0x102u, 0x3EAu},
+        {0x103u, 0x3EBu}, {0x104u, 0x3ECu}, {0x105u, 0x3EDu}};
+    DRW_Class baseDependencyClass;
+    DRW_Class valueDependencyClass;
+    dxfRW classProbe("");
+    t.expect(classProbe.dxfClassForRecordName(
+                 "ACDBASSOCDEPENDENCY", baseDependencyClass)
+                 && baseDependencyClass.className == "AcDbAssocDependency"
+                 && baseDependencyClass.proxyFlag == 1025
+                 && classProbe.dxfClassForRecordName(
+                     "ACDBASSOCVALUEDEPENDENCY", valueDependencyClass)
+                 && valueDependencyClass.className
+                     == "AcDbAssocValueDependency"
+                 && valueDependencyClass.proxyFlag == 1025,
+             "associative dependency classes match independent source metadata");
+
+    for (const bool binary : {false, true}) {
+        for (const char* name : {"ACDBASSOCDEPENDENCY",
+                                 "ACDBASSOCVALUEDEPENDENCY"}) {
+            for (unsigned nameState = 0; nameState != 3; ++nameState) {
+                for (unsigned flags = 0; flags != 16; ++flags) {
+                    std::ostringstream output(
+                        std::ios::out | std::ios::binary);
+                    dxfRW owner("");
+                    owner.version = DRW::AC1024;
+                    owner.binFile = binary;
+                    owner.setHandleRemap(remap);
+                    if (binary)
+                        owner.writer = std::make_unique<dxfWriterBinary>(
+                            &output);
+                    else
+                        owner.writer = std::make_unique<dxfWriterAscii>(
+                            &output);
+
+                    DRW_AssociativeObject dependency(name);
+                    dependency.handle = 0x100u;
+                    dependency.parentHandle = 0x101u;
+                    dependency.m_classVersion = 3u;
+                    dependency.m_status = -7;
+                    dependency.m_dependencyFieldsParsed = true;
+                    dependency.m_dependencyIsRead = (flags & 1u) != 0u;
+                    dependency.m_dependencyIsWrite = (flags & 2u) != 0u;
+                    dependency.m_dependencyIsAttachedToObject =
+                        (flags & 4u) != 0u;
+                    dependency.m_dependencyIsDelegatingToOwningAction =
+                        (flags & 8u) != 0u;
+                    dependency.m_dependencyOrder = -2;
+                    dependency.m_dependencyNamePresent = nameState != 0u;
+                    if (nameState == 2u)
+                        dependency.m_dependencyName = "dependency-name";
+                    dependency.m_dependencyHandle = 0x102u;
+                    dependency.m_readDependencyHandle = 0x103u;
+                    dependency.m_dependencyNodeHandle = 0x104u;
+                    dependency.m_writeDependencyHandle = 0x104u;
+                    dependency.m_dependencyBodyHandle = 0x105u;
+                    dependency.m_dependencyBodyId = -9;
+
+                    const bool wrote =
+                        owner.writeAssociativeDependency(&dependency)
+                        && owner.writer->writeString(0, "WIRE_END");
+                    bool ended = false;
+                    const auto tags = numericWireProjection(
+                        output.str(), binary, ended);
+                    std::vector<std::string> expected{
+                        std::string("0:") + name,
+                        "5:" + handleText(0x3E8u),
+                        "330:" + handleText(0x3E9u),
+                        "100:AcDbAssocDependency", "90:3", "90:-7",
+                        std::string("290:") + ((flags & 1u) ? "1" : "0"),
+                        std::string("290:") + ((flags & 2u) ? "1" : "0"),
+                        std::string("290:") + ((flags & 4u) ? "1" : "0"),
+                        std::string("290:") + ((flags & 8u) ? "1" : "0"),
+                        "90:-2", "330:" + handleText(0x3EAu),
+                        std::string("290:") + (nameState != 0u ? "1" : "0")};
+                    if (nameState != 0u)
+                        expected.push_back(nameState == 1u
+                            ? "1:" : "1:dependency-name");
+                    expected.insert(expected.end(), {
+                        "330:" + handleText(0x3EBu),
+                        "330:" + handleText(0x3ECu),
+                        "360:" + handleText(0x3EDu), "90:-9", "0:WIRE_END"});
+                    t.expect(wrote && ended && tags == expected,
+                             "AC1024 associative dependency fields survive ASCII/binary wire readback");
+                }
+            }
+        }
+    }
+
+    const auto rejectedWithoutOutput = [](DRW::Version version,
+                                          DRW_AssociativeObject dependency) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = version;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        return !owner.writeAssociativeDependency(&dependency)
+            && output.str().empty();
+    };
+    DRW_AssociativeObject incomplete("ACDBASSOCDEPENDENCY");
+    incomplete.handle = 0x200u;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, incomplete),
+             "partial associative dependency prefix refuses atomically");
+
+    DRW_AssociativeObject unsupportedVersion("ACDBASSOCDEPENDENCY");
+    unsupportedVersion.handle = 0x200u;
+    unsupportedVersion.m_dependencyFieldsParsed = true;
+    t.expect(rejectedWithoutOutput(DRW::AC1027, unsupportedVersion),
+             "unqualified associative dependency target version refuses atomically");
+
+    DRW_AssociativeObject unsupportedClass("ACDBASSOCACTION");
+    unsupportedClass.handle = 0x200u;
+    unsupportedClass.m_dependencyFieldsParsed = true;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedClass),
+             "unqualified associative class refuses atomically");
+
+    DRW_AssociativeObject inconsistentAlias("ACDBASSOCDEPENDENCY");
+    inconsistentAlias.handle = 0x200u;
+    inconsistentAlias.m_dependencyFieldsParsed = true;
+    inconsistentAlias.m_dependencyNodeHandle = 0x202u;
+    inconsistentAlias.m_writeDependencyHandle = 0x203u;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, inconsistentAlias),
+             "conflicting historical node-handle alias refuses atomically");
+
+    DRW_AssociativeObject unresolvedReference("ACDBASSOCDEPENDENCY");
+    unresolvedReference.handle = 0x200u;
+    unresolvedReference.m_dependencyFieldsParsed = true;
+    unresolvedReference.m_dependencyHandle = 0x201u;
+    std::ostringstream unresolvedOutput;
+    dxfRW unresolvedWriter("");
+    unresolvedWriter.version = DRW::AC1024;
+    unresolvedWriter.setReferenceResolver([](std::uint32_t) {
+        return std::uint32_t{0};
+    });
+    unresolvedWriter.writer = std::make_unique<dxfWriterAscii>(
+        &unresolvedOutput);
+    t.expect(!unresolvedWriter.writeAssociativeDependency(
+                 &unresolvedReference)
+                 && unresolvedOutput.str().empty()
+                 && unresolvedReference.handle == 0x200u,
+             "unresolved dependency reference rolls back record and source identity");
+
+    DRW_AssociativeObject rollbackRetry("ACDBASSOCDEPENDENCY");
+    rollbackRetry.handle = 0x210u;
+    rollbackRetry.parentHandle = 0u;
+    rollbackRetry.m_dependencyFieldsParsed = true;
+    rollbackRetry.m_dependencyNamePresent = true;
+    rollbackRetry.m_dependencyName = "retry-name";
+    const bool badExtDataAdded = rollbackRetry.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedOutput;
+    dxfRW failedWriter("");
+    failedWriter.version = DRW::AC1024;
+    failedWriter.writer = std::make_unique<dxfWriterAscii>(&failedOutput);
+    const bool lateFailureRolledBack = badExtDataAdded
+        && !failedWriter.writeAssociativeDependency(&rollbackRetry)
+        && failedOutput.str().empty()
+        && rollbackRetry.handle == 0x210u
+        && rollbackRetry.m_dependencyName == "retry-name";
+    rollbackRetry.clearExtData();
+    std::ostringstream correctedOutput;
+    dxfRW correctedWriter("");
+    correctedWriter.version = DRW::AC1024;
+    correctedWriter.writer = std::make_unique<dxfWriterAscii>(
+        &correctedOutput);
+    const bool sameObjectRetry =
+        correctedWriter.writeAssociativeDependency(&rollbackRetry)
+        && correctedWriter.writer->writeString(0, "WIRE_END");
+    t.expect(lateFailureRolledBack && sameObjectRetry
+                 && correctedOutput.str().find("retry-name")
+                     != std::string::npos,
+             "late EED failure rolls back bytes and permits corrected same-object retry");
+
+    // Correcting a rejected model on a fresh writer succeeds; no failure state
+    // or bytes from the refused attempt can leak into the retry output.
+    DRW_AssociativeObject corrected("ACDBASSOCDEPENDENCY");
+    corrected.handle = 0x200u;
+    corrected.parentHandle = 0u;
+    corrected.m_dependencyFieldsParsed = true;
+    corrected.m_dependencyNamePresent = false;
+    std::ostringstream retryOutput;
+    dxfRW retryWriter("");
+    retryWriter.version = DRW::AC1024;
+    retryWriter.writer = std::make_unique<dxfWriterAscii>(&retryOutput);
+    bool wroteRetry = retryWriter.writeAssociativeDependency(&corrected)
+        && retryWriter.writer->writeString(0, "WIRE_END");
+    bool retryEnded = false;
+    const auto retryTags = numericWireProjection(
+        retryOutput.str(), false, retryEnded);
+    t.expect(wroteRetry && retryEnded
+                 && std::find(retryTags.begin(), retryTags.end(), "290:0")
+                     != retryTags.end()
+                 && std::find_if(retryTags.begin(), retryTags.end(),
+                        [](const std::string& tag) {
+                            return tag.rfind("1:", 0) == 0;
+                        }) == retryTags.end(),
+             "corrected associative dependency retry emits absent name without stale data");
+}
+
 void expectTypedNumericWire(TestContext& t,
                            const std::function<bool(dxfRW&)>& emit,
                            const std::vector<std::string>& expected,
@@ -14220,6 +14424,14 @@ int main(int argc, char** argv) {
         return focused.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--associative-dependency-writer") {
+        TestContext focused;
+        testAssociativeDependencyWriter(focused);
+        std::cout << "AC1024 associative dependency writer: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--dimassoc-graph-closure") {
         TestContext focused;
         testDimensionAssociationGraphClosure(focused);
@@ -14333,6 +14545,7 @@ int main(int argc, char** argv) {
     testDxfBinaryRawBoundaryReplay(context);
     testViewFlagWireKinds(context);
     testIntegerValuedBooleanWireKinds(context);
+    testAssociativeDependencyWriter(context);
     testDimensionAssociationGraphClosure(context);
     testCustomTextNumericWireKinds(context);
     testLayoutStyleNumericWireKinds(context);

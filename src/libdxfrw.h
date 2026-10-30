@@ -568,6 +568,9 @@ public:
     bool writeSection(DRW_Section *ent, const char *recordName);
     bool writeDbColor(DRW_DbColor *ent, const char *recordName = "DBCOLOR");
     bool writeDimensionAssociation(DRW_DimensionAssociation *ent);
+    //! Emit the AC1024 AcDbAssocDependency shared prefix for the exact
+    //! ACDBASSOCDEPENDENCY and ACDBASSOCVALUEDEPENDENCY profiles.
+    bool writeAssociativeDependency(DRW_AssociativeObject *ent);
     bool writeEvaluationGraph(DRW_EvaluationGraph *ent,
                               const char *recordName = "EVALUATION_GRAPH");
     bool writeRawDxfObject(DRW_RawDxfObject *obj);

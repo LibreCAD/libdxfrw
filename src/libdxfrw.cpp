@@ -24951,7 +24951,8 @@ bool dxfRW::dxfClassForRecordName(const std::string &recName, DRW_Class &out) {
         {"ACDBASSOCOSNAPPOINTREFACTIONPARAM", "AcDbAssocOsnapPointRefActionParam", "ObjectDBX Classes", 1153, 0},
         {"ACDBASSOCVERTEXACTIONPARAM", "AcDbAssocVertexActionParam", "ObjectDBX Classes", 1153, 0},
         {"ACDBASSOCGEOMDEPENDENCY", "AcDbAssocGeomDependency", "ObjectDBX Classes", 1153, 0},
-        {"ACDBASSOCDEPENDENCY", "AcDbAssocDependency", "ObjectDBX Classes", 1153, 0},
+        {"ACDBASSOCDEPENDENCY", "AcDbAssocDependency", "ObjectDBX Classes", 1025, 0},
+        {"ACDBASSOCVALUEDEPENDENCY", "AcDbAssocValueDependency", "ObjectDBX Classes", 1025, 0},
         {"ACDBASSOCDIMDEPENDENCYBODY", "AcDbAssocDimDependencyBody", "ObjectDBX Classes", 1153, 0},
         {"ACDBASSOC3POINTANGULARDIMACTIONBODY", "AcDbAssoc3PointAngularDimActionBody", "ObjectDBX Classes", 1153, 0},
         {"ACDBASSOCALIGNEDIMACTIONBODY", "AcDbAssocAlignedDimActionBody", "ObjectDBX Classes", 1153, 0},
@@ -28868,6 +28869,108 @@ bool dxfRW::writeDimensionAssociation(DRW_DimensionAssociation *ent) {
     }
     if (!preflightDxfWrite() || !record.commit())
         return failDxfWrite();
+    return true;
+}
+
+bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
+        || version != DRW::AC1024 || !ent->m_dependencyFieldsParsed
+        || ent->handle == 0 || ent->handle == DRW::NoHandle
+        || ent->m_classVersion > 3u
+        || (ent->m_writeDependencyHandle != 0u
+            && ent->m_dependencyNodeHandle != 0u
+            && ent->m_writeDependencyHandle != ent->m_dependencyNodeHandle)
+        || (!ent->m_dependencyNamePresent
+            && !ent->m_dependencyName.empty()))
+        return failDxfWrite();
+
+    const char* recordName = nullptr;
+    if (dxfKeywordEquals(ent->m_recordName, "ACDBASSOCDEPENDENCY"))
+        recordName = "ACDBASSOCDEPENDENCY";
+    else if (dxfKeywordEquals(ent->m_recordName,
+                              "ACDBASSOCVALUEDEPENDENCY"))
+        recordName = "ACDBASSOCVALUEDEPENDENCY";
+    else
+        return failDxfWrite();
+
+    const std::uint32_t sourceHandle = ent->handle;
+    const std::uint32_t emittedHandle = remapObjectHandle(sourceHandle);
+    const std::uint32_t sourceOwner =
+        static_cast<std::uint32_t>(ent->parentHandle);
+    const std::uint32_t sourceNodeHandle =
+        ent->m_dependencyNodeHandle != 0u
+            ? ent->m_dependencyNodeHandle
+            : ent->m_writeDependencyHandle;
+    if (emittedHandle == 0u || emittedHandle == DRW::NoHandle
+        || isDxfFixedOutputHandle(emittedHandle)
+        || (sourceOwner != 0u
+            && (remapObjectHandle(sourceOwner) == 0u
+                || remapObjectHandle(sourceOwner) == DRW::NoHandle)))
+        return failDxfWrite();
+
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+    if (!reserveHandle(emittedHandle)
+        || !bindDxfWriteSourceObjectHandle(sourceHandle, emittedHandle))
+        return failDxfWrite();
+
+    const auto remapReference = [this](std::uint32_t source,
+                                       std::uint32_t& emitted) {
+        emitted = source == 0u
+            ? 0u
+            : (m_referenceResolver ? resolveReference(source)
+                                   : remapObjectHandle(source));
+        return source == 0u
+            || (emitted != 0u && emitted != DRW::NoHandle);
+    };
+    std::uint32_t emittedDependencyHandle = 0u;
+    std::uint32_t emittedReadDependencyHandle = 0u;
+    std::uint32_t emittedNodeHandle = 0u;
+    std::uint32_t emittedDependencyBodyHandle = 0u;
+    try {
+        if (!remapReference(ent->m_dependencyHandle,
+                            emittedDependencyHandle)
+            || !remapReference(ent->m_readDependencyHandle,
+                               emittedReadDependencyHandle)
+            || !remapReference(sourceNodeHandle, emittedNodeHandle)
+            || !remapReference(ent->m_dependencyBodyHandle,
+                               emittedDependencyBodyHandle))
+            return failDxfWrite();
+    } catch (...) {
+        return failDxfWrite();
+    }
+
+    if (!writer->writeString(0, recordName)
+        || !writer->writeString(5, toHexStr(emittedHandle)))
+        return failDxfWrite();
+    writeObjectOwner(sourceOwner);
+    if (writer->hasWriteError() || !writeTableEntryAppData(*ent)
+        || !writer->writeString(100, "AcDbAssocDependency")
+        || !writer->writeInt32(90, static_cast<int>(ent->m_classVersion))
+        || !writer->writeInt32(90, ent->m_status)
+        || !writer->writeBool(290, ent->m_dependencyIsRead)
+        || !writer->writeBool(290, ent->m_dependencyIsWrite)
+        || !writer->writeBool(290, ent->m_dependencyIsAttachedToObject)
+        || !writer->writeBool(
+               290, ent->m_dependencyIsDelegatingToOwningAction)
+        || !writer->writeInt32(90, ent->m_dependencyOrder)
+        || !writer->writeString(330,
+                                toHexStr(emittedDependencyHandle))
+        || !writer->writeBool(290, ent->m_dependencyNamePresent))
+        return failDxfWrite();
+    if (ent->m_dependencyNamePresent
+        && !writer->writeUtf8String(1, ent->m_dependencyName))
+        return failDxfWrite();
+    if (!writer->writeString(330, toHexStr(emittedReadDependencyHandle))
+        || !writer->writeString(330, toHexStr(emittedNodeHandle))
+        || !writer->writeString(360,
+                                toHexStr(emittedDependencyBodyHandle))
+        || !writer->writeInt32(90, ent->m_dependencyBodyId)
+        || (!ent->extData.empty() && !writeExtData(ent->extData))
+        || !preflightDxfWrite() || !record.commit())
+        return failDxfWrite();
+
+    state.commit();
     return true;
 }
 
