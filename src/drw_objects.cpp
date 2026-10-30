@@ -121,6 +121,11 @@ bool isAssociativeHorizontalConstraint(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcHorizontalConstraint");
 }
 
+bool isAssociativeRadiusDiameterConstraint(std::string_view className) {
+    return equalsAsciiCaseInsensitive(
+        className, "AcRadiusDiameterConstraint");
+}
+
 bool isAssociativeConstrainedArc(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcConstrainedArc");
 }
@@ -27194,6 +27199,80 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         constraintNodes.push_back(std::move(node));
                         bodyProbe = nodeBodyProbe;
                         groupStringProbe = nodeStringProbe;
+                        continue;
+                    }
+                    if (isAssociativeRadiusDiameterConstraint(
+                            node.m_className)) {
+                        dwgBuffer radiusHandleProbe =
+                            handleProbe.forkIndependent();
+                        std::int32_t ownerId = 0;
+                        bool implied = false;
+                        std::uint8_t mode = 0u;
+                        dwgHandle valueDependency;
+                        dwgHandle dimensionDependency;
+                        const bool radiusDiameterParsed =
+                            readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                ownerId)
+                            && readBitWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                implied)
+                            && readBoundedObjectHandle(
+                                radiusHandleProbe, 0u, false,
+                                valueDependency, handleEndBit)
+                            && valueDependency.code == DRW::DwgHardPointer
+                            && valueDependency.ref64 != 0u
+                            && readBoundedObjectHandle(
+                                radiusHandleProbe, 0u, false,
+                                dimensionDependency, handleEndBit)
+                            && dimensionDependency.code
+                                   == DRW::DwgHardPointer
+                            && dimensionDependency.ref64 != 0u
+                            && readRawCharWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd, mode)
+                            && mode <= 3u;
+                        if (!radiusDiameterParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::RadiusDiameter;
+                        node.m_ownerId = ownerId;
+                        node.m_isImplied = implied;
+                        node.m_hasActiveFlag = false;
+                        node.m_hasValueDependencyHandle = true;
+                        node.m_valueDependencyCode = valueDependency.code;
+                        node.m_valueDependencyHandle = valueDependency.ref64;
+                        node.m_hasDimensionDependencyHandle = true;
+                        node.m_dimensionDependencyCode =
+                            dimensionDependency.code;
+                        node.m_dimensionDependencyHandle =
+                            dimensionDependency.ref64;
+                        node.m_radiusDiameterMode = mode;
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 radius/diameter constraint decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" owner=");
+                        DRW_DBG(ownerId); DRW_DBG(" implied=");
+                        DRW_DBG(implied); DRW_DBG(" mode=");
+                        DRW_DBG(static_cast<unsigned>(mode));
+                        DRW_DBG(" valueDependency=");
+                        DRW_DBG(static_cast<unsigned>(valueDependency.code));
+                        DRW_DBG("/"); DRW_DBG(valueDependency.ref64);
+                        DRW_DBG(" dimensionDependency=");
+                        DRW_DBG(static_cast<unsigned>(
+                            dimensionDependency.code));
+                        DRW_DBG("/"); DRW_DBG(dimensionDependency.ref64);
+                        DRW_DBG(" bodyBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                        DRW_DBG(" handleBit=");
+                        DRW_DBG(currentObjectDwgBit(&radiusHandleProbe));
+                        DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = radiusHandleProbe;
+                        decodedHandleCount += 2u;
                         continue;
                     }
                     // The common node envelope is known, but the following

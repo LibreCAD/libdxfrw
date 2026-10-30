@@ -11756,6 +11756,232 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                      ? "Horizontal datum index decodes without a handle and preserves the following implicit-point fields and handle"
                      : "missing Horizontal datum index stays raw and preserves following-OBJECT recovery");
     }
+
+    for (std::uint8_t mode = 0u; mode <= 3u; ++mode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node radiusDiameter;
+        radiusDiameter.id = 135;
+        radiusDiameter.connections = {17, 19};
+        radiusDiameter.className = "AcRadiusDiameterConstraint";
+        radiusDiameter.hasRadiusDiameterBody = true;
+        radiusDiameter.ownerId = 0;
+        radiusDiameter.isImplied = false;
+        radiusDiameter.valueDependencyCode = DRW::DwgHardPointer;
+        radiusDiameter.valueDependencyHandle = 0x553u;
+        radiusDiameter.dimensionDependencyCode = DRW::DwgHardPointer;
+        radiusDiameter.dimensionDependencyHandle = 0x554u;
+        radiusDiameter.radiusDiameterMode = mode;
+        profile.nodes.push_back(radiusDiameter);
+
+        Node implicitPoint;
+        implicitPoint.id = 136;
+        implicitPoint.connections = {135};
+        implicitPoint.className = "AcConstrainedImplicitPoint";
+        implicitPoint.hasImplicitPointBody = true;
+        implicitPoint.geometryDependencyCode = DRW::DwgSoftPointer;
+        implicitPoint.geometryDependencyHandle = 0xA007u;
+        implicitPoint.geometryNodeId = 0;
+        implicitPoint.hasPoint = true;
+        implicitPoint.point = DRW_Coord(5.0, 6.0, 7.0);
+        implicitPoint.pointType = 1u;
+        implicitPoint.pointIndex = 2;
+        implicitPoint.curveNodeId = 19;
+        profile.nodes.push_back(implicitPoint);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 Radius/Diameter enum profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto parsedSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto rawSource = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        bool nodesMatch = parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintNodes.size() == 2u;
+        if (nodesMatch) {
+            const auto& parsedRadiusDiameter =
+                parsedSource->m_constraintNodes[0];
+            const auto& parsedPoint = parsedSource->m_constraintNodes[1];
+            nodesMatch = parsedRadiusDiameter.m_className
+                    == "AcRadiusDiameterConstraint"
+                && parsedRadiusDiameter.m_nodeId == 135
+                && parsedRadiusDiameter.m_connections
+                       == std::vector<std::int32_t>{17, 19}
+                && parsedRadiusDiameter.m_dataKind
+                       == DRW_AssociativeConstraintNode::DataKind::RadiusDiameter
+                && parsedRadiusDiameter.m_ownerId == 0
+                && !parsedRadiusDiameter.m_isImplied
+                && !parsedRadiusDiameter.m_hasActiveFlag
+                && parsedRadiusDiameter.m_classDataParsed
+                && parsedRadiusDiameter.m_hasValueDependencyHandle
+                && parsedRadiusDiameter.m_valueDependencyCode
+                       == DRW::DwgHardPointer
+                && parsedRadiusDiameter.m_valueDependencyHandle == 0x553u
+                && parsedRadiusDiameter.m_hasDimensionDependencyHandle
+                && parsedRadiusDiameter.m_dimensionDependencyCode
+                       == DRW::DwgHardPointer
+                && parsedRadiusDiameter.m_dimensionDependencyHandle == 0x554u
+                && parsedRadiusDiameter.m_radiusDiameterMode == mode
+                && parsedPoint.m_className == "AcConstrainedImplicitPoint"
+                && parsedPoint.m_nodeId == 136
+                && parsedPoint.m_dataKind
+                       == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                && parsedPoint.m_hasGeometryDependency
+                && parsedPoint.m_geometryDependencyCode == DRW::DwgSoftPointer
+                && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                && parsedPoint.m_hasPoint
+                && parsedPoint.m_point.x == 5.0
+                && parsedPoint.m_point.y == 6.0
+                && parsedPoint.m_point.z == 7.0
+                && parsedPoint.m_pointType == 1u
+                && parsedPoint.m_pointIndex == 2
+                && parsedPoint.m_curveNodeId == 19;
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintGroupBodyParsed
+            && parsedSource->m_constraintNodeCount == 2
+            && parsedSource->m_constraintNodesParsed
+            && nodesMatch
+            && rawSource != profileSink.raw.end()
+            && !rawSource->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 "Radius/Diameter mode, dependency roles and values preserve following implicit-point handle alignment");
+    }
+
+    for (int invalidMode = 0; invalidMode < 4; ++invalidMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node radiusDiameter;
+        radiusDiameter.id = 135;
+        radiusDiameter.connections = {17, 19};
+        radiusDiameter.className = "AcRadiusDiameterConstraint";
+        radiusDiameter.hasRadiusDiameterBody = true;
+        radiusDiameter.ownerId = 0;
+        radiusDiameter.isImplied = false;
+        radiusDiameter.valueDependencyCode = invalidMode == 0
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        radiusDiameter.valueDependencyHandle = 0x553u;
+        radiusDiameter.dimensionDependencyCode = invalidMode == 1
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        radiusDiameter.dimensionDependencyHandle = 0x554u;
+        radiusDiameter.radiusDiameterMode = invalidMode == 2 ? 255u : 1u;
+        radiusDiameter.hasRadiusDiameterMode = invalidMode != 3;
+        profile.nodes.push_back(radiusDiameter);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 Radius/Diameter failure profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto parsedSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto rawSource = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool untypedRadiusDiameter =
+            parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintNodes.size() == 1u
+            && parsedSource->m_constraintNodes.front().m_className
+                   == "AcRadiusDiameterConstraint"
+            && !parsedSource->m_constraintNodes.front().m_classDataParsed
+            && parsedSource->m_constraintNodes.front().m_dataKind
+                   == DRW_AssociativeConstraintNode::DataKind::Unsupported
+            && !parsedSource->m_constraintNodes.front()
+                    .m_hasValueDependencyHandle
+            && !parsedSource->m_constraintNodes.front()
+                    .m_hasDimensionDependencyHandle;
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && parsedSource != profileSink.typed.end()
+            && !parsedSource->m_constraintGroupBodyParsed
+            && parsedSource->m_constraintNodeCount == 1
+            && !parsedSource->m_constraintNodesParsed
+            && parsedSource->m_prefixStatuses.size() == 2u
+            && parsedSource->m_prefixStatuses.back().m_status
+                   == DRW_AssociativePrefixStatus::ParseStatus::Partial
+            && untypedRadiusDiameter
+            && rawSource != profileSink.raw.end()
+            && !rawSource->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 invalidMode == 0
+                     ? "wrong value-dependency handle role preserves Radius/Diameter raw data and following-OBJECT recovery"
+                     : invalidMode == 1
+                         ? "wrong dimension-dependency handle role preserves raw data and following-OBJECT recovery"
+                         : invalidMode == 2
+                             ? "undocumented Radius/Diameter mode remains raw with following-OBJECT recovery"
+                             : "missing Radius/Diameter mode byte remains raw with following-OBJECT recovery");
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

@@ -1,0 +1,174 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-radius-diameter-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative radius/diameter-constraint node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_AND_FOCUSED_VALIDATED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 inline AcRadiusDiameterConstraint body and its two dependency handles while preserving incomplete groups and strict document-level refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "nodeId": 135
+  },
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "read_explicit_constraint reads owner ID (BL), implied (B), active only outside legacy/version-0, then value-dependency and dimension-dependency handles. The RadiusDiameter branch then reads mode as a raw byte (RC)."
+  },
+  "semanticReferences": {
+    "autodesk": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcRadiusDiameterConstraint__RadiusDiameterConstrType.html",
+      "enum": {
+        "0": "kCircleRadius",
+        "1": "kCircleDiameter",
+        "2": "kMinorRadius",
+        "3": "kMajorRadius"
+      },
+      "result": "The same-input mode value 1 denotes kCircleDiameter. Autodesk describes the node as applicable to a circle/arc or bounded ellipse; this does not qualify rendered dimension behavior."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "Section 2, page 7: BL, RC and H primitive identities; RC is a raw, uncompressed character.",
+        "Section 2.13, pages 15–16: code 5 is a hard-pointer reference and both endpoints remain owned elsewhere."
+      ],
+      "result": "The ODA specification defines the primitive and handle-role encodings; the pinned peer source supplies this class's field order and the same-input trace supplies the observed profile."
+    }
+  },
+  "sourceProfile": {
+    "localRawProbe": {
+      "method": "At the unknown-class boundary, fork the node body and handle streams, read the pinned-source sequence transactionally, and log results without committing either probe position.",
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/radius-probe.dxf",
+      "logPath": "/private/tmp/radius-probe.log",
+      "logSha256": "636c61d08cf96bdf308a4610881eaed854a03e327d7d54d88e872f177f6e7496",
+      "body": {
+        "class": "AcRadiusDiameterConstraint",
+        "startBit": 12611,
+        "ownerId": 0,
+        "implied": false,
+        "activeFlag": "absent",
+        "mode": 1,
+        "endBit": 12622
+      },
+      "handles": {
+        "startBit": 218732,
+        "valueDependency": {
+          "code": 5,
+          "handle": 1363
+        },
+        "dimensionDependency": {
+          "code": 5,
+          "handle": 1364
+        },
+        "endBit": 218780
+      }
+    },
+    "independentTargetInspection": {
+      "reader": "LibreDWG dwgread 0.14",
+      "command": "/opt/homebrew/bin/dwgread -O JSON /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "outputPath": "/private/tmp/radius-libredwg.json",
+      "outputSha256": "39c5921dc1ea7b52743c0c69d44772b8e872adef04015611ed2134354e3095f1",
+      "targets": [
+        {
+          "handle": 1363,
+          "object": "ACDBASSOCVALUEDEPENDENCY",
+          "type": 520
+        },
+        {
+          "handle": 1364,
+          "object": "ACDBASSOCDEPENDENCY",
+          "type": 521,
+          "dependencyBody": 1365
+        },
+        {
+          "handle": 1365,
+          "object": "ASSOCDIMDEPENDENCYBODY",
+          "type": 522,
+          "owner": 1364
+        }
+      ],
+      "limitation": "LibreDWG independently confirms the target records and the dimension-dependency body owner; it does not decode this constraint-node body or establish consumer meaning."
+    },
+    "implementedTrace": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/radius-final.dxf",
+      "logPath": "/private/tmp/radius-final.log",
+      "logSha256": "d12f4241027eb0da38cc8850a7ad7aaa87795192eb96e7a84af6621f37f359d4",
+      "result": "The implemented branch decodes mode 1 and handles 1363/1364, then continues through the source sequence to AcConstrainedDatumLine node 412 before strict export refusal."
+    },
+    "limitations": [
+      "This receipt covers the observed AC1024 version-0 inline profile and the four documented mode values only.",
+      "Null, wrong-role and other-version dependency forms remain raw until independently witnessed.",
+      "The constraint group remains incomplete; associative output, readback, rendered dimensions and consumer meaning are unqualified. This receipt has no support-claim effect."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "DataKind::RadiusDiameter, owner ID, implied flag, absent active flag, two hard-pointer dependency handles and raw mode byte.",
+      "The decoder commits the forked body/handle streams only when both non-null handle roles and the complete documented mode byte fit the bounded record."
+    ],
+    "failureBehavior": "Wrong value/dimension handle roles, modes outside 0–3 and a missing mode byte leave the node untyped/raw, preserve a partial group, and recover the following OBJECT.",
+    "generatedControls": [
+      "From-scratch profiles cover all four documented mode bytes and exact fields/handle roles.",
+      "A following implicit-point node retains its exact fields and soft-pointer dependency, proving both Radius/Diameter handles were consumed in order.",
+      "Separate controls reject a wrong value role, wrong dimension role, undocumented mode and missing mode byte while preserving the raw carrier and following-OBJECT recovery."
+    ],
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with AddressSanitizer"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/radius-final.dxf",
+      "result": "Decodes Radius/Diameter node 135 with mode 1 and both dependencies, continues to AcConstrainedDatumLine node 412, then refuses incomplete associative export; no DXF was created.",
+      "logSha256": "d12f4241027eb0da38cc8850a7ad7aaa87795192eb96e7a84af6621f37f359d4"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/radius-final-asan.dxf",
+      "result": "Same decoded profile and next boundary; no AddressSanitizer diagnostic and no DXF was created.",
+      "logSha256": "d12f4241027eb0da38cc8850a7ad7aaa87795192eb96e7a84af6621f37f359d4"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "6d3f727faa346eb0d05c150bd75194cfd70ef59d4d367cbc0f64ddc48336d449",
+    "src/drw_objects.h": "1e3f4e9a4624e5f0d458181a99f5c0768e5a3ff2d06acbeba02c8ebaab6ea6a9",
+    "tests/associative_constraint_group_test_helpers.h": "3bb717d5410fc46ec4e60710e34bab8106a827bf0b0a334accc8f88693f6e23f",
+    "tests/dwg_reader_matrix_tests.cpp": "28ce90895640a8bb2a40e3eeaaffd50ea016373200cac653d6bd1f57e9656e4c",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "2ad73f620c553795512058893646dd2d1bff9af00a7c5fca20e872f8e9d7302f",
+    "build/dwg2dxf/dwg2dxf": "cfacc6f254b3a72e1f95b5b433c0894b8a5d05fc9bf758503c57b97bf90c6fd6",
+    "build/libdxfrw_dwg_reader_matrix_tests": "90af2a89aad4471313866631c4b05b3f85e29415997b778e1db13d366cc5e103",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "14149040d5ff68a23f100601acaaa6933f54db902bd2e62aad6bbd9955e135e1",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "b58328d5ede19ffb6df0af9cfaccbffeceb0d180bc6c52765f8e3cd1804df02e"
+  },
+  "nextAction": "Probe source-matched AcConstrainedDatumLine node 412 body, geometry dependency role/value and body span; do not type the class from a peer schema without this same-input proof."
+}

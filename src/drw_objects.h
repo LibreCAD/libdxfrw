@@ -7118,6 +7118,7 @@ struct DRW_AssociativeConstraintNode {
     Unsupported,
     Geometrical,
     Horizontal,
+    RadiusDiameter,
     ImplicitPoint,
     BoundedLine,
     Circle,
@@ -7155,6 +7156,7 @@ struct DRW_AssociativeConstraintNode {
   double m_startParameter = 0.0;
   double m_endParameter = 0.0;
   std::uint8_t m_directionType = 0;
+  std::uint8_t m_radiusDiameterMode = 0;
   bool m_hasDistance = false;
   DRW_Coord m_distance;
   bool m_hasReserved = false;
