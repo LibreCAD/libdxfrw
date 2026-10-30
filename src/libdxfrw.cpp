@@ -26592,7 +26592,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         }
         if (attributeCount > maxTableCellAttributes || (content.m_type != 1
                 && !(content.m_type == 2 && attributeCount == 0u)
-                && !(content.m_type == 4 && attributeCount != 0u)))
+                && content.m_type != 4))
             return false;
         if (!writer->writeString(302, "CONTENT")
             || !writer->writeString(1, "CELLCONTENT_BEGIN")
@@ -26664,6 +26664,50 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && m_writingContext.sourceHandleToWrittenTableMap.count(
                        sourceHandle) == 0u;
         };
+        const auto blockContentTargetsAreClosed = [this](
+                const DRW_TableCell& cell) {
+            for (std::size_t contentIndex = 0u;
+                 contentIndex < cell.m_contents.size(); ++contentIndex) {
+                const DRW_TableCellContent& content =
+                    cell.m_contents[contentIndex];
+                if (content.m_type != 4)
+                    continue;
+                const std::uint32_t outputBlockRecord =
+                    remapObjectHandle(content.m_handle);
+                const auto blockRecord = m_sourceBlockRecordHandles.find(
+                    content.m_handle);
+                if (content.m_handle == 0u
+                    || content.m_handle == DRW::NoHandle
+                    || outputBlockRecord == 0u
+                    || outputBlockRecord == DRW::NoHandle
+                    || blockRecord == m_sourceBlockRecordHandles.end()
+                    || blockRecord->second != outputBlockRecord)
+                    return false;
+                for (const DRW_TableCellAttribute& attribute :
+                     cell.m_attributes) {
+                    if (attribute.m_contentIndex != contentIndex)
+                        continue;
+                    const auto emitted =
+                        m_writingContext.sourceHandleToMintedMap.find(
+                            attribute.m_attdefHandle);
+                    const std::uint32_t definitionHandle =
+                        remapObjectHandle(attribute.m_attdefHandle);
+                    if (attribute.m_attdefHandle == 0u
+                        || attribute.m_attdefHandle == DRW::NoHandle
+                        || definitionHandle == 0u
+                        || definitionHandle == DRW::NoHandle
+                        || emitted
+                            == m_writingContext.sourceHandleToMintedMap.end()
+                        || emitted->second != definitionHandle
+                        || m_writingContext.ambiguousSourceHandles.count(
+                               attribute.m_attdefHandle) != 0u
+                        || m_writingContext.writtenSourceEntityHandles.count(
+                               attribute.m_attdefHandle) != 1u)
+                        return false;
+                }
+            }
+            return true;
+        };
 
         const std::uint32_t tableStyleHandle =
             ent->m_content.m_tableStyleHandle;
@@ -26704,9 +26748,61 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && cell.m_textColorRgb == -1 && cell.m_textColorMethod == 0u
                 && cell.m_fillColorRgb == -1 && cell.m_fillColorMethod == 0u
                 && !cell.m_backgroundEnabled && cell.m_textAlignment == 0
-                && cell.m_textHeight == 0.0 && cell.m_attributes.empty()
+                && cell.m_textHeight == 0.0
                 && std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
                                defaultBorder);
+        };
+        const auto blockContentValueIsSupported = [](
+                const DRW_TableCellContent& content) {
+            const DRW_CadValue& value = content.m_value;
+            return content.m_type == 4 && content.m_handle != 0u
+                && content.m_handle != DRW::NoHandle
+                && content.m_text.empty() && value.m_formatFlags == 0
+                && value.m_dataType == 0 && value.m_dataSize == 0u
+                && value.m_unitType == 0
+                && value.m_value.type() == DRW_Variant::INVALID
+                && value.m_handle == 0u && value.m_rawData.empty()
+                && value.m_formatString.empty()
+                && value.m_valueString.empty();
+        };
+        const auto blockCellAttributesAreSupported = [&safeText,
+                &plainContentTextBytes](const DRW_TableCell& cell) {
+            if (cell.m_contents.empty() || cell.m_contents.size() > 2u
+                || cell.m_contents.back().m_type != 4
+                || (cell.m_contents.size() == 2u
+                    && cell.m_contents.front().m_type != 1))
+                return false;
+            const std::size_t blockContentIndex =
+                cell.m_contents.size() - 1u;
+            if (cell.m_attributes.size() > maxTableCellAttributes)
+                return false;
+            std::unordered_set<std::uint32_t> attdefHandles;
+            try {
+                attdefHandles.reserve(cell.m_attributes.size());
+                for (std::size_t index = 0u;
+                     index < cell.m_attributes.size(); ++index) {
+                    const DRW_TableCellAttribute& attribute =
+                        cell.m_attributes[index];
+                    if (attribute.m_contentIndex != blockContentIndex
+                        || attribute.m_index
+                            != static_cast<int>(index + 1u)
+                        || attribute.m_attdefHandle == 0u
+                        || attribute.m_attdefHandle == DRW::NoHandle
+                        || !safeText(attribute.m_text)
+                        || plainContentTextBytes
+                            > DRW::kMaxDxfBinaryPayloadBytes
+                        || attribute.m_text.size()
+                            > DRW::kMaxDxfBinaryPayloadBytes
+                                - plainContentTextBytes
+                        || !attdefHandles.insert(
+                            attribute.m_attdefHandle).second)
+                        return false;
+                    plainContentTextBytes += attribute.m_text.size();
+                }
+            } catch (...) {
+                return false;
+            }
+            return true;
         };
 
         plainContentTextBytes = 0u;
@@ -26745,6 +26841,23 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     || cell.m_contents.size() > 10000u - totalContents)
                     return failDxfWrite();
                 totalContents += cell.m_contents.size();
+                const bool hasBlockContent = std::any_of(
+                    cell.m_contents.begin(), cell.m_contents.end(),
+                    [](const DRW_TableCellContent& content) {
+                        return content.m_type == 4;
+                    });
+                if ((!cell.m_attributes.empty() && !hasBlockContent)
+                    || (hasBlockContent
+                        && (cell.m_hasLinkedData || cell.m_contents.empty()
+                            || cell.m_contents.size() > 2u
+                            || cell.m_contents.back().m_type != 4
+                            || (cell.m_contents.size() == 2u
+                                && cell.m_contents.front().m_type != 1)
+                            || !blockContentValueIsSupported(
+                                cell.m_contents.back())
+                            || !blockCellAttributesAreSupported(cell)
+                            || !blockContentTargetsAreClosed(cell))))
+                    return failDxfWrite();
                 for (const DRW_TableCellContent& content : cell.m_contents) {
                     if (content.m_type == 1) {
                         if (!plainScalarContentIsSupported(content))
@@ -26753,6 +26866,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                         if (cell.m_hasLinkedData
                             || !fieldReferenceContentIsSupported(content)
                             || !fieldReferenceIsClosed(content.m_handle))
+                            return failDxfWrite();
+                    } else if (content.m_type == 4) {
+                        if (!blockContentValueIsSupported(content))
                             return failDxfWrite();
                     } else {
                         return failDxfWrite();

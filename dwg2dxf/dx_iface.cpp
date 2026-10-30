@@ -25183,11 +25183,18 @@ bool dx_iface::tableContentDirectReferencesClosed(
                     || emitted->second == DRW::NoHandle)
                     return false;
             }
-            if (cell.m_attributes.empty())
+            const bool hasBlockContent = std::any_of(
+                cell.m_contents.begin(), cell.m_contents.end(),
+                [](const DRW_TableCellContent& content) {
+                    return content.m_type == 4;
+                });
+            if (cell.m_attributes.empty() && !hasBlockContent)
                 continue;
-            if (cell.m_contents.empty() || cell.m_contents.size() > 2u
-                || cell.m_attributes.empty()
+            if (!hasBlockContent || cell.m_hasLinkedData
+                || cell.m_contents.empty() || cell.m_contents.size() > 2u
                 || cell.m_attributes.size() > maxTableCellAttributes)
+                return false;
+            if (cell.m_attributes.empty() && cell.m_contents.size() != 1u)
                 return false;
             const std::size_t contentIndex = cell.m_contents.size() - 1u;
             if (contentIndex != 0u
@@ -25234,7 +25241,6 @@ bool dx_iface::tableContentDirectReferencesClosed(
             }
             if (blockRecord == nullptr)
                 return false;
-
             const dx_ifaceBlock* owningBlock = nullptr;
             for (const dx_ifaceBlock* block : cData->blocks) {
                 if (block == nullptr || block->parentHandle != blockRecord->handle
@@ -25246,6 +25252,8 @@ bool dx_iface::tableContentDirectReferencesClosed(
             }
             if (owningBlock == nullptr)
                 return false;
+            if (cell.m_attributes.empty())
+                continue;
 
             const auto inspectDefinitions = [&attdefDefinitions](
                     const dx_ifaceBlock* block) {

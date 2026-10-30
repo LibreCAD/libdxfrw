@@ -45,7 +45,7 @@ subtasks are already complete.
 | P2 | OPEN | Close only source-witnessed MLINESTYLE, LTYPE/XDATA and MLEADERSTYLE losses that remain after current passing profiles are excluded. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
-| P5 | OPEN | Complete remaining rendering and TABLE content/style behavior, including unqualified linked-cell payloads and composed format scopes. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
+| P5 | OPEN | Close remaining rendering metadata, FIELD/FIELDLIST, block-cell composition and geometry, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -53,7 +53,7 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P4a — original source coverage.** Select one physically observed source field/dependency that is absent or misbound in output; bind exact source span, role, provider and owner before implementation. Treat ATTDEF secondary Xrecord content as a candidate only when a real source record proves the unmatched field/reference. A normalization mismatch flag or generated profile alone does not prove data loss; if ATTDEF has no such witness, skip it and choose another census gap.
+1. **P4a — original source coverage.** Select one physically observed source field/dependency that is absent or misbound in output; bind exact source span, role, provider and owner before implementation. A normalization mismatch flag or generated profile alone does not prove data loss; select only a source-census gap with a physical witness.
 2. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
 3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
@@ -116,12 +116,12 @@ P4a supplies source/context/role providers; P4b composes those providers with P2
 P3 and P5 output. Do not create parallel capture or graph engines.
 
 1. **Original coverage:** use the current source census to select one physically
-   evidenced unmatched ATTDEF secondary Xrecord field/reference, TABLE, LAYOUT,
-   object or other required record. Do not infer a lost field from raw/typed
-   mismatch flags or generated controls alone. Include child records, terminators,
-   unsupported/dropped records and unused definitions. Bind physical span, typed
-   model, original owner and source profile; classify the gap as parser, model, origin join,
-   semantic evidence or output evidence before coding.
+   evidenced unmatched TABLE, LAYOUT, object or other required record. Do not
+   infer a lost field from raw/typed mismatch flags or generated controls alone.
+   Include child records, terminators, unsupported/dropped records and unused
+   definitions. Bind physical span, typed model, original owner and source
+   profile; classify the gap as parser, model, origin join, semantic evidence or
+   output evidence before coding.
 2. **Dependencies:** resolve required STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    image/reactor/material/style, document/control/name/application, XDATA/EED and
    CEPSNID/CEPSNTYPE roles. Preserve hard/soft ownership and absent versus null.
@@ -159,11 +159,12 @@ missing provider, remap, collision or composed output failure.
    multi-reference composition in the standalone 1x1 route. Reuse the rooted
    reference planner and handle remapping; preserve unsupported compositions
    with explicit refusal.
-2. **Block-backed cells:** extend beyond the single block-content cell profile
-   to multiple block contents/cells and source- or consumer-qualified block
-   geometry payloads. Preserve per-content attribute association, ATTDEF
-   identity, ownership and remapping; keep unsupported graphs refused until
-   their ordering, closure and geometry semantics are evidenced.
+2. **Block-backed cells:** extend the multi-cell grid profile to ATTDEF-bearing
+   block cells and mixed scalar/block compositions; support multiple block
+   CONTENT records in one cell only from a source or consumer witness; and
+   implement block geometry payloads only when their layout and semantics are
+   evidenced. Preserve per-content attribute association, ATTDEF identity,
+   ownership and remapping; keep unsupported graphs refused.
 3. Complete remaining CONTENTFORMAT strings and domain/property combinations,
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;

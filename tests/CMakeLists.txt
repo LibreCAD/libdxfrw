@@ -2699,6 +2699,12 @@ set_tests_properties(libdxfrw_tablecontent_multicell_field_reference PROPERTIES
     LABELS "fast;dxf;adapter;table;field;generated;transaction"
     TIMEOUT 30)
 
+add_test(NAME libdxfrw_tablecontent_multicell_block_reference
+    COMMAND libdxfrw_dxf_fixture_tests --tablecontent-multicell-block)
+set_tests_properties(libdxfrw_tablecontent_multicell_block_reference PROPERTIES
+    LABELS "fast;dxf;adapter;table;block;generated;transaction"
+    TIMEOUT 30)
+
 # Optional test of the installed converter from FreeCAD's actual desktop
 # process. It uses only a tracked ordinary DWG and is deliberately disabled
 # by default; the normal inner loop remains the fast, FreeCAD-independent CLI
