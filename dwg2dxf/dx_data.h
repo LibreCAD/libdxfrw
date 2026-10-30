@@ -1540,7 +1540,7 @@ private:
             std::size_t ownerRecord{DRW_DxfIdentitySource::NoIndex};
             std::size_t tableRecord{DRW_DxfIdentitySource::NoIndex};
             std::uint32_t ownerHandle{0},tableHandle{0},providerHandle{0};
-            std::array<LegacyBlockRecordAppIdProvider,2> providers{};
+            std::array<LegacyBlockRecordAppIdProvider,4> providers{};
             std::size_t providerCount{0};
             bool hasXdataObjectId{false};
             XdataObjectId xdataObjectId;

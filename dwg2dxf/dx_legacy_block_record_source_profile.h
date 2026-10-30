@@ -10,7 +10,7 @@
 // Witness-bounded physical inventory, not a document/target/output certificate.
 // Caller must precharge group-count storage and linear inspection work.
 namespace dx_legacy_block_record_source {
-enum class Field:std::uint8_t {Identity,Subclass,Name,Layout,Application,Xdata};
+enum class Field:std::uint8_t {Identity,Subclass,Name,Layout,Application,Preview,Xdata};
 enum class Role:std::uint8_t {None,Self,Owner,BlockName,Layout,ExtensionDictionary,BlockInsert,AppIdName,XdataObjectId};
 enum class Reason:std::uint8_t {NotChecked,Complete,Revision,Identity,Unexpected,InvalidValue,Application,Xdata,Duplicate,Limit};
 struct Span {std::size_t index;int code;Field field;Role role;std::uint32_t handle;};
@@ -60,14 +60,24 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
  take(2,Field::Name,Role::BlockName,0u);
  v=current();if(!v||v->code()!=340||!handle(*v,h)||h!=0u)return reject(Reason::InvalidValue,at);
  take(340,Field::Layout,Role::Layout,0u); // explicit null, never inferred from absence
- if(!expectText(102,"{BLKREFS",Field::Application))return reject(Reason::Application,at);
- v=current();if(!v||v->code()!=331||!handle(*v,h)||!h)return reject(Reason::Application,at);
- take(331,Field::Application,Role::BlockInsert,h);
- if(!expectText(102,"}",Field::Application))return reject(Reason::Application,at);
- std::array<std::string_view,2> names{};std::size_t count=0u,depth=0u,values=0u;
+ v=current();
+ if(v&&v->code()==102&&text(*v)=="{BLKREFS") {
+  take(102,Field::Application,Role::None,0u);
+  v=current();if(!v||v->code()!=331||!handle(*v,h)||!h)return reject(Reason::Application,at);
+  take(331,Field::Application,Role::BlockInsert,h);
+  if(!expectText(102,"}",Field::Application))return reject(Reason::Application,at);
+ }
+ std::array<std::string_view,4> names{};std::size_t count=0u,depth=0u,values=0u;
  while((v=current())) {
   const int code=v->code();
-  if(code==1001) {
+  if(code==310) {
+   const auto payload=text(*v);
+   if(count||v->type()!=DRW_Variant::STRING||payload.size()>254u||(payload.size()&1u))
+    return reject(Reason::InvalidValue,at);
+   for(const unsigned char c:payload)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')||(c>='A'&&c<='F')))
+    return reject(Reason::InvalidValue,at);
+   take(code,Field::Preview,Role::None,0u);
+  } else if(code==1001) {
    if(depth||(count&&values==0u)||!asciiName(*v,31u))return reject(Reason::Xdata,at);
    if(count==names.size())return reject(Reason::Limit,at);
    for(std::size_t i=0;i<count;++i)if(sameAsciiName(names[i],text(*v)))return reject(Reason::Duplicate,at);
@@ -83,6 +93,9 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
    take(code,Field::Xdata,Role::None,0u);
   } else if(code==1070) {
    if(v->type()!=DRW_Variant::INTEGER||v->i_val()<-32768||v->i_val()>32767)return reject(Reason::InvalidValue,at);
+   ++values;take(code,Field::Xdata,Role::None,0u);
+  } else if(code==1071) {
+   if(v->type()!=DRW_Variant::INTEGER)return reject(Reason::InvalidValue,at);
    ++values;take(code,Field::Xdata,Role::None,0u);
   } else if(code==1005) {
    if(!handle(*v,h)||!h)return reject(Reason::InvalidValue,at);
