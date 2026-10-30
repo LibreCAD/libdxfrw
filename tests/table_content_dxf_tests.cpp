@@ -2351,15 +2351,24 @@ bool tableContentTableStyleFormatWriteTests(
         AttdefWireTag::Integer, AttdefWireTag::String,
         AttdefWireTag::Real, AttdefWireTag::String
     }};
-    for (int styleType : {1, 2, 3, 4}) {
+    for (bool multiCell : {false, true}) {
+      for (int styleType : {1, 2, 3, 4}) {
         for (bool binary : {false, true}) {
             const auto path = dir / ("table-content-format-"
-                + std::to_string(styleType) + ".dxf");
+                + std::to_string(styleType)
+                + (multiCell ? "-grid.dxf" : "-single.dxf"));
             dx_data data;
             dx_iface exporter;
             exporter.cData = &data;
             exporter.currentBlock = data.mBlock;
             DRW_TableContentObject table = tableContentScalarGrid();
+            if (!multiCell) {
+                const DRW_TableCell selectedCell =
+                    table.m_content.m_rows[0].m_cells[1];
+                table.m_content.m_columns.resize(1u);
+                table.m_content.m_rows.resize(1u);
+                table.m_content.m_rows[0].m_cells.assign(1u, selectedCell);
+            }
             auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
             metadata->m_columns.resize(table.m_content.m_columns.size());
             for (auto& column : metadata->m_columns)
@@ -2478,6 +2487,18 @@ bool tableContentTableStyleFormatWriteTests(
                 || !parsed.tableContents.front().m_dxfMetadata)
                 return fail("type-" + std::to_string(styleType)
                     + " CONTENTFORMAT typed metadata missing");
+            const auto& parsedContent = parsed.tableContents.front().m_content;
+            if (parsedContent.m_columns.size() != (multiCell ? 2u : 1u)
+                || parsedContent.m_rows.size() != (multiCell ? 2u : 1u)
+                || parsedContent.m_rows[0].m_cells.size()
+                    != (multiCell ? 2u : 1u))
+                return fail("style format roundtrip changed table dimensions");
+            const DRW_TableCell& parsedValueCell = multiCell
+                ? parsedContent.m_rows[0].m_cells[1]
+                : parsedContent.m_rows[0].m_cells[0];
+            if (parsedValueCell.m_contents.size() != 1u
+                || parsedValueCell.m_contents.front().m_text != "north-east")
+                return fail("style format roundtrip changed scalar table values");
             const auto& parsedMetadata =
                 *parsed.tableContents.front().m_dxfMetadata;
             const DRW_TableStyleCellStyle* parsedStyle = nullptr;
@@ -2521,6 +2542,18 @@ bool tableContentTableStyleFormatWriteTests(
                   return fail("invalid style format changed destination"); }
             if (data.tableContents.size() != 1u || format.m_valueUnitType != 3)
                 return fail("failed style format export changed caller model");
+            const auto& callerContent = data.tableContents.front().m_content;
+            if (callerContent.m_columns.size() != (multiCell ? 2u : 1u)
+                || callerContent.m_rows.size() != (multiCell ? 2u : 1u)
+                || callerContent.m_rows[0].m_cells.size()
+                    != (multiCell ? 2u : 1u))
+                return fail("failed style format export changed table dimensions");
+            const DRW_TableCell& callerValueCell = multiCell
+                ? callerContent.m_rows[0].m_cells[1]
+                : callerContent.m_rows[0].m_cells[0];
+            if (callerValueCell.m_contents.size() != 1u
+                || callerValueCell.m_contents.front().m_text != "north-east")
+                return fail("failed style format export changed scalar contents");
             format.m_valueUnitType = originalUnitType;
             if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
                                      &data, false))
@@ -2548,6 +2581,7 @@ bool tableContentTableStyleFormatWriteTests(
                 return fail("corrected type-" + std::to_string(styleType)
                     + " format retry value differs");
         }
+      }
     }
     return true;
 }

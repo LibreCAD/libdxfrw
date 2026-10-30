@@ -25955,11 +25955,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_styleClass == 0 && style.m_name.empty()
             && style.m_borders.empty();
     };
-    const auto scopeIsDefault = [&styleIsDefault](
-            const DRW_TableContentDxfMetadata::Scope& scope, int type) {
-        return scope.m_customData == 0 && scope.m_customItems.empty()
-            && styleIsDefault(scope.m_style, type);
-    };
     const auto styleWithMarginsIsSupported = [&styleIsDefault,
             &cmcIsDefault, &formatIsDefault, &contentFormatIsSupported](
             const DRW_TableStyleCellStyle& style, int type,
@@ -26019,6 +26014,26 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                         || selectedStyleContentFormat)
                     && style.m_id == 0 && style.m_styleClass == 0
                     && style.m_name.empty());
+    };
+    const auto styleFormatOnlyIsSupported = [&styleIsDefault,
+            &styleWithMarginsIsSupported, &formatIsDefault](
+            const DRW_TableStyleCellStyle& style, int type) {
+        if (styleIsDefault(style, type))
+            return true;
+        const bool marginsAbsent = style.m_marginOverrideFlags == 0
+            && style.m_verticalMargin == 0.0
+            && style.m_horizontalMargin == 0.0
+            && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
+            && style.m_marginHorizontalSpacing == 0.0
+            && style.m_marginVerticalSpacing == 0.0;
+        return !formatIsDefault(style.m_contentFormat) && marginsAbsent
+            && style.m_borders.empty()
+            && styleWithMarginsIsSupported(style, type, false);
+    };
+    const auto scopeFormatOnlyIsSupported = [&styleFormatOnlyIsSupported](
+            const DRW_TableContentDxfMetadata::Scope& scope, int type) {
+        return scope.m_customData == 0 && scope.m_customItems.empty()
+            && styleFormatOnlyIsSupported(scope.m_style, type);
     };
     const auto scopeWithMarginsIsSupported = [&styleWithMarginsIsSupported](
             const DRW_TableContentDxfMetadata::Scope& scope, int type,
@@ -26296,8 +26311,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         if (metadata.m_columns.size() != ent->m_content.m_columns.size()
             || metadata.m_rows.size() != ent->m_content.m_rows.size()
             || metadata.m_rows.front().m_cells.size() != row.m_cells.size()
-            || !scopeIsDefault(metadata.m_columns.front(), 3)
-            || !scopeIsDefault(metadata.m_rows.front().m_scope, 2)
+            || !scopeFormatOnlyIsSupported(metadata.m_columns.front(), 3)
+            || !scopeFormatOnlyIsSupported(
+                metadata.m_rows.front().m_scope, 2)
             || !cellStyleIsSupported(
                 metadata.m_rows.front().m_cells.front().m_scope)
             || metadata.m_rows.front().m_cells.front().m_contentFormats.size()
@@ -26309,7 +26325,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     return format && !contentFormatIsSupported(*format);
                 })
             || !metadata.m_rows.front().m_cells.front().m_geometry.empty()
-            || !styleIsDefault(metadata.m_tableStyle, 4))
+            || !styleFormatOnlyIsSupported(metadata.m_tableStyle, 4))
         {
             return failDxfWrite();
         }
@@ -26875,7 +26891,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || !writer->writeString(309, "LINKEDTABLEDATACOLUMN_END")
         || !writer->writeString(1, "FORMATTEDTABLEDATACOLUMN_BEGIN")
         || !writer->writeString(300, "COLUMNTABLEFORMAT")
-        || !writeStyle(3, nullptr)
+        || !writeStyle(3, columnScope ? &columnScope->m_style : nullptr)
         || !writer->writeString(309, "FORMATTEDTABLEDATACOLUMN_END")
         || !writer->writeString(1, "TABLECOLUMN_BEGIN")
         || !writer->writeInt32(90, column.m_styleId)
@@ -26931,7 +26947,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || !writer->writeString(309, "LINKEDTABLEDATAROW_END")
         || !writer->writeString(1, "FORMATTEDTABLEDATAROW_BEGIN")
         || !writer->writeString(300, "ROWTABLEFORMAT")
-        || !writeStyle(2, nullptr)
+        || !writeStyle(2, rowScope ? &rowScope->m_style : nullptr)
         || !writer->writeString(309, "FORMATTEDTABLEDATAROW_END")
         || !writer->writeString(1, "TABLEROW_BEGIN")
         || !writer->writeInt32(90, row.m_styleId)
@@ -26941,7 +26957,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 ? ent->m_dxfMetadata->m_linkedDataUnknown92 : 0)
         || !writer->writeString(100, "AcDbFormattedTableData")
         || !writer->writeString(300, "TABLEFORMAT")
-        || !writeStyle(4, nullptr)
+        || !writeStyle(4, ent->m_dxfMetadata
+            ? &ent->m_dxfMetadata->m_tableStyle : nullptr)
         || !writer->writeInt32(90, 0)
         || !writer->writeString(100, "AcDbTableContent")
         || !writer->writeString(340, "0")) {
