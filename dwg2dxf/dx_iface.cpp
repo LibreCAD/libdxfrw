@@ -25006,14 +25006,39 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
     for (const DRW_TableContentObject& table : data.tableContents) {
         for (const DRW_TableRow& row : table.m_content.m_rows) {
             for (const DRW_TableCell& cell : row.m_cells) {
-                for (const DRW_TableCellContent& content : cell.m_contents) {
+                for (std::size_t contentIndex = 0u;
+                     contentIndex < cell.m_contents.size(); ++contentIndex) {
+                    const DRW_TableCellContent& content =
+                        cell.m_contents[contentIndex];
                     if (content.m_type != 2)
                         continue;
                     ++referenceCount;
                     if (content.m_handle != field.handle
-                        || cell.m_contents.size() != 1u
                         || cell.m_hasLinkedData
                         || !cell.m_attributes.empty())
+                        return false;
+                    if (cell.m_contents.size() == 1u) {
+                        if (contentIndex != 0u)
+                            return false;
+                        continue;
+                    }
+                    if (cell.m_contents.size() != 2u
+                        || contentIndex != 1u)
+                        return false;
+                    const DRW_TableCellContent& scalar =
+                        cell.m_contents.front();
+                    const DRW_CadValue& value = scalar.m_value;
+                    if (scalar.m_type != 1 || scalar.m_handle != 0u
+                        || value.m_dataType != 4
+                        || value.m_formatFlags != 0
+                        || value.m_dataSize != 0u || value.m_unitType != 0
+                        || value.m_value.type() != DRW_Variant::STRING
+                        || value.m_value.c_str() == nullptr
+                        || value.m_value.code() != 1
+                        || value.m_value.c_str() != scalar.m_text
+                        || !value.m_formatString.empty()
+                        || !value.m_valueString.empty()
+                        || value.m_handle != 0u || !value.m_rawData.empty())
                         return false;
                 }
             }
@@ -25034,7 +25059,12 @@ bool dx_iface::tableContentDirectReferencesClosed(
             for (const DRW_TableCellContent& content : cell.m_contents) {
                 if (content.m_type != 2)
                     continue;
-                if (cell.m_contents.size() != 1u
+                const bool singleReference = cell.m_contents.size() == 1u
+                    && &content == &cell.m_contents.front();
+                const bool scalarThenReference = cell.m_contents.size() == 2u
+                    && &content == &cell.m_contents.back()
+                    && cell.m_contents.front().m_type == 1;
+                if ((!singleReference && !scalarThenReference)
                     || cell.m_hasLinkedData || !cell.m_attributes.empty()
                     || content.m_handle == 0u
                     || content.m_handle == DRW::NoHandle)

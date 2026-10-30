@@ -53801,6 +53801,12 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         tableContent.m_content.m_columns.front().m_name = "Field";
         DRW_TableRow row;
         DRW_TableCell cell;
+        DRW_TableCellContent scalar;
+        scalar.m_type = 1;
+        scalar.m_text = "scalar before field";
+        scalar.m_value.m_dataType = 4;
+        scalar.m_value.m_value.addString(1, scalar.m_text);
+        cell.m_contents.push_back(scalar);
         DRW_TableCellContent reference;
         reference.m_type = 2;
         reference.m_handle = field.handle;
@@ -53814,7 +53820,7 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         metadata->m_rows.front().m_scope.m_style.m_type = 2;
         metadata->m_rows.front().m_cells.resize(1u);
         metadata->m_rows.front().m_cells.front().m_scope.m_style.m_type = 1;
-        metadata->m_rows.front().m_cells.front().m_contentFormats.resize(1u);
+        metadata->m_rows.front().m_cells.front().m_contentFormats.resize(2u);
         metadata->m_tableStyle.m_type = 4;
         tableContent.m_dxfMetadata = std::move(metadata);
         authored.tableContents.push_back(std::move(tableContent));
@@ -53865,6 +53871,24 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                  binary
                      ? "binary DXF FIELD has paired raw/typed identity and the selected childless schema"
                      : "ASCII DXF FIELD has paired raw/typed identity and the selected childless schema");
+        const DRW_TableCell* importedCell = nullptr;
+        for (const DRW_TableContentObject& content : imported.tableContents) {
+            if (content.handle != 0x1724u
+                || content.m_content.m_rows.size() != 1u
+                || content.m_content.m_rows.front().m_cells.size() != 1u)
+                continue;
+            importedCell = &content.m_content.m_rows.front().m_cells.front();
+        }
+        const bool importedOrderedCellProfile = importedCell != nullptr
+            && importedCell->m_contents.size() == 2u
+            && importedCell->m_contents[0].m_type == 1
+            && importedCell->m_contents[0].m_text == "scalar before field"
+            && importedCell->m_contents[1].m_type == 2
+            && importedCell->m_contents[1].m_handle == 0x1740u;
+        t.expect(importedOrderedCellProfile,
+                 binary
+                     ? "binary source TABLECONTENT preserves scalar-then-FIELD input order and identity"
+                     : "ASCII source TABLECONTENT preserves scalar-then-FIELD input order and identity");
 
         HandleMappingInterface replayWriter;
         replayWriter.remap = {{0x1724u, 0x2724u}, {0x1740u, 0x2740u}};
@@ -53888,6 +53912,27 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         t.expect(sourceIdentityMutationRefused && refusedOutput == sentinel,
                  "DXF-origin FIELD identity mutation refuses atomically");
 
+        bool reverseOrderRefused = false;
+        if (!imported.tableContents.empty()
+            && !imported.tableContents.front().m_content.m_rows.empty()
+            && !imported.tableContents.front().m_content.m_rows.front()
+                    .m_cells.empty()
+            && imported.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front().m_contents.size() == 2u) {
+            auto& contents = imported.tableContents.front().m_content.m_rows
+                .front().m_cells.front().m_contents;
+            std::swap(contents[0], contents[1]);
+            reverseOrderRefused = !replayWriter.fileExport(
+                replayPath.string(), DRW::AC1027, binary, &imported, false);
+            std::swap(contents[0], contents[1]);
+        }
+        std::ifstream reverseOrderInput(replayPath, std::ios::binary);
+        const std::string reverseOrderOutput(
+            (std::istreambuf_iterator<char>(reverseOrderInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(reverseOrderRefused && reverseOrderOutput == sentinel,
+                 "DXF-origin FIELD cell reverse order refuses atomically");
+
         const bool replayWritten = replayWriter.fileExport(
             replayPath.string(), DRW::AC1027, binary, &imported, false);
         FixtureInterface replayReader;
@@ -53907,9 +53952,11 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         if (typedLink) {
             const auto& contents = emittedContent->m_content.m_rows.front()
                 .m_cells.front().m_contents;
-            typedLink = contents.size() == 1u
-                && contents.front().m_type == 2
-                && contents.front().m_handle == 0x2740u;
+            typedLink = contents.size() == 2u
+                && contents[0].m_type == 1
+                && contents[0].m_text == "scalar before field"
+                && contents[1].m_type == 2
+                && contents[1].m_handle == 0x2740u;
         }
         const auto tags = materialBodyControls::physicalTags(replayPath, binary);
         std::size_t fieldIndex = tags.size();
@@ -53927,22 +53974,46 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         }
         bool exactWireReference = fieldIndex < tableContentIndex;
         if (exactWireReference) {
-            bool matched = false;
+            std::size_t firstContent = tags.size();
+            std::size_t secondContent = tags.size();
+            std::size_t contentEnd = tableContentIndex + 1u;
+            while (contentEnd < tags.size() && tags[contentEnd].first != 0)
+                ++contentEnd;
             for (std::size_t index = tableContentIndex + 1u;
-                 index + 3u < tags.size() && tags[index].first != 0; ++index) {
-                if (tags[index].first != 90
-                    || tags[index + 1u]
-                        != std::make_pair(340, std::string("2740")))
+                 index + 2u < contentEnd; ++index) {
+                if (tags[index]
+                    != std::make_pair(302, std::string("CONTENT")))
                     continue;
-                try {
-                    matched = std::stoi(tags[index].second) == 2;
-                } catch (...) {
-                    matched = false;
-                }
-                if (matched)
+                if (firstContent == tags.size())
+                    firstContent = index;
+                else {
+                    secondContent = index;
                     break;
+                }
             }
-            exactWireReference = matched;
+            const auto integerEquals = [&tags](std::size_t index,
+                    int code, int expected) {
+                if (index >= tags.size() || tags[index].first != code)
+                    return false;
+                try {
+                    return std::stoi(tags[index].second) == expected;
+                } catch (...) {
+                    return false;
+                }
+            };
+            const auto scalarValue = std::find(
+                tags.begin() + static_cast<std::ptrdiff_t>(firstContent),
+                tags.begin() + static_cast<std::ptrdiff_t>(secondContent),
+                std::make_pair(1, std::string("scalar before field")));
+            exactWireReference = firstContent < secondContent
+                && firstContent + 2u < secondContent
+                && integerEquals(firstContent + 2u, 90, 1)
+                && scalarValue
+                    != tags.begin() + static_cast<std::ptrdiff_t>(secondContent)
+                && secondContent + 4u < contentEnd
+                && integerEquals(secondContent + 2u, 90, 2)
+                && tags[secondContent + 3u]
+                    == std::make_pair(340, std::string("2740"));
         }
         t.expect(replayWritten,
                  "DXF-origin simple FIELD replay passes export preflight");

@@ -26062,11 +26062,23 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         }
         return true;
     }();
+    std::size_t fieldContentIndex = 0u;
     const bool fieldContentWithReference = [&]() {
-        if (cell.m_hasLinkedData || cell.m_contents.size() != 1u
-            || !cell.m_attributes.empty())
+        if (cell.m_hasLinkedData || cell.m_contents.empty()
+            || cell.m_contents.size() > 2u || !cell.m_attributes.empty())
             return false;
-        const DRW_TableCellContent& content = cell.m_contents.front();
+        if (cell.m_contents.size() == 2u) {
+            // The all-scalar probe counted this prefix before it rejected the
+            // type-2 reference. Revalidate the selected ordered composition
+            // once so its string payload shares the normal byte budget.
+            plainContentTextBytes = textBytesBeforePlainContents;
+            if (!plainScalarContentIsSupported(cell.m_contents.front())
+                || cell.m_contents.front().m_value.m_dataType != 4)
+                return false;
+            fieldContentIndex = 1u;
+        }
+        const DRW_TableCellContent& content =
+            cell.m_contents[fieldContentIndex];
         const DRW_CadValue& value = content.m_value;
         return content.m_type == 2 && content.m_handle != 0u
             && content.m_handle != DRW::NoHandle && content.m_text.empty()
@@ -26149,11 +26161,11 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     const std::uint32_t blockContentHandle = blockContentWithAttributes
         ? remapObjectHandle(cell.m_contents[blockContentIndex].m_handle) : 0u;
     const std::uint32_t fieldContentHandle = fieldContentWithReference
-        ? remapObjectHandle(cell.m_contents.front().m_handle) : 0u;
+        ? remapObjectHandle(cell.m_contents[fieldContentIndex].m_handle) : 0u;
     bool fieldContentReferenceClosed = !fieldContentWithReference;
     if (fieldContentWithReference) {
         const std::uint32_t sourceFieldHandle =
-            cell.m_contents.front().m_handle;
+            cell.m_contents[fieldContentIndex].m_handle;
         const auto emitted =
             m_writingContext.sourceHandleToWrittenObjectMap.find(
                 sourceFieldHandle);
