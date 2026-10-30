@@ -1698,6 +1698,7 @@ public:
     bool writeExtData(const std::vector<std::shared_ptr<DRW_Variant>> &ed);
     bool writeMTextBackground(DRW_MText *ent);
     bool writeEmbeddedMText(DRW_MText *ent);
+    bool writeAttributeXrecord(const DRW_Attrib *ent);
     bool writeAttributeR2018Features(DRW_Attrib *ent);
     /*!< F4 — emit a 330 owner handle for a typed data-only OBJECT (the record's
      * parentHandle when nonzero, else root dict "C" so it is reachable and not

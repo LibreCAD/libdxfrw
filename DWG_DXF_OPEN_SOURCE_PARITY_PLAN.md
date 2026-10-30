@@ -53,8 +53,8 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join.
-2. **P2 — current MLINE/XDATA gap.** Reproduce one still-failing operation, identify the owning classifier/planner/writer, and implement the shared missing rule with representative and boundary cases. Do not repeat already-qualified count matrices.
+1. **P2 — current MLINE/XDATA gap.** Reproduce one still-failing operation, identify the owning classifier/planner/writer, and implement the shared missing rule with representative and boundary cases. Do not repeat already-qualified count matrices.
+2. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, the remaining Xrecord work is its secondary metadata and handle dependencies, not the now-modeled group-280 clone policy.
 3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
@@ -116,10 +116,11 @@ P4a supplies source/context/role providers; P4b composes those providers with P2
 P3 and P5 output. Do not create parallel capture or graph engines.
 
 1. **Original coverage:** use the current source census to select one unmatched
-   ATTDEF, TABLE, LAYOUT, object or other required record. Include child records,
-   terminators, unsupported/dropped records and unused definitions. Bind physical
-   span, typed model, original owner and source profile; classify the gap as parser,
-   model, origin join, semantic evidence or output evidence before coding.
+   ATTDEF secondary Xrecord field/reference, TABLE, LAYOUT, object or other
+   required record. Include child records, terminators, unsupported/dropped
+   records and unused definitions. Bind physical span, typed model, original
+   owner and source profile; classify the gap as parser, model, origin join,
+   semantic evidence or output evidence before coding.
 2. **Dependencies:** resolve required STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    image/reactor/material/style, document/control/name/application, XDATA/EED and
    CEPSNID/CEPSNTYPE roles. Preserve hard/soft ownership and absent versus null.

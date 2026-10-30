@@ -501,6 +501,11 @@ public:
         const auto found=rows.find(0xA1u);
         return found==rows.end()?nullptr:&found->second;
     }
+    static const auto* anyAttdefResource(const dx_data& data) {
+        for(const auto& entry:data.m_tableDxfSource.resources)
+            if(entry.second.attdefModel)return &entry.second;
+        return resource(data);
+    }
     static bool failed(const dx_data& data) {
         const auto& s=data.m_tableDxfSource;
         return s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.contextFailed;
@@ -958,7 +963,8 @@ std::string snapshot(const DRW_Attdef& value) {
         <<':'<<value.prompt<<':'<<unsigned(value.attribFlags)<<':'<<value.m_fieldLength
         <<':'<<value.lockPosition<<':'<<value.basePoint.x<<':'<<value.basePoint.y<<':'<<value.basePoint.z
         <<':'<<value.height<<':'<<value.style<<':'<<value.angle<<':'<<value.extPoint.y
-        <<':'<<value.appData.size()<<':'<<value.extData.size()<<':'<<unsigned(value.m_attributeType);
+        <<':'<<value.appData.size()<<':'<<value.extData.size()<<':'<<unsigned(value.m_attributeType)
+        <<':'<<unsigned(value.keepDuplicateRecords)<<':'<<value.hasDxfXrecord;
     applicationData(value);
     if(value.mtext)out<<':'<<value.mtext->text<<':'<<value.mtext->angle<<':'<<value.mtext->height
         <<':'<<value.mtext->m_definedHeight<<':'<<value.mtext->appData.size()<<':'<<value.mtext->extData.size();
@@ -1206,6 +1212,7 @@ public:
 };
 
 #include "attdef_source_profile_controls.h"
+#include "attdef_xrecord_controls.h"
 #include "block_source_controls.h"
 #include "block_legacy_capture_controls.h"
 #include "block_source_proof_controls.h"
@@ -1945,14 +1952,16 @@ int main(int argc,char** argv) {
     const bool blockPrimary=argc==2&&std::string(argv[1])=="--block-primary";
     const bool blockOrigins=argc==2&&std::string(argv[1])=="--block-origins";
     const bool emptyBlockPolyline=argc==2&&std::string(argv[1])=="--empty-block-polyline";
-    if(argc!=1&&!legacyJoin&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!legacyBlockRecordAdapter&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline)return 2;
+    const bool xrecord=argc==2&&std::string(argv[1])=="--attribute-xrecord";
+    if(argc!=1&&!legacyJoin&&!budget&&!capture&&!profile&&!legacyObservation&&!legacyAdapterCapture&&!equalAlignment&&!dualEmbedded&&!blocks&&!blockProof&&!legacyBlockCapture&&!legacyBlockRecord&&!legacyBlockRecordAdapter&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody&&!compoundProfile&&!applicationWidth&&!blockPrimary&&!blockOrigins&&!emptyBlockPolyline&&!xrecord)return 2;
     std::error_code error;const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-attdef-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     const auto scratch=libdxfrw_test::reserveTestScratch(parent,stem,error);
     if(scratch.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
     struct Cleanup {std::filesystem::path path;bool success=false;~Cleanup(){if(!success){std::cerr<<"Evidence: "<<path<<'\n';return;}std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
     unsigned polymorphicProfiles=0u;
-    try {const bool ok=(emptyBlockPolyline?emptyBlockPolylineTests(scratch/"generated.dxf"):
+    try {const bool ok=(xrecord?attdefXrecordTests(scratch/"generated.dxf",scratch/"roundtrip.dxf"):
+        emptyBlockPolyline?emptyBlockPolylineTests(scratch/"generated.dxf"):
         blockOrigins?blockOriginTests(scratch/"generated.dxf"):
         blockPrimary?blockPrimaryTests(scratch/"generated.dxf"):
         polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):

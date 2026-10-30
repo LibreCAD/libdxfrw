@@ -20,7 +20,7 @@
 namespace dx_attdef_source {
 enum class Scope : std::uint8_t { Host, Nested, Ignored };
 enum class Field : std::uint8_t {
-    Identity, Subclass, Common, Text, Attribute, EmbeddedMarker, MText,
+    Identity, Subclass, Common, Text, Attribute, AttributeXrecord, EmbeddedMarker, MText,
     ComputedIgnored, Application, Xdata, ReservedDefault, Block, Compound, IgnoredComment, Primary,
     Table, TableCell, TableValue, TableOverride
 };
@@ -97,6 +97,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     bool dualAttribute280=false,qualifiedSingleLock280=false,verticalAfterLock280=false;
     bool qualifiedEmbeddedDualLock=false,verticalAfterEmbeddedDualLock=false;
     bool invalidEmbeddedDualSequence=false;
+    bool attributeXrecordSeen=false,attributeXrecordPending=false;
     std::array<std::size_t,3> textAlignment{{raw.groups.size(),raw.groups.size(),raw.groups.size()}};
     bool redundantHostAlignment=false;
     int pointCode=0,pointNext=0;
@@ -111,6 +112,11 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     };
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& value=raw.groups[i];const int code=value.code();const auto string=text(value);
+        if(attributeXrecordPending&&code!=280)
+            return reject(Reason::UnmodeledSecondary,i);
+        if(attributeXrecordSeen&&!attributeXrecordPending&&!depth&&code!=102
+            &&(code<1000||code>1071))
+            return reject(Reason::UnmodeledSecondary,i);
         if(legacy) {
             // Source-bound classic ATTDEF only. Proxy graphics, extension
             // applications and additional XDATA roles need separate evidence.
@@ -193,7 +199,15 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
             if(xdata)return reject(Reason::Xdata,i);
             if(code==100||code==101) {
                 field=Field::Subclass;
-                if(string=="AcDbXrecord")return reject(Reason::UnmodeledSecondary,i);
+                if(string=="AcDbXrecord") {
+                    if(code!=100||stage!=Attribute||!attribute||nested
+                        ||attributeXrecordSeen||raw.m_version<DRW::AC1021
+                        ||raw.m_version>DRW::AC1032)
+                        return reject(Reason::UnmodeledSecondary,i);
+                    attributeXrecordSeen=true;
+                    attributeXrecordPending=true;
+                    field=Field::AttributeXrecord;
+                }
                 if(string=="Embedded Object") {
                     // The selected embedded extension of the classic dual
                     // grammar requires the witnessed equal-host alignment,
@@ -209,6 +223,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                     nested=true;scope=Scope::Nested;stage=Embedded;field=Field::EmbeddedMarker;
                     out.form=code==101?Form::Embedded101:Form::EmbeddedLegacy100;
                 } else if(code!=100)return reject(Reason::Subclass,i);
+                else if(string=="AcDbXrecord"&&attributeXrecordPending) {
+                    scope=Scope::Host;
+                }
                 else if(string=="AcDbEntity"&&!entity&&stage==Header) {entity=true;stage=Common;scope=Scope::Host;}
                 else if(string=="AcDbText"&&entity&&!hostText&&stage==Common) {hostText=true;stage=Text;scope=Scope::Host;}
                 else if(string==(definition?"AcDbAttributeDefinition":"AcDbAttribute")&&hostText&&!attribute&&(stage==Text||stage==Embedded)) {
@@ -221,6 +238,13 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
                 seen[4][code]=true;role=code==5?Role::Self:Role::Owner;
                 if(handle!=(code==5?raw.handle:raw.parentHandle))return reject(Reason::Identity,i);
             } else {
+                if(attributeXrecordPending) {
+                    if(!integer(value,0,1))return reject(Reason::InvalidValue,i);
+                    attributeXrecordPending=false;
+                    scope=Scope::Host;field=Field::AttributeXrecord;
+                    out.spans.push_back({i,code,scope,field,role,handle});
+                    continue;
+                }
                 auto& slots=seen[stage==Common?0u:stage==Text?2u:stage==Attribute?3u:1u];
                 if(code<0||code>=static_cast<int>(slots.size()))return reject(Reason::UnknownField,i);
                 if(slots[code]) {
@@ -371,6 +395,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool definition=true,bool allowLa
     if(depth)return reject(Reason::Application,end);
     if(xdepth)return reject(Reason::Xdata,end);
     if(pointCode)return reject(Reason::IncompletePoint,end);
+    if(attributeXrecordPending)return reject(Reason::UnmodeledSecondary,end);
     if(!entity||!hostText||!attribute||!seen[4][5]||!seen[4][330])return reject(Reason::Identity,end);
     if(attributeType!=1&&!nested)return reject(Reason::InvalidValue,end);
     if(redundantHostAlignment) {

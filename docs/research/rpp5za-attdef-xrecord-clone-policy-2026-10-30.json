@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "ATTDEF AcDbXrecord duplicate-record clone-policy source/output slice",
+  "mode": "Local bounded P4a implementation with generated source and output controls",
+  "baselineCommit": "ad2a73e5",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "03ef92c564ff82e2ed5815b6cb34413cd635b7fed0be2ceee07d58ede65e625d",
+  "scope": [
+    "Model ATTDEF AcDbXrecord subclass presence separately from its group-280 value.",
+    "Retain only the documented duplicate-record clone policy values 0 and 1 for the locally selected source profile.",
+    "Emit the subclass and field on ATTDEF/ATTRIB DXF output when present, with version and representability refusal.",
+    "Keep all test inputs and generated outputs in per-test scratch storage; add no persistent DWG/DXF fixtures."
+  ],
+  "evidence": {
+    "externalSources": [
+      {
+        "title": "Autodesk ATTDEF DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2026/RUS/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm",
+        "supports": "The ATTDEF DXF table documents an AcDbXrecord subclass marker followed by group 280 duplicate-record cloning policy; the same table also documents further fields that this slice deliberately does not model."
+      },
+      {
+        "title": "LibreDWG current DWG/DXF grammar",
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+        "supports": "Current source has the AcDbXrecord/keep_duplicate_records tokens active in the ATTRIB DXF grammar, while the corresponding ATTDEF DXF grammar has those tokens commented out. This divergence is recorded as a compatibility limitation, not independent confirmation of the ATTDEF profile."
+      }
+    ],
+    "sourceProfile": "Runtime-authored minimal ATTDEF body using Autodesk-documented AcDbXrecord plus group 280. Profiles cover AC1021, AC1024, AC1027, AC1032, ASCII and Binary DXF, and clone values 0 and 1.",
+    "sourceCreation": "Generated locally from scratch by tests/attdef_xrecord_controls.h at test runtime; no downloaded or pre-existing DWG/DXF fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/intern/dxfattdef.h",
+      "dwg2dxf/dx_attdef_source_profile.h",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/attdef_xrecord_controls.h",
+      "tests/attdef_source_tests.cpp",
+      "tests/attdef_source_field_faults.h",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "ATTDEF/ATTRIB parsing now captures AcDbXrecord presence independently from keepDuplicateRecords, rejects invalid/incomplete profiles and unmodeled secondary fields, and preserves duplicate group-280 roles. DXF output emits group 100 AcDbXrecord followed by group 280 for retained presence/value, and refuses pre-AC1018 output, embedded-MTEXT composition, and out-of-domain clone values.",
+    "publicApiOrLayoutChanged": true,
+    "abiQualification": "NOT_PERFORMED; DRW_Attrib gained a public data member. P8 ABI/consumer qualification remains open.",
+    "supportClaimPromoted": false,
+    "persistentFixturesAdded": 0
+  },
+  "generatedControls": {
+    "sourceProfiles": 16,
+    "sourceSpanAssertions": "Independent raw-span walker verifies exact marker/value source positions and field roles.",
+    "outputProfiles": 16,
+    "outputAssertion": "Independent ASCII/Binary wire walker checks subclass order and exact integer value before fresh typed reimport.",
+    "invalidValue": "Clone value 2 cannot produce a complete source profile; corrected value 1 succeeds through the same reader.",
+    "downgrade": "AC1015 export is refused while preserving a destination sentinel; same writer retries successfully at AC1024 and emits the retained field.",
+    "crossEncoding": true
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_attdef_source_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_attdef_attribute_xrecord|libdxfrw_attdef_source_profile|libdxfrw_attdef_embedded_dual280|libdxfrw_attdef_immutable_capture)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with Apple clang 21.0.0, -Wall -Wextra -pedantic -Werror.",
+      "focusedCTest": "PASS 4/4 in 3.76 seconds.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN.",
+      "initialNamingCleanupBuild": "A temporary helper rename broke generic compound replay callers; the rename was reverted and the final strict build passed."
+    }
+  },
+  "limitations": [
+    "The profile is generated from the Autodesk reference and has no native-producer artifact; it proves local source-span/model/output/readback behavior only.",
+    "The ATTDEF fields after group 280, including secondary attribute reference counts and hard-pointer dependencies, remain unmodeled and fail closed.",
+    "ATTDEF Xrecord plus embedded MTEXT remains unsupported by this writer path.",
+    "LibreDWG's current ATTDEF grammar comments out this subclass/value pair, so it provides no independent ATTDEF compatibility proof.",
+    "No native semantic, ABI, LibreCAD, LibreCAD_3, FreeCAD, cross-platform or release claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Only this bounded clone-policy field profile; P4 remains open for secondary fields, handle/owner joins, other unmatched records and composed conversion closure.",
+    "nextImplementationPacket": "P2: reproduce one current MLINE/XDATA or nested-resource refusal, identify its owning path, and implement a representative shared rule.",
+    "phaseStatusesChanged": false,
+    "validationFrequencyChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/drw_entities.h": "d4ddeb142a9fa2f2ff7ab72dbd3fb833fe80576fd7c15ec3c7b480bbba5198b1",
+    "src/drw_entities.cpp": "851254cf2152c96c12dadd48d2dab58933ddcece04d5ca57accdde0fc1a71af8",
+    "src/intern/dxfattdef.h": "c154e87cacfadecadf1938fede31f969506c41c6d2b4a9277798c4f4d9e62260",
+    "dwg2dxf/dx_attdef_source_profile.h": "bbd05d5326b31cb9643e9df5f99bb7064cae4f7e922b8da8ec3ddb99cc9cfead",
+    "src/libdxfrw.h": "a4b54424531d4382ee9f45e15f4bcbf854ecb0eb628125224c17bdd5ee51a830",
+    "src/libdxfrw.cpp": "91356bbb22b42c026199b0af5ce3c5c18b2f204c1d6e79d9a94bdea22e81a469",
+    "tests/attdef_xrecord_controls.h": "b8f67bf4b8f8cfac96141026c5f6510f82ba951cfac34c42ed2b502e166a2d77",
+    "tests/attdef_source_tests.cpp": "f878697d6a6a079a45479dfba3d058547e297c2c609d7c9ec4bc18b70c258878",
+    "tests/attdef_source_field_faults.h": "1b46c432ca2f50b73ae26f0e1b62fb5de4547f5f636c89efaed2ec08103319d7",
+    "tests/CMakeLists.txt": "6eb09ca4a238f2c1cdbf1b11a6d136ce2fed728bfb7fffd226009bb59d383408"
+  },
+  "commitCreated": false,
+  "worktree": "Shared worktree broadly dirty; unrelated files were not staged or included."
+}

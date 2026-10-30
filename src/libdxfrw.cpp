@@ -10814,6 +10814,23 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     return !writer->hasWriteError();
 }
 
+bool dxfRW::writeAttributeXrecord(const DRW_Attrib *ent) {
+    if (ent == nullptr)
+        return false;
+    const bool emit = ent->hasDxfXrecord || ent->keepDuplicateRecords != 0;
+    if (!emit)
+        return true;
+    if (version < DRW::AC1018)
+        return rejectUnsupportedDxfWrite("attribute Xrecord before AC1018");
+    if (ent->mtext != nullptr)
+        return rejectUnsupportedDxfWrite("attribute Xrecord with embedded MTEXT");
+    if (ent->keepDuplicateRecords > 1)
+        return rejectUnsupportedDxfWrite("attribute Xrecord clone policy");
+    writer->writeString(100, "AcDbXrecord");
+    writer->writeInt16(280, ent->keepDuplicateRecords);
+    return !writer->hasWriteError();
+}
+
 bool dxfRW::writeAttributeR2018Features(DRW_Attrib *ent) {
     if (ent == nullptr || !ent->mtext)
         return true;
@@ -10902,6 +10919,8 @@ bool dxfRW::writeAttrib(DRW_Attrib *ent,
         writer->writeInt16(74, ent->alignV);
     if (version > DRW::AC1014)
         writer->writeInt16(280, ent->lockPosition ? 1 : 0);
+    if (!writeAttributeXrecord(ent))
+        return false;
     if (!writeAttributeR2018Features(ent))
         return false;
     if (!ent->extData.empty() && !writeExtData(ent->extData))
@@ -10968,6 +10987,8 @@ bool dxfRW::writeAttdef(DRW_Attdef *ent,
         writer->writeInt16(74, ent->alignV);
     if (version > DRW::AC1014)
         writer->writeInt16(280, ent->lockPosition ? 1 : 0);
+    if (!writeAttributeXrecord(ent))
+        return false;
     if (!writeAttributeR2018Features(ent))
         return false;
     if (!ent->extData.empty() && !writeExtData(ent->extData))

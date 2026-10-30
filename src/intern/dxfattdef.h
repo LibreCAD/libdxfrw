@@ -36,13 +36,16 @@ struct SourceState {
                 b.columnCount,b.columnWidth,b.columnGutter,b.autoHeight,b.flowReversed);
         }
     } scope;
-    bool attributeSubclass=false,hasNested=false;
+    bool attributeSubclass=false,attributeXrecordPending=false,hasNested=false;
     bool operator==(const SourceState& b) const noexcept {
         return host==b.host&&nested==b.nested&&scope==b.scope
-            &&attributeSubclass==b.attributeSubclass&&hasNested==b.hasNested;
+            &&attributeSubclass==b.attributeSubclass
+            &&attributeXrecordPending==b.attributeXrecordPending
+            &&hasNested==b.hasNested;
     }
     bool hasNoPendingXdata() const noexcept {
-        return !host.present&&!host.coordinateMask&&!nested.present&&!nested.coordinateMask;
+        return !host.present&&!host.coordinateMask&&!nested.present&&!nested.coordinateMask
+            &&!attributeXrecordPending;
     }
 };
 static_assert(std::is_trivially_copyable<SourceState>::value,"ATTDEF state observation must not allocate");
@@ -68,6 +71,7 @@ public:
         SourceState state;
         state.host={static_cast<bool>(value.curr),value.currCoordMask};
         state.attributeSubclass=value.dxfInAttributeSubclass;
+        state.attributeXrecordPending=value.dxfInAttributeXrecord;
         state.hasNested=static_cast<bool>(value.mtext);
         if(value.mtext) {
             const auto& m=*value.mtext;const auto& s=m.m_dxfOrientationScope;
@@ -102,11 +106,11 @@ public:
     template<class VariantEqual>
     static bool sameAttributeModel(const DRW_Attrib& a,const DRW_Attrib& b,VariantEqual equal) noexcept {
         return sameText(a,b,equal)&&std::tie(a.tag,a.attribFlags,a.m_fieldLength,a.lockPosition,a.attVersion,
-                a.m_attributeType,a.keepDuplicateRecords,a.m_r2018OuterAnnotativeData,
+                a.m_attributeType,a.keepDuplicateRecords,a.hasDxfXrecord,a.m_r2018OuterAnnotativeData,
                 a.m_r2018OuterAnnotativeUnknown,a.m_r2018OuterAnnotativeAppHandle,
                 a.m_r2018OuterAnnotativeAppIdName)
             ==std::tie(b.tag,b.attribFlags,b.m_fieldLength,b.lockPosition,b.attVersion,
-                b.m_attributeType,b.keepDuplicateRecords,b.m_r2018OuterAnnotativeData,
+                b.m_attributeType,b.keepDuplicateRecords,b.hasDxfXrecord,b.m_r2018OuterAnnotativeData,
                 b.m_r2018OuterAnnotativeUnknown,b.m_r2018OuterAnnotativeAppHandle,
                 b.m_r2018OuterAnnotativeAppIdName)
             &&static_cast<bool>(a.mtext)==static_cast<bool>(b.mtext)
@@ -133,7 +137,8 @@ public:
         return entity.parseDxfGroups(102,reader);
     }
     bool finish(bool applyExtrusion) {
-        if(!hasText||!hasTag||value.tag.empty()||!hasX||!hasY||!hasHeight||!finishAttribute(value))return false;
+        if(value.dxfInAttributeXrecord||!hasText||!hasTag||value.tag.empty()
+            ||!hasX||!hasY||!hasHeight||!finishAttribute(value))return false;
         if(applyExtrusion)value.applyExtrusion();
         return true;
     }

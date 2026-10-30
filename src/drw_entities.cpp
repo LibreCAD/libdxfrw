@@ -14737,6 +14737,7 @@ DRW_Attrib::DRW_Attrib(const DRW_Attrib& o)
       lockPosition(o.lockPosition), attVersion(o.attVersion),
       m_attributeType(o.m_attributeType),
       keepDuplicateRecords(o.keepDuplicateRecords),
+      hasDxfXrecord(o.hasDxfXrecord),
       m_r2018OuterAnnotativeData(o.m_r2018OuterAnnotativeData),
       m_r2018OuterAnnotativeUnknown(o.m_r2018OuterAnnotativeUnknown),
       m_r2018OuterAnnotativeAppHandle(o.m_r2018OuterAnnotativeAppHandle),
@@ -14758,6 +14759,7 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
         attVersion = o.attVersion;
         m_attributeType = o.m_attributeType;
         keepDuplicateRecords = o.keepDuplicateRecords;
+        hasDxfXrecord = o.hasDxfXrecord;
         m_r2018OuterAnnotativeData = o.m_r2018OuterAnnotativeData;
         m_r2018OuterAnnotativeUnknown = o.m_r2018OuterAnnotativeUnknown;
         m_r2018OuterAnnotativeAppHandle =
@@ -14768,6 +14770,8 @@ DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
         // Do not retain the destination parser's subclass mode after an
         // assignment; the copied model starts a fresh DXF walk.
         dxfInAttributeSubclass = false;
+        dxfInAttributeXrecord = false;
+        dxfAfterAttributeXrecord = false;
         m_dxfLegacyAttributeHeader = {};
         copyExtDataFrom(o);
     }
@@ -15552,6 +15556,21 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         header = {};
         return true;
     };
+    if (dxfInAttributeXrecord) {
+        if (code != 280)
+            return false;
+        const int cloning = reader->getInt32();
+        if (cloning < 0 || cloning > 1)
+            return false;
+        keepDuplicateRecords = static_cast<std::uint8_t>(cloning);
+        hasDxfXrecord = true;
+        dxfInAttributeXrecord = false;
+        dxfAfterAttributeXrecord = true;
+        return true;
+    }
+    if (dxfAfterAttributeXrecord && code != 102
+        && (code < 1000 || code > 1071))
+        return false;
     if (code == 101) {
         const std::string_view marker = reader->getStringView();
         if (marker == "Embedded Object") {
@@ -15570,6 +15589,17 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     }
     if (code == 100) {
         const std::string_view sub = reader->getStringView();
+        if (sub == "AcDbXrecord") {
+            const DRW::Version sourceVersion = reader->getSourceVersion();
+            if (!dxfInAttributeSubclass || dxfInAttributeXrecord
+                || hasDxfXrecord || mtext
+                || (sourceVersion != DRW::UNKNOWNV
+                    && sourceVersion < DRW::AC1018))
+                return false;
+            dxfInAttributeSubclass = false;
+            dxfInAttributeXrecord = true;
+            return true;
+        }
         if (sub == "Embedded Object") {
             // The legacy spelling has the same single-scope rule as 101.
             if (mtext || !resolveLegacyEmbeddedHeader())
@@ -15689,12 +15719,15 @@ void DRW_Attrib::resetAttribDwgState() {
     attVersion = 0;
     m_attributeType = 1;
     keepDuplicateRecords = 0;
+    hasDxfXrecord = false;
     m_r2018OuterAnnotativeData.clear();
     m_r2018OuterAnnotativeUnknown = 0;
     m_r2018OuterAnnotativeAppHandle = 0;
     m_r2018OuterAnnotativeAppIdName.clear();
     mtext.reset();
     dxfInAttributeSubclass = false;
+    dxfInAttributeXrecord = false;
+    dxfAfterAttributeXrecord = false;
     m_dxfLegacyAttributeHeader = {};
 }
 

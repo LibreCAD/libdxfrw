@@ -188,6 +188,7 @@ inline std::vector<DrwEntityEncodeTestAccess::Fault> attdefSourceFieldFaults() {
     result.emplace_back("attVersion",[](DRW_Attdef& v){v.attVersion=7;});
     result.emplace_back("m_attributeType",[](DRW_Attdef& v){v.m_attributeType=1;});
     result.emplace_back("keepDuplicateRecords",[](DRW_Attdef& v){v.keepDuplicateRecords=7;});
+    result.emplace_back("hasDxfXrecord",[](DRW_Attdef& v){v.hasDxfXrecord=!v.hasDxfXrecord;});
     result.emplace_back("m_r2018OuterAnnotativeData",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeData={1u};});
     result.emplace_back("m_r2018OuterAnnotativeUnknown",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeUnknown=7u;});
     result.emplace_back("m_r2018OuterAnnotativeAppHandle",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeAppHandle=7u;});
