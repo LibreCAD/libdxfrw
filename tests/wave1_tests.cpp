@@ -3451,6 +3451,34 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
         }
     }
 
+    for (const bool binary : {false, true}) {
+        for (const std::uint16_t invalid : {std::uint16_t{1},
+                                            std::uint16_t{3},
+                                            std::uint16_t{65535}}) {
+            iface.style.styleVersion = invalid;
+            const std::string sentinel =
+                "KEEP_PRE_R2010_MLEADERSTYLE_VERSION_DESTINATION";
+            { std::ofstream out(path, std::ios::binary); out << sentinel; }
+            const bool written = iface.fileExport(
+                path.string(), DRW::AC1021, binary, &iface.data, false);
+            std::ifstream saved(path, std::ios::binary);
+            const bool destinationPreserved =
+                std::string(std::istreambuf_iterator<char>(saved), {})
+                    == sentinel;
+            t.expect(!written && destinationPreserved
+                         && iface.style.styleVersion == invalid,
+                     "AC1021 refuses an unrepresentable nondefault MLEADERSTYLE version before publication");
+
+            iface.style.styleVersion = 2;
+            const bool retried = iface.fileExport(
+                path.string(), DRW::AC1021, binary, &iface.data, false);
+            const auto tags = retried ? fileTags(path, binary)
+                                      : std::vector<std::string>{};
+            t.expect(retried && fieldCodeIsAbsent(tags, 179),
+                     "same-adapter AC1021 MLEADERSTYLE version retry omits group 179");
+        }
+    }
+
     constexpr std::array<std::int32_t, 27> validLineWeights{{
         -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
         50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211

@@ -27574,6 +27574,8 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     };
     const bool hasR2010AttachmentData = ent->attachmentDirection != 0
         || ent->topAttachment != 0 || ent->bottomAttachment != 0;
+    // ODA §20.4.87 assigns group 179 to R2010+ and expects value 2. Older
+    // DXF targets omit the field and therefore can represent only that default.
     if (ent->contentType > 3 || ent->drawMLeaderOrder > 1
         || ent->drawLeaderOrder > 1 || ent->leaderType > 2
         || !isValidDxfLineWeightValue(ent->leaderLineWeight)
@@ -27582,7 +27584,7 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         || ent->blockConnectionType > 1 || ent->attachmentDirection > 1
         || !isDefaultOrVerticalAttachment(ent->topAttachment)
         || !isDefaultOrVerticalAttachment(ent->bottomAttachment)
-        || (version >= DRW::AC1024 && ent->styleVersion != 2)
+        || ent->styleVersion != 2
         || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();
     // The published MLEADERSTYLE DXF table defines scalar color indices for
