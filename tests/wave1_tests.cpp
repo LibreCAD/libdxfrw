@@ -2673,6 +2673,25 @@ void testAssociativeNetworkWriter(TestContext& t) {
         value << std::uppercase << std::hex << handle;
         return value.str();
     };
+    const std::array<std::pair<const char*, const char*>, 4>
+        witnessedAssociativeClasses{{
+            {"ACDBASSOCNETWORK", "AcDbAssocNetwork"},
+            {"ACDBASSOC2DCONSTRAINTGROUP", "AcDbAssoc2dConstraintGroup"},
+            {"ACDBASSOCGEOMDEPENDENCY", "AcDbAssocGeomDependency"},
+            {"ACDBASSOCVARIABLE", "AcDbAssocVariable"}}};
+    bool classRowsMatch = true;
+    for (const auto& expectedClass : witnessedAssociativeClasses) {
+        DRW_Class actualClass;
+        classRowsMatch = classRowsMatch
+            && dxfRW::dxfClassForRecordName(expectedClass.first, actualClass)
+            && actualClass.recName == expectedClass.first
+            && actualClass.className == expectedClass.second
+            && actualClass.appName == "ObjectDBX Classes"
+            && actualClass.proxyFlag == 1025
+            && actualClass.entityFlag == 0;
+    }
+    t.expect(classRowsMatch,
+             "AC1024 associative network family CLASS rows match source and independent peer flags");
     const auto makeNetwork = []() {
         DRW_AssociativeObject network("ACDBASSOCNETWORK");
         network.handle = 0x9BDu;

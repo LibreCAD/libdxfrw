@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-class-metadata-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative output class metadata correction",
+  "status": "LOCAL_AC1024_ASSOCIATIVE_CLASS_METADATA_VERIFIED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "fb22a728",
+  "scope": "Correct the fallback DXF CLASS metadata for the four associative record profiles independently present in the AC1024 civil source, so their class rows match the source class flags and source-matched independent DXF output. Do not enable graph output or modify unrelated associative class profiles.",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "version": "AC1024",
+    "localReaderTrace": "/private/tmp/libdxfrw-p4-assoc-network-writer-check.log",
+    "localReaderTraceSha256": "070c1fe05ec8c6c7855ceca40d2734b5f59755378a78ae22f2db227caaedce7a",
+    "sourceClassRows": [
+      {
+        "record": "ACDBASSOCNETWORK",
+        "class": "AcDbAssocNetwork",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOC2DCONSTRAINTGROUP",
+        "class": "AcDbAssoc2dConstraintGroup",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCGEOMDEPENDENCY",
+        "class": "AcDbAssocGeomDependency",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCVARIABLE",
+        "class": "AcDbAssocVariable",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCDEPENDENCY",
+        "class": "AcDbAssocDependency",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCVALUEDEPENDENCY",
+        "class": "AcDbAssocValueDependency",
+        "flags": 1025
+      }
+    ]
+  },
+  "independentWitness": {
+    "repository": "../libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "tool": "/opt/homebrew/bin/dwg2dxf",
+    "version": "0.14",
+    "projectionPath": "/private/tmp/civil-assoc-dependency.json",
+    "projectionSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+    "outputPath": "/private/tmp/libredwg-assoc-civil-0.14.dxf",
+    "outputSha256": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+    "classRows": [
+      {
+        "record": "ACDBASSOCNETWORK",
+        "class": "AcDbAssocNetwork",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOC2DCONSTRAINTGROUP",
+        "class": "AcDbAssoc2dConstraintGroup",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCGEOMDEPENDENCY",
+        "class": "AcDbAssocGeomDependency",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCVARIABLE",
+        "class": "AcDbAssocVariable",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCDEPENDENCY",
+        "class": "AcDbAssocDependency",
+        "flags": 1025
+      },
+      {
+        "record": "ACDBASSOCVALUEDEPENDENCY",
+        "class": "AcDbAssocValueDependency",
+        "flags": 1025
+      }
+    ],
+    "scopeNote": "Peer output corroborates the named class rows for this input; it does not qualify complete graph conversion or consumer semantics."
+  },
+  "implementationBrief": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Change only the ACDBASSOCNETWORK fallback flags from 1153 to 1025 and add fallback rows for ACDBASSOC2DCONSTRAINTGROUP, ACDBASSOCGEOMDEPENDENCY and ACDBASSOCVARIABLE with the witnessed class names, ObjectDBX Classes app name, flags 1025 and entityFlag 0. Extend the associative network writer class-metadata control to assert all four rows and retain the existing dependency-row controls.",
+    "selector": "--associative-network-writer",
+    "build": "cmake --build build --target libdxfrw_wave1_tests -j 4",
+    "focusedCtest": "ctest --test-dir build -R '^(libdxfrw_associative_network_writer|libdxfrw_associative_dependency_writer)$' --output-on-failure",
+    "nonGoals": "Do not add writers for constraint groups or geometry dependencies in this packet; do not connect associative writers to dx_iface; keep strict whole-graph refusal active."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Corrected the AC1024 fallback CLASS flags for ACDBASSOCNETWORK and ACDBASSOCGEOMDEPENDENCY from 1153 to the source-witnessed 1025; added the missing ACDBASSOC2DCONSTRAINTGROUP and ACDBASSOCVARIABLE rows with source-witnessed names, app name, flags and entityFlag. The focused associative writer test now checks all four rows. No graph routing or support claim was enabled."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_network_writer|libdxfrw_associative_dependency_writer)$' --output-on-failure",
+      "result": "PASS 2/2; 0.46 seconds total."
+    },
+    "fullSuites": "NOT_RUN; the focused selector pair covers this metadata-only slice."
+  },
+  "nextAction": "Integrate admitted AC1024 associative records through the source-bound graph planner; keep full-document refusal until identity/remapping, required descendant closure, independent staged-output inspection and readback pass.",
+  "baselineSourceHashesSha256": {
+    "src/libdxfrw.cpp": "4fa40151e04a6a241472001babaafc17144a8e12a48ba9187e37fc7e8dcb966c",
+    "src/libdxfrw.h": "8a55b1bf83f4ef5da684fef650137fad6ed9d5cae7373b615a5361f49a42e3d7",
+    "tests/wave1_tests.cpp": "d0f45223cb45494c47bf5a4d134fd248257e338163f1173351878d182a8309d1",
+    "CMakeLists.txt": "50352652433732e4942cbbe574041c4d5aebc690159c83da2e0acdbd78f702d5",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "580563245fe3a8d6e132a0fbc63d94f4dddd188297250cf8bffcface6d149fc4"
+  },
+  "implementedSourceHashesSha256": {
+    "src/libdxfrw.cpp": "64fdc8548874dbc2a4ba2c2a97bd66e99c8563368bde5deeb0be3f4b89b1436e",
+    "tests/wave1_tests.cpp": "05cb488f24f385b197a60dab8edc287b160d2bcf09862034ecc49695bb150cea",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c274ea2b07c85bd27536974812ea34ca9a7fcccd595dd4a97785ce55ef3a726f",
+    "build/libdxfrw_wave1_tests": "68899bace185274e2d1422a47da3c1cbb421e151b3bce07374fc477dc4827331"
+  }
+}
