@@ -13134,6 +13134,92 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         if (!uniqueAssociativeHandles)
             return;
 
+        const auto hasRecordSuffix = [](const std::string& recordName,
+                                        const char* suffix) {
+            const std::string suffixName(suffix);
+            return recordName.size() >= suffixName.size()
+                && sameAsciiName(
+                    recordName.substr(recordName.size() - suffixName.size()),
+                    suffixName);
+        };
+        const auto isAssociativeActionRecord =
+            [&](const DRW_AssociativeObject& object) {
+                return hasRecordSuffix(object.m_recordName, "ACTION")
+                    || hasRecordSuffix(object.m_recordName, "NETWORK")
+                    || hasRecordSuffix(object.m_recordName, "VARIABLE")
+                    || hasRecordSuffix(object.m_recordName,
+                                       "2DCONSTRAINTGROUP");
+            };
+        bool associativeActionEmptyReferenceProfileComplete = true;
+        std::size_t associativeActionReferenceWork = 0u;
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& action =
+                data.dwgAssociativeObjects[index];
+            if (!isAssociativeActionRecord(action))
+                continue;
+            ++receipt.associativeActionRecords;
+            if (!hasCompletePrefix(
+                    action, DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)) {
+                associativeActionEmptyReferenceProfileComplete = false;
+                continue;
+            }
+            if (action.m_actionBodyHandle != 0u) {
+                if (associativeActionReferenceWork
+                    >= kMaxAssociativeDwgActionReferences) {
+                    receipt.associativeActionReferenceLimitExceeded = true;
+                    associativeActionEmptyReferenceProfileComplete = false;
+                } else {
+                    ++associativeActionReferenceWork;
+                    ++receipt.associativeActionBodyReferences;
+                }
+                associativeActionEmptyReferenceProfileComplete = false;
+            }
+            if (action.m_dependencies.size()
+                > kMaxAssociativeDwgActionReferences
+                    - associativeActionReferenceWork) {
+                receipt.associativeActionReferenceLimitExceeded = true;
+                associativeActionEmptyReferenceProfileComplete = false;
+            } else {
+                associativeActionReferenceWork +=
+                    action.m_dependencies.size();
+                receipt.associativeActionDependencyReferences +=
+                    action.m_dependencies.size();
+            }
+            if (!action.m_dependencies.empty())
+                associativeActionEmptyReferenceProfileComplete = false;
+            if (action.m_classVersion > 1u) {
+                if (action.m_ownedParamPrefixCount
+                        != action.m_ownedParams.size()
+                    || !action.m_valueParamsParsed
+                    || action.m_valueParamCount != 0u)
+                    associativeActionEmptyReferenceProfileComplete = false;
+            } else if (!action.m_ownedParams.empty()
+                       || action.m_valueParamsParsed
+                       || action.m_valueParamCount != 0u) {
+                associativeActionEmptyReferenceProfileComplete = false;
+            }
+            if (action.m_ownedParams.size()
+                > kMaxAssociativeDwgActionReferences
+                    - associativeActionReferenceWork) {
+                receipt.associativeActionReferenceLimitExceeded = true;
+                associativeActionEmptyReferenceProfileComplete = false;
+            } else {
+                associativeActionReferenceWork += action.m_ownedParams.size();
+                receipt.associativeActionOwnedParamReferences +=
+                    action.m_ownedParams.size();
+            }
+            if (!action.m_ownedParams.empty())
+                associativeActionEmptyReferenceProfileComplete = false;
+        }
+        receipt.associativeActionEmptyReferenceProfileComplete =
+            receipt.associativeActionRecords > 0u
+            && associativeActionEmptyReferenceProfileComplete
+            && !receipt.associativeActionReferenceLimitExceeded
+            && receipt.associativeActionBodyReferences == 0u
+            && receipt.associativeActionDependencyReferences == 0u
+            && receipt.associativeActionOwnedParamReferences == 0u;
+
         std::unordered_map<std::uint32_t, const DRW_AssociativeObject*>
             networksByHandle;
         networksByHandle.reserve(retained);
@@ -14146,6 +14232,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         receipt.associativeNetworkDictionaryEntryClosureComplete = false;
         receipt.associativeNetworkDictionaryOwnerChainsComplete = false;
         receipt.associativeNetworkParentChainsComplete = false;
+        receipt.associativeActionEmptyReferenceProfileComplete = false;
     }
 }
 
@@ -41634,6 +41721,20 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                             ? 1 : 0)
                     << " associativeNetworkParentChainsComplete="
                     << (receipt.associativeNetworkParentChainsComplete ? 1 : 0)
+                    << " associativeActionRecords="
+                    << receipt.associativeActionRecords
+                    << " associativeActionBodyReferences="
+                    << receipt.associativeActionBodyReferences
+                    << " associativeActionDependencyReferences="
+                    << receipt.associativeActionDependencyReferences
+                    << " associativeActionOwnedParamReferences="
+                    << receipt.associativeActionOwnedParamReferences
+                    << " associativeActionReferenceLimitExceeded="
+                    << (receipt.associativeActionReferenceLimitExceeded
+                            ? 1 : 0)
+                    << " associativeActionEmptyReferenceProfileComplete="
+                    << (receipt.associativeActionEmptyReferenceProfileComplete
+                            ? 1 : 0)
                     << " selectedGraphEdgesComplete="
                     << (receipt.selectedGraphEdgesComplete ? 1 : 0)
                     << " limitExceeded="

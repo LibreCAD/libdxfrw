@@ -375,6 +375,12 @@ struct dx_associativeDwgImportReceipt {
     bool associativeNetworkDictionaryEntryClosureComplete{false};
     bool associativeNetworkDictionaryOwnerChainsComplete{false};
     bool associativeNetworkParentChainsComplete{false};
+    std::size_t associativeActionRecords{0};
+    std::size_t associativeActionBodyReferences{0};
+    std::size_t associativeActionDependencyReferences{0};
+    std::size_t associativeActionOwnedParamReferences{0};
+    bool associativeActionReferenceLimitExceeded{false};
+    bool associativeActionEmptyReferenceProfileComplete{false};
     bool resourceLimitExceeded{false};
     bool captureFailed{false};
     bool successful{false};
