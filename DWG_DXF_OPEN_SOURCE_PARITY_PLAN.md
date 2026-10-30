@@ -42,7 +42,7 @@ subtasks are already complete.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P2 | OPEN | Close current MLINESTYLE, LTYPE, MLEADERSTYLE and XDATA/1005 code gaps using witnessed source/output failures. Batch shared schema and transaction changes; do not create one implementation item per count or field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
+| P2 | OPEN | Close only reproducible MLINESTYLE, LTYPE/APPID, MLEADERSTYLE and XDATA/1005 source-to-output losses. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a current unmatched source record or dependency role. |
 | P5 | OPEN | Complete remaining rendering and TABLE content/style behavior, including unqualified linked-cell payloads and composed format scopes. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
@@ -53,30 +53,29 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P2 — current MLINE/XDATA gap.** Reproduce one still-failing operation, identify the owning classifier/planner/writer, and implement the shared missing rule with representative and boundary cases. Do not repeat already-qualified count matrices.
-2. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, the remaining Xrecord work is its secondary metadata and handle dependencies, not the now-modeled group-280 clone policy.
+1. **P2 — witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If the candidate passes, or the gap is evidence-only, move immediately to P4a; do not spend a slice repeating a passing profile or count matrix.
+2. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, select only an unmatched secondary Xrecord field or handle dependency.
 3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
 ## P2 — nested named-resource bodies
 
-Keep only these residuals; prior selected MLINESTYLE and MLEADERSTYLE transport
-profiles are recorded in their receipts.
+Every P2 implementation starts from a current source/output witness. Reuse the
+existing profile receipts to exclude passing cases and select only the smallest
+remaining operation that demonstrates a code loss.
 
 1. **MLINESTYLE edits and source schemas:** resolve only still-failing witnessed
    source/schema and edit cases through the shared consumer projection and
    transaction path. Retain refusal for unsupported legacy routes, carriers or
-   version grammars. Replace exhaustive per-count tests with representative small,
-   boundary and aggregate-budget cases unless the algorithm has count-specific
-   branches.
+   version grammars. Use representative, boundary and aggregate-budget cases;
+   add count-specific cases only where the algorithm has count-specific branches.
 2. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
-   source profiles, APPID metadata and value/chunk forms; resolve additional
-   code-1005 target types, mixed target sets, section combinations and reference
-   cardinalities beyond the selected profiles. Exercise late mutation and missing
-   providers through the existing rooted planner.
-3. **MLEADERSTYLE:** cover source/field semantics not yet represented by the
-   shared integer-domain and singleton-field validators: handle roles,
+   source profiles, APPID metadata and value/chunk forms; resolve a code-1005
+   target type, mixed set, section combination or cardinality only when a current
+   witness shows the rooted planner/writer loses or misbinds it. Exercise late
+   mutation and missing providers on that same path.
+3. **MLEADERSTYLE:** cover remaining source/field semantics: handle roles,
    absent/default values and version-specific fields through shared parser/writer
    validation. Keep native annotation/rendering claims separate.
 4. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
