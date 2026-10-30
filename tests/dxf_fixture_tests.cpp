@@ -31527,7 +31527,26 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::MPOLYGON
+        const Tags entity=entityType==DRW::POLYLINE
+            ?Tags{{0,"POLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{39,"0.75"},
+                {100,"AcDb2dPolyline"},{10,"0"},{20,"0"},{30,"4"},
+                {40,"0.25"},{41,"0.5"},{70,"1"},
+                {0,"VERTEX"},{5,"A901"},{330,"A900"},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+                {100,"AcDb2dVertex"},{10,"1"},{20,"2"},{30,"0"},
+                {40,"0.5"},{41,"0.75"},{42,"0.25"},{70,"0"},{91,"3"},
+                {0,"VERTEX"},{5,"A902"},{330,"A900"},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+                {100,"AcDb2dVertex"},{10,"5"},{20,"2"},{30,"0"},
+                {40,"0.25"},{41,"0.5"},{42,"-0.375"},{70,"0"},{91,"5"},
+                {0,"VERTEX"},{5,"A903"},{330,"A900"},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+                {100,"AcDb2dVertex"},{10,"3"},{20,"7"},{30,"0"},
+                {40,"0.75"},{41,"0.25"},{42,"0.5"},{70,"0"},{91,"7"},
+                {0,"SEQEND"},{5,"A904"},{330,"A900"},
+                {100,"AcDbEntity"},{8,"SEQ_FOOTER"},{62,"4"}}
+            :entityType==DRW::MPOLYGON
             ?Tags{{0,"MPOLYGON"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbMPolygon"},
                 {70,"1"},{10,"0"},{20,"0"},{30,"0"},
@@ -32693,6 +32712,54 @@ Tags sourceWithLWPolylineEntityHandleXdata(bool binary) {
     }
     if(!polylineInserted)
         throw std::runtime_error("LWPOLYLINE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithPolylineEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,polylineInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags polyline{{0,"POLYLINE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{39,"0.75"},
+            {100,"AcDb2dPolyline"},{10,"0"},{20,"0"},{30,"4"},
+            {40,"0.25"},{41,"0.5"},{70,"1"},
+            {0,"VERTEX"},{5,"A901"},{330,"A900"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+            {100,"AcDb2dVertex"},{10,"1"},{20,"2"},{30,"0"},
+            {40,"0.5"},{41,"0.75"},{42,"0.25"},{70,"0"},{91,"3"},
+            {0,"VERTEX"},{5,"A902"},{330,"A900"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+            {100,"AcDb2dVertex"},{10,"5"},{20,"2"},{30,"0"},
+            {40,"0.25"},{41,"0.5"},{42,"-0.375"},{70,"0"},{91,"5"},
+            {0,"VERTEX"},{5,"A903"},{330,"A900"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbVertex"},
+            {100,"AcDb2dVertex"},{10,"3"},{20,"7"},{30,"0"},
+            {40,"0.75"},{41,"0.25"},{42,"0.5"},{70,"0"},{91,"7"},
+            {0,"SEQEND"},{5,"A904"},{330,"A900"},
+            {100,"AcDbEntity"},{8,"SEQ_FOOTER"},{62,"4"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      polyline.begin(),polyline.end());
+        polylineInserted=true;
+        break;
+    }
+    if(!polylineInserted)
+        throw std::runtime_error("POLYLINE XDATA target source missing");
     return fields;
 }
 
@@ -33975,7 +34042,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     DRW::ETYPE entityType=DRW::CIRCLE,
                                     std::string_view insertBlockName="AuthorityBlock") {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::MPOLYGON&&entityType!=DRW::HATCH
+    if(entityType!=DRW::POLYLINE
+        &&entityType!=DRW::MPOLYGON&&entityType!=DRW::HATCH
         &&entityType!=DRW::TOLERANCE
         &&entityType!=DRW::LEADER
         &&entityType!=DRW::MTEXT
@@ -33989,6 +34057,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
         &&entityType!=DRW::RAY&&entityType!=DRW::XLINE
         &&entityType!=DRW::DXF_TRACE&&entityType!=DRW::SOLID)return false;
+    const bool isPolyline=entityType==DRW::POLYLINE;
     const bool isMPolygon=entityType==DRW::MPOLYGON;
     const bool isHatch=entityType==DRW::HATCH;
     const bool isTolerance=entityType==DRW::TOLERANCE;
@@ -34009,7 +34078,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isXline=entityType==DRW::XLINE;
     const bool isTrace=entityType==DRW::DXF_TRACE;
     const bool isSolid=entityType==DRW::SOLID;
-    const std::string_view recordName=isMPolygon?"MPOLYGON":isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
+    const std::string_view recordName=isPolyline?"POLYLINE":isMPolygon?"MPOLYGON":isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :is3DLine?"3DLINE":isMesh?"MESH":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
         :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
@@ -34117,7 +34186,13 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isMPolygon
+        const bool expectedGeometry=isPolyline
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDb2dPolyline"})
+                &&integerValuesMatch(row,70,{1})
+                &&realValue(row,10,0.0)&&realValue(row,20,0.0)
+                &&realValue(row,30,4.0)&&realValue(row,39,0.75)
+                &&realValue(row,40,0.25)&&realValue(row,41,0.5)
+            :isMPolygon
             ?textValuesMatch(row,100,{"AcDbEntity","AcDbMPolygon"})
                 &&fieldValue(row,2)=="SOLID"
                 &&integerValuesMatch(row,70,{1})
@@ -34397,6 +34472,58 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     if(physicalXdata!=std::vector<std::pair<int,std::string>>{
             {1001,appName},{1000,payload},{1005,curve->id}})
         return false;
+    if(isPolyline) {
+        const std::array<std::string_view,3> sourceVertexHandles{{
+            "A901","A902","A903"}};
+        const std::array<double,3> xs{{1.0,5.0,3.0}};
+        const std::array<double,3> ys{{2.0,2.0,7.0}};
+        const std::array<double,3> starts{{0.5,0.25,0.75}};
+        const std::array<double,3> ends{{0.75,0.5,0.25}};
+        const std::array<double,3> bulges{{0.25,-0.375,0.5}};
+        const std::array<std::int64_t,3> identifiers{{3,5,7}};
+        std::vector<const mlineStyleAuthorityControls::Row*> vertices;
+        const mlineStyleAuthorityControls::Row* footer=nullptr;
+        for(const auto& row:rows) {
+            if(row.section!=targetSection||row.owner!=curve->id)continue;
+            if(row.type=="VERTEX")vertices.push_back(&row);
+            if(row.type=="SEQEND") {
+                if(footer!=nullptr)return false;
+                footer=&row;
+            }
+        }
+        if(vertices.size()!=3u||footer==nullptr||footer->id.empty()
+            ||fieldValue(*footer,8)!="SEQ_FOOTER"
+            ||!integerValuesMatch(*footer,62,{4})
+            ||(requireRemap?footer->id=="A904":footer->id!="A904"))
+            return false;
+        std::set<std::string> childIds;
+        for(std::size_t i=0u;i<vertices.size();++i) {
+            const auto& row=*vertices[i];
+            std::int64_t identifier=0;
+            const auto flagsCount=std::count_if(row.fields.begin(),row.fields.end(),
+                [](const auto& field){return field.first==70;});
+            // Group 70 value 0 is the VERTEX default; the canonical writer
+            // omits it. Typed readback below verifies that omission preserves
+            // the source meaning.
+            const bool defaultFlags=flagsCount==0u
+                ||(flagsCount==1u&&integerValuesMatch(row,70,{0}));
+            if(row.id.empty()||!childIds.insert(row.id).second
+                ||(requireRemap?row.id==sourceVertexHandles[i]
+                               :row.id!=sourceVertexHandles[i])
+                ||!textValuesMatch(row,100,
+                    {"AcDbEntity","AcDbVertex","AcDb2dVertex"})
+                ||!realValue(row,10,xs[i])||!realValue(row,20,ys[i])
+                ||!realValue(row,30,0.0)
+                ||!realValue(row,40,starts[i])
+                ||!realValue(row,41,ends[i])
+                ||!realValue(row,42,bulges[i])
+                ||!dx_raster_output::integer(fieldValue(row,91),identifier)
+                ||identifier!=identifiers[i]
+                ||!defaultFlags)
+                return false;
+        }
+        if(!childIds.insert(footer->id).second)return false;
+    }
 
     dx_iface reader;dx_data actual;
     if(!reader.fileImport(path.string(),&actual,false)
@@ -34432,9 +34559,49 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             return entity!=nullptr&&entity->eType==entityType
                 &&entity->handle==std::stoul(curve->id,nullptr,16);
         });
-    if(typedCurve==container->ent.end())
+    if(typedCurve==container->ent.end()) {
         return false;
-    if(isInsert) {
+    }
+    if(isPolyline) {
+        const auto* typedModel=dynamic_cast<const DRW_Polyline*>(*typedCurve);
+        const auto* footer=typedModel?typedModel->seqEndEntity.get():nullptr;
+        const std::array<DRW_Coord,3> expected{{
+            DRW_Coord(1.0,2.0,0.0),DRW_Coord(5.0,2.0,0.0),
+            DRW_Coord(3.0,7.0,0.0)}};
+        const std::array<double,3> starts{{0.5,0.25,0.75}};
+        const std::array<double,3> ends{{0.75,0.5,0.25}};
+        const std::array<double,3> bulges{{0.25,-0.375,0.5}};
+        const std::array<int,3> identifiers{{3,5,7}};
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Polyline)
+            ||typedModel->parentHandle!=ownerHandle||typedModel->flags!=1
+            ||typedModel->basePoint.x!=0.0||typedModel->basePoint.y!=0.0
+            ||typedModel->basePoint.z!=4.0||typedModel->thickness!=0.75
+            ||typedModel->defstawidth!=0.25||typedModel->defendwidth!=0.5
+            ||typedModel->vertlist.size()!=expected.size()
+            ||footer==nullptr||typeid(*footer)!=typeid(DRW_SeqEnd)
+            ||footer->parentHandle
+                !=static_cast<std::uint32_t>(std::stoul(curve->id,nullptr,16))
+            ||footer->layer!="SEQ_FOOTER"
+            ||footer->color!=4) {
+            return false;
+        }
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& vertex=typedModel->vertlist[i];
+            const auto* value=vertex.get();
+            if(value==nullptr||typeid(*value)!=typeid(DRW_Vertex)
+                ||value->parentHandle
+                    !=static_cast<std::uint32_t>(std::stoul(curve->id,nullptr,16))
+                ||value->basePoint.x!=expected[i].x
+                ||value->basePoint.y!=expected[i].y
+                ||value->basePoint.z!=expected[i].z
+                ||value->stawidth!=starts[i]
+                ||value->endwidth!=ends[i]
+                ||value->bulge!=bulges[i]
+                ||value->flags!=0||value->identifier!=identifiers[i]) {
+                return false;
+            }
+        }
+    } else if(isInsert) {
         const auto* typedModel=dynamic_cast<const DRW_Insert*>(*typedCurve);
         unsigned targetRecordCount=0u,targetBlockCount=0u;
         for(const auto& record:actual.blockRecords)
@@ -38488,7 +38655,9 @@ bool runTemporary() {
     const double ellipseTurn=2.0*std::acos(-1.0);
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
                                      bool inNamedBlock) {
-        const std::string_view entityName=entityType==DRW::MPOLYGON
+        const std::string_view entityName=entityType==DRW::POLYLINE
+            ?std::string_view("POLYLINE")
+            :entityType==DRW::MPOLYGON
             ?std::string_view("MPOLYGON")
             :entityType==DRW::HATCH
             ?std::string_view("HATCH")
@@ -38538,6 +38707,8 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::POLYLINE
+                ?sourceWithPolylineEntityHandleXdata(binary)
                 :entityType==DRW::MPOLYGON
                 ?sourceWithMPolygonEntityHandleXdata(binary)
                 :entityType==DRW::HATCH
@@ -38575,6 +38746,42 @@ bool runTemporary() {
                         :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
+            if(entityType==DRW::POLYLINE) {
+                const auto* typed=dynamic_cast<const DRW_Polyline*>(entity);
+                const std::array<DRW_Coord,3> expected{{
+                    DRW_Coord(1.0,2.0,0.0),DRW_Coord(5.0,2.0,0.0),
+                    DRW_Coord(3.0,7.0,0.0)}};
+                const std::array<double,3> starts{{0.5,0.25,0.75}};
+                const std::array<double,3> ends{{0.75,0.5,0.25}};
+                const std::array<double,3> bulges{{0.25,-0.375,0.5}};
+                const std::array<int,3> identifiers{{3,5,7}};
+                const auto* footer=typed?typed->seqEndEntity.get():nullptr;
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_Polyline)
+                    ||typed->parentHandle!=targetOwner||typed->flags!=1
+                    ||typed->basePoint.x!=0.0||typed->basePoint.y!=0.0
+                    ||typed->basePoint.z!=4.0||typed->thickness!=0.75
+                    ||typed->defstawidth!=0.25||typed->defendwidth!=0.5
+                    ||typed->vertlist.size()!=expected.size()
+                    ||footer==nullptr||typeid(*footer)!=typeid(DRW_SeqEnd)
+                    ||footer->parentHandle!=targetEntityHandle
+                    ||footer->layer!="SEQ_FOOTER"
+                    ||footer->color!=4)return false;
+                for(std::size_t i=0u;i<expected.size();++i) {
+                    const auto& vertex=typed->vertlist[i];
+                    const auto* value=vertex.get();
+                    if(value==nullptr||typeid(*value)!=typeid(DRW_Vertex)
+                        ||value->parentHandle!=targetEntityHandle
+                        ||value->basePoint.x!=expected[i].x
+                        ||value->basePoint.y!=expected[i].y
+                        ||value->basePoint.z!=expected[i].z
+                        ||value->stawidth!=starts[i]
+                        ||value->endwidth!=ends[i]
+                        ||value->bulge!=bulges[i]
+                        ||value->flags!=0
+                        ||value->identifier!=identifiers[i])return false;
+                }
+                return true;
+            }
             if(entityType==DRW::INSERT) {
                 const auto* typed=dynamic_cast<const DRW_Insert*>(entity);
                 const double pi=std::acos(-1.0);
@@ -39200,6 +39407,7 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
+            DRW::POLYLINE,
             DRW::TEXT,DRW::MTEXT,DRW::LEADER,DRW::TOLERANCE,
             DRW::THREEDLINE,DRW::MESH,DRW::HATCH,DRW::MPOLYGON,
             DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
@@ -39213,7 +39421,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==412u&&readbacks==948u&&refusals==536u&&retries==536u;
+    return profiles==420u&&readbacks==966u&&refusals==546u&&retries==546u;
 }
 
 bool runBudgetTemporary() {

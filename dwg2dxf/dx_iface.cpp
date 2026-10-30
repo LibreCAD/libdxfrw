@@ -22367,6 +22367,7 @@ namespace {
 
 const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POLYLINE:return "POLYLINE";
     case DRW::MPOLYGON:return "MPOLYGON";
     case DRW::HATCH:return "HATCH";
     case DRW::TOLERANCE:return "TOLERANCE";
@@ -22396,6 +22397,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
 DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POLYLINE:return DRW_DxfEntitiesCallback::addPolyline;
     case DRW::MPOLYGON:return DRW_DxfEntitiesCallback::addMPolygon;
     case DRW::HATCH:return DRW_DxfEntitiesCallback::addHatch;
     case DRW::TOLERANCE:return DRW_DxfEntitiesCallback::addTolerance;
@@ -22425,6 +22427,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
 DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::POLYLINE:return DRW_DxfBlockCallback::addPolyline;
     case DRW::MPOLYGON:return DRW_DxfBlockCallback::addMPolygon;
     case DRW::HATCH:return DRW_DxfBlockCallback::addHatch;
     case DRW::TOLERANCE:return DRW_DxfBlockCallback::addTolerance;
@@ -22455,6 +22458,19 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
                                     DRW::ETYPE type) noexcept {
     if (entity==nullptr||entity->eType!=type)return false;
     switch (type) {
+    case DRW::POLYLINE: {
+        const auto* polyline=dynamic_cast<const DRW_Polyline*>(entity);
+        const auto* footer=polyline?polyline->seqEndEntity.get():nullptr;
+        return polyline!=nullptr&&typeid(*entity)==typeid(DRW_Polyline)
+            &&footer!=nullptr&&typeid(*footer)==typeid(DRW_SeqEnd)
+            &&!polyline->vertlist.empty()
+            &&std::all_of(polyline->vertlist.cbegin(),
+                polyline->vertlist.cend(),[](const auto& vertex) {
+                    const auto* value=vertex.get();
+                    return value!=nullptr
+                        &&typeid(*value)==typeid(DRW_Vertex);
+                });
+    }
     case DRW::MPOLYGON:
         return dynamic_cast<const DRW_MPolygon*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_MPolygon);
@@ -22634,7 +22650,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             if (block==nullptr) return true;
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
-                const auto rawType=event.record.name=="MPOLYGON"?DRW::MPOLYGON
+                const auto rawType=event.record.name=="POLYLINE"?DRW::POLYLINE
+                    :event.record.name=="MPOLYGON"?DRW::MPOLYGON
                     :event.record.name=="HATCH"?DRW::HATCH
                     :event.record.name=="TOLERANCE"?DRW::TOLERANCE
                     :event.record.name=="LEADER"?DRW::LEADER
@@ -22806,7 +22823,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             for (std::size_t index=0u;index<manifest.events.size();++index) {
                 if (!chargeWork(1u)) return false;
                 const auto& event=manifest.events[index];
-                if (event.callback!=DRW_DxfEntitiesCallback::addMPolygon
+                if (event.callback!=DRW_DxfEntitiesCallback::addPolyline
+                    &&event.callback!=DRW_DxfEntitiesCallback::addMPolygon
                     &&event.callback!=DRW_DxfEntitiesCallback::addHatch
                     &&event.callback!=DRW_DxfEntitiesCallback::addTolerance
                     &&event.callback!=DRW_DxfEntitiesCallback::addLeader
@@ -22844,10 +22862,12 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                 const auto recordIt=recordsByOrdinal.find(dispatch.begin.ordinal);
                 const DRW_DxfPhysicalEntitySource* record=
                     recordIt==recordsByOrdinal.end()?nullptr:recordIt->second;
+                const bool compoundPolyline=entityType==DRW::POLYLINE;
                 if (record==nullptr || !sameSpan(record->marker,dispatch.begin)
                     || record->name!=recordName
-                    || record->endOrdinal!=dispatch.end.ordinal
-                    || record->endOffset!=dispatch.end.beginOffset)
+                    || (!compoundPolyline
+                        &&(record->endOrdinal!=dispatch.end.ordinal
+                            ||record->endOffset!=dispatch.end.beginOffset)))
                     return false;
                 std::uint32_t sourceHandle=0u,sourceOwner=0u;
                 if (!physicalHandle(*record,5,sourceHandle)
@@ -22858,6 +22878,67 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     return false;
                 const auto& observed=(*delivery.observed)[index];
                 const auto* sourceModel=observed.model.get();
+                if (compoundPolyline) {
+                    const auto& source=data.m_tableDxfSource;
+                    if (section>=source.entitiesCompoundAudits.size()
+                        ||section>=source.entitiesCompoundOwners.size())
+                        return false;
+                    const auto& audit=source.entitiesCompoundAudits[section];
+                    const auto& owner=audit
+                        ?source.entitiesCompoundOwners[section]
+                        :std::shared_ptr<const dx_data::TableDxfSourceCapture::EntitiesCompoundAudit>{};
+                    if (!audit||!owner||audit.get()!=owner.get()
+                        ||audit->container!=&data
+                        ||audit->generation!=source.generation
+                        ||audit->section!=section
+                        ||audit->physical.get()!=delivery.physical.get()
+                        ||audit->delivery.get()!=delivery.delivery.get()
+                        ||audit->observed.get()!=delivery.observed.get()
+                        ||event.dispatch>=audit->proofs.size())
+                        return false;
+                    const auto& proof=audit->proofs[event.dispatch];
+                    const auto* polyline=
+                        dynamic_cast<const DRW_Polyline*>(sourceModel);
+                    if (!polyline||typeid(*polyline)!=typeid(DRW_Polyline)
+                        ||!proof.compound
+                        ||proof.state!=dx_data::TableDxfSourceCapture::EntitiesCompoundProof::State::Matched
+                        ||proof.dispatch!=event.dispatch
+                        ||proof.event!=index
+                        ||proof.first>=proof.next
+                        ||proof.next>physical.records.size()
+                        ||&physical.records[proof.first]!=record
+                        ||proof.next-proof.first!=polyline->vertlist.size()+2u
+                        ||physical.records[proof.next-1u].name!="SEQEND"
+                        ||physical.records[proof.next-1u].endOrdinal
+                            !=dispatch.end.ordinal
+                        ||physical.records[proof.next-1u].endOffset
+                            !=dispatch.end.beginOffset)
+                        return false;
+                    for (std::size_t vertex=0u;
+                         vertex<polyline->vertlist.size();++vertex) {
+                        const auto& child=polyline->vertlist[vertex];
+                        const auto& childSource=
+                            physical.records[proof.first+1u+vertex];
+                        std::uint32_t childHandle=0u,childOwner=0u;
+                        if (!child||childSource.name!="VERTEX"
+                            ||!physicalHandle(childSource,5,childHandle)
+                            ||!physicalHandle(childSource,330,childOwner)
+                            ||child->handle!=childHandle
+                            ||child->parentHandle!=sourceModel->handle
+                            ||childOwner!=sourceModel->handle)
+                            return false;
+                    }
+                    const auto& footer=physical.records[proof.next-1u];
+                    std::uint32_t footerHandle=0u,footerOwner=0u;
+                    if (!polyline->seqEndEntity
+                        ||!physicalHandle(footer,5,footerHandle)
+                        ||!physicalHandle(footer,330,footerOwner)
+                        ||polyline->seqEndEntity->handle!=footerHandle
+                        ||polyline->seqEndEntity->parentHandle
+                            !=sourceModel->handle
+                        ||footerOwner!=sourceModel->handle)
+                        return false;
+                }
                 const auto live=liveTargets.find(sourceHandle);
                 const auto identity=data.m_tableDxfSource.resources.find(
                     sourceHandle);
@@ -22910,8 +22991,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
         // A code-1005 XDATA reference may target an entity inside a BLOCK.
         // ENTITIES has its own source/delivery facets; BLOCKS uses the
         // separately captured child stream and structural membership audit.
-        // Admit only explicitly supported single-record targets after the
-        // section, callback, membership and owner identities agree.
+        // Admit single-record targets and explicitly audited POLYLINE
+        // compounds only after section, callback, membership and owner
+        // identities agree.
         if (blockOriginReport(data).state==BlockOriginState::OriginsBound) {
             const auto& blocks=data.m_tableDxfSource.blockSources;
             for (const auto& item:blocks) {
@@ -22956,7 +23038,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || range.next>block.membership->members.size())
                         return false;
                     const auto& record=physical.records[range.first];
-                    const auto entityType=record.name=="MPOLYGON"?DRW::MPOLYGON
+                    const auto entityType=record.name=="POLYLINE"?DRW::POLYLINE
+                        :record.name=="MPOLYGON"?DRW::MPOLYGON
                         :record.name=="HATCH"?DRW::HATCH
                         :record.name=="TOLERANCE"?DRW::TOLERANCE
                         :record.name=="LEADER"?DRW::LEADER
@@ -22985,7 +23068,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     if (!physicalHandle(record,5,candidateHandle)
                         ||requiredBlockTargets.count(candidateHandle)==0u)
                         continue;
-                    if (range.next!=range.first+1u
+                    const bool compoundPolyline=entityType==DRW::POLYLINE;
+                    if ((!compoundPolyline
+                            &&range.next!=range.first+1u)
                         || range.reason!=dx_block_membership::Reason::Matched
                         || dispatchIndex>=manifest.dispatches.size()) {
                         if (entityType==DRW::INSERT)
@@ -22995,8 +23080,9 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     const auto& dispatch=manifest.dispatches[dispatchIndex];
                     if (!sameSpan(dispatch.begin,record.marker)
                         ||record.name!=recordName
-                        || record.endOrdinal!=dispatch.end.ordinal
-                        || record.endOffset!=dispatch.end.beginOffset
+                        || (!compoundPolyline
+                            &&(record.endOrdinal!=dispatch.end.ordinal
+                                ||record.endOffset!=dispatch.end.beginOffset))
                         || dispatch.events!=1u
                         || dispatch.firstEvent>=manifest.events.size()) {
                         if (entityType==DRW::INSERT)
@@ -23046,6 +23132,59 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     // because no authenticated origin was produced.
                     if (model==nullptr)
                         continue;
+                    if (compoundPolyline) {
+                        const auto* polyline=
+                            dynamic_cast<const DRW_Polyline*>(model);
+                        if (!polyline||typeid(*polyline)!=typeid(DRW_Polyline)
+                            ||range.next-range.first
+                                !=polyline->vertlist.size()+2u
+                            ||physical.records[range.next-1u].name!="SEQEND")
+                            return false;
+                        for (std::size_t vertex=0u;
+                             vertex<polyline->vertlist.size();++vertex) {
+                            const auto& child=polyline->vertlist[vertex];
+                            const auto& childSource=
+                                physical.records[range.first+1u+vertex];
+                            const auto& childMember=
+                                block.membership->members[
+                                    range.first+1u+vertex];
+                            std::uint32_t childHandle=0u,childOwner=0u;
+                            if (!child||childSource.name!="VERTEX"
+                                ||!physicalHandle(childSource,5,childHandle)
+                                ||!physicalHandle(childSource,330,childOwner)
+                                ||child->handle!=childHandle
+                                ||child->parentHandle!=sourceHandle
+                                ||childOwner!=sourceHandle
+                                ||childMember.reason
+                                    !=dx_block_membership::Reason::Matched
+                                ||childMember.role
+                                    !=dx_block_membership::Role::Vertex
+                                ||childMember.dispatch!=dispatchIndex
+                                ||childMember.parent!=range.first
+                                ||childMember.self!=childHandle
+                                ||childMember.owner!=sourceHandle)
+                                return false;
+                        }
+                        const auto& footer=physical.records[range.next-1u];
+                        const auto& footerMember=
+                            block.membership->members[range.next-1u];
+                        std::uint32_t footerHandle=0u,footerOwner=0u;
+                        if (!polyline->seqEndEntity
+                            ||!physicalHandle(footer,5,footerHandle)
+                            ||!physicalHandle(footer,330,footerOwner)
+                            ||polyline->seqEndEntity->handle!=footerHandle
+                            ||polyline->seqEndEntity->parentHandle!=sourceHandle
+                            ||footerOwner!=sourceHandle
+                            ||footerMember.reason
+                                !=dx_block_membership::Reason::Matched
+                            ||footerMember.role
+                                !=dx_block_membership::Role::SequenceEnd
+                            ||footerMember.dispatch!=dispatchIndex
+                            ||footerMember.parent!=range.first
+                            ||footerMember.self!=footerHandle
+                            ||footerMember.owner!=sourceHandle)
+                            return false;
+                    }
                     const auto live=liveTargets.find(sourceHandle);
                     if (model==nullptr || model->parentHandle!=sourceOwner
                         || live==liveTargets.end() || live->second.second!=1u

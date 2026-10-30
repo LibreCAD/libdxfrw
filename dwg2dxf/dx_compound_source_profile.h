@@ -184,7 +184,7 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                     case 410:if(!allowLayoutName||!name(v))return reject(Reason::UnknownField,i);role=Role::LayoutName;break;
                     case 347:role=Role::Material;break;case 348:role=Role::FullVisualStyle;break;
                     case 390:role=Role::PlotStyle;break;case 360:role=Role::ExtensionDictionary;break;
-                    case 48:case 62:case 420:case 430:case 440:break;
+                    case 39:case 48:case 62:case 420:case 430:case 440:break;
                     case 60:case 67:if(!integer(v,0,1))return reject(Reason::InvalidValue,i);break;
                     case 284:if(!integer(v,0,3))return reject(Reason::InvalidValue,i);break;
                     case 370:
