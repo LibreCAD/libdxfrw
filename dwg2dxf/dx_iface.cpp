@@ -25012,6 +25012,8 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                         cell.m_contents[contentIndex];
                     if (content.m_type != 2)
                         continue;
+                    if (referenceCount >= 10000u)
+                        return false;
                     ++referenceCount;
                     if (content.m_handle != field.handle
                         || cell.m_hasLinkedData
@@ -25043,7 +25045,7 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             }
         }
     }
-    return referenceCount == 1u;
+    return referenceCount != 0u;
 }
 
 bool dx_iface::tableContentDirectReferencesClosed(

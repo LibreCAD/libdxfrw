@@ -26142,6 +26142,17 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             return false;
         }
     };
+    const auto fieldReferenceContentIsSupported = [](
+            const DRW_TableCellContent& content) {
+        const DRW_CadValue& value = content.m_value;
+        return content.m_type == 2 && content.m_handle != 0u
+            && content.m_handle != DRW::NoHandle && content.m_text.empty()
+            && value.m_formatFlags == 0 && value.m_dataType == 0
+            && value.m_dataSize == 0u && value.m_unitType == 0
+            && value.m_value.type() == DRW_Variant::INVALID
+            && value.m_formatString.empty() && value.m_valueString.empty()
+            && value.m_handle == 0u && value.m_rawData.empty();
+    };
     const std::size_t textBytesBeforePlainContents = plainContentTextBytes;
     const bool plainScalarContents = !cell.m_hasLinkedData
         && !cell.m_contents.empty() && cell.m_contents.size() <= 10000u
@@ -26196,7 +26207,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return true;
     }();
     std::size_t fieldContentIndex = 0u;
-    const bool fieldContentWithReference = [&]() {
+    const bool fieldContentWithReference = !multiCellTable && [&]() {
         if (cell.m_hasLinkedData || cell.m_contents.empty()
             || cell.m_contents.size() > 2u || !cell.m_attributes.empty())
             return false;
@@ -26528,6 +26539,24 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                         ent->m_dxfMetadata->m_tableStyle))))
             return failDxfWrite();
 
+        const auto fieldReferenceIsClosed = [this](std::uint32_t sourceHandle) {
+            const std::uint32_t outputHandle = remapObjectHandle(sourceHandle);
+            const auto emitted =
+                m_writingContext.sourceHandleToWrittenObjectMap.find(
+                    sourceHandle);
+            return outputHandle != 0u && outputHandle != DRW::NoHandle
+                && emitted
+                    != m_writingContext.sourceHandleToWrittenObjectMap.end()
+                && emitted->second == outputHandle
+                && m_writtenDxfFieldSourceHandles.count(sourceHandle) == 1u
+                && m_writingContext.ambiguousSourceHandles.count(
+                       sourceHandle) == 0u
+                && m_writingContext.sourceHandleToMintedMap.count(
+                       sourceHandle) == 0u
+                && m_writingContext.sourceHandleToWrittenTableMap.count(
+                       sourceHandle) == 0u;
+        };
+
         const auto cellPropertiesSupported = [&safeText, &defaultBorder](
                 const DRW_TableCell& cell) {
             return cell.m_type == 0 && cell.m_edgeFlags == 0
@@ -26600,8 +26629,17 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     return failDxfWrite();
                 totalContents += cell.m_contents.size();
                 for (const DRW_TableCellContent& content : cell.m_contents) {
-                    if (!plainScalarContentIsSupported(content))
+                    if (content.m_type == 1) {
+                        if (!plainScalarContentIsSupported(content))
+                            return failDxfWrite();
+                    } else if (content.m_type == 2) {
+                        if (cell.m_hasLinkedData
+                            || !fieldReferenceContentIsSupported(content)
+                            || !fieldReferenceIsClosed(content.m_handle))
+                            return failDxfWrite();
+                    } else {
                         return failDxfWrite();
+                    }
                 }
                 if (ent->m_dxfMetadata) {
                     const auto& detail = ent->m_dxfMetadata->m_rows[rowIndex]
