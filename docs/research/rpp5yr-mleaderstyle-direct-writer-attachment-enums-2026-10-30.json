@@ -1,0 +1,47 @@
+{
+  "id": "RPP-5yr",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE direct-writer attachment enum domains",
+  "scope": {
+    "operation": "Reject invalid direct-writer MLEADERSTYLE attachment and text enum values before emitting the record.",
+    "target_version": "AC1027",
+    "fields": [
+      { "group_code": 174, "name": "leftAttachment", "valid_values": "0..8" },
+      { "group_code": 175, "name": "textAngleType", "valid_values": "0..2" },
+      { "group_code": 176, "name": "textAlignmentType", "valid_values": "0..2" },
+      { "group_code": 178, "name": "rightAttachment", "valid_values": "0..8" },
+      { "group_code": 271, "name": "attachmentDirection", "valid_values": "0..1" }
+    ],
+    "authority": "Existing source-bound receipts RPP-5lp, RPP-5lq, RPP-5lr, RPP-5ls and RPP-5lw bind these group roles and enum domains to Autodesk DXF/ObjectARX documentation. ODA §20.4.87 maps the corresponding MLEADERSTYLE groups.",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "https://help.autodesk.com/cloudhelp/2023/JPN/AutoCAD-ActiveX/files/GUID-95D92244-7CC8-46A7-88AB-C5755EF779FE.htm"
+    ],
+    "claim_boundary": "Direct DXF writer-domain validation and emitted scalar fields only; native layout and annotation behavior remain open."
+  },
+  "implementation": [
+    "Validate groups 174, 175, 176, 178 and 271 against their documented domains before any MLEADERSTYLE output.",
+    "Preserve all documented values and existing field serialization."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "invalid_values_per_field": "First value above the documented maximum and 65535.",
+    "refusal": "Invalid values refuse before publication; destination sentinel and caller model value remain unchanged.",
+    "retry": "The same dx_iface retries each invalid field with a valid boundary value or zero; exact group/value is found in emitted AC1027 output.",
+    "matrix": "The shared generated test covers five newly checked fields plus prior guards 170, 171, 172, 173 and 177: 10 fields × two invalid values × two encodings, for 40 destination-safe refusals and 40 successful retries.",
+    "excluded": "Groups 272 and 273 remain outside this packet; their default/source-profile domains need separate qualification."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.52 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Other MLEADERSTYLE integer, source-presence, repeated-field, version, dependency and native-rendering profiles remain open."
+  ]
+}

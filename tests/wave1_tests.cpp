@@ -3199,15 +3199,23 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
         std::uint16_t maximum;
         const char* label;
     };
-    const std::array<EnumField, 5> fields{{
+    const std::array<EnumField, 10> fields{{
         {&DRW_MLeaderStyle::contentType, 170, 3, "content type"},
         {&DRW_MLeaderStyle::drawMLeaderOrder, 171, 1,
             "draw multi-leader order"},
         {&DRW_MLeaderStyle::drawLeaderOrder, 172, 1,
             "draw leader order"},
         {&DRW_MLeaderStyle::leaderType, 173, 2, "leader type"},
+        {&DRW_MLeaderStyle::leftAttachment, 174, 8, "left attachment"},
+        {&DRW_MLeaderStyle::textAngleType, 175, 2, "text angle type"},
+        {&DRW_MLeaderStyle::textAlignmentType, 176, 2,
+            "text alignment type"},
         {&DRW_MLeaderStyle::blockConnectionType, 177, 1,
-            "block content connection type"}
+            "block content connection type"},
+        {&DRW_MLeaderStyle::rightAttachment, 178, 8,
+            "right attachment"},
+        {&DRW_MLeaderStyle::attachmentDirection, 271, 1,
+            "attachment direction"}
     }};
     const auto fileTags = [](const std::filesystem::path& path, bool binary) {
         std::ifstream input(path, std::ios::binary);
@@ -3264,7 +3272,12 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                 iface.style.drawMLeaderOrder = 0;
                 iface.style.drawLeaderOrder = 0;
                 iface.style.leaderType = 0;
+                iface.style.leftAttachment = 0;
+                iface.style.rightAttachment = 0;
+                iface.style.textAngleType = 0;
+                iface.style.textAlignmentType = 0;
                 iface.style.blockConnectionType = 0;
+                iface.style.attachmentDirection = 0;
                 iface.style.*(field.member) = invalid;
                 const std::string sentinel = "KEEP_MLEADERSTYLE_DESTINATION";
                 { std::ofstream out(path, std::ios::binary); out << sentinel; }
@@ -3306,7 +3319,7 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
-    t.expect(refusals == 20u && retries == 20u,
+    t.expect(refusals == 40u && retries == 40u,
              "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
 }
 
