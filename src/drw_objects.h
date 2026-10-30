@@ -7119,6 +7119,7 @@ struct DRW_AssociativeConstraintNode {
     Geometrical,
     ImplicitPoint,
     BoundedLine,
+    Circle,
     Arc,
     Distance
   };

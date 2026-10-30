@@ -34,6 +34,7 @@ struct Node {
     bool isRay = false;
     DRW_Coord startPoint;
     DRW_Coord endPoint;
+    bool hasCircleBody = false;
     bool hasArcBody = false;
     DRW_Coord center;
     DRW_Coord normal;
@@ -177,6 +178,14 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putBit(node.isRay ? 1u : 0u);
             object.put3BitDouble(node.startPoint);
             object.put3BitDouble(node.endPoint);
+        } else if (node.hasCircleBody) {
+            object.putBitLong(node.geometryNodeId);
+            object.put3BitDouble(node.center);
+            object.put3BitDouble(node.normal);
+            object.put3BitDouble(node.direction);
+            object.putBitDouble(node.radius);
+            object.putBitDouble(node.startParameter);
+            object.putBitDouble(node.endParameter);
         } else if (node.hasArcBody) {
             object.putBitLong(node.geometryNodeId);
             object.put3BitDouble(node.center);
@@ -210,7 +219,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putHandle(reference(node.dimensionDependencyCode,
                                        node.dimensionDependencyHandle));
         } else if (node.hasImplicitPointBody || node.hasBoundedLineBody
-            || node.hasArcBody)
+            || node.hasCircleBody || node.hasArcBody)
             object.putHandle(reference(node.geometryDependencyCode,
                                        node.geometryDependencyHandle));
     }

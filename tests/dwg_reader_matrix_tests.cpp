@@ -11499,6 +11499,119 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                      ? "R2010 arc body decodes all observed fields with the reserved double absent"
                      : "arc wrong dependency handle role preserves raw data and following-object recovery");
     }
+
+    for (int circleMode = 0; circleMode < 2; ++circleMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+        Node circle;
+        circle.id = 17;
+        circle.connections = {19, 158, 162, 170, 178, 186, 194};
+        circle.className = "AcConstrainedCircle";
+        circle.hasCircleBody = true;
+        circle.geometryDependencyCode = circleMode == 0
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        circle.geometryDependencyHandle = 1165u;
+        circle.geometryNodeId = 0;
+        circle.center = DRW_Coord(63.11370687434459,
+                                  37.572948833487146, 0.0);
+        circle.normal = DRW_Coord(0.0, 0.0, 1.0);
+        circle.direction = DRW_Coord(1.0, 0.0, 0.0);
+        circle.radius = 3.0;
+        circle.startParameter = 0.0;
+        circle.endParameter = 6.283185307179586;
+        profile.nodes.push_back(circle);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 circle profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = circleMode == 0;
+        bool nodeMatches = partialSource != profileSink.typed.end()
+            && partialSource->m_constraintNodes.size() == 1u;
+        if (nodeMatches) {
+            const auto& node = partialSource->m_constraintNodes.front();
+            nodeMatches = node.m_className == "AcConstrainedCircle"
+                && node.m_nodeId == 17
+                && node.m_connections
+                       == std::vector<std::int32_t>{19, 158, 162, 170,
+                                                    178, 186, 194}
+                && node.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodeMatches = nodeMatches
+                    && node.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Circle
+                    && node.m_hasGeometryDependency
+                    && node.m_geometryDependencyCode == DRW::DwgSoftPointer
+                    && node.m_geometryDependencyHandle == 1165u
+                    && node.m_geometryNodeId == 0
+                    && node.m_center.x == circle.center.x
+                    && node.m_center.y == circle.center.y
+                    && node.m_center.z == circle.center.z
+                    && node.m_normal.x == 0.0
+                    && node.m_normal.y == 0.0
+                    && node.m_normal.z == 1.0
+                    && node.m_direction.x == 1.0
+                    && node.m_direction.y == 0.0
+                    && node.m_direction.z == 0.0
+                    && node.m_radius == circle.radius
+                    && node.m_startParameter == circle.startParameter
+                    && node.m_endParameter == circle.endParameter
+                    && !node.m_hasReserved
+                    && node.m_reserved == 0.0;
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && partialSource != profileSink.typed.end()
+            && partialSource->m_constraintGroupBodyParsed == expectedComplete
+            && partialSource->m_constraintNodeCount == 1
+            && partialSource->m_constraintNodesParsed == expectedComplete
+            && nodeMatches
+            && partialRaw != profileSink.raw.end()
+            && !partialRaw->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 circleMode == 0
+                     ? "R2010 circle body decodes all observed fields with the reserved double absent"
+                     : "circle wrong dependency handle role preserves raw data and following-object recovery");
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

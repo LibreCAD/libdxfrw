@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Decode the remaining observed AC1024 constraint-node profiles, starting with `AcConstrainedCircle` (node ID 17); close source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Decode the remaining observed AC1024 constraint-node profiles, starting with `AcHorizontalConstraint` (node ID 414); close source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -70,14 +70,12 @@ local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
 1. **Remaining constraint-node bodies and residual associative closure:** start
-   with `AcConstrainedCircle` (node ID 17) in the mechanical AC1024 witness.
-   The pinned peer's legacy layout reads a geometry dependency, geometry node
-   ID (BL), center/normal/direction (3BD each), radius/start/end parameters
-   (BD each), and a reserved BD only when the registry profile requests it.
-   The AC1024 inline dispatch omits that reserved field and has no arc
-   start/end points. Probe the actual handle role/reference and bounded
-   body/string/handle spans from this source before implementation; preserve
-   absent reserved data separately from a zero value. Keep unsupported
+   with `AcHorizontalConstraint` (node ID 414) in the mechanical AC1024 witness.
+   The pinned peer's legacy layout reads owner ID (BL), implied (B), no active
+   wire bit, and datum-line index (BL); this class has no node-specific handle.
+   Probe the exact source body span and index value before implementation, and
+   keep its layout distinct from `AcParallelConstraint` (which has no datum-line
+   index) and from any Vertical-specific semantic profile. Keep unsupported
    variants raw. Continue in source order, proving each class's boundaries
    before advancing. Keep version-2 nonzero-seed registry layouts raw until
    their separate framing is proven. Validate each connection's node role and
