@@ -274,8 +274,8 @@ proof. Refused fields are not implemented editing support.
    profiles are qualified by [RPP-5v2](docs/research/rpp5v2-mline-ltype-three-xdata-entity-references-2026-10-29.json)
    and [RPP-5v3](docs/research/rpp5v3-mline-ltype-four-xdata-entity-references-2026-10-29.json).
    Selected model-space LINE reference counts 1–32, CIRCLE, ARC, ELLIPSE,
-   POINT and 3DFACE targets in model-space ENTITIES and named BLOCKS, and
-   BLOCKS LINE targets are qualified under separate profiles.
+   POINT, 3DFACE and LWPOLYLINE targets in model-space ENTITIES and named
+   BLOCKS, and BLOCKS LINE targets are qualified under separate profiles.
    [RPP-5wn](docs/research/rpp5wn-mline-ltype-xdata-circle-2026-10-29.json)
    binds one AC1027 model-space CIRCLE code-1005 target across ASCII/binary
    source/output pairs, with exact remapped output, typed readback and
@@ -296,7 +296,11 @@ proof. Refused fields are not implemented editing support.
    [RPP-5ws](docs/research/rpp5ws-mline-ltype-xdata-3dface-targets-2026-10-29.json)
    qualifies one selected model-space and one named-block 3DFACE target across
    all four encoding pairs, checking four WCS corners, edge flags, owner/handle,
-   typed readback and destination-preserving refusal/retry. Other target types,
+   typed readback and destination-preserving refusal/retry. [RPP-5wt](docs/research/rpp5wt-mline-ltype-xdata-lwpolyline-targets-2026-10-29.json)
+   qualifies one selected model-space and one named-block LWPOLYLINE target
+   across all four encoding pairs, checking ordered vertices, widths, bulges,
+   identifiers, elevation, owner/handle, typed readback and destination-preserving
+   refusal/retry. Other target types,
    unselected section combinations/mixed target sets, counts 33+, and
    application meanings remain open.
    [RPP-5wc](docs/research/rpp5wc-mline-vertex-cap-flag-profiles-2026-10-29.json) qualifies the selected AC1027 group-71/group-72 interaction for authored two- and four-vertex profiles. [RPP-5wd](docs/research/rpp5wd-mline-fill-offset-refusal-2026-10-29.json) records the initial refusal/preservation profile; [RPP-5we](docs/research/rpp5we-mline-simple-fill-offset-projection-2026-10-29.json) now qualifies AC1027 simple two-value group-42 offset projection for vertex counts 2/3/4 and flags 1/5/9/13, with exact output/readback. Four-value cut intervals and late-inconsistent arrays remain refused with rollback/retry; no native rendering or broader support claim follows. Preserve bounded admission, exact staged-output/readback proof and atomic failure/retry.
@@ -344,17 +348,18 @@ proof. Refused fields are not implemented editing support.
    **Next ready implementation:** select a distinct current P2 witness from
    the remaining target roles/sections, XDATA compositions, provider schemas or
    MLINE consumer operations. Named-block, fixed paper-space, selected
-   mixed-section LINE and model-space/named-BLOCKS CIRCLE, ARC, ELLIPSE and
-   POINT and 3DFACE routes are bound by
+   mixed-section LINE and model-space/named-BLOCKS targets for CIRCLE, ARC,
+   ELLIPSE, POINT, 3DFACE and LWPOLYLINE are bound by
    [RPP-5wk](docs/research/rpp5wk-mline-ltype-xdata-blocks-line-2026-10-29.json),
    [RPP-5wl](docs/research/rpp5wl-mline-ltype-xdata-paper-space-line-2026-10-29.json),
    [RPP-5wm](docs/research/rpp5wm-mline-ltype-xdata-mixed-sections-2026-10-29.json),
    [RPP-5wn](docs/research/rpp5wn-mline-ltype-xdata-circle-2026-10-29.json),
    [RPP-5wo](docs/research/rpp5wo-mline-ltype-xdata-blocks-circle-2026-10-29.json),
    [RPP-5wp](docs/research/rpp5wp-mline-ltype-xdata-arc-targets-2026-10-29.json),
-   [RPP-5wq](docs/research/rpp5wq-mline-ltype-xdata-ellipse-targets-2026-10-29.json)
-   [RPP-5wr](docs/research/rpp5wr-mline-ltype-xdata-point-targets-2026-10-29.json)
-   and [RPP-5ws](docs/research/rpp5ws-mline-ltype-xdata-3dface-targets-2026-10-29.json).
+   [RPP-5wq](docs/research/rpp5wq-mline-ltype-xdata-ellipse-targets-2026-10-29.json),
+   [RPP-5wr](docs/research/rpp5wr-mline-ltype-xdata-point-targets-2026-10-29.json),
+   [RPP-5ws](docs/research/rpp5ws-mline-ltype-xdata-3dface-targets-2026-10-29.json),
+   and [RPP-5wt](docs/research/rpp5wt-mline-ltype-xdata-lwpolyline-targets-2026-10-29.json).
    select another consumer requirement with a source-bound distinction and a
    focused output/readback witness. Retain refusal for unsupported profiles and
    do not expand the reference-count matrix without a distinguishing need.
