@@ -22417,6 +22417,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::SPLINE:return DRW_DxfEntitiesCallback::addSpline;
     case DRW::HELIX:return DRW_DxfEntitiesCallback::addHelix;
     case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
+    case DRW::ATTDEF:return DRW_DxfEntitiesCallback::addAttDef;
     case DRW::RAY:return DRW_DxfEntitiesCallback::addRay;
     case DRW::XLINE:return DRW_DxfEntitiesCallback::addXline;
     case DRW::DXF_TRACE:return DRW_DxfEntitiesCallback::addTrace;
@@ -22842,6 +22843,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addLeader
                     &&event.callback!=DRW_DxfEntitiesCallback::addMText
                     &&event.callback!=DRW_DxfEntitiesCallback::addText
+                    &&event.callback!=DRW_DxfEntitiesCallback::addAttDef
                     &&event.callback!=DRW_DxfEntitiesCallback::addPoint
                     &&event.callback!=DRW_DxfEntitiesCallback::addLWPolyline
                     &&event.callback!=DRW_DxfEntitiesCallback::add3dFace
@@ -22869,7 +22871,12 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     || event.dispatch>=manifest.dispatches.size())
                     return false;
                 const auto& dispatch=manifest.dispatches[event.dispatch];
-                if (dispatch.events!=1u || dispatch.firstEvent!=index)
+                const bool pairedAttdef=entityType==DRW::ATTDEF;
+                if (dispatch.events!=(pairedAttdef?2u:1u)
+                    ||dispatch.firstEvent>=manifest.events.size()
+                    ||(pairedAttdef
+                        &&manifest.events.size()-dispatch.firstEvent<2u)
+                    ||dispatch.firstEvent+(pairedAttdef?1u:0u)!=index)
                     return false;
                 const auto recordIt=recordsByOrdinal.find(dispatch.begin.ordinal);
                 const DRW_DxfPhysicalEntitySource* record=
@@ -22881,6 +22888,20 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         &&(record->endOrdinal!=dispatch.end.ordinal
                             ||record->endOffset!=dispatch.end.beginOffset)))
                     return false;
+                if (pairedAttdef) {
+                    const auto& sourceEvent=
+                        manifest.events[dispatch.firstEvent];
+                    if (sourceEvent.callback
+                            !=DRW_DxfEntitiesCallback::AttdefSource
+                        ||sourceEvent.origin
+                            !=DRW_DxfEntitiesDeliveryEvent::Origin::SourceObserver
+                        ||!sourceEvent.hasValue
+                        ||sourceEvent.entityType
+                            !=static_cast<std::int32_t>(DRW::ATTDEF)
+                        ||sourceEvent.handle!=event.handle
+                        ||sourceEvent.owner!=event.owner)
+                        return false;
+                }
                 std::uint32_t sourceHandle=0u,sourceOwner=0u;
                 if (!physicalHandle(*record,5,sourceHandle)
                     ||requiredBlockTargets.count(sourceHandle)==0u)
@@ -22954,6 +22975,39 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                 const auto live=liveTargets.find(sourceHandle);
                 const auto identity=data.m_tableDxfSource.resources.find(
                     sourceHandle);
+                if (pairedAttdef) {
+                    if (identity==data.m_tableDxfSource.resources.end()
+                        ||identity->second.family
+                            !=dx_tableResourceFamily::AttributeDefinition
+                        ||identity->second.owner!=sourceOwner
+                        ||!identity->second.attdefModel
+                        ||!identity->second.raw)
+                        return false;
+                    const auto equal=[&](const DRW_Variant& a,
+                                         const DRW_Variant& b) noexcept {
+                        return standardDwgVariantEqual(
+                            a,b,identity->second.raw->m_version);
+                    };
+                    const auto* typed=
+                        dynamic_cast<const DRW_Attdef*>(sourceModel);
+                    const dx_data::TableDxfSourceCapture::AttdefSourcePins
+                        pins{identity->second.attdefModel,
+                            identity->second.raw,
+                            identity->second.attdefOrigin,
+                            identity->second.attdefReadContext,
+                            identity->second.attdefState,
+                            identity->second.attdefContext};
+                    if (!typed
+                        ||!dxfAttdef::Decoder::sameModel(
+                            *typed,*identity->second.attdefModel,equal)
+                        ||!attdefPairReady(data,pins,0u))
+                        return false;
+                } else if (identity==data.m_tableDxfSource.resources.end()
+                    ||identity->second.family
+                        !=dx_tableResourceFamily::Entity
+                    ||identity->second.owner!=sourceOwner) {
+                    return false;
+                }
                 std::uint32_t referencedBlockRecord=0u;
                 if (entityType==DRW::INSERT) {
                     const auto* insert=dynamic_cast<const DRW_Insert*>(sourceModel);
@@ -22985,10 +23039,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     || live==liveTargets.end() || live->second.second!=1u
                     || live->second.first==nullptr
                     || live->second.first->parentHandle!=sourceOwner
-                    || rawTargetHandles.count(sourceHandle)!=0u
-                    || identity==data.m_tableDxfSource.resources.end()
-                    || identity->second.family!=dx_tableResourceFamily::Entity
-                    || identity->second.owner!=sourceOwner) {
+                    || rawTargetHandles.count(sourceHandle)!=0u) {
                     return false;
                 }
                 if (!chargeNamedResourceBytes(retainedBytes,2u)

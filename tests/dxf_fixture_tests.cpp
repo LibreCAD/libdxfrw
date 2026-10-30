@@ -31481,6 +31481,37 @@ Tags sourceWithManyEntityHandleXdata(bool binary,
     return fields;
 }
 
+Tags sourceWithAttdefEntityHandleXdata(bool binary) {
+    auto fields=source(binary);
+    const Tags ordinary{{1001,appName},{1000,payload}};
+    const auto provider=std::search(fields.begin(),fields.end(),
+        ordinary.begin(),ordinary.end());
+    if(provider==fields.end())
+        throw std::runtime_error("ENTITIES ATTDEF LTYPE XDATA host missing");
+    const auto at=fields.erase(provider,
+        provider+static_cast<std::ptrdiff_t>(ordinary.size()));
+    fields.insert(at,{{1001,appName},{1000,payload},{1005,"A900"}});
+    auto end=fields.end();bool entities=false;
+    for(auto it=fields.begin();it!=fields.end();++it) {
+        if(*it==std::make_pair(2,std::string("ENTITIES")))entities=true;
+        else if(entities&&*it==std::make_pair(0,std::string("ENDSEC"))) {
+            end=it;break;
+        }
+    }
+    if(end==fields.end())
+        throw std::runtime_error("ENTITIES ATTDEF section missing");
+    const Tags attdef{{0,"ATTDEF"},{5,"A900"},{330,"201"},
+        {100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+        {10,"1.25"},{20,"2.5"},{30,"3.75"},{40,"2.5"},
+        {1,"TARGET_DEFAULT"},{7,"STANDARD"},{11,"4.5"},
+        {21,"5.5"},{31,"6.5"},{50,"30"},
+        {210,"0"},{220,"0"},{230,"1"},
+        {100,"AcDbAttributeDefinition"},{3,"TARGET_PROMPT"},
+        {2,"TARGET_TAG"},{70,"0"},{73,"0"},{74,"0"},{280,"0"}};
+    fields.insert(end,attdef.begin(),attdef.end());
+    return fields;
+}
+
 Tags sourceWithBlockEntityHandleXdata(
         bool binary,std::string_view targetBlock="AuthorityBlock",
         std::string_view targetOwner="203",
@@ -38756,7 +38787,9 @@ bool runTemporary() {
             if(inNamedBlock)
                 return sourceWithBlockEntityHandleXdata(binary,targetBlock,
                     "203",entityType,multiInsert);
-            return entityType==DRW::INSERT
+            return entityType==DRW::ATTDEF
+                ?sourceWithAttdefEntityHandleXdata(binary)
+                :entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary,multiInsert)
                 :entityType==DRW::POLYLINE
                 ?sourceWithPolylineEntityHandleXdata(binary)
@@ -39483,7 +39516,8 @@ bool runTemporary() {
             DRW::SOLID})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
-    if(!runGeometrySection(DRW::ATTDEF,true))return false;
+    if(!runGeometrySection(DRW::ATTDEF,false)
+        ||!runGeometrySection(DRW::ATTDEF,true))return false;
     if(!runGeometrySection(DRW::INSERT,false)
         ||!runGeometrySection(DRW::INSERT,true)
         ||!runGeometrySection(DRW::INSERT,false,true)
@@ -39491,7 +39525,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==432u&&readbacks==993u&&refusals==561u&&retries==561u;
+    return profiles==436u&&readbacks==1002u&&refusals==566u&&retries==566u;
 }
 
 bool runBudgetTemporary() {
