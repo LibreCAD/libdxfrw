@@ -1,0 +1,75 @@
+{
+  "schema": "ac1018-dynamic-block-four-appid-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "0706ba3fafc908f4bd1cd5f019bf4ecc1953b1b8",
+  "scope": "Private, opt-in source-role binding for the four ordered APPID names on one AC1018 BLOCK_RECORD. The group-310 preview and EED payloads remain opaque. This does not establish EED meaning, dependency closure, output eligibility or a support claim.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "Pinned GitHub blob inspected in memory; no external sample was copied into the worktree or committed.",
+    "owner": {
+      "record": "BLOCK_RECORD A7E (*U17)",
+      "lineSpan": "[4661,4773)",
+      "tableHandle": "1",
+      "nameField": { "line": 4677, "code": 2, "value": "*U17" },
+      "opaquePreview": { "group": 310, "chunks": 33, "maximumHexTextLength": 254 },
+      "orderedEedAppIds": [
+        { "line": 4747, "value": "AcDbBlockRepETag", "handle": "A9D" },
+        { "line": 4753, "value": "AcDbDynamicBlockTrueName", "handle": "A9C" },
+        { "line": 4757, "value": "AcDbDynamicBlockGUID", "handle": "6FA" },
+        { "line": 4761, "value": "ACAD", "handle": "12" }
+      ],
+      "opaqueEedExample": { "line": 4751, "code": 1071, "value": "1" }
+    },
+    "providers": [
+      {
+        "record": "APPID A9D", "lineSpan": "[3699,3713)", "tableHandle": "9",
+        "nameField": { "line": 3709, "code": 2, "value": "AcDbBlockRepETag" }
+      },
+      {
+        "record": "APPID A9C", "lineSpan": "[3685,3699)", "tableHandle": "9",
+        "nameField": { "line": 3695, "code": 2, "value": "AcDbDynamicBlockTrueName" }
+      },
+      {
+        "record": "APPID 6FA", "lineSpan": "[3461,3475)", "tableHandle": "9",
+        "nameField": { "line": 3471, "code": 2, "value": "AcDbDynamicBlockGUID" }
+      },
+      {
+        "record": "APPID 12", "lineSpan": "[3265,3279)", "tableHandle": "9",
+        "nameField": { "line": 3275, "code": 2, "value": "ACAD" }
+      }
+    ]
+  },
+  "implementation": {
+    "profile": "The bounded AC1018 BLOCK_RECORD source profile retains up to four ordered APPID-name fields, the witnessed integer group 1071, and opaque even-length hexadecimal group-310 preview chunks of at most 254 characters before EED. It assigns no meaning to preview or EED payloads.",
+    "binding": "The automatic selector requires the exact *U17 profile and ordered four-name sequence. Each name binds to one unique APPID row in the same APPID table through physical whole-source fields, identity census, raw/model replay and a unique live typed provider.",
+    "failureControls": "Runtime-authored ASCII and binary controls independently remove, duplicate, mis-own and misname each of the four providers, then retry the same adapter with corrected input. A 254-character group-310 value and group-1071 value exercise opaque profile retention.",
+    "fixturePolicy": "tests/legacy_attdef_scope_controls.h creates its DXF inputs at runtime. No external DWG/DXF fixture was copied or committed."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "normalBuildResult": "PASS",
+    "normalSelector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "normalSelectorResult": "PASS 1/1 (0.95 s)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests -j4",
+    "asanBuildResult": "PASS",
+    "asanSelector": "ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asanSelectorResult": "PASS 1/1 (1.85 s)",
+    "diffCheck": "PASS git diff --check before code commit"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "bdad1f7b8792d6dcc258b630a115eeb4d80edcd08db7dd02e1d997c262d63357",
+    "dwg2dxf/dx_iface.cpp": "e28f0eb5b483ab8e91a8cbda1c36dc4aa9d80a268cca57ecb05f3a1b7c49cb62",
+    "dwg2dxf/dx_legacy_block_record_source_profile.h": "bd13bfe446d50d4b3aa78580d0cc5a2336cf008cf4c7212f62452007ed8a01d3",
+    "tests/attdef_source_tests.cpp": "17a5aa8ad0c2b141c74bbf122c009b087f04b8f11e2ee528b86edc8b0e1b3200",
+    "tests/legacy_attdef_scope_controls.h": "bb052a4357a400863d1195a7b6047c918c1a246a9df41f9f44defa6fdb7b366a"
+  },
+  "limits": [
+    "APPID names are source-role providers only; EED values and preview bytes remain uninterpreted.",
+    "The source row does not establish recursive dependency closure or actual emitted-byte correspondence.",
+    "No native consumer, complete-document conversion or format-support claim is established."
+  ]
+}

@@ -928,21 +928,24 @@ automatic selector admits only a unique single-`ACAD` profile or the unique
 two-name pair; it does not repeatedly rebuild the full identity index for every
 BLOCK_RECORD. Other one/two-name profiles can be checked through the bounded
 helper, but are not automatically retained without a distinct source selector.
-The selected `A91` group-1005 edge and APPID provider are now source-bound in
+The selected `A91` group-1005 edge and APPID provider are source-bound in
 [RPP-5rm](docs/research/rpp5rm-ac1018-blockrecord-xdata-objectid-source-binding-2026-10-29.json).
-The receipt preserves the exact owner field, unique same-table `BLOCK_RECORD`
-target `A7E` (`*U17`), target name field, unique APPID provider, and negative plus
-corrected-retry controls across ASCII/binary inputs. `A96` remains a separate
-repeated-target observation. This does not interpret EED payloads, close target
-dependencies or qualify output.
+[RPP-5rn](docs/research/rpp5rn-ac1018-dynamic-block-four-appid-source-binding-2026-10-29.json)
+binds the four ordered APPID providers on target `A7E` (`*U17`), preserving its
+33 group-310 preview chunks as opaque fields. [RPP-5ro](docs/research/rpp5ro-ac1018-blockrecord-repeated-btag-target-source-binding-2026-10-29.json)
+then binds the separate `A96` (`*U19`) group-1005 role to the same unique target
+as `A91`; the two source owners remain independently identified, and ambiguous
+target identity suppresses both joins. Both slices use runtime-authored ASCII and
+binary controls with corrected retries. They bind source roles only: no EED
+payload meaning, target dependency closure, emitted-output eligibility or
+support claim follows.
 
-**Next P4a slice:** bind target BLOCK_RECORD `A7E`’s ordered EED APPID names
-`AcDbBlockRepETag`, `AcDbDynamicBlockTrueName`, `AcDbDynamicBlockGUID`, and
-`ACAD` to their unique APPID table rows, using the existing bounded identity,
-whole-source and provider replay machinery. Its group-310 preview data and
-other EED payloads stay opaque; test missing, duplicate, wrong-owner and
-wrong-name providers plus corrected retry. Do not infer EED semantics,
-recursive closure or output eligibility from the provider joins.
+**Next P4a slice:** select one currently unmatched body or dependency role from
+the current source census. Record its exact input digest, physical span,
+unsupported reason and owning selector before implementation; add only the
+missing layer and its minimum source-to-target proof. Do not recapture these
+completed BLOCK_RECORD/APPID bindings or expand a profile from external-source
+presence alone. Keep EED meaning, recursive closure and output eligibility open.
 
 1. **Original coverage.** Extend only missing ATTDEF, TABLE and other required
    primary/BLOCKS/LAYOUT/object profiles, including residual MLEADER,
