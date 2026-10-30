@@ -27542,7 +27542,7 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     if (!preflightTableEntry(ent))
         return false;
     if (ent->drawMLeaderOrder > 1 || ent->drawLeaderOrder > 1
-        || ent->blockConnectionType > 1)
+        || ent->leaderType > 2 || ent->blockConnectionType > 1)
         return failDxfWrite();
     // The published MLEADERSTYLE DXF table defines scalar color indices for
     // its three color fields, not CMC RGB/name/book extensions.

@@ -1,0 +1,44 @@
+{
+  "id": "RPP-5yp",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE direct-writer leader-type domain",
+  "scope": {
+    "operation": "Reject invalid direct-writer MLEADERSTYLE enum values before emitting the record.",
+    "target_version": "AC1027",
+    "field": {
+      "group_code": 173,
+      "name": "leaderType",
+      "valid_values": [0, 1, 2],
+      "meanings": ["invisible", "straight", "spline"]
+    },
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.87 maps group 173 to Leader type; Autodesk ObjectARX Managed Reference documents AcDbMLeaderStyle::LeaderType as InVisibleLeader, StraightLeader, SplineLeader in enum order.",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LeaderType.html"
+    ],
+    "claim_boundary": "Direct DXF writer-domain validation and emitted group 173 only; no native MLEADER annotation/rendering or whole-document support claim."
+  },
+  "implementation": [
+    "Validate leaderType <= 2 alongside the existing pre-emission checks for groups 171, 172 and 177.",
+    "Preserve all three documented values and existing field serialization."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "invalid_values": [3, 65535],
+    "refusal": "Each selected invalid enum value refuses before publication; destination sentinel and caller model value remain unchanged.",
+    "retry": "The same dx_iface retries after correcting the field to a valid value; the AC1027 output contains exact group 173/value.",
+    "matrix": "Four independently mutated writer-domain fields (171, 172, 173, 177) × two invalid values per domain × two encodings; 16 destination-safe refusals and 16 successful retries."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.50 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Other MLEADERSTYLE integer, source-presence, repeated-field, version, dependency and native-rendering profiles remain open."
+  ]
+}

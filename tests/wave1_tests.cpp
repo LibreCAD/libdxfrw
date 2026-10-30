@@ -3196,12 +3196,16 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     struct EnumField {
         std::uint16_t DRW_MLeaderStyle::*member;
         int groupCode;
+        std::uint16_t maximum;
         const char* label;
     };
-    const std::array<EnumField, 3> fields{{
-        {&DRW_MLeaderStyle::drawMLeaderOrder, 171, "draw multi-leader order"},
-        {&DRW_MLeaderStyle::drawLeaderOrder, 172, "draw leader order"},
-        {&DRW_MLeaderStyle::blockConnectionType, 177,
+    const std::array<EnumField, 4> fields{{
+        {&DRW_MLeaderStyle::drawMLeaderOrder, 171, 1,
+            "draw multi-leader order"},
+        {&DRW_MLeaderStyle::drawLeaderOrder, 172, 1,
+            "draw leader order"},
+        {&DRW_MLeaderStyle::leaderType, 173, 2, "leader type"},
+        {&DRW_MLeaderStyle::blockConnectionType, 177, 1,
             "block content connection type"}
     }};
     const auto fileTags = [](const std::filesystem::path& path, bool binary) {
@@ -3251,7 +3255,9 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     unsigned retries = 0u;
     for (const bool binary : {false, true}) {
         for (const EnumField& field : fields) {
-            for (const std::uint16_t invalid : {std::uint16_t{2},
+            const auto firstInvalid = static_cast<std::uint16_t>(
+                field.maximum + 1u);
+            for (const std::uint16_t invalid : {firstInvalid,
                                                 std::uint16_t{65535}}) {
                 iface.style.drawMLeaderOrder = 0;
                 iface.style.drawLeaderOrder = 0;
@@ -3276,7 +3282,8 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                     continue;
                 ++refusals;
 
-                const int corrected = invalid == 2u ? 1 : 0;
+                const int corrected = invalid == firstInvalid
+                    ? field.maximum : 0;
                 iface.style.*(field.member) = corrected;
                 const bool retried = iface.fileExport(
                     path.string(), DRW::AC1027, binary, &iface.data, false);
@@ -3296,7 +3303,7 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
-    t.expect(refusals == 12u && retries == 12u,
+    t.expect(refusals == 16u && retries == 16u,
              "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
 }
 
