@@ -40525,8 +40525,8 @@ Tags recipe(bool binary,bool corrupt=false,int entityFlags=1,unsigned vertexCoun
     return fields;
 }
 Tags consumedSourceCountRecipe(bool binary,unsigned sourceCount) {
-    if(sourceCount<4u||sourceCount>254u)
-        throw std::runtime_error("consumed source-count recipe is outside 4..254");
+    if(sourceCount<3u||sourceCount>UINT8_MAX)
+        throw std::runtime_error("consumed source-count recipe is outside 3..255");
     std::vector<double> offsets{beforeOffsets[0],beforeOffsets[1]};
     for(unsigned element=2u;element<sourceCount;++element) {
         const double offset=element==2u?-1.25
@@ -41042,6 +41042,105 @@ bool outputProof(const std::filesystem::path& path,bool binary,int entityFlags=1
             for(unsigned element=0u;element<2u;++element)
                 if(model.segParms[element].size()!=2u||!close(model.segParms[element][0],parameter(profile,vertex,element,afterOffsets,vertexCount))
                     ||model.segParms[element][1]!=0.0||!model.areaFillParms[element].empty()){std::cerr<<"output readback parameters profile="<<profile<<" v="<<vertex<<" e="<<element<<" size="<<model.segParms[element].size()<<" value="<<(model.segParms[element].empty()?999:model.segParms[element][0])<<"\n";return false;}
+        }
+    }
+    return true;
+}
+bool outputProofElementCount(const std::filesystem::path& path,bool binary,int entityFlags,
+        const DRW_MLineStyle& expectedStyle) {
+    const auto& expected=expectedStyle.elements;
+    if(expected.size()<2u||expected.size()>UINT8_MAX)return false;
+    std::vector<double> offsets;offsets.reserve(expected.size());
+    for(const auto& element:expected)offsets.push_back(element.offset);
+    std::string outputStyleHandle;
+    const auto sameName=[](const std::string& a,const std::string& b) {
+        if(a.size()!=b.size())return false;
+        for(std::size_t i=0u;i<a.size();++i) {
+            const auto upper=[](unsigned char c){return c>='a'&&c<='z'?c-('a'-'A'):c;};
+            if(upper(static_cast<unsigned char>(a[i]))!=upper(static_cast<unsigned char>(b[i])))return false;
+        }
+        return true;
+    };
+    const auto rows=mlineStyleAuthorityControls::records(path,binary);
+    std::vector<std::string> styleReferences;
+    unsigned styles=0u,consumers=0u;
+    for(const auto& row:rows) {
+        if(row.type=="MLINESTYLE") {
+            const auto handles=values(row,5),actualOffsets=values(row,49);
+            const auto actualColors=values(row,62),actualLinetypes=values(row,6);
+            if(actualOffsets.size()!=expected.size()||actualColors.size()!=expected.size()+1u
+                ||actualLinetypes.size()!=expected.size()||handles.size()!=1u
+                ||!oneNumber(row,71,static_cast<double>(expected.size()))
+                ||!close(std::stod(actualColors.front()),expectedStyle.fillColor))return false;
+            outputStyleHandle=handles.front();
+            for(std::size_t i=0u;i<expected.size();++i)
+                if(!close(std::stod(actualOffsets[i]),expected[i].offset)
+                    ||!close(std::stod(actualColors[i+1u]),expected[i].color)
+                    ||!sameName(actualLinetypes[i],expected[i].linetype))return false;
+            ++styles;
+        }
+        if(row.type!="MLINE")continue;
+        const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
+        if(profile>1u||row.section!=(profile?"BLOCKS":"ENTITIES")
+            ||!oneNumber(row,71,entityFlags)||!oneNumber(row,72,3u)
+            ||!oneNumber(row,73,static_cast<double>(expected.size()))
+            ||values(row,340).size()!=1u)return false;
+        styleReferences.push_back(values(row,340).front());
+        const auto parameters=values(row,41),counts=values(row,74),fillCounts=values(row,75);
+        const auto vertices=geometry(profile);
+        if(parameters.size()!=vertices.size()*expected.size()*2u
+            ||counts.size()!=vertices.size()*expected.size()
+            ||fillCounts.size()!=vertices.size()*expected.size()
+            ||!values(row,42).empty())return false;
+        double minimum=offsets.front();for(const double offset:offsets)minimum=(std::min)(minimum,offset);
+        const double shift=justification(profile)==2u?-minimum:0.0;
+        std::size_t at=0u,tuple=0u;
+        for(unsigned vertex=0u;vertex<vertices.size();++vertex)
+            for(std::size_t element=0u;element<expected.size();++element,++tuple) {
+                const double parameter=parameterForOffset(profile,vertex,offsets[element],shift);
+                if(!close(std::stod(parameters[at++]),parameter)
+                    ||std::stod(parameters[at++])!=0.0
+                    ||std::stod(counts[tuple])!=2.0||std::stod(fillCounts[tuple])!=0.0)return false;
+            }
+        ++consumers;
+    }
+    if(styles!=1u||consumers!=2u||styleReferences.size()!=2u||outputStyleHandle.empty()
+        ||styleReferences[0]!=outputStyleHandle||styleReferences[1]!=outputStyleHandle)return false;
+    dx_iface reader;dx_data actual;
+    if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
+        ||actual.mLineStyles.front().elements.size()!=expected.size())return false;
+    const auto& actualStyle=actual.mLineStyles.front();
+    if(actualStyle.flags!=expectedStyle.flags||actualStyle.fillColor!=expectedStyle.fillColor
+        ||actualStyle.elements.size()!=expected.size())return false;
+    for(std::size_t i=0u;i<expected.size();++i)
+        if(!close(actualStyle.elements[i].offset,expected[i].offset)
+            ||actualStyle.elements[i].color!=expected[i].color
+            ||!sameName(actualStyle.elements[i].linetype,expected[i].linetype))return false;
+    const auto lines=mlineStyleAuthorityControls::consumers(actual);
+    if(lines.size()!=2u)return false;
+    for(unsigned profile=0u;profile<2u;++profile) {
+        const auto& line=*lines[profile];const auto vertices=geometry(profile);const auto ext=extrusion(profile);
+        const auto same=[](const DRW_Coord& value,const Vec& expectedValue) {
+            return close(value.x,expectedValue.x)&&close(value.y,expectedValue.y)
+                &&close(value.z,expectedValue.z);
+        };
+        if(line.styleHandle!=actualStyle.handle||line.openClosed!=entityFlags
+            ||line.numVerts!=vertices.size()||line.numLines!=expected.size()
+            ||line.vertlist.size()!=vertices.size()||line.justification!=justification(profile)
+            ||!close(line.scale,scale(profile))||!same(line.extPoint,ext)
+            ||!same(line.basePoint,vertices.front().first))return false;
+        for(unsigned vertex=0u;vertex<vertices.size();++vertex) {
+            const auto& point=line.vertlist[vertex];
+            if(point.segParms.size()!=expected.size()||point.areaFillParms.size()!=expected.size()
+                ||!same(point.position,vertices[vertex].first)
+                ||!same(point.vertexDir,vertices[vertex].second)
+                ||!same(point.miterDir,miter(profile,vertices,vertex)))return false;
+            for(std::size_t element=0u;element<expected.size();++element) {
+                const auto& segment=point.segParms[element];
+                if(segment.size()!=2u||!close(segment[0],parameterForOffset(profile,vertex,
+                        offsets[element],justification(profile)==2u?-*std::min_element(offsets.begin(),offsets.end()):0.0))
+                    ||segment[1]!=0.0||!point.areaFillParms[element].empty())return false;
+            }
         }
     }
     return true;
@@ -41809,6 +41908,17 @@ bool run(const std::filesystem::path& dir) {
         <<"; late="<<late<<"; retries="<<retries<<'\n';
     return profiles==4u&&readbacks==6u&&refusals==2u&&late==2u&&retries==2u;
 }
+Tags consumedOffsetCapSourceCountRecipe(bool binary,unsigned sourceCount,int entityFlags) {
+    Tags fields=sourceCount==2u?recipe(binary,false,entityFlags):consumedSourceCountRecipe(binary,sourceCount);
+    if(sourceCount==2u)return fields;
+    for(std::size_t begin=0u;begin<fields.size();) {
+        if(fields[begin].first!=0){++begin;continue;}
+        std::size_t end=begin+1u;while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[begin].second=="MLINE")setRecordValue(fields,begin,end,71,std::to_string(entityFlags));
+        begin=end;
+    }
+    return fields;
+}
 bool runConsumedOffsetCapFlags(const std::filesystem::path& dir) {
     const auto input=dir/"consumed-offset-caps-input.dxf",output=dir/"consumed-offset-caps-output.dxf";
     std::size_t profiles=0u,readbacks=0u,refusals=0u,late=0u,retries=0u;
@@ -41870,9 +41980,95 @@ bool runConsumedOffsetCapFlags(const std::filesystem::path& dir) {
             ||!outputProof(output,outputBinary,13)||!caller.same(data))return fail(__LINE__);
         ++retries;++readbacks;
     }
+    std::size_t countProfiles=0u,countReadbacks=0u,countRefusals=0u,countLate=0u,countRetries=0u;
+    const std::array<unsigned,7> sourceCounts{{3u,4u,8u,32u,128u,254u,255u}};
+    for(const unsigned sourceCount:sourceCounts) {
+        const std::array<int,3> allCapFlags{{5,9,13}};
+        const std::array<int,1> endCapOnly{{13}};
+        const auto runFlags=sourceCount==3u||sourceCount==8u||sourceCount==255u
+            ?std::vector<int>(allCapFlags.begin(),allCapFlags.end())
+            :std::vector<int>(endCapOnly.begin(),endCapOnly.end());
+        for(const int entityFlags:runFlags)
+            for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+                dx_iface adapter;dx_data data;
+                if(!write(input,consumedOffsetCapSourceCountRecipe(sourceBinary,sourceCount,entityFlags),
+                        sourceBinary,"AC1027")
+                    ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+                    ||data.mLineStyles.front().elements.size()!=sourceCount||data.mLineStyles.front().flags!=2)
+                    return fail(__LINE__);
+                const auto lines=mlineStyleAuthorityControls::consumers(data);
+                if(lines.size()!=2u||lines[0]->openClosed!=entityFlags||lines[1]->openClosed!=entityFlags
+                    ||lines[0]->numLines!=sourceCount||lines[1]->numLines!=sourceCount)return fail(__LINE__);
+                data.mLineStyles.front().elements.front().offset=afterOffsets[0];
+                const auto expectedStyle=data.mLineStyles.front();
+                const mlineRetargetControls::Snapshot caller(data);
+                if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)) {
+                    std::cerr<<"multi-count MLINE offset export refused count="<<sourceCount
+                        <<" flags="<<entityFlags<<" sourceBinary="<<sourceBinary
+                        <<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+                }
+                if(!outputProofElementCount(output,outputBinary,entityFlags,expectedStyle)) {
+                    std::cerr<<"multi-count MLINE offset output proof failed count="<<sourceCount
+                        <<" flags="<<entityFlags<<" sourceBinary="<<sourceBinary
+                        <<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+                }
+                if(!caller.same(data)) {
+                    std::cerr<<"multi-count MLINE offset caller changed count="<<sourceCount
+                        <<" flags="<<entityFlags<<" sourceBinary="<<sourceBinary
+                        <<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+                }
+                ++countProfiles;++countReadbacks;
+            }
+    }
+    for(const unsigned sourceCount:{3u,255u})for(const int entityFlags:{3,17})
+        for(bool outputBinary:{false,true}) {
+            dx_iface adapter;dx_data data;
+            if(!write(input,consumedOffsetCapSourceCountRecipe(false,sourceCount,entityFlags),false,"AC1027")
+                ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+                ||data.mLineStyles.front().elements.size()!=sourceCount)return fail(__LINE__);
+            data.mLineStyles.front().elements.front().offset=afterOffsets[0];
+            const mlineRetargetControls::Snapshot caller(data);sentinel(output);
+            if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+                ||!dictionaryVarTransactionControls::keptWithoutTemporary(output)||!caller.same(data))return fail(__LINE__);
+            ++countRefusals;
+            dx_iface correctedReader;dx_data correctedData;
+            if(!write(input,consumedOffsetCapSourceCountRecipe(false,sourceCount,13),false,"AC1027")
+                ||!correctedReader.fileImport(input.string(),&correctedData,false)
+                ||correctedData.mLineStyles.size()!=1u
+                ||correctedData.mLineStyles.front().elements.size()!=sourceCount)return fail(__LINE__);
+            correctedData.mLineStyles.front().elements.front().offset=afterOffsets[0];
+            const auto expectedStyle=correctedData.mLineStyles.front();
+            const mlineRetargetControls::Snapshot corrected(correctedData);
+            if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&correctedData,false,true)
+                ||!outputProofElementCount(output,outputBinary,13,expectedStyle)
+                ||!corrected.same(correctedData))return fail(__LINE__);
+            ++countRetries;++countReadbacks;
+        }
+    for(const unsigned sourceCount:{3u,255u})for(bool outputBinary:{false,true}) {
+        Editing adapter;dx_data data;
+        if(!write(input,consumedOffsetCapSourceCountRecipe(false,sourceCount,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+            ||data.mLineStyles.front().elements.size()!=sourceCount)return fail(__LINE__);
+        data.mLineStyles.front().elements.front().offset=afterOffsets[0];
+        const auto expectedStyle=data.mLineStyles.front();
+        const mlineRetargetControls::Snapshot caller(data);
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u||lines.front()->vertlist.empty())return fail(__LINE__);
+        adapter.change=[&]{lines.front()->vertlist.front().segParms.front().front()+=.25;};sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++countLate;caller.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)
+            ||!outputProofElementCount(output,outputBinary,13,expectedStyle)||!caller.same(data))return fail(__LINE__);
+        ++countRetries;++countReadbacks;
+    }
     std::cout<<"MLINE consumed offset cap profiles="<<profiles<<"; readbacks="<<readbacks
-        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries<<'\n';
-    return profiles==12u&&readbacks==18u&&refusals==4u&&late==2u&&retries==6u;
+        <<"; refusals="<<refusals<<"; late="<<late<<"; retries="<<retries
+        <<"; multi-count profiles="<<countProfiles<<"; readbacks="<<countReadbacks
+        <<"; refusals="<<countRefusals<<"; late="<<countLate<<"; retries="<<countRetries<<'\n';
+    return profiles==12u&&readbacks==18u&&refusals==4u&&late==2u&&retries==6u
+        &&countProfiles==52u&&countReadbacks==64u&&countRefusals==8u
+        &&countLate==4u&&countRetries==12u;
 }
 bool runConsumedOffsetCapFlagsTemporary() {
     const auto dir=std::filesystem::temp_directory_path() /

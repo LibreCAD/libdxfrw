@@ -17563,7 +17563,8 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
         || (appendCapFlags && (!appended || removed || retargetAngles || retargetOffsets))
         || (removeCapFlags && (!removed || appended || retargetAngles || retargetOffsets || appendCapFlags))
         || (consumedOffsetCapFlags && (appended || removed || retargetAngles || retargetOffsets
-            || before.elements.size()!=2u || after.elements.size()!=2u
+            || before.elements.size()<2u || before.elements.size()>UINT8_MAX
+            || after.elements.size()!=before.elements.size()
             || (original.openClosed!=5 && original.openClosed!=9 && original.openClosed!=13)))
         || (simpleFillOffsetEdit && (appended || removed || retargetAngles || retargetStyleRemoval
             || retargetOffsets || before.elements.size()!=2u || after.elements.size()!=2u
@@ -18931,8 +18932,9 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                 const bool selectedCapFlagRemoval=before && version==DRW::AC1027 && removeElements
                     && before->elements.size()==2u && targetStyle.elements.size()==1u;
                 const bool selectedCapFlagOffsetEdit=before && version==DRW::AC1027
-                    && !append && !removeElements && before->elements.size()==2u
-                    && targetStyle.elements.size()==2u
+                    && !append && !removeElements && before->elements.size()>=2u
+                    && before->elements.size()<=UINT8_MAX
+                    && targetStyle.elements.size()==before->elements.size()
                     && (original->openClosed==5 || original->openClosed==9 || original->openClosed==13)
                     && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
                         || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
