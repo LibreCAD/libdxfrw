@@ -18,7 +18,7 @@ conversion and native semantic acceptance are separate evidence levels.
 
 | Gate | Current unresolved state | Required completion evidence |
 | --- | --- | --- |
-| Original source bodies | The selected dual-280 ATTDEF role profile intentionally has `rawTypedMatched=false` despite separate field-role/model checks; this flag alone does not identify a lost field. Full family coverage remains open. | Classify raw/typed normalization separately from actual missing source fields; census original records and independently match field/reference roles, including unsupported/dropped records |
+| Original source bodies | Full original-record family coverage remains open. | Classify raw/typed normalization separately from actual missing source fields; census original records and independently match field/reference roles, including unsupported/dropped records |
 | Ownership | `ownerTargetsResolved=false` | Every required target exists, has the correct role/type/owner, and is emitted |
 | Recursive closure | `recursiveClosureMatched=false` | Required targets' dependencies close without omissions, aliasing or unbounded work |
 | Output qualification | `outputEligible=false`; support ledger **CLOSED** | Frozen source → planned identity/fields → actual emitted bytes → consumer meaning |
@@ -42,9 +42,9 @@ subtasks are already complete.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P2 | OPEN | Close only reproducible MLINESTYLE, LTYPE/APPID, MLEADERSTYLE and XDATA/1005 source-to-output losses. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
+| P2 | OPEN | Close only source-witnessed MLINESTYLE, LTYPE/XDATA and MLEADERSTYLE losses that remain after current passing profiles are excluded. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
-| P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a current unmatched source record or dependency role. |
+| P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
 | P5 | OPEN | Complete remaining rendering and TABLE content/style behavior, including unqualified linked-cell payloads and composed format scopes. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
@@ -53,7 +53,7 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, select only an unmatched secondary Xrecord field or handle dependency.
+1. **P4a — original source coverage.** Select one physically observed source field/dependency that is absent or misbound in output; bind exact source span, role, provider and owner before implementation. Treat ATTDEF secondary Xrecord content as a candidate only when a real source record proves the unmatched field/reference. A normalization mismatch flag or generated profile alone does not prove data loss; if ATTDEF has no such witness, skip it and choose another census gap.
 2. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
 3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
@@ -71,7 +71,8 @@ remaining operation that demonstrates a code loss.
    version grammars. Use representative, boundary and aggregate-budget cases;
    add count-specific cases only where the algorithm has count-specific branches.
 2. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
-   source profiles, APPID metadata and value/chunk forms; resolve a code-1005
+   source profiles, remaining APPID metadata and XDATA value/chunk forms; resolve
+   a code-1005
    target type, mixed set, section combination or cardinality only when a current
    witness shows the rooted planner/writer loses or misbinds it. Exercise late
    mutation and missing providers on that same path.
@@ -114,11 +115,12 @@ retain existing dangling-binding failures.
 P4a supplies source/context/role providers; P4b composes those providers with P2,
 P3 and P5 output. Do not create parallel capture or graph engines.
 
-1. **Original coverage:** use the current source census to select one unmatched
-   ATTDEF secondary Xrecord field/reference, TABLE, LAYOUT, object or other
-   required record. Include child records, terminators, unsupported/dropped
-   records and unused definitions. Bind physical span, typed model, original
-   owner and source profile; classify the gap as parser, model, origin join,
+1. **Original coverage:** use the current source census to select one physically
+   evidenced unmatched ATTDEF secondary Xrecord field/reference, TABLE, LAYOUT,
+   object or other required record. Do not infer a lost field from raw/typed
+   mismatch flags or generated controls alone. Include child records, terminators,
+   unsupported/dropped records and unused definitions. Bind physical span, typed
+   model, original owner and source profile; classify the gap as parser, model, origin join,
    semantic evidence or output evidence before coding.
 2. **Dependencies:** resolve required STYLE/LTYPE/APPID/LAYER/BLOCK_RECORD/LAYOUT,
    image/reactor/material/style, document/control/name/application, XDATA/EED and
