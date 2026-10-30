@@ -31458,7 +31458,17 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::E3DFACE
+        const Tags entity=entityType==DRW::LWPOLYLINE
+            ?Tags{{0,"LWPOLYLINE"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbPolyline"},
+                {90,"3"},{70,"1"},{43,"0"},{38,"4"},
+                {10,"1"},{20,"2"},{40,"0.5"},{41,"0.75"},
+                {42,"0.25"},{91,"3"},
+                {10,"5"},{20,"2"},{40,"0.25"},{41,"0.5"},
+                {42,"-0.375"},{91,"5"},
+                {10,"3"},{20,"7"},{40,"0.75"},{41,"0.25"},
+                {42,"0.5"},{91,"7"}}
+            :entityType==DRW::E3DFACE
             ?Tags{{0,"3DFACE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbFace"},
                 {10,"1"},{20,"2"},{30,"3"},
@@ -31510,6 +31520,13 @@ Tags sourceWithBlockPointEntityHandleXdata(
         std::string_view targetOwner="203") {
     return sourceWithBlockEntityHandleXdata(
         binary,targetBlock,targetOwner,DRW::POINT);
+}
+
+Tags sourceWithBlockLWPolylineEntityHandleXdata(
+        bool binary,std::string_view targetBlock="AuthorityBlock",
+        std::string_view targetOwner="203") {
+    return sourceWithBlockEntityHandleXdata(
+        binary,targetBlock,targetOwner,DRW::LWPOLYLINE);
 }
 
 Tags sourceWithBlock3dFaceEntityHandleXdata(
@@ -31764,6 +31781,45 @@ Tags sourceWith3dFaceEntityHandleXdata(bool binary) {
     }
     if(!faceInserted)
         throw std::runtime_error("3DFACE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithLWPolylineEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,polylineInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags polyline{{0,"LWPOLYLINE"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbPolyline"},
+            {90,"3"},{70,"1"},{43,"0"},{38,"4"},
+            {10,"1"},{20,"2"},{40,"0.5"},{41,"0.75"},
+            {42,"0.25"},{91,"3"},
+            {10,"5"},{20,"2"},{40,"0.25"},{41,"0.5"},
+            {42,"-0.375"},{91,"5"},
+            {10,"3"},{20,"7"},{40,"0.75"},{41,"0.25"},
+            {42,"0.5"},{91,"7"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      polyline.begin(),polyline.end());
+        polylineInserted=true;
+        break;
+    }
+    if(!polylineInserted)
+        throw std::runtime_error("LWPOLYLINE XDATA target source missing");
     return fields;
 }
 
@@ -32806,14 +32862,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     std::string_view targetBlock="*Model_Space",
                                     DRW::ETYPE entityType=DRW::CIRCLE) {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::POINT&&entityType!=DRW::E3DFACE
+    if(entityType!=DRW::POINT&&entityType!=DRW::LWPOLYLINE
+        &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::CIRCLE&&entityType!=DRW::ARC
         &&entityType!=DRW::ELLIPSE)return false;
     const bool isPoint=entityType==DRW::POINT;
+    const bool isLWPolyline=entityType==DRW::LWPOLYLINE;
     const bool isFace=entityType==DRW::E3DFACE;
     const bool isArc=entityType==DRW::ARC;
     const bool isEllipse=entityType==DRW::ELLIPSE;
-    const std::string_view recordName=isPoint?"POINT":isFace?"3DFACE"
+    const std::string_view recordName=isPoint?"POINT"
+        :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :isArc?"ARC":isEllipse?"ELLIPSE":"CIRCLE";
     std::string targetBlockKey;
     if(!dx_symbol_output::nameKey(targetBlock,targetBlockKey))return false;
@@ -32835,6 +32894,26 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         double parsed=0.0;
         return dx_raster_output::finiteReal(fieldValue(row,code),parsed)
             &&std::abs(parsed-expected)<=(binary?1.0e-6:1.0e-12);
+    };
+    const auto realValuesMatch=[&](const auto& row,int code,
+                                   const std::vector<double>& expected) {
+        std::vector<double> actual;
+        for(const auto& field:row.fields)if(field.first==code) {
+            double parsed=0.0;
+            if(!dx_raster_output::finiteReal(field.second,parsed))return false;
+            actual.push_back(parsed);
+        }
+        return actual==expected;
+    };
+    const auto integerValuesMatch=[&](const auto& row,int code,
+                                      const std::vector<std::int64_t>& expected) {
+        std::vector<std::int64_t> actual;
+        for(const auto& field:row.fields)if(field.first==code) {
+            std::int64_t parsed=0;
+            if(!dx_raster_output::integer(field.second,parsed))return false;
+            actual.push_back(parsed);
+        }
+        return actual==expected;
     };
     const mlineStyleAuthorityControls::Row* style=nullptr;
     const mlineStyleAuthorityControls::Row* app=nullptr;
@@ -32868,7 +32947,17 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isFace
+        const bool expectedGeometry=isLWPolyline
+            ?integerValuesMatch(row,90,{3})
+                &&integerValuesMatch(row,70,{1})
+                &&realValuesMatch(row,38,{4.0})
+                &&realValuesMatch(row,10,{1.0,5.0,3.0})
+                &&realValuesMatch(row,20,{2.0,2.0,7.0})
+                &&realValuesMatch(row,40,{0.5,0.25,0.75})
+                &&realValuesMatch(row,41,{0.75,0.5,0.25})
+                &&realValuesMatch(row,42,{0.25,-0.375,0.5})
+                &&integerValuesMatch(row,91,{3,5,7})
+            :isFace
             ?realValue(row,10,1.0)&&realValue(row,20,2.0)
                 &&realValue(row,30,3.0)&&realValue(row,11,4.0)
                 &&realValue(row,21,2.0)&&realValue(row,31,6.0)
@@ -32958,6 +33047,31 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||!exactEllipseEndParameter(path,binary,targetSection,curve->id,
                 ownerRecord->id,fullTurn))
             return false;
+    } else if(isLWPolyline) {
+        const auto* typedModel=dynamic_cast<const DRW_LWPolyline*>(*typedCurve);
+        const std::array<DRW_Coord,3> expected{{
+            DRW_Coord(1.0,2.0,0.0),DRW_Coord(5.0,2.0,0.0),
+            DRW_Coord(3.0,7.0,0.0)}};
+        const std::array<double,3> startWidths{{0.5,0.25,0.75}};
+        const std::array<double,3> endWidths{{0.75,0.5,0.25}};
+        const std::array<double,3> bulges{{0.25,-0.375,0.5}};
+        const std::array<int,3> identifiers{{3,5,7}};
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_LWPolyline)
+            ||typedModel->parentHandle!=ownerHandle||typedModel->flags!=1
+            ||typedModel->vertexnum!=3||typedModel->vertlist.size()!=3u
+            ||typedModel->elevation!=4.0||typedModel->width!=0.0
+            ||typedModel->thickness!=0.0||typedModel->extPoint.x!=0.0
+            ||typedModel->extPoint.y!=0.0||typedModel->extPoint.z!=1.0)
+            return false;
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& vertex=typedModel->vertlist[i];
+            if(vertex==nullptr||vertex->x!=expected[i].x
+                ||vertex->y!=expected[i].y
+                ||vertex->stawidth!=startWidths[i]
+                ||vertex->endwidth!=endWidths[i]
+                ||vertex->bulge!=bulges[i]
+                ||vertex->identifier!=identifiers[i])return false;
+        }
     } else if(isFace) {
         const auto* typedModel=dynamic_cast<const DRW_3Dface*>(*typedCurve);
         if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_3Dface)
@@ -36354,7 +36468,8 @@ bool runTemporary() {
         const std::string_view entityName=entityType==DRW::ELLIPSE
             ?std::string_view("ELLIPSE")
             :entityType==DRW::POINT?std::string_view("POINT")
-            :std::string_view("3DFACE");
+            :entityType==DRW::E3DFACE?std::string_view("3DFACE")
+            :std::string_view("LWPOLYLINE");
         const std::string_view targetBlock=inNamedBlock
             ?std::string_view("AuthorityBlock")
             :std::string_view("*Model_Space");
@@ -36367,7 +36482,9 @@ bool runTemporary() {
                 ?sourceWithEllipseEntityHandleXdata(binary)
                 :entityType==DRW::POINT
                     ?sourceWithPointEntityHandleXdata(binary)
-                    :sourceWith3dFaceEntityHandleXdata(binary);
+                    :entityType==DRW::E3DFACE
+                        ?sourceWith3dFaceEntityHandleXdata(binary)
+                        :sourceWithLWPolylineEntityHandleXdata(binary);
         };
         const auto typedGeometryMatches=[&](const DRW_Entity* entity) {
             if(entityType==DRW::ELLIPSE) {
@@ -36388,6 +36505,33 @@ bool runTemporary() {
                     &&typed->basePoint.z==7.0&&typed->thickness==0.0
                     &&typed->extPoint.x==0.0&&typed->extPoint.y==0.0
                     &&typed->extPoint.z==1.0&&typed->xAxisAngle==0.0;
+            }
+            if(entityType==DRW::LWPOLYLINE) {
+                const auto* typed=dynamic_cast<const DRW_LWPolyline*>(entity);
+                const std::array<DRW_Coord,3> expected{{
+                    DRW_Coord(1.0,2.0,0.0),DRW_Coord(5.0,2.0,0.0),
+                    DRW_Coord(3.0,7.0,0.0)}};
+                const std::array<double,3> startWidths{{0.5,0.25,0.75}};
+                const std::array<double,3> endWidths{{0.75,0.5,0.25}};
+                const std::array<double,3> bulges{{0.25,-0.375,0.5}};
+                const std::array<int,3> identifiers{{3,5,7}};
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_LWPolyline)
+                    ||typed->parentHandle!=targetOwner||typed->flags!=1
+                    ||typed->vertexnum!=3||typed->vertlist.size()!=3u
+                    ||typed->elevation!=4.0||typed->width!=0.0
+                    ||typed->thickness!=0.0||typed->extPoint.x!=0.0
+                    ||typed->extPoint.y!=0.0||typed->extPoint.z!=1.0)
+                    return false;
+                for(std::size_t i=0u;i<expected.size();++i) {
+                    const auto& vertex=typed->vertlist[i];
+                    if(vertex==nullptr||vertex->x!=expected[i].x
+                        ||vertex->y!=expected[i].y
+                        ||vertex->stawidth!=startWidths[i]
+                        ||vertex->endwidth!=endWidths[i]
+                        ||vertex->bulge!=bulges[i]
+                        ||vertex->identifier!=identifiers[i])return false;
+                }
+                return true;
             }
             const auto* typed=dynamic_cast<const DRW_3Dface*>(entity);
             return typed!=nullptr&&typeid(*typed)==typeid(DRW_3Dface)
@@ -36576,13 +36720,13 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE})
+            DRW::ELLIPSE,DRW::POINT,DRW::E3DFACE,DRW::LWPOLYLINE})
         if(!runGeometrySection(entityType,false)
             ||!runGeometrySection(entityType,true))return false;
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==260u&&readbacks==582u&&refusals==322u&&retries==322u;
+    return profiles==268u&&readbacks==600u&&refusals==332u&&retries==332u;
 }
 
 bool runBudgetTemporary() {
