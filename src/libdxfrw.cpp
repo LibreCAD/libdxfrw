@@ -26015,26 +26015,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     && style.m_id == 0 && style.m_styleClass == 0
                     && style.m_name.empty());
     };
-    const auto styleFormatOnlyIsSupported = [&styleIsDefault,
-            &styleWithMarginsIsSupported, &formatIsDefault](
-            const DRW_TableStyleCellStyle& style, int type) {
-        if (styleIsDefault(style, type))
-            return true;
-        const bool marginsAbsent = style.m_marginOverrideFlags == 0
-            && style.m_verticalMargin == 0.0
-            && style.m_horizontalMargin == 0.0
-            && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
-            && style.m_marginHorizontalSpacing == 0.0
-            && style.m_marginVerticalSpacing == 0.0;
-        return !formatIsDefault(style.m_contentFormat) && marginsAbsent
-            && style.m_borders.empty()
-            && styleWithMarginsIsSupported(style, type, false);
-    };
-    const auto scopeFormatOnlyIsSupported = [&styleFormatOnlyIsSupported](
-            const DRW_TableContentDxfMetadata::Scope& scope, int type) {
-        return scope.m_customData == 0 && scope.m_customItems.empty()
-            && styleFormatOnlyIsSupported(scope.m_style, type);
-    };
     const auto scopeWithMarginsIsSupported = [&styleWithMarginsIsSupported](
             const DRW_TableContentDxfMetadata::Scope& scope, int type,
             bool allowSelectedCellBorder) {
@@ -26311,9 +26291,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         if (metadata.m_columns.size() != ent->m_content.m_columns.size()
             || metadata.m_rows.size() != ent->m_content.m_rows.size()
             || metadata.m_rows.front().m_cells.size() != row.m_cells.size()
-            || !scopeFormatOnlyIsSupported(metadata.m_columns.front(), 3)
-            || !scopeFormatOnlyIsSupported(
-                metadata.m_rows.front().m_scope, 2)
+            || !scopeWithMarginsIsSupported(
+                metadata.m_columns.front(), 3, false)
+            || !scopeWithMarginsIsSupported(
+                metadata.m_rows.front().m_scope, 2, false)
             || !cellStyleIsSupported(
                 metadata.m_rows.front().m_cells.front().m_scope)
             || metadata.m_rows.front().m_cells.front().m_contentFormats.size()
@@ -26325,7 +26306,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     return format && !contentFormatIsSupported(*format);
                 })
             || !metadata.m_rows.front().m_cells.front().m_geometry.empty()
-            || !styleFormatOnlyIsSupported(metadata.m_tableStyle, 4))
+            || !tableStyleWithMarginsIsSupported(metadata.m_tableStyle))
         {
             return failDxfWrite();
         }
