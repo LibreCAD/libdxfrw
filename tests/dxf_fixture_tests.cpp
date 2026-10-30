@@ -31527,7 +31527,18 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::TOLERANCE
+        const Tags entity=entityType==DRW::HATCH
+            ?Tags{{0,"HATCH"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{100,"AcDbHatch"},
+                {10,"0"},{20,"0"},{30,"0"},
+                {210,"0"},{220,"0"},{230,"1"},{2,"SOLID"},
+                {70,"1"},{71,"0"},{91,"1"},{92,"0"},{93,"4"},
+                {72,"1"},{10,"1"},{20,"2"},{11,"4"},{21,"2"},
+                {72,"1"},{10,"4"},{20,"2"},{11,"4"},{21,"5"},
+                {72,"1"},{10,"4"},{20,"5"},{11,"1"},{21,"5"},
+                {72,"1"},{10,"1"},{20,"5"},{11,"1"},{21,"2"},
+                {97,"0"},{75,"0"},{76,"1"},{78,"0"},{98,"0"}}
+            :entityType==DRW::TOLERANCE
             ?Tags{{0,"TOLERANCE"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbFcf"},
                 {3,"STANDARD"},{10,"12.25"},{20,"-7.5"},{30,"3"},
@@ -32078,6 +32089,46 @@ Tags sourceWithToleranceEntityHandleXdata(bool binary) {
     }
     if(!toleranceInserted)
         throw std::runtime_error("TOLERANCE XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithHatchEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,hatchInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags hatch{{0,"HATCH"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{100,"AcDbHatch"},
+            {10,"0"},{20,"0"},{30,"0"},
+            {210,"0"},{220,"0"},{230,"1"},{2,"SOLID"},
+            {70,"1"},{71,"0"},{91,"1"},{92,"0"},{93,"4"},
+            {72,"1"},{10,"1"},{20,"2"},{11,"4"},{21,"2"},
+            {72,"1"},{10,"4"},{20,"2"},{11,"4"},{21,"5"},
+            {72,"1"},{10,"4"},{20,"5"},{11,"1"},{21,"5"},
+            {72,"1"},{10,"1"},{20,"5"},{11,"1"},{21,"2"},
+            {97,"0"},{75,"0"},{76,"1"},{78,"0"},{98,"0"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      hatch.begin(),hatch.end());
+        hatchInserted=true;
+        break;
+    }
+    if(!hatchInserted)
+        throw std::runtime_error("HATCH XDATA target source missing");
     return fields;
 }
 
@@ -33871,7 +33922,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     DRW::ETYPE entityType=DRW::CIRCLE,
                                     std::string_view insertBlockName="AuthorityBlock") {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::TOLERANCE&&entityType!=DRW::LEADER
+    if(entityType!=DRW::HATCH&&entityType!=DRW::TOLERANCE
+        &&entityType!=DRW::LEADER
         &&entityType!=DRW::MTEXT
         &&entityType!=DRW::TEXT&&entityType!=DRW::POINT
         &&entityType!=DRW::LWPOLYLINE
@@ -33883,6 +33935,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
         &&entityType!=DRW::RAY&&entityType!=DRW::XLINE
         &&entityType!=DRW::DXF_TRACE&&entityType!=DRW::SOLID)return false;
+    const bool isHatch=entityType==DRW::HATCH;
     const bool isTolerance=entityType==DRW::TOLERANCE;
     const bool isLeader=entityType==DRW::LEADER;
     const bool isMText=entityType==DRW::MTEXT;
@@ -33901,7 +33954,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isXline=entityType==DRW::XLINE;
     const bool isTrace=entityType==DRW::DXF_TRACE;
     const bool isSolid=entityType==DRW::SOLID;
-    const std::string_view recordName=isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
+    const std::string_view recordName=isHatch?"HATCH":isTolerance?"TOLERANCE":isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :is3DLine?"3DLINE":isMesh?"MESH":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
         :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
@@ -34009,7 +34062,27 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isTolerance
+        const bool expectedGeometry=isHatch
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDbHatch"})
+                &&fieldValue(row,2)=="SOLID"
+                &&integerValuesMatch(row,70,{1})
+                &&integerValuesMatch(row,71,{0})
+                &&integerValuesMatch(row,91,{1})
+                &&integerValuesMatch(row,92,{0})
+                &&integerValuesMatch(row,93,{4})
+                &&integerValuesMatch(row,72,{1,1,1,1})
+                &&realValuesMatch(row,10,{0.0,1.0,4.0,4.0,1.0})
+                &&realValuesMatch(row,20,{0.0,2.0,2.0,5.0,5.0})
+                &&realValuesMatch(row,11,{4.0,4.0,1.0,1.0})
+                &&realValuesMatch(row,21,{2.0,5.0,5.0,2.0})
+                &&integerValuesMatch(row,97,{0})
+                &&integerValuesMatch(row,75,{0})
+                &&integerValuesMatch(row,76,{1})
+                &&integerValuesMatch(row,78,{0})
+                &&integerValuesMatch(row,98,{0})
+                &&realValue(row,210,0.0)&&realValue(row,220,0.0)
+                &&realValue(row,230,1.0)
+            :isTolerance
             ?textValuesMatch(row,100,{"AcDbEntity","AcDbFcf"})
                 &&fieldValue(row,3)=="STANDARD"
                 &&fieldValue(row,1)=="POSITION_TOLERANCE"
@@ -34310,6 +34383,33 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||!typedModel->attlist.empty()||typedModel->seqEndEntity
             ||targetRecordCount!=1u||targetBlockCount!=1u)
             return false;
+    } else if(isHatch) {
+        const auto* typedModel=dynamic_cast<const DRW_Hatch*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Hatch)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->name!="SOLID"||typedModel->solid!=1
+            ||typedModel->associative!=0||typedModel->loopsnum!=1
+            ||typedModel->looplist.size()!=1u
+            ||typedModel->basePoint.z!=0.0
+            ||typedModel->extPoint.x!=0.0||typedModel->extPoint.y!=0.0
+            ||typedModel->extPoint.z!=1.0)return false;
+        const auto& loop=typedModel->looplist.front();
+        if(loop==nullptr||loop->type!=0||loop->numedges!=4
+            ||loop->objlist.size()!=4u)return false;
+        const std::array<DRW_Coord,4> starts{{
+            DRW_Coord(1.0,2.0,0.0),DRW_Coord(4.0,2.0,0.0),
+            DRW_Coord(4.0,5.0,0.0),DRW_Coord(1.0,5.0,0.0)}};
+        const std::array<DRW_Coord,4> ends{{
+            DRW_Coord(4.0,2.0,0.0),DRW_Coord(4.0,5.0,0.0),
+            DRW_Coord(1.0,5.0,0.0),DRW_Coord(1.0,2.0,0.0)}};
+        for(std::size_t i=0u;i<loop->objlist.size();++i) {
+            const auto* edge=dynamic_cast<const DRW_Line*>(
+                loop->objlist[i].get());
+            if(edge==nullptr||edge->basePoint.x!=starts[i].x
+                ||edge->basePoint.y!=starts[i].y
+                ||edge->secPoint.x!=ends[i].x
+                ||edge->secPoint.y!=ends[i].y)return false;
+        }
     } else if(isTolerance) {
         const auto* typedModel=dynamic_cast<const DRW_Tolerance*>(*typedCurve);
         if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Tolerance)
@@ -38280,7 +38380,9 @@ bool runTemporary() {
     const double ellipseTurn=2.0*std::acos(-1.0);
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
                                      bool inNamedBlock) {
-        const std::string_view entityName=entityType==DRW::TOLERANCE
+        const std::string_view entityName=entityType==DRW::HATCH
+            ?std::string_view("HATCH")
+            :entityType==DRW::TOLERANCE
             ?std::string_view("TOLERANCE")
             :entityType==DRW::LEADER
             ?std::string_view("LEADER")
@@ -38326,6 +38428,8 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::HATCH
+                ?sourceWithHatchEntityHandleXdata(binary)
                 :entityType==DRW::TOLERANCE
                 ?sourceWithToleranceEntityHandleXdata(binary)
                 :entityType==DRW::LEADER
@@ -38455,6 +38559,35 @@ bool runTemporary() {
                     &&typed->textgen==2
                     &&typed->alignH==DRW_Text::HRight
                     &&typed->alignV==DRW_Text::VTop;
+            }
+            if(entityType==DRW::HATCH) {
+                const auto* typed=dynamic_cast<const DRW_Hatch*>(entity);
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_Hatch)
+                    ||typed->parentHandle!=targetOwner
+                    ||typed->name!="SOLID"||typed->solid!=1
+                    ||typed->associative!=0||typed->loopsnum!=1
+                    ||typed->looplist.size()!=1u
+                    ||typed->basePoint.z!=0.0
+                    ||typed->extPoint.x!=0.0||typed->extPoint.y!=0.0
+                    ||typed->extPoint.z!=1.0)return false;
+                const auto& loop=typed->looplist.front();
+                if(loop==nullptr||loop->type!=0||loop->numedges!=4
+                    ||loop->objlist.size()!=4u)return false;
+                const std::array<DRW_Coord,4> starts{{
+                    DRW_Coord(1.0,2.0,0.0),DRW_Coord(4.0,2.0,0.0),
+                    DRW_Coord(4.0,5.0,0.0),DRW_Coord(1.0,5.0,0.0)}};
+                const std::array<DRW_Coord,4> ends{{
+                    DRW_Coord(4.0,2.0,0.0),DRW_Coord(4.0,5.0,0.0),
+                    DRW_Coord(1.0,5.0,0.0),DRW_Coord(1.0,2.0,0.0)}};
+                for(std::size_t i=0u;i<loop->objlist.size();++i) {
+                    const auto* edge=dynamic_cast<const DRW_Line*>(
+                        loop->objlist[i].get());
+                    if(edge==nullptr||edge->basePoint.x!=starts[i].x
+                        ||edge->basePoint.y!=starts[i].y
+                        ||edge->secPoint.x!=ends[i].x
+                        ||edge->secPoint.y!=ends[i].y)return false;
+                }
+                return true;
             }
             if(entityType==DRW::TOLERANCE) {
                 const auto* typed=dynamic_cast<const DRW_Tolerance*>(entity);
@@ -38922,7 +39055,7 @@ bool runTemporary() {
     };
     for(const DRW::ETYPE entityType:{
             DRW::TEXT,DRW::MTEXT,DRW::LEADER,DRW::TOLERANCE,
-            DRW::THREEDLINE,DRW::MESH,
+            DRW::THREEDLINE,DRW::MESH,DRW::HATCH,
             DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
             DRW::POINT,DRW::E3DFACE,
             DRW::LWPOLYLINE,DRW::RAY,DRW::XLINE,DRW::DXF_TRACE,
@@ -38934,7 +39067,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==396u&&readbacks==912u&&refusals==516u&&retries==516u;
+    return profiles==404u&&readbacks==930u&&refusals==526u&&retries==526u;
 }
 
 bool runBudgetTemporary() {
