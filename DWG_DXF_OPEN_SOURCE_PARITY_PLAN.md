@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P2 | OPEN | Close only source-witnessed MLINESTYLE, LTYPE/XDATA and MLEADERSTYLE losses that remain after current passing profiles are excluded. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
+| P2 | OPEN | Close only current source-witnessed LTYPE/XDATA or MLEADERSTYLE losses. Reopen MLINESTYLE only if a new source witness exposes a gap; its evidenced source, transaction and singleton profiles are already covered. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
 | P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
 | P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
@@ -52,9 +52,14 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 ### Immediate implementation order
 
-1. **P4a — original source coverage.** Select one physically observed source field/dependency that is absent or misbound in output; bind exact source span, role, provider and owner before implementation. A normalization mismatch flag or generated profile alone does not prove data loss; select only a source-census gap with a physical witness.
-2. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
-3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
+1. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
+2. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
+
+P4 remains open, but is not the next implementation packet until the current
+source census identifies a physically witnessed unmatched record or dependency.
+The previously suggested ATTDEF secondary-Xrecord candidate has no physical
+witness in the retained corpus and is not an implementation-ready item. Do not
+infer a parser loss from documentation-only fields or generated controls.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
@@ -64,21 +69,16 @@ Every P2 implementation starts from a current source/output witness. Reuse the
 existing profile receipts to exclude passing cases and select only the smallest
 remaining operation that demonstrates a code loss.
 
-1. **MLINESTYLE edits and source schemas:** resolve only still-failing witnessed
-   source/schema and edit cases through the shared consumer projection and
-   transaction path. Retain refusal for unsupported legacy routes, carriers or
-   version grammars. Use representative, boundary and aggregate-budget cases;
-   add count-specific cases only where the algorithm has count-specific branches.
-2. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
+1. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
    source profiles, remaining APPID metadata and XDATA value/chunk forms; resolve
    a code-1005
    target type, mixed set, section combination or cardinality only when a current
    witness shows the rooted planner/writer loses or misbinds it. Exercise late
    mutation and missing providers on that same path.
-3. **MLEADERSTYLE:** cover remaining source/field semantics: handle roles,
+2. **MLEADERSTYLE:** cover remaining source/field semantics: handle roles,
    absent/default values and version-specific fields through shared parser/writer
    validation. Keep native annotation/rendering claims separate.
-4. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
+3. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
    annotation behavior only where intended consumer support requires it. Serializer
    readback is not native semantics.
 
