@@ -10746,6 +10746,142 @@ void testAssociativeNetworkActionIndexGenerated(TestContext& t) {
              "associative network index fields survive copy construction and assignment");
 }
 
+void testAssociativeVariableGenerated(TestContext& t) {
+    using namespace associative_constraint_group_test;
+    constexpr std::uint16_t classNumber = 757u; // DWG class type 1257
+    constexpr std::uint32_t sourceHandle = 0xA400u;
+    constexpr std::uint32_t parentHandle = 0xA009u;
+    constexpr std::uint32_t owningNetworkHandle = 0xA010u;
+
+    const auto makeVariable = [&](std::int32_t valueCode) {
+        dwgBufferW object;
+        dwgBufferW strings;
+        object.putObjType(DRW::AC1024, classNumber);
+        object.putHandle(reference(DRW::DwgNullReference, sourceHandle));
+        object.putBitShort(0); // no EED
+        object.putBitLong(0); // no persistent reactors
+        object.putBit(1u); // no extension dictionary
+        object.putBitShort(1); // AcDbAssocAction class version
+        object.putBitLong(0); // geometry status
+        object.putBitLong(7); // action index
+        object.putBitLong(0); // maximum dependency index
+        object.putBitLong(0); // no action dependencies
+        object.putBitLong(2); // AcDbAssocVariable class version
+        strings.putVariableText(DRW::AC1024, "BOLTHOLE");
+        strings.putVariableText(DRW::AC1024, "1");
+        strings.putVariableText(DRW::AC1024, "AcDbCalc:1.0");
+        strings.putVariableText(DRW::AC1024, "");
+        object.putBitShort(static_cast<std::int16_t>(valueCode));
+        if (valueCode == 40)
+            object.putBitDouble(3.5);
+        else if (valueCode == 90)
+            object.putBitLong(1);
+        else
+            object.putBitLong(0); // unconsumed, unsupported value control
+        object.putBit(1u); // has_t78
+        strings.putVariableText(DRW::AC1024, "");
+        object.putBit(0u); // b290
+
+        Frame frame;
+        const bool stringsAdded = appendStringStream(object, strings);
+        frame.objectEndBit = object.bitCount();
+        object.putHandle(reference(DRW::DwgSoftPointer, parentHandle));
+        object.putHandle(reference(
+            DRW::DwgSoftPointer, owningNetworkHandle));
+        object.putHandle(reference(DRW::DwgHardOwnership, 0u));
+        object.alignToByte();
+        const bool frameBuilt = stringsAdded && object.isGood()
+            && object.bitCount() >= frame.objectEndBit
+            && object.bitCount() - frame.objectEndBit
+                <= std::numeric_limits<std::uint32_t>::max();
+        if (frameBuilt) {
+            frame.handleBits = static_cast<std::uint32_t>(
+                object.bitCount() - frame.objectEndBit);
+            frame.payload = object.data();
+        }
+        std::vector<std::uint8_t> bytes;
+        return frameBuilt && wrapFrame(frame, bytes)
+            ? bytes : std::vector<std::uint8_t>{};
+    };
+
+    for (const std::int32_t valueCode : {40, 90}) {
+        std::vector<std::uint8_t> bytes = makeVariable(valueCode);
+        AssociativeConstraintGroupDispatchReader reader(
+            bytes, classNumber, "ACDBASSOCVARIABLE", "AcDbAssocVariable");
+        PersistentManagerDispatchSink sink;
+        const bool read = !bytes.empty()
+            && reader.readObjects(bytes, {{sourceHandle, 0u, 0u}}, sink);
+        const bool parsed = sink.typed.size() == 1u
+            && sink.typed.front().m_recordName == "ACDBASSOCVARIABLE"
+            && sink.typed.front().m_classVersion == 1u
+            && sink.typed.front().m_actionIndex == 7
+            && sink.typed.front().m_owningNetworkHandle
+                == owningNetworkHandle
+            && sink.typed.front().m_associativeVariableFieldsParsed
+            && sink.typed.front().m_associativeVariableWireComplete
+            && sink.typed.front().m_variableClassVersion == 2
+            && sink.typed.front().m_variableName == "BOLTHOLE"
+            && sink.typed.front().m_variableExpression == "1"
+            && sink.typed.front().m_variableEvaluator == "AcDbCalc:1.0"
+            && sink.typed.front().m_variableDescription.empty()
+            && sink.typed.front().m_variableHasT78
+            && sink.typed.front().m_variableT78.empty()
+            && !sink.typed.front().m_variableB290
+            && sink.typed.front().m_variableValueParsed
+            && sink.typed.front().m_variableValueCode == valueCode
+            && reader.objectFailures() == 0u
+            && !sink.typed.front().m_prefixStatuses.empty()
+            && sink.typed.front().m_prefixStatuses.back().m_kind
+                == DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable
+            && sink.typed.front().m_prefixStatuses.back().m_status
+                == DRW_AssociativePrefixStatus::ParseStatus::Complete
+            && sink.typed.front().m_prefixStatuses.back()
+                   .m_decodedValueCount == 10u;
+        const bool payloadMatches = parsed
+            && (valueCode == 40
+                ? sink.typed.front().m_variableValueKind
+                        == DRW_AssociativeObject::EvalVariantKind::Real
+                    && sink.typed.front().m_variableValueReal == 3.5
+                : sink.typed.front().m_variableValueKind
+                        == DRW_AssociativeObject::EvalVariantKind::Int32
+                    && sink.typed.front().m_variableValueInt32 == 1);
+        t.expect(read && parsed && payloadMatches,
+                 valueCode == 40
+                    ? "AC1024 ASSOCVARIABLE real EvalVariant and string fields decode within exact spans"
+                    : "AC1024 ASSOCVARIABLE int32 EvalVariant and string fields decode within exact spans");
+        if (parsed) {
+            DRW_AssociativeObject copied(sink.typed.front());
+            DRW_AssociativeObject assigned;
+            assigned = sink.typed.front();
+            t.expect(copied.m_associativeVariableFieldsParsed
+                         && copied.m_variableValueCode == valueCode
+                         && copied.m_variableName == "BOLTHOLE"
+                         && assigned.m_associativeVariableWireComplete
+                         && assigned.m_variableValueCode == valueCode
+                         && assigned.m_variableExpression == "1",
+                     "ASSOCVARIABLE typed body survives copy construction and assignment");
+        }
+    }
+
+    std::vector<std::uint8_t> unsupportedBytes = makeVariable(330);
+    AssociativeConstraintGroupDispatchReader unsupportedReader(
+        unsupportedBytes, classNumber, "ACDBASSOCVARIABLE",
+        "AcDbAssocVariable");
+    PersistentManagerDispatchSink unsupportedSink;
+    const bool unsupportedRead = !unsupportedBytes.empty()
+        && unsupportedReader.readObjects(
+            unsupportedBytes, {{sourceHandle, 0u, 0u}}, unsupportedSink);
+    t.expect(unsupportedRead && unsupportedSink.typed.size() == 1u
+                 && !unsupportedSink.typed.front()
+                        .m_associativeVariableWireComplete
+                 && unsupportedReader.objectFailures() == 0u
+                 && !unsupportedSink.typed.front().m_prefixStatuses.empty()
+                 && unsupportedSink.typed.front().m_prefixStatuses.back()
+                        .m_status
+                    == DRW_AssociativePrefixStatus::ParseStatus::Missing,
+             "unsupported ASSOCVARIABLE EvalVariant remains typed-shell-only without corrupting object dispatch");
+}
+
 void testAssociativeConstraintGroupGenerated(TestContext& t) {
     using namespace associative_constraint_group_test;
     constexpr std::uint16_t classNumber = 602u;
@@ -16146,6 +16282,14 @@ int main(int argc, char** argv) {
         TestContext focused;
         testAssociativeNetworkActionIndexGenerated(focused);
         std::cout << "Generated AC1024 associative network action indexes: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--associative-variable-generated") {
+        TestContext focused;
+        testAssociativeVariableGenerated(focused);
+        std::cout << "Generated AC1024 associative variable body: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }

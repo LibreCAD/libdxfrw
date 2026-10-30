@@ -39,9 +39,15 @@ This is an open-work queue. Completed implementations and their evidence stay in
 Git history and `docs/research/`; do not restate them here. A phase remains open
 only while its explicitly listed residual scope blocks its exit gate.
 
+P4–P9 are umbrella exit gates, not individual implementation tasks. A landed
+slice is removed from this queue and recorded by its commit and research
+receipt; the parent phase stays OPEN until its full gate passes. P2 is parked
+without a selected witness, and P9 is external-only, so neither is expected to
+close through ordinary local implementation work.
+
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative graph output and recursive closure | Route admitted associative encoders through source-bound graph output: bind each record and reference through source → planned → emitted identities, close required descendants, and verify staged output by independent field inspection and readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — associative graph output and recursive closure | Route admitted associative encoders through source-bound graph output: bind each record and reference through source → planned → emitted identities, close required descendants, and verify staged output by independent field inspection and readback. The physical AC1024 `ACDBASSOCVARIABLE` profile now has typed known fields, but its remaining body bits are not classified and its writer is not admitted. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -76,6 +82,11 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
+   For the witnessed AC1024 `ACDBASSOCVARIABLE` version-2 profile, the name,
+   expression, evaluator, description, real/integer EvalVariant, and trailing
+   flags are captured. The mechanical witness still has unclassified body bits
+   after those fields; prove their boundary and meaning before marking the
+   record wire-complete or admitting a writer.
 2. **Associative output and identity:** connect the admitted AC1024 dependency,
    geometry-dependency, dimension-dependency-body, network, and version-0 inline
    constraint-group record encoders to the graph planner. The direct geometry-

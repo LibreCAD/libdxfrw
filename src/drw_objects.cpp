@@ -25486,6 +25486,21 @@ void DRW_AssociativeObject::reset() {
     m_geomEnabled = false;
     m_geomPersistentSubentityClassName.clear();
     m_geomDependentOnCompoundObject = false;
+    m_associativeVariableFieldsParsed = false;
+    m_associativeVariableWireComplete = false;
+    m_variableClassVersion = 0;
+    m_variableName.clear();
+    m_variableExpression.clear();
+    m_variableEvaluator.clear();
+    m_variableDescription.clear();
+    m_variableValueParsed = false;
+    m_variableValueCode = 0;
+    m_variableValueKind = DRW_AssociativeObject::EvalVariantKind::Missing;
+    m_variableValueReal = 0.0;
+    m_variableValueInt32 = 0;
+    m_variableHasT78 = false;
+    m_variableT78.clear();
+    m_variableB290 = false;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -27817,6 +27832,124 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         // AcDbAssocDependency body (dwgTs cases 1228 / 1256).
         if (!readDependencyFields())
             return fail();
+    } else if (rn == "ACDBASSOCVARIABLE") {
+        if (!readActionFields())
+            return fail();
+
+        const std::uint64_t variableStartBit = currentObjectDwgBit(buf);
+        bool fieldsComplete = false;
+        bool wireComplete = false;
+        std::int32_t variableClassVersion = 0;
+        UTF8STRING variableName;
+        UTF8STRING variableExpression;
+        UTF8STRING variableEvaluator;
+        UTF8STRING variableDescription;
+        std::int32_t valueCode = 0;
+        DRW_AssociativeObject::EvalVariantKind valueKind =
+            DRW_AssociativeObject::EvalVariantKind::Unsupported;
+        double valueReal = 0.0;
+        std::int32_t valueInt32 = 0;
+        bool hasT78 = false;
+        UTF8STRING t78;
+        bool b290 = false;
+
+        if (version == DRW::AC1024 && objectDataEndKnown) {
+            const bool separateStringBuffer = sBuf != buf;
+            dwgBuffer bodyProbe = *buf;
+            dwgBuffer stringProbe = *sBuf;
+            dwgBuffer *textProbe = separateStringBuffer
+                ? &stringProbe : &bodyProbe;
+            const auto readText = [&](UTF8STRING& text) {
+                // AC1024 stores these text values in the detached string
+                // stream. Some valid objects omit the final empty t78 value
+                // by ending that stream immediately after the description.
+                if (version > DRW::AC1018
+                    && currentObjectDwgBit(textProbe) == stringDataEnd) {
+                    text.clear();
+                    return true;
+                }
+                if (version > DRW::AC1018) {
+                    dwgBuffer lengthProbe = textProbe->forkIndependent();
+                    std::int32_t codeUnits = 0;
+                    if (!readBitShortWithinBody(
+                            &lengthProbe, version, stringDataEnd, codeUnits)
+                        || codeUnits < 0
+                        || static_cast<std::uint64_t>(codeUnits)
+                               > kMaxCadValueBytes / 2u)
+                        return false;
+                }
+                return readVariableTextWithinBounds(
+                    &bodyProbe, textProbe, version, boundedBodyEnd,
+                    stringDataEnd, text);
+            };
+            const bool common =
+                readBitLongWithinBody(&bodyProbe, version, objectDataEnd,
+                                      variableClassVersion)
+                && variableClassVersion >= 0
+                && variableClassVersion <= 2
+                && readText(variableName)
+                && readText(variableExpression)
+                && readText(variableEvaluator)
+                && readText(variableDescription)
+                && readSBitShortWithinBody(&bodyProbe, version,
+                                            objectDataEnd, valueCode);
+            bool valueComplete = false;
+            if (common && valueCode == 40) {
+                valueComplete = readBitDoubleWithinBody(
+                    &bodyProbe, version, objectDataEnd, valueReal);
+                valueKind = DRW_AssociativeObject::EvalVariantKind::Real;
+            } else if (common && valueCode == 90) {
+                valueComplete = readBitLongWithinBody(
+                    &bodyProbe, version, objectDataEnd, valueInt32);
+                valueKind = DRW_AssociativeObject::EvalVariantKind::Int32;
+            }
+            fieldsComplete = common && valueComplete
+                && readBitWithinBody(&bodyProbe, version, objectDataEnd,
+                                     hasT78)
+                && readText(t78)
+                && readBitWithinBody(&bodyProbe, version, objectDataEnd,
+                                     b290)
+                && bodyProbe.isGood() && textProbe->isGood()
+                && objectBodyFitsSize(currentObjectDwgBit(&bodyProbe),
+                                      objectDataEnd)
+                && objectBodyFitsSize(currentObjectDwgBit(textProbe),
+                                      stringDataEnd);
+            wireComplete = fieldsComplete
+                && consumeZeroPaddingWithinBounds(
+                    &bodyProbe, objectDataEnd, 7u)
+                && consumeZeroPaddingWithinBounds(
+                    textProbe, stringDataEnd, 7u);
+            if (fieldsComplete) {
+                *buf = bodyProbe;
+                if (separateStringBuffer)
+                    *sBuf = stringProbe;
+                m_associativeVariableFieldsParsed = true;
+                m_associativeVariableWireComplete = wireComplete;
+                m_variableClassVersion = variableClassVersion;
+                m_variableName = std::move(variableName);
+                m_variableExpression = std::move(variableExpression);
+                m_variableEvaluator = std::move(variableEvaluator);
+                m_variableDescription = std::move(variableDescription);
+                m_variableValueParsed = true;
+                m_variableValueCode = valueCode;
+                m_variableValueKind = valueKind;
+                m_variableValueReal = valueReal;
+                m_variableValueInt32 = valueInt32;
+                m_variableHasT78 = hasT78;
+                m_variableT78 = std::move(t78);
+                m_variableB290 = b290;
+            }
+        }
+        appendPrefixStatus(
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+            variableStartBit,
+            wireComplete
+                ? DRW_AssociativePrefixStatus::ParseStatus::Complete
+                : (fieldsComplete
+                    ? DRW_AssociativePrefixStatus::ParseStatus::Partial
+                    : DRW_AssociativePrefixStatus::ParseStatus::Missing),
+            static_cast<std::uint16_t>(variableClassVersion), 0,
+            fieldsComplete ? 10u : 0u, 0);
     } else if (endsWith(rn, "ACTION") || endsWith(rn, "NETWORK")
                || endsWith(rn, "VARIABLE")
                || rn.find("2DCONSTRAINTGROUP") != std::string::npos) {

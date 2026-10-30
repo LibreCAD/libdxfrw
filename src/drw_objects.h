@@ -7089,7 +7089,8 @@ struct DRW_AssociativePrefixStatus {
     AcDbShHistoryNode,
     AcShActionBody,
     AcDbAssocDependencyBody,
-    AcDbAssoc2dConstraintGroup
+    AcDbAssoc2dConstraintGroup,
+    AcDbAssocVariable
   };
 
   enum class ParseStatus {
@@ -7183,6 +7184,12 @@ struct DRW_AssociativeConstraintNode {
 class DRW_AssociativeObject : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
+  enum class EvalVariantKind {
+    Missing,
+    Real,
+    Int32,
+    Unsupported
+  };
   explicit DRW_AssociativeObject(const UTF8STRING &recordName = UTF8STRING())
       : m_recordName(recordName) {
     tType = DRW::ASSOCIATIVEOBJECT;
@@ -7279,6 +7286,23 @@ public:
   bool m_geomEnabled = false;
   UTF8STRING m_geomPersistentSubentityClassName;
   bool m_geomDependentOnCompoundObject = false;
+  // AC1024 AcDbAssocVariable body. The value kind is explicit because the
+  // DWG EvalVariant payload depends on its signed group-code discriminator.
+  bool m_associativeVariableFieldsParsed = false;
+  bool m_associativeVariableWireComplete = false;
+  std::int32_t m_variableClassVersion = 0;
+  UTF8STRING m_variableName;
+  UTF8STRING m_variableExpression;
+  UTF8STRING m_variableEvaluator;
+  UTF8STRING m_variableDescription;
+  bool m_variableValueParsed = false;
+  std::int32_t m_variableValueCode = 0;
+  EvalVariantKind m_variableValueKind = EvalVariantKind::Missing;
+  double m_variableValueReal = 0.0;
+  std::int32_t m_variableValueInt32 = 0;
+  bool m_variableHasT78 = false;
+  UTF8STRING m_variableT78;
+  bool m_variableB290 = false;
   bool m_dependencyIsRead = false;
   bool m_dependencyIsWrite = false;
   bool m_dependencyIsAttachedToObject = false;
@@ -7355,6 +7379,22 @@ private:
     m_geomPersistentSubentityClassName =
         o.m_geomPersistentSubentityClassName;
     m_geomDependentOnCompoundObject = o.m_geomDependentOnCompoundObject;
+    m_associativeVariableFieldsParsed = o.m_associativeVariableFieldsParsed;
+    m_associativeVariableWireComplete =
+        o.m_associativeVariableWireComplete;
+    m_variableClassVersion = o.m_variableClassVersion;
+    m_variableName = o.m_variableName;
+    m_variableExpression = o.m_variableExpression;
+    m_variableEvaluator = o.m_variableEvaluator;
+    m_variableDescription = o.m_variableDescription;
+    m_variableValueParsed = o.m_variableValueParsed;
+    m_variableValueCode = o.m_variableValueCode;
+    m_variableValueKind = o.m_variableValueKind;
+    m_variableValueReal = o.m_variableValueReal;
+    m_variableValueInt32 = o.m_variableValueInt32;
+    m_variableHasT78 = o.m_variableHasT78;
+    m_variableT78 = o.m_variableT78;
+    m_variableB290 = o.m_variableB290;
     m_dependencyIsRead = o.m_dependencyIsRead;
     m_dependencyIsWrite = o.m_dependencyIsWrite;
     m_dependencyIsAttachedToObject = o.m_dependencyIsAttachedToObject;
