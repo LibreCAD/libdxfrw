@@ -52811,6 +52811,12 @@ void testDataLinkAdapterExport(TestContext& t) {
         attributeDefinition->tag = "TABLE_TAG";
         attributeDefinition->text = "default attribute";
         attributeBlock->ent.push_back(attributeDefinition);
+        auto* secondAttributeDefinition = new DRW_Attdef();
+        secondAttributeDefinition->handle = 0x734u;
+        secondAttributeDefinition->parentHandle = attributeBlockRecord.handle;
+        secondAttributeDefinition->tag = "TABLE_TAG_2";
+        secondAttributeDefinition->text = "second default attribute";
+        attributeBlock->ent.push_back(secondAttributeDefinition);
         source.blocks.push_back(attributeBlock);
 
         DRW_TableContentObject attributeContent;
@@ -52833,6 +52839,12 @@ void testDataLinkAdapterExport(TestContext& t) {
         attributeValue.m_text = "table cell attribute";
         attributeValue.m_contentIndex = 0u;
         attributeCell.m_attributes.push_back(attributeValue);
+        DRW_TableCellAttribute secondAttributeValue;
+        secondAttributeValue.m_attdefHandle = secondAttributeDefinition->handle;
+        secondAttributeValue.m_index = 2;
+        secondAttributeValue.m_text = "second table cell attribute";
+        secondAttributeValue.m_contentIndex = 0u;
+        attributeCell.m_attributes.push_back(secondAttributeValue);
         attributeRow.m_cells.push_back(attributeCell);
         attributeContent.m_content.m_rows.push_back(attributeRow);
         auto attributeMetadata =
@@ -52976,6 +52988,19 @@ void testDataLinkAdapterExport(TestContext& t) {
         t.expect(wrongOwnerRefused && wrongOwnerPreserved == sentinel,
                  "adapter refuses TABLECONTENT ATTDEF targets owned by another BLOCK_RECORD");
         attributeDefinition->parentHandle = attributeBlockRecord.handle;
+        DRW_TableCellAttribute& secondBlockAttribute = source.tableContents[2]
+            .m_content.m_rows.front().m_cells.front().m_attributes[1];
+        secondBlockAttribute.m_attdefHandle = attributeDefinition->handle;
+        const bool duplicateAttdefRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream duplicateAttdefInput(path, std::ios::binary);
+        const std::string duplicateAttdefPreserved(
+            (std::istreambuf_iterator<char>(duplicateAttdefInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(duplicateAttdefRefused
+                     && duplicateAttdefPreserved == sentinel,
+                 "adapter refuses duplicate TABLECONTENT ATTDEF targets");
+        secondBlockAttribute.m_attdefHandle = secondAttributeDefinition->handle;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -53159,14 +53184,19 @@ void testDataLinkAdapterExport(TestContext& t) {
         }
         const dx_ifaceBlock* emittedAttributeBlock = nullptr;
         const DRW_Attdef* emittedAttributeDefinition = nullptr;
+        const DRW_Attdef* emittedSecondAttributeDefinition = nullptr;
         for (const dx_ifaceBlock* block : readback.blocks) {
             if (block == nullptr || block->name != attributeBlockRecord.name)
                 continue;
             emittedAttributeBlock = block;
             for (const DRW_Entity* entity : block->ent) {
                 if (const auto* definition =
-                        dynamic_cast<const DRW_Attdef*>(entity))
-                    emittedAttributeDefinition = definition;
+                        dynamic_cast<const DRW_Attdef*>(entity)) {
+                    if (definition->tag == "TABLE_TAG")
+                        emittedAttributeDefinition = definition;
+                    else if (definition->tag == "TABLE_TAG_2")
+                        emittedSecondAttributeDefinition = definition;
+                }
             }
         }
         std::size_t blockContentBegin = outputFields.size();
@@ -53197,10 +53227,11 @@ void testDataLinkAdapterExport(TestContext& t) {
         };
         bool exactBlockAttributeFields = false;
         if (blockContentBegin < blockContentEnd
-            && blockContentBegin + 8u < blockContentEnd
+            && blockContentBegin + 11u < blockContentEnd
             && emittedAttributeBlock != nullptr
-            && emittedAttributeDefinition != nullptr) {
-            for (std::size_t i = blockContentBegin; i + 8u < blockContentEnd; ++i) {
+            && emittedAttributeDefinition != nullptr
+            && emittedSecondAttributeDefinition != nullptr) {
+            for (std::size_t i = blockContentBegin; i + 11u < blockContentEnd; ++i) {
                 if (outputFields[i]
                         != std::make_pair(302, std::string("CONTENT"))
                     || outputFields[i + 1u]
@@ -53211,14 +53242,20 @@ void testDataLinkAdapterExport(TestContext& t) {
                     integerFieldEquals(outputFields[i + 2u], 90, 4)
                     && handleFieldEquals(i + 3u, 340,
                         emittedAttributeBlock->parentHandle)
-                    && integerFieldEquals(outputFields[i + 4u], 91, 1)
+                    && integerFieldEquals(outputFields[i + 4u], 91, 2)
                     && handleFieldEquals(i + 5u, 330,
                         emittedAttributeDefinition->handle)
                     && outputFields[i + 6u]
                         == std::make_pair(301,
                             std::string("table cell attribute"))
                     && integerFieldEquals(outputFields[i + 7u], 92, 1)
-                    && outputFields[i + 8u]
+                    && handleFieldEquals(i + 8u, 330,
+                        emittedSecondAttributeDefinition->handle)
+                    && outputFields[i + 9u]
+                        == std::make_pair(301,
+                            std::string("second table cell attribute"))
+                    && integerFieldEquals(outputFields[i + 10u], 92, 2)
+                    && outputFields[i + 11u]
                         == std::make_pair(309,
                             std::string("CELLCONTENT_END"));
                 break;
@@ -53227,21 +53264,30 @@ void testDataLinkAdapterExport(TestContext& t) {
         bool blockAttributeReadback = false;
         if (blockAttributeContent != nullptr
             && emittedAttributeBlock != nullptr
-            && emittedAttributeDefinition != nullptr) {
+            && emittedAttributeDefinition != nullptr
+            && emittedSecondAttributeDefinition != nullptr) {
             const DRW_TableCell& actualCell = blockAttributeContent->m_content
                 .m_rows.front().m_cells.front();
             blockAttributeReadback = actualCell.m_contents.size() == 1u
                 && actualCell.m_contents.front().m_type == 4
                 && actualCell.m_contents.front().m_handle
                     == emittedAttributeBlock->parentHandle
-                && actualCell.m_attributes.size() == 1u
+                && actualCell.m_attributes.size() == 2u
                 && actualCell.m_attributes.front().m_attdefHandle
                     == emittedAttributeDefinition->handle
                 && actualCell.m_attributes.front().m_contentIndex == 0u
                 && actualCell.m_attributes.front().m_index == 1
                 && actualCell.m_attributes.front().m_text
                     == "table cell attribute"
+                && actualCell.m_attributes[1].m_attdefHandle
+                    == emittedSecondAttributeDefinition->handle
+                && actualCell.m_attributes[1].m_contentIndex == 0u
+                && actualCell.m_attributes[1].m_index == 2
+                && actualCell.m_attributes[1].m_text
+                    == "second table cell attribute"
                 && emittedAttributeDefinition->parentHandle
+                    == emittedAttributeBlock->parentHandle
+                && emittedSecondAttributeDefinition->parentHandle
                     == emittedAttributeBlock->parentHandle;
         }
         t.expect(exactBlockAttributeFields && blockAttributeReadback,

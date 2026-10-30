@@ -1,0 +1,50 @@
+{
+  "id": "RPP-5yd",
+  "date": "2026-10-30",
+  "scope": "One adapter-authored AC1027 TABLECONTENT block content with two ordered ATTDEF attributes, emitted and read back through ASCII and binary DXF.",
+  "admission": {
+    "contentCount": 1,
+    "contentType": 4,
+    "blockRecord": "One uniquely named and source-bound BLOCK_RECORD with one matching BLOCK.",
+    "attributeCount": 2,
+    "attributeOrder": [
+      {"contentOrdinal": 0, "index": 1, "tag": "TABLE_TAG", "text": "table cell attribute"},
+      {"contentOrdinal": 0, "index": 2, "tag": "TABLE_TAG_2", "text": "second table cell attribute"}
+    ],
+    "identity": "Each ATTDEF handle resolves uniquely to an entity in the referenced block, has that BLOCK_RECORD as owner, and was emitted exactly once without ambiguity. Duplicate target handles are rejected."
+  },
+  "physicalOutput": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "orderedFields": [
+      [90, 4],
+      [340, "remapped BLOCK_RECORD handle"],
+      [91, 2],
+      [330, "remapped first ATTDEF handle"],
+      [301, "table cell attribute"],
+      [92, 1],
+      [330, "remapped second ATTDEF handle"],
+      [301, "second table cell attribute"],
+      [92, 2]
+    ],
+    "handleProof": "Physical group 340 and both group-330 values are compared with the identities recovered by fresh typed readback."
+  },
+  "failureAndRetry": {
+    "controls": [
+      "Absent ATTDEF target refusal preserves the sentinel destination.",
+      "Wrong ATTDEF owner refusal preserves the sentinel destination.",
+      "Repeated ATTDEF target refusal preserves the sentinel destination."
+    ],
+    "retry": "The same adapter exports successfully after each source graph is repaired."
+  },
+  "typedReadback": "The block content handle equals the emitted BLOCK_RECORD owner. Both ordered attributes retain their emitted ATTDEF handles, owner, content ordinal, one-based index, and exact text.",
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS",
+    "generatedFixtureFilesCommitted": false
+  },
+  "limitations": [
+    "The writer currently admits at most two attributes on this block-content profile. Three or more attributes, arbitrary index permutations, multiple block contents, and mixed scalar/block content lists remain refused or unqualified.",
+    "The receipt establishes authored field transport and this library's readback, not native CAD rendering or source-file semantic parity."
+  ]
+}

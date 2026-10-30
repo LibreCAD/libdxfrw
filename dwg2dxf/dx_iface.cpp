@@ -24938,17 +24938,27 @@ bool dx_iface::tableContentAttributeSourcesClosed(
             if (cell.m_attributes.empty())
                 continue;
             if (cell.m_contents.size() != 1u
-                || cell.m_attributes.size() != 1u)
+                || cell.m_attributes.empty()
+                || cell.m_attributes.size() > 2u)
                 return false;
             const DRW_TableCellContent& content = cell.m_contents.front();
-            const DRW_TableCellAttribute& attribute =
-                cell.m_attributes.front();
             if (content.m_type != 4 || content.m_handle == 0u
-                || content.m_handle == DRW::NoHandle
-                || attribute.m_contentIndex != 0u || attribute.m_index != 1
-                || attribute.m_attdefHandle == 0u
-                || attribute.m_attdefHandle == DRW::NoHandle)
+                || content.m_handle == DRW::NoHandle)
                 return false;
+            for (std::size_t index = 0; index < cell.m_attributes.size(); ++index) {
+                const DRW_TableCellAttribute& attribute =
+                    cell.m_attributes[index];
+                if (attribute.m_contentIndex != 0u
+                    || attribute.m_index != static_cast<int>(index + 1u)
+                    || attribute.m_attdefHandle == 0u
+                    || attribute.m_attdefHandle == DRW::NoHandle)
+                    return false;
+                for (std::size_t previous = 0; previous < index; ++previous) {
+                    if (cell.m_attributes[previous].m_attdefHandle
+                        == attribute.m_attdefHandle)
+                        return false;
+                }
+            }
 
             const DRW_Block_Record* blockRecord = nullptr;
             for (const DRW_Block_Record& record : cData->blockRecords) {
@@ -24973,39 +24983,42 @@ bool dx_iface::tableContentAttributeSourcesClosed(
             if (owningBlock == nullptr)
                 return false;
 
-            const DRW_Attdef* definition = nullptr;
-            std::size_t definitionCount = 0u;
-            const auto inspect = [&](const dx_ifaceBlock* block) {
-                if (block == nullptr)
-                    return;
-                for (const DRW_Entity* entity : block->ent) {
-                    const auto* candidate =
-                        dynamic_cast<const DRW_Attdef*>(entity);
-                    if (candidate == nullptr
-                        || candidate->handle != attribute.m_attdefHandle)
-                        continue;
-                    ++definitionCount;
-                    if (block == owningBlock)
-                        definition = candidate;
+            for (const DRW_TableCellAttribute& attribute : cell.m_attributes) {
+                const DRW_Attdef* definition = nullptr;
+                std::size_t definitionCount = 0u;
+                const auto inspect = [&](const dx_ifaceBlock* block) {
+                    if (block == nullptr)
+                        return;
+                    for (const DRW_Entity* entity : block->ent) {
+                        const auto* candidate =
+                            dynamic_cast<const DRW_Attdef*>(entity);
+                        if (candidate == nullptr
+                            || candidate->handle != attribute.m_attdefHandle)
+                            continue;
+                        ++definitionCount;
+                        if (block == owningBlock)
+                            definition = candidate;
+                    }
+                };
+                inspect(owningBlock);
+                for (const dx_ifaceBlock* block : cData->blocks) {
+                    if (block != owningBlock)
+                        inspect(block);
                 }
-            };
-            inspect(owningBlock);
-            for (const dx_ifaceBlock* block : cData->blocks) {
-                if (block != owningBlock)
-                    inspect(block);
+                inspect(cData->mBlock);
+                const auto emitted = context->sourceHandleToMintedMap.find(
+                    attribute.m_attdefHandle);
+                if (definitionCount != 1u || definition == nullptr
+                    || definition->parentHandle != blockRecord->handle
+                    || context->ambiguousSourceHandles.count(
+                           attribute.m_attdefHandle) != 0u
+                    || context->writtenSourceEntityHandles.count(
+                           attribute.m_attdefHandle) != 1u
+                    || emitted == context->sourceHandleToMintedMap.end()
+                    || emitted->second == 0u
+                    || emitted->second == DRW::NoHandle)
+                    return false;
             }
-            inspect(cData->mBlock);
-            const auto emitted = context->sourceHandleToMintedMap.find(
-                attribute.m_attdefHandle);
-            if (definitionCount != 1u || definition == nullptr
-                || definition->parentHandle != blockRecord->handle
-                || context->ambiguousSourceHandles.count(
-                       attribute.m_attdefHandle) != 0u
-                || context->writtenSourceEntityHandles.count(
-                       attribute.m_attdefHandle) != 1u
-                || emitted == context->sourceHandleToMintedMap.end()
-                || emitted->second == 0u || emitted->second == DRW::NoHandle)
-                return false;
         }
     }
     return true;
