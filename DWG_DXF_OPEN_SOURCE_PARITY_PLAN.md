@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Probe the next observed AC1024 profile, `AcVerticalConstraint` node 122 in the architectural witness; confirm it against civil node 840, then close source-required descendants and serialize/read back the complete reachable graph. | Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Investigate the next observed AC1024 profile, `AcConstrainedRigidSet` node 768 in the civil witness; establish its body and handle boundaries from source evidence before implementing, then close source-required descendants and serialize/read back the complete reachable graph. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -70,25 +70,21 @@ local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
 1. **Remaining constraint-node bodies and residual associative closure:** the
-   next unsupported source-order profile is `AcVerticalConstraint` node 122 in
-   `architectural_example-imperial.dwg` (SHA256
-   `52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7`).
+   next unsupported source-order profile is `AcConstrainedRigidSet` node 768 in
    `civil_example-imperial.dwg` (SHA256
-   `45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc`)
-   provides node 840 as a same-class corroborating witness. The pinned peer's
-   legacy layout predicts owner ID (BL), implied (B), no active bit, datum-line
-   index (BL), and no node-specific handle. First capture exact body spans and
-   values plus the unchanged handle position in the architectural input; verify
-   the same profile on civil before implementing. Keep other versions and
-   unproven variants raw. Continue in source order, closing each source-required
-   descendant before advancing. Validate connection roles and targets; enforce
-   duplicate-ID, missing-target, expected-type, common-owner, reciprocal-edge,
-   bounded-work and cycle rules only where the source profile requires them.
-   Keep version-2 nonzero-seed registry layouts raw until their framing is
-   proven. Use ODA v5.4.1 for documented layouts and independent peer evidence
-   only where the class is undocumented. Keep investigation DWGs out of
-   committed fixtures; bind regressions to eligible repository inputs or locally
-   authored fixtures.
+   `45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc`). It is
+   the only occurrence in the current local AC1024 sample census. Probe its
+   complete body span, handle-stream position, and connection targets. Consult
+   ODA v5.4.1, the class contract, and pinned independent readers for a matching
+   layout; require another physical witness if available. Implement only a
+   source-backed profile, retaining other versions and variants raw. Continue
+   in source order, closing each source-required descendant before advancing.
+   Validate connection roles and targets; enforce duplicate-ID, missing-target,
+   expected-type, common-owner, reciprocal-edge, bounded-work and cycle rules
+   only where the source profile requires them. Keep version-2 nonzero-seed
+   registry layouts raw until their framing is proven. Keep investigation DWGs
+   out of committed fixtures; bind regressions to eligible repository inputs or
+   locally authored fixtures.
 2. **Associative output:** bind source identity and required fields to actual
    emitted object records, remap every edge consistently, and retain strict
    refusal until the complete reachable graph is serialized and verified by

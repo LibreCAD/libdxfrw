@@ -11757,6 +11757,161 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                      : "missing Horizontal datum index stays raw and preserves following-OBJECT recovery");
     }
 
+    for (int verticalMode = 0; verticalMode < 2; ++verticalMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node datumLine;
+        datumLine.id = 69;
+        datumLine.className = "AcConstrainedDatumLine";
+        datumLine.hasDatumLineBody = true;
+        datumLine.geometryDependencyCode = DRW::DwgSoftPointer;
+        datumLine.geometryDependencyHandle = 0u;
+        datumLine.direction = DRW_Coord(1.0, 0.0, 0.0);
+        profile.nodes.push_back(datumLine);
+
+        Node vertical;
+        vertical.id = 122;
+        vertical.connections = {69};
+        vertical.className = "AcVerticalConstraint";
+        vertical.hasVerticalBody = true;
+        vertical.ownerId = 0;
+        vertical.isImplied = false;
+        vertical.datumLineIndex = 69;
+        vertical.hasDatumLineIndex = verticalMode == 0;
+        profile.nodes.push_back(vertical);
+
+        Node implicitPoint;
+        if (verticalMode == 0) {
+            implicitPoint.id = 123;
+            implicitPoint.connections = {122};
+            implicitPoint.className = "AcConstrainedImplicitPoint";
+            implicitPoint.hasImplicitPointBody = true;
+            implicitPoint.geometryDependencyCode = DRW::DwgSoftPointer;
+            implicitPoint.geometryDependencyHandle = 0xA007u;
+            implicitPoint.geometryNodeId = 0;
+            implicitPoint.hasPoint = true;
+            implicitPoint.point = DRW_Coord(5.0, 6.0, 7.0);
+            implicitPoint.pointType = 1u;
+            implicitPoint.pointIndex = 2;
+            implicitPoint.curveNodeId = 69;
+            profile.nodes.push_back(implicitPoint);
+        }
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 Vertical profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto parsedSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto rawSource = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = verticalMode == 0;
+        const std::size_t expectedNodeCount = expectedComplete ? 3u : 2u;
+        bool nodesMatch = parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintNodes.size() == expectedNodeCount;
+        if (nodesMatch) {
+            const auto& parsedDatumLine =
+                parsedSource->m_constraintNodes[0];
+            const auto& parsedVertical =
+                parsedSource->m_constraintNodes[1];
+            nodesMatch = parsedDatumLine.m_className
+                    == "AcConstrainedDatumLine"
+                && parsedDatumLine.m_nodeId == 69
+                && parsedDatumLine.m_classDataParsed
+                && parsedDatumLine.m_dataKind
+                       == DRW_AssociativeConstraintNode::DataKind::Line
+                && parsedVertical.m_className == "AcVerticalConstraint"
+                && parsedVertical.m_nodeId == 122
+                && parsedVertical.m_connections
+                       == std::vector<std::int32_t>{69}
+                && parsedVertical.m_ownerId == 0
+                && !parsedVertical.m_isImplied
+                && !parsedVertical.m_hasActiveFlag
+                && parsedVertical.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodesMatch = nodesMatch
+                    && parsedVertical.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Vertical
+                    && parsedVertical.m_hasDatumLineIndex
+                    && parsedVertical.m_datumLineIndex == 69;
+                if (nodesMatch) {
+                    const auto& parsedPoint =
+                        parsedSource->m_constraintNodes[2];
+                    nodesMatch = parsedPoint.m_className
+                            == "AcConstrainedImplicitPoint"
+                        && parsedPoint.m_nodeId == 123
+                        && parsedPoint.m_dataKind
+                               == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                        && parsedPoint.m_hasGeometryDependency
+                        && parsedPoint.m_geometryDependencyCode
+                               == DRW::DwgSoftPointer
+                        && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                        && parsedPoint.m_hasPoint
+                        && parsedPoint.m_point.x == 5.0
+                        && parsedPoint.m_point.y == 6.0
+                        && parsedPoint.m_point.z == 7.0
+                        && parsedPoint.m_pointType == 1u
+                        && parsedPoint.m_pointIndex == 2
+                        && parsedPoint.m_curveNodeId == 69;
+                }
+            } else {
+                nodesMatch = nodesMatch
+                    && parsedVertical.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Unsupported
+                    && !parsedVertical.m_hasDatumLineIndex;
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintGroupBodyParsed == expectedComplete
+            && parsedSource->m_constraintNodeCount
+                   == static_cast<std::int32_t>(expectedNodeCount)
+            && parsedSource->m_constraintNodesParsed == expectedComplete
+            && nodesMatch
+            && rawSource != profileSink.raw.end()
+            && !rawSource->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 expectedComplete
+                     ? "Vertical datum-line index decodes with no node handle and preserves following geometry fields and handle alignment"
+                     : "missing Vertical datum-line index stays raw and preserves following-OBJECT recovery");
+    }
+
     for (std::uint8_t mode = 0u; mode <= 3u; ++mode) {
         Options profile;
         profile.classNumber = classNumber;

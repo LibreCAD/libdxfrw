@@ -7124,7 +7124,8 @@ struct DRW_AssociativeConstraintNode {
     BoundedLine,
     Circle,
     Arc,
-    Distance
+    Distance,
+    Vertical
   };
 
   UTF8STRING m_className;

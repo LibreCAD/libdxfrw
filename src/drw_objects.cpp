@@ -121,6 +121,10 @@ bool isAssociativeHorizontalConstraint(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcHorizontalConstraint");
 }
 
+bool isAssociativeVerticalConstraint(std::string_view className) {
+    return equalsAsciiCaseInsensitive(className, "AcVerticalConstraint");
+}
+
 bool isAssociativeRadiusDiameterConstraint(std::string_view className) {
     return equalsAsciiCaseInsensitive(
         className, "AcRadiusDiameterConstraint");
@@ -27162,6 +27166,51 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         groupStringProbe = nodeStringProbe;
                         handleProbe = nodeHandleProbe;
                         decodedHandleCount += 2u;
+                        continue;
+                    }
+                    if (isAssociativeVerticalConstraint(
+                            node.m_className)) {
+                        std::int32_t ownerId = 0;
+                        bool implied = false;
+                        std::int32_t datumLineIndex = 0;
+                        const std::uint64_t bodyStartBit =
+                            currentObjectDwgBit(&nodeBodyProbe);
+                        const bool verticalParsed =
+                            readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                ownerId)
+                            && readBitWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                implied)
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                datumLineIndex);
+                        if (!verticalParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::Vertical;
+                        node.m_ownerId = ownerId;
+                        node.m_isImplied = implied;
+                        node.m_hasActiveFlag = false;
+                        node.m_hasDatumLineIndex = true;
+                        node.m_datumLineIndex = datumLineIndex;
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 vertical constraint decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" owner=");
+                        DRW_DBG(ownerId); DRW_DBG(" implied=");
+                        DRW_DBG(implied); DRW_DBG(" datumLineIndex=");
+                        DRW_DBG(datumLineIndex); DRW_DBG(" bodyStartBit=");
+                        DRW_DBG(bodyStartBit); DRW_DBG(" bodyEndBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                        DRW_DBG(" handleBit=");
+                        DRW_DBG(currentObjectDwgBit(&handleProbe));
+                        DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
                         continue;
                     }
                     if (isAssociativeHorizontalConstraint(

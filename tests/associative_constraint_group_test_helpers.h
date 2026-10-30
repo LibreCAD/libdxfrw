@@ -22,6 +22,7 @@ struct Node {
     bool hasGeometricalBody = false;
     bool hasImplicitPointBody = false;
     bool hasHorizontalBody = false;
+    bool hasVerticalBody = false;
     bool hasDatumLineIndex = true;
     std::int32_t datumLineIndex = 0;
     bool hasDatumLineBody = false;
@@ -174,7 +175,7 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putBit(node.isImplied ? 1u : 0u);
             if (node.hasRadiusDiameterMode)
                 object.putRawChar8(node.radiusDiameterMode);
-        } else if (node.hasHorizontalBody) {
+        } else if (node.hasHorizontalBody || node.hasVerticalBody) {
             object.putBitLong(node.ownerId);
             object.putBit(node.isImplied ? 1u : 0u);
             if (node.hasDatumLineIndex)
