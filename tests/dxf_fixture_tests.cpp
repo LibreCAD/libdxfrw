@@ -52779,6 +52779,7 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
         dx_data source;
         const std::array<std::uint32_t, 2> blockRecordHandles = {
             0x810u, 0x811u};
+        const std::uint32_t attributeDefinitionHandle = 0x840u;
         const std::array<std::string, 2> blockNames = {
             "TABLE_GRID_BLOCK_A", "TABLE_GRID_BLOCK_B"};
         for (std::size_t index = 0; index < blockNames.size(); ++index) {
@@ -52792,6 +52793,14 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
             block->handle = static_cast<std::uint32_t>(0x820u + index);
             block->parentHandle = record.handle;
             block->name = record.name;
+            if (index == 0u) {
+                auto* definition = new DRW_Attdef();
+                definition->handle = attributeDefinitionHandle;
+                definition->parentHandle = record.handle;
+                definition->tag = "GRID_BLOCK_A_TAG";
+                definition->text = "grid block default";
+                block->ent.push_back(definition);
+            }
             source.blocks.push_back(block);
         }
 
@@ -52801,7 +52810,7 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
         table.m_semanticContentComplete = true;
         table.m_content.m_name = "block content grid";
         table.m_content.m_description =
-            "multiple block-backed cells with no attached attributes";
+            "block-backed cells with a mixed scalar prefix and attribute";
         table.m_content.m_columns.resize(2u);
         table.m_content.m_columns[0].m_name = "Left";
         table.m_content.m_columns[1].m_name = "Right";
@@ -52826,38 +52835,74 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
             table.m_content.m_rows[row].m_cells[column].m_contents.push_back(
                 std::move(content));
         };
+        setTextCell(0u, 0u, "scalar before block content");
         setBlockCell(0u, 0u, blockRecordHandles[0]);
+        DRW_TableCellAttribute gridAttribute;
+        gridAttribute.m_attdefHandle = attributeDefinitionHandle;
+        gridAttribute.m_index = 1;
+        gridAttribute.m_text = "grid block attribute";
+        gridAttribute.m_contentIndex = 1u;
+        table.m_content.m_rows[0].m_cells[0].m_attributes.push_back(
+            gridAttribute);
         setTextCell(0u, 1u, "scalar between blocks");
         setTextCell(1u, 0u, "second row scalar");
         setBlockCell(1u, 1u, blockRecordHandles[1]);
         source.tableContents.push_back(std::move(table));
 
         const std::string sentinel = "table block-grid sentinel\n";
+        const auto readFileBytes = [](const std::filesystem::path& file) {
+            std::ifstream input(file, std::ios::binary);
+            return std::string((std::istreambuf_iterator<char>(input)),
+                               std::istreambuf_iterator<char>());
+        };
         {
             std::ofstream output(path, std::ios::binary);
             output << sentinel;
         }
         dx_iface writer;
-        DRW_TableCellContent& firstBlockContent = source.tableContents.front()
-            .m_content.m_rows[0].m_cells[0].m_contents.front();
+        DRW_TableCell& firstBlockCell = source.tableContents.front()
+            .m_content.m_rows[0].m_cells[0];
+        DRW_TableCellContent& firstBlockContent =
+            firstBlockCell.m_contents.back();
         firstBlockContent.m_handle = 0x7FFFu;
         const bool missingBlockRefused = !writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
-        std::ifstream missingInput(path, std::ios::binary);
-        const std::string missingPreserved(
-            (std::istreambuf_iterator<char>(missingInput)),
-            std::istreambuf_iterator<char>());
+        const std::string missingPreserved = readFileBytes(path);
         firstBlockContent.m_handle = blockRecordHandles[0];
 
         const std::uint32_t originalOwner = source.blocks.front()->parentHandle;
         source.blocks.front()->parentHandle = blockRecordHandles[1];
         const bool wrongOwnerRefused = !writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
-        std::ifstream wrongOwnerInput(path, std::ios::binary);
-        const std::string wrongOwnerPreserved(
-            (std::istreambuf_iterator<char>(wrongOwnerInput)),
-            std::istreambuf_iterator<char>());
+        const std::string wrongOwnerPreserved = readFileBytes(path);
         source.blocks.front()->parentHandle = originalOwner;
+
+        DRW_TableCellAttribute& firstBlockAttribute =
+            firstBlockCell.m_attributes.front();
+        firstBlockAttribute.m_attdefHandle = 0x7FFFu;
+        const bool missingAttdefRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        const std::string missingAttdefPreserved = readFileBytes(path);
+        firstBlockAttribute.m_attdefHandle = attributeDefinitionHandle;
+
+        DRW_Attdef* sourceAttributeDefinition = nullptr;
+        for (DRW_Entity* entity : source.blocks.front()->ent) {
+            auto* definition = dynamic_cast<DRW_Attdef*>(entity);
+            if (definition != nullptr
+                && definition->handle == attributeDefinitionHandle)
+                sourceAttributeDefinition = definition;
+        }
+        const std::uint32_t originalAttributeOwner =
+            sourceAttributeDefinition == nullptr
+                ? 0u : sourceAttributeDefinition->parentHandle;
+        if (sourceAttributeDefinition != nullptr)
+            sourceAttributeDefinition->parentHandle = blockRecordHandles[1];
+        const bool wrongAttdefOwnerRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        const std::string wrongAttdefOwnerPreserved = readFileBytes(path);
+        if (sourceAttributeDefinition != nullptr)
+            sourceAttributeDefinition->parentHandle = originalAttributeOwner;
+
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
 
@@ -52872,6 +52917,7 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
                 emittedTable = &candidate;
         }
         std::array<std::uint32_t, 2> emittedBlockRecords = {};
+        std::array<std::uint32_t, 2> emittedAttributeDefinitions = {};
         std::array<bool, 2> emittedBlocks = {};
         for (std::size_t index = 0; index < blockNames.size(); ++index) {
             std::size_t recordCount = 0u;
@@ -52906,10 +52952,21 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
                     continue;
                 emittedBlocks[index] = block->parentHandle
                     == emittedBlockRecords[index];
+                for (const DRW_Entity* entity : block->ent) {
+                    const auto* definition =
+                        dynamic_cast<const DRW_Attdef*>(entity);
+                    if (definition != nullptr
+                        && definition->tag == "GRID_BLOCK_A_TAG")
+                        emittedAttributeDefinitions[index] =
+                            definition->handle;
+                }
                 ++blockCount;
             }
             t.expect(recordCount == 1u && blockCount == 1u
-                         && emittedBlocks[index],
+                         && emittedBlocks[index]
+                         && (index == 0u
+                             ? emittedAttributeDefinitions[index] != 0u
+                             : emittedAttributeDefinitions[index] == 0u),
                      "TABLECONTENT block-cell target has one emitted BLOCK_RECORD and owned BLOCK");
         }
 
@@ -52944,19 +53001,42 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
                     || outputFields[index + 1u]
                         != std::make_pair(1,
                             std::string("CELLCONTENT_BEGIN"))
-                    || !integerFieldEquals(outputFields[index + 2u], 90, 4)
-                    || outputFields[index + 3u].first != 340
-                    || !integerFieldEquals(outputFields[index + 4u], 91, 0)
-                    || outputFields[index + 5u]
-                        != std::make_pair(309,
-                            std::string("CELLCONTENT_END")))
+                    || !integerFieldEquals(outputFields[index + 2u], 90, 4))
                     continue;
                 std::uint32_t target = 0u;
-                if (!handleFieldValue(outputFields, index + 3u, 340,
-                        target)) {
+                if (!handleFieldValue(outputFields, index + 3u, 340, target)
+                    || outputFields[index + 4u].first != 91) {
                     exactBlockContentWire = false;
                     break;
                 }
+                if (!integerFieldEquals(outputFields[index + 4u], 91,
+                        target == emittedBlockRecords[0] ? 1 : 0)) {
+                    exactBlockContentWire = false;
+                    break;
+                }
+                if (target == emittedBlockRecords[0]) {
+                    std::uint32_t attdefTarget = 0u;
+                    exactBlockContentWire = index + 8u < tableEnd
+                        && handleFieldValue(outputFields, index + 5u, 330,
+                            attdefTarget)
+                        && attdefTarget == emittedAttributeDefinitions[0]
+                        && outputFields[index + 6u]
+                            == std::make_pair(301,
+                                std::string("grid block attribute"))
+                        && integerFieldEquals(outputFields[index + 7u],
+                            92, 1)
+                        && outputFields[index + 8u]
+                            == std::make_pair(309,
+                                std::string("CELLCONTENT_END"));
+                } else if (target == emittedBlockRecords[1]) {
+                    exactBlockContentWire = outputFields[index + 5u]
+                        == std::make_pair(309,
+                            std::string("CELLCONTENT_END"));
+                } else {
+                    exactBlockContentWire = false;
+                }
+                if (!exactBlockContentWire)
+                    break;
                 wireBlockTargets.push_back(target);
             }
         }
@@ -52977,11 +53057,20 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
                 emittedTable->m_content.m_rows[0].m_cells[1];
             const DRW_TableCell& secondScalarCell =
                 emittedTable->m_content.m_rows[1].m_cells[0];
-            typedGridReadback = firstBlockCell.m_contents.size() == 1u
-                && firstBlockCell.m_contents.front().m_type == 4
-                && firstBlockCell.m_contents.front().m_handle
+            typedGridReadback = firstBlockCell.m_contents.size() == 2u
+                && firstBlockCell.m_contents.front().m_type == 1
+                && firstBlockCell.m_contents.front().m_text
+                    == "scalar before block content"
+                && firstBlockCell.m_contents.back().m_type == 4
+                && firstBlockCell.m_contents.back().m_handle
                     == emittedBlockRecords[0]
-                && firstBlockCell.m_attributes.empty()
+                && firstBlockCell.m_attributes.size() == 1u
+                && firstBlockCell.m_attributes.front().m_attdefHandle
+                    == emittedAttributeDefinitions[0]
+                && firstBlockCell.m_attributes.front().m_contentIndex == 1u
+                && firstBlockCell.m_attributes.front().m_index == 1
+                && firstBlockCell.m_attributes.front().m_text
+                    == "grid block attribute"
                 && secondBlockCell.m_contents.size() == 1u
                 && secondBlockCell.m_contents.front().m_type == 4
                 && secondBlockCell.m_contents.front().m_handle
@@ -52996,8 +53085,13 @@ void testTableContentMultiCellBlockReferences(TestContext& t) {
         }
         t.expect(missingBlockRefused && missingPreserved == sentinel
                      && wrongOwnerRefused
-                     && wrongOwnerPreserved == sentinel && exported && imported
-                     && exactBlockContentWire && typedGridReadback,
+                     && wrongOwnerPreserved == sentinel
+                     && missingAttdefRefused
+                     && missingAttdefPreserved == sentinel
+                     && wrongAttdefOwnerRefused
+                     && wrongAttdefOwnerPreserved == sentinel
+                     && exported && imported && exactBlockContentWire
+                     && typedGridReadback,
                  binary
                      ? "binary TABLECONTENT grid preserves multiple block cells, exact references, and corrected retry"
                      : "ASCII TABLECONTENT grid preserves multiple block cells, exact references, and corrected retry");
