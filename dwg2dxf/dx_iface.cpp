@@ -38716,6 +38716,33 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
     for (const DRW_TableContentObject& content : data.tableContents) {
         const std::uint32_t styleHandle =
             content.m_content.m_tableStyleHandle;
+        bool hasBaseStyleReference = false;
+        const auto supportedStandardStyleId = [&](std::int32_t styleId) {
+            return styleId >= 0 && styleId <= 3
+                && tableContentStyleIdValid(data.sourceVersion, styleId)
+                && tableContentStyleIdValid(targetVersion, styleId);
+        };
+        for (const DRW_TableColumn& column : content.m_content.m_columns) {
+            if (!supportedStandardStyleId(column.m_styleId))
+                return false;
+            hasBaseStyleReference = hasBaseStyleReference
+                || column.m_styleId != 0;
+        }
+        for (const DRW_TableRow& row : content.m_content.m_rows) {
+            if (!supportedStandardStyleId(row.m_styleId))
+                return false;
+            hasBaseStyleReference = hasBaseStyleReference
+                || row.m_styleId != 0;
+            for (const DRW_TableCell& cell : row.m_cells) {
+                if (!supportedStandardStyleId(cell.m_styleId))
+                    return false;
+                hasBaseStyleReference = hasBaseStyleReference
+                    || cell.m_styleId != 0;
+            }
+        }
+        if (hasBaseStyleReference
+            && (styleHandle == 0u || styleHandle == DRW::NoHandle))
+            return false;
         if (styleHandle != 0u)
             requestedStyleHandles.insert(styleHandle);
     }

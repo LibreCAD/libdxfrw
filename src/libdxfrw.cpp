@@ -25878,6 +25878,12 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return text.size() <= 16u * 1024u * 1024u
             && isSafeDxfRecordText(text);
     };
+    // Standard TABLESTYLE IDs 1..3 are supported here. R2010 ID 4 and custom
+    // IDs need CELLSTYLEMAP closure, which this standalone TABLECONTENT route
+    // does not yet serialize.
+    const auto standardBaseStyleIdIsSupported = [](int styleId) {
+        return styleId >= 0 && styleId <= 3;
+    };
     std::size_t plainContentTextBytes = 0u;
     std::size_t contentFormatTextBytes = 0u;
     const auto cmcIsDefault = [](const DRW_TableStyleCmcColor& color) {
@@ -26063,16 +26069,40 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return failDxfWrite();
     }
 
+    bool hasBaseStyleReference = false;
+    for (const DRW_TableColumn& candidate : ent->m_content.m_columns) {
+        if (!standardBaseStyleIdIsSupported(candidate.m_styleId))
+            return failDxfWrite();
+        hasBaseStyleReference = hasBaseStyleReference
+            || candidate.m_styleId != 0;
+    }
+    for (const DRW_TableRow& candidate : ent->m_content.m_rows) {
+        if (!standardBaseStyleIdIsSupported(candidate.m_styleId))
+            return failDxfWrite();
+        hasBaseStyleReference = hasBaseStyleReference
+            || candidate.m_styleId != 0;
+        for (const DRW_TableCell& cell : candidate.m_cells) {
+            if (!standardBaseStyleIdIsSupported(cell.m_styleId))
+                return failDxfWrite();
+            hasBaseStyleReference = hasBaseStyleReference
+                || cell.m_styleId != 0;
+        }
+    }
+    if (hasBaseStyleReference
+        && ent->m_content.m_tableStyleHandle == 0u)
+        return failDxfWrite();
+
     const DRW_TableColumn& column = ent->m_content.m_columns.front();
     const DRW_TableRow& row = ent->m_content.m_rows.front();
     const bool multiCellTable = ent->m_content.m_columns.size() != 1u
         || ent->m_content.m_rows.size() != 1u
         || row.m_cells.size() != 1u;
-    if (!safeText(column.m_name) || column.m_styleId != 0
+    if (!safeText(column.m_name)
+        || !standardBaseStyleIdIsSupported(column.m_styleId)
         || column.m_overrideStyleType != 3
         || !std::isfinite(column.m_width) || column.m_width < 0.0
         || row.m_cells.size() != ent->m_content.m_columns.size()
-        || row.m_styleId != 0
+        || !standardBaseStyleIdIsSupported(row.m_styleId)
         || row.m_overrideStyleType != 2
         || !std::isfinite(row.m_height) || row.m_height < 0.0)
     {
@@ -26253,7 +26283,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_autoFit || cell.m_mergedWidth != 0
         || cell.m_mergedHeight != 0 || cell.m_rotation != 0.0
         || !safeText(cell.m_toolTip) || !cell.m_textStyleName.empty()
-        || cell.m_styleId != 0 || cell.m_overrideStyleType != 1
+        || !standardBaseStyleIdIsSupported(cell.m_styleId)
+        || cell.m_overrideStyleType != 1
         || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
@@ -26569,13 +26600,15 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                        sourceHandle) == 0u;
         };
 
-        const auto cellPropertiesSupported = [&safeText, &defaultBorder](
+        const auto cellPropertiesSupported = [&safeText, &defaultBorder,
+                &standardBaseStyleIdIsSupported](
                 const DRW_TableCell& cell) {
             return cell.m_type == 0 && cell.m_edgeFlags == 0
                 && !cell.m_isMerged && !cell.m_autoFit
                 && cell.m_mergedWidth == 0 && cell.m_mergedHeight == 0
                 && cell.m_rotation == 0.0 && safeText(cell.m_toolTip)
-                && cell.m_textStyleName.empty() && cell.m_styleId == 0
+                && cell.m_textStyleName.empty()
+                && standardBaseStyleIdIsSupported(cell.m_styleId)
                 && cell.m_overrideStyleType == 1
                 && cell.m_virtualEdgeFlags == 0 && cell.m_overrideFlags == 0u
                 && cell.m_valueHandle == 0u && cell.m_textStyleHandle == 0u
@@ -26614,7 +26647,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
              ++columnIndex) {
             const DRW_TableColumn& column =
                 ent->m_content.m_columns[columnIndex];
-            if (!safeText(column.m_name) || column.m_styleId != 0
+            if (!safeText(column.m_name)
+                || !standardBaseStyleIdIsSupported(column.m_styleId)
                 || column.m_overrideStyleType != 3
                 || !std::isfinite(column.m_width) || column.m_width < 0.0
                 || (ent->m_dxfMetadata
@@ -26624,7 +26658,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         }
         for (std::size_t rowIndex = 0u; rowIndex < rowCount; ++rowIndex) {
             const DRW_TableRow& row = ent->m_content.m_rows[rowIndex];
-            if (row.m_cells.size() != columnCount || row.m_styleId != 0
+            if (row.m_cells.size() != columnCount
+                || !standardBaseStyleIdIsSupported(row.m_styleId)
                 || row.m_overrideStyleType != 2
                 || !std::isfinite(row.m_height) || row.m_height < 0.0
                 || (ent->m_dxfMetadata

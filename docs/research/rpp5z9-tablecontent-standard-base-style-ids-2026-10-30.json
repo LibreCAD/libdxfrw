@@ -1,0 +1,50 @@
+{
+  "id": "RPP-5z9",
+  "date": "2026-10-30",
+  "title": "Standalone TABLECONTENT standard base-style ID output",
+  "scope": {
+    "operation": "Write standard TABLECONTENT column, row and cell base-style IDs while preserving the rooted TABLESTYLE handle edge.",
+    "profile": "Generated AC1027 standalone TABLECONTENT with a locally authored NOD-rooted TABLESTYLE; one 2x2 grid exercises IDs 1/2/3 on column/row/cell, and one 1x1 cell exercises ID 2; ASCII and binary input/output cross-product.",
+    "source_basis": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.102 identifies ID 1 as title, 2 as header, 3 as data, ID 4 as table beginning in R24, and custom IDs from 101. The serializer already emitted the selected group-90 fields but rejected all nonzero IDs; the rooted adapter validated base-style IDs only for legacy TABLE records, not standalone TABLECONTENT.",
+    "implementation": [
+      "Admit standard standalone TABLECONTENT base-style IDs 1-3 in column, row and cell fields, and require a nonzero TABLESTYLE reference whenever any such ID is used.",
+      "Validate standalone IDs against both source and target versions in the adapter, then include the TABLESTYLE handle in the rooted ACAD_TABLESTYLE output plan.",
+      "Continue to refuse ID 4 and custom IDs >=101 until standalone CELLSTYLEMAP ownership and ID resolution are qualified."
+    ],
+    "claim_boundary": "Selected generated AC1027 DXF transport for IDs 1-3 across standalone TABLECONTENT column/row/cell fields and 1x1/grid serializer branches. This does not qualify ID 4, custom CELLSTYLEMAP IDs, native table rendering, or DWG output."
+  },
+  "evidence": {
+    "generated_runtime_input": true,
+    "source_authored_locally_from_scratch": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary_input_output_cross_product": true,
+    "physical_wire": "An independent DXF walker verifies group 90 values 1/2/3 for grid column/row/cell profiles, ID 2 in the 1x1 cell profile, zero IDs in peer positions, and each TABLECONTENT group-340 handle joins the emitted TABLESTYLE group-5 identity.",
+    "typed_readback": "Fresh imports preserve each selected base-style ID and resolve both TABLECONTENT objects to the emitted TABLESTYLE.",
+    "failure_controls": "ID 4, custom ID 101 and an unrooted 0xDEAD TABLESTYLE target are refused; destination sentinels and caller fields remain unchanged.",
+    "retry_control": "Restoring standard ID 3 or the rooted TABLESTYLE handle permits same-adapter retry and typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_(grid_write|linked_grid_write|row_margin_write|column_table_margin_write|single_cell_style_margin_write|table_style_format_write|table_style_reference_write|cell_style_border_alignment))$' --output-on-failure",
+    "focused_ctest_result": "8/8 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "research": [
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1 §20.4.102 CELLSTYLEMAP",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "IDs 1/2/3 denote title/header/data, ID 4 denotes table beginning in R24, and custom style IDs begin at 101. CELLSTYLEMAP is connected to TABLESTYLE through its named extension-dictionary entry."
+    }
+  ],
+  "files": [
+    "src/libdxfrw.cpp",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "Resolve and emit standalone TABLECONTENT ID 4 and custom IDs only with exact rooted CELLSTYLEMAP closure and version checks.",
+    "The parent P5 phase remains open; broader formatting combinations, renderer semantics, and DWG output are not claimed."
+  ]
+}

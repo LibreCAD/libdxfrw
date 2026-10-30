@@ -3412,22 +3412,42 @@ bool tableContentTableStyleReferenceWriteTests(
             DRW_TableContentObject table = tableContentScalarGrid();
             table.handle = 0xC200u;
             table.m_content.m_tableStyleHandle = sourceStyleHandle;
+            table.m_content.m_columns.front().m_styleId = 1;
+            table.m_content.m_rows.front().m_styleId = 2;
+            table.m_content.m_rows.front().m_cells.front().m_styleId = 3;
             exporter.addTableContent(table);
+            DRW_TableContentObject singleCell = tableContentScalarGrid();
+            singleCell.handle = 0xC201u;
+            singleCell.m_content.m_columns.resize(1u);
+            singleCell.m_content.m_rows.resize(1u);
+            singleCell.m_content.m_rows.front().m_cells.resize(1u);
+            singleCell.m_content.m_tableStyleHandle = sourceStyleHandle;
+            singleCell.m_content.m_rows.front().m_cells.front().m_styleId = 2;
+            exporter.addTableContent(singleCell);
             if (!exporter.fileExport(outputPath.string(), DRW::AC1027,
                                      outputBinary, &data, true))
                 return fail("rooted TABLESTYLE reference export failed");
 
             const auto wire = attdefWireTags(outputPath, outputBinary);
             std::string emittedStyleHandle;
-            std::string contentStyleHandle;
+            std::vector<std::string> contentStyleHandles;
             bool inTableStyle = false;
             bool inTableContent = false;
             bool inContentSubclass = false;
+            bool awaitingColumnStyleId = false;
+            bool awaitingRowStyleId = false;
+            bool awaitingCellStyleId = false;
+            std::vector<int> emittedColumnStyleIds;
+            std::vector<int> emittedRowStyleIds;
+            std::vector<int> emittedCellStyleIds;
             for (const AttdefWireTag& tag : wire) {
                 if (tag.code == 0) {
                     inTableStyle = tag.text == "TABLESTYLE";
                     inTableContent = tag.text == "TABLECONTENT";
                     inContentSubclass = false;
+                    awaitingColumnStyleId = false;
+                    awaitingRowStyleId = false;
+                    awaitingCellStyleId = false;
                 } else if (inTableStyle && tag.code == 5) {
                     emittedStyleHandle = tag.text;
                 } else if (inTableContent && tag.code == 100
@@ -3435,37 +3455,110 @@ bool tableContentTableStyleReferenceWriteTests(
                     inContentSubclass = true;
                 } else if (inTableContent && inContentSubclass
                            && tag.code == 340) {
-                    contentStyleHandle = tag.text;
+                    contentStyleHandles.push_back(tag.text);
+                } else if (inTableContent && tag.code == 1
+                           && tag.text == "TABLECOLUMN_BEGIN") {
+                    awaitingColumnStyleId = true;
+                } else if (inTableContent && tag.code == 1
+                           && tag.text == "TABLEROW_BEGIN") {
+                    awaitingRowStyleId = true;
+                } else if (inTableContent && tag.code == 1
+                           && tag.text == "TABLECELL_BEGIN") {
+                    awaitingCellStyleId = true;
+                } else if (awaitingCellStyleId && tag.code == 90) {
+                    if (tag.kind != AttdefWireTag::Integer)
+                        return fail("cell base-style ID was not an integer field");
+                    emittedCellStyleIds.push_back(
+                        static_cast<int>(tag.integer));
+                    awaitingCellStyleId = false;
+                } else if (awaitingColumnStyleId && tag.code == 90) {
+                    if (tag.kind != AttdefWireTag::Integer)
+                        return fail("column base-style ID was not an integer field");
+                    emittedColumnStyleIds.push_back(
+                        static_cast<int>(tag.integer));
+                    awaitingColumnStyleId = false;
+                } else if (awaitingRowStyleId && tag.code == 90) {
+                    if (tag.kind != AttdefWireTag::Integer)
+                        return fail("row base-style ID was not an integer field");
+                    emittedRowStyleIds.push_back(
+                        static_cast<int>(tag.integer));
+                    awaitingRowStyleId = false;
                 }
             }
             if (emittedStyleHandle.empty()
-                || contentStyleHandle != emittedStyleHandle)
-                return fail("TABLECONTENT group 340 did not join the emitted TABLESTYLE identity");
+                || contentStyleHandles.size() != 2u
+                || !std::all_of(contentStyleHandles.begin(),
+                                contentStyleHandles.end(),
+                                [&emittedStyleHandle](const auto& handle) {
+                                    return handle == emittedStyleHandle;
+                                })
+                || emittedColumnStyleIds != std::vector<int>{1, 0, 0}
+                || emittedRowStyleIds != std::vector<int>{2, 0, 0}
+                || emittedCellStyleIds.size() != 5u
+                || emittedCellStyleIds.front() != 3
+                || !std::all_of(emittedCellStyleIds.begin() + 1,
+                                emittedCellStyleIds.begin() + 4,
+                                [](int styleId) { return styleId == 0; }))
+                return fail("TABLECONTENT style reference or standard base-style ID did not match emitted TABLESTYLE output");
+            if (emittedCellStyleIds.back() != 2)
+                return fail("1x1 TABLECONTENT base-style ID did not round-trip on wire");
 
             dx_iface outputReader;
             dx_data parsed;
             if (!outputReader.fileImport(outputPath.string(), &parsed, false)
-                || parsed.tableContents.size() != 1u
+                || parsed.tableContents.size() != 2u
                 || parsed.tableStyles.size() != 1u
                 || parsed.tableContents.front().m_content.m_tableStyleHandle
                     != parsed.tableStyles.front().handle
+                || parsed.tableContents.front().m_content.m_columns.front()
+                    .m_styleId != 1
+                || parsed.tableContents.front().m_content.m_rows.front()
+                    .m_styleId != 2
+                || parsed.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front().m_styleId != 3
+                || parsed.tableContents.back().m_content.m_rows.front()
+                    .m_cells.front().m_styleId != 2
                 || parsed.tableStyles.front().handle
                     != static_cast<std::uint32_t>(
                         std::stoul(emittedStyleHandle, nullptr, 16)))
                 return fail("fresh typed readback did not resolve TABLECONTENT to TABLESTYLE");
 
+            DRW_TableCell& styledCell =
+                data.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front();
+            for (const int unsupportedStyleId : {4, 101}) {
+                styledCell.m_styleId = unsupportedStyleId;
+                const std::string sentinel =
+                    "PRESERVE_TABLECONTENT_UNSUPPORTED_BASE_STYLE_"
+                    + std::to_string(unsupportedStyleId);
+                { std::ofstream out(outputPath, std::ios::binary); out << sentinel; }
+                if (exporter.fileExport(outputPath.string(), DRW::AC1027,
+                                        outputBinary, &data, false))
+                    return fail("unresolved base-style ID escaped the standalone profile");
+                { std::ifstream in(outputPath, std::ios::binary);
+                  if (std::string(std::istreambuf_iterator<char>(in), {})
+                      != sentinel)
+                      return fail("base-style refusal replaced destination"); }
+                if (styledCell.m_styleId != unsupportedStyleId)
+                    return fail("failed export changed the caller base-style ID");
+                styledCell.m_styleId = 3;
+                if (!exporter.fileExport(outputPath.string(), DRW::AC1027,
+                                         outputBinary, &data, false))
+                    return fail("standard base-style same-adapter retry failed");
+            }
+
             const std::uint32_t originalStyleHandle =
                 data.tableContents.front().m_content.m_tableStyleHandle;
             data.tableContents.front().m_content.m_tableStyleHandle = 0xDEADu;
-            const std::string sentinel =
+            const std::string styleSentinel =
                 "PRESERVE_TABLECONTENT_TABLESTYLE_DESTINATION";
-            { std::ofstream out(outputPath, std::ios::binary); out << sentinel; }
+            { std::ofstream out(outputPath, std::ios::binary); out << styleSentinel; }
             if (exporter.fileExport(outputPath.string(), DRW::AC1027,
                                     outputBinary, &data, false))
                 return fail("unrooted TABLESTYLE target was accepted");
             { std::ifstream in(outputPath, std::ios::binary);
               if (std::string(std::istreambuf_iterator<char>(in), {})
-                  != sentinel)
+                  != styleSentinel)
                   return fail("unrooted TABLESTYLE refusal replaced destination"); }
             if (data.tableContents.front().m_content.m_tableStyleHandle
                 != 0xDEADu)
@@ -3477,9 +3570,11 @@ bool tableContentTableStyleReferenceWriteTests(
                 return fail("corrected same-adapter retry failed");
             dx_data retried;
             if (!outputReader.fileImport(outputPath.string(), &retried, false)
-                || retried.tableContents.size() != 1u
+                || retried.tableContents.size() != 2u
                 || retried.tableStyles.size() != 1u
                 || retried.tableContents.front().m_content.m_tableStyleHandle
+                    != retried.tableStyles.front().handle
+                || retried.tableContents.back().m_content.m_tableStyleHandle
                     != retried.tableStyles.front().handle)
                 return fail("same-adapter retry readback lost TABLESTYLE closure");
         }
