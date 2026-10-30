@@ -1,0 +1,95 @@
+{
+  "id": "RPP-5xl",
+  "title": "AC1027 MTEXT LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d6216060806b731361edce1abbf16bbc07586d06",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected MTEXT target in each of model-space ENTITIES and named AuthorityBlock BLOCKS, across all four source/output encoding pairs.",
+    "linetype": "Source-bound simple LTYPE with the existing MLINE_LTYPE_XDATA APPID provider.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "One ordered group-1005 soft-pointer to source handle 0xA900.",
+      "references": [
+        {"code": 1005, "source_handle": "0xA900", "target": "model-space MTEXT or named-block MTEXT, selected per profile"}
+      ]
+    },
+    "targets": [
+      {
+        "type": "MTEXT",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "owner_handle": "0x201",
+        "subclass": "AcDbMText",
+        "fields": {
+          "insertion_point": [12.5, -3.0, 4.25],
+          "height": 2.5,
+          "reference_width": 18.0,
+          "attachment": 1,
+          "drawing_direction": 1,
+          "contents": "TARGET-MTEXT",
+          "style": "STANDARD",
+          "rotation_degrees": 30.0,
+          "line_spacing_style": 1,
+          "line_spacing_factor": 1.0,
+          "extrusion": [0.0, 0.0, 1.0]
+        }
+      },
+      {
+        "type": "MTEXT",
+        "source_handle": "0xA900",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "owner_handle": "0x203",
+        "subclass": "AcDbMText",
+        "fields": "Same selected MTEXT field values as the model-space profile."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical source records bind the group-1005 reference to the exact MTEXT record and owner in each selected section. Typed import checks exact DRW_MText identity and the listed insertion point, dimensions, text, style, alignment, rotation, line spacing and extrusion fields.",
+    "output": "For each ASCII/binary source/output pair, physical output checks the target type, section, remapped handle/reference, owner and selected MTEXT fields. Fresh adapter readback checks the exact DRW_MText type, owner and selected values.",
+    "failure_retry": "Removing the target independently refuses export and preserves the existing destination, then succeeds on same-adapter retry for all eight placement/encoding profiles. Separate model-space and named-block late-handle mutation cases refuse without replacing the destination and succeed after the source identity is restored.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 380,
+      "whole_focused_test_readbacks": 876,
+      "whole_focused_test_refusals": 496,
+      "whole_focused_test_retries": 496
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 22.94 seconds); selector asserts the whole-test counts above"
+    },
+    "diff_check": "PASS before code commit",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds a generated target profile and classifier mapping.",
+    "source_bindings": {
+      "implementation_commit": "d6216060806b731361edce1abbf16bbc07586d06",
+      "implementation_source_sha256": "71ceb85b45ce4559626eaaceba5d95bb308f17de9ed1f65b776f6d13b8248c12",
+      "test_source_sha256": "07fd7781fcd362eeb775a2355af13e942d314b8823f281639a95b9ff992c1661",
+      "normal_executable_sha256": "3be29263108c7dbaa9c77c4d0d02be8a639ea54a841e0fde173ef219fdfb750f",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one selected MTEXT field profile as a code-1005 target in model-space ENTITIES and named AuthorityBlock BLOCKS under AC1027, for the authored ASCII/binary source/output combinations. Other MTEXT fields, formatting, columns, linked contexts, versions, block roles and target pairings remain open.",
+    "This is selected identity, field transport, output/readback and transaction evidence. It does not establish complete MTEXT schema, font/rendering semantics, recursive document closure, native consumer behavior, independent CAD semantics or any general DWG/DXF support claim."
+  ],
+  "next": "Select another current source-bound target, mixed set, XDATA profile or MLINE consumer operation; preserve the separate schema, recursive-closure and native-semantic gates."
+}
