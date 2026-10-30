@@ -337,9 +337,15 @@ struct dx_associativeDwgImportReceipt {
     std::size_t associativeNetworkRootRecords{0};
     std::size_t associativeNetworkDictionaryEntryReferences{0};
     std::size_t associativeNetworkDictionaryEntriesVerified{0};
+    std::size_t associativeNetworkDictionaryOwnerChainReferences{0};
+    std::size_t associativeNetworkDictionaryOwnerEdgesVerified{0};
+    std::size_t associativeNetworkDictionaryNodAnchorsVerified{0};
+    std::size_t associativeNetworkDictionaryBlockRecordAnchorsVerified{0};
     bool associativeNetworkActionLimitExceeded{false};
+    bool associativeNetworkDictionaryOwnerChainLimitExceeded{false};
     bool associativeNetworkActionClosureComplete{false};
     bool associativeNetworkDictionaryEntryClosureComplete{false};
+    bool associativeNetworkDictionaryOwnerChainsComplete{false};
     bool associativeNetworkParentChainsComplete{false};
     bool resourceLimitExceeded{false};
     bool captureFailed{false};
@@ -1041,6 +1047,13 @@ public:
     bool hasCompleteDwgDictionaryEntry(std::uint32_t dictionaryHandle,
                                        const char* entryName,
                                        std::uint32_t targetHandle) const noexcept;
+    // Returns an import-matched dictionary's common owner handle only when its
+    // common-link evidence and typed/raw dictionary payload both agree.
+    bool getCompleteDwgDictionaryOwner(std::uint32_t dictionaryHandle,
+                                       std::uint32_t& ownerHandle) const noexcept;
+    // Confirms the current source-matched BLOCK_CONTROL handle list is an
+    // exact, duplicate-free membership of the retained BLOCK_RECORD table.
+    bool hasCompleteDwgBlockRecordControlMembership() const noexcept;
     // Read-only current-import source lease; null means no report, never an
     // empty/qualified CLASSES section. Mutable public class rows are separate.
     const DRW_DwgClassSourceReport* dwgClassSource() const noexcept {
@@ -2042,6 +2055,10 @@ private:
     std::size_t m_standardDwgObjectMembershipEntries{0};
     bool m_standardDwgObjectCaptureFailed{false};
     bool m_standardDwgObjectPayloadFailed{false};
+    DRW_DwgFramePublication m_dwgBlockControlPublication;
+    std::uint64_t m_dwgBlockControlGeneration{0u};
+    bool m_dwgBlockControlPublicationSeen{false};
+    bool m_dwgBlockControlCaptureFailed{false};
     friend class DxIfaceStandardDwgCaptureTestAccess;
     // Immutable-by-API snapshots used to admit exact same-version DXF replay
     // of CELLSTYLEMAP. They are adapter provenance, not consumer-editable

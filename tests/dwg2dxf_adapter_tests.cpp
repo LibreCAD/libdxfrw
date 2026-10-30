@@ -9830,6 +9830,97 @@ bool standardDwgObjectSourceCapture() {
     return true;
 }
 
+bool dwgBlockRecordControlMembershipCapture() {
+    const auto makeCase = [](const std::vector<std::uint32_t>& controlHandles,
+                             std::uint32_t firstRecordOwner,
+                             bool duplicateControl,
+                             bool mutateGeneration) {
+        dx_data data;
+        dx_iface iface;
+        iface.cData = &data;
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        data.importGeneration = 7u;
+        data.dwgReadOutcome.attempted = true;
+        data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+        data.dwgReadOutcome.operationSucceeded = false;
+
+        DRW_Block_Record modelSpace;
+        modelSpace.handle = 0x31u;
+        modelSpace.parentHandle = firstRecordOwner;
+        modelSpace.name = "*Model_Space";
+        DRW_Block_Record paperSpace;
+        paperSpace.handle = 0x58u;
+        paperSpace.parentHandle = 0x10u;
+        paperSpace.name = "*Paper_Space";
+        data.blockRecords = {modelSpace, paperSpace};
+
+        DRW_DwgFramePublication control;
+        control.m_version = DRW::AC1024;
+        control.m_handle = 0x10u;
+        control.m_sourceOffset = 0x80u;
+        control.m_sourceMapOrdinal = 4u;
+        control.m_sourceOffsetSpace = DRW_DwgFrameOffsetSpace::PhysicalFile;
+        control.m_hasSourceLocation = true;
+        control.m_encodedType = DRW::DwgBlockControlObjectType;
+        control.m_resolvedType = DRW::DwgBlockControlObjectType;
+        control.m_recordName = "BLOCK_CONTROL";
+        control.m_commonLinkEvidence =
+            DRW_DwgCommonLinkEvidence::NotApplicable;
+        control.m_controlHandles = controlHandles;
+        control.m_carrier = DRW_DwgFramePublication::Carrier::Control;
+        iface.addDwgFramePublication(control);
+        if (duplicateControl)
+            iface.addDwgFramePublication(control);
+
+        data.dwgReadOutcome.operationSucceeded = true;
+        if (mutateGeneration)
+            ++data.importGeneration;
+        return data.hasCompleteDwgBlockRecordControlMembership();
+    };
+
+    if (!makeCase({0x31u, 0x58u}, 0x10u, false, false))
+        return fail("source-matched BLOCK_CONTROL membership was not accepted");
+    if (makeCase({0x31u, 0x58u}, 0x11u, false, false))
+        return fail("BLOCK_RECORD with the wrong common owner was accepted");
+    if (makeCase({0x31u, 0x59u}, 0x10u, false, false))
+        return fail("BLOCK_CONTROL list with a missing record was accepted");
+    if (makeCase({0x31u, 0x58u}, 0x10u, true, false))
+        return fail("duplicate BLOCK_CONTROL publication was accepted");
+    if (makeCase({0x31u, 0x31u}, 0x10u, false, false))
+        return fail("duplicate BLOCK_CONTROL child handle was accepted");
+    if (makeCase({0x31u, 0x58u}, 0x10u, false, true))
+        return fail("stale BLOCK_CONTROL publication generation was accepted");
+
+    std::vector<std::uint32_t> overLimit(
+        100001u, 0x600u);
+    dx_data overLimitData;
+    dx_iface overLimitIface;
+    overLimitIface.cData = &overLimitData;
+    overLimitData.sourceFormat = dx_source_format::DWG;
+    overLimitData.sourceVersion = DRW::AC1024;
+    overLimitData.importGeneration = 9u;
+    overLimitData.dwgReadOutcome.attempted = true;
+    DRW_DwgFramePublication overLimitControl;
+    overLimitControl.m_version = DRW::AC1024;
+    overLimitControl.m_handle = 0x10u;
+    overLimitControl.m_sourceOffsetSpace =
+        DRW_DwgFrameOffsetSpace::PhysicalFile;
+    overLimitControl.m_hasSourceLocation = true;
+    overLimitControl.m_encodedType = DRW::DwgBlockControlObjectType;
+    overLimitControl.m_resolvedType = DRW::DwgBlockControlObjectType;
+    overLimitControl.m_recordName = "BLOCK_CONTROL";
+    overLimitControl.m_commonLinkEvidence =
+        DRW_DwgCommonLinkEvidence::NotApplicable;
+    overLimitControl.m_controlHandles = std::move(overLimit);
+    overLimitControl.m_carrier = DRW_DwgFramePublication::Carrier::Control;
+    overLimitIface.addDwgFramePublication(overLimitControl);
+    overLimitData.dwgReadOutcome.operationSucceeded = true;
+    if (overLimitData.hasCompleteDwgBlockRecordControlMembership())
+        return fail("over-limit BLOCK_CONTROL publication was accepted");
+    return true;
+}
+
 bool acDsHistoryDwgFrameCaptureLimitsFailClosed() {
     dx_data data;
     dx_iface iface;
@@ -39168,6 +39259,10 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--standard-dwg-object-source-capture")
         return standardDwgObjectSourceCapture() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dwg-block-record-control-membership")
+        return dwgBlockRecordControlMembershipCapture() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--xrecord-group-reference-admission")
         return xrecordGroupReferenceAdmission() ? 0 : 1;

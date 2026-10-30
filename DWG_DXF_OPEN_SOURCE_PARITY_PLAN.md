@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Resolve the AC1024 constraint-group node-tail profile; verify associative-network dictionary owner chains and remaining source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Resolve the AC1024 constraint-group node-tail profile; close remaining source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -50,7 +50,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 ### Immediate implementation order
 
-1. **P4 — qualify AC1024 constraint-group node tails and finish associative closure.** Resolve the conflicting version-0 node-tail profiles before extending the current bounded prefix parser: LibreDWG `dwg2.spec` models a node count followed by node ID/status/connection-count/vector fields; the independent acadrust reader expects a next-node-ID, inline count, class-name strings and class-specific node data. The local AC1024 source/LibreDWG projections also disagree on the first node's connection data (`1073741825` appears in DXF while JSON reports an empty vector), and ODA v5.4.1 has no class-specific body layout. Run an independent reader on the same source bytes or obtain a separately authored AC1024 witness and correlate body, string and handle streams. Do not relax limits or infer zero connections. Independently verify the enclosing owner chains for the validated `ACAD_ASSOCNETWORK` entries, then close remaining source-required descendants with bounded role/type/owner checks. Keep strict refusal until complete closure and remapped DXF output are proven.
+1. **P4 — qualify AC1024 constraint-group node tails and finish associative closure.** Resolve the conflicting version-0 node-tail profiles before extending the current bounded prefix parser: LibreDWG `dwg2.spec` models a node count followed by node ID/status/connection-count/vector fields; the independent acadrust reader expects a next-node-ID, inline count, class-name strings and class-specific node data. The local AC1024 source/LibreDWG projections also disagree on the first node's connection data (`1073741825` appears in DXF while JSON reports an empty vector), and ODA v5.4.1 has no class-specific body layout. Run an independent reader on the same source bytes or obtain a separately authored AC1024 witness and correlate body, string and handle streams. Do not relax limits or infer zero connections. Close newly identified source-required descendants with bounded role/type/owner checks. Keep strict refusal until complete closure and remapped DXF output are proven.
 
 See the [AC1024 constraint-group profile receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the unresolved parser boundary and node-tail evidence. Receipts for completed graph edges remain in `docs/research/` and Git history; they are not active plan items.
 
@@ -79,11 +79,11 @@ engines.
    connection-field value using independent evidence against the same source
    bytes. Correlate body, string and handle streams; preserve unsupported tails
    as raw and unvalidated. Implement only the evidenced node profile with
-   bounded counts and explicit node-class and connection-reference roles. Extend
-   independently verify associative-network dictionary owner chains and close
+   bounded counts and explicit node-class and connection-reference roles. Close
    each remaining source-required descendant. Validate each new edge by handle,
    expected type, common owner and reciprocal relation where required; reject
-   duplicates, missing targets, wrong roles and unbounded cycles. Use ODA v5.4.1 for documented layouts and
+   duplicates, missing targets, wrong roles and unbounded cycles. Use ODA v5.4.1
+   for documented layouts and
    independent peer evidence only where the class is undocumented. Keep local
    investigation DWGs out of committed fixtures; bind regressions to eligible
    repository inputs or locally authored fixtures.

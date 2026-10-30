@@ -9912,6 +9912,8 @@ bool isAssociativeDxfName(std::string_view name) noexcept {
 
 constexpr std::size_t kMaxAssociativeRecords = 100000u;
 constexpr std::size_t kMaxAssociativeDwgActionReferences = 100000u;
+constexpr std::size_t kMaxAssociativeDwgOwnerChainWork = 100000u;
+constexpr std::size_t kMaxDwgBlockControlPublicationBytes = 1024u * 1024u;
 constexpr std::size_t kMaxAssociativeDxfRawGroups = 4000000u;
 constexpr std::size_t kMaxAssociativeOwnerNodes = 200000u;
 constexpr std::size_t kMaxAssociativeDictionaryEdges = 200000u;
@@ -13158,6 +13160,124 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
             && networkDictionaryEntriesComplete
             && receipt.associativeNetworkDictionaryEntriesVerified
                 == receipt.associativeNetworkDictionaryEntryReferences;
+
+        bool networkDictionaryOwnerChainsComplete =
+            receipt.associativeNetworkRecords > 0u;
+        const std::uint32_t nodHandle = data.namedObjectDictionary.handle;
+        std::uint32_t nodOwnerHandle = DRW::NoHandle;
+        const bool nodReady = data.hasNamedObjectDictionary
+            && data.associativeDxfImport.namedObjectDictionaryCallbackSeen
+            && !data.associativeDxfImport.namedObjectDictionaryCallbackAmbiguous
+            && nodHandle != 0u && nodHandle != DRW::NoHandle
+            && data.namedObjectDictionary.parentHandle == 0u
+            && data.namedObjectDictionary.hasCompleteDwgEntries()
+            && data.getCompleteDwgDictionaryOwner(nodHandle, nodOwnerHandle)
+            && nodOwnerHandle == 0u;
+        const bool blockRecordControlMembershipComplete =
+            data.hasCompleteDwgBlockRecordControlMembership();
+        std::unordered_map<std::uint32_t, const DRW_Block_Record*>
+            blockRecordsByHandle;
+        bool blockRecordHandlesUnique =
+            data.blockRecords.size() <= kMaxAdapterBasicTableRecords;
+        if (blockRecordHandlesUnique) {
+            blockRecordsByHandle.reserve(data.blockRecords.size());
+            for (const DRW_Block_Record& record : data.blockRecords) {
+                if (record.handle == 0u || record.handle == DRW::NoHandle
+                    || record.tType != DRW::BLOCK_RECORD
+                    || !blockRecordsByHandle.emplace(
+                        record.handle, &record).second) {
+                    blockRecordHandlesUnique = false;
+                    break;
+                }
+            }
+        }
+        std::size_t ownerChainWork = 0u;
+        std::unordered_set<std::uint32_t> visitedDictionaries;
+        visitedDictionaries.reserve(8u);
+        for (const auto& networkEntry : networksByHandle) {
+            const DRW_AssociativeObject& network = *networkEntry.second;
+            ++receipt.associativeNetworkDictionaryOwnerChainReferences;
+            visitedDictionaries.clear();
+            std::uint32_t currentDictionary = network.parentHandle;
+            bool chainAnchored = false;
+            while (true) {
+                if (ownerChainWork >= kMaxAssociativeDwgOwnerChainWork) {
+                    receipt.associativeNetworkDictionaryOwnerChainLimitExceeded =
+                        true;
+                    networkDictionaryOwnerChainsComplete = false;
+                    break;
+                }
+                ++ownerChainWork;
+                if (currentDictionary == 0u
+                    || currentDictionary == DRW::NoHandle
+                    || !visitedDictionaries.insert(currentDictionary).second) {
+                    networkDictionaryOwnerChainsComplete = false;
+                    break;
+                }
+
+                std::uint32_t ownerHandle = DRW::NoHandle;
+                if (!data.getCompleteDwgDictionaryOwner(
+                        currentDictionary, ownerHandle)
+                    || ownerHandle == 0u || ownerHandle == DRW::NoHandle) {
+                    networkDictionaryOwnerChainsComplete = false;
+                    break;
+                }
+
+                if (nodReady && ownerHandle == nodHandle) {
+                    if (data.hasCompleteDwgDictionaryEntry(
+                            nodHandle, "ACAD_ASSOCNETWORK",
+                            currentDictionary)) {
+                        ++receipt
+                            .associativeNetworkDictionaryOwnerEdgesVerified;
+                        ++receipt
+                            .associativeNetworkDictionaryNodAnchorsVerified;
+                        chainAnchored = true;
+                    }
+                    networkDictionaryOwnerChainsComplete &= chainAnchored;
+                    break;
+                }
+
+                std::uint32_t parentDictionaryOwner = DRW::NoHandle;
+                if (data.getCompleteDwgDictionaryOwner(
+                        ownerHandle, parentDictionaryOwner)) {
+                    if (!data.hasCompleteDwgDictionaryEntry(
+                            ownerHandle, "ACAD_ASSOCNETWORK",
+                            currentDictionary)) {
+                        networkDictionaryOwnerChainsComplete = false;
+                        break;
+                    }
+                    ++receipt
+                        .associativeNetworkDictionaryOwnerEdgesVerified;
+                    currentDictionary = ownerHandle;
+                    continue;
+                }
+
+                const auto blockRecord = blockRecordsByHandle.find(ownerHandle);
+                if (blockRecordControlMembershipComplete
+                    && blockRecordHandlesUnique
+                    && blockRecord != blockRecordsByHandle.end()
+                    && blockRecord->second->xDictHandle
+                        == currentDictionary) {
+                    ++receipt
+                        .associativeNetworkDictionaryOwnerEdgesVerified;
+                    ++receipt
+                        .associativeNetworkDictionaryBlockRecordAnchorsVerified;
+                    chainAnchored = true;
+                }
+                networkDictionaryOwnerChainsComplete &= chainAnchored;
+                break;
+            }
+        }
+        receipt.associativeNetworkDictionaryOwnerChainsComplete =
+            networkDictionaryOwnerChainsComplete
+            && !receipt.associativeNetworkDictionaryOwnerChainLimitExceeded
+            && receipt.associativeNetworkDictionaryOwnerChainReferences
+                == receipt.associativeNetworkRecords
+            && receipt.associativeNetworkDictionaryNodAnchorsVerified
+                + receipt
+                    .associativeNetworkDictionaryBlockRecordAnchorsVerified
+                == receipt.associativeNetworkDictionaryOwnerChainReferences;
+
         bool networkActionListsComplete = true;
         bool networkActionTargetsComplete = true;
         for (const auto& networkEntry : networksByHandle) {
@@ -13437,6 +13557,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         receipt.constraintGroupActionClosureComplete = false;
         receipt.associativeNetworkActionClosureComplete = false;
         receipt.associativeNetworkDictionaryEntryClosureComplete = false;
+        receipt.associativeNetworkDictionaryOwnerChainsComplete = false;
         receipt.associativeNetworkParentChainsComplete = false;
     }
 }
@@ -14939,6 +15060,60 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
         countDwgReadCallback(cData->dwgReadOutcome.observedReceiptCarriers[index]);
     if (isRasterDwgSource(data.m_resolvedType, data.m_recordName, data.m_className)) {
         retainRasterDwgPublication(data);
+        return;
+    }
+    const bool blockControlCandidate =
+        data.m_recordName == "BLOCK_CONTROL"
+        || data.m_encodedType == DRW::DwgBlockControlObjectType
+        || data.m_resolvedType == DRW::DwgBlockControlObjectType;
+    if (blockControlCandidate) {
+        const auto reject = [this]() {
+            cData->m_dwgBlockControlCaptureFailed = true;
+        };
+        std::size_t estimate = sizeof(DRW_DwgFramePublication);
+        if (data.m_carrier != DRW_DwgFramePublication::Carrier::Control
+            || cData->sourceFormat != dx_source_format::DWG
+            || data.m_version < DRW::AC1012 || data.m_version > DRW::AC1032
+            || data.m_handle == 0u || data.m_handle == DRW::NoHandle
+            || !data.m_hasSourceLocation
+            || (data.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && data.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || data.m_encodedType != DRW::DwgBlockControlObjectType
+            || data.m_resolvedType != DRW::DwgBlockControlObjectType
+            || data.m_isEntity || data.m_isCustomClass
+            || data.m_classStreamOrdinal.has_value()
+            || data.m_recordName != "BLOCK_CONTROL"
+            || !data.m_className.empty()
+            || data.m_commonLinkEvidence
+                != DRW_DwgCommonLinkEvidence::NotApplicable
+            || data.m_controlHandles.size()
+                > kMaxAdapterBasicTableRecords
+            || cData->m_dwgBlockControlPublicationSeen
+            || cData->m_dwgBlockControlCaptureFailed
+            || !addVectorPayloadBytes(data.m_controlHandles, estimate)
+            || !addStringPayloadBytes(data.m_recordName, estimate)
+            || estimate > kMaxDwgBlockControlPublicationBytes) {
+            reject();
+            return;
+        }
+        try {
+            std::unordered_set<std::uint32_t> uniqueHandles;
+            uniqueHandles.reserve(data.m_controlHandles.size());
+            for (std::uint32_t handle : data.m_controlHandles) {
+                if (handle == 0u || handle == DRW::NoHandle
+                    || !uniqueHandles.insert(handle).second) {
+                    reject();
+                    return;
+                }
+            }
+            cData->m_dwgBlockControlPublication = data;
+            cData->m_dwgBlockControlGeneration = cData->importGeneration;
+            cData->m_dwgBlockControlPublicationSeen = true;
+        } catch (...) {
+            reject();
+        }
         return;
     }
     if (!isStandardDwgObjectType(data.m_resolvedType)
@@ -34674,6 +34849,100 @@ bool dx_data::hasCompleteDwgDictionaryEntry(
     return matched;
 }
 
+bool dx_data::getCompleteDwgDictionaryOwner(
+        std::uint32_t dictionaryHandle,
+        std::uint32_t& ownerHandle) const noexcept {
+    ownerHandle = DRW::NoHandle;
+    if (dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
+        || sourceFormat != dx_source_format::DWG || importGeneration == 0u
+        || !dwgReadOutcome.attempted || !dwgReadOutcome.operationSucceeded
+        || dwgReadOutcome.sourceVersion == DRW::UNKNOWNV
+        || sourceVersion != dwgReadOutcome.sourceVersion
+        || m_standardDwgObjectCaptureFailed
+        || m_standardDwgObjectPayloadFailed)
+        return false;
+
+    const auto found = m_standardDwgObjectFrames.find(
+        {importGeneration, dictionaryHandle});
+    if (found == m_standardDwgObjectFrames.end())
+        return false;
+    const StandardDwgObjectFrame& frame = found->second;
+    const auto* dictionary = frame.typedBaseline
+        ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get())
+        : nullptr;
+    if (frame.generation != importGeneration
+        || frame.raw.m_version != dwgReadOutcome.sourceVersion
+        || frame.raw.m_handle != dictionaryHandle
+        || frame.raw.m_objectType != dwgObjType::DICTIONARY
+        || !frame.publicationSeen || !frame.membershipSeen
+        || !frame.sourceProfileBound || !frame.payloadMatched
+        || dictionary == nullptr || dictionary->handle != dictionaryHandle
+        || !drwDwgCommonLinkEvidenceValidated(
+            frame.publication.m_commonLinkEvidence)
+        || dictionary->parentHandle != frame.publication.m_parentHandle
+        || !frame.dictionaryMembership.m_complete
+        || frame.dictionaryMembership.m_version
+            != dwgReadOutcome.sourceVersion
+        || frame.dictionaryMembership.m_dictionaryHandle != dictionaryHandle
+        || !frame.dictionaryMembership.m_hasSourceLocation)
+        return false;
+    ownerHandle = dictionary->parentHandle;
+    return true;
+}
+
+bool dx_data::hasCompleteDwgBlockRecordControlMembership() const noexcept {
+    const DRW_DwgFramePublication& control =
+        m_dwgBlockControlPublication;
+    if (sourceFormat != dx_source_format::DWG || importGeneration == 0u
+        || !dwgReadOutcome.attempted || !dwgReadOutcome.operationSucceeded
+        || dwgReadOutcome.sourceVersion == DRW::UNKNOWNV
+        || sourceVersion != dwgReadOutcome.sourceVersion
+        || m_dwgBlockControlCaptureFailed
+        || !m_dwgBlockControlPublicationSeen
+        || m_dwgBlockControlGeneration != importGeneration
+        || basicTableCaptureFailed
+        || control.m_handle == 0u || control.m_handle == DRW::NoHandle
+        || control.m_version != dwgReadOutcome.sourceVersion
+        || control.m_encodedType != DRW::DwgBlockControlObjectType
+        || control.m_resolvedType != DRW::DwgBlockControlObjectType
+        || control.m_recordName != "BLOCK_CONTROL"
+        || control.m_carrier != DRW_DwgFramePublication::Carrier::Control
+        || control.m_isEntity || control.m_isCustomClass
+        || control.m_classStreamOrdinal.has_value()
+        || !control.m_className.empty()
+        || control.m_commonLinkEvidence
+            != DRW_DwgCommonLinkEvidence::NotApplicable
+        || !control.m_hasSourceLocation
+        || (control.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && control.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || control.m_controlHandles.size() > kMaxAdapterBasicTableRecords
+        || blockRecords.size() != control.m_controlHandles.size()
+        || blockRecords.size() > kMaxAdapterBasicTableRecords)
+        return false;
+
+    try {
+        std::unordered_set<std::uint32_t> declaredHandles;
+        declaredHandles.reserve(control.m_controlHandles.size());
+        for (std::uint32_t handle : control.m_controlHandles) {
+            if (handle == 0u || handle == DRW::NoHandle
+                || !declaredHandles.insert(handle).second)
+                return false;
+        }
+        for (const DRW_Block_Record& record : blockRecords) {
+            if (record.handle == 0u || record.handle == DRW::NoHandle
+                || record.tType != DRW::BLOCK_RECORD
+                || record.parentHandle != control.m_handle
+                || declaredHandles.erase(record.handle) != 1u)
+                return false;
+        }
+        return declaredHandles.empty();
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
     if (m_acdsRawDxfSectionCaptureFailed)
         return false;
@@ -37773,6 +38042,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dwgAssociativeObjects.size();
     fData->associativeDwgImport.captureFailed =
         fData->dwgAssociativeCaptureFailed;
+    fData->m_dwgBlockControlPublication = {};
+    fData->m_dwgBlockControlGeneration = 0u;
+    fData->m_dwgBlockControlPublicationSeen = false;
+    fData->m_dwgBlockControlCaptureFailed = false;
     fData->sourceFormat = dx_source_format::Unknown;
     fData->sourceVersion = DRW::UNKNOWNV;
     unsigned int found = fileI.find_last_of(".");
@@ -40676,12 +40949,32 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << receipt.associativeNetworkDictionaryEntryReferences
                     << " associativeNetworkDictionaryEntriesVerified="
                     << receipt.associativeNetworkDictionaryEntriesVerified
+                    << " associativeNetworkDictionaryOwnerChainReferences="
+                    << receipt
+                           .associativeNetworkDictionaryOwnerChainReferences
+                    << " associativeNetworkDictionaryOwnerEdgesVerified="
+                    << receipt
+                           .associativeNetworkDictionaryOwnerEdgesVerified
+                    << " associativeNetworkDictionaryNodAnchorsVerified="
+                    << receipt
+                           .associativeNetworkDictionaryNodAnchorsVerified
+                    << " associativeNetworkDictionaryBlockRecordAnchorsVerified="
+                    << receipt
+                           .associativeNetworkDictionaryBlockRecordAnchorsVerified
                     << " associativeNetworkActionLimitExceeded="
                     << (receipt.associativeNetworkActionLimitExceeded ? 1 : 0)
+                    << " associativeNetworkDictionaryOwnerChainLimitExceeded="
+                    << (receipt
+                            .associativeNetworkDictionaryOwnerChainLimitExceeded
+                            ? 1 : 0)
                     << " associativeNetworkActionClosureComplete="
                     << (receipt.associativeNetworkActionClosureComplete ? 1 : 0)
                     << " associativeNetworkDictionaryEntryClosureComplete="
                     << (receipt.associativeNetworkDictionaryEntryClosureComplete
+                            ? 1 : 0)
+                    << " associativeNetworkDictionaryOwnerChainsComplete="
+                    << (receipt
+                            .associativeNetworkDictionaryOwnerChainsComplete
                             ? 1 : 0)
                     << " associativeNetworkParentChainsComplete="
                     << (receipt.associativeNetworkParentChainsComplete ? 1 : 0)
