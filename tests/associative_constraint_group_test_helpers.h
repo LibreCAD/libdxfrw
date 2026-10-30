@@ -24,6 +24,8 @@ struct Node {
     bool hasHorizontalBody = false;
     bool hasDatumLineIndex = true;
     std::int32_t datumLineIndex = 0;
+    bool hasDatumLineBody = false;
+    bool hasDatumLineDirection = true;
     bool hasRadiusDiameterBody = false;
     bool hasRadiusDiameterMode = true;
     std::uint8_t radiusDiameterMode = 0u;
@@ -177,6 +179,11 @@ inline bool makeFrame(const Options& options, Frame& frame) {
             object.putBit(node.isImplied ? 1u : 0u);
             if (node.hasDatumLineIndex)
                 object.putBitLong(node.datumLineIndex);
+        } else if (node.hasDatumLineBody) {
+            object.putBitLong(node.geometryNodeId);
+            object.put3BitDouble(node.point);
+            if (node.hasDatumLineDirection)
+                object.put3BitDouble(node.direction);
         } else if (node.hasGeometricalBody) {
             object.putBitLong(node.ownerId);
             object.putBit(node.isImplied ? 1u : 0u);
@@ -234,6 +241,9 @@ inline bool makeFrame(const Options& options, Frame& frame) {
                                        node.valueDependencyHandle));
             object.putHandle(reference(node.dimensionDependencyCode,
                                        node.dimensionDependencyHandle));
+        } else if (node.hasDatumLineBody) {
+            object.putHandle(reference(node.geometryDependencyCode,
+                                       node.geometryDependencyHandle));
         } else if (node.hasImplicitPointBody || node.hasBoundedLineBody
             || node.hasCircleBody || node.hasArcBody)
             object.putHandle(reference(node.geometryDependencyCode,

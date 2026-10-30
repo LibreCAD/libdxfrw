@@ -126,6 +126,11 @@ bool isAssociativeRadiusDiameterConstraint(std::string_view className) {
         className, "AcRadiusDiameterConstraint");
 }
 
+bool isAssociativeConstrainedDatumLine(std::string_view className) {
+    return equalsAsciiCaseInsensitive(
+        className, "AcConstrainedDatumLine");
+}
+
 bool isAssociativeConstrainedArc(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcConstrainedArc");
 }
@@ -27273,6 +27278,78 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         groupStringProbe = nodeStringProbe;
                         handleProbe = radiusHandleProbe;
                         decodedHandleCount += 2u;
+                        continue;
+                    }
+                    if (isAssociativeConstrainedDatumLine(
+                            node.m_className)) {
+                        dwgBuffer datumLineHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle geometryDependency;
+                        std::int32_t geometryNodeId = 0;
+                        DRW_Coord point;
+                        DRW_Coord direction;
+                        const bool lineParsed =
+                            readBoundedObjectHandle(
+                                datumLineHandleProbe, 0u, false,
+                                geometryDependency, handleEndBit)
+                            && geometryDependency.code == DRW::DwgSoftPointer
+                            && geometryDependency.ref64 == 0u
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryNodeId)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                point)
+                            && read3BitDoubleWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                direction)
+                            && std::isfinite(point.x)
+                            && std::isfinite(point.y)
+                            && std::isfinite(point.z)
+                            && std::isfinite(direction.x)
+                            && std::isfinite(direction.y)
+                            && std::isfinite(direction.z)
+                            && (direction.x != 0.0 || direction.y != 0.0
+                                || direction.z != 0.0);
+                        if (!lineParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::Line;
+                        node.m_hasGeometryDependency = true;
+                        node.m_geometryDependencyCode =
+                            geometryDependency.code;
+                        node.m_geometryDependencyHandle =
+                            geometryDependency.ref64;
+                        node.m_geometryNodeId = geometryNodeId;
+                        node.m_hasPoint = true;
+                        node.m_point = point;
+                        node.m_direction = direction;
+                        node.m_isRay = false;
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 constrained datum line decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" dependency=");
+                        DRW_DBG(static_cast<unsigned>(
+                            geometryDependency.code));
+                        DRW_DBG("/"); DRW_DBG(geometryDependency.ref64);
+                        DRW_DBG(" geometryNodeId=");
+                        DRW_DBG(geometryNodeId); DRW_DBG(" point=");
+                        DRW_DBG(point.x); DRW_DBG(","); DRW_DBG(point.y);
+                        DRW_DBG(","); DRW_DBG(point.z);
+                        DRW_DBG(" direction="); DRW_DBG(direction.x);
+                        DRW_DBG(","); DRW_DBG(direction.y); DRW_DBG(",");
+                        DRW_DBG(direction.z); DRW_DBG(" bodyBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                        DRW_DBG(" handleBit=");
+                        DRW_DBG(currentObjectDwgBit(&datumLineHandleProbe));
+                        DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = datumLineHandleProbe;
+                        ++decodedHandleCount;
                         continue;
                     }
                     // The common node envelope is known, but the following

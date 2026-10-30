@@ -11982,6 +11982,227 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                              ? "undocumented Radius/Diameter mode remains raw with following-OBJECT recovery"
                              : "missing Radius/Diameter mode byte remains raw with following-OBJECT recovery");
     }
+
+    {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node datumLine;
+        datumLine.id = 412;
+        datumLine.connections = {406, 398};
+        datumLine.className = "AcConstrainedDatumLine";
+        datumLine.hasDatumLineBody = true;
+        datumLine.geometryDependencyCode = DRW::DwgSoftPointer;
+        datumLine.geometryDependencyHandle = 0u;
+        datumLine.geometryNodeId = 0;
+        datumLine.point = DRW_Coord(0.0, 0.0, 0.0);
+        datumLine.direction = DRW_Coord(1.0, 0.0, 0.0);
+        profile.nodes.push_back(datumLine);
+
+        Node implicitPoint;
+        implicitPoint.id = 413;
+        implicitPoint.connections = {412};
+        implicitPoint.className = "AcConstrainedImplicitPoint";
+        implicitPoint.hasImplicitPointBody = true;
+        implicitPoint.geometryDependencyCode = DRW::DwgSoftPointer;
+        implicitPoint.geometryDependencyHandle = 0xA007u;
+        implicitPoint.geometryNodeId = 0;
+        implicitPoint.hasPoint = true;
+        implicitPoint.point = DRW_Coord(5.0, 6.0, 7.0);
+        implicitPoint.pointType = 1u;
+        implicitPoint.pointIndex = 2;
+        implicitPoint.curveNodeId = 19;
+        profile.nodes.push_back(implicitPoint);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 datum-line profile is generated from scratch");
+        if (profileBuilt) {
+            const auto nextOffset =
+                static_cast<std::uint32_t>(profileFrame.size());
+            std::vector<std::uint8_t> profileBytes = profileFrame;
+            profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                                nextFrame.end());
+            AssociativeConstraintGroupDispatchReader profileReader(
+                profileBytes, classNumber);
+            PersistentManagerDispatchSink profileSink;
+            const bool profileRead = profileReader.readObjects(profileBytes,
+                {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+                profileSink);
+            const auto parsedSource = std::find_if(
+                profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sourceHandle;
+                });
+            const auto rawSource = std::find_if(
+                profileSink.raw.begin(), profileSink.raw.end(),
+                [](const DRW_UnsupportedObject& value) {
+                    return value.m_handle == sourceHandle;
+                });
+            bool nodesMatch = parsedSource != profileSink.typed.end()
+                && parsedSource->m_constraintNodes.size() == 2u;
+            if (nodesMatch) {
+                const auto& parsedDatumLine =
+                    parsedSource->m_constraintNodes[0];
+                const auto& parsedPoint = parsedSource->m_constraintNodes[1];
+                nodesMatch = parsedDatumLine.m_className
+                        == "AcConstrainedDatumLine"
+                    && parsedDatumLine.m_nodeId == 412
+                    && parsedDatumLine.m_connections
+                           == std::vector<std::int32_t>{406, 398}
+                    && parsedDatumLine.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Line
+                    && parsedDatumLine.m_classDataParsed
+                    && parsedDatumLine.m_hasGeometryDependency
+                    && parsedDatumLine.m_geometryDependencyCode
+                           == DRW::DwgSoftPointer
+                    && parsedDatumLine.m_geometryDependencyHandle == 0u
+                    && parsedDatumLine.m_geometryNodeId == 0
+                    && parsedDatumLine.m_hasPoint
+                    && parsedDatumLine.m_point.x == 0.0
+                    && parsedDatumLine.m_point.y == 0.0
+                    && parsedDatumLine.m_point.z == 0.0
+                    && parsedDatumLine.m_direction.x == 1.0
+                    && parsedDatumLine.m_direction.y == 0.0
+                    && parsedDatumLine.m_direction.z == 0.0
+                    && !parsedDatumLine.m_isRay
+                    && parsedPoint.m_className
+                           == "AcConstrainedImplicitPoint"
+                    && parsedPoint.m_nodeId == 413
+                    && parsedPoint.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                    && parsedPoint.m_hasGeometryDependency
+                    && parsedPoint.m_geometryDependencyCode
+                           == DRW::DwgSoftPointer
+                    && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                    && parsedPoint.m_hasPoint
+                    && parsedPoint.m_point.x == 5.0
+                    && parsedPoint.m_point.y == 6.0
+                    && parsedPoint.m_point.z == 7.0;
+            }
+            const bool profileMatches = profileRead
+                && profileReader.objectFailures() == 0u
+                && parsedSource != profileSink.typed.end()
+                && parsedSource->m_constraintGroupBodyParsed
+                && parsedSource->m_constraintNodeCount == 2
+                && parsedSource->m_constraintNodesParsed
+                && nodesMatch
+                && rawSource != profileSink.raw.end()
+                && !rawSource->m_typedPayloadValidated
+                && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                    [](const DRW_AssociativeObject& value) {
+                        return value.handle == sentinelHandle
+                            && value.m_constraintGroupBodyParsed;
+                    });
+            t.expect(profileMatches,
+                     "datum-line null soft pointer and point/direction decode while preserving the following implicit-point handle");
+        }
+    }
+
+    for (int invalidMode = 0; invalidMode < 4; ++invalidMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node datumLine;
+        datumLine.id = 412;
+        datumLine.connections = {406, 398};
+        datumLine.className = "AcConstrainedDatumLine";
+        datumLine.hasDatumLineBody = true;
+        datumLine.geometryDependencyCode = invalidMode == 0
+            ? DRW::DwgHardPointer : DRW::DwgSoftPointer;
+        datumLine.geometryDependencyHandle = invalidMode == 1
+            ? 0xA008u : 0u;
+        datumLine.geometryNodeId = 0;
+        datumLine.point = DRW_Coord(0.0, 0.0, 0.0);
+        datumLine.direction = invalidMode == 3
+            ? DRW_Coord(0.0, 0.0, 0.0)
+            : DRW_Coord(1.0, 0.0, 0.0);
+        datumLine.hasDatumLineDirection = invalidMode != 2;
+        profile.nodes.push_back(datumLine);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 datum-line failure profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto parsedSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto rawSource = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool untypedDatumLine = parsedSource != profileSink.typed.end()
+            && parsedSource->m_constraintNodes.size() == 1u
+            && parsedSource->m_constraintNodes.front().m_className
+                   == "AcConstrainedDatumLine"
+            && !parsedSource->m_constraintNodes.front().m_classDataParsed
+            && parsedSource->m_constraintNodes.front().m_dataKind
+                   == DRW_AssociativeConstraintNode::DataKind::Unsupported
+            && !parsedSource->m_constraintNodes.front()
+                    .m_hasGeometryDependency;
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && parsedSource != profileSink.typed.end()
+            && !parsedSource->m_constraintGroupBodyParsed
+            && parsedSource->m_constraintNodeCount == 1
+            && !parsedSource->m_constraintNodesParsed
+            && parsedSource->m_prefixStatuses.size() == 2u
+            && parsedSource->m_prefixStatuses.back().m_status
+                   == DRW_AssociativePrefixStatus::ParseStatus::Partial
+            && untypedDatumLine
+            && rawSource != profileSink.raw.end()
+            && !rawSource->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 invalidMode == 0
+                     ? "wrong datum-line dependency role preserves raw data and following-OBJECT recovery"
+                     : invalidMode == 1
+                         ? "non-null datum-line dependency remains raw and following-OBJECT recovers"
+                         : invalidMode == 2
+                             ? "truncated datum-line direction remains raw and following-OBJECT recovers"
+                             : "zero datum-line direction remains raw and following-OBJECT recovers");
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

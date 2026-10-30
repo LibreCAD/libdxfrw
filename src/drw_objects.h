@@ -7119,6 +7119,7 @@ struct DRW_AssociativeConstraintNode {
     Geometrical,
     Horizontal,
     RadiusDiameter,
+    Line,
     ImplicitPoint,
     BoundedLine,
     Circle,

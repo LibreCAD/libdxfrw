@@ -1,0 +1,177 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-datum-line-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constrained datum-line node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_AND_FOCUSED_VALIDATED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 AcConstrainedDatumLine profile with its null soft-pointer handle and bounded line geometry; preserve unsupported variants, incomplete groups and strict document-level refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "nodeId": 412
+  },
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "The peer's constrained-line branch reads a geometry handle, geometry-node ID (BL), point (3BD), and direction (3BD) for AcConstrainedDatumLine."
+  },
+  "semanticReferences": {
+    "autodeskClass": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedDatumLine.html",
+      "meaning": "A read-only, unbounded datum line in the owning associative 2D constraint group."
+    },
+    "autodeskConstructor": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedDatumLine__AcConstrainedDatumLine_AcGePoint3d__AcGeVector3d_.html",
+      "meaning": "Point and direction are relative to the owning group workplane; direction must be nonzero."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "Section 2, page 7: BL, 3BD and H primitive identities.",
+        "Section 2.13, pages 15\u201316: code 4 is a soft-pointer reference; code 5 is a hard-pointer reference."
+      ],
+      "result": "The specification establishes primitive and handle-code meanings; class-specific order comes from the pinned peer and same-input probe."
+    }
+  },
+  "sourceProfile": {
+    "localRawProbe": {
+      "method": "Fork body and handle streams at the unknown-class boundary; read the pinned peer's line-node fields transactionally without advancing the parser's source streams.",
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/datum-probe.dxf",
+      "logPath": "/private/tmp/datum-probe.log",
+      "logSha256": "b7dbcbc061c1e6b7b5804a9a2a1a0e00f81ae3f8990848b523f6634933050e80",
+      "body": {
+        "class": "AcConstrainedDatumLine",
+        "startBit": 49592,
+        "geometryNodeId": 0,
+        "point": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "direction": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "endBit": 49606
+      },
+      "handle": {
+        "startBit": 220476,
+        "code": 4,
+        "reference": 0,
+        "encoding": "null soft-pointer handle; zero payload bytes",
+        "endBit": 220484
+      }
+    },
+    "independentPeerNodeCount": {
+      "reader": "Pinned acadrust qualifier",
+      "binarySha256": "fc05c3db378015bcc96963bc754e94d148ea0bab56d0ec1d7bd890d682155712",
+      "outputPath": "/private/tmp/radius-acadrust.log",
+      "outputSha256": "a74d3cdccb8e11d2b144fe218ac9fc4d12b83483b5582b4bd54f7a82e88012bc",
+      "result": "The peer parses the group and reports 400 vector entries; its source explicitly inserts one empty placeholder before the 399 declared inline source nodes. libdxfrw reports 399/399 nodes decoded and the bounded node list complete."
+    },
+    "crossSample": {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "node": {
+        "class": "AcConstrainedDatumLine",
+        "id": 38,
+        "geometryDependency": "code 4, null",
+        "geometryNodeId": 0,
+        "point": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "direction": [
+          1.0,
+          0.0,
+          0.0
+        ]
+      },
+      "logPath": "/private/tmp/ac1024-associative-census/civil_example-imperial.log",
+      "logSha256": "58d13c22fa0d3625917e885def669ba2de8f58cd3fdf074633ea2f56122c2006",
+      "limitation": "This is a second same-library source trace confirming the exact node profile; its later Vertical constraint group remains partial."
+    },
+    "implementedTrace": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/datum-final.dxf",
+      "logPath": "/private/tmp/datum-final.log",
+      "logSha256": "ad138c3567ef842a651153e4ca988e14a95cdc135eb39cec6915a8c1a96e379b",
+      "result": "The group decodes all 399/399 inline nodes, including DatumLine 412, then strict export preflight refuses because the associative graph is not serialized. No DXF was created."
+    },
+    "limitations": [
+      "This receipt covers the observed AC1024 version-0 null soft-pointer DatumLine profile only; non-null dependencies and other constrained-line classes remain raw.",
+      "The group is parsed, but no associative graph serializer/readback or consumer acceptance is established.",
+      "This receipt has no support-claim effect."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "DataKind::Line, geometry dependency field presence/code/null reference, geometry-node ID, point and direction.",
+      "The decoder accepts only a null soft-pointer handle for this observed DatumLine profile and requires finite point/direction coordinates with a nonzero direction."
+    ],
+    "failureBehavior": "Wrong handle role, non-null dependency, truncated direction, zero direction or non-finite coordinates leave the node untyped/raw and the group partial; following OBJECT recovery is verified.",
+    "generatedControls": [
+      "From-scratch null-soft-pointer profile checks body fields, explicit null-versus-absent handle state, and following implicit-point handle alignment.",
+      "Wrong handle role, non-null soft pointer, missing direction and zero direction remain raw while the following OBJECT is recovered."
+    ],
+    "strictExport": "dwg-associative-graph-not-serialized remains active; the fully parsed source group is not emitted and no DXF is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with AddressSanitizer"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/datum-final.dxf",
+      "result": "The group parses 399/399 inline nodes and advances to strict associative-graph export refusal; no DXF was created.",
+      "logSha256": "ad138c3567ef842a651153e4ca988e14a95cdc135eb39cec6915a8c1a96e379b"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/datum-final-asan.dxf",
+      "result": "Same node count and strict refusal; no AddressSanitizer diagnostic and no DXF was created.",
+      "logSha256": "ad138c3567ef842a651153e4ca988e14a95cdc135eb39cec6915a8c1a96e379b"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "226db52dcf43830afb2113b9332bf72125b732638b3e3dac7f71643c12a4374c",
+    "src/drw_objects.h": "7d673ffab630eb37797b882ce1448535162625ac738732d529f9e2cc3d776660",
+    "tests/associative_constraint_group_test_helpers.h": "4bed24986b3aad15c50b356d28f7b0675a04b6b065a794bf5d927bbbeb6c128b",
+    "tests/dwg_reader_matrix_tests.cpp": "2c97d3b1503c2d08ba0642d8c1c544254b58ac5400ead664dc89fa1807bd699a",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "4bf26fb5b0f58201d5055f9242ac4ed39811f843935f393e98465ac2a40a6b4b",
+    "build/dwg2dxf/dwg2dxf": "3e4d34f2b3b7f16003e9e6a1a2367cb85d81ba6fa0f95aa4abe0e0204957fae3",
+    "build/libdxfrw_dwg_reader_matrix_tests": "212c018dc0e68d42dc3826f73d27bcde15670b968534976dcd3ec5ab876e7e4a",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "1e44be338c7c931dbef91eb4f5ee48fd9a48ca081a1030739e90213a3b43f6f9",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "fdaa61417c6772c22020cc435e4eb0b778c72c04ff340f5e78d1df88f5fc1434"
+  },
+  "nextAction": "Probe and implement the observed AC1024 AcVerticalConstraint profile at architectural node 122; verify the same body/handle profile against civil node 840."
+}
