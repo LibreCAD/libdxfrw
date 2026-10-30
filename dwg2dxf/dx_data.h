@@ -1512,20 +1512,25 @@ private:
         std::size_t maxLegacyBlockRecordXDictionaryBytes{64u*1024u*1024u};
         std::size_t maxLegacyBlockRecordXDictionaryWork{64u*1024u*1024u};
         bool legacyBlockRecordXDictionaryFailed{false};
+        struct LegacyBlockRecordAppIdProvider {
+            std::shared_ptr<const DRW_TableEntry> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::size_t ownerNameGroup{DRW_DxfIdentitySource::NoIndex};
+            std::size_t providerRecord{DRW_DxfIdentitySource::NoIndex};
+            std::size_t providerNameGroup{DRW_DxfIdentitySource::NoIndex};
+            std::uint64_t ownerNameOrdinal{0},ownerNameBegin{0},ownerNameEnd{0};
+            std::uint64_t providerNameOrdinal{0},providerNameBegin{0},providerNameEnd{0};
+            std::uint32_t handle{0};
+        };
         struct LegacyBlockRecordAppIdJoin {
             std::shared_ptr<const IdentityInput> identity;
             std::shared_ptr<const WholeSourceInput> wholeInput;
             std::shared_ptr<const StructuralInput> ownerStructural;
-            std::shared_ptr<const DRW_TableEntry> providerModel;
-            std::shared_ptr<const DRW_RawDxfObject> providerRaw;
             std::size_t ownerRecord{DRW_DxfIdentitySource::NoIndex};
             std::size_t tableRecord{DRW_DxfIdentitySource::NoIndex};
-            std::size_t providerRecord{DRW_DxfIdentitySource::NoIndex};
-            std::size_t ownerAppIdNameGroup{DRW_DxfIdentitySource::NoIndex};
-            std::size_t providerNameGroup{DRW_DxfIdentitySource::NoIndex};
-            std::uint64_t ownerAppIdNameOrdinal{0},ownerAppIdNameBegin{0},ownerAppIdNameEnd{0};
-            std::uint64_t providerNameOrdinal{0},providerNameBegin{0},providerNameEnd{0};
             std::uint32_t ownerHandle{0},tableHandle{0},providerHandle{0};
+            std::array<LegacyBlockRecordAppIdProvider,2> providers{};
+            std::size_t providerCount{0};
             std::size_t retainedBytes{0},work{0};
         };
         std::map<std::uint32_t,std::shared_ptr<const LegacyBlockRecordAppIdJoin>>

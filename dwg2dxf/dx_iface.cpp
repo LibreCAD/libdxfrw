@@ -31292,20 +31292,23 @@ dx_iface::LegacyBlockRecordAppIdResult dx_iface::legacyBlockRecordAppIdSource(
             ||ownerModel->tType!=DRW::BLOCK_RECORD||ownerModel->handle!=ownerHandle
             ||ownerModel->parentHandle!=ownerRaw->parentHandle)return Result::Rejected;
 
-        std::size_t appIdNames=0u,selectedNames=0u,ownerNameGroup=Source::NoIndex;
+        std::array<std::size_t,2> ownerNameGroups{{Source::NoIndex,Source::NoIndex}};
+        std::array<std::string_view,2> ownerNames{};
+        std::size_t appIdNames=0u;
         for(const auto& span:ownerStructural->legacyBlockRecordProfile.spans) {
             if(span.role!=dx_legacy_block_record_source::Role::AppIdName)continue;
-            ++appIdNames;
-            if(span.code!=1001||span.index>=ownerRaw->groups.size())return Result::Rejected;
+            if(appIdNames==ownerNameGroups.size()||span.code!=1001
+                ||span.index>=ownerRaw->groups.size())return Result::Rejected;
             const auto name=text(ownerRaw->groups[span.index]);
             if(!validName(name))return Result::Rejected;
-            if(dx_legacy_block_record_source::sameAsciiName(name,"ACAD")) {
-                ++selectedNames;ownerNameGroup=span.index;
-            }
+            for(std::size_t i=0u;i<appIdNames;++i)
+                if(dx_legacy_block_record_source::sameAsciiName(name,ownerNames[i]))
+                    return Result::Rejected;
+            ownerNameGroups[appIdNames]=span.index;
+            ownerNames[appIdNames]=name;
+            ++appIdNames;
         }
-        if(!selectedNames)return Result::NotSelected;
-        if(selectedNames!=1u||appIdNames!=1u||ownerNameGroup==Source::NoIndex)
-            return Result::Rejected;
+        if(!appIdNames)return Result::NotSelected;
 
         std::size_t bytes=0u,work=0u,depth=8u;
         for(auto n=census.candidates.size();n;n>>=1u)++depth;
@@ -31316,7 +31319,7 @@ dx_iface::LegacyBlockRecordAppIdResult dx_iface::legacyBlockRecordAppIdSource(
             ||!pay(census.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*),bytes,bytesLimit)
             ||!pay(census.records.size(),sizeof(std::uint8_t),bytes,bytesLimit)
             ||!pay(ownerStructural->legacyBlockRecordProfile.spans.size(),sizeof(dx_legacy_block_record_source::Span),bytes,bytesLimit)
-            ||!pay(ownerRaw->groups.size(),64u,work,workLimit))return Result::Failed;
+            ||!pay(ownerRaw->groups.size(),64u*appIdNames,work,workLimit))return Result::Failed;
         for(const auto& candidate:census.candidates)
             if(!pay(candidate.lexeme.size(),4u,work,workLimit)
                 ||!pay(candidate.rawValue.size(),2u,work,workLimit))return Result::Failed;
@@ -31329,12 +31332,17 @@ dx_iface::LegacyBlockRecordAppIdResult dx_iface::legacyBlockRecordAppIdSource(
             Source::Kind::TableRecord,Source::Section::Tables,"BLOCK_RECORD",0u);
         if(!ownerRecord||ownerRecord->table>=census.records.size())return Result::Rejected;
         const auto& ownerTable=census.records[ownerRecord->table];
-        WholeSourceV2::Field ownerAppIdNameField{};
         if(ownerTable.kind!=Source::Kind::TableControl||ownerTable.section!=ownerRecord->section
             ||!dx_legacy_identity_join::sameName(ownerTable.tableName,"BLOCK_RECORD")
-            ||!wholeDxfSourceRecordMatchesRaw(whole,*ownerRecord,DRW::AC1018,*ownerRaw,
-                ownerNameGroup,&ownerAppIdNameField)
-            ||ownerAppIdNameField.code!=1001||whole.value(ownerAppIdNameField)!="ACAD")return Result::Rejected;
+            ||!wholeDxfSourceRecordMatchesRaw(whole,*ownerRecord,DRW::AC1018,*ownerRaw))
+            return Result::Rejected;
+        std::array<WholeSourceV2::Field,2> ownerNameFields{};
+        for(std::size_t i=0u;i<appIdNames;++i) {
+            if(!wholeDxfSourceRecordMatchesRaw(whole,*ownerRecord,DRW::AC1018,*ownerRaw,
+                    ownerNameGroups[i],&ownerNameFields[i])
+                ||ownerNameFields[i].code!=1001||whole.value(ownerNameFields[i])!=ownerNames[i])
+                return Result::Rejected;
+        }
         std::size_t liveOwnerCount=0u;const DRW_Block_Record* liveOwner=nullptr;
         for(const auto& item:data.blockRecords)if(item.handle==ownerHandle) {++liveOwnerCount;liveOwner=&item;}
         if(liveOwnerCount!=1u||!liveOwner||!blockRecordSourceEqual(*ownerModel,*liveOwner,DRW::AC1018))
@@ -31375,8 +31383,12 @@ dx_iface::LegacyBlockRecordAppIdResult dx_iface::legacyBlockRecordAppIdSource(
         if(!rowCount)return Result::Rejected;
         if(!pay(rowCount,128u,work,workLimit))return Result::Failed;
 
-        std::size_t matches=0u,providerRecordIndex=Source::NoIndex;
-        std::uint32_t providerHandle=0u;
+        struct ProviderCandidate {
+            std::size_t record{Source::NoIndex};
+            std::uint32_t handle{0u};
+            std::size_t matches{0u};
+        };
+        std::array<ProviderCandidate,2> providerCandidates{};
         for(std::size_t recordIndex=0u;recordIndex<census.records.size();++recordIndex) {
             const auto& record=census.records[recordIndex];
             if(record.section!=tablesSection||record.table!=appIdTableIndex
@@ -31443,98 +31455,117 @@ dx_iface::LegacyBlockRecordAppIdResult dx_iface::legacyBlockRecordAppIdSource(
                 ||owner!=tableHandle||nameCount!=1u
                 ||dx_legacy_identity_join::record(census,index,selfHandle,Source::Kind::TableRecord,
                     Source::Section::Tables,"APPID",1u)!=&record)return Result::Rejected;
-            if(dx_legacy_block_record_source::sameAsciiName(name,"ACAD")) {
-                ++matches;providerHandle=selfHandle;providerRecordIndex=recordIndex;
+            for(std::size_t i=0u;i<appIdNames;++i) {
+                if(!dx_legacy_block_record_source::sameAsciiName(name,ownerNames[i]))continue;
+                ++providerCandidates[i].matches;
+                providerCandidates[i].record=recordIndex;
+                providerCandidates[i].handle=selfHandle;
             }
         }
-        if(matches!=1u||!providerHandle||providerRecordIndex==Source::NoIndex)
-            return Result::Rejected;
+        for(std::size_t i=0u;i<appIdNames;++i)
+            if(providerCandidates[i].matches!=1u||!providerCandidates[i].handle
+                ||providerCandidates[i].record==Source::NoIndex)return Result::Rejected;
 
-        const auto resource=capture.resources.find(providerHandle);
-        if(resource==capture.resources.end()||resource->second.family!=dx_tableResourceFamily::AppId
-            ||resource->second.awaitingSymbol||resource->second.invalidName||resource->second.ambiguousName
-            ||!resource->second.model||!resource->second.raw)return Result::Rejected;
-        const auto providerModel=std::dynamic_pointer_cast<const DRW_AppId>(resource->second.model);
-        const auto& providerRaw=resource->second.raw;
-        const auto& providerIdentity=census.records[providerRecordIndex];
-        std::size_t rawBytes=0u,modelBytes=0u,items=0u;
-        if(!providerModel||!estimateRawDxfObjectBytes(*providerRaw,rawBytes)
-            ||!estimateAppIdTypedBytes(*providerModel,modelBytes,items)
-            ||!pay(providerRaw->groups.size(),64u,work,workLimit)
-            ||!pay(rawBytes,8u,work,workLimit)||!pay(modelBytes,4u,work,workLimit)
-            ||!pay(rawBytes,8u,bytes,bytesLimit)||!pay(modelBytes,2u,bytes,bytesLimit)
-            ||!pay(sizeof(Join)+sizeof(std::pair<const std::uint32_t,
+        std::array<Capture::LegacyBlockRecordAppIdProvider,2> providers{};
+        for(std::size_t i=0u;i<appIdNames;++i) {
+            const auto providerHandle=providerCandidates[i].handle;
+            const auto providerRecordIndex=providerCandidates[i].record;
+            const auto resource=capture.resources.find(providerHandle);
+            if(resource==capture.resources.end()||resource->second.family!=dx_tableResourceFamily::AppId
+                ||resource->second.awaitingSymbol||resource->second.invalidName||resource->second.ambiguousName
+                ||!resource->second.model||!resource->second.raw)return Result::Rejected;
+            const auto providerModel=std::dynamic_pointer_cast<const DRW_AppId>(resource->second.model);
+            const auto& providerRaw=resource->second.raw;
+            const auto& providerIdentity=census.records[providerRecordIndex];
+            std::size_t rawBytes=0u,modelBytes=0u,items=0u;
+            if(!providerModel||!estimateRawDxfObjectBytes(*providerRaw,rawBytes)
+                ||!estimateAppIdTypedBytes(*providerModel,modelBytes,items)
+                ||!pay(providerRaw->groups.size(),64u,work,workLimit)
+                ||!pay(rawBytes,8u,work,workLimit)||!pay(modelBytes,4u,work,workLimit)
+                ||!pay(rawBytes,8u,bytes,bytesLimit)||!pay(modelBytes,2u,bytes,bytesLimit))
+                return Result::Failed;
+            std::size_t providerNameGroup=Source::NoIndex;
+            for(std::size_t groupIndex=0u;groupIndex<providerRaw->groups.size();++groupIndex) {
+                const auto& group=providerRaw->groups[groupIndex];
+                if(group.code()!=2)continue;
+                if(providerNameGroup!=Source::NoIndex||group.type()!=DRW_Variant::STRING||!group.content.s
+                    ||!dx_legacy_block_record_source::sameAsciiName(*group.content.s,ownerNames[i]))
+                    return Result::Rejected;
+                providerNameGroup=groupIndex;
+            }
+            WholeSourceV2::Field providerNameField{};
+            if(providerRaw->name!="APPID"||providerRaw->m_version!=DRW::AC1018
+                ||providerRaw->hasRawValues==whole.binary()||providerRaw->handle!=providerHandle
+                ||providerRaw->parentHandle!=tableHandle||providerModel->tType!=DRW::APPID
+                ||providerModel->handle!=providerHandle||providerModel->parentHandle!=tableHandle
+                ||providerNameGroup==Source::NoIndex
+                ||providerModel->name!=*providerRaw->groups[providerNameGroup].content.s
+                ||!dx_legacy_block_record_source::sameAsciiName(providerModel->name,ownerNames[i])
+                ||!wholeDxfSourceRecordMatchesRaw(whole,providerIdentity,DRW::AC1018,*providerRaw,
+                    providerNameGroup,&providerNameField)
+                ||providerNameField.code!=2
+                ||whole.value(providerNameField)!=*providerRaw->groups[providerNameGroup].content.s)
+                return Result::Rejected;
+            std::size_t liveProviderCount=0u;const DRW_AppId* liveProvider=nullptr;
+            for(const auto& item:data.appIds)if(item.handle==providerHandle) {++liveProviderCount;liveProvider=&item;}
+            if(liveProviderCount!=1u||!liveProvider
+                ||!standardDwgCommonEqual(*providerModel,*liveProvider,DRW::AC1018)
+                ||providerModel->unknown71!=liveProvider->unknown71
+                ||!providerModel->sameDwgNameSource(*liveProvider))return Result::Rejected;
+
+            std::string body;
+            const std::size_t readerRetainedLimit=bytesLimit-bytes;
+            if(!tableResourceSourceBody(*providerRaw,readerRetainedLimit,body))return Result::Failed;
+            dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=DRW::AC1018;
+            view.binary=!providerRaw->hasRawValues;view.codePage=wholeInput->context.codecCodePage;
+            view.compatibilityProfile=wholeInput->context.compatibilityProfile;
+            dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
+            auto budget=std::make_shared<DxfReadRetainedBudget>(readerRetainedLimit);
+            auto reader=dx_standard_output::readerFor(input,view,budget);
+            if(!reader)return Result::Failed;
+            reader->setDxfTextEncoding(wholeInput->context.textEncoding);
+            reader->setDxfCodePagePolicy(wholeInput->context.codePagePolicy);
+            reader->setSemanticStringMode(true);
+            reader->setRecordBudget(providerRaw->groups.size());
+            reader->setTypedVariantNodeBudget(workLimit-work);
+            reader->setDecodeWorkBudget(workLimit-work);
+            struct Replay:DRW_AppId {using DRW_AppId::parseCode;using DRW_AppId::validateDxf;};
+            Replay parsed;int code=0;bool decoded=true;
+            while(buffer.position()<body.size())
+                if(!reader->readRec(&code)||code==0||!parsed.parseCode(code,reader)) {decoded=false;break;}
+            const auto decodeWork=reader->decodeWorkCount();
+            if(!pay(decodeWork,1u,work,workLimit)||budget->exceeded()||reader->recordBudgetExceeded()
+                ||reader->tokenByteBudgetExceeded()||reader->inputByteBudgetExceeded()
+                ||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()
+                ||!decoded||reader->recordCount()!=providerRaw->groups.size()||!parsed.validateDxf()
+                ||!standardDwgCommonEqual(parsed,*providerModel,DRW::AC1018)
+                ||parsed.unknown71!=providerModel->unknown71
+                ||!parsed.sameDwgNameSource(*providerModel))return Result::Rejected;
+
+            auto& provider=providers[i];
+            provider.model=resource->second.model;provider.raw=providerRaw;
+            provider.ownerNameGroup=ownerNameGroups[i];provider.providerRecord=providerRecordIndex;
+            provider.providerNameGroup=providerNameGroup;provider.handle=providerHandle;
+            provider.ownerNameOrdinal=ownerNameFields[i].ordinal;
+            provider.ownerNameBegin=ownerNameFields[i].begin;
+            provider.ownerNameEnd=ownerNameFields[i].end;
+            provider.providerNameOrdinal=providerNameField.ordinal;
+            provider.providerNameBegin=providerNameField.begin;
+            provider.providerNameEnd=providerNameField.end;
+        }
+
+        if(!pay(sizeof(Join)+sizeof(std::pair<const std::uint32_t,
                 std::shared_ptr<const Join>>)+12u*sizeof(void*),1u,bytes,bytesLimit))
             return Result::Failed;
-        std::size_t providerNameGroup=Source::NoIndex;
-        for(std::size_t i=0u;i<providerRaw->groups.size();++i) {
-            const auto& group=providerRaw->groups[i];
-            if(group.code()!=2)continue;
-            if(providerNameGroup!=Source::NoIndex||group.type()!=DRW_Variant::STRING||!group.content.s
-                ||!dx_legacy_block_record_source::sameAsciiName(*group.content.s,"ACAD"))
-                return Result::Rejected;
-            providerNameGroup=i;
-        }
-        WholeSourceV2::Field providerNameField{};
-        if(providerRaw->name!="APPID"||providerRaw->m_version!=DRW::AC1018
-            ||providerRaw->hasRawValues==whole.binary()||providerRaw->handle!=providerHandle
-            ||providerRaw->parentHandle!=tableHandle||providerModel->tType!=DRW::APPID
-            ||providerModel->handle!=providerHandle||providerModel->parentHandle!=tableHandle
-            ||providerNameGroup==Source::NoIndex
-            ||!dx_legacy_block_record_source::sameAsciiName(providerModel->name,"ACAD")
-            ||!wholeDxfSourceRecordMatchesRaw(whole,providerIdentity,DRW::AC1018,*providerRaw,
-                providerNameGroup,&providerNameField)
-            ||providerNameField.code!=2||whole.value(providerNameField)!="ACAD")
-            return Result::Rejected;
-        std::size_t liveProviderCount=0u;const DRW_AppId* liveProvider=nullptr;
-        for(const auto& item:data.appIds)if(item.handle==providerHandle) {++liveProviderCount;liveProvider=&item;}
-        if(liveProviderCount!=1u||!liveProvider
-            ||!standardDwgCommonEqual(*providerModel,*liveProvider,DRW::AC1018)
-            ||providerModel->unknown71!=liveProvider->unknown71
-            ||!providerModel->sameDwgNameSource(*liveProvider))return Result::Rejected;
-
-        std::string body;
-        const std::size_t readerRetainedLimit=bytesLimit-bytes;
-        if(!tableResourceSourceBody(*providerRaw,readerRetainedLimit,body))return Result::Failed;
-        dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=DRW::AC1018;
-        view.binary=!providerRaw->hasRawValues;view.codePage=wholeInput->context.codecCodePage;
-        view.compatibilityProfile=wholeInput->context.compatibilityProfile;
-        dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
-        auto budget=std::make_shared<DxfReadRetainedBudget>(readerRetainedLimit);
-        auto reader=dx_standard_output::readerFor(input,view,budget);
-        if(!reader)return Result::Failed;
-        reader->setDxfTextEncoding(wholeInput->context.textEncoding);
-        reader->setDxfCodePagePolicy(wholeInput->context.codePagePolicy);
-        reader->setSemanticStringMode(true);
-        reader->setRecordBudget(providerRaw->groups.size());
-        reader->setTypedVariantNodeBudget(workLimit-work);
-        reader->setDecodeWorkBudget(workLimit-work);
-        struct Replay:DRW_AppId {using DRW_AppId::parseCode;using DRW_AppId::validateDxf;};
-        Replay parsed;int code=0;bool decoded=true;
-        while(buffer.position()<body.size())
-            if(!reader->readRec(&code)||code==0||!parsed.parseCode(code,reader)) {decoded=false;break;}
-        const auto decodeWork=reader->decodeWorkCount();
-        if(!pay(decodeWork,1u,work,workLimit)||budget->exceeded()||reader->recordBudgetExceeded()
-            ||reader->tokenByteBudgetExceeded()||reader->inputByteBudgetExceeded()
-            ||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()
-            ||!decoded||reader->recordCount()!=providerRaw->groups.size()||!parsed.validateDxf()
-            ||!standardDwgCommonEqual(parsed,*providerModel,DRW::AC1018)
-            ||parsed.unknown71!=providerModel->unknown71
-            ||!parsed.sameDwgNameSource(*providerModel))return Result::Rejected;
-
         auto joined=std::make_shared<Join>();joined->identity=identity;joined->wholeInput=wholeInput;
-        joined->ownerStructural=ownerStructural;joined->providerModel=resource->second.model;
-        joined->providerRaw=providerRaw;joined->ownerRecord=static_cast<std::size_t>(ownerRecord-census.records.data());
-        joined->tableRecord=appIdTableIndex;joined->providerRecord=providerRecordIndex;
-        joined->ownerAppIdNameGroup=ownerNameGroup;joined->providerNameGroup=providerNameGroup;
-        joined->ownerAppIdNameOrdinal=ownerAppIdNameField.ordinal;
-        joined->ownerAppIdNameBegin=ownerAppIdNameField.begin;
-        joined->ownerAppIdNameEnd=ownerAppIdNameField.end;
-        joined->providerNameOrdinal=providerNameField.ordinal;
-        joined->providerNameBegin=providerNameField.begin;
-        joined->providerNameEnd=providerNameField.end;
-        joined->ownerHandle=ownerHandle;
-        joined->tableHandle=tableHandle;joined->providerHandle=providerHandle;
+        joined->ownerStructural=ownerStructural;
+        joined->ownerRecord=static_cast<std::size_t>(ownerRecord-census.records.data());
+        joined->tableRecord=appIdTableIndex;joined->ownerHandle=ownerHandle;
+        joined->tableHandle=tableHandle;joined->providerCount=appIdNames;joined->providers=std::move(providers);
+        joined->providerHandle=joined->providers[0].handle;
+        for(std::size_t i=0u;i<appIdNames;++i)
+            if(dx_legacy_block_record_source::sameAsciiName(ownerNames[i],"ACAD"))
+                joined->providerHandle=joined->providers[i].handle;
         joined->retainedBytes=bytes;joined->work=work;
         output=std::move(joined);return Result::Matched;
     } catch(...) {output.reset();return Result::Failed;}
@@ -31545,6 +31576,8 @@ void dx_iface::finishLegacyBlockRecordAppIdJoins(dx_data& data) noexcept {
     auto& source=data.m_tableDxfSource;
     if(source.version!=DRW::AC1018||!source.legacyIdentityObservation
         ||source.legacyIdentityCaptureFailed||!source.wholeInput||!source.wholeInput->source)return;
+    source.legacyBlockRecordAppIdJoins.clear();
+    source.legacyBlockRecordAppIdBytes=source.legacyBlockRecordAppIdWork=0u;
     const auto fail=[&]() noexcept {
         source.legacyBlockRecordAppIdCaptureFailed=true;
         source.legacyBlockRecordAppIdJoins.clear();
@@ -31561,40 +31594,51 @@ void dx_iface::finishLegacyBlockRecordAppIdJoins(dx_data& data) noexcept {
                 ||enumerationWork>source.maxLegacyBlockRecordAppIdWork) {fail();return;}
         }
         source.legacyBlockRecordAppIdWork=enumerationWork;
-        std::uint32_t selectedOwner=0u;std::size_t selectedOwners=0u;
-        bool selectedProfileAmbiguous=false;
+        std::uint32_t singleAcadOwner=0u,dynamicGuidAcadOwner=0u;
+        std::size_t singleAcadProfiles=0u,dynamicGuidAcadProfiles=0u;
         for(const auto& item:source.structuralInputs) {
             if(!item.second||item.second->kind!=dxfRW::DxfStructuralSourceView::Kind::BlockRecord
                 ||!item.second->legacyBlockRecordProfile.complete())continue;
-            std::size_t names=0u,acad=0u;
             const auto resource=source.resources.find(item.first);
             if(resource==source.resources.end()||!resource->second.raw)continue;
+            std::array<std::string_view,2> names{};std::size_t nameCount=0u;
             for(const auto& span:item.second->legacyBlockRecordProfile.spans) {
                 if(span.role!=dx_legacy_block_record_source::Role::AppIdName)continue;
-                ++names;
-                if(span.index<resource->second.raw->groups.size()) {
-                    const auto& value=resource->second.raw->groups[span.index];
-                    if(value.type()==DRW_Variant::STRING&&value.content.s
-                        &&dx_legacy_block_record_source::sameAsciiName(*value.content.s,"ACAD"))++acad;
+                if(nameCount==names.size()||span.index>=resource->second.raw->groups.size()) {
+                    fail();return;
                 }
+                const auto& name=resource->second.raw->groups[span.index];
+                if(name.type()!=DRW_Variant::STRING||!name.content.s) {fail();return;}
+                names[nameCount++]=*name.content.s;
             }
-            if(!acad)continue;
-            if(names!=1u||acad!=1u) {selectedProfileAmbiguous=true;continue;}
-            ++selectedOwners;selectedOwner=item.first;
+            if(nameCount==1u&&dx_legacy_block_record_source::sameAsciiName(names[0],"ACAD")) {
+                ++singleAcadProfiles;singleAcadOwner=item.first;
+            } else if(nameCount==2u
+                &&((dx_legacy_block_record_source::sameAsciiName(names[0],"ACAD")
+                        &&dx_legacy_block_record_source::sameAsciiName(names[1],"AcDbDynamicBlockGUID"))
+                    ||(dx_legacy_block_record_source::sameAsciiName(names[1],"ACAD")
+                        &&dx_legacy_block_record_source::sameAsciiName(names[0],"AcDbDynamicBlockGUID")))) {
+                ++dynamicGuidAcadProfiles;dynamicGuidAcadOwner=item.first;
+            }
         }
-        if(selectedProfileAmbiguous||selectedOwners!=1u)return;
-        if(source.legacyBlockRecordAppIdWork>source.maxLegacyBlockRecordAppIdWork
-            ||source.legacyBlockRecordAppIdBytes>source.maxLegacyBlockRecordAppIdBytes) {fail();return;}
-        const auto workRemaining=source.maxLegacyBlockRecordAppIdWork-source.legacyBlockRecordAppIdWork;
-        const auto bytesRemaining=source.maxLegacyBlockRecordAppIdBytes-source.legacyBlockRecordAppIdBytes;
-        std::shared_ptr<const Capture::LegacyBlockRecordAppIdJoin> joined;
-        const auto result=legacyBlockRecordAppIdSource(data,selectedOwner,workRemaining,bytesRemaining,joined);
-        if(result==LegacyBlockRecordAppIdResult::Failed) {fail();return;}
-        if(result!=LegacyBlockRecordAppIdResult::Matched)return;
-        if(!joined||joined->work>workRemaining||joined->retainedBytes>bytesRemaining
-            ||!source.legacyBlockRecordAppIdJoins.emplace(selectedOwner,joined).second) {fail();return;}
-        source.legacyBlockRecordAppIdWork+=joined->work;
-        source.legacyBlockRecordAppIdBytes+=joined->retainedBytes;
+        const std::array<std::pair<std::size_t,std::uint32_t>,2> selected{{
+            {singleAcadProfiles,singleAcadOwner},{dynamicGuidAcadProfiles,dynamicGuidAcadOwner}}};
+        for(const auto& candidate:selected) {
+            if(candidate.first!=1u||!candidate.second)continue;
+            if(source.legacyBlockRecordAppIdWork>source.maxLegacyBlockRecordAppIdWork
+                ||source.legacyBlockRecordAppIdBytes>source.maxLegacyBlockRecordAppIdBytes) {fail();return;}
+            const auto workRemaining=source.maxLegacyBlockRecordAppIdWork-source.legacyBlockRecordAppIdWork;
+            const auto bytesRemaining=source.maxLegacyBlockRecordAppIdBytes-source.legacyBlockRecordAppIdBytes;
+            std::shared_ptr<const Capture::LegacyBlockRecordAppIdJoin> joined;
+            const auto result=legacyBlockRecordAppIdSource(data,candidate.second,workRemaining,bytesRemaining,joined);
+            if(result==LegacyBlockRecordAppIdResult::Failed) {fail();return;}
+            if(result!=LegacyBlockRecordAppIdResult::Matched)continue;
+            if(!joined||!joined->providerCount
+                ||joined->work>workRemaining||joined->retainedBytes>bytesRemaining
+                ||!source.legacyBlockRecordAppIdJoins.emplace(candidate.second,joined).second) {fail();return;}
+            source.legacyBlockRecordAppIdWork+=joined->work;
+            source.legacyBlockRecordAppIdBytes+=joined->retainedBytes;
+        }
     } catch(...) {fail();}
 }
 
