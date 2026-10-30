@@ -52752,6 +52752,14 @@ void testDataLinkAdapterExport(TestContext& t) {
         point3dValue.m_value.m_dataSize = 24u;
         point3dValue.m_value.m_value.addCoord(11, DRW_Coord(0.125, -2.75, 5.5));
         textCell.m_contents.push_back(std::move(point3dValue));
+        DRW_TableCellContent dateValue;
+        dateValue.m_type = 1;
+        dateValue.m_value.m_dataType = 8;
+        dateValue.m_value.m_dataSize = 8u;
+        dateValue.m_value.m_rawData = {0x08u, 0x07u, 0x06u, 0x05u,
+                                       0x04u, 0x03u, 0x02u, 0x01u};
+        dateValue.m_value.m_value.addBinary(310, dateValue.m_value.m_rawData);
+        textCell.m_contents.push_back(std::move(dateValue));
         textRow.m_cells.push_back(std::move(textCell));
         textContent.m_content.m_rows.push_back(std::move(textRow));
         source.tableContents.push_back(std::move(textContent));
@@ -52826,6 +52834,18 @@ void testDataLinkAdapterExport(TestContext& t) {
         t.expect(invalidPointRefused && invalidPointPreserved == sentinel,
                  "adapter refuses non-finite TABLECONTENT point without replacing destination");
         point3dCadValue.m_value.coord()->z = 5.5;
+        DRW_CadValue& dateCadValue = source.tableContents[1]
+            .m_content.m_rows.front().m_cells.front().m_contents[5].m_value;
+        dateCadValue.m_rawData.pop_back();
+        const bool invalidDateRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream invalidDateInput(path, std::ios::binary);
+        const std::string invalidDatePreserved(
+            (std::istreambuf_iterator<char>(invalidDateInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(invalidDateRefused && invalidDatePreserved == sentinel,
+                 "adapter refuses truncated TABLECONTENT Date without replacing destination");
+        dateCadValue.m_rawData.push_back(0x01u);
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -52846,28 +52866,28 @@ void testDataLinkAdapterExport(TestContext& t) {
                 break;
             }
         }
+        const auto integerFieldEquals = [](const std::pair<int, std::string>& field,
+                int code, int expected) {
+            if (field.first != code)
+                return false;
+            try {
+                return std::stoi(field.second) == expected;
+            } catch (...) {
+                return false;
+            }
+        };
         const auto pointFieldsMatch = [&](int dataType, int dataSize,
                 const std::vector<std::pair<int, double>>& coordinates) {
             const std::size_t coordinateCount = coordinates.size();
-            const auto integerEquals = [](const std::pair<int, std::string>& field,
-                    int code, int expected) {
-                if (field.first != code)
-                    return false;
-                try {
-                    return std::stoi(field.second) == expected;
-                } catch (...) {
-                    return false;
-                }
-            };
             if (contentBegin == outputFields.size()
                 || contentEnd > outputFields.size())
                 return false;
             for (std::size_t i = contentBegin; i < contentEnd; ++i) {
-                if (!integerEquals(outputFields[i], 90, dataType))
+                if (!integerFieldEquals(outputFields[i], 90, dataType))
                     continue;
                 const std::size_t end = i + 1u + coordinateCount + 1u;
                 if (end >= contentEnd
-                    || !integerEquals(outputFields[i + 1u], 92, dataSize))
+                    || !integerFieldEquals(outputFields[i + 1u], 92, dataSize))
                     continue;
                 bool matches = true;
                 for (std::size_t coordinate = 0u;
@@ -52887,7 +52907,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                         break;
                     }
                 }
-                if (matches && integerEquals(outputFields[end], 94, 0))
+                if (matches && integerFieldEquals(outputFields[end], 94, 0))
                     return true;
             }
             return false;
@@ -52896,10 +52916,21 @@ void testDataLinkAdapterExport(TestContext& t) {
                 {{11, 2.5}, {21, -4.25}})
             && pointFieldsMatch(32, 24,
                 {{11, 0.125}, {21, -2.75}, {31, 5.5}});
+        bool exactDateFields = false;
+        for (std::size_t i = contentBegin; i + 3u < contentEnd; ++i) {
+            if (integerFieldEquals(outputFields[i], 90, 8)
+                && integerFieldEquals(outputFields[i + 1u], 92, 8)
+                && outputFields[i + 2u]
+                    == std::make_pair(310, std::string("0807060504030201"))
+                && integerFieldEquals(outputFields[i + 3u], 94, 0)) {
+                exactDateFields = true;
+                break;
+            }
+        }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
                      && readback.tableContents.size() == 2u
-                     && exactPointFields,
-                 "adapter emits linked TABLECONTENT and multiple plain scalar values");
+                     && exactPointFields && exactDateFields,
+                 "adapter emits linked TABLECONTENT and plain scalar, point, and Date values");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -52962,7 +52993,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             t.expect(plainText->parentHandle
                          == DRW::DwgNamedObjectsDictionaryHandle
                          && plainText->m_content.m_name == "plain text content"
-                     && actualTextCell.m_contents.size() == 5u
+                     && actualTextCell.m_contents.size() == 6u
                          && actualTextCell.m_contents.front().m_type == 1
                          && actualTextCell.m_contents.front().m_text
                              == "adapter-authored text"
@@ -52996,8 +53027,15 @@ void testDataLinkAdapterExport(TestContext& t) {
                              == DRW_Variant::COORD
                          && actualTextCell.m_contents[4].m_value.m_value.coord()->x == 0.125
                          && actualTextCell.m_contents[4].m_value.m_value.coord()->y == -2.75
-                         && actualTextCell.m_contents[4].m_value.m_value.coord()->z == 5.5,
-                     "ordered TABLECONTENT scalar and point values preserve physical fields and typed readback");
+                         && actualTextCell.m_contents[4].m_value.m_value.coord()->z == 5.5
+                         && actualTextCell.m_contents[5].m_value.m_dataType == 8
+                         && actualTextCell.m_contents[5].m_value.m_dataSize == 8u
+                         && actualTextCell.m_contents[5].m_value.m_value.type()
+                             == DRW_Variant::INVALID
+                         && actualTextCell.m_contents[5].m_value.m_rawData
+                             == std::vector<std::uint8_t>{0x08u, 0x07u, 0x06u, 0x05u,
+                                                          0x04u, 0x03u, 0x02u, 0x01u},
+                     "ordered TABLECONTENT scalar, point, and Date payloads preserve physical fields and readback");
         }
     }
 }

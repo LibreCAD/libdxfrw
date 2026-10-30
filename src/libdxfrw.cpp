@@ -25936,6 +25936,15 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && value.m_value.c_str() != nullptr
                 && content.m_text == value.m_value.c_str()
                 && safeText(content.m_text);
+        case 8:
+            // ODA §20.4.99 defines Date as a length-prefixed Int64 payload.
+            return content.m_text.empty() && value.m_dataSize == 8u
+                && value.m_rawData.size() == 8u
+                && (value.m_value.type() == DRW_Variant::INVALID
+                    || (value.m_value.type() == DRW_Variant::BINARY
+                        && value.m_value.code() == 310
+                        && value.m_value.binary() != nullptr
+                        && *value.m_value.binary() == value.m_rawData));
         case 16:
         case 32: {
             const std::uint32_t expectedSize =
