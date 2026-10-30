@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
 #include <vector>
 
 #include "drw_base.h"
@@ -15,6 +16,10 @@ struct Node {
     std::uint8_t status = 0u;
     std::int32_t declaredConnections = -1;
     std::vector<std::int32_t> connections;
+    std::string className;
+    std::int32_t ownerId = 0;
+    bool isImplied = false;
+    bool hasGeometricalBody = false;
 };
 
 struct Options {
@@ -46,6 +51,33 @@ struct Frame {
     std::uint64_t objectEndBit = 0u;
 };
 
+inline bool appendStringStream(dwgBufferW& object,
+                               const dwgBufferW& strings) {
+    if (strings.data().empty()) {
+        object.putBit(0u); // no R2007+ detached string stream
+        return object.isGood();
+    }
+    const std::uint64_t stringBytes = strings.data().size();
+    const std::uint64_t paddingBits =
+        (7u - (object.bitCount() & 7u)) & 7u;
+    const std::uint64_t stringBitSize = stringBytes * 8u + paddingBits;
+    if (stringBitSize > 0x7FFFFFFFULL)
+        return false;
+
+    object.putBytes(strings.data().data(), strings.data().size());
+    for (std::uint64_t i = 0; i < paddingBits; ++i)
+        object.putBit(0u);
+    if (stringBitSize <= 0x7FFFu) {
+        object.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
+    } else {
+        object.putRawShort16(static_cast<std::uint16_t>(stringBitSize >> 15));
+        object.putRawShort16(static_cast<std::uint16_t>(
+            0x8000u | (stringBitSize & 0x7FFFu)));
+    }
+    object.putBit(1u);
+    return object.isGood();
+}
+
 inline dwgHandle reference(std::uint8_t code, std::uint32_t ref) {
     dwgHandle result;
     result.code = code;
@@ -57,6 +89,7 @@ inline dwgHandle reference(std::uint8_t code, std::uint32_t ref) {
 
 inline bool makeFrame(const Options& options, Frame& frame) {
     dwgBufferW object;
+    dwgBufferW strings;
     object.putObjType(DRW::AC1024, options.classNumber);
     object.putHandle(reference(DRW::DwgNullReference, options.handle));
     object.putBitShort(0); // no EED
@@ -82,16 +115,21 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     object.putBitLong(options.nextNodeId);
     object.putBitLong(nodeCount);
     for (const auto& node : options.nodes) {
+        strings.putVariableText(DRW::AC1024, node.className);
         object.putBitLong(node.id);
-        object.putRawChar8(node.status);
         const std::int32_t connectionCount = node.declaredConnections >= 0
             ? node.declaredConnections
             : static_cast<std::int32_t>(node.connections.size());
         object.putBitLong(connectionCount);
         for (const auto connection : node.connections)
             object.putBitLong(connection);
+        if (node.hasGeometricalBody) {
+            object.putBitLong(node.ownerId);
+            object.putBit(node.isImplied ? 1u : 0u);
+        }
     }
-    object.putBit(0u); // no R2007+ detached string stream
+    if (!appendStringStream(object, strings))
+        return false;
     frame.objectEndBit = object.bitCount();
 
     object.putHandle(reference(DRW::DwgSoftPointer, 0xA001u)); // owner

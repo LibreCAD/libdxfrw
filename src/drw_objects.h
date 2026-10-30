@@ -7112,6 +7112,24 @@ struct DRW_AssociativePrefixStatus {
   UTF8STRING m_sourceAssumption;
 };
 
+//! Typed prefix for one AC1024 inline associative constraint node.
+struct DRW_AssociativeConstraintNode {
+  enum class DataKind {
+    Unsupported,
+    Geometrical
+  };
+
+  UTF8STRING m_className;
+  std::int32_t m_nodeId = 0;
+  std::vector<std::int32_t> m_connections;
+  DataKind m_dataKind = DataKind::Unsupported;
+  std::int32_t m_ownerId = 0;
+  bool m_isImplied = false;
+  bool m_hasActiveFlag = false;
+  bool m_isActive = false;
+  bool m_classDataParsed = false;
+};
+
 //! Shell parser for ACDBASSOC* action/dependency/action-param objects.
 class DRW_AssociativeObject : public DRW_TableEntry {
   SETOBJFRIENDS
@@ -7160,6 +7178,8 @@ public:
   bool m_constraintNextNodeIdRead = false;
   std::int32_t m_constraintNextNodeId = 0;
   std::int32_t m_constraintNodeCount = 0;
+  bool m_constraintNodesParsed = false;
+  std::vector<DRW_AssociativeConstraintNode> m_constraintNodes;
   std::int32_t m_geometryStatus = 0;
   std::uint32_t m_owningNetworkHandle = 0;
   std::uint32_t m_actionBodyHandle = 0;
@@ -7218,6 +7238,8 @@ private:
     m_constraintNextNodeIdRead = o.m_constraintNextNodeIdRead;
     m_constraintNextNodeId = o.m_constraintNextNodeId;
     m_constraintNodeCount = o.m_constraintNodeCount;
+    m_constraintNodesParsed = o.m_constraintNodesParsed;
+    m_constraintNodes = o.m_constraintNodes;
     m_geometryStatus = o.m_geometryStatus;
     m_owningNetworkHandle = o.m_owningNetworkHandle;
     m_actionBodyHandle = o.m_actionBodyHandle;

@@ -10684,6 +10684,8 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         && parsed->m_constraintNextNodeIdRead
         && parsed->m_constraintNextNodeId == source.nextNodeId
         && parsed->m_constraintNodeCount == 0
+        && parsed->m_constraintNodesParsed
+        && parsed->m_constraintNodes.empty()
         && parsed->m_prefixStatuses.size() == 2u
         && parsed->m_prefixStatuses.back().m_kind
                == DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup
@@ -10721,7 +10723,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         std::cerr << '\n';
     }
 
-    for (int profileMode = 0; profileMode < 6; ++profileMode) {
+    for (int profileMode = 0; profileMode < 8; ++profileMode) {
         Options profile;
         profile.classNumber = classNumber;
         profile.handle = sourceHandle;
@@ -10732,7 +10734,8 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         else if (profileMode == 1) {
             profile.groupVersion = 0;
             profile.nextNodeId = 523;
-            profile.nodes = {{7, 1u, -1, {4}}};
+            profile.nodes = {{456, 0u, -1, {427, 433},
+                              "AcEqualLengthConstraint", 0, true, true}};
         } else if (profileMode == 2 || profileMode == 3) {
             profile.groupVersion = 0;
             profile.nextNodeId = 523;
@@ -10740,9 +10743,19 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                 profile.declaredNodeCount = 100001;
         } else if (profileMode == 4) {
             profile.nextNodeId = 523;
-        } else {
+        } else if (profileMode == 5) {
             profile.groupVersion = 0;
             profile.nextNodeId = -1;
+        } else if (profileMode == 6) {
+            profile.groupVersion = 0;
+            profile.nextNodeId = 523;
+            profile.nodes = {{457, 0u, -1, {456},
+                              "AcUnknownConstraint", 0, false, false}};
+        } else {
+            profile.groupVersion = 0;
+            profile.nextNodeId = 523;
+            profile.nodes = {{458, 0u, -1, {456},
+                              std::string(257u, 'X'), 0, false, false}};
         }
         Frame profileObject;
         Frame nextObject;
@@ -10776,10 +10789,10 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             [](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
-        const bool completeProfile = profileMode == 2;
+        const bool completeProfile = profileMode == 1 || profileMode == 2;
         const auto expectedStatus = profileMode == 0 || profileMode == 3
             ? DRW_AssociativePrefixStatus::ParseStatus::BoundedCountOverflow
-            : profileMode == 2
+            : completeProfile
                 ? DRW_AssociativePrefixStatus::ParseStatus::Complete
                 : DRW_AssociativePrefixStatus::ParseStatus::Partial;
         const bool recovered = profileRead
@@ -10789,12 +10802,13 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialSource->m_constraintGroupBodyParsed == completeProfile
             && partialSource->m_constraintActionsParsed
                    == (profileMode != 0)
+            && partialSource->m_constraintNodesParsed == completeProfile
             && partialSource->m_prefixStatuses.size() == 2u
             && partialSource->m_prefixStatuses.back().m_status
                    == expectedStatus
             && (profileMode != 0
                 || partialSource->m_constraintActionCount == 100001)
-            && (profileMode != 1
+            && ((profileMode != 1 && profileMode != 6)
                 || partialSource->m_constraintNodeCount == 1)
             && (profileMode == 0
                 || (partialSource->m_constraintNextNodeIdRead
@@ -10805,6 +10819,19 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                     && partialSource->m_constraintNodeCount == 0
                     && partialSource->m_prefixStatuses.back().m_decodedCountValue
                            == 0))
+            && (profileMode != 1
+                || (partialSource->m_constraintNodes.size() == 1u
+                    && partialSource->m_constraintNodes.front().m_className
+                           == "AcEqualLengthConstraint"
+                    && partialSource->m_constraintNodes.front().m_nodeId == 456
+                    && partialSource->m_constraintNodes.front().m_connections
+                           == std::vector<std::int32_t>{427, 433}
+                    && partialSource->m_constraintNodes.front().m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Geometrical
+                    && partialSource->m_constraintNodes.front().m_ownerId == 0
+                    && partialSource->m_constraintNodes.front().m_isImplied
+                    && !partialSource->m_constraintNodes.front().m_hasActiveFlag
+                    && partialSource->m_constraintNodes.front().m_classDataParsed))
             && (profileMode != 3
                 || (partialSource->m_constraintNodeCount == 100001
                     && partialSource->m_prefixStatuses.back().m_decodedCountValue
@@ -10821,6 +10848,22 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                     && partialSource->m_constraintNextNodeId == -1
                     && partialSource->m_prefixStatuses.back().m_decodedCountValue
                            == -1))
+            && (profileMode != 6
+                || (partialSource->m_constraintNodes.size() == 1u
+                    && partialSource->m_constraintNodes.front().m_className
+                           == "AcUnknownConstraint"
+                    && partialSource->m_constraintNodes.front().m_nodeId == 457
+                    && partialSource->m_constraintNodes.front().m_connections
+                           == std::vector<std::int32_t>{456}
+                    && !partialSource->m_constraintNodes.front().m_classDataParsed
+                    && partialSource->m_prefixStatuses.back().m_decodedValueCount
+                           == 1u))
+            && (profileMode != 7
+                || (partialSource->m_constraintNodes.empty()
+                    && partialSource->m_prefixStatuses.back().m_decodedValueCount
+                           == 0u
+                    && partialSource->m_prefixStatuses.back().m_decodedCountValue
+                           == 1))
             && partialRaw != profileSink.raw.end()
             && (completeProfile || !partialRaw->m_typedPayloadValidated)
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
@@ -10834,14 +10877,18 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                  profileMode == 0
                      ? "over-bound constraint action counts publish a partial raw carrier and preserve the following OBJECT"
                      : profileMode == 1
-                         ? "nonempty version-0 constraint-node tails remain raw after bounded seed/count framing"
+                         ? "version-0 geometrical nodes decode names, IDs, connections and absent active-flag semantics"
                          : profileMode == 2
                              ? "empty version-0 constraint groups decode their next-node-ID seed and inline zero count exactly"
                              : profileMode == 3
                                  ? "over-bound inline node counts preserve their raw carrier and following OBJECT"
                                  : profileMode == 4
                                      ? "version-2 nonzero seeds preserve possible registry layouts without consuming a count"
-                                     : "negative next-node-ID seeds preserve their raw carrier without consuming a node count");
+                                     : profileMode == 5
+                                         ? "negative next-node-ID seeds preserve their raw carrier without consuming a node count"
+                                         : profileMode == 6
+                                             ? "unknown node class retains its bounded envelope and leaves the remaining group raw"
+                                             : "overlong node class names stop before allocating or consuming the node body");
     }
 }
 

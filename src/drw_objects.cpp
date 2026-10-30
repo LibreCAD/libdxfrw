@@ -60,6 +60,48 @@ UTF8STRING colorBookEntryName(const UTF8STRING& bookName,
     return hasBookName ? bookName + "$" + colorName : colorName;
 }
 
+bool equalsAsciiCaseInsensitive(std::string_view left,
+                                std::string_view right) {
+    if (left.size() != right.size())
+        return false;
+    for (std::size_t i = 0; i < left.size(); ++i) {
+        char leftChar = left[i];
+        char rightChar = right[i];
+        if (leftChar >= 'a' && leftChar <= 'z')
+            leftChar = static_cast<char>(leftChar - 'a' + 'A');
+        if (rightChar >= 'a' && rightChar <= 'z')
+            rightChar = static_cast<char>(rightChar - 'a' + 'A');
+        if (leftChar != rightChar)
+            return false;
+    }
+    return true;
+}
+
+bool isPlainAssociativeGeometricalConstraint(std::string_view className) {
+    static constexpr std::array<std::string_view, 16> names = {
+        "ACCENTERPOINTCONSTRAINT",
+        "ACCOLINEARCONSTRAINT",
+        "ACCONCENTRICCONSTRAINT",
+        "ACEQUALCURVATURECONSTRAINT",
+        "ACEQUALDISTANCECONSTRAINT",
+        "ACEQUALHELPPARAMETERCONSTRAINT",
+        "ACEQUALLENGTHCONSTRAINT",
+        "ACEQUALRADIUSCONSTRAINT",
+        "ACFIXEDCONSTRAINT",
+        "ACMIDPOINTCONSTRAINT",
+        "ACNORMALCONSTRAINT",
+        "ACPERPENDICULARCONSTRAINT",
+        "ACPOINTCOINCIDENCECONSTRAINT",
+        "ACPOINTCURVECONSTRAINT",
+        "ACSYMMETRICCONSTRAINT",
+        "ACTANGENTCONSTRAINT"
+    };
+    return std::any_of(names.begin(), names.end(),
+        [className](std::string_view name) {
+            return equalsAsciiCaseInsensitive(className, name);
+        });
+}
+
 bool splitColorBookEntryName(const UTF8STRING& value,
                              UTF8STRING& bookName,
                              UTF8STRING& colorName) {
@@ -589,6 +631,7 @@ constexpr std::uint32_t kMaxBlockRecordInsertCount = 0xF00000u;
 // libreDWG dwg.spec BLOCK_HEADER: preview_size is VALUEOUTOFBOUNDS at 0xa00000.
 constexpr std::uint32_t kMaxBlockRecordPreviewBytes = 0xA00000u;
 constexpr std::int32_t kMaxAssocItems = 100000;
+constexpr std::int32_t kMaxAssocConstraintClassNameUnits = 256;
 constexpr std::int32_t kMaxAssocValueParams = 10000;
 constexpr std::uint32_t kMaxAcShBlobBytes = 16 * 1024 * 1024;
 constexpr std::int32_t kMaxMTextObjectColumnHeights = 4096;
@@ -1270,6 +1313,52 @@ bool readVariableTextWithinBody(dwgBuffer *buf, dwgBuffer *stringBuf,
                                 UTF8STRING& value) {
     return readVariableTextWithinBounds(buf, stringBuf, version, objSize,
                                         objSize, value);
+}
+
+bool readAssocConstraintClassNameWithinBounds(
+        dwgBuffer *buf, dwgBuffer *stringBuf, DRW::Version version,
+        std::uint32_t bodyEnd, std::uint32_t stringEnd,
+        UTF8STRING& value) {
+    if (buf == nullptr || stringBuf == nullptr || version <= DRW::AC1018)
+        return false;
+
+    dwgBuffer lengthProbe = stringBuf->forkIndependent();
+    std::int32_t codeUnits = 0;
+    if (!readBitShortWithinBody(&lengthProbe, version, stringEnd, codeUnits)
+        || codeUnits <= 0
+        || codeUnits > kMaxAssocConstraintClassNameUnits)
+        return false;
+    std::uint64_t payloadBits = 0;
+    if (!dwgSafety::multiply(static_cast<std::uint64_t>(codeUnits), 16u,
+                             payloadBits)
+        || !dictionaryBitRangeAvailable(&lengthProbe, version, stringEnd,
+                                       payloadBits))
+        return false;
+
+    UTF8STRING parsed;
+    if (!readVariableTextWithinBounds(buf, stringBuf, version, bodyEnd,
+                                      stringEnd, parsed)
+        || parsed.empty() || parsed.size()
+            > static_cast<std::size_t>(kMaxAssocConstraintClassNameUnits) * 4u)
+        return false;
+    value = std::move(parsed);
+    return true;
+}
+
+bool consumeZeroPaddingWithinBounds(dwgBuffer *buf, std::uint32_t endBit,
+                                    std::uint8_t maxPaddingBits) {
+    if (buf == nullptr || !buf->isGood())
+        return false;
+    const std::uint64_t currentBit = currentObjectDwgBit(buf);
+    if (currentBit > endBit || endBit - currentBit > maxPaddingBits)
+        return false;
+    dwgBuffer probe = buf->forkIndependent();
+    while (currentObjectDwgBit(&probe) < endBit) {
+        if (probe.getBit() != 0 || !probe.isGood())
+            return false;
+    }
+    *buf = probe;
+    return true;
 }
 
 std::uint64_t remainingDwgBits(const dwgBuffer *buf) {
@@ -25331,6 +25420,9 @@ void DRW_AssociativeObject::reset() {
     m_constraintNextNodeIdRead = false;
     m_constraintNextNodeId = 0;
     m_constraintNodeCount = 0;
+    m_constraintNodesParsed = false;
+    m_constraintNodes.clear();
+    m_constraintNodes.clear();
     m_geometryStatus = 0;
     m_owningNetworkHandle = 0;
     m_actionBodyHandle = 0;
@@ -26481,10 +26573,13 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::int32_t nextNodeId = 0;
         std::int32_t nodeCount = 0;
         std::vector<std::uint32_t> actions;
+        std::vector<DRW_AssociativeConstraintNode> constraintNodes;
         size_t decodedHandleCount = 0u;
         size_t groupStage = 0u;
         bool boundedCountOverflow = false;
         bool allocationFailure = false;
+        bool constraintNodesParsed = false;
+        dwgBuffer groupStringProbe = *sBuf;
         const auto groupStep = [&groupStage](bool ok) {
             if (ok)
                 ++groupStage;
@@ -26577,11 +26672,114 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 ++groupStage;
             }
         }
-        // The observed R2010 version-0 profile is inline. Only accept the
-        // version-2 empty inline prefix when its seed and count are both zero.
-        if (complete && ((groupVersion == 0 && nodeCount != 0)
-                         || (groupVersion == 2
-                             && (nodeCount != 0 || nextNodeId != 0))))
+        if (complete && groupVersion == 0 && nodeCount == 0) {
+            constraintNodesParsed = consumeZeroPaddingWithinBounds(
+                &groupStringProbe, stringDataEnd, 7u);
+            complete = constraintNodesParsed;
+        }
+        if (complete && groupVersion == 0 && nodeCount > 0) {
+            if (!DRW::reserve(constraintNodes, nodeCount)) {
+                complete = false;
+                allocationFailure = true;
+            }
+            for (std::int32_t i = 0; complete && i < nodeCount; ++i) {
+                dwgBuffer nodeBodyProbe = bodyProbe.forkIndependent();
+                dwgBuffer nodeStringProbe = groupStringProbe.forkIndependent();
+                DRW_AssociativeConstraintNode node;
+                std::int32_t connectionCount = 0;
+                UTF8STRING className;
+                if (!readAssocConstraintClassNameWithinBounds(
+                        &nodeBodyProbe, &nodeStringProbe, version,
+                        objectDataEnd, stringDataEnd, className)
+                    || !readBitLongWithinBody(&nodeBodyProbe, version,
+                                              objectDataEnd, node.m_nodeId)
+                    || !readBitLongWithinBody(&nodeBodyProbe, version,
+                                              objectDataEnd, connectionCount)) {
+                    complete = false;
+                    break;
+                }
+                if (!isValidAssocCount(connectionCount)) {
+                    boundedCountOverflow = true;
+                    complete = false;
+                    break;
+                }
+                if (!countFitsObjectBody(&nodeBodyProbe, version,
+                                         objectDataEnd, connectionCount,
+                                         8u)) {
+                    complete = false;
+                    break;
+                }
+                if (!DRW::reserve(node.m_connections, connectionCount)) {
+                    complete = false;
+                    allocationFailure = true;
+                    break;
+                }
+                bool connectionsRead = true;
+                for (std::int32_t connectionIndex = 0;
+                     connectionsRead && connectionIndex < connectionCount;
+                     ++connectionIndex) {
+                    std::int32_t connection = 0;
+                    connectionsRead = readBitLongWithinBody(
+                        &nodeBodyProbe, version, objectDataEnd, connection);
+                    if (connectionsRead)
+                        node.m_connections.push_back(connection);
+                }
+                if (!connectionsRead) {
+                    complete = false;
+                    break;
+                }
+                node.m_className = std::move(className);
+                if (!isPlainAssociativeGeometricalConstraint(
+                        node.m_className)) {
+                    // The common node envelope is known, but the following
+                    // class body is not. Keep this node prefix and preserve
+                    // the remaining group bytes without guessing its span.
+                    constraintNodes.push_back(std::move(node));
+                    bodyProbe = nodeBodyProbe;
+                    groupStringProbe = nodeStringProbe;
+                    complete = false;
+                    break;
+                }
+
+                bool implied = false;
+                if (!readBitLongWithinBody(&nodeBodyProbe, version,
+                                           objectDataEnd, node.m_ownerId)
+                    || !readBitWithinBody(&nodeBodyProbe, version,
+                                          objectDataEnd, implied)) {
+                    node.m_classDataParsed = false;
+                    constraintNodes.push_back(std::move(node));
+                    complete = false;
+                    break;
+                }
+                node.m_dataKind =
+                    DRW_AssociativeConstraintNode::DataKind::Geometrical;
+                node.m_isImplied = implied;
+                // The AC1024 version-0 layout has no active bit. Preserve
+                // absence explicitly instead of synthesizing an active value.
+                node.m_hasActiveFlag = false;
+                node.m_classDataParsed = true;
+                constraintNodes.push_back(std::move(node));
+                bodyProbe = nodeBodyProbe;
+                groupStringProbe = nodeStringProbe;
+            }
+            if (complete) {
+                constraintNodesParsed = constraintNodes.size()
+                        == static_cast<std::size_t>(nodeCount)
+                    && currentObjectDwgBit(&bodyProbe) == objectDataEnd
+                    && consumeZeroPaddingWithinBounds(&groupStringProbe,
+                                                      stringDataEnd, 7u);
+                complete = constraintNodesParsed;
+            }
+        }
+        // This version-2 zero-seed/zero-count case remains the only accepted
+        // version-2 node profile. Nonempty or registry forms stay raw.
+        if (complete && groupVersion == 2 && nodeCount == 0
+            && nextNodeId == 0) {
+            constraintNodesParsed = consumeZeroPaddingWithinBounds(
+                &groupStringProbe, stringDataEnd, 7u);
+            complete = constraintNodesParsed;
+        }
+        else if (complete && groupVersion == 2)
             complete = false;
         const bool prefixWithinBounds = bodyProbe.isGood()
             && handleProbe.isGood()
@@ -26598,7 +26796,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             groupStartBit, currentObjectDwgBit(&bodyProbe),
             groupParseStatus, m_classVersion,
             decodedHandleCount + (groupReference != 0u ? 1u : 0u),
-            0u, nodeCountRead ? nodeCount : -1);
+            constraintNodes.size(), nodeCountRead ? nodeCount : -1);
         groupStatus.m_sourceAssumption =
             "AC1024 ACDBASSOC2DCONSTRAINTGROUP fixed header, action handles and bounded node framing; unsupported node tails remain raw";
         if (!complete) {
@@ -26609,6 +26807,27 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             DRW_DBG(nextNodeIdRead); DRW_DBG("/"); DRW_DBG(nextNodeId);
             DRW_DBG(" nodeCountRead/value=");
             DRW_DBG(nodeCountRead); DRW_DBG("/"); DRW_DBG(nodeCount);
+            DRW_DBG(" nodesDecoded="); DRW_DBG(constraintNodes.size());
+            DRW_DBG(" nodesParsed="); DRW_DBG(constraintNodesParsed);
+            const auto typedNodeCount = std::count_if(
+                constraintNodes.begin(), constraintNodes.end(),
+                [](const DRW_AssociativeConstraintNode& node) {
+                    return node.m_classDataParsed;
+                });
+            DRW_DBG(" typedNodes="); DRW_DBG(typedNodeCount);
+            if (!constraintNodes.empty()) {
+                DRW_DBG(" firstClass=");
+                DRW_DBG(constraintNodes.front().m_className.c_str());
+                if (typedNodeCount > 0) {
+                    const auto lastTypedNode = std::find_if(
+                        constraintNodes.rbegin(), constraintNodes.rend(),
+                        [](const DRW_AssociativeConstraintNode& node) {
+                            return node.m_classDataParsed;
+                        });
+                    DRW_DBG(" lastTypedClass=");
+                    DRW_DBG(lastTypedNode->m_className.c_str());
+                }
+            }
             DRW_DBG(" handleBit=");
             DRW_DBG(currentObjectDwgBit(&handleProbe)); DRW_DBG("\n");
             if (!prefixWithinBounds || allocationFailure) {
@@ -26627,6 +26846,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             m_constraintNextNodeIdRead = nextNodeIdRead;
             m_constraintNextNodeId = nextNodeIdRead ? nextNodeId : 0;
             m_constraintNodeCount = nodeCountRead ? nodeCount : 0;
+            m_constraintNodesParsed = constraintNodesParsed;
+            m_constraintNodes = std::move(constraintNodes);
             m_prefixStatuses.push_back(groupStatus);
             if (commonHandlesOk) {
                 parentHandle = parsedParentHandle;
@@ -26658,11 +26879,16 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         m_constraintNextNodeIdRead = true;
         m_constraintNextNodeId = nextNodeId;
         m_constraintNodeCount = nodeCount;
+        m_constraintNodesParsed = constraintNodesParsed;
+        m_constraintNodes = std::move(constraintNodes);
+        *sBuf = groupStringProbe;
         m_prefixStatuses.push_back(groupStatus);
         DRW_DBG("ACDBASSOC2DCONSTRAINTGROUP version/actions/nodeCount=");
         DRW_DBG(m_constraintGroupVersion); DRW_DBG("/");
         DRW_DBG(m_constraintActions.size()); DRW_DBG("/");
-        DRW_DBG(m_constraintNodeCount); DRW_DBG("\n");
+        DRW_DBG(m_constraintNodeCount); DRW_DBG(" nodesDecoded=");
+        DRW_DBG(m_constraintNodes.size()); DRW_DBG(" nodesParsed=");
+        DRW_DBG(m_constraintNodesParsed); DRW_DBG("\n");
     } else if (endsWith(rn, "ACTIONPARAM")) {
         // Generic action-param subclass (edge / path / face / object /
         // asmbody / ...): decode the shared AcDbAssocActionParam prefix, then
