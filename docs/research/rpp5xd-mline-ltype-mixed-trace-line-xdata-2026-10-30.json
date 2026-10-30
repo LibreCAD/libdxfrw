@@ -1,0 +1,100 @@
+{
+  "id": "RPP-5xd",
+  "title": "AC1027 MLINE LTYPE mixed TRACE and LINE XDATA references",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d8e6a029869410202488429fde6f13a02be210d0",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One ordered code-1005 pair in the source-bound EditDash LTYPE: TRACE in model-space ENTITIES followed by LINE in named AuthorityBlock BLOCKS.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handles": ["0xA900", "0xA901"]
+    },
+    "targets": [
+      {
+        "type": "TRACE",
+        "subclass": "AcDbTrace",
+        "section": "ENTITIES",
+        "source_owner": "0x201",
+        "corners": [[1, 2, 3], [4, 2, 3], [4, 5, 3], [1, 5, 3]],
+        "physical_fields": "Groups 10-13 with their respective Y/Z components 20-23 and 30-33."
+      },
+      {
+        "type": "LINE",
+        "section": "BLOCKS",
+        "block": "AuthorityBlock",
+        "source_owner": "0x203",
+        "geometry": {"start": [100.5, 2, 0], "end": [101.5, 3, 0]}
+      }
+    ],
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output.",
+    "runtime_fixture": "The focused test writes source drawings under a temporary directory and removes them; no test fixture file was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "TRACE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EA6FBCA8-1AD6-4FB2-B149-770313E93511.htm",
+        "relevant_rule": "Defines the AcDbTrace subclass and four corner points in groups 10 through 13 with Y/Z components."
+      },
+      {
+        "title": "About 1005 Group Codes (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-8243079C-B44F-493A-BAF7-1D11A6E6C78C.htm",
+        "relevant_rule": "An XDATA group-1005 handle has soft-pointer behavior and is translated when its host object is merged into another drawing."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector binds the ordered source handles to exact TRACE and LINE dynamic types, callbacks, owners and sections. It verifies all TRACE coordinate fields, the LINE endpoints, and the typed model-space/named-block entities.",
+    "output": "All four encoding combinations verify the ordered remapped code-1005 values against the emitted TRACE and LINE identities, exact owners and sections, TRACE subclass/corner fields, LINE endpoints, and fresh typed readback.",
+    "failure_retry": "For each encoding combination, removing either target independently refuses output while preserving the destination; restoring the target allows same-adapter retry. One late LINE-handle mutation after APPID emission also requires atomic refusal and destination preservation, then succeeds after restoring the source handle and retrying.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 13,
+      "selected_refusals_with_destination_preservation": 9,
+      "selected_same_adapter_retries": 9,
+      "whole_focused_test_profiles": 336,
+      "whole_focused_test_readbacks": 757,
+      "whole_focused_test_refusals": 421,
+      "whole_focused_test_retries": 421
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "d8e6a029869410202488429fde6f13a02be210d0",
+    "changes": "Adds a runtime-generated heterogeneous TRACE-in-ENTITIES plus LINE-in-BLOCKS profile to the existing XDATA target qualification. No production code, public API or consumer callback changed.",
+    "claim_boundary": "This qualifies only the selected AC1027 ordered two-target transport and identity profile. It does not establish arbitrary mixed-target graphs, general code-1005 support, recursive closure, native CAD meaning, other versions or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 20.30 seconds); aggregate assertions include selected profiles and refusal/retry controls."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "adapter_source_sha256": "9e937916e3ad0ce41bececf96774d3fe83a3770b90b6f7551720f6d6111667cd",
+      "test_source_sha256": "0ef82e76b79aab8ff20f2370ee7d930323f1f040f6998eedf74988fa33353bce",
+      "normal_executable_sha256": "9cfa6d4618e798ab959aa1ed522588f0c19d71632239adf63e50000d4c1607c2",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "focused_ctest_log_sha256": "d308bdcf6e49dd5f297beb7fb53b90be134983be1e06d9440addde0931db1235",
+      "focused_build_log_sha256": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+      "plan_sha256_before_receipt_update": "ae9c009fce8fd8a3cb6ba332d3aa7b7fe15316511014dabf53abd960df87cb8a"
+    }
+  },
+  "limits": [
+    "Only the selected two-reference AC1027 composition with TRACE in model-space ENTITIES followed by LINE in named AuthorityBlock BLOCKS is qualified; other mixed target sets, sections, cardinalities, versions and XDATA payloads remain open.",
+    "The checks prove selected transport fields and typed readback, not native rendering, general geometry semantics or recursive document closure.",
+    "Successful output does not promote any support claim."
+  ],
+  "next": "Select another current source-bound mixed-target profile or target type; keep its exact owner, section, output, readback, refusal and retry gates."
+}
