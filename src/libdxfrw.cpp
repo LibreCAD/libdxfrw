@@ -20735,8 +20735,37 @@ bool dxfRW::processCellStyleMap() {
 // MLEADERSTYLE (AcDbMLeaderStyle): structured DXF read of the full scalar record
 // + raw-net preservation.  Delivered via addMLeaderStyle (pointer callback).
 bool dxfRW::processMLeaderStyle() {
-    return processRawCapturedObject<DRW_MLeaderStyle>(
-        "dxfRW::processMLeaderStyle", [this](DRW_MLeaderStyle& data) { iface->addMLeaderStyle(&data); });
+    DRW_DBG("dxfRW::processMLeaderStyle");
+    constexpr std::array<int, 48> singletonFields{{
+        2, 3, 5, 40, 41, 42, 43, 44, 45, 46, 47, 49, 70, 90, 91, 92,
+        140, 141, 142, 143, 170, 171, 172, 173, 174, 175, 176, 177,
+        178, 179, 271, 272, 273, 290, 291, 292, 293, 294, 295, 296,
+        297, 298, 300, 330, 340, 341, 342, 343
+    }};
+    int code = 0;
+    DRW_MLeaderStyle data;
+    DRW_RawDxfObject raw;
+    std::array<bool, 344> seen{};
+    if (!copyRawDxfCarrierName(raw, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (!acceptObjectBoundary(code))
+                return setError(DRW::BAD_READ_OBJECTS);
+            iface->addMLeaderStyle(&data);
+            iface->addRawDxfObject(raw);
+            return true;
+        }
+        if (std::binary_search(singletonFields.begin(), singletonFields.end(),
+                               code)) {
+            if (seen[static_cast<std::size_t>(code)])
+                return setError(DRW::BAD_CODE_PARSED);
+            seen[static_cast<std::size_t>(code)] = true;
+        }
+        if (!captureAndParseRawDxfGroup(raw, code, data))
+            return setError(DRW::BAD_CODE_PARSED);
+    }
+    return setError(DRW::BAD_READ_OBJECTS);
 }
 
 // SORTENTSTABLE (AcDbSortentsTable): structured DXF read of the draw-order map

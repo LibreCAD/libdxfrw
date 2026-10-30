@@ -33320,6 +33320,29 @@ bool replaceMLeaderStyleAsciiInteger(std::string& drawing, int code,
     return true;
 }
 
+bool duplicateMLeaderStyleAsciiInteger(std::string& drawing, int code) {
+    const std::string marker = "0\nMLEADERSTYLE\n";
+    const auto markerPosition = drawing.find(marker);
+    if (markerPosition == std::string::npos)
+        return false;
+    std::string codeLine = std::to_string(code);
+    if (codeLine.size() < 3u)
+        codeLine.insert(0u, 3u - codeLine.size(), ' ');
+    codeLine.push_back('\n');
+    const auto codePosition = drawing.find(
+        codeLine, markerPosition + marker.size());
+    if (codePosition == std::string::npos)
+        return false;
+    const auto valueBegin = codePosition + codeLine.size();
+    const auto valueEnd = drawing.find('\n', valueBegin);
+    if (valueEnd == std::string::npos)
+        return false;
+    const auto fieldEnd = valueEnd + 1u;
+    const auto field = drawing.substr(codePosition, fieldEnd - codePosition);
+    drawing.insert(fieldEnd, field);
+    return true;
+}
+
 bool mLeaderStyleIntegerMatches(const DRW_MLeaderStyle& style, int code,
                                 std::int32_t value) {
     switch (code) {
@@ -33441,6 +33464,80 @@ bool mLeaderStyleIntegerSourceDomains() {
             }
         }
     }
+    return true;
+}
+
+bool mLeaderStyleDuplicateSingletonFields() {
+    constexpr std::array<int, 48> singletonFields{{
+        2, 3, 5, 40, 41, 42, 43, 44, 45, 46, 47, 49, 70, 90, 91, 92,
+        140, 141, 142, 143, 170, 171, 172, 173, 174, 175, 176, 177,
+        178, 179, 271, 272, 273, 290, 291, 292, 293, 294, 295, 296,
+        297, 298, 300, 330, 340, 341, 342, 343
+    }};
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto scratch = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mleaderstyle-duplicate-fields-"
+           + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(scratch, error) || error)
+        return fail("could not reserve MLEADERSTYLE duplicate-field scratch");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup{scratch};
+
+    const auto generate = [&](const std::filesystem::path& path, int code,
+                              bool binary) {
+        const auto ascii = binary
+            ? std::filesystem::path(path.string() + ".ascii") : path;
+        if (!generateRootMLeaderStyleControl(ascii, false, true, 0, false,
+                false, 0.0, 0.0, true, 25, false, true, false, true, false))
+            return false;
+        std::ifstream input(ascii, std::ios::binary);
+        if (!input)
+            return false;
+        std::string drawing{
+            std::istreambuf_iterator<char>(input),
+            std::istreambuf_iterator<char>()};
+        if (!duplicateMLeaderStyleAsciiInteger(drawing, code))
+            return false;
+        if (binary)
+            return writeBinaryDxfControl(path.string(), drawing, "AC1027");
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        return output && static_cast<bool>(output.write(
+            drawing.data(), static_cast<std::streamsize>(drawing.size())));
+    };
+
+    dx_iface reader;
+    for (const int code : singletonFields) {
+        for (const bool binary : {false, true}) {
+            const auto path = scratch / ("duplicate-"
+                + std::to_string(code)
+                + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!generate(path, code, binary))
+                return fail("could not create duplicate MLEADERSTYLE field "
+                            + std::to_string(code));
+            dx_data rejected;
+            if (reader.fileImport(path.string(), &rejected, false)
+                || !rejected.mLeaderStyles.empty())
+                return fail("MLEADERSTYLE accepted repeated singleton group "
+                            + std::to_string(code));
+        }
+    }
+
+    const auto valid = scratch / "valid.dxf";
+    if (!generateRootMLeaderStyleControl(valid, false, true, 0, false,
+            false, 0.0, 0.0, true, 25, false, true, false, true, false))
+        return fail("could not create corrected MLEADERSTYLE retry source");
+    dx_data corrected;
+    if (!reader.fileImport(valid.string(), &corrected, false)
+        || corrected.mLeaderStyles.size() != 1u)
+        return fail("corrected MLEADERSTYLE source did not retry through the same adapter");
     return true;
 }
 
@@ -38945,6 +39042,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--mleaderstyle-integer-source-domains")
         return mLeaderStyleIntegerSourceDomains() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--mleaderstyle-duplicate-singleton-fields")
+        return mLeaderStyleDuplicateSingletonFields() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--mlinestyle-duplicate-singleton-fields")
         return mLineStyleDuplicateSingletonFields() ? 0 : 1;
