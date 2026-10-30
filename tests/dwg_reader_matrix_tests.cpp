@@ -10891,6 +10891,121 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                                              : "overlong node class names stop before allocating or consuming the node body");
     }
 
+    {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+
+        Node parallel;
+        parallel.id = 408;
+        parallel.connections = {360, 295};
+        parallel.className = "AcParallelConstraint";
+        parallel.ownerId = 0;
+        parallel.isImplied = false;
+        parallel.hasGeometricalBody = true;
+        profile.nodes.push_back(parallel);
+
+        Node point;
+        point.id = 409;
+        point.connections = {408};
+        point.className = "AcConstrainedImplicitPoint";
+        point.hasImplicitPointBody = true;
+        point.geometryDependencyCode = DRW::DwgSoftPointer;
+        point.geometryDependencyHandle = 0xA007u;
+        point.geometryNodeId = 0;
+        point.hasPoint = true;
+        point.point = DRW_Coord(5.0, 6.0, 7.0);
+        point.pointType = 1u;
+        point.pointIndex = 2;
+        point.curveNodeId = 360;
+        profile.nodes.push_back(point);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 parallel-node profile is generated from scratch");
+        if (profileBuilt) {
+            const auto nextOffset =
+                static_cast<std::uint32_t>(profileFrame.size());
+            std::vector<std::uint8_t> profileBytes = profileFrame;
+            profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                                nextFrame.end());
+            AssociativeConstraintGroupDispatchReader profileReader(
+                profileBytes, classNumber);
+            PersistentManagerDispatchSink profileSink;
+            const bool profileRead = profileReader.readObjects(profileBytes,
+                {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+                profileSink);
+            const auto partialSource = std::find_if(
+                profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sourceHandle;
+                });
+            bool nodesMatch = partialSource != profileSink.typed.end()
+                && partialSource->m_constraintNodes.size() == 2u;
+            if (nodesMatch) {
+                const auto& parsedParallel =
+                    partialSource->m_constraintNodes[0];
+                const auto& parsedPoint = partialSource->m_constraintNodes[1];
+                nodesMatch = parsedParallel.m_className
+                        == "AcParallelConstraint"
+                    && parsedParallel.m_nodeId == 408
+                    && parsedParallel.m_connections
+                           == std::vector<std::int32_t>{360, 295}
+                    && parsedParallel.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Geometrical
+                    && parsedParallel.m_ownerId == 0
+                    && !parsedParallel.m_isImplied
+                    && !parsedParallel.m_hasActiveFlag
+                    && parsedParallel.m_classDataParsed
+                    && parsedPoint.m_className
+                           == "AcConstrainedImplicitPoint"
+                    && parsedPoint.m_nodeId == 409
+                    && parsedPoint.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                    && parsedPoint.m_hasGeometryDependency
+                    && parsedPoint.m_geometryDependencyCode
+                           == DRW::DwgSoftPointer
+                    && parsedPoint.m_geometryDependencyHandle == 0xA007u
+                    && parsedPoint.m_hasPoint
+                    && parsedPoint.m_point.x == 5.0
+                    && parsedPoint.m_point.y == 6.0
+                    && parsedPoint.m_point.z == 7.0
+                    && parsedPoint.m_pointType == 1u
+                    && parsedPoint.m_pointIndex == 2
+                    && parsedPoint.m_curveNodeId == 360
+                    && parsedPoint.m_classDataParsed;
+            }
+            const bool profileMatches = profileRead
+                && profileReader.objectFailures() == 0u
+                && partialSource != profileSink.typed.end()
+                && partialSource->m_constraintGroupBodyParsed
+                && partialSource->m_constraintNodesParsed
+                && partialSource->m_constraintNodeCount == 2
+                && nodesMatch
+                && partialSource->m_prefixStatuses.back().m_status
+                       == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                && partialSource->m_prefixStatuses.back().m_decodedHandleCount
+                       == 1u
+                && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                    [](const DRW_AssociativeObject& value) {
+                        return value.handle == sentinelHandle
+                            && value.m_constraintGroupBodyParsed;
+                    });
+            t.expect(profileMatches,
+                     "parallel node decodes owner/implied with active absent and consumes no handle before the following dependency node");
+        }
+    }
+
     for (int implicitPointMode = 0; implicitPointMode < 3;
          ++implicitPointMode) {
         Options profile;

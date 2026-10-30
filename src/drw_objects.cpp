@@ -78,7 +78,7 @@ bool equalsAsciiCaseInsensitive(std::string_view left,
 }
 
 bool isPlainAssociativeGeometricalConstraint(std::string_view className) {
-    static constexpr std::array<std::string_view, 16> names = {
+    static constexpr std::array<std::string_view, 17> names = {
         "ACCENTERPOINTCONSTRAINT",
         "ACCOLINEARCONSTRAINT",
         "ACCONCENTRICCONSTRAINT",
@@ -87,6 +87,7 @@ bool isPlainAssociativeGeometricalConstraint(std::string_view className) {
         "ACEQUALHELPPARAMETERCONSTRAINT",
         "ACEQUALLENGTHCONSTRAINT",
         "ACEQUALRADIUSCONSTRAINT",
+        "ACPARALLELCONSTRAINT",
         "ACFIXEDCONSTRAINT",
         "ACMIDPOINTCONSTRAINT",
         "ACNORMALCONSTRAINT",
@@ -26995,6 +26996,18 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 // absence explicitly instead of synthesizing an active value.
                 node.m_hasActiveFlag = false;
                 node.m_classDataParsed = true;
+                if (equalsAsciiCaseInsensitive(
+                        node.m_className, "AcParallelConstraint")) {
+                    DRW_DBG("AC1024 parallel constraint decoded id=");
+                    DRW_DBG(node.m_nodeId); DRW_DBG(" owner=");
+                    DRW_DBG(node.m_ownerId); DRW_DBG(" implied=");
+                    DRW_DBG(node.m_isImplied); DRW_DBG(" activePresent=");
+                    DRW_DBG(node.m_hasActiveFlag); DRW_DBG(" bodyBit=");
+                    DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                    DRW_DBG(" handleBit=");
+                    DRW_DBG(currentObjectDwgBit(&handleProbe));
+                    DRW_DBG("\n");
+                }
                 constraintNodes.push_back(std::move(node));
                 bodyProbe = nodeBodyProbe;
                 groupStringProbe = nodeStringProbe;
