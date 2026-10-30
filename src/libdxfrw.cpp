@@ -25903,22 +25903,45 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         return border.m_lineWeight == 0 && border.m_visible
             && border.m_colorRgb == -1 && border.m_colorMethod == 0u;
     };
-    const DRW_TableCellContent* plainTextContent = nullptr;
-    if (!cell.m_hasLinkedData && cell.m_contents.size() == 1u) {
-        const DRW_TableCellContent& content = cell.m_contents.front();
+    std::size_t plainContentTextBytes = 0u;
+    const auto plainScalarContentIsSupported = [&safeText,
+            &plainContentTextBytes](
+            const DRW_TableCellContent& content) {
         const DRW_CadValue& value = content.m_value;
-        if (content.m_type == 1 && content.m_handle == 0u
-            && value.m_dataType == 4 && value.m_formatFlags == 0
-            && value.m_dataSize == 0u && value.m_unitType == 0
-            && value.m_formatString.empty() && value.m_valueString.empty()
-            && value.m_handle == 0u && value.m_rawData.empty()
-            && value.m_value.type() == DRW_Variant::STRING
-            && value.m_value.c_str() != nullptr
-            && content.m_text == value.m_value.c_str()
-            && safeText(content.m_text)) {
-            plainTextContent = &content;
+        if (content.m_type != 1 || content.m_handle != 0u
+            || value.m_formatFlags != 0 || value.m_dataSize != 0u
+            || value.m_unitType != 0 || !value.m_formatString.empty()
+            || !value.m_valueString.empty() || value.m_handle != 0u
+            || !value.m_rawData.empty())
+            return false;
+        switch (value.m_dataType) {
+        case 1:
+            return content.m_text.empty()
+                && value.m_value.type() == DRW_Variant::INTEGER
+                && value.m_value.code() == 91;
+        case 2:
+            return content.m_text.empty()
+                && value.m_value.type() == DRW_Variant::DOUBLE
+                && value.m_value.code() == 140
+                && std::isfinite(value.m_value.d_val());
+        case 4:
+            if (content.m_text.size()
+                > DRW::kMaxDxfBinaryPayloadBytes - plainContentTextBytes)
+                return false;
+            plainContentTextBytes += content.m_text.size();
+            return value.m_value.type() == DRW_Variant::STRING
+                && value.m_value.code() == 1
+                && value.m_value.c_str() != nullptr
+                && content.m_text == value.m_value.c_str()
+                && safeText(content.m_text);
+        default:
+            return false;
         }
-    }
+    };
+    const bool plainScalarContents = !cell.m_hasLinkedData
+        && !cell.m_contents.empty() && cell.m_contents.size() <= 10000u
+        && std::all_of(cell.m_contents.begin(), cell.m_contents.end(),
+                       plainScalarContentIsSupported);
     const bool emptyLinkedCell = cell.m_hasLinkedData
         && cell.m_contents.empty();
     if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
@@ -25929,7 +25952,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
         || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
         || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
-        || (!emptyLinkedCell && plainTextContent == nullptr)
+        || (!emptyLinkedCell && !plainScalarContents)
         || (cell.m_hasLinkedData
             && (cell.m_dataLinkHandle == 0u
                 || cell.m_dataLinkHandle == DRW::NoHandle))
@@ -25953,7 +25976,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
         || cell.m_backgroundEnabled || cell.m_textAlignment != 0
         || cell.m_textHeight != 0.0 || !cell.m_attributes.empty()
-        || (plainTextContent == nullptr && !cell.m_contents.empty())
+        || (!plainScalarContents && !cell.m_contents.empty())
         || !std::all_of(cell.m_borders.begin(), cell.m_borders.end(),
                         defaultBorder)) {
         return failDxfWrite();
@@ -26078,8 +26101,12 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     if (!writer->writeInt32(95,
                 static_cast<std::int32_t>(cell.m_contents.size())))
         return failDxfWrite();
-    if (plainTextContent != nullptr && !writeContent(*plainTextContent))
-        return failDxfWrite();
+    if (plainScalarContents) {
+        for (const DRW_TableCellContent& content : cell.m_contents) {
+            if (!writeContent(content))
+                return failDxfWrite();
+        }
+    }
     if (!writer->writeString(309, "LINKEDTABLEDATACELL_END")
         || !writer->writeString(1, "FORMATTEDTABLEDATACELL_BEGIN")
         || !writer->writeString(300, "CELLTABLEFORMAT")

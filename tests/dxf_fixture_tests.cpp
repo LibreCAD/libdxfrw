@@ -52730,6 +52730,16 @@ void testDataLinkAdapterExport(TestContext& t) {
         textValue.m_value.m_dataType = 4;
         textValue.m_value.m_value.addString(1, textValue.m_text);
         textCell.m_contents.push_back(std::move(textValue));
+        DRW_TableCellContent integerValue;
+        integerValue.m_type = 1;
+        integerValue.m_value.m_dataType = 1;
+        integerValue.m_value.m_value.addInt(91, -42);
+        textCell.m_contents.push_back(std::move(integerValue));
+        DRW_TableCellContent doubleValue;
+        doubleValue.m_type = 1;
+        doubleValue.m_value.m_dataType = 2;
+        doubleValue.m_value.m_value.addDouble(140, 3.125);
+        textCell.m_contents.push_back(std::move(doubleValue));
         textRow.m_cells.push_back(std::move(textCell));
         textContent.m_content.m_rows.push_back(std::move(textRow));
         source.tableContents.push_back(std::move(textContent));
@@ -52799,7 +52809,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             && reader.fileImport(path.string(), &readback, false);
         t.expect(exported && imported && readback.dataLinks.size() == 2u
                      && readback.tableContents.size() == 2u,
-                 "adapter emits linked and plain-text TABLECONTENT cells and reads them back");
+                 "adapter emits linked TABLECONTENT and multiple plain scalar values");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -52862,7 +52872,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             t.expect(plainText->parentHandle
                          == DRW::DwgNamedObjectsDictionaryHandle
                          && plainText->m_content.m_name == "plain text content"
-                         && actualTextCell.m_contents.size() == 1u
+                         && actualTextCell.m_contents.size() == 3u
                          && actualTextCell.m_contents.front().m_type == 1
                          && actualTextCell.m_contents.front().m_text
                              == "adapter-authored text"
@@ -52870,8 +52880,20 @@ void testDataLinkAdapterExport(TestContext& t) {
                          && actualTextCell.m_contents.front().m_value.m_value.type()
                              == DRW_Variant::STRING
                          && actualTextCell.m_contents.front().m_value.m_value.c_str()
-                             == std::string("adapter-authored text"),
-                     "plain TABLECONTENT string value survives ASCII/binary readback");
+                             == std::string("adapter-authored text")
+                         && actualTextCell.m_contents[1].m_type == 1
+                         && actualTextCell.m_contents[1].m_value.m_dataType == 1
+                         && actualTextCell.m_contents[1].m_value.m_value.type()
+                             == DRW_Variant::INTEGER
+                         && actualTextCell.m_contents[1].m_value.m_value.i_val()
+                             == -42
+                         && actualTextCell.m_contents[2].m_type == 1
+                         && actualTextCell.m_contents[2].m_value.m_dataType == 2
+                         && actualTextCell.m_contents[2].m_value.m_value.type()
+                             == DRW_Variant::DOUBLE
+                         && actualTextCell.m_contents[2].m_value.m_value.d_val()
+                             == 3.125,
+                     "ordered TABLECONTENT string, integer, and real values survive readback");
         }
     }
 }
