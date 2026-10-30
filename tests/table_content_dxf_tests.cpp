@@ -1993,6 +1993,173 @@ bool tableContentGridWriteTests(const std::filesystem::path& dir) {
     return true;
 }
 
+bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
+    const auto fail = [](const char* why) {
+        std::cerr << "TABLECONTENT linked grid: " << why << '\n';
+        return false;
+    };
+    class RemappedWriter final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            dx_iface::writeHeader(header);
+            dxfW->setHandleRemap({{0x5A0u, 0x15A0u},
+                                  {0x710u, 0x1710u}});
+        }
+    };
+    const auto path = dir / "linked-grid.dxf";
+    for (bool binary : {false, true}) {
+        dx_data data;
+        RemappedWriter exporter;
+        exporter.cData = &data;
+        exporter.currentBlock = data.mBlock;
+        DRW_DataLink link;
+        link.handle = 0x710u;
+        link.m_dataAdapter = "EXCEL";
+        link.m_description = "generated linked grid target";
+        link.m_connectionString = "inert://generated-grid.xlsx";
+        exporter.addDataLink(link);
+
+        DRW_TableContentObject table = tableContentScalarGrid();
+        DRW_TableCell& linked = table.m_content.m_rows[0].m_cells[0];
+        linked.m_hasLinkedData = true;
+        linked.m_dataLinkHandle = 0x710u;
+        linked.m_linkedDataRowCount = 2;
+        linked.m_linkedDataColumnCount = 3;
+        linked.m_linkedDataUnknown = -5;
+        exporter.addTableContent(table);
+
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                 &data, false))
+            return fail("2x2 linked/scalar table export failed");
+        const auto wire = attdefWireTags(path, binary);
+        bool sawEmittedDataLink = false;
+        bool inDataLink = false;
+        bool inLinkedCell = false;
+        bool sawLinkedFlag = false;
+        bool sawLinkedTarget = false;
+        bool sawLinkedRows = false;
+        bool sawLinkedColumns = false;
+        bool sawLinkedUnknown = false;
+        int cellLinkedFlag = -1;
+        unsigned linkedCells = 0u;
+        std::vector<int> cellLinkedFlags;
+        for (const AttdefWireTag& tag : wire) {
+            if (tag.code == 0) {
+                inDataLink = tag.text == "DATALINK";
+            } else if (inDataLink && tag.code == 5
+                       && tag.text == "1710") {
+                sawEmittedDataLink = true;
+                inDataLink = false;
+            }
+            if (tag.code == 1
+                && tag.text == "LINKEDTABLEDATACELL_BEGIN") {
+                inLinkedCell = true;
+                sawLinkedFlag = false;
+                sawLinkedTarget = false;
+                sawLinkedRows = false;
+                sawLinkedColumns = false;
+                sawLinkedUnknown = false;
+                cellLinkedFlag = -1;
+            } else if (inLinkedCell && tag.code == 92) {
+                cellLinkedFlag = static_cast<int>(tag.integer);
+                sawLinkedFlag = cellLinkedFlag == 1;
+            } else if (inLinkedCell && tag.code == 340
+                       && tag.text == "1710") {
+                sawLinkedTarget = true;
+            } else if (inLinkedCell && tag.code == 93
+                       && tag.integer == 2) {
+                sawLinkedRows = true;
+            } else if (inLinkedCell && tag.code == 94
+                       && tag.integer == 3) {
+                sawLinkedColumns = true;
+            } else if (inLinkedCell && tag.code == 96
+                       && tag.integer == -5) {
+                sawLinkedUnknown = true;
+            } else if (inLinkedCell && tag.code == 309
+                       && tag.text == "LINKEDTABLEDATACELL_END") {
+                if (cellLinkedFlag == -1)
+                    return fail("cell output omitted linked-data flag");
+                cellLinkedFlags.push_back(cellLinkedFlag);
+                if (sawLinkedFlag)
+                    ++linkedCells;
+                inLinkedCell = false;
+                if (sawLinkedFlag
+                    && (!sawLinkedTarget || !sawLinkedRows
+                        || !sawLinkedColumns || !sawLinkedUnknown))
+                    return fail("linked cell output fields differ");
+            }
+        }
+        if (!sawEmittedDataLink || linkedCells != 1u
+            || cellLinkedFlags != std::vector<int>{1, 0, 0, 0})
+            return fail("remapped DATALINK output/reference differs");
+
+        dx_iface reader;
+        dx_data parsed;
+        if (!reader.fileImport(path.string(), &parsed, false)
+            || parsed.dataLinks.size() != 1u
+            || parsed.dataLinks.front().handle != 0x1710u
+            || parsed.tableContents.size() != 1u)
+            return fail("ASCII/binary readback omitted the linked graph");
+        const DRW_TableContentObject& readback =
+            parsed.tableContents.front();
+        if (readback.handle != 0x15A0u
+            || readback.m_content.m_rows.size() != 2u
+            || readback.m_content.m_rows[0].m_cells.size() != 2u)
+            return fail("linked grid dimensions or remapped identity differ");
+        const DRW_TableCell& linkedReadback =
+            readback.m_content.m_rows[0].m_cells[0];
+        const DRW_TableCell& scalarPeer =
+            readback.m_content.m_rows[0].m_cells[1];
+        const DRW_TableCell& lowerLeft =
+            readback.m_content.m_rows[1].m_cells[0];
+        const DRW_TableCell& lowerRight =
+            readback.m_content.m_rows[1].m_cells[1];
+        if (!linkedReadback.m_hasLinkedData
+            || linkedReadback.m_dataLinkHandle != 0x1710u
+            || linkedReadback.m_linkedDataRowCount != 2
+            || linkedReadback.m_linkedDataColumnCount != 3
+            || linkedReadback.m_linkedDataUnknown != -5
+            || !linkedReadback.m_contents.empty()
+            || scalarPeer.m_contents.size() != 1u
+            || scalarPeer.m_contents.front().m_text != "north-east"
+            || lowerLeft.m_contents.size() != 1u
+            || lowerLeft.m_contents.front().m_text != "south-west"
+            || lowerRight.m_contents.size() != 1u
+            || lowerRight.m_contents.front().m_text != "south-east")
+            return fail("typed linked/scalar cell readback differs");
+
+        DRW_TableCell& damaged = data.tableContents.front()
+            .m_content.m_rows[0].m_cells[0];
+        const std::uint32_t originalHandle = damaged.m_dataLinkHandle;
+        damaged.m_dataLinkHandle = 0x799u;
+        const std::string sentinel = "PRESERVE_TABLECONTENT_LINKED_GRID";
+        { std::ofstream out(path, std::ios::binary); out << sentinel; }
+        if (exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                &data, false))
+            return fail("missing DATALINK target was accepted");
+        { std::ifstream in(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(in), {}) != sentinel)
+              return fail("failed linked-grid export changed destination"); }
+        if (damaged.m_dataLinkHandle != 0x799u
+            || data.tableContents.size() != 1u)
+            return fail("failed linked-grid export changed caller model");
+        damaged.m_dataLinkHandle = originalHandle;
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
+                                 &data, false))
+            return fail("same-adapter corrected linked-grid retry failed");
+        dx_data retried;
+        if (!reader.fileImport(path.string(), &retried, false)
+            || retried.dataLinks.size() != 1u
+            || retried.tableContents.size() != 1u
+            || !retried.tableContents.front().m_content.m_rows[0]
+                    .m_cells[0].m_hasLinkedData
+            || retried.tableContents.front().m_content.m_rows[0]
+                    .m_cells[0].m_dataLinkHandle != 0x1710u)
+            return fail("corrected linked-grid retry readback differs");
+    }
+    return true;
+}
+
 // Authored locally from scratch. Exercise the witnessed rich map shape without
 // copying either external drawing's payload, names or numeric style values.
 Tags richMapSource(const std::string& version) {
@@ -3626,6 +3793,7 @@ int main(int argc,char** argv) {
     const bool tableProfiles=argc==2 && std::string(argv[1])=="--table-profiles";
     const bool tableValueScopes=argc==2 && std::string(argv[1])=="--table-value-scopes";
     const bool tableGridWrite=argc==2 && std::string(argv[1])=="--table-grid-write";
+    const bool tableLinkedGridWrite=argc==2 && std::string(argv[1])=="--table-linked-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
     const bool tableValueProfiles=argc==2 && std::string(argv[1])=="--table-value-profiles";
@@ -3649,12 +3817,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

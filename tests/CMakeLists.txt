@@ -1709,6 +1709,10 @@ add_test(NAME libdxfrw_table_content_grid_write
     COMMAND libdxfrw_table_content_dxf_tests --table-grid-write)
 set_tests_properties(libdxfrw_table_content_grid_write PROPERTIES
     LABELS "fast;dxf;adapter;table;generated;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_linked_grid_write
+    COMMAND libdxfrw_table_content_dxf_tests --table-linked-grid-write)
+set_tests_properties(libdxfrw_table_content_linked_grid_write PROPERTIES
+    LABELS "fast;dxf;adapter;table;datalink;generated;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_table_export_reuse
     COMMAND libdxfrw_table_content_dxf_tests --table-export-reuse)
 set_tests_properties(libdxfrw_table_export_reuse PROPERTIES

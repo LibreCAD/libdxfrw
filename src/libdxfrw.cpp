@@ -26485,8 +26485,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || ent->m_content.m_rows.front().m_cells.size() != 1u;
     if (multiCellTable) {
         // TABLECONTENT already has a row/column grid in the typed model and
-        // decoder. Support the common scalar grid without weakening the
-        // source-bound handling for linked, block and FIELD references below.
+        // decoder. Support scalar cells and empty linked-data cells whose
+        // DATALINK graph is admitted by the adapter preflight.
         constexpr std::size_t maxWritableCells = 10000u;
         const std::size_t columnCount = ent->m_content.m_columns.size();
         const std::size_t rowCount = ent->m_content.m_rows.size();
@@ -26510,11 +26510,15 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && cell.m_virtualEdgeFlags == 0 && cell.m_overrideFlags == 0u
                 && cell.m_valueHandle == 0u && cell.m_textStyleHandle == 0u
                 && cell.m_textStyleOverrideHandle == 0u
-                && cell.m_blockHandle == 0u && !cell.m_hasLinkedData
-                && cell.m_dataLinkHandle == 0u
-                && cell.m_linkedDataRowCount == 0
-                && cell.m_linkedDataColumnCount == 0
-                && cell.m_linkedDataUnknown == 0
+                && cell.m_blockHandle == 0u
+                && (cell.m_hasLinkedData
+                    ? (cell.m_dataLinkHandle != 0u
+                        && cell.m_dataLinkHandle != DRW::NoHandle
+                        && cell.m_contents.empty())
+                    : (cell.m_dataLinkHandle == 0u
+                        && cell.m_linkedDataRowCount == 0
+                        && cell.m_linkedDataColumnCount == 0
+                        && cell.m_linkedDataUnknown == 0))
                 && cell.m_blockScale == 1.0 && cell.m_width == 0.0
                 && cell.m_height == 0.0 && cell.m_geometryFlags == 0u
                 && cell.m_geometryHandle == 0u
@@ -26666,13 +26670,28 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                  columnIndex < columnCount; ++columnIndex) {
                 const DRW_TableCell& cell = row.m_cells[columnIndex];
                 const auto* detail = cellScope(rowIndex, columnIndex);
-                if (!writer->writeString(300, "CELL")
+                const std::uint32_t dataLinkHandle = cell.m_hasLinkedData
+                    ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
+                if ((cell.m_hasLinkedData
+                        && (dataLinkHandle == 0u
+                            || dataLinkHandle == DRW::NoHandle))
+                    || !writer->writeString(300, "CELL")
                     || !writer->writeString(1,
                         "LINKEDTABLEDATACELL_BEGIN")
                     || !writer->writeInt32(90, cell.m_flags)
                     || !writer->writeUtf8String(300, cell.m_toolTip)
                     || !writeCustomScope(detail ? &detail->m_scope : nullptr)
-                    || !writer->writeInt32(92, 0)
+                    || !writer->writeInt32(92,
+                        cell.m_hasLinkedData ? 1 : 0)
+                    || (cell.m_hasLinkedData
+                        && (!writer->writeString(340,
+                                toHexStr(dataLinkHandle))
+                            || !writer->writeInt32(93,
+                                cell.m_linkedDataRowCount)
+                            || !writer->writeInt32(94,
+                                cell.m_linkedDataColumnCount)
+                            || !writer->writeInt32(96,
+                                cell.m_linkedDataUnknown)))
                     || !writer->writeInt32(95,
                         static_cast<std::int32_t>(cell.m_contents.size())))
                     return failDxfWrite();
