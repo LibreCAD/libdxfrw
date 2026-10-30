@@ -1729,6 +1729,10 @@ add_test(NAME libdxfrw_table_content_table_style_format_write
     COMMAND libdxfrw_table_content_dxf_tests --table-style-format-write)
 set_tests_properties(libdxfrw_table_content_table_style_format_write PROPERTIES
     LABELS "fast;dxf;adapter;table;generated;transaction;format" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_table_style_reference_write
+    COMMAND libdxfrw_table_content_dxf_tests --table-style-reference-write)
+set_tests_properties(libdxfrw_table_content_table_style_reference_write PROPERTIES
+    LABELS "fast;dxf;adapter;table;tablestyle;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_table_export_reuse
     COMMAND libdxfrw_table_content_dxf_tests --table-export-reuse)
 set_tests_properties(libdxfrw_table_export_reuse PROPERTIES

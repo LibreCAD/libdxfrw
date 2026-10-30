@@ -1,0 +1,52 @@
+{
+  "id": "RPP-5z8",
+  "date": "2026-10-30",
+  "title": "Standalone TABLECONTENT TABLESTYLE reference output",
+  "scope": {
+    "operation": "Write the standalone TABLECONTENT group-340 TABLESTYLE reference through the rooted adapter object plan.",
+    "profile": "Generated AC1027 scalar-grid TABLECONTENT referring to one locally authored, NOD-rooted TABLESTYLE; ASCII and binary input/output cross-product.",
+    "source_basis": "The parser retains the TABLECONTENT group-340 handle, but dxfRW::writeTableContent rejected every nonzero table-style handle and emitted literal zero. The adapter's table-style planner collected legacy TABLE references only, so standalone TABLECONTENT did not request rooted style closure.",
+    "limits": [
+      "One nonzero TABLESTYLE handle from the ACAD_TABLESTYLE NOD dictionary",
+      "Existing bounded scalar-grid content profile; no nonzero column, row or cell base-style IDs",
+      "AC1027 DXF input and output only",
+      "No CELLSTYLEMAP custom-style IDs or native rendering qualification"
+    ],
+    "claim_boundary": "Selected AC1027 DXF reference transport and rooted output closure only; no DWG output, custom CELLSTYLEMAP IDs, native TABLE rendering, or general TABLESTYLE field qualification."
+  },
+  "implementation": [
+    "Add standalone TABLECONTENT group-340 style references to prepareTableFallbackGraph's requested-style set so the rooted ACAD_TABLESTYLE dictionary validates and emits the referenced record.",
+    "Allow dxfRW::writeTableContent to accept only nonzero style handles registered by that adapter plan, remap the source handle, and emit the remapped group-340 value in both 1x1 and rectangular-grid serializers.",
+    "Preserve zero as the absent-style value; DRW::NoHandle is also zero and must not reject the default profile."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "source_authored_locally_from_scratch": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary_input_output_cross_product": true,
+    "physical_wire": "For all four input/output encoding pairs, an independent walker joins TABLECONTENT group 340 to the emitted TABLESTYLE group-5 identity.",
+    "typed_readback": "Fresh imports preserve the TABLECONTENT reference and resolve it to the emitted TABLESTYLE record.",
+    "failure_control": "A group-340 source handle changed to unrooted 0xDEAD is refused before publication; the existing destination sentinel and explicit caller handle remain unchanged.",
+    "retry_control": "Restoring the rooted source handle permits same-adapter retry; fresh typed readback confirms the TABLECONTENT-to-TABLESTYLE join."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-style-reference-write",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_(grid_write|linked_grid_write|row_margin_write|column_table_margin_write|single_cell_style_margin_write|table_style_format_write|table_style_reference_write|cell_style_border_alignment))$' --output-on-failure",
+    "focused_ctest_result": "8/8 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Standalone TABLECONTENT nonzero standard/custom base-style IDs and CELLSTYLEMAP closure remain open; the current next packet is the selected standard-ID path.",
+    "Other TABLEFORMAT properties, native rendering and DWG output are not claimed."
+  ]
+}

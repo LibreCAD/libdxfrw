@@ -26054,7 +26054,11 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         || !ent->m_content.m_fieldHandles.empty()
         || !ent->m_content.m_mergedRanges.empty()
         || !ent->m_content.m_subrecordRanges.empty()
-        || ent->m_content.m_tableStyleHandle != 0u
+        || (ent->m_content.m_tableStyleHandle != 0u
+            && std::find(m_resolvedTableStyleHandles.begin(),
+                         m_resolvedTableStyleHandles.end(),
+                         ent->m_content.m_tableStyleHandle)
+                == m_resolvedTableStyleHandles.end())
         || ent->m_content.m_overrideStyleType != 4) {
         return failDxfWrite();
     }
@@ -26313,6 +26317,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     }
 
     const std::uint32_t handle = remapObjectHandle(ent->handle);
+    const std::uint32_t tableStyleHandle =
+        ent->m_content.m_tableStyleHandle == 0u
+            ? 0u : remapObjectHandle(ent->m_content.m_tableStyleHandle);
     const std::uint32_t dataLinkHandle = cell.m_hasLinkedData
         ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
     const std::uint32_t blockContentHandle = blockContentWithAttributes
@@ -26361,6 +26368,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     }
     if (handle == 0u || handle == DRW::NoHandle
         || isDxfFixedOutputHandle(handle)
+        || (ent->m_content.m_tableStyleHandle != 0u
+            && (tableStyleHandle == 0u
+                || tableStyleHandle == DRW::NoHandle))
         || (cell.m_hasLinkedData
             && (dataLinkHandle == 0u || dataLinkHandle == DRW::NoHandle))
         || (blockContentWithAttributes
@@ -26834,7 +26844,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 ? &ent->m_dxfMetadata->m_tableStyle : nullptr)
             || !writer->writeInt32(90, 0)
             || !writer->writeString(100, "AcDbTableContent")
-            || !writer->writeString(340, "0")
+            || !writer->writeString(340, toHexStr(tableStyleHandle))
             || writer->hasWriteError())
             return failDxfWrite();
         if (!preflightDxfWrite())
@@ -26942,7 +26952,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             ? &ent->m_dxfMetadata->m_tableStyle : nullptr)
         || !writer->writeInt32(90, 0)
         || !writer->writeString(100, "AcDbTableContent")
-        || !writer->writeString(340, "0")) {
+        || !writer->writeString(340, toHexStr(tableStyleHandle))) {
         return failDxfWrite();
     }
     if (writer->hasWriteError() || !preflightDxfWrite()

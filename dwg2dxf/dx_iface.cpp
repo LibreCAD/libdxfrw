@@ -38710,6 +38710,15 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
             requestedStyleHandles.insert(table.m_tableStyleHandle);
         }
     }
+    // Standalone TABLECONTENT carries its own group-340 TABLESTYLE edge.
+    // Include that consumer in the same rooted dictionary plan as legacy TABLE
+    // records so the writer can remap only a style that this export emits.
+    for (const DRW_TableContentObject& content : data.tableContents) {
+        const std::uint32_t styleHandle =
+            content.m_content.m_tableStyleHandle;
+        if (styleHandle != 0u)
+            requestedStyleHandles.insert(styleHandle);
+    }
     // Join captured selected sources once to live complete TABLE identities.
     // A missing source with no unmatched live table is an ordinary deletion;
     // an unmatched live table makes a deleted-versus-rekeyed identity ambiguous.

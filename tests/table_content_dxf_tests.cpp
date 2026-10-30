@@ -3372,6 +3372,121 @@ Tags legacyTableStyleSource(const std::string& revision) {
     return tags;
 }
 
+bool tableContentTableStyleReferenceWriteTests(
+        const std::filesystem::path& dir) {
+    const auto fail = [](const std::string& why) {
+        std::cerr << "TABLECONTENT TABLESTYLE reference: " << why << '\n';
+        return false;
+    };
+    const auto sourcePath = dir / "table-style-reference-source.dxf";
+    const auto outputPath = dir / "table-style-reference-output.dxf";
+    const std::uint32_t sourceStyleHandle = 0xC100u;
+    for (bool sourceBinary : {false, true}) {
+        for (bool outputBinary : {false, true}) {
+            const Tags sourceTags{{0,"SECTION"},{2,"HEADER"},
+                {9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},
+                {0,"SECTION"},{2,"OBJECTS"},
+                {0,"DICTIONARY"},{5,"C"},{330,"0"},
+                {100,"AcDbDictionary"},{280,"0"},{281,"1"},
+                {3,"ACAD_TABLESTYLE"},{350,"C130"},
+                {0,"DICTIONARY"},{5,"C130"},{330,"C"},
+                {100,"AcDbDictionary"},{280,"1"},{281,"1"},
+                {3,"Standard"},{360,"C100"},
+                {0,"TABLESTYLE"},{5,"C100"},{330,"C130"},
+                {100,"AcDbTableStyle"},{280,"0"},{3,"Standard"},
+                {70,"0"},{71,"0"},{40,"1"},{41,"1"},
+                {280,"0"},{281,"0"},{0,"ENDSEC"},{0,"EOF"}};
+            if (!write(sourcePath, sourceTags, sourceBinary))
+                return fail("could not author the local TABLESTYLE source");
+            dx_iface sourceReader;
+            dx_data data;
+            if (!sourceReader.fileImport(sourcePath.string(), &data, false)
+                || data.sourceVersion != DRW::AC1027
+                || data.tableStyles.size() != 1u
+                || data.tableStyles.front().handle != sourceStyleHandle)
+                return fail("source TABLESTYLE did not import as one typed record");
+
+            dx_iface exporter;
+            exporter.cData = &data;
+            exporter.currentBlock = data.mBlock;
+            DRW_TableContentObject table = tableContentScalarGrid();
+            table.handle = 0xC200u;
+            table.m_content.m_tableStyleHandle = sourceStyleHandle;
+            exporter.addTableContent(table);
+            if (!exporter.fileExport(outputPath.string(), DRW::AC1027,
+                                     outputBinary, &data, true))
+                return fail("rooted TABLESTYLE reference export failed");
+
+            const auto wire = attdefWireTags(outputPath, outputBinary);
+            std::string emittedStyleHandle;
+            std::string contentStyleHandle;
+            bool inTableStyle = false;
+            bool inTableContent = false;
+            bool inContentSubclass = false;
+            for (const AttdefWireTag& tag : wire) {
+                if (tag.code == 0) {
+                    inTableStyle = tag.text == "TABLESTYLE";
+                    inTableContent = tag.text == "TABLECONTENT";
+                    inContentSubclass = false;
+                } else if (inTableStyle && tag.code == 5) {
+                    emittedStyleHandle = tag.text;
+                } else if (inTableContent && tag.code == 100
+                           && tag.text == "AcDbTableContent") {
+                    inContentSubclass = true;
+                } else if (inTableContent && inContentSubclass
+                           && tag.code == 340) {
+                    contentStyleHandle = tag.text;
+                }
+            }
+            if (emittedStyleHandle.empty()
+                || contentStyleHandle != emittedStyleHandle)
+                return fail("TABLECONTENT group 340 did not join the emitted TABLESTYLE identity");
+
+            dx_iface outputReader;
+            dx_data parsed;
+            if (!outputReader.fileImport(outputPath.string(), &parsed, false)
+                || parsed.tableContents.size() != 1u
+                || parsed.tableStyles.size() != 1u
+                || parsed.tableContents.front().m_content.m_tableStyleHandle
+                    != parsed.tableStyles.front().handle
+                || parsed.tableStyles.front().handle
+                    != static_cast<std::uint32_t>(
+                        std::stoul(emittedStyleHandle, nullptr, 16)))
+                return fail("fresh typed readback did not resolve TABLECONTENT to TABLESTYLE");
+
+            const std::uint32_t originalStyleHandle =
+                data.tableContents.front().m_content.m_tableStyleHandle;
+            data.tableContents.front().m_content.m_tableStyleHandle = 0xDEADu;
+            const std::string sentinel =
+                "PRESERVE_TABLECONTENT_TABLESTYLE_DESTINATION";
+            { std::ofstream out(outputPath, std::ios::binary); out << sentinel; }
+            if (exporter.fileExport(outputPath.string(), DRW::AC1027,
+                                    outputBinary, &data, false))
+                return fail("unrooted TABLESTYLE target was accepted");
+            { std::ifstream in(outputPath, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != sentinel)
+                  return fail("unrooted TABLESTYLE refusal replaced destination"); }
+            if (data.tableContents.front().m_content.m_tableStyleHandle
+                != 0xDEADu)
+                return fail("failed export changed the caller TABLESTYLE handle");
+            data.tableContents.front().m_content.m_tableStyleHandle =
+                originalStyleHandle;
+            if (!exporter.fileExport(outputPath.string(), DRW::AC1027,
+                                     outputBinary, &data, false))
+                return fail("corrected same-adapter retry failed");
+            dx_data retried;
+            if (!outputReader.fileImport(outputPath.string(), &retried, false)
+                || retried.tableContents.size() != 1u
+                || retried.tableStyles.size() != 1u
+                || retried.tableContents.front().m_content.m_tableStyleHandle
+                    != retried.tableStyles.front().handle)
+                return fail("same-adapter retry readback lost TABLESTYLE closure");
+        }
+    }
+    return true;
+}
+
 bool tableStyleProofTests(const std::filesystem::path& dir) {
     using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
     const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
@@ -4658,6 +4773,7 @@ int main(int argc,char** argv) {
     const bool tableColumnTableMarginWrite=argc==2 && std::string(argv[1])=="--table-column-table-margin-write";
     const bool tableSingleCellStyleMarginWrite=argc==2 && std::string(argv[1])=="--table-single-cell-style-margin-write";
     const bool tableStyleFormatWrite=argc==2 && std::string(argv[1])=="--table-style-format-write";
+    const bool tableStyleReferenceWrite=argc==2 && std::string(argv[1])=="--table-style-reference-write";
     const bool tableLinkedGridWrite=argc==2 && std::string(argv[1])=="--table-linked-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
@@ -4682,12 +4798,12 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableRowMarginWrite?tableContentRowMarginWriteTests(dir):tableColumnTableMarginWrite?tableContentColumnTableMarginWriteTests(dir):tableSingleCellStyleMarginWrite?tableContentSingleCellStyleMarginWriteTests(dir):tableStyleFormatWrite?tableContentTableStyleFormatWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableRowMarginWrite?tableContentRowMarginWriteTests(dir):tableColumnTableMarginWrite?tableContentColumnTableMarginWriteTests(dir):tableSingleCellStyleMarginWrite?tableContentSingleCellStyleMarginWriteTests(dir):tableStyleFormatWrite?tableContentTableStyleFormatWriteTests(dir):tableStyleReferenceWrite?tableContentTableStyleReferenceWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }
