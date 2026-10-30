@@ -53,8 +53,8 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P2 — witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If the candidate passes, or the gap is evidence-only, move immediately to P4a; do not spend a slice repeating a passing profile or count matrix.
-2. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, select only an unmatched secondary Xrecord field or handle dependency.
+1. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join. For ATTDEF, select only an unmatched secondary Xrecord field or handle dependency.
+2. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
 3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.

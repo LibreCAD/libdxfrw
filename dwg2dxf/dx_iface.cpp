@@ -22233,7 +22233,10 @@ struct MlineLinetypeShape {
 };
 
 bool simpleMlineAppId(const DRW_AppId& value) {
-    return value.flags==0 && value.unknown71==0 && value.appData.empty()
+    // Group 70 bit 64 records that an APPID was referenced by the last edit.
+    // This route proves that reference through the source-bound LTYPE XDATA.
+    // Other nonzero bits need their own dependency proof before admission.
+    return (value.flags==0 || value.flags==64) && value.unknown71==0 && value.appData.empty()
         && value.extData.empty() && value.reactorHandles.empty()
         && value.xDictHandle==0u;
 }
