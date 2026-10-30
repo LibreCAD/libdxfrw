@@ -329,6 +329,15 @@ struct dx_associativeDwgImportReceipt {
     std::size_t constraintGroupActionTargetsVerified{0};
     bool constraintGroupActionLimitExceeded{false};
     bool constraintGroupActionClosureComplete{false};
+    std::size_t associativeNetworkRecords{0};
+    std::size_t associativeNetworkActionListsParsed{0};
+    std::size_t associativeNetworkActionReferences{0};
+    std::size_t associativeNetworkActionTargetsVerified{0};
+    std::size_t associativeNetworkParentEdgesVerified{0};
+    std::size_t associativeNetworkRootRecords{0};
+    bool associativeNetworkActionLimitExceeded{false};
+    bool associativeNetworkActionClosureComplete{false};
+    bool associativeNetworkParentChainsComplete{false};
     bool resourceLimitExceeded{false};
     bool captureFailed{false};
     bool successful{false};

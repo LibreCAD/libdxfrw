@@ -13098,6 +13098,21 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                             == DRW_AssociativePrefixStatus::ParseStatus::Complete;
                 });
         };
+        const auto hasCompletePrefixCount = [](
+                const DRW_AssociativeObject& object,
+                DRW_AssociativePrefixStatus::Kind kind,
+                std::size_t count) {
+            return std::any_of(
+                object.m_prefixStatuses.begin(), object.m_prefixStatuses.end(),
+                [kind, count](const DRW_AssociativePrefixStatus& status) {
+                    return status.m_kind == kind
+                        && status.m_status
+                            == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                        && status.m_decodedCountValue >= 0
+                        && static_cast<std::size_t>(
+                               status.m_decodedCountValue) == count;
+                });
+        };
         for (std::size_t index = receipt.typedRange.begin;
              index < receipt.typedRange.end; ++index) {
             const DRW_AssociativeObject& object =
@@ -13115,6 +13130,146 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         }
         if (!uniqueAssociativeHandles)
             return;
+
+        std::unordered_map<std::uint32_t, const DRW_AssociativeObject*>
+            networksByHandle;
+        networksByHandle.reserve(retained);
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& object =
+                data.dwgAssociativeObjects[index];
+            if (isRecord(object, "ACDBASSOCNETWORK", "ASSOCNETWORK")) {
+                networksByHandle.emplace(object.handle, &object);
+                ++receipt.associativeNetworkRecords;
+                if (object.m_owningNetworkHandle == 0u)
+                    ++receipt.associativeNetworkRootRecords;
+            }
+        }
+        bool networkActionListsComplete = true;
+        bool networkActionTargetsComplete = true;
+        for (const auto& networkEntry : networksByHandle) {
+            const DRW_AssociativeObject& network = *networkEntry.second;
+            if (!hasCompletePrefix(
+                    network, DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                || !hasCompletePrefixCount(
+                    network, DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+                    network.m_actions.size())) {
+                networkActionListsComplete = false;
+                networkActionTargetsComplete = false;
+                continue;
+            }
+            ++receipt.associativeNetworkActionListsParsed;
+            if (network.m_actions.size()
+                > kMaxAssociativeDwgActionReferences
+                    - receipt.associativeNetworkActionReferences) {
+                receipt.associativeNetworkActionLimitExceeded = true;
+                networkActionTargetsComplete = false;
+                continue;
+            }
+            receipt.associativeNetworkActionReferences +=
+                network.m_actions.size();
+
+            std::unordered_set<std::uint32_t> uniqueActions;
+            uniqueActions.reserve(network.m_actions.size());
+            for (const DRW_AssociativeHandleRef& actionRef : network.m_actions) {
+                if (actionRef.m_handle == 0u
+                    || actionRef.m_handle == DRW::NoHandle
+                    || !uniqueActions.insert(actionRef.m_handle).second) {
+                    networkActionTargetsComplete = false;
+                    continue;
+                }
+                const auto actionIt = byHandle.find(actionRef.m_handle);
+                if (actionIt == byHandle.end()) {
+                    networkActionTargetsComplete = false;
+                    continue;
+                }
+                const DRW_AssociativeObject& action = *actionIt->second;
+                if (isRecord(action, "ACDBASSOCNETWORK", "ASSOCNETWORK")) {
+                    const auto childNetwork = networksByHandle.find(action.handle);
+                    if (!hasCompletePrefix(
+                            action,
+                            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                        || actionRef.m_isOwned
+                        || childNetwork == networksByHandle.end()
+                        || action.m_owningNetworkHandle != network.handle) {
+                        networkActionTargetsComplete = false;
+                        continue;
+                    }
+                    ++receipt.associativeNetworkParentEdgesVerified;
+                } else if (isRecord(action, "ACDBASSOC2DCONSTRAINTGROUP",
+                                    "ASSOC2DCONSTRAINTGROUP")
+                           || isRecord(action, "ACDBASSOCVARIABLE",
+                                       "ASSOCVARIABLE")) {
+                    if (!hasCompletePrefix(
+                            action,
+                            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                        || !actionRef.m_isOwned
+                        || action.m_owningNetworkHandle != network.handle
+                        || action.parentHandle != network.handle) {
+                        networkActionTargetsComplete = false;
+                        continue;
+                    }
+                } else {
+                    networkActionTargetsComplete = false;
+                    continue;
+                }
+                ++receipt.associativeNetworkActionTargetsVerified;
+            }
+        }
+        receipt.associativeNetworkActionClosureComplete =
+            receipt.associativeNetworkRecords > 0u
+            && networkActionListsComplete && networkActionTargetsComplete
+            && !receipt.associativeNetworkActionLimitExceeded
+            && receipt.associativeNetworkActionListsParsed
+                == receipt.associativeNetworkRecords
+            && receipt.associativeNetworkActionTargetsVerified
+                == receipt.associativeNetworkActionReferences;
+
+        bool networkParentChainsComplete =
+            receipt.associativeNetworkRecords > 0u
+            && receipt.associativeNetworkRootRecords > 0u
+            && receipt.associativeNetworkParentEdgesVerified
+                == receipt.associativeNetworkRecords
+                    - receipt.associativeNetworkRootRecords;
+        std::unordered_map<std::uint32_t, std::uint8_t> networkChainState;
+        networkChainState.reserve(networksByHandle.size());
+        std::vector<std::uint32_t> networkChain;
+        for (const auto& networkEntry : networksByHandle) {
+            std::uint32_t currentHandle = networkEntry.first;
+            networkChain.clear();
+            bool reachesRoot = false;
+            while (networkChain.size() <= networksByHandle.size()) {
+                const auto stateIt = networkChainState.find(currentHandle);
+                if (stateIt != networkChainState.end()) {
+                    reachesRoot = stateIt->second == 2u;
+                    break;
+                }
+                const auto currentIt = networksByHandle.find(currentHandle);
+                if (currentIt == networksByHandle.end())
+                    break;
+                networkChainState.emplace(currentHandle, 1u);
+                networkChain.push_back(currentHandle);
+                const std::uint32_t parentHandle =
+                    currentIt->second->m_owningNetworkHandle;
+                if (parentHandle == 0u) {
+                    reachesRoot = true;
+                    break;
+                }
+                if (parentHandle == DRW::NoHandle
+                    || networksByHandle.find(parentHandle)
+                        == networksByHandle.end())
+                    break;
+                currentHandle = parentHandle;
+            }
+            const std::uint8_t finalState = reachesRoot ? 2u : 3u;
+            for (std::uint32_t handle : networkChain)
+                networkChainState[handle] = finalState;
+            if (!reachesRoot)
+                networkParentChainsComplete = false;
+        }
+        receipt.associativeNetworkParentChainsComplete =
+            networkParentChainsComplete
+            && receipt.associativeNetworkActionClosureComplete;
 
         bool actionListsComplete = true;
         bool actionTargetsComplete = true;
@@ -13266,6 +13421,8 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
     } catch (...) {
         receipt.selectedGraphEdgesComplete = false;
         receipt.constraintGroupActionClosureComplete = false;
+        receipt.associativeNetworkActionClosureComplete = false;
+        receipt.associativeNetworkParentChainsComplete = false;
     }
 }
 
@@ -40443,6 +40600,24 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << (receipt.constraintGroupActionLimitExceeded ? 1 : 0)
                     << " constraintGroupActionClosureComplete="
                     << (receipt.constraintGroupActionClosureComplete ? 1 : 0)
+                    << " associativeNetworkRecords="
+                    << receipt.associativeNetworkRecords
+                    << " associativeNetworkActionListsParsed="
+                    << receipt.associativeNetworkActionListsParsed
+                    << " associativeNetworkActionReferences="
+                    << receipt.associativeNetworkActionReferences
+                    << " associativeNetworkActionTargetsVerified="
+                    << receipt.associativeNetworkActionTargetsVerified
+                    << " associativeNetworkParentEdgesVerified="
+                    << receipt.associativeNetworkParentEdgesVerified
+                    << " associativeNetworkRootRecords="
+                    << receipt.associativeNetworkRootRecords
+                    << " associativeNetworkActionLimitExceeded="
+                    << (receipt.associativeNetworkActionLimitExceeded ? 1 : 0)
+                    << " associativeNetworkActionClosureComplete="
+                    << (receipt.associativeNetworkActionClosureComplete ? 1 : 0)
+                    << " associativeNetworkParentChainsComplete="
+                    << (receipt.associativeNetworkParentChainsComplete ? 1 : 0)
                     << " selectedGraphEdgesComplete="
                     << (receipt.selectedGraphEdgesComplete ? 1 : 0)
                     << " limitExceeded="
