@@ -53,10 +53,9 @@ subtasks are already complete.
 
 ### Immediate implementation order
 
-1. **P5 — bounded linked TABLECONTENT grids.** Generalize the existing two-link writer path to multiple cells up to the existing resource limits. Reuse its planner and handle-remap logic; cover mixed linked/scalar cells, cached scalar values, independent missing-target failures, exact output/readback, rollback and retry in one cohesive cohort. Do not add a separate receipt per grid size.
-2. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join.
-3. **P2 — current MLINE/XDATA gap.** Reproduce one still-failing operation, identify the owning classifier/planner/writer, and implement the shared missing rule with representative and boundary cases. Do not repeat already-qualified count matrices.
-4. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
+1. **P4a — original source coverage.** Select one current unmatched body/dependency from the retained census; bind exact source span, role, provider and owner, then implement only the missing representation or join.
+2. **P2 — current MLINE/XDATA gap.** Reproduce one still-failing operation, identify the owning classifier/planner/writer, and implement the shared missing rule with representative and boundary cases. Do not repeat already-qualified count matrices.
+3. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
 
 Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
 
@@ -153,22 +152,19 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. Generalize the current rooted linked-cell TABLECONTENT writer to multiple
-   linked cells within existing record/byte budgets. Compose linked and scalar
-   cells, cached values and supported references in rectangular grids. Prove
-   remapping, missing-target refusal, rollback, retry and fresh readback.
-2. Complete remaining FIELD graphs and content compositions, including multiple
-   FIELD objects, repeated references in a cell, larger reference sets, and
-   linked-cell block/field/attribute/geometry payloads. Preserve unsupported
-   compositions with explicit refusal.
-3. Complete format strings, units, margins, borders and override masks through a
+1. Complete remaining linked-cell content compositions: additional cached-value
+   sequences, multiple FIELD objects, repeated references in one cell, larger
+   reference sets, and block/field/attribute/geometry payloads. Reuse the current
+   rooted reference planner and handle remapping; preserve unsupported compositions
+   with explicit refusal.
+2. Complete format strings, units, margins, borders and override masks through a
    shared grid/1x1 path. Cover meaningful scope combinations and version gates as
    one bounded matrix; keep unsupported styles refused until schema and wire order
    are known.
-4. Complete source-bound AC1018 TABLE bodies, merge/presence profiles and the
+3. Complete source-bound AC1018 TABLE bodies, merge/presence profiles and the
    remaining cell-override masks. Preserve explicit zero and absence separately;
    do not infer visibility polarity from field transport.
-5. Qualify native TABLE rendering independently. Serializer readback does not
+4. Qualify native TABLE rendering independently. Serializer readback does not
    establish geometry, merge visibility or rendered style.
 
 ## P6 — residual semantic and version audit
