@@ -22367,6 +22367,7 @@ namespace {
 
 const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::LEADER:return "LEADER";
     case DRW::MTEXT:return "MTEXT";
     case DRW::TEXT:return "TEXT";
     case DRW::POINT:return "POINT";
@@ -22392,6 +22393,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
 DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::LEADER:return DRW_DxfEntitiesCallback::addLeader;
     case DRW::MTEXT:return DRW_DxfEntitiesCallback::addMText;
     case DRW::TEXT:return DRW_DxfEntitiesCallback::addText;
     case DRW::POINT:return DRW_DxfEntitiesCallback::addPoint;
@@ -22417,6 +22419,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
 DRW_DxfBlockCallback dxfMLineXdataBlockEntityCallback(
         DRW::ETYPE type) noexcept {
     switch (type) {
+    case DRW::LEADER:return DRW_DxfBlockCallback::addLeader;
     case DRW::MTEXT:return DRW_DxfBlockCallback::addMText;
     case DRW::TEXT:return DRW_DxfBlockCallback::addText;
     case DRW::POINT:return DRW_DxfBlockCallback::addPoint;
@@ -22443,6 +22446,9 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
                                     DRW::ETYPE type) noexcept {
     if (entity==nullptr||entity->eType!=type)return false;
     switch (type) {
+    case DRW::LEADER:
+        return dynamic_cast<const DRW_Leader*>(entity)!=nullptr
+            &&typeid(*entity)==typeid(DRW_Leader);
     case DRW::MTEXT:
         return dynamic_cast<const DRW_MText*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_MText);
@@ -22610,7 +22616,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             if (block==nullptr) return true;
             for (const dx_ifaceRawEntityEvent& event:block->rawEntities) {
                 if (!chargeWork(event.record.groups.size()+1u)) return false;
-                const auto rawType=event.record.name=="MTEXT"?DRW::MTEXT
+                const auto rawType=event.record.name=="LEADER"?DRW::LEADER
+                    :event.record.name=="MTEXT"?DRW::MTEXT
                     :event.record.name=="TEXT"?DRW::TEXT
                     :event.record.name=="POINT"?DRW::POINT
                     :event.record.name=="LWPOLYLINE"?DRW::LWPOLYLINE
@@ -22778,7 +22785,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
             for (std::size_t index=0u;index<manifest.events.size();++index) {
                 if (!chargeWork(1u)) return false;
                 const auto& event=manifest.events[index];
-                if (event.callback!=DRW_DxfEntitiesCallback::addMText
+                if (event.callback!=DRW_DxfEntitiesCallback::addLeader
+                    &&event.callback!=DRW_DxfEntitiesCallback::addMText
                     &&event.callback!=DRW_DxfEntitiesCallback::addText
                     &&event.callback!=DRW_DxfEntitiesCallback::addPoint
                     &&event.callback!=DRW_DxfEntitiesCallback::addLWPolyline
@@ -22924,7 +22932,8 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                         || range.next>block.membership->members.size())
                         return false;
                     const auto& record=physical.records[range.first];
-                    const auto entityType=record.name=="MTEXT"?DRW::MTEXT
+                    const auto entityType=record.name=="LEADER"?DRW::LEADER
+                        :record.name=="MTEXT"?DRW::MTEXT
                         :record.name=="TEXT"?DRW::TEXT
                         :record.name=="POINT"?DRW::POINT
                         :record.name=="LWPOLYLINE"?DRW::LWPOLYLINE

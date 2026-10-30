@@ -31527,7 +31527,17 @@ Tags sourceWithBlockEntityHandleXdata(
             &&fields[endBlock]!=std::make_pair(0,std::string("ENDBLK")))
             ++endBlock;
         if(endBlock==fields.size())break;
-        const Tags entity=entityType==DRW::MTEXT
+        const Tags entity=entityType==DRW::LEADER
+            ?Tags{{0,"LEADER"},{5,"A900"},{330,std::string(targetOwner)},
+                {100,"AcDbEntity"},{8,"0"},{62,"2"},
+                {100,"AcDbLeader"},{3,"STANDARD"},{71,"1"},
+                {72,"0"},{73,"3"},{74,"1"},{75,"0"},
+                {40,"2"},{41,"4"},{76,"2"},
+                {10,"1"},{20,"2"},{30,"3"},
+                {10,"4"},{20,"6"},{30,"0"},{77,"7"},
+                {210,"0"},{220,"0.6"},{230,"0.8"},
+                {211,"0"},{221,"1"},{231,"0"}}
+            :entityType==DRW::MTEXT
             ?Tags{{0,"MTEXT"},{5,"A900"},{330,std::string(targetOwner)},
                 {100,"AcDbEntity"},{8,"0"},{100,"AcDbMText"},
                 {10,"12.5"},{20,"-3"},{30,"4.25"},{40,"2.5"},
@@ -31988,6 +31998,45 @@ Tags sourceWithMTextEntityHandleXdata(bool binary) {
     }
     if(!mtextInserted)
         throw std::runtime_error("MTEXT XDATA target source missing");
+    return fields;
+}
+
+Tags sourceWithLeaderEntityHandleXdata(bool binary) {
+    auto fields=sourceWithEntityHandleXdata(binary,true);
+    bool inEntities=false,leaderInserted=false;
+    for(std::size_t i=0u;i<fields.size();++i) {
+        if(fields[i]==std::make_pair(0,std::string("SECTION"))
+            &&i+1u<fields.size()) {
+            inEntities=fields[i+1u]==std::make_pair(2,std::string("ENTITIES"));
+            continue;
+        }
+        if(inEntities&&fields[i]==std::make_pair(0,std::string("ENDSEC")))
+            break;
+        if(!inEntities||fields[i]!=std::make_pair(0,std::string("LINE"))
+            ||i+1u>=fields.size()
+            ||fields[i+1u]!=std::make_pair(5,std::string("A900")))
+            continue;
+        std::size_t end=i+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(end==fields.size())break;
+        const Tags leader{{0,"LEADER"},{5,"A900"},{330,"201"},
+            {100,"AcDbEntity"},{8,"0"},{62,"2"},
+            {100,"AcDbLeader"},{3,"STANDARD"},{71,"1"},
+            {72,"0"},{73,"3"},{74,"1"},{75,"0"},
+            {40,"2"},{41,"4"},{76,"2"},
+            {10,"1"},{20,"2"},{30,"3"},
+            {10,"4"},{20,"6"},{30,"0"},{77,"7"},
+            {210,"0"},{220,"0.6"},{230,"0.8"},
+            {211,"0"},{221,"1"},{231,"0"}};
+        fields.erase(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                     fields.begin()+static_cast<std::ptrdiff_t>(end));
+        fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i),
+                      leader.begin(),leader.end());
+        leaderInserted=true;
+        break;
+    }
+    if(!leaderInserted)
+        throw std::runtime_error("LEADER XDATA target source missing");
     return fields;
 }
 
@@ -33781,7 +33830,8 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
                                     DRW::ETYPE entityType=DRW::CIRCLE,
                                     std::string_view insertBlockName="AuthorityBlock") {
     if(!providerProof(path,binary))return false;
-    if(entityType!=DRW::MTEXT&&entityType!=DRW::TEXT&&entityType!=DRW::POINT
+    if(entityType!=DRW::LEADER&&entityType!=DRW::MTEXT
+        &&entityType!=DRW::TEXT&&entityType!=DRW::POINT
         &&entityType!=DRW::LWPOLYLINE
         &&entityType!=DRW::E3DFACE
         &&entityType!=DRW::THREEDLINE
@@ -33791,6 +33841,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         &&entityType!=DRW::HELIX&&entityType!=DRW::INSERT
         &&entityType!=DRW::RAY&&entityType!=DRW::XLINE
         &&entityType!=DRW::DXF_TRACE&&entityType!=DRW::SOLID)return false;
+    const bool isLeader=entityType==DRW::LEADER;
     const bool isMText=entityType==DRW::MTEXT;
     const bool isText=entityType==DRW::TEXT;
     const bool isPoint=entityType==DRW::POINT;
@@ -33807,7 +33858,7 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
     const bool isXline=entityType==DRW::XLINE;
     const bool isTrace=entityType==DRW::DXF_TRACE;
     const bool isSolid=entityType==DRW::SOLID;
-    const std::string_view recordName=isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
+    const std::string_view recordName=isLeader?"LEADER":isMText?"MTEXT":isText?"TEXT":isPoint?"POINT"
         :isLWPolyline?"LWPOLYLINE":isFace?"3DFACE"
         :is3DLine?"3DLINE":isMesh?"MESH":isArc?"ARC":isEllipse?"ELLIPSE":isSpline?"SPLINE"
         :isHelix?"HELIX":isInsert?"INSERT":isRay?"RAY"
@@ -33915,7 +33966,26 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
         }
         const double fullTurn=2.0*std::acos(-1.0);
         std::int64_t edgeFlags=0;
-        const bool expectedGeometry=isMText
+        const bool expectedGeometry=isLeader
+            ?textValuesMatch(row,100,{"AcDbEntity","AcDbLeader"})
+                &&textValuesMatch(row,3,{"STANDARD"})
+                &&integerValuesMatch(row,62,{2})
+                &&integerValuesMatch(row,71,{1})
+                &&integerValuesMatch(row,72,{0})
+                &&integerValuesMatch(row,73,{3})
+                &&integerValuesMatch(row,74,{1})
+                &&integerValuesMatch(row,75,{0})
+                &&integerValuesMatch(row,76,{2})
+                &&integerValuesMatch(row,77,{7})
+                &&realValue(row,40,2.0)&&realValue(row,41,4.0)
+                &&realValuesMatch(row,10,{1.0,4.0})
+                &&realValuesMatch(row,20,{2.0,6.0})
+                &&realValuesMatch(row,30,{3.0,0.0})
+                &&realValue(row,210,0.0)&&realValue(row,220,0.6)
+                &&realValue(row,230,0.8)&&realValue(row,211,0.0)
+                &&realValue(row,221,1.0)&&realValue(row,231,0.0)
+                &&textValuesMatch(row,340,{})
+            :isMText
             ?textValuesMatch(row,100,{"AcDbEntity","AcDbMText"})
                 &&realValue(row,10,12.5)&&realValue(row,20,-3.0)
                 &&realValue(row,30,4.25)&&realValue(row,40,2.5)
@@ -34188,6 +34258,30 @@ bool singleGeometryEntityProviderProof(const std::filesystem::path& path,
             ||!typedModel->attlist.empty()||typedModel->seqEndEntity
             ||targetRecordCount!=1u||targetBlockCount!=1u)
             return false;
+    } else if(isLeader) {
+        const auto* typedModel=dynamic_cast<const DRW_Leader*>(*typedCurve);
+        if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_Leader)
+            ||typedModel->parentHandle!=ownerHandle
+            ||typedModel->style!="STANDARD"||typedModel->arrow!=1
+            ||typedModel->leadertype!=0||typedModel->flag!=3
+            ||typedModel->hookline!=1||typedModel->hookflag!=0
+            ||typedModel->textheight!=2.0||typedModel->textwidth!=4.0
+            ||typedModel->vertnum!=2||typedModel->color!=2
+            ||typedModel->coloruse!=7||typedModel->annotHandle!=0u
+            ||typedModel->vertexlist.size()!=2u
+            ||typedModel->extrusionPoint.x!=0.0
+            ||typedModel->extrusionPoint.y!=0.6
+            ||typedModel->extrusionPoint.z!=0.8
+            ||typedModel->horizdir.x!=0.0||typedModel->horizdir.y!=1.0
+            ||typedModel->horizdir.z!=0.0)return false;
+        const std::array<DRW_Coord,2> expected{{
+            DRW_Coord(1.0,2.0,3.0),DRW_Coord(4.0,6.0,0.0)}};
+        for(std::size_t i=0u;i<expected.size();++i) {
+            const auto& point=typedModel->vertexlist[i];
+            if(point==nullptr||point->x!=expected[i].x
+                ||point->y!=expected[i].y||point->z!=expected[i].z)
+                return false;
+        }
     } else if(isMText) {
         const auto* typedModel=dynamic_cast<const DRW_MText*>(*typedCurve);
         if(typedModel==nullptr||typeid(*typedModel)!=typeid(DRW_MText)
@@ -38120,7 +38214,9 @@ bool runTemporary() {
     const double ellipseTurn=2.0*std::acos(-1.0);
     const auto runGeometrySection=[&](DRW::ETYPE entityType,
                                      bool inNamedBlock) {
-        const std::string_view entityName=entityType==DRW::TEXT
+        const std::string_view entityName=entityType==DRW::LEADER
+            ?std::string_view("LEADER")
+            :entityType==DRW::TEXT
             ?std::string_view("TEXT")
             :entityType==DRW::MTEXT
             ?std::string_view("MTEXT")
@@ -38162,6 +38258,8 @@ bool runTemporary() {
                     "203",entityType);
             return entityType==DRW::INSERT
                 ?sourceWithInsertEntityHandleXdata(binary)
+                :entityType==DRW::LEADER
+                ?sourceWithLeaderEntityHandleXdata(binary)
                 :entityType==DRW::MTEXT
                 ?sourceWithMTextEntityHandleXdata(binary)
                 :entityType==DRW::THREEDLINE
@@ -38287,6 +38385,32 @@ bool runTemporary() {
                     &&typed->textgen==2
                     &&typed->alignH==DRW_Text::HRight
                     &&typed->alignV==DRW_Text::VTop;
+            }
+            if(entityType==DRW::LEADER) {
+                const auto* typed=dynamic_cast<const DRW_Leader*>(entity);
+                if(typed==nullptr||typeid(*typed)!=typeid(DRW_Leader)
+                    ||typed->parentHandle!=targetOwner
+                    ||typed->style!="STANDARD"||typed->arrow!=1
+                    ||typed->leadertype!=0||typed->flag!=3
+                    ||typed->hookline!=1||typed->hookflag!=0
+                    ||typed->textheight!=2.0||typed->textwidth!=4.0
+                    ||typed->vertnum!=2||typed->color!=2
+                    ||typed->coloruse!=7||typed->annotHandle!=0u
+                    ||typed->vertexlist.size()!=2u
+                    ||typed->extrusionPoint.x!=0.0
+                    ||typed->extrusionPoint.y!=0.6
+                    ||typed->extrusionPoint.z!=0.8
+                    ||typed->horizdir.x!=0.0||typed->horizdir.y!=1.0
+                    ||typed->horizdir.z!=0.0)return false;
+                const std::array<DRW_Coord,2> expected{{
+                    DRW_Coord(1.0,2.0,3.0),DRW_Coord(4.0,6.0,0.0)}};
+                for(std::size_t i=0u;i<expected.size();++i) {
+                    if(typed->vertexlist[i]==nullptr
+                        ||typed->vertexlist[i]->x!=expected[i].x
+                        ||typed->vertexlist[i]->y!=expected[i].y
+                        ||typed->vertexlist[i]->z!=expected[i].z)return false;
+                }
+                return true;
             }
             if(entityType==DRW::MTEXT) {
                 const auto* typed=dynamic_cast<const DRW_MText*>(entity);
@@ -38712,7 +38836,7 @@ bool runTemporary() {
         return true;
     };
     for(const DRW::ETYPE entityType:{
-            DRW::TEXT,DRW::MTEXT,DRW::THREEDLINE,DRW::MESH,
+            DRW::TEXT,DRW::MTEXT,DRW::LEADER,DRW::THREEDLINE,DRW::MESH,
             DRW::ELLIPSE,DRW::SPLINE,DRW::HELIX,
             DRW::POINT,DRW::E3DFACE,
             DRW::LWPOLYLINE,DRW::RAY,DRW::XLINE,DRW::DXF_TRACE,
@@ -38724,7 +38848,7 @@ bool runTemporary() {
     std::error_code error;std::filesystem::remove_all(dir,error);
     std::cout<<"MLINE LTYPE APPID/XDATA profiles="<<profiles<<"; readbacks="<<readbacks
         <<"; refusals="<<refusals<<"; retries="<<retries<<'\n';
-    return profiles==380u&&readbacks==876u&&refusals==496u&&retries==496u;
+    return profiles==388u&&readbacks==894u&&refusals==506u&&retries==506u;
 }
 
 bool runBudgetTemporary() {
