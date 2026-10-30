@@ -22387,6 +22387,7 @@ const char* dxfMLineXdataEntityRecordName(DRW::ETYPE type) noexcept {
     case DRW::HELIX:return "HELIX";
     case DRW::INSERT:return "INSERT";
     case DRW::ATTDEF:return "ATTDEF";
+    case DRW::WIPEOUT:return "WIPEOUT";
     case DRW::RAY:return "RAY";
     case DRW::XLINE:return "XLINE";
     case DRW::DXF_TRACE:return "TRACE";
@@ -22418,6 +22419,7 @@ DRW_DxfEntitiesCallback dxfMLineXdataEntityCallback(
     case DRW::HELIX:return DRW_DxfEntitiesCallback::addHelix;
     case DRW::INSERT:return DRW_DxfEntitiesCallback::addInsert;
     case DRW::ATTDEF:return DRW_DxfEntitiesCallback::addAttDef;
+    case DRW::WIPEOUT:return DRW_DxfEntitiesCallback::addWipeout;
     case DRW::RAY:return DRW_DxfEntitiesCallback::addRay;
     case DRW::XLINE:return DRW_DxfEntitiesCallback::addXline;
     case DRW::DXF_TRACE:return DRW_DxfEntitiesCallback::addTrace;
@@ -22542,6 +22544,11 @@ bool dxfMLineXdataEntityTypeMatches(const DRW_Entity* entity,
     case DRW::ATTDEF:
         return dynamic_cast<const DRW_Attdef*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Attdef);
+    case DRW::WIPEOUT: {
+        const auto* wipeout=dynamic_cast<const DRW_Wipeout*>(entity);
+        return wipeout!=nullptr&&typeid(*entity)==typeid(DRW_Wipeout)
+            &&wipeout->hasValidBoundary();
+    }
     case DRW::RAY:
         return dynamic_cast<const DRW_Ray*>(entity)!=nullptr
             &&typeid(*entity)==typeid(DRW_Ray);
@@ -22856,6 +22863,7 @@ bool dx_iface::collectDxfMLineXdataEntitySources(
                     &&event.callback!=DRW_DxfEntitiesCallback::addSpline
                     &&event.callback!=DRW_DxfEntitiesCallback::addHelix
                     &&event.callback!=DRW_DxfEntitiesCallback::addInsert
+                    &&event.callback!=DRW_DxfEntitiesCallback::addWipeout
                     &&event.callback!=DRW_DxfEntitiesCallback::addRay
                     &&event.callback!=DRW_DxfEntitiesCallback::addXline
                     &&event.callback!=DRW_DxfEntitiesCallback::addTrace
