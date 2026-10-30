@@ -2769,7 +2769,8 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             dx_iface::writeHeader(header);
             dxfW->setHandleRemap({{0x5A0u, 0x15A0u},
                                   {0x710u, 0x1710u},
-                                  {0x711u, 0x1711u}});
+                                  {0x711u, 0x1711u},
+                                  {0x712u, 0x1712u}});
         }
     };
     const auto path = dir / "linked-grid.dxf";
@@ -2790,6 +2791,12 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         secondLink.m_description = "second generated linked grid target";
         secondLink.m_connectionString = "inert://generated-grid-second.xlsx";
         exporter.addDataLink(secondLink);
+        DRW_DataLink thirdLink;
+        thirdLink.handle = 0x712u;
+        thirdLink.m_dataAdapter = "EXCEL";
+        thirdLink.m_description = "third generated linked grid target";
+        thirdLink.m_connectionString = "inert://generated-grid-third.xlsx";
+        exporter.addDataLink(thirdLink);
 
         DRW_TableContentObject table = tableContentScalarGrid();
         DRW_TableCell& linked = table.m_content.m_rows[0].m_cells[0];
@@ -2810,6 +2817,12 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         cachedInteger.m_value.m_dataType = 1;
         cachedInteger.m_value.m_value = DRW_Variant(91, 42);
         linked.m_contents.push_back(cachedInteger);
+        DRW_TableCell& thirdLinked = table.m_content.m_rows[0].m_cells[1];
+        thirdLinked.m_hasLinkedData = true;
+        thirdLinked.m_dataLinkHandle = 0x712u;
+        thirdLinked.m_linkedDataRowCount = 1;
+        thirdLinked.m_linkedDataColumnCount = 2;
+        thirdLinked.m_linkedDataUnknown = -11;
         DRW_TableCell& secondLinked =
             table.m_content.m_rows[1].m_cells[1];
         secondLinked.m_contents.clear();
@@ -2822,7 +2835,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
 
         if (!exporter.fileExport(path.string(), DRW::AC1032, binary,
                                  &data, false)) {
-            return fail("2x2 linked table with cached scalar values failed");
+            return fail("2x2 table with three linked cells failed");
         }
         const auto wire = attdefWireTags(path, binary);
         std::set<std::string> emittedDataLinks;
@@ -2843,11 +2856,11 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
         bool sawCachedValueMarker = false;
         bool sawCachedString = false;
         bool sawCachedInteger = false;
+        bool sawThirdLinkedCachedString = false;
         for (const AttdefWireTag& tag : wire) {
             if (tag.code == 0) {
                 inDataLink = tag.text == "DATALINK";
-            } else if (inDataLink && tag.code == 5
-                       && (tag.text == "1710" || tag.text == "1711")) {
+            } else if (inDataLink && tag.code == 5) {
                 emittedDataLinks.insert(tag.text);
                 inDataLink = false;
             }
@@ -2865,6 +2878,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
                 sawCachedValueMarker = false;
                 sawCachedString = false;
                 sawCachedInteger = false;
+                sawThirdLinkedCachedString = false;
             } else if (inLinkedCell && tag.code == 92) {
                 cellLinkedFlag = static_cast<int>(tag.integer);
             } else if (inLinkedCell && tag.code == 340
@@ -2897,6 +2911,9 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             } else if (inLinkedCell && inCellContent && tag.code == 91
                        && tag.integer == 42) {
                 sawCachedInteger = true;
+            } else if (inLinkedCell && inCellContent && tag.code == 1
+                       && tag.text == "north-east") {
+                sawThirdLinkedCachedString = true;
             } else if (inLinkedCell && tag.code == 309
                        && tag.text == "CELLCONTENT_END") {
                 inCellContent = false;
@@ -2920,24 +2937,31 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
                     && (linkedRows != 4 || linkedColumns != 5
                         || linkedUnknown != 7 || linkedContentCount != 0))
                     return fail("second linked cell output fields differ");
+                if (cellLinkedFlag == 1 && linkedTarget == "1712"
+                    && (linkedRows != 1 || linkedColumns != 2
+                        || linkedUnknown != -11 || linkedContentCount != 1
+                        || !sawThirdLinkedCachedString))
+                    return fail("third linked cell cached-value fields differ");
                 inLinkedCell = false;
             }
         }
-        if (emittedDataLinks != std::set<std::string>{"1710", "1711"}
-            || cellLinkedFlags != std::vector<int>{1, 0, 0, 1}
+        if (emittedDataLinks
+                != std::set<std::string>{"1710", "1711", "1712"}
+            || cellLinkedFlags != std::vector<int>{1, 1, 0, 1}
             || cellLinkedTargets != std::vector<std::string>{
-                "1710", "", "", "1711"}
+                "1710", "1712", "", "1711"}
             || cellLinkedFields != std::vector<std::array<int, 3>>{
-                {2, 3, -5}, {0, 0, 0}, {0, 0, 0}, {4, 5, 7}}
+                {2, 3, -5}, {1, 2, -11}, {0, 0, 0}, {4, 5, 7}}
             || cellContentCounts != std::vector<int>{2, 1, 1, 0})
             return fail("remapped DATALINK output/reference differs");
 
         dx_iface reader;
         dx_data parsed;
         if (!reader.fileImport(path.string(), &parsed, false)
-            || parsed.dataLinks.size() != 2u
+            || parsed.dataLinks.size() != 3u
             || parsed.dataLinks[0].handle != 0x1710u
             || parsed.dataLinks[1].handle != 0x1711u
+            || parsed.dataLinks[2].handle != 0x1712u
             || parsed.tableContents.size() != 1u)
             return fail("ASCII/binary readback omitted the linked graph");
         const DRW_TableContentObject& readback =
@@ -2948,7 +2972,7 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             return fail("linked grid dimensions or remapped identity differ");
         const DRW_TableCell& linkedReadback =
             readback.m_content.m_rows[0].m_cells[0];
-        const DRW_TableCell& scalarPeer =
+        const DRW_TableCell& thirdLinkedReadback =
             readback.m_content.m_rows[0].m_cells[1];
         const DRW_TableCell& lowerLeft =
             readback.m_content.m_rows[1].m_cells[0];
@@ -2966,26 +2990,37 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
             || linkedReadback.m_contents[1].m_value.m_value.type()
                 != DRW_Variant::INTEGER
             || linkedReadback.m_contents[1].m_value.m_value.i_val() != 42
+            || !thirdLinkedReadback.m_hasLinkedData
+            || thirdLinkedReadback.m_dataLinkHandle != 0x1712u
+            || thirdLinkedReadback.m_linkedDataRowCount != 1
+            || thirdLinkedReadback.m_linkedDataColumnCount != 2
+            || thirdLinkedReadback.m_linkedDataUnknown != -11
+            || thirdLinkedReadback.m_contents.size() != 1u
+            || thirdLinkedReadback.m_contents.front().m_text != "north-east"
             || !lowerRight.m_hasLinkedData
             || lowerRight.m_dataLinkHandle != 0x1711u
             || lowerRight.m_linkedDataRowCount != 4
             || lowerRight.m_linkedDataColumnCount != 5
             || lowerRight.m_linkedDataUnknown != 7
             || !lowerRight.m_contents.empty()
-            || scalarPeer.m_contents.size() != 1u
-            || scalarPeer.m_contents.front().m_text != "north-east"
             || lowerLeft.m_contents.size() != 1u
             || lowerLeft.m_contents.front().m_text != "south-west")
             return fail("typed linked/cached/scalar cell readback differs");
 
         const std::string sentinel = "PRESERVE_TABLECONTENT_LINKED_GRID";
-        for (std::size_t index = 0u; index < 2u; ++index) {
+        const std::array<std::pair<std::size_t, std::size_t>, 3u>
+            linkedCellPositions{{{0u, 0u}, {0u, 1u}, {1u, 1u}}};
+        for (std::size_t index = 0u;
+             index < linkedCellPositions.size(); ++index) {
+            const auto damagedPosition = linkedCellPositions[index];
+            const auto unaffectedPosition = linkedCellPositions[
+                (index + 1u) % linkedCellPositions.size()];
             DRW_TableCell& damaged = data.tableContents.front()
-                .m_content.m_rows[index == 0u ? 0u : 1u]
-                    .m_cells[index == 0u ? 0u : 1u];
+                .m_content.m_rows[damagedPosition.first]
+                    .m_cells[damagedPosition.second];
             const DRW_TableCell& unaffected = data.tableContents.front()
-                .m_content.m_rows[index == 0u ? 1u : 0u]
-                    .m_cells[index == 0u ? 1u : 0u];
+                .m_content.m_rows[unaffectedPosition.first]
+                    .m_cells[unaffectedPosition.second];
             const std::uint32_t originalHandle = damaged.m_dataLinkHandle;
             const std::uint32_t unaffectedHandle =
                 unaffected.m_dataLinkHandle;
@@ -3007,12 +3042,14 @@ bool tableContentLinkedGridWriteTests(const std::filesystem::path& dir) {
                 return fail("same-adapter corrected linked-grid retry failed");
             dx_data retried;
             if (!reader.fileImport(path.string(), &retried, false)
-                || retried.dataLinks.size() != 2u
+                || retried.dataLinks.size() != 3u
                 || retried.tableContents.size() != 1u
                 || retried.tableContents.front().m_content.m_rows[0]
                         .m_cells[0].m_dataLinkHandle != 0x1710u
                 || retried.tableContents.front().m_content.m_rows[0]
                         .m_cells[0].m_contents.size() != 2u
+                || retried.tableContents.front().m_content.m_rows[0]
+                        .m_cells[1].m_dataLinkHandle != 0x1712u
                 || retried.tableContents.front().m_content.m_rows[1]
                         .m_cells[1].m_dataLinkHandle != 0x1711u)
                 return fail("corrected linked-grid retry readback differs");
