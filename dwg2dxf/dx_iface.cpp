@@ -14467,6 +14467,381 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 == receipt.associativeValueDependencyLinkReferences
             && receipt.associativeValueDependencyLinkNetworkEdgesVerified
                 == receipt.associativeValueDependencyLinkReferences;
+
+        bool associativeDependencyGraphComplete =
+            !data.dynamicBlockCaptureFailed
+            && !data.evaluationGraphCaptureFailed
+            && associativeEntityInventoryComplete;
+        const auto isDynamicRecord = [](
+                const DRW_DynamicBlockObject& object,
+                const char* recordName) {
+            return sameAsciiName(object.m_recordName, recordName);
+        };
+        std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*>
+            dynamicAssociativeObjectsByHandle;
+        dynamicAssociativeObjectsByHandle.reserve(
+            data.dynamicBlockObjects.size());
+        std::size_t dynamicAssociativeObjectWork = 0u;
+        for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
+            const bool parameterTarget =
+                object.m_kind
+                    == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                || object.m_kind
+                    == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter;
+            const bool parameterBody =
+                object.m_kind
+                    == DRW_DynamicBlockObject::Kind::ParameterDependencyBody;
+            if (!parameterTarget && !parameterBody)
+                continue;
+            if (dynamicAssociativeObjectWork
+                >= kMaxAssociativeDwgActionReferences) {
+                receipt.associativeDependencyLimitExceeded = true;
+                associativeDependencyGraphComplete = false;
+                break;
+            }
+            ++dynamicAssociativeObjectWork;
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || associativeEntitiesByHandle.find(object.handle)
+                    != associativeEntitiesByHandle.end()
+                || !dynamicAssociativeObjectsByHandle.emplace(
+                    object.handle, &object).second) {
+                associativeDependencyGraphComplete = false;
+            }
+        }
+
+        std::unordered_map<std::uint32_t, const DRW_EvaluationGraph*>
+            evaluationGraphsByHandle;
+        evaluationGraphsByHandle.reserve(data.evaluationGraphs.size());
+        std::unordered_map<std::uint64_t, std::size_t>
+            evaluationGraphExpressionReferences;
+        evaluationGraphExpressionReferences.reserve(
+            data.evaluationGraphs.size());
+        std::size_t evaluationGraphNodeWork = 0u;
+        for (const DRW_EvaluationGraph& graph : data.evaluationGraphs) {
+            if (graph.handle == 0u || graph.handle == DRW::NoHandle
+                || byHandle.find(graph.handle) != byHandle.end()
+                || dynamicAssociativeObjectsByHandle.find(graph.handle)
+                    != dynamicAssociativeObjectsByHandle.end()
+                || !evaluationGraphsByHandle.emplace(
+                    graph.handle, &graph).second) {
+                associativeDependencyGraphComplete = false;
+            }
+            if (graph.m_nodes.size()
+                > kMaxAssociativeDwgActionReferences
+                    - evaluationGraphNodeWork) {
+                receipt.associativeDependencyLimitExceeded = true;
+                associativeDependencyGraphComplete = false;
+                break;
+            }
+            evaluationGraphNodeWork += graph.m_nodes.size();
+            for (const DRW_EvaluationGraphNode& node : graph.m_nodes) {
+                if (node.m_expressionHandle == 0u
+                    || node.m_expressionHandle == DRW::NoHandle)
+                    continue;
+                const std::uint64_t key =
+                    (static_cast<std::uint64_t>(graph.handle) << 32)
+                    | node.m_expressionHandle;
+                ++evaluationGraphExpressionReferences[key];
+            }
+        }
+
+        std::size_t associativeDependencyLinkWork = 0u;
+        std::size_t associativeDependencyReactorWork = 0u;
+        for (std::size_t index = receipt.typedRange.begin;
+             index < receipt.typedRange.end; ++index) {
+            const DRW_AssociativeObject& dependency =
+                data.dwgAssociativeObjects[index];
+            if (!isRecord(dependency, "ACDBASSOCDEPENDENCY",
+                          "ASSOCDEPENDENCY"))
+                continue;
+            if (receipt.associativeDependencyRecords
+                >= kMaxAssociativeDwgActionReferences) {
+                receipt.associativeDependencyLimitExceeded = true;
+                associativeDependencyGraphComplete = false;
+                break;
+            }
+            ++receipt.associativeDependencyRecords;
+            if (!hasCompletePrefix(
+                    dependency,
+                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency)) {
+                associativeDependencyGraphComplete = false;
+                continue;
+            }
+
+            std::uint32_t ownerNetworkHandle = 0u;
+            const auto dependencyOwnerNetwork =
+                [&](const DRW_AssociativeObject& candidate,
+                    std::uint32_t& networkHandle) {
+                    if (candidate.parentHandle == 0u
+                        || candidate.parentHandle == DRW::NoHandle)
+                        return false;
+                    const auto ownerIt =
+                        byHandle.find(candidate.parentHandle);
+                    if (ownerIt == byHandle.end())
+                        return false;
+                    const DRW_AssociativeObject& owner = *ownerIt->second;
+                    if (!isRecord(owner, "ACDBASSOC2DCONSTRAINTGROUP",
+                                  "ASSOC2DCONSTRAINTGROUP")
+                        || !hasCompletePrefix(
+                            owner,
+                            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                        || !owner.m_constraintActionsParsed
+                        || owner.m_owningNetworkHandle == 0u
+                        || owner.m_owningNetworkHandle == DRW::NoHandle)
+                        return false;
+                    const auto groupMembership =
+                        constraintActionMembershipByHandle.find(
+                            candidate.handle);
+                    if (groupMembership
+                            == constraintActionMembershipByHandle.end()
+                        || groupMembership->second.m_references != 1u
+                        || groupMembership->second.m_multipleGroups
+                        || groupMembership->second.m_groupHandle != owner.handle
+                        || !hasNetworkActionMembership(
+                            owner, owner.m_owningNetworkHandle))
+                        return false;
+                    networkHandle = owner.m_owningNetworkHandle;
+                    return true;
+                };
+            if (dependencyOwnerNetwork(dependency, ownerNetworkHandle)) {
+                ++receipt.associativeDependencyOwnerGroupRoutesVerified;
+                ++receipt.associativeDependencyNetworkEdgesVerified;
+            } else {
+                associativeDependencyGraphComplete = false;
+            }
+
+            ++receipt.associativeDependencyTargetReferences;
+            bool dimensionTarget = false;
+            bool blockParameterTarget = false;
+            if (dependency.m_dependencyHandle == 0u
+                || dependency.m_dependencyHandle == DRW::NoHandle) {
+                associativeDependencyGraphComplete = false;
+            } else {
+                const auto entityIt = associativeEntitiesByHandle.find(
+                    dependency.m_dependencyHandle);
+                const auto dynamicIt = dynamicAssociativeObjectsByHandle.find(
+                    dependency.m_dependencyHandle);
+                bool targetOwnerRouteVerified = false;
+                const std::vector<std::uint32_t>* targetReactors = nullptr;
+                if (entityIt != associativeEntitiesByHandle.end()
+                    && dynamicIt != dynamicAssociativeObjectsByHandle.end()) {
+                    associativeDependencyGraphComplete = false;
+                } else if (entityIt != associativeEntitiesByHandle.end()
+                    && entityIt->second.entity != nullptr) {
+                    const DRW_Entity& target = *entityIt->second.entity;
+                    if (target.eType == DRW::DIMLINEAR
+                        && dynamic_cast<const DRW_DimLinear*>(&target) != nullptr) {
+                        dimensionTarget = true;
+                    } else if (target.eType == DRW::DIMDIAMETRIC
+                               && dynamic_cast<const DRW_DimDiametric*>(&target)
+                                   != nullptr) {
+                        dimensionTarget = true;
+                    }
+                    if (dimensionTarget) {
+                        ++receipt.associativeDependencyDimensionTargetsVerified;
+                        targetOwnerRouteVerified =
+                            hasAssociativeEntityOwnerRoute(entityIt->second);
+                        targetReactors = &target.reactorHandles;
+                    }
+                } else if (dynamicIt != dynamicAssociativeObjectsByHandle.end()) {
+                    const DRW_DynamicBlockObject& target = *dynamicIt->second;
+                    blockParameterTarget =
+                        (isDynamicRecord(
+                             target, "BLOCKHORIZONTALCONSTRAINTPARAMETER")
+                         && target.m_kind
+                             == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter)
+                        || (isDynamicRecord(
+                                target, "BLOCKVERTICALCONSTRAINTPARAMETER")
+                            && target.m_kind
+                                == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter);
+                    if (blockParameterTarget) {
+                        ++receipt.associativeDependencyBlockParameterTargetsVerified;
+                        if (target.m_bodyFullyDecoded
+                            && target.parentHandle != 0u
+                            && target.parentHandle != DRW::NoHandle) {
+                            const auto ownerGraph = evaluationGraphsByHandle.find(
+                                target.parentHandle);
+                            const std::uint64_t expressionKey =
+                                (static_cast<std::uint64_t>(target.parentHandle)
+                                 << 32)
+                                | target.handle;
+                            const auto expressionReference =
+                                evaluationGraphExpressionReferences.find(
+                                    expressionKey);
+                            targetOwnerRouteVerified =
+                                ownerGraph != evaluationGraphsByHandle.end()
+                                && data.hasCompleteDwgDictionaryEntry(
+                                    ownerGraph->second->parentHandle,
+                                    "ACAD_ENHANCEDBLOCK",
+                                    ownerGraph->second->handle)
+                                && expressionReference
+                                    != evaluationGraphExpressionReferences.end()
+                                && expressionReference->second == 1u;
+                            targetReactors = &target.reactorHandles;
+                        }
+                    }
+                }
+                if (!dimensionTarget && !blockParameterTarget) {
+                    associativeDependencyGraphComplete = false;
+                } else if (targetOwnerRouteVerified) {
+                    ++receipt.associativeDependencyTargetOwnerRoutesVerified;
+                } else {
+                    associativeDependencyGraphComplete = false;
+                }
+                if (targetReactors != nullptr
+                    && targetReactors->size()
+                        <= kMaxAssociativeDwgActionReferences
+                            - associativeDependencyReactorWork) {
+                    associativeDependencyReactorWork +=
+                        targetReactors->size();
+                    if (std::count(targetReactors->begin(),
+                                   targetReactors->end(), dependency.handle) == 1)
+                        ++receipt.associativeDependencyReactorBacklinksVerified;
+                    else
+                        associativeDependencyGraphComplete = false;
+                } else {
+                    receipt.associativeDependencyLimitExceeded = true;
+                    associativeDependencyGraphComplete = false;
+                }
+            }
+
+            ++receipt.associativeDependencyBodyReferences;
+            if (dependency.m_dependencyBodyHandle == 0u
+                || dependency.m_dependencyBodyHandle == DRW::NoHandle) {
+                associativeDependencyGraphComplete = false;
+            } else {
+                const auto bodyReferenceCount = dependencyBodyOwners.find(
+                    dependency.m_dependencyBodyHandle);
+                const bool uniquelyOwnedBody =
+                    bodyReferenceCount != dependencyBodyOwners.end()
+                    && bodyReferenceCount->second == 1u;
+                const auto associativeBody = byHandle.find(
+                    dependency.m_dependencyBodyHandle);
+                const auto dynamicBody = dynamicAssociativeObjectsByHandle.find(
+                    dependency.m_dependencyBodyHandle);
+                const bool dimensionBody =
+                    associativeBody != byHandle.end()
+                    && isRecord(*associativeBody->second,
+                                "ACDBASSOCDIMDEPENDENCYBODY",
+                                "ASSOCDIMDEPENDENCYBODY")
+                    && associativeBody->second->m_dimensionDependencyBodyParsed;
+                const bool blockParameterBody =
+                    dynamicBody != dynamicAssociativeObjectsByHandle.end()
+                    && isDynamicRecord(*dynamicBody->second,
+                                       "BLOCKPARAMDEPENDENCYBODY")
+                    && dynamicBody->second->m_kind
+                        == DRW_DynamicBlockObject::Kind::ParameterDependencyBody
+                    && dynamicBody->second->m_bodyFullyDecoded;
+                if (dimensionBody && !blockParameterBody && dimensionTarget) {
+                    ++receipt.associativeDependencyDimensionBodiesVerified;
+                } else if (blockParameterBody && !dimensionBody
+                           && blockParameterTarget) {
+                    ++receipt.associativeDependencyBlockParameterBodiesVerified;
+                } else {
+                    associativeDependencyGraphComplete = false;
+                }
+                const DRW_TableEntry* bodyEntry = dimensionBody
+                    ? static_cast<const DRW_TableEntry*>(associativeBody->second)
+                    : blockParameterBody
+                        ? static_cast<const DRW_TableEntry*>(dynamicBody->second)
+                        : nullptr;
+                if (!uniquelyOwnedBody || bodyEntry == nullptr
+                    || bodyEntry->parentHandle != dependency.handle) {
+                    associativeDependencyGraphComplete = false;
+                } else {
+                    ++receipt.associativeDependencyBodyOwnerEdgesVerified;
+                }
+            }
+
+            const auto auditDependencyLink =
+                [&](std::uint32_t targetHandle, bool isReadDependency) {
+                    if (targetHandle == 0u)
+                        return;
+                    if (receipt.associativeDependencyLinkReferences
+                            >= kMaxAssociativeDwgActionReferences
+                        || associativeDependencyLinkWork
+                            >= kMaxAssociativeDwgActionReferences) {
+                        receipt.associativeDependencyLimitExceeded = true;
+                        associativeDependencyGraphComplete = false;
+                        return;
+                    }
+                    ++associativeDependencyLinkWork;
+                    ++receipt.associativeDependencyLinkReferences;
+                    if (targetHandle == DRW::NoHandle) {
+                        associativeDependencyGraphComplete = false;
+                        return;
+                    }
+                    const auto linkedIt = byHandle.find(targetHandle);
+                    if (linkedIt == byHandle.end()) {
+                        associativeDependencyGraphComplete = false;
+                        return;
+                    }
+                    const DRW_AssociativeObject& linked = *linkedIt->second;
+                    if (!isRecord(linked, "ACDBASSOCDEPENDENCY",
+                                  "ASSOCDEPENDENCY")
+                        || !hasCompletePrefix(
+                            linked,
+                            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency)) {
+                        associativeDependencyGraphComplete = false;
+                        return;
+                    }
+                    ++receipt.associativeDependencyLinkTargetsVerified;
+                    if (linked.m_dependencyHandle
+                        != dependency.m_dependencyHandle) {
+                        associativeDependencyGraphComplete = false;
+                    } else {
+                        ++receipt.associativeDependencyLinkTargetEdgesVerified;
+                    }
+                    const bool reciprocal = isReadDependency
+                        ? linked.m_writeDependencyHandle == dependency.handle
+                        : linked.m_readDependencyHandle == dependency.handle;
+                    if (reciprocal)
+                        ++receipt.associativeDependencyLinkReciprocalEdgesVerified;
+                    else
+                        associativeDependencyGraphComplete = false;
+                    std::uint32_t linkedNetworkHandle = 0u;
+                    if (dependencyOwnerNetwork(linked, linkedNetworkHandle)
+                        && linkedNetworkHandle != 0u
+                        && linkedNetworkHandle != DRW::NoHandle)
+                        ++receipt.associativeDependencyLinkOwnerRoutesVerified;
+                    else
+                        associativeDependencyGraphComplete = false;
+                };
+            auditDependencyLink(dependency.m_readDependencyHandle, true);
+            auditDependencyLink(dependency.m_writeDependencyHandle, false);
+        }
+        receipt.associativeDependencyClosureComplete =
+            receipt.associativeDependencyRecords > 0u
+            && associativeDependencyGraphComplete
+            && !receipt.associativeDependencyLimitExceeded
+            && receipt.associativeDependencyTargetReferences
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyDimensionTargetsVerified
+                + receipt.associativeDependencyBlockParameterTargetsVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyTargetOwnerRoutesVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyOwnerGroupRoutesVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyNetworkEdgesVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyBodyReferences
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyDimensionBodiesVerified
+                + receipt.associativeDependencyBlockParameterBodiesVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyBodyOwnerEdgesVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyReactorBacklinksVerified
+                == receipt.associativeDependencyRecords
+            && receipt.associativeDependencyLinkTargetsVerified
+                == receipt.associativeDependencyLinkReferences
+            && receipt.associativeDependencyLinkReciprocalEdgesVerified
+                == receipt.associativeDependencyLinkReferences
+            && receipt.associativeDependencyLinkTargetEdgesVerified
+                == receipt.associativeDependencyLinkReferences
+            && receipt.associativeDependencyLinkOwnerRoutesVerified
+                == receipt.associativeDependencyLinkReferences;
         if (receipt.dimensionDependencyBodies == 0u)
             return;
 
@@ -14561,6 +14936,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
         receipt.associativeNetworkParentChainsComplete = false;
         receipt.associativeActionEmptyReferenceProfileComplete = false;
         receipt.associativeValueDependencyClosureComplete = false;
+        receipt.associativeDependencyClosureComplete = false;
     }
 }
 
@@ -42095,6 +42471,44 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << " associativeValueDependencyClosureComplete="
                     << (receipt.associativeValueDependencyClosureComplete
                             ? 1 : 0)
+                    << " associativeDependencyRecords="
+                    << receipt.associativeDependencyRecords
+                    << " associativeDependencyTargetReferences="
+                    << receipt.associativeDependencyTargetReferences
+                    << " associativeDependencyDimensionTargetsVerified="
+                    << receipt.associativeDependencyDimensionTargetsVerified
+                    << " associativeDependencyBlockParameterTargetsVerified="
+                    << receipt.associativeDependencyBlockParameterTargetsVerified
+                    << " associativeDependencyTargetOwnerRoutesVerified="
+                    << receipt.associativeDependencyTargetOwnerRoutesVerified
+                    << " associativeDependencyOwnerGroupRoutesVerified="
+                    << receipt.associativeDependencyOwnerGroupRoutesVerified
+                    << " associativeDependencyNetworkEdgesVerified="
+                    << receipt.associativeDependencyNetworkEdgesVerified
+                    << " associativeDependencyBodyReferences="
+                    << receipt.associativeDependencyBodyReferences
+                    << " associativeDependencyDimensionBodiesVerified="
+                    << receipt.associativeDependencyDimensionBodiesVerified
+                    << " associativeDependencyBlockParameterBodiesVerified="
+                    << receipt.associativeDependencyBlockParameterBodiesVerified
+                    << " associativeDependencyBodyOwnerEdgesVerified="
+                    << receipt.associativeDependencyBodyOwnerEdgesVerified
+                    << " associativeDependencyReactorBacklinksVerified="
+                    << receipt.associativeDependencyReactorBacklinksVerified
+                    << " associativeDependencyLinkReferences="
+                    << receipt.associativeDependencyLinkReferences
+                    << " associativeDependencyLinkTargetsVerified="
+                    << receipt.associativeDependencyLinkTargetsVerified
+                    << " associativeDependencyLinkReciprocalEdgesVerified="
+                    << receipt.associativeDependencyLinkReciprocalEdgesVerified
+                    << " associativeDependencyLinkTargetEdgesVerified="
+                    << receipt.associativeDependencyLinkTargetEdgesVerified
+                    << " associativeDependencyLinkOwnerRoutesVerified="
+                    << receipt.associativeDependencyLinkOwnerRoutesVerified
+                    << " associativeDependencyLimitExceeded="
+                    << (receipt.associativeDependencyLimitExceeded ? 1 : 0)
+                    << " associativeDependencyClosureComplete="
+                    << (receipt.associativeDependencyClosureComplete ? 1 : 0)
                     << " selectedGraphEdgesComplete="
                     << (receipt.selectedGraphEdgesComplete ? 1 : 0)
                     << " limitExceeded="

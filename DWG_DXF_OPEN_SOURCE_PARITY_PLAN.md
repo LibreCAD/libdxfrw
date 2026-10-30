@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — recursive graph/output closure | Close remaining associative dependency targets and owner routes, including generic dependency references to entities and block-parameter objects; qualify nonempty action-prefix references on matched inputs; then serialize and read back the complete reachable graph. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — recursive graph/output closure | Close recursive graph dependencies not yet covered by source-matched providers, then serialize and read back the complete reachable graph with source identities and required fields bound to actual output records. | Keep unsupported or uncorroborated profiles raw; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -69,36 +69,31 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Residual associative closure:** qualify remaining generic dependency
-   targets, owner routes, and link fields against physical source witnesses,
-   including entity and block-parameter targets. A nonempty action-body,
-   action-dependency, or owned-parameter profile requires a source witness before
-   its target type and owner route can be qualified. Reopen a completed provider
-   only when a new physical witness reproduces a raw node or boundary mismatch.
-   Enforce duplicate-ID, missing-target, expected-type, common-owner,
-   reciprocal-edge, bounded-work and cycle rules only where the source profile
-   requires them. Keep version-2 nonzero-seed registry layouts raw until their
-   framing is proven. Keep investigation DWGs out of committed fixtures; bind
-   regressions to eligible repository inputs or locally authored fixtures.
+1. **Source admission:** admit additional associative body,
+   action-dependency, or owned-parameter grammar only when a physical source
+   witness identifies a nonempty or mismatched profile. For each new profile,
+   prove its class, target type, owner route, and exact fields before decoding;
+   reuse qualified source providers and reopen them only when a new physical
+   witness reproduces a mismatch. Apply duplicate-ID, missing-target,
+   expected-type, common-owner, reciprocal-edge, bounded-work and cycle checks
+   only where the witnessed profile requires them. Keep version-2 nonzero-seed
+   registry layouts raw until their framing is proven. Keep investigation DWGs
+   out of committed fixtures; bind regressions to eligible repository inputs or
+   locally authored fixtures.
 2. **Associative output:** bind source identity and required fields to actual
    emitted object records, remap every edge consistently, and retain strict
    refusal until the complete reachable graph is serialized and verified by
    readback. Do not emit a partial graph or infer edges from adjacent handle
    values.
-3. **Dependencies:** for each newly required graph record, identify only the
-   source-witnessed dependency roles still missing from the current provider and
-   output path. Preserve hard/soft ownership and absent versus null; reuse
-   already-qualified provider profiles and do not reopen them without a new
-   source-matched failure.
-4. **Recursive closure:** resolve each required object's dependencies, including
+3. **Recursive closure:** resolve each required object's dependencies, including
    dictionaries, XRECORDs, groups, layouts, picture blocks, nested INSERTs,
    attributes, compound children and effective SORT order. Distinguish legal
    reference cycles from invalid ownership and enforce bounded work once.
-5. **Identity and output:** bind source → planned → emitted identities, fields and
+4. **Identity and output:** bind source → planned → emitted identities, fields and
    edges, including generated records and collisions. Keep 320–329 values as
    payload unless an independently identified role proves otherwise. Verify actual
    staged output rather than planned records alone.
-6. **Failure behavior:** reject missing reachable bodies, wrong owners/types/roles,
+5. **Failure behavior:** reject missing reachable bodies, wrong owners/types/roles,
    aliases and late mutation where they invalidate the claimed conversion. Verify
    published-prefix behavior, destination/caller state, temporary cleanup and
    corrected retry.
