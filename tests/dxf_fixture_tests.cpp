@@ -40452,8 +40452,8 @@ double parameter(unsigned profile,unsigned vertex,unsigned element,const std::ar
     const double shift=justification(profile)==2u?.75:0.0;
     return (offsets[element]+shift)*scale(profile)/denominator;
 }
-double parameterForOffset(unsigned profile,unsigned vertex,double offset,double shift) {
-    const auto points=geometry(profile);const auto direction=points.at(vertex).second;const auto mit=miter(profile,points,vertex);
+double parameterForOffset(unsigned profile,unsigned vertex,double offset,double shift,unsigned vertexCount=3u) {
+    const auto points=geometry(profile,vertexCount);const auto direction=points.at(vertex).second;const auto mit=miter(profile,points,vertex);
     const double denominator=dot(cross(extrusion(profile),direction),mit);
     return (offset+shift)*scale(profile)/denominator;
 }
@@ -40599,6 +40599,39 @@ Tags consumedSourceCountRecipe(bool binary,unsigned sourceCount) {
             begin=pointIndex+generated.size();
             continue;
         }
+        begin=end;
+    }
+    return fields;
+}
+Tags simpleFillCountRecipe(bool binary,unsigned sourceCount,int entityFlags=13) {
+    if(sourceCount<3u||sourceCount>UINT8_MAX)
+        throw std::runtime_error("simple-fill MLINE source count is outside 3..255");
+    auto fields=consumedSourceCountRecipe(binary,sourceCount);
+    for(std::size_t begin=0u;begin<fields.size();) {
+        if(fields[begin].first!=0){++begin;continue;}
+        std::size_t end=begin+1u;
+        while(end<fields.size()&&fields[end].first!=0)++end;
+        if(fields[begin].second!="MLINE") {begin=end;continue;}
+        setRecordValue(fields,begin,end,71,std::to_string(entityFlags));
+        const auto id=std::find_if(fields.begin()+static_cast<std::ptrdiff_t>(begin+1u),
+            fields.begin()+static_cast<std::ptrdiff_t>(end),
+            [](const auto& field){return field.first==5;});
+        if(id==fields.begin()+static_cast<std::ptrdiff_t>(end))
+            throw std::runtime_error("simple-fill MLINE identity missing");
+        std::size_t tuple=0u;
+        for(std::size_t i=begin+1u;i<end;) {
+            if(fields[i].first!=74){++i;continue;}
+            if(i+3u>=end||fields[i+1u].first!=41||fields[i+2u].first!=41
+                ||fields[i+3u].first!=75)
+                throw std::runtime_error("simple-fill MLINE parameter tuple is malformed");
+            const double first=std::stod(fields[i+1u].second);
+            fields[i+3u].second="2";
+            fields.insert(fields.begin()+static_cast<std::ptrdiff_t>(i+4u),
+                {{42,number(first)},{42,number(0.0)}});
+            end+=2u;i+=6u;++tuple;
+        }
+        if(tuple!=sourceCount*3u)
+            throw std::runtime_error("simple-fill MLINE parameter count mismatch");
         begin=end;
     }
     return fields;
@@ -41145,33 +41178,43 @@ bool outputProofElementCount(const std::filesystem::path& path,bool binary,int e
     }
     return true;
 }
+template<typename OffsetRange>
 bool fillParameterOutputProof(const std::filesystem::path& path,bool binary,
-        const std::array<double,2>& expectedOffsets,unsigned fillParamCount=2u,
+        const OffsetRange& expectedOffsets,unsigned fillParamCount=2u,
         bool corruptLastFill=false,unsigned vertexCount=3u,int entityFlags=13) {
-    if(vertexCount<2u||vertexCount>4u||(fillParamCount!=2u&&fillParamCount!=4u))return false;
+    const std::size_t elementCount=expectedOffsets.size();
+    if(elementCount<2u||elementCount>UINT8_MAX||vertexCount<2u||vertexCount>4u
+        ||(fillParamCount!=2u&&fillParamCount!=4u))return false;
+    const double minimumOffset=*std::min_element(expectedOffsets.begin(),expectedOffsets.end());
+    const auto expectedParameter=[&](unsigned profile,unsigned vertex,std::size_t element) {
+        const double shift=justification(profile)==2u?-minimumOffset:0.0;
+        return parameterForOffset(profile,vertex,expectedOffsets[element],shift,vertexCount);
+    };
     const auto rows=mlineStyleAuthorityControls::records(path,binary);
     unsigned styles=0u,consumers=0u;
     for(const auto& row:rows) {
         if(row.type=="MLINESTYLE") {
             const auto offsets=values(row,49);
-            if(offsets.size()!=2u||!close(std::stod(offsets[0]),expectedOffsets[0])
-                ||!close(std::stod(offsets[1]),expectedOffsets[1]))return false;
+            if(offsets.size()!=elementCount)return false;
+            for(std::size_t i=0u;i<elementCount;++i)
+                if(!close(std::stod(offsets[i]),expectedOffsets[i]))return false;
             ++styles;
         }
         if(row.type!="MLINE")continue;
         const unsigned profile=row.section=="ENTITIES"?0u:row.section=="BLOCKS"?1u:2u;
         if(profile>1u||row.section!=(profile?"BLOCKS":"ENTITIES")
-            ||!oneNumber(row,71,entityFlags)||!oneNumber(row,72,vertexCount)||!oneNumber(row,73,2))return false;
+            ||!oneNumber(row,71,entityFlags)||!oneNumber(row,72,vertexCount)
+            ||!oneNumber(row,73,static_cast<int>(elementCount)))return false;
         const auto lineParams=values(row,41),fillCounts=values(row,75),fillParams=values(row,42);
-        if(lineParams.size()!=vertexCount*4u||fillCounts.size()!=vertexCount*2u
-            ||fillParams.size()!=vertexCount*2u*fillParamCount)return false;
+        if(lineParams.size()!=vertexCount*elementCount*2u||fillCounts.size()!=vertexCount*elementCount
+            ||fillParams.size()!=vertexCount*elementCount*fillParamCount)return false;
         std::size_t lineAt=0u,fillAt=0u;
-        for(unsigned vertex=0u;vertex<vertexCount;++vertex)for(unsigned element=0u;element<2u;++element) {
-            const double expected=parameter(profile,vertex,element,expectedOffsets,vertexCount);
+        for(unsigned vertex=0u;vertex<vertexCount;++vertex)for(std::size_t element=0u;element<elementCount;++element) {
+            const double expected=expectedParameter(profile,vertex,element);
             if(!close(std::stod(lineParams[lineAt++]),expected)
                 ||std::stod(lineParams[lineAt++])!=0.0
-                ||std::stod(fillCounts[vertex*2u+element])!=static_cast<double>(fillParamCount))return false;
-            const bool corrupt=corruptLastFill&&profile==1u&&vertex+1u==vertexCount&&element==1u;
+                ||std::stod(fillCounts[vertex*elementCount+element])!=static_cast<double>(fillParamCount))return false;
+            const bool corrupt=corruptLastFill&&profile==1u&&vertex+1u==vertexCount&&element+1u==elementCount;
             if(!close(std::stod(fillParams[fillAt++]),expected+(corrupt?.25:0.0))
                 ||std::stod(fillParams[fillAt++])!=0.0)return false;
             if(fillParamCount==4u&&(!close(std::stod(fillParams[fillAt++]),expected+1.0)
@@ -41182,23 +41225,23 @@ bool fillParameterOutputProof(const std::filesystem::path& path,bool binary,
     if(styles!=1u||consumers!=2u)return false;
     dx_iface reader;dx_data actual;
     if(!reader.fileImport(path.string(),&actual,false)||actual.mLineStyles.size()!=1u
-        ||actual.mLineStyles.front().elements.size()!=2u
-        ||!close(actual.mLineStyles.front().elements[0].offset,expectedOffsets[0])
-        ||!close(actual.mLineStyles.front().elements[1].offset,expectedOffsets[1]))return false;
+        ||actual.mLineStyles.front().elements.size()!=elementCount)return false;
+    for(std::size_t i=0u;i<elementCount;++i)
+        if(!close(actual.mLineStyles.front().elements[i].offset,expectedOffsets[i]))return false;
     const auto lines=mlineStyleAuthorityControls::consumers(actual);
     if(lines.size()!=2u)return false;
     for(unsigned profile=0u;profile<2u;++profile) {
         const auto& line=*lines[profile];
-        if(line.openClosed!=entityFlags||line.numVerts!=vertexCount||line.numLines!=2u
+        if(line.openClosed!=entityFlags||line.numVerts!=vertexCount||line.numLines!=elementCount
             ||line.vertlist.size()!=vertexCount)return false;
-        for(unsigned vertex=0u;vertex<vertexCount;++vertex)for(unsigned element=0u;element<2u;++element) {
-            const double expected=parameter(profile,vertex,element,expectedOffsets,vertexCount);
+        for(unsigned vertex=0u;vertex<vertexCount;++vertex)for(std::size_t element=0u;element<elementCount;++element) {
+            const double expected=expectedParameter(profile,vertex,element);
             const auto& point=line.vertlist[vertex];
-            if(point.segParms.size()!=2u||point.areaFillParms.size()!=2u
+            const bool corrupt=corruptLastFill&&profile==1u&&vertex+1u==vertexCount&&element+1u==elementCount;
+            if(point.segParms.size()!=elementCount||point.areaFillParms.size()!=elementCount
                 ||point.segParms[element].size()!=2u||point.areaFillParms[element].size()!=fillParamCount
                 ||!close(point.segParms[element][0],expected)||point.segParms[element][1]!=0.0
-                ||!close(point.areaFillParms[element][0],expected
-                    +((corruptLastFill&&profile==1u&&vertex+1u==vertexCount&&element==1u)?.25:0.0))
+                ||!close(point.areaFillParms[element][0],expected+(corrupt?.25:0.0))
                 ||point.areaFillParms[element][1]!=0.0)return false;
             if(fillParamCount==4u&&(!close(point.areaFillParms[element][2],expected+1.0)
                 ||!close(point.areaFillParms[element][3],1.0)))return false;
@@ -42158,10 +42201,11 @@ bool runVertexCountFlagProfilesTemporary() {
 }
 bool runFillParameterProfiles(const std::filesystem::path& dir) {
     const auto input=dir/"fill-parameter-input.dxf",output=dir/"fill-parameter-output.dxf";
-    std::size_t projections=0u,refusals=0u,retries=0u,readbacks=0u;
+    std::size_t projections=0u,wideProjections=0u,refusals=0u,retries=0u,readbacks=0u,late=0u;
     const auto fail=[&](int line) {
         std::cerr<<"MLINE fill-parameter profiles line="<<line<<" projections="<<projections
-            <<" refusals="<<refusals<<" retries="<<retries<<" readbacks="<<readbacks<<'\n';return false;
+            <<" wide="<<wideProjections<<" refusals="<<refusals<<" retries="<<retries
+            <<" readbacks="<<readbacks<<" late="<<late<<'\n';return false;
     };
     for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
         for(const unsigned vertexCount:{2u,3u,4u})for(const int entityFlags:{1,5,9,13}) {
@@ -42229,9 +42273,77 @@ bool runFillParameterProfiles(const std::filesystem::path& dir) {
             ||!malformedRetry.same(malformedData))return fail(__LINE__);
         ++retries;++readbacks;
     }
-    std::cout<<"MLINE simple fill projections="<<projections<<"; cut/malformed refusals="<<refusals
-        <<"; retries="<<retries<<"; readbacks="<<readbacks<<'\n';
-    return projections==48u&&refusals==8u&&retries==8u&&readbacks==56u;
+    for(const unsigned elementCount:{3u,8u,255u}) {
+        const std::vector<int> flagProfiles=elementCount==3u
+            ?std::vector<int>{1,5,9,13}:std::vector<int>{13};
+        for(const int entityFlags:flagProfiles)
+            for(bool sourceBinary:{false,true})for(bool outputBinary:{false,true}) {
+                dx_iface adapter;dx_data data;
+                if(!write(input,simpleFillCountRecipe(sourceBinary,elementCount,entityFlags),
+                          sourceBinary,"AC1027")
+                    ||!adapter.fileImport(input.string(),&data,false)
+                    ||data.mLineStyles.size()!=1u
+                    ||data.mLineStyles.front().elements.size()!=elementCount)return fail(__LINE__);
+                std::vector<double> expectedOffsets{beforeOffsets[0],beforeOffsets[1]};
+                for(unsigned element=2u;element<elementCount;++element)
+                    expectedOffsets.push_back(element==2u?-1.25
+                        :-2.0-.5*static_cast<double>(element-3u));
+                if(!fillParameterOutputProof(input,sourceBinary,expectedOffsets,2u,
+                    false,3u,entityFlags))return fail(__LINE__);
+                for(std::size_t element=0u;element<elementCount;++element)
+                    if(!close(data.mLineStyles.front().elements[element].offset,expectedOffsets[element]))
+                        return fail(__LINE__);
+                expectedOffsets.back()+=.25;
+                data.mLineStyles.front().elements.back().offset=expectedOffsets.back();
+                const mlineRetargetControls::Snapshot changed(data);sentinel(output);
+                if(!adapter.fileExport(output.string(),DRW::AC1027,outputBinary,&data,false,true)) {
+                    std::cerr<<"MLINE fill count projection export failed count="<<elementCount
+                        <<" flags="<<entityFlags<<" sourceBinary="<<sourceBinary
+                        <<" outputBinary="<<outputBinary<<'\n';return fail(__LINE__);
+                }
+                if(!fillParameterOutputProof(output,outputBinary,expectedOffsets,2u,
+                    false,3u,entityFlags)||!changed.same(data))return fail(__LINE__);
+                ++projections;++wideProjections;++readbacks;
+            }
+    }
+    {
+        Editing adapter;dx_data data;
+        if(!write(input,simpleFillCountRecipe(false,255u,13),false,"AC1027")
+            ||!adapter.fileImport(input.string(),&data,false)||data.mLineStyles.size()!=1u
+            ||data.mLineStyles.front().elements.size()!=255u)return fail(__LINE__);
+        std::vector<double> expectedOffsets{beforeOffsets[0],beforeOffsets[1]};
+        for(unsigned element=2u;element<255u;++element)
+            expectedOffsets.push_back(element==2u?-1.25
+                :-2.0-.5*static_cast<double>(element-3u));
+        if(!fillParameterOutputProof(input,false,expectedOffsets,2u,false,3u,13))
+            return fail(__LINE__);
+        for(std::size_t element=0u;element<255u;++element)
+            if(!close(data.mLineStyles.front().elements[element].offset,expectedOffsets[element]))
+                return fail(__LINE__);
+        expectedOffsets.back()+=.25;
+        data.mLineStyles.front().elements.back().offset=expectedOffsets.back();
+        const auto lines=mlineStyleAuthorityControls::consumers(data);
+        if(lines.size()!=2u||lines.front()->vertlist.empty())return fail(__LINE__);
+        bool mutated=false;
+        adapter.change=[&]{
+            lines.front()->vertlist.back().areaFillParms.back()[0]+=.25;
+            mutated=true;
+        };
+        const mlineRetargetControls::Snapshot changed(data);sentinel(output);
+        if(adapter.fileExport(output.string(),DRW::AC1027,true,&data,false,true)
+            ||!mutated||!dictionaryVarTransactionControls::keptWithoutTemporary(output))return fail(__LINE__);
+        ++refusals;++late;
+        changed.restore(data);adapter.active=false;
+        if(!adapter.fileExport(output.string(),DRW::AC1027,true,&data,false,true)
+            ||!fillParameterOutputProof(output,true,expectedOffsets,2u,false,3u,13)
+            ||!changed.same(data))return fail(__LINE__);
+        ++retries;++readbacks;
+    }
+    std::cout<<"MLINE simple fill projections="<<projections<<" (wide="<<wideProjections
+        <<"); cut/malformed/late refusals="<<refusals<<"; retries="<<retries
+        <<"; readbacks="<<readbacks<<"; late="<<late<<'\n';
+    return projections==72u&&wideProjections==24u&&refusals==9u&&retries==9u
+        &&readbacks==81u&&late==1u;
 }
 bool runFillParameterProfilesTemporary() {
     const auto dir=std::filesystem::temp_directory_path() /

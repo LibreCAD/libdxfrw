@@ -17553,7 +17553,8 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
     std::array<std::size_t,UINT8_MAX> survivorIndices{};
     if (!mlineProjectionOpenAndUncut(original)
         || (original.openClosed!=1 && !retargetAngles && !retargetOffsets
-            && !appendCapFlags && !removeCapFlags && !consumedOffsetCapFlags)
+            && !appendCapFlags && !removeCapFlags && !consumedOffsetCapFlags
+            && !simpleFillOffsetEdit)
         || (original.justification!=1u && original.justification!=2u)
         || !std::isfinite(original.scale) || original.scale<=0.0
         || original.numLines<2u || original.numLines!=before.elements.size()
@@ -17567,7 +17568,8 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
             || after.elements.size()!=before.elements.size()
             || (original.openClosed!=5 && original.openClosed!=9 && original.openClosed!=13)))
         || (simpleFillOffsetEdit && (appended || removed || retargetAngles || retargetStyleRemoval
-            || retargetOffsets || before.elements.size()!=2u || after.elements.size()!=2u
+            || retargetOffsets || before.elements.size()<2u || before.elements.size()>UINT8_MAX
+            || after.elements.size()!=before.elements.size()
             || (original.openClosed!=1 && original.openClosed!=5
                 && original.openClosed!=9 && original.openClosed!=13)
             || original.vertlist.size()<2u || original.vertlist.size()>4u))
@@ -18931,6 +18933,12 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && before->elements.size()==2u && targetStyle.elements.size()==3u;
                 const bool selectedCapFlagRemoval=before && version==DRW::AC1027 && removeElements
                     && before->elements.size()==2u && targetStyle.elements.size()==1u;
+                const auto styleOffsetsChanged=[&]() {
+                    if (!before || before->elements.size()!=targetStyle.elements.size()) return false;
+                    for (std::size_t i=0u;i<before->elements.size();++i)
+                        if (!retainedDoubleEqual(before->elements[i].offset,targetStyle.elements[i].offset)) return true;
+                    return false;
+                };
                 const bool selectedCapFlagOffsetEdit=before && version==DRW::AC1027
                     && !append && !removeElements && before->elements.size()>=2u
                     && before->elements.size()<=UINT8_MAX
@@ -18939,18 +18947,17 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
                     && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
                         || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
                 const bool selectedSimpleFillOffsetEdit=before && version==DRW::AC1027
-                    && !append && !removeElements && before->elements.size()==2u
-                    && targetStyle.elements.size()==2u
+                    && !append && !removeElements && before->elements.size()>=2u
+                    && before->elements.size()<=UINT8_MAX
+                    && targetStyle.elements.size()==before->elements.size()
                     && (original->openClosed==1 || original->openClosed==5
                         || original->openClosed==9 || original->openClosed==13)
                     && original->vertlist.size()>=2u && original->vertlist.size()<=4u
-                    && std::all_of(original->vertlist.begin(),original->vertlist.end(),[](const DRW_MLineVertex& vertex) {
-                        return vertex.areaFillParms.size()==2u
+                    && std::all_of(original->vertlist.begin(),original->vertlist.end(),[&](const DRW_MLineVertex& vertex) {
+                        return vertex.areaFillParms.size()==targetStyle.elements.size()
                             && std::all_of(vertex.areaFillParms.begin(),vertex.areaFillParms.end(),
                                 [](const std::vector<double>& parameters) {return parameters.size()==2u;});
-                    })
-                    && (!retainedDoubleEqual(before->elements[0].offset,targetStyle.elements[0].offset)
-                        || !retainedDoubleEqual(before->elements[1].offset,targetStyle.elements[1].offset));
+                    }) && styleOffsetsChanged();
                 if (!admitted || !mlineReprojectUncut(*original,*before,targetStyle,planned.projection,
                         append,removeElements,false,false,false,selectedCapFlagAppend,
                         selectedCapFlagRemoval,selectedCapFlagOffsetEdit,selectedSimpleFillOffsetEdit)) return false;
