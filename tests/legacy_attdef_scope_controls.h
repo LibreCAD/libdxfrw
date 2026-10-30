@@ -2,7 +2,7 @@
 bool legacyAttdefScopeTests(const std::filesystem::path& path) {
     using A=DxIfaceTableSourceTestAccess;using S=DRW_DxfIdentitySource;
     struct Probe final:dx_iface {
-        bool active=true;unsigned fault=0u;
+        bool active=true;unsigned fault=0u;bool duplicateBlockTargetIdentity=false;
         bool wantsDxfBlockSource()const override{return active;}
         bool wantsDxfBlockChildrenSource()const override{return active;}
         bool wantsDxfBlockDeliverySource()const override{return active;}
@@ -30,6 +30,20 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                 default:throw std::runtime_error("bad test fault");
                 }
             }
+            if(duplicateBlockTargetIdentity) {
+                const auto target=std::find_if(source.candidates.begin(),source.candidates.end(),[&](const auto& candidate) {
+                    return candidate.code==5&&candidate.lexeme=="A7E"&&candidate.record<source.records.size()
+                        &&source.records[candidate.record].kind==S::Kind::TableRecord
+                        &&source.records[candidate.record].name=="BLOCK_RECORD";
+                });
+                if(target==source.candidates.end())throw std::runtime_error("missing selected BLOCK_RECORD target candidate");
+                const auto targetRecord=source.records[target->record];
+                const auto duplicateRecordIndex=source.records.size();
+                auto duplicateRecord=targetRecord;duplicateRecord.firstCandidate=source.candidates.size();
+                duplicateRecord.candidates=1u;source.records.push_back(std::move(duplicateRecord));
+                auto duplicateCandidate=*target;duplicateCandidate.record=duplicateRecordIndex;
+                source.candidates.push_back(std::move(duplicateCandidate));
+            }
             dx_iface::addDxfIdentitySource(value);source=std::move(saved);
         }
     };
@@ -40,19 +54,26 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         {10,"0"},{20,"0"},{30,"0"},{40,"5"},{1,"default"},{100,"AcDbAttributeDefinition"},
         {3,"prompt"},{2,"ATTINFO"},{70,"0"},{1001,"AcDbAttr"},{1000,"x"},{1070,"0"},{1070,"1"}};
     Tags doc{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1018"},{9,"$DWGCODEPAGE"},{3,"ANSI_1252"},
-        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"4"},
+        {0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"APPID"},{5,"A9"},{100,"AcDbSymbolTable"},{70,"5"},
         {0,"APPID"},{5,"A8"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"TEST_APP"},{70,"0"},
         {0,"APPID"},{5,"A7"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbAttr"},{70,"0"},
         {0,"APPID"},{5,"A5"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbDynamicBlockGUID"},{70,"0"},
-        {0,"APPID"},{5,"A6"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"ACAD"},{70,"0"},{0,"ENDTAB"},
-        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"2"},{0,"BLOCK_RECORD"}};
+        {0,"APPID"},{5,"A6"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"ACAD"},{70,"0"},
+        {0,"APPID"},{5,"A3"},{330,"A9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbRegAppTableRecord"},{2,"AcDbBlockRepBTag"},{70,"0"},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"B9"},{100,"AcDbSymbolTable"},{70,"4"},{0,"BLOCK_RECORD"}};
     doc.insert(doc.end(),tableRow.begin(),tableRow.end());
     doc.insert(doc.end(),{{0,"BLOCK_RECORD"},{5,"C1"},{102,"{ACAD_XDICTIONARY"},{360,"D1"},{102,"}"},
         {330,"B9"},{100,"AcDbSymbolTableRecord"},
-        {100,"AcDbBlockTableRecord"},{2,"*U18"},{340,"0"},
+        {100,"AcDbBlockTableRecord"},{2,"*U20"},{340,"0"},
         {102,"{BLKREFS"},{331,"B1"},{102,"}"},
         {1001,"AcDbDynamicBlockGUID"},{1000,"{AF4CD1DE-22F5-46CB-967C-41B95DEED31F}"},
         {1001,"ACAD"},{1000,"DesignCenter Data"},{1002,"{"},{1070,"1"},{1070,"4"},{1002,"}"},
+        {0,"BLOCK_RECORD"},{5,"A91"},{102,"{ACAD_XDICTIONARY"},{360,"A92"},{102,"}"},
+        {330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*U18"},{340,"0"},
+        {102,"{BLKREFS"},{331,"E1"},{102,"}"},{1001,"AcDbBlockRepBTag"},{1070,"1"},{1005,"A7E"},
+        {0,"BLOCK_RECORD"},{5,"A7E"},{102,"{ACAD_XDICTIONARY"},{360,"A7F"},{102,"}"},
+        {330,"B9"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*U17"},{340,"0"},
+        {102,"{BLKREFS"},{331,"E2"},{102,"}"},{1001,"TEST_APP"},{1000,"target"},
         {0,"ENDTAB"},{0,"ENDSEC"},{0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},
         {5,"B1"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"MY_BLOCK"},
         {70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"MY_BLOCK"},{1,""},{0,"ATTDEF"}});
@@ -80,7 +101,8 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         if(end==outputDoc.end())return false;
         outputDoc.erase(first,end);return true;
     };
-    if(!eraseRecord("BLOCK_RECORD","C1")||!eraseRecord("DICTIONARY","D1")
+    if(!eraseRecord("BLOCK_RECORD","C1")||!eraseRecord("BLOCK_RECORD","A91")
+        ||!eraseRecord("BLOCK_RECORD","A7E")||!eraseRecord("DICTIONARY","D1")
         ||!eraseRecord("SORTENTSTABLE","D4")||!eraseRecord("DICTIONARY","D2")
         ||!eraseRecord("XRECORD","D3"))return false;
     auto blockRecordTable=outputDoc.end();
@@ -110,6 +132,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
     };
     unsigned positives=0u,negatives=0u,retries=0u,quotas=0u,defaults=0u,ownerFaults=0u,aliases=0u,shared=0u,indexFaults=0u,dictionaryFaults=0u,liveModelFaults=0u,dependencyChains=0u,dependencyFaults=0u,sortEntsFaults=0u,ownerChainFaults=0u;
     unsigned appIdJoins=0u,appIdRefusals=0u,appIdRetries=0u;
+    unsigned xdataJoins=0u,xdataRefusals=0u,xdataRetries=0u;
     for(bool binary:{false,true}){
         if(!write(path,doc,binary))return false;
         Probe plain;plain.active=false;dx_data absent;if(!plain.fileImport(path.string(),&absent,false)||A::legacyJoin(absent)||A::legacyJoinFailed(absent)
@@ -145,7 +168,8 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         if(!appIdProbe.fileImport(path.string(),&appIdData,false)
             ||!A::legacyBlockRecordAppIdJoinBound(appIdData)
             ||!A::legacyBlockRecordAppIdSingleJoinBound(appIdData)
-            ||A::legacyBlockRecordAppIdJoinCount(appIdData)!=1u
+            ||!A::legacyBlockRecordAppIdXdataJoinBound(appIdData)
+            ||A::legacyBlockRecordAppIdJoinCount(appIdData)!=2u
             ||!A::legacyBlockRecordAppIdQuotaControls(appIdData)
             ||A::legacyBlockRecordAppIdCaptureFailed(appIdData)) {
             std::cerr<<"selected AC1018 BLOCK_RECORD APPID source join failed (binary="<<binary<<") joins="
@@ -154,13 +178,68 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
             return false;
         }
         ++appIdJoins;
+        ++xdataJoins;
+        for(unsigned fault=0u;fault<9u;++fault) {
+            auto changed=doc;Probe invalid;
+            if(fault==0u) {
+                auto first=findRecord(changed,"APPID","A3");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                if(end==changed.end())return false;changed.erase(first,end);
+                if(!setAppIdTableCount(changed,"4"))return false;
+            } else if(fault==1u) {
+                auto first=findRecord(changed,"APPID","A3");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto tableEnd=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0&&tag.value=="ENDTAB";});
+                if(end==changed.end()||tableEnd==changed.end())return false;
+                Tags duplicate(first,end);
+                auto handle=std::find_if(duplicate.begin(),duplicate.end(),[](const Tag& tag){return tag.code==5;});
+                if(handle==duplicate.end())return false;handle->value="F00E";
+                changed.insert(tableEnd,duplicate.begin(),duplicate.end());
+                if(!setAppIdTableCount(changed,"6"))return false;
+            } else if(fault==2u||fault==3u) {
+                auto first=findRecord(changed,"APPID","A3");if(first==changed.end())return false;
+                auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto value=std::find_if(std::next(first),end,[&](const Tag& tag){return tag.code==(fault==2u?330:2);});
+                if(end==changed.end()||value==end)return false;value->value=fault==2u?"A8":"OTHER_APP";
+            } else if(fault>=4u&&fault<=7u) {
+                auto owner=findRecord(changed,"BLOCK_RECORD","A91");if(owner==changed.end())return false;
+                auto end=std::find_if(std::next(owner),changed.end(),[](const Tag& tag){return tag.code==0;});
+                auto handle=std::find_if(std::next(owner),end,[](const Tag& tag){return tag.code==1005;});
+                if(end==changed.end()||handle==end)return false;
+                if(fault==4u)handle->value="DEADB";
+                else if(fault==5u)handle->value="A5";
+                else if(fault==6u)handle->value="B0";
+                else changed.insert(end,*handle);
+            } else invalid.duplicateBlockTargetIdentity=true;
+            if(!write(path,changed,binary)
+                ||!invalid.enableWholeDxfSourceObservation()
+                ||!invalid.enableLegacyDxfIdentityObservation())return false;
+            dx_data rejected;
+            if(!invalid.fileImport(path.string(),&rejected,false)
+                ||!A::legacyBlockRecordAppIdXdataJoinAbsent(rejected)
+                ||A::legacyBlockRecordAppIdCaptureFailed(rejected)) {
+                std::cerr<<"BLOCK_RECORD EED group-1005 dependency fault was admitted or capture failed: "
+                    <<fault<<" (binary="<<binary<<")\n";return false;
+            }
+            ++xdataRefusals;
+            if(!write(path,doc,binary))return false;
+            invalid.duplicateBlockTargetIdentity=false;
+            dx_data retry;
+            if(!invalid.fileImport(path.string(),&retry,false)
+                ||!A::legacyBlockRecordAppIdXdataJoinBound(retry)
+                ||A::legacyBlockRecordAppIdCaptureFailed(retry)) {
+                std::cerr<<"BLOCK_RECORD EED group-1005 same-adapter retry failed: "
+                    <<fault<<" (binary="<<binary<<")\n";return false;
+            }
+            ++xdataRetries;
+        }
         for(unsigned fault=0u;fault<8u;++fault) {
             auto changed=doc;
             if(fault==0u) {
                 auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
                 if(end==changed.end())return false;changed.erase(first,end);
-                if(!setAppIdTableCount(changed,"3"))return false;
+                if(!setAppIdTableCount(changed,"4"))return false;
             } else if(fault==1u) {
                 auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
@@ -170,7 +249,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                 auto handle=std::find_if(duplicate.begin(),duplicate.end(),[](const Tag& tag){return tag.code==5;});
                 if(handle==duplicate.end())return false;handle->value="F00D";
                 changed.insert(tableEnd,duplicate.begin(),duplicate.end());
-                if(!setAppIdTableCount(changed,"5"))return false;
+                if(!setAppIdTableCount(changed,"6"))return false;
             } else if(fault==2u) {
                 auto first=findRecord(changed,"APPID","A6");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
@@ -185,7 +264,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                 auto first=findRecord(changed,"APPID","A5");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
                 if(end==changed.end())return false;changed.erase(first,end);
-                if(!setAppIdTableCount(changed,"3"))return false;
+                if(!setAppIdTableCount(changed,"4"))return false;
             } else if(fault==5u) {
                 auto first=findRecord(changed,"APPID","A5");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
@@ -195,7 +274,7 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
                 auto handle=std::find_if(duplicate.begin(),duplicate.end(),[](const Tag& tag){return tag.code==5;});
                 if(handle==duplicate.end())return false;handle->value="F00D";
                 changed.insert(tableEnd,duplicate.begin(),duplicate.end());
-                if(!setAppIdTableCount(changed,"5"))return false;
+                if(!setAppIdTableCount(changed,"6"))return false;
             } else if(fault==6u) {
                 auto first=findRecord(changed,"APPID","A5");if(first==changed.end())return false;
                 auto end=std::find_if(std::next(first),changed.end(),[](const Tag& tag){return tag.code==0;});
@@ -469,11 +548,14 @@ bool legacyAttdefScopeTests(const std::filesystem::path& path) {
         <<" owner-chain faults="<<ownerChainFaults
         <<" BLOCK_RECORD APPID joins="<<appIdJoins<<" refusal controls="<<appIdRefusals
         <<" same-adapter retries="<<appIdRetries
+        <<" BLOCK_RECORD APPID/XDATA joins="<<xdataJoins<<" refusal controls="<<xdataRefusals
+        <<" same-adapter retries="<<xdataRetries
         <<" live-model-controls="<<liveModelFaults<<" default="<<defaults
         <<" negative="<<negatives<<" quota="<<quotas<<" owner="<<ownerFaults<<" aliases="<<aliases
         <<" shared="<<shared<<" index="<<indexFaults<<" dictionary="<<dictionaryFaults<<" retries="<<retries<<'\n';
     return positives==2u&&dependencyChains==2u&&dependencyFaults==12u&&sortEntsFaults==8u&&ownerChainFaults==4u
-        &&appIdJoins==2u&&appIdRefusals==16u&&appIdRetries==16u&&liveModelFaults==4u&&defaults==2u
+        &&appIdJoins==2u&&appIdRefusals==16u&&appIdRetries==16u
+        &&xdataJoins==2u&&xdataRefusals==18u&&xdataRetries==18u&&liveModelFaults==4u&&defaults==2u
         &&negatives==26u&&quotas==8u&&ownerFaults==6u&&aliases==2u&&shared==2u&&indexFaults==10u
         &&dictionaryFaults==6u&&retries==72u;
 }

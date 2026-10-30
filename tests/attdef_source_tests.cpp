@@ -255,6 +255,85 @@ public:
             &&source.wholeInput->source->value(ownerField)=="TEST_APP"&&providerField.code==2
             &&source.wholeInput->source->value(providerField)=="TEST_APP";
     }
+    static bool legacyBlockRecordAppIdXdataJoinBound(const dx_data& d,std::uint32_t ownerHandle=0xA91u,
+            std::uint32_t providerHandle=0xA3u,std::uint32_t targetHandle=0xA7Eu) {
+        const auto& source=d.m_tableDxfSource;
+        const auto found=source.legacyBlockRecordAppIdJoins.find(ownerHandle);
+        const auto owner=source.structuralInputs.find(ownerHandle);
+        if(found==source.legacyBlockRecordAppIdJoins.end()||!found->second
+            ||owner==source.structuralInputs.end()||!owner->second
+            ||!owner->second->raw
+            ||!source.legacyIdentityObservation||!source.legacyIdentityObservation->source
+            ||!source.wholeInput||!source.wholeInput->source)return false;
+        const auto& join=*found->second;const auto& binding=join.xdataObjectId;
+        const auto& census=*source.legacyIdentityObservation->source;
+        if(join.identity.get()!=source.legacyIdentityObservation.get()
+            ||join.wholeInput.get()!=source.wholeInput.get()
+            ||join.ownerStructural.get()!=owner->second.get()||join.ownerHandle!=ownerHandle
+            ||join.providerCount!=1u||join.providers[0].handle!=providerHandle||!join.hasXdataObjectId
+            ||!join.providers[0].raw||!join.providers[0].model
+            ||!binding.targetModel||!binding.targetRaw||!binding.targetStructural
+            ||binding.handle!=targetHandle||binding.ownerGroup>=owner->second->raw->groups.size()
+            ||binding.targetNameGroup>=binding.targetRaw->groups.size()
+            ||binding.targetRecord>=census.records.size()||join.ownerRecord>=census.records.size()
+            ||join.tableRecord>=census.records.size()||binding.tableHandle!=owner->second->raw->parentHandle
+            ||binding.targetStructural->model.get()!=binding.targetModel.get()
+            ||binding.targetStructural->raw.get()!=binding.targetRaw.get()
+            ||join.providers[0].ownerNameGroup>=owner->second->raw->groups.size()
+            ||join.providers[0].providerNameGroup>=join.providers[0].raw->groups.size()
+            ||join.providers[0].providerRecord>=census.records.size()
+            ||binding.ownerOrdinal==0u||binding.targetNameOrdinal==0u
+            ||census.records[binding.targetRecord].name!="BLOCK_RECORD"
+            ||census.records[binding.targetRecord].kind!=DRW_DxfIdentitySource::Kind::TableRecord
+            ||census.records[binding.targetRecord].table!=census.records[join.ownerRecord].table
+            ||census.records[join.providers[0].providerRecord].name!="APPID"
+            ||census.records[join.providers[0].providerRecord].table!=join.tableRecord)return false;
+        const auto& xdata=owner->second->raw->groups[binding.ownerGroup];
+        const auto& targetName=binding.targetRaw->groups[binding.targetNameGroup];
+        const auto& ownerAppId=owner->second->raw->groups[join.providers[0].ownerNameGroup];
+        const auto& providerName=join.providers[0].raw->groups[join.providers[0].providerNameGroup];
+        const auto providerOwnerField=source.wholeInput->source->field(join.providers[0].ownerNameOrdinal-1u);
+        const auto providerNameField=source.wholeInput->source->field(join.providers[0].providerNameOrdinal-1u);
+        const auto* target=dynamic_cast<const DRW_Block_Record*>(binding.targetModel.get());
+        const auto sourceField=source.wholeInput->source->field(binding.ownerOrdinal-1u);
+        const auto targetNameField=source.wholeInput->source->field(binding.targetNameOrdinal-1u);
+        std::size_t targetLiveCount=0u;
+        for(const auto& row:d.blockRecords)if(row.handle==targetHandle)++targetLiveCount;
+        return ownerAppId.code()==1001&&ownerAppId.content.s&&*ownerAppId.content.s=="AcDbBlockRepBTag"
+            &&providerName.code()==2&&providerName.content.s&&*providerName.content.s=="AcDbBlockRepBTag"
+            &&join.providers[0].raw->handle==providerHandle
+            &&join.providers[0].raw->parentHandle==join.tableHandle
+            &&join.providers[0].model->handle==providerHandle
+            &&join.providers[0].model->parentHandle==join.tableHandle
+            &&source.wholeInput->source->bounds(providerOwnerField)&&providerOwnerField.code==1001
+            &&providerOwnerField.ordinal==join.providers[0].ownerNameOrdinal
+            &&providerOwnerField.begin==join.providers[0].ownerNameBegin
+            &&providerOwnerField.end==join.providers[0].ownerNameEnd
+            &&source.wholeInput->source->value(providerOwnerField)=="AcDbBlockRepBTag"
+            &&source.wholeInput->source->bounds(providerNameField)&&providerNameField.code==2
+            &&providerNameField.ordinal==join.providers[0].providerNameOrdinal
+            &&providerNameField.begin==join.providers[0].providerNameBegin
+            &&providerNameField.end==join.providers[0].providerNameEnd
+            &&source.wholeInput->source->value(providerNameField)=="AcDbBlockRepBTag"
+            &&xdata.code()==1005&&xdata.type()==DRW_Variant::STRING&&xdata.content.s
+            &&*xdata.content.s=="A7E"&&targetName.code()==2&&targetName.content.s
+            &&*targetName.content.s=="*U17"&&target&&target->name=="*U17"
+            &&binding.targetRaw->handle==targetHandle&&binding.targetRaw->parentHandle==binding.tableHandle
+            &&target->handle==targetHandle&&target->parentHandle==binding.tableHandle&&targetLiveCount==1u
+            &&source.wholeInput->source->bounds(sourceField)&&sourceField.code==1005
+            &&sourceField.ordinal==binding.ownerOrdinal&&sourceField.begin==binding.ownerBegin
+            &&sourceField.end==binding.ownerEnd&&source.wholeInput->source->value(sourceField)=="A7E"
+            &&source.wholeInput->source->bounds(targetNameField)&&targetNameField.code==2
+            &&targetNameField.ordinal==binding.targetNameOrdinal&&targetNameField.begin==binding.targetNameBegin
+            &&targetNameField.end==binding.targetNameEnd
+            &&source.wholeInput->source->value(targetNameField)=="*U17"
+            &&!source.legacyBlockRecordAppIdCaptureFailed
+            &&!dx_iface::identitySourceReport(d).outputEligible
+            &&!dx_iface::identitySourceReport(d).ownerTargetsResolved;
+    }
+    static bool legacyBlockRecordAppIdXdataJoinAbsent(const dx_data& d,std::uint32_t ownerHandle=0xA91u) {
+        return !d.m_tableDxfSource.legacyBlockRecordAppIdJoins.count(ownerHandle);
+    }
     static bool legacyBlockRecordAppIdQuotaControls(const dx_data& d,std::uint32_t ownerHandle=0xC1u,
             std::uint32_t providerHandle=0xA6u) {
         using Join=dx_data::TableDxfSourceCapture::LegacyBlockRecordAppIdJoin;

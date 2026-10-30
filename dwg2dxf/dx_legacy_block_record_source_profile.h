@@ -11,7 +11,7 @@
 // Caller must precharge group-count storage and linear inspection work.
 namespace dx_legacy_block_record_source {
 enum class Field:std::uint8_t {Identity,Subclass,Name,Layout,Application,Xdata};
-enum class Role:std::uint8_t {None,Self,Owner,BlockName,Layout,ExtensionDictionary,BlockInsert,AppIdName};
+enum class Role:std::uint8_t {None,Self,Owner,BlockName,Layout,ExtensionDictionary,BlockInsert,AppIdName,XdataObjectId};
 enum class Reason:std::uint8_t {NotChecked,Complete,Revision,Identity,Unexpected,InvalidValue,Application,Xdata,Duplicate,Limit};
 struct Span {std::size_t index;int code;Field field;Role role;std::uint32_t handle;};
 struct Audit {Reason reason{Reason::NotChecked};std::size_t rejectedGroup{0};std::vector<Span> spans;
@@ -84,6 +84,9 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
   } else if(code==1070) {
    if(v->type()!=DRW_Variant::INTEGER||v->i_val()<-32768||v->i_val()>32767)return reject(Reason::InvalidValue,at);
    ++values;take(code,Field::Xdata,Role::None,0u);
+  } else if(code==1005) {
+   if(!handle(*v,h)||!h)return reject(Reason::InvalidValue,at);
+   ++values;take(code,Field::Xdata,Role::XdataObjectId,h);
   } else return reject(Reason::Unexpected,at);
  }
  if(!count||!values||depth)return reject(Reason::Xdata,at);

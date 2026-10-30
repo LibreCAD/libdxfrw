@@ -1523,6 +1523,17 @@ private:
             std::uint32_t handle{0};
         };
         struct LegacyBlockRecordAppIdJoin {
+            struct XdataObjectId {
+                std::shared_ptr<const DRW_TableEntry> targetModel;
+                std::shared_ptr<const DRW_RawDxfObject> targetRaw;
+                std::shared_ptr<const StructuralInput> targetStructural;
+                std::size_t ownerGroup{DRW_DxfIdentitySource::NoIndex};
+                std::size_t targetRecord{DRW_DxfIdentitySource::NoIndex};
+                std::size_t targetNameGroup{DRW_DxfIdentitySource::NoIndex};
+                std::uint64_t ownerOrdinal{0},ownerBegin{0},ownerEnd{0};
+                std::uint64_t targetNameOrdinal{0},targetNameBegin{0},targetNameEnd{0};
+                std::uint32_t handle{0},tableHandle{0};
+            };
             std::shared_ptr<const IdentityInput> identity;
             std::shared_ptr<const WholeSourceInput> wholeInput;
             std::shared_ptr<const StructuralInput> ownerStructural;
@@ -1531,6 +1542,8 @@ private:
             std::uint32_t ownerHandle{0},tableHandle{0},providerHandle{0};
             std::array<LegacyBlockRecordAppIdProvider,2> providers{};
             std::size_t providerCount{0};
+            bool hasXdataObjectId{false};
+            XdataObjectId xdataObjectId;
             std::size_t retainedBytes{0},work{0};
         };
         std::map<std::uint32_t,std::shared_ptr<const LegacyBlockRecordAppIdJoin>>
