@@ -43,6 +43,43 @@ inline bool slots(const Groups& groups,Slots& result,std::size_t& bodyEnd,std::s
     bool body=false,xdata=false,bumpProjection=false,bumpTiling=false;
     bodyEnd=groups.size();
     if(procedure)*procedure=groups.size();
+    std::size_t preStrengthNormalMethod=groups.size();
+    bool bumpTilingSeen=false,preStrengthBoundarySeen=false;
+    bool preStrengthBody=false;
+    unsigned preStrengthDepth=0u;
+    unsigned sourceRefractionMatrix=0u;
+    for(std::size_t i=0u;i<groups.size();++i) {
+        const int code=groups[i].code();
+        if(code==102) {
+            if(groups[i].type()!=DRW_Variant::STRING||!groups[i].content.s)return false;
+            const auto& marker=*groups[i].content.s;
+            if(marker=="}"){if(!preStrengthDepth)return false;--preStrengthDepth;}
+            else if(!marker.empty()&&marker.front()=='{') {
+                if(++preStrengthDepth>DRW::kMaxDxfApplicationGroupNesting)return false;
+            } else return false;
+            continue;
+        }
+        if(preStrengthDepth)continue;
+        if(code>=1000)break;
+        if(code==100) {
+            if(groups[i].type()!=DRW_Variant::STRING||!groups[i].content.s)return false;
+            if(*groups[i].content.s=="AcDbMaterial")preStrengthBody=true;
+            else if(preStrengthBody)break;
+            continue;
+        }
+        if(!preStrengthBody)continue;
+        if(code==300||code==464||code==465) {
+            if(code==464||code==465)preStrengthBoundarySeen=true;
+            if(code==300||preStrengthBoundarySeen)break;
+        }
+        if(code==147)++sourceRefractionMatrix;
+        if(code==271) {
+            if(bumpTilingSeen&&!preStrengthBoundarySeen
+                &&sourceRefractionMatrix==0u&&i+1u<groups.size()
+                &&groups[i+1u].code()==465)preStrengthNormalMethod=i;
+            bumpTilingSeen=true;
+        }
+    }
     for(std::size_t i=0;i<groups.size();++i) {
         const auto& value=groups[i];const auto code=value.code();
         if(code==102) {
@@ -69,6 +106,7 @@ inline bool slots(const Groups& groups,Slots& result,std::size_t& bodyEnd,std::s
         if(code==292){key=2292;phase=3u;}
         else if(phase<2u&&(code==464||code==465)){phase=1u;key=1000+code;}
         else if(phase<2u&&(code==290||(code>=460&&code<=463)))key=code;
+        else if(i==preStrengthNormalMethod)key=1271;
         else if(phase==0u&&refractionMatrix==16u
             &&((code==270&&bumpProjection)||(code==271&&bumpTiling)))key=1000+code;
         else if(code==293&&phase<2u)key=1293;

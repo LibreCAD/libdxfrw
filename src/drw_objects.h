@@ -4367,6 +4367,7 @@ public:
     m_dxfCompleteDiffuseBeforeRefraction = false;
     m_dxfInferredNormalMapBoundary = false;
     m_dxfRepeatedDiffuseMapField = false;
+    m_dxfPreStrengthNormalMapMethod = false;
     m_rawData.clear();
     m_rawDataBitSize = 0;
     m_rawDataValid = false;
@@ -4594,8 +4595,10 @@ public:
   bool m_hasChannelFlags {false};
   [[nodiscard]] bool hasCompleteDxfMapTransforms() const noexcept {
     // Without an explicit normal-map marker, the reader only admits the
-    // complete distinguishing tuple following the refraction fields.
-    return (!m_dxfInferredNormalMapBoundary
+    // complete distinguishing tuple. A repeated pre-strength method must be
+    // followed immediately by its strength boundary before publication.
+    return !m_dxfPreStrengthNormalMapMethod
+        && (!m_dxfInferredNormalMapBoundary
             || (m_hasNormalMapBlendFactor && m_hasNormalMapSource
                 && m_hasNormalMapFileName && m_hasNormalMapProjection
                 && m_hasNormalMapTiling && m_hasNormalMapAutoTransform))
@@ -4656,12 +4659,14 @@ private:
   std::size_t m_dxfRetainedBumpMapFileNameBytes{0u};
   std::size_t m_dxfRetainedRefractionMapFileNameBytes{0u};
   std::size_t m_dxfRetainedNormalMapFileNameBytes{0u};
-  // The Normal Map block follows luminance and reuses groups 3/42/43/72-75.
-  // Keep those post-boundary fields opaque instead of overwriting base maps.
+  // The Normal Map block follows luminance/strength and reuses groups
+  // 3/42/43/72-75. Keep those post-boundary fields out of the base-map slots.
   bool m_dxfPastPreNormalMapFields{false};
   bool m_dxfCompleteDiffuseBeforeRefraction{false};
   bool m_dxfInferredNormalMapBoundary{false};
   bool m_dxfRepeatedDiffuseMapField{false};
+  // A repeated 271 with a bump tiling already bound must be followed by 465.
+  bool m_dxfPreStrengthNormalMapMethod{false};
   bool m_dxfMaterialGenProcTableStarted{false};
   bool m_dxfMaterialGenProcTableEnded{false};
   std::size_t m_dxfDiffuseMapTransformCount{0u};

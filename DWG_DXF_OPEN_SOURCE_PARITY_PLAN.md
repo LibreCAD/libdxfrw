@@ -41,9 +41,8 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P2 | OPEN | Close only current source-witnessed LTYPE/XDATA or MLEADERSTYLE losses. Reopen MLINESTYLE only if a new source witness exposes a gap; its evidenced source, transaction and singleton profiles are already covered. Batch shared schema and transaction changes; do not reopen passing profiles or create one item per count/field permutation. | Reuse existing raw/typed consumers, reference planners and output inspectors. |
-| P3 | OPEN | Complete witnessed MATERIAL source/provider gaps and producer regressions; qualify native meaning separately. | Use current source-order projector and map providers. |
-| P4 | OPEN | Bind remaining original record roles, dependencies and required output closure, then run one composed strict conversion checkpoint. | Select only a physically evidenced unmatched source record or dependency role. |
+| P2 | OPEN — witness-gated | No implementation packet is selected. Reopen only after a current physical source reproduces a parser, binding, or output loss in MLINESTYLE, LTYPE/XDATA, or MLEADERSTYLE. | Capture exact source field/role, failing operation, expected output, and owning selector before editing. |
+| P4 | OPEN — research next | Complete a bounded source census and select one physically witnessed unmatched record/dependency, or record that the census found no implementation-ready gap. | Bind exact source bytes, current loss, expected output, and owning selector before coding. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | P4 source/owner joins feed this work; P4b consumes final output joins. |
@@ -52,11 +51,9 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 ### Immediate implementation order
 
-1. **P2 — another witnessed LTYPE/XDATA loss.** Reproduce a current APPID/LTYPE/XDATA refusal or emitted-field/reference mismatch, then identify the owning parser, planner or writer and implement only that missing rule. If no code loss reproduces, move to P3; do not spend a slice repeating a passing profile or count matrix.
-2. **P3 — MATERIAL source/provider gap.** Select one unresolved map/provider or producer profile with a physical expected field, then reuse the existing projector and transaction path.
+1. **P4 — bounded original-source census.** Review retained source/census evidence and select one current unmatched record or dependency with an exact source-to-output mismatch. Prepare its implementation brief before coding. If no such gap is present in the retained sources, record that result and move to the next independently ready qualification task.
+2. **P2 — wait for a new source-witnessed defect.** The current P2 evidence has no selected failing profile. Do not reopen by count, field permutation, or a stale candidate; resume only when an existing repository sample or a locally authored source reproduces a current parser, binding, or emitted-output loss.
 
-P4 remains open, but is not the next implementation packet until the current
-source census identifies a physically witnessed unmatched record or dependency.
 The previously suggested ATTDEF secondary-Xrecord candidate has no physical
 witness in the retained corpus and is not an implementation-ready item. Do not
 infer a parser loss from documentation-only fields or generated controls.
@@ -65,56 +62,21 @@ Independent P6–P9 qualification can proceed when its inputs are ready; it does
 
 ## P2 — nested named-resource bodies
 
-Every P2 implementation starts from a current source/output witness. Reuse the
-existing profile receipts to exclude passing cases and select only the smallest
-remaining operation that demonstrates a code loss.
-
-1. **LTYPE and XDATA dependencies:** complete still-missing header/optional-field
-   source profiles, remaining APPID metadata and XDATA value/chunk forms; resolve
-   a code-1005
-   target type, mixed set, section combination or cardinality only when a current
-   witness shows the rooted planner/writer loses or misbinds it. Exercise late
-   mutation and missing providers on that same path.
-2. **MLEADERSTYLE:** cover remaining source/field semantics: handle roles,
-   absent/default values and version-specific fields through shared parser/writer
-   validation. Packed group 91/93/94 scalar/RGB colors for methods C0-C3 are
-   complete and out of this queue; reopen only for a new failing witness. Keep
-   native annotation/rendering claims separate.
-3. **Independent semantics:** qualify native MLINE caps/joins/offsets and MLEADER
-   annotation behavior only where intended consumer support requires it. Serializer
-   readback is not native semantics.
-
-Start the next code change from a reproducible current refusal/loss and reuse the
-existing source binding, edit planner, serializer and focused selectors. Avoid
-adding new receipt dimensions for already-supported count ranges or equivalent
-field compositions.
-
-## P3 — MATERIAL source/schema and producer regression
-
-1. Complete only witnessed gaps in original/common/full/face/edge MATERIAL
-   providers and native LAYER/HEADER/common348 fields. Reuse the existing field
-   projector and transaction helpers; retain opaque raw replay for untouched
-   bodies.
-2. Add source-order/absence/duplicate/alias/extension handling only when a
-   distinguishing source shows a parser or writer loss. Cover normal and diffuse
-   maps, refraction/bump, repeated fields and procedural/opaque subclasses without
-   multiplying an exhaustive optional-field Cartesian product.
-3. Extend the existing adapter route only after binding source, owner, provider
-   and emitted output for the actual failing profile. AC1018 parse success or
-   low-level write grammar alone is insufficient.
-4. Obtain independent producer/renderer evidence for claimed native map roles and
-   version behavior. Keep source validity, byte preservation and rendered meaning
-   as separate gates; a peer-produced AC1015 sample is not a native version
-   certificate.
-
-Use `tools/qualify_material_source_order.py` and its pinned runtime. Compare
-physical source tags before document setup, disclose oracle-created defaults, and
-retain existing dangling-binding failures.
+P2 has no currently selected implementation packet. Keep it parked. Reopen it
+only when a current physical input reproduces a parser refusal, wrong target/role
+binding, or emitted-field mismatch in MLINESTYLE, LTYPE/XDATA, or MLEADERSTYLE.
+The receipt for that witness must
+name the source bytes, operation, exact fields/roles, expected result, and owning
+selector before code work begins. Use the existing source binding, edit planner,
+serializer and focused selectors; do not add count-only or equivalent-field
+profiles. Native MLINE caps/joins/offsets and MLEADER annotation behavior remain
+consumer-semantic gates, not P2 transport tasks.
 
 ## P4 — original bodies and complete document closure
 
-P4a supplies source/context/role providers; P4b composes those providers with P2,
-P3 and P5 output. Do not create parallel capture or graph engines.
+P4a supplies source/context/role providers; P4b composes those providers with the
+existing local record providers and P5 output. Do not create parallel capture or
+graph engines.
 
 1. **Original coverage:** use the current source census to select one physically
    evidenced unmatched TABLE, LAYOUT, object or other required record. Do not

@@ -13562,6 +13562,8 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     // AcDbMaterial: name/description, color/physical controls, and all
     // documented base plus Normal Map fields are typed. Later procedural and
     // physical fields still reuse codes and remain raw unless unambiguous.
+    if (m_dxfPreStrengthNormalMapMethod && code != 465)
+        return false;
     if (m_hasDiffuseMapTransform
         && m_dxfDiffuseMapTransformCount < m_diffuseMapTransform.size()
         && code != 43)
@@ -13991,6 +13993,10 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         } else {
             m_normalMapStrength = value;
             m_hasNormalMapStrength = true;
+            if (m_dxfPreStrengthNormalMapMethod) {
+                m_dxfInferredNormalMapBoundary = true;
+                m_dxfPreStrengthNormalMapMethod = false;
+            }
         }
         // Group 465 is an alternate start marker when group 464 is omitted.
         m_dxfPastPreNormalMapFields = true;
@@ -14104,11 +14110,15 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 275:
     case 276: {
         // Some producers omit luminance and put the normal header before
-        // strength. A complete refraction matrix closes the last base mapper
-        // in that profile, with the corresponding bump role already bound.
-        // Otherwise a reordered first bump field still belongs to that mapper.
-        // Keep other layouts ambiguous, and require an actual boundary before
-        // publication in processMaterial(). Procedural values remain separate.
+        // strength. A complete refraction matrix can close the last base mapper
+        // in that profile. Another observed layout repeats group 271 after bump
+        // tiling, immediately before group 465; that pair identifies the
+        // pre-strength normal method without a refraction matrix. Keep a first
+        // group 271 in the bump role, and require a complete normal tuple at
+        // object publication. Procedural values remain separate.
+        const bool preStrengthNormalMethod = !m_dxfMaterialGenProcTableStarted
+            && !m_dxfPastPreNormalMapFields && code == 271
+            && m_hasBumpMapTiling && !m_hasRefractionMapTransform;
         const bool normalHeader = !m_dxfMaterialGenProcTableStarted
             && m_hasRefractionMapTransform
             && m_dxfRefractionMapTransformCount == m_refractionMapTransform.size()
@@ -14142,6 +14152,17 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
                 m_finalGatherMode = static_cast<std::int16_t>(value);
                 m_hasFinalGatherMode = true;
             }
+            break;
+        }
+        if (preStrengthNormalMethod) {
+            int value = 0;
+            if (!readDxfIntInRange(
+                    reader, (std::numeric_limits<std::int16_t>::min)(),
+                    (std::numeric_limits<std::int16_t>::max)(), value))
+                return false;
+            m_normalMapMethod = static_cast<std::int16_t>(value);
+            m_hasNormalMapMethod = true;
+            m_dxfPreStrengthNormalMapMethod = true;
             break;
         }
         if (m_dxfPastPreNormalMapFields)

@@ -20,7 +20,8 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
             bool partial, bool incompleteNormal = false,
             bool procedural = false, unsigned malformed = 0, int orphanProcedure = 0,
             int normalProjection = 4, bool sourceCommon = false, int normalTiling = 3,
-            unsigned matrixMode = 0u, int diffuseSource = 0, int normalSource = 1) {
+            unsigned matrixMode = 0u, int diffuseSource = 0, int normalSource = 1,
+            bool methodBeforeStrength = false) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) return false;
     if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
@@ -78,12 +79,15 @@ bool author(const std::filesystem::path& path, bool binary, bool boundary,
     if(matrixMode) for(unsigned i=0u;i<(matrixMode==2u?15u:16u);++i)ok=ok&&writer->writeDouble(43,100.0+i);
     ok = ok && writer->writeDouble(44, 0.5)
         && writer->writeInt16(76, 0)
+        && (!methodBeforeStrength || writer->writeInt16(271, 1))
         && writer->writeDouble(145, 1.0)
         && writer->writeDouble(146, 1.0)
         && writer->writeInt16(273, 1)
         && writer->writeInt16(274, 1)
         && writer->writeInt16(275, 1)
         && writer->writeInt16(276, 1);
+    if (ok && methodBeforeStrength)
+        ok = writer->writeInt16(271, 7);
     if (boundary) ok = ok && writer->writeDouble(465, 0.625);
     if (procedural) ok = ok && writer->writeString(300, "later-procedure");
     ok = ok && writer->writeDouble(42, 0.75);
@@ -170,6 +174,59 @@ bool typed(const dx_data& data, bool boundary, double normalBlend = 0.75,
         && m->m_normalMapAutoTransform == normalAuto
         && m->m_hasNormalMapStrength == boundary
         && (!boundary || m->m_normalMapStrength == 0.625);
+}
+
+bool preStrengthMethodTyped(const dx_data& data, int method = 7,
+                            double normalBlend = 0.75) {
+    const auto* material = target(data);
+    return typed(data, true, normalBlend) && material && material->m_hasBumpMapTiling
+        && material->m_bumpMapTiling == 1 && material->m_hasNormalMapMethod
+        && material->m_normalMapMethod == method;
+}
+
+bool preStrengthMethodPhysical(const std::filesystem::path& path, bool binary,
+                               int method = 7, bool sourceOrder = false) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream) return false;
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    reader->setVersion("AC1027", true);
+    bool material = false, selected = false;
+    std::vector<int> methods;
+    unsigned strengths = 0, refractionMatrices = 0;
+    std::size_t methodPosition = 0, strengthPosition = 0, position = 0;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const auto type = reader->getString();
+            if (material && selected) break;
+            material = type == "MATERIAL";
+            selected = false;
+            continue;
+        }
+        if (!material || code == 0) continue;
+        if (code == 1) {
+            selected = reader->getUtf8String() == "PeerMaterial";
+            continue;
+        }
+        if (!selected) continue;
+        if (code == 271) {
+            const int value = reader->getInt32();
+            methods.emplace_back(value);
+            if (value == method) methodPosition = position;
+        } else if (code == 465) {
+            ++strengths;
+            strengthPosition = position;
+        } else if (code == 147) {
+            ++refractionMatrices;
+        }
+        ++position;
+    }
+    return selected && methods == std::vector<int>{1, method} && strengths == 1
+        && refractionMatrices == 0
+        && (!sourceOrder || methodPosition < strengthPosition);
 }
 
 bool physical(const std::filesystem::path& path, bool binary, bool boundary,
@@ -1512,6 +1569,117 @@ bool run(const std::filesystem::path& dir) {
                 || !typed(retryData, false)) {
                 std::cerr << "ambiguous duplicate/boundary retry failed, case="
                           << malformed << '\n';
+                return false;
+            }
+        }
+
+        // ezdxf 1.4.5 emits this valid field order in MATERIAL/NormalOnly:
+        // bump tiling, a repeated group 271 normal method, strength, then the
+        // normal-map tuple. The normal map has no group-147 refraction matrix.
+        for (bool outputBinary : {false, true}) {
+            if (!author(input, sourceBinary, true, false, false, false, 0, 0,
+                        4, false, 3, 0u, 0, 1, true)) return false;
+            if (!preStrengthMethodPhysical(input, sourceBinary, 7, true)) {
+                std::cerr << "pre-strength source field sequence was not authored\n";
+                return false;
+            }
+            if (!physical(input, sourceBinary, true)) {
+                std::cerr << "pre-strength source map fields were not authored\n";
+                return false;
+            }
+            dx_data source; dx_iface adapter;
+            if (!adapter.fileImport(input.string(), &source, false)
+                || !preStrengthMethodTyped(source)) {
+                std::cerr << "pre-strength normal method source was rejected\n";
+                return false;
+            }
+            DRW_Material* selected = nullptr;
+            for (auto& material : source.materials)
+                if (material.m_name == "PeerMaterial") selected = &material;
+            if (!selected) return false;
+            selected->m_normalMapMethod = 5;
+            selected->m_normalMapBlendFactor = 0.875;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true)) {
+                std::cerr << "pre-strength normal edit export failed\n";
+                return false;
+            }
+            if (!preStrengthMethodPhysical(output, outputBinary, 5)) {
+                std::cerr << "pre-strength normal method output role failed\n";
+                return false;
+            }
+            if (!physical(output, outputBinary, true, false, 0.875)) {
+                std::cerr << "pre-strength physical map output mismatch\n";
+                return false;
+            }
+            if (!preStrengthMethodTyped(source, 5, 0.875)) {
+                std::cerr << "pre-strength typed source edit mismatch\n";
+                return false;
+            }
+            dx_data readback; dx_iface verifier;
+            if (!verifier.fileImport(output.string(), &readback, false)
+                || !preStrengthMethodTyped(readback, 5, 0.875)
+                || !physical(output, outputBinary, true, false, 0.875)) {
+                std::cerr << "pre-strength normal edit readback failed\n";
+                return false;
+            }
+
+            // A changed raw normal method conflicts with the edited typed
+            // value. Refuse without replacing the destination, then retry the
+            // same adapter after restoring the captured method.
+            auto& raw = source.rawMaterialObjects.front();
+            const auto savedRaw = raw;
+            unsigned methods = 0;
+            for (std::size_t i = 0; i < raw.groups.size(); ++i) {
+                if (raw.groups[i].code() != 271 || ++methods != 2u) continue;
+                raw.groups[i] = DRW_Variant(271, std::int32_t(6));
+                if (raw.hasRawValues) raw.rawValues.at(i) = "6";
+                break;
+            }
+            if (methods != 2u) {
+                std::cerr << "pre-strength method role not found in raw body\n";
+                return false;
+            }
+            { std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+              sentinel << "keep destination"; }
+            if (adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                   &source, false, true)) {
+                std::cerr << "pre-strength conflicting raw method was accepted\n";
+                return false;
+            }
+            std::ifstream saved(output, std::ios::binary);
+            const std::string savedBytes(std::istreambuf_iterator<char>(saved), {});
+            if (savedBytes != "keep destination"
+                || !preStrengthMethodTyped(source, 5, 0.875)) {
+                std::cerr << "pre-strength refusal changed destination/model\n";
+                return false;
+            }
+            raw = savedRaw;
+            if (!adapter.fileExport(output.string(), DRW::AC1027, outputBinary,
+                                    &source, false, true)
+                || !preStrengthMethodPhysical(output, outputBinary, 5)) {
+                std::cerr << "pre-strength same-adapter retry failed\n";
+                return false;
+            }
+        }
+
+        for (unsigned incomplete = 0; incomplete != 2; ++incomplete) {
+            if (!author(input, sourceBinary, incomplete != 0,
+                        false, incomplete != 0, false, 0, 0, 4, false, 3,
+                        0u, 0, 1, true)) return false;
+            dx_data bad; dx_iface sameAdapter;
+            if (sameAdapter.fileImport(input.string(), &bad, false)) {
+                std::cerr << (incomplete == 0
+                    ? "pre-strength method without strength was accepted\n"
+                    : "incomplete pre-strength normal tuple was accepted\n");
+                return false;
+            }
+            if (!author(input, sourceBinary, true, false, false, false, 0, 0,
+                        4, false, 3, 0u, 0, 1, true)) return false;
+            dx_data corrected;
+            if (!sameAdapter.fileImport(input.string(), &corrected, false)
+                || !preStrengthMethodTyped(corrected)) {
+                std::cerr << "pre-strength normal retry failed\n";
                 return false;
             }
         }
