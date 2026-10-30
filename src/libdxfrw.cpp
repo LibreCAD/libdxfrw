@@ -26304,36 +26304,29 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         }
         return true;
     }();
-    std::size_t fieldContentIndex = 0u;
     const bool fieldContentWithReference = !multiCellTable && [&]() {
         if (cell.m_hasLinkedData || cell.m_contents.empty()
-            || cell.m_contents.size() > 2u || !cell.m_attributes.empty())
+            || cell.m_contents.size() > 10000u
+            || !cell.m_attributes.empty())
             return false;
-        if (cell.m_contents.size() == 2u) {
-            // The all-scalar probe counted this prefix before it rejected the
-            // type-2 reference. Revalidate the selected ordered composition
-            // once so its string payload shares the normal byte budget.
-            plainContentTextBytes = textBytesBeforePlainContents;
-            const std::size_t scalarIndex =
-                cell.m_contents.front().m_type == 1 ? 0u : 1u;
-            fieldContentIndex = scalarIndex == 0u ? 1u : 0u;
-            const DRW_TableCellContent& scalar =
-                cell.m_contents[scalarIndex];
-            if (cell.m_contents[fieldContentIndex].m_type != 2
-                || !plainScalarContentIsSupported(scalar)
-                || scalar.m_value.m_dataType != 4)
+        // The all-scalar probe may have counted strings before encountering a
+        // FIELD reference. Revalidate the selected ordered composition once
+        // so every supported string shares the normal byte budget.
+        plainContentTextBytes = textBytesBeforePlainContents;
+        std::size_t fieldReferenceCount = 0u;
+        for (const DRW_TableCellContent& content : cell.m_contents) {
+            if (content.m_type == 2) {
+                if (!fieldReferenceContentIsSupported(content))
+                    return false;
+                ++fieldReferenceCount;
+                continue;
+            }
+            if (content.m_type != 1
+                || !plainScalarContentIsSupported(content)
+                || content.m_value.m_dataType != 4)
                 return false;
         }
-        const DRW_TableCellContent& content =
-            cell.m_contents[fieldContentIndex];
-        const DRW_CadValue& value = content.m_value;
-        return content.m_type == 2 && content.m_handle != 0u
-            && content.m_handle != DRW::NoHandle && content.m_text.empty()
-            && value.m_formatFlags == 0 && value.m_dataType == 0
-            && value.m_dataSize == 0u && value.m_unitType == 0
-            && value.m_value.type() == DRW_Variant::INVALID
-            && value.m_formatString.empty() && value.m_valueString.empty()
-            && value.m_handle == 0u && value.m_rawData.empty();
+        return fieldReferenceCount != 0u;
     }();
     const bool emptyLinkedCell = cell.m_hasLinkedData
         && cell.m_contents.empty();
@@ -26420,25 +26413,35 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
         ? remapObjectHandle(cell.m_dataLinkHandle) : 0u;
     const std::uint32_t blockContentHandle = blockContentWithAttributes
         ? remapObjectHandle(cell.m_contents[blockContentIndex].m_handle) : 0u;
-    const std::uint32_t fieldContentHandle = fieldContentWithReference
-        ? remapObjectHandle(cell.m_contents[fieldContentIndex].m_handle) : 0u;
     bool fieldContentReferenceClosed = !fieldContentWithReference;
     if (fieldContentWithReference) {
-        const std::uint32_t sourceFieldHandle =
-            cell.m_contents[fieldContentIndex].m_handle;
-        const auto emitted =
-            m_writingContext.sourceHandleToWrittenObjectMap.find(
-                sourceFieldHandle);
-        fieldContentReferenceClosed =
-            emitted != m_writingContext.sourceHandleToWrittenObjectMap.end()
-            && emitted->second == fieldContentHandle
-            && m_writtenDxfFieldSourceHandles.count(sourceFieldHandle) == 1u
-            && m_writingContext.ambiguousSourceHandles.count(
-                   sourceFieldHandle) == 0u
-            && m_writingContext.sourceHandleToMintedMap.count(
-                   sourceFieldHandle) == 0u
-            && m_writingContext.sourceHandleToWrittenTableMap.count(
-                   sourceFieldHandle) == 0u;
+        fieldContentReferenceClosed = true;
+        for (const DRW_TableCellContent& content : cell.m_contents) {
+            if (content.m_type != 2)
+                continue;
+            const std::uint32_t sourceFieldHandle = content.m_handle;
+            const std::uint32_t outputFieldHandle =
+                remapObjectHandle(sourceFieldHandle);
+            const auto emitted =
+                m_writingContext.sourceHandleToWrittenObjectMap.find(
+                    sourceFieldHandle);
+            if (outputFieldHandle == 0u
+                || outputFieldHandle == DRW::NoHandle
+                || emitted
+                    == m_writingContext.sourceHandleToWrittenObjectMap.end()
+                || emitted->second != outputFieldHandle
+                || m_writtenDxfFieldSourceHandles.count(
+                       sourceFieldHandle) != 1u
+                || m_writingContext.ambiguousSourceHandles.count(
+                       sourceFieldHandle) != 0u
+                || m_writingContext.sourceHandleToMintedMap.count(
+                       sourceFieldHandle) != 0u
+                || m_writingContext.sourceHandleToWrittenTableMap.count(
+                       sourceFieldHandle) != 0u) {
+                fieldContentReferenceClosed = false;
+                break;
+            }
+        }
     }
     bool blockContentReferencesClosed = !blockContentWithAttributes;
     if (blockContentWithAttributes) {
@@ -26474,9 +26477,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 || blockContentHandle == DRW::NoHandle
                 || !blockContentReferencesClosed))
         || (fieldContentWithReference
-            && (fieldContentHandle == 0u
-                || fieldContentHandle == DRW::NoHandle
-                || !fieldContentReferenceClosed))
+            && !fieldContentReferenceClosed)
         || !reserveHandle(handle))
     {
         return failDxfWrite();

@@ -155,10 +155,9 @@ missing provider, remap, collision or composed output failure.
 **TABLE:**
 
 1. **FIELD:** finish profiles beyond the simple childless FIELD and string-scalar
-   grid route: FIELDLIST/child graphs, additional source/version forms, and
-   multi-reference composition in the standalone 1x1 route. Reuse the rooted
-   reference planner and handle remapping; preserve unsupported compositions
-   with explicit refusal.
+   grid route: FIELDLIST/child graphs and additional source/version forms. Reuse
+   the rooted reference planner and handle remapping; preserve unsupported
+   compositions with explicit refusal.
 2. **Block geometry payloads:** find an independent source or consumer witness,
    bind the exact field layout and semantics, and implement only that witnessed
    profile. Keep unsupported geometry payloads refused while preserving current

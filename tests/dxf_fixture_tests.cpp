@@ -53308,6 +53308,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                                   {0x723u, 0x1723u},
                                   {0x724u, 0x1724u},
                                   {0x725u, 0x1725u},
+                                  {0x726u, 0x1726u},
                                   {0x740u, 0x1740u},
                                   {0x741u, 0x1741u}});
         }
@@ -53722,8 +53723,61 @@ void testDataLinkAdapterExport(TestContext& t) {
         gridFieldMetadata->m_tableStyle.m_type = 4;
         gridFieldContent.m_dxfMetadata = std::move(gridFieldMetadata);
         source.tableContents.push_back(std::move(gridFieldContent));
+        DRW_TableContentObject standaloneMultiFieldContent;
+        standaloneMultiFieldContent.handle = 0x726u;
+        standaloneMultiFieldContent.m_parseComplete = true;
+        standaloneMultiFieldContent.m_semanticContentComplete = true;
+        standaloneMultiFieldContent.m_content.m_name =
+            "standalone multi-field content";
+        standaloneMultiFieldContent.m_content.m_description =
+            "ordered fields and string in a single cell";
+        standaloneMultiFieldContent.m_content.m_columns.emplace_back();
+        standaloneMultiFieldContent.m_content.m_columns.front().m_name =
+            "Field sequence";
+        DRW_TableRow standaloneMultiFieldRow;
+        DRW_TableCell standaloneMultiFieldCell;
+        DRW_TableCellContent standaloneFirstFieldReference;
+        standaloneFirstFieldReference.m_type = 2;
+        standaloneFirstFieldReference.m_handle = field.handle;
+        standaloneMultiFieldCell.m_contents.push_back(
+            standaloneFirstFieldReference);
+        DRW_TableCellContent standaloneFieldSeparator;
+        standaloneFieldSeparator.m_type = 1;
+        standaloneFieldSeparator.m_text = "standalone between fields";
+        standaloneFieldSeparator.m_value.m_dataType = 4;
+        standaloneFieldSeparator.m_value.m_value.addString(
+            1, standaloneFieldSeparator.m_text);
+        standaloneMultiFieldCell.m_contents.push_back(
+            standaloneFieldSeparator);
+        DRW_TableCellContent standaloneSecondFieldReference;
+        standaloneSecondFieldReference.m_type = 2;
+        standaloneSecondFieldReference.m_handle = secondField.handle;
+        standaloneMultiFieldCell.m_contents.push_back(
+            standaloneSecondFieldReference);
+        standaloneMultiFieldCell.m_contents.push_back(
+            standaloneFirstFieldReference);
+        standaloneMultiFieldRow.m_cells.push_back(
+            std::move(standaloneMultiFieldCell));
+        standaloneMultiFieldContent.m_content.m_rows.push_back(
+            std::move(standaloneMultiFieldRow));
+        auto standaloneMultiFieldMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        standaloneMultiFieldMetadata->m_columns.resize(1u);
+        standaloneMultiFieldMetadata->m_columns.front().m_style.m_type = 3;
+        standaloneMultiFieldMetadata->m_rows.resize(1u);
+        standaloneMultiFieldMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        standaloneMultiFieldMetadata->m_rows.front().m_cells.resize(1u);
+        auto& standaloneMultiFieldCellMetadata =
+            standaloneMultiFieldMetadata->m_rows.front().m_cells.front();
+        standaloneMultiFieldCellMetadata.m_scope.m_style.m_type = 1;
+        standaloneMultiFieldCellMetadata.m_contentFormats.resize(4u);
+        standaloneMultiFieldMetadata->m_tableStyle.m_type = 4;
+        standaloneMultiFieldContent.m_dxfMetadata =
+            std::move(standaloneMultiFieldMetadata);
+        source.tableContents.push_back(
+            std::move(standaloneMultiFieldContent));
         source.standaloneTableContentPresent = true;
-        source.tableContentRetainedRecords = 6u;
+        source.tableContentRetainedRecords = 7u;
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -53907,12 +53961,29 @@ void testDataLinkAdapterExport(TestContext& t) {
             std::istreambuf_iterator<char>());
         t.expect(missingGridFieldRefused
                      && missingGridFieldPreserved == sentinel
-                     && source.tableContents.size() == 6u
+                     && source.tableContents.size() == 7u
                      && firstGridFieldReference.m_handle == 0x7FFFu
                      && source.tableContents[5].m_content.m_rows[1]
                             .m_cells[1].m_contents[1].m_handle == 0x741u,
                  "adapter refuses a missing multi-cell FIELD target atomically");
         firstGridFieldReference.m_handle = 0x740u;
+        DRW_TableCellContent& mutatedStandaloneSecondReference =
+            source.tableContents[6].m_content.m_rows.front()
+                .m_cells.front().m_contents[2];
+        mutatedStandaloneSecondReference.m_handle = 0x7FFFu;
+        const bool missingStandaloneFieldRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream missingStandaloneFieldInput(path, std::ios::binary);
+        const std::string missingStandaloneFieldPreserved(
+            (std::istreambuf_iterator<char>(missingStandaloneFieldInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(missingStandaloneFieldRefused
+                     && missingStandaloneFieldPreserved == sentinel
+                     && source.tableContents[6].m_content.m_rows.front()
+                            .m_cells.front().m_contents[0].m_handle == 0x740u
+                     && mutatedStandaloneSecondReference.m_handle == 0x7FFFu,
+                 "adapter refuses a missing standalone FIELD target atomically");
+        mutatedStandaloneSecondReference.m_handle = 0x741u;
         source.fields.front().m_evaluationOptionFlags = 1;
         const bool unsupportedFieldStateRefused = !writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
@@ -54191,6 +54262,95 @@ void testDataLinkAdapterExport(TestContext& t) {
                  binary
                      ? "binary TABLECONTENT grid preserves repeated FIELD targets and content order"
                      : "ASCII TABLECONTENT grid preserves repeated FIELD targets and content order");
+        std::size_t standaloneFieldContentBegin = outputFields.size();
+        std::size_t standaloneFieldContentEnd = outputFields.size();
+        const bool standaloneFieldContentSpan = objectSpan(
+            "TABLECONTENT", "1726", standaloneFieldContentBegin,
+            standaloneFieldContentEnd);
+        std::vector<std::pair<int, std::string>> standaloneContentOrder;
+        for (std::size_t i = standaloneFieldContentBegin;
+             standaloneFieldContentSpan && i + 2u < standaloneFieldContentEnd;
+             ++i) {
+            if (outputFields[i]
+                    != std::make_pair(302, std::string("CONTENT"))
+                || outputFields[i + 1u]
+                    != std::make_pair(1,
+                        std::string("CELLCONTENT_BEGIN")))
+                continue;
+            const auto contentEnd = std::find(
+                outputFields.begin() + static_cast<std::ptrdiff_t>(i + 2u),
+                outputFields.begin()
+                    + static_cast<std::ptrdiff_t>(standaloneFieldContentEnd),
+                std::make_pair(309, std::string("CELLCONTENT_END")));
+            if (contentEnd == outputFields.begin()
+                    + static_cast<std::ptrdiff_t>(standaloneFieldContentEnd))
+                break;
+            const std::size_t contentEndIndex = static_cast<std::size_t>(
+                contentEnd - outputFields.begin());
+            if (integerFieldEquals(outputFields[i + 2u], 90, 2)) {
+                if (i + 4u >= contentEndIndex
+                    || outputFields[i + 3u].first != 340
+                    || !integerFieldEquals(outputFields[i + 4u], 91, 0))
+                    break;
+                standaloneContentOrder.emplace_back(
+                    2, outputFields[i + 3u].second);
+            } else if (integerFieldEquals(outputFields[i + 2u], 90, 1)) {
+                const auto value = std::find(
+                    outputFields.begin() + static_cast<std::ptrdiff_t>(i + 3u),
+                    outputFields.begin()
+                        + static_cast<std::ptrdiff_t>(contentEndIndex),
+                    std::make_pair(1,
+                        std::string("standalone between fields")));
+                if (value == outputFields.begin()
+                        + static_cast<std::ptrdiff_t>(contentEndIndex))
+                    break;
+                standaloneContentOrder.emplace_back(1, value->second);
+            } else {
+                break;
+            }
+            i = contentEndIndex;
+        }
+        const bool exactStandaloneFieldReferences =
+            standaloneFieldContentSpan
+            && bothFieldsPrecedeConsumer
+            && fieldBegin < standaloneFieldContentBegin
+            && secondFieldBegin < standaloneFieldContentBegin
+            && standaloneContentOrder
+                == std::vector<std::pair<int, std::string>>{
+                    {2, "1740"}, {1, "standalone between fields"},
+                    {2, "1741"}, {2, "1740"}};
+        const DRW_TableContentObject* emittedStandaloneFieldContent = nullptr;
+        for (const DRW_TableContentObject& value : readback.tableContents) {
+            if (value.handle == 0x1726u)
+                emittedStandaloneFieldContent = &value;
+        }
+        bool typedStandaloneFieldReferences =
+            emittedStandaloneFieldContent != nullptr
+            && emittedStandaloneFieldContent->m_content.m_columns.size() == 1u
+            && emittedStandaloneFieldContent->m_content.m_rows.size() == 1u
+            && emittedStandaloneFieldContent->m_content.m_rows.front()
+                .m_cells.size() == 1u;
+        if (typedStandaloneFieldReferences) {
+            const auto& contents = emittedStandaloneFieldContent->m_content
+                .m_rows.front().m_cells.front().m_contents;
+            typedStandaloneFieldReferences = contents.size() == 4u
+                && contents[0].m_type == 2
+                && contents[0].m_handle == 0x1740u
+                && contents[1].m_type == 1
+                && contents[1].m_text == "standalone between fields"
+                && contents[2].m_type == 2
+                && contents[2].m_handle == 0x1741u
+                && contents[3].m_type == 2
+                && contents[3].m_handle == 0x1740u;
+        }
+        t.expect(exactStandaloneFieldReferences,
+                 binary
+                     ? "binary standalone TABLECONTENT preserves repeated FIELD wire order"
+                     : "ASCII standalone TABLECONTENT preserves repeated FIELD wire order");
+        t.expect(typedStandaloneFieldReferences,
+                 binary
+                     ? "binary standalone TABLECONTENT preserves multiple FIELD readback"
+                     : "ASCII standalone TABLECONTENT preserves multiple FIELD readback");
         const auto pointFieldsMatch = [&](int dataType, int dataSize,
                 const std::vector<std::pair<int, double>>& coordinates) {
             const std::size_t coordinateCount = coordinates.size();
@@ -54415,7 +54575,7 @@ void testDataLinkAdapterExport(TestContext& t) {
             break;
         }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
-                     && readback.tableContents.size() == 6u
+                     && readback.tableContents.size() == 7u
                      && readback.fields.size() == 2u
                      && exactPointFields && exactDateFields
                      && exactContentFormatFields && exactCellStyleFields
@@ -54667,7 +54827,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                          == DRW::DwgNamedObjectsDictionaryHandle
                      && reactor->reactorHandles.empty(),
                  "adapter DATALINK output remaps the reactor target and preserves root owners");
-        if (readback.tableContents.size() == 6u) {
+        if (readback.tableContents.size() == 7u) {
             const DRW_TableContentObject* linked = nullptr;
             const DRW_TableContentObject* plainText = nullptr;
             for (const DRW_TableContentObject& value : readback.tableContents) {
@@ -55192,12 +55352,48 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
         metadata->m_tableStyle.m_type = 4;
         tableContent.m_dxfMetadata = std::move(metadata);
         authored.tableContents.push_back(std::move(tableContent));
+        DRW_TableContentObject standaloneTableContent;
+        standaloneTableContent.handle = 0x726u;
+        standaloneTableContent.m_parseComplete = true;
+        standaloneTableContent.m_semanticContentComplete = true;
+        standaloneTableContent.m_content.m_name = "standalone field content";
+        standaloneTableContent.m_content.m_description =
+            "multiple references in one cell";
+        standaloneTableContent.m_content.m_columns.emplace_back();
+        standaloneTableContent.m_content.m_columns.front().m_name = "Fields";
+        DRW_TableRow standaloneRow;
+        DRW_TableCell standaloneCell;
+        standaloneCell.m_contents.push_back(reference);
+        DRW_TableCellContent standaloneMiddleScalar = scalar;
+        standaloneMiddleScalar.m_text = "standalone middle";
+        standaloneMiddleScalar.m_value.m_value.addString(
+            1, standaloneMiddleScalar.m_text);
+        standaloneCell.m_contents.push_back(standaloneMiddleScalar);
+        standaloneCell.m_contents.push_back(secondReference);
+        standaloneCell.m_contents.push_back(reference);
+        standaloneRow.m_cells.push_back(std::move(standaloneCell));
+        standaloneTableContent.m_content.m_rows.push_back(
+            std::move(standaloneRow));
+        auto standaloneMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        standaloneMetadata->m_columns.resize(1u);
+        standaloneMetadata->m_columns.front().m_style.m_type = 3;
+        standaloneMetadata->m_rows.resize(1u);
+        standaloneMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        standaloneMetadata->m_rows.front().m_cells.resize(1u);
+        standaloneMetadata->m_rows.front().m_cells.front()
+            .m_scope.m_style.m_type = 1;
+        standaloneMetadata->m_rows.front().m_cells.front()
+            .m_contentFormats.resize(4u);
+        standaloneMetadata->m_tableStyle.m_type = 4;
+        standaloneTableContent.m_dxfMetadata = std::move(standaloneMetadata);
+        authored.tableContents.push_back(std::move(standaloneTableContent));
         authored.standaloneTableContentPresent = true;
-        authored.tableContentRetainedRecords = 1u;
+        authored.tableContentRetainedRecords = 2u;
 
         HandleMappingInterface sourceWriter;
-        sourceWriter.remap = {{0x724u, 0x1724u}, {0x740u, 0x1740u},
-                              {0x741u, 0x1741u}};
+        sourceWriter.remap = {{0x724u, 0x1724u}, {0x726u, 0x1726u},
+                              {0x740u, 0x1740u}, {0x741u, 0x1741u}};
         const bool sourceWritten = sourceWriter.fileExport(
             sourcePath.string(), DRW::AC1027, binary, &authored, false);
         dx_iface sourceReader;
@@ -55215,6 +55411,7 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
             && imported.hasNamedObjectDictionary
             && imported.namedObjectDictionary.handle
                 == DRW::DwgNamedObjectsDictionaryHandle
+            && imported.tableContents.size() == 2u
             && imported.fields.size() == 2u
             && std::all_of(imported.fields.begin(), imported.fields.end(),
                 [&imported](const DRW_Field& value) {
@@ -55271,10 +55468,38 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                  binary
                      ? "binary source TABLECONTENT preserves scalar-then-FIELD input order and identity"
                      : "ASCII source TABLECONTENT preserves scalar-then-FIELD input order and identity");
+        DRW_TableContentObject* importedStandaloneContent = nullptr;
+        for (DRW_TableContentObject& content : imported.tableContents) {
+            if (content.handle == 0x1726u)
+                importedStandaloneContent = &content;
+        }
+        bool importedStandaloneFieldProfile =
+            importedStandaloneContent != nullptr
+            && importedStandaloneContent->m_content.m_columns.size() == 1u
+            && importedStandaloneContent->m_content.m_rows.size() == 1u
+            && importedStandaloneContent->m_content.m_rows.front()
+                .m_cells.size() == 1u;
+        if (importedStandaloneFieldProfile) {
+            const auto& contents = importedStandaloneContent->m_content
+                .m_rows.front().m_cells.front().m_contents;
+            importedStandaloneFieldProfile = contents.size() == 4u
+                && contents[0].m_type == 2
+                && contents[0].m_handle == 0x1740u
+                && contents[1].m_type == 1
+                && contents[1].m_text == "standalone middle"
+                && contents[2].m_type == 2
+                && contents[2].m_handle == 0x1741u
+                && contents[3].m_type == 2
+                && contents[3].m_handle == 0x1740u;
+        }
+        t.expect(importedStandaloneFieldProfile,
+                 binary
+                     ? "binary DXF-origin standalone TABLECONTENT preserves multiple FIELD identities"
+                     : "ASCII DXF-origin standalone TABLECONTENT preserves multiple FIELD identities");
 
         HandleMappingInterface replayWriter;
-        replayWriter.remap = {{0x1724u, 0x2724u}, {0x1740u, 0x2740u},
-                              {0x1741u, 0x2741u}};
+        replayWriter.remap = {{0x1724u, 0x2724u}, {0x1726u, 0x2726u},
+                              {0x1740u, 0x2740u}, {0x1741u, 0x2741u}};
         const std::string sentinel = "preserve FIELD replay destination";
         {
             std::ofstream output(replayPath, std::ios::binary);
@@ -55294,6 +55519,22 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
             std::istreambuf_iterator<char>());
         t.expect(sourceIdentityMutationRefused && refusedOutput == sentinel,
                  "DXF-origin FIELD identity mutation refuses atomically");
+
+        bool missingStandaloneTargetRefused = false;
+        if (importedStandaloneContent != nullptr) {
+            DRW_TableCellContent& target = importedStandaloneContent
+                ->m_content.m_rows.front().m_cells.front().m_contents[2];
+            target.m_handle = 0x7FFFu;
+            missingStandaloneTargetRefused = !replayWriter.fileExport(
+                replayPath.string(), DRW::AC1027, binary, &imported, false);
+            target.m_handle = 0x1741u;
+        }
+        std::ifstream missingStandaloneInput(replayPath, std::ios::binary);
+        const std::string missingStandaloneOutput(
+            (std::istreambuf_iterator<char>(missingStandaloneInput)), {});
+        t.expect(missingStandaloneTargetRefused
+                     && missingStandaloneOutput == sentinel,
+                 "DXF-origin standalone missing FIELD target refuses without replacing the destination");
 
         const bool replayWritten = replayWriter.fileExport(
             replayPath.string(), DRW::AC1027, binary, &imported, false);
@@ -55326,6 +55567,30 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                 && repeatedContents[0].m_handle == 0x2740u
                 && repeatedContents[2].m_handle == 0x2741u
                 && repeatedContents[3].m_handle == 0x2740u;
+        }
+        const DRW_TableContentObject* emittedStandaloneContent = nullptr;
+        for (const DRW_TableContentObject& content : replayed.tableContents) {
+            if (content.handle == 0x2726u)
+                emittedStandaloneContent = &content;
+        }
+        bool typedStandaloneLink = replayImported
+            && emittedStandaloneContent != nullptr
+            && emittedStandaloneContent->m_content.m_columns.size() == 1u
+            && emittedStandaloneContent->m_content.m_rows.size() == 1u
+            && emittedStandaloneContent->m_content.m_rows.front()
+                .m_cells.size() == 1u;
+        if (typedStandaloneLink) {
+            const auto& contents = emittedStandaloneContent->m_content
+                .m_rows.front().m_cells.front().m_contents;
+            typedStandaloneLink = contents.size() == 4u
+                && contents[0].m_type == 2
+                && contents[0].m_handle == 0x2740u
+                && contents[1].m_type == 1
+                && contents[1].m_text == "standalone middle"
+                && contents[2].m_type == 2
+                && contents[2].m_handle == 0x2741u
+                && contents[3].m_type == 2
+                && contents[3].m_handle == 0x2740u;
         }
         const auto tags = materialBodyControls::physicalTags(replayPath, binary);
         std::size_t fieldIndex = tags.size();
@@ -55392,6 +55657,10 @@ void testDxfOriginTableContentFieldReplay(TestContext& t) {
                  binary
                      ? "binary DXF-origin FIELD replays with exact remapped reference and typed readback"
                      : "ASCII DXF-origin FIELD replays with exact remapped reference and typed readback");
+        t.expect(typedStandaloneLink,
+                 binary
+                     ? "binary DXF-origin standalone FIELD references replay with remapped typed order"
+                     : "ASCII DXF-origin standalone FIELD references replay with remapped typed order");
 
         auto& reverseContents = imported.tableContents.front().m_content
             .m_rows.front().m_cells.front().m_contents;
@@ -60088,6 +60357,7 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--tablecontent-multicell-field") {
         TestContext context;
         testDataLinkAdapterExport(context);
+        testDxfOriginTableContentFieldReplay(context);
         std::cout << "TABLECONTENT multi-cell FIELD references: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;

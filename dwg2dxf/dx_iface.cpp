@@ -25073,9 +25073,6 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
 
         std::size_t referenceCount = 0u;
         for (const DRW_TableContentObject& table : data.tableContents) {
-            const bool singleCellTable = table.m_content.m_columns.size() == 1u
-                && table.m_content.m_rows.size() == 1u
-                && table.m_content.m_rows.front().m_cells.size() == 1u;
             for (const DRW_TableRow& row : table.m_content.m_rows) {
                 for (const DRW_TableCell& cell : row.m_cells) {
                     const bool hasFieldReference = std::any_of(
@@ -25087,15 +25084,11 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                         continue;
                     if (cell.m_hasLinkedData || !cell.m_attributes.empty()
                         || cell.m_contents.empty()
-                        || cell.m_contents.size() > kMaxTableFieldReferences
-                        || (singleCellTable && cell.m_contents.size() > 2u))
+                        || cell.m_contents.size() > kMaxTableFieldReferences)
                         return false;
-                    std::size_t cellReferenceCount = 0u;
                     for (const DRW_TableCellContent& content : cell.m_contents) {
                         if (content.m_type == 2) {
-                            if (referenceCount >= kMaxTableFieldReferences
-                                || (singleCellTable
-                                    && ++cellReferenceCount > 1u))
+                            if (referenceCount >= kMaxTableFieldReferences)
                                 return false;
                             ++referenceCount;
                             const auto field = referenceCounts.find(
