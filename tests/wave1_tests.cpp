@@ -3421,6 +3421,35 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                      && fieldCodeIsAbsent(tags, 273),
                  "same-adapter AC1021 retry omits unset R2010 attachment groups");
     }
+
+    for (const DRW::Version version : {DRW::AC1024, DRW::AC1027}) {
+        for (const bool binary : {false, true}) {
+            for (const std::uint16_t invalid : {std::uint16_t{1},
+                                                std::uint16_t{3},
+                                                std::uint16_t{65535}}) {
+                iface.style.styleVersion = invalid;
+                const std::string sentinel = "KEEP_MLEADERSTYLE_VERSION_DESTINATION";
+                { std::ofstream out(path, std::ios::binary); out << sentinel; }
+                const bool written = iface.fileExport(
+                    path.string(), version, binary, &iface.data, false);
+                std::ifstream saved(path, std::ios::binary);
+                const bool destinationPreserved =
+                    std::string(std::istreambuf_iterator<char>(saved), {})
+                        == sentinel;
+                t.expect(!written && destinationPreserved
+                             && iface.style.styleVersion == invalid,
+                         "MLEADERSTYLE group-179 version refusal preserves destination and model");
+
+                iface.style.styleVersion = 2;
+                const bool retried = iface.fileExport(
+                    path.string(), version, binary, &iface.data, false);
+                const auto tags = retried ? fileTags(path, binary)
+                                          : std::vector<std::string>{};
+                t.expect(retried && fieldValueIs(tags, 179, 2),
+                         "same-adapter MLEADERSTYLE group-179 version retry emits 2");
+            }
+        }
+    }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
 }

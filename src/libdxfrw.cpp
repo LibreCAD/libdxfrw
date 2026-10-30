@@ -27553,6 +27553,7 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         || ent->blockConnectionType > 1 || ent->attachmentDirection > 1
         || !isDefaultOrVerticalAttachment(ent->topAttachment)
         || !isDefaultOrVerticalAttachment(ent->bottomAttachment)
+        || (version >= DRW::AC1024 && ent->styleVersion != 2)
         || (version < DRW::AC1024 && hasR2010AttachmentData))
         return failDxfWrite();
     // The published MLEADERSTYLE DXF table defines scalar color indices for
