@@ -117,6 +117,10 @@ bool isAssociativeConstrainedArc(std::string_view className) {
     return equalsAsciiCaseInsensitive(className, "AcConstrainedArc");
 }
 
+bool isAssociativeDistanceConstraint(std::string_view className) {
+    return equalsAsciiCaseInsensitive(className, "AcDistanceConstraint");
+}
+
 bool splitColorBookEntryName(const UTF8STRING& value,
                              UTF8STRING& bookName,
                              UTF8STRING& colorName) {
@@ -26964,6 +26968,99 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         groupStringProbe = nodeStringProbe;
                         handleProbe = nodeHandleProbe;
                         ++decodedHandleCount;
+                        continue;
+                    }
+                    if (isAssociativeDistanceConstraint(node.m_className)) {
+                        dwgBuffer nodeHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle valueDependency;
+                        dwgHandle dimensionDependency;
+                        std::int32_t ownerId = 0;
+                        bool implied = false;
+                        std::uint8_t directionType = 0u;
+                        DRW_Coord distance;
+                        const bool handlesRead =
+                            readBoundedObjectHandle(
+                                nodeHandleProbe, 0u, false, valueDependency,
+                                handleEndBit)
+                            && valueDependency.code == DRW::DwgHardPointer
+                            && valueDependency.ref64 != 0u
+                            && readBoundedObjectHandle(
+                                nodeHandleProbe, 0u, false,
+                                dimensionDependency, handleEndBit)
+                            && dimensionDependency.code
+                                   == DRW::DwgHardPointer
+                            && dimensionDependency.ref64 != 0u;
+                        const bool distanceParsed = handlesRead
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                ownerId)
+                            && readBitWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                implied)
+                            && readRawCharWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                directionType)
+                            && (directionType == 0u
+                                || read3BitDoubleWithinBody(
+                                    &nodeBodyProbe, version, objectDataEnd,
+                                    distance));
+                        if (!distanceParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::Distance;
+                        node.m_ownerId = ownerId;
+                        node.m_isImplied = implied;
+                        node.m_hasActiveFlag = false;
+                        node.m_hasValueDependencyHandle = true;
+                        node.m_valueDependencyCode =
+                            valueDependency.code;
+                        node.m_valueDependencyHandle =
+                            valueDependency.ref64;
+                        node.m_hasDimensionDependencyHandle = true;
+                        node.m_dimensionDependencyCode =
+                            dimensionDependency.code;
+                        node.m_dimensionDependencyHandle =
+                            dimensionDependency.ref64;
+                        node.m_directionType = directionType;
+                        node.m_hasDistance = directionType != 0u;
+                        if (node.m_hasDistance)
+                            node.m_distance = distance;
+                        node.m_classDataParsed = true;
+                        DRW_DBG("AC1024 distance constraint decoded id=");
+                        DRW_DBG(node.m_nodeId); DRW_DBG(" owner=");
+                        DRW_DBG(ownerId); DRW_DBG(" implied=");
+                        DRW_DBG(implied); DRW_DBG(" dependencies=");
+                        DRW_DBG(static_cast<unsigned>(
+                            valueDependency.code));
+                        DRW_DBG("/"); DRW_DBG(valueDependency.ref64);
+                        DRW_DBG(",");
+                        DRW_DBG(static_cast<unsigned>(
+                            dimensionDependency.code));
+                        DRW_DBG("/"); DRW_DBG(dimensionDependency.ref64);
+                        DRW_DBG(" directionType=");
+                        DRW_DBG(static_cast<unsigned>(directionType));
+                        DRW_DBG(" hasDistance=");
+                        DRW_DBG(node.m_hasDistance);
+                        if (node.m_hasDistance) {
+                            DRW_DBG(" distance=");
+                            DRW_DBG(distance.x); DRW_DBG(",");
+                            DRW_DBG(distance.y); DRW_DBG(",");
+                            DRW_DBG(distance.z);
+                        }
+                        DRW_DBG(" bodyBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeBodyProbe));
+                        DRW_DBG(" handleBit=");
+                        DRW_DBG(currentObjectDwgBit(&nodeHandleProbe));
+                        DRW_DBG("\n");
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = nodeHandleProbe;
+                        decodedHandleCount += 2u;
                         continue;
                     }
                     // The common node envelope is known, but the following

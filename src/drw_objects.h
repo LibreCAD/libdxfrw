@@ -7119,7 +7119,8 @@ struct DRW_AssociativeConstraintNode {
     Geometrical,
     ImplicitPoint,
     BoundedLine,
-    Arc
+    Arc,
+    Distance
   };
 
   UTF8STRING m_className;
@@ -7133,6 +7134,12 @@ struct DRW_AssociativeConstraintNode {
   bool m_hasGeometryDependency = false;
   std::uint8_t m_geometryDependencyCode = DRW::DwgNullReference;
   std::uint64_t m_geometryDependencyHandle = 0;
+  bool m_hasValueDependencyHandle = false;
+  std::uint8_t m_valueDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_valueDependencyHandle = 0;
+  bool m_hasDimensionDependencyHandle = false;
+  std::uint8_t m_dimensionDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_dimensionDependencyHandle = 0;
   std::int32_t m_geometryNodeId = 0;
   bool m_hasPoint = false;
   DRW_Coord m_point;
@@ -7143,6 +7150,9 @@ struct DRW_AssociativeConstraintNode {
   double m_radius = 0.0;
   double m_startParameter = 0.0;
   double m_endParameter = 0.0;
+  std::uint8_t m_directionType = 0;
+  bool m_hasDistance = false;
+  DRW_Coord m_distance;
   bool m_hasReserved = false;
   double m_reserved = 0.0;
   DRW_Coord m_startPoint;

@@ -11006,6 +11006,122 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
         }
     }
 
+    for (int distanceMode = 0; distanceMode < 4; ++distanceMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+        Node distance;
+        distance.id = 77;
+        distance.connections = {70, 75};
+        distance.className = "AcDistanceConstraint";
+        distance.ownerId = 0;
+        distance.isImplied = false;
+        distance.hasDistanceBody = true;
+        distance.valueDependencyCode = distanceMode == 1
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        distance.valueDependencyHandle = 1210u;
+        distance.dimensionDependencyCode = distanceMode == 2
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        distance.dimensionDependencyHandle = 1211u;
+        distance.directionType = distanceMode == 3 ? 0u : 1u;
+        distance.distance = DRW_Coord(1.0, 0.0, 0.0);
+        profile.nodes.push_back(distance);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 distance-constraint profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = distanceMode == 0 || distanceMode == 3;
+        bool nodeMatches = partialSource != profileSink.typed.end()
+            && partialSource->m_constraintNodes.size() == 1u;
+        if (nodeMatches) {
+            const auto& node = partialSource->m_constraintNodes.front();
+            nodeMatches = node.m_className == "AcDistanceConstraint"
+                && node.m_nodeId == 77
+                && node.m_connections
+                       == std::vector<std::int32_t>{70, 75}
+                && node.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodeMatches = nodeMatches
+                    && node.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::Distance
+                    && node.m_ownerId == 0
+                    && !node.m_isImplied
+                    && !node.m_hasActiveFlag
+                    && node.m_hasValueDependencyHandle
+                    && node.m_valueDependencyCode == DRW::DwgHardPointer
+                    && node.m_valueDependencyHandle == 1210u
+                    && node.m_hasDimensionDependencyHandle
+                    && node.m_dimensionDependencyCode == DRW::DwgHardPointer
+                    && node.m_dimensionDependencyHandle == 1211u
+                    && node.m_directionType
+                           == (distanceMode == 3 ? 0u : 1u)
+                    && node.m_hasDistance == (distanceMode != 3)
+                    && (distanceMode == 3
+                        || (node.m_distance.x == 1.0
+                            && node.m_distance.y == 0.0
+                            && node.m_distance.z == 0.0));
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && partialSource != profileSink.typed.end()
+            && partialSource->m_constraintGroupBodyParsed == expectedComplete
+            && partialSource->m_constraintNodeCount == 1
+            && partialSource->m_constraintNodesParsed == expectedComplete
+            && !partialSource->m_prefixStatuses.empty()
+            && partialSource->m_prefixStatuses.back().m_decodedHandleCount
+                   == (expectedComplete ? 2u : 0u)
+            && nodeMatches
+            && partialRaw != profileSink.raw.end()
+            && (expectedComplete || !partialRaw->m_typedPayloadValidated)
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 distanceMode == 0
+                     ? "distance node matches both code-5 dependencies and its conditional 3BD payload"
+                     : distanceMode == 1
+                         ? "distance value-dependency role mismatch preserves raw data and following-object recovery"
+                         : distanceMode == 2
+                             ? "distance dimension-dependency role mismatch preserves raw data and following-object recovery"
+                             : "zero direction type preserves the absent distance separately from zero-valued geometry");
+    }
+
     for (int implicitPointMode = 0; implicitPointMode < 3;
          ++implicitPointMode) {
         Options profile;
