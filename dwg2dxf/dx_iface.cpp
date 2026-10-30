@@ -9913,6 +9913,7 @@ bool isAssociativeDxfName(std::string_view name) noexcept {
 constexpr std::size_t kMaxAssociativeRecords = 100000u;
 constexpr std::size_t kMaxAssociativeDwgActionReferences = 100000u;
 constexpr std::size_t kMaxAssociativeDwgOwnerChainWork = 100000u;
+constexpr std::size_t kMaxAssociativeDwgConstraintNodeWork = 100000u;
 constexpr std::size_t kMaxDwgBlockControlPublicationBytes = 1024u * 1024u;
 constexpr std::size_t kMaxAssociativeDxfRawGroups = 4000000u;
 constexpr std::size_t kMaxAssociativeOwnerNodes = 200000u;
@@ -13407,6 +13408,8 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
 
         bool actionListsComplete = true;
         bool actionTargetsComplete = true;
+        bool constraintNodeGraphComplete = true;
+        std::size_t constraintNodeGroupsAudited = 0u;
         for (std::size_t index = receipt.typedRange.begin;
              index < receipt.typedRange.end; ++index) {
             const DRW_AssociativeObject& group =
@@ -13415,6 +13418,189 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                           "ASSOC2DCONSTRAINTGROUP"))
                 continue;
             ++receipt.constraintGroupRecords;
+            ++constraintNodeGroupsAudited;
+            if (group.m_constraintGroupVersion != 0) {
+                // Nonempty registered-node layouts are not covered by the
+                // AC1024 inline-node graph audit.
+                if (!group.m_constraintNodesParsed
+                    || group.m_constraintNodeCount != 0
+                    || !group.m_constraintNodes.empty())
+                    constraintNodeGraphComplete = false;
+            } else if (!group.m_constraintGroupBodyParsed
+                       || !group.m_constraintNodesParsed
+                       || group.m_constraintNodeCount < 0
+                       || static_cast<std::size_t>(
+                              group.m_constraintNodeCount)
+                           != group.m_constraintNodes.size()) {
+                constraintNodeGraphComplete = false;
+            } else {
+                const auto& nodes = group.m_constraintNodes;
+                if (nodes.size()
+                    > kMaxAssociativeDwgConstraintNodeWork
+                        - receipt.constraintGroupNodeRecords) {
+                    receipt.constraintGroupNodeLimitExceeded = true;
+                    constraintNodeGraphComplete = false;
+                } else {
+                    receipt.constraintGroupNodeRecords += nodes.size();
+                    std::unordered_map<
+                        std::int32_t,
+                        const DRW_AssociativeConstraintNode*> nodesById;
+                    nodesById.reserve(nodes.size());
+                    for (const DRW_AssociativeConstraintNode& node : nodes) {
+                        if (!node.m_classDataParsed
+                            || !nodesById.emplace(node.m_nodeId, &node).second)
+                            constraintNodeGraphComplete = false;
+                    }
+                    const bool uniqueNodeIds =
+                        nodesById.size() == nodes.size();
+                    std::size_t connectionCount = 0u;
+                    for (const DRW_AssociativeConstraintNode& node : nodes) {
+                        if (node.m_connections.size()
+                            > kMaxAssociativeDwgConstraintNodeWork
+                                - connectionCount) {
+                            receipt.constraintGroupNodeLimitExceeded = true;
+                            constraintNodeGraphComplete = false;
+                            break;
+                        }
+                        connectionCount += node.m_connections.size();
+                    }
+                    if (connectionCount
+                        > kMaxAssociativeDwgConstraintNodeWork
+                            - receipt
+                                  .constraintGroupNodeConnectionReferences) {
+                        receipt.constraintGroupNodeLimitExceeded = true;
+                        constraintNodeGraphComplete = false;
+                    } else {
+                        receipt.constraintGroupNodeConnectionReferences +=
+                            connectionCount;
+                        std::unordered_set<std::uint64_t> directedEdges;
+                        directedEdges.reserve(connectionCount);
+                        for (const DRW_AssociativeConstraintNode& node : nodes) {
+                            std::unordered_set<std::int32_t> uniqueConnections;
+                            uniqueConnections.reserve(node.m_connections.size());
+                            for (std::int32_t targetId : node.m_connections) {
+                                if (!uniqueConnections.insert(targetId).second)
+                                    constraintNodeGraphComplete = false;
+                                const auto target = nodesById.find(targetId);
+                                if (!uniqueNodeIds || target == nodesById.end()) {
+                                    constraintNodeGraphComplete = false;
+                                } else {
+                                    ++receipt
+                                          .constraintGroupNodeConnectionTargetsVerified;
+                                }
+                                const std::uint64_t edge =
+                                    (static_cast<std::uint64_t>(
+                                         static_cast<std::uint32_t>(
+                                             node.m_nodeId))
+                                     << 32)
+                                    | static_cast<std::uint32_t>(targetId);
+                                directedEdges.insert(edge);
+                            }
+                        }
+                        for (const DRW_AssociativeConstraintNode& node : nodes) {
+                            for (std::int32_t targetId : node.m_connections) {
+                                const std::uint64_t reverseEdge =
+                                    (static_cast<std::uint64_t>(
+                                         static_cast<std::uint32_t>(targetId))
+                                     << 32)
+                                    | static_cast<std::uint32_t>(node.m_nodeId);
+                                if (directedEdges.count(reverseEdge) == 0u)
+                                    constraintNodeGraphComplete = false;
+                                else
+                                    ++receipt
+                                          .constraintGroupNodeUndirectedEdgesVerified;
+                            }
+                        }
+                    }
+
+                    std::unordered_map<std::int32_t, std::int32_t>
+                        rigidSetOwnerByMember;
+                    rigidSetOwnerByMember.reserve(nodes.size());
+                    for (const DRW_AssociativeConstraintNode& rigidSet : nodes) {
+                        if (rigidSet.m_dataKind
+                            != DRW_AssociativeConstraintNode::DataKind::RigidSet)
+                            continue;
+                        if (!rigidSet.m_hasRigidSetReservedFlag
+                            || !rigidSet.m_hasRigidSetTransform
+                            || rigidSet.m_rigidSetGeometryIds.size()
+                                > kMaxAssociativeDwgConstraintNodeWork
+                                    - receipt
+                                          .constraintGroupRigidSetMemberReferences) {
+                            if (rigidSet.m_rigidSetGeometryIds.size()
+                                > kMaxAssociativeDwgConstraintNodeWork
+                                    - receipt
+                                          .constraintGroupRigidSetMemberReferences)
+                                receipt.constraintGroupNodeLimitExceeded = true;
+                            constraintNodeGraphComplete = false;
+                            continue;
+                        }
+                        receipt.constraintGroupRigidSetMemberReferences +=
+                            rigidSet.m_rigidSetGeometryIds.size();
+                        std::unordered_set<std::int32_t> uniqueMembers;
+                        uniqueMembers.reserve(
+                            rigidSet.m_rigidSetGeometryIds.size());
+                        for (std::int32_t memberId :
+                             rigidSet.m_rigidSetGeometryIds) {
+                            if (!uniqueMembers.insert(memberId).second)
+                                constraintNodeGraphComplete = false;
+                            const auto memberIt = nodesById.find(memberId);
+                            if (!uniqueNodeIds || memberIt == nodesById.end()) {
+                                constraintNodeGraphComplete = false;
+                                continue;
+                            }
+                            const DRW_AssociativeConstraintNode& member =
+                                *memberIt->second;
+                            const bool supportedGeometryKind =
+                                member.m_dataKind
+                                    == DRW_AssociativeConstraintNode::DataKind::BoundedLine
+                                || member.m_dataKind
+                                    == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                                || member.m_dataKind
+                                    == DRW_AssociativeConstraintNode::DataKind::Line
+                                || member.m_dataKind
+                                    == DRW_AssociativeConstraintNode::DataKind::Circle
+                                || member.m_dataKind
+                                    == DRW_AssociativeConstraintNode::DataKind::Arc;
+                            if (!member.m_classDataParsed
+                                || !supportedGeometryKind
+                                || !member.m_hasGeometryDependency
+                                || member.m_geometryDependencyCode
+                                    != DRW::DwgSoftPointer
+                                || member.m_geometryNodeId != rigidSet.m_nodeId
+                                || !rigidSetOwnerByMember.emplace(
+                                        memberId, rigidSet.m_nodeId).second) {
+                                constraintNodeGraphComplete = false;
+                                continue;
+                            }
+                            ++receipt
+                                  .constraintGroupRigidSetMembersVerified;
+                            ++receipt
+                                  .constraintGroupRigidSetOwnershipEdgesVerified;
+                            if (member.m_dataKind
+                                == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint) {
+                                const auto curve = nodesById.find(
+                                    member.m_curveNodeId);
+                                const bool curveKindMatches =
+                                    curve != nodesById.end()
+                                    && (curve->second->m_dataKind
+                                            == DRW_AssociativeConstraintNode::DataKind::BoundedLine
+                                        || curve->second->m_dataKind
+                                            == DRW_AssociativeConstraintNode::DataKind::Line
+                                        || curve->second->m_dataKind
+                                            == DRW_AssociativeConstraintNode::DataKind::Circle
+                                        || curve->second->m_dataKind
+                                            == DRW_AssociativeConstraintNode::DataKind::Arc);
+                                if (!curveKindMatches
+                                    || curve->second->m_geometryNodeId
+                                        != rigidSet.m_nodeId
+                                    || uniqueMembers.count(member.m_curveNodeId)
+                                        == 0u)
+                                    constraintNodeGraphComplete = false;
+                            }
+                        }
+                    }
+                }
+            }
             if (!group.m_constraintActionsParsed
                 || group.m_constraintActionCount < 0
                 || static_cast<std::size_t>(group.m_constraintActionCount)
@@ -13469,6 +13655,19 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                 == receipt.constraintGroupRecords
             && receipt.constraintGroupActionTargetsVerified
                 == receipt.constraintGroupActionReferences;
+        receipt.constraintGroupNodeGraphClosureComplete =
+            receipt.constraintGroupRecords > 0u
+            && constraintNodeGroupsAudited == receipt.constraintGroupRecords
+            && constraintNodeGraphComplete
+            && !receipt.constraintGroupNodeLimitExceeded
+            && receipt.constraintGroupNodeConnectionTargetsVerified
+                == receipt.constraintGroupNodeConnectionReferences
+            && receipt.constraintGroupNodeUndirectedEdgesVerified
+                == receipt.constraintGroupNodeConnectionReferences
+            && receipt.constraintGroupRigidSetMembersVerified
+                == receipt.constraintGroupRigidSetMemberReferences
+            && receipt.constraintGroupRigidSetOwnershipEdgesVerified
+                == receipt.constraintGroupRigidSetMemberReferences;
         if (receipt.dimensionDependencyBodies == 0u)
             return;
 
@@ -13555,6 +13754,7 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
     } catch (...) {
         receipt.selectedGraphEdgesComplete = false;
         receipt.constraintGroupActionClosureComplete = false;
+        receipt.constraintGroupNodeGraphClosureComplete = false;
         receipt.associativeNetworkActionClosureComplete = false;
         receipt.associativeNetworkDictionaryEntryClosureComplete = false;
         receipt.associativeNetworkDictionaryOwnerChainsComplete = false;
@@ -40933,6 +41133,27 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     << (receipt.constraintGroupActionLimitExceeded ? 1 : 0)
                     << " constraintGroupActionClosureComplete="
                     << (receipt.constraintGroupActionClosureComplete ? 1 : 0)
+                    << " constraintGroupNodeRecords="
+                    << receipt.constraintGroupNodeRecords
+                    << " constraintGroupNodeConnectionReferences="
+                    << receipt.constraintGroupNodeConnectionReferences
+                    << " constraintGroupNodeConnectionTargetsVerified="
+                    << receipt
+                           .constraintGroupNodeConnectionTargetsVerified
+                    << " constraintGroupNodeUndirectedEdgesVerified="
+                    << receipt
+                           .constraintGroupNodeUndirectedEdgesVerified
+                    << " constraintGroupRigidSetMemberReferences="
+                    << receipt.constraintGroupRigidSetMemberReferences
+                    << " constraintGroupRigidSetMembersVerified="
+                    << receipt.constraintGroupRigidSetMembersVerified
+                    << " constraintGroupRigidSetOwnershipEdgesVerified="
+                    << receipt
+                           .constraintGroupRigidSetOwnershipEdgesVerified
+                    << " constraintGroupNodeLimitExceeded="
+                    << (receipt.constraintGroupNodeLimitExceeded ? 1 : 0)
+                    << " constraintGroupNodeGraphClosureComplete="
+                    << (receipt.constraintGroupNodeGraphClosureComplete ? 1 : 0)
                     << " associativeNetworkRecords="
                     << receipt.associativeNetworkRecords
                     << " associativeNetworkActionListsParsed="
