@@ -39592,12 +39592,39 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    std::unordered_map<std::uint32_t, std::size_t> dataLinkHandleCounts;
+    bool dataLinkReactorGraphClosed = true;
+    try {
+        dataLinkHandleCounts.reserve(cData->dataLinks.size());
+        for (const DRW_DataLink& link : cData->dataLinks)
+            ++dataLinkHandleCounts[link.handle];
+        for (const DRW_DataLink& link : cData->dataLinks) {
+            for (const std::uint32_t reactor : link.reactorHandles) {
+                const auto target = dataLinkHandleCounts.find(reactor);
+                if (reactor == 0u || reactor == DRW::NoHandle
+                    || target == dataLinkHandleCounts.end()
+                    || target->second != 1u) {
+                    dataLinkReactorGraphClosed = false;
+                    break;
+                }
+            }
+            if (!dataLinkReactorGraphClosed)
+                break;
+        }
+    } catch (...) {
+        dataLinkReactorGraphClosed = false;
+    }
+    if (!dataLinkReactorGraphClosed) {
+        reportPreflightFailure(
+            "DATALINK reactor target is not a unique emitted DATALINK");
+        return false;
+    }
     if (std::any_of(cData->dataLinks.begin(), cData->dataLinks.end(),
             [](const DRW_DataLink& link) {
                 // This first adapter route admits only connection metadata
-                // with no graph edges. DATALINK custom targets, hard-owner,
-                // reactors, extension dictionaries and XDATA remain refused
-                // until their output closure is planned as a graph.
+                // and reactor edges closed over the emitted DATALINK set.
+                // Custom targets, hard-owner, extension dictionaries and
+                // XDATA remain refused until their output closure is planned.
                 return link.handle == 0 || link.handle == DRW::NoHandle
                     || link.m_dataAdapter.empty()
                     || link.m_customDataCount != 0
@@ -39606,12 +39633,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || (link.parentHandle != 0
                         && link.parentHandle
                             != DRW::DwgNamedObjectsDictionaryHandle)
-                    || !link.reactorHandles.empty()
                     || link.xDictHandle != 0
                     || !link.appData.empty() || !link.extData.empty();
             })) {
         reportPreflightFailure(
-            "DATALINK profile has unresolved owner/custom-data/common-metadata edges");
+            "DATALINK profile has unresolved owner/custom-data/hard-owner/extension-dictionary/XDATA edges");
         return false;
     }
     if (cData->rawDxfEntityCaptureFailed) {

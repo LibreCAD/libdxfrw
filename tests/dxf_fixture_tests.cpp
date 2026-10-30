@@ -52642,7 +52642,8 @@ void testDataLinkAdapterExport(TestContext& t) {
     public:
         void writeHeader(DRW_Header& header) override {
             dx_iface::writeHeader(header);
-            dxfW->setHandleRemap({{0x710u, 0x1710u}});
+            dxfW->setHandleRemap({{0x710u, 0x1710u},
+                                  {0x711u, 0x1711u}});
         }
     };
 
@@ -52670,7 +52671,13 @@ void testDataLinkAdapterExport(TestContext& t) {
         link.m_updateOption = 2;
         link.m_updateStatus = "ready";
         link.m_customDataCount = 1;
+        link.reactorHandles.push_back(0x799u);
         source.dataLinks.push_back(link);
+        DRW_DataLink reactorTarget;
+        reactorTarget.handle = 0x711u;
+        reactorTarget.m_dataAdapter = "EXCEL";
+        reactorTarget.m_description = "reactor target DATALINK";
+        source.dataLinks.push_back(reactorTarget);
 
         const std::string sentinel = "preserve adapter destination";
         {
@@ -52689,29 +52696,50 @@ void testDataLinkAdapterExport(TestContext& t) {
                  "adapter refuses DATALINK count mismatch without replacing destination");
 
         source.dataLinks.front().m_customDataCount = 0;
+        const bool missingReactorRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream missingReactorInput(path, std::ios::binary);
+        const std::string missingReactorPreserved(
+            (std::istreambuf_iterator<char>(missingReactorInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(missingReactorRefused
+                     && missingReactorPreserved == sentinel,
+                 "adapter refuses unresolved DATALINK reactor without replacing destination");
+
+        source.dataLinks.front().reactorHandles.front() = 0x711u;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
         dx_data readback;
         const bool imported = exported
             && reader.fileImport(path.string(), &readback, false);
-        t.expect(exported && imported && readback.dataLinks.size() == 1u,
-                 "adapter emits reference-free DATALINK profile and reads it back");
-        if (readback.dataLinks.size() == 1u) {
-            const DRW_DataLink& result = readback.dataLinks.front();
-            t.expect(result.handle == 0x1710u
-                         && result.parentHandle
-                             == DRW::DwgNamedObjectsDictionaryHandle
-                         && result.m_dataAdapter == "EXCEL"
-                         && result.m_description == "adapter-owned DATALINK"
-                         && result.m_connectionString
-                             == "inert://adapter-control.xlsx"
-                         && result.m_option == 3 && result.m_updateOption == 2
-                         && result.m_updateStatus == "ready"
-                         && result.m_customDataCount == 0
-                         && result.m_customData.empty(),
-                     "adapter DATALINK output preserves fields, remapped identity, and root owner");
+        t.expect(exported && imported && readback.dataLinks.size() == 2u,
+                 "adapter emits a closed DATALINK reactor profile and reads it back");
+        const DRW_DataLink* result = nullptr;
+        const DRW_DataLink* reactor = nullptr;
+        for (const DRW_DataLink& value : readback.dataLinks) {
+            if (value.handle == 0x1710u)
+                result = &value;
+            else if (value.handle == 0x1711u)
+                reactor = &value;
         }
+        t.expect(result != nullptr && reactor != nullptr
+                     && result->parentHandle
+                         == DRW::DwgNamedObjectsDictionaryHandle
+                     && result->m_dataAdapter == "EXCEL"
+                     && result->m_description == "adapter-owned DATALINK"
+                     && result->m_connectionString
+                         == "inert://adapter-control.xlsx"
+                     && result->m_option == 3 && result->m_updateOption == 2
+                     && result->m_updateStatus == "ready"
+                     && result->m_customDataCount == 0
+                     && result->m_customData.empty()
+                     && result->reactorHandles.size() == 1u
+                     && result->reactorHandles.front() == 0x1711u
+                     && reactor->parentHandle
+                         == DRW::DwgNamedObjectsDictionaryHandle
+                     && reactor->reactorHandles.empty(),
+                 "adapter DATALINK output remaps the reactor target and preserves root owners");
     }
 }
 
