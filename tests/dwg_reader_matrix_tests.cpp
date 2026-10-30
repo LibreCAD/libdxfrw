@@ -10890,6 +10890,150 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                                              ? "unknown node class retains its bounded envelope and leaves the remaining group raw"
                                              : "overlong node class names stop before allocating or consuming the node body");
     }
+
+    for (int implicitPointMode = 0; implicitPointMode < 3;
+         ++implicitPointMode) {
+        Options profile;
+        profile.classNumber = classNumber;
+        profile.handle = sourceHandle;
+        profile.groupVersion = 0;
+        profile.nextNodeId = 523;
+        profile.actions.clear();
+        Node implicitPoint;
+        implicitPoint.id = 387;
+        implicitPoint.connections = {388};
+        implicitPoint.className = "AcConstrainedImplicitPoint";
+        implicitPoint.hasImplicitPointBody = true;
+        implicitPoint.geometryDependencyCode = implicitPointMode == 2
+            ? DRW::DwgHardPointer : DRW::DwgSoftPointer;
+        implicitPoint.geometryDependencyHandle = implicitPointMode == 1
+            ? 0xA005u : implicitPointMode == 2 ? 0xA006u : 0u;
+        implicitPoint.geometryNodeId = 0;
+        implicitPoint.hasPoint = implicitPointMode == 1;
+        implicitPoint.point = DRW_Coord(0.5, 1.5, 2.5);
+        implicitPoint.pointType = 1u;
+        implicitPoint.pointIndex = -1;
+        implicitPoint.curveNodeId = 384;
+        profile.nodes.push_back(implicitPoint);
+
+        Frame profileObject;
+        Frame nextObject;
+        std::vector<std::uint8_t> profileFrame;
+        std::vector<std::uint8_t> nextFrame;
+        const bool profileBuilt = makeFrame(profile, profileObject)
+            && wrapFrame(profileObject, profileFrame)
+            && makeFrame(sentinel, nextObject)
+            && wrapFrame(nextObject, nextFrame);
+        t.expect(profileBuilt,
+                 "AC1024 implicit-point node profiles are generated from scratch");
+        if (!profileBuilt)
+            continue;
+
+        const auto nextOffset = static_cast<std::uint32_t>(profileFrame.size());
+        std::vector<std::uint8_t> profileBytes = profileFrame;
+        profileBytes.insert(profileBytes.end(), nextFrame.begin(),
+                            nextFrame.end());
+        AssociativeConstraintGroupDispatchReader profileReader(
+            profileBytes, classNumber);
+        PersistentManagerDispatchSink profileSink;
+        const bool profileRead = profileReader.readObjects(profileBytes,
+            {{sourceHandle, 0u, 0u}, {sentinelHandle, nextOffset, 1u}},
+            profileSink);
+        const auto partialSource = std::find_if(
+            profileSink.typed.begin(), profileSink.typed.end(),
+            [](const DRW_AssociativeObject& value) {
+                return value.handle == sourceHandle;
+            });
+        const auto partialRaw = std::find_if(
+            profileSink.raw.begin(), profileSink.raw.end(),
+            [](const DRW_UnsupportedObject& value) {
+                return value.m_handle == sourceHandle;
+            });
+        const bool expectedComplete = implicitPointMode != 2;
+        bool nodeMatches = partialSource != profileSink.typed.end()
+            && partialSource->m_constraintNodes.size() == 1u;
+        if (nodeMatches) {
+            const auto& node = partialSource->m_constraintNodes.front();
+            nodeMatches = node.m_className == "AcConstrainedImplicitPoint"
+                && node.m_nodeId == 387
+                && node.m_connections == std::vector<std::int32_t>{388}
+                && node.m_classDataParsed == expectedComplete;
+            if (expectedComplete) {
+                nodeMatches = nodeMatches
+                    && node.m_dataKind
+                           == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                    && node.m_hasGeometryDependency
+                    && node.m_geometryDependencyCode == DRW::DwgSoftPointer
+                    && node.m_geometryDependencyHandle
+                           == (implicitPointMode == 1 ? 0xA005u : 0u)
+                    && node.m_geometryNodeId == 0
+                    && node.m_hasPoint == (implicitPointMode == 1)
+                    && (!node.m_hasPoint
+                        || (node.m_point.x == 0.5
+                            && node.m_point.y == 1.5
+                            && node.m_point.z == 2.5))
+                    && node.m_pointType == 1u
+                    && node.m_pointIndex == -1
+                    && node.m_curveNodeId == 384;
+            }
+        }
+        const bool profileMatches = profileRead
+            && profileReader.objectFailures() == 0u
+            && partialSource != profileSink.typed.end()
+            && partialSource->m_constraintGroupBodyParsed == expectedComplete
+            && partialSource->m_constraintNodeCount == 1
+            && partialSource->m_constraintNodesParsed == expectedComplete
+            && nodeMatches
+            && partialRaw != profileSink.raw.end()
+            && !partialRaw->m_typedPayloadValidated
+            && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
+                [](const DRW_AssociativeObject& value) {
+                    return value.handle == sentinelHandle
+                        && value.m_constraintGroupBodyParsed;
+                });
+        t.expect(profileMatches,
+                 implicitPointMode == 0
+                     ? "implicit-point null soft pointer is retained with absent coordinates and exact scalar fields"
+                     : implicitPointMode == 1
+                         ? "implicit-point non-null soft pointer decodes its optional 3BD and exact scalar fields"
+                         : "implicit-point handle-role mismatch preserves raw data and following-object recovery");
+        if (!profileMatches) {
+            std::cerr << "AC1024 implicit-point profile mode="
+                      << implicitPointMode << " read=" << profileRead
+                      << " failures=" << profileReader.objectFailures()
+                      << " typed=" << profileSink.typed.size()
+                      << " raw=" << profileSink.raw.size()
+                      << " source="
+                      << (partialSource != profileSink.typed.end())
+                      << " nodes="
+                      << (partialSource != profileSink.typed.end()
+                              ? partialSource->m_constraintNodes.size() : 0u)
+                      << " parsed="
+                      << (partialSource != profileSink.typed.end()
+                              ? partialSource->m_constraintNodesParsed : false)
+                      << " complete="
+                      << (partialSource != profileSink.typed.end()
+                              ? partialSource->m_constraintGroupBodyParsed : false);
+            if (partialSource != profileSink.typed.end()
+                && !partialSource->m_constraintNodes.empty()) {
+                const auto& node = partialSource->m_constraintNodes.front();
+                std::cerr << " class=" << node.m_className
+                          << " data=" << node.m_classDataParsed
+                          << " kind=" << static_cast<int>(node.m_dataKind)
+                          << " depPresent=" << node.m_hasGeometryDependency
+                          << " depCode="
+                          << static_cast<unsigned>(node.m_geometryDependencyCode)
+                          << " dep=" << node.m_geometryDependencyHandle
+                          << " geomNode=" << node.m_geometryNodeId
+                          << " hasPoint=" << node.m_hasPoint
+                          << " pointType="
+                          << static_cast<unsigned>(node.m_pointType)
+                          << " pointIndex=" << node.m_pointIndex
+                          << " curve=" << node.m_curveNodeId;
+            }
+            std::cerr << '\n';
+        }
+    }
 }
 
 void testPersistentManagerPrefixDispatch(TestContext& t) {

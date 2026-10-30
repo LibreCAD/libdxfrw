@@ -7116,7 +7116,8 @@ struct DRW_AssociativePrefixStatus {
 struct DRW_AssociativeConstraintNode {
   enum class DataKind {
     Unsupported,
-    Geometrical
+    Geometrical,
+    ImplicitPoint
   };
 
   UTF8STRING m_className;
@@ -7127,6 +7128,15 @@ struct DRW_AssociativeConstraintNode {
   bool m_isImplied = false;
   bool m_hasActiveFlag = false;
   bool m_isActive = false;
+  bool m_hasGeometryDependency = false;
+  std::uint8_t m_geometryDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_geometryDependencyHandle = 0;
+  std::int32_t m_geometryNodeId = 0;
+  bool m_hasPoint = false;
+  DRW_Coord m_point;
+  std::uint8_t m_pointType = 0;
+  std::int32_t m_pointIndex = 0;
+  std::int32_t m_curveNodeId = 0;
   bool m_classDataParsed = false;
 };
 

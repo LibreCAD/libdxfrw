@@ -102,6 +102,11 @@ bool isPlainAssociativeGeometricalConstraint(std::string_view className) {
         });
 }
 
+bool isAssociativeConstrainedImplicitPoint(std::string_view className) {
+    return equalsAsciiCaseInsensitive(className,
+                                      "AcConstrainedImplicitPoint");
+}
+
 bool splitColorBookEntryName(const UTF8STRING& value,
                              UTF8STRING& bookName,
                              UTF8STRING& colorName) {
@@ -26731,6 +26736,67 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 node.m_className = std::move(className);
                 if (!isPlainAssociativeGeometricalConstraint(
                         node.m_className)) {
+                    if (isAssociativeConstrainedImplicitPoint(
+                            node.m_className)) {
+                        dwgBuffer nodeHandleProbe =
+                            handleProbe.forkIndependent();
+                        dwgHandle geometryDependency;
+                        std::int32_t geometryNodeId = 0;
+                        DRW_Coord point;
+                        std::uint8_t pointType = 0;
+                        std::int32_t pointIndex = 0;
+                        std::int32_t curveNodeId = 0;
+                        const bool handleRead = readBoundedObjectHandle(
+                            nodeHandleProbe, 0u, false, geometryDependency,
+                            handleEndBit)
+                            && geometryDependency.code
+                                   == DRW::DwgSoftPointer;
+                        const bool pointPresent = handleRead
+                            && geometryDependency.ref64 != 0u;
+                        bool implicitPointParsed = handleRead
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                geometryNodeId)
+                            && (!pointPresent
+                                || read3BitDoubleWithinBody(
+                                    &nodeBodyProbe, version, objectDataEnd,
+                                    point))
+                            && readRawCharWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                pointType)
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                pointIndex)
+                            && readBitLongWithinBody(
+                                &nodeBodyProbe, version, objectDataEnd,
+                                curveNodeId);
+                        if (!implicitPointParsed) {
+                            constraintNodes.push_back(std::move(node));
+                            complete = false;
+                            break;
+                        }
+                        node.m_dataKind =
+                            DRW_AssociativeConstraintNode::DataKind::ImplicitPoint;
+                        node.m_hasGeometryDependency = true;
+                        node.m_geometryDependencyCode =
+                            geometryDependency.code;
+                        node.m_geometryDependencyHandle =
+                            geometryDependency.ref64;
+                        node.m_geometryNodeId = geometryNodeId;
+                        node.m_hasPoint = pointPresent;
+                        if (pointPresent)
+                            node.m_point = point;
+                        node.m_pointType = pointType;
+                        node.m_pointIndex = pointIndex;
+                        node.m_curveNodeId = curveNodeId;
+                        node.m_classDataParsed = true;
+                        constraintNodes.push_back(std::move(node));
+                        bodyProbe = nodeBodyProbe;
+                        groupStringProbe = nodeStringProbe;
+                        handleProbe = nodeHandleProbe;
+                        ++decodedHandleCount;
+                        continue;
+                    }
                     // The common node envelope is known, but the following
                     // class body is not. Keep this node prefix and preserve
                     // the remaining group bytes without guessing its span.
@@ -26763,11 +26829,15 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 groupStringProbe = nodeStringProbe;
             }
             if (complete) {
-                constraintNodesParsed = constraintNodes.size()
-                        == static_cast<std::size_t>(nodeCount)
-                    && currentObjectDwgBit(&bodyProbe) == objectDataEnd
-                    && consumeZeroPaddingWithinBounds(&groupStringProbe,
-                                                      stringDataEnd, 7u);
+                const bool allNodesDecoded = constraintNodes.size()
+                    == static_cast<std::size_t>(nodeCount);
+                const bool bodyAtEnd =
+                    currentObjectDwgBit(&bodyProbe) == objectDataEnd;
+                const bool stringPaddingConsumed =
+                    consumeZeroPaddingWithinBounds(&groupStringProbe,
+                                                   stringDataEnd, 7u);
+                constraintNodesParsed = allNodesDecoded && bodyAtEnd
+                    && stringPaddingConsumed;
                 complete = constraintNodesParsed;
             }
         }

@@ -20,6 +20,15 @@ struct Node {
     std::int32_t ownerId = 0;
     bool isImplied = false;
     bool hasGeometricalBody = false;
+    bool hasImplicitPointBody = false;
+    std::uint8_t geometryDependencyCode = DRW::DwgSoftPointer;
+    std::uint32_t geometryDependencyHandle = 0u;
+    std::int32_t geometryNodeId = 0;
+    bool hasPoint = false;
+    DRW_Coord point;
+    std::uint8_t pointType = 0u;
+    std::int32_t pointIndex = 0;
+    std::int32_t curveNodeId = 0;
 };
 
 struct Options {
@@ -57,14 +66,18 @@ inline bool appendStringStream(dwgBufferW& object,
         object.putBit(0u); // no R2007+ detached string stream
         return object.isGood();
     }
-    const std::uint64_t stringBytes = strings.data().size();
+    const std::uint64_t stringBits = strings.bitCount();
     const std::uint64_t paddingBits =
-        (7u - (object.bitCount() & 7u)) & 7u;
-    const std::uint64_t stringBitSize = stringBytes * 8u + paddingBits;
+        (7u - ((object.bitCount() + stringBits) & 7u)) & 7u;
+    const std::uint64_t stringBitSize = stringBits + paddingBits;
     if (stringBitSize > 0x7FFFFFFFULL)
         return false;
 
-    object.putBytes(strings.data().data(), strings.data().size());
+    for (std::uint64_t bit = 0; bit < stringBits; ++bit) {
+        const std::uint8_t byte = strings.data()[bit >> 3];
+        object.putBit(static_cast<std::uint8_t>(
+            (byte >> (7u - (bit & 7u))) & 1u));
+    }
     for (std::uint64_t i = 0; i < paddingBits; ++i)
         object.putBit(0u);
     if (stringBitSize <= 0x7FFFu) {
@@ -126,6 +139,13 @@ inline bool makeFrame(const Options& options, Frame& frame) {
         if (node.hasGeometricalBody) {
             object.putBitLong(node.ownerId);
             object.putBit(node.isImplied ? 1u : 0u);
+        } else if (node.hasImplicitPointBody) {
+            object.putBitLong(node.geometryNodeId);
+            if (node.geometryDependencyHandle != 0u && node.hasPoint)
+                object.put3BitDouble(node.point);
+            object.putRawChar8(node.pointType);
+            object.putBitLong(node.pointIndex);
+            object.putBitLong(node.curveNodeId);
         }
     }
     if (!appendStringStream(object, strings))
@@ -142,6 +162,11 @@ inline bool makeFrame(const Options& options, Frame& frame) {
         options.groupReference));
     for (const auto action : options.actions)
         object.putHandle(reference(DRW::DwgHardOwnership, action));
+    for (const auto& node : options.nodes) {
+        if (node.hasImplicitPointBody)
+            object.putHandle(reference(node.geometryDependencyCode,
+                                       node.geometryDependencyHandle));
+    }
     object.alignToByte();
     if (!object.isGood() || object.bitCount() < frame.objectEndBit
         || object.bitCount() - frame.objectEndBit

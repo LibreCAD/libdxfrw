@@ -41,20 +41,15 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — graph/output closure | Decode the remaining typed records for the independently observed AC1024 constraint-group inline profile; close remaining source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — graph/output closure | Decode the remaining observed AC1024 constraint-node profiles, starting with `AcConstrainedBoundedLine`; close source-required descendants; then serialize and read back the complete reachable graph. | Do not emit a body without its reachable owners/references. Use local samples only for investigation; bind committed regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
 | P9 | DEFERRED_EXTERNAL | Resolve J256, J260, J268, J284, J293 and J295 only with eligible independent evidence; external results remain non-promoting until claim gates pass. | Follow `metadata/external-evidence-resolution-v1.json`. |
 
-### Immediate implementation order
-
-1. **P4 — decode the remaining AC1024 constraint-node classes and finish associative closure.** The same-input acadrust runtime resolves the earlier node-tail conflict for the mechanical AC1024 sample: the source version-0 body carries a next-node-ID seed, then an inline count and class-name/node/connection/class-data entries. The parser now retains the seed/count (`523`/`399`), decodes bounded UTF-16 class names, IDs and connections, and parses the first three geometrical node bodies. On the real sample it retains the fourth node envelope (`AcConstrainedImplicitPoint`) and leaves its class body plus the remaining nodes raw. Next implement that evidenced class body and its exact body/string/handle roles, then the remaining observed classes; keep every unsupported tail raw. Generated controls cover empty and nonempty groups, unknown and overlong class names, invalid seeds, over-bound counts and following-object recovery. Version-2 nonzero-seed registry layouts also remain raw. The older LibreDWG JSON and DXF projections disagree with each other and do not justify interpreting `1073741825` as a source connection. Then close any remaining source-required descendants with bounded role/type/owner checks, and serialize/remap/read back the complete reachable graph. Keep strict refusal until closure and output proof pass.
-
-See the [AC1024 constraint-node geometry receipt](docs/research/p4-ac1024-assoc-node-geometry-prefix-2026-10-30.json) for the class-name/node-envelope and first geometrical class slice, the [framing receipt](docs/research/p4-ac1024-assoc-node-framing-2026-10-30.json) for seed/count validation, the [node-tail runtime receipt](docs/research/p4-ac1024-assoc-node-tail-runtime-2026-10-30.json) for the same-input peer result, and the [prefix receipt](docs/research/p4-ac1024-assoc-constraint-group-prefix-2026-10-30.json) for the earlier parser boundary. Verified body/dependency/group/network/action/dictionary/owner-chain slices are complete and remain in their linked receipts and Git history; do not repeat them as implementation tasks.
-
-Independent P6–P9 qualification can proceed when its inputs are ready; it does not block local code work.
+P6–P9 qualification can proceed when its inputs are ready; it does not block
+independently ready local code work.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -74,26 +69,24 @@ P4 supplies source/context/role providers and composes them with the existing
 local record providers and P5 output. Do not create parallel capture or graph
 engines.
 
-1. **Remaining constraint-node bodies and residual associative closure:** reuse
-   the completed bounded seed/count, detached class-name, node-ID and connection
-   readers. The next physical node in the mechanical witness is
-   `AcConstrainedImplicitPoint`; implement its fields with explicit body versus
-   handle-stream roles and the same object/string bounds, preserving the rest of
-   the group raw until each following class is decoded. The first three
-   geometrical-constraint classes are complete, including explicit absence of
-   the version-0 active flag; do not repeat them. Distinguish the empty
-   in-memory sentinel from serialized nodes. Validate each connection's node
-   role and target, reject duplicate IDs or missing targets only where the
-   source profile establishes those invariants, and keep all vector/string/body
-   work bounded. Leave version-2 nonzero-seed registry layouts raw until their
-   separate framing is proven. Close each
-   remaining source-required descendant. Validate each new graph edge by
-   handle, expected type, common owner and reciprocal relation where required;
-   reject wrong roles and unbounded cycles. Use ODA v5.4.1 for documented
-   layouts and independent peer evidence only where the class is undocumented.
-   Keep local
-   investigation DWGs out of committed fixtures; bind regressions to eligible
-   repository inputs or locally authored fixtures.
+1. **Remaining constraint-node bodies and residual associative closure:** start
+   with `AcConstrainedBoundedLine` (node ID 295, connections 297/299/408) in the
+   mechanical AC1024 witness. Establish its body, string and handle-stream
+   consumption plus exact dependency role against the source-matched runtime
+   and ODA primitives before implementation. Verify the witnessed geometry
+   dependency, node ID, point, direction, ray flag, start point and end point;
+   add typed state only for proven fields, preserve absent versus null, and keep
+   unsupported variants raw. Continue in source order, proving each class's
+   boundaries before advancing. Keep version-2 nonzero-seed registry layouts
+   raw until their separate framing is proven. Validate each connection's node
+   role and target; reject duplicate IDs or missing targets only where the
+   source profile establishes those invariants. Close each source-required
+   descendant with bounded handle, expected-type, common-owner and reciprocal-
+   relation checks where required; reject wrong roles and unbounded cycles. Use
+   ODA v5.4.1 for documented layouts and independent peer evidence only where
+   the class is undocumented. Keep investigation DWGs out of committed
+   fixtures; bind regressions to eligible repository inputs or locally authored
+   fixtures.
 2. **Associative output:** bind source identity and required fields to actual
    emitted object records, remap every edge consistently, and retain strict
    refusal until the complete reachable graph is serialized and verified by
