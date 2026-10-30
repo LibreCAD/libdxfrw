@@ -41,7 +41,7 @@ only while its explicitly listed residual scope blocks its exit gate.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative graph output and recursive closure | Route admitted associative records through source-bound graph output; emit audited AC1024 constraint-node profiles, remap references, close required descendants, and inspect staged records by independent field proof and readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — associative graph output and recursive closure | Route the existing AC1024 dependency and network record writers through source-bound graph output; then emit audited constraint-node profiles, remap references, close required descendants, and inspect staged records by independent field proof and readback. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Reuse current TABLECONTENT and rooted TABLESTYLE/CELLSTYLEMAP graph. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -77,8 +77,9 @@ engines.
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
 2. **Associative output and identity:** establish source → planned → emitted
-   identities before output, then route admitted dependency and constraint-node
-   profiles through the graph planner and remap every reference, including
+   identities before output. Route the existing AC1024 dependency and network
+   record writers through the graph planner, then route admitted
+   constraint-node profiles through it and remap every reference, including
    generated records and collisions. Verify actual staged output by independent
    field inspection and readback. Keep strict refusal wherever a required
    descendant is unsupported. Do not emit a partial graph or infer edges from

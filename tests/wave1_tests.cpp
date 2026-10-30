@@ -2667,6 +2667,176 @@ void testAssociativeDependencyWriter(TestContext& t) {
              "corrected associative dependency retry emits absent name without stale data");
 }
 
+void testAssociativeNetworkWriter(TestContext& t) {
+    const auto handleText = [](std::uint32_t handle) {
+        std::ostringstream value;
+        value << std::uppercase << std::hex << handle;
+        return value.str();
+    };
+    const auto makeNetwork = []() {
+        DRW_AssociativeObject network("ACDBASSOCNETWORK");
+        network.handle = 0x9BDu;
+        network.parentHandle = 0x9BCu;
+        network.reactorHandles = {0x9BCu};
+        network.m_classVersion = 1u;
+        network.m_geometryStatus = 0;
+        network.m_owningNetworkHandle = 0x6E9u;
+        network.m_actionBodyHandle = 0u;
+        network.m_actionIndex = 4;
+        network.m_maxDependencyIndex = 0;
+        network.m_networkVersion = 0;
+        network.m_networkActionIndex = 3;
+        network.m_networkFieldsParsed = true;
+        network.m_actions = {{true, 0x9AEu}, {true, 0x9ADu},
+                             {true, 0x9BAu}};
+        DRW_AssociativePrefixStatus action;
+        action.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocAction;
+        action.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        action.m_classVersion = 1u;
+        action.m_decodedHandleCount = 2u;
+        DRW_AssociativePrefixStatus net;
+        net.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork;
+        net.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+        net.m_classVersion = 1u;
+        net.m_decodedHandleCount = 3u;
+        net.m_decodedCountValue = 3;
+        network.m_prefixStatuses = {action, net};
+        return network;
+    };
+    const std::map<std::uint32_t, std::uint32_t> remap{
+        {0x9BDu, 0x3E8u}, {0x9BCu, 0x3E9u}, {0x6E9u, 0x3EAu},
+        {0x9AEu, 0x3EBu}, {0x9ADu, 0x3ECu}, {0x9BAu, 0x3EDu}};
+
+    for (const bool binary : {false, true}) {
+        for (const bool includeSoftAction : {false, true}) {
+            DRW_AssociativeObject network = makeNetwork();
+            if (includeSoftAction)
+                network.m_actions[1].m_isOwned = false;
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfRW owner("");
+            owner.version = DRW::AC1024;
+            owner.binFile = binary;
+            owner.setHandleRemap(remap);
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+
+            const bool wrote = owner.writeAssociativeNetwork(&network)
+                && owner.writer->writeString(0, "WIRE_END");
+            bool ended = false;
+            const auto tags = numericWireProjection(
+                output.str(), binary, ended);
+            const std::vector<std::string> expected{
+                "0:ACDBASSOCNETWORK", "5:3E8",
+                "102:{ACAD_REACTORS", "330:3E9", "102:}",
+                "330:3E9", "100:AcDbAssocAction", "90:1", "90:0",
+                "330:3EA", "360:0", "90:4", "90:0", "90:0",
+                "100:AcDbAssocNetwork", "90:0", "90:3", "90:3",
+                "360:3EB",
+                includeSoftAction ? "330:3EC" : "360:3EC",
+                "360:3ED", "90:0", "0:WIRE_END"};
+            t.expect(wrote && ended && tags == expected,
+                     "AC1024 associative network matches independent field order and remaps owner/reactor/action handles in ASCII and Binary");
+        }
+    }
+
+    DRW_AssociativeObject withEed = makeNetwork();
+    const bool eedAdded = withEed.addExtData(
+            std::make_unique<DRW_Variant>(1001, "ASSOC_META"))
+        && withEed.addExtData(
+            std::make_unique<DRW_Variant>(1000, "network-eed"));
+    std::ostringstream eedOutput;
+    dxfRW eedWriter("");
+    eedWriter.version = DRW::AC1024;
+    eedWriter.writer = std::make_unique<dxfWriterAscii>(&eedOutput);
+    const bool eedWritten = eedWriter.writeAssociativeNetwork(&withEed)
+        && eedWriter.writer->writeString(0, "WIRE_END");
+    bool eedEnded = false;
+    const auto eedTags = numericWireProjection(
+        eedOutput.str(), false, eedEnded);
+    t.expect(eedAdded && eedWritten && eedEnded
+                 && std::find(eedTags.begin(), eedTags.end(),
+                              "1001:ASSOC_META") != eedTags.end()
+                 && std::find(eedTags.begin(), eedTags.end(),
+                              "1000:network-eed") != eedTags.end(),
+             "associative network writer retains extended data after the network body");
+
+    const auto rejectedWithoutOutput = [](DRW::Version version,
+                                          DRW_AssociativeObject network) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = version;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        return !owner.writeAssociativeNetwork(&network)
+            && output.str().empty();
+    };
+    DRW_AssociativeObject incomplete = makeNetwork();
+    incomplete.m_prefixStatuses[1].m_status =
+        DRW_AssociativePrefixStatus::ParseStatus::Partial;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, incomplete),
+             "partial associative network prefix refuses atomically");
+    DRW_AssociativeObject unsupportedVersion = makeNetwork();
+    unsupportedVersion.m_networkVersion = 1;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedVersion),
+             "unqualified AC1024 associative network version refuses atomically");
+    DRW_AssociativeObject unsupportedDxfVersion = makeNetwork();
+    t.expect(rejectedWithoutOutput(DRW::AC1027, unsupportedDxfVersion),
+             "unqualified associative network output version refuses atomically");
+    DRW_AssociativeObject unsupportedAppData = makeNetwork();
+    unsupportedAppData.appData = {{DRW_Variant(102, "APP_META")}};
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedAppData),
+             "unqualified associative network APPDATA profile refuses atomically");
+
+    bool unresolvedRollback = true;
+    for (const std::uint32_t missingHandle :
+         {std::uint32_t{0x9BCu}, std::uint32_t{0x6E9u},
+          std::uint32_t{0x9AEu}}) {
+        DRW_AssociativeObject unresolved = makeNetwork();
+        std::ostringstream unresolvedOutput;
+        dxfRW unresolvedWriter("");
+        unresolvedWriter.version = DRW::AC1024;
+        unresolvedWriter.setReferenceResolver(
+            [missingHandle](std::uint32_t source) {
+                return source == missingHandle ? std::uint32_t{0} : source;
+            });
+        unresolvedWriter.writer = std::make_unique<dxfWriterAscii>(
+            &unresolvedOutput);
+        unresolvedRollback = unresolvedRollback
+            && !unresolvedWriter.writeAssociativeNetwork(&unresolved)
+            && unresolvedOutput.str().empty()
+            && unresolved.handle == 0x9BDu
+            && unresolvedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    }
+    t.expect(unresolvedRollback,
+             "unresolved associative network reference rolls back bytes and source identity");
+
+    DRW_AssociativeObject retry = makeNetwork();
+    const bool invalidEedAdded = retry.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedOutput;
+    dxfRW failedWriter("");
+    failedWriter.version = DRW::AC1024;
+    failedWriter.writer = std::make_unique<dxfWriterAscii>(&failedOutput);
+    const bool lateFailureRolledBack = invalidEedAdded
+        && !failedWriter.writeAssociativeNetwork(&retry)
+        && failedOutput.str().empty()
+        && retry.handle == 0x9BDu
+        && failedWriter.m_writingContext.sourceHandleToMintedMap.empty();
+    retry.clearExtData();
+    std::ostringstream retryOutput;
+    dxfRW correctedWriter("");
+    correctedWriter.version = DRW::AC1024;
+    correctedWriter.writer = std::make_unique<dxfWriterAscii>(&retryOutput);
+    const bool correctedRetry =
+        correctedWriter.writeAssociativeNetwork(&retry)
+        && correctedWriter.writer->writeString(0, "WIRE_END");
+    t.expect(lateFailureRolledBack && correctedRetry
+                 && retryOutput.str().find("ACDBASSOCNETWORK")
+                     != std::string::npos,
+             "late associative network EED failure rolls back and permits corrected retry on the same object");
+}
+
 void expectTypedNumericWire(TestContext& t,
                            const std::function<bool(dxfRW&)>& emit,
                            const std::vector<std::string>& expected,
@@ -14432,6 +14602,14 @@ int main(int argc, char** argv) {
         return focused.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--associative-network-writer") {
+        TestContext focused;
+        testAssociativeNetworkWriter(focused);
+        std::cout << "AC1024 associative network writer: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--dimassoc-graph-closure") {
         TestContext focused;
         testDimensionAssociationGraphClosure(focused);
@@ -14546,6 +14724,7 @@ int main(int argc, char** argv) {
     testViewFlagWireKinds(context);
     testIntegerValuedBooleanWireKinds(context);
     testAssociativeDependencyWriter(context);
+    testAssociativeNetworkWriter(context);
     testDimensionAssociationGraphClosure(context);
     testCustomTextNumericWireKinds(context);
     testLayoutStyleNumericWireKinds(context);
