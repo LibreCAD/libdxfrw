@@ -6694,6 +6694,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionVisualStyleHandles.clear();
     m_extensionTableStyleHandles.clear();
     m_extensionCellStyleMapHandles.clear();
+    m_extensionTableStyleBaseIds.clear();
     m_extensionDetailViewStyleHandles.clear();
     m_extensionSectionViewStyleHandles.clear();
     m_extensionPlotSettingsHandles.clear();
@@ -6718,6 +6719,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_extensionVisualStyleHandles.clear();
         m_extensionTableStyleHandles.clear();
         m_extensionCellStyleMapHandles.clear();
+        m_extensionTableStyleBaseIds.clear();
         m_extensionDetailViewStyleHandles.clear();
         m_extensionSectionViewStyleHandles.clear();
         m_extensionPlotSettingsHandles.clear();
@@ -9156,7 +9158,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         const auto resolveTableContentStyleId = [data,
                 &visitedTableStyles, &tableStyles,
                 &cellStyleIdCountsByTableStyle, &examineEdge, &reject](
-                const DRW_Table& table, std::int32_t styleId) {
+                std::uint32_t tableStyleHandle, std::int32_t styleId,
+                bool standaloneTableContent) {
             if (!examineEdge())
                 return false;
             if (!tableContentStyleIdValid(data->sourceVersion, styleId))
@@ -9164,14 +9167,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     "TABLECONTENT base-style ID is outside the source version domain");
             if (styleId == 0)
                 return true;
-            const std::uint32_t tableStyleHandle = table.m_tableStyleHandle;
             const auto tableStyle = tableStyles.find(tableStyleHandle);
             if (tableStyleHandle == 0u || tableStyleHandle == DRW::NoHandle
                 || tableStyle == tableStyles.end()
                 || visitedTableStyles.count(tableStyleHandle) != 1u)
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "TABLECONTENT base-style reference has no uniquely rooted TABLESTYLE");
-            if (styleId < 101)
+            if (styleId < 101
+                && !(standaloneTableContent && styleId == 4))
                 return true;
             const auto tableStyleIds =
                 cellStyleIdCountsByTableStyle.find(tableStyleHandle);
@@ -9201,16 +9204,47 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "TABLECONTENT and ACAD_TABLE disagree on the TABLESTYLE handle");
             for (const DRW_TableColumn& column : table.m_content.m_columns) {
-                if (!resolveTableContentStyleId(table, column.m_styleId))
+                if (!resolveTableContentStyleId(
+                        table.m_tableStyleHandle, column.m_styleId, false))
                     return false;
             }
             for (const DRW_TableRow& row : table.m_content.m_rows) {
-                if (!resolveTableContentStyleId(table, row.m_styleId))
+                if (!resolveTableContentStyleId(
+                        table.m_tableStyleHandle, row.m_styleId, false))
                     return false;
                 for (const DRW_TableCell& cell : row.m_cells) {
-                    if (!resolveTableContentStyleId(table, cell.m_styleId))
+                    if (!resolveTableContentStyleId(
+                            table.m_tableStyleHandle, cell.m_styleId, false))
                         return false;
                 }
+            }
+        }
+        for (const DRW_TableContentObject& content : data->tableContents) {
+            const std::uint32_t tableStyleHandle =
+                content.m_content.m_tableStyleHandle;
+            for (const DRW_TableColumn& column :
+                 content.m_content.m_columns) {
+                if (!resolveTableContentStyleId(
+                        tableStyleHandle, column.m_styleId, true))
+                    return false;
+            }
+            for (const DRW_TableRow& row : content.m_content.m_rows) {
+                if (!resolveTableContentStyleId(
+                        tableStyleHandle, row.m_styleId, true))
+                    return false;
+                for (const DRW_TableCell& cell : row.m_cells) {
+                    if (!resolveTableContentStyleId(
+                            tableStyleHandle, cell.m_styleId, true))
+                        return false;
+                }
+            }
+        }
+        m_extensionTableStyleBaseIds.clear();
+        for (const auto& tableStyleItem : cellStyleIdCountsByTableStyle) {
+            for (const auto& styleIdItem : tableStyleItem.second) {
+                if (styleIdItem.second == 1u)
+                    m_extensionTableStyleBaseIds.emplace_back(
+                        tableStyleItem.first, styleIdItem.first);
             }
         }
         return true;
@@ -38717,24 +38751,23 @@ bool dx_iface::prepareTableFallbackGraph(dx_data& data,
         const std::uint32_t styleHandle =
             content.m_content.m_tableStyleHandle;
         bool hasBaseStyleReference = false;
-        const auto supportedStandardStyleId = [&](std::int32_t styleId) {
-            return styleId >= 0 && styleId <= 3
-                && tableContentStyleIdValid(data.sourceVersion, styleId)
+        const auto supportedStyleId = [&](std::int32_t styleId) {
+            return tableContentStyleIdValid(data.sourceVersion, styleId)
                 && tableContentStyleIdValid(targetVersion, styleId);
         };
         for (const DRW_TableColumn& column : content.m_content.m_columns) {
-            if (!supportedStandardStyleId(column.m_styleId))
+            if (!supportedStyleId(column.m_styleId))
                 return false;
             hasBaseStyleReference = hasBaseStyleReference
                 || column.m_styleId != 0;
         }
         for (const DRW_TableRow& row : content.m_content.m_rows) {
-            if (!supportedStandardStyleId(row.m_styleId))
+            if (!supportedStyleId(row.m_styleId))
                 return false;
             hasBaseStyleReference = hasBaseStyleReference
                 || row.m_styleId != 0;
             for (const DRW_TableCell& cell : row.m_cells) {
-                if (!supportedStandardStyleId(cell.m_styleId))
+                if (!supportedStyleId(cell.m_styleId))
                     return false;
                 hasBaseStyleReference = hasBaseStyleReference
                     || cell.m_styleId != 0;
@@ -42295,6 +42328,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     std::unordered_set<std::uint32_t>().swap(rawEntityHandles);
     dxfW->setHandleRemap(std::move(handleRemap));
     dxfW->setResolvedTableStyleHandles(std::move(m_tableStylesToEmit));
+    dxfW->setResolvedTableStyleBaseIds(
+        std::move(m_extensionTableStyleBaseIds));
     const auto hasRawXdataHandle = [](const dx_ifaceBlock* block) {
         if (block == nullptr)
             return false;

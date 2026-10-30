@@ -2550,6 +2550,8 @@ private:
     std::vector<std::uint32_t> m_extensionVisualStyleHandles;
     std::vector<std::uint32_t> m_extensionTableStyleHandles;
     std::vector<std::uint32_t> m_extensionCellStyleMapHandles;
+    std::vector<std::pair<std::uint32_t, std::int32_t>>
+        m_extensionTableStyleBaseIds;
     std::vector<std::uint32_t> m_extensionDetailViewStyleHandles;
     std::vector<std::uint32_t> m_extensionSectionViewStyleHandles;
     std::vector<std::uint32_t> m_extensionPlotSettingsHandles;

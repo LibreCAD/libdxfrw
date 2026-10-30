@@ -816,6 +816,21 @@ public:
             return;
         m_resolvedTableStyleHandles = std::move(handles);
     }
+    /*!< Register base-style IDs that were uniquely resolved in the rooted
+     * CELLSTYLEMAP of each emitted TABLESTYLE. Standalone TABLECONTENT IDs
+     * 4 and 101+ require this proof in addition to the TABLESTYLE handle. */
+    void setResolvedTableStyleBaseIds(
+            const std::vector<std::pair<std::uint32_t, std::int32_t>>& ids) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedTableStyleBaseIds = ids;
+    }
+    void setResolvedTableStyleBaseIds(
+            std::vector<std::pair<std::uint32_t, std::int32_t>>&& ids) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedTableStyleBaseIds = std::move(ids);
+    }
     /*!< Register rooted Background handles whose typed group-332 consumer or
      * IBL group-340 references will be emitted by this same adapter write.
      * Direct codec callers have no resolved targets by default and remain
@@ -1886,6 +1901,9 @@ private:
     /// TABLESTYLE source handles whose complete raw records are emitted by the
     /// owning adapter during this write.
     std::vector<std::uint32_t> m_resolvedTableStyleHandles;
+    /// TABLESTYLE/base-style pairs proven unique in the rooted CELLSTYLEMAP.
+    std::vector<std::pair<std::uint32_t, std::int32_t>>
+        m_resolvedTableStyleBaseIds;
     /// Background targets validated in the adapter's rooted dictionary graph.
     std::vector<std::uint32_t> m_resolvedBackgroundHandles;
     /// SUN targets whose VPORT/VIEWPORT hard-owner graph was validated by the adapter.

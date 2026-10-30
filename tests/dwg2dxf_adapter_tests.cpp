@@ -9,6 +9,7 @@
 #include "layer_test_helpers.h"
 #include "dx_raster_output.h"
 #include "dx_standard_output.h"
+#include "independent_dxf_scalar_walker.h"
 
 #include <algorithm>
 #include <array>
@@ -28447,8 +28448,30 @@ bool tableContentStyleReferenceCensus() {
         table.m_content.m_rows.push_back(row);
         data.tables.push_back(std::move(table));
     };
+    const auto addStandaloneContent = [](dx_data& data,
+            std::uint32_t tableStyleHandle, std::int32_t columnStyle,
+            std::int32_t rowStyle, std::int32_t cellStyle) {
+        DRW_TableContentObject content;
+        content.handle = 0x860u;
+        content.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        content.m_parseComplete = true;
+        content.m_semanticContentComplete = true;
+        content.m_content.m_name = "generated-standalone-tablecontent";
+        content.m_content.m_tableStyleHandle = tableStyleHandle;
+        DRW_TableColumn column;
+        column.m_styleId = columnStyle;
+        content.m_content.m_columns.push_back(column);
+        DRW_TableRow row;
+        row.m_styleId = rowStyle;
+        DRW_TableCell cell;
+        cell.m_styleId = cellStyle;
+        row.m_cells.push_back(cell);
+        content.m_content.m_rows.push_back(std::move(row));
+        data.tableContents.push_back(std::move(content));
+    };
     const auto addCellStyleMap = [](dx_data& data,
-                                   bool duplicateFirstStyle = false) {
+                                   bool duplicateFirstStyle = false,
+                                   bool includeR24TableStyle = false) {
         DRW_TableStyle& style = data.tableStyles.front();
         style.xDictHandle = 0x710u;
         DRW_Dictionary extension;
@@ -28474,6 +28497,14 @@ bool tableContentStyleReferenceCensus() {
                 map.m_cellStyles.push_back(std::move(duplicate));
             }
         }
+        if (includeR24TableStyle) {
+            DRW_TableStyleCellStyle tableStyle;
+            tableStyle.m_type = 5;
+            tableStyle.m_id = 4;
+            tableStyle.m_styleClass = 2;
+            tableStyle.m_name = "generated-table-style";
+            map.m_cellStyles.push_back(std::move(tableStyle));
+        }
         data.cellStyleMaps.push_back(std::move(map));
     };
     const auto makeData = [](DRW::Version version) {
@@ -28491,6 +28522,10 @@ bool tableContentStyleReferenceCensus() {
     addTable(builtins, 0x520u, 1, 2, 3);
     if (!accepts(builtins))
         return fail("built-in TABLECONTENT base-style IDs were not resolved against a rooted TABLESTYLE");
+    dx_data standaloneBuiltins = makeData(DRW::AC1021);
+    addStandaloneContent(standaloneBuiltins, 0x520u, 1, 2, 3);
+    if (!accepts(standaloneBuiltins))
+        return fail("standalone built-in TABLECONTENT IDs 1-3 were not resolved against a rooted TABLESTYLE");
 
     dx_data noBaseStyle = makeData(DRW::AC1021);
     addTable(noBaseStyle, 0u, 0, 0, 0);
@@ -28502,6 +28537,11 @@ bool tableContentStyleReferenceCensus() {
     addTable(custom, 0x520u, 101, 102, 101);
     if (!accepts(custom))
         return fail("column/row/cell custom IDs did not resolve in their owning CELLSTYLEMAP");
+    dx_data standaloneCustom = makeData(DRW::AC1021);
+    addCellStyleMap(standaloneCustom);
+    addStandaloneContent(standaloneCustom, 0x520u, 101, 102, 101);
+    if (!accepts(standaloneCustom))
+        return fail("standalone custom IDs did not resolve in their owning CELLSTYLEMAP");
 
     dx_data missingCustom = makeData(DRW::AC1021);
     addCellStyleMap(missingCustom);
@@ -28515,38 +28555,203 @@ bool tableContentStyleReferenceCensus() {
     if (!DxIfaceExtensionGraphTestAccess::prepare(
             retryGraph, missingCustom, true))
         return fail("TABLECONTENT style census did not reset and retry after repairing a missing ID");
+    dx_data missingStandaloneCustom = makeData(DRW::AC1021);
+    addCellStyleMap(missingStandaloneCustom);
+    addStandaloneContent(missingStandaloneCustom, 0x520u, 0, 0, 103);
+    dx_iface standaloneRetryGraph;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            standaloneRetryGraph, missingStandaloneCustom, true))
+        return fail("missing standalone custom base-style ID was accepted");
+    missingStandaloneCustom.tableContents.front().m_content.m_rows.front()
+        .m_cells.front().m_styleId = 102;
+    if (!DxIfaceExtensionGraphTestAccess::prepare(
+            standaloneRetryGraph, missingStandaloneCustom, true))
+        return fail("standalone CELLSTYLEMAP census did not reset and retry after ID repair");
 
     dx_data duplicateCustom = makeData(DRW::AC1021);
     addCellStyleMap(duplicateCustom, true);
     addTable(duplicateCustom, 0x520u, 101, 102, 101);
     if (accepts(duplicateCustom))
         return fail("ambiguous duplicate custom ID in CELLSTYLEMAP was accepted");
+    dx_data duplicateStandaloneCustom = makeData(DRW::AC1021);
+    addCellStyleMap(duplicateStandaloneCustom, true);
+    addStandaloneContent(duplicateStandaloneCustom, 0x520u, 0, 0, 101);
+    if (accepts(duplicateStandaloneCustom))
+        return fail("ambiguous standalone custom ID in CELLSTYLEMAP was accepted");
 
     dx_data wrongOwner = makeData(DRW::AC1021);
     addCellStyleMap(wrongOwner);
     addTable(wrongOwner, 0x521u, 101, 102, 101);
     if (accepts(wrongOwner))
         return fail("custom TABLECONTENT IDs resolved through another TABLESTYLE's map");
+    dx_data standaloneWrongOwner = makeData(DRW::AC1021);
+    addCellStyleMap(standaloneWrongOwner);
+    addStandaloneContent(standaloneWrongOwner, 0x521u, 0, 0, 101);
+    if (accepts(standaloneWrongOwner))
+        return fail("standalone custom ID resolved through another TABLESTYLE's map");
 
     dx_data noStyleHandle = makeData(DRW::AC1021);
     addTable(noStyleHandle, 0u, 101, 0, 0);
     if (accepts(noStyleHandle))
         return fail("custom TABLECONTENT ID without a TABLESTYLE handle was accepted");
+    dx_data standaloneNoStyleHandle = makeData(DRW::AC1021);
+    addCellStyleMap(standaloneNoStyleHandle);
+    addStandaloneContent(standaloneNoStyleHandle, 0u, 0, 0, 101);
+    if (accepts(standaloneNoStyleHandle))
+        return fail("standalone custom ID without a TABLESTYLE handle was accepted");
 
     dx_data reserved = makeData(DRW::AC1021);
     addTable(reserved, 0x520u, 5, 0, 0);
     if (accepts(reserved))
         return fail("reserved TABLECONTENT base-style ID was accepted");
+    dx_data standaloneReserved = makeData(DRW::AC1021);
+    addStandaloneContent(standaloneReserved, 0x520u, 0, 0, 5);
+    if (accepts(standaloneReserved))
+        return fail("reserved standalone TABLECONTENT style ID was accepted");
 
     dx_data r24Builtin = makeData(DRW::AC1024);
     addTable(r24Builtin, 0x520u, 4, 0, 0);
     if (!accepts(r24Builtin))
         return fail("R24 built-in TABLECONTENT style ID 4 was rejected");
+    dx_data standaloneR24WithoutMap = makeData(DRW::AC1024);
+    addStandaloneContent(standaloneR24WithoutMap, 0x520u, 4, 0, 0);
+    if (accepts(standaloneR24WithoutMap))
+        return fail("standalone R24 ID 4 without its CELLSTYLEMAP entry was accepted");
+    dx_data standaloneR24Builtin = makeData(DRW::AC1024);
+    addCellStyleMap(standaloneR24Builtin, false, true);
+    addStandaloneContent(standaloneR24Builtin, 0x520u, 4, 0, 0);
+    if (!accepts(standaloneR24Builtin))
+        return fail("standalone R24 ID 4 with its unique CELLSTYLEMAP entry was rejected");
 
     dx_data preR24Builtin = makeData(DRW::AC1021);
     addTable(preR24Builtin, 0x520u, 4, 0, 0);
     if (accepts(preR24Builtin))
         return fail("pre-R24 TABLECONTENT style ID 4 was accepted");
+    dx_data standalonePreR24Builtin = makeData(DRW::AC1021);
+    addCellStyleMap(standalonePreR24Builtin, false, true);
+    addStandaloneContent(standalonePreR24Builtin, 0x520u, 4, 0, 0);
+    if (accepts(standalonePreR24Builtin))
+        return fail("pre-R24 standalone ID 4 was accepted through CELLSTYLEMAP");
+
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    const std::filesystem::path outputDirectory =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-standalone-cellstylemap-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(outputDirectory, error) || error)
+        return fail("standalone CELLSTYLEMAP output temporary directory unavailable");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup{outputDirectory};
+    for (const auto& profile : {
+             std::make_pair(DRW::AC1021, 101),
+             std::make_pair(DRW::AC1024, 4)}) {
+        for (const bool binary : {false, true}) {
+            dx_data data = makeData(profile.first);
+            addCellStyleMap(data, false, profile.second == 4);
+            addStandaloneContent(data, 0x520u, 0, 0, profile.second);
+            dx_iface writer;
+            writer.cData = &data;
+            writer.currentBlock = data.mBlock;
+            const std::filesystem::path output = outputDirectory
+                / ("standalone-" + std::to_string(profile.second)
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!writer.fileExport(output.string(), profile.first, binary,
+                                   &data, true))
+                return fail("standalone TABLECONTENT CELLSTYLEMAP output failed");
+
+            const auto tags = attdefWireTags(output, binary);
+            std::vector<int> emittedContentStyleIds;
+            std::vector<int> emittedMapStyleIds;
+            bool inContent = false;
+            bool inMap = false;
+            bool awaitContentStyleId = false;
+            bool awaitMapStyleId = false;
+            for (const AttdefWireTag& tag : tags) {
+                if (tag.code == 0) {
+                    inContent = tag.text == "TABLECONTENT";
+                    inMap = tag.text == "CELLSTYLEMAP";
+                    awaitContentStyleId = false;
+                    awaitMapStyleId = false;
+                } else if (inContent && tag.code == 1
+                           && tag.text == "TABLECELL_BEGIN") {
+                    awaitContentStyleId = true;
+                } else if (inMap && tag.code == 1
+                           && tag.text == "CELLSTYLE_BEGIN") {
+                    awaitMapStyleId = true;
+                } else if (awaitContentStyleId && tag.code == 90) {
+                    if (tag.kind != AttdefWireTag::Integer)
+                        return fail("standalone TABLECONTENT style ID was not an integer");
+                    emittedContentStyleIds.push_back(
+                        static_cast<int>(tag.integer));
+                    awaitContentStyleId = false;
+                } else if (awaitMapStyleId && tag.code == 90) {
+                    if (tag.kind != AttdefWireTag::Integer)
+                        return fail("CELLSTYLEMAP style ID was not an integer");
+                    emittedMapStyleIds.push_back(
+                        static_cast<int>(tag.integer));
+                    awaitMapStyleId = false;
+                }
+            }
+            if (emittedContentStyleIds != std::vector<int>{profile.second}
+                || std::find(emittedMapStyleIds.begin(),
+                             emittedMapStyleIds.end(), profile.second)
+                    == emittedMapStyleIds.end())
+                return fail("standalone base-style group 90 did not join the emitted CELLSTYLEMAP ID");
+
+            dx_data readback;
+            dx_iface reader;
+            if (!reader.fileImport(output.string(), &readback, false)
+                || readback.tableContents.size() != 1u
+                || readback.tableStyles.size() != 1u
+                || readback.cellStyleMaps.size() != 1u
+                || readback.tableContents.front().m_content
+                    .m_tableStyleHandle != readback.tableStyles.front().handle
+                || readback.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front().m_styleId != profile.second
+                || std::count_if(
+                    readback.cellStyleMaps.front().m_cellStyles.begin(),
+                    readback.cellStyleMaps.front().m_cellStyles.end(),
+                    [&profile](const DRW_TableStyleCellStyle& style) {
+                        return style.m_id == profile.second;
+                    }) != 1)
+                return fail("standalone TABLECONTENT/CELLSTYLEMAP typed readback join failed");
+
+            const std::int32_t supportedStyleId = profile.second;
+            data.tableContents.front().m_content.m_rows.front().m_cells.front()
+                .m_styleId = 103;
+            const std::string sentinel =
+                "PRESERVE_STANDALONE_CELLSTYLEMAP_DESTINATION";
+            { std::ofstream out(output, std::ios::binary); out << sentinel; }
+            if (writer.fileExport(output.string(), profile.first, binary,
+                                  &data, false))
+                return fail("missing standalone CELLSTYLEMAP ID was accepted");
+            if (data.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front().m_styleId != 103)
+                return fail("standalone CELLSTYLEMAP refusal changed caller style ID");
+            { std::ifstream in(output, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != sentinel)
+                  return fail("missing standalone CELLSTYLEMAP ID replaced destination"); }
+            data.tableContents.front().m_content.m_rows.front().m_cells.front()
+                .m_styleId = supportedStyleId;
+            if (!writer.fileExport(output.string(), profile.first, binary,
+                                   &data, false))
+                return fail("standalone CELLSTYLEMAP same-adapter retry failed");
+            dx_data retryReadback;
+            dx_iface retryReader;
+            if (!retryReader.fileImport(output.string(), &retryReadback, false)
+                || retryReadback.tableContents.size() != 1u
+                || retryReadback.tableContents.front().m_content.m_rows.front()
+                    .m_cells.front().m_styleId != supportedStyleId)
+                return fail("standalone CELLSTYLEMAP retry did not publish corrected style ID");
+        }
+    }
     return true;
 }
 
