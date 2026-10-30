@@ -3199,7 +3199,8 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
         std::uint16_t maximum;
         const char* label;
     };
-    const std::array<EnumField, 4> fields{{
+    const std::array<EnumField, 5> fields{{
+        {&DRW_MLeaderStyle::contentType, 170, 3, "content type"},
         {&DRW_MLeaderStyle::drawMLeaderOrder, 171, 1,
             "draw multi-leader order"},
         {&DRW_MLeaderStyle::drawLeaderOrder, 172, 1,
@@ -3259,8 +3260,10 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
                 field.maximum + 1u);
             for (const std::uint16_t invalid : {firstInvalid,
                                                 std::uint16_t{65535}}) {
+                iface.style.contentType = 0;
                 iface.style.drawMLeaderOrder = 0;
                 iface.style.drawLeaderOrder = 0;
+                iface.style.leaderType = 0;
                 iface.style.blockConnectionType = 0;
                 iface.style.*(field.member) = invalid;
                 const std::string sentinel = "KEEP_MLEADERSTYLE_DESTINATION";
@@ -3303,7 +3306,7 @@ void testMLeaderStyleEnumDomains(TestContext& t) {
     }
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
-    t.expect(refusals == 16u && retries == 16u,
+    t.expect(refusals == 20u && retries == 20u,
              "MLEADERSTYLE enum boundaries cover ASCII/binary refusal and retry");
 }
 
