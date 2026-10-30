@@ -25915,6 +25915,7 @@ bool dxfRW::writeDataLink(DRW_DataLink *ent) {
 }
 
 bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
+    constexpr std::size_t maxTableCellAttributes = 10000u;
     const auto safeText = [](const UTF8STRING& text) {
         return text.size() <= 16u * 1024u * 1024u
             && isSafeDxfRecordText(text);
@@ -26253,7 +26254,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     const bool blockContentWithAttributes = [&]() {
         if (cell.m_hasLinkedData || cell.m_contents.empty()
             || cell.m_contents.size() > 2u
-            || cell.m_attributes.empty() || cell.m_attributes.size() > 2u)
+            || cell.m_attributes.empty()
+            || cell.m_attributes.size() > maxTableCellAttributes)
             return false;
         blockContentIndex = cell.m_contents.size() - 1u;
         if (blockContentIndex != 0u) {
@@ -26275,25 +26277,30 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || !value.m_formatString.empty() || !value.m_valueString.empty()
             || value.m_handle != 0u || !value.m_rawData.empty())
             return false;
-        for (std::size_t index = 0; index < cell.m_attributes.size(); ++index) {
-            const DRW_TableCellAttribute& attribute =
-                cell.m_attributes[index];
-            if (attribute.m_attdefHandle == 0u
-                || attribute.m_attdefHandle == DRW::NoHandle
-                || attribute.m_contentIndex != blockContentIndex
-                || attribute.m_index != static_cast<int>(index + 1u)
-                || !safeText(attribute.m_text)
-                || plainContentTextBytes
-                    > DRW::kMaxDxfBinaryPayloadBytes
-                || attribute.m_text.size()
-                    > DRW::kMaxDxfBinaryPayloadBytes - plainContentTextBytes)
-                return false;
-            for (std::size_t previous = 0; previous < index; ++previous) {
-                if (cell.m_attributes[previous].m_attdefHandle
-                    == attribute.m_attdefHandle)
+        std::unordered_set<std::uint32_t> attdefHandles;
+        try {
+            attdefHandles.reserve(cell.m_attributes.size());
+            for (std::size_t index = 0;
+                 index < cell.m_attributes.size(); ++index) {
+                const DRW_TableCellAttribute& attribute =
+                    cell.m_attributes[index];
+                if (attribute.m_attdefHandle == 0u
+                    || attribute.m_attdefHandle == DRW::NoHandle
+                    || attribute.m_contentIndex != blockContentIndex
+                    || attribute.m_index != static_cast<int>(index + 1u)
+                    || !safeText(attribute.m_text)
+                    || plainContentTextBytes
+                        > DRW::kMaxDxfBinaryPayloadBytes
+                    || attribute.m_text.size()
+                        > DRW::kMaxDxfBinaryPayloadBytes
+                            - plainContentTextBytes
+                    || !attdefHandles.insert(
+                        attribute.m_attdefHandle).second)
                     return false;
+                plainContentTextBytes += attribute.m_text.size();
             }
-            plainContentTextBytes += attribute.m_text.size();
+        } catch (...) {
+            return false;
         }
         return true;
     }();
@@ -26583,7 +26590,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             if (attribute.m_contentIndex == contentIndex)
                 ++attributeCount;
         }
-        if (attributeCount > 2u || (content.m_type != 1
+        if (attributeCount > maxTableCellAttributes || (content.m_type != 1
                 && !(content.m_type == 2 && attributeCount == 0u)
                 && !(content.m_type == 4 && attributeCount != 0u)))
             return false;

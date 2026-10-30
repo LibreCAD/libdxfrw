@@ -25139,6 +25139,7 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
 bool dx_iface::tableContentDirectReferencesClosed(
         const DRW_TableContentObject& tableContent,
         const std::unordered_set<std::uint32_t>& fieldHandles) const noexcept {
+    constexpr std::size_t maxTableCellAttributes = 10000u;
     if (cData == nullptr || dxfW == nullptr)
         return false;
     const DRW_WritingContext* context = dxfW->getWritingContext();
@@ -25186,7 +25187,7 @@ bool dx_iface::tableContentDirectReferencesClosed(
                 continue;
             if (cell.m_contents.empty() || cell.m_contents.size() > 2u
                 || cell.m_attributes.empty()
-                || cell.m_attributes.size() > 2u)
+                || cell.m_attributes.size() > maxTableCellAttributes)
                 return false;
             const std::size_t contentIndex = cell.m_contents.size() - 1u;
             if (contentIndex != 0u
@@ -25197,19 +25198,30 @@ bool dx_iface::tableContentDirectReferencesClosed(
             if (content.m_type != 4 || content.m_handle == 0u
                 || content.m_handle == DRW::NoHandle)
                 return false;
-            for (std::size_t index = 0; index < cell.m_attributes.size(); ++index) {
-                const DRW_TableCellAttribute& attribute =
-                    cell.m_attributes[index];
-                if (attribute.m_contentIndex != contentIndex
-                    || attribute.m_index != static_cast<int>(index + 1u)
-                    || attribute.m_attdefHandle == 0u
-                    || attribute.m_attdefHandle == DRW::NoHandle)
-                    return false;
-                for (std::size_t previous = 0; previous < index; ++previous) {
-                    if (cell.m_attributes[previous].m_attdefHandle
-                        == attribute.m_attdefHandle)
+            struct AttdefDefinition {
+                const DRW_Attdef* entity = nullptr;
+                const dx_ifaceBlock* owner = nullptr;
+                std::size_t matches = 0u;
+            };
+            std::unordered_map<std::uint32_t, AttdefDefinition>
+                attdefDefinitions;
+            try {
+                attdefDefinitions.reserve(cell.m_attributes.size());
+                for (std::size_t index = 0;
+                     index < cell.m_attributes.size(); ++index) {
+                    const DRW_TableCellAttribute& attribute =
+                        cell.m_attributes[index];
+                    if (attribute.m_contentIndex != contentIndex
+                        || attribute.m_index != static_cast<int>(index + 1u)
+                        || attribute.m_attdefHandle == 0u
+                        || attribute.m_attdefHandle == DRW::NoHandle
+                        || !attdefDefinitions.emplace(
+                            attribute.m_attdefHandle,
+                            AttdefDefinition{}).second)
                         return false;
                 }
+            } catch (...) {
+                return false;
             }
 
             const DRW_Block_Record* blockRecord = nullptr;
@@ -25235,33 +25247,45 @@ bool dx_iface::tableContentDirectReferencesClosed(
             if (owningBlock == nullptr)
                 return false;
 
-            for (const DRW_TableCellAttribute& attribute : cell.m_attributes) {
-                const DRW_Attdef* definition = nullptr;
-                std::size_t definitionCount = 0u;
-                const auto inspect = [&](const dx_ifaceBlock* block) {
-                    if (block == nullptr)
-                        return;
-                    for (const DRW_Entity* entity : block->ent) {
-                        const auto* candidate =
-                            dynamic_cast<const DRW_Attdef*>(entity);
-                        if (candidate == nullptr
-                            || candidate->handle != attribute.m_attdefHandle)
-                            continue;
-                        ++definitionCount;
-                        if (block == owningBlock)
-                            definition = candidate;
+            const auto inspectDefinitions = [&attdefDefinitions](
+                    const dx_ifaceBlock* block) {
+                if (block == nullptr)
+                    return;
+                for (const DRW_Entity* entity : block->ent) {
+                    const auto* candidate =
+                        dynamic_cast<const DRW_Attdef*>(entity);
+                    if (candidate == nullptr)
+                        continue;
+                    const auto found = attdefDefinitions.find(
+                        candidate->handle);
+                    if (found == attdefDefinitions.end())
+                        continue;
+                    if (found->second.matches == 0u) {
+                        found->second.entity = candidate;
+                        found->second.owner = block;
                     }
-                };
-                inspect(owningBlock);
-                for (const dx_ifaceBlock* block : cData->blocks) {
-                    if (block != owningBlock)
-                        inspect(block);
+                    if (found->second.matches < 2u)
+                        ++found->second.matches;
                 }
-                inspect(cData->mBlock);
+            };
+            try {
+                for (const dx_ifaceBlock* block : cData->blocks)
+                    inspectDefinitions(block);
+                inspectDefinitions(cData->mBlock);
+            } catch (...) {
+                return false;
+            }
+            for (const DRW_TableCellAttribute& attribute : cell.m_attributes) {
+                const auto definition = attdefDefinitions.find(
+                    attribute.m_attdefHandle);
                 const auto emitted = context->sourceHandleToMintedMap.find(
                     attribute.m_attdefHandle);
-                if (definitionCount != 1u || definition == nullptr
-                    || definition->parentHandle != blockRecord->handle
+                if (definition == attdefDefinitions.end()
+                    || definition->second.matches != 1u
+                    || definition->second.entity == nullptr
+                    || definition->second.owner != owningBlock
+                    || definition->second.entity->parentHandle
+                        != blockRecord->handle
                     || context->ambiguousSourceHandles.count(
                            attribute.m_attdefHandle) != 0u
                     || context->writtenSourceEntityHandles.count(

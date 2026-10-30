@@ -159,12 +159,11 @@ missing provider, remap, collision or composed output failure.
    multi-reference composition in the standalone 1x1 route. Reuse the rooted
    reference planner and handle remapping; preserve unsupported compositions
    with explicit refusal.
-2. **Block-backed cells:** support attribute counts above two across the
-   serializer and adapter reference-closure check, using a consistent bounded
-   limit and aggregate work/output budgets. Preserve per-content index/order,
-   ATTDEF identity, ownership and remapping; prove missing, wrong-owner and
-   duplicate-target refusal plus corrected retry. Multiple block contents/cells
-   and block geometry payloads remain unqualified.
+2. **Block-backed cells:** extend beyond the single block-content cell profile
+   to multiple block contents/cells and source- or consumer-qualified block
+   geometry payloads. Preserve per-content attribute association, ATTDEF
+   identity, ownership and remapping; keep unsupported graphs refused until
+   their ordering, closure and geometry semantics are evidenced.
 3. Complete remaining CONTENTFORMAT strings and domain/property combinations,
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;

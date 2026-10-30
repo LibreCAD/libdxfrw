@@ -52930,6 +52930,12 @@ void testDataLinkAdapterExport(TestContext& t) {
         secondAttributeDefinition->tag = "TABLE_TAG_2";
         secondAttributeDefinition->text = "second default attribute";
         attributeBlock->ent.push_back(secondAttributeDefinition);
+        auto* thirdAttributeDefinition = new DRW_Attdef();
+        thirdAttributeDefinition->handle = 0x735u;
+        thirdAttributeDefinition->parentHandle = attributeBlockRecord.handle;
+        thirdAttributeDefinition->tag = "TABLE_TAG_3";
+        thirdAttributeDefinition->text = "third default attribute";
+        attributeBlock->ent.push_back(thirdAttributeDefinition);
         source.blocks.push_back(attributeBlock);
 
         DRW_TableContentObject attributeContent;
@@ -52937,7 +52943,7 @@ void testDataLinkAdapterExport(TestContext& t) {
         attributeContent.m_parseComplete = true;
         attributeContent.m_semanticContentComplete = true;
         attributeContent.m_content.m_name = "block attribute content";
-        attributeContent.m_content.m_description = "one block attribute";
+        attributeContent.m_content.m_description = "one block cell with three attributes";
         attributeContent.m_content.m_columns.emplace_back();
         attributeContent.m_content.m_columns.front().m_name = "Block";
         DRW_TableRow attributeRow;
@@ -52958,6 +52964,12 @@ void testDataLinkAdapterExport(TestContext& t) {
         secondAttributeValue.m_text = "second table cell attribute";
         secondAttributeValue.m_contentIndex = 0u;
         attributeCell.m_attributes.push_back(secondAttributeValue);
+        DRW_TableCellAttribute thirdAttributeValue;
+        thirdAttributeValue.m_attdefHandle = thirdAttributeDefinition->handle;
+        thirdAttributeValue.m_index = 3;
+        thirdAttributeValue.m_text = "third table cell attribute";
+        thirdAttributeValue.m_contentIndex = 0u;
+        attributeCell.m_attributes.push_back(thirdAttributeValue);
         attributeRow.m_cells.push_back(attributeCell);
         attributeContent.m_content.m_rows.push_back(attributeRow);
         auto attributeMetadata =
@@ -53852,6 +53864,7 @@ void testDataLinkAdapterExport(TestContext& t) {
         const dx_ifaceBlock* emittedAttributeBlock = nullptr;
         const DRW_Attdef* emittedAttributeDefinition = nullptr;
         const DRW_Attdef* emittedSecondAttributeDefinition = nullptr;
+        const DRW_Attdef* emittedThirdAttributeDefinition = nullptr;
         for (const dx_ifaceBlock* block : readback.blocks) {
             if (block == nullptr || block->name != attributeBlockRecord.name)
                 continue;
@@ -53863,6 +53876,8 @@ void testDataLinkAdapterExport(TestContext& t) {
                         emittedAttributeDefinition = definition;
                     else if (definition->tag == "TABLE_TAG_2")
                         emittedSecondAttributeDefinition = definition;
+                    else if (definition->tag == "TABLE_TAG_3")
+                        emittedThirdAttributeDefinition = definition;
                 }
             }
         }
@@ -53894,11 +53909,13 @@ void testDataLinkAdapterExport(TestContext& t) {
         };
         bool exactBlockAttributeFields = false;
         if (blockContentBegin < blockContentEnd
-            && blockContentBegin + 11u < blockContentEnd
+            && blockContentBegin + 14u < blockContentEnd
             && emittedAttributeBlock != nullptr
             && emittedAttributeDefinition != nullptr
-            && emittedSecondAttributeDefinition != nullptr) {
-            for (std::size_t i = blockContentBegin; i + 11u < blockContentEnd; ++i) {
+            && emittedSecondAttributeDefinition != nullptr
+            && emittedThirdAttributeDefinition != nullptr) {
+            for (std::size_t i = blockContentBegin;
+                 i + 14u < blockContentEnd; ++i) {
                 if (outputFields[i]
                         != std::make_pair(302, std::string("CONTENT"))
                     || outputFields[i + 1u]
@@ -53909,7 +53926,7 @@ void testDataLinkAdapterExport(TestContext& t) {
                     integerFieldEquals(outputFields[i + 2u], 90, 4)
                     && handleFieldEquals(i + 3u, 340,
                         emittedAttributeBlock->parentHandle)
-                    && integerFieldEquals(outputFields[i + 4u], 91, 2)
+                    && integerFieldEquals(outputFields[i + 4u], 91, 3)
                     && handleFieldEquals(i + 5u, 330,
                         emittedAttributeDefinition->handle)
                     && outputFields[i + 6u]
@@ -53922,7 +53939,13 @@ void testDataLinkAdapterExport(TestContext& t) {
                         == std::make_pair(301,
                             std::string("second table cell attribute"))
                     && integerFieldEquals(outputFields[i + 10u], 92, 2)
-                    && outputFields[i + 11u]
+                    && handleFieldEquals(i + 11u, 330,
+                        emittedThirdAttributeDefinition->handle)
+                    && outputFields[i + 12u]
+                        == std::make_pair(301,
+                            std::string("third table cell attribute"))
+                    && integerFieldEquals(outputFields[i + 13u], 92, 3)
+                    && outputFields[i + 14u]
                         == std::make_pair(309,
                             std::string("CELLCONTENT_END"));
                 break;
@@ -53932,14 +53955,15 @@ void testDataLinkAdapterExport(TestContext& t) {
         if (blockAttributeContent != nullptr
             && emittedAttributeBlock != nullptr
             && emittedAttributeDefinition != nullptr
-            && emittedSecondAttributeDefinition != nullptr) {
+            && emittedSecondAttributeDefinition != nullptr
+            && emittedThirdAttributeDefinition != nullptr) {
             const DRW_TableCell& actualCell = blockAttributeContent->m_content
                 .m_rows.front().m_cells.front();
             blockAttributeReadback = actualCell.m_contents.size() == 1u
                 && actualCell.m_contents.front().m_type == 4
                 && actualCell.m_contents.front().m_handle
                     == emittedAttributeBlock->parentHandle
-                && actualCell.m_attributes.size() == 2u
+                && actualCell.m_attributes.size() == 3u
                 && actualCell.m_attributes.front().m_attdefHandle
                     == emittedAttributeDefinition->handle
                 && actualCell.m_attributes.front().m_contentIndex == 0u
@@ -53952,9 +53976,17 @@ void testDataLinkAdapterExport(TestContext& t) {
                 && actualCell.m_attributes[1].m_index == 2
                 && actualCell.m_attributes[1].m_text
                     == "second table cell attribute"
+                && actualCell.m_attributes[2].m_attdefHandle
+                    == emittedThirdAttributeDefinition->handle
+                && actualCell.m_attributes[2].m_contentIndex == 0u
+                && actualCell.m_attributes[2].m_index == 3
+                && actualCell.m_attributes[2].m_text
+                    == "third table cell attribute"
                 && emittedAttributeDefinition->parentHandle
                     == emittedAttributeBlock->parentHandle
                 && emittedSecondAttributeDefinition->parentHandle
+                    == emittedAttributeBlock->parentHandle
+                && emittedThirdAttributeDefinition->parentHandle
                     == emittedAttributeBlock->parentHandle;
         }
         t.expect(exactBlockAttributeFields && blockAttributeReadback,
