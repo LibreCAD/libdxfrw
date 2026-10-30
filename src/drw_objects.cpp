@@ -25481,6 +25481,11 @@ void DRW_AssociativeObject::reset() {
     m_networkVersion = 0;
     m_networkActionIndex = 0;
     m_networkFieldsParsed = false;
+    m_geomDependencyFieldsParsed = false;
+    m_geomClassVersion = 0;
+    m_geomEnabled = false;
+    m_geomPersistentSubentityClassName.clear();
+    m_geomDependentOnCompoundObject = false;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -25518,16 +25523,72 @@ void DRW_AssociativeObject::reset() {
     m_prefixStatuses.clear();
     m_dxfPersistentSubentityBody = false;
     m_dxfPersistentSubentityClassValueCount = 0;
+    m_dxfAssociativeGeomSubclass = 0;
+    m_dxfGeomClassVersionPresent = false;
+    m_dxfGeomEnabledPresent = false;
+    m_dxfGeomSubentityClassNamePresent = false;
+    m_dxfGeomDependentOnCompoundObjectPresent = false;
 }
 
 bool DRW_AssociativeObject::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
+    const auto updateGeomFieldStatus = [this]() {
+        m_geomDependencyFieldsParsed = m_dxfGeomClassVersionPresent
+            && m_dxfGeomEnabledPresent
+            && m_dxfGeomSubentityClassNamePresent
+            && m_dxfGeomDependentOnCompoundObjectPresent;
+    };
     if (code == 100) {
-        if (reader->getStringView() == "AcDbPersSubentManager") {
+        const std::string_view subclass = reader->getStringView();
+        if (subclass == "AcDbAssocDependency") {
+            m_dxfAssociativeGeomSubclass = 0;
+            m_dxfPersistentSubentityBody = false;
+            return true;
+        }
+        if (subclass == "AcDbAssocGeomDependency") {
+            m_dxfAssociativeGeomSubclass = 1;
+            m_dxfPersistentSubentityBody = false;
+            return true;
+        }
+        if (subclass == "AcDbAssocPersSubentId") {
+            m_dxfAssociativeGeomSubclass = 2;
+            m_dxfPersistentSubentityBody = false;
+            return true;
+        }
+        if (subclass == "AcDbPersSubentManager") {
+            m_dxfAssociativeGeomSubclass = 0;
             m_dxfPersistentSubentityBody = true;
             m_dxfPersistentSubentityClassValueCount = 0;
+            return true;
         }
         return true;
+    }
+    if (m_dxfAssociativeGeomSubclass == 1) {
+        if (code == 90) {
+            m_geomClassVersion = reader->getInt32();
+            m_dxfGeomClassVersionPresent = true;
+            updateGeomFieldStatus();
+            return true;
+        }
+        if (code == 290) {
+            m_geomEnabled = reader->getBool();
+            m_dxfGeomEnabledPresent = true;
+            updateGeomFieldStatus();
+            return true;
+        }
+    } else if (m_dxfAssociativeGeomSubclass == 2) {
+        if (code == 1) {
+            m_geomPersistentSubentityClassName = reader->getUtf8String();
+            m_dxfGeomSubentityClassNamePresent = true;
+            updateGeomFieldStatus();
+            return true;
+        }
+        if (code == 290) {
+            m_geomDependentOnCompoundObject = reader->getBool();
+            m_dxfGeomDependentOnCompoundObjectPresent = true;
+            updateGeomFieldStatus();
+            return true;
+        }
     }
     if (m_dxfPersistentSubentityBody) {
         if (code == 90) {
@@ -26193,7 +26254,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::int32_t geomClassVersion = 0;
         bool enabled = false;
         bool dependentOnCompoundObject = false;
-        UTF8STRING ignoredClassName;
+        UTF8STRING persistentSubentityClassName;
         const bool complete =
             objectDataEndKnown
             && readBitShortWithinBody(&bodyProbe, version, objectDataEnd,
@@ -26201,7 +26262,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             && readBitWithinBody(&bodyProbe, version, objectDataEnd, enabled)
             && readVariableTextWithinBounds(
                 &bodyProbe, textProbe, version, boundedBodyEnd,
-                stringDataEnd, ignoredClassName)
+                stringDataEnd, persistentSubentityClassName)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
                                  dependentOnCompoundObject)
             && bodyProbe.isGood() && textProbe->isGood()
@@ -26214,10 +26275,16 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         *buf = bodyProbe;
         if (separateStringBuffer)
             *sBuf = stringProbe;
+        m_geomDependencyFieldsParsed = true;
+        m_geomClassVersion = geomClassVersion;
+        m_geomEnabled = enabled;
+        m_geomPersistentSubentityClassName =
+            std::move(persistentSubentityClassName);
+        m_geomDependentOnCompoundObject = dependentOnCompoundObject;
         appendPrefixStatus(
             DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
-            geomStartBit, prefixStatusFromGood(complete), m_classVersion,
-            0, 0, 0);
+            geomStartBit, prefixStatusFromGood(complete), m_geomClassVersion,
+            0, 4, 0);
     } else if (rn == "ACDBASSOCDIMDEPENDENCYBODY"
                || rn == "ASSOCDIMDEPENDENCYBODY") {
         const std::uint64_t startBit = currentObjectDwgBit(buf);

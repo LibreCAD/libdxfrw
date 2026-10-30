@@ -2488,7 +2488,8 @@ void testAssociativeDependencyWriter(TestContext& t) {
 
     for (const bool binary : {false, true}) {
         for (const char* name : {"ACDBASSOCDEPENDENCY",
-                                 "ACDBASSOCVALUEDEPENDENCY"}) {
+                                 "ACDBASSOCVALUEDEPENDENCY",
+                                 "ACDBASSOCGEOMDEPENDENCY"}) {
             for (unsigned nameState = 0; nameState != 3; ++nameState) {
                 for (unsigned flags = 0; flags != 16; ++flags) {
                     std::ostringstream output(
@@ -2526,6 +2527,17 @@ void testAssociativeDependencyWriter(TestContext& t) {
                     dependency.m_writeDependencyHandle = 0x104u;
                     dependency.m_dependencyBodyHandle = 0x105u;
                     dependency.m_dependencyBodyId = -9;
+                    const bool geomDependency =
+                        std::string(name) == "ACDBASSOCGEOMDEPENDENCY";
+                    if (geomDependency) {
+                        dependency.m_geomDependencyFieldsParsed = true;
+                        dependency.m_geomClassVersion = 0;
+                        dependency.m_geomEnabled = (flags & 1u) != 0u;
+                        dependency.m_geomPersistentSubentityClassName =
+                            "AcDbAssocSingleEdgePersSubentId";
+                        dependency.m_geomDependentOnCompoundObject =
+                            (flags & 2u) != 0u;
+                    }
 
                     const bool wrote =
                         owner.writeAssociativeDependency(&dependency)
@@ -2550,7 +2562,18 @@ void testAssociativeDependencyWriter(TestContext& t) {
                     expected.insert(expected.end(), {
                         "330:" + handleText(0x3EBu),
                         "330:" + handleText(0x3ECu),
-                        "360:" + handleText(0x3EDu), "90:-9", "0:WIRE_END"});
+                        "360:" + handleText(0x3EDu), "90:-9"});
+                    if (geomDependency) {
+                        expected.insert(expected.end(), {
+                            "100:AcDbAssocGeomDependency", "90:0",
+                            std::string("290:")
+                                + ((flags & 1u) ? "1" : "0"),
+                            "100:AcDbAssocPersSubentId",
+                            "1:AcDbAssocSingleEdgePersSubentId",
+                            std::string("290:")
+                                + ((flags & 2u) ? "1" : "0")});
+                    }
+                    expected.push_back("0:WIRE_END");
                     t.expect(wrote && ended && tags == expected,
                              "AC1024 associative dependency fields survive ASCII/binary wire readback");
                 }
@@ -2583,6 +2606,48 @@ void testAssociativeDependencyWriter(TestContext& t) {
     unsupportedClass.m_dependencyFieldsParsed = true;
     t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedClass),
              "unqualified associative class refuses atomically");
+
+    DRW_AssociativeObject unsupportedGeom("ACDBASSOCGEOMDEPENDENCY");
+    unsupportedGeom.handle = 0x200u;
+    unsupportedGeom.m_dependencyFieldsParsed = true;
+    unsupportedGeom.m_geomDependencyFieldsParsed = true;
+    unsupportedGeom.m_geomClassVersion = 1;
+    unsupportedGeom.m_geomPersistentSubentityClassName =
+        "AcDbAssocSingleEdgePersSubentId";
+    t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedGeom),
+             "unqualified geometry-dependency subclass version refuses atomically");
+
+    DRW_AssociativeObject geomRetry("ACDBASSOCGEOMDEPENDENCY");
+    geomRetry.handle = 0x220u;
+    geomRetry.m_dependencyFieldsParsed = true;
+    geomRetry.m_geomDependencyFieldsParsed = true;
+    geomRetry.m_geomPersistentSubentityClassName =
+        "AcDbAssocSingleEdgePersSubentId";
+    const bool invalidGeomEedAdded = geomRetry.addExtData(
+        std::make_unique<DRW_Variant>(1004, UTF8STRING("not-binary")));
+    std::ostringstream failedGeomOutput;
+    dxfRW failedGeomWriter("");
+    failedGeomWriter.version = DRW::AC1024;
+    failedGeomWriter.writer = std::make_unique<dxfWriterAscii>(
+        &failedGeomOutput);
+    const bool geomRollback = invalidGeomEedAdded
+        && !failedGeomWriter.writeAssociativeDependency(&geomRetry)
+        && failedGeomOutput.str().empty()
+        && geomRetry.handle == 0x220u
+        && failedGeomWriter.m_writingContext
+               .sourceHandleToMintedMap.empty();
+    geomRetry.clearExtData();
+    std::ostringstream retryGeomOutput;
+    dxfRW retryGeomWriter("");
+    retryGeomWriter.version = DRW::AC1024;
+    retryGeomWriter.writer = std::make_unique<dxfWriterAscii>(
+        &retryGeomOutput);
+    const bool geomRetryWorked =
+        retryGeomWriter.writeAssociativeDependency(&geomRetry)
+        && retryGeomOutput.str().find(
+            "AcDbAssocSingleEdgePersSubentId") != std::string::npos;
+    t.expect(geomRollback && geomRetryWorked,
+             "late geometry-dependency EED failure rolls back output and identity, then permits corrected retry");
 
     DRW_AssociativeObject inconsistentAlias("ACDBASSOCDEPENDENCY");
     inconsistentAlias.handle = 0x200u;

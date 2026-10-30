@@ -24904,6 +24904,59 @@ bool associativeDxfCallbackContract() {
                != std::vector<std::uint32_t>({0x60u, 0x61u}))
         return fail("PERSUBENTMGR DXF subclass fields or opaque pair were not retained");
 
+    const std::string geomDependencyDrawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"
+        "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+        "0\nACDBASSOCGEOMDEPENDENCY\n5\n70\n330\n20\n"
+        "100\nAcDbAssocDependency\n90\n1\n90\n0\n"
+        "290\n1\n290\n1\n290\n1\n290\n1\n90\n-10000\n"
+        "330\n21\n290\n0\n330\n22\n330\n23\n360\n24\n90\n7\n"
+        "100\nAcDbAssocGeomDependency\n90\n0\n290\n1\n"
+        "100\nAcDbAssocPersSubentId\n"
+        "1\nAcDbAssocSingleEdgePersSubentId\n290\n0\n"
+        "0\nENDSEC\n0\nEOF\n";
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path path = directory
+            / (binary ? "geom-dependency-binary.dxf"
+                      : "geom-dependency-ascii.dxf");
+        if (binary) {
+            if (!writeBinaryDxfControl(path.string(),
+                                       geomDependencyDrawing))
+                return fail("could not create generated binary geometry-dependency control");
+        } else {
+            std::ofstream output(path, std::ios::binary);
+            if (!output)
+                return fail("could not create generated ASCII geometry-dependency control");
+            output.write(geomDependencyDrawing.data(),
+                         static_cast<std::streamsize>(
+                             geomDependencyDrawing.size()));
+            if (!output)
+                return fail("could not write generated ASCII geometry-dependency control");
+        }
+        dx_data geomDependencyData;
+        CallbackProbe geomDependencyProbe;
+        if (!geomDependencyProbe.fileImport(path.string(),
+                                            &geomDependencyData, false)
+            || geomDependencyProbe.associative.size() != 1u
+            || geomDependencyData.associativeObjects.size() != 1u) {
+            return fail(binary
+                ? "generated binary geometry-dependency subclass control was rejected"
+                : "generated ASCII geometry-dependency subclass control was rejected");
+        }
+        const DRW_AssociativeObject& geomDependency =
+            geomDependencyData.associativeObjects.front();
+        if (!geomDependency.m_geomDependencyFieldsParsed
+            || geomDependency.m_geomClassVersion != 0
+            || !geomDependency.m_geomEnabled
+            || geomDependency.m_geomPersistentSubentityClassName
+                != "AcDbAssocSingleEdgePersSubentId"
+            || geomDependency.m_geomDependentOnCompoundObject) {
+            return fail(binary
+                ? "binary geometry-dependency subclass fields were not retained"
+                : "ASCII geometry-dependency subclass fields were not retained");
+        }
+    }
+
     const auto makeGroupLimitDrawing = [](bool overLimit) {
         std::string drawing =
             "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"

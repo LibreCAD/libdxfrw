@@ -7199,6 +7199,11 @@ public:
       copyPersistentFields(o);
       m_dxfPersistentSubentityBody = false;
       m_dxfPersistentSubentityClassValueCount = 0;
+      m_dxfAssociativeGeomSubclass = 0;
+      m_dxfGeomClassVersionPresent = false;
+      m_dxfGeomEnabledPresent = false;
+      m_dxfGeomSubentityClassNamePresent = false;
+      m_dxfGeomDependentOnCompoundObjectPresent = false;
       tType = DRW::ASSOCIATIVEOBJECT;
     }
     return *this;
@@ -7267,6 +7272,13 @@ public:
   // Completed AcDbAssocDependency body prefix. Name presence is separate from
   // its string value so absent and explicitly empty names remain distinct.
   bool m_dependencyFieldsParsed = false;
+  // Exact AC1024 AcDbAssocGeomDependency subclass fields retained from the
+  // bounded DWG body or its DXF subclass sequence.
+  bool m_geomDependencyFieldsParsed = false;
+  std::int32_t m_geomClassVersion = 0;
+  bool m_geomEnabled = false;
+  UTF8STRING m_geomPersistentSubentityClassName;
+  bool m_geomDependentOnCompoundObject = false;
   bool m_dependencyIsRead = false;
   bool m_dependencyIsWrite = false;
   bool m_dependencyIsAttachedToObject = false;
@@ -7337,6 +7349,12 @@ private:
     m_readDependencyHandle = o.m_readDependencyHandle;
     m_writeDependencyHandle = o.m_writeDependencyHandle;
     m_dependencyFieldsParsed = o.m_dependencyFieldsParsed;
+    m_geomDependencyFieldsParsed = o.m_geomDependencyFieldsParsed;
+    m_geomClassVersion = o.m_geomClassVersion;
+    m_geomEnabled = o.m_geomEnabled;
+    m_geomPersistentSubentityClassName =
+        o.m_geomPersistentSubentityClassName;
+    m_geomDependentOnCompoundObject = o.m_geomDependentOnCompoundObject;
     m_dependencyIsRead = o.m_dependencyIsRead;
     m_dependencyIsWrite = o.m_dependencyIsWrite;
     m_dependencyIsAttachedToObject = o.m_dependencyIsAttachedToObject;
@@ -7358,6 +7376,11 @@ private:
   }
   bool m_dxfPersistentSubentityBody = false;
   std::uint32_t m_dxfPersistentSubentityClassValueCount = 0;
+  std::uint8_t m_dxfAssociativeGeomSubclass = 0;
+  bool m_dxfGeomClassVersionPresent = false;
+  bool m_dxfGeomEnabledPresent = false;
+  bool m_dxfGeomSubentityClassNamePresent = false;
+  bool m_dxfGeomDependentOnCompoundObjectPresent = false;
 };
 
 //! Shell parser for ACSH_* history/action objects.

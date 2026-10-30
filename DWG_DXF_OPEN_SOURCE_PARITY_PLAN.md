@@ -77,8 +77,11 @@ engines.
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
 2. **Associative output and identity:** connect the admitted AC1024 dependency,
-   dimension-dependency-body, network, and version-0 inline constraint-group
-   record encoders to the graph planner. Bind each serialized record from its
+   geometry-dependency, dimension-dependency-body, network, and version-0 inline
+   constraint-group record encoders to the graph planner. The direct geometry-
+   dependency encoder currently admits only class version 0 with
+   `AcDbAssocSingleEdgePersSubentId`; do not expand that profile without a
+   source witness. Bind each serialized record from its
    planned identity to its emitted identity, then remap every owner, reactor,
    action, dependency, dictionary, and entity reference through that binding,
    including generated records and fixed-handle collisions. Verify staged output

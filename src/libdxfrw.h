@@ -569,7 +569,8 @@ public:
     bool writeDbColor(DRW_DbColor *ent, const char *recordName = "DBCOLOR");
     bool writeDimensionAssociation(DRW_DimensionAssociation *ent);
     //! Emit the AC1024 AcDbAssocDependency shared prefix for the exact
-    //! ACDBASSOCDEPENDENCY and ACDBASSOCVALUEDEPENDENCY profiles.
+    //! ACDBASSOCDEPENDENCY, ACDBASSOCVALUEDEPENDENCY and admitted
+    //! ACDBASSOCGEOMDEPENDENCY profiles.
     bool writeAssociativeDependency(DRW_AssociativeObject *ent);
     //! Emit the source-backed AC1024 dimension dependency-body profile.
     bool writeAssociativeDependencyBody(DRW_AssociativeObject *ent);
