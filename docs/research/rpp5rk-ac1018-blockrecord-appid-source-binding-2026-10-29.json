@@ -1,0 +1,61 @@
+{
+  "schema": "ac1018-blockrecord-appid-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "01634917a2ba24382e6f206109aa4efd0f91cb0c",
+  "scope": "Private, opt-in AC1018 source-role join from the selected BLOCK_RECORD EED APPID name to its unique original APPID TABLES provider. This records source identity and role only; it does not interpret EED meaning, close dependencies, qualify output or promote a support claim.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "Pinned source text inspected without copying or committing the external fixture.",
+    "records": [
+      {
+        "record": "BLOCK_RECORD A0B",
+        "lineSpan": "[4597,4641)",
+        "role": "Selected EED group 1001 has value ACAD; source record identity is paired with its BLOCK_RECORD table control and the same-read typed/raw profile."
+      },
+      {
+        "record": "APPID 12",
+        "lineSpan": "[3265,3279)",
+        "fields": [
+          "0 APPID",
+          "5 12",
+          "330 9",
+          "100 AcDbSymbolTableRecord",
+          "100 AcDbRegAppTableRecord",
+          "2 ACAD",
+          "70 0"
+        ],
+        "role": "The unique case-insensitive ACAD source name belongs to the APPID TABLES control with handle 9."
+      }
+    ]
+  },
+  "implementation": {
+    "admission": "Requires explicit whole-DXF physical-source and legacy identity observation on the same finished AC1018 read, immutable source/context/container/generation/codec/format identity, the selected BLOCK_RECORD profile and EED 1001 ACAD marker, and the unique APPID table/provider source and live model.",
+    "providerProof": "Censuses APPID table rows and rejects missing, duplicate, wrong-owner, or mismatched-name providers. The provider row is tied to its whole-read physical record and APPID table-control identity, then checked against same-read raw and typed records. The owner and provider ACAD fields retain exact physical group ordinals and spans. TABLES scalar spans are not published by the per-object observer; this receipt does not claim otherwise.",
+    "boundsAndPromotion": "The join uses bounded work/byte admission. Zero budget refuses and a subsequent full-budget attempt succeeds. The result is source-only, remains outside output eligibility and owner-target resolution, and does not weaken generic dependency-closure gates.",
+    "runtimeFixture": "tests/legacy_attdef_scope_controls.h authors a minimal source profile from scratch at runtime and writes ASCII and binary inputs to temporary storage. It does not copy the external sample or add a DWG/DXF fixture to the repository."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "buildResult": "PASS; target compiled with the repository warning policy after the final source changes.",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "testResult": "PASS 1/1 (0.66 s). Runtime-authored ASCII and binary positives; four provider fault profiles per encoding (missing, duplicate, wrong owner, mismatched provider name) each refuse and pass corrected same-adapter retry. The quota refusal/recovery assertion and no-output-promotion assertions pass.",
+    "diffCheck": "PASS git diff --check before the implementation commit."
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "4dfd8acd7d5a70bba3fbc773d3aba10ed9f99ad51d12a8fb8ecc65f7ec698bee",
+    "dwg2dxf/dx_iface.h": "b71cd3aaaf594572230b5ac797c91aa8b1b1d79a6545b78d074d05f8bf319b9b",
+    "dwg2dxf/dx_iface.cpp": "fb0f231f71de6759374e57d9dd3db7a53bc2038ed8bc6ee4e3323b580b45c6e7",
+    "tests/attdef_source_tests.cpp": "c76a512e243ff9b22fab3d8d07d2e72e2d617f249fecfdef9292d28e3f650e44",
+    "tests/legacy_attdef_scope_controls.h": "f409a761f4c4022f36472144b31b99599bd94266a39e328cc358653a29a408a7"
+  },
+  "limits": [
+    "The external sample establishes one inspected source-role profile only; it is not an independent semantic/native acceptance run or an end-to-end conversion proof.",
+    "The runtime-authored profile verifies bounded capture, matching and refusal/retry controls, not general EED semantics or arbitrary APPID/LAYER dependency forms.",
+    "This does not resolve original-record completeness, ownershipTargetsResolved, recursive dependency closure, actual emitted-output proof, or full-document conversion.",
+    "No testing DWG/DXF fixture was added, no DRW_Interface virtual was added, and no support claim was promoted."
+  ]
+}
