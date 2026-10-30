@@ -25840,6 +25840,22 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && format.m_textStyleHandle == 0u
             && format.m_textHeight == 0.0;
     };
+    const auto contentFormatIsSupported = [&cmcIsDefault](
+            const DRW_TableStyleContentFormat& format) {
+        // One spec-bounded transport profile: alignment override only.
+        // ODA §20.4.101.3 assigns 0x10 to alignment. Other format properties
+        // remain refused until their own bounded output profiles are proven.
+        return format.m_propertyOverrideFlags == 0x10u
+            && format.m_propertyFlags == 0u
+            && format.m_valueDataType == 0
+            && format.m_valueUnitType == 0
+            && format.m_valueFormatString.empty()
+            && format.m_rotation == 0.0 && format.m_blockScale == 1.0
+            && format.m_cellAlignment == 2 && format.m_contentColor == 0
+            && cmcIsDefault(format.m_contentColorCmc)
+            && format.m_textStyleHandle == 0u
+            && format.m_textHeight == 0.0;
+    };
     const auto styleIsDefault = [&cmcIsDefault, &formatIsDefault](
             const DRW_TableStyleCellStyle& style, int type) {
         return style.m_type == type && !style.m_hasData
@@ -26023,7 +26039,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || std::any_of(
                 metadata.m_rows.front().m_cells.front().m_contentFormats.begin(),
                 metadata.m_rows.front().m_cells.front().m_contentFormats.end(),
-                [](const auto& format) { return format != nullptr; })
+                [&contentFormatIsSupported](const auto& format) {
+                    return format && !contentFormatIsSupported(*format);
+                })
             || !metadata.m_rows.front().m_cells.front().m_geometry.empty()
             || !styleIsDefault(metadata.m_tableStyle, 4))
         {
@@ -26058,7 +26076,29 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && writer->writeInt32(90, 0)
             && writer->writeString(309, "DATAMAP_END");
     };
-    const auto writeContent = [this](const DRW_TableCellContent& content) {
+    const auto writeContentFormat = [this](
+            const DRW_TableStyleContentFormat& format) {
+        return writer->writeString(300, "CONTENTFORMAT")
+            && writer->writeString(1, "CONTENTFORMAT_BEGIN")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(format.m_propertyOverrideFlags))
+            && writer->writeInt32(91,
+                static_cast<std::int32_t>(format.m_propertyFlags))
+            && writer->writeInt32(92, format.m_valueDataType)
+            && writer->writeInt32(93, format.m_valueUnitType)
+            && writer->writeUtf8String(300, format.m_valueFormatString)
+            && writer->writeDouble(40, format.m_rotation)
+            && writer->writeDouble(140, format.m_blockScale)
+            && writer->writeInt32(94, format.m_cellAlignment)
+            && writer->writeInt16(62,
+                static_cast<std::int16_t>(format.m_contentColor))
+            && writer->writeString(340, toHexStr(format.m_textStyleHandle))
+            && writer->writeDouble(144, format.m_textHeight)
+            && writer->writeString(309, "CONTENTFORMAT_END");
+    };
+    const auto writeContent = [this, &writeContentFormat](
+            const DRW_TableCellContent& content,
+            const DRW_TableStyleContentFormat* contentFormat) {
         const auto remapValueHandle = [this](std::uint32_t source) {
             return remapObjectHandle(source);
         };
@@ -26071,9 +26111,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && writer->writeInt32(91, 0)
             && writer->writeString(309, "CELLCONTENT_END")
             && writer->writeString(1, "FORMATTEDCELLCONTENT_BEGIN")
-            && writer->writeInt16(170, 0)
+            && writer->writeInt16(170, contentFormat ? 1 : 0)
+            && (!contentFormat || writeContentFormat(*contentFormat))
             && writer->writeString(309, "FORMATTEDCELLCONTENT_END");
     };
+    const auto* contentFormats = ent->m_dxfMetadata
+        ? &ent->m_dxfMetadata->m_rows.front().m_cells.front().m_contentFormats
+        : nullptr;
     const auto columnScope = ent->m_dxfMetadata
         ? &ent->m_dxfMetadata->m_columns.front() : nullptr;
     const auto rowScope = ent->m_dxfMetadata
@@ -26130,8 +26174,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 static_cast<std::int32_t>(cell.m_contents.size())))
         return failDxfWrite();
     if (plainScalarContents) {
-        for (const DRW_TableCellContent& content : cell.m_contents) {
-            if (!writeContent(content))
+        for (std::size_t index = 0; index < cell.m_contents.size(); ++index) {
+            const auto* contentFormat = contentFormats
+                ? (*contentFormats)[index].get() : nullptr;
+            if (!writeContent(cell.m_contents[index], contentFormat))
                 return failDxfWrite();
         }
     }

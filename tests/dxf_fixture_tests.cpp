@@ -52760,6 +52760,25 @@ void testDataLinkAdapterExport(TestContext& t) {
                                        0x04u, 0x03u, 0x02u, 0x01u};
         dateValue.m_value.m_value.addBinary(310, dateValue.m_value.m_rawData);
         textCell.m_contents.push_back(std::move(dateValue));
+        auto contentFormat =
+            std::make_shared<DRW_TableStyleContentFormat>();
+        contentFormat->m_propertyOverrideFlags = 0x10u;
+        contentFormat->m_cellAlignment = 2;
+        auto textMetadata =
+            std::make_shared<DRW_TableContentDxfMetadata>();
+        textMetadata->m_columns.resize(1u);
+        textMetadata->m_columns.front().m_style.m_type = 3;
+        textMetadata->m_rows.resize(1u);
+        textMetadata->m_rows.front().m_scope.m_style.m_type = 2;
+        textMetadata->m_rows.front().m_cells.resize(1u);
+        auto& contentCellMetadata =
+            textMetadata->m_rows.front().m_cells.front();
+        contentCellMetadata.m_scope.m_style.m_type = 1;
+        contentCellMetadata.m_contentFormats.resize(
+            textCell.m_contents.size());
+        contentCellMetadata.m_contentFormats.front() = contentFormat;
+        textMetadata->m_tableStyle.m_type = 4;
+        textContent.m_dxfMetadata = std::move(textMetadata);
         textRow.m_cells.push_back(std::move(textCell));
         textContent.m_content.m_rows.push_back(std::move(textRow));
         source.tableContents.push_back(std::move(textContent));
@@ -52846,6 +52865,17 @@ void testDataLinkAdapterExport(TestContext& t) {
         t.expect(invalidDateRefused && invalidDatePreserved == sentinel,
                  "adapter refuses truncated TABLECONTENT Date without replacing destination");
         dateCadValue.m_rawData.push_back(0x01u);
+        contentFormat->m_cellAlignment = 3;
+        const bool invalidFormatRefused = !writer.fileExport(
+            path.string(), DRW::AC1027, binary, &source, false);
+        std::ifstream invalidFormatInput(path, std::ios::binary);
+        const std::string invalidFormatPreserved(
+            (std::istreambuf_iterator<char>(invalidFormatInput)),
+            std::istreambuf_iterator<char>());
+        t.expect(invalidFormatRefused
+                     && invalidFormatPreserved == sentinel,
+                 "adapter refuses unqualified TABLECONTENT content-format override without replacing destination");
+        contentFormat->m_cellAlignment = 2;
         const bool exported = writer.fileExport(
             path.string(), DRW::AC1027, binary, &source, false);
         FixtureInterface reader;
@@ -52927,10 +52957,50 @@ void testDataLinkAdapterExport(TestContext& t) {
                 break;
             }
         }
+        bool exactContentFormatFields = false;
+        for (std::size_t i = contentBegin; i + 16u < contentEnd; ++i) {
+            if (outputFields[i]
+                    != std::make_pair(1, std::string("FORMATTEDCELLCONTENT_BEGIN")))
+                continue;
+            const auto realFieldEquals = [&outputFields](std::size_t index,
+                    int code, double expected) {
+                if (outputFields[index].first != code)
+                    return false;
+                try {
+                    return std::stod(outputFields[index].second) == expected;
+                } catch (...) {
+                    return false;
+                }
+            };
+            exactContentFormatFields =
+                integerFieldEquals(outputFields[i + 1u], 170, 1)
+                && outputFields[i + 2u]
+                    == std::make_pair(300, std::string("CONTENTFORMAT"))
+                && outputFields[i + 3u]
+                    == std::make_pair(1, std::string("CONTENTFORMAT_BEGIN"))
+                && integerFieldEquals(outputFields[i + 4u], 90, 16)
+                && integerFieldEquals(outputFields[i + 5u], 91, 0)
+                && integerFieldEquals(outputFields[i + 6u], 92, 0)
+                && integerFieldEquals(outputFields[i + 7u], 93, 0)
+                && outputFields[i + 8u] == std::make_pair(300, std::string())
+                && realFieldEquals(i + 9u, 40, 0.0)
+                && realFieldEquals(i + 10u, 140, 1.0)
+                && integerFieldEquals(outputFields[i + 11u], 94, 2)
+                && integerFieldEquals(outputFields[i + 12u], 62, 0)
+                && outputFields[i + 13u] == std::make_pair(340, std::string("0"))
+                && realFieldEquals(i + 14u, 144, 0.0)
+                && outputFields[i + 15u]
+                    == std::make_pair(309, std::string("CONTENTFORMAT_END"))
+                && outputFields[i + 16u]
+                    == std::make_pair(309,
+                        std::string("FORMATTEDCELLCONTENT_END"));
+            break;
+        }
         t.expect(exported && imported && readback.dataLinks.size() == 2u
                      && readback.tableContents.size() == 2u
-                     && exactPointFields && exactDateFields,
-                 "adapter emits linked TABLECONTENT and plain scalar, point, and Date values");
+                     && exactPointFields && exactDateFields
+                     && exactContentFormatFields,
+                 "adapter emits linked TABLECONTENT and plain scalar, point, Date, and alignment-format values");
         const DRW_DataLink* result = nullptr;
         const DRW_DataLink* reactor = nullptr;
         for (const DRW_DataLink& value : readback.dataLinks) {
@@ -53036,6 +53106,18 @@ void testDataLinkAdapterExport(TestContext& t) {
                              == std::vector<std::uint8_t>{0x08u, 0x07u, 0x06u, 0x05u,
                                                           0x04u, 0x03u, 0x02u, 0x01u},
                      "ordered TABLECONTENT scalar, point, and Date payloads preserve physical fields and readback");
+            const auto* readbackFormats = plainText->m_dxfMetadata
+                ? &plainText->m_dxfMetadata->m_rows.front().m_cells.front()
+                    .m_contentFormats
+                : nullptr;
+            t.expect(readbackFormats != nullptr
+                         && readbackFormats->size() == 6u
+                         && readbackFormats->front()
+                         && readbackFormats->front()->m_propertyOverrideFlags == 0x10u
+                         && readbackFormats->front()->m_propertyFlags == 0u
+                         && readbackFormats->front()->m_cellAlignment == 2
+                         && readbackFormats->front()->m_textStyleHandle == 0u,
+                     "TABLECONTENT alignment override is typed-readback exact");
         }
     }
 }
