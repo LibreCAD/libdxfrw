@@ -345,6 +345,10 @@ public:
             return m_dependencyFieldsParsed && m_geomDependencyFieldsParsed;
         if (m_recordName == "ACDBASSOCVALUEDEPENDENCY")
             return m_dependencyFieldsParsed && m_valueDependencyFieldsParsed;
+        if (m_recordName == "ACDBASSOCNETWORK")
+            return m_networkFieldsParsed;
+        if (m_recordName == "ACDBASSOCVARIABLE")
+            return m_associativeVariableFieldsParsed;
         return false;
     }
 };
@@ -409,7 +413,9 @@ public:
             std::string_view recordName, std::string_view bytes,
             Visitor&& visit) {
         if (!reader || (recordName != "ACDBASSOCGEOMDEPENDENCY"
-                && recordName != "ACDBASSOCVALUEDEPENDENCY"))
+                && recordName != "ACDBASSOCVALUEDEPENDENCY"
+                && recordName != "ACDBASSOCNETWORK"
+                && recordName != "ACDBASSOCVARIABLE"))
             return false;
         buffer.reset(bytes);
         input.clear();

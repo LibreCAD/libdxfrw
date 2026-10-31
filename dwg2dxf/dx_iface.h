@@ -2813,6 +2813,48 @@ private:
         const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDxfAssociativeValueOutput() const noexcept;
 
+    struct DwgAssociativeVariableSource {
+        DRW_AssociativeObject model;
+    };
+    struct DwgAssociativeVariableNetworkSource {
+        DRW_AssociativeObject model;
+    };
+    struct DwgAssociativeVariableOutputProof {
+        std::uint32_t sourceHandle{0u}, emittedHandle{0u};
+        std::uint32_t sourceNetwork{0u}, emittedNetwork{0u};
+        std::uint32_t sourceNetworkDictionary{0u};
+        std::uint32_t emittedNetworkDictionary{0u};
+        std::uint32_t sourceDictionaryOwner{0u};
+        std::uint32_t emittedDictionaryOwner{0u};
+    };
+    struct DwgAssociativeVariableGraphOutputProof {
+        std::uint32_t sourceHandle{0u}, emittedHandle{0u};
+        std::uint32_t sourceOwner{0u}, emittedOwner{0u};
+        bool dictionary{false};
+    };
+    std::map<std::uint32_t, DwgAssociativeVariableSource>
+        m_dwgAssociativeVariableSources;
+    std::map<std::uint32_t, DwgAssociativeVariableNetworkSource>
+        m_dwgAssociativeVariableNetworks;
+    std::map<std::uint32_t, DRW_Dictionary>
+        m_dwgAssociativeVariableDictionaries;
+    std::vector<DwgAssociativeVariableOutputProof>
+        m_dwgAssociativeVariableOutputProofs;
+    std::vector<DwgAssociativeVariableGraphOutputProof>
+        m_dwgAssociativeVariableGraphOutputProofs;
+    const dx_data* m_dwgAssociativeVariableSourceOwner{nullptr};
+    std::uint64_t m_dwgAssociativeVariableSourceGeneration{0u};
+    std::size_t m_dwgAssociativeVariableSourceBytes{0u};
+    DRW::Version m_dwgAssociativeVariableOutputVersion{DRW::UNKNOWNV};
+    bool m_dwgAssociativeVariableOutputBinary{false};
+    bool m_dwgAssociativeVariablesInspected{false};
+    bool prepareDwgAssociativeVariables(DRW::Version version, bool binary,
+                                        bool debug) noexcept;
+    bool hasUnchangedDwgAssociativeVariables() const noexcept;
+    bool inspectDwgAssociativeVariables(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool finalizeDwgAssociativeVariables() const noexcept;
+
     struct ExtensionDictionaryOwnerSource {
         enum class Kind : std::uint8_t {
             Entity, Layer, Layout, LayerTableControl

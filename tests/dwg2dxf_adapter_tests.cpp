@@ -28258,6 +28258,545 @@ bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
     return true;
 }
 
+bool physicalAssociativeVariableOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("physical associative source did not import as AC1024 DWG");
+
+    using AssocByHandle =
+        std::map<std::uint32_t, const DRW_AssociativeObject*>;
+    const auto indexAssociative = [](const auto& objects,
+                                     AssocByHandle& indexed) {
+        for (const DRW_AssociativeObject& object : objects)
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || !indexed.emplace(object.handle, &object).second)
+                return false;
+        return true;
+    };
+    AssocByHandle sourceByHandle;
+    if (!indexAssociative(source.dwgAssociativeObjects, sourceByHandle))
+        return fail("physical associative source handles are ambiguous");
+
+    std::map<std::string, const DRW_AssociativeObject*> sourceVariables;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> sourceNetworks;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> sourceChildren;
+    std::size_t sourceValueDependencyCount = 0u;
+    for (const DRW_AssociativeObject& object : source.dwgAssociativeObjects) {
+        if (object.m_recordName == "ACDBASSOCVARIABLE") {
+            if (!sourceVariables.emplace(object.m_variableName, &object).second
+                || !object.m_associativeVariableFieldsParsed
+                || !object.m_associativeVariableWireComplete
+                || !object.m_variableOwnedDependenciesParsed
+                || !object.m_variableValueParsed
+                || object.m_variableOwnedDependencies.size() > 1u
+                || object.m_variableSuffixMarkerPresent
+                    != !object.m_variableOwnedDependencies.empty())
+                return fail("physical ACDBASSOCVARIABLE fields or suffix form are incomplete");
+            for (const DRW_AssociativeHandleRef& childRef :
+                 object.m_variableOwnedDependencies) {
+                const auto child = sourceByHandle.find(childRef.m_handle);
+                if (!childRef.m_isOwned || child == sourceByHandle.end()
+                    || child->second->m_recordName
+                        != "ACDBASSOCVALUEDEPENDENCY"
+                    || child->second->parentHandle != object.handle
+                    || !sourceChildren.emplace(childRef.m_handle,
+                                               child->second).second)
+                    return fail("physical variable-owned value-dependency edge is ambiguous");
+            }
+        } else if (object.m_recordName == "ACDBASSOCNETWORK") {
+            if (!object.m_networkFieldsParsed
+                || !sourceNetworks.emplace(object.handle, &object).second)
+                return fail("physical associative network fields are incomplete");
+        } else if (object.m_recordName == "ACDBASSOCVALUEDEPENDENCY") {
+            ++sourceValueDependencyCount;
+        }
+    }
+    if (sourceVariables.size() != 17u || sourceNetworks.size() != 2u
+        || sourceChildren.size() != 13u
+        || !source.hasNamedObjectDictionary)
+        return fail("physical associative source census differs from 17 variables, 2 networks, and 13 owned children");
+
+    const auto findAssoc = [](const AssocByHandle& indexed,
+                              std::uint32_t handle)
+            -> const DRW_AssociativeObject* {
+        const auto found = indexed.find(handle);
+        return found == indexed.end() ? nullptr : found->second;
+    };
+    const auto findDictionary = [](const dx_data& data,
+                                   std::uint32_t handle)
+            -> const DRW_Dictionary* {
+        const DRW_Dictionary* result = nullptr;
+        std::size_t matches = 0u;
+        if (data.hasNamedObjectDictionary
+            && data.namedObjectDictionary.handle == handle) {
+            result = &data.namedObjectDictionary;
+            ++matches;
+        }
+        for (const DRW_Dictionary& dictionary : data.dictionaries)
+            if (dictionary.handle == handle) {
+                result = &dictionary;
+                ++matches;
+            }
+        return matches == 1u ? result : nullptr;
+    };
+    const auto rootNetwork = [&findAssoc, &findDictionary](
+            const dx_data& data, const AssocByHandle& indexed)
+            -> const DRW_AssociativeObject* {
+        const DRW_Dictionary::Entry* rootEntry = nullptr;
+        for (const DRW_Dictionary::Entry& entry :
+             data.namedObjectDictionary.m_entries) {
+            if (entry.m_name != "ACAD_ASSOCNETWORK")
+                continue;
+            if (rootEntry != nullptr)
+                return nullptr;
+            rootEntry = &entry;
+        }
+        if (rootEntry == nullptr)
+            return nullptr;
+        const DRW_Dictionary* rootDictionary =
+            findDictionary(data, rootEntry->m_handle);
+        if (rootDictionary == nullptr)
+            return nullptr;
+        const DRW_Dictionary::Entry* networkEntry = nullptr;
+        for (const DRW_Dictionary::Entry& entry :
+             rootDictionary->m_entries) {
+            if (entry.m_name != "ACAD_ASSOCNETWORK")
+                continue;
+            if (networkEntry != nullptr)
+                return nullptr;
+            networkEntry = &entry;
+        }
+        if (networkEntry == nullptr)
+            return nullptr;
+        const DRW_AssociativeObject* network =
+            findAssoc(indexed, networkEntry->m_handle);
+        return network != nullptr
+                && network->m_recordName == "ACDBASSOCNETWORK"
+            ? network : nullptr;
+    };
+    const DRW_AssociativeObject* sourceRoot =
+        rootNetwork(source, sourceByHandle);
+    if (sourceRoot == nullptr)
+        return fail("physical NOD ACAD_ASSOCNETWORK root is missing or ambiguous");
+
+    const auto runOutputEncoding = [&](bool binary) {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const std::filesystem::path outputPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-assocvariable-physical-" + std::to_string(nonce)
+           + (binary ? "-binary.dxf" : "-ascii.dxf"));
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    } cleanup{outputPath};
+    const std::string sentinel = "existing physical associative destination\n";
+    const auto destinationEquals = [&outputPath](const std::string& expected) {
+        std::ifstream input(outputPath, std::ios::binary);
+        if (!input)
+            return false;
+        const std::string actual{std::istreambuf_iterator<char>(input), {}};
+        return actual == expected;
+    };
+    {
+        std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+        if (!existing || !(existing << sentinel))
+            return fail("could not seed physical associative output sentinel");
+    }
+
+    class LateVariableMutation final : public dx_iface {
+    public:
+        bool mutateAfterObjects{false};
+        std::uint32_t targetHandle{0u};
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (!mutateAfterObjects || cData == nullptr)
+                return;
+            for (DRW_AssociativeObject& object : cData->dwgAssociativeObjects) {
+                if (object.handle != targetHandle
+                    || object.m_recordName != "ACDBASSOCVARIABLE")
+                    continue;
+                object.m_variableDescription += " late mutation";
+                return;
+            }
+        }
+    } writer;
+    const DRW_AssociativeObject& firstSourceVariable =
+        *sourceVariables.begin()->second;
+    const UTF8STRING originalDescription =
+        firstSourceVariable.m_variableDescription;
+    writer.targetHandle = firstSourceVariable.handle;
+    writer.mutateAfterObjects = true;
+    const auto exportPartial = [&]() {
+        return writer.fileExport(
+            outputPath.string(), DRW::AC1024, binary, &source, false, true,
+            dx_dxfSourceTextPolicy::RequireValidSource,
+            DRW::DxfTextWritePolicy::RequireLossless,
+            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+    };
+    if (exportPartial() || !destinationEquals(sentinel))
+        return fail("late physical associative mutation did not refuse atomically");
+    auto mutableVariable = std::find_if(
+        source.dwgAssociativeObjects.begin(), source.dwgAssociativeObjects.end(),
+        [&firstSourceVariable](const DRW_AssociativeObject& object) {
+            return object.handle == firstSourceVariable.handle;
+        });
+    if (mutableVariable == source.dwgAssociativeObjects.end())
+        return fail("physical associative mutation target disappeared");
+    mutableVariable->m_variableDescription = originalDescription;
+    writer.mutateAfterObjects = false;
+    if (!exportPartial())
+        return fail("corrected physical associative graph could not retry on the same adapter");
+
+    dx_iface outputReader;
+    dx_data output;
+    if (!outputReader.fileImport(outputPath.string(), &output, false)
+        || output.sourceFormat != dx_source_format::DXF
+        || output.sourceVersion != DRW::AC1024)
+        return fail("physical associative DXF did not reimport as AC1024");
+
+    AssocByHandle outputByHandle;
+    if (!indexAssociative(output.associativeObjects, outputByHandle))
+        return fail("physical associative DXF handles are ambiguous");
+    std::map<std::string, const DRW_AssociativeObject*> outputVariables;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> outputNetworks;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> outputChildren;
+    for (const DRW_AssociativeObject& object : output.associativeObjects) {
+        if (object.m_recordName == "ACDBASSOCVARIABLE") {
+            if (!outputVariables.emplace(object.m_variableName, &object).second)
+                return fail("physical output variable names are ambiguous");
+        } else if (object.m_recordName == "ACDBASSOCNETWORK") {
+            if (!outputNetworks.emplace(object.handle, &object).second)
+                return fail("physical output network handles are ambiguous");
+        } else if (object.m_recordName == "ACDBASSOCVALUEDEPENDENCY") {
+            if (!outputChildren.emplace(object.handle, &object).second)
+                return fail("physical output value-dependency handles are ambiguous");
+        }
+    }
+    if (outputVariables.size() != sourceVariables.size()
+        || outputNetworks.size() != sourceNetworks.size()
+        || outputChildren.size() != sourceValueDependencyCount)
+        return fail("physical associative output record counts changed on readback: variables="
+            + std::to_string(outputVariables.size()) + "/"
+            + std::to_string(sourceVariables.size()) + " networks="
+            + std::to_string(outputNetworks.size()) + "/"
+            + std::to_string(sourceNetworks.size()) + " value-dependencies="
+            + std::to_string(outputChildren.size()) + "/"
+            + std::to_string(sourceValueDependencyCount));
+
+    std::map<std::uint32_t, std::uint32_t> networkHandleMap;
+    const DRW_AssociativeObject* outputRoot =
+        rootNetwork(output, outputByHandle);
+    if (outputRoot == nullptr
+        || !networkHandleMap.emplace(sourceRoot->handle,
+                                     outputRoot->handle).second)
+        return fail("physical output NOD network root is missing");
+    for (std::size_t pass = 0u; pass < sourceNetworks.size(); ++pass) {
+        bool added = false;
+        for (const auto& sourceNetworkEntry : sourceNetworks) {
+            const DRW_AssociativeObject& sourceNetwork =
+                *sourceNetworkEntry.second;
+            if (networkHandleMap.count(sourceNetwork.handle) != 0u)
+                continue;
+            const auto parent = networkHandleMap.find(
+                sourceNetwork.m_owningNetworkHandle);
+            if (parent == networkHandleMap.end())
+                continue;
+            const DRW_AssociativeObject* sourceParent =
+                findAssoc(sourceByHandle,
+                          sourceNetwork.m_owningNetworkHandle);
+            const DRW_AssociativeObject* outputParent =
+                findAssoc(outputByHandle, parent->second);
+            if (sourceParent == nullptr || outputParent == nullptr
+                || outputParent->m_actions.size()
+                    != sourceParent->m_actions.size())
+                return fail("physical nested network action list changed on readback");
+            std::size_t matches = 0u;
+            std::uint32_t outputChildHandle = 0u;
+            for (std::size_t index = 0u;
+                 index < sourceParent->m_actions.size(); ++index) {
+                const DRW_AssociativeHandleRef& sourceAction =
+                    sourceParent->m_actions[index];
+                const DRW_AssociativeObject* sourceTarget =
+                    findAssoc(sourceByHandle, sourceAction.m_handle);
+                if (sourceTarget == nullptr
+                    || sourceTarget->m_recordName != "ACDBASSOCNETWORK"
+                    || sourceTarget->handle != sourceNetwork.handle)
+                    continue;
+                const DRW_AssociativeHandleRef& outputAction =
+                    outputParent->m_actions[index];
+                const DRW_AssociativeObject* outputTarget =
+                    findAssoc(outputByHandle, outputAction.m_handle);
+                if (outputTarget != nullptr
+                    && outputTarget->m_recordName == "ACDBASSOCNETWORK"
+                    && sourceAction.m_isOwned == outputAction.m_isOwned) {
+                    outputChildHandle = outputTarget->handle;
+                    ++matches;
+                }
+            }
+            if (matches != 1u
+                || !networkHandleMap.emplace(sourceNetwork.handle,
+                                              outputChildHandle).second)
+                return fail("physical nested network identity is not uniquely reachable");
+            added = true;
+        }
+        if (!added)
+            break;
+    }
+    if (networkHandleMap.size() != sourceNetworks.size())
+        return fail("physical network ancestry did not close on readback");
+
+    std::map<std::uint32_t, std::uint32_t> dictionaryHandleMap;
+    for (const auto& sourceNetworkEntry : sourceNetworks) {
+        const DRW_AssociativeObject& sourceNetwork =
+            *sourceNetworkEntry.second;
+        const auto outputNetworkHandle =
+            networkHandleMap.find(sourceNetwork.handle);
+        const DRW_AssociativeObject* outputNetwork = outputNetworkHandle
+                == networkHandleMap.end()
+            ? nullptr : findAssoc(outputByHandle, outputNetworkHandle->second);
+        if (outputNetwork == nullptr || sourceNetwork.parentHandle == 0u
+            || sourceNetwork.parentHandle >
+                (std::numeric_limits<std::uint32_t>::max)())
+            return fail("physical network owner dictionary is missing on readback");
+        const std::uint32_t sourceDictionaryHandle =
+            static_cast<std::uint32_t>(sourceNetwork.parentHandle);
+        const DRW_Dictionary* sourceDictionary =
+            findDictionary(source, sourceDictionaryHandle);
+        const DRW_Dictionary* outputDictionary =
+            findDictionary(output, static_cast<std::uint32_t>(
+                outputNetwork->parentHandle));
+        if (sourceDictionary == nullptr || outputDictionary == nullptr
+            || sourceDictionary->m_entries.size()
+                != outputDictionary->m_entries.size()
+            || sourceDictionary->hardOwner != outputDictionary->hardOwner)
+            return fail("physical network dictionary fields changed on readback");
+        const auto inserted = dictionaryHandleMap.emplace(
+            sourceDictionaryHandle, outputDictionary->handle);
+        if (!inserted.second
+            && inserted.first->second != outputDictionary->handle)
+            return fail("physical source dictionary mapped to multiple output dictionaries");
+        if (outputNetwork->parentHandle != outputDictionary->handle)
+            return fail("physical output network lost its dictionary owner role");
+        for (std::size_t index = 0u;
+             index < sourceDictionary->m_entries.size(); ++index) {
+            const DRW_Dictionary::Entry& sourceEntry =
+                sourceDictionary->m_entries[index];
+            const DRW_Dictionary::Entry& outputEntry =
+                outputDictionary->m_entries[index];
+            const auto target = networkHandleMap.find(sourceEntry.m_handle);
+            const auto sourceCode = sourceEntry.m_dxfHandleCode
+                    == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                ? (sourceDictionary->hardOwner
+                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                : sourceEntry.m_dxfHandleCode;
+            if (target == networkHandleMap.end()
+                || sourceEntry.m_name != "ACAD_ASSOCNETWORK"
+                || outputEntry.m_name != sourceEntry.m_name
+                || outputEntry.m_handle != target->second
+                || outputEntry.m_dxfHandleCode != sourceCode)
+                return fail("physical associative dictionary key, target or reference role changed");
+        }
+    }
+    if (dictionaryHandleMap.size() != sourceNetworks.size())
+        return fail("physical network dictionaries are not uniquely mapped");
+
+    for (const auto& sourceNetworkEntry : sourceNetworks) {
+        const DRW_AssociativeObject& expected = *sourceNetworkEntry.second;
+        const DRW_AssociativeObject* actual = findAssoc(
+            outputByHandle, networkHandleMap.at(expected.handle));
+        const auto expectedParent = networkHandleMap.find(
+            expected.m_owningNetworkHandle);
+        const std::uint32_t mappedParent = expected.m_owningNetworkHandle == 0u
+            ? 0u : (expectedParent == networkHandleMap.end()
+                ? DRW::NoHandle : expectedParent->second);
+        if (actual == nullptr || !actual->m_networkFieldsParsed
+            || actual->m_classVersion != expected.m_classVersion
+            || actual->m_geometryStatus != expected.m_geometryStatus
+            || actual->m_actionIndex != expected.m_actionIndex
+            || actual->m_maxDependencyIndex != expected.m_maxDependencyIndex
+            || actual->m_networkVersion != expected.m_networkVersion
+            || actual->m_networkActionIndex != expected.m_networkActionIndex
+            || actual->m_owningNetworkHandle != mappedParent
+            || actual->m_actions.size() != expected.m_actions.size()
+            || actual->reactorHandles.size() != expected.reactorHandles.size())
+            return fail("physical associative network fields or references changed on readback");
+        for (std::size_t index = 0u; index < expected.m_actions.size(); ++index) {
+            const DRW_AssociativeHandleRef& expectedAction =
+                expected.m_actions[index];
+            const DRW_AssociativeObject* target =
+                findAssoc(sourceByHandle, expectedAction.m_handle);
+            if (target == nullptr)
+                return fail("physical source network action target is missing");
+            const DRW_AssociativeObject* outputTarget = findAssoc(
+                outputByHandle, actual->m_actions[index].m_handle);
+            if (outputTarget == nullptr
+                || outputTarget->m_recordName != target->m_recordName
+                || actual->m_actions[index].m_isOwned
+                    != expectedAction.m_isOwned)
+                return fail("physical network action output target type or ownership role changed");
+            if (target->m_recordName == "ACDBASSOCNETWORK") {
+                const auto mapped = networkHandleMap.find(target->handle);
+                if (mapped == networkHandleMap.end())
+                    return fail("physical network action target has no output binding");
+                if (outputTarget->handle != mapped->second)
+                    return fail("physical nested network action identity changed on readback");
+            } else if (target->m_recordName == "ACDBASSOCVARIABLE") {
+                const auto mapped = outputVariables.find(target->m_variableName);
+                if (mapped == outputVariables.end())
+                    return fail("physical variable action target is missing on readback");
+                if (outputTarget->handle != mapped->second->handle)
+                    return fail("physical variable action identity changed on readback");
+            }
+        }
+    }
+
+    std::size_t outputOwnedChildren = 0u;
+    for (const auto& sourceVariableEntry : sourceVariables) {
+        const DRW_AssociativeObject& expected = *sourceVariableEntry.second;
+        const auto outputEntry = outputVariables.find(sourceVariableEntry.first);
+        if (outputEntry == outputVariables.end())
+            return fail("physical variable identity is missing on readback");
+        const DRW_AssociativeObject& actual = *outputEntry->second;
+        const auto network = networkHandleMap.find(
+            expected.m_owningNetworkHandle);
+        if (network == networkHandleMap.end()
+            || actual.handle == 0u || actual.m_recordName != expected.m_recordName
+            || actual.parentHandle != network->second
+            || actual.m_owningNetworkHandle != network->second
+            || actual.m_classVersion != expected.m_classVersion
+            || actual.m_geometryStatus != expected.m_geometryStatus
+            || actual.m_actionIndex != expected.m_actionIndex
+            || actual.m_maxDependencyIndex != expected.m_maxDependencyIndex
+            || !actual.m_associativeVariableFieldsParsed
+            || !actual.m_variableValueParsed
+            || actual.m_variableClassVersion != expected.m_variableClassVersion
+            || actual.m_variableName != expected.m_variableName
+            || actual.m_variableExpression != expected.m_variableExpression
+            || actual.m_variableEvaluator != expected.m_variableEvaluator
+            || actual.m_variableDescription != expected.m_variableDescription
+            || actual.m_variableValueCode != expected.m_variableValueCode
+            || actual.m_variableValueKind != expected.m_variableValueKind
+            || actual.m_variableValueInt32 != expected.m_variableValueInt32
+            || std::memcmp(&actual.m_variableValueReal,
+                           &expected.m_variableValueReal,
+                           sizeof(double)) != 0
+            || std::signbit(actual.m_variableValueReal)
+                != std::signbit(expected.m_variableValueReal)
+            || actual.m_variableHasT78 != expected.m_variableHasT78
+            || actual.m_variableT78 != expected.m_variableT78
+            || actual.m_variableB290 != expected.m_variableB290
+            || actual.reactorHandles.size() != expected.reactorHandles.size())
+            return fail("physical variable owner, fields, value or references changed on readback");
+
+        for (const DRW_AssociativeHandleRef& childRef :
+             expected.m_variableOwnedDependencies) {
+            const DRW_AssociativeObject* sourceChild =
+                findAssoc(sourceByHandle, childRef.m_handle);
+            const DRW_AssociativeObject* outputChild = nullptr;
+            for (const auto& outputChildEntry : outputChildren) {
+                if (outputChildEntry.second->parentHandle != actual.handle)
+                    continue;
+                if (outputChild != nullptr)
+                    return fail("physical variable has multiple output dependency children");
+                outputChild = outputChildEntry.second;
+            }
+            if (sourceChild == nullptr || outputChild == nullptr
+                || outputChild->m_recordName != sourceChild->m_recordName
+                || outputChild->parentHandle != actual.handle
+                || !outputChild->m_dependencyFieldsParsed
+                || !outputChild->m_dependencyWireComplete
+                || outputChild->m_classVersion != sourceChild->m_classVersion
+                || outputChild->m_status != sourceChild->m_status
+                || outputChild->m_dependencyIsRead
+                    != sourceChild->m_dependencyIsRead
+                || outputChild->m_dependencyIsWrite
+                    != sourceChild->m_dependencyIsWrite
+                || outputChild->m_dependencyIsAttachedToObject
+                    != sourceChild->m_dependencyIsAttachedToObject
+                || outputChild->m_dependencyIsDelegatingToOwningAction
+                    != sourceChild->m_dependencyIsDelegatingToOwningAction
+                || outputChild->m_dependencyOrder
+                    != sourceChild->m_dependencyOrder
+                || outputChild->m_dependencyNamePresent
+                    != sourceChild->m_dependencyNamePresent
+                || outputChild->m_dependencyName
+                    != sourceChild->m_dependencyName
+                || outputChild->m_valueDependencyFieldsParsed
+                    != sourceChild->m_valueDependencyFieldsParsed
+                || outputChild->m_valueDependencyClassVersion
+                    != sourceChild->m_valueDependencyClassVersion
+                || outputChild->m_valueDependencyName
+                    != sourceChild->m_valueDependencyName
+                || outputChild->m_valueDependencyValueCode
+                    != sourceChild->m_valueDependencyValueCode
+                || outputChild->m_valueDependencyValueKind
+                    != sourceChild->m_valueDependencyValueKind
+                || outputChild->m_valueDependencyValueInt32
+                    != sourceChild->m_valueDependencyValueInt32
+                || std::memcmp(&outputChild->m_valueDependencyValueReal,
+                               &sourceChild->m_valueDependencyValueReal,
+                               sizeof(double)) != 0
+                || outputChild->reactorHandles.size()
+                    != sourceChild->reactorHandles.size())
+                return fail("physical optional dependency child lost its identity or owner on readback");
+            const auto sourceTarget = sourceByHandle.find(
+                sourceChild->m_dependencyHandle);
+            const auto outputTarget = sourceTarget == sourceByHandle.end()
+                    || sourceTarget->second->m_recordName
+                        != "ACDBASSOCVARIABLE"
+                ? outputVariables.end()
+                : outputVariables.find(
+                    sourceTarget->second->m_variableName);
+            if (sourceTarget == sourceByHandle.end()
+                || outputTarget == outputVariables.end()
+                || outputChild->m_dependencyHandle
+                    != outputTarget->second->handle)
+                return fail("physical owned dependency target identity changed on readback");
+            ++outputOwnedChildren;
+        }
+
+        const auto raw = std::find_if(
+            output.rawAssociativeObjects.begin(),
+            output.rawAssociativeObjects.end(), [&actual](
+                    const DRW_RawDxfObject& candidate) {
+                return candidate.handle == actual.handle
+                    && candidate.name == "ACDBASSOCVARIABLE";
+            });
+        if (raw == output.rawAssociativeObjects.end()
+            || std::count_if(output.rawAssociativeObjects.begin(),
+                output.rawAssociativeObjects.end(), [&actual](
+                    const DRW_RawDxfObject& candidate) {
+                    return candidate.handle == actual.handle
+                        && candidate.name == "ACDBASSOCVARIABLE";
+                }) != 1
+            || raw->parentHandle != actual.parentHandle
+            || raw->m_version != DRW::AC1024)
+            return fail("physical variable raw identity or owner is missing on reimport");
+    }
+    if (outputOwnedChildren != sourceChildren.size())
+        return fail("physical optional dependency child count changed on readback");
+
+    std::cerr << "Physical ACDBASSOCVARIABLE "
+                 << (binary ? "binary" : "ASCII")
+                 << " readback passed: 17 variables, "
+                 "2 networks, 2 dictionary roles, 13 owned children, typed "
+                 "fields, atomic refusal and same-adapter retry.\n";
+    return true;
+    };
+    return runOutputEncoding(false) && runOutputEncoding(true);
+}
+
 bool visualStyleRawCaptureLimitsFailClosed() {
     DRW_RawDxfObject raw;
     raw.name = "VISUALSTYLE";
@@ -42874,6 +43413,9 @@ int main(int argc, char** argv) {
     if (argc == 4
         && std::string(argv[1]) == "--scale-physical-output-readback")
         return readbackPhysicalScaleOutput(argv[2], argv[3]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--assocvariable-physical-output-readback")
+        return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--visual-style-ac1024-typed-writer")
         return typedAc1024VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;
