@@ -47,7 +47,7 @@ external-only and cannot close through ordinary local implementation work.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — physical profile output-coverage closure | Reconcile the physical mechanical source's 228 callback identities across 21 record/type profiles against current source-matched receipts. Close the highest-incidence required profile still lacking exact source fields, emitted identity/role, and fresh readback proof; then close required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -56,15 +56,12 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — physical AC1024 ACDBASSOCDEPENDENCY and
-ASSOCDIMDEPENDENCYBODY output proof (17 linked pairs).** From the existing
-physical mechanical source, bind each dependency to its exact dimension-body
-identity, owner/body role, action/dependency references and typed fields. Compare
-staged output with a fresh DXF readback, then verify late-mutation refusal,
-destination preservation and corrected same-adapter retry in ASCII and binary.
-Reuse the existing source and receipts; add no investigation fixture. Strict
-complete-export remains refused while the census reports 228 opaque callbacks
-and zero retained correlation frames.
+**P4 next action — unblock the physical AC1024 `AcDbSubDMesh` class gate.**
+Diagnose the source CLASS row and instance count against the AC1024 mapping in
+`dxfRW::dxfClassForRecordName`; fix the version-specific mismatch only when the
+source row and writer mapping agree. Preserve refusal if they do not. The
+strict complete-export gate remains closed while required callback/output
+closure is incomplete.
 
 ## P4 — original bodies and complete document closure
 
