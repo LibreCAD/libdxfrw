@@ -61,12 +61,14 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — close the remaining 14-identity source/output gap.**
-Reconcile each listed callback with the retained standard/opaque source records,
-source owner and dependency proofs, and existing serializer route. Select the smallest
-source-backed family whose emitted fields and roles can be inspected; do not
-qualify a callback from its type/count or from opaque-byte retention alone.
-The current identity census is in the
+**P4 next packet — bind the 14 remaining callback identities to complete output.**
+These identities lack document-level output qualification; this does not imply
+that every source body remains unimplemented. Reuse existing source-body,
+serializer, ownership and output receipts where they cover the exact identity
+and fields. For each uncovered identity, inspect the retained source record,
+owner/dependency roles and serializer route, then implement only the missing
+provider or binding. Do not qualify from type/count or opaque-byte retention
+alone. The current identity census is in the
 [`P4 remaining-identity receipt`](docs/research/p4-ac1024-tablestyle-output-proof-2026-10-31.json).
 Keep strict refusal until the complete source identity set is covered.
 
@@ -113,15 +115,22 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block output profiles:** after the P4 source/output gap closes, finish
-the physical AC1024 `Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127` by
-binding the source's four EvaluationGraph nodes, three edges, linked
-Grip/GripLocation records, visibility flat/state handle sets and all remaining
-DICTIONARY/owner/reactor roles to staged output and fresh ASCII/Binary readback.
-Prove atomic refusal/retry for a missing required source target. Native
-dynamic-block semantics and DXF-origin typed/raw replay remain separate open
-qualifications. Qualify other subclasses only when an existing source
-identifies a required profile.
+**Dynamic-block physical-source composition:** after the P4 source/output gap
+closes, complete staged-output qualification for the physical AC1024
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Reuse the isolated body
+providers already qualified for BLOCKVISIBILITYPARAMETER `0x1118`,
+BLOCKVISIBILITYGRIP `0x1119`, BLOCKGRIPLOCATIONCOMPONENT `0x111A`/`0x111B`, and
+PurgePreventer `0x1122`; do not re-implement those bodies absent a demonstrated
+physical-source mismatch. The remaining work is to establish the physical
+EvaluationGraph `0x1117` frame, node and edge values, close the three-entry
+DICTIONARY `0x1116` and all owner/reactor roles, bind the 117 flat and four
+visibility-state handle sets, and prove source-to-staged-output identity and
+references with fresh ASCII/Binary readback. Exercise atomic refusal/retry for
+a missing required physical target. Generated callback composition, isolated
+record readback and SORTENTSTABLE output receipts do not establish this
+physical graph. Native dynamic-block semantics and DXF-origin typed/raw replay
+remain separate open qualifications. Qualify other subclasses only when an
+existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and
