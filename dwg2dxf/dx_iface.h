@@ -2855,6 +2855,43 @@ private:
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool finalizeDwgAssociativeVariables() const noexcept;
 
+    struct DwgAssociativeDimensionDependencySource {
+        DRW_AssociativeObject dependency;
+        DRW_AssociativeObject body;
+        std::uint32_t constraintGroupHandle{0u};
+        std::uint32_t constraintGroupOwnerHandle{0u};
+        std::string constraintGroupRecordName;
+        std::uint16_t constraintGroupClassVersion{0u};
+        std::int32_t constraintGroupVersion{0};
+        std::vector<std::uint32_t> constraintGroupActions;
+        std::vector<DRW_AssociativePrefixStatus>
+            constraintGroupPrefixStatuses;
+        std::uint32_t dimensionHandle{0u};
+        std::string dimensionSection;
+    };
+    struct DwgAssociativeDimensionDependencyOutputProof {
+        std::uint32_t sourceDependency{0u}, emittedDependency{0u};
+        std::uint32_t sourceBody{0u}, emittedBody{0u};
+        std::uint32_t sourceGroup{0u}, emittedGroup{0u};
+        std::uint32_t sourceDimension{0u}, emittedDimension{0u};
+    };
+    std::map<std::uint32_t, DwgAssociativeDimensionDependencySource>
+        m_dwgAssociativeDimensionDependencies;
+    std::vector<DwgAssociativeDimensionDependencyOutputProof>
+        m_dwgAssociativeDimensionDependencyOutputProofs;
+    const dx_data* m_dwgAssociativeDimensionDependencySourceOwner{nullptr};
+    std::uint64_t m_dwgAssociativeDimensionDependencySourceGeneration{0u};
+    std::size_t m_dwgAssociativeDimensionDependencySourceBytes{0u};
+    DRW::Version m_dwgAssociativeDimensionDependencyOutputVersion{DRW::UNKNOWNV};
+    bool m_dwgAssociativeDimensionDependencyOutputBinary{false};
+    bool m_dwgAssociativeDimensionDependenciesInspected{false};
+    bool prepareDwgAssociativeDimensionDependencies(
+        DRW::Version version, bool binary, bool debug) noexcept;
+    bool hasUnchangedDwgAssociativeDimensionDependencies() const noexcept;
+    bool inspectDwgAssociativeDimensionDependencies(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool finalizeDwgAssociativeDimensionDependencies() const noexcept;
+
     struct ExtensionDictionaryOwnerSource {
         enum class Kind : std::uint8_t {
             Entity, Layer, Layout, LayerTableControl

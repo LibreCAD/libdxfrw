@@ -25979,6 +25979,8 @@ void DRW_AssociativeObject::reset() {
     m_dxfAssociativeDependencyNameSeen = false;
     m_dxfAssociativeDependencyBodyHandleSeen = false;
     m_dxfAssociativeDependencyUnexpectedField = false;
+    m_dxfAssociativeDimDependencyBodyStage = 0u;
+    m_dxfAssociativeDimDependencyBodyUnexpectedField = false;
     m_dxfAssociativeValueDependencySubclass = false;
     m_dxfAssociativeValueDependencyIntIndex = 0u;
     m_dxfAssociativeValueDependencyNameSeen = false;
@@ -26032,6 +26034,8 @@ bool DRW_AssociativeObject::parseCode(
             && m_dxfAssociativeDependencyHandleIndex == 3u
             && m_dxfAssociativeDependencyBodyHandleSeen
             && nameStateComplete;
+        if (m_recordName == "ACDBASSOCDEPENDENCY")
+            m_dependencyWireComplete = m_dependencyFieldsParsed;
     };
     const auto updateAssociativeValueDependencyStatus = [this]() {
         const bool valueValid =
@@ -26052,6 +26056,31 @@ bool DRW_AssociativeObject::parseCode(
     };
     if (code == 100) {
         const std::string_view subclass = reader->getStringView();
+        const bool dimensionDependencyBody =
+            m_recordName == "ACDBASSOCDIMDEPENDENCYBODY"
+            || m_recordName == "ASSOCDIMDEPENDENCYBODY";
+        if (dimensionDependencyBody) {
+            if (m_dxfAssociativeDimDependencyBodyStage == 0u
+                && subclass == "AcDbAssocDependencyBody") {
+                m_dependencyBodyVersion = 0u;
+                m_dimBaseVersion = 0u;
+                m_classVersion = 0u;
+                name.clear();
+                m_dimensionDependencyBodyParsed = false;
+                m_dxfAssociativeDimDependencyBodyStage = 1u;
+            } else if (m_dxfAssociativeDimDependencyBodyStage == 2u
+                       && subclass
+                           == "AcDbImpAssocDimDependencyBodyBase") {
+                m_dxfAssociativeDimDependencyBodyStage = 3u;
+            } else if (m_dxfAssociativeDimDependencyBodyStage == 5u
+                       && subclass == "AcDbAssocDimDependencyBody") {
+                m_dxfAssociativeDimDependencyBodyStage = 6u;
+            } else {
+                m_dxfAssociativeDimDependencyBodyUnexpectedField = true;
+                m_dimensionDependencyBodyParsed = false;
+            }
+            return true;
+        }
         m_dxfAssociativeActionSubclass = false;
         m_dxfAssociativeNetworkSubclass = false;
         m_dxfAssociativeVariableSubclass = false;
@@ -26155,6 +26184,50 @@ bool DRW_AssociativeObject::parseCode(
             m_dxfPersistentSubentityClassValueCount = 0;
             return true;
         }
+        return true;
+    }
+    if ((m_recordName == "ACDBASSOCDIMDEPENDENCYBODY"
+         || m_recordName == "ASSOCDIMDEPENDENCYBODY")
+        && m_dxfAssociativeDimDependencyBodyStage != 0u) {
+        if (m_dxfAssociativeDimDependencyBodyUnexpectedField)
+            return true;
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            if (value < 0
+                || value > std::numeric_limits<std::uint16_t>::max()) {
+                m_dxfAssociativeDimDependencyBodyUnexpectedField = true;
+                m_dimensionDependencyBodyParsed = false;
+                return true;
+            }
+            switch (m_dxfAssociativeDimDependencyBodyStage) {
+            case 1u:
+                m_dependencyBodyVersion = static_cast<std::uint16_t>(value);
+                m_dxfAssociativeDimDependencyBodyStage = 2u;
+                break;
+            case 3u:
+                m_dimBaseVersion = static_cast<std::uint16_t>(value);
+                m_dxfAssociativeDimDependencyBodyStage = 4u;
+                break;
+            case 6u:
+                m_classVersion = static_cast<std::uint16_t>(value);
+                m_dxfAssociativeDimDependencyBodyStage = 7u;
+                m_dimensionDependencyBodyParsed = true;
+                break;
+            default:
+                m_dxfAssociativeDimDependencyBodyUnexpectedField = true;
+                m_dimensionDependencyBodyParsed = false;
+                break;
+            }
+            return true;
+        }
+        if (code == 1
+            && m_dxfAssociativeDimDependencyBodyStage == 4u) {
+            name = reader->getUtf8String();
+            m_dxfAssociativeDimDependencyBodyStage = 5u;
+            return true;
+        }
+        m_dxfAssociativeDimDependencyBodyUnexpectedField = true;
+        m_dimensionDependencyBodyParsed = false;
         return true;
     }
     // The AcDbAssoc2dConstraintGroup DXF body follows AcDbAssocAction without
@@ -26898,6 +26971,7 @@ bool DRW_AssociativeObject::parseCode(
             return DRW_TableEntry::parseCode(code, reader);
         m_dxfAssociativeDependencyUnexpectedField = true;
         m_dependencyFieldsParsed = false;
+        m_dependencyWireComplete = false;
         return true;
     }
     if (m_dxfAssociativeGeomSubclass == 1) {

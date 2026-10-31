@@ -28797,6 +28797,349 @@ bool physicalAssociativeVariableOutputReadback(
     return runOutputEncoding(false) && runOutputEncoding(true);
 }
 
+bool physicalAssociativeDimensionDependencyOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("physical dependency source did not import as AC1024 DWG");
+
+    using AssocByHandle =
+        std::map<std::uint32_t, const DRW_AssociativeObject*>;
+    const auto indexAssociative = [](const auto& objects,
+                                     AssocByHandle& indexed) {
+        for (const DRW_AssociativeObject& object : objects)
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || !indexed.emplace(object.handle, &object).second)
+                return false;
+        return true;
+    };
+    const auto indexDimensions = [](const dx_data& data,
+            std::map<std::uint32_t, const DRW_Entity*>& indexed) {
+        const auto visit = [&indexed](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr || entity->handle == 0u
+                    || entity->handle == DRW::NoHandle)
+                    continue;
+                if (!indexed.emplace(entity->handle, entity).second)
+                    return false;
+            }
+            return true;
+        };
+        if (!visit(data.mBlock))
+            return false;
+        for (const dx_ifaceBlock* block : data.blocks)
+            if (!visit(block))
+                return false;
+        return true;
+    };
+    const auto isDimension = [](const DRW_Entity* entity) {
+        return entity != nullptr
+            && (entity->eType == DRW::DIMLINEAR
+                || entity->eType == DRW::DIMDIAMETRIC);
+    };
+    AssocByHandle sourceByHandle;
+    std::map<std::string, const DRW_AssociativeObject*> sourceDependencies;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> sourceGroups;
+    std::map<std::uint32_t, const DRW_AssociativeObject*> sourceBodies;
+    std::map<std::uint32_t, const DRW_Entity*> sourceDimensions;
+    if (!indexAssociative(source.dwgAssociativeObjects, sourceByHandle)
+        || !indexDimensions(source, sourceDimensions))
+        return fail("physical dependency source handles are ambiguous");
+    for (const DRW_AssociativeObject& dependency :
+         source.dwgAssociativeObjects) {
+        if (dependency.m_recordName != "ACDBASSOCDEPENDENCY")
+            continue;
+        const auto body = sourceByHandle.find(
+            dependency.m_dependencyBodyHandle);
+        const auto group = sourceByHandle.find(
+            static_cast<std::uint32_t>(dependency.parentHandle));
+        const auto dimension = sourceDimensions.find(
+            dependency.m_dependencyHandle);
+        if (dependency.handle == 0u || !dependency.m_dependencyFieldsParsed
+            || !dependency.m_dependencyWireComplete
+            || dependency.m_classVersion != 1u
+            || dependency.m_dependencyIsRead
+            || !dependency.m_dependencyIsWrite
+            || !dependency.m_dependencyIsAttachedToObject
+            || !dependency.m_dependencyIsDelegatingToOwningAction
+            || dependency.m_dependencyOrder != 0
+            || dependency.m_dependencyNamePresent
+            || !dependency.m_dependencyName.empty()
+            || dependency.m_readDependencyHandle != 0u
+            || dependency.m_dependencyNodeHandle != 0u
+            || dependency.m_writeDependencyHandle != 0u
+            || body == sourceByHandle.end()
+            || (body->second->m_recordName
+                    != "ASSOCDIMDEPENDENCYBODY"
+                && body->second->m_recordName
+                    != "ACDBASSOCDIMDEPENDENCYBODY")
+            || body->second->parentHandle != dependency.handle
+            || !body->second->m_dimensionDependencyBodyParsed
+            || body->second->m_dependencyBodyVersion != 1u
+            || body->second->m_dimBaseVersion != 1u
+            || body->second->m_classVersion != 1u
+            || body->second->name.empty()
+            || !sourceDependencies.emplace(
+                body->second->name, &dependency).second
+            || !sourceBodies.emplace(body->second->handle,
+                                     body->second).second
+            || group == sourceByHandle.end()
+            || group->second->m_recordName
+                != "ACDBASSOC2DCONSTRAINTGROUP"
+            || !group->second->m_constraintGroupBodyParsed
+            || !group->second->m_constraintActionsParsed
+            || std::count(group->second->m_constraintActions.begin(),
+                group->second->m_constraintActions.end(), dependency.handle)
+                != 1
+            || dimension == sourceDimensions.end()
+            || !isDimension(dimension->second)
+            || std::count(dimension->second->reactorHandles.begin(),
+                dimension->second->reactorHandles.end(), dependency.handle)
+                != 1)
+            return fail("physical dependency/body source profile or linked roles are incomplete");
+        sourceGroups.emplace(group->second->handle, group->second);
+    }
+    if (sourceDependencies.size() != 17u || sourceBodies.size() != 17u
+        || sourceGroups.empty())
+        return fail("physical dependency source census differs from 17 linked pairs");
+
+    const auto runOutputEncoding = [&](bool binary) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-assocdependency-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "existing physical dependency destination\n";
+        const auto destinationEquals = [&outputPath](
+                const std::string& expected) {
+            std::ifstream input(outputPath, std::ios::binary);
+            if (!input)
+                return false;
+            return std::string{std::istreambuf_iterator<char>(input), {}}
+                == expected;
+        };
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical dependency destination sentinel");
+        }
+        class LateDependencyMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            std::uint32_t targetBody{0u};
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_AssociativeObject& object :
+                     cData->dwgAssociativeObjects) {
+                    if (object.handle == targetBody
+                        && (object.m_recordName
+                                == "ASSOCDIMDEPENDENCYBODY"
+                            || object.m_recordName
+                                == "ACDBASSOCDIMDEPENDENCYBODY")) {
+                        object.name += " late mutation";
+                        return;
+                    }
+                }
+            }
+        } writer;
+        const DRW_AssociativeObject& firstBody =
+            *sourceBodies.begin()->second;
+        const UTF8STRING originalName = firstBody.name;
+        writer.targetBody = firstBody.handle;
+        writer.mutateAfterObjects = true;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late physical dependency/body mutation did not refuse atomically");
+        const auto restored = std::find_if(
+            source.dwgAssociativeObjects.begin(),
+            source.dwgAssociativeObjects.end(),
+            [&firstBody](const DRW_AssociativeObject& object) {
+                return object.handle == firstBody.handle;
+            });
+        if (restored == source.dwgAssociativeObjects.end())
+            return fail("physical dependency/body mutation target disappeared");
+        restored->name = originalName;
+        writer.mutateAfterObjects = false;
+        if (!exportPartial())
+            return fail("corrected physical dependency graph could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024)
+            return fail("physical dependency DXF did not reimport as AC1024");
+        AssocByHandle outputByHandle;
+        std::map<std::string, const DRW_AssociativeObject*> outputBodies;
+        std::map<std::string, const DRW_AssociativeObject*> outputDependencies;
+        std::map<std::uint32_t, const DRW_Entity*> outputDimensions;
+        if (!indexAssociative(output.associativeObjects, outputByHandle)
+            || !indexDimensions(output, outputDimensions))
+            return fail("physical dependency output handles are ambiguous");
+        for (const DRW_AssociativeObject& object : output.associativeObjects) {
+            if (object.m_recordName == "ASSOCDIMDEPENDENCYBODY") {
+                if (!object.m_dimensionDependencyBodyParsed
+                    || !outputBodies.emplace(object.name, &object).second)
+                    return fail("physical output dimension bodies are not typed or unique");
+            } else if (object.m_recordName == "ACDBASSOCDEPENDENCY") {
+                const auto body = outputByHandle.find(
+                    object.m_dependencyBodyHandle);
+                if (!object.m_dependencyFieldsParsed
+                    || !object.m_dependencyWireComplete
+                    || body == outputByHandle.end()
+                    || body->second->m_recordName
+                        != "ASSOCDIMDEPENDENCYBODY"
+                    || !outputDependencies.emplace(
+                        body->second->name, &object).second)
+                    return fail("physical output dependencies are not typed or uniquely paired");
+            }
+        }
+        if (outputBodies.size() != sourceBodies.size()
+            || outputDependencies.size() != sourceDependencies.size())
+            return fail("physical dependency/body counts changed on readback");
+
+        std::size_t verifiedPairs = 0u;
+        for (const auto& entry : sourceDependencies) {
+            const DRW_AssociativeObject& expectedDependency = *entry.second;
+            const DRW_AssociativeObject& expectedBody =
+                *sourceByHandle.at(
+                    expectedDependency.m_dependencyBodyHandle);
+            const auto actualBodyEntry = outputBodies.find(entry.first);
+            const auto actualDependencyEntry =
+                outputDependencies.find(entry.first);
+            if (actualBodyEntry == outputBodies.end()
+                || actualDependencyEntry == outputDependencies.end())
+                return fail("physical source dependency/body identity is missing on readback");
+            const DRW_AssociativeObject& actualBody =
+                *actualBodyEntry->second;
+            const DRW_AssociativeObject& actualDependency =
+                *actualDependencyEntry->second;
+            if (actualBody.name != expectedBody.name
+                || actualBody.m_dependencyBodyVersion
+                    != expectedBody.m_dependencyBodyVersion
+                || actualBody.m_dimBaseVersion != expectedBody.m_dimBaseVersion
+                || actualBody.m_classVersion != expectedBody.m_classVersion
+                || actualBody.parentHandle != actualDependency.handle
+                || actualDependency.m_recordName != "ACDBASSOCDEPENDENCY"
+                || actualDependency.m_classVersion
+                    != expectedDependency.m_classVersion
+                || actualDependency.m_status != expectedDependency.m_status
+                || actualDependency.m_dependencyFieldsParsed
+                    != expectedDependency.m_dependencyFieldsParsed
+                || actualDependency.m_dependencyWireComplete
+                    != expectedDependency.m_dependencyWireComplete
+                || actualDependency.m_dependencyIsRead
+                    != expectedDependency.m_dependencyIsRead
+                || actualDependency.m_dependencyIsWrite
+                    != expectedDependency.m_dependencyIsWrite
+                || actualDependency.m_dependencyIsAttachedToObject
+                    != expectedDependency.m_dependencyIsAttachedToObject
+                || actualDependency.m_dependencyIsDelegatingToOwningAction
+                    != expectedDependency.m_dependencyIsDelegatingToOwningAction
+                || actualDependency.m_dependencyOrder
+                    != expectedDependency.m_dependencyOrder
+                || actualDependency.m_dependencyNamePresent
+                    != expectedDependency.m_dependencyNamePresent
+                || actualDependency.m_dependencyName
+                    != expectedDependency.m_dependencyName
+                || actualDependency.m_dependencyBodyId
+                    != expectedDependency.m_dependencyBodyId
+                || actualDependency.m_dependencyBodyHandle
+                    != actualBody.handle
+                || actualDependency.m_readDependencyHandle != 0u
+                || actualDependency.m_dependencyNodeHandle != 0u
+                || actualDependency.m_writeDependencyHandle != 0u)
+                return fail("physical dependency/body fields or pair references changed on readback");
+
+            const auto sourceGroup = sourceByHandle.find(
+                static_cast<std::uint32_t>(expectedDependency.parentHandle));
+            const auto actualGroup = outputByHandle.find(
+                static_cast<std::uint32_t>(actualDependency.parentHandle));
+            if (sourceGroup == sourceByHandle.end()
+                || actualGroup == outputByHandle.end()
+                || sourceGroup->second->m_recordName
+                    != "ACDBASSOC2DCONSTRAINTGROUP"
+                || actualGroup->second->m_recordName
+                    != "ACDBASSOC2DCONSTRAINTGROUP"
+                || std::count(actualGroup->second->m_constraintActions.begin(),
+                    actualGroup->second->m_constraintActions.end(),
+                    actualDependency.handle) != 1) {
+                std::cerr << "dependency group readback: source-group="
+                          << (sourceGroup == sourceByHandle.end()
+                              ? 0u : sourceGroup->first)
+                          << " output-group="
+                          << (actualGroup == outputByHandle.end()
+                              ? 0u : actualGroup->first)
+                          << " dependency=" << actualDependency.handle;
+                if (sourceGroup != sourceByHandle.end())
+                    std::cerr << " source-type="
+                              << sourceGroup->second->m_recordName
+                              << " source-actions="
+                              << sourceGroup->second->m_constraintActions.size();
+                if (actualGroup != outputByHandle.end())
+                    std::cerr << " output-type="
+                              << actualGroup->second->m_recordName
+                              << " parsed="
+                              << actualGroup->second->m_constraintGroupBodyParsed
+                              << "/"
+                              << actualGroup->second->m_constraintActionsParsed
+                              << " actions="
+                              << actualGroup->second->m_constraintActions.size()
+                              << " matching="
+                              << std::count(
+                                  actualGroup->second->m_constraintActions.begin(),
+                                  actualGroup->second->m_constraintActions.end(),
+                                  actualDependency.handle);
+                std::cerr << '\n';
+                return fail("physical constraint-group owner/action role changed on readback");
+            }
+
+            const auto actualDimension = outputDimensions.find(
+                actualDependency.m_dependencyHandle);
+            if (actualDimension == outputDimensions.end()
+                || !isDimension(actualDimension->second)
+                || std::count(actualDimension->second->reactorHandles.begin(),
+                    actualDimension->second->reactorHandles.end(),
+                    actualDependency.handle) != 1)
+                return fail("physical dimension target or reactor backlink changed on readback");
+            ++verifiedPairs;
+        }
+        if (verifiedPairs != 17u)
+            return fail("physical dependency/body readback did not close all 17 pairs");
+        std::cerr << "Physical ACDBASSOCDEPENDENCY "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: 17 linked dependency/body pairs, group and dimension roles, atomic refusal and same-adapter retry.\n";
+        return true;
+    };
+    return runOutputEncoding(false) && runOutputEncoding(true);
+}
+
 bool visualStyleRawCaptureLimitsFailClosed() {
     DRW_RawDxfObject raw;
     raw.name = "VISUALSTYLE";
@@ -43416,6 +43759,10 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--assocvariable-physical-output-readback")
         return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--assocdependency-physical-output-readback")
+        return physicalAssociativeDimensionDependencyOutputReadback(
+            argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--visual-style-ac1024-typed-writer")
         return typedAc1024VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;

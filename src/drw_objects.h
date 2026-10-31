@@ -7258,6 +7258,8 @@ public:
       m_dxfConstraintGroupPointIndex = 0u;
       m_dxfConstraintNode = {};
       m_dxfConstraintGroupUnexpectedField = false;
+      m_dxfAssociativeDimDependencyBodyStage = 0u;
+      m_dxfAssociativeDimDependencyBodyUnexpectedField = false;
       m_dxfAssociativeValueDependencySubclass = false;
       m_dxfAssociativeValueDependencyIntIndex = 0u;
       m_dxfAssociativeValueDependencyNameSeen = false;
@@ -7546,6 +7548,8 @@ private:
   bool m_dxfAssociativeDependencyNameSeen = false;
   bool m_dxfAssociativeDependencyBodyHandleSeen = false;
   bool m_dxfAssociativeDependencyUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeDimDependencyBodyStage = 0u;
+  bool m_dxfAssociativeDimDependencyBodyUnexpectedField = false;
   std::uint8_t m_dxfAssociativeValueDependencyIntIndex = 0;
   bool m_dxfAssociativeValueDependencyNameSeen = false;
   bool m_dxfAssociativeValueDependencyValueSeen = false;

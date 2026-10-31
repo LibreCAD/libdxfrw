@@ -349,6 +349,11 @@ public:
             return m_networkFieldsParsed;
         if (m_recordName == "ACDBASSOCVARIABLE")
             return m_associativeVariableFieldsParsed;
+        if (m_recordName == "ACDBASSOCDEPENDENCY")
+            return m_dependencyFieldsParsed && m_dependencyWireComplete;
+        if (m_recordName == "ASSOCDIMDEPENDENCYBODY"
+            || m_recordName == "ACDBASSOCDIMDEPENDENCYBODY")
+            return m_dimensionDependencyBodyParsed;
         return false;
     }
 };
@@ -411,8 +416,11 @@ public:
     }
     template <class Visitor> bool decodeAssociativeRecord(
             std::string_view recordName, std::string_view bytes,
-            Visitor&& visit) {
+            Visitor&& visit, bool debug = false) {
         if (!reader || (recordName != "ACDBASSOCGEOMDEPENDENCY"
+                && recordName != "ACDBASSOCDEPENDENCY"
+                && recordName != "ASSOCDIMDEPENDENCYBODY"
+                && recordName != "ACDBASSOCDIMDEPENDENCYBODY"
                 && recordName != "ACDBASSOCVALUEDEPENDENCY"
                 && recordName != "ACDBASSOCNETWORK"
                 && recordName != "ACDBASSOCVARIABLE"))
@@ -423,12 +431,28 @@ public:
         int code = 0;
         while (buffer.position() < bytes.size()) {
             if (!reader->readRec(&code) || code == 0
-                || !record.parseCode(code, reader))
+                || !record.parseCode(code, reader)) {
+                if (debug)
+                    std::cerr << "associative DXF probe parse failed: record="
+                              << recordName << " code=" << code
+                              << " position=" << buffer.position() << '\n';
                 return false;
+            }
         }
         if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()
-            || !record.complete())
+            || !record.complete()) {
+            if (debug)
+                std::cerr << "associative DXF probe incomplete: record="
+                          << recordName << " dependency="
+                          << record.m_dependencyFieldsParsed << "/"
+                          << record.m_dependencyWireComplete << " body="
+                          << record.m_dimensionDependencyBodyParsed
+                          << " body-versions="
+                          << record.m_dependencyBodyVersion << "/"
+                          << record.m_dimBaseVersion << "/"
+                          << record.m_classVersion << '\n';
             return false;
+        }
         return visit(static_cast<const DRW_AssociativeObject&>(record));
     }
 private:

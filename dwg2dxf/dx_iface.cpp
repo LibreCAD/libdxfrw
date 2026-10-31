@@ -6925,6 +6925,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_dwgAssociativeVariableOutputVersion = DRW::UNKNOWNV;
     m_dwgAssociativeVariableOutputBinary = false;
     m_dwgAssociativeVariablesInspected = false;
+    m_dwgAssociativeDimensionDependencies.clear();
+    m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+    m_dwgAssociativeDimensionDependencySourceOwner = nullptr;
+    m_dwgAssociativeDimensionDependencySourceGeneration = 0u;
+    m_dwgAssociativeDimensionDependencySourceBytes = 0u;
+    m_dwgAssociativeDimensionDependencyOutputVersion = DRW::UNKNOWNV;
+    m_dwgAssociativeDimensionDependencyOutputBinary = false;
+    m_dwgAssociativeDimensionDependenciesInspected = false;
     m_extensionDictionaryWithDefaultHandles.clear();
     m_extensionPlaceholderHandles.clear();
     m_extensionXRecordHandles.clear();
@@ -6985,6 +6993,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_dwgAssociativeVariableOutputVersion = DRW::UNKNOWNV;
         m_dwgAssociativeVariableOutputBinary = false;
         m_dwgAssociativeVariablesInspected = false;
+        m_dwgAssociativeDimensionDependencies.clear();
+        m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+        m_dwgAssociativeDimensionDependencySourceOwner = nullptr;
+        m_dwgAssociativeDimensionDependencySourceGeneration = 0u;
+        m_dwgAssociativeDimensionDependencySourceBytes = 0u;
+        m_dwgAssociativeDimensionDependencyOutputVersion = DRW::UNKNOWNV;
+        m_dwgAssociativeDimensionDependencyOutputBinary = false;
+        m_dwgAssociativeDimensionDependenciesInspected = false;
         m_extensionDictionaryWithDefaultHandles.clear();
         m_extensionPlaceholderHandles.clear();
         m_extensionXRecordHandles.clear();
@@ -14815,6 +14831,48 @@ bool associativeNetworkSourceModelEqual(
         && left.m_networkVersion == right.m_networkVersion
         && left.m_networkActionIndex == right.m_networkActionIndex
         && left.m_networkFieldsParsed == right.m_networkFieldsParsed
+        && retainedAssociativePrefixStatusesEqual(
+            left.m_prefixStatuses, right.m_prefixStatuses);
+}
+
+bool associativeDimensionDependencySourceModelEqual(
+        const DRW_AssociativeObject& left,
+        const DRW_AssociativeObject& right) noexcept {
+    return standardDwgCommonEqual(left, right, DRW::AC1024)
+        && left.m_recordName == right.m_recordName
+        && left.m_classVersion == right.m_classVersion
+        && left.m_status == right.m_status
+        && left.m_dependencyFieldsParsed == right.m_dependencyFieldsParsed
+        && left.m_dependencyWireComplete == right.m_dependencyWireComplete
+        && left.m_dependencyIsRead == right.m_dependencyIsRead
+        && left.m_dependencyIsWrite == right.m_dependencyIsWrite
+        && left.m_dependencyIsAttachedToObject
+            == right.m_dependencyIsAttachedToObject
+        && left.m_dependencyIsDelegatingToOwningAction
+            == right.m_dependencyIsDelegatingToOwningAction
+        && left.m_dependencyOrder == right.m_dependencyOrder
+        && left.m_dependencyNamePresent == right.m_dependencyNamePresent
+        && left.m_dependencyName == right.m_dependencyName
+        && left.m_dependencyHandle == right.m_dependencyHandle
+        && left.m_readDependencyHandle == right.m_readDependencyHandle
+        && left.m_dependencyNodeHandle == right.m_dependencyNodeHandle
+        && left.m_writeDependencyHandle == right.m_writeDependencyHandle
+        && left.m_dependencyBodyHandle == right.m_dependencyBodyHandle
+        && left.m_dependencyBodyId == right.m_dependencyBodyId
+        && retainedAssociativePrefixStatusesEqual(
+            left.m_prefixStatuses, right.m_prefixStatuses);
+}
+
+bool associativeDimensionDependencyBodySourceModelEqual(
+        const DRW_AssociativeObject& left,
+        const DRW_AssociativeObject& right) noexcept {
+    return standardDwgCommonEqual(left, right, DRW::AC1024)
+        && left.m_recordName == right.m_recordName
+        && left.m_dimensionDependencyBodyParsed
+            == right.m_dimensionDependencyBodyParsed
+        && left.m_dependencyBodyVersion == right.m_dependencyBodyVersion
+        && left.m_dimBaseVersion == right.m_dimBaseVersion
+        && left.m_classVersion == right.m_classVersion
         && retainedAssociativePrefixStatusesEqual(
             left.m_prefixStatuses, right.m_prefixStatuses);
 }
@@ -28106,6 +28164,705 @@ bool dx_iface::finalizeDwgAssociativeVariables() const noexcept {
                 || dxfW->dxfWriteRecordHandleCount(emitted) != 1u)
                 return false;
         }
+    }
+    return true;
+}
+
+bool dx_iface::prepareDwgAssociativeDimensionDependencies(
+        DRW::Version version, bool binary, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "ACDBASSOCDEPENDENCY source snapshot rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    m_dwgAssociativeDimensionDependencies.clear();
+    m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+    m_dwgAssociativeDimensionDependencySourceOwner = nullptr;
+    m_dwgAssociativeDimensionDependencySourceGeneration = 0u;
+    m_dwgAssociativeDimensionDependencySourceBytes = 0u;
+    m_dwgAssociativeDimensionDependencyOutputVersion = DRW::UNKNOWNV;
+    m_dwgAssociativeDimensionDependencyOutputBinary = false;
+    m_dwgAssociativeDimensionDependenciesInspected = false;
+    if (cData == nullptr)
+        return reject("no source container");
+    if (cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024)
+        return true;
+
+    constexpr std::size_t maxRecords = 100000u;
+    try {
+        std::unordered_map<std::uint32_t,
+                           const DRW_AssociativeObject*> associativeByHandle;
+        associativeByHandle.reserve(cData->dwgAssociativeObjects.size());
+        std::size_t dependencyCount = 0u;
+        std::size_t bodyCount = 0u;
+        for (const DRW_AssociativeObject& object :
+             cData->dwgAssociativeObjects) {
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || !associativeByHandle.emplace(
+                    object.handle, &object).second)
+                return reject("associative source handles are ambiguous");
+            if (asciiIdentifierEquals(object.m_recordName,
+                                      "ACDBASSOCDEPENDENCY"))
+                ++dependencyCount;
+            if (asciiIdentifierEquals(object.m_recordName,
+                                      "ASSOCDIMDEPENDENCYBODY"))
+                ++bodyCount;
+        }
+        if (dependencyCount == 0u && bodyCount == 0u)
+            return true;
+        if (version != DRW::AC1024 || dependencyCount != 17u
+            || bodyCount != 17u
+            || cData->dwgAssociativeObjects.size() > maxRecords
+            || m_extensionAssociativeHandles.size() > maxRecords
+            || m_extensionAssociativeHandles.size()
+                != cData->dwgAssociativeObjects.size())
+            return reject("target version, complete selection, or 17-pair profile differs");
+
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionAssociativeHandles.size());
+        for (const std::uint32_t handle : m_extensionAssociativeHandles)
+            if (handle == 0u || handle == DRW::NoHandle
+                || !selected.insert(handle).second
+                || associativeByHandle.count(handle) != 1u)
+                return reject("selected associative handles are invalid or duplicated");
+
+        std::unordered_map<std::uint32_t, const DRW_Entity*> entitiesByHandle;
+        std::unordered_map<std::uint32_t, std::string> entitySections;
+        const auto indexEntities = [&entitiesByHandle, &entitySections](
+                const dx_ifaceBlock* block, const char* section) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr || entity->handle == 0u
+                    || entity->handle == DRW::NoHandle)
+                    continue;
+                if (!entitiesByHandle.emplace(entity->handle, entity).second)
+                    return false;
+                entitySections.emplace(entity->handle, section);
+            }
+            return true;
+        };
+        if (!indexEntities(cData->mBlock, "ENTITIES"))
+            return reject("dimension entity handles are ambiguous");
+        for (const dx_ifaceBlock* block : cData->blocks)
+            if (!indexEntities(block,
+                    isFixedSpaceBlock(block) ? "ENTITIES" : "BLOCKS"))
+                return reject("dimension entity handles are ambiguous");
+
+        const auto completePrefix = [](const DRW_AssociativeObject& object,
+                DRW_AssociativePrefixStatus::Kind kind,
+                std::uint16_t classVersion, std::size_t handles,
+                std::size_t values, std::int32_t count) {
+            return std::count_if(object.m_prefixStatuses.begin(),
+                object.m_prefixStatuses.end(),
+                [kind, classVersion, handles, values, count](
+                        const DRW_AssociativePrefixStatus& status) {
+                    return status.m_kind == kind
+                        && status.m_status
+                            == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                        && status.m_classVersion == classVersion
+                        && status.m_decodedHandleCount == handles
+                        && status.m_decodedValueCount == values
+                        && status.m_decodedCountValue == count;
+                }) == 1;
+        };
+        std::size_t retainedBytes = 0u;
+        for (const DRW_AssociativeObject& dependency :
+             cData->dwgAssociativeObjects) {
+            if (!asciiIdentifierEquals(dependency.m_recordName,
+                                       "ACDBASSOCDEPENDENCY"))
+                continue;
+            if (selected.count(dependency.handle) != 1u
+                || dependency.tType != DRW::ASSOCIATIVEOBJECT
+                || !dependency.m_dependencyFieldsParsed
+                || !dependency.m_dependencyWireComplete
+                || dependency.m_classVersion != 1u
+                || dependency.m_dependencyOrder != 0
+                || dependency.m_dependencyIsRead
+                || !dependency.m_dependencyIsWrite
+                || !dependency.m_dependencyIsAttachedToObject
+                || !dependency.m_dependencyIsDelegatingToOwningAction
+                || dependency.m_dependencyHandle == 0u
+                || dependency.m_dependencyHandle == DRW::NoHandle
+                || dependency.m_dependencyBodyHandle == 0u
+                || dependency.m_dependencyBodyHandle == DRW::NoHandle
+                || dependency.m_dependencyNamePresent
+                || !dependency.m_dependencyName.empty()
+                || dependency.m_readDependencyHandle != 0u
+                || dependency.m_dependencyNodeHandle != 0u
+                || dependency.m_writeDependencyHandle != 0u
+                || dependency.xDictHandle != 0u
+                || !dependency.appData.empty()
+                || !dependency.extData.empty()
+                || !dependency.reactorHandles.empty()
+                || !completePrefix(dependency,
+                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                    1u, 4u, 0u, 0))
+                return reject("dependency is outside the consumed AC1024 dimension profile");
+
+            const auto owner = associativeByHandle.find(
+                static_cast<std::uint32_t>(dependency.parentHandle));
+            const auto body = associativeByHandle.find(
+                dependency.m_dependencyBodyHandle);
+            const auto dimension = entitiesByHandle.find(
+                dependency.m_dependencyHandle);
+            if (dependency.parentHandle == 0u
+                || dependency.parentHandle >
+                    (std::numeric_limits<std::uint32_t>::max)()
+                || owner == associativeByHandle.end()
+                || !asciiIdentifierEquals(owner->second->m_recordName,
+                    "ACDBASSOC2DCONSTRAINTGROUP")
+                || !owner->second->m_constraintGroupBodyParsed
+                || !owner->second->m_constraintActionsParsed
+                || std::count(owner->second->m_constraintActions.begin(),
+                    owner->second->m_constraintActions.end(),
+                    dependency.handle) != 1
+                || body == associativeByHandle.end()
+                || (!asciiIdentifierEquals(body->second->m_recordName,
+                        "ACDBASSOCDIMDEPENDENCYBODY")
+                    && !asciiIdentifierEquals(body->second->m_recordName,
+                        "ASSOCDIMDEPENDENCYBODY"))
+                || body->second->parentHandle != dependency.handle
+                || !body->second->m_dimensionDependencyBodyParsed
+                || body->second->m_dependencyBodyVersion != 1u
+                || body->second->m_dimBaseVersion != 1u
+                || body->second->m_classVersion != 1u
+                || body->second->xDictHandle != 0u
+                || !body->second->appData.empty()
+                || !body->second->extData.empty()
+                || !body->second->reactorHandles.empty()
+                || !completePrefix(*body->second,
+                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody,
+                    1u, 0u, 4u, 0)
+                || dimension == entitiesByHandle.end())
+                return reject("dependency owner, target, or body edge is missing or ambiguous");
+
+            const DRW_Entity* target = dimension->second;
+            const bool dimensionType =
+                (target->eType == DRW::DIMLINEAR
+                    && dynamic_cast<const DRW_DimLinear*>(target) != nullptr)
+                || (target->eType == DRW::DIMDIAMETRIC
+                    && dynamic_cast<const DRW_DimDiametric*>(target) != nullptr);
+            if (!dimensionType
+                || std::count(target->reactorHandles.begin(),
+                    target->reactorHandles.end(), dependency.handle) != 1)
+                return reject("dependency target is not one source-bound dimension with its reactor backlink");
+            if (selected.count(body->second->handle) != 1u
+                || selected.count(owner->second->handle) != 1u)
+                return reject("dependency, body, or owning group is not selected exactly once");
+
+            DwgAssociativeDimensionDependencySource source;
+            source.dependency = dependency;
+            source.body = *body->second;
+            source.constraintGroupHandle = owner->second->handle;
+            if (owner->second->parentHandle
+                > (std::numeric_limits<std::uint32_t>::max)())
+                return reject("owning constraint group has an unsupported owner handle");
+            source.constraintGroupOwnerHandle = static_cast<std::uint32_t>(
+                owner->second->parentHandle);
+            source.constraintGroupRecordName = owner->second->m_recordName;
+            source.constraintGroupClassVersion =
+                owner->second->m_classVersion;
+            source.constraintGroupVersion =
+                owner->second->m_constraintGroupVersion;
+            source.constraintGroupActions =
+                owner->second->m_constraintActions;
+            source.constraintGroupPrefixStatuses =
+                owner->second->m_prefixStatuses;
+            source.dimensionHandle = target->handle;
+            const auto dimensionSection = entitySections.find(target->handle);
+            if (dimensionSection == entitySections.end())
+                return reject("dimension target has no owning output section");
+            source.dimensionSection = dimensionSection->second;
+            const std::size_t addition =
+                source.dependency.m_dependencyName.size()
+                + source.body.name.size()
+                + source.constraintGroupRecordName.size()
+                + source.constraintGroupActions.size()
+                    * sizeof(std::uint32_t)
+                + (source.dependency.m_prefixStatuses.size()
+                    + source.body.m_prefixStatuses.size()
+                    + source.constraintGroupPrefixStatuses.size())
+                    * sizeof(DRW_AssociativePrefixStatus);
+            if (addition > kMaxAssociativeDxfRetainedBytes
+                    - std::min(retainedBytes,
+                               kMaxAssociativeDxfRetainedBytes))
+                return reject("retained dependency/body snapshot exceeds its byte bound");
+            retainedBytes += addition;
+            if (!m_dwgAssociativeDimensionDependencies.emplace(
+                    dependency.handle, std::move(source)).second)
+                return reject("dependency identity is duplicated");
+        }
+        if (m_dwgAssociativeDimensionDependencies.size() != 17u)
+            return reject("complete associative selection did not close the 17 dependency/body pairs");
+
+        m_dwgAssociativeDimensionDependencySourceOwner = cData;
+        m_dwgAssociativeDimensionDependencySourceGeneration =
+            cData->importGeneration;
+        m_dwgAssociativeDimensionDependencySourceBytes = retainedBytes;
+        m_dwgAssociativeDimensionDependencyOutputVersion = version;
+        m_dwgAssociativeDimensionDependencyOutputBinary = binary;
+        return hasUnchangedDwgAssociativeDimensionDependencies()
+            || reject("source changed while the output snapshot was prepared");
+    } catch (...) {
+        m_dwgAssociativeDimensionDependencies.clear();
+        m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+        m_dwgAssociativeDimensionDependencySourceOwner = nullptr;
+        m_dwgAssociativeDimensionDependencySourceBytes = 0u;
+        return reject("allocation or source validation exception");
+    }
+}
+
+bool dx_iface::hasUnchangedDwgAssociativeDimensionDependencies() const noexcept {
+    if (m_dwgAssociativeDimensionDependencySourceOwner == nullptr)
+        return m_dwgAssociativeDimensionDependencies.empty()
+            && m_dwgAssociativeDimensionDependencyOutputProofs.empty()
+            && m_dwgAssociativeDimensionDependencySourceBytes == 0u;
+    if (cData == nullptr
+        || cData != m_dwgAssociativeDimensionDependencySourceOwner
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || cData->importGeneration
+            != m_dwgAssociativeDimensionDependencySourceGeneration
+        || m_dwgAssociativeDimensionDependencyOutputVersion
+            != DRW::AC1024
+        || m_dwgAssociativeDimensionDependencySourceBytes
+            > kMaxAssociativeDxfRetainedBytes
+        || m_dwgAssociativeDimensionDependencies.size() != 17u
+        || cData->dwgAssociativeObjects.size() > 100000u
+        || m_extensionAssociativeHandles.size()
+            != cData->dwgAssociativeObjects.size())
+        return false;
+    try {
+        std::unordered_map<std::uint32_t,
+                           const DRW_AssociativeObject*> associativeByHandle;
+        associativeByHandle.reserve(cData->dwgAssociativeObjects.size());
+        for (const DRW_AssociativeObject& object :
+             cData->dwgAssociativeObjects)
+            if (!associativeByHandle.emplace(object.handle, &object).second)
+                return false;
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionAssociativeHandles.size());
+        for (const std::uint32_t handle : m_extensionAssociativeHandles)
+            if (!selected.insert(handle).second
+                || associativeByHandle.count(handle) != 1u)
+                return false;
+        std::unordered_map<std::uint32_t, const DRW_Entity*> entities;
+        std::unordered_map<std::uint32_t, std::string> sections;
+        const auto indexEntities = [&entities, &sections](
+                const dx_ifaceBlock* block, const char* section) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr || entity->handle == 0u
+                    || entity->handle == DRW::NoHandle)
+                    continue;
+                if (!entities.emplace(entity->handle, entity).second)
+                    return false;
+                sections.emplace(entity->handle, section);
+            }
+            return true;
+        };
+        if (!indexEntities(cData->mBlock, "ENTITIES"))
+            return false;
+        for (const dx_ifaceBlock* block : cData->blocks)
+            if (!indexEntities(block,
+                    isFixedSpaceBlock(block) ? "ENTITIES" : "BLOCKS"))
+                return false;
+        for (const auto& entry : m_dwgAssociativeDimensionDependencies) {
+            const DwgAssociativeDimensionDependencySource& source =
+                entry.second;
+            const auto dependency = associativeByHandle.find(entry.first);
+            const auto body = associativeByHandle.find(
+                source.body.handle);
+            const auto group = associativeByHandle.find(
+                source.constraintGroupHandle);
+            if (dependency == associativeByHandle.end()
+                || body == associativeByHandle.end()
+                || group == associativeByHandle.end()
+                || selected.count(entry.first) != 1u
+                || selected.count(source.body.handle) != 1u
+                || selected.count(source.constraintGroupHandle) != 1u
+                || !associativeDimensionDependencySourceModelEqual(
+                    source.dependency, *dependency->second)
+                || !associativeDimensionDependencyBodySourceModelEqual(
+                    source.body, *body->second)
+                || group->second->parentHandle
+                    != source.constraintGroupOwnerHandle
+                || source.constraintGroupRecordName
+                    != group->second->m_recordName
+                || source.constraintGroupClassVersion
+                    != group->second->m_classVersion
+                || source.constraintGroupVersion
+                    != group->second->m_constraintGroupVersion
+                || !group->second->m_constraintGroupBodyParsed
+                || !group->second->m_constraintActionsParsed
+                || group->second->m_constraintActions
+                    != source.constraintGroupActions
+                || !retainedAssociativePrefixStatusesEqual(
+                    source.constraintGroupPrefixStatuses,
+                    group->second->m_prefixStatuses))
+                return false;
+            const auto dimension = entities.find(source.dimensionHandle);
+            const auto section = sections.find(source.dimensionHandle);
+            if (dimension == entities.end() || section == sections.end()
+                || section->second != source.dimensionSection
+                || (dimension->second->eType != DRW::DIMLINEAR
+                    && dimension->second->eType != DRW::DIMDIAMETRIC)
+                || std::count(dimension->second->reactorHandles.begin(),
+                    dimension->second->reactorHandles.end(), entry.first)
+                    != 1)
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgAssociativeDimensionDependencies(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "ACDBASSOCDEPENDENCY output proof rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (m_dwgAssociativeDimensionDependencySourceOwner == nullptr)
+        return m_dwgAssociativeDimensionDependencies.empty()
+            && m_dwgAssociativeDimensionDependencyOutputProofs.empty();
+    m_dwgAssociativeDimensionDependenciesInspected = false;
+    m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+    if (dxfW == nullptr
+        || view.version != m_dwgAssociativeDimensionDependencyOutputVersion
+        || view.binary != m_dwgAssociativeDimensionDependencyOutputBinary
+        || !hasUnchangedDwgAssociativeDimensionDependencies())
+        return reject("source snapshot or staged output profile changed");
+
+    try {
+        struct Expected {
+            const DwgAssociativeDimensionDependencySource* source{nullptr};
+            bool body{false};
+        };
+        std::unordered_map<std::uint32_t, Expected> expected;
+        expected.reserve(m_dwgAssociativeDimensionDependencies.size() * 2u);
+        for (const auto& entry : m_dwgAssociativeDimensionDependencies) {
+            const std::uint32_t dependency =
+                dxfW->remapHandle(entry.second.dependency.handle);
+            const std::uint32_t body =
+                dxfW->remapHandle(entry.second.body.handle);
+            if (dependency == 0u || dependency == DRW::NoHandle
+                || body == 0u || body == DRW::NoHandle
+                || !expected.emplace(dependency,
+                    Expected{&entry.second, false}).second
+                || !expected.emplace(body,
+                    Expected{&entry.second, true}).second)
+                return reject("staged dependency/body handles are missing or aliased");
+        }
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = source == 0u ? 0u : dxfW->remapHandle(source);
+            return source == 0u
+                || (emitted != 0u && emitted != DRW::NoHandle);
+        };
+        std::unordered_set<std::uint32_t> seenDependencies;
+        std::unordered_set<std::uint32_t> seenBodies;
+        seenDependencies.reserve(m_dwgAssociativeDimensionDependencies.size());
+        seenBodies.reserve(m_dwgAssociativeDimensionDependencies.size());
+        std::unordered_map<std::uint32_t, std::string_view> recordNames;
+        recordNames.reserve(expected.size());
+        bool namesMatch = true;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&expected, &recordNames, &namesMatch](
+                    std::string_view name, std::uint32_t handle) {
+                const bool isDependency = asciiIdentifierEquals(
+                    name, "ACDBASSOCDEPENDENCY");
+                const bool isBody = asciiIdentifierEquals(
+                    name, "ASSOCDIMDEPENDENCYBODY");
+                const auto found = expected.find(handle);
+                const bool expectedIdentity = found != expected.end();
+                if (isDependency || isBody || expectedIdentity) {
+                    if (expectedIdentity) {
+                        const bool expectedBody = found->second.body;
+                        if ((isBody != expectedBody)
+                            || (!isBody && !isDependency))
+                            namesMatch = false;
+                    }
+                    recordNames.emplace(handle, name);
+                    return true;
+                }
+                return false;
+            },
+            [this, &expected, &recordNames, &seenDependencies,
+             &seenBodies, &mapHandle, &view, &debug](const auto& shape,
+                                      std::string_view body) {
+                const auto expectedRecord = expected.find(shape.handle);
+                const auto name = recordNames.find(shape.handle);
+                if (expectedRecord == expected.end()
+                    || expectedRecord->second.source == nullptr
+                    || name == recordNames.end()) {
+                    if (debug)
+                        std::cerr << "ACDBASSOCDEPENDENCY staged record has no source binding: handle="
+                                  << shape.handle << '\n';
+                    return false;
+                }
+                const DwgAssociativeDimensionDependencySource& source =
+                    *expectedRecord->second.source;
+                dx_standard_output::Decoder decoder(view);
+                if (!decoder.good())
+                    return false;
+                if (expectedRecord->second.body) {
+                    if (!asciiIdentifierEquals(name->second,
+                            "ASSOCDIMDEPENDENCYBODY")
+                        || !seenBodies.insert(
+                            source.body.handle).second)
+                        return false;
+                    DRW_AssociativeObject commonSource = source.body;
+                    commonSource.name.clear();
+                    const bool decoded = decoder.decodeAssociativeRecord(
+                        "ASSOCDIMDEPENDENCYBODY", body,
+                        [&commonSource, &source, &mapHandle](
+                                const DRW_AssociativeObject& actual) {
+                            std::vector<std::uint32_t> references;
+                            dx_standard_output::NoLayerReferences noLayerRefs;
+                            return dx_standard_output::commonEqual(
+                                    commonSource, actual,
+                                    dx_standard_output::Family::Other,
+                                    mapHandle, references, noLayerRefs)
+                                && actual.m_recordName
+                                    == "ASSOCDIMDEPENDENCYBODY"
+                                && actual.name == source.body.name
+                                && actual.m_dimensionDependencyBodyParsed
+                                && actual.m_dependencyBodyVersion
+                                    == source.body.m_dependencyBodyVersion
+                                && actual.m_dimBaseVersion
+                                    == source.body.m_dimBaseVersion
+                                && actual.m_classVersion
+                                    == source.body.m_classVersion;
+                        }, debug);
+                    if (!decoded && debug)
+                        std::cerr << "ASSOCDIMDEPENDENCYBODY staged decode mismatch: handle="
+                                  << shape.handle << " typed="
+                                  << source.body.m_dimensionDependencyBodyParsed
+                                  << " versions="
+                                  << source.body.m_dependencyBodyVersion << "/"
+                                  << source.body.m_dimBaseVersion << "/"
+                                  << source.body.m_classVersion << '\n';
+                    return decoded;
+                }
+                if (!asciiIdentifierEquals(name->second,
+                        "ACDBASSOCDEPENDENCY")
+                    || !seenDependencies.insert(
+                        source.dependency.handle).second)
+                    return false;
+                const bool decoded = decoder.decodeAssociativeRecord(
+                    "ACDBASSOCDEPENDENCY", body,
+                    [this, &source, &mapHandle, &debug](
+                            const DRW_AssociativeObject& actual) {
+                        std::vector<std::uint32_t> references;
+                        dx_standard_output::NoLayerReferences noLayerRefs;
+                        const bool common = dx_standard_output::commonEqual(
+                            source.dependency, actual,
+                            dx_standard_output::Family::Other,
+                            mapHandle, references, noLayerRefs);
+                        std::uint32_t target = 0u;
+                        std::uint32_t readDependency = 0u;
+                        std::uint32_t node = 0u;
+                        std::uint32_t bodyHandle = 0u;
+                        target = dxfW->remapEntityHandle(
+                            source.dependency.m_dependencyHandle);
+                        if (target == 0u || target == DRW::NoHandle
+                            || !mapHandle(
+                                source.dependency.m_readDependencyHandle,
+                                readDependency)
+                            || !mapHandle(
+                                source.dependency.m_dependencyNodeHandle,
+                                node)
+                            || !mapHandle(
+                                source.dependency.m_dependencyBodyHandle,
+                                bodyHandle))
+                            return false;
+                        const bool fields = actual.m_recordName
+                                == "ACDBASSOCDEPENDENCY"
+                            && actual.m_dependencyFieldsParsed
+                            && actual.m_dependencyWireComplete
+                            && actual.m_classVersion
+                                == source.dependency.m_classVersion
+                            && actual.m_status == source.dependency.m_status
+                            && actual.m_dependencyIsRead
+                                == source.dependency.m_dependencyIsRead
+                            && actual.m_dependencyIsWrite
+                                == source.dependency.m_dependencyIsWrite
+                            && actual.m_dependencyIsAttachedToObject
+                                == source.dependency.m_dependencyIsAttachedToObject
+                            && actual.m_dependencyIsDelegatingToOwningAction
+                                == source.dependency.m_dependencyIsDelegatingToOwningAction
+                            && actual.m_dependencyOrder
+                                == source.dependency.m_dependencyOrder
+                            && actual.m_dependencyNamePresent
+                                == source.dependency.m_dependencyNamePresent
+                            && actual.m_dependencyName
+                                == source.dependency.m_dependencyName
+                            && actual.m_dependencyHandle == target
+                            && actual.m_readDependencyHandle
+                                == readDependency
+                            && actual.m_dependencyNodeHandle == node
+                            && actual.m_writeDependencyHandle == node
+                            && actual.m_dependencyBodyHandle == bodyHandle
+                            && actual.m_dependencyBodyId
+                                == source.dependency.m_dependencyBodyId;
+                        if (debug && (!common || !fields))
+                            std::cerr << "ACDBASSOCDEPENDENCY typed fields: common="
+                                      << common << " fields=" << fields
+                                      << " identity=" << actual.handle << "/"
+                                      << actual.parentHandle << " owner="
+                                      << source.dependency.parentHandle
+                                      << " parsed="
+                                      << actual.m_dependencyFieldsParsed << "/"
+                                      << actual.m_dependencyWireComplete
+                                      << " target=" << actual.m_dependencyHandle
+                                      << "/" << target << " body="
+                                      << actual.m_dependencyBodyHandle << "/"
+                                      << bodyHandle << " id="
+                                      << actual.m_dependencyBodyId << "/"
+                                      << source.dependency.m_dependencyBodyId
+                                      << " flags=" << actual.m_dependencyIsRead
+                                      << actual.m_dependencyIsWrite
+                                      << actual.m_dependencyIsAttachedToObject
+                                      << actual.m_dependencyIsDelegatingToOwningAction
+                                      << "/"
+                                      << source.dependency.m_dependencyIsRead
+                                      << source.dependency.m_dependencyIsWrite
+                                      << source.dependency.m_dependencyIsAttachedToObject
+                                      << source.dependency.m_dependencyIsDelegatingToOwningAction
+                                      << '\n';
+                        return common
+                            && fields;
+                    }, debug);
+                if (!decoded && debug)
+                    std::cerr << "ACDBASSOCDEPENDENCY staged decode mismatch: handle="
+                              << shape.handle << " source="
+                              << source.dependency.handle << " class="
+                              << source.dependency.m_classVersion << "/"
+                              << source.dependency.m_dependencyFieldsParsed << "/"
+                              << source.dependency.m_dependencyWireComplete << " target="
+                              << source.dependency.m_dependencyHandle << " body="
+                              << source.dependency.m_dependencyBodyHandle << '\n';
+                if (!decoded)
+                    return false;
+                std::uint32_t emittedGroup = 0u;
+                const std::uint32_t emittedDimension =
+                    dxfW->remapEntityHandle(source.dimensionHandle);
+                if (!mapHandle(source.constraintGroupHandle,
+                               emittedGroup)
+                    || emittedDimension == 0u
+                    || emittedDimension == DRW::NoHandle)
+                    return false;
+                m_dwgAssociativeDimensionDependencyOutputProofs.push_back({
+                    source.dependency.handle, shape.handle,
+                    source.body.handle,
+                    dxfW->remapHandle(source.body.handle),
+                    source.constraintGroupHandle, emittedGroup,
+                    source.dimensionHandle, emittedDimension});
+                return true;
+            });
+        if (!inspected || !namesMatch
+            || seenDependencies.size()
+                != m_dwgAssociativeDimensionDependencies.size()
+            || seenBodies.size()
+                != m_dwgAssociativeDimensionDependencies.size()
+            || m_dwgAssociativeDimensionDependencyOutputProofs.size()
+                != m_dwgAssociativeDimensionDependencies.size()) {
+            if (debug)
+                std::cerr << "ACDBASSOCDEPENDENCY output proof diagnostics: scan="
+                          << inspected << " names-match=" << namesMatch
+                          << " dependencies=" << seenDependencies.size()
+                          << "/" << m_dwgAssociativeDimensionDependencies.size()
+                          << " bodies=" << seenBodies.size() << "/"
+                          << m_dwgAssociativeDimensionDependencies.size()
+                          << " pairs="
+                          << m_dwgAssociativeDimensionDependencyOutputProofs.size()
+                          << '\n';
+            return reject("staged OBJECTS output does not contain exact dependency/body pairs");
+        }
+        m_dwgAssociativeDimensionDependenciesInspected = true;
+        if (debug)
+            std::cerr << "ACDBASSOCDEPENDENCY physical output proof: source-pairs="
+                      << m_dwgAssociativeDimensionDependencies.size()
+                      << " staged-dependencies=" << seenDependencies.size()
+                      << " staged-bodies=" << seenBodies.size()
+                      << " format=" << (view.binary ? "binary" : "ascii")
+                      << " version=" << static_cast<int>(view.version)
+                      << '\n';
+        return true;
+    } catch (...) {
+        m_dwgAssociativeDimensionDependencyOutputProofs.clear();
+        return reject("allocation or decoder exception");
+    }
+}
+
+bool dx_iface::finalizeDwgAssociativeDimensionDependencies() const noexcept {
+    if (m_dwgAssociativeDimensionDependencySourceOwner == nullptr)
+        return m_dwgAssociativeDimensionDependencies.empty()
+            && m_dwgAssociativeDimensionDependencyOutputProofs.empty();
+    if (dxfW == nullptr
+        || !m_dwgAssociativeDimensionDependenciesInspected
+        || !hasUnchangedDwgAssociativeDimensionDependencies()
+        || m_dwgAssociativeDimensionDependencyOutputProofs.size()
+            != m_dwgAssociativeDimensionDependencies.size())
+        return false;
+    for (const DwgAssociativeDimensionDependencyOutputProof& proof :
+         m_dwgAssociativeDimensionDependencyOutputProofs) {
+        const auto source = m_dwgAssociativeDimensionDependencies.find(
+            proof.sourceDependency);
+        if (source == m_dwgAssociativeDimensionDependencies.end()
+            || proof.sourceBody != source->second.body.handle
+            || proof.sourceGroup != source->second.constraintGroupHandle
+            || proof.sourceDimension != source->second.dimensionHandle
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceDependency, proof.emittedDependency,
+                "ACDBASSOCDEPENDENCY", "OBJECTS", proof.emittedGroup)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceBody, proof.emittedBody,
+                "ASSOCDIMDEPENDENCYBODY", "OBJECTS",
+                proof.emittedDependency)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceGroup, proof.emittedGroup,
+                "ACDBASSOC2DCONSTRAINTGROUP", "OBJECTS")
+            || !dxfW->dxfWriteSourceEntityHasIdentity(
+                proof.sourceDimension, proof.emittedDimension,
+                "DIMENSION", source->second.dimensionSection)
+            || !dxfW->dxfWriteRecordHasOwner(
+                proof.emittedDependency, proof.emittedGroup)
+            || !dxfW->dxfWriteRecordHasOwner(
+                proof.emittedBody, proof.emittedDependency)
+            || dxfW->dxfWriteRecordHandleCount(proof.emittedDependency)
+                != 1u
+            || dxfW->dxfWriteRecordHandleCount(proof.emittedBody) != 1u
+            || dxfW->dxfWriteRecordHandleCount(proof.emittedGroup) != 1u
+            || dxfW->dxfWriteRecordHandleCount(proof.emittedDimension)
+                != 1u)
+            return false;
+        const DRW_AssociativeObject& dependency =
+            source->second.dependency;
+        const std::uint32_t target =
+            dxfW->remapEntityHandle(dependency.m_dependencyHandle);
+        const std::uint32_t body =
+            dxfW->remapHandle(dependency.m_dependencyBodyHandle);
+        if (target != proof.emittedDimension
+            || body != proof.emittedBody
+            || (dependency.m_readDependencyHandle != 0u
+                && dxfW->dxfWriteRecordHandleCount(
+                    dxfW->remapHandle(
+                        dependency.m_readDependencyHandle)) != 1u)
+            || (dependency.m_dependencyNodeHandle != 0u
+                && dxfW->dxfWriteRecordHandleCount(
+                    dxfW->remapHandle(
+                        dependency.m_dependencyNodeHandle)) != 1u))
+            return false;
     }
     return true;
 }
@@ -47146,6 +47903,7 @@ bool dx_iface::finalizeDxfWrite() {
         || !finalizeDxfAssociativeGeometryOutput()
         || !finalizeDxfAssociativeValueOutput()
         || !finalizeDwgAssociativeVariables()
+        || !finalizeDwgAssociativeDimensionDependencies()
         || !finalizeGeneratedRootOutput())
         return false;
     for (const auto& table : m_tableFallbacks) {
@@ -49425,6 +50183,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "AC1024 associative-variable source/output snapshot");
         return false;
     }
+    if (!prepareDwgAssociativeDimensionDependencies(v, binary, debug)) {
+        reportPreflightFailure(
+            "AC1024 associative dimension-dependency/body source/output snapshot");
+        return false;
+    }
     // A source-bound AC1018 ATTDEF scope can authenticate one empty
     // BLOCK_RECORD extension DICTIONARY. Stage only that selected child for
     // output; arbitrary BLOCK_RECORD extension graphs remain unqualified.
@@ -51610,7 +52373,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
         || !m_dxfMLineLinetypes.empty()
         || !m_dxfAssociativeGeometrySources.empty()
-        || !m_dxfAssociativeValueSources.empty());
+        || !m_dxfAssociativeValueSources.empty()
+        || !m_dwgAssociativeDimensionDependencies.empty());
     if ((!m_dxfMLineStyles.empty() || needsDxfMLineConsumerInspection())
         && !dxfW->setDxfStagedOutputAuthentication(true)) {
         delete dxfW;
@@ -51642,17 +52406,20 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsDwgScaleOutput = !m_dwgScaleOutputSources.empty();
     const bool needsDwgAssociativeVariableOutput =
         !m_dwgAssociativeVariableSources.empty();
+    const bool needsDwgAssociativeDimensionDependencyOutput =
+        !m_dwgAssociativeDimensionDependencies.empty();
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_extensionDictionaryHandles.empty() || !m_acdsDxfHistoryObjects.empty()
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
             || needsDwgScaleOutput
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || needsVisualStyleOutput
             || needsDwgAssociativeVariableOutput
+            || needsDwgAssociativeDimensionDependencyOutput
             || !m_extensionMaterialHandles.empty()
             || !m_dxfMaterialWriteSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgScaleOutput, needsDwgAssociativeVariableOutput, debug, requireResolvedOwners](const auto& view) {
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgScaleOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -51678,6 +52445,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (needsDwgAssociativeVariableOutput
                 && !inspectDwgAssociativeVariables(view, debug))
                 return reject("ACDBASSOCVARIABLE physical source/output binding");
+            if (needsDwgAssociativeDimensionDependencyOutput
+                && !inspectDwgAssociativeDimensionDependencies(view, debug))
+                return reject("ACDBASSOCDEPENDENCY/body physical source/output binding");
             if (!inspectDxfDictionaryVars(view))
                 return reject("DICTIONARYVAR");
             if (!inspectDxfScales(view))
