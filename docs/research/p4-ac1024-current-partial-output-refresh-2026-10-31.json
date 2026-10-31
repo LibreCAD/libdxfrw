@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-current-partial-output-refresh-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Current AC1024 physical partial-output and class-gate refresh",
+  "status": "PARTIAL_CONVERSION_SUCCEEDED_SUBDMESH_GATE_NOT_APPLICABLE",
+  "supportClaimEffect": "none",
+  "baselineCommit": "b4702e9238f84034ca63481e661a6d8082bf6dab",
+  "scope": "Refresh the current physical mechanical AC1024 witness after earlier receipts recorded a SubDMesh class-registration stop and a MATERIAL output-inspection stop. Determine whether either remains the current P4 blocker; do not qualify strict complete conversion or promote support claims.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024"
+  },
+  "execution": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/p4-mesh-gate-current.dxf",
+    "exitCode": 0,
+    "result": "Success: converted the source to AC1024/2010 ASCII DXF in explicit partial-read mode.",
+    "binary": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "68f7105389d308b4e293b2ffaa2e7c8de9cc1ced2c041b37ed279b3dd9f02e26"
+    },
+    "output": {
+      "path": "/private/tmp/p4-mesh-gate-current.dxf",
+      "bytes": 449807,
+      "sha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f"
+    },
+    "debugLog": {
+      "path": "/private/tmp/p4-mesh-gate-current.log",
+      "sha256": "746b8295afd3b46b421413ea72e6dd2448be4098fa35d17e7946fe9e0dc7a1e6"
+    }
+  },
+  "observations": {
+    "classTable": "The trace parses class rows 500 through 524. It contains MATERIAL (class 505, instance count 3) and TABLESTYLE (class 504, instance count 1), with no AcDbSubDMesh/SUBDIVISION class row.",
+    "mesh": "No MESH callback or SUBDIVISION/AcDbSubDMesh record is present in the trace or emitted DXF.",
+    "priorStops": "The earlier registerMeshClass/SubDMesh stop and MATERIAL output-inspection stop do not reproduce on this current binary and physical input.",
+    "currentStrictGate": "Unchanged: the AC1024 opaque-callback census reports 228 opaque callback views and zero retained correlation frames, so strict complete-export remains closed."
+  },
+  "limitations": [
+    "The conversion explicitly allows partial DWG read; successful output is not complete document closure or support evidence.",
+    "This refresh does not prove exact physical MATERIAL fields, source-to-output identity for every record, consumer semantics, native platform behavior, or any support claim.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "nextAction": "Close the 54-record ACDBASSOCGEOMDEPENDENCY source-to-planned/staged-output identity and reference-role mapping identified by p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json, then select the next highest-incidence unmatched source profile."
+}

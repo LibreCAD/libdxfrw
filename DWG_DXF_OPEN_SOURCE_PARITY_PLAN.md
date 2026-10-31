@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Reconcile the physical mechanical source's 228 callback identities across 21 record/type profiles against current source-matched receipts. Close the highest-incidence required profile still lacking exact source fields, emitted identity/role, and fresh readback proof; then close required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Close the highest-incidence required identity/field/output gap, then remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,12 +56,24 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — unblock the physical AC1024 `AcDbSubDMesh` class gate.**
-Diagnose the source CLASS row and instance count against the AC1024 mapping in
-`dxfRW::dxfClassForRecordName`; fix the version-specific mismatch only when the
-source row and writer mapping agree. Preserve refusal if they do not. The
-strict complete-export gate remains closed while required callback/output
-closure is incomplete.
+**P4 next action — bind the 54 physical AC1024 geometry dependencies.** Their
+typed output and fresh readback already pass; bind every source identity to one
+unique planned/staged output identity and prove the dependency, constraint-group,
+dependent-entity, and reactor-backlink roles. The current gap and source profile
+are recorded in
+[`p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json).
+Add only the missing identity/role proof and its narrow alias/missing/wrong-role
+controls; reuse the existing typed output and readback evidence. Then select the
+next highest-incidence unmatched profile from the census.
+
+The current physical partial-output baseline is recorded in
+[`p4-ac1024-current-partial-output-refresh-2026-10-31.json`](docs/research/p4-ac1024-current-partial-output-refresh-2026-10-31.json).
+The earlier SubDMesh registration and MATERIAL-inspection stops do not reproduce
+on this input/build, and this source has no `AcDbSubDMesh` CLASS row or MESH
+callback/output. Do not retry those stale gates without changed source or code.
+This partial conversion does not open strict complete-export admission: the
+source census still has 228 opaque callback views and zero retained correlation
+frames.
 
 ## P4 — original bodies and complete document closure
 
