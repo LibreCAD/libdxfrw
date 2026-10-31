@@ -10938,6 +10938,297 @@ bool dynamicBlockAlignmentParameterDxfWriter(
     return true;
 }
 
+class DynamicBlockFlipActionWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockFlipActionDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto makeObject = [](bool dxfSource) {
+        DRW_DynamicBlockObject object("BLOCKFLIPACTION");
+        object.handle = 0x1133u;
+        object.parentHandle = 0x110Fu;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = dxfSource ? 33u : 29u;
+        object.m_minor = dxfSource ? 29u : 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = 76u;
+        object.m_elementParsed = true;
+        object.m_elementName = "FlipHinge";
+        object.m_elementMajor = dxfSource ? 33u : 29u;
+        object.m_elementMinor = dxfSource ? 29u : 2u;
+        object.m_eed1071 = 0;
+        object.m_actionCount = 11;
+        object.m_actionIndexes = {79, 65, 66, 67, 68, 69, 1, 8, 31, 46, 54};
+        object.m_dependencyCount = 27;
+        for (std::uint32_t index = 0u; index < 27u; ++index)
+            object.m_dependencyHandles.push_back(0x1127u + index);
+        object.m_displayLocation = DRW_Coord(35.0, -15.0, 0.0);
+        object.m_connectionCodes = {26, 26, 26, 26};
+        object.m_connectionNames = {
+            "Flip", "UpdatedFlip", "UpdatedBase", "UpdatedEnd"};
+        object.m_bodyFullyDecoded = true;
+        return object;
+    };
+    const auto expectedCodes = [](const DRW_DynamicBlockObject& object) {
+        std::vector<int> codes{
+            5, 330, 100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 70};
+        codes.insert(codes.end(), object.m_actionIndexes.size(), 91);
+        codes.push_back(71);
+        codes.insert(codes.end(), object.m_dependencyHandles.size(), 330);
+        codes.insert(codes.end(), {1010, 1020, 1030, 100,
+                                   92, 93, 94, 95, 301, 302, 303, 304});
+        return codes;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto matches = [&](const DRW_DynamicBlockObject& source,
+                             const DRW_DynamicBlockObject& output) {
+        return output.m_recordName == "BLOCKFLIPACTION"
+            && output.m_kind == DRW_DynamicBlockObject::Kind::FlipAction
+            && output.handle == source.handle
+            && output.parentHandle == source.parentHandle
+            && output.m_bodyFullyDecoded && output.m_evalExprParsed
+            && output.m_elementParsed
+            && output.m_parentId
+                == std::numeric_limits<std::uint32_t>::max()
+            && output.m_major == 33u && output.m_minor == 29u
+            && output.m_elementMajor == 33u
+            && output.m_elementMinor == 29u
+            && output.m_nodeId == source.m_nodeId
+            && output.m_valueCode == -9999
+            && output.m_elementName == source.m_elementName
+            && output.m_eed1071 == source.m_eed1071
+            && output.m_actionCount == source.m_actionCount
+            && output.m_actionIndexes == source.m_actionIndexes
+            && output.m_dependencyCount == source.m_dependencyCount
+            && output.m_dependencyHandles == source.m_dependencyHandles
+            && sameCoord(output.m_displayLocation, source.m_displayLocation)
+            && output.m_connectionCodes == source.m_connectionCodes
+            && output.m_connectionNames == source.m_connectionNames;
+    };
+    const auto writeAndRead = [&](DynamicBlockFlipActionWriterProbe& iface,
+                                  bool dxfSource, bool binary,
+                                  bool testUnknownTail) {
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-flip-action-" + std::to_string(nonce)
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        iface.cData = &writeData;
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+
+        const std::string sentinel =
+            "invalid flip action must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create flip-action sentinel");
+        }
+        const std::vector<std::uint32_t> originalDependencies =
+            iface.object.m_dependencyHandles;
+        iface.object.m_dependencyHandles.pop_back();
+        if (writer.write(&iface, DRW::AC1024, binary)
+            || iface.objectWritten)
+            return fail("mismatched flip-action dependency count was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel)
+                return fail("failed flip-action write replaced destination");
+        }
+        iface.object.m_dependencyHandles = originalDependencies;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.objectWritten)
+            return fail("corrected flip-action failed same-writer retry");
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        if (!reader.read(&readIface, false)
+            || readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u
+            || !matches(iface.object,
+                        readback.dynamicBlockObjects.front()))
+            return fail("flip-action failed fresh typed readback");
+        const std::vector<int> expected = expectedCodes(iface.object);
+        const DRW_RawDxfObject& raw = readback.rawDynamicBlockObjects.front();
+        if (raw.groups.size() != expected.size())
+            return fail("flip-action group count changed on output");
+        for (std::size_t index = 0u; index < expected.size(); ++index) {
+            if (raw.groups[index].code() != expected[index])
+                return fail("flip-action DXF group order changed");
+        }
+        std::size_t field = 12u;
+        if (raw.groups[field++].i_val() != iface.object.m_actionCount)
+            return fail("flip-action group 70 action count changed");
+        for (const std::int32_t actionIndex : iface.object.m_actionIndexes) {
+            if (raw.groups[field++].i_val() != actionIndex)
+                return fail("flip-action group 91 index changed");
+        }
+        if (raw.groups[field++].i_val() != iface.object.m_dependencyCount)
+            return fail("flip-action group 71 dependency count changed");
+        field += iface.object.m_dependencyHandles.size();
+        if (raw.groups[field++].d_val() != iface.object.m_displayLocation.x
+            || raw.groups[field++].d_val()
+                != iface.object.m_displayLocation.y
+            || raw.groups[field].d_val() != iface.object.m_displayLocation.z)
+            return fail("flip-action display location changed on output");
+        if (testUnknownTail && !binary) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inFlipAction = false;
+            bool inserted = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inFlipAction = lines[index + 1u] == "BLOCKFLIPACTION";
+                    continue;
+                }
+                if (inFlipAction && code == 304) {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 2u),
+                        {"70", "1"});
+                    inserted = true;
+                    break;
+                }
+            }
+            if (input.bad() || !inserted)
+                return fail("could not add flip-action parser tail control");
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write flip-action parser tail control");
+            }
+            dx_data tailedReadback;
+            tailedReadback.sourceFormat = dx_source_format::DXF;
+            tailedReadback.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedReadback;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            if (!tailedReader.read(&tailedIface, false)
+                || tailedReadback.dynamicBlockObjects.size() != 1u
+                || tailedReadback.rawDynamicBlockObjects.size() != 1u
+                || tailedReadback.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedReadback.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedReadback.rawDynamicBlockObjects.front().groups.size()
+                    != expected.size() + 1u)
+                return fail("unknown flip-action tail did not remain raw-only");
+        }
+        return true;
+    };
+
+    for (const auto& profile : std::array<std::pair<bool, bool>, 4>{{
+             {false, false}, {false, true}, {true, false}, {true, true}}}) {
+        DynamicBlockFlipActionWriterProbe iface;
+        iface.object = makeObject(profile.first);
+        if (!writeAndRead(iface, profile.first, profile.second,
+                          profile.first && !profile.second))
+            return false;
+    }
+
+    if (!physicalSource.empty()) {
+        dx_iface sourceReader;
+        dx_data source;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("flip-action witness is not an AC1024 DWG");
+        std::vector<DRW_DynamicBlockObject> physicalObjects;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            if (object.m_recordName != "BLOCKFLIPACTION")
+                continue;
+            if (object.m_kind != DRW_DynamicBlockObject::Kind::FlipAction
+                || !object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || !object.m_elementParsed || object.m_actionCount < 0
+                || object.m_dependencyCount < 0
+                || object.m_actionIndexes.size()
+                    != static_cast<std::size_t>(object.m_actionCount)
+                || object.m_dependencyHandles.size()
+                    != static_cast<std::size_t>(object.m_dependencyCount)
+                || object.m_connectionCodes.size() != 4u
+                || object.m_connectionNames.size() != 4u)
+                return fail("physical flip action is not fully typed");
+            if ((object.m_elementName == "FlipHinge"
+                    || object.m_elementName == "FlipSwing")
+                && (object.m_actionCount != 11
+                    || object.m_dependencyCount != 27))
+                return fail("physical flip hinge/swing action counts changed");
+            if (object.m_elementName == "Flip Window"
+                && (object.m_actionCount != 0
+                    || object.m_dependencyCount != 2))
+                return fail("physical flip window action counts changed");
+            physicalObjects.push_back(object);
+        }
+        if (physicalObjects.size() != 3u)
+            return fail("physical source flip-action count changed");
+        for (const DRW_DynamicBlockObject& object : physicalObjects) {
+            for (const bool binary : {false, true}) {
+                DynamicBlockFlipActionWriterProbe iface;
+                iface.object = object;
+                if (!writeAndRead(iface, false, binary, false))
+                    return false;
+            }
+        }
+        std::cerr << "Physical AC1024 flip actions passed: 3 source objects, "
+                     "action/dependency references, all four connections, "
+                     "ASCII/Binary, and fresh typed readback.\n";
+    }
+    std::cerr << "AC1024 flip-action writer passed for DWG/DXF source "
+                 "versions in ASCII/Binary: exact field order, raw-only "
+                 "unknown tails, transactional rollback/retry, and fresh "
+                 "typed/raw readback.\n";
+    return true;
+}
+
 class DynamicBlockParameterDependencyBodyWriterProbe final : public dx_iface {
 public:
     std::vector<DRW_DynamicBlockObject> objects;
@@ -53497,6 +53788,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-alignment-parameter-dxf-writer")
         return dynamicBlockAlignmentParameterDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-flip-action-dxf-writer")
+        return dynamicBlockFlipActionDxfWriter(
             argc == 3 ? std::filesystem::path(argv[2])
                       : std::filesystem::path{}) ? 0 : 1;
     if (argc == 2

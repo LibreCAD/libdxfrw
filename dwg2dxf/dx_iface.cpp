@@ -35448,6 +35448,89 @@ bool makeDwgDynamicOutputGroups(
             groups, 280, source.m_alignPerpendicular ? 1 : 0);
         return true;
     }
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::FlipAction) {
+        const bool versions =
+            (source.m_major == 29u && source.m_minor == 2u
+                && source.m_elementMajor == 29u
+                && source.m_elementMinor == 2u)
+            || (source.m_major == 33u && source.m_minor == 29u
+                && source.m_elementMajor == 33u
+                && source.m_elementMinor == 29u);
+        std::size_t groupCount = 26u;
+        std::size_t stringBytes = source.m_elementName.size();
+        if (!source.m_bodyFullyDecoded || !source.m_evalExprParsed
+            || !source.m_elementParsed || !versions
+            || source.m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || source.m_valueCode != -9999 || source.m_hasValueDouble
+            || source.m_valueHandle != 0u
+            || (source.m_parentId != DRW::NoHandle
+                && source.m_parentId
+                    != std::numeric_limits<std::uint32_t>::max())
+            || source.m_actionCount < 0 || source.m_dependencyCount < 0
+            || source.m_actionCount > std::numeric_limits<std::int16_t>::max()
+            || source.m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_actionIndexes.size()
+                != static_cast<std::size_t>(source.m_actionCount)
+            || source.m_dependencyHandles.size()
+                != static_cast<std::size_t>(source.m_dependencyCount)
+            || source.m_connectionCodes.size() != 4u
+            || source.m_connectionNames.size() != 4u
+            || !std::isfinite(source.m_displayLocation.x)
+            || !std::isfinite(source.m_displayLocation.y)
+            || !std::isfinite(source.m_displayLocation.z)
+            || stringBytes > DRW::kMaxDxfBinaryPayloadBytes)
+            return false;
+        const std::size_t totalReferences =
+            static_cast<std::size_t>(source.m_actionCount)
+            + static_cast<std::size_t>(source.m_dependencyCount);
+        if (totalReferences
+            > DRW::kMaxDxfRawRecordGroups - groupCount)
+            return false;
+        groupCount += totalReferences;
+        for (const std::uint32_t handle : source.m_dependencyHandles) {
+            if (handle == 0u || handle == DRW::NoHandle)
+                return false;
+        }
+        for (const UTF8STRING& name : source.m_connectionNames) {
+            if (name.size() > DRW::kMaxDxfBinaryPayloadBytes - stringBytes)
+                return false;
+            stringBytes += name.size();
+        }
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockAction");
+        appendDwgDynamicInt(groups, 70, source.m_actionCount);
+        for (const std::int32_t actionIndex : source.m_actionIndexes)
+            appendDwgDynamicInt(groups, 91, actionIndex);
+        appendDwgDynamicInt(groups, 71, source.m_dependencyCount);
+        for (const std::uint32_t handle : source.m_dependencyHandles)
+            appendDwgDynamicHandle(groups, 330, handle, writer);
+        groups.emplace_back(1010, source.m_displayLocation.x);
+        groups.emplace_back(1020, source.m_displayLocation.y);
+        groups.emplace_back(1030, source.m_displayLocation.z);
+        appendDwgDynamicString(groups, 100, "AcDbBlockFlipAction");
+        for (std::size_t index = 0u;
+             index < source.m_connectionCodes.size(); ++index) {
+            appendDwgDynamicInt(groups,
+                92 + static_cast<int>(index), source.m_connectionCodes[index]);
+        }
+        for (std::size_t index = 0u;
+             index < source.m_connectionNames.size(); ++index) {
+            appendDwgDynamicString(groups,
+                301 + static_cast<int>(index), source.m_connectionNames[index]);
+        }
+        return true;
+    }
     if (source.m_kind
             != DRW_DynamicBlockObject::Kind::VisibilityParameter)
         return false;
@@ -59952,7 +60035,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || sameAsciiName(
                         cls.recName, "BLOCKALIGNMENTPARAMETER")
                     || sameAsciiName(
-                        cls.className, "AcDbBlockAlignmentParameter");
+                        cls.className, "AcDbBlockAlignmentParameter")
+                    || sameAsciiName(cls.recName, "BLOCKFLIPACTION")
+                    || sameAsciiName(cls.className, "AcDbBlockFlipAction");
             };
             std::map<std::string, std::size_t> instanceCounts;
             for (const DRW_DynamicBlockObject& object :
@@ -60002,6 +60087,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                            && sameAsciiName(object.m_recordName,
                                "BLOCKALIGNMENTPARAMETER")) {
                     ++instanceCounts["BLOCKALIGNMENTPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::FlipAction
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKFLIPACTION")) {
+                    ++instanceCounts["BLOCKFLIPACTION"];
                 } else {
                     delete dxfW;
                     dxfW = nullptr;

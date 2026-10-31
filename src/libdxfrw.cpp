@@ -21394,6 +21394,227 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::FlipAction
+                       && data.m_recordName == "BLOCKFLIPACTION"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // AC1024 AcDbBlockAction writes action indexes and dependency
+                // handles in separate counted runs, then the four
+                // AcDbBlockFlipAction connection points.
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                const auto stringGroup = [](const DRW_Variant* group,
+                                            int code) {
+                    return group != nullptr && group->code() == code
+                        && group->type() == DRW_Variant::STRING
+                        && group->c_str() != nullptr;
+                };
+                const auto markerGroup = [&stringGroup](
+                        const DRW_Variant* group, std::string_view marker) {
+                    return stringGroup(group, 100)
+                        && std::string_view(group->c_str()) == marker;
+                };
+                std::size_t cursor = 2u;
+                const auto takeGroup = [&raw, &cursor](int code)
+                        -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    const DRW_Variant* group = &raw.groups[cursor++];
+                    return group->code() == code ? group : nullptr;
+                };
+                const auto takeInteger = [&](int code,
+                                             std::int32_t& value) {
+                    return integerGroup(takeGroup(code), code, value);
+                };
+                const auto takeDouble = [&](int code, double& value) {
+                    return doubleGroup(takeGroup(code), code, value);
+                };
+                const auto takeMarker = [&](std::string_view marker) {
+                    return markerGroup(takeGroup(100), marker);
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t actionCount = 0;
+                std::int32_t dependencyCount = 0;
+                std::array<double, 3> location{};
+                std::array<std::int32_t, 4> connectionCodes{};
+                std::array<std::string_view, 4> connectionNames{};
+                std::vector<std::int32_t> actionIndexes;
+                std::vector<std::uint32_t> dependencyHandles;
+                const DRW_Variant* elementName = nullptr;
+                bool completeBody = raw.groups.size() >= 26u
+                    && raw.groups[0].code() == 5
+                    && raw.groups[1].code() == 330
+                    && raw.groups[0].type() == DRW_Variant::STRING
+                    && raw.groups[1].type() == DRW_Variant::STRING
+                    && takeMarker("AcDbEvalExpr")
+                    && takeInteger(90, nodeId)
+                    && takeInteger(98, evalMajor)
+                    && takeInteger(99, evalMinor)
+                    && takeMarker("AcDbBlockElement");
+                elementName = completeBody ? takeGroup(300) : nullptr;
+                completeBody = completeBody
+                    && stringGroup(elementName, 300)
+                    && takeInteger(98, elementMajor)
+                    && takeInteger(99, elementMinor)
+                    && takeInteger(1071, eed1071)
+                    && takeMarker("AcDbBlockAction")
+                    && takeInteger(70, actionCount)
+                    && actionCount >= 0
+                    && actionCount
+                        <= std::numeric_limits<std::int16_t>::max();
+                if (completeBody) {
+                    const std::size_t reservedGroups =
+                        static_cast<std::size_t>(actionCount) + 1u + 3u
+                        + 1u + 8u;
+                    completeBody = cursor <= raw.groups.size()
+                        && raw.groups.size() - cursor >= reservedGroups;
+                }
+                if (completeBody) {
+                    try {
+                        actionIndexes.reserve(
+                            static_cast<std::size_t>(actionCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::int32_t index = 0;
+                         index < actionCount && completeBody; ++index) {
+                        std::int32_t actionIndex = 0;
+                        completeBody = takeInteger(91, actionIndex);
+                        if (completeBody)
+                            actionIndexes.push_back(actionIndex);
+                    }
+                }
+                completeBody = completeBody
+                    && takeInteger(71, dependencyCount)
+                    && dependencyCount >= 0
+                    && dependencyCount
+                        <= std::numeric_limits<std::int16_t>::max();
+                if (completeBody) {
+                    const std::size_t reservedGroups = 3u + 1u + 8u;
+                    completeBody = cursor <= raw.groups.size()
+                        && raw.groups.size() - cursor >= reservedGroups
+                        && static_cast<std::size_t>(dependencyCount)
+                            <= raw.groups.size() - cursor - reservedGroups;
+                }
+                if (completeBody) {
+                    try {
+                        dependencyHandles.reserve(
+                            static_cast<std::size_t>(dependencyCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::int32_t index = 0;
+                         index < dependencyCount && completeBody; ++index) {
+                        const DRW_Variant* group = takeGroup(330);
+                        std::uint64_t handle = 0u;
+                        completeBody = stringGroup(group, 330)
+                            && parseRawDxfHandleLexeme(group->c_str(), handle)
+                            && handle != 0u
+                            && handle <= std::numeric_limits<std::uint32_t>::max()
+                            && handle != DRW::NoHandle;
+                        if (completeBody)
+                            dependencyHandles.push_back(
+                                static_cast<std::uint32_t>(handle));
+                    }
+                }
+                completeBody = completeBody
+                    && takeDouble(1010, location[0])
+                    && takeDouble(1020, location[1])
+                    && takeDouble(1030, location[2])
+                    && takeMarker("AcDbBlockFlipAction");
+                for (std::size_t index = 0u;
+                     index < connectionCodes.size() && completeBody; ++index) {
+                    completeBody = takeInteger(
+                        92 + static_cast<int>(index), connectionCodes[index]);
+                }
+                for (std::size_t index = 0u;
+                     index < connectionNames.size() && completeBody; ++index) {
+                    const DRW_Variant* group = takeGroup(
+                        301 + static_cast<int>(index));
+                    completeBody = stringGroup(
+                        group, 301 + static_cast<int>(index));
+                    if (completeBody)
+                        connectionNames[index] = group->c_str();
+                }
+                completeBody = completeBody
+                    && cursor == raw.groups.size()
+                    && nodeId >= 0
+                    && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29;
+                if (completeBody) {
+                    const char* name = elementName->c_str();
+                    DxfReadRetainedLeaseCheckpoint fieldCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), std::strlen(name)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    for (const std::string_view value : connectionNames) {
+                        if (!retainDxfReadBytes(
+                                data.m_dxfRetainedStringLease,
+                                reader->retainedByteBudget(), value.size()))
+                            return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName = name;
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_actionCount = actionCount;
+                        data.m_actionIndexes = std::move(actionIndexes);
+                        data.m_dependencyCount = dependencyCount;
+                        data.m_dependencyHandles =
+                            std::move(dependencyHandles);
+                        data.m_displayLocation = DRW_Coord(
+                            location[0], location[1], location[2]);
+                        data.m_connectionCodes.assign(
+                            connectionCodes.begin(), connectionCodes.end());
+                        data.m_connectionNames.clear();
+                        data.m_connectionNames.reserve(
+                            connectionNames.size());
+                        for (const std::string_view value : connectionNames)
+                            data.m_connectionNames.emplace_back(
+                                value.data(), value.size());
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    fieldCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
@@ -32139,6 +32360,71 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_secondPoint.y)
         && std::isfinite(ent->m_secondPoint.z)
         && ent->reactorHandles.empty();
+    const bool flipActionVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    bool flipActionShape = ent->m_elementName.size()
+        <= DRW::kMaxDxfBinaryPayloadBytes;
+    std::size_t flipActionGroupCount = 26u;
+    std::size_t flipActionStringBytes = ent->m_elementName.size();
+    if (ent->m_actionCount < 0 || ent->m_dependencyCount < 0
+        || ent->m_actionCount > std::numeric_limits<std::int16_t>::max()
+        || ent->m_dependencyCount
+            > std::numeric_limits<std::int16_t>::max()
+        || ent->m_actionIndexes.size()
+            != static_cast<std::size_t>(ent->m_actionCount)
+        || ent->m_dependencyHandles.size()
+            != static_cast<std::size_t>(ent->m_dependencyCount)
+        || ent->m_connectionCodes.size() != 4u
+        || ent->m_connectionNames.size() != 4u
+        || static_cast<std::size_t>(ent->m_actionCount)
+            > DRW::kMaxDxfRawRecordGroups - flipActionGroupCount) {
+        flipActionShape = false;
+    } else {
+        flipActionGroupCount +=
+            static_cast<std::size_t>(ent->m_actionCount);
+    }
+    if (flipActionShape
+        && static_cast<std::size_t>(ent->m_dependencyCount)
+            > DRW::kMaxDxfRawRecordGroups - flipActionGroupCount) {
+        flipActionShape = false;
+    } else if (flipActionShape) {
+        flipActionGroupCount +=
+            static_cast<std::size_t>(ent->m_dependencyCount);
+    }
+    for (const std::uint32_t handle : ent->m_dependencyHandles) {
+        if (handle == 0u || handle == DRW::NoHandle)
+            flipActionShape = false;
+    }
+    for (const UTF8STRING& name : ent->m_connectionNames) {
+        if (!flipActionShape)
+            break;
+        if (name.size() > DRW::kMaxDxfBinaryPayloadBytes
+                - flipActionStringBytes) {
+            flipActionShape = false;
+            break;
+        }
+        flipActionStringBytes += name.size();
+    }
+    const bool flipAction = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::FlipAction
+        && ent->m_recordName == "BLOCKFLIPACTION"
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_elementParsed
+        && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
+        && flipActionVersions && ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueHandle == 0u
+        && flipActionShape
+        && std::isfinite(ent->m_displayLocation.x)
+        && std::isfinite(ent->m_displayLocation.y)
+        && std::isfinite(ent->m_displayLocation.z)
+        && ent->reactorHandles.empty();
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -32327,7 +32613,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && unusedFlatHandles == 1u;
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
-        && !basePointParameter && !alignmentParameter && !gripLocation
+        && !basePointParameter && !alignmentParameter && !flipAction
+        && !gripLocation
         && !visibilityGrip
         && !orientedGrip && !visibilityParameter)
         return failDxfWrite();
@@ -32448,6 +32735,44 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && writer->writeInt16(280,
                 static_cast<std::int16_t>(
                     ent->m_alignPerpendicular ? 1 : 0));
+    } else if (written && flipAction) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockAction")
+            && writer->writeInt16(70,
+                static_cast<std::int16_t>(ent->m_actionCount));
+        for (const std::int32_t actionIndex : ent->m_actionIndexes)
+            written = written && writer->writeInt32(91, actionIndex);
+        written = written && writer->writeInt16(71,
+            static_cast<std::int16_t>(ent->m_dependencyCount));
+        for (const std::uint32_t handle : ent->m_dependencyHandles) {
+            written = written
+                && writer->writeString(330, toHexStr(
+                    remapObjectHandle(handle)));
+        }
+        written = written
+            && writer->writeDouble(1010, ent->m_displayLocation.x)
+            && writer->writeDouble(1020, ent->m_displayLocation.y)
+            && writer->writeDouble(1030, ent->m_displayLocation.z)
+            && writer->writeString(100, "AcDbBlockFlipAction");
+        for (std::size_t index = 0u;
+             index < ent->m_connectionCodes.size() && written; ++index) {
+            written = writer->writeInt32(
+                92 + static_cast<int>(index), ent->m_connectionCodes[index]);
+        }
+        for (std::size_t index = 0u;
+             index < ent->m_connectionNames.size() && written; ++index) {
+            written = writer->writeUtf8String(
+                301 + static_cast<int>(index), ent->m_connectionNames[index]);
+        }
     } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,
