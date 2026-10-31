@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Bind physical AC1024 ACDBASSOC2DCONSTRAINTGROUP `0x42B` and its 399 parsed inline nodes to emitted output and fresh readback, then close remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Bind the 54 physical AC1024 `ACDBASSOCGEOMDEPENDENCY` identities (type 524), source edges, target/owner/reactor roles, staged output and fresh readback; then close remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,25 +56,29 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — bind the physical AC1024 constraint group and its inline
-nodes to emitted output.** The source group at `0x42B` has 399 parsed nodes and
-is admitted through the existing parser, graph planner and generated record
-writer. Those checks, plus dependency action-membership readback, do not prove
-the physical group's one-to-one source/output identity or exact node readback.
-Bind the group identity and common fields, action handles and roles, version,
-dependency index, node seed/count, and every admitted node's class, DataKind,
-envelope, body fields and handle roles in wire order. Verify ASCII/Binary fresh
-readback, atomic refusal, and corrected same-adapter retry. Reuse the existing
-mechanical AC1024 DWG and focused adapter patterns; preserve any unsupported
-node tails and add no investigation DWG/DXF fixture. Select the next callback
-profile from the existing census only after matching it to its latest receipt
-and source route, without rerunning the census. See
+**P4 next action — bind the 54 physical AC1024 `ACDBASSOCGEOMDEPENDENCY`
+records (type 524) to emitted output.** The existing census gives this the
+highest remaining callback incidence. Prior source-link audits and a generated
+SingleEdge graph do not prove the physical records' one-to-one output identity
+or fresh physical readback. Bind each selected identity and admitted field,
+the inline node reference, owning group/action, dependency target, target owner
+route and reactor backlink; preserve the distinct `readdep`/`node` reference
+roles and keep unsupported tails raw. Verify staged bytes plus ASCII/Binary
+fresh readback, atomic refusal, and corrected same-adapter retry. Reuse the
+existing mechanical AC1024 DWG and focused adapter patterns; add no
+investigation DWG/DXF fixture. Start from the existing census and source-route
+receipts; do not rerun the census. The completed physical group/node proof is
+recorded in
+[`p4-ac1024-constraint-group-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-constraint-group-physical-output-readback-2026-10-31.json).
+See
 [`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json)
 for the identity/count inventory,
 [`p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json`](docs/research/p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json)
-for parser/writer and source-node scope, and
+for parser/writer and source-node scope,
+[`p4-ac1024-assoc-node-dependency-source-links-2026-10-30.json`](docs/research/p4-ac1024-assoc-node-dependency-source-links-2026-10-30.json)
+for prior source target/owner/reactor joins, and
 [`p4-ac1024-assocdependency-physical-output-binding-2026-10-31.json`](docs/research/p4-ac1024-assocdependency-physical-output-binding-2026-10-31.json)
-for the completed dependency/action-membership readback.
+for the completed dimension-dependency output/readback proof.
 
 The latest physical partial-output baseline is recorded in
 [`p4-ac1024-current-partial-output-refresh-2026-10-31.json`](docs/research/p4-ac1024-current-partial-output-refresh-2026-10-31.json).
