@@ -56,12 +56,7 @@
     "nativeDynamicBlockSemanticsQualified": false,
     "supportClaimsPromoted": false,
     "remaining": [
-      "18 other graph expression objects and their class-specific field projections",
-      "action and reactor reference roles",
-      "EED APPID dependency",
-      "purge-preventer source-profile compatibility",
-      "nested associative owner closure",
-      "emitted-byte identity and fresh DXF readback"
+      "all remaining objects and dependencies in both source EvaluationGraphs; see docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json"
     ]
   }
 }

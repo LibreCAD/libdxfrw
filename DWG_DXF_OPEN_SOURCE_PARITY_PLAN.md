@@ -59,35 +59,48 @@ work. Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — close the AC1024 `Window - Imperial`
-dynamic-block owner graph.** The title-block `VIEWPORT 0x52` residual is now
+**Next implementation packet — close the AC1024 architectural sample's
+dynamic-block document graph.** The title-block `VIEWPORT 0x52` residual is now
 qualified: its exact source fields, paper-space route, mapped `BLOCK_RECORD`
 owner, emitted identity and fresh readback pass in ASCII and Binary, and strict
 conversion succeeds. The bounded strict-export sweep then identified
 `tests/samples/AC1024/architectural_example-imperial.dwg` (SHA-256
 `52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7`) as the
-next source-backed gap. Strict export fails at SORTENTSTABLE ownership/target
-validation; a direct source probe narrows this to BLOCK_RECORD `0x1145`
-(`Window - Imperial`) and extension DICTIONARY `0x1146`, whose keys include
-`ACAD_ASSOCNETWORK`, `ACAD_ENHANCEDBLOCK`, `ACAD_SORTENTS` (table `0x1BBA`),
-and `AcDbDynamicBlockRoundTripPurgePreventer` (`0x116A`). Prove the complete
-source owner/key/body/target graph and each dynamic object’s typed fields,
-reference roles, emitted bytes and fresh readback before admitting this profile.
-Reuse existing providers only where their source fields and roles match; keep
-unrepresented descendants refused and verify atomic refusal/retry. Then run one
-strict-complete conversion for this source. Do not infer native dynamic-block
-semantics from serializer readback.
+source-backed gap. A broader census shows why qualifying only `Window - Imperial`
+would not close strict output: the file contains two EvaluationGraphs, `0x110F`
+(38 nodes, 43 edges; owner DICTIONARY `0x110E`) and `0x1155` (19 nodes, 14
+edges; `Window - Imperial`, owner DICTIONARY `0x1146`), plus 65 dynamic-block
+objects overall, including six `BLOCKPARAMDEPENDENCYBODY` records and two
+purge preventers. All 65 currently report typed bodies decoded, but their
+class-specific DXF projections and reference closures are not qualified. The
+Window owner dictionary keys include `ACAD_ASSOCNETWORK`, `ACAD_ENHANCEDBLOCK`,
+`ACAD_SORTENTS` (table `0x1BBA`), and
+`AcDbDynamicBlockRoundTripPurgePreventer` (`0x116A`). Strict output for this
+source requires both graphs and every required descendant, not just the table
+whose owner check fails first.
+
+Implementation order: (1) record the two graph roots, all typed object classes,
+EED groups, reactors, action dependencies, and source owner roles from this
+input; (2) add bounded DXF projections for each fully decoded class and a
+source-to-output identity/reference map; (3) close the nested associative
+network, six parameter-dependency bodies, both purge entries, and both graph
+owners; (4) verify staged bytes plus fresh ASCII/Binary readback, missing-edge
+refusal, destination atomicity and corrected retry; (5) run one strict-complete
+conversion. Reuse existing providers only when their source fields and roles
+match; keep unknown descendants refused. Serializer readback does not prove
+native dynamic-block semantics.
 
 The AC1024 `ACDB_DYNAMICBLOCKPROXYNODE` at `0x1164` now has a bounded source-body
 closure check: the typed EvalExpr prefix is complete only for this observed
 class/version and when the data stream has at most seven zero padding bits, the
 string stream closes, and the handle stream ends at legal byte alignment. The
 current witness consumes 1 data padding bit and 6 handle-alignment bits. This
-closes only that object's body; it does not qualify the owner graph. Remaining
-in this packet are the other 18 expression records, their class-specific field
-projections, action/reactor reference roles, EED APPID dependency, purge-preventer
-source profile, nested associative owner closure, output mapping and fresh
-readback. Keep native dynamic-block behavior unclaimed pending independent
+closes only that object's body; it does not qualify either graph. The complete
+source inventory is in [the P5 inventory receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json).
+Remaining in this packet are class-specific field projections for all required
+dynamic records, action/reactor reference roles, EED APPID dependency, both
+purge-preventer profiles, nested associative owner closure, output mapping and
+fresh readback. Keep native dynamic-block behavior unclaimed pending independent
 consumer evidence.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
