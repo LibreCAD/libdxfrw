@@ -5800,6 +5800,10 @@ public:
     m_verticalCellMargin = 0.0;
     m_titleSuppressed = false;
     m_headerSuppressed = false;
+    m_r24PrefixPresent = false;
+    m_r24ClassVersion = 0;
+    m_r24UnknownValue1 = 0;
+    m_r24UnknownValue2 = 0;
     m_unknownHandle = 0;
     m_tableCellStyle = DRW_TableStyleCellStyle();
     m_rowStyles.clear();
@@ -5842,6 +5846,12 @@ public:
   double m_verticalCellMargin = 0.0;
   bool m_titleSuppressed = false;
   bool m_headerSuppressed = false;
+  // R2013+ DWG prefix fields whose meanings are still undocumented. Retain
+  // the source values so bounded output profiles can reject unqualified data.
+  bool m_r24PrefixPresent = false;
+  std::uint8_t m_r24ClassVersion = 0;
+  std::int32_t m_r24UnknownValue1 = 0;
+  std::int32_t m_r24UnknownValue2 = 0;
   std::uint32_t m_unknownHandle = 0;
   DRW_TableStyleCellStyle m_tableCellStyle;
   std::vector<DRW_TableStyleRowStyle> m_rowStyles;

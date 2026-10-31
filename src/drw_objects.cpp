@@ -16723,7 +16723,6 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
             DRW_DBG("TABLESTYLE R24 owner handle incomplete\n");
             return fail();
         }
-
         DRW_TableStyleCellStyle parsedTableCellStyle;
         if (!readTableStyleCellStyle(version, bodyBuf, bodySBuf, hBuf,
                                      bodyEnd, stringEnd,
@@ -16806,6 +16805,10 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
                 DRW_DBG(stringEnd); DRW_DBG("\n");
                 return fail();
             }
+            if (ignoredStyleIndex != style.m_id) {
+                DRW_DBG("TABLESTYLE R24 style index does not match style ID\n");
+                return fail();
+            }
             parsedCellStyles.push_back(std::move(style));
         }
 
@@ -16818,6 +16821,10 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
             return fail();
         }
         m_name = std::move(parsedName);
+        m_r24PrefixPresent = true;
+        m_r24ClassVersion = ignoredClassVersion;
+        m_r24UnknownValue1 = ignoredValue1;
+        m_r24UnknownValue2 = ignoredValue2;
         m_unknownHandle = unknownHandle.ref;
         m_tableCellStyle = std::move(parsedTableCellStyle);
         m_cellStyles = std::move(parsedCellStyles);

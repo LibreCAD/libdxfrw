@@ -26065,6 +26065,10 @@ bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::
         || a.m_flags!=b.m_flags || !retainedDoubleEqual(a.m_horizontalCellMargin,b.m_horizontalCellMargin)
         || !retainedDoubleEqual(a.m_verticalCellMargin,b.m_verticalCellMargin)
         || a.m_titleSuppressed!=b.m_titleSuppressed || a.m_headerSuppressed!=b.m_headerSuppressed
+        || a.m_r24PrefixPresent!=b.m_r24PrefixPresent
+        || a.m_r24ClassVersion!=b.m_r24ClassVersion
+        || a.m_r24UnknownValue1!=b.m_r24UnknownValue1
+        || a.m_r24UnknownValue2!=b.m_r24UnknownValue2
         || a.m_unknownHandle!=b.m_unknownHandle || !retainedCellStyleEqual(a.m_tableCellStyle,b.m_tableCellStyle)
         || a.m_rowStyles.size()!=b.m_rowStyles.size() || a.m_cellStyles.size()!=b.m_cellStyles.size()
         || a.m_subrecordRanges.size()!=b.m_subrecordRanges.size()

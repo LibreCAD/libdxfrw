@@ -18086,6 +18086,307 @@ void populateTypedDwgTableStyleGraph(dx_data& data,
     data.tableStyles.push_back(std::move(style));
 }
 
+void populateR24DwgTableStyleGraph(dx_data& data) {
+    data.sourceFormat = dx_source_format::DWG;
+    data.sourceVersion = DRW::AC1024;
+    data.hasNamedObjectDictionary = true;
+    data.namedObjectDictionary.handle = 0xCu;
+    data.namedObjectDictionary.name = "NOD";
+    data.namedObjectDictionary.m_entries.push_back(
+        {"ACAD_TABLESTYLE", 0x700u});
+
+    DRW_Dictionary styles;
+    styles.handle = 0x700u;
+    styles.parentHandle = data.namedObjectDictionary.handle;
+    styles.m_entries.push_back({"STANDARD", 0x520u});
+    data.dictionaries.push_back(styles);
+
+    DRW_Textstyle textStyle;
+    textStyle.handle = 0x560u;
+    textStyle.name = "TABLE_FONT";
+    data.textStyles.push_back(textStyle);
+
+    const auto noneColor = [] {
+        DRW_TableStyleCmcColor color;
+        color.m_method = 0xC8u;
+        return color;
+    };
+    const auto byBlockColor = [] {
+        DRW_TableStyleCmcColor color;
+        color.m_method = 0xC1u;
+        return color;
+    };
+    const auto makeStyle = [&noneColor, &byBlockColor](
+            int id, int styleClass, const char *name, int alignment,
+            double textHeight, int mergeFlags, std::uint32_t textStyleHandle) {
+        DRW_TableStyleCellStyle style;
+        style.m_type = 5;
+        style.m_hasData = true;
+        style.m_mergeFlags = static_cast<std::uint32_t>(mergeFlags);
+        style.m_backgroundColor = 256;
+        style.m_backgroundColorCmc = noneColor();
+        style.m_contentLayout = 1u;
+        style.m_contentFormat.m_valueDataType = 512;
+        style.m_contentFormat.m_cellAlignment = alignment;
+        style.m_contentFormat.m_contentColor = 0;
+        style.m_contentFormat.m_contentColorCmc = byBlockColor();
+        style.m_contentFormat.m_textStyleHandle = textStyleHandle;
+        style.m_contentFormat.m_textHeight = textHeight;
+        style.m_marginOverrideFlags = 1;
+        style.m_verticalMargin = 0.06;
+        style.m_horizontalMargin = 0.06;
+        style.m_bottomMargin = 0.06;
+        style.m_rightMargin = 0.06;
+        style.m_marginHorizontalSpacing = 0.18;
+        style.m_marginVerticalSpacing = 0.18;
+        style.m_id = id;
+        style.m_styleClass = styleClass;
+        style.m_name = name;
+        for (int index = 0; index < 6; ++index) {
+            DRW_TableStyleBorder border;
+            border.m_edgeFlags = 1 << index;
+            border.m_borderType = 1;
+            border.m_color = 0;
+            border.m_colorCmc = byBlockColor();
+            border.m_lineWeight = -2;
+            border.m_visible = 0;
+            border.m_doubleLineSpacing = 0.045;
+            style.m_borders.push_back(border);
+        }
+        return style;
+    };
+
+    DRW_TableStyle style;
+    style.handle = 0x520u;
+    style.parentHandle = styles.handle;
+    style.m_name = "Standard";
+    style.m_r24PrefixPresent = true;
+    style.m_r24ClassVersion = 0u;
+    style.m_r24UnknownValue1 = 8;
+    style.m_r24UnknownValue2 = 101;
+    style.m_tableCellStyle = makeStyle(4, 2, "Table", 1, 0.18, 0, 0u);
+    style.m_tableCellStyle.m_borders.clear();
+    style.m_cellStyles.push_back(makeStyle(
+        1, 1, "_TITLE", 5, 0.25, 0x8000, textStyle.handle));
+    style.m_cellStyles.push_back(makeStyle(
+        2, 1, "_HEADER", 5, 0.18, 0, textStyle.handle));
+    style.m_cellStyles.push_back(makeStyle(
+        3, 2, "_DATA", 2, 0.18, 0, textStyle.handle));
+    data.tableStyles.push_back(std::move(style));
+}
+
+bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce) {
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-typed-r24-dwg-tablestyle-" + std::to_string(nonce)
+           + (binary ? "-binary.dxf" : "-ascii.dxf"));
+    const std::string sentinel = "existing R24 TABLESTYLE destination\n";
+    dx_data data;
+    populateR24DwgTableStyleGraph(data);
+    dx_iface writer;
+    writer.cData = &data;
+    writer.currentBlock = data.mBlock;
+    DRW_Table table = makeTextTableControl();
+    table.handle = 0x510u;
+    table.m_tableStyleHandle = 0x520u;
+    table.m_content.m_tableStyleHandle = 0x520u;
+    for (DRW_TableRow& row : table.m_content.m_rows) {
+        for (DRW_TableCell& cell : row.m_cells) {
+            if (!cell.m_isMerged) {
+                cell.m_mergedWidth = 1;
+                cell.m_mergedHeight = 1;
+            }
+        }
+    }
+    writer.addTable(table);
+
+    {
+        std::ofstream destination(output, std::ios::binary | std::ios::trunc);
+        destination << sentinel;
+        if (!destination)
+            return fail("could not seed the R24 TABLESTYLE destination sentinel");
+    }
+    data.tableStyles.front().m_r24UnknownValue1 = 9;
+    if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                          &data, false))
+        return fail("R24 TABLESTYLE accepted an unwitnessed prefix value");
+    const auto destinationIsSentinel = [&]() {
+        std::ifstream input(output, std::ios::binary);
+        const std::string contents((std::istreambuf_iterator<char>(input)),
+                                   std::istreambuf_iterator<char>());
+        return contents == sentinel;
+    };
+    if (!destinationIsSentinel())
+        return fail("unwitnessed R24 TABLESTYLE prefix replaced the destination");
+
+    data.tableStyles.front().m_r24UnknownValue1 = 8;
+    data.tableStyles.front().m_cellStyles.front()
+        .m_contentFormat.m_textStyleHandle = 0x999u;
+    if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                          &data, false))
+        return fail("R24 TABLESTYLE accepted an unresolved source text-style handle");
+    if (!destinationIsSentinel())
+        return fail("unresolved R24 TABLESTYLE text style replaced the destination");
+
+    data.tableStyles.front().m_cellStyles.front()
+        .m_contentFormat.m_textStyleHandle = 0x560u;
+    if (!writer.fileExport(output.string(), DRW::AC1024, binary,
+                           &data, false)) {
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        return fail("corrected R24 TABLESTYLE retry failed: "
+            + writer.extensionGraphFailureDetail());
+    }
+
+    dx_data readback;
+    dx_iface reader;
+    const bool imported = reader.fileImport(output.string(), &readback, false);
+    std::error_code ignored;
+    std::filesystem::remove(output, ignored);
+    if (!imported || readback.tables.size() != 1u
+        || readback.rawTableStyles.size() != 1u
+        || readback.tables.front().m_tableStyleHandle
+            != readback.rawTableStyles.front().handle
+        || readback.tableStyles.size() > 1u
+        || (!readback.tableStyles.empty()
+            && readback.tableStyles.front().handle
+                != readback.rawTableStyles.front().handle)) {
+        return fail("R24 TABLESTYLE output failed fresh typed/raw readback: imported="
+            + std::to_string(imported) + " tables="
+            + std::to_string(readback.tables.size()) + " typed="
+            + std::to_string(readback.tableStyles.size()) + " raw="
+            + std::to_string(readback.rawTableStyles.size())
+            + (readback.tables.empty() || readback.rawTableStyles.empty()
+                ? std::string{} : " tableStyle="
+                    + std::to_string(readback.tables.front().m_tableStyleHandle)
+                    + " recordHandle="
+                    + std::to_string(readback.rawTableStyles.front().handle)));
+    }
+
+    const DRW_RawDxfObject& raw = readback.rawTableStyles.front();
+    const auto countString = [&raw](int code, const char *value) {
+        return static_cast<std::size_t>(std::count_if(
+            raw.groups.begin(), raw.groups.end(), [code, value](
+                    const DRW_Variant& group) {
+                return group.code() == code
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr
+                    && std::string(group.c_str()) == value;
+            }));
+    };
+    const auto integerValues = [&raw](int code) {
+        std::vector<int> values;
+        for (const DRW_Variant& group : raw.groups) {
+            if (group.code() == code
+                && group.type() == DRW_Variant::INTEGER)
+                values.push_back(group.i_val());
+        }
+        return values;
+    };
+    const auto doubleValues = [&raw](int code) {
+        std::vector<double> values;
+        for (const DRW_Variant& group : raw.groups) {
+            if (group.code() == code
+                && group.type() == DRW_Variant::DOUBLE)
+                values.push_back(group.d_val());
+        }
+        return values;
+    };
+    const auto stringValues = [&raw](int code) {
+        std::vector<std::string> values;
+        for (const DRW_Variant& group : raw.groups) {
+            if (group.code() == code
+                && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr)
+                values.emplace_back(group.c_str());
+        }
+        return values;
+    };
+    std::vector<std::tuple<int, int, std::string>> identities;
+    for (std::size_t index = 0; index + 4u < raw.groups.size(); ++index) {
+        const DRW_Variant& marker = raw.groups[index];
+        if (marker.code() != 1 || marker.type() != DRW_Variant::STRING
+            || marker.c_str() == nullptr
+            || std::string(marker.c_str()) != "CELLSTYLE_BEGIN")
+            continue;
+        const DRW_Variant& id = raw.groups[index + 1u];
+        const DRW_Variant& styleClass = raw.groups[index + 2u];
+        const DRW_Variant& name = raw.groups[index + 3u];
+        const DRW_Variant& end = raw.groups[index + 4u];
+        if (id.code() != 90 || id.type() != DRW_Variant::INTEGER
+            || styleClass.code() != 91
+            || styleClass.type() != DRW_Variant::INTEGER
+            || name.code() != 300 || name.type() != DRW_Variant::STRING
+            || name.c_str() == nullptr || end.code() != 309
+            || end.type() != DRW_Variant::STRING || end.c_str() == nullptr
+            || std::string(end.c_str()) != "CELLSTYLE_END")
+            return fail("R24 TABLESTYLE cell-style identity span is malformed");
+        identities.emplace_back(id.i_val(), styleClass.i_val(), name.c_str());
+    }
+    const std::vector<std::tuple<int, int, std::string>> expectedIdentities {
+        {4, 2, "Table"}, {1, 1, "_TITLE"},
+        {2, 1, "_HEADER"}, {3, 2, "_DATA"}};
+    const std::vector<int> colors = integerValues(62);
+    const std::vector<int> expectedGridMasks {
+        1, 2, 4, 8, 16, 32, 1, 2, 4, 8, 16, 32,
+        1, 2, 4, 8, 16, 32};
+    std::vector<double> expectedGroup40;
+    expectedGroup40.push_back(0.0);
+    expectedGroup40.insert(expectedGroup40.end(),
+        {0.06, 0.06, 0.06, 0.06, 0.18, 0.18});
+    for (int index = 0; index < 3; ++index) {
+        expectedGroup40.push_back(0.0);
+        expectedGroup40.insert(expectedGroup40.end(),
+            {0.06, 0.06, 0.06, 0.06, 0.18, 0.18});
+        expectedGroup40.insert(expectedGroup40.end(), 6u, 0.045);
+    }
+    const std::vector<int> margins = integerValues(171);
+    if (identities != expectedIdentities
+        || countString(1, "TABLEFORMAT_BEGIN") != 4u
+        || countString(1, "CONTENTFORMAT_BEGIN") != 4u
+        || countString(1, "CELLMARGIN_BEGIN") != 4u
+        || countString(1, "GRIDFORMAT_BEGIN") != 18u
+        || countString(1, "CELLSTYLE_BEGIN") != 4u
+        || countString(309, "TABLEFORMAT_END") != 4u
+        || integerValues(95) != expectedGridMasks
+        || margins != std::vector<int>({1, 1, 1, 1})
+        || doubleValues(40) != expectedGroup40
+        || doubleValues(144)
+            != std::vector<double>({0.18, 0.25, 0.18, 0.18})
+        || std::count(colors.begin(), colors.end(), 257) != 4
+        || std::count(colors.begin(), colors.end(), 0) != 22
+        || stringValues(3)
+            != std::vector<std::string>{"Standard"})
+        return fail("R24 TABLESTYLE output fields or rich marker order changed");
+
+    std::size_t emittedFontMatches = 0u;
+    std::uint32_t emittedFontHandle = 0u;
+    for (const DRW_Textstyle& style : readback.textStyles) {
+        if (style.name == "TABLE_FONT") {
+            ++emittedFontMatches;
+            emittedFontHandle = style.handle;
+        }
+    }
+    std::vector<std::uint32_t> contentFontHandles;
+    for (const DRW_Variant& group : raw.groups) {
+        if (group.code() != 340 || group.type() != DRW_Variant::STRING
+            || group.c_str() == nullptr)
+            continue;
+        std::size_t parsed = 0u;
+        const unsigned long value = std::stoul(group.c_str(), &parsed, 16);
+        if (parsed != std::string(group.c_str()).size()
+            || value > std::numeric_limits<std::uint32_t>::max())
+            return fail("R24 TABLESTYLE emitted malformed group-340 handle");
+        if (value != 0u)
+            contentFontHandles.push_back(static_cast<std::uint32_t>(value));
+    }
+    if (emittedFontMatches != 1u || emittedFontHandle == 0u
+        || contentFontHandles
+            != std::vector<std::uint32_t>(3u, emittedFontHandle))
+        return fail("R24 TABLESTYLE text-style references lost emitted identity");
+    return true;
+}
+
 bool typedDwgTableStyleDxfRoundTrip(
     bool binary, std::uint64_t nonce, bool titleSuppressed = true,
     bool headerSuppressed = false) {
@@ -41542,6 +41843,14 @@ int main(int argc, char** argv) {
                                .count();
         return tableStyleNestedRawNetRoundTrip(false, nonce)
                 && tableStyleNestedRawNetRoundTrip(true, nonce)
+            ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--tablestyle-r24-typed-writer") {
+        const auto nonce = static_cast<std::uint64_t>(
+            std::chrono::steady_clock::now().time_since_epoch().count());
+        return typedDwgR24TableStyleDxfRoundTrip(false, nonce)
+                && typedDwgR24TableStyleDxfRoundTrip(true, nonce)
             ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--raster-dwg-source-profile-eed")

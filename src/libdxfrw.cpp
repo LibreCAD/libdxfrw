@@ -10245,6 +10245,279 @@ bool dxfRW::writeTableStyle(
         return reject("TABLESTYLE name exceeds the supported byte length");
     if (!isSafeDxfRecordText(ent->m_name))
         return reject("TABLESTYLE name has unsupported DXF text");
+
+    if (ent->m_r24PrefixPresent) {
+        const auto failR24 = [&reject](const char *message) {
+            return reject(message);
+        };
+        const auto byBlockColor = [](
+                int value, const DRW_TableStyleCmcColor& color) {
+            return value == 0 && color.m_rgb == -1
+                && color.m_name.empty() && color.m_bookName.empty()
+                && color.m_method == 0xC1u && color.m_flags == 0u
+                && color.m_reservedIndex == 0u;
+        };
+        const auto byNoneColor = [](
+                int value, const DRW_TableStyleCmcColor& color) {
+            return value == 256 && color.m_rgb == -1
+                && color.m_name.empty() && color.m_bookName.empty()
+                && color.m_method == 0xC8u && color.m_flags == 0u
+                && color.m_reservedIndex == 0u;
+        };
+        const auto r24TextStyleHandleSupported = [this, &textStyles](
+                std::uint32_t sourceHandle) {
+            if (sourceHandle == 0u)
+                return true;
+            const DRW_Textstyle *sourceStyle = nullptr;
+            std::size_t sourceMatches = 0u;
+            for (const DRW_Textstyle& style : textStyles) {
+                if (style.handle == sourceHandle) {
+                    sourceStyle = &style;
+                    ++sourceMatches;
+                }
+            }
+            if (sourceMatches != 1u || sourceStyle == nullptr
+                || sourceStyle->name.empty()
+                || !isSafeDxfRecordText(sourceStyle->name))
+                return false;
+            const std::string key = dxfSymbolNameKey(sourceStyle->name);
+            const auto emitted = textStyleMap.find(key);
+            const std::uint32_t resolved = m_referenceResolver
+                ? resolveReference(sourceHandle)
+                : remapObjectHandle(sourceHandle);
+            return !key.empty() && emitted != textStyleMap.end()
+                && emitted->second != 0u && emitted->second == resolved;
+        };
+        const auto validR24Style = [&](
+                const DRW_TableStyleCellStyle& style,
+                int expectedId, int expectedClass,
+                const char *expectedName, int expectedAlignment,
+                double expectedTextHeight, int expectedMergeFlags,
+                std::size_t expectedBorderCount, bool hasTextStyle) {
+            const DRW_TableStyleContentFormat& format =
+                style.m_contentFormat;
+            if (style.m_type != 5 || !style.m_hasData
+                || style.m_propertyOverrideFlags != 0u
+                || style.m_mergeFlags
+                    != static_cast<std::uint32_t>(expectedMergeFlags)
+                || !byNoneColor(style.m_backgroundColor,
+                                style.m_backgroundColorCmc)
+                || style.m_contentLayout != 1u
+                || format.m_propertyOverrideFlags != 0u
+                || format.m_propertyFlags != 0u
+                || format.m_valueDataType != 512
+                || format.m_valueUnitType != 0
+                || !format.m_valueFormatString.empty()
+                || format.m_rotation != 0.0 || format.m_blockScale != 1.0
+                || format.m_cellAlignment != expectedAlignment
+                || !byBlockColor(format.m_contentColor,
+                                 format.m_contentColorCmc)
+                || !r24TextStyleHandleSupported(
+                    format.m_textStyleHandle)
+                || ((format.m_textStyleHandle != 0u) != hasTextStyle)
+                || format.m_textHeight != expectedTextHeight
+                || style.m_marginOverrideFlags != 1
+                || style.m_verticalMargin != 0.06
+                || style.m_horizontalMargin != 0.06
+                || style.m_bottomMargin != 0.06
+                || style.m_rightMargin != 0.06
+                || style.m_marginHorizontalSpacing != 0.18
+                || style.m_marginVerticalSpacing != 0.18
+                || style.m_id != expectedId
+                || style.m_styleClass != expectedClass
+                || style.m_name != expectedName
+                || style.m_borders.size() != expectedBorderCount)
+                return false;
+            for (std::size_t index = 0; index < style.m_borders.size();
+                 ++index) {
+                const DRW_TableStyleBorder& border = style.m_borders[index];
+                if (border.m_edgeFlags != (1 << index)
+                    || border.m_propertyOverrideFlags != 0
+                    || border.m_borderType != 1
+                    || !byBlockColor(border.m_color, border.m_colorCmc)
+                    || border.m_lineWeight != -2
+                    || border.m_lineTypeHandle != 0u
+                    || border.m_visible != 0
+                    || border.m_doubleLineSpacing != 0.045)
+                    return false;
+            }
+            return true;
+        };
+        if (version < DRW::AC1024)
+            return failR24("R24 TABLESTYLE requires DXF R2010 or later");
+        if (ent->m_r24ClassVersion != 0u
+            || ent->m_r24UnknownValue1 != 8
+            || ent->m_r24UnknownValue2 != 101
+            || ent->m_unknownHandle != 0u)
+            return failR24("R24 TABLESTYLE prefix is outside the witnessed source profile");
+        if (ent->m_flowDirection != 0 || ent->m_flags != 0
+            || ent->m_horizontalCellMargin != 0.0
+            || ent->m_verticalCellMargin != 0.0
+            || ent->m_titleSuppressed || ent->m_headerSuppressed
+            || !ent->m_rowStyles.empty() || ent->m_cellStyles.size() != 3u)
+            return failR24("R24 TABLESTYLE contains unrepresented legacy fields or style count");
+        if (!ent->m_tableCellStyle.m_hasData
+            || ent->m_tableCellStyle.m_id != 4
+            || ent->m_tableCellStyle.m_styleClass != 2
+            || ent->m_tableCellStyle.m_name != "Table"
+            || !validR24Style(ent->m_tableCellStyle, 4, 2, "Table", 1,
+                              0.18, 0, 0u, false)
+            || !ent->m_tableCellStyle.m_borders.empty())
+            return failR24("R24 TABLESTYLE default Table cell style is outside the witnessed profile");
+        constexpr int kIds[] = {1, 2, 3};
+        constexpr int kClasses[] = {1, 1, 2};
+        constexpr int kAlignments[] = {5, 5, 2};
+        constexpr double kTextHeights[] = {0.25, 0.18, 0.18};
+        constexpr int kMergeFlags[] = {0x8000, 0, 0};
+        constexpr const char *kNames[] = {"_TITLE", "_HEADER", "_DATA"};
+        for (std::size_t index = 0; index < ent->m_cellStyles.size();
+             ++index) {
+            if (!validR24Style(ent->m_cellStyles[index], kIds[index],
+                               kClasses[index], kNames[index],
+                               kAlignments[index], kTextHeights[index],
+                               kMergeFlags[index], 6u, true))
+                return failR24("R24 TABLESTYLE cell style is outside the witnessed title/header/data profile");
+        }
+        for (const DRW_DwgSubrecordRange& range : ent->m_subrecordRanges) {
+            if (!range.m_parseComplete)
+                return failR24("R24 TABLESTYLE contains an incomplete parsed subrecord");
+        }
+
+        const std::uint32_t handle = remapObjectHandle(ent->handle);
+        if (handle == 0u || isDxfFixedOutputHandle(handle)
+            || !reserveHandle(handle))
+            return failR24("R24 TABLESTYLE identity is not uniquely writable");
+        RecordStateScope state(*this, ent);
+        DxfWriterRecordScope record(*writer);
+        bool written = writer->writeString(0, "TABLESTYLE")
+            && writer->writeString(5, toHexStr(handle))
+            && writeTableEntryAppData(*ent);
+        if (!written)
+            return failDxfWrite();
+        writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+        written = writer->writeString(100, "AcDbTableStyle")
+            && writer->writeInt16(70, ent->m_flowDirection)
+            && writer->writeUtf8String(3, ent->m_name);
+        const auto writeColor = [this](
+                int color, const DRW_TableStyleCmcColor& cmc) {
+            const int dxfColor = cmc.m_method == 0xC8u ? 257 : color;
+            return writer->writeInt16(62,
+                static_cast<std::int16_t>(dxfColor));
+        };
+        const auto writeContent = [this, &writeColor](
+                const DRW_TableStyleContentFormat& format) {
+            const std::uint32_t textStyleHandle =
+                format.m_textStyleHandle == 0u ? 0u
+                : m_referenceResolver
+                    ? resolveReference(format.m_textStyleHandle)
+                    : remapObjectHandle(format.m_textStyleHandle);
+            if (format.m_textStyleHandle != 0u
+                && textStyleHandle == DRW::NoHandle) {
+                DRW_DBG("DXF R24 TABLESTYLE unresolved content text style\n");
+                return false;
+            }
+            bool ok = true;
+            const auto step = [&ok](const char *field, auto&& emit) {
+                if (!ok)
+                    return;
+                if (!emit()) {
+                    DRW_DBG("DXF R24 TABLESTYLE content-format field failed: ");
+                    DRW_DBG(field); DRW_DBG("\n");
+                    ok = false;
+                }
+            };
+            step("marker", [&]() { return writer->writeString(300, "CONTENTFORMAT"); });
+            step("begin", [&]() { return writer->writeString(1, "CONTENTFORMAT_BEGIN"); });
+            step("property overrides", [&]() { return writer->writeInt32(90, static_cast<std::int32_t>(format.m_propertyOverrideFlags)); });
+            step("property flags", [&]() { return writer->writeInt32(91, static_cast<std::int32_t>(format.m_propertyFlags)); });
+            step("data type", [&]() { return writer->writeInt32(92, format.m_valueDataType); });
+            step("unit type", [&]() { return writer->writeInt32(93, format.m_valueUnitType); });
+            step("format string", [&]() { return writer->writeUtf8String(300, format.m_valueFormatString); });
+            step("rotation", [&]() { return writer->writeDouble(40, format.m_rotation); });
+            step("block scale", [&]() { return writer->writeDouble(140, format.m_blockScale); });
+            step("alignment", [&]() { return writer->writeInt32(94, format.m_cellAlignment); });
+            step("content color", [&]() { return writeColor(format.m_contentColor, format.m_contentColorCmc); });
+            step("text style handle", [&]() { return writer->writeString(340, toHexStr(textStyleHandle)); });
+            step("text height", [&]() { return writer->writeDouble(144, format.m_textHeight); });
+            step("end", [&]() { return writer->writeString(309, "CONTENTFORMAT_END"); });
+            return ok;
+        };
+        const auto writeRichCellStyle = [this, &writeColor, &writeContent](
+                const DRW_TableStyleCellStyle& style) {
+            bool ok = writer->writeString(1, "TABLEFORMAT_BEGIN")
+                && writer->writeInt32(90, style.m_type)
+                && writer->writeInt16(170, style.m_hasData ? 1 : 0)
+                && writer->writeInt32(91,
+                    static_cast<std::int32_t>(style.m_propertyOverrideFlags))
+                && writer->writeInt32(92,
+                    static_cast<std::int32_t>(style.m_mergeFlags))
+                && writeColor(style.m_backgroundColor,
+                              style.m_backgroundColorCmc)
+                && writer->writeInt32(93,
+                    static_cast<std::int32_t>(style.m_contentLayout))
+                && writeContent(style.m_contentFormat)
+                && writer->writeInt16(171,
+                    static_cast<std::int16_t>(style.m_marginOverrideFlags))
+                && writer->writeString(301, "MARGIN")
+                && writer->writeString(1, "CELLMARGIN_BEGIN")
+                && writer->writeDouble(40, style.m_verticalMargin)
+                && writer->writeDouble(40, style.m_horizontalMargin)
+                && writer->writeDouble(40, style.m_bottomMargin)
+                && writer->writeDouble(40, style.m_rightMargin)
+                && writer->writeDouble(40,
+                    style.m_marginHorizontalSpacing)
+                && writer->writeDouble(40,
+                    style.m_marginVerticalSpacing)
+                && writer->writeString(309, "CELLMARGIN_END")
+                && writer->writeInt32(94,
+                    static_cast<std::int32_t>(style.m_borders.size()));
+            for (const DRW_TableStyleBorder& border : style.m_borders) {
+                ok = ok && writer->writeInt32(95, border.m_edgeFlags)
+                    && writer->writeString(302, "GRIDFORMAT")
+                    && writer->writeString(1, "GRIDFORMAT_BEGIN")
+                    && writer->writeInt32(90,
+                        border.m_propertyOverrideFlags)
+                    && writer->writeInt32(91, border.m_borderType)
+                    && writeColor(border.m_color, border.m_colorCmc)
+                    && writer->writeInt32(92, border.m_lineWeight)
+                    && writer->writeString(340, "0")
+                    && writer->writeInt32(93, border.m_visible)
+                    && writer->writeDouble(40,
+                        border.m_doubleLineSpacing)
+                    && writer->writeString(309, "GRIDFORMAT_END");
+            }
+            ok = ok && writer->writeString(309, "TABLEFORMAT_END")
+                && writer->writeString(1, "CELLSTYLE_BEGIN")
+                && writer->writeInt32(90, style.m_id)
+                && writer->writeInt32(91, style.m_styleClass)
+                && writer->writeUtf8String(300, style.m_name)
+                && writer->writeString(309, "CELLSTYLE_END");
+            if (!ok) {
+                DRW_DBG("DXF R24 TABLESTYLE style serialization failed id=");
+                DRW_DBG(style.m_id); DRW_DBG("\n");
+            }
+            return ok;
+        };
+        written = written && writeRichCellStyle(ent->m_tableCellStyle);
+        for (const DRW_TableStyleCellStyle& style : ent->m_cellStyles)
+            written = written && writeRichCellStyle(style);
+        if (!written) {
+            DRW_DBG("DXF R24 TABLESTYLE rich style serialization failed\n");
+            return failDxfWrite();
+        }
+        if (!ent->extData.empty() && !writeExtData(ent->extData)) {
+            DRW_DBG("DXF R24 TABLESTYLE XDATA serialization failed\n");
+            return failDxfWrite();
+        }
+        if (writer->hasWriteError() || !preflightDxfWrite()
+            || !record.commit()) {
+            DRW_DBG("DXF R24 TABLESTYLE final writer commit failed\n");
+            return failDxfWrite();
+        }
+        state.commit();
+        return true;
+    }
+
     if (ent->m_flowDirection < 0 || ent->m_flowDirection > 1)
         return reject("TABLESTYLE flow direction is outside the DXF domain");
     if (ent->m_flags < 0
