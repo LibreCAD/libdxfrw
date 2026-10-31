@@ -47,7 +47,7 @@ external-only and cannot close through ordinary local implementation work.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure beyond the closed AC1024 witness | The existing mechanical AC1024 witness now passes strict complete export in ASCII and Binary with 228/228 callback identities transactionally qualified. Continue against other existing inputs only where a source-backed body, owner edge or dependency remains unclosed. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles, source-backed dynamic-block owner/object profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -63,18 +63,25 @@ were closed by comparing each unbound-but-uniquely-remapped staged record with
 its complete typed source baseline, owner and mapped references. No unresolved
 callback identity remains for this witness; this does not promote a general
 support claim or close P4 across other source profiles. Do not repeat the
-dictionary gap work for this file. Next, run a fast import/census/strict-export
-sweep over the existing `~/doc/dwg/*.dwg` and repository inputs. Select the
-first importable input that does not strict-export, classify the exact source
-identity/body/edge that blocks it, and implement one source-backed profile
-slice. If an input already closes, record the result and move on. Add no
-investigation DWG/DXF fixture. See
+dictionary gap work for this file. A fast sweep of 24 unique, recognized
+`~/doc/dwg/*.dwg` inputs found 20 successful imports, but only the mechanical
+AC1024 witness strict-exports. The first investigated AC1024 blocker,
+`title_block-arch.dwg`, stops at SORTENTSTABLE extension-DICTIONARY reciprocity:
+the Title_Block-ARCH BLOCK_RECORD's dictionary `0x1116` contains
+`ACAD_ENHANCEDBLOCK` → `0x1117`, `ACAD_SORTENTS` → `0x111C`, and
+`AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. The current dynamic-block
+objects have no qualified DXF serializer. The next packet is to bind those
+entry targets to their exact source callbacks and determine one complete
+source-backed dynamic-block output profile; keep the sort-table refusal in
+place until every required body and edge has a staged-output proof and fresh
+readback. See
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json)
 and [`p4-ac1024-mlinestyle-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-mlinestyle-output-qualification-2026-10-31.json)
 and [`p4-ac1024-layout-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-layout-output-qualification-2026-10-31.json)
 and [`p4-ac1024-viewport-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-viewport-output-qualification-2026-10-31.json)
 and [`p4-ac1024-viewport-xrecord-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-viewport-xrecord-output-qualification-2026-10-31.json)
 and [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json)
+and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json)
 for current counts and source/output binding evidence.
 
 ## P4 — original bodies and complete document closure
@@ -119,6 +126,16 @@ capture, keep default legacy consumers opted out until codec, source, dependency
 output gates are met.
 
 ## P5 — rendering and TABLE
+
+**Dynamic-block source/output profiles:** the current AC1024 corpus exposes
+owner-linked dynamic-block objects through `ACAD_ENHANCEDBLOCK` and
+`AcDbDynamicBlockRoundTripPurgePreventer` dictionary entries. Implement one
+source-backed subclass/profile at a time, including its complete body, owner
+dictionary/key, reactors and referenced graph. Pair each with a staged writer
+record proof and fresh ASCII/Binary readback. Keep other dynamic-block profiles
+and the whole conversion explicitly refused until their required records are
+preserved; do not relax SORTENTSTABLE owner validation to bypass missing
+children.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment, background/live-section/sun relations; native
