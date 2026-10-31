@@ -29068,27 +29068,35 @@ bool dxfRW::writeAssociativeDependencyBody(DRW_AssociativeObject *ent) {
 
 bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
     constexpr std::size_t kMaxAssociativeReferences = 100000u;
-    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
-        || version != DRW::AC1024
-        || !dxfKeywordEquals(ent->m_recordName, "ACDBASSOCNETWORK")
-        || !ent->m_networkFieldsParsed || ent->m_classVersion != 1u
-        || ent->m_networkVersion != 0
-        || ent->m_owningNetworkHandle == 0u
-        || ent->m_actionBodyHandle != 0u
-        || ent->m_maxDependencyIndex != 0
+    const auto failAt = [this](const char* stage) {
+        DRW_DBG("dxfRW::writeAssociativeNetwork failure: ");
+        DRW_DBG(stage);
+        DRW_DBG("\n");
+        return failDxfWrite();
+    };
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr)
+        return failAt("table-entry preflight");
+    if (version != DRW::AC1024)
+        return failAt("target version");
+    if (!dxfKeywordEquals(ent->m_recordName, "ACDBASSOCNETWORK"))
+        return failAt("record type");
+    if (!ent->m_networkFieldsParsed || ent->m_classVersion != 1u
+        || ent->m_networkVersion != 0)
+        return failAt("network/action header");
+    if (ent->m_actionBodyHandle != 0u || ent->m_maxDependencyIndex != 0
         || !ent->m_dependencies.empty()
         || !ent->m_ownedParams.empty()
         || !ent->m_ownedActions.empty()
         || ent->m_valueParamCount != 0u || ent->m_valueParamsParsed
         || ent->m_actionParamPrefixParsed
         || ent->m_singleDependencyActionParamParsed
-        || ent->m_compoundActionParamParsed
-        || ent->m_actions.size() > kMaxAssociativeReferences
+        || ent->m_compoundActionParamParsed)
+        return failAt("unsupported action state");
+    if (ent->m_actions.size() > kMaxAssociativeReferences
         || ent->reactorHandles.size() > kMaxAssociativeReferences
         || !ent->appData.empty() || ent->xDictHandle != 0u
-        || ent->m_prefixStatuses.size() != 2u) {
-        return failDxfWrite();
-    }
+        || ent->m_prefixStatuses.size() != 2u)
+        return failAt("network record profile");
 
     const DRW_AssociativePrefixStatus& actionStatus =
         ent->m_prefixStatuses[0];
@@ -29111,14 +29119,14 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
         || networkStatus.m_decodedValueCount != 0u
         || networkStatus.m_decodedCountValue
             != static_cast<std::int32_t>(ent->m_actions.size()))
-        return failDxfWrite();
+        return failAt("prefix statuses");
 
     const std::uint32_t sourceHandle = ent->handle;
     const std::uint32_t sourceOwner =
         static_cast<std::uint32_t>(ent->parentHandle);
     if (sourceHandle == 0u || sourceHandle == DRW::NoHandle
         || sourceOwner == DRW::NoHandle)
-        return failDxfWrite();
+        return failAt("source identity");
 
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
@@ -29134,7 +29142,7 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
             || !reserveHandle(emittedHandle)
             || !bindDxfWriteSourceObjectHandle(sourceHandle,
                                                 emittedHandle))
-            return failDxfWrite();
+            return failAt("planned identity binding");
 
         const auto remapReference = [this](std::uint32_t source,
                                            std::uint32_t& emitted) {
@@ -29146,9 +29154,8 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
         };
         std::uint32_t emittedOwningNetwork = 0u;
         if (!remapReference(ent->m_owningNetworkHandle,
-                            emittedOwningNetwork)
-            || emittedOwningNetwork == 0u)
-            return failDxfWrite();
+                            emittedOwningNetwork))
+            return failAt("owning-network reference");
 
         std::vector<std::uint32_t> emittedReactors;
         emittedReactors.reserve(ent->reactorHandles.size());
@@ -29156,7 +29163,7 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
             std::uint32_t emittedReactor = 0u;
             if (!remapReference(reactor, emittedReactor)
                 || emittedReactor == 0u)
-                return failDxfWrite();
+                return failAt("reactor reference");
             emittedReactors.push_back(emittedReactor);
         }
 
@@ -29165,22 +29172,22 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
         for (const DRW_AssociativeHandleRef& action : ent->m_actions) {
             std::uint32_t emittedAction = 0u;
             if (!remapReference(action.m_handle, emittedAction))
-                return failDxfWrite();
+                return failAt("action reference");
             emittedActions.push_back(emittedAction);
         }
 
         if (!writer->writeString(0, "ACDBASSOCNETWORK")
             || !writer->writeString(5, toHexStr(emittedHandle)))
-            return failDxfWrite();
+            return failAt("record header");
         if (!emittedReactors.empty()) {
             if (!writer->writeString(102, "{ACAD_REACTORS"))
-                return failDxfWrite();
+                return failAt("reactor group open");
             for (const std::uint32_t reactor : emittedReactors) {
                 if (!writer->writeString(330, toHexStr(reactor)))
-                    return failDxfWrite();
+                    return failAt("reactor handle");
             }
             if (!writer->writeString(102, "}"))
-                return failDxfWrite();
+                return failAt("reactor group close");
         }
         if (!writer->writeString(330, sourceOwner == 0u
                     ? "C" : toHexStr(emittedOwner))
@@ -29199,18 +29206,18 @@ bool dxfRW::writeAssociativeNetwork(DRW_AssociativeObject *ent) {
             || !writer->writeInt32(90, ent->m_networkActionIndex)
             || !writer->writeInt32(90,
                                    static_cast<int>(emittedActions.size())))
-            return failDxfWrite();
+            return failAt("action and network body");
         for (std::size_t i = 0; i < emittedActions.size(); ++i) {
             const int code = ent->m_actions[i].m_isOwned ? 360 : 330;
             if (!writer->writeString(code, toHexStr(emittedActions[i])))
-                return failDxfWrite();
+                return failAt("network action handle");
         }
         if (!writer->writeInt32(90, 0)
             || (!ent->extData.empty() && !writeExtData(ent->extData))
             || !preflightDxfWrite() || !record.commit())
-            return failDxfWrite();
+            return failAt("body completion");
     } catch (...) {
-        return failDxfWrite();
+        return failAt("exception");
     }
 
     state.commit();

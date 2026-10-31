@@ -28241,9 +28241,80 @@ bool associativeSourceHandleReservation() {
         line->secPoint = DRW_Coord(3.0, 4.0, 0.0);
         source.mBlock->ent.push_back(line);
         if (addAssociative) {
-            DRW_AssociativeObject object("ACDBASSOCNETWORK");
-            object.handle = associativeHandle;
-            source.dwgAssociativeObjects.push_back(std::move(object));
+            source.importGeneration = 1u;
+            source.hasNamedObjectDictionary = true;
+            source.namedObjectDictionary.handle = 0x900u;
+            source.namedObjectDictionary.name = "NOD";
+            source.namedObjectDictionary.m_entries.push_back(
+                {"ACAD_ASSOCNETWORK", 0x901u});
+
+            DRW_Dictionary associationDictionary;
+            associationDictionary.handle = 0x901u;
+            associationDictionary.parentHandle = 0x900u;
+            associationDictionary.m_entries.push_back(
+                {"ACAD_ASSOCNETWORK", 0x902u});
+            source.dictionaries.push_back(associationDictionary);
+
+            DRW_AssociativeObject network("ACDBASSOCNETWORK");
+            network.handle = 0x902u;
+            network.parentHandle = associationDictionary.handle;
+            network.reactorHandles.push_back(associationDictionary.handle);
+            network.m_classVersion = 1u;
+            network.m_networkFieldsParsed = true;
+            network.m_networkVersion = 0;
+            network.m_networkActionIndex = 1;
+            network.m_actions.push_back({true, associativeHandle});
+            network.m_prefixStatuses.push_back({
+                DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                0u, 0u, 1u,
+                DRW_AssociativePrefixStatus::ParseStatus::Complete,
+                2u, 0u, 0, "authored reservation action profile"});
+            network.m_prefixStatuses.push_back({
+                DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+                0u, 0u, 1u,
+                DRW_AssociativePrefixStatus::ParseStatus::Complete,
+                1u, 0u, 1, "authored reservation network profile"});
+
+            DRW_AssociativeObject variable("ACDBASSOCVARIABLE");
+            variable.handle = associativeHandle;
+            variable.parentHandle = network.handle;
+            variable.m_classVersion = 1u;
+            variable.m_owningNetworkHandle = network.handle;
+            variable.m_associativeVariableFieldsParsed = true;
+            variable.m_associativeVariableWireComplete = true;
+            variable.m_variableClassVersion = 2;
+            variable.m_variableName = "RESERVED_SOURCE_ID";
+            variable.m_variableExpression = "1";
+            variable.m_variableEvaluator =
+                "AcDbAssocExpressionEvaluator";
+            variable.m_variableDescription = "handle reservation control";
+            variable.m_variableValueParsed = true;
+            variable.m_variableValueCode = 90;
+            variable.m_variableValueKind =
+                DRW_AssociativeObject::EvalVariantKind::Int32;
+            variable.m_variableValueInt32 = 1;
+            variable.m_prefixStatuses.push_back({
+                DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                0u, 0u, 1u,
+                DRW_AssociativePrefixStatus::ParseStatus::Complete,
+                2u, 0u, 0, "authored reservation variable action"});
+            variable.m_prefixStatuses.push_back({
+                DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+                0u, 0u, 2u,
+                DRW_AssociativePrefixStatus::ParseStatus::Complete,
+                0u, 10u, 0, "authored reservation variable profile"});
+            source.dwgAssociativeObjects.push_back(network);
+            source.dwgAssociativeObjects.push_back(variable);
+
+            dx_associativeDwgImportReceipt& receipt =
+                source.associativeDwgImport;
+            receipt.generation = source.importGeneration;
+            receipt.sourceVersion = source.sourceVersion;
+            receipt.typedRange.begin = 0u;
+            receipt.typedRange.end = source.dwgAssociativeObjects.size();
+            receipt.typedCallbacks = source.dwgAssociativeObjects.size();
+            receipt.successful = true;
+            receipt.captureComplete = true;
         }
 
         dx_iface writer;
@@ -28275,13 +28346,361 @@ bool associativeSourceHandleReservation() {
     if (!exportLineAndReadHandle(identityPath, true, baselineLineHandle,
                                  identityLineHandle)
         || identityLineHandle == baselineLineHandle)
-        return fail("associative source identity was not reserved before generated LINE allocation");
+        return fail("associative source identity was not reserved before generated LINE allocation: baseline="
+            + std::to_string(baselineLineHandle) + " identity="
+            + std::to_string(identityLineHandle));
 
     std::uint32_t fixedCollisionLineHandle = 0u;
     if (!exportLineAndReadHandle(fixedPath, true, 0x10u,
                                  fixedCollisionLineHandle)
         || fixedCollisionLineHandle == baselineLineHandle)
         return fail("fixed-handle associative source did not reserve its remapped output identity");
+    return true;
+}
+
+bool associativeDwgRootNetworkVariableExport() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto directory = std::filesystem::temp_directory_path();
+    for (const bool binary : {false, true}) {
+        const auto path = directory / ("libdxfrw-associative-graph-"
+            + std::to_string(nonce) + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{path};
+
+        dx_data source;
+        source.sourceFormat = dx_source_format::DWG;
+        source.sourceVersion = DRW::AC1024;
+        source.importGeneration = 1u;
+        source.hasNamedObjectDictionary = true;
+        source.namedObjectDictionary.handle = 0x900u;
+        source.namedObjectDictionary.name = "NOD";
+        source.namedObjectDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x901u});
+
+        DRW_Dictionary associationDictionary;
+        associationDictionary.handle = 0x901u;
+        associationDictionary.parentHandle =
+            source.namedObjectDictionary.handle;
+        associationDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0xDu});
+        source.dictionaries.push_back(associationDictionary);
+
+        DRW_AssociativeObject network("ACDBASSOCNETWORK");
+        network.handle = 0xDu;
+        network.parentHandle = associationDictionary.handle;
+        network.reactorHandles.push_back(associationDictionary.handle);
+        network.m_classVersion = 1u;
+        network.m_networkFieldsParsed = true;
+        network.m_networkVersion = 0;
+        network.m_networkActionIndex = 1;
+        network.m_actions.push_back({true, 0x903u});
+        network.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored network/action profile"});
+        network.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            1u, 0u, 1, "authored root network profile"});
+
+        DRW_AssociativeObject variable("ACDBASSOCVARIABLE");
+        variable.handle = 0x903u;
+        variable.parentHandle = network.handle;
+        variable.m_classVersion = 1u;
+        variable.m_owningNetworkHandle = network.handle;
+        variable.m_associativeVariableFieldsParsed = true;
+        variable.m_associativeVariableWireComplete = true;
+        variable.m_variableClassVersion = 2;
+        variable.m_variableName = "AUTHORED_VALUE";
+        variable.m_variableExpression = "17";
+        variable.m_variableEvaluator = "AcDbAssocExpressionEvaluator";
+        variable.m_variableDescription = "locally authored graph test";
+        variable.m_variableValueParsed = true;
+        variable.m_variableValueCode = 90;
+        variable.m_variableValueKind =
+            DRW_AssociativeObject::EvalVariantKind::Int32;
+        variable.m_variableValueInt32 = 17;
+        variable.m_variableHasT78 = false;
+        variable.m_variableB290 = false;
+        variable.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored variable/action profile"});
+        variable.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+            0u, 0u, 2u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            0u, 10u, 0, "authored fully consumed variable profile"});
+
+        source.dwgAssociativeObjects.push_back(network);
+        source.dwgAssociativeObjects.push_back(variable);
+        dx_associativeDwgImportReceipt& receipt =
+            source.associativeDwgImport;
+        receipt.generation = source.importGeneration;
+        receipt.sourceVersion = source.sourceVersion;
+        receipt.typedRange.begin = 0u;
+        receipt.typedRange.end = source.dwgAssociativeObjects.size();
+        receipt.typedCallbacks = source.dwgAssociativeObjects.size();
+        receipt.successful = true;
+        receipt.captureComplete = true;
+
+        struct LateVariableFailureExporter final : dx_iface {
+            bool invalidateVariableBeforeObjects{false};
+            void writeObjects() override {
+                if (invalidateVariableBeforeObjects && cData != nullptr) {
+                    for (DRW_AssociativeObject& object :
+                         cData->dwgAssociativeObjects) {
+                        if (object.m_recordName == "ACDBASSOCVARIABLE") {
+                            object.m_associativeVariableWireComplete = false;
+                            break;
+                        }
+                    }
+                }
+                dx_iface::writeObjects();
+            }
+        } exporter;
+
+        const auto retainedDestination = [&path](const std::string& marker) {
+            std::ifstream input(path, std::ios::binary);
+            const std::string content{
+                std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>()};
+            return content == marker;
+        };
+        const std::string sentinel = "existing associative destination";
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            if (!output || !(output << sentinel))
+                return fail("could not seed associative output sentinel");
+        }
+        exporter.invalidateVariableBeforeObjects = true;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !retainedDestination(sentinel))
+            return fail("late associative write failure replaced the destination");
+
+        source.dwgAssociativeObjects[1].m_associativeVariableWireComplete =
+            true;
+        exporter.invalidateVariableBeforeObjects = false;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail("corrected AC1024 associative graph could not retry");
+        if (countDxfRecord(path, binary, "ACDBASSOCNETWORK") != 1u
+            || countDxfRecord(path, binary, "ACDBASSOCVARIABLE") != 1u)
+            return fail("AC1024 associative graph output has missing or duplicate records");
+
+        const auto readWireRecord = [&path, binary](const std::string& name,
+                std::vector<std::pair<int, std::string>>& groups) {
+            std::ifstream input(path, std::ios::binary);
+            if (!input)
+                return false;
+            if (binary)
+                input.seekg(22);
+            if (!input)
+                return false;
+            std::unique_ptr<dxfReader> wireReader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            wireReader->setVersion("AC1024", true);
+            bool inRecord = false;
+            int code = 0;
+            while (wireReader->readRec(&code)) {
+                if (code == 0) {
+                    const std::string value = wireReader->getString();
+                    if (inRecord)
+                        return !input.bad();
+                    inRecord = value == name;
+                    if (inRecord)
+                        groups.emplace_back(code, value);
+                    continue;
+                }
+                if (!inRecord)
+                    continue;
+                std::string value;
+                switch (code) {
+                case 5:
+                case 330:
+                case 360:
+                    if (!wireReader->isValidHandleString())
+                        return false;
+                    value = std::to_string(wireReader->getHandleString());
+                    break;
+                case 70:
+                case 90:
+                    value = std::to_string(wireReader->getInt32());
+                    break;
+                case 290:
+                    value = wireReader->getBool() ? "1" : "0";
+                    break;
+                case 1:
+                    value = wireReader->getUtf8String();
+                    break;
+                case 100:
+                case 102:
+                    value = wireReader->getString();
+                    break;
+                default:
+                    return false;
+                }
+                groups.emplace_back(code, std::move(value));
+            }
+            return inRecord && !input.bad();
+        };
+        std::vector<std::pair<int, std::string>> networkWire;
+        std::vector<std::pair<int, std::string>> variableWire;
+        if (!readWireRecord("ACDBASSOCNETWORK", networkWire)
+            || !readWireRecord("ACDBASSOCVARIABLE", variableWire)
+            || networkWire.size() != 20u || variableWire.size() != 22u)
+            return fail("could not inspect exact associative output group pairs");
+        const std::string networkHandle = networkWire[1].second;
+        const std::string associationDictionaryHandle = networkWire[3].second;
+        const std::string variableHandle = variableWire[1].second;
+        const std::vector<std::pair<int, std::string>> expectedNetworkWire{
+            {0, "ACDBASSOCNETWORK"}, {5, networkHandle},
+            {102, "{ACAD_REACTORS"}, {330, associationDictionaryHandle},
+            {102, "}"}, {330, associationDictionaryHandle},
+            {100, "AcDbAssocAction"}, {90, "1"}, {90, "0"},
+            {330, "0"}, {360, "0"}, {90, "0"}, {90, "0"},
+            {90, "0"}, {100, "AcDbAssocNetwork"}, {90, "0"},
+            {90, "1"}, {90, "1"}, {360, variableHandle}, {90, "0"}};
+        const std::vector<std::pair<int, std::string>> expectedVariableWire{
+            {0, "ACDBASSOCVARIABLE"}, {5, variableHandle},
+            {330, networkHandle}, {100, "AcDbAssocAction"},
+            {90, "1"}, {90, "0"}, {330, networkHandle}, {360, "0"},
+            {90, "0"}, {90, "0"}, {90, "0"},
+            {100, "AcDbAssocVariable"}, {90, "2"},
+            {1, "AUTHORED_VALUE"}, {1, "17"},
+            {1, "AcDbAssocExpressionEvaluator"},
+            {1, "locally authored graph test"}, {70, "90"}, {90, "17"},
+            {290, "0"}, {1, ""}, {290, "0"}};
+        if (networkWire != expectedNetworkWire
+            || variableWire != expectedVariableWire)
+            return fail("associative output group-pair sequence or field roles changed");
+
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &readback, false)
+            || !readback.hasNamedObjectDictionary
+            || readback.associativeObjects.size() != 2u)
+            return fail("AC1024 associative graph output did not re-import");
+        const auto rootEntry = std::find_if(
+            readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_ASSOCNETWORK";
+            });
+        if (rootEntry == readback.namedObjectDictionary.m_entries.end())
+            return fail("associative root dictionary entry was not emitted");
+        const auto dictionary = std::find_if(
+            readback.dictionaries.begin(), readback.dictionaries.end(),
+            [&rootEntry](const DRW_Dictionary& candidate) {
+                return candidate.handle == rootEntry->m_handle;
+            });
+        if (dictionary == readback.dictionaries.end()
+            || dictionary->parentHandle
+                != readback.namedObjectDictionary.handle
+            || dictionary->m_entries.size() != 1u
+            || dictionary->m_entries.front().m_name != "ACAD_ASSOCNETWORK")
+            return fail("associative root dictionary owner/key closure changed");
+        const auto readNetwork = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName == "ACDBASSOCNETWORK";
+            });
+        const auto readVariable = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName == "ACDBASSOCVARIABLE";
+            });
+        if (readNetwork == readback.associativeObjects.end()
+            || readVariable == readback.associativeObjects.end())
+            return fail("associative network/variable records are missing on readback");
+        if (!readNetwork->m_networkFieldsParsed
+            || readNetwork->m_classVersion != 1u
+            || readNetwork->m_networkVersion != 0
+            || readNetwork->m_networkActionIndex != 1
+            || readNetwork->m_actionBodyHandle != 0u
+            || readNetwork->m_ownedActions.size() != 0u)
+            return fail("associative network action/network fields changed on readback");
+        if (readNetwork->handle == 0xDu)
+            return fail("associative network fixed-handle collision was not remapped");
+        if (readNetwork->parentHandle != dictionary->handle)
+            return fail("associative network owner changed on readback: network="
+                + std::to_string(readNetwork->parentHandle) + " dictionary="
+                + std::to_string(dictionary->handle));
+        if (readNetwork->m_owningNetworkHandle != 0u)
+            return fail("associative root network reference changed on readback");
+        if (readNetwork->reactorHandles
+            != std::vector<std::uint32_t>{dictionary->handle})
+            return fail("associative network reactor reference changed on readback");
+        if (readNetwork->m_actions.size() != 1u
+            || !readNetwork->m_actions.front().m_isOwned
+            || readNetwork->m_actions.front().m_handle != readVariable->handle)
+            return fail("associative network action target changed on readback");
+        if (readVariable->parentHandle != readNetwork->handle)
+            return fail("associative variable owner changed on readback");
+        if (readVariable->m_owningNetworkHandle != readNetwork->handle)
+            return fail("associative variable owning-network reference changed on readback");
+        if (readVariable->m_variableValueKind
+                != DRW_AssociativeObject::EvalVariantKind::Int32
+            || readVariable->m_variableValueInt32 != 17
+            || !readVariable->m_variableValueParsed
+            || !readVariable->m_associativeVariableFieldsParsed
+            || readVariable->m_variableClassVersion != 2
+            || readVariable->m_variableName != "AUTHORED_VALUE"
+            || readVariable->m_variableExpression != "17"
+            || readVariable->m_variableEvaluator
+                != "AcDbAssocExpressionEvaluator"
+            || readVariable->m_variableDescription
+                != "locally authored graph test"
+            || readVariable->m_variableHasT78
+            || !readVariable->m_variableT78.empty()
+            || readVariable->m_variableB290)
+            return fail("associative variable typed value changed on readback");
+
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            if (!output || !(output << sentinel))
+                return fail("could not reseed associative graph refusal sentinel");
+        }
+        const std::uint32_t actionHandle =
+            source.dwgAssociativeObjects.front().m_actions.front().m_handle;
+        source.dwgAssociativeObjects.front().m_actions.front().m_handle =
+            0xDEADu;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !retainedDestination(sentinel))
+            return fail("unresolved associative action target did not refuse atomically");
+        source.dwgAssociativeObjects.front().m_actions.front().m_handle =
+            actionHandle;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail("corrected associative graph could not retry after missing action target");
+    }
     return true;
 }
 
@@ -39718,6 +40137,10 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--associative-source-handle-reservation")
         return associativeSourceHandleReservation() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--associative-dwg-root-network-variable-export")
+        return associativeDwgRootNetworkVariableExport() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;

@@ -25501,6 +25501,11 @@ void DRW_AssociativeObject::reset() {
     m_variableHasT78 = false;
     m_variableT78.clear();
     m_variableB290 = false;
+    m_dxfVariableNameBytes = 0u;
+    m_dxfVariableExpressionBytes = 0u;
+    m_dxfVariableEvaluatorBytes = 0u;
+    m_dxfVariableDescriptionBytes = 0u;
+    m_dxfVariableT78Bytes = 0u;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -25539,6 +25544,23 @@ void DRW_AssociativeObject::reset() {
     m_dxfPersistentSubentityBody = false;
     m_dxfPersistentSubentityClassValueCount = 0;
     m_dxfAssociativeGeomSubclass = 0;
+    m_dxfAssociativeActionSubclass = false;
+    m_dxfAssociativeNetworkSubclass = false;
+    m_dxfAssociativeVariableSubclass = false;
+    m_dxfAssociativeActionIntIndex = 0;
+    m_dxfAssociativeActionOwnerSeen = false;
+    m_dxfAssociativeActionBodySeen = false;
+    m_dxfAssociativeActionUnexpectedField = false;
+    m_dxfAssociativeActionDependencyCount = -1;
+    m_dxfAssociativeNetworkIntIndex = 0;
+    m_dxfAssociativeNetworkActionCount = -1;
+    m_dxfAssociativeNetworkOwnedActionCount = -1;
+    m_dxfAssociativeNetworkUnexpectedField = false;
+    m_dxfAssociativeVariableStringIndex = 0;
+    m_dxfAssociativeVariableClassVersionSeen = false;
+    m_dxfAssociativeVariableDiscriminatorSeen = false;
+    m_dxfAssociativeVariableBoolIndex = 0;
+    m_dxfAssociativeVariableUnexpectedField = false;
     m_dxfGeomClassVersionPresent = false;
     m_dxfGeomEnabledPresent = false;
     m_dxfGeomSubentityClassNamePresent = false;
@@ -25547,17 +25569,74 @@ void DRW_AssociativeObject::reset() {
 
 bool DRW_AssociativeObject::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
+    constexpr std::int32_t kMaxAssociativeDxfReferences = 100000;
     const auto updateGeomFieldStatus = [this]() {
         m_geomDependencyFieldsParsed = m_dxfGeomClassVersionPresent
             && m_dxfGeomEnabledPresent
             && m_dxfGeomSubentityClassNamePresent
             && m_dxfGeomDependentOnCompoundObjectPresent;
     };
+    const auto updateAssociativeNetworkStatus = [this]() {
+        const bool actionPrefixComplete =
+            m_dxfAssociativeActionIntIndex == 5u
+            && m_dxfAssociativeActionOwnerSeen
+            && m_dxfAssociativeActionBodySeen
+            && !m_dxfAssociativeActionUnexpectedField
+            && m_dxfAssociativeActionDependencyCount == 0
+            && m_dependencies.empty();
+        const bool networkCountsComplete =
+            m_dxfAssociativeNetworkIntIndex == 4u
+            && !m_dxfAssociativeNetworkUnexpectedField
+            && m_dxfAssociativeNetworkActionCount >= 0
+            && m_dxfAssociativeNetworkOwnedActionCount >= 0
+            && m_actions.size() == static_cast<std::size_t>(
+                m_dxfAssociativeNetworkActionCount)
+            && m_ownedActions.size() == static_cast<std::size_t>(
+                m_dxfAssociativeNetworkOwnedActionCount);
+        m_networkFieldsParsed = actionPrefixComplete && networkCountsComplete;
+    };
     if (code == 100) {
         const std::string_view subclass = reader->getStringView();
+        m_dxfAssociativeActionSubclass = false;
+        m_dxfAssociativeNetworkSubclass = false;
+        m_dxfAssociativeVariableSubclass = false;
+        m_dxfAssociativeGeomSubclass = 0;
+        m_dxfPersistentSubentityBody = false;
+        if (subclass == "AcDbAssocAction") {
+            m_dxfAssociativeActionSubclass = true;
+            m_dxfAssociativeActionIntIndex = 0;
+            m_dxfAssociativeActionOwnerSeen = false;
+            m_dxfAssociativeActionBodySeen = false;
+            m_dxfAssociativeActionUnexpectedField = false;
+            m_dxfAssociativeActionDependencyCount = -1;
+            m_dependencies.clear();
+            return true;
+        }
+        if (subclass == "AcDbAssocNetwork") {
+            m_dxfAssociativeNetworkSubclass = true;
+            m_dxfAssociativeNetworkIntIndex = 0;
+            m_dxfAssociativeNetworkActionCount = -1;
+            m_dxfAssociativeNetworkOwnedActionCount = -1;
+            m_dxfAssociativeNetworkUnexpectedField = false;
+            m_actions.clear();
+            m_ownedActions.clear();
+            m_networkFieldsParsed = false;
+            return true;
+        }
+        if (subclass == "AcDbAssocVariable") {
+            m_dxfAssociativeVariableSubclass = true;
+            m_dxfAssociativeVariableStringIndex = 0;
+            m_dxfAssociativeVariableClassVersionSeen = false;
+            m_dxfAssociativeVariableDiscriminatorSeen = false;
+            m_dxfAssociativeVariableBoolIndex = 0;
+            m_dxfAssociativeVariableUnexpectedField = false;
+            m_associativeVariableFieldsParsed = false;
+            m_variableValueParsed = false;
+            m_variableValueKind = EvalVariantKind::Missing;
+            m_variableValueCode = 0;
+            return true;
+        }
         if (subclass == "AcDbAssocDependency") {
-            m_dxfAssociativeGeomSubclass = 0;
-            m_dxfPersistentSubentityBody = false;
             return true;
         }
         if (subclass == "AcDbAssocGeomDependency") {
@@ -25576,6 +25655,204 @@ bool DRW_AssociativeObject::parseCode(
             m_dxfPersistentSubentityClassValueCount = 0;
             return true;
         }
+        return true;
+    }
+    if (m_dxfAssociativeActionSubclass) {
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            switch (m_dxfAssociativeActionIntIndex) {
+            case 0:
+                if (value >= 0
+                    && value <= std::numeric_limits<std::uint16_t>::max())
+                    m_classVersion = static_cast<std::uint16_t>(value);
+                break;
+            case 1:
+                m_geometryStatus = value;
+                break;
+            case 2:
+                m_actionIndex = value;
+                break;
+            case 3:
+                m_maxDependencyIndex = value;
+                break;
+            case 4:
+                m_dxfAssociativeActionDependencyCount =
+                    value >= 0 && value <= kMaxAssociativeDxfReferences
+                        ? value : -2;
+                break;
+            default:
+                m_dxfAssociativeActionUnexpectedField = true;
+                return true;
+            }
+            ++m_dxfAssociativeActionIntIndex;
+            return true;
+        }
+        if (code == 330 || code == 360) {
+            if (!reader->isValidHandleString())
+                return false;
+            const std::uint32_t reference = reader->getHandleString();
+            if (code == 330 && !m_dxfAssociativeActionOwnerSeen) {
+                m_owningNetworkHandle = reference;
+                m_dxfAssociativeActionOwnerSeen = true;
+            } else if (code == 360 && !m_dxfAssociativeActionBodySeen) {
+                m_actionBodyHandle = reference;
+                m_dxfAssociativeActionBodySeen = true;
+            } else if (m_dxfAssociativeActionDependencyCount >= 0
+                && m_dependencies.size()
+                    < static_cast<std::size_t>(
+                        m_dxfAssociativeActionDependencyCount)) {
+                m_dependencies.push_back({code == 360, reference});
+            } else {
+                m_dxfAssociativeActionUnexpectedField = true;
+            }
+            return true;
+        }
+        m_dxfAssociativeActionUnexpectedField = true;
+    }
+    if (m_dxfAssociativeNetworkSubclass) {
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            switch (m_dxfAssociativeNetworkIntIndex) {
+            case 0:
+                m_networkVersion = value;
+                break;
+            case 1:
+                m_networkActionIndex = value;
+                break;
+            case 2:
+                m_dxfAssociativeNetworkActionCount =
+                    value >= 0 && value <= kMaxAssociativeDxfReferences
+                        ? value : -2;
+                break;
+            case 3:
+                m_dxfAssociativeNetworkOwnedActionCount =
+                    value >= 0 && value <= kMaxAssociativeDxfReferences
+                        && m_dxfAssociativeNetworkActionCount >= 0
+                        && m_actions.size() == static_cast<std::size_t>(
+                            m_dxfAssociativeNetworkActionCount)
+                        ? value : -2;
+                break;
+            default:
+                m_dxfAssociativeNetworkUnexpectedField = true;
+                m_networkFieldsParsed = false;
+                return true;
+            }
+            ++m_dxfAssociativeNetworkIntIndex;
+            updateAssociativeNetworkStatus();
+            return true;
+        }
+        if (code == 330 || code == 360) {
+            if (!reader->isValidHandleString())
+                return false;
+            const std::uint32_t reference = reader->getHandleString();
+            if (m_dxfAssociativeNetworkActionCount >= 0
+                && m_actions.size() < static_cast<std::size_t>(
+                    m_dxfAssociativeNetworkActionCount)) {
+                m_actions.push_back({code == 360, reference});
+            } else if (m_dxfAssociativeNetworkOwnedActionCount >= 0
+                && m_ownedActions.size() < static_cast<std::size_t>(
+                    m_dxfAssociativeNetworkOwnedActionCount)) {
+                m_ownedActions.push_back(reference);
+            } else {
+                m_dxfAssociativeNetworkUnexpectedField = true;
+                m_networkFieldsParsed = false;
+            }
+            updateAssociativeNetworkStatus();
+            return true;
+        }
+        m_dxfAssociativeNetworkUnexpectedField = true;
+        m_networkFieldsParsed = false;
+    }
+    if (m_dxfAssociativeVariableSubclass) {
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            if (!m_dxfAssociativeVariableClassVersionSeen) {
+                m_variableClassVersion = value;
+                m_dxfAssociativeVariableClassVersionSeen = true;
+            } else if (m_dxfAssociativeVariableDiscriminatorSeen
+                && m_variableValueCode == 90 && !m_variableValueParsed) {
+                m_variableValueInt32 = value;
+                m_variableValueKind = EvalVariantKind::Int32;
+                m_variableValueParsed = true;
+            } else {
+                m_dxfAssociativeVariableUnexpectedField = true;
+            }
+        } else if (code == 70) {
+            if (m_dxfAssociativeVariableDiscriminatorSeen)
+                m_dxfAssociativeVariableUnexpectedField = true;
+            m_variableValueCode = reader->getInt32();
+            m_dxfAssociativeVariableDiscriminatorSeen = true;
+            if (m_variableValueCode != 40 && m_variableValueCode != 90)
+                m_variableValueKind = EvalVariantKind::Unsupported;
+        } else if (code == 40) {
+            const double value = reader->getDouble();
+            if (m_dxfAssociativeVariableDiscriminatorSeen
+                && m_variableValueCode == 40 && !m_variableValueParsed) {
+                m_variableValueReal = value;
+                m_variableValueKind = EvalVariantKind::Real;
+                m_variableValueParsed = std::isfinite(value);
+            } else {
+                m_dxfAssociativeVariableUnexpectedField = true;
+            }
+        } else if (code == 290) {
+            const bool value = reader->getBool();
+            if (m_dxfAssociativeVariableBoolIndex == 0u)
+                m_variableHasT78 = value;
+            else if (m_dxfAssociativeVariableBoolIndex == 1u)
+                m_variableB290 = value;
+            else
+                m_dxfAssociativeVariableUnexpectedField = true;
+            if (m_dxfAssociativeVariableBoolIndex < 2u)
+                ++m_dxfAssociativeVariableBoolIndex;
+        } else if (code == 1) {
+            std::string value = reader->getUtf8String();
+            switch (m_dxfAssociativeVariableStringIndex) {
+            case 0:
+                if (!replaceDxfRetainedStringField(reader,
+                        m_dxfVariableNameBytes, m_variableName,
+                        std::move(value)))
+                    return false;
+                break;
+            case 1:
+                if (!replaceDxfRetainedStringField(reader,
+                        m_dxfVariableExpressionBytes, m_variableExpression,
+                        std::move(value)))
+                    return false;
+                break;
+            case 2:
+                if (!replaceDxfRetainedStringField(reader,
+                        m_dxfVariableEvaluatorBytes, m_variableEvaluator,
+                        std::move(value)))
+                    return false;
+                break;
+            case 3:
+                if (!replaceDxfRetainedStringField(reader,
+                        m_dxfVariableDescriptionBytes, m_variableDescription,
+                        std::move(value)))
+                    return false;
+                break;
+            case 4:
+                if (!replaceDxfRetainedStringField(reader,
+                        m_dxfVariableT78Bytes, m_variableT78,
+                        std::move(value)))
+                    return false;
+                break;
+            default:
+                m_dxfAssociativeVariableUnexpectedField = true;
+                m_associativeVariableFieldsParsed = false;
+                return true;
+            }
+            ++m_dxfAssociativeVariableStringIndex;
+        } else {
+            m_dxfAssociativeVariableUnexpectedField = true;
+        }
+        m_associativeVariableFieldsParsed =
+            !m_dxfAssociativeVariableUnexpectedField
+            && m_dxfAssociativeVariableClassVersionSeen
+            && m_dxfAssociativeVariableStringIndex == 5u
+            && m_dxfAssociativeVariableDiscriminatorSeen
+            && m_variableValueParsed
+            && m_dxfAssociativeVariableBoolIndex == 2u;
         return true;
     }
     if (m_dxfAssociativeGeomSubclass == 1) {

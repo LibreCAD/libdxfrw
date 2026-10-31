@@ -2332,6 +2332,19 @@ set_tests_properties(dwg2dxf_associative_source_handle_reservation PROPERTIES
     TIMEOUT 15
 )
 
+# Exercise the admitted AC1024 DWG-root network + fully consumed variable graph
+# through strict document output, remapped identities, independent readback,
+# whole-file rollback after a late record failure, and corrected retry.
+add_test(
+    NAME dwg2dxf_associative_dwg_root_network_variable_export
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --associative-dwg-root-network-variable-export
+)
+set_tests_properties(dwg2dxf_associative_dwg_root_network_variable_export PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative;strict;writer"
+    TIMEOUT 30
+)
+
 if(TARGET dwg2dxf)
     # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
     # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.

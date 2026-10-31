@@ -6684,6 +6684,7 @@ bool dx_iface::inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noe
 bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                            bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
+    m_extensionAssociativeHandles.clear();
     m_extensionDictionaryWithDefaultHandles.clear();
     m_extensionPlaceholderHandles.clear();
     m_extensionXRecordHandles.clear();
@@ -6709,6 +6710,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const std::string& detail = std::string()) {
         // No partial traversal result may leak into a later export attempt.
         m_extensionDictionaryHandles.clear();
+        m_extensionAssociativeHandles.clear();
         m_extensionDictionaryWithDefaultHandles.clear();
         m_extensionPlaceholderHandles.clear();
         m_extensionXRecordHandles.clear();
@@ -6802,6 +6804,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             rawPlaceholders;
         std::unordered_map<std::uint32_t, const DRW_XRecord*> xrecords;
         std::unordered_map<std::uint32_t, const DRW_Material*> materials;
+        std::unordered_map<std::uint32_t,
+                           const DRW_AssociativeObject*> associativeRecords;
         std::unordered_map<std::uint32_t, const DRW_DictionaryVar*> dictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawDictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_Scale*> scales;
@@ -6881,6 +6885,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     || !sourceHandles.insert(object.handle).second)
                     return reject(ExtensionGraphFailure::InvalidGraph,
                         "invalid, duplicate, or colliding associative source handle "
+                        + std::to_string(object.handle));
+                if (!associativeRecords.emplace(object.handle, &object).second)
+                    return reject(ExtensionGraphFailure::InvalidGraph,
+                        "duplicate associative source handle "
                         + std::to_string(object.handle));
             }
         }
@@ -7883,8 +7891,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> visitedPlotSettings;
         std::unordered_set<std::uint32_t> visitedRenderSettings;
         std::unordered_set<std::uint32_t> visitedMaterials;
+        std::unordered_set<std::uint32_t> visitedAssociatives;
         enum class Phase {
-            Enter, ExtensionDictionary, Reactors, DefaultEntry, Entries, Leave
+            Enter, ExtensionDictionary, Reactors, AssociativeActions,
+            DefaultEntry, Entries, Leave
         };
         struct Frame {
             std::uint32_t handle;
@@ -7904,12 +7914,22 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const DRW_DetailViewStyle* detailViewStyle{nullptr};
             const DRW_SectionViewStyle* sectionViewStyle{nullptr};
             const DRW_Material* material{nullptr};
+            const DRW_AssociativeObject* associative{nullptr};
         };
         std::vector<Frame> frames;
         const auto queueTarget = [&](std::uint32_t handle, bool requireDictionary) {
             const auto material = materials.find(handle);
             if (!requireDictionary && material != materials.end()) {
                 Frame frame{handle}; frame.material = material->second;
+                frames.push_back(frame);
+                return true;
+            }
+            const auto associative = associativeRecords.find(handle);
+            if (!requireDictionary
+                && data->sourceFormat == dx_source_format::DWG
+                && associative != associativeRecords.end()) {
+                Frame frame{handle};
+                frame.associative = associative->second;
                 frames.push_back(frame);
                 return true;
             }
@@ -8044,6 +8064,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 addOwner(plotSettings);
                 addOwner(renderSettings);
                 addOwner(materials);
+                addOwner(associativeRecords);
                 return owner;
             };
         const auto visit = [&](std::uint32_t handle, bool requireDictionary) {
@@ -8080,6 +8101,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     entryPointer = frame.renderSettings;
                 else if (frame.material != nullptr)
                     entryPointer = frame.material;
+                else if (frame.associative != nullptr)
+                    entryPointer = frame.associative;
                 if (entryPointer == nullptr)
                     return reject(ExtensionGraphFailure::InvalidGraph,
                         "extension graph frame has no typed record");
@@ -8114,7 +8137,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                             ? visitedPlotSettings.count(frame.handle) != 0
                                         : frame.material != nullptr
                                             ? visitedMaterials.count(frame.handle) != 0
-                                            : visitedRenderSettings.count(frame.handle) != 0;
+                                            : frame.renderSettings != nullptr
+                                                ? visitedRenderSettings.count(frame.handle) != 0
+                                                : visitedAssociatives.count(frame.handle) != 0;
                     if (visited) {
                         frames.pop_back();
                         break;
@@ -8122,6 +8147,156 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     if (m_extensionGraphStats.visitedNodes >= m_extensionGraphLimits.maxNodes)
                         return reject(ExtensionGraphFailure::NodeLimit);
                     ++m_extensionGraphStats.visitedNodes;
+                    if (frame.associative != nullptr) {
+                        const DRW_AssociativeObject& object =
+                            *frame.associative;
+                        const auto completePrefix = [&object](
+                                DRW_AssociativePrefixStatus::Kind kind,
+                                std::uint16_t classVersion,
+                                std::size_t handles,
+                                std::size_t values,
+                                std::int32_t count) {
+                            return std::count_if(
+                                object.m_prefixStatuses.begin(),
+                                object.m_prefixStatuses.end(),
+                                [kind, classVersion, handles, values, count](
+                                        const DRW_AssociativePrefixStatus& status) {
+                                    return status.m_kind == kind
+                                        && status.m_status
+                                            == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                                        && status.m_classVersion == classVersion
+                                        && status.m_decodedHandleCount == handles
+                                        && status.m_decodedValueCount == values
+                                        && status.m_decodedCountValue == count;
+                                }) == 1;
+                        };
+                        if (data->sourceVersion != DRW::AC1024
+                            || !object.appData.empty()
+                            || object.xDictHandle != 0u
+                            || object.extData.size()
+                                > DRW::kMaxDxfBinaryPayloadBytes)
+                            return reject(ExtensionGraphFailure::InvalidGraph,
+                                "associative graph output requires the bounded AC1024 typed profile without XDICTIONARY or APPDATA");
+
+                        if (layoutSymbolKey(object.m_recordName)
+                            == "ACDBASSOCNETWORK") {
+                            if (!object.m_networkFieldsParsed
+                                || object.m_classVersion != 1u
+                                || object.m_networkVersion != 0
+                                || object.m_owningNetworkHandle != 0u
+                                || object.m_actionBodyHandle != 0u
+                                || object.m_maxDependencyIndex != 0
+                                || !object.m_dependencies.empty()
+                                || !object.m_ownedParams.empty()
+                                || !object.m_ownedActions.empty()
+                                || object.m_valueParamCount != 0u
+                                || object.m_valueParamsParsed
+                                || object.m_actionParamPrefixParsed
+                                || object.m_singleDependencyActionParamParsed
+                                || object.m_compoundActionParamParsed
+                                || object.m_actions.size()
+                                    > m_extensionGraphLimits.maxEdges
+                                || object.m_prefixStatuses.size() != 2u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                    1u, 2u, 0u, 0)
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+                                    1u, object.m_actions.size(), 0u,
+                                    static_cast<std::int32_t>(
+                                        object.m_actions.size())))
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOCNETWORK is outside the source-bound AC1024 root-network profile");
+                            std::unordered_set<std::uint32_t> actionHandles;
+                            actionHandles.reserve(object.m_actions.size());
+                            for (const DRW_AssociativeHandleRef& action :
+                                 object.m_actions) {
+                                if (!examineEdge()
+                                    || !action.m_isOwned
+                                    || action.m_handle == 0u
+                                    || action.m_handle == DRW::NoHandle
+                                    || !actionHandles.insert(
+                                        action.m_handle).second) {
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOCNETWORK contains an invalid, duplicate, or non-owned action reference");
+                                }
+                                const auto target = associativeRecords.find(
+                                    action.m_handle);
+                                if (target == associativeRecords.end()
+                                    || layoutSymbolKey(
+                                        target->second->m_recordName)
+                                        != "ACDBASSOCVARIABLE"
+                                    || target->second->parentHandle
+                                        != object.handle
+                                    || target->second->m_owningNetworkHandle
+                                        != object.handle)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOCNETWORK action target is not an owned AC1024 variable");
+                            }
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                   == "ACDBASSOCVARIABLE") {
+                            const auto network = associativeRecords.find(
+                                object.m_owningNetworkHandle);
+                            const std::size_t ownedMemberships =
+                                network == associativeRecords.end() ? 0u
+                                : static_cast<std::size_t>(std::count_if(
+                                    network->second->m_actions.begin(),
+                                    network->second->m_actions.end(),
+                                    [&object](const DRW_AssociativeHandleRef& ref) {
+                                        return ref.m_handle == object.handle
+                                            && ref.m_isOwned;
+                                    }));
+                            const bool validValue =
+                                (object.m_variableValueCode == 40
+                                    && object.m_variableValueKind
+                                        == DRW_AssociativeObject::EvalVariantKind::Real
+                                    && std::isfinite(object.m_variableValueReal))
+                                || (object.m_variableValueCode == 90
+                                    && object.m_variableValueKind
+                                        == DRW_AssociativeObject::EvalVariantKind::Int32);
+                            if (!object.m_associativeVariableFieldsParsed
+                                || !object.m_associativeVariableWireComplete
+                                || !object.m_variableValueParsed
+                                || object.m_variableClassVersion != 2
+                                || object.m_classVersion != 1u
+                                || object.m_owningNetworkHandle == 0u
+                                || object.parentHandle
+                                    != object.m_owningNetworkHandle
+                                || network == associativeRecords.end()
+                                || layoutSymbolKey(
+                                    network->second->m_recordName)
+                                    != "ACDBASSOCNETWORK"
+                                || ownedMemberships != 1u
+                                || object.m_actionBodyHandle != 0u
+                                || object.m_maxDependencyIndex != 0
+                                || !object.m_dependencies.empty()
+                                || !object.m_ownedParams.empty()
+                                || !object.m_ownedActions.empty()
+                                || object.m_valueParamCount != 0u
+                                || object.m_valueParamsParsed
+                                || object.m_actionParamPrefixParsed
+                                || object.m_singleDependencyActionParamParsed
+                                || object.m_compoundActionParamParsed
+                                || !object.m_actions.empty()
+                                || object.m_prefixStatuses.size() != 2u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                    1u, 2u, 0u, 0)
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+                                    2u, 0u, 10u, 0)
+                                || !validValue)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOCVARIABLE is outside the fully consumed, owned AC1024 action profile");
+                        } else {
+                            return reject(ExtensionGraphFailure::InvalidGraph,
+                                "associative record has no admitted AC1024 writer profile");
+                        }
+                    }
                     if (frame.dictionary || frame.record || frame.material) {
                         if (!preflightEdgeCandidateCount(entry.appData.size(), "typed common-group inventory work limit")) return false;
                         unsigned reactorGroups = 0u, dictionaryGroups = 0u;
@@ -8294,7 +8469,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (raw->second->m_version != data->sourceVersion)
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "RenderSettings raw version differs from source version");
-                    } else {
+                    } else if (frame.associative != nullptr) {
+                        // The source-bound associative profile was validated
+                        // above. It has no separate raw TABLESTYLE companion.
+                    } else if (frame.tableStyle != nullptr) {
                         const auto raw = rawTableStyles.find(frame.handle);
                         const bool typedDwgTableStyle =
                             data->sourceFormat == dx_source_format::DWG;
@@ -8306,6 +8484,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || raw->second->parentHandle
                                     != entry.parentHandle)
                             return reject();
+                    } else {
+                        return reject(ExtensionGraphFailure::InvalidGraph,
+                            "extension graph frame has no validated record profile");
                     }
                     if (m_extensionGraphStats.stagedHandles >= m_extensionGraphLimits.maxStagedHandles)
                         return reject(ExtensionGraphFailure::StagedHandleLimit);
@@ -8338,6 +8519,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         m_extensionPlotSettingsHandles.push_back(frame.handle);
                     else if (frame.renderSettings != nullptr)
                         m_extensionRenderSettingsHandles.push_back(frame.handle);
+                    else if (frame.associative != nullptr)
+                        m_extensionAssociativeHandles.push_back(frame.handle);
                     else if (!frame.material)
                         m_extensionTableStyleHandles.push_back(frame.handle);
                     frame.phase = Phase::ExtensionDictionary;
@@ -8370,6 +8553,27 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             && blockDelimiterHandles.count(reactor) == 0
                             && visiting.count(reactor) == 0
                             && !queueTarget(reactor, false))
+                            return false;
+                    } else {
+                        frame.index = 0;
+                        frame.phase = Phase::AssociativeActions;
+                    }
+                    break;
+                case Phase::AssociativeActions:
+                    if (frame.associative != nullptr
+                        && layoutSymbolKey(
+                            frame.associative->m_recordName)
+                            == "ACDBASSOCNETWORK"
+                        && frame.index
+                            < frame.associative->m_actions.size()) {
+                        const std::uint32_t actionHandle =
+                            frame.associative->m_actions[frame.index++]
+                                .m_handle;
+                        if (!examineEdge())
+                            return false;
+                        if (visiting.count(actionHandle) == 0u
+                            && visitedAssociatives.count(actionHandle) == 0u
+                            && !queueTarget(actionHandle, false))
                             return false;
                     } else {
                         frame.index = 0;
@@ -8579,6 +8783,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         visitedPlotSettings.insert(frame.handle);
                     else if (frame.renderSettings != nullptr)
                         visitedRenderSettings.insert(frame.handle);
+                    else if (frame.associative != nullptr)
+                        visitedAssociatives.insert(frame.handle);
                     else if (frame.material != nullptr)
                         visitedMaterials.insert(frame.handle);
                     else
@@ -8737,6 +8943,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 &visitedSectionViewStyles,
                                 &visitedPlotSettings,
                                 &visitedRenderSettings, &visitedMaterials,
+                                &visitedAssociatives,
                                 &linetypeHandles, &backgroundHandles,
                                 &blockDelimiterHandles, &blockRecordHandles,
                                 &sourceEntityHandles, &generatedDictionaryOwners, data,
@@ -8769,7 +8976,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || visitedSectionViewStyles.count(parent) != 0
                 || visitedPlotSettings.count(parent) != 0
                 || visitedRenderSettings.count(parent) != 0
-                || visitedMaterials.count(parent) != 0;
+                || visitedMaterials.count(parent) != 0
+                || visitedAssociatives.count(parent) != 0;
         };
 
         std::size_t variableDictionaryRootCount = 0;
@@ -8908,6 +9116,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 }
             }
         }
+        if (includeNamedObjectRoot
+            && data->sourceFormat == dx_source_format::DWG
+            && visitedAssociatives.size() != associativeRecords.size())
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "one or more DWG associative records are outside the rooted, fully admitted output graph");
         if (!dictionaryVars.empty()) {
             if (!includeNamedObjectRoot || !data->hasNamedObjectDictionary)
                 return reject(ExtensionGraphFailure::InvalidGraph,
@@ -42295,14 +42508,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 receipt.generation == cData->importGeneration
                 && receipt.sourceVersion == cData->sourceVersion
                 && receipt.successful && receipt.captureComplete
+                && receipt.typedRange.begin == 0u
                 && receipt.typedRange.begin <= receipt.typedRange.end
                 && receipt.typedRange.end == stored
                 && stored - receipt.typedRange.begin
                     == receipt.typedCallbacks;
+            if (!receiptMatchesImport || receipt.resourceLimitExceeded
+                || receipt.captureFailed
+                || cData->dwgAssociativeCaptureFailed) {
             try {
                 std::cerr
                     << "DXF export preflight failed: "
-                       "dwg-associative-graph-not-serialized"
+                       "dwg-associative-capture-not-admitted"
                     << " generation=" << receipt.generation
                     << " callbacks=" << receipt.typedCallbacks
                     << " stored=" << stored
@@ -42536,6 +42753,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 // Reporting cannot authorize lossy publication.
             }
             return false;
+            }
         }
     }
     const bool hasNamedResourceRecords =
@@ -43130,7 +43348,24 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     // A VisualStyle carrier is only safe to emit with its rooted dictionary
     // graph. Tolerant callers still get fail-closed behavior for this feature
     // until there is an explicit, observable omission policy.
+    const bool hasDwgAssociativeObjects =
+        cData->sourceFormat == dx_source_format::DWG
+        && !cData->dwgAssociativeObjects.empty();
+    if (cData->sourceFormat == dx_source_format::DXF
+        && (!cData->associativeObjects.empty()
+            || !cData->rawAssociativeObjects.empty())) {
+        reportPreflightFailure(
+            "DXF-origin associative records have no admitted output graph route");
+        return false;
+    }
+    if (hasDwgAssociativeObjects
+        && (v != DRW::AC1024 || !cData->hasNamedObjectDictionary)) {
+        reportPreflightFailure(
+            "AC1024 associative output requires an AC1024 target and rooted NOD");
+        return false;
+    }
     const bool includeNamedObjectRoot = requireResolvedOwners
+        || hasDwgAssociativeObjects
         || validateVisualStyles || validateMLineStyles
         || validateMLeaderStyles || validateModelDocViewStyles
         || !m_tableStylesToEmit.empty()
@@ -43181,6 +43416,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << m_extensionGraphStats.inspectedXRecordPayloadSlots
                       << " detail=" << extensionGraphFailureDetail() << '\n';
         }
+        return false;
+    }
+    if (hasDwgAssociativeObjects
+        && m_extensionAssociativeHandles.size()
+            != cData->dwgAssociativeObjects.size()) {
+        reportPreflightFailure(
+            "DWG associative records are not all reachable in the admitted output graph");
         return false;
     }
     // A source-bound AC1018 ATTDEF scope can authenticate one empty
@@ -44201,6 +44443,62 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             && registerClass("DICTIONARYVAR", "AcDbDictionaryVar",
                              m_extensionDictionaryVarHandles.size());
     };
+    const auto registerAssociativeClasses = [this](
+            std::vector<DRW_Class>& classes) {
+        std::map<std::string, std::size_t> counts;
+        for (const std::uint32_t handle : m_extensionAssociativeHandles) {
+            const DRW_AssociativeObject* selected = nullptr;
+            std::size_t matches = 0u;
+            for (const DRW_AssociativeObject& object :
+                 cData->dwgAssociativeObjects) {
+                if (object.handle != handle)
+                    continue;
+                ++matches;
+                selected = &object;
+            }
+            if (matches != 1u || selected == nullptr
+                || (selected->m_recordName != "ACDBASSOCNETWORK"
+                    && selected->m_recordName != "ACDBASSOCVARIABLE"))
+                return false;
+            auto& count = counts[selected->m_recordName];
+            if (count == static_cast<std::size_t>(
+                    std::numeric_limits<int>::max()))
+                return false;
+            ++count;
+        }
+
+        for (const auto& count : counts) {
+            DRW_Class canonical;
+            if (!dxfRW::dxfClassForRecordName(count.first, canonical))
+                return false;
+            std::vector<DRW_Class> normalized;
+            normalized.reserve(classes.size() + 1u);
+            bool found = false;
+            for (const DRW_Class& candidate : classes) {
+                const bool sameRecord = layoutSymbolKey(candidate.recName)
+                    == layoutSymbolKey(canonical.recName);
+                const bool sameClass = layoutSymbolKey(candidate.className)
+                    == layoutSymbolKey(canonical.className);
+                if (!sameRecord && !sameClass) {
+                    normalized.push_back(candidate);
+                    continue;
+                }
+                if (!sameRecord || !sameClass || found
+                    || layoutSymbolKey(candidate.appName)
+                        != layoutSymbolKey(canonical.appName)
+                    || candidate.proxyFlag != canonical.proxyFlag
+                    || candidate.entityFlag != canonical.entityFlag
+                    || candidate.wasaProxyFlag != 0)
+                    return false;
+                found = true;
+            }
+            canonical.instanceCount = static_cast<int>(count.second);
+            canonical.wasaProxyFlag = 0;
+            normalized.push_back(std::move(canonical));
+            classes.swap(normalized);
+        }
+        return true;
+    };
     const auto registerDictionaryDefaultClasses = [this](
             std::vector<DRW_Class>& classes) {
         const auto registerClass = [&classes](const char* recordName,
@@ -44456,7 +44754,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (!registerMeshClass(classes)
                 || !registerMLeaderStyleClass(classes)
                 || !registerNamedResourceClasses(classes)
-                || !registerDictionaryDefaultClasses(classes))
+                || !registerDictionaryDefaultClasses(classes)
+                || !registerAssociativeClasses(classes))
                 return failAcdsExport();
             dxfW->setDxfClasses(std::move(classes));
         } else {
@@ -44582,7 +44881,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (!registerMeshClass(classes)
             || !registerMLeaderStyleClass(classes)
             || !registerNamedResourceClasses(classes)
-            || !registerDictionaryDefaultClasses(classes))
+            || !registerDictionaryDefaultClasses(classes)
+            || !registerAssociativeClasses(classes))
             return failAcdsExport();
         dxfW->setDxfClasses(std::move(classes));
         }
@@ -44620,7 +44920,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (!registerMeshClass(classes)
             || !registerMLeaderStyleClass(classes)
             || !registerNamedResourceClasses(classes)
-            || !registerDictionaryDefaultClasses(classes)) {
+            || !registerDictionaryDefaultClasses(classes)
+            || !registerAssociativeClasses(classes)) {
             reportPreflightFailure("AcDbSubDMesh CLASS metadata");
             delete dxfW;
             dxfW = nullptr;

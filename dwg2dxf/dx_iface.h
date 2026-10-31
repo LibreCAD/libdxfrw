@@ -1860,6 +1860,34 @@ public:
             if (!dxfW->writeTableContent(&content))
                 return;
         }
+        std::unordered_set<std::uint32_t> associativeHandles;
+        for (const std::uint32_t handle : m_extensionAssociativeHandles) {
+            if (!associativeHandles.insert(handle).second) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+            std::size_t matches = 0u;
+            DRW_AssociativeObject* object = nullptr;
+            for (DRW_AssociativeObject& candidate :
+                 cData->dwgAssociativeObjects) {
+                if (candidate.handle != handle)
+                    continue;
+                ++matches;
+                object = &candidate;
+            }
+            if (cData->sourceFormat != dx_source_format::DWG
+                || matches != 1u || object == nullptr) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+            bool written = false;
+            if (object->m_recordName == "ACDBASSOCNETWORK")
+                written = dxfW->writeAssociativeNetwork(object);
+            else if (object->m_recordName == "ACDBASSOCVARIABLE")
+                written = dxfW->writeAssociativeVariable(object);
+            if (!written)
+                return;
+        }
     }
     virtual void writeAppId() override{
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)
@@ -2553,6 +2581,7 @@ private:
     bool finalizeDxfShadeConsumers() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
+    std::vector<std::uint32_t> m_extensionAssociativeHandles;
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;
     std::vector<std::uint32_t> m_extensionPlaceholderHandles;
     std::vector<std::uint32_t> m_extensionXRecordHandles;
