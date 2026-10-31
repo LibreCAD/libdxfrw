@@ -29554,7 +29554,9 @@ bool dxfRW::writeAssociativeConstraintGroup(DRW_AssociativeObject *ent) {
         || ent->reactorHandles.size() > kMaxAssociativeItems
         || ent->m_classVersion != 1u
         || ent->m_actionBodyHandle != 0u
-        || ent->m_maxDependencyIndex != 0
+        || ent->m_maxDependencyIndex < 0
+        || static_cast<std::size_t>(ent->m_maxDependencyIndex)
+            > kMaxAssociativeItems
         || !ent->m_dependencies.empty() || !ent->m_ownedParams.empty()
         || !ent->m_ownedActions.empty() || ent->m_valueParamCount != 0u
         || ent->m_valueParamsParsed || ent->m_actionParamPrefixParsed

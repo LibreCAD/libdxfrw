@@ -3260,6 +3260,7 @@ void testAssociativeConstraintGroupWriter(TestContext& t) {
         group.m_geometryStatus = 0;
         group.m_owningNetworkHandle = 0x502u;
         group.m_actionIndex = 4;
+        group.m_maxDependencyIndex = 143;
         group.m_constraintGroupBodyParsed = true;
         group.m_constraintGroupVersion = 0;
         group.m_constraintGroupFlag = true;
@@ -3455,7 +3456,7 @@ void testAssociativeConstraintGroupWriter(TestContext& t) {
         "0:ACDBASSOC2DCONSTRAINTGROUP", "5:3E8",
         "102:{ACAD_REACTORS", "330:3E9", "102:}", "330:3E9",
         "100:AcDbAssocAction", "90:1", "90:0", "330:3EA", "360:0",
-        "90:4", "90:0", "90:0", "90:2", "70:1"};
+        "90:4", "90:143", "90:0", "90:2", "70:1"};
     pointTags(expected, 10, 1.0, 2.0, 3.0);
     pointTags(expected, 10, 4.0, 5.0, 6.0);
     pointTags(expected, 10, 7.0, 8.0, 9.0);
