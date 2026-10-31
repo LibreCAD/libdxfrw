@@ -1212,6 +1212,7 @@ public:
             || !hasUnchangedExtensionDictionaryOwnerSources()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
+            || !hasUnchangedDwgScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
@@ -1539,9 +1540,12 @@ public:
                 return;
             }
             if (cData->sourceFormat == dx_source_format::DWG) {
+                const auto frozen = m_dwgScaleOutputSources.find(handle);
                 if (rawMatches != 0u || typedMatches != 1u
                     || typedScale == nullptr
-                    || !dxfW->writeScale(typedScale))
+                    || frozen == m_dwgScaleOutputSources.end()
+                    || !hasUnchangedDwgScales()
+                    || !dxfW->writeScale(&frozen->second.model))
                     return;
             } else if (rawMatches != 1u || typedMatches != 1u
                        || rawScale == nullptr
@@ -2466,11 +2470,27 @@ private:
         std::shared_ptr<const DRW_RawDxfObject> baseline;
         std::vector<std::pair<std::size_t,UTF8STRING>> stringOverrides;
     };
+    struct DwgScaleOutputSource {
+        DRW_Scale model;
+    };
     std::unordered_map<std::uint32_t,DxfScaleSource> m_dxfScales;
+    std::map<std::uint32_t,DwgScaleOutputSource> m_dwgScaleOutputSources;
+    std::map<std::uint32_t,DRW_Dictionary> m_dwgScaleOutputDictionaries;
+    const dx_data* m_dwgScaleOutputOwner{nullptr};
+    std::uint64_t m_dwgScaleOutputGeneration{0u};
+    DRW::Version m_dwgScaleOutputVersion{DRW::UNKNOWNV};
+    DRW::Version m_dwgScaleTargetVersion{DRW::UNKNOWNV};
+    bool m_dwgScaleOutputBinary{false};
+    bool m_dwgScalesInspected{false};
+    std::size_t m_dwgScaleOutputBytes{0u};
     DxfNamedResourceState m_dxfScaleState;
     bool m_dxfScalesInspected{false};
     bool prepareDxfScales(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
+    bool prepareDwgScales(DRW::Version version, bool binary,
+                          bool debug) noexcept;
+    bool hasUnchangedDwgScales() const noexcept;
+    bool inspectDwgScales(const dxfRW::DxfObjectsWriteView&, bool debug) noexcept;
     bool hasUnchangedDxfScales() const noexcept;
     bool inspectDxfScales(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLeaderStyleSource {
@@ -2627,6 +2647,21 @@ private:
     bool checkDxfLayerMaterial(const DRW_Layer&) const noexcept;
     bool inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView&) noexcept;
     bool finalizeDxfLayerMaterials() const noexcept;
+    struct DxfVisualStyleWriteSource {
+        DRW_VisualStyle model;
+        DRW_RawDxfObject output;
+    };
+    std::map<std::uint32_t, DxfVisualStyleWriteSource> m_dxfVisualStyles;
+    const dx_data* m_dxfVisualStyleOwner{nullptr};
+    std::uint64_t m_dxfVisualStyleGeneration{0u};
+    DRW::Version m_dxfVisualStyleOutputVersion{DRW::UNKNOWNV};
+    bool m_dxfVisualStyleOutputBinary{false};
+    bool m_dxfVisualStylesInspected{false};
+    std::size_t m_dxfVisualStyleOutputBytes{0u};
+    bool prepareDxfVisualStyles(DRW::Version version, bool binary) noexcept;
+    bool hasUnchangedDxfVisualStyles() const noexcept;
+    bool inspectDxfVisualStyles(const dxfRW::DxfObjectsWriteView&,
+                                bool debug) noexcept;
     struct DxfRenderPresetWriteSource {
         DRW_RenderSettings live;
         UTF8STRING name;

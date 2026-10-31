@@ -93,12 +93,14 @@ template<class Mapper> bool rawScalarTransportEqual(
         bool materialColors = false,
         std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes,
         bool literalSourceHandles = false,
-        RawHandleTransport handleTransport = RawHandleTransport::Translate) {
+        RawHandleTransport handleTransport = RawHandleTransport::Translate,
+        bool packedVisualStyleColors = false) {
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
         std::make_shared<DxfReadRetainedBudget>(retainedByteBudget));
     if (!reader) return false;
     reader->setMaterialUnsignedColorValues(materialColors);
+    reader->setVisualStyleUnsignedColorValues(packedVisualStyleColors);
     if(literalSourceHandles)reader->setAllowWideHandleLexemes(true);
     std::size_t applicationDepth = 0u;
     for (const auto& value : source) {
@@ -137,6 +139,13 @@ template<class Mapper> bool rawScalarTransportEqual(
             if (materialColors && (code == 90 || code == 91 || code == 92)) {
                 if (value.i64_val() < 0 || value.i64_val() > 4294967295LL
                     || reader->getUInt32() != static_cast<std::uint32_t>(value.i64_val())) return false;
+            } else if (packedVisualStyleColors
+                       && code >= 421 && code <= 425) {
+                if (value.i64_val() < 0
+                    || value.i64_val() > 4294967295LL
+                    || reader->getUInt32()
+                        != static_cast<std::uint32_t>(value.i64_val()))
+                    return false;
             } else if (code >= 160 && code <= 169) {
                 if (reader->getInt64() != value.i64_val()) return false;
             } else return false;
@@ -371,11 +380,13 @@ class Decoder final {
 public:
     explicit Decoder(const dxfRW::DxfObjectsWriteView& profile, bool materialColors=false,
                      DRW::DxfTextEncoding encoding=DRW::DxfTextEncoding::Declared,
-                     DRW::DxfCodePagePolicy policy=DRW::DxfCodePagePolicy::Compatible)
+                     DRW::DxfCodePagePolicy policy=DRW::DxfCodePagePolicy::Compatible,
+                     bool visualStyleColors=false)
         : input(&buffer), budget(std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes)),
           reader(readerFor(input, profile, budget)) {
         if(reader) {
             reader->setMaterialUnsignedColorValues(materialColors);
+            reader->setVisualStyleUnsignedColorValues(visualStyleColors);
             reader->setDxfTextEncoding(encoding);
             reader->setDxfCodePagePolicy(policy);
         }

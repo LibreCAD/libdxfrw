@@ -19,6 +19,7 @@
 #include <charconv>
 #include <cctype>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -27976,6 +27977,287 @@ bool visualStyleImportEvidence(const std::filesystem::path& directory) {
     return true;
 }
 
+bool readbackPhysicalVisualStyleOutput(const std::filesystem::path& path) {
+    static const std::array<std::uint32_t, 19> expectedHandles{{
+        0x9Au, 0x9Bu, 0x9Cu, 0x9Du, 0x9Eu, 0x9Fu, 0xA0u, 0xA1u,
+        0xA2u, 0xA3u, 0xA4u, 0xA5u, 0xA6u, 0xA7u, 0xA8u, 0xA9u,
+        0x337u, 0x338u, 0x339u}};
+    dx_data readback;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &readback, false)
+        || !readback.hasSingleSuccessfulVisualStyleImport()
+        || readback.sourceFormat != dx_source_format::DXF
+        || readback.sourceVersion != DRW::AC1024
+        || readback.visualStyles.size() != expectedHandles.size()
+        || readback.rawVisualStyleObjects.size() != expectedHandles.size())
+        return fail("physical VISUALSTYLE DXF did not reimport as 19 typed/raw records");
+
+    const DRW_Dictionary* styleDictionary = nullptr;
+    for (const DRW_Dictionary& dictionary : readback.dictionaries)
+        if (dictionary.handle == 0x99u) {
+            if (styleDictionary != nullptr)
+                return fail("physical VISUALSTYLE owner dictionary is ambiguous");
+            styleDictionary = &dictionary;
+        }
+    if (styleDictionary == nullptr || styleDictionary->parentHandle != 0xCu
+        || styleDictionary->m_entries.size() != expectedHandles.size())
+        return fail("physical ACAD_VISUALSTYLE dictionary did not reimport completely");
+
+    std::set<std::uint32_t> typedHandles;
+    for (const DRW_VisualStyle& style : readback.visualStyles) {
+        if (!typedHandles.insert(style.handle).second
+            || std::find(expectedHandles.begin(), expectedHandles.end(),
+                         style.handle) == expectedHandles.end()
+            || style.parentHandle != styleDictionary->handle
+            || style.reactorHandles.size() != 1u
+            || style.reactorHandles.front() != styleDictionary->handle)
+            return fail("physical VISUALSTYLE typed handle or owner/reactor changed on reimport");
+
+        const DRW_RawDxfObject* raw = nullptr;
+        for (const DRW_RawDxfObject& candidate : readback.rawVisualStyleObjects) {
+            if (candidate.handle != style.handle)
+                continue;
+            if (raw != nullptr)
+                return fail("physical VISUALSTYLE raw record handle is duplicated");
+            raw = &candidate;
+        }
+        if (raw == nullptr || raw->name != "VISUALSTYLE"
+            || raw->parentHandle != styleDictionary->handle
+            || raw->m_version != DRW::AC1024)
+            return fail("physical VISUALSTYLE raw identity or version changed on reimport");
+
+        const auto description = std::find_if(
+            raw->groups.begin(), raw->groups.end(), [](const DRW_Variant& group) {
+                return group.code() == 2
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr;
+            });
+        const auto companionCount = static_cast<std::size_t>(std::count_if(
+            raw->groups.begin(), raw->groups.end(), [](const DRW_Variant& group) {
+                return group.code() == 176;
+            }));
+        const auto packedColorCount = static_cast<std::size_t>(std::count_if(
+            raw->groups.begin(), raw->groups.end(), [](const DRW_Variant& group) {
+                return group.code() >= 421 && group.code() <= 425;
+            }));
+        if (description == raw->groups.end()
+            || std::string_view(description->c_str()) != style.desc
+            || companionCount != 28u
+            || (packedColorCount != 1u && packedColorCount != 2u))
+            return fail("physical VISUALSTYLE fields, companion span, or CMC payload changed on reimport");
+
+        const auto membershipCount = static_cast<std::size_t>(std::count_if(
+            styleDictionary->m_entries.begin(), styleDictionary->m_entries.end(),
+            [&style](const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == style.handle;
+            }));
+        if (membershipCount != 1u)
+            return fail("physical VISUALSTYLE owner dictionary membership changed on reimport");
+    }
+    std::cerr << "Physical VISUALSTYLE file readback passed: 19 identities, "
+                 "owner/reactor links, 28 companions per style, CMC payloads.\n";
+    return true;
+}
+
+bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
+                                 const std::filesystem::path& outputPath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.scales.size() != 17u)
+        return fail("physical SCALE source did not import as 17 AC1024 records");
+
+    const auto findRootedDictionary = [](const dx_data& data) {
+        const DRW_Dictionary::Entry* root = nullptr;
+        for (const DRW_Dictionary::Entry& entry :
+             data.namedObjectDictionary.m_entries) {
+            if (entry.m_name != "ACAD_SCALELIST")
+                continue;
+            if (root != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            root = &entry;
+        }
+        if (root == nullptr)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        const DRW_Dictionary* found = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != root->m_handle)
+                continue;
+            if (found != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            found = &dictionary;
+        }
+        return found;
+    };
+    const DRW_Dictionary* sourceDictionary = findRootedDictionary(source);
+    if (sourceDictionary == nullptr
+        || sourceDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || sourceDictionary->m_entries.size() != source.scales.size())
+        return fail("physical source ACAD_SCALELIST dictionary is incomplete");
+
+    const auto verifyOutput = [&](const std::filesystem::path& path) {
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(path.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.scales.size() != source.scales.size())
+            return fail("physical SCALE DXF did not reimport as 17 typed records");
+        const DRW_Dictionary* outputDictionary = findRootedDictionary(output);
+        if (outputDictionary == nullptr
+            || outputDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || outputDictionary->m_entries.size()
+                != sourceDictionary->m_entries.size())
+            return fail("physical DXF ACAD_SCALELIST dictionary is incomplete");
+        for (std::size_t index = 0;
+             index < sourceDictionary->m_entries.size(); ++index) {
+            const auto& expected = sourceDictionary->m_entries[index];
+            const auto& actual = outputDictionary->m_entries[index];
+            const auto expectedCode =
+                expected.m_dxfHandleCode
+                    == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                ? (sourceDictionary->hardOwner
+                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                : expected.m_dxfHandleCode;
+            if (expected.m_name != actual.m_name
+                || expected.m_handle != actual.m_handle
+                || expectedCode != actual.m_dxfHandleCode)
+                return fail("physical ACAD_SCALELIST membership/order changed on readback");
+        }
+
+        std::set<std::uint32_t> observed;
+        for (const DRW_Scale& expected : source.scales) {
+            if (!observed.insert(expected.handle).second)
+                return fail("physical source SCALE handles are duplicated");
+            const auto actual = std::find_if(
+                output.scales.begin(), output.scales.end(),
+                [&expected](const DRW_Scale& candidate) {
+                    return candidate.handle == expected.handle;
+                });
+            if (actual == output.scales.end()
+                || actual->parentHandle != outputDictionary->handle
+                || actual->reactorHandles.size() != 1u
+                || actual->reactorHandles.front() != outputDictionary->handle
+                || actual->flag != expected.flag
+                || actual->name != expected.name
+                || std::memcmp(&actual->paperUnits, &expected.paperUnits,
+                               sizeof(double)) != 0
+                || std::memcmp(&actual->drawingUnits,
+                               &expected.drawingUnits, sizeof(double)) != 0
+                || actual->isUnitScale != expected.isUnitScale)
+                return fail("physical SCALE identity, owner/reactor, or typed fields changed on readback");
+
+            const DRW_RawDxfObject* raw = nullptr;
+            for (const DRW_RawDxfObject& candidate :
+                 output.rawNamedResourceObjects) {
+                if (candidate.handle != expected.handle
+                    || candidate.name != "SCALE")
+                    continue;
+                if (raw != nullptr)
+                    return fail("physical SCALE raw output handle is duplicated");
+                raw = &candidate;
+            }
+            if (raw == nullptr || raw->parentHandle != outputDictionary->handle
+                || raw->m_version != DRW::AC1024)
+                return fail("physical SCALE raw output identity/owner is missing");
+            const auto findGroup = [raw](int code) {
+                return std::find_if(raw->groups.begin(), raw->groups.end(),
+                    [code](const DRW_Variant& group) {
+                        return group.code() == code;
+                    });
+            };
+            const auto flag = findGroup(70);
+            const auto name = findGroup(300);
+            const auto paper = findGroup(140);
+            const auto drawing = findGroup(141);
+            const auto unitScale = findGroup(290);
+            if (flag == raw->groups.end() || flag->type() != DRW_Variant::INTEGER
+                || flag->i_val() != expected.flag
+                || name == raw->groups.end() || name->type() != DRW_Variant::STRING
+                || name->c_str() == nullptr
+                || std::string_view(name->c_str()) != expected.name
+                || paper == raw->groups.end() || paper->type() != DRW_Variant::DOUBLE
+                || std::memcmp(&paper->content.d, &expected.paperUnits,
+                               sizeof(double)) != 0
+                || drawing == raw->groups.end()
+                || drawing->type() != DRW_Variant::DOUBLE
+                || std::memcmp(&drawing->content.d, &expected.drawingUnits,
+                               sizeof(double)) != 0
+                || unitScale == raw->groups.end()
+                || unitScale->type() != DRW_Variant::INTEGER
+                || unitScale->i_val() != (expected.isUnitScale ? 1 : 0))
+                return fail("physical SCALE raw field carriers changed on readback");
+        }
+        return true;
+    };
+
+    if (!verifyOutput(outputPath))
+        return false;
+
+    class LateScaleMutation final : public dx_iface {
+    public:
+        bool mutateAfterObjects{false};
+        std::uint32_t targetHandle{0u};
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (!mutateAfterObjects || cData == nullptr)
+                return;
+            const auto scale = std::find_if(
+                cData->scales.begin(), cData->scales.end(),
+                [this](const DRW_Scale& value) {
+                    return value.handle == targetHandle;
+                });
+            if (scale != cData->scales.end())
+                scale->paperUnits += 0.125;
+        }
+    };
+    const std::filesystem::path retryPath = outputPath.string() + ".retry.dxf";
+    const std::string sentinel = "SCALE destination sentinel\n";
+    { std::ofstream existing(retryPath, std::ios::binary | std::ios::trunc);
+      existing << sentinel; }
+    const DRW_Scale sourceScale = source.scales.front();
+    LateScaleMutation writer;
+    writer.targetHandle = sourceScale.handle;
+    writer.mutateAfterObjects = true;
+    const auto exportPartial = [&writer, &source, &retryPath]() {
+        return writer.fileExport(
+            retryPath.string(), DRW::AC1024, false, &source, false, true,
+            dx_dxfSourceTextPolicy::RequireValidSource,
+            DRW::DxfTextWritePolicy::RequireLossless,
+            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+    };
+    if (exportPartial())
+        return fail("late physical SCALE source mutation was accepted");
+    { std::ifstream preserved(retryPath, std::ios::binary);
+      const std::string bytes{std::istreambuf_iterator<char>(preserved), {}};
+      if (bytes != sentinel)
+          return fail("rejected physical SCALE mutation replaced the destination"); }
+    const auto restored = std::find_if(
+        source.scales.begin(), source.scales.end(),
+        [&sourceScale](const DRW_Scale& value) {
+            return value.handle == sourceScale.handle;
+        });
+    if (restored == source.scales.end())
+        return fail("physical SCALE mutation target disappeared");
+    *restored = sourceScale;
+    writer.mutateAfterObjects = false;
+    if (!exportPartial() || !verifyOutput(retryPath))
+        return fail("restored physical SCALE source could not retry and read back");
+
+    std::cerr << "Physical SCALE file proof passed: 17 identities, rooted "
+                 "ACAD_SCALELIST membership, owner/reactors, exact typed/raw "
+                 "fields, rollback and retry.\n";
+    return true;
+}
+
 bool visualStyleRawCaptureLimitsFailClosed() {
     DRW_RawDxfObject raw;
     raw.name = "VISUALSTYLE";
@@ -42586,6 +42868,12 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(argv[2]);
         return visualStyleImportEvidence(argv[2]) ? 0 : 1;
     }
+    if (argc == 3
+        && std::string(argv[1]) == "--visual-style-physical-output-readback")
+        return readbackPhysicalVisualStyleOutput(argv[2]) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--scale-physical-output-readback")
+        return readbackPhysicalScaleOutput(argv[2], argv[3]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--visual-style-ac1024-typed-writer")
         return typedAc1024VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;

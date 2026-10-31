@@ -95,6 +95,10 @@ bool retainedDoubleEqual(double lhs, double rhs) noexcept {
     return std::memcmp(&lhs, &rhs, sizeof(double)) == 0;
 }
 
+bool visualStyleModelEqual(const DRW_VisualStyle& lhs,
+                           const DRW_VisualStyle& rhs,
+                           DRW::Version version) noexcept;
+
 bool retainedVariantEqual(const DRW_Variant& lhs,
                           const DRW_Variant& rhs) noexcept {
     const auto* leftColor = lhs.dwgCmColorValue();
@@ -6028,6 +6032,95 @@ bool dx_iface::writeSectionViewStyleRaw(DRW_RawDxfObject* raw,
     }
 }
 
+namespace {
+
+bool buildAc1024VisualStyleRaw(const DRW_VisualStyle& typed,
+                               DRW_RawDxfObject& output) {
+    const DRW_VisualStyleBody& body = typed.m_body;
+    const DRW_VisualStyleEncoding& encoding = body.m_encoding;
+    output = DRW_RawDxfObject{};
+    output.name = "VISUALSTYLE";
+    output.handle = typed.handle;
+    output.parentHandle = typed.parentHandle;
+    output.m_version = DRW::AC1024;
+    output.groups.emplace_back(5, proxyHandleString(typed.handle));
+    output.groups.emplace_back(102, "{ACAD_REACTORS");
+    output.groups.emplace_back(
+        330, proxyHandleString(typed.reactorHandles.front()));
+    output.groups.emplace_back(102, "}");
+    output.groups.emplace_back(330, proxyHandleString(typed.parentHandle));
+    output.groups.emplace_back(100, "AcDbVisualStyle");
+    output.groups.emplace_back(2, typed.desc);
+    output.groups.emplace_back(70, typed.type);
+    output.groups.emplace_back(177, body.extLightingModel);
+    output.groups.emplace_back(291, body.internalOnly ? 1 : 0);
+
+    const auto appendCompanion = [&output, &encoding](std::size_t index) {
+        output.groups.emplace_back(
+            176, static_cast<std::int32_t>(encoding.companions[index]));
+    };
+    const auto appendInteger = [&output, &appendCompanion](
+                                   int code, std::int32_t value,
+                                   std::size_t companion) {
+        output.groups.emplace_back(code, value);
+        appendCompanion(companion);
+    };
+    const auto appendReal = [&output, &appendCompanion](
+                                int code, double value,
+                                std::size_t companion) {
+        output.groups.emplace_back(code, value);
+        appendCompanion(companion);
+    };
+    const auto appendColor = [&output, &appendCompanion, &encoding](
+                                 std::size_t colorIndex, int code,
+                                 int extensionCode, std::size_t companion) {
+        const DRW_VisualStyleColor& color = encoding.colors[colorIndex];
+        int dxfColor = color.normalizedIndex;
+        if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u)
+            dxfColor = 7; // LibreDWG's R2010 CMC fallback ACI.
+        else if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC8u)
+            dxfColor = 257; // DXF's explicit None color index.
+        output.groups.emplace_back(code, dxfColor);
+        if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u) {
+            output.groups.emplace_back(
+                extensionCode, static_cast<std::uint64_t>(color.rawRgb));
+        }
+        appendCompanion(companion);
+    };
+
+    appendInteger(71, body.faceLightingModel, 0u);
+    appendInteger(72, body.faceLightingQuality, 1u);
+    appendInteger(73, body.faceColorMode, 2u);
+    appendInteger(90, body.faceModifier, 3u);
+    appendReal(40, body.faceOpacity, 4u);
+    appendReal(41, body.faceSpecular, 5u);
+    appendColor(0u, 63, 421, 6u);
+    appendInteger(74, body.edgeModel, 7u);
+    appendInteger(91, body.edgeStyle, 8u);
+    appendColor(1u, 64, 422, 9u);
+    appendColor(2u, 65, 423, 10u);
+    appendInteger(75, body.edgeObscuredLtype, 11u);
+    appendInteger(175, body.edgeIntersectionLtype, 12u);
+    appendReal(42, body.edgeCreaseAngle, 13u);
+    appendInteger(92, body.edgeModifier, 14u);
+    appendColor(3u, 66, 424, 15u);
+    appendReal(43, body.edgeOpacity, 16u);
+    appendInteger(76, body.edgeWidth, 17u);
+    appendInteger(77, body.edgeOverhang, 18u);
+    appendInteger(78, body.edgeJitter, 19u);
+    appendColor(4u, 67, 425, 20u);
+    appendInteger(79, body.edgeSilhouetteWidth, 21u);
+    appendInteger(170, body.edgeHaloGap, 22u);
+    appendInteger(171, encoding.sourceIsolines, 23u);
+    appendInteger(290, body.edgeDoHidePrecision ? 1 : 0, 24u);
+    appendInteger(93, body.displaySettings, 25u);
+    appendReal(44, body.displayBrightness, 26u);
+    appendInteger(173, body.displayShadowType, 27u);
+    return true;
+}
+
+} // namespace
+
 bool dx_iface::writeVisualStyleRaw(DRW_RawDxfObject* raw,
                                    const DRW_VisualStyle* typed) {
     if (dxfW == nullptr || typed == nullptr)
@@ -6047,96 +6140,15 @@ bool dx_iface::writeVisualStyleRaw(DRW_RawDxfObject* raw,
             || cData->sourceFormat != dx_source_format::DWG
             || cData->sourceVersion != DRW::AC1024
             || dxfW->getVersion() != DRW::AC1024
-            || !cData->hasCompleteAc1024VisualStyleSourceProfile())
+            || !cData->hasCompleteAc1024VisualStyleSourceProfile()
+            || !hasUnchangedDxfVisualStyles())
             return false;
-
-        const DRW_VisualStyleBody& body = typed->m_body;
-        const DRW_VisualStyleEncoding& encoding = body.m_encoding;
-        DRW_RawDxfObject output;
-        output.name = "VISUALSTYLE";
-        output.handle = typed->handle;
-        output.parentHandle = typed->parentHandle;
-        output.m_version = DRW::AC1024;
-        output.groups.emplace_back(5, proxyHandleString(typed->handle));
-        output.groups.emplace_back(102, "{ACAD_REACTORS");
-        output.groups.emplace_back(
-            330, proxyHandleString(typed->reactorHandles.front()));
-        output.groups.emplace_back(102, "}");
-        output.groups.emplace_back(330,
-                                   proxyHandleString(typed->parentHandle));
-        output.groups.emplace_back(100, "AcDbVisualStyle");
-        output.groups.emplace_back(2, typed->desc);
-        output.groups.emplace_back(70, typed->type);
-        output.groups.emplace_back(177, body.extLightingModel);
-        output.groups.emplace_back(291, body.internalOnly ? 1 : 0);
-
-        const auto appendCompanion = [&output, &encoding](
-                                         std::size_t index) {
-            output.groups.emplace_back(176,
-                static_cast<std::int32_t>(encoding.companions[index]));
-        };
-        const auto appendInteger = [&output, &appendCompanion](
-                                       int code, std::int32_t value,
-                                       std::size_t companion) {
-            output.groups.emplace_back(code, value);
-            appendCompanion(companion);
-        };
-        const auto appendReal = [&output, &appendCompanion](
-                                    int code, double value,
-                                    std::size_t companion) {
-            output.groups.emplace_back(code, value);
-            appendCompanion(companion);
-        };
-        const auto appendColor = [&output, &appendCompanion, &encoding](
-                                     std::size_t colorIndex, int code,
-                                     int extensionCode,
-                                     std::size_t companion) {
-            const DRW_VisualStyleColor& color =
-                encoding.colors[colorIndex];
-            int dxfColor = color.normalizedIndex;
-            if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u)
-                dxfColor = 7; // LibreDWG's R2010 CMC fallback ACI.
-            else if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC8u)
-                dxfColor = 257; // DXF's explicit None color index.
-            output.groups.emplace_back(code, dxfColor);
-            if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u) {
-                output.groups.emplace_back(
-                    extensionCode,
-                    static_cast<std::uint64_t>(color.rawRgb));
-            }
-            appendCompanion(companion);
-        };
-
-        appendInteger(71, body.faceLightingModel, 0u);
-        appendInteger(72, body.faceLightingQuality, 1u);
-        appendInteger(73, body.faceColorMode, 2u);
-        appendInteger(90, body.faceModifier, 3u);
-        appendReal(40, body.faceOpacity, 4u);
-        appendReal(41, body.faceSpecular, 5u);
-        appendColor(0u, 63, 421, 6u);
-        appendInteger(74, body.edgeModel, 7u);
-        appendInteger(91, body.edgeStyle, 8u);
-        appendColor(1u, 64, 422, 9u);
-        appendColor(2u, 65, 423, 10u);
-        appendInteger(75, body.edgeObscuredLtype, 11u);
-        appendInteger(175, body.edgeIntersectionLtype, 12u);
-        appendReal(42, body.edgeCreaseAngle, 13u);
-        appendInteger(92, body.edgeModifier, 14u);
-        appendColor(3u, 66, 424, 15u);
-        appendReal(43, body.edgeOpacity, 16u);
-        appendInteger(76, body.edgeWidth, 17u);
-        appendInteger(77, body.edgeOverhang, 18u);
-        appendInteger(78, body.edgeJitter, 19u);
-        appendColor(4u, 67, 425, 20u);
-        appendInteger(79, body.edgeSilhouetteWidth, 21u);
-        appendInteger(170, body.edgeHaloGap, 22u);
-        appendInteger(171, encoding.sourceIsolines, 23u);
-        appendInteger(290, body.edgeDoHidePrecision ? 1 : 0, 24u);
-        appendInteger(93, body.displaySettings, 25u);
-        appendReal(44, body.displayBrightness, 26u);
-        appendInteger(173, body.displayShadowType, 27u);
-
-        return dxfW->writeRawDxfObject(&output);
+        const auto source = m_dxfVisualStyles.find(typed->handle);
+        if (source == m_dxfVisualStyles.end()
+            || !visualStyleModelEqual(*typed, source->second.model,
+                                      DRW::AC1024))
+            return false;
+        return dxfW->writeRawDxfObject(&source->second.output);
     } catch (...) {
         return false;
     }
@@ -14702,6 +14714,357 @@ bool standardDwgCommonEqual(const DRW_TableEntry& left,
     return true;
 }
 
+bool visualStyleModelEqual(const DRW_VisualStyle& lhs,
+                           const DRW_VisualStyle& rhs,
+                           DRW::Version version) noexcept {
+    if (!standardDwgCommonEqual(lhs, rhs, version, true)
+        || lhs.desc != rhs.desc || lhs.type != rhs.type
+        || lhs.m_bodyDecoded != rhs.m_bodyDecoded)
+        return false;
+    const DRW_VisualStyleBody& a = lhs.m_body;
+    const DRW_VisualStyleBody& b = rhs.m_body;
+    const std::array<int, 35> aIntegers{{
+        a.faceLightingModel, a.faceLightingQuality, a.faceColorMode,
+        a.faceModifier, a.faceMonoColor, a.edgeModel, a.edgeStyle,
+        a.edgeIntersectionColor, a.edgeObscuredColor, a.edgeObscuredLtype,
+        a.edgeIntersectionLtype, a.edgeModifier, a.edgeColor, a.edgeWidth,
+        a.edgeOverhang, a.edgeJitter, a.edgeSilhouetteColor,
+        a.edgeSilhouetteWidth, a.edgeHaloGap, a.edgeIsolines,
+        a.edgeStyleApply, a.displaySettings, a.displayShadowType,
+        a.extLightingModel, a.blProp25, a.blProp28, a.blProp2a,
+        a.blProp2b, a.blProp30, a.blProp32, a.cProp29, a.cProp2c,
+        a.cProp33, a.edgeWiggle, a.m_encoding.sourceIsolines}};
+    const std::array<int, 35> bIntegers{{
+        b.faceLightingModel, b.faceLightingQuality, b.faceColorMode,
+        b.faceModifier, b.faceMonoColor, b.edgeModel, b.edgeStyle,
+        b.edgeIntersectionColor, b.edgeObscuredColor, b.edgeObscuredLtype,
+        b.edgeIntersectionLtype, b.edgeModifier, b.edgeColor, b.edgeWidth,
+        b.edgeOverhang, b.edgeJitter, b.edgeSilhouetteColor,
+        b.edgeSilhouetteWidth, b.edgeHaloGap, b.edgeIsolines,
+        b.edgeStyleApply, b.displaySettings, b.displayShadowType,
+        b.extLightingModel, b.blProp25, b.blProp28, b.blProp2a,
+        b.blProp2b, b.blProp30, b.blProp32, b.cProp29, b.cProp2c,
+        b.cProp33, b.edgeWiggle, b.m_encoding.sourceIsolines}};
+    const std::array<bool, 15> aBooleans{{
+        a.edgeDoHidePrecision, a.internalOnly, a.hasR2013bExpansion,
+        a.bProp1c, a.bProp1d, a.bProp1e, a.bProp1f, a.bProp20,
+        a.bProp21, a.bProp22, a.bProp23, a.bProp24, a.bProp2d,
+        a.bProp31, a.bProp37}};
+    const std::array<bool, 15> bBooleans{{
+        b.edgeDoHidePrecision, b.internalOnly, b.hasR2013bExpansion,
+        b.bProp1c, b.bProp1d, b.bProp1e, b.bProp1f, b.bProp20,
+        b.bProp21, b.bProp22, b.bProp23, b.bProp24, b.bProp2d,
+        b.bProp31, b.bProp37}};
+    const std::array<double, 10> aDoubles{{
+        a.faceOpacity, a.faceSpecular, a.edgeCreaseAngle, a.edgeOpacity,
+        a.displayBrightness, a.bdProp26, a.bdProp27, a.bdProp34,
+        a.bdProp38, a.bdProp39}};
+    const std::array<double, 10> bDoubles{{
+        b.faceOpacity, b.faceSpecular, b.edgeCreaseAngle, b.edgeOpacity,
+        b.displayBrightness, b.bdProp26, b.bdProp27, b.bdProp34,
+        b.bdProp38, b.bdProp39}};
+    if (aIntegers != bIntegers || aBooleans != bBooleans
+        || a.strokes != b.strokes
+        || a.m_encoding.companions != b.m_encoding.companions
+        || a.m_encoding.companionCount != b.m_encoding.companionCount
+        || a.m_encoding.colorCount != b.m_encoding.colorCount
+        || a.m_encoding.hasSourceIsolines
+            != b.m_encoding.hasSourceIsolines)
+        return false;
+    for (std::size_t index = 0u; index < aDoubles.size(); ++index)
+        if (!retainedDoubleEqual(aDoubles[index], bDoubles[index]))
+            return false;
+    for (std::size_t index = 0u; index < a.m_encoding.colors.size(); ++index) {
+        const DRW_VisualStyleColor& left = a.m_encoding.colors[index];
+        const DRW_VisualStyleColor& right = b.m_encoding.colors[index];
+        if (left.present != right.present || left.modern != right.modern
+            || left.rawIndex != right.rawIndex || left.rawRgb != right.rawRgb
+            || left.flags != right.flags
+            || left.normalizedIndex != right.normalizedIndex
+            || left.name != right.name || left.bookName != right.bookName)
+            return false;
+    }
+    return true;
+}
+
+} // namespace
+
+bool dx_iface::prepareDxfVisualStyles(DRW::Version version,
+                                     bool binary) noexcept {
+    m_dxfVisualStyles.clear();
+    m_dxfVisualStyleOwner = nullptr;
+    m_dxfVisualStyleGeneration = 0u;
+    m_dxfVisualStyleOutputVersion = DRW::UNKNOWNV;
+    m_dxfVisualStyleOutputBinary = false;
+    m_dxfVisualStylesInspected = false;
+    m_dxfVisualStyleOutputBytes = 0u;
+    if (cData == nullptr || m_extensionVisualStyleHandles.empty()
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024)
+        return true;
+    if (version != DRW::AC1024
+        || !cData->hasCompleteAc1024VisualStyleSourceProfile()
+        || m_extensionVisualStyleHandles.size() != cData->visualStyles.size()
+        || m_extensionVisualStyleHandles.size()
+            > dx_data::kMaxVisualStyleTypedRetainedRecords)
+        return false;
+
+    try {
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionVisualStyleHandles.size());
+        for (std::uint32_t handle : m_extensionVisualStyleHandles)
+            if (handle == 0u || handle == DRW::NoHandle
+                || !selected.insert(handle).second)
+                return false;
+
+        std::size_t retainedBytes = 0u;
+        for (const DRW_VisualStyle& style : cData->visualStyles) {
+            if (selected.erase(style.handle) != 1u)
+                return false;
+            DxfVisualStyleWriteSource source;
+            source.model = style;
+            if (!buildAc1024VisualStyleRaw(style, source.output))
+                return false;
+            std::size_t modelBytes = 0u;
+            std::size_t outputBytes = 0u;
+            if (!estimateVisualStyleTypedBytes(source.model, modelBytes)
+                || !estimateRawDxfObjectBytes(source.output, outputBytes)
+                || modelBytes > dx_data::kMaxVisualStyleTypedRetainedBytes
+                                   - retainedBytes)
+                return false;
+            retainedBytes += modelBytes;
+            if (outputBytes
+                    > dx_data::kMaxVisualStyleTypedRetainedBytes
+                        - retainedBytes)
+                return false;
+            retainedBytes += outputBytes;
+            if (!m_dxfVisualStyles.emplace(style.handle,
+                                           std::move(source)).second)
+                return false;
+        }
+        if (!selected.empty()
+            || m_dxfVisualStyles.size() != m_extensionVisualStyleHandles.size())
+            return false;
+        m_dxfVisualStyleOwner = cData;
+        m_dxfVisualStyleGeneration = cData->importGeneration;
+        m_dxfVisualStyleOutputVersion = version;
+        m_dxfVisualStyleOutputBinary = binary;
+        m_dxfVisualStyleOutputBytes = retainedBytes;
+        return hasUnchangedDxfVisualStyles();
+    } catch (...) {
+        m_dxfVisualStyles.clear();
+        m_dxfVisualStyleOwner = nullptr;
+        m_dxfVisualStyleOutputBytes = 0u;
+        return false;
+    }
+}
+
+bool dx_iface::hasUnchangedDxfVisualStyles() const noexcept {
+    if (m_dxfVisualStyles.empty())
+        return m_dxfVisualStyleOwner == nullptr
+            && m_dxfVisualStyleOutputBytes == 0u;
+    if (cData == nullptr || m_dxfVisualStyleOwner != cData
+        || m_dxfVisualStyleGeneration != cData->importGeneration
+        || m_dxfVisualStyleOutputVersion != DRW::AC1024
+        || (dxfW != nullptr && dxfW->getVersion() != DRW::AC1024)
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->hasCompleteAc1024VisualStyleSourceProfile()
+        || cData->visualStyles.size() != m_dxfVisualStyles.size()
+        || m_extensionVisualStyleHandles.size() != m_dxfVisualStyles.size()
+        || m_dxfVisualStyleOutputBytes
+            > dx_data::kMaxVisualStyleTypedRetainedBytes)
+        return false;
+    try {
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionVisualStyleHandles.size());
+        for (std::uint32_t handle : m_extensionVisualStyleHandles)
+            if (!selected.insert(handle).second
+                || m_dxfVisualStyles.count(handle) != 1u)
+                return false;
+        for (const DRW_VisualStyle& style : cData->visualStyles) {
+            const auto found = m_dxfVisualStyles.find(style.handle);
+            if (found == m_dxfVisualStyles.end()
+                || selected.erase(style.handle) != 1u
+                || !visualStyleModelEqual(style, found->second.model,
+                                           DRW::AC1024))
+                return false;
+            DRW_RawDxfObject liveOutput;
+            if (!buildAc1024VisualStyleRaw(style, liveOutput)
+                || !retainedRawDxfObjectsEqual(liveOutput,
+                                               found->second.output))
+                return false;
+        }
+        return selected.empty();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDxfVisualStyles(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "VISUALSTYLE output proof rejected: " << reason
+                      << '\n';
+        return false;
+    };
+    if (m_dxfVisualStyles.empty())
+        return true;
+    if (m_dxfVisualStylesInspected || dxfW == nullptr
+        || view.version != m_dxfVisualStyleOutputVersion
+        || view.binary != m_dxfVisualStyleOutputBinary
+        || !hasUnchangedDxfVisualStyles()
+        || !validateVisualStyleReferences(*cData, view.version, nullptr))
+        return reject("source snapshot, output format, or rooted graph changed");
+    try {
+        std::map<std::uint32_t, const DxfVisualStyleWriteSource*> expected;
+        const auto map = [this](std::uint32_t source,
+                                std::uint32_t& output) {
+            const auto* context = dxfW->getWritingContext();
+            if (context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            output = dxfW->remapHandle(source);
+            return source == 0u
+                || (output != 0u && output != DRW::NoHandle);
+        };
+        for (const auto& item : m_dxfVisualStyles) {
+            std::uint32_t emitted = 0u;
+            if (item.first != item.second.model.handle
+                || !map(item.first, emitted)
+                || !expected.emplace(emitted, &item.second).second)
+                return reject("source-to-output handle map is ambiguous");
+            std::uint32_t owner = 0u;
+            if (!map(item.second.model.parentHandle, owner)
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emitted, "VISUALSTYLE", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emitted, owner)
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    owner, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    owner, dxfW->remapHandle(
+                        cData->namedObjectDictionary.handle)))
+                return reject("record identity or dictionary owner role did not emit");
+            for (std::uint32_t reactor : item.second.model.reactorHandles) {
+                std::uint32_t emittedReactor = 0u;
+                if (!map(reactor, emittedReactor)
+                    || emittedReactor != owner
+                    || dxfW->dxfWriteRecordHandleCount(emittedReactor)
+                        != 1u)
+                    return reject("reactor role did not resolve to its owner dictionary");
+            }
+        }
+        if (expected.size() != m_dxfVisualStyles.size())
+            return false;
+
+        std::unordered_set<std::uint32_t> seen;
+        bool namesMatch = true;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&](std::string_view name, std::uint32_t handle) {
+                const bool selected = expected.count(handle) != 0u;
+                if (selected && name != "VISUALSTYLE")
+                    namesMatch = false;
+                return selected;
+            },
+            [&](const auto& shape, std::string_view body) {
+                const auto found = expected.find(shape.handle);
+                if (found == expected.end()
+                    || !seen.insert(shape.handle).second
+                    || shape.kind != dx_standard_output::Family::Other)
+                    return reject("staged VISUALSTYLE identity is missing or duplicated");
+                const DxfVisualStyleWriteSource& source = *found->second;
+                const auto handleMap = map;
+                if (!dx_standard_output::rawScalarTransportEqual(
+                        source.output.groups, body, view, handleMap, false,
+                        DRW::kMaxDxfBinaryPayloadBytes, false,
+                        dx_standard_output::RawHandleTransport::ObjectScopes,
+                        true)) {
+                    if (debug)
+                        std::cerr << "VISUALSTYLE source/output fields differ at handle "
+                                  << proxyHandleString(source.model.handle)
+                                  << '\n';
+                    return false;
+                }
+                dx_standard_output::Decoder decoder(
+                    view, false, DRW::DxfTextEncoding::Declared,
+                    DRW::DxfCodePagePolicy::Compatible, true);
+                std::uint32_t emittedOwner = 0u;
+                if (!map(source.model.parentHandle, emittedOwner))
+                    return reject("source owner has no output handle");
+                const bool decoded = decoder.decodeRecord<DRW_VisualStyle>(
+                    body, [&](const DRW_VisualStyle& actual) {
+                        const bool matches = actual.handle == shape.handle
+                            && actual.parentHandle == emittedOwner
+                            && actual.reactorHandles.size() == 1u
+                            && actual.reactorHandles.front() == emittedOwner
+                            && actual.desc == source.model.desc
+                            && actual.type == source.model.type;
+                        if (!matches && debug) {
+                            std::cerr << "VISUALSTYLE decoded tuple differs: actual="
+                                      << proxyHandleString(actual.handle) << '/'
+                                      << proxyHandleString(actual.parentHandle)
+                                      << "/reactors="
+                                      << actual.reactorHandles.size() << '/'
+                                      << (actual.reactorHandles.empty() ? 0u
+                                          : actual.reactorHandles.front())
+                                      << "/desc=" << actual.desc
+                                      << "/type=" << actual.type
+                                      << " expected="
+                                      << proxyHandleString(shape.handle) << '/'
+                                      << proxyHandleString(emittedOwner)
+                                      << "/desc=" << source.model.desc
+                                      << "/type=" << source.model.type << '\n';
+                        }
+                        return matches;
+                    });
+                if (!decoded && debug)
+                    std::cerr << "VISUALSTYLE staged readback differs at handle "
+                              << proxyHandleString(source.model.handle) << '\n';
+                return decoded;
+            });
+        m_dxfVisualStylesInspected = inspected && namesMatch
+            && seen.size() == expected.size();
+        if (!m_dxfVisualStylesInspected)
+            return reject("staged style set is incomplete or record names differ");
+        if (debug) {
+            std::cerr << "VISUALSTYLE output proof: source-records="
+                      << m_dxfVisualStyles.size()
+                      << " staged-readback-records=" << seen.size()
+                      << " format=" << (view.binary ? "binary" : "ascii")
+                      << " version=" << static_cast<int>(view.version) << '\n';
+            for (const auto& item : expected) {
+                const DxfVisualStyleWriteSource& source = *item.second;
+                std::uint32_t owner = 0u;
+                if (!map(source.model.parentHandle, owner))
+                    return reject("post-proof owner mapping changed");
+                const std::size_t companions = static_cast<std::size_t>(
+                    std::count_if(source.output.groups.begin(),
+                        source.output.groups.end(), [](const DRW_Variant& value) {
+                            return value.code() == 176;
+                        }));
+                const std::size_t cmc = static_cast<std::size_t>(
+                    std::count_if(source.output.groups.begin(),
+                        source.output.groups.end(), [](const DRW_Variant& value) {
+                            return value.code() >= 421 && value.code() <= 425;
+                        }));
+                std::cerr << "VISUALSTYLE source-to-output: source="
+                          << proxyHandleString(source.model.handle)
+                          << " emitted=" << proxyHandleString(item.first)
+                          << " owner/reactor=" << proxyHandleString(owner)
+                          << " companions=" << companions
+                          << " packed-cmc=" << cmc << '\n';
+            }
+        }
+        return true;
+    } catch (...) {
+        return reject("allocation or decoder exception");
+    }
+}
+
+namespace {
+
 bool standardDwgValuesEqual(const std::vector<DRW_Variant>& left,
                             const std::vector<DRW_Variant>& right,
                             DRW::Version version) noexcept {
@@ -19853,6 +20216,517 @@ template<class Context> bool decodeScaleBody(const DRW_RawDxfObject& raw,
         && scaleFieldsEqual(result,payload);
 }
 } // namespace
+
+bool dx_iface::prepareDwgScales(DRW::Version version,
+                                bool binary, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "SCALE DWG source snapshot rejected: " << reason
+                      << '\n';
+        return false;
+    };
+    const auto rejectScale = [debug](std::uint32_t handle,
+                                     const char* reason) {
+        if (debug)
+            std::cerr << "SCALE DWG source snapshot rejected at handle "
+                      << proxyHandleString(handle) << ": " << reason
+                      << '\n';
+        return false;
+    };
+    m_dwgScaleOutputSources.clear();
+    m_dwgScaleOutputDictionaries.clear();
+    m_dwgScaleOutputOwner = nullptr;
+    m_dwgScaleOutputGeneration = 0u;
+    m_dwgScaleOutputVersion = DRW::UNKNOWNV;
+    m_dwgScaleTargetVersion = DRW::UNKNOWNV;
+    m_dwgScaleOutputBinary = false;
+    m_dwgScalesInspected = false;
+    m_dwgScaleOutputBytes = 0u;
+    if (cData == nullptr)
+        return reject("no source container");
+    if (cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024)
+        return true;
+    if (cData->scales.empty() && m_extensionScaleHandles.empty())
+        return true;
+    if (version != DRW::AC1024
+        || !cData->hasSingleSuccessfulNamedResourceImport()
+        || !cData->hasNamedObjectDictionary
+        || !validateNamedObjectRootForExport(
+            *cData, "ACAD_SCALELIST", true)
+        || cData->scales.empty()
+        || m_extensionScaleHandles.size() != cData->scales.size())
+        return reject("version, import receipt, root, or selected-count gate");
+
+    try {
+        const std::uint32_t nodHandle =
+            cData->namedObjectDictionary.handle;
+        if (nodHandle == 0u || nodHandle == DRW::NoHandle
+            || !cData->namedObjectDictionary.hasCompleteDwgEntries())
+            return reject("NOD handle or complete membership is invalid");
+        const DRW_Dictionary::Entry* rootEntry = nullptr;
+        for (const DRW_Dictionary::Entry& entry :
+             cData->namedObjectDictionary.m_entries) {
+            if (!asciiIdentifierEquals(entry.m_name, "ACAD_SCALELIST"))
+                continue;
+            if (rootEntry != nullptr)
+                return reject("ACAD_SCALELIST NOD root is duplicated");
+            rootEntry = &entry;
+        }
+        if (rootEntry == nullptr || rootEntry->m_handle == 0u
+            || rootEntry->m_handle == DRW::NoHandle)
+            return reject("ACAD_SCALELIST NOD root target is invalid");
+        const DRW_Dictionary* scaleDictionary = nullptr;
+        for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+            if (dictionary.handle != rootEntry->m_handle)
+                continue;
+            if (scaleDictionary != nullptr)
+                return reject("ACAD_SCALELIST dictionary handle is ambiguous");
+            scaleDictionary = &dictionary;
+        }
+        if (scaleDictionary == nullptr
+            || scaleDictionary->parentHandle != nodHandle
+            || scaleDictionary->flags != 0
+            || scaleDictionary->countCap
+            || !scaleDictionary->hasCompleteDwgEntries()
+            || scaleDictionary->hasDataStorageBinaryData()
+            || scaleDictionary->hasDwgCommonLinkTail()
+            || scaleDictionary->xDictHandle != 0u
+            || !scaleDictionary->appData.empty()
+            || !scaleDictionary->extData.empty()
+            || !scaleDictionary->pendingAppIdResolutions.empty()
+            || !scaleDictionary->pendingLayerRefResolutions.empty()
+            || scaleDictionary->m_entries.size() != cData->scales.size())
+            return reject("ACAD_SCALELIST dictionary owner or entries mismatch");
+
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionScaleHandles.size());
+        for (std::uint32_t handle : m_extensionScaleHandles)
+            if (handle == 0u || handle == DRW::NoHandle
+                || !selected.insert(handle).second)
+                return reject("selected SCALE handles are invalid or duplicated");
+
+        std::unordered_map<std::uint32_t, const DRW_Dictionary::Entry*>
+            entriesByHandle;
+        std::unordered_set<UTF8STRING> entryNames;
+        entriesByHandle.reserve(scaleDictionary->m_entries.size());
+        entryNames.reserve(scaleDictionary->m_entries.size());
+        for (const DRW_Dictionary::Entry& entry :
+             scaleDictionary->m_entries) {
+            if (entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+                || entry.m_name.empty()
+                || !entriesByHandle.emplace(entry.m_handle, &entry).second
+                || !entryNames.insert(entry.m_name).second)
+                return reject("ACAD_SCALELIST entries are invalid or aliased");
+        }
+
+        std::size_t retainedBytes = 0u;
+        for (const DRW_Scale& scale : cData->scales) {
+            const auto entry = entriesByHandle.find(scale.handle);
+            if (selected.erase(scale.handle) != 1u)
+                return rejectScale(scale.handle,
+                    "identity is not selected by the rooted output graph");
+            if (entry == entriesByHandle.end())
+                return rejectScale(scale.handle,
+                    "source identity is absent from ACAD_SCALELIST membership");
+            if (scale.tType != DRW::SCALE
+                || scale.parentHandle != scaleDictionary->handle)
+                return rejectScale(scale.handle,
+                    "record type or owner dictionary does not match");
+            if (scale.reactorCount() != 1u
+                || scale.reactorHandles.size() != 1u
+                || scale.reactorHandles.front() != scaleDictionary->handle)
+                return rejectScale(scale.handle,
+                    "reactor is not the unique ACAD_SCALELIST owner");
+            if (scale.xDictHandle != 0u || scale.flags != 0
+                || scale.extensionDictionaryFlag() != 1u
+                || scale.hasDataStorageBinaryData()
+                || scale.hasDwgCommonLinkTail()
+                || !scale.appData.empty() || !scale.extData.empty()
+                || !scale.pendingAppIdResolutions.empty()
+                || !scale.pendingLayerRefResolutions.empty())
+                return rejectScale(scale.handle,
+                    "common metadata is outside the admitted writer profile");
+            if (scale.flag > static_cast<std::uint16_t>(INT16_MAX))
+                return rejectScale(scale.handle,
+                    "flag is outside the signed DXF short profile");
+            if (scale.name.empty() || !std::isfinite(scale.paperUnits)
+                || !std::isfinite(scale.drawingUnits)
+                || scale.paperUnits <= 0.0 || scale.drawingUnits <= 0.0)
+                return rejectScale(scale.handle,
+                    "name or unit fields are outside the admitted profile");
+            std::size_t estimated = 0u;
+            if (!estimateNamedResourceTypedBytes(scale, estimated)
+                || !addAssociativeRetainedBytes(
+                    sizeof(std::pair<const std::uint32_t,
+                                     DwgScaleOutputSource>)
+                        + 4u * sizeof(void*), estimated)
+                || estimated > kMaxAdapterNamedResourceTypedRetainedBytes
+                    - retainedBytes
+                || !m_dwgScaleOutputSources.emplace(
+                    scale.handle, DwgScaleOutputSource{scale}).second)
+                return reject("SCALE source snapshot exceeds bounds or aliases");
+            retainedBytes += estimated;
+        }
+        if (!selected.empty()
+            || m_dwgScaleOutputSources.size() != cData->scales.size())
+            return reject("SCALE source set is not completely rooted");
+
+        std::size_t dictionaryItems = 0u;
+        for (const DRW_Dictionary* dictionary :
+             {static_cast<const DRW_Dictionary*>(
+                  &cData->namedObjectDictionary),
+              scaleDictionary}) {
+            std::size_t estimated = 0u, items = 0u;
+            if (!estimateDictionaryTypedBytes(
+                    *dictionary, estimated, items)
+                || !addAssociativeRetainedBytes(
+                    sizeof(std::pair<const std::uint32_t,
+                                     DRW_Dictionary>)
+                        + 4u * sizeof(void*), estimated)
+                || estimated > kMaxAdapterNamedResourceTypedRetainedBytes
+                    - retainedBytes
+                || items > kMaxAdapterNamedResourceTypedRecords
+                    - dictionaryItems
+                || !m_dwgScaleOutputDictionaries.emplace(
+                    dictionary->handle, *dictionary).second)
+                return reject("SCALE dictionary snapshot exceeds bounds or aliases");
+            retainedBytes += estimated;
+            dictionaryItems += items;
+        }
+        if (m_dwgScaleOutputDictionaries.size() != 2u
+            || dictionaryItems > kMaxAdapterNamedResourceTypedRecords)
+            return reject("NOD and SCALE dictionary snapshot set is incomplete");
+        m_dwgScaleOutputOwner = cData;
+        m_dwgScaleOutputGeneration = cData->importGeneration;
+        m_dwgScaleOutputVersion = cData->sourceVersion;
+        m_dwgScaleTargetVersion = version;
+        m_dwgScaleOutputBinary = binary;
+        m_dwgScaleOutputBytes = retainedBytes;
+        return hasUnchangedDwgScales()
+            || reject("source changed while SCALE output snapshot was prepared");
+    } catch (...) {
+        m_dwgScaleOutputSources.clear();
+        m_dwgScaleOutputDictionaries.clear();
+        m_dwgScaleOutputOwner = nullptr;
+        m_dwgScaleOutputBytes = 0u;
+        return reject("allocation or source validation exception");
+    }
+}
+
+bool dx_iface::hasUnchangedDwgScales() const noexcept {
+    if (m_dwgScaleOutputSources.empty())
+        return m_dwgScaleOutputOwner == nullptr
+            && m_dwgScaleOutputDictionaries.empty()
+            && m_dwgScaleOutputBytes == 0u;
+    if (cData == nullptr || m_dwgScaleOutputOwner != cData
+        || m_dwgScaleOutputGeneration != cData->importGeneration
+        || m_dwgScaleOutputVersion != DRW::AC1024
+        || m_dwgScaleTargetVersion != DRW::AC1024
+        || m_dwgScaleOutputBytes
+            > kMaxAdapterNamedResourceTypedRetainedBytes
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->hasSingleSuccessfulNamedResourceImport()
+        || !cData->hasNamedObjectDictionary
+        || cData->scales.size() != m_dwgScaleOutputSources.size()
+        || m_extensionScaleHandles.size()
+            != m_dwgScaleOutputSources.size()
+        || m_dwgScaleOutputDictionaries.size() != 2u)
+        return false;
+    try {
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionScaleHandles.size());
+        for (std::uint32_t handle : m_extensionScaleHandles)
+            if (!selected.insert(handle).second
+                || m_dwgScaleOutputSources.count(handle) != 1u)
+                return false;
+
+        std::unordered_set<std::uint32_t> currentScaleHandles;
+        currentScaleHandles.reserve(cData->scales.size());
+        for (const DRW_Scale& current : cData->scales) {
+            const auto source = m_dwgScaleOutputSources.find(current.handle);
+            if (source == m_dwgScaleOutputSources.end()
+                || !currentScaleHandles.insert(current.handle).second
+                || !standardDwgCommonEqual(
+                    source->second.model, current, DRW::AC1024)
+                || !scaleFieldsEqual(source->second.model, current))
+                return false;
+        }
+        if (currentScaleHandles.size() != m_dwgScaleOutputSources.size())
+            return false;
+
+        const auto dictionaryUnchanged =
+            [this](const DRW_Dictionary& current) {
+                const auto source = m_dwgScaleOutputDictionaries.find(
+                    current.handle);
+                return source != m_dwgScaleOutputDictionaries.end()
+                    && standardDwgModelsEqual(
+                        source->second, current, DRW::AC1024,
+                        dwgObjType::DICTIONARY);
+            };
+        if (!dictionaryUnchanged(cData->namedObjectDictionary))
+            return false;
+        std::size_t foundDictionaries = 1u;
+        for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+            if (m_dwgScaleOutputDictionaries.count(dictionary.handle) == 0u)
+                continue;
+            if (!dictionaryUnchanged(dictionary))
+                return false;
+            ++foundDictionaries;
+        }
+        return foundDictionaries == m_dwgScaleOutputDictionaries.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgScales(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "SCALE DWG output proof rejected: " << reason
+                      << '\n';
+        return false;
+    };
+    if (m_dwgScaleOutputSources.empty())
+        return true;
+    if (m_dwgScalesInspected || dxfW == nullptr
+        || view.version != m_dwgScaleTargetVersion
+        || view.binary != m_dwgScaleOutputBinary
+        || !hasUnchangedDwgScales())
+        return reject("source snapshot or output format changed");
+    try {
+        const auto map = [this](std::uint32_t source,
+                                std::uint32_t& output) {
+            const auto* context = dxfW->getWritingContext();
+            if (context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            output = dxfW->remapHandle(source);
+            return source == 0u
+                || (output != 0u && output != DRW::NoHandle);
+        };
+        const DRW_Scale& first =
+            m_dwgScaleOutputSources.begin()->second.model;
+        const auto scaleDictionary =
+            m_dwgScaleOutputDictionaries.find(first.parentHandle);
+        const auto nod = m_dwgScaleOutputDictionaries.find(
+            cData->namedObjectDictionary.handle);
+        if (scaleDictionary == m_dwgScaleOutputDictionaries.end()
+            || nod == m_dwgScaleOutputDictionaries.end())
+            return reject("rooted scale dictionary snapshot is missing");
+        std::uint32_t emittedOwner = 0u, emittedNod = 0u;
+        if (!map(first.parentHandle, emittedOwner)
+            || !map(cData->namedObjectDictionary.handle, emittedNod)
+            || scaleDictionary->second.parentHandle
+                != cData->namedObjectDictionary.handle
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedOwner, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(emittedOwner, emittedNod)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedNod, "DICTIONARY", "OBJECTS"))
+            return reject("ACAD_SCALELIST dictionary owner role did not emit");
+
+        std::map<std::uint32_t, const DwgScaleOutputSource*> expected;
+        for (const auto& item : m_dwgScaleOutputSources) {
+            std::uint32_t emitted = 0u, owner = 0u;
+            if (!map(item.first, emitted)
+                || !map(item.second.model.parentHandle, owner)
+                || owner != emittedOwner
+                || !expected.emplace(emitted, &item.second).second
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emitted, "SCALE", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emitted, emittedOwner))
+                return reject("SCALE identity or owner mapping is ambiguous");
+        }
+        if (expected.size() != m_dwgScaleOutputSources.size())
+            return reject("SCALE output handle map is incomplete");
+
+        DRW_Dictionary expectedDictionary = scaleDictionary->second;
+        if (!map(expectedDictionary.handle, expectedDictionary.handle)
+            || !map(expectedDictionary.parentHandle,
+                    expectedDictionary.parentHandle))
+            return reject("ACAD_SCALELIST dictionary handles are unmapped");
+        if (expectedDictionary.xDictHandle != 0u
+            && !map(expectedDictionary.xDictHandle,
+                    expectedDictionary.xDictHandle))
+            return reject("ACAD_SCALELIST extension dictionary is unmapped");
+        for (std::uint32_t& reactor : expectedDictionary.reactorHandles)
+            if (!map(reactor, reactor))
+                return reject("ACAD_SCALELIST reactor handle is unmapped");
+        for (DRW_Dictionary::Entry& entry : expectedDictionary.m_entries) {
+            if (!map(entry.m_handle, entry.m_handle))
+                return reject("ACAD_SCALELIST target handle is unmapped");
+            if (entry.m_dxfHandleCode
+                == DRW_Dictionary::Entry::DxfHandleCode::Unspecified) {
+                entry.m_dxfHandleCode = expectedDictionary.hardOwner
+                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+            }
+        }
+        const auto normalizeDxfCommon = [](
+                DRW_TableEntry& expectedModel) {
+            expectedModel.setDwgCommonObjectState(0, 0u, false);
+            expectedModel.setDwgCommonLinkTailValidated(false);
+            if (!expectedModel.reactorHandles.empty()) {
+                std::list<DRW_Variant> reactors;
+                // DRW_TableEntry::parseCode stores the application name
+                // without the framing brace in the typed appData view.
+                reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
+                for (const std::uint32_t handle :
+                     expectedModel.reactorHandles)
+                    reactors.emplace_back(330, proxyHandleString(handle));
+                reactors.emplace_back(102, UTF8STRING("}"));
+                expectedModel.appData.push_front(std::move(reactors));
+            }
+        };
+        normalizeDxfCommon(expectedDictionary);
+
+        std::unordered_set<std::uint32_t> seenScales;
+        bool namesMatch = true, dictionarySeen = false;
+        const char* failureReason = "selected staged record validation failed";
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&](std::string_view name, std::uint32_t handle) {
+                const bool isScale = asciiIdentifierEquals(name, "SCALE");
+                const bool isOwner = handle == emittedOwner;
+                if (isScale && expected.count(handle) == 0u)
+                    namesMatch = false;
+                if (isOwner
+                    && !asciiIdentifierEquals(name, "DICTIONARY"))
+                    namesMatch = false;
+                return isScale || isOwner;
+            },
+            [&](const dx_standard_output::Shape& shape,
+                std::string_view body) {
+                if (shape.handle == emittedOwner) {
+                    if (dictionarySeen
+                        || shape.kind
+                            != dx_standard_output::Family::Dictionary) {
+                        failureReason = "root dictionary record shape is duplicated or invalid";
+                        return false;
+                    }
+                    dictionarySeen = true;
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            const bool equal = standardDwgModelsEqual(
+                                expectedDictionary, actual, view.version,
+                                dwgObjType::DICTIONARY);
+                            if (!equal)
+                                failureReason = "ACAD_SCALELIST dictionary fields or membership differ";
+                            return equal;
+                        });
+                    if (!decoded
+                        && std::string_view(failureReason)
+                            == "selected staged record validation failed")
+                        failureReason = "ACAD_SCALELIST dictionary could not be decoded";
+                    return decoded;
+                }
+                const auto source = expected.find(shape.handle);
+                if (source == expected.end()
+                    || shape.kind != dx_standard_output::Family::Other
+                    || !seenScales.insert(shape.handle).second) {
+                    failureReason = "SCALE record identity, shape, or uniqueness is invalid";
+                    return false;
+                }
+                const DRW_Scale& model = source->second->model;
+                std::uint32_t owner = 0u;
+                if (!map(model.parentHandle, owner)) {
+                    failureReason = "SCALE owner handle could not be mapped";
+                    return false;
+                }
+                DRW_RawDxfObject expectedRaw;
+                expectedRaw.name = "SCALE";
+                expectedRaw.handle = model.handle;
+                expectedRaw.parentHandle = model.parentHandle;
+                expectedRaw.m_version = view.version;
+                expectedRaw.groups.emplace_back(
+                    5, proxyHandleString(model.handle));
+                expectedRaw.groups.emplace_back(102, "{ACAD_REACTORS");
+                expectedRaw.groups.emplace_back(
+                    330, proxyHandleString(model.reactorHandles.front()));
+                expectedRaw.groups.emplace_back(102, "}");
+                expectedRaw.groups.emplace_back(
+                    330, proxyHandleString(model.parentHandle));
+                expectedRaw.groups.emplace_back(100, "AcDbScale");
+                expectedRaw.groups.emplace_back(
+                    70, static_cast<std::int32_t>(model.flag));
+                expectedRaw.groups.emplace_back(300, model.name);
+                expectedRaw.groups.emplace_back(140, model.paperUnits);
+                expectedRaw.groups.emplace_back(141, model.drawingUnits);
+                expectedRaw.groups.emplace_back(
+                    290, model.isUnitScale ? 1 : 0);
+                if (!dx_standard_output::rawScalarTransportEqual(
+                        expectedRaw.groups, body, view, map, false,
+                        DRW::kMaxDxfBinaryPayloadBytes, false,
+                        dx_standard_output::RawHandleTransport::ObjectScopes)) {
+                    failureReason = "SCALE raw DXF fields or handle roles differ";
+                    return false;
+                }
+
+                DRW_Scale expectedModel = model;
+                expectedModel.handle = shape.handle;
+                expectedModel.parentHandle = owner;
+                for (std::uint32_t& reactor :
+                     expectedModel.reactorHandles) {
+                    if (!map(reactor, reactor)) {
+                        failureReason = "SCALE reactor handle could not be mapped";
+                        return false;
+                    }
+                }
+                normalizeDxfCommon(expectedModel);
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeRecord<DRW_Scale>(
+                    body, [&](const DRW_Scale& actual) {
+                        const bool equal = standardDwgCommonEqual(
+                                   expectedModel, actual, view.version)
+                            && scaleFieldsEqual(model, actual);
+                        if (!equal)
+                            failureReason = "decoded SCALE model fields or common links differ";
+                        return equal;
+                    });
+            });
+        m_dwgScalesInspected = inspected && namesMatch && dictionarySeen
+            && seenScales.size() == expected.size();
+        if (!m_dwgScalesInspected) {
+            if (!namesMatch)
+                failureReason = "staged output contains an unexpected SCALE or owner record";
+            else if (!dictionarySeen)
+                failureReason = "rooted ACAD_SCALELIST dictionary was not inspected";
+            else if (inspected && seenScales.size() != expected.size())
+                failureReason = "staged SCALE output count does not match source snapshot";
+            if (debug)
+                std::cerr << "SCALE DWG output proof diagnostics: selected-scan="
+                          << inspected << " names-match=" << namesMatch
+                          << " dictionary-seen=" << dictionarySeen
+                          << " observed-scales=" << seenScales.size()
+                          << " expected-scales=" << expected.size()
+                          << '\n';
+            return reject(failureReason);
+        }
+        if (debug) {
+            std::cerr << "SCALE DWG output proof: source-records="
+                      << m_dwgScaleOutputSources.size()
+                      << " staged-readback-records=" << seenScales.size()
+                      << " format=" << (view.binary ? "binary" : "ascii")
+                      << " version=" << static_cast<int>(view.version)
+                      << '\n';
+            for (const auto& item : expected)
+                std::cerr << "SCALE DWG source-to-output: source="
+                          << proxyHandleString(
+                                 item.second->model.handle)
+                          << " emitted="
+                          << proxyHandleString(item.first)
+                          << " owner="
+                          << proxyHandleString(emittedOwner) << '\n';
+        }
+        return true;
+    } catch (...) {
+        return reject("allocation or decoder exception");
+    }
+}
 
 bool dx_iface::prepareDxfNamedResourceState(DxfNamedResourceState& state,
         DRW::Version version,bool binary,std::size_t& bytes) {
@@ -44828,11 +45702,16 @@ bool dx_iface::finalizeDxfWrite() {
             || !dxfW->dxfWriteRecordHasIdentity(owner,"BLOCK_RECORD","TABLES")
             || !dxfW->dxfWriteRecordHasIdentity(dxfW->remapHandle(source.model.styleHandle),"MLINESTYLE","OBJECTS")) return false;
     }
-    if (!hasUnchangedDxfScales() || (!m_dxfScales.empty() && !m_dxfScalesInspected)) return false;
+    if (!hasUnchangedDxfScales() || (!m_dxfScales.empty() && !m_dxfScalesInspected)
+        || !hasUnchangedDwgScales()
+        || (!m_dwgScaleOutputSources.empty() && !m_dwgScalesInspected)) return false;
     if(!hasUnchangedDxfDictionaryVars()||(!m_dxfDictionaryVars.empty()&&!m_dxfDictionaryVarsInspected))return false;
     if(!finalizeDxfHeaderMaterial()||!finalizeDxfLayerMaterials()||!finalizeDxfFullStyles()||!finalizeDxfCommonReferences(347,m_dxfMaterialReferenceState))return false;
     if (!hasUnchangedDxfRenderPresetSources()
         || (!m_dxfRenderPresetSources.empty() && !m_dxfRenderPresetInspected)) return false;
+    if (!hasUnchangedDxfVisualStyles()
+        || (!m_dxfVisualStyles.empty() && !m_dxfVisualStylesInspected))
+        return false;
     if (!finalizeDxfShadeConsumers()) return false;
     if (!hasUnchangedDxfMaterialSources()
         || !hasUnchangedExtensionMaterialSources()
@@ -45868,6 +46747,49 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             owner.m_dxfRenderPresetCount = 0u; owner.m_dxfRenderPresetBytes = 0u; owner.m_dxfRenderPresetInspected = false;
         }
     } renderPresetScope{*this};
+    m_dxfVisualStyles.clear(); m_dxfVisualStyleOwner = nullptr;
+    m_dxfVisualStyleGeneration = 0u;
+    m_dxfVisualStyleOutputVersion = DRW::UNKNOWNV;
+    m_dxfVisualStyleOutputBinary = false;
+    m_dxfVisualStylesInspected = false;
+    m_dxfVisualStyleOutputBytes = 0u;
+    struct VisualStyleScope {
+        dx_iface& owner;
+        ~VisualStyleScope() {
+            decltype(owner.m_dxfVisualStyles){}.swap(owner.m_dxfVisualStyles);
+            owner.m_dxfVisualStyleOwner = nullptr;
+            owner.m_dxfVisualStyleGeneration = 0u;
+            owner.m_dxfVisualStyleOutputVersion = DRW::UNKNOWNV;
+            owner.m_dxfVisualStyleOutputBinary = false;
+            owner.m_dxfVisualStylesInspected = false;
+            owner.m_dxfVisualStyleOutputBytes = 0u;
+        }
+    } visualStyleScope{*this};
+    m_dwgScaleOutputSources.clear();
+    m_dwgScaleOutputDictionaries.clear();
+    m_dwgScaleOutputOwner = nullptr;
+    m_dwgScaleOutputGeneration = 0u;
+    m_dwgScaleOutputVersion = DRW::UNKNOWNV;
+    m_dwgScaleTargetVersion = DRW::UNKNOWNV;
+    m_dwgScaleOutputBinary = false;
+    m_dwgScalesInspected = false;
+    m_dwgScaleOutputBytes = 0u;
+    struct DwgScaleOutputScope {
+        dx_iface& owner;
+        ~DwgScaleOutputScope() {
+            decltype(owner.m_dwgScaleOutputSources){}.swap(
+                owner.m_dwgScaleOutputSources);
+            decltype(owner.m_dwgScaleOutputDictionaries){}.swap(
+                owner.m_dwgScaleOutputDictionaries);
+            owner.m_dwgScaleOutputOwner = nullptr;
+            owner.m_dwgScaleOutputGeneration = 0u;
+            owner.m_dwgScaleOutputVersion = DRW::UNKNOWNV;
+            owner.m_dwgScaleTargetVersion = DRW::UNKNOWNV;
+            owner.m_dwgScaleOutputBinary = false;
+            owner.m_dwgScalesInspected = false;
+            owner.m_dwgScaleOutputBytes = 0u;
+        }
+    } dwgScaleOutputScope{*this};
     m_dxfShadeConsumers.clear(); m_dxfShadeConsumerOwner = nullptr;
     m_dxfShadeConsumerBytes = 0u; m_dxfShadeConsumerSections = 0u; m_dxfShadeConsumerEntities = false;
     struct ShadeConsumerScope {
@@ -47198,12 +48120,21 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure("SCALE current source/body transaction");
         return false;
     }
+    if (!prepareDwgScales(v, binary, debug)) {
+        reportPreflightFailure("SCALE DWG source/output snapshot");
+        return false;
+    }
     if (!prepareDxfMLineStyles(v,binary,targetTextPolicy)) {
         reportPreflightFailure("MLINESTYLE current source/body transaction");
         return false;
     }
     if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
         reportPreflightFailure("MLEADERSTYLE current source/body transaction");
+        return false;
+    }
+    if (!prepareDxfVisualStyles(v, binary)) {
+        reportPreflightFailure(
+            "VISUALSTYLE physical source/body/output snapshot");
         return false;
     }
     if (hasAdmittedSpatialFilters) {
@@ -49365,14 +50296,18 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     const bool needsRenderingOutput = !cData->renderSettings.empty();
+    const bool needsVisualStyleOutput = !m_dxfVisualStyles.empty();
+    const bool needsDwgScaleOutput = !m_dwgScaleOutputSources.empty();
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_extensionDictionaryHandles.empty() || !m_acdsDxfHistoryObjects.empty()
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
+            || needsDwgScaleOutput
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
+            || needsVisualStyleOutput
             || !m_extensionMaterialHandles.empty()
             || !m_dxfMaterialWriteSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, debug, requireResolvedOwners](const auto& view) {
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgScaleOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -49399,10 +50334,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("DICTIONARYVAR");
             if (!inspectDxfScales(view))
                 return reject("SCALE");
+            if (needsDwgScaleOutput
+                && !inspectDwgScales(view, debug))
+                return reject("SCALE DWG source identity/field binding");
             if (!inspectDxfMLineStyles(view))
                 return reject("MLINESTYLE");
             if (!inspectDxfMLeaderStyles(view))
                 return reject("MLEADERSTYLE");
+            if (needsVisualStyleOutput
+                && !inspectDxfVisualStyles(view, debug))
+                return reject("VISUALSTYLE physical source identity/field binding");
             if (!inspectAcdsDxfHistory(view))
                 return reject("ACDS history");
             if (!cData->m_standardDwgObjectFrames.empty()
