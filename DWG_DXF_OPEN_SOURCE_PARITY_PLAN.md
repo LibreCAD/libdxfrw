@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative graph output and recursive closure | Admit supported associative records to source-bound graph output: bind each required record and reference through source → planned → emitted identities, close required descendants, and verify staged output by independent field inspection and readback. The physical AC1024 `ACDBASSOCVARIABLE` witness has an unclassified body suffix; keep it ineligible until its boundary and meaning are established. | Keep unsupported or uncorroborated profiles raw and retain strict refusal for incomplete required graphs; bind regressions to eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — remaining source-bound associative profiles and recursive closure | Select the next physical-source-backed associative body, dependency, owned-parameter, or versioned-registry profile; prove its bounded fields and reference roles, then close all required descendants through source → planned → emitted document output. The physical mechanical AC1024 `ACDBASSOCVARIABLE` witness remains ineligible until its unclassified body suffix is bounded and understood. | Keep every unsupported or uncorroborated profile raw and retain strict refusal for incomplete required graphs; use eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -85,26 +85,25 @@ engines.
    The mechanical AC1024 `ACDBASSOCVARIABLE` witness has unclassified bits
    after its known fields; prove the suffix boundary and meaning before marking
    the record wire-complete or routing it through graph output.
-2. **Associative graph admission and identity:** connect source-admitted
-   associative records to the graph planner and document OBJECTS writer. Bind
-   each source record, its owner/reactors/network, and all required dictionary,
-   action, dependency, and entity targets through source → planned → emitted
-   identities. Close required extension-dictionary and descendant edges before
-   enabling a profile in document output; remap references for generated records
-   and fixed-handle collisions as well. Verify staged output by independent field
-   inspection and readback. Keep strict refusal wherever a required descendant
-   is unsupported. Do not emit a partial graph or infer edges from adjacent
-   handle values.
+2. **Next associative profile admission:** identify the next required body or
+   edge from a physical source before editing. Prove the class/version, bounded
+   span, exact field values, target roles and ownership; then reuse the existing
+   associative graph planner, identity bindings, and document writer. Add only
+   the missing provider, and prove its actual emitted fields independently and
+   by readback. Keep all other profiles raw or strictly refused until their
+   required bodies and descendant edges are qualified. Never emit a partial
+   graph or infer edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
    provider, resolve that source-required role and its descendants. Reuse existing
    dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,
    compound-child and SORT-order providers; add only the missing edge/profile.
    Distinguish legal reference cycles from invalid ownership and enforce bounded
    work once.
-4. **Failure behavior:** reject missing reachable bodies, wrong owners/types/roles,
-   aliases and late mutation where they invalidate the claimed conversion. At the
-   whole-operation graph level, verify output publication, destination/caller
-   state, temporary cleanup and corrected retry.
+4. **Failure behavior:** for each newly admitted graph profile, reject missing
+   reachable bodies, wrong owners/types/roles, aliases and late mutation wherever
+   they invalidate conversion. Verify whole-operation destination publication,
+   caller-state preservation, temporary cleanup, and corrected retry at the
+   narrowest selector that exercises the changed graph boundary.
 
 After actual prerequisites close, run one composed strict CLI checkpoint. A
 successful process exit or record count alone is not closure. For AC1018 opt-in
