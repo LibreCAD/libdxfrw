@@ -6804,6 +6804,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                            bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
     m_extensionAssociativeHandles.clear();
+    m_dxfAssociativeGeometrySources.clear();
+    m_dxfAssociativeGeometryOutputProofs.clear();
+    m_dxfAssociativeGeometrySourceOwner = nullptr;
+    m_dxfAssociativeGeometrySourceGeneration = 0u;
+    m_dxfAssociativeGeometrySourceBytes = 0u;
+    m_dxfAssociativeGeometryOutputInspected = false;
     m_extensionDictionaryWithDefaultHandles.clear();
     m_extensionPlaceholderHandles.clear();
     m_extensionXRecordHandles.clear();
@@ -6838,6 +6844,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         // No partial traversal result may leak into a later export attempt.
         m_extensionDictionaryHandles.clear();
         m_extensionAssociativeHandles.clear();
+        m_dxfAssociativeGeometrySources.clear();
+        m_dxfAssociativeGeometryOutputProofs.clear();
+        m_dxfAssociativeGeometrySourceOwner = nullptr;
+        m_dxfAssociativeGeometrySourceGeneration = 0u;
+        m_dxfAssociativeGeometrySourceBytes = 0u;
+        m_dxfAssociativeGeometryOutputInspected = false;
         m_extensionDictionaryWithDefaultHandles.clear();
         m_extensionPlaceholderHandles.clear();
         m_extensionXRecordHandles.clear();
@@ -13877,6 +13889,149 @@ bool estimateAssociativeTypedBytes(
             return false;
     }
     return estimate <= kMaxAssociativeDxfRetainedBytes;
+}
+
+bool associativeGeometryUnusedPayloadEmpty(
+        const DRW_AssociativeObject& object) noexcept {
+    return object.m_dependencies.empty() && object.m_actions.empty()
+        && object.m_ownedParams.empty() && object.m_ownedActions.empty()
+        && object.m_constraintNodes.empty()
+        && object.m_variableOwnedDependencies.empty()
+        && object.m_persistentSubentityHandles.empty()
+        && object.m_persistentSteps.empty()
+        && object.m_persistentSubentityIds.empty()
+        && object.m_variableName.empty()
+        && object.m_variableExpression.empty()
+        && object.m_variableEvaluator.empty()
+        && object.m_variableDescription.empty()
+        && object.m_valueDependencyName.empty();
+}
+
+bool retainedAssociativePrefixStatusesEqual(
+        const std::vector<DRW_AssociativePrefixStatus>& lhs,
+        const std::vector<DRW_AssociativePrefixStatus>& rhs) noexcept {
+    if (lhs.size() != rhs.size())
+        return false;
+    for (std::size_t index = 0u; index < lhs.size(); ++index) {
+        const auto& left = lhs[index];
+        const auto& right = rhs[index];
+        if (left.m_kind != right.m_kind
+            || left.m_status != right.m_status
+            || left.m_classVersion != right.m_classVersion
+            || left.m_decodedHandleCount != right.m_decodedHandleCount
+            || left.m_decodedValueCount != right.m_decodedValueCount
+            || left.m_decodedCountValue != right.m_decodedCountValue
+            || left.m_sourceAssumption != right.m_sourceAssumption)
+            return false;
+    }
+    return true;
+}
+
+bool retainedAssociativeGeometrySourceEqual(
+        const DRW_AssociativeObject& lhs,
+        const DRW_AssociativeObject& rhs) noexcept {
+    if (lhs.tType != rhs.tType || lhs.handle != rhs.handle
+        || lhs.parentHandle != rhs.parentHandle || lhs.name != rhs.name
+        || lhs.flags != rhs.flags || lhs.reactorHandles != rhs.reactorHandles
+        || lhs.xDictHandle != rhs.xDictHandle
+        || lhs.extensionDictionaryFlag() != rhs.extensionDictionaryFlag()
+        || lhs.reactorCount() != rhs.reactorCount()
+        || lhs.hasDwgCommonLinkTail() != rhs.hasDwgCommonLinkTail()
+        || lhs.hasDataStorageBinaryData() != rhs.hasDataStorageBinaryData()
+        || !retainedPendingHandleRefsEqual(lhs.pendingAppIdResolutions,
+                                           rhs.pendingAppIdResolutions)
+        || !retainedPendingHandleRefsEqual(lhs.pendingLayerRefResolutions,
+                                           rhs.pendingLayerRefResolutions)
+        || !retainedVariantListsEqual(lhs.appData, rhs.appData)
+        || lhs.extData.size() != rhs.extData.size())
+        return false;
+    for (std::size_t index = 0u; index < lhs.extData.size(); ++index) {
+        const DRW_Variant* left = lhs.extData[index];
+        const DRW_Variant* right = rhs.extData[index];
+        if ((left == nullptr) != (right == nullptr)
+            || (left != nullptr && !retainedVariantEqual(*left, *right)))
+            return false;
+    }
+    return lhs.m_recordName == rhs.m_recordName
+        && lhs.m_classVersion == rhs.m_classVersion
+        && lhs.m_status == rhs.m_status
+        && lhs.m_dependencyFieldsParsed == rhs.m_dependencyFieldsParsed
+        && lhs.m_dependencyWireComplete == rhs.m_dependencyWireComplete
+        && lhs.m_dependencyIsRead == rhs.m_dependencyIsRead
+        && lhs.m_dependencyIsWrite == rhs.m_dependencyIsWrite
+        && lhs.m_dependencyIsAttachedToObject
+            == rhs.m_dependencyIsAttachedToObject
+        && lhs.m_dependencyIsDelegatingToOwningAction
+            == rhs.m_dependencyIsDelegatingToOwningAction
+        && lhs.m_dependencyOrder == rhs.m_dependencyOrder
+        && lhs.m_dependencyNamePresent == rhs.m_dependencyNamePresent
+        && lhs.m_dependencyName == rhs.m_dependencyName
+        && lhs.m_dependencyHandle == rhs.m_dependencyHandle
+        && lhs.m_readDependencyHandle == rhs.m_readDependencyHandle
+        && lhs.m_dependencyNodeHandle == rhs.m_dependencyNodeHandle
+        && lhs.m_writeDependencyHandle == rhs.m_writeDependencyHandle
+        && lhs.m_dependencyBodyHandle == rhs.m_dependencyBodyHandle
+        && lhs.m_dependencyBodyId == rhs.m_dependencyBodyId
+        && lhs.m_geomDependencyFieldsParsed
+            == rhs.m_geomDependencyFieldsParsed
+        && lhs.m_geomClassVersion == rhs.m_geomClassVersion
+        && lhs.m_geomEnabled == rhs.m_geomEnabled
+        && lhs.m_geomPersistentSubentityClassName
+            == rhs.m_geomPersistentSubentityClassName
+        && lhs.m_geomDependentOnCompoundObject
+            == rhs.m_geomDependentOnCompoundObject
+        && retainedAssociativePrefixStatusesEqual(
+            lhs.m_prefixStatuses, rhs.m_prefixStatuses)
+        && associativeGeometryUnusedPayloadEmpty(lhs)
+        && associativeGeometryUnusedPayloadEmpty(rhs);
+}
+
+bool associativeGeometryTargetOutputShape(
+        const dx_data& data, std::uint32_t sourceHandle,
+        std::string& recordName, std::string& sectionName) {
+    const DRW_Entity* target = nullptr;
+    std::string_view targetSection;
+    std::size_t matches = 0u;
+    const auto inspect = [&](const std::list<DRW_Entity*>& entities,
+                             std::string_view section) {
+        for (const DRW_Entity* entity : entities) {
+            if (entity == nullptr || entity->handle != sourceHandle)
+                continue;
+            ++matches;
+            target = entity;
+            targetSection = section;
+        }
+    };
+    if (data.mBlock != nullptr)
+        inspect(data.mBlock->ent, "ENTITIES");
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block != nullptr)
+            inspect(block->ent, "BLOCKS");
+    }
+    if (matches != 1u || target == nullptr)
+        return false;
+
+    switch (target->eType) {
+    case DRW::LINE:
+        if (dynamic_cast<const DRW_Line*>(target) == nullptr)
+            return false;
+        recordName = "LINE";
+        break;
+    case DRW::CIRCLE:
+        if (dynamic_cast<const DRW_Circle*>(target) == nullptr)
+            return false;
+        recordName = "CIRCLE";
+        break;
+    case DRW::ARC:
+        if (dynamic_cast<const DRW_Arc*>(target) == nullptr)
+            return false;
+        recordName = "ARC";
+        break;
+    default:
+        return false;
+    }
+    sectionName.assign(targetSection.data(), targetSection.size());
+    return true;
 }
 
 bool estimateAcShHistoryTypedBytes(
@@ -24520,6 +24675,365 @@ bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& 
         if (complete && m_dxfRenderPresetOwner) m_dxfRenderPresetInspected = true;
         return complete;
     } catch (...) { return false; }
+}
+
+bool dx_iface::prepareDxfAssociativeGeometrySources() noexcept {
+    m_dxfAssociativeGeometrySources.clear();
+    m_dxfAssociativeGeometryOutputProofs.clear();
+    m_dxfAssociativeGeometrySourceOwner = nullptr;
+    m_dxfAssociativeGeometrySourceGeneration = 0u;
+    m_dxfAssociativeGeometrySourceBytes = 0u;
+    m_dxfAssociativeGeometryOutputInspected = false;
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || m_extensionAssociativeHandles.empty())
+        return true;
+
+    constexpr std::size_t maxRecords = 100000u;
+    std::unordered_map<std::uint32_t, const DRW_AssociativeObject*> sources;
+    std::vector<DxfAssociativeGeometrySource> snapshots;
+    std::size_t retainedBytes = 0u;
+    try {
+        if (cData->dwgAssociativeObjects.size() > maxRecords
+            || m_extensionAssociativeHandles.size() > maxRecords)
+            return false;
+        sources.reserve(cData->dwgAssociativeObjects.size());
+        for (const DRW_AssociativeObject& source :
+             cData->dwgAssociativeObjects) {
+            if (!sources.emplace(source.handle, &source).second)
+                return false;
+        }
+        snapshots.reserve(m_extensionAssociativeHandles.size());
+        for (const std::uint32_t handle : m_extensionAssociativeHandles) {
+            const auto found = sources.find(handle);
+            if (found == sources.end())
+                return false;
+            const DRW_AssociativeObject& source = *found->second;
+            if (!asciiIdentifierEquals(source.m_recordName,
+                                       "ACDBASSOCGEOMDEPENDENCY"))
+                continue;
+            if (source.handle == 0u || source.handle == DRW::NoHandle
+                || source.parentHandle == 0u
+                || source.parentHandle == DRW::NoHandle
+                || source.m_classVersion != 1u
+                || !source.m_dependencyFieldsParsed
+                || !source.m_dependencyWireComplete
+                || source.m_dependencyHandle == 0u
+                || source.m_dependencyHandle == DRW::NoHandle
+                || (source.m_dependencyOrder != 0
+                    && source.m_dependencyOrder != -10000)
+                || source.m_dependencyNamePresent
+                || !source.m_dependencyName.empty()
+                || source.m_readDependencyHandle != 0u
+                || source.m_dependencyNodeHandle != 0u
+                || source.m_writeDependencyHandle != 0u
+                || source.m_dependencyBodyHandle != 0u
+                || !source.m_geomDependencyFieldsParsed
+                || source.m_geomClassVersion != 0
+                || !source.m_geomEnabled
+                || source.m_geomPersistentSubentityClassName
+                    != "AcDbAssocSingleEdgePersSubentId"
+                || source.m_geomDependentOnCompoundObject
+                || !associativeGeometryUnusedPayloadEmpty(source)
+                || source.hasDataStorageBinaryData())
+                return false;
+
+            std::string targetRecordName;
+            std::string targetSection;
+            if (!associativeGeometryTargetOutputShape(
+                    *cData, source.m_dependencyHandle, targetRecordName,
+                    targetSection))
+                return false;
+
+            std::size_t estimatedBytes = 0u;
+            if (!estimateAssociativeTypedBytes(source, estimatedBytes)
+                || !addAssociativeRetainedBytes(
+                    source.m_geomPersistentSubentityClassName.size() + 1u,
+                    estimatedBytes)
+                || !addAssociativeRetainedBytes(
+                    sizeof(DxfAssociativeGeometrySource)
+                        + targetRecordName.size() + targetSection.size() + 2u,
+                    estimatedBytes)
+                || !addAssociativeRetainedBytes(
+                    estimatedBytes, retainedBytes))
+                return false;
+
+            DxfAssociativeGeometrySource snapshot;
+            snapshot.source = source;
+            snapshot.targetHandle = source.m_dependencyHandle;
+            snapshot.targetRecordName = std::move(targetRecordName);
+            snapshot.targetSection = std::move(targetSection);
+            snapshots.push_back(std::move(snapshot));
+        }
+
+        const std::size_t sourceGeometryCount = static_cast<std::size_t>(
+            std::count_if(cData->dwgAssociativeObjects.begin(),
+                cData->dwgAssociativeObjects.end(), [](const auto& source) {
+                    return asciiIdentifierEquals(source.m_recordName,
+                        "ACDBASSOCGEOMDEPENDENCY");
+                }));
+        if (sourceGeometryCount != snapshots.size())
+            return false;
+        if (snapshots.empty())
+            return true;
+        m_dxfAssociativeGeometrySources = std::move(snapshots);
+        m_dxfAssociativeGeometrySourceOwner = cData;
+        m_dxfAssociativeGeometrySourceGeneration = cData->importGeneration;
+        m_dxfAssociativeGeometrySourceBytes = retainedBytes;
+        return true;
+    } catch (...) {
+        m_dxfAssociativeGeometrySources.clear();
+        m_dxfAssociativeGeometryOutputProofs.clear();
+        m_dxfAssociativeGeometrySourceOwner = nullptr;
+        m_dxfAssociativeGeometrySourceGeneration = 0u;
+        m_dxfAssociativeGeometrySourceBytes = 0u;
+        return false;
+    }
+}
+
+bool dx_iface::hasUnchangedDxfAssociativeGeometrySources() const noexcept {
+    if (m_dxfAssociativeGeometrySourceOwner == nullptr)
+        return m_dxfAssociativeGeometrySources.empty()
+            && m_dxfAssociativeGeometryOutputProofs.empty();
+    if (cData == nullptr || cData != m_dxfAssociativeGeometrySourceOwner
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || cData->importGeneration
+            != m_dxfAssociativeGeometrySourceGeneration
+        || m_dxfAssociativeGeometrySources.empty()
+        || m_dxfAssociativeGeometrySourceBytes
+            > kMaxAssociativeDxfRetainedBytes)
+        return false;
+    try {
+        std::unordered_map<std::uint32_t, const DRW_AssociativeObject*> current;
+        current.reserve(m_dxfAssociativeGeometrySources.size());
+        std::size_t geometryCount = 0u;
+        for (const DRW_AssociativeObject& source :
+             cData->dwgAssociativeObjects) {
+            if (!asciiIdentifierEquals(source.m_recordName,
+                                        "ACDBASSOCGEOMDEPENDENCY"))
+                continue;
+            ++geometryCount;
+            if (!current.emplace(source.handle, &source).second)
+                return false;
+        }
+        if (geometryCount != m_dxfAssociativeGeometrySources.size())
+            return false;
+        for (const DxfAssociativeGeometrySource& snapshot :
+             m_dxfAssociativeGeometrySources) {
+            const auto found = current.find(snapshot.source.handle);
+            if (found == current.end()
+                || !retainedAssociativeGeometrySourceEqual(
+                    snapshot.source, *found->second)
+                || snapshot.targetHandle
+                    != snapshot.source.m_dependencyHandle)
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDxfAssociativeGeometryOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_dxfAssociativeGeometrySourceOwner == nullptr)
+        return m_dxfAssociativeGeometrySources.empty();
+    m_dxfAssociativeGeometryOutputInspected = false;
+    m_dxfAssociativeGeometryOutputProofs.clear();
+    if (view.version != DRW::AC1024
+        || !hasUnchangedDxfAssociativeGeometrySources()
+        || dxfW == nullptr)
+        return false;
+    const DRW_WritingContext* context = dxfW->getWritingContext();
+    if (context == nullptr)
+        return false;
+
+    const auto mapHandle = [this, context](std::uint32_t source,
+                                            std::uint32_t& emitted) {
+        emitted = 0u;
+        if (source == 0u) {
+            emitted = 0u;
+            return true;
+        }
+        if (source == DRW::NoHandle
+            || context->ambiguousSourceHandles.count(source) != 0u)
+            return false;
+        bool mapped = false;
+        const auto merge = [&emitted, &mapped, source](
+                const std::map<std::uint32_t, std::uint32_t>& bindings) {
+            const auto found = bindings.find(source);
+            if (found == bindings.end())
+                return true;
+            if (found->second == 0u || found->second == DRW::NoHandle
+                || (mapped && emitted != found->second))
+                return false;
+            emitted = found->second;
+            mapped = true;
+            return true;
+        };
+        if (!merge(context->sourceHandleToWrittenTableMap)
+            || !merge(context->sourceHandleToWrittenObjectMap)
+            || !merge(context->sourceHandleToMintedMap))
+            return false;
+        const std::uint32_t explicitRemap = dxfW->remapHandle(source);
+        if (explicitRemap != source) {
+            if (mapped && emitted != explicitRemap)
+                return false;
+            emitted = explicitRemap;
+            mapped = true;
+        }
+        if (!mapped)
+            emitted = source;
+        return emitted != 0u && emitted != DRW::NoHandle;
+    };
+
+    try {
+        std::map<std::uint32_t, const DxfAssociativeGeometrySource*> expected;
+        m_dxfAssociativeGeometryOutputProofs.reserve(
+            m_dxfAssociativeGeometrySources.size());
+        for (const DxfAssociativeGeometrySource& source :
+             m_dxfAssociativeGeometrySources) {
+            const auto identity = context->sourceHandleToWrittenObjectMap.find(
+                source.source.handle);
+            std::uint32_t expectedOwner = 0u;
+            std::uint32_t expectedTarget = 0u;
+            if (identity == context->sourceHandleToWrittenObjectMap.end()
+                || identity->second == 0u || identity->second == DRW::NoHandle
+                || !mapHandle(static_cast<std::uint32_t>(
+                        source.source.parentHandle), expectedOwner)
+                || !mapHandle(source.targetHandle, expectedTarget)
+                || expectedTarget == 0u
+                || !expected.emplace(identity->second, &source).second)
+                return false;
+            m_dxfAssociativeGeometryOutputProofs.push_back({
+                source.source.handle, identity->second, expectedOwner,
+                source.targetHandle, expectedTarget,
+                source.targetRecordName, source.targetSection});
+        }
+
+        std::unordered_set<std::uint32_t> seen;
+        seen.reserve(expected.size());
+        bool namesMatch = true;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&expected, &namesMatch](std::string_view name,
+                                     std::uint32_t handle) {
+                const bool geometryRecord = asciiIdentifierEquals(
+                    name, "ACDBASSOCGEOMDEPENDENCY");
+                const bool expectedIdentity = expected.count(handle) != 0u;
+                if (expectedIdentity && !geometryRecord)
+                    namesMatch = false;
+                return geometryRecord || expectedIdentity;
+            },
+            [&](const auto& shape, std::string_view body) {
+                const auto sourceIt = expected.find(shape.handle);
+                if (sourceIt == expected.end()
+                    || !seen.insert(shape.handle).second)
+                    return false;
+                const DxfAssociativeGeometrySource& source =
+                    *sourceIt->second;
+                dx_standard_output::Decoder decoder(view);
+                return decoder.decodeAssociativeRecord(
+                    "ACDBASSOCGEOMDEPENDENCY", body,
+                    [&](const DRW_AssociativeObject& actual) {
+                        std::vector<std::uint32_t> references;
+                        dx_standard_output::NoLayerReferences noLayerRefs;
+                        const bool commonEqual =
+                            dx_standard_output::commonEqual(
+                                source.source, actual,
+                                dx_standard_output::Family::Other,
+                                mapHandle, references, noLayerRefs);
+                        std::uint32_t expectedTarget = 0u;
+                        std::uint32_t expectedReadDependency = 0u;
+                        const std::uint32_t sourceNodeHandle =
+                            source.source.m_dependencyNodeHandle != 0u
+                                ? source.source.m_dependencyNodeHandle
+                                : source.source.m_writeDependencyHandle;
+                        std::uint32_t expectedNode = 0u;
+                        std::uint32_t expectedBody = 0u;
+                        if (!mapHandle(source.targetHandle, expectedTarget)
+                            || !mapHandle(
+                                source.source.m_readDependencyHandle,
+                                expectedReadDependency)
+                            || !mapHandle(sourceNodeHandle, expectedNode)
+                            || !mapHandle(
+                                source.source.m_dependencyBodyHandle,
+                                expectedBody))
+                            return false;
+                        return commonEqual
+                            && actual.m_recordName
+                                == source.source.m_recordName
+                            && actual.m_classVersion
+                                == source.source.m_classVersion
+                            && actual.m_status == source.source.m_status
+                            && actual.m_dependencyFieldsParsed
+                            && actual.m_dependencyWireComplete
+                            && actual.m_dependencyIsRead
+                                == source.source.m_dependencyIsRead
+                            && actual.m_dependencyIsWrite
+                                == source.source.m_dependencyIsWrite
+                            && actual.m_dependencyIsAttachedToObject
+                                == source.source.m_dependencyIsAttachedToObject
+                            && actual.m_dependencyIsDelegatingToOwningAction
+                                == source.source.m_dependencyIsDelegatingToOwningAction
+                            && actual.m_dependencyOrder
+                                == source.source.m_dependencyOrder
+                            && actual.m_dependencyNamePresent
+                                == source.source.m_dependencyNamePresent
+                            && actual.m_dependencyName
+                                == source.source.m_dependencyName
+                            && actual.m_dependencyHandle == expectedTarget
+                            && actual.m_readDependencyHandle
+                                == expectedReadDependency
+                            && actual.m_dependencyNodeHandle == expectedNode
+                            && actual.m_writeDependencyHandle == expectedNode
+                            && actual.m_dependencyBodyHandle == expectedBody
+                            && actual.m_dependencyBodyId
+                                == source.source.m_dependencyBodyId
+                            && actual.m_geomDependencyFieldsParsed
+                            && actual.m_geomClassVersion
+                                == source.source.m_geomClassVersion
+                            && actual.m_geomEnabled
+                                == source.source.m_geomEnabled
+                            && actual.m_geomPersistentSubentityClassName
+                                == source.source.m_geomPersistentSubentityClassName
+                            && actual.m_geomDependentOnCompoundObject
+                                == source.source.m_geomDependentOnCompoundObject;
+                    });
+            });
+        if (!inspected || !namesMatch || seen.size() != expected.size()
+            || m_dxfAssociativeGeometryOutputProofs.size()
+                != expected.size())
+            return false;
+        m_dxfAssociativeGeometryOutputInspected = true;
+        return true;
+    } catch (...) {
+        m_dxfAssociativeGeometryOutputProofs.clear();
+        return false;
+    }
+}
+
+bool dx_iface::finalizeDxfAssociativeGeometryOutput() const noexcept {
+    if (m_dxfAssociativeGeometrySourceOwner == nullptr)
+        return m_dxfAssociativeGeometrySources.empty()
+            && m_dxfAssociativeGeometryOutputProofs.empty();
+    if (dxfW == nullptr || !m_dxfAssociativeGeometryOutputInspected
+        || !hasUnchangedDxfAssociativeGeometrySources()
+        || m_dxfAssociativeGeometryOutputProofs.size()
+            != m_dxfAssociativeGeometrySources.size())
+        return false;
+    for (const DxfAssociativeGeometryOutputProof& proof :
+         m_dxfAssociativeGeometryOutputProofs) {
+        if (!dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceHandle, proof.emittedHandle,
+                "ACDBASSOCGEOMDEPENDENCY", "OBJECTS", proof.emittedOwner)
+            || !dxfW->dxfWriteSourceEntityHasIdentity(
+                proof.targetHandle, proof.emittedTarget,
+                proof.targetRecordName, proof.targetSection))
+            return false;
+    }
+    return true;
 }
 
 bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
@@ -43376,6 +43890,7 @@ bool dx_iface::finalizeDxfWrite() {
         || (cData != nullptr && !hasUnchangedRasterDwgSources())
         || !finalizeStandardDwgOutputProofs()
         || !finalizeRasterOutputProofs()
+        || !finalizeDxfAssociativeGeometryOutput()
         || !finalizeGeneratedRootOutput())
         return false;
     for (const auto& table : m_tableFallbacks) {
@@ -45597,6 +46112,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "DWG associative records are not all reachable in the admitted output graph");
         return false;
     }
+    if (!prepareDxfAssociativeGeometrySources()) {
+        reportPreflightFailure(
+            "AC1024 geometry-dependency source/reference profile");
+        return false;
+    }
     // A source-bound AC1018 ATTDEF scope can authenticate one empty
     // BLOCK_RECORD extension DICTIONARY. Stage only that selected child for
     // output; arbitrary BLOCK_RECORD extension graphs remain unqualified.
@@ -47771,7 +48291,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
-        || !m_dxfMLineLinetypes.empty());
+        || !m_dxfMLineLinetypes.empty()
+        || !m_dxfAssociativeGeometrySources.empty());
     if ((!m_dxfMLineStyles.empty() || needsDxfMLineConsumerInspection())
         && !dxfW->setDxfStagedOutputAuthentication(true)) {
         delete dxfW;
@@ -47803,7 +48324,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || !m_extensionMaterialHandles.empty()
-            || !m_dxfMaterialWriteSources.empty())
+            || !m_dxfMaterialWriteSources.empty()
+            || !m_dxfAssociativeGeometrySources.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
@@ -47821,6 +48343,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("render settings");
             if (!inspectDxfMaterialOutput(view))
                 return reject("MATERIAL");
+            if (!inspectDxfAssociativeGeometryOutput(view))
+                return reject("associative geometry-dependency source/reference mapping");
             if (!inspectDxfDictionaryVars(view))
                 return reject("DICTIONARYVAR");
             if (!inspectDxfScales(view))

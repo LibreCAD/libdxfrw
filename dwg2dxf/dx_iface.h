@@ -1201,6 +1201,7 @@ public:
 
         if (!hasUnchangedAcdsDxfHistorySources()
             || !hasUnchangedDxfMaterialSources()
+            || !hasUnchangedDxfAssociativeGeometrySources()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
@@ -2708,6 +2709,31 @@ private:
     bool inspectDxfShadeConsumers(const dxfRW::DxfObjectsWriteView& view,
                                  std::string_view section) noexcept;
     bool finalizeDxfShadeConsumers() const noexcept;
+
+    struct DxfAssociativeGeometrySource {
+        DRW_AssociativeObject source;
+        std::uint32_t targetHandle{0u};
+        std::string targetRecordName;
+        std::string targetSection;
+    };
+    struct DxfAssociativeGeometryOutputProof {
+        std::uint32_t sourceHandle{0u}, emittedHandle{0u}, emittedOwner{0u};
+        std::uint32_t targetHandle{0u}, emittedTarget{0u};
+        std::string targetRecordName, targetSection;
+    };
+    std::vector<DxfAssociativeGeometrySource>
+        m_dxfAssociativeGeometrySources;
+    std::vector<DxfAssociativeGeometryOutputProof>
+        m_dxfAssociativeGeometryOutputProofs;
+    const dx_data* m_dxfAssociativeGeometrySourceOwner{nullptr};
+    std::uint64_t m_dxfAssociativeGeometrySourceGeneration{0u};
+    std::size_t m_dxfAssociativeGeometrySourceBytes{0u};
+    bool m_dxfAssociativeGeometryOutputInspected{false};
+    bool prepareDxfAssociativeGeometrySources() noexcept;
+    bool hasUnchangedDxfAssociativeGeometrySources() const noexcept;
+    bool inspectDxfAssociativeGeometryOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool finalizeDxfAssociativeGeometryOutput() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionAssociativeHandles;

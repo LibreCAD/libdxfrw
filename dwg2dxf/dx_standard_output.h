@@ -325,6 +325,18 @@ public:
     bool complete() const noexcept { return true; }
 };
 
+template <> class Probe<DRW_AssociativeObject> final
+    : public DRW_AssociativeObject {
+public:
+    explicit Probe(std::string_view recordName)
+        : DRW_AssociativeObject(std::string(recordName)) {}
+    using DRW_AssociativeObject::parseCode;
+    bool complete() const noexcept {
+        return m_recordName == "ACDBASSOCGEOMDEPENDENCY"
+            && m_dependencyFieldsParsed && m_geomDependencyFieldsParsed;
+    }
+};
+
 template <> class Probe<DRW_MLine> final : public DRW_MLine {
 public:
     bool complete() const { return validateDxfRecord(); }
@@ -378,6 +390,25 @@ public:
         }
         if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded() || !record.complete()) return false;
         return visit(static_cast<const Record&>(record));
+    }
+    template <class Visitor> bool decodeAssociativeRecord(
+            std::string_view recordName, std::string_view bytes,
+            Visitor&& visit) {
+        if (!reader || recordName != "ACDBASSOCGEOMDEPENDENCY")
+            return false;
+        buffer.reset(bytes);
+        input.clear();
+        Probe<DRW_AssociativeObject> record(recordName);
+        int code = 0;
+        while (buffer.position() < bytes.size()) {
+            if (!reader->readRec(&code) || code == 0
+                || !record.parseCode(code, reader))
+                return false;
+        }
+        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()
+            || !record.complete())
+            return false;
+        return visit(static_cast<const DRW_AssociativeObject&>(record));
     }
 private:
     InputBuffer buffer;

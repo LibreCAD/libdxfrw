@@ -29553,7 +29553,26 @@ bool associativeDwgGeometryDependencyGraphExport() {
         receipt.successful = true;
         receipt.captureComplete = true;
 
-        dx_iface exporter;
+        struct MutatingGeometryExporter final : dx_iface {
+            dx_data* source{nullptr};
+            bool mutateGeometryTargetAfterEntities{false};
+
+            void writeEntities() override {
+                dx_iface::writeEntities();
+                if (!mutateGeometryTargetAfterEntities || source == nullptr)
+                    return;
+                mutateGeometryTargetAfterEntities = false;
+                for (DRW_AssociativeObject& object :
+                     source->dwgAssociativeObjects) {
+                    if (object.m_recordName
+                            == "ACDBASSOCGEOMDEPENDENCY") {
+                        object.m_dependencyHandle = 0xDEADu;
+                        return;
+                    }
+                }
+            }
+        } exporter;
+        exporter.source = &source;
         const auto retainedDestination = [&path](const std::string& marker) {
             std::ifstream input(path, std::ios::binary);
             const std::string contents{
@@ -29575,7 +29594,19 @@ bool associativeDwgGeometryDependencyGraphExport() {
                 dx_dwgReadCompletenessPolicy::RequireComplete)
             || !retainedDestination(sentinel))
             return fail("unresolved geometry-dependency action did not refuse atomically");
+
         source.dwgAssociativeObjects[1].m_constraintActions.front() = 0x904u;
+        exporter.mutateGeometryTargetAfterEntities = true;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || source.dwgAssociativeObjects[2].m_dependencyHandle != 0xDEADu
+            || !retainedDestination(sentinel))
+            return fail("late geometry-dependency source mutation did not refuse atomically");
+
+        source.dwgAssociativeObjects[2].m_dependencyHandle = line->handle;
         if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
                 false, true, dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::RequireLossless,
