@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Explicit-partial conversion now publishes output, but strict admission still refuses the unretained opaque callback views. Close required descendants and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Explicit-partial conversion publishes output; strict admission still refuses the unretained opaque callback views. The 54-record geometry-dependency family has physical output and typed readback profile evidence; its one-to-one source/reference-to-staged-output binding remains open. Close remaining required descendants and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,22 +56,24 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next physical-witness packet:** map the opaque callback identities to complete
-source-to-output proof in the existing mechanical witness
+**Next physical-witness packet:** finish the one-to-one identity and reference-role
+binding for the 54 physical `ACDBASSOCGEOMDEPENDENCY` records in the existing
+mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
 `854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
 explicit-partial conversion now publishes a 161,368-byte DXF. Strict conversion
 still exits before output publication: the read succeeded with 366/366 source
 frames and zero entity/object parse failures, but strict completeness sees 228
 opaque callbacks and zero retained correlation frames. The MATERIAL link
-inspection mismatch is resolved; the strict callback-coverage gate is the next
-blocker. Start with the 54 `ACDBASSOCGEOMDEPENDENCY` records, the largest
-unproven profile. The local partial DXF contains 54 records, but count agreement
-alone does not prove source identity, exact fields, references or readback.
-Reuse the existing source profile and generated writer/graph receipts to bind
-each source record to staged output. Do not infer identities from adjacent
-handles, weaken graph closure, or commit investigation DWGs. Evidence is in
-`docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json`.
+inspection mismatch, 54-record physical emission and typed readback profile
+are completed substeps; do not repeat them. The remaining geometry-dependency
+task is to prove the unique mapping from each source record and reference role
+to its planned/staged output record. Use the existing source profile and
+generated writer/graph receipts plus
+`docs/research/p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json`.
+After closing that binding, select the next highest-incidence profile that lacks
+source-to-output proof. Do not infer identities from adjacent handles, weaken
+graph closure, or commit investigation DWGs.
 
 ## P4 — original bodies and complete document closure
 
@@ -94,7 +96,9 @@ engines.
    retained correlation frames. The explicit-partial physical output now
    publishes, but this does not satisfy strict read or source-to-output
    coverage. Its read state and strict rejection are recorded in
-   `docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json`; the
+   `docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json`; physical
+   geometry-dependency output/readback evidence is recorded in
+   `docs/research/p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json`; the
    physical source receipt is
    `docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
    The callback census is recorded in
