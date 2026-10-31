@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-geometry-dependency-graph-document-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 generated SingleEdge geometry-dependency graph output",
+  "status": "QUALIFIED_LOCAL_GENERATED_AC1024_SINGLEEDGE_GRAPH_OUTPUT_PROFILE",
+  "supportClaimEffect": "none",
+  "baselineCommit": "41786925",
+  "implementationCommit": "d8c498458e6977bda00a18899872b6adac7cc170",
+  "scope": {
+    "version": "AC1024",
+    "source": "Locally authored in-memory dx_data graph in tests/dwg2dxf_adapter_tests.cpp; no external DWG/DXF fixture file.",
+    "graph": "NOD -> DICTIONARY -> root ACDBASSOCNETWORK -> one ACDBASSOC2DCONSTRAINTGROUP -> one AcConstrainedImplicitPoint -> ACDBASSOCGEOMDEPENDENCY -> LINE.",
+    "dependency": {
+      "classVersion": 0,
+      "subentity": "AcDbAssocSingleEdgePersSubentId",
+      "target": "one LINE",
+      "reactorBacklink": "exactly one backlink from the target LINE"
+    },
+    "encodings": ["ASCII DXF", "binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Admitted a bounded AC1024 root-network / constraint-group / SingleEdge geometry-dependency graph through source identity reservation, owned-edge and inline-node closure, target entity/reactor closure, handle remapping, and staged document output. Added DXF parsing for the emitted constraint-group wrapper and the dependency base/geometry subclass fields. Geometry dependency wire completeness requires the complete base and geometry prefixes plus bounded body/string/handle alignment.",
+    "transaction": "In ASCII and binary modes, an unresolved group action target is refused while preserving the destination sentinel; correcting the action target and retrying on the same adapter succeeds.",
+    "fixturePolicy": "Graph authored in test code. Output files use temporary paths and are removed by the selector; no DWG/DXF fixture files were added."
+  },
+  "proof": {
+    "emittedRecords": "Counts exactly one ACDBASSOCNETWORK, ACDBASSOC2DCONSTRAINTGROUP and ACDBASSOCGEOMDEPENDENCY record in each output encoding.",
+    "readback": "Fresh fileImport confirms one LINE; network-to-group owned action and parent; group-to-dependency action and implicit-point node reference; dependency owner, complete geometry subclass fields and target handle; and exactly one target reactor backlink.",
+    "failureRetry": "The selector corrupts the group action handle, verifies complete-export refusal and preservation of a preexisting destination sentinel, restores the handle, and verifies successful retry on the same adapter for ASCII and binary DXF."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_associative_geometry_dependency_graph_export|dwg2dxf_associative_dwg_root_network_value_dependency_export)$' --output-on-failure",
+      "result": "PASS 2/2; 0.49 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS"
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^(dwg2dxf_associative_geometry_dependency_graph_export|dwg2dxf_associative_dwg_root_network_value_dependency_export)$' --output-on-failure",
+      "result": "PASS 2/2; 1.03 seconds"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN",
+    "sourceBindings": {
+      "implementationCommit": "d8c498458e6977bda00a18899872b6adac7cc170",
+      "sourceSha256": {
+        "dwg2dxf/dx_iface.cpp": "ae45f77d8f91d21af0b7a09e53892064261aa80f523791a4ea9c925fdfe853a2",
+        "dwg2dxf/dx_iface.h": "f95b6f4a12346a32ce811b1612c7bc2387f9b77b511a0fb4b6b9beef07881871",
+        "src/drw_objects.cpp": "8de5bc8cc0ba0d3e98cb5b0d1ec31741e53ef21643a1c636b894a992a63c83c0",
+        "src/drw_objects.h": "40632235d5449d2d371103e63425e81afb3c9dee5dc53b191241045442c50bad",
+        "tests/CMakeLists.txt": "75816873fd789c9c7627d07f4fbe041b40eb9105669c9087d5b9eae9bed153c6",
+        "tests/dwg2dxf_adapter_tests.cpp": "8ba2da6c2d8fcebc77bd952d120e9eb739094c5b16535efae9337f1d8905c068"
+      },
+      "normalArtifactsSha256": {
+        "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "e74255c4defa7d200cc021496b63d805278ffb1bf07557c787908ff310f0982c",
+        "build-gcc/CMakeCache.txt": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+      },
+      "asanArtifactsSha256": {
+        "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "93b5ee37f0306df5f95fccf261a15b053f4f9ef54bf3d226169da82dca1f2cb2",
+        "build-asan-custom/CMakeCache.txt": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+      }
+    }
+  },
+  "limits": [
+    "This is a generated AC1024 graph proof for the selected SingleEdge geometry-dependency profile, not a physical-source associative conversion proof.",
+    "The output check counts object records and uses fresh libdxfrw readback; it is not an independent raw group-pair wire oracle or native CAD semantic acceptance.",
+    "Physical mechanical associative callback coverage, all other group node/dependency profiles, recursive descendants outside this graph, and strict complete physical-source export remain open.",
+    "This does not establish LibreCAD/FreeCAD consumer behavior, 3D support, or any general DWG/DXF support claim."
+  ],
+  "remainingP4Scope": "Bind the physical mechanical source's callback identities to required output fields and roles, add missing required providers and descendants, prove exact emitted output independently, and pass strict complete-export admission without weakening refusal.",
+  "nextAction": "Use the AC1024 opaque-callback census and existing source-profile receipts to select the highest-incidence required physical-source profile with an unproven output provider."
+}

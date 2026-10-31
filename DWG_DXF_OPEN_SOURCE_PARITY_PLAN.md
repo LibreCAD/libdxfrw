@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative profile admission and recursive closure | Qualify a source-bound physical associative graph through emitted bytes and readback, close any required descendants not already admitted, then satisfy strict complete-export admission. The mechanical witness has 228 typed-and-opaque callback identities across 21 record/type profiles; strict admission still stops before output because 228 callback views exceed zero adapter-retained opaque frames. Map each profile to qualified output coverage and resolve only the missing required providers. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. Its serializer checkpoint remains unreachable because no opaque callback frames are retained for replay. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -85,7 +85,7 @@ engines.
 2. **Graph and output admission:** close any source-required body, owner edge,
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
-   The current mechanical source cannot reach this serializer checkpoint: its
+   The physical mechanical source cannot reach this serializer checkpoint: its
    global strict-read predicate rejects opaque callback views that are not
    retained for output. The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
