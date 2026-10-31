@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-tablestyle-r24-typed-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Bounded AC1024 R24 TABLESTYLE typed DXF readback",
+  "status": "LOCAL_GENERATED_ASCII_BINARY_TYPED_READBACK_PROFILE",
+  "supportClaimEffect": "none",
+  "implementationCommit": "fd3266f0c8e8a050ae52fa83a28e84c0bd3fe8f2",
+  "sourceBasis": {
+    "physicalProfileReceipt": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json",
+    "physicalOutputReceipt": "docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json",
+    "sourceVersion": "AC1024",
+    "readbackInput": "The existing in-memory R24 model used by the ASCII/Binary output selector; no DWG or DXF fixture was added.",
+    "scope": "The reader projects only the four emitted Table/title/header/data styles in the witnessed order and validates them against the existing CellStyleMap style constraints. Other marker layouts remain raw-only."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Parse the bounded R24 TABLEFORMAT, CONTENTFORMAT, CELLMARGIN, GRIDFORMAT and CELLSTYLE marker sequence into DRW_TableStyle typed nested styles. Retain raw capture as before and fail closed to raw-only typed publication for incomplete, reordered, unsupported-version or mismatched style profiles.",
+    "profile": {
+      "tableStyle": {"id": 4, "class": 2, "name": "Table", "borderCount": 0},
+      "cellStyles": [
+        {"id": 1, "class": 1, "name": "_TITLE", "borderCount": 6},
+        {"id": 2, "class": 1, "name": "_HEADER", "borderCount": 6},
+        {"id": 3, "class": 2, "name": "_DATA", "borderCount": 6}
+      ]
+    },
+    "compatibility": "No virtual interface changed. DRW_TableStyle gains private parse state; binary ABI qualification remains open under P8.",
+    "fixturePolicy": "Uses generated in-memory source models and temporary ASCII/Binary outputs. No external or new fixture files were committed."
+  },
+  "proof": {
+    "selector": "--tablestyle-r24-typed-writer",
+    "ctest": "libdxfrw_tablestyle_r24_typed_writer",
+    "readback": "Fresh ASCII and Binary import yields exactly one typed and one raw TABLESTYLE. The selector checks the table-style link, default Table identity, all three custom style identities, content datatype/alignment/text height and style handle, zero versus six-border shapes, edge/type/lineweight/spacing values, and the existing raw marker/order and output-handle checks.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "buildResult": "PASS with configured warning-as-error flags",
+      "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+      "ctestResult": "PASS 1/1; 0.49 seconds",
+      "fullSuites": "NOT RUN"
+    }
+  },
+  "sourceBindings": {
+    "implementationCommit": "fd3266f0c8e8a050ae52fa83a28e84c0bd3fe8f2",
+    "sourceSha256": {
+      "src/drw_objects.cpp": "463a189f56983b6dbbdd28cb9985d924e13141bc97c6198ebc91f445d4f1ce09",
+      "src/drw_objects.h": "54df32a499bf3204c71532e4ebc58a9564dd4cc4e949291cf402eef133f5c712",
+      "tests/dwg2dxf_adapter_tests.cpp": "fe12c93d2ba2a6f144de2a6a20a4f94683b5b15134e270e97ad7fbcecccc8343"
+    },
+    "normalArtifactSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "40a3ea356ecad8c44f0021b883262e7eb768067168436745db17060f3e3e2d40"
+    }
+  },
+  "limits": [
+    "This proves local typed readback for the emitted AC1024 R24 profile; it does not independently establish Autodesk semantics, native TABLE rendering, or LibreCAD, LibreCAD_3, FreeCAD or other consumer acceptance.",
+    "Other TABLESTYLE marker ordering or additional/custom cell-style layouts remain raw-only until separately source-backed and implemented.",
+    "The P5 umbrella remains OPEN for other rendering, dynamic-block, FIELD, TABLECONTENT and AC1018 TABLE work."
+  ]
+}
