@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. The explicit-partial witness currently stops at TABLESTYLE handle `0x87` (`Standard`) with `tablestyle-unsupported-profile`. Close source-required descendants and output proofs, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. Add an AC1024+ TABLESTYLE writer for the physical `Standard` profile: its parsed model has no legacy row styles, three R24 cell styles, and a populated Table style. | Use ODA's R24 TABLESTYLE layout, LibreDWG's R24 schema/parser, and the independent conversion of the same physical source; preserve role and handle dependencies, fail closed on unrepresented fields, and retain or refuse unknown R24 prefix values. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. The explicit-partial witness now advances past TABLESTYLE handle `0x87` (`Standard`) and stops at `MATERIAL` output inspection. Resolve that source/output mismatch, close required descendants, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. The physical R24 `Standard` writer is complete for its witnessed profile; see its receipt. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -56,31 +56,29 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next physical-witness packet:** implement the R24-to-DXF TABLESTYLE projection
-for `Standard` at handle `0x87` in the existing mechanical witness
+**Next physical-witness packet:** resolve the first current output-inspection
+failure, `MATERIAL`, in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Its
-source CLASSES row is #504 `AcDbTableStyle`, with one instance. The AC1024 parse
-path yields `m_rowStyles=0`, `m_cellStyles=3` (IDs 1–3), and a populated table
-style (ID 4, class 2, name `Table`); the current writer only accepts the legacy
-three-row model. Independent LibreDWG conversion of this same source succeeds
-and emits the R24 marker grammar (`TABLEFORMAT_BEGIN`, `CONTENTFORMAT_BEGIN`,
-`CELLMARGIN_BEGIN`, `GRIDFORMAT_BEGIN`, and `CELLSTYLE_BEGIN`). The field order
-is specified in LibreDWG `src/dwg2.spec` and its DXF parser in `src/in_dxf.c`;
-ODA §§20.4.101.2–.4 remain authoritative for the DWG source layout. Use these
-sources to implement the bounded projection and resolve text-style identities
-through source/output tables. The reader currently drops unknown R24 prefix
-values: trace and preserve them, or refuse values outside an evidenced profile;
-do not substitute guessed defaults. Prove exact fields and references, ASCII
-and Binary output, fresh readback, rollback and corrected retry with a locally
-authored AC1024 vector before retrying the physical witness. Do not discard
-unsupported cell-style data or weaken graph closure. The physical run remains
-diagnostic only: `--allow-partial-dwg-read` does not satisfy strict-complete
-admission, and no DXF was published. Continue mapping the 228 callback
-identities to complete typed output or a proven end-to-end replay path; do not
-infer identities from adjacent handles or relax graph completeness. The current
-physical-witness evidence is in
-`docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
+bounded AC1024 R24 TABLESTYLE writer for `Standard` handle `0x87` is implemented:
+the source CLASSES row is #504 `AcDbTableStyle`; its parsed model has no legacy
+row styles, three rich cell styles (IDs 1–3), and the populated Table style
+(ID 4). Independent LibreDWG conversion of the same source corroborates the
+R24 marker grammar. The focused local ASCII/Binary selector proves the emitted
+field spans, text-style handle mapping, raw DXF readback, refusal with
+destination preservation, and corrected retry. Rich R24 TABLESTYLE contents
+still read back as raw groups rather than a typed nested style model; retain
+that separate P5 task. Evidence is in
+`docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json`.
+
+The physical explicit-partial conversion now passes TABLESTYLE and reports
+`DXF OBJECTS output inspection failed: MATERIAL`; no output DXF is published.
+Identify the exact MATERIAL source/output field or reference mismatch, repair
+only that witnessed profile, and rerun the same diagnostic. This run is not
+strict-complete evidence: `--allow-partial-dwg-read` does not satisfy the strict
+read gate, and the 228 typed-and-opaque callback identities across 21 profiles
+still need complete-output or proven replay mappings. Do not infer identities
+from adjacent handles, weaken graph closure, or commit investigation DWGs.
 
 ## P4 — original bodies and complete document closure
 
@@ -100,10 +98,13 @@ engines.
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
    the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The latest explicit-partial physical diagnostic
-   stops at the AC1024 R24 `TABLESTYLE` body for source handle `0x87`. Resolve
-   that versioned output profile before continuing physical closure. Its exact
-   diagnostic and observed model are recorded in
+   not retained for output. The AC1024 R24 `TABLESTYLE` body for source handle
+   `0x87` now has a bounded output projection and passes its focused raw-DXF
+   proof. The latest explicit-partial physical diagnostic advances to
+   `MATERIAL` output inspection; diagnose that first and retain the strict gate.
+   Its evidence is recorded in
+   `docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json` and the
+   preceding physical receipt
    `docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
    The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
@@ -152,10 +153,10 @@ missing provider, remap, collision or composed output failure.
    and semantics to that witness; keep unsupported payloads refused while
    preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
-   data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
-   and uncovered border/override masks. Cover the witnessed scope combinations
-   and version gates; keep unsupported styles refused until schema and wire
-   order are known.
+   data/unit/domain/property combinations, rich R24 TABLESTYLE typed-DXF
+   readback, CELLSTYLEMAP body/property profiles, and uncovered border/override
+   masks. Cover the witnessed scope combinations and version gates; keep
+   unsupported styles refused until schema and wire order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
    selected field projections. Preserve explicit zero and absence separately; do
    not infer visibility polarity from field transport.
