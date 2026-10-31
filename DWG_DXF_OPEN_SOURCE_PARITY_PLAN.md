@@ -43,6 +43,11 @@ P4–P9 are umbrella exit gates, not individual implementation tasks. A landed
 slice is removed from this queue and recorded by its commit and research
 receipt; the parent phase stays OPEN until its full gate passes. P9 is
 external-only and cannot close through ordinary local implementation work.
+Phase status is therefore not a count of completed slices. P2 and P3 have no
+active local rows in this residual queue; P4–P8 may each have completed slices
+while their aggregate exit gates remain OPEN. Use the linked receipts and Git
+commits for per-slice progress, and read the “next packet” below as the current
+action rather than evidence that earlier packets made no progress.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
@@ -56,18 +61,19 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — qualify the R24 TABLESTYLE profile blocking the physical
-AC1024 source.** Strict conversion of `title_block-arch.dwg` now advances past
-XRECORD `0x121F` and stops at a cell style outside the witnessed
-title/header/data profile. Trace the exact style fields and referenced
-dependencies in that source; extend only the witnessed shape, then retry strict
-conversion. The completed group-1071 transport is nonstandard and establishes
-no native acceptance, semantic meaning, or support claim; retain its source and
-route evidence in
-[`p4-xrecord-group1071-dwg-compatibility-2026-10-31.json`](docs/research/p4-xrecord-group1071-dwg-compatibility-2026-10-31.json).
-After prerequisites close, complete physical
-BLOCKREPRESENTATIONDATA staged-byte and fresh-readback proof. Source-specific
-evidence and bindings are recorded in:
+**P4 next packet — bind physical BLOCKREPRESENTATIONDATA output.** Strict
+conversion of `title_block-arch.dwg` now advances past XRECORD `0x121F` and the
+admitted AC1024 R24 TABLESTYLE profile; staged OBJECTS inspection stops at
+`BLOCKREPRESENTATIONDATA source/reference/output binding`. Prove that physical
+record's staged fields, remapped owner and block-reference roles, and fresh
+readback, then retry strict conversion. The group-1071 XRECORD and inherited
+TABLESTYLE margin slices are complete only at their narrow transport/output
+scope; neither establishes native acceptance, semantic meaning, or a support
+claim. Their receipts are
+[`p4-xrecord-group1071-dwg-compatibility-2026-10-31.json`](docs/research/p4-xrecord-group1071-dwg-compatibility-2026-10-31.json)
+and
+[`p4-ac1024-tablestyle-inherited-margin-output-2026-10-31.json`](docs/research/p4-ac1024-tablestyle-inherited-margin-output-2026-10-31.json).
+Other source-specific evidence and bindings are recorded in:
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
 [`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
 and [`p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json`](docs/research/p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json).
@@ -116,15 +122,16 @@ output gates are met.
 ## P5 — rendering and TABLE
 
 **Dynamic-block output profiles:** qualify the physical AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Its physical graph is
-unqualified and blocked before OBJECTS by the P4 TABLESTYLE profile. Once strict
-output reaches OBJECTS, bind the source's four EvaluationGraph nodes, three
-edges, linked Grip/GripLocation records, visibility flat/state handle sets,
-exact SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged
-output and fresh ASCII/Binary readback. Prove atomic refusal/retry for a missing
-required source target. Native dynamic-block semantics and DXF-origin typed/raw
-replay remain separate open qualifications. Qualify other subclasses only when
-an existing source identifies a required profile.
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Strict conversion now
+reaches staged OBJECTS inspection but stops at the preceding
+BLOCKREPRESENTATIONDATA source/reference/output binding. After that P4 packet
+closes, bind the source's four EvaluationGraph nodes, three edges, linked
+Grip/GripLocation records, visibility flat/state handle sets, exact
+SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged output and
+fresh ASCII/Binary readback. Prove atomic refusal/retry for a missing required
+source target. Native dynamic-block semantics and DXF-origin typed/raw replay
+remain separate open qualifications. Qualify other subclasses only when an
+existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and

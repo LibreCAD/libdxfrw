@@ -16386,6 +16386,28 @@ bool DRW_TableStyle::parseDxfR24NestedStyle(
         return code == expected;
     };
     const auto next = [this]() { ++m_dxfR24FieldIndex; };
+    const auto readBorderCount = [this, &reader, &expectCode, &fail,
+                                  &handled, &style]() {
+        int count = 0;
+        if (!expectCode(94) || !reader || (count = reader->getInt32()) < 0
+            || count > 6)
+            return fail();
+        try {
+            style->m_borders.resize(static_cast<std::size_t>(count));
+        } catch (...) {
+            return fail();
+        }
+        m_dxfR24BorderCount = static_cast<std::size_t>(count);
+        m_dxfR24BorderIndex = 0u;
+        if (count != 0) {
+            m_dxfR24Section = DxfR24Section::Border;
+            m_dxfR24FieldIndex = 0u;
+        } else {
+            m_dxfR24FieldIndex = 12u;
+        }
+        handled = true;
+        return true;
+    };
     const auto readInteger = [&reader, &expectCode](int expectedCode,
                                                      int& destination) {
         if (!expectCode(expectedCode))
@@ -16459,6 +16481,8 @@ bool DRW_TableStyle::parseDxfR24NestedStyle(
             next(); return true;
         }
         case 9:
+            if (style->m_marginOverrideFlags == 0 && expectCode(94))
+                return readBorderCount();
             if (!textIs(301, "MARGIN"))
                 return fail();
             next(); return true;
@@ -16468,25 +16492,8 @@ bool DRW_TableStyle::parseDxfR24NestedStyle(
             m_dxfR24Section = DxfR24Section::Margin;
             m_dxfR24FieldIndex = 0u;
             return true;
-        case 11: {
-            int count = 0;
-            if (!readInteger(94, count) || count < 0 || count > 6)
-                return fail();
-            try {
-                style->m_borders.resize(static_cast<std::size_t>(count));
-            } catch (...) {
-                return fail();
-            }
-            m_dxfR24BorderCount = static_cast<std::size_t>(count);
-            m_dxfR24BorderIndex = 0u;
-            if (count != 0) {
-                m_dxfR24Section = DxfR24Section::Border;
-                m_dxfR24FieldIndex = 0u;
-            } else {
-                m_dxfR24FieldIndex = 12u;
-            }
-            return true;
-        }
+        case 11:
+            return readBorderCount();
         case 12:
             if (!textIs(309, "TABLEFORMAT_END"))
                 return fail();

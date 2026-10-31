@@ -10348,9 +10348,25 @@ bool dxfRW::writeTableStyle(
                 int expectedId, int expectedClass,
                 const char *expectedName, int expectedAlignment,
                 double expectedTextHeight, int expectedMergeFlags,
-                std::size_t expectedBorderCount, bool hasTextStyle) {
+                std::size_t expectedBorderCount, bool hasTextStyle,
+                bool marginsOverridden) {
             const DRW_TableStyleContentFormat& format =
                 style.m_contentFormat;
+            const bool validMargins = marginsOverridden
+                ? style.m_marginOverrideFlags == 1
+                    && style.m_verticalMargin == 0.06
+                    && style.m_horizontalMargin == 0.06
+                    && style.m_bottomMargin == 0.06
+                    && style.m_rightMargin == 0.06
+                    && style.m_marginHorizontalSpacing == 0.18
+                    && style.m_marginVerticalSpacing == 0.18
+                : style.m_marginOverrideFlags == 0
+                    && style.m_verticalMargin == 0.0
+                    && style.m_horizontalMargin == 0.0
+                    && style.m_bottomMargin == 0.0
+                    && style.m_rightMargin == 0.0
+                    && style.m_marginHorizontalSpacing == 0.0
+                    && style.m_marginVerticalSpacing == 0.0;
             if (style.m_type != 5 || !style.m_hasData
                 || style.m_propertyOverrideFlags != 0u
                 || style.m_mergeFlags
@@ -10371,13 +10387,7 @@ bool dxfRW::writeTableStyle(
                     format.m_textStyleHandle)
                 || ((format.m_textStyleHandle != 0u) != hasTextStyle)
                 || format.m_textHeight != expectedTextHeight
-                || style.m_marginOverrideFlags != 1
-                || style.m_verticalMargin != 0.06
-                || style.m_horizontalMargin != 0.06
-                || style.m_bottomMargin != 0.06
-                || style.m_rightMargin != 0.06
-                || style.m_marginHorizontalSpacing != 0.18
-                || style.m_marginVerticalSpacing != 0.18
+                || !validMargins
                 || style.m_id != expectedId
                 || style.m_styleClass != expectedClass
                 || style.m_name != expectedName
@@ -10416,9 +10426,37 @@ bool dxfRW::writeTableStyle(
             || ent->m_tableCellStyle.m_styleClass != 2
             || ent->m_tableCellStyle.m_name != "Table"
             || !validR24Style(ent->m_tableCellStyle, 4, 2, "Table", 1,
-                              0.18, 0, 0u, false)
+                              0.18, 0, 0u, false, true)
             || !ent->m_tableCellStyle.m_borders.empty())
             return failR24("R24 TABLESTYLE default Table cell style is outside the witnessed profile");
+        const auto hasStandardMargins = [](
+                const DRW_TableStyleCellStyle& style) {
+            return style.m_marginOverrideFlags == 1
+                && style.m_verticalMargin == 0.06
+                && style.m_horizontalMargin == 0.06
+                && style.m_bottomMargin == 0.06
+                && style.m_rightMargin == 0.06
+                && style.m_marginHorizontalSpacing == 0.18
+                && style.m_marginVerticalSpacing == 0.18;
+        };
+        const auto hasInheritedMargins = [](
+                const DRW_TableStyleCellStyle& style) {
+            return style.m_marginOverrideFlags == 0
+                && style.m_verticalMargin == 0.0
+                && style.m_horizontalMargin == 0.0
+                && style.m_bottomMargin == 0.0
+                && style.m_rightMargin == 0.0
+                && style.m_marginHorizontalSpacing == 0.0
+                && style.m_marginVerticalSpacing == 0.0;
+        };
+        const bool customMarginsOverridden = std::all_of(
+            ent->m_cellStyles.cbegin(), ent->m_cellStyles.cend(),
+            hasStandardMargins);
+        const bool customMarginsInherited = std::all_of(
+            ent->m_cellStyles.cbegin(), ent->m_cellStyles.cend(),
+            hasInheritedMargins);
+        if (!customMarginsOverridden && !customMarginsInherited)
+            return failR24("R24 TABLESTYLE custom cell margins do not match a witnessed explicit or inherited profile");
         constexpr int kIds[] = {1, 2, 3};
         constexpr int kClasses[] = {1, 1, 2};
         constexpr int kAlignments[] = {5, 5, 2};
@@ -10430,7 +10468,8 @@ bool dxfRW::writeTableStyle(
             if (!validR24Style(ent->m_cellStyles[index], kIds[index],
                                kClasses[index], kNames[index],
                                kAlignments[index], kTextHeights[index],
-                               kMergeFlags[index], 6u, true))
+                               kMergeFlags[index], 6u, true,
+                               customMarginsOverridden))
                 return failR24("R24 TABLESTYLE cell style is outside the witnessed title/header/data profile");
         }
         for (const DRW_DwgSubrecordRange& range : ent->m_subrecordRanges) {
@@ -10512,20 +10551,22 @@ bool dxfRW::writeTableStyle(
                     static_cast<std::int32_t>(style.m_contentLayout))
                 && writeContent(style.m_contentFormat)
                 && writer->writeInt16(171,
-                    static_cast<std::int16_t>(style.m_marginOverrideFlags))
-                && writer->writeString(301, "MARGIN")
-                && writer->writeString(1, "CELLMARGIN_BEGIN")
-                && writer->writeDouble(40, style.m_verticalMargin)
-                && writer->writeDouble(40, style.m_horizontalMargin)
-                && writer->writeDouble(40, style.m_bottomMargin)
-                && writer->writeDouble(40, style.m_rightMargin)
-                && writer->writeDouble(40,
-                    style.m_marginHorizontalSpacing)
-                && writer->writeDouble(40,
-                    style.m_marginVerticalSpacing)
-                && writer->writeString(309, "CELLMARGIN_END")
-                && writer->writeInt32(94,
-                    static_cast<std::int32_t>(style.m_borders.size()));
+                    static_cast<std::int16_t>(style.m_marginOverrideFlags));
+            if (ok && style.m_marginOverrideFlags != 0) {
+                ok = writer->writeString(301, "MARGIN")
+                    && writer->writeString(1, "CELLMARGIN_BEGIN")
+                    && writer->writeDouble(40, style.m_verticalMargin)
+                    && writer->writeDouble(40, style.m_horizontalMargin)
+                    && writer->writeDouble(40, style.m_bottomMargin)
+                    && writer->writeDouble(40, style.m_rightMargin)
+                    && writer->writeDouble(40,
+                        style.m_marginHorizontalSpacing)
+                    && writer->writeDouble(40,
+                        style.m_marginVerticalSpacing)
+                    && writer->writeString(309, "CELLMARGIN_END");
+            }
+            ok = ok && writer->writeInt32(94,
+                static_cast<std::int32_t>(style.m_borders.size()));
             for (const DRW_TableStyleBorder& border : style.m_borders) {
                 ok = ok && writer->writeInt32(95, border.m_edgeFlags)
                     && writer->writeString(302, "GRIDFORMAT")
