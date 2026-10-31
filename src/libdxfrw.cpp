@@ -21958,6 +21958,474 @@ bool dxfRW::processDynamicBlockObject() {
                     fieldCheckpoint.commit();
                 }
                 data.m_bodyFullyDecoded = completeBody;
+            } else if ((data.m_kind
+                            == DRW_DynamicBlockObject::Kind::MoveAction
+                        || data.m_kind
+                            == DRW_DynamicBlockObject::Kind::ScaleAction
+                        || data.m_kind
+                            == DRW_DynamicBlockObject::Kind::StretchAction)
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // AC1024 action subclasses share the exact EvalExpr,
+                // BlockElement, and BlockAction prefix. Their tails are
+                // admitted independently because their connection ordering,
+                // counts, and reference roles differ.
+                const bool moveAction = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::MoveAction
+                    && data.m_recordName == "BLOCKMOVEACTION";
+                const bool scaleAction = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::ScaleAction
+                    && data.m_recordName == "BLOCKSCALEACTION";
+                const bool stretchAction = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::StretchAction
+                    && data.m_recordName == "BLOCKSTRETCHACTION";
+                const std::size_t tailAfterMarker = moveAction ? 7u
+                    : scaleAction ? 18u : 10u;
+                const std::size_t minimumGroups = 18u + tailAfterMarker;
+                std::size_t cursor = 2u;
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                const auto stringGroup = [](const DRW_Variant* group,
+                                            int code,
+                                            std::string_view& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::STRING
+                        || group->c_str() == nullptr)
+                        return false;
+                    value = group->c_str();
+                    return true;
+                };
+                const auto markerGroup = [&stringGroup](
+                        const DRW_Variant* group, std::string_view marker) {
+                    std::string_view value;
+                    return stringGroup(group, 100, value)
+                        && value == marker;
+                };
+                const auto takeGroup = [&raw, &cursor](int code)
+                        -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    const DRW_Variant* group = &raw.groups[cursor++];
+                    return group->code() == code ? group : nullptr;
+                };
+                const auto hasRoom = [&raw, &cursor](std::size_t count,
+                                                     std::size_t reserved) {
+                    return cursor <= raw.groups.size()
+                        && reserved <= raw.groups.size() - cursor
+                        && count <= raw.groups.size() - cursor - reserved;
+                };
+                const auto reserveVector = [](auto& values,
+                                              std::size_t count) {
+                    try {
+                        values.reserve(count);
+                        return true;
+                    } catch (...) {
+                        return false;
+                    }
+                };
+                const auto takeInteger = [&](int code,
+                                             std::int32_t& value) {
+                    return integerGroup(takeGroup(code), code, value);
+                };
+                const auto takeDouble = [&](int code, double& value) {
+                    return doubleGroup(takeGroup(code), code, value);
+                };
+                const auto takeString = [&](int code,
+                                            std::string_view& value) {
+                    return stringGroup(takeGroup(code), code, value);
+                };
+                const auto takeMarker = [&](std::string_view marker) {
+                    return markerGroup(takeGroup(100), marker);
+                };
+                const auto takeHandle = [&](int code,
+                                            std::uint32_t& value) {
+                    std::string_view text;
+                    std::uint64_t handle = 0u;
+                    if (!takeString(code, text)
+                        || !parseRawDxfHandleLexeme(text, handle)
+                        || handle == 0u
+                        || handle > std::numeric_limits<std::uint32_t>::max())
+                        return false;
+                    value = static_cast<std::uint32_t>(handle);
+                    return true;
+                };
+                const auto readCount = [&](int code, std::int32_t& value) {
+                    return takeInteger(code, value) && value >= 0
+                        && value <= std::numeric_limits<std::int16_t>::max();
+                };
+
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t actionCount = 0;
+                std::int32_t dependencyCount = 0;
+                std::array<double, 3> displayLocation{};
+                std::vector<std::int32_t> actionIndexes;
+                std::vector<std::uint32_t> dependencyHandles;
+                std::array<std::int32_t, 2> connectionCodes{};
+                std::array<std::string_view, 2> connectionNames{};
+                std::array<std::int32_t, 2> baseConnectionCodes{};
+                std::array<std::string_view, 2> baseConnectionNames{};
+                std::array<std::int32_t, 3> scaleConnectionCodes{};
+                std::array<std::string_view, 3> scaleConnectionNames{};
+                std::array<double, 3> scaleOffset{};
+                std::array<double, 3> scaleBasePoint{};
+                std::int32_t scaleDependent = 0;
+                std::int32_t stretchPointCount = 0;
+                std::vector<DRW_Coord> stretchPoints;
+                std::int32_t handleReferenceCount = 0;
+                std::vector<std::uint32_t> handleReferenceHandles;
+                std::vector<std::int32_t> handleReferenceIndexCounts;
+                std::vector<std::vector<std::int32_t>>
+                    handleReferenceIndexes;
+                std::int32_t codeReferenceCount = 0;
+                std::vector<std::int32_t> codeReferenceCodes;
+                std::vector<std::int32_t> codeReferenceIndexCounts;
+                std::vector<std::vector<std::int32_t>>
+                    codeReferenceIndexes;
+                std::array<double, 2> actionOffsets{};
+                std::int32_t actionXYType = 0;
+                std::string_view elementName;
+                bool completeBody = (moveAction || scaleAction || stretchAction)
+                    && raw.groups.size() >= minimumGroups
+                    && raw.groups[0].code() == 5
+                    && raw.groups[1].code() == 330
+                    && raw.groups[0].type() == DRW_Variant::STRING
+                    && raw.groups[1].type() == DRW_Variant::STRING
+                    && takeMarker("AcDbEvalExpr")
+                    && takeInteger(90, nodeId)
+                    && takeInteger(98, evalMajor)
+                    && takeInteger(99, evalMinor)
+                    && takeMarker("AcDbBlockElement")
+                    && takeString(300, elementName)
+                    && takeInteger(98, elementMajor)
+                    && takeInteger(99, elementMinor)
+                    && takeInteger(1071, eed1071)
+                    && takeMarker("AcDbBlockAction")
+                    && readCount(70, actionCount)
+                    && hasRoom(static_cast<std::size_t>(actionCount),
+                        1u + 3u + 1u + tailAfterMarker);
+                if (completeBody) {
+                    if (!reserveVector(actionIndexes,
+                            static_cast<std::size_t>(actionCount)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    for (std::int32_t index = 0;
+                         index < actionCount && completeBody; ++index) {
+                        std::int32_t value = 0;
+                        completeBody = takeInteger(91, value);
+                        if (completeBody)
+                            actionIndexes.push_back(value);
+                    }
+                }
+                completeBody = completeBody
+                    && readCount(71, dependencyCount)
+                    && hasRoom(static_cast<std::size_t>(dependencyCount),
+                        3u + 1u + tailAfterMarker);
+                if (completeBody) {
+                    if (!reserveVector(dependencyHandles,
+                            static_cast<std::size_t>(dependencyCount)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    for (std::int32_t index = 0;
+                         index < dependencyCount && completeBody; ++index) {
+                        std::uint32_t handle = 0u;
+                        completeBody = takeHandle(330, handle);
+                        if (completeBody)
+                            dependencyHandles.push_back(handle);
+                    }
+                }
+                completeBody = completeBody
+                    && takeDouble(1010, displayLocation[0])
+                    && takeDouble(1020, displayLocation[1])
+                    && takeDouble(1030, displayLocation[2]);
+
+                if (completeBody && moveAction) {
+                    completeBody = takeMarker("AcDbBlockMoveAction")
+                        && takeInteger(92, connectionCodes[0])
+                        && takeString(301, connectionNames[0])
+                        && takeInteger(93, connectionCodes[1])
+                        && takeString(302, connectionNames[1])
+                        && takeDouble(140, actionOffsets[0])
+                        && takeDouble(141, actionOffsets[1])
+                        && takeInteger(280, actionXYType)
+                        && actionXYType == 1;
+                } else if (completeBody && scaleAction) {
+                    completeBody = takeMarker("AcDbBlockActionWithBasePt")
+                        && takeInteger(92, baseConnectionCodes[0])
+                        && takeInteger(93, baseConnectionCodes[1])
+                        && takeString(301, baseConnectionNames[0])
+                        && takeString(302, baseConnectionNames[1])
+                        && takeDouble(1011, scaleOffset[0])
+                        && takeDouble(1021, scaleOffset[1])
+                        && takeDouble(1031, scaleOffset[2])
+                        && takeInteger(280, scaleDependent)
+                        && (scaleDependent == 0 || scaleDependent == 1)
+                        && takeDouble(1012, scaleBasePoint[0])
+                        && takeDouble(1022, scaleBasePoint[1])
+                        && takeDouble(1032, scaleBasePoint[2])
+                        && takeMarker("AcDbBlockScaleAction")
+                        && takeInteger(94, scaleConnectionCodes[0])
+                        && takeInteger(95, scaleConnectionCodes[1])
+                        && takeInteger(96, scaleConnectionCodes[2])
+                        && takeString(303, scaleConnectionNames[0])
+                        && takeString(304, scaleConnectionNames[1])
+                        && takeString(305, scaleConnectionNames[2]);
+                } else if (completeBody && stretchAction) {
+                    completeBody = takeMarker("AcDbBlockStretchAction")
+                        && takeInteger(92, connectionCodes[0])
+                        && takeString(301, connectionNames[0])
+                        && takeInteger(93, connectionCodes[1])
+                        && takeString(302, connectionNames[1])
+                        && readCount(72, stretchPointCount)
+                        && hasRoom(
+                            static_cast<std::size_t>(stretchPointCount) * 2u,
+                            5u);
+                    if (completeBody) {
+                        if (!reserveVector(stretchPoints,
+                                static_cast<std::size_t>(stretchPointCount)))
+                            return setError(DRW::BAD_CODE_PARSED);
+                        for (std::int32_t index = 0;
+                             index < stretchPointCount && completeBody;
+                             ++index) {
+                            DRW_Coord point;
+                            completeBody = takeDouble(1011, point.x)
+                                && takeDouble(1021, point.y);
+                            if (completeBody)
+                                stretchPoints.push_back(point);
+                        }
+                    }
+                    completeBody = completeBody
+                        && readCount(73, handleReferenceCount)
+                        && hasRoom(
+                            static_cast<std::size_t>(handleReferenceCount) * 2u,
+                            4u);
+                    if (completeBody) {
+                        if (!reserveVector(handleReferenceHandles,
+                                static_cast<std::size_t>(handleReferenceCount))
+                            || !reserveVector(handleReferenceIndexCounts,
+                                static_cast<std::size_t>(handleReferenceCount))
+                            || !reserveVector(handleReferenceIndexes,
+                                static_cast<std::size_t>(handleReferenceCount)))
+                            return setError(DRW::BAD_CODE_PARSED);
+                        for (std::int32_t index = 0;
+                             index < handleReferenceCount && completeBody;
+                             ++index) {
+                            std::uint32_t handle = 0u;
+                            std::int32_t indexCount = 0;
+                            completeBody = takeHandle(331, handle)
+                                && readCount(74, indexCount)
+                                && hasRoom(
+                                    static_cast<std::size_t>(indexCount),
+                                    4u);
+                            std::vector<std::int32_t> indexes;
+                            if (completeBody) {
+                                if (!reserveVector(indexes,
+                                        static_cast<std::size_t>(indexCount)))
+                                    return setError(DRW::BAD_CODE_PARSED);
+                                for (std::int32_t item = 0;
+                                     item < indexCount && completeBody; ++item) {
+                                    std::int32_t value = 0;
+                                    completeBody = takeInteger(94, value);
+                                    if (completeBody)
+                                        indexes.push_back(value);
+                                }
+                            }
+                            if (completeBody) {
+                                handleReferenceHandles.push_back(handle);
+                                handleReferenceIndexCounts.push_back(
+                                    indexCount);
+                                handleReferenceIndexes.push_back(
+                                    std::move(indexes));
+                            }
+                        }
+                    }
+                    completeBody = completeBody
+                        && readCount(75, codeReferenceCount)
+                        && hasRoom(
+                            static_cast<std::size_t>(codeReferenceCount) * 2u,
+                            3u);
+                    if (completeBody) {
+                        if (!reserveVector(codeReferenceCodes,
+                                static_cast<std::size_t>(codeReferenceCount))
+                            || !reserveVector(codeReferenceIndexCounts,
+                                static_cast<std::size_t>(codeReferenceCount))
+                            || !reserveVector(codeReferenceIndexes,
+                                static_cast<std::size_t>(codeReferenceCount)))
+                            return setError(DRW::BAD_CODE_PARSED);
+                        for (std::int32_t index = 0;
+                             index < codeReferenceCount && completeBody;
+                             ++index) {
+                            std::int32_t codeValue = 0;
+                            std::int32_t indexCount = 0;
+                            completeBody = takeInteger(95, codeValue)
+                                && readCount(76, indexCount)
+                                && hasRoom(
+                                    static_cast<std::size_t>(indexCount),
+                                    3u);
+                            std::vector<std::int32_t> indexes;
+                            if (completeBody) {
+                                if (!reserveVector(indexes,
+                                        static_cast<std::size_t>(indexCount)))
+                                    return setError(DRW::BAD_CODE_PARSED);
+                                for (std::int32_t item = 0;
+                                     item < indexCount && completeBody; ++item) {
+                                    std::int32_t value = 0;
+                                    completeBody = takeInteger(94, value);
+                                    if (completeBody)
+                                        indexes.push_back(value);
+                                }
+                            }
+                            if (completeBody) {
+                                codeReferenceCodes.push_back(codeValue);
+                                codeReferenceIndexCounts.push_back(
+                                    indexCount);
+                                codeReferenceIndexes.push_back(
+                                    std::move(indexes));
+                            }
+                        }
+                    }
+                    completeBody = completeBody
+                        && takeDouble(140, actionOffsets[0])
+                        && takeDouble(141, actionOffsets[1])
+                        && takeInteger(280, actionXYType)
+                        && actionXYType == 1;
+                }
+                completeBody = completeBody
+                    && cursor == raw.groups.size()
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29;
+                if (completeBody) {
+                    DxfReadRetainedLeaseCheckpoint fieldCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), elementName.size()))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    const auto retainNames = [&](
+                            const auto& names) {
+                        for (const std::string_view name : names) {
+                            if (!retainDxfReadBytes(
+                                    data.m_dxfRetainedStringLease,
+                                    reader->retainedByteBudget(), name.size()))
+                                return false;
+                        }
+                        return true;
+                    };
+                    if ((moveAction || stretchAction)
+                            && !retainNames(connectionNames))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    if (scaleAction
+                        && (!retainNames(baseConnectionNames)
+                            || !retainNames(scaleConnectionNames)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName.assign(
+                            elementName.data(), elementName.size());
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_actionCount = actionCount;
+                        data.m_actionIndexes = std::move(actionIndexes);
+                        data.m_dependencyCount = dependencyCount;
+                        data.m_dependencyHandles =
+                            std::move(dependencyHandles);
+                        data.m_displayLocation = DRW_Coord(
+                            displayLocation[0], displayLocation[1],
+                            displayLocation[2]);
+                        if (moveAction) {
+                            data.m_connectionCodes.assign(
+                                connectionCodes.begin(),
+                                connectionCodes.end());
+                            for (const std::string_view name : connectionNames)
+                                data.m_connectionNames.emplace_back(
+                                    name.data(), name.size());
+                            data.m_actionOffsetX = actionOffsets[0];
+                            data.m_actionOffsetY = actionOffsets[1];
+                        } else if (scaleAction) {
+                            data.m_baseConnectionCodes.assign(
+                                baseConnectionCodes.begin(),
+                                baseConnectionCodes.end());
+                            for (const std::string_view name :
+                                 baseConnectionNames)
+                                data.m_baseConnectionNames.emplace_back(
+                                    name.data(), name.size());
+                            data.m_scaleOffset = DRW_Coord(
+                                scaleOffset[0], scaleOffset[1],
+                                scaleOffset[2]);
+                            data.m_scaleDependent = scaleDependent != 0;
+                            data.m_scaleBasePoint = DRW_Coord(
+                                scaleBasePoint[0], scaleBasePoint[1],
+                                scaleBasePoint[2]);
+                            data.m_scaleConnectionCodes.assign(
+                                scaleConnectionCodes.begin(),
+                                scaleConnectionCodes.end());
+                            for (const std::string_view name :
+                                 scaleConnectionNames)
+                                data.m_scaleConnectionNames.emplace_back(
+                                    name.data(), name.size());
+                        } else {
+                            data.m_connectionCodes.assign(
+                                connectionCodes.begin(),
+                                connectionCodes.end());
+                            for (const std::string_view name : connectionNames)
+                                data.m_connectionNames.emplace_back(
+                                    name.data(), name.size());
+                            data.m_stretchPointCount = stretchPointCount;
+                            data.m_stretchPoints = std::move(stretchPoints);
+                            data.m_handleReferenceCount =
+                                handleReferenceCount;
+                            data.m_handleReferenceHandles =
+                                std::move(handleReferenceHandles);
+                            data.m_handleReferenceIndexCounts =
+                                std::move(handleReferenceIndexCounts);
+                            data.m_handleReferenceIndexes =
+                                std::move(handleReferenceIndexes);
+                            data.m_codeReferenceCount = codeReferenceCount;
+                            data.m_codeReferenceCodes =
+                                std::move(codeReferenceCodes);
+                            data.m_codeReferenceIndexCounts =
+                                std::move(codeReferenceIndexCounts);
+                            data.m_codeReferenceIndexes =
+                                std::move(codeReferenceIndexes);
+                            data.m_actionOffsetX = actionOffsets[0];
+                            data.m_actionOffsetY = actionOffsets[1];
+                        }
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    fieldCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::FlipAction
                        && data.m_recordName == "BLOCKFLIPACTION"
@@ -32999,6 +33467,185 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_displayLocation.y)
         && std::isfinite(ent->m_displayLocation.z)
         && ent->reactorHandles.empty();
+    const bool actionVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    const auto actionPrefixValid = [&]() {
+        if (!ent->m_bodyFullyDecoded || !ent->m_evalExprParsed
+            || !ent->m_elementParsed
+            || ent->m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || (ent->m_parentId != DRW::NoHandle
+                && ent->m_parentId
+                    != std::numeric_limits<std::uint32_t>::max())
+            || !actionVersions || ent->m_valueCode != -9999
+            || ent->m_hasValueDouble || ent->m_valueHandle != 0u
+            || ent->m_actionCount < 0 || ent->m_dependencyCount < 0
+            || ent->m_actionCount
+                > std::numeric_limits<std::int16_t>::max()
+            || ent->m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || ent->m_actionIndexes.size()
+                != static_cast<std::size_t>(ent->m_actionCount)
+            || ent->m_dependencyHandles.size()
+                != static_cast<std::size_t>(ent->m_dependencyCount)
+            || !std::isfinite(ent->m_displayLocation.x)
+            || !std::isfinite(ent->m_displayLocation.y)
+            || !std::isfinite(ent->m_displayLocation.z)
+            || ent->reactorHandles.size() != 0u)
+            return false;
+        for (const std::uint32_t handle : ent->m_dependencyHandles) {
+            if (handle == 0u || handle == DRW::NoHandle)
+                return false;
+        }
+        return true;
+    };
+    const auto actionAddGroups = [](std::size_t& groupCount,
+                                   std::size_t count) {
+        if (groupCount > DRW::kMaxDxfRawRecordGroups
+            || count > DRW::kMaxDxfRawRecordGroups - groupCount)
+            return false;
+        groupCount += count;
+        return true;
+    };
+    const auto actionAddString = [](std::size_t& stringBytes,
+                                    std::size_t count) {
+        if (stringBytes > DRW::kMaxDxfBinaryPayloadBytes
+            || count > DRW::kMaxDxfBinaryPayloadBytes - stringBytes)
+            return false;
+        stringBytes += count;
+        return true;
+    };
+    bool moveActionShape = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::MoveAction
+        && ent->m_recordName == "BLOCKMOVEACTION" && actionPrefixValid();
+    bool scaleActionShape = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::ScaleAction
+        && ent->m_recordName == "BLOCKSCALEACTION" && actionPrefixValid();
+    bool stretchActionShape = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::StretchAction
+        && ent->m_recordName == "BLOCKSTRETCHACTION" && actionPrefixValid();
+    std::size_t moveActionGroupCount = 17u;
+    std::size_t scaleActionGroupCount = 17u;
+    std::size_t stretchActionGroupCount = 17u;
+    for (const std::size_t actionCount : {
+             static_cast<std::size_t>(ent->m_actionCount),
+             static_cast<std::size_t>(ent->m_dependencyCount)}) {
+        moveActionShape = moveActionShape
+            && actionAddGroups(moveActionGroupCount, actionCount);
+        scaleActionShape = scaleActionShape
+            && actionAddGroups(scaleActionGroupCount, actionCount);
+        stretchActionShape = stretchActionShape
+            && actionAddGroups(stretchActionGroupCount, actionCount);
+    }
+    std::size_t moveActionStringBytes = ent->m_elementName.size();
+    std::size_t scaleActionStringBytes = ent->m_elementName.size();
+    std::size_t stretchActionStringBytes = ent->m_elementName.size();
+    for (const UTF8STRING& name : ent->m_connectionNames) {
+        moveActionShape = moveActionShape
+            && actionAddString(moveActionStringBytes, name.size());
+        stretchActionShape = stretchActionShape
+            && actionAddString(stretchActionStringBytes, name.size());
+    }
+    for (const UTF8STRING& name : ent->m_baseConnectionNames)
+        scaleActionShape = scaleActionShape
+            && actionAddString(scaleActionStringBytes, name.size());
+    for (const UTF8STRING& name : ent->m_scaleConnectionNames)
+        scaleActionShape = scaleActionShape
+            && actionAddString(scaleActionStringBytes, name.size());
+    moveActionShape = moveActionShape
+        && ent->m_connectionCodes.size() == 2u
+        && ent->m_connectionNames.size() == 2u
+        && actionAddGroups(moveActionGroupCount, 8u)
+        && std::isfinite(ent->m_actionOffsetX)
+        && std::isfinite(ent->m_actionOffsetY)
+        && ent->m_angleOffset == 0.0
+        && moveActionGroupCount <= DRW::kMaxDxfRawRecordGroups;
+    scaleActionShape = scaleActionShape
+        && ent->m_baseConnectionCodes.size() == 2u
+        && ent->m_baseConnectionNames.size() == 2u
+        && ent->m_scaleConnectionCodes.size() == 3u
+        && ent->m_scaleConnectionNames.size() == 3u
+        && actionAddGroups(scaleActionGroupCount, 19u)
+        && std::isfinite(ent->m_scaleOffset.x)
+        && std::isfinite(ent->m_scaleOffset.y)
+        && std::isfinite(ent->m_scaleOffset.z)
+        && std::isfinite(ent->m_scaleBasePoint.x)
+        && std::isfinite(ent->m_scaleBasePoint.y)
+        && std::isfinite(ent->m_scaleBasePoint.z)
+        && ent->m_angleOffset == 0.0
+        && scaleActionGroupCount <= DRW::kMaxDxfRawRecordGroups;
+    stretchActionShape = stretchActionShape
+        && ent->m_connectionCodes.size() == 2u
+        && ent->m_connectionNames.size() == 2u
+        && ent->m_stretchPointCount >= 0
+        && ent->m_stretchPointCount
+            <= std::numeric_limits<std::int16_t>::max()
+        && ent->m_stretchPoints.size()
+            == static_cast<std::size_t>(ent->m_stretchPointCount)
+        && ent->m_handleReferenceCount >= 0
+        && ent->m_handleReferenceCount
+            <= std::numeric_limits<std::int16_t>::max()
+        && ent->m_handleReferenceHandles.size()
+            == static_cast<std::size_t>(ent->m_handleReferenceCount)
+        && ent->m_handleReferenceIndexCounts.size()
+            == static_cast<std::size_t>(ent->m_handleReferenceCount)
+        && ent->m_handleReferenceIndexes.size()
+            == static_cast<std::size_t>(ent->m_handleReferenceCount)
+        && ent->m_codeReferenceCount >= 0
+        && ent->m_codeReferenceCount
+            <= std::numeric_limits<std::int16_t>::max()
+        && ent->m_codeReferenceCodes.size()
+            == static_cast<std::size_t>(ent->m_codeReferenceCount)
+        && ent->m_codeReferenceIndexCounts.size()
+            == static_cast<std::size_t>(ent->m_codeReferenceCount)
+        && ent->m_codeReferenceIndexes.size()
+            == static_cast<std::size_t>(ent->m_codeReferenceCount)
+        && actionAddGroups(stretchActionGroupCount, 11u)
+        && std::isfinite(ent->m_actionOffsetX)
+        && std::isfinite(ent->m_actionOffsetY)
+        && ent->m_angleOffset == 0.0;
+    for (const std::uint32_t handle : ent->m_handleReferenceHandles)
+        if (handle == 0u || handle == DRW::NoHandle)
+            stretchActionShape = false;
+    for (const DRW_Coord& point : ent->m_stretchPoints) {
+        if (!std::isfinite(point.x) || !std::isfinite(point.y)
+            || point.z != 0.0)
+            stretchActionShape = false;
+        stretchActionShape = stretchActionShape
+            && actionAddGroups(stretchActionGroupCount, 2u);
+    }
+    for (std::size_t index = 0u;
+         index < ent->m_handleReferenceIndexes.size(); ++index) {
+        const std::int32_t count = ent->m_handleReferenceIndexCounts[index];
+        const auto& indexes = ent->m_handleReferenceIndexes[index];
+        if (count < 0 || count > std::numeric_limits<std::int16_t>::max()
+            || indexes.size() != static_cast<std::size_t>(count)) {
+            stretchActionShape = false;
+            continue;
+        }
+        stretchActionShape = stretchActionShape
+            && actionAddGroups(stretchActionGroupCount, 2u)
+            && actionAddGroups(stretchActionGroupCount, indexes.size());
+    }
+    for (std::size_t index = 0u;
+         index < ent->m_codeReferenceIndexes.size(); ++index) {
+        const std::int32_t count = ent->m_codeReferenceIndexCounts[index];
+        const auto& indexes = ent->m_codeReferenceIndexes[index];
+        if (count < 0 || count > std::numeric_limits<std::int16_t>::max()
+            || indexes.size() != static_cast<std::size_t>(count)) {
+            stretchActionShape = false;
+            continue;
+        }
+        stretchActionShape = stretchActionShape
+            && actionAddGroups(stretchActionGroupCount, 2u)
+            && actionAddGroups(stretchActionGroupCount, indexes.size());
+    }
+    const bool moveAction = moveActionShape;
+    const bool scaleAction = scaleActionShape;
+    const bool stretchAction = stretchActionShape;
     const bool twoPointParameterVersions =
         (ent->m_major == 29u && ent->m_minor == 2u
             && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
@@ -33330,6 +33977,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
         && !basePointParameter && !alignmentParameter && !flipAction
+        && !moveAction && !scaleAction && !stretchAction
         && !twoPointParameter
         && !gripLocation
         && !visibilityGrip
@@ -33351,6 +33999,36 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && writer->writeString(5, toHexStr(emittedHandle))
         && writeTableEntryAppData(*ent)
         && writer->writeString(330, toHexStr(emittedOwner));
+    const auto writeActionPrefix = [&]() {
+        bool prefixWritten = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockAction")
+            && writer->writeInt16(70,
+                static_cast<std::int16_t>(ent->m_actionCount));
+        for (const std::int32_t actionIndex : ent->m_actionIndexes)
+            prefixWritten = prefixWritten
+                && writer->writeInt32(91, actionIndex);
+        prefixWritten = prefixWritten
+            && writer->writeInt16(71,
+                static_cast<std::int16_t>(ent->m_dependencyCount));
+        for (const std::uint32_t handle : ent->m_dependencyHandles) {
+            prefixWritten = prefixWritten
+                && writer->writeString(330, toHexStr(
+                    remapObjectHandle(handle)));
+        }
+        return prefixWritten
+            && writer->writeDouble(1010, ent->m_displayLocation.x)
+            && writer->writeDouble(1020, ent->m_displayLocation.y)
+            && writer->writeDouble(1030, ent->m_displayLocation.z);
+    };
     if (written && purgePreventer) {
         written = writer->writeString(100, purgeSubclassName)
             && writer->writeInt16(70,
@@ -33490,6 +34168,91 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             written = writer->writeUtf8String(
                 301 + static_cast<int>(index), ent->m_connectionNames[index]);
         }
+    } else if (written && moveAction) {
+        written = writeActionPrefix()
+            && writer->writeString(100, "AcDbBlockMoveAction")
+            && writer->writeInt32(92, ent->m_connectionCodes[0])
+            && writer->writeUtf8String(301, ent->m_connectionNames[0])
+            && writer->writeInt32(93, ent->m_connectionCodes[1])
+            && writer->writeUtf8String(302, ent->m_connectionNames[1])
+            && writer->writeDouble(140, ent->m_actionOffsetX)
+            && writer->writeDouble(141, ent->m_actionOffsetY)
+            // LibreDWG's DXF schema emits the fixed Action XY type here.
+            && writer->writeInt16(280, 1);
+    } else if (written && scaleAction) {
+        written = writeActionPrefix()
+            && writer->writeString(100, "AcDbBlockActionWithBasePt")
+            && writer->writeInt32(92, ent->m_baseConnectionCodes[0])
+            && writer->writeInt32(93, ent->m_baseConnectionCodes[1])
+            && writer->writeUtf8String(301,
+                ent->m_baseConnectionNames[0])
+            && writer->writeUtf8String(302,
+                ent->m_baseConnectionNames[1])
+            && writer->writeDouble(1011, ent->m_scaleOffset.x)
+            && writer->writeDouble(1021, ent->m_scaleOffset.y)
+            && writer->writeDouble(1031, ent->m_scaleOffset.z)
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_scaleDependent ? 1 : 0))
+            && writer->writeDouble(1012, ent->m_scaleBasePoint.x)
+            && writer->writeDouble(1022, ent->m_scaleBasePoint.y)
+            && writer->writeDouble(1032, ent->m_scaleBasePoint.z)
+            && writer->writeString(100, "AcDbBlockScaleAction")
+            && writer->writeInt32(94, ent->m_scaleConnectionCodes[0])
+            && writer->writeInt32(95, ent->m_scaleConnectionCodes[1])
+            && writer->writeInt32(96, ent->m_scaleConnectionCodes[2])
+            && writer->writeUtf8String(303,
+                ent->m_scaleConnectionNames[0])
+            && writer->writeUtf8String(304,
+                ent->m_scaleConnectionNames[1])
+            && writer->writeUtf8String(305,
+                ent->m_scaleConnectionNames[2]);
+    } else if (written && stretchAction) {
+        written = writeActionPrefix()
+            && writer->writeString(100, "AcDbBlockStretchAction")
+            && writer->writeInt32(92, ent->m_connectionCodes[0])
+            && writer->writeUtf8String(301, ent->m_connectionNames[0])
+            && writer->writeInt32(93, ent->m_connectionCodes[1])
+            && writer->writeUtf8String(302, ent->m_connectionNames[1])
+            && writer->writeInt16(72,
+                static_cast<std::int16_t>(ent->m_stretchPointCount));
+        for (const DRW_Coord& point : ent->m_stretchPoints) {
+            written = written && writer->writeDouble(1011, point.x)
+                && writer->writeDouble(1021, point.y);
+        }
+        written = written && writer->writeInt16(73,
+            static_cast<std::int16_t>(ent->m_handleReferenceCount));
+        for (std::size_t index = 0u;
+             index < ent->m_handleReferenceHandles.size() && written;
+             ++index) {
+            written = writer->writeString(331, toHexStr(
+                    remapObjectHandle(
+                        ent->m_handleReferenceHandles[index])))
+                && writer->writeInt16(74,
+                    static_cast<std::int16_t>(
+                        ent->m_handleReferenceIndexCounts[index]));
+            for (const std::int32_t value :
+                 ent->m_handleReferenceIndexes[index]) {
+                written = written && writer->writeInt32(94, value);
+            }
+        }
+        written = written && writer->writeInt16(75,
+            static_cast<std::int16_t>(ent->m_codeReferenceCount));
+        for (std::size_t index = 0u;
+             index < ent->m_codeReferenceCodes.size() && written; ++index) {
+            written = writer->writeInt32(95,
+                    ent->m_codeReferenceCodes[index])
+                && writer->writeInt16(76,
+                    static_cast<std::int16_t>(
+                        ent->m_codeReferenceIndexCounts[index]));
+            for (const std::int32_t value :
+                 ent->m_codeReferenceIndexes[index]) {
+                written = written && writer->writeInt32(94, value);
+            }
+        }
+        written = written
+            && writer->writeDouble(140, ent->m_actionOffsetX)
+            && writer->writeDouble(141, ent->m_actionOffsetY)
+            && writer->writeInt16(280, 1);
     } else if (written && twoPointParameter) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-move-scale-stretch-action-output-profile-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 BLOCKMOVEACTION, BLOCKSCALEACTION, and BLOCKSTRETCHACTION DXF profiles",
+  "status": "AC1024_MOVE_SCALE_STRETCH_ACTION_TYPED_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "recordCounts": {
+      "BLOCKMOVEACTION": 2,
+      "BLOCKSCALEACTION": 1,
+      "BLOCKSTRETCHACTION": 6
+    },
+    "fixturePolicy": "Used the existing local input only. No DWG/DXF sample fixture was added to Git; per-record outputs were temporary and removed by the selector."
+  },
+  "independentStructuralComparison": {
+    "implementation": "GNU LibreDWG dwgread/dwg2dxf 0.14",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "dxfOutput": {
+      "path": "/private/tmp/arch-libredwg-reference.dxf",
+      "sha256": "16587f4864d2dd0b704bd1992e482a0e80be0c7517ff4455584c97d5142312e5"
+    },
+    "observedRecords": {
+      "BLOCKMOVEACTION": ["MoveHinge", "MoveSwing"],
+      "BLOCKSCALEACTION": ["ScaleArc"],
+      "BLOCKSTRETCHACTION": ["Stretch0", "Stretch30", "Stretch45", "Stretch60", "Stretch90", "Stretch"]
+    },
+    "fieldOrder": {
+      "commonActionPrefix": "After EvalExpr and BlockElement, AcDbBlockAction writes group 70 action count, that many group 91 indexes, group 71 dependency count, that many group 330 handles, then display-location groups 1010/1020/1030.",
+      "BLOCKMOVEACTION": "AcDbBlockMoveAction: interleaved code/name pairs 92/301 and 93/302, offsets 140/141, then fixed group 280 value 1.",
+      "BLOCKSCALEACTION": "AcDbBlockActionWithBasePt: codes 92/93, names 301/302, offset 1011/1021/1031, dependent flag 280, base point 1012/1022/1032; AcDbBlockScaleAction: codes 94/95/96 and names 303/304/305.",
+      "BLOCKSTRETCHACTION": "AcDbBlockStretchAction: interleaved connection pairs 92/301 and 93/302; group 72 point count with 2D points 1011/1021; group 73 handle-reference count with 331/74/index-94 records; group 75 code-reference count with 95/76/index-94 records; offsets 140/141 and fixed group 280 value 1."
+    },
+    "limits": "LibreDWG output is used only as an independent structural field-order comparison. It is not a native semantic oracle or whole-document support qualification."
+  },
+  "implementation": {
+    "dxfRead": "AC1024-only exact subclass/group sequence for Move, Scale, and Stretch. Counts are bounded to the DXF short-integer domain, nested list spans are checked before allocation, numeric coordinates must be finite, dependency and stretch handles must be valid 32-bit handles, and unexpected tails stay raw-only.",
+    "dxfWrite": "Adds bounded typed serialization for all three action kinds in ASCII and Binary. It validates common action counts/references, exact per-class list cardinalities, nested stretch indexes, string/group budgets, finite fields, and handle roles before transactional publication.",
+    "unrepresentableField": "The DWG model's angle_offset has no corresponding DXF group in this profile. Only zero is admitted; nonzero values fail closed rather than being dropped. Move/Stretch DXF group 280 is emitted as the observed fixed Action XY type 1; Scale group 280 carries its dependent flag.",
+    "adapterProjection": "Adds the corresponding source-model-to-DXF group projection for later graph-closed output. This helper is not yet admitted by the source-specific whole-document output gate; identity/owner/dependency closure remains pending.",
+    "notQualified": "No complete dynamic-block graph conversion, native dynamic-block semantics, FreeCAD/LibreCAD consumer behavior, or format-wide support claim is qualified by this record profile."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "fastRegression": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(actions_writer|flip_action_writer|alignment_parameter_writer|two_point_parameter_writer)$' --output-on-failure",
+      "result": "PASS, 4/4. The new selector covers DWG/DXF authored source forms in ASCII/Binary, exact group order and typed/raw readback, raw-only unknown tails, invalid dependency and nonzero angle-offset refusal, stretch-index count refusal, destination preservation, and same-writer retry."
+    },
+    "physicalWitness": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-actions-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS; all 2 Move, 1 Scale, and 6 Stretch source objects were emitted individually in ASCII and Binary and freshly read back with matching typed common fields, subclass fields, dependency handles, and nested stretch lists. All nine source angle_offset values were zero."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; the affected action and neighboring dynamic-block selectors plus the physical source witness were sufficient for this bounded record slice."
+  },
+  "remaining": [
+    "Bind action indexes, dependency handles, stretch handle/code references, reactors, EED APPID/LAYER dependencies, constraint dependencies, graph nodes, owner dictionaries, purge preventers, and required geometry to emitted identities and exact roles.",
+    "Close both EvaluationGraph roots and the complete source-required document graph before strict whole-document conversion.",
+    "Native dynamic-block semantic acceptance remains separate and unqualified."
+  ],
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "cbf3ffbdc8af93534257028121563e7a7245d74762a83e1b30dac0dde71daffe",
+    "dwg2dxf/dx_iface.cpp": "965ddf2c6b62435f0961130021452e02ee8fda425198c36b1bcfac1b72df7414",
+    "src/libdxfrw.cpp": "81c8ee0973795c2c1c7e05d98103df8dbd2bf38757bae1aa9aff94139c5988e4",
+    "tests/CMakeLists.txt": "58ad8bcb5ff1b70581d1e72b40ed25ade033d8f079181c0123b9d1579fcec7fc",
+    "tests/dwg2dxf_adapter_tests.cpp": "4228f715a4d7636ad5da355226109546649bdda41f2700b23fe63cef82410de8",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "ccf732f451c473bd7d1e0d6e30522aa125b541762592de20065351e9890d08f9"
+  },
+  "externalItemsPromoted": 0
+}

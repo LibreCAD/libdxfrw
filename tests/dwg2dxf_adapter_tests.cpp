@@ -11229,6 +11229,422 @@ bool dynamicBlockFlipActionDxfWriter(
     return true;
 }
 
+class DynamicBlockActionWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockActionDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    using Kind = DRW_DynamicBlockObject::Kind;
+    const auto recordName = [](Kind kind) {
+        switch (kind) {
+        case Kind::MoveAction:
+            return "BLOCKMOVEACTION";
+        case Kind::ScaleAction:
+            return "BLOCKSCALEACTION";
+        case Kind::StretchAction:
+            return "BLOCKSTRETCHACTION";
+        default:
+            return "";
+        }
+    };
+    const std::array<Kind, 3> actionKinds{{
+        Kind::MoveAction, Kind::ScaleAction, Kind::StretchAction}};
+    const auto makeObject = [&](Kind kind, bool dxfSource) {
+        DRW_DynamicBlockObject object(recordName(kind));
+        object.handle = kind == Kind::MoveAction ? 0x1134u
+            : kind == Kind::ScaleAction ? 0x1135u : 0x1136u;
+        object.parentHandle = 0x110Fu;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = dxfSource ? 33u : 29u;
+        object.m_minor = dxfSource ? 29u : 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = 81u + static_cast<std::uint32_t>(kind);
+        object.m_elementParsed = true;
+        object.m_elementName = kind == Kind::MoveAction ? "MoveHinge"
+            : kind == Kind::ScaleAction ? "ScaleArc" : "Stretch0";
+        object.m_elementMajor = dxfSource ? 33u : 29u;
+        object.m_elementMinor = dxfSource ? 29u : 2u;
+        object.m_actionCount = kind == Kind::ScaleAction ? 0
+            : kind == Kind::MoveAction ? 3 : 2;
+        for (std::int32_t index = 0; index < object.m_actionCount; ++index)
+            object.m_actionIndexes.push_back(17 + index * 7);
+        object.m_dependencyCount = kind == Kind::ScaleAction ? 4
+            : kind == Kind::MoveAction ? 2 : 1;
+        for (std::int32_t index = 0;
+             index < object.m_dependencyCount; ++index)
+            object.m_dependencyHandles.push_back(
+                0x1127u + static_cast<std::uint32_t>(index));
+        object.m_displayLocation = DRW_Coord(45.0, -15.0, 0.0);
+        object.m_bodyFullyDecoded = true;
+        if (kind == Kind::MoveAction) {
+            object.m_connectionCodes = {1, 8};
+            object.m_connectionNames = {"EndXDelta", "EndYDelta"};
+            object.m_actionOffsetX = 0.5;
+            object.m_actionOffsetY = 0.0;
+        } else if (kind == Kind::ScaleAction) {
+            object.m_baseConnectionCodes = {1, 1};
+            object.m_baseConnectionNames = {"Scale", "XScale"};
+            object.m_scaleOffset = DRW_Coord(0.0, 0.0, 0.0);
+            object.m_scaleDependent = true;
+            object.m_scaleBasePoint = DRW_Coord(1.0, 2.0, 0.0);
+            object.m_scaleConnectionCodes = {1, 1, 1};
+            object.m_scaleConnectionNames = {"Scale", "XScale", "YScale"};
+        } else {
+            object.m_connectionCodes = {1, 8};
+            object.m_connectionNames = {"EndXDelta", "EndYDelta"};
+            object.m_stretchPointCount = 2;
+            object.m_stretchPoints = {
+                DRW_Coord(34.5, 4.5, 0.0), DRW_Coord(26.0, -6.5, 0.0)};
+            object.m_handleReferenceCount = 2;
+            object.m_handleReferenceHandles = {0x1143u, 0x1144u};
+            object.m_handleReferenceIndexCounts = {2, 1};
+            object.m_handleReferenceIndexes = {{1, 2}, {0}};
+            object.m_codeReferenceCount = 1;
+            object.m_codeReferenceCodes = {31};
+            object.m_codeReferenceIndexCounts = {2};
+            object.m_codeReferenceIndexes = {{1, 2}};
+            object.m_actionOffsetX = 1.0;
+            object.m_actionOffsetY = 0.0;
+        }
+        return object;
+    };
+    const auto expectedCodes = [](const DRW_DynamicBlockObject& object) {
+        std::vector<int> codes{
+            5, 330, 100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 70};
+        codes.insert(codes.end(), object.m_actionIndexes.size(), 91);
+        codes.push_back(71);
+        codes.insert(codes.end(), object.m_dependencyHandles.size(), 330);
+        codes.insert(codes.end(), {1010, 1020, 1030, 100});
+        if (object.m_kind == Kind::MoveAction) {
+            codes.insert(codes.end(), {92, 301, 93, 302, 140, 141, 280});
+        } else if (object.m_kind == Kind::ScaleAction) {
+            codes.insert(codes.end(), {
+                92, 93, 301, 302, 1011, 1021, 1031, 280,
+                1012, 1022, 1032, 100, 94, 95, 96, 303, 304, 305});
+        } else {
+            codes.insert(codes.end(), {92, 301, 93, 302, 72});
+            for (std::size_t index = 0u;
+                 index < object.m_stretchPoints.size(); ++index)
+                codes.insert(codes.end(), {1011, 1021});
+            codes.push_back(73);
+            for (std::size_t index = 0u;
+                 index < object.m_handleReferenceHandles.size(); ++index) {
+                codes.push_back(331);
+                codes.push_back(74);
+                codes.insert(codes.end(),
+                    object.m_handleReferenceIndexes[index].size(), 94);
+            }
+            codes.push_back(75);
+            for (std::size_t index = 0u;
+                 index < object.m_codeReferenceCodes.size(); ++index) {
+                codes.push_back(95);
+                codes.push_back(76);
+                codes.insert(codes.end(),
+                    object.m_codeReferenceIndexes[index].size(), 94);
+            }
+            codes.insert(codes.end(), {140, 141, 280});
+        }
+        return codes;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto matches = [&](const DRW_DynamicBlockObject& source,
+                             const DRW_DynamicBlockObject& output) {
+        if (output.m_recordName != source.m_recordName
+            || output.m_kind != source.m_kind
+            || output.handle != source.handle
+            || output.parentHandle != source.parentHandle
+            || !output.m_bodyFullyDecoded || !output.m_evalExprParsed
+            || !output.m_elementParsed
+            || output.m_parentId
+                != std::numeric_limits<std::uint32_t>::max()
+            || output.m_major != 33u || output.m_minor != 29u
+            || output.m_elementMajor != 33u
+            || output.m_elementMinor != 29u
+            || output.m_nodeId != source.m_nodeId
+            || output.m_valueCode != -9999
+            || output.m_elementName != source.m_elementName
+            || output.m_eed1071 != source.m_eed1071
+            || output.m_actionCount != source.m_actionCount
+            || output.m_actionIndexes != source.m_actionIndexes
+            || output.m_dependencyCount != source.m_dependencyCount
+            || output.m_dependencyHandles != source.m_dependencyHandles
+            || !sameCoord(output.m_displayLocation, source.m_displayLocation))
+            return false;
+        if (source.m_kind == Kind::MoveAction)
+            return output.m_connectionCodes == source.m_connectionCodes
+                && output.m_connectionNames == source.m_connectionNames
+                && output.m_actionOffsetX == source.m_actionOffsetX
+                && output.m_actionOffsetY == source.m_actionOffsetY;
+        if (source.m_kind == Kind::ScaleAction)
+            return output.m_baseConnectionCodes
+                    == source.m_baseConnectionCodes
+                && output.m_baseConnectionNames
+                    == source.m_baseConnectionNames
+                && sameCoord(output.m_scaleOffset, source.m_scaleOffset)
+                && output.m_scaleDependent == source.m_scaleDependent
+                && sameCoord(output.m_scaleBasePoint,
+                             source.m_scaleBasePoint)
+                && output.m_scaleConnectionCodes
+                    == source.m_scaleConnectionCodes
+                && output.m_scaleConnectionNames
+                    == source.m_scaleConnectionNames;
+        return output.m_connectionCodes == source.m_connectionCodes
+            && output.m_connectionNames == source.m_connectionNames
+            && output.m_stretchPointCount == source.m_stretchPointCount
+            && output.m_stretchPoints.size() == source.m_stretchPoints.size()
+            && std::equal(output.m_stretchPoints.begin(),
+                output.m_stretchPoints.end(), source.m_stretchPoints.begin(),
+                sameCoord)
+            && output.m_handleReferenceCount
+                == source.m_handleReferenceCount
+            && output.m_handleReferenceHandles
+                == source.m_handleReferenceHandles
+            && output.m_handleReferenceIndexCounts
+                == source.m_handleReferenceIndexCounts
+            && output.m_handleReferenceIndexes
+                == source.m_handleReferenceIndexes
+            && output.m_codeReferenceCount == source.m_codeReferenceCount
+            && output.m_codeReferenceCodes == source.m_codeReferenceCodes
+            && output.m_codeReferenceIndexCounts
+                == source.m_codeReferenceIndexCounts
+            && output.m_codeReferenceIndexes
+                == source.m_codeReferenceIndexes
+            && output.m_actionOffsetX == source.m_actionOffsetX
+            && output.m_actionOffsetY == source.m_actionOffsetY;
+    };
+    const auto writeAndRead = [&](DynamicBlockActionWriterProbe& iface,
+                                  bool dxfSource, bool binary,
+                                  bool testUnknownTail) {
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-action-" + std::to_string(nonce)
+               + "-" + iface.object.m_recordName
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        iface.cData = &writeData;
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+
+        const std::string sentinel =
+            "invalid dynamic action must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create dynamic-action sentinel");
+        }
+        const auto originalDependencies = iface.object.m_dependencyHandles;
+        iface.object.m_dependencyHandles.pop_back();
+        if (writer.write(&iface, DRW::AC1024, binary) || iface.objectWritten)
+            return fail("mismatched action dependency count was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel)
+                return fail("failed dynamic-action write replaced destination");
+        }
+        iface.object.m_dependencyHandles = originalDependencies;
+        iface.object.m_angleOffset = 0.25;
+        if (writer.write(&iface, DRW::AC1024, binary) || iface.objectWritten)
+            return fail("unrepresentable action angle offset was emitted");
+        iface.object.m_angleOffset = 0.0;
+        if (iface.object.m_kind == Kind::StretchAction) {
+            const std::int32_t indexCount =
+                iface.object.m_handleReferenceIndexCounts.front();
+            iface.object.m_handleReferenceIndexCounts.front() = indexCount + 1;
+            if (writer.write(&iface, DRW::AC1024, binary)
+                || iface.objectWritten)
+                return fail("mismatched stretch index count was emitted");
+            iface.object.m_handleReferenceIndexCounts.front() = indexCount;
+        }
+        if (!writer.write(&iface, DRW::AC1024, binary) || !iface.objectWritten)
+            return fail("corrected dynamic-action write failed same-writer retry");
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        if (!reader.read(&readIface, false))
+            return fail("dynamic-action DXF read failed for "
+                + iface.object.m_recordName);
+        if (readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u)
+            return fail("dynamic action callback count changed for "
+                + iface.object.m_recordName);
+        if (!matches(iface.object, readback.dynamicBlockObjects.front())) {
+            std::cerr << "Action readback mismatch: " << iface.object.m_recordName
+                      << " body="
+                      << readback.dynamicBlockObjects.front().m_bodyFullyDecoded
+                      << " groups="
+                      << readback.rawDynamicBlockObjects.front().groups.size()
+                      << '\n';
+            return fail("dynamic action fields changed on fresh readback for "
+                + iface.object.m_recordName);
+        }
+        const std::vector<int> expected = expectedCodes(iface.object);
+        const DRW_RawDxfObject& raw = readback.rawDynamicBlockObjects.front();
+        if (raw.groups.size() != expected.size())
+            return fail("dynamic-action group count changed on output");
+        for (std::size_t index = 0u; index < expected.size(); ++index) {
+            if (raw.groups[index].code() != expected[index])
+                return fail("dynamic-action DXF group order changed");
+        }
+        if (testUnknownTail && !binary) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inTarget = false;
+            bool inserted = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inTarget = lines[index + 1u] == iface.object.m_recordName;
+                    continue;
+                }
+                if (inTarget && code == 280) {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 2u),
+                        {"70", "1"});
+                    inserted = true;
+                    break;
+                }
+            }
+            if (input.bad() || !inserted)
+                return fail("could not add action parser tail control");
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write action parser tail control");
+            }
+            dx_data tailedData;
+            tailedData.sourceFormat = dx_source_format::DXF;
+            tailedData.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedData;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            if (!tailedReader.read(&tailedIface, false)
+                || tailedData.dynamicBlockObjects.size() != 1u
+                || tailedData.rawDynamicBlockObjects.size() != 1u
+                || tailedData.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedData.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedData.rawDynamicBlockObjects.front().groups.size()
+                    != expected.size() + 1u)
+                return fail("unknown action tail did not remain raw-only");
+        }
+        return true;
+    };
+
+    for (const Kind kind : actionKinds) {
+        for (const auto& profile : std::array<std::pair<bool, bool>, 4>{{
+                 {false, false}, {false, true}, {true, false}, {true, true}}}) {
+            DynamicBlockActionWriterProbe iface;
+            iface.object = makeObject(kind, profile.first);
+            if (!writeAndRead(iface, profile.first, profile.second,
+                              profile.first && !profile.second))
+                return false;
+        }
+    }
+
+    if (!physicalSource.empty()) {
+        dx_iface sourceReader;
+        dx_data source;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("dynamic-action witness is not an AC1024 DWG");
+        std::array<std::vector<DRW_DynamicBlockObject>, 3> physicalObjects;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            const auto kind = object.m_kind;
+            const auto found = std::find(actionKinds.begin(),
+                                         actionKinds.end(), kind);
+            if (found == actionKinds.end())
+                continue;
+            const std::size_t actionIndex = static_cast<std::size_t>(
+                std::distance(actionKinds.begin(), found));
+            if (object.m_recordName != recordName(kind)
+                || !object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || !object.m_elementParsed || object.m_actionCount < 0
+                || object.m_dependencyCount <= 0
+                || object.m_actionIndexes.size()
+                    != static_cast<std::size_t>(object.m_actionCount)
+                || object.m_dependencyHandles.size()
+                    != static_cast<std::size_t>(object.m_dependencyCount)
+                || !std::isfinite(object.m_displayLocation.x)
+                || !std::isfinite(object.m_displayLocation.y)
+                || !std::isfinite(object.m_displayLocation.z)
+                || object.m_angleOffset != 0.0)
+                return fail("physical dynamic action is not fully typed");
+            physicalObjects[actionIndex].push_back(object);
+        }
+        const std::array<std::size_t, 3> expectedCounts{{2u, 1u, 6u}};
+        for (std::size_t index = 0u; index < expectedCounts.size(); ++index) {
+            if (physicalObjects[index].size() != expectedCounts[index])
+                return fail("physical action source record count changed");
+            for (const DRW_DynamicBlockObject& object : physicalObjects[index]) {
+                for (const bool binary : {false, true}) {
+                    DynamicBlockActionWriterProbe iface;
+                    iface.object = object;
+                    if (!writeAndRead(iface, false, binary, false))
+                        return false;
+                }
+            }
+        }
+        std::cerr << "Physical AC1024 dynamic actions passed: 2 move, 1 scale, "
+                     "6 stretch records, nested references, ASCII/Binary, "
+                     "and fresh typed readback.\n";
+    }
+    std::cerr << "AC1024 Move/Scale/Stretch action writers passed in "
+                 "ASCII/Binary: exact fields, raw-only unknown tails, "
+                 "rollback/retry, and fresh typed readback.\n";
+    return true;
+}
+
 class DynamicBlockTwoPointParameterWriterProbe final : public dx_iface {
 public:
     DRW_DynamicBlockObject object;
@@ -54344,6 +54760,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-flip-action-dxf-writer")
         return dynamicBlockFlipActionDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-actions-dxf-writer")
+        return dynamicBlockActionDxfWriter(
             argc == 3 ? std::filesystem::path(argv[2])
                       : std::filesystem::path{}) ? 0 : 1;
     if ((argc == 2 || argc == 3)

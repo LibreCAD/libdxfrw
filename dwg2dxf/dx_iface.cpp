@@ -35867,6 +35867,285 @@ bool makeDwgDynamicOutputGroups(
         }
         return true;
     }
+    const auto appendActionPrefix = [&]() {
+        const bool versions =
+            (source.m_major == 29u && source.m_minor == 2u
+                && source.m_elementMajor == 29u
+                && source.m_elementMinor == 2u)
+            || (source.m_major == 33u && source.m_minor == 29u
+                && source.m_elementMajor == 33u
+                && source.m_elementMinor == 29u);
+        if (!source.m_bodyFullyDecoded || !source.m_evalExprParsed
+            || !source.m_elementParsed || !versions
+            || source.m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || source.m_valueCode != -9999 || source.m_hasValueDouble
+            || source.m_valueHandle != 0u
+            || (source.m_parentId != DRW::NoHandle
+                && source.m_parentId
+                    != std::numeric_limits<std::uint32_t>::max())
+            || source.m_actionCount < 0 || source.m_dependencyCount < 0
+            || source.m_actionCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_actionIndexes.size()
+                != static_cast<std::size_t>(source.m_actionCount)
+            || source.m_dependencyHandles.size()
+                != static_cast<std::size_t>(source.m_dependencyCount)
+            || !std::isfinite(source.m_displayLocation.x)
+            || !std::isfinite(source.m_displayLocation.y)
+            || !std::isfinite(source.m_displayLocation.z)
+            || !source.reactorHandles.empty()
+            || source.m_elementName.size()
+                > DRW::kMaxDxfBinaryPayloadBytes)
+            return false;
+        for (const std::uint32_t handle : source.m_dependencyHandles)
+            if (handle == 0u || handle == DRW::NoHandle)
+                return false;
+        const std::size_t commonGroups = 17u
+            + static_cast<std::size_t>(source.m_actionCount)
+            + static_cast<std::size_t>(source.m_dependencyCount);
+        if (commonGroups > DRW::kMaxDxfRawRecordGroups)
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockAction");
+        appendDwgDynamicInt(groups, 70, source.m_actionCount);
+        for (const std::int32_t actionIndex : source.m_actionIndexes)
+            appendDwgDynamicInt(groups, 91, actionIndex);
+        appendDwgDynamicInt(groups, 71, source.m_dependencyCount);
+        for (const std::uint32_t handle : source.m_dependencyHandles)
+            appendDwgDynamicHandle(groups, 330, handle, writer);
+        groups.emplace_back(1010, source.m_displayLocation.x);
+        groups.emplace_back(1020, source.m_displayLocation.y);
+        groups.emplace_back(1030, source.m_displayLocation.z);
+        return true;
+    };
+    const auto actionStringBytesWithinLimit = [&source](
+            const std::vector<UTF8STRING>& first,
+            const std::vector<UTF8STRING>& second) {
+        std::size_t total = source.m_elementName.size();
+        const auto add = [&total](std::size_t size) {
+            if (total > DRW::kMaxDxfBinaryPayloadBytes
+                || size > DRW::kMaxDxfBinaryPayloadBytes - total)
+                return false;
+            total += size;
+            return true;
+        };
+        for (const UTF8STRING& value : first)
+            if (!add(value.size()))
+                return false;
+        for (const UTF8STRING& value : second)
+            if (!add(value.size()))
+                return false;
+        return true;
+    };
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::MoveAction) {
+        if (source.m_recordName != "BLOCKMOVEACTION"
+            || source.m_actionCount < 0 || source.m_dependencyCount < 0
+            || source.m_actionCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_connectionCodes.size() != 2u
+            || source.m_connectionNames.size() != 2u
+            || !actionStringBytesWithinLimit(source.m_connectionNames, {})
+            || !std::isfinite(source.m_actionOffsetX)
+            || !std::isfinite(source.m_actionOffsetY)
+            || source.m_angleOffset != 0.0
+            || groups.size() > DRW::kMaxDxfRawRecordGroups - 25u
+            || static_cast<std::size_t>(source.m_actionCount)
+                + static_cast<std::size_t>(source.m_dependencyCount)
+                > DRW::kMaxDxfRawRecordGroups - 25u)
+            return false;
+        if (!appendActionPrefix())
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbBlockMoveAction");
+        appendDwgDynamicInt(groups, 92, source.m_connectionCodes[0]);
+        appendDwgDynamicString(groups, 301, source.m_connectionNames[0]);
+        appendDwgDynamicInt(groups, 93, source.m_connectionCodes[1]);
+        appendDwgDynamicString(groups, 302, source.m_connectionNames[1]);
+        groups.emplace_back(140, source.m_actionOffsetX);
+        groups.emplace_back(141, source.m_actionOffsetY);
+        appendDwgDynamicInt(groups, 280, 1);
+        return true;
+    }
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::ScaleAction) {
+        if (source.m_recordName != "BLOCKSCALEACTION"
+            || source.m_actionCount < 0 || source.m_dependencyCount < 0
+            || source.m_actionCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_baseConnectionCodes.size() != 2u
+            || source.m_baseConnectionNames.size() != 2u
+            || source.m_scaleConnectionCodes.size() != 3u
+            || source.m_scaleConnectionNames.size() != 3u
+            || !actionStringBytesWithinLimit(
+                source.m_baseConnectionNames, source.m_scaleConnectionNames)
+            || !std::isfinite(source.m_scaleOffset.x)
+            || !std::isfinite(source.m_scaleOffset.y)
+            || !std::isfinite(source.m_scaleOffset.z)
+            || !std::isfinite(source.m_scaleBasePoint.x)
+            || !std::isfinite(source.m_scaleBasePoint.y)
+            || !std::isfinite(source.m_scaleBasePoint.z)
+            || source.m_angleOffset != 0.0
+            || groups.size() > DRW::kMaxDxfRawRecordGroups - 36u
+            || static_cast<std::size_t>(source.m_actionCount)
+                + static_cast<std::size_t>(source.m_dependencyCount)
+                > DRW::kMaxDxfRawRecordGroups - 36u)
+            return false;
+        if (!appendActionPrefix())
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbBlockActionWithBasePt");
+        appendDwgDynamicInt(groups, 92, source.m_baseConnectionCodes[0]);
+        appendDwgDynamicInt(groups, 93, source.m_baseConnectionCodes[1]);
+        appendDwgDynamicString(groups, 301, source.m_baseConnectionNames[0]);
+        appendDwgDynamicString(groups, 302, source.m_baseConnectionNames[1]);
+        groups.emplace_back(1011, source.m_scaleOffset.x);
+        groups.emplace_back(1021, source.m_scaleOffset.y);
+        groups.emplace_back(1031, source.m_scaleOffset.z);
+        appendDwgDynamicInt(groups, 280,
+                            source.m_scaleDependent ? 1 : 0);
+        groups.emplace_back(1012, source.m_scaleBasePoint.x);
+        groups.emplace_back(1022, source.m_scaleBasePoint.y);
+        groups.emplace_back(1032, source.m_scaleBasePoint.z);
+        appendDwgDynamicString(groups, 100, "AcDbBlockScaleAction");
+        appendDwgDynamicInt(groups, 94, source.m_scaleConnectionCodes[0]);
+        appendDwgDynamicInt(groups, 95, source.m_scaleConnectionCodes[1]);
+        appendDwgDynamicInt(groups, 96, source.m_scaleConnectionCodes[2]);
+        appendDwgDynamicString(groups, 303, source.m_scaleConnectionNames[0]);
+        appendDwgDynamicString(groups, 304, source.m_scaleConnectionNames[1]);
+        appendDwgDynamicString(groups, 305, source.m_scaleConnectionNames[2]);
+        return true;
+    }
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::StretchAction) {
+        if (source.m_recordName != "BLOCKSTRETCHACTION"
+            || source.m_actionCount < 0 || source.m_dependencyCount < 0
+            || source.m_actionCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_dependencyCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_connectionCodes.size() != 2u
+            || source.m_connectionNames.size() != 2u
+            || !actionStringBytesWithinLimit(source.m_connectionNames, {})
+            || source.m_stretchPointCount < 0
+            || source.m_stretchPointCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_stretchPoints.size()
+                != static_cast<std::size_t>(source.m_stretchPointCount)
+            || source.m_handleReferenceCount < 0
+            || source.m_handleReferenceCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_handleReferenceHandles.size()
+                != static_cast<std::size_t>(source.m_handleReferenceCount)
+            || source.m_handleReferenceIndexCounts.size()
+                != static_cast<std::size_t>(source.m_handleReferenceCount)
+            || source.m_handleReferenceIndexes.size()
+                != static_cast<std::size_t>(source.m_handleReferenceCount)
+            || source.m_codeReferenceCount < 0
+            || source.m_codeReferenceCount
+                > std::numeric_limits<std::int16_t>::max()
+            || source.m_codeReferenceCodes.size()
+                != static_cast<std::size_t>(source.m_codeReferenceCount)
+            || source.m_codeReferenceIndexCounts.size()
+                != static_cast<std::size_t>(source.m_codeReferenceCount)
+            || source.m_codeReferenceIndexes.size()
+                != static_cast<std::size_t>(source.m_codeReferenceCount)
+            || !std::isfinite(source.m_actionOffsetX)
+            || !std::isfinite(source.m_actionOffsetY)
+            || source.m_angleOffset != 0.0)
+            return false;
+        std::size_t groupCount = 28u
+            + static_cast<std::size_t>(source.m_actionCount)
+            + static_cast<std::size_t>(source.m_dependencyCount);
+        const auto addGroups = [&groupCount](std::size_t count) {
+            if (groupCount > DRW::kMaxDxfRawRecordGroups
+                || count > DRW::kMaxDxfRawRecordGroups - groupCount)
+                return false;
+            groupCount += count;
+            return true;
+        };
+        bool bounded = addGroups(source.m_stretchPoints.size() * 2u);
+        for (std::size_t index = 0u;
+             index < source.m_handleReferenceIndexes.size() && bounded;
+             ++index) {
+            const std::int32_t count =
+                source.m_handleReferenceIndexCounts[index];
+            const auto& indexes = source.m_handleReferenceIndexes[index];
+            bounded = count >= 0
+                && count <= std::numeric_limits<std::int16_t>::max()
+                && indexes.size() == static_cast<std::size_t>(count)
+                && addGroups(2u) && addGroups(indexes.size());
+        }
+        for (std::size_t index = 0u;
+             index < source.m_codeReferenceIndexes.size() && bounded;
+             ++index) {
+            const std::int32_t count =
+                source.m_codeReferenceIndexCounts[index];
+            const auto& indexes = source.m_codeReferenceIndexes[index];
+            bounded = count >= 0
+                && count <= std::numeric_limits<std::int16_t>::max()
+                && indexes.size() == static_cast<std::size_t>(count)
+                && addGroups(2u) && addGroups(indexes.size());
+        }
+        for (const std::uint32_t handle : source.m_handleReferenceHandles)
+            if (handle == 0u || handle == DRW::NoHandle)
+                bounded = false;
+        for (const DRW_Coord& point : source.m_stretchPoints)
+            if (!std::isfinite(point.x) || !std::isfinite(point.y)
+                || point.z != 0.0)
+                bounded = false;
+        if (!bounded)
+            return false;
+        if (!appendActionPrefix())
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbBlockStretchAction");
+        appendDwgDynamicInt(groups, 92, source.m_connectionCodes[0]);
+        appendDwgDynamicString(groups, 301, source.m_connectionNames[0]);
+        appendDwgDynamicInt(groups, 93, source.m_connectionCodes[1]);
+        appendDwgDynamicString(groups, 302, source.m_connectionNames[1]);
+        appendDwgDynamicInt(groups, 72, source.m_stretchPointCount);
+        for (const DRW_Coord& point : source.m_stretchPoints) {
+            groups.emplace_back(1011, point.x);
+            groups.emplace_back(1021, point.y);
+        }
+        appendDwgDynamicInt(groups, 73, source.m_handleReferenceCount);
+        for (std::size_t index = 0u;
+             index < source.m_handleReferenceHandles.size(); ++index) {
+            appendDwgDynamicHandle(
+                groups, 331, source.m_handleReferenceHandles[index], writer);
+            appendDwgDynamicInt(
+                groups, 74, source.m_handleReferenceIndexCounts[index]);
+            for (const std::int32_t value :
+                 source.m_handleReferenceIndexes[index])
+                appendDwgDynamicInt(groups, 94, value);
+        }
+        appendDwgDynamicInt(groups, 75, source.m_codeReferenceCount);
+        for (std::size_t index = 0u;
+             index < source.m_codeReferenceCodes.size(); ++index) {
+            appendDwgDynamicInt(
+                groups, 95, source.m_codeReferenceCodes[index]);
+            appendDwgDynamicInt(
+                groups, 76, source.m_codeReferenceIndexCounts[index]);
+            for (const std::int32_t value :
+                 source.m_codeReferenceIndexes[index])
+                appendDwgDynamicInt(groups, 94, value);
+        }
+        groups.emplace_back(140, source.m_actionOffsetX);
+        groups.emplace_back(141, source.m_actionOffsetY);
+        appendDwgDynamicInt(groups, 280, 1);
+        return true;
+    }
     if (source.m_kind
             != DRW_DynamicBlockObject::Kind::VisibilityParameter)
         return false;

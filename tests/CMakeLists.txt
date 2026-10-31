@@ -2436,6 +2436,19 @@ set_tests_properties(dwg2dxf_dynamic_block_flip_action_writer
     TIMEOUT 30
 )
 
+# Exercise AC1024 BLOCKMOVEACTION, BLOCKSCALEACTION and BLOCKSTRETCHACTION
+# fields in both output encodings, including nested stretch references,
+# unknown-tail raw-only fallback, transactional rollback and retry.
+add_test(
+    NAME dwg2dxf_dynamic_block_actions_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-actions-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_actions_writer PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 # Exercise the four AC1024 AcDbBlock2PtParameter subclasses with exact
 # ASCII/Binary field order, typed readback, and atomic rollback/retry.
 add_test(

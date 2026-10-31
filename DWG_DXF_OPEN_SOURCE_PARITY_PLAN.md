@@ -58,50 +58,31 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — close dynamic-block output for the AC1024
-`architectural_example-imperial.dwg` source.** A strict whole-document
-conversion stops at `dynamic-block objects are outside the closed output
-profiles`; its output remains atomically unpublished. Use [the P5 inventory
+**Next implementation packet — bind and close the AC1024 dynamic-block output
+graph for `architectural_example-imperial.dwg`.** Strict whole-document
+conversion still stops at `dynamic-block objects are outside the closed output
+profiles` and leaves its destination unpublished. Use [the P5 inventory
 receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
-for the exact source hash, required records, both EvaluationGraph roots, owner
-roles, and dependencies. Finish only its remaining record profiles and bind
-every required object/reference to emitted identities before widening output
-eligibility. Serializer readback does not prove native dynamic-block semantics.
+for the source hash, 65 typed objects, both EvaluationGraph roots, owner
+routes, and dependencies. Record-level DXF projections are not graph closure;
+fresh readback does not prove native semantics.
 
-The remaining source-backed record projections in this inventory are
-`BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1), and `BLOCKSTRETCHACTION` (6):
-three record classes and nine source records remain. The four
-`AcDbBlock2PtParameter` subclasses (`BLOCKFLIPPARAMETER`,
-`BLOCKHORIZONTALCONSTRAINTPARAMETER`, `BLOCKLINEARPARAMETER`, and
-`BLOCKVERTICALCONSTRAINTPARAMETER`) now have bounded AC1024 read/write
-projections, exact ASCII/Binary typed/raw readback, and physical source-record
-round-trip evidence in [the two-point-parameter receipt](docs/research/p5-ac1024-two-point-parameter-output-qualification-2026-10-31.json).
-The AC1024 `BLOCKALIGNMENTPARAMETER` and `BLOCKFLIPACTION` projections and
-ASCII/Binary typed readbacks are recorded in
-[the alignment-parameter receipt](docs/research/p5-ac1024-alignment-parameter-output-qualification-2026-10-31.json)
-and [the flip-action receipt](docs/research/p5-ac1024-flip-action-output-qualification-2026-10-31.json).
-Implement the remaining bounded wire profiles from retained typed fields and
-exact physical source records; serializer readback alone does not establish
-native semantics. These completed parameter profiles do not close either
-EvaluationGraph owner route, dependency target binding, whole-document output,
-or native dynamic-block semantics.
-
-Implementation order, grouped by shared wire layout to reduce duplicate
-implementation and focused test setup: (1) complete
-`BLOCKMOVEACTION`, `BLOCKSCALEACTION`, and `BLOCKSTRECHACTION` by reusing the
-qualified `AcDbBlockAction` prefix and reference handling from
-`BLOCKFLIPACTION`, while keeping each action-specific body exact; (2) bind
-graph/object identities, action and reactor roles, EED APPID references,
-constraint dependencies, and projected `BLOCKPARAMDEPENDENCYBODY` records to
-emitted identities and their owning `ACDBASSOCDEPENDENCY` records; (3) close
-both EvaluationGraph roots and owner-dictionary routes, bind both source
-purge-preventer instances through the already-qualified body profile, and
-resolve required output identities; (4) verify staged bytes and fresh
-ASCII/Binary readback, missing-edge refusal, destination atomicity, and
-corrected retry; (5) run one strict-complete conversion for this source.
-Reuse providers only when source fields and roles match; keep unknown or
-partially represented descendants refused. Serializer readback does not prove
-native dynamic-block semantics.
+Implementation order, using current object/graph models and source-frame
+snapshots rather than adding another graph engine: (1) produce an exact source
+edge census for both EvaluationGraphs, including action-index-to-node mapping,
+dependency/handle-reference targets, reactors, EED APPID/LAYER dependencies,
+constraint dependencies, owner dictionaries, purge preventers, and required
+geometry; classify each endpoint by emitted record role and identity; (2) bind
+all source handles to planned emitted identities and owner roles, reusing
+existing body/output providers only when the source profile and handle role
+match; (3) extend staged output inspection to cover both roots and every
+reachable required object/reference, preserving collision, alias, wrong-owner,
+missing-target, and unknown-body refusal; (4) test the smallest missing-edge
+and late-mutation failures, whole-destination atomicity, corrected retry, exact
+staged fields, and fresh ASCII/Binary readback; (5) run one strict-complete
+conversion for this source. Keep native dynamic-block meaning separate from
+serializer/readback evidence and leave the support ledger closed until its
+consumer gate passes.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
