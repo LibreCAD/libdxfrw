@@ -49105,6 +49105,10 @@ bool dx_iface::finalizeDxfWrite() {
             if (!qualifyCapturedIdentity(proof.sourceHandle))
                 return false;
         }
+        for (const auto& proof : m_dxfVisualStyles) {
+            if (!qualifyCapturedIdentity(proof.first))
+                return false;
+        }
     }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG

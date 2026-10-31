@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure | Qualify the remaining 73/228 identities in the AC1024 witness: 58 generic callbacks (52 named records, 2 unnamed entity callbacks and 4 unnamed object callbacks) plus 15 standard-object callbacks. Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export closure | Qualify the remaining 54/228 identities in the AC1024 witness: 39 generic callbacks (33 named records, 2 unnamed entity callbacks and 4 unnamed object callbacks) plus 15 standard-object callbacks. Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -57,20 +57,20 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next action — connect the existing output proof routes to strict identity qualification.**
-On the current AC1024 witness, 155/228 opaque callback identities now have
+On the current AC1024 witness, 174/228 opaque callback identities now have
 transactional output qualification; strict export still refuses before
-publication, with 73 unresolved. The completed 54 `ACDBASSOCGEOMDEPENDENCY`
-and 30 `ACDBASSOCVALUEDEPENDENCY` packets were removed from this queue after
-their typed output/readback proofs were connected to source identities. Next,
-connect the existing 19-record `VISUALSTYLE` output/readback proof, then the
-remaining named profiles: 17 `SCALE`, 8 `DICTIONARYVAR`, 2 `MLEADERSTYLE`, 3
+publication, with 54 unresolved. The completed 54 `ACDBASSOCGEOMDEPENDENCY`,
+30 `ACDBASSOCVALUEDEPENDENCY`, and 19 `VISUALSTYLE` packets were removed from
+this queue after their typed output/readback proofs were connected to source
+identities. Next, connect the existing 17-record `SCALE` output/readback proof,
+then the remaining named profiles: 8 `DICTIONARYVAR`, 2 `MLEADERSTYLE`, 3
 `MATERIAL`, 1 `TABLESTYLE`, 1 `ACDBDICTIONARYWDFLT`, and 1 `SORTENTSTABLE`.
 Close only identities whose complete source/role/output proof passes inside the
 same transaction. The remaining six callback rows without a named profile are
 2 entity callbacks of type 34 and 4 object callbacks of types 73, 80 and 82;
 also resolve 15 standard-object callbacks (13 type 42 and 2 type 79). Keep
 unresolved identities refused and add no investigation DWG/DXF fixture. See
-[`p4-ac1024-geometry-value-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-geometry-value-output-qualification-2026-10-31.json)
+[`p4-ac1024-visualstyle-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-visualstyle-output-qualification-2026-10-31.json)
 for the current count and its exact source binding.
 
 ## P4 — original bodies and complete document closure
