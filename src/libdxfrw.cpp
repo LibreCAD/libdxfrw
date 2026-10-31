@@ -20914,6 +20914,92 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::ParameterDependencyBody
+                       && data.m_recordName
+                           == "BLOCKPARAMDEPENDENCYBODY"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // AC1024's fixed dependency-body projection is bounded to the
+                // exact subclass/group sequence used by the physical witness.
+                // Retain any other body shape as raw-only until its fields are
+                // established independently.
+                static constexpr std::array<int, 7> expectedCodes{{
+                    100, 90, 100, 90, 1, 100, 90}};
+                static constexpr std::array<std::string_view, 3>
+                    expectedSubclasses{{
+                        "AcDbAssocDependencyBody",
+                        "AcDbImpAssocDimDependencyBodyBase",
+                        "AcDbBlockParameterDependencyBody"}};
+                std::array<const DRW_Variant*, expectedCodes.size()> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!inBody) {
+                        if (group.code() != 100
+                            || group.type() != DRW_Variant::STRING
+                            || group.c_str() == nullptr
+                            || std::string_view(group.c_str())
+                                != expectedSubclasses.front())
+                            continue;
+                        inBody = true;
+                    }
+                    if (bodyCount >= body.size()) {
+                        completeBody = false;
+                        break;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto bodyVersion = [](const DRW_Variant* group,
+                                           int expectedCode,
+                                           std::int32_t& value) {
+                    if (group == nullptr || group->code() != expectedCode
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return value >= 0
+                        && value <= std::numeric_limits<std::uint16_t>::max();
+                };
+                std::array<std::int32_t, 3> versions{};
+                completeBody = completeBody && inBody
+                    && bodyCount == body.size();
+                for (std::size_t index = 0u;
+                     index < body.size() && completeBody; ++index) {
+                    const DRW_Variant* group = body[index];
+                    if (group == nullptr
+                        || group->code() != expectedCodes[index]) {
+                        completeBody = false;
+                        break;
+                    }
+                    if (index == 0u || index == 2u || index == 5u) {
+                        const std::size_t subclassIndex = index == 0u ? 0u
+                            : index == 2u ? 1u : 2u;
+                        completeBody = group->type() == DRW_Variant::STRING
+                            && group->c_str() != nullptr
+                            && std::string_view(group->c_str())
+                                == expectedSubclasses[subclassIndex];
+                    } else if (index == 4u) {
+                        completeBody = group->type() == DRW_Variant::STRING
+                            && group->c_str() != nullptr;
+                    } else {
+                        const std::size_t versionIndex = index == 1u ? 0u
+                            : index == 3u ? 1u : 2u;
+                        completeBody = bodyVersion(
+                            group, expectedCodes[index],
+                            versions[versionIndex]);
+                    }
+                }
+                if (completeBody) {
+                    data.m_adbVersion = versions[0];
+                    data.m_dimensionBaseVersion = versions[1];
+                    data.m_dependencyName = body[4]->c_str();
+                    data.m_classVersion = versions[2];
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
@@ -31372,6 +31458,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     static constexpr char gripSubclassName[] = "AcDbBlockGripExpr";
     static constexpr char visibilityGripRecordName[] =
         "BLOCKVISIBILITYGRIP";
+    static constexpr char parameterDependencyBodyRecordName[] =
+        "BLOCKPARAMDEPENDENCYBODY";
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version < DRW::AC1024
         || ent->handle == 0 || ent->handle == DRW::NoHandle
@@ -31389,6 +31477,15 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_purgeBlockHandle != DRW::NoHandle
         && ent->reactorHandles.size() == 1u
         && ent->reactorHandles.front() == ent->parentHandle;
+    const bool parameterDependencyBody = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::ParameterDependencyBody
+        && ent->m_recordName == parameterDependencyBodyRecordName
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && !ent->m_evalExprParsed && !ent->m_elementParsed
+        && ent->m_adbVersion == 1
+        && ent->m_dimensionBaseVersion == 1
+        && ent->m_classVersion == 0
+        && !ent->m_dependencyName.empty();
     const bool proxyEvalExprVersion =
         (ent->m_major == 29u && ent->m_minor == 2u)
         || (ent->m_major == 33u && ent->m_minor == 29u);
@@ -31563,8 +31660,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         visibilityParameter = visibilityParameter
             && unusedFlatHandles == 1u;
     }
-    if (!purgePreventer && !proxyNode && !gripLocation && !visibilityGrip
-        && !visibilityParameter)
+    if (!purgePreventer && !parameterDependencyBody && !proxyNode
+        && !gripLocation && !visibilityGrip && !visibilityParameter)
         return failDxfWrite();
 
     RecordStateScope state(*this, ent);
@@ -31586,6 +31683,16 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         written = writer->writeString(100, purgeSubclassName)
             && writer->writeInt16(70,
                 static_cast<std::int16_t>(ent->m_purgeFlag));
+    } else if (written && parameterDependencyBody) {
+        written = writer->writeString(100, "AcDbAssocDependencyBody")
+            && writer->writeInt32(90, ent->m_adbVersion)
+            && writer->writeString(100,
+                "AcDbImpAssocDimDependencyBodyBase")
+            && writer->writeInt32(90, ent->m_dimensionBaseVersion)
+            && writer->writeUtf8String(1, ent->m_dependencyName)
+            && writer->writeString(100,
+                "AcDbBlockParameterDependencyBody")
+            && writer->writeInt32(90, ent->m_classVersion);
     } else if (written && proxyNode) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

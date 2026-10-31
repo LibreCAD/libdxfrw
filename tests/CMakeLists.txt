@@ -2375,6 +2375,19 @@ set_tests_properties(dwg2dxf_dynamic_block_visibility_composed_graph PROPERTIES
     TIMEOUT 30
 )
 
+# Exercise the exact AC1024 parameter-dependency body DXF fields, typed/raw
+# readback, refusal, and transactional retry using runtime-authored records.
+add_test(
+    NAME dwg2dxf_dynamic_block_parameter_dependency_body_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-parameter-dependency-body-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_parameter_dependency_body_writer
+    PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 add_test(
     NAME dwg2dxf_proxy_object_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits

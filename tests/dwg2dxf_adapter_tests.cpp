@@ -10024,6 +10024,334 @@ bool dynamicBlockProxyNodeDxfWriter() {
     return true;
 }
 
+class DynamicBlockParameterDependencyBodyWriterProbe final : public dx_iface {
+public:
+    std::vector<DRW_DynamicBlockObject> objects;
+    bool allObjectsWritten{false};
+
+    void writeHeader(DRW_Header& header) override {
+        header.vars.clear();
+    }
+
+    void writeObjects() override {
+        allObjectsWritten = dxfW != nullptr && !objects.empty();
+        for (DRW_DynamicBlockObject& object : objects) {
+            if (!allObjectsWritten
+                || !dxfW->writeDynamicBlockObject(&object)) {
+                allObjectsWritten = false;
+                if (dxfW != nullptr)
+                    dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+        }
+    }
+};
+
+bool dynamicBlockParameterDependencyBodyDxfWriter(
+        const std::filesystem::path& sourcePath = {}) {
+    std::vector<DRW_DynamicBlockObject> sourceBodies;
+    if (!sourcePath.empty()) {
+        dx_data source;
+        dx_iface sourceReader;
+        if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("parameter-dependency witness is not an AC1024 DWG");
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            if (object.m_recordName != "BLOCKPARAMDEPENDENCYBODY")
+                continue;
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::ParameterDependencyBody
+                || !object.m_bodyFullyDecoded || object.m_evalExprParsed
+                || object.m_elementParsed || object.m_adbVersion != 1
+                || object.m_dimensionBaseVersion != 1
+                || object.m_classVersion != 0
+                || object.m_dependencyName.empty() || object.handle == 0u
+                || object.handle == DRW::NoHandle || object.parentHandle == 0
+                || object.parentHandle == DRW::NoHandle
+                || object.xDictHandle != 0u || !object.appData.empty()
+                || !object.extData.empty())
+                return fail("source parameter-dependency body escaped the exact AC1024 profile");
+            sourceBodies.push_back(object);
+        }
+        if (sourceBodies.size() != 6u)
+            return fail("AC1024 witness no longer contains six dependency bodies");
+    } else {
+        static constexpr std::array<std::string_view, 6> names{{
+            "H=4.0000", "W=36.0000", "H=6\"", "W=5'-0\"",
+            "H=6\"", "W=3'-6\""}};
+        static constexpr std::array<std::uint32_t, 6> handles{{
+            0x114Cu, 0x1152u, 0x2029u, 0x202Fu, 0x2082u, 0x2088u}};
+        static constexpr std::array<std::uint32_t, 6> owners{{
+            0x114Bu, 0x1151u, 0x2028u, 0x202Eu, 0x2081u, 0x2087u}};
+        for (std::size_t index = 0u; index < names.size(); ++index) {
+            DRW_DynamicBlockObject object("BLOCKPARAMDEPENDENCYBODY");
+            object.handle = handles[index];
+            object.parentHandle = owners[index];
+            object.m_kind =
+                DRW_DynamicBlockObject::Kind::ParameterDependencyBody;
+            object.m_adbVersion = 1;
+            object.m_dimensionBaseVersion = 1;
+            object.m_dependencyName = names[index];
+            object.m_classVersion = 0;
+            object.m_bodyFullyDecoded = true;
+            sourceBodies.push_back(std::move(object));
+        }
+    }
+    std::vector<std::string> sourceNames;
+    sourceNames.reserve(sourceBodies.size());
+    std::unordered_set<std::uint32_t> sourceHandles;
+    sourceHandles.reserve(sourceBodies.size());
+    for (const DRW_DynamicBlockObject& object : sourceBodies) {
+        sourceNames.push_back(object.m_dependencyName);
+        if (!sourceHandles.insert(object.handle).second)
+            return fail("source parameter-dependency body handles are aliased");
+    }
+    std::sort(sourceNames.begin(), sourceNames.end());
+    const std::vector<std::string> expectedNames{
+        "H=4.0000", "H=6\"", "H=6\"", "W=3'-6\"", "W=36.0000",
+        "W=5'-0\""};
+    if (sourceNames != expectedNames)
+        return fail("AC1024 dependency-body names differ from the source-bound profile");
+
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-parameter-dependency-body-"
+               + encoding + "-" + std::to_string(nonce) + ".dxf");
+        const std::string sentinel =
+            "partial dependency-body output must preserve this\n";
+        {
+            std::ofstream existing(output,
+                std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create dependency-body destination sentinel");
+        }
+
+        dx_data writeData;
+        writeData.sourceFormat = dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        DynamicBlockParameterDependencyBodyWriterProbe iface;
+        iface.cData = &writeData;
+        iface.objects = sourceBodies;
+        iface.objects.back().m_classVersion = 1;
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+        if (writer.write(&iface, DRW::AC1024, binary)
+            || iface.allObjectsWritten) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("unsupported dependency-body class version was emitted");
+        }
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("partial dependency-body write replaced destination");
+            }
+        }
+
+        iface.objects.back().m_classVersion = 0;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.allObjectsWritten) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("corrected dependency-body profile failed same-writer retry");
+        }
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        const bool read = reader.read(&readIface, false);
+        if (!read || readback.dynamicBlockObjects.size() != sourceBodies.size()
+            || readback.rawDynamicBlockObjects.size() != sourceBodies.size()) {
+            std::ostringstream detail;
+            detail << "dependency-body output failed fresh readback/cardinality"
+                   << " read=" << read
+                   << " typed=" << readback.dynamicBlockObjects.size()
+                   << " raw=" << readback.rawDynamicBlockObjects.size()
+                   << " expected=" << sourceBodies.size()
+                   << " output=" << output.string();
+            return fail(detail.str());
+        }
+
+        static constexpr std::array<int, 9> expectedCodes{{
+            5, 330, 100, 90, 100, 90, 1, 100, 90}};
+        std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*>
+            outputByHandle;
+        outputByHandle.reserve(readback.dynamicBlockObjects.size());
+        for (const DRW_DynamicBlockObject& object :
+             readback.dynamicBlockObjects) {
+            if (object.m_recordName != "BLOCKPARAMDEPENDENCYBODY"
+                || object.m_kind
+                    != DRW_DynamicBlockObject::Kind::ParameterDependencyBody
+                || !object.m_bodyFullyDecoded || object.m_evalExprParsed
+                || object.m_adbVersion != 1
+                || object.m_dimensionBaseVersion != 1
+                || object.m_classVersion != 0
+                || object.handle == 0u || object.handle == DRW::NoHandle
+                || !outputByHandle.emplace(object.handle, &object).second)
+                return fail("dependency-body typed fields or output identities changed");
+        }
+        for (const DRW_DynamicBlockObject& before : sourceBodies) {
+            const auto outputObject = outputByHandle.find(before.handle);
+            const auto rawObject = std::find_if(
+                readback.rawDynamicBlockObjects.begin(),
+                readback.rawDynamicBlockObjects.end(),
+                [&before](const DRW_RawDxfObject& raw) {
+                    return raw.handle == before.handle;
+                });
+            if (outputObject == outputByHandle.end()
+                || outputObject->second->parentHandle != before.parentHandle
+                || outputObject->second->reactorHandles != before.reactorHandles
+                || outputObject->second->m_dependencyName
+                    != before.m_dependencyName
+                || rawObject == readback.rawDynamicBlockObjects.end()
+                || rawObject->groups.size() != expectedCodes.size())
+                return fail("dependency-body identity, owner, or typed fields changed on readback");
+            for (std::size_t index = 0u; index < expectedCodes.size(); ++index)
+                if (rawObject->groups[index].code() != expectedCodes[index])
+                    return fail("dependency-body emitted group-code order changed");
+            const auto stringAt = [rawObject](std::size_t index) {
+                const char* value = rawObject->groups[index].c_str();
+                return value == nullptr ? std::string() : std::string(value);
+            };
+            if (stringAt(2u) != "AcDbAssocDependencyBody"
+                || rawObject->groups[3].i_val() != before.m_adbVersion
+                || stringAt(4u) != "AcDbImpAssocDimDependencyBodyBase"
+                || rawObject->groups[5].i_val()
+                    != before.m_dimensionBaseVersion
+                || stringAt(6u) != before.m_dependencyName
+                || stringAt(7u) != "AcDbBlockParameterDependencyBody"
+                || rawObject->groups[8].i_val() != before.m_classVersion)
+                return fail("dependency-body exact DXF field sequence changed");
+        }
+
+        if (!binary) {
+            std::ifstream asciiInput(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(asciiInput, line))
+                lines.push_back(line);
+            bool inTarget = false;
+            bool afterTerminalSubclass = false;
+            bool altered = false;
+            std::uint32_t alteredHandle = 0u;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inTarget = !altered
+                        && lines[index + 1u]
+                            == "BLOCKPARAMDEPENDENCYBODY";
+                    afterTerminalSubclass = false;
+                    continue;
+                }
+                if (!inTarget)
+                    continue;
+                if (code == 5) {
+                    try {
+                        alteredHandle = static_cast<std::uint32_t>(
+                            std::stoul(lines[index + 1u], nullptr, 16));
+                    } catch (...) {
+                        alteredHandle = 0u;
+                    }
+                } else if (code == 100
+                           && lines[index + 1u]
+                               == "AcDbBlockParameterDependencyBody") {
+                    afterTerminalSubclass = true;
+                } else if (afterTerminalSubclass && code == 90) {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 2u),
+                        {"70", "1"});
+                    altered = true;
+                    break;
+                }
+            }
+            if (asciiInput.bad() || !altered || alteredHandle == 0u) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("could not construct unknown dependency-body tail control");
+            }
+            {
+                std::ofstream alteredOutput(output,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    alteredOutput << value << '\n';
+                if (!alteredOutput) {
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail("could not write unknown dependency-body tail control");
+                }
+            }
+            dx_data alteredReadback;
+            alteredReadback.sourceFormat = dx_source_format::DXF;
+            alteredReadback.sourceVersion = DRW::AC1024;
+            dx_iface alteredReader;
+            alteredReader.cData = &alteredReadback;
+            dxfRW alteredDxfReader(output.string().c_str());
+            const bool alteredImported = alteredDxfReader.read(
+                &alteredReader, false);
+            const auto alteredObject = std::find_if(
+                alteredReadback.dynamicBlockObjects.begin(),
+                alteredReadback.dynamicBlockObjects.end(),
+                [alteredHandle](const DRW_DynamicBlockObject& object) {
+                    return object.handle == alteredHandle;
+                });
+            const auto alteredRaw = std::find_if(
+                alteredReadback.rawDynamicBlockObjects.begin(),
+                alteredReadback.rawDynamicBlockObjects.end(),
+                [alteredHandle](const DRW_RawDxfObject& object) {
+                    return object.handle == alteredHandle;
+                });
+            const bool otherBodiesRemainTyped = std::all_of(
+                alteredReadback.dynamicBlockObjects.begin(),
+                alteredReadback.dynamicBlockObjects.end(),
+                [alteredHandle](const DRW_DynamicBlockObject& object) {
+                    return object.handle == alteredHandle
+                        || object.m_bodyFullyDecoded;
+                });
+            if (!alteredImported
+                || alteredReadback.dynamicBlockObjects.size()
+                    != sourceBodies.size()
+                || alteredObject
+                    == alteredReadback.dynamicBlockObjects.end()
+                || alteredObject->m_bodyFullyDecoded
+                || alteredRaw == alteredReadback.rawDynamicBlockObjects.end()
+                || alteredRaw->groups.size() != expectedCodes.size() + 1u
+                || alteredRaw->groups.back().code() != 70
+                || !otherBodiesRemainTyped) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("unknown dependency-body tail was not retained raw-only");
+            }
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    std::cerr << "AC1024 dynamic parameter-dependency body writer passed: six "
+              << "source records, ASCII/Binary output, late-record rollback, "
+              << "corrected retry and exact typed/raw readback.\n";
+    return true;
+}
+
 bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     constexpr std::uint32_t blockHandle = 0x127u;
     constexpr std::uint32_t dictionaryHandle = 0x1116u;
@@ -52240,6 +52568,14 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-proxy-node-dxf-writer")
         return dynamicBlockProxyNodeDxfWriter() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dynamic-block-parameter-dependency-body-dxf-writer")
+        return dynamicBlockParameterDependencyBodyDxfWriter() ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1])
+            == "--dynamic-block-parameter-dependency-body-dxf-writer")
+        return dynamicBlockParameterDependencyBodyDxfWriter(argv[2]) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--proxy-object-capture-limits")
         return proxyObjectCaptureLimitsFailClosed() ? 0 : 1;
     if (argc == 2
