@@ -66,7 +66,9 @@ highest-incidence uncovered required profile and close only its missing source,
 graph, output or readback edge. Keep strict admission closed until this join
 proves complete required coverage. Add no investigation DWG/DXF fixture;
 preserve refusal, atomic publication and corrected retry for the selected
-slice. The original identity inventory is
+slice. Include physical receipts added since the census, including the narrow
+dictionary/default output proof, but do not count their closed records as open
+implementation work. The original identity inventory is
 [`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json).
 
 The last physical partial-output observation is recorded in

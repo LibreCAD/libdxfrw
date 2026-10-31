@@ -28888,6 +28888,286 @@ bool physicalXRecordOutputReadback(
     return outputEncoding(false) && outputEncoding(true);
 }
 
+bool physicalDictionaryDefaultOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulDictionaryDefaultImport()
+        || !source.hasNamedObjectDictionary
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u
+        || !source.rawDictionaryWithDefaults.empty()
+        || !source.rawPlaceholders.empty()
+        || source.dictionaryWithDefaults.front().handle != 0x0eu
+        || source.placeholders.front().handle != 0x0fu)
+        return fail("physical dictionary-default source is not the admitted AC1024 typed pair");
+
+    const DRW_DictionaryWithDefault& sourceDictionary =
+        source.dictionaryWithDefaults.front();
+    const DRW_AcDbPlaceholder& sourcePlaceholder = source.placeholders.front();
+    const auto sourceRootEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_PLOTSTYLENAME";
+        });
+    if (sourceRootEntry == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+                         source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_PLOTSTYLENAME";
+            }) != 1
+        || sourceRootEntry->m_handle != sourceDictionary.handle
+        || sourceDictionary.parentHandle
+            != source.namedObjectDictionary.handle
+        || !sourceDictionary.hasCompleteDwgEntries()
+        || sourceDictionary.m_entries.size() != 1u
+        || sourceDictionary.m_entries.front().m_name != "Normal"
+        || sourceDictionary.m_entries.front().m_handle
+            != sourcePlaceholder.handle
+        || sourceDictionary.m_defaultEntryHandle != sourcePlaceholder.handle
+        || sourcePlaceholder.parentHandle != sourceDictionary.handle
+        || sourceDictionary.xDictHandle != 0u
+        || sourceDictionary.reactorHandles
+            != std::vector<std::uint32_t>{source.namedObjectDictionary.handle}
+        || !sourceDictionary.appData.empty()
+        || !sourceDictionary.extData.empty()
+        || sourcePlaceholder.xDictHandle != 0u
+        || sourcePlaceholder.reactorHandles
+            != std::vector<std::uint32_t>{sourceDictionary.handle}
+        || !sourcePlaceholder.appData.empty()
+        || !sourcePlaceholder.extData.empty())
+        return fail("physical AC1024 plot-style dictionary/default/owner roles are not uniquely closed");
+
+    const auto parseHandle = [](const DRW_Variant& value,
+                                std::uint32_t& result) {
+        if (value.type() == DRW_Variant::INTEGER) {
+            if (value.i_val() < 0
+                || static_cast<std::uint64_t>(value.i_val())
+                    > std::numeric_limits<std::uint32_t>::max())
+                return false;
+            result = static_cast<std::uint32_t>(value.i_val());
+            return true;
+        }
+        if (value.type() != DRW_Variant::STRING || value.c_str() == nullptr)
+            return false;
+        const std::string text(value.c_str());
+        std::uint64_t parsed = 0u;
+        const auto conversion = std::from_chars(
+            text.data(), text.data() + text.size(), parsed, 16);
+        if (conversion.ec != std::errc{}
+            || conversion.ptr != text.data() + text.size()
+            || parsed > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        result = static_cast<std::uint32_t>(parsed);
+        return true;
+    };
+
+    const auto outputClassCount = [](const dx_data& data,
+                                     const std::string& recordName) {
+        const auto found = std::find_if(
+            data.dxfClasses.begin(), data.dxfClasses.end(),
+            [&recordName](const DRW_Class& value) {
+                return value.recName == recordName;
+            });
+        return found == data.dxfClasses.end() ? -1 : found->instanceCount;
+    };
+    const auto reactorAppDataMatches = [&parseHandle](
+            const DRW_TableEntry& record,
+            const std::vector<std::uint32_t>& expectedReactors) {
+        if (expectedReactors.empty())
+            return record.appData.empty();
+        if (record.appData.size() != 1u)
+            return false;
+        const std::list<DRW_Variant>& group = record.appData.front();
+        if (group.size() != expectedReactors.size() + 2u)
+            return false;
+        auto field = group.begin();
+        if (field->code() != 102 || field->type() != DRW_Variant::STRING
+            || field->c_str() == nullptr
+            || std::string(field->c_str()) != "ACAD_REACTORS")
+            return false;
+        ++field;
+        for (const std::uint32_t expected : expectedReactors) {
+            std::uint32_t actual = 0u;
+            if (field == group.end() || field->code() != 330
+                || !parseHandle(*field, actual) || actual != expected)
+                return false;
+            ++field;
+        }
+        return field != group.end() && field->code() == 102
+            && field->type() == DRW_Variant::STRING
+            && field->c_str() != nullptr
+            && std::string(field->c_str()) == "}";
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dictionary-default-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "preserve physical dictionary-default destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical dictionary-default destination sentinel");
+        }
+
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_AcDbPlaceholder& mutablePlaceholder = source.placeholders.front();
+        const std::vector<std::uint32_t> sourceReactors =
+            mutablePlaceholder.reactorHandles;
+        mutablePlaceholder.reactorHandles = {DRW::NoHandle};
+        const bool invalidGraphRejected = !exportPartial();
+        std::ifstream invalidOutput(outputPath, std::ios::binary);
+        const std::string invalidDestination{
+            std::istreambuf_iterator<char>{invalidOutput}, {}};
+        mutablePlaceholder.reactorHandles = sourceReactors;
+        if (!invalidGraphRejected || invalidDestination != sentinel)
+            return fail("invalid physical PLACEHOLDER owner-reactor edge was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical dictionary-default graph could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || !output.hasSingleSuccessfulDictionaryDefaultImport()
+            || !output.hasNamedObjectDictionary
+            || output.dictionaryWithDefaults.size() != 1u
+            || output.rawDictionaryWithDefaults.size() != 1u
+            || !output.placeholders.empty()
+            || output.rawPlaceholders.size() != 1u)
+            return fail("physical dictionary-default output did not freshly reimport as one complete typed/raw pair");
+
+        const DRW_DictionaryWithDefault& outputDictionary =
+            output.dictionaryWithDefaults.front();
+        const DRW_RawDxfObject& outputPlaceholder =
+            output.rawPlaceholders.front();
+        const auto outputRootEntry = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_PLOTSTYLENAME";
+            });
+        if (std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                          output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_PLOTSTYLENAME";
+                }) != 1
+            || outputRootEntry == output.namedObjectDictionary.m_entries.end()
+            || outputRootEntry->m_handle != outputDictionary.handle
+            || output.namedObjectDictionary.parentHandle != 0u
+            || outputDictionary.parentHandle
+                != output.namedObjectDictionary.handle
+            || outputDictionary.cloning != sourceDictionary.cloning
+            || outputDictionary.hardOwner != sourceDictionary.hardOwner
+            || outputDictionary.xDictHandle != 0u
+            || outputDictionary.reactorHandles
+                != std::vector<std::uint32_t>{
+                    output.namedObjectDictionary.handle}
+            || !reactorAppDataMatches(outputDictionary,
+                {output.namedObjectDictionary.handle})
+            || !outputDictionary.extData.empty()
+            || outputDictionary.m_entries.size()
+                != sourceDictionary.m_entries.size()
+            || outputDictionary.m_entries.front().m_name
+                != sourceDictionary.m_entries.front().m_name
+            || outputDictionary.m_entries.front().m_handle
+                != outputPlaceholder.handle
+            || outputDictionary.m_defaultEntryHandle
+                != outputPlaceholder.handle
+            || outputPlaceholder.parentHandle != outputDictionary.handle
+            || outputClassCount(output, "DICTIONARYWDFLT") != 1
+            || outputClassCount(output, "ACDBPLACEHOLDER") != 1)
+            return fail("physical dictionary-default readback mismatch: root="
+                + std::to_string(outputRootEntry == output.namedObjectDictionary.m_entries.end()
+                    ? DRW::NoHandle : outputRootEntry->m_handle)
+                + "/" + std::to_string(outputDictionary.handle)
+                + " parent=" + std::to_string(outputDictionary.parentHandle)
+                + "/" + std::to_string(output.namedObjectDictionary.handle)
+                + " cloning=" + std::to_string(outputDictionary.cloning)
+                + "/" + std::to_string(sourceDictionary.cloning)
+                + " hardOwner=" + std::to_string(outputDictionary.hardOwner)
+                + "/" + std::to_string(sourceDictionary.hardOwner)
+                + " entries=" + std::to_string(outputDictionary.m_entries.size())
+                + "/" + std::to_string(sourceDictionary.m_entries.size())
+                + " default=" + std::to_string(outputDictionary.m_defaultEntryHandle)
+                + "/" + std::to_string(outputPlaceholder.handle)
+                + " placeholderOwner=" + std::to_string(outputPlaceholder.parentHandle)
+                + " entryName=" + std::string(outputDictionary.m_entries.empty()
+                    ? "<empty>" : outputDictionary.m_entries.front().m_name.c_str())
+                + "/" + std::string(sourceDictionary.m_entries.front().m_name.c_str())
+                + " entryTarget=" + std::to_string(outputDictionary.m_entries.empty()
+                    ? DRW::NoHandle : outputDictionary.m_entries.front().m_handle)
+                + "/" + std::to_string(outputPlaceholder.handle)
+                + " nodParent=" + std::to_string(output.namedObjectDictionary.parentHandle)
+                + " xdict=" + std::to_string(outputDictionary.xDictHandle)
+                + " reactors=" + std::to_string(outputDictionary.reactorHandles.size())
+                + " app/ext=" + std::to_string(outputDictionary.appData.size())
+                + "/" + std::to_string(outputDictionary.extData.size())
+                + " classes=" + std::to_string(outputClassCount(output, "DICTIONARYWDFLT"))
+                + "/" + std::to_string(outputClassCount(output, "ACDBPLACEHOLDER")));
+
+        std::vector<std::uint32_t> placeholderOwners;
+        std::vector<std::uint32_t> placeholderReactors;
+        bool inReactors = false;
+        for (const DRW_Variant& group : outputPlaceholder.groups) {
+            if (group.code() == 102 && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                const std::string marker(group.c_str());
+                if (marker == "{ACAD_REACTORS" && !inReactors)
+                    inReactors = true;
+                else if (marker == "}" && inReactors)
+                    inReactors = false;
+                else
+                    return fail("physical PLACEHOLDER has an unbalanced or duplicate reactor scope");
+            } else if (group.code() == 330) {
+                std::uint32_t handle = 0u;
+                if (!parseHandle(group, handle))
+                    return fail("physical PLACEHOLDER contains a malformed owner/reactor handle");
+                (inReactors ? placeholderReactors : placeholderOwners)
+                    .push_back(handle);
+            } else if (group.code() != 5) {
+                return fail("physical PLACEHOLDER contains an unadmitted output field");
+            }
+        }
+        if (inReactors
+            || placeholderOwners
+                != std::vector<std::uint32_t>{outputDictionary.handle}
+            || placeholderReactors
+                != std::vector<std::uint32_t>{outputDictionary.handle})
+            return fail("physical PLACEHOLDER owner and reactor roles changed on readback");
+
+    }
+    std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
+                 "source identity, root/default/owner/reactor roles, readback, "
+                 "atomic refusal and same-adapter retry passed.\n";
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -46108,6 +46388,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--xrecord-physical-output-readback")
         return physicalXRecordOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionary-default-physical-output-readback")
+        return physicalDictionaryDefaultOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
         return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
