@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-libre-dwg-associative-dxf-import-differential-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Classify LibreDWG DXF import diagnostics after MLEADERSTYLE correction",
+  "status": "DUPLICATE_HANDLE_DIAGNOSTIC_CLASSIFIED; VALUE_SUBCLASS_IMPORT_AND_NATIVE_ACCEPTANCE_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "5add59a5",
+  "source": {
+    "mechanicalDwg": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "version": "AC1024"
+    },
+    "titleBlockDwg": {
+      "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "version": "AC1024"
+    },
+    "fixturePolicy": "Used existing local DWGs and temporary outputs only; no DWG/DXF fixtures were added."
+  },
+  "mechanicalOutput": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw_mechanical_current_strict.dxf",
+    "result": "PASS; strict libdxfrw conversion exited 0.",
+    "outputSha256": "bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819",
+    "independentReader": {
+      "tool": "/opt/homebrew/bin/dxf2dwg",
+      "version": "LibreDWG 0.14",
+      "command": "/opt/homebrew/bin/dxf2dwg -v3 --as r2004 -y libdxfrw_mechanical_dxf2dwg_input.dxf",
+      "inputSha256": "bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819",
+      "result": "MLEADERSTYLE is accepted. The reader warns that AcDbAssocValueDependency is an illegal subclass, then rejects the following derived group 90. A second diagnostic reports duplicate handle 734 while parsing SORTENTSTABLE. This conversion is incomplete and is not whole-file acceptance evidence."
+    }
+  },
+  "diagnosticClassification": {
+    "sortentsGroup5": {
+      "result": "The duplicate is a LibreDWG importer false positive on a group-5 SORTENTSTABLE sort-order reference, not a duplicate top-level object handle in the libdxfrw output.",
+      "wireEvidence": "SORTENTSTABLE itself has top-level handle 354. Its ordered group-5 value 734 references the emitted LINE whose top-level handle is 734. The output contains one top-level handle 734.",
+      "independentParserSource": {
+        "repository": "LibreDWG/libredwg",
+        "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "files": {
+          "src/in_dxf.c": "The SORTENTSTABLE group-5 branch calls dwg_add_handleref(dwg, 0, pair->value.u, obj).",
+          "src/dwg.c": "dwg_add_handleref forwards obj to dwg_add_handle; code 0 with an object inserts the referenced handle into object_map, where the existing LINE identity triggers the duplicate diagnostic."
+        },
+        "sourceHashesSha256": {
+          "src/in_dxf.c": "e52609c4762ca71940b4c8b778501e9b9e47deb13111c0379e1ab4c1043eb144",
+          "src/dwg.c": "a1af9430a09ab2ea68ca777817c47db7627566de6e427e0a8fb1a58f91aa64b3"
+        }
+      },
+      "evidenceCeiling": "Source inspection explains the peer diagnostic; it does not establish native AutoCAD acceptance of the drawing."
+    },
+    "assocValueDependency": {
+      "result": "LibreDWG 0.14's DXF importer does not implement the derived AcDbAssocValueDependency body. It recognizes the base AcDbAssocDependency prefix, warns on the derived subclass marker, then rejects its group 90.",
+      "peerSchema": "LibreDWG's ASSOCVALUEDEPENDENCY structure exposes the shared assocdep field only, and its dwg2dxf projection emits the shared prefix without the derived value fields.",
+      "sourceEvidence": {
+        "repository": "LibreDWG/libredwg",
+        "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "files": [
+          "src/in_dxf.c: add_ASSOCDEPENDENCY and add_sub_ASSOCDEPENDENCY decode the shared prefix; no AcDbAssocValueDependency fields are parsed.",
+          "src/dwg2.spec: ASSOCVALUEDEPENDENCY contains only the common AcDbAssocDependency fields and handle stream.",
+          "src/dxfclasses.in: the custom-class schema does not list ACDBASSOCVALUEDEPENDENCY as a recognized concrete DXF subclass."
+        ],
+        "sourceHashesSha256": {
+          "src/in_dxf.c": "e52609c4762ca71940b4c8b778501e9b9e47deb13111c0379e1ab4c1043eb144",
+          "src/dxfclasses.in": "4aed2415c29e60494e929ad2a5d412dd53a11a6818cc0e0c921b9d5af5779562"
+        }
+      },
+      "officialReferences": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocValueDependency.html",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+      ],
+      "remainingQuestion": "The AutoCAD API confirms AcDbAssocValueDependency is a concrete AcDbAssocDependency subclass and provides a value name, but the available official references do not establish the complete DXF group sequence for the derived value-name/cached-value fields. Preserve them; do not drop them to satisfy an importer that lacks the subclass."
+    }
+  },
+  "xrecord1071CrossCheck": {
+    "peerOutputCommand": "/opt/homebrew/bin/dwg2dxf -y --as r2010 -o /private/tmp/title_block_arch_libredwg_current.dxf /Users/dli/doc/dwg/title_block-arch.dwg",
+    "peerOutputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+    "object": "XRECORD 0x121F owned by 0x121E",
+    "observed": "LibreDWG emits the source's two group-1071 values unchanged, followed by the group-70, coordinate and string values. Its own importer passes this XRECORD and later fails at EVALUATION_GRAPH group 92.",
+    "authority": "Autodesk's XRECORD DXF reference limits payload groups to normal object codes 1-369 except 5 and 105; its AcDbXrecord API requires a valid code below 1000. Peer emission and parsing do not supersede that contract.",
+    "decision": "Keep libdxfrw strict refusal for this XRECORD. Do not remap 1071 to 90 or wrap it as XDATA. Continue independent implementation packets while native/authoritative support for this source profile is unavailable.",
+    "officialReferences": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html"
+    ]
+  },
+  "validation": {
+    "strictMechanicalConversion": "PASS; current libdxfrw output SHA256 is bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819.",
+    "titleBlockStrictConversion": "EXPECTED_FAIL_CLOSED at XRECORD 0x121F group 1071 before OBJECTS staging; destination not published.",
+    "lossyPeerDiagnosticControl": {
+      "method": "A temporary copy of the libdxfrw mechanical DXF had the AcDbAssocValueDependency subclass and its derived fields removed to see whether the peer progressed beyond the diagnostic.",
+      "result": "The peer advances to ASSOCVARIABLE and then rejects group 70. This modified copy is lossy and is not compatibility or acceptance evidence."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "remaining": [
+    "Obtain authoritative/native DXF field evidence for the AcDbAssocValueDependency derived body and test with a reader that implements it.",
+    "Keep Autodesk XRECORD group-1071 refusal; only revisit with authoritative or native evidence establishing a conforming, semantics-preserving route.",
+    "Continue the independently ready local P4/P5 implementation queue; neither peer limitation blocks unrelated code work."
+  ]
+}

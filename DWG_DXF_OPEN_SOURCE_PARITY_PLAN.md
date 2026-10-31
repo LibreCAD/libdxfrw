@@ -65,14 +65,17 @@ documents group 90 as a legal 32-bit integer, and its
 [`AcDbXrecord::setFromRbChain` contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html)
 permits any valid group code appropriate to the value type. Type-width
 compatibility alone does not establish that changing this application-defined
-field from 1071 to 90 preserves its meaning. Keep strict refusal until an
-independent semantics-backed representation exists; do not reinterpret the
-payload as XDATA or rely on peer-converter emission as acceptance evidence.
+field from 1071 to 90 preserves its meaning. LibreDWG 0.14 emits the original
+1071 pairs for this exact source and its importer passes those pairs, but the
+Autodesk contract still does not qualify them as legal XRECORD data or prove
+native acceptance. Keep strict refusal; do not reinterpret the payload as
+XDATA, remap its group code, or use peer emission alone as acceptance evidence.
 After that blocker is resolved, complete the physical
 BLOCKREPRESENTATIONDATA staged-byte and fresh-readback proof. Source-specific
 evidence and bindings are recorded in:
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
-[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json).
+[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
+and [`p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json`](docs/research/p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
 
@@ -167,7 +170,7 @@ receipt and code path already agree.
 
 | Boundary | Remaining decision or proof |
 | --- | --- |
-| Version/route parity | Reconcile current standalone and pinned LibreCAD/bundled/LibreCAD_3 routes; classify meaningful selector deltas and unresolved integrity diagnostics. The current AC1024 mechanical source now converts strictly, but LibreDWG 0.14's independent DXF reader advances past MLEADERSTYLE and then rejects ASSOCVALUEDEPENDENCY group 90 (with a separate duplicate-handle diagnostic); resolve the exact schema/consumer differential before claiming cross-reader compatibility. Evidence and the corrected MLEADERSTYLE wire fields are in [the P5 receipt](docs/research/p5-ac1024-mleaderstyle-dxf-wire-correction-2026-10-31.json). |
+| Version/route parity | Reconcile current standalone and pinned LibreCAD/bundled/LibreCAD_3 routes and classify selector deltas. On the AC1024 mechanical output, MLEADERSTYLE now parses in LibreDWG 0.14; the later ASSOCVALUEDEPENDENCY rejection is an importer coverage limit (its current DXF path supports the shared dependency prefix but not the derived value subclass). Its duplicate-handle diagnostic is a false positive on SORTENTSTABLE group-5 ordering references, not a duplicate top-level handle. Keep exact derived-field conformance and native acceptance unresolved; evidence is in [the P5 wire receipt](docs/research/p5-ac1024-mleaderstyle-dxf-wire-correction-2026-10-31.json) and [the P6 differential receipt](docs/research/p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json). |
 | DWG source profiles | Independent per-version reader/container/HEADER/CLASSES and producer evidence, including R2007+ carrier differences, class counts and real-sample end-to-end conversion. |
 | HATCH/MPOLYGON/MESH | Resolve witnessed zero-fit/producer layout disagreements, extended CMC meaning and unrepresented overrides; qualify geometry and annotation behavior beyond framing. |
 | Text/annotation/coordinates | MTEXT columns/linked contexts, attributes, DIMENSION/DIMARC/large-radial placement, DSTYLE/picture graphs, SHAPE glyph/font identity, LEADER/MLEADER and derived-R12 appearance. |
