@@ -56,19 +56,24 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — AC1024 dynamic-block closure.** The existing
+**P4 next packet — remaining AC1024 source-graph closure.** The existing
 `title_block-arch.dwg` input still fails strict export at SORTENTSTABLE
-extension-DICTIONARY reciprocity. Its Title_Block-ARCH BLOCK_RECORD dictionary
-`0x1116` contains `ACAD_ENHANCEDBLOCK` → `0x1117`, `ACAD_SORTENTS` → `0x111C`,
-and `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. The PurgePreventer
-group-70 body and its isolated, single-entry owner-DICTIONARY/BLOCK_RECORD edge
-now pass exact ASCII/Binary output and fresh readback. The real sample's owner
-DICTIONARY has all three entries, so this isolated profile deliberately does
-not admit the source graph. Compose `ACAD_ENHANCEDBLOCK` → EvaluationGraph,
-`ACAD_SORTENTS` → SORTENTSTABLE and the purge-preventer target in one closed
-graph; bind each to its source callback and prove staged fields, roles, owners,
-reactors and handle remaps before relaxing the refusal. Do not repeat the
-closed mechanical AC1024 witness work. Current evidence is in
+extension-DICTIONARY reciprocity. The Title_Block-ARCH BLOCK_RECORD `0x127`
+has a three-entry DICTIONARY `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph
+`0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE `0x111C`, and
+`AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. Close all three source
+edges together. Complete source-body and node/edge proofs for the visibility
+parameter/grip targets in the EvaluationGraph, and prove the table's ordered
+membership plus reciprocal owner. Separately resolve `ACDB_BLOCKREPRESENTATION_DATA`
+`0xDD6` and owner `0xDD5`; do not infer that it belongs to `0x1116`. Bind every
+source identity, target role, field and remapped output reference before
+relaxing strict refusal. The current `BLOCKGRIPLOCATIONCOMPONENT` writer trial
+is not qualified: this reader decodes the source records' EvalExpr version
+values as `29/2`, while LibreDWG's DXF output for the same source writes `33/29`.
+Resolve that source-to-DXF mapping and bind it to the original record before
+admitting the body; synthetic round-trip tests do not settle the discrepancy.
+DXF-origin typed/raw replay remains unqualified.
+Current source and isolated-record evidence is in
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
 [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
 [`p5-dynamic-block-purge-preventer-record-output-2026-10-31.json`](docs/research/p5-dynamic-block-purge-preventer-record-output-2026-10-31.json),
@@ -117,19 +122,17 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block source/output profiles:** close the actual AC1024
-`Title_Block-ARCH` mixed-key owner graph rooted at BLOCK_RECORD `0x127`: emit
-`ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE
-`0x111C`, and `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122` together.
-Prove every entry, body, owner, reactor and remapped handle in staged output and
-fresh ASCII/Binary readback. The current PurgePreventer gate admits only a
-single-entry dictionary; keep it closed for the real three-entry dictionary
-until each sibling target is selected and emitted exactly once. DXF-origin
-typed/raw replay is also unqualified; establish exact source pairing and one
-emission before admitting it. Then qualify other source-backed subclasses one
-at a time. Keep unqualified profiles and the whole conversion refused until
-their required records are preserved; do not relax SORTENTSTABLE owner
-validation to bypass missing children.
+**Dynamic-block output profiles:** compose the actual AC1024
+`Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127`.
+Implement the remaining source-backed visibility parameter/grip bodies and
+their EvaluationGraph node/edge bindings; emit the graph, SORTENTSTABLE and
+PurgePreventer targets exactly once with DICTIONARY edges, owners, reactors and
+remapped handles intact. Prove staged bytes and fresh ASCII/Binary readback for
+the full closure. Keep the mixed-key graph refused until every required target
+is selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
+missing children. DXF-origin typed/raw replay remains unqualified until exact
+source pairing and one-emission proof pass. Qualify other subclasses only when
+an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment, background/live-section/sun relations; native
