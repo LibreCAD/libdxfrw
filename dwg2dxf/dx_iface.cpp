@@ -24526,12 +24526,31 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
     if ((!m_dxfMaterialWriteRequired || m_dxfMaterialWriteSources.empty())
         && m_extensionMaterialHandles.empty())
         return true;
+    const char* diagnosticPhase = "MATERIAL source snapshot admission";
+    const char* activeFamily = "none";
+    std::uint32_t activeHandle = 0u;
+    bool inspectionComplete = false;
+    struct InspectionTrace {
+        const char*& phase;
+        const char*& family;
+        std::uint32_t& handle;
+        bool& complete;
+        ~InspectionTrace() {
+            if (complete)
+                return;
+            DRW_DBG("DXF MATERIAL output inspection failed: ");
+            DRW_DBG(phase); DRW_DBG(" family="); DRW_DBG(family);
+            DRW_DBG(" handle="); DRW_DBG(handle); DRW_DBG("\n");
+        }
+    } trace{diagnosticPhase, activeFamily, activeHandle,
+            inspectionComplete};
     if (m_dxfMaterialWriteInspected
         || !hasUnchangedDxfMaterialSources()
         || !hasUnchangedExtensionMaterialSources())
         return false;
     m_dxfMaterialWriteInspected = true;
     try {
+        diagnosticPhase = "build expected MATERIAL/DICTIONARY identities";
         std::map<std::uint32_t, const DRW_RawDxfObject*> expected;
         for (const auto& frozen : m_dxfMaterialWriteSources)
             if (!expected.emplace(dxfW->remapHandle(frozen.raw.handle), &frozen.output).second) return false;
@@ -24740,35 +24759,67 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
             std::uint32_t expectedHandle = 0u;
             if (actual.tType != source.tType
                 || actual.handle != dxfW->remapHandle(source.handle)
-                || actual.name != source.name || actual.flags != source.flags
-                || !map(source.parentHandle, expectedHandle)
-                || actual.parentHandle != expectedHandle
-                || !map(source.xDictHandle, expectedHandle)
-                || actual.xDictHandle != expectedHandle
-                || actual.reactorHandles.size()
-                    != source.reactorHandles.size()
-                || actual.extensionDictionaryFlag()
-                    != source.extensionDictionaryFlag()
-                || source.hasDataStorageBinaryData()
-                    != actual.hasDataStorageBinaryData()
-                || !source.pendingAppIdResolutions.empty()
-                || !source.pendingLayerRefResolutions.empty()
-                || source.reactorCount() < 0
-                || static_cast<std::size_t>(source.reactorCount())
-                    != source.reactorHandles.size())
+                || actual.name != source.name || actual.flags != source.flags) {
+                diagnosticPhase = "typed MATERIAL identity/name/flags";
                 return false;
+            }
+            if (!map(source.parentHandle, expectedHandle)
+                || actual.parentHandle != expectedHandle) {
+                diagnosticPhase = "typed MATERIAL owner mapping";
+                return false;
+            }
+            if (!map(source.xDictHandle, expectedHandle)
+                || actual.xDictHandle != expectedHandle) {
+                diagnosticPhase = "typed MATERIAL extension-dictionary mapping";
+                return false;
+            }
+            if (actual.reactorHandles.size() != source.reactorHandles.size()) {
+                diagnosticPhase = "typed MATERIAL reactor count";
+                return false;
+            }
+            // xDictFlag is a DWG common-header framing bit: in this reader,
+            // 1 means the xdictionary handle slot is omitted and 0 means a
+            // handle follows. DXF carries the link through ACAD_XDICTIONARY,
+            // not that original bit. The mapped xDictHandle and app-data
+            // comparisons above/below prove the portable relationship.
+            if (source.hasDataStorageBinaryData()
+                != actual.hasDataStorageBinaryData()) {
+                diagnosticPhase = "typed MATERIAL data-storage presence";
+                return false;
+            }
+            if (!source.pendingAppIdResolutions.empty()
+                || !source.pendingLayerRefResolutions.empty()) {
+                diagnosticPhase = "typed MATERIAL pending EED resolution";
+                return false;
+            }
+            if (source.reactorCount() < 0
+                || static_cast<std::size_t>(source.reactorCount())
+                    != source.reactorHandles.size()) {
+                diagnosticPhase = "typed MATERIAL retained reactor count";
+                return false;
+            }
             for (std::size_t index = 0u;
                  index < source.reactorHandles.size(); ++index) {
                 if (!map(source.reactorHandles[index], expectedHandle)
                     || actual.reactorHandles[index] != expectedHandle) {
+                    diagnosticPhase = "typed MATERIAL reactor mapping";
                     return false;
                 }
             }
             const bool appDataEqual = mappedAppDataEqual(source, actual);
+            if (!appDataEqual) {
+                diagnosticPhase = "typed MATERIAL application-data mapping";
+                return false;
+            }
             const bool extDataEqual = mappedExtDataEqual(source, actual);
-            return appDataEqual && extDataEqual;
+            if (!extDataEqual) {
+                diagnosticPhase = "typed MATERIAL extended-data mapping";
+                return false;
+            }
+            return true;
         };
         std::unordered_set<std::uint32_t> seen;
+        diagnosticPhase = "inspect completed OBJECTS records";
         const bool inspected = dx_standard_output::inspectSelected(view,
             [&](std::string_view, std::uint32_t handle) {
                 return expected.count(handle) != 0u
@@ -24777,9 +24828,12 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
                     || typedDictionaries.count(handle) != 0u;
             },
             [&](const auto& shape, std::string_view body) {
+                activeHandle = shape.handle;
+                activeFamily = "MATERIAL output record";
                 if (!seen.insert(shape.handle).second) return false;
                 const auto dictionary = dictionaries.find(shape.handle);
                 if (dictionary != dictionaries.end()) {
+                    activeFamily = "raw-source MATERIAL dictionary";
                     const auto& source = *dictionary->second;
                     dx_standard_output::Decoder decoder(view);
                     return shape.kind == dx_standard_output::Family::Dictionary
@@ -24802,6 +24856,7 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
                 const auto typedDictionary =
                     typedDictionaries.find(shape.handle);
                 if (typedDictionary != typedDictionaries.end()) {
+                    activeFamily = "typed DWG MATERIAL dictionary";
                     const auto& source = *typedDictionary->second;
                     dx_standard_output::Decoder decoder(view);
                     return shape.kind
@@ -24846,22 +24901,56 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
                 }
                 const auto typed = typedExpected.find(shape.handle);
                 if (typed != typedExpected.end()) {
+                    activeFamily = "typed DWG MATERIAL";
                     dx_standard_output::Decoder decoder(view, true);
-                    return shape.kind == dx_standard_output::Family::Other
-                        && decoder.decodeRecord<DRW_Material>(
-                            body, [&](const DRW_Material& actual) {
-                                return dxfMaterial::sameBodyState(
-                                           *typed->second, actual)
-                                    && mappedCommonEqual(
-                                        *typed->second, actual);
-                            });
+                    if (shape.kind != dx_standard_output::Family::Other) {
+                        diagnosticPhase = "typed DWG MATERIAL record classification";
+                        return false;
+                    }
+                    bool callbackCalled = false;
+                    bool bodyMatches = false;
+                    bool commonMatches = false;
+                    const char* phaseBeforeDecode = diagnosticPhase;
+                    const bool decoded = decoder.decodeRecord<DRW_Material>(
+                        body, [&](const DRW_Material& actual) {
+                            callbackCalled = true;
+                            bodyMatches = dxfMaterial::sameBodyState(
+                                *typed->second, actual);
+                            if (!bodyMatches)
+                                return false;
+                            commonMatches = mappedCommonEqual(
+                                *typed->second, actual);
+                            return commonMatches;
+                        });
+                    if (!decoded && diagnosticPhase == phaseBeforeDecode) {
+                        diagnosticPhase = !callbackCalled
+                            ? "typed DWG MATERIAL DXF decode"
+                            : !bodyMatches
+                                ? "typed DWG MATERIAL body projection"
+                                : !commonMatches
+                                    ? "typed DWG MATERIAL common references"
+                                    : "typed DWG MATERIAL output decode";
+                    }
+                    return decoded;
                 }
+                activeFamily = "raw MATERIAL scalar replay";
                 const auto& source = *expected.at(shape.handle);
-                return dx_standard_output::rawScalarTransportEqual(source.groups, body, view, map, true);
+                const bool equal = dx_standard_output::rawScalarTransportEqual(
+                    source.groups, body, view, map, true);
+                if (!equal)
+                    diagnosticPhase = "raw MATERIAL scalar output";
+                return equal;
             });
-        return inspected
-            && seen.size() == expected.size() + dictionaries.size()
-                + typedExpected.size() + typedDictionaries.size();
+        if (!inspected)
+            return false;
+        diagnosticPhase = "MATERIAL selected-record count";
+        const std::size_t expectedCount = expected.size()
+            + dictionaries.size() + typedExpected.size()
+            + typedDictionaries.size();
+        if (seen.size() != expectedCount)
+            return false;
+        inspectionComplete = true;
+        return true;
     } catch (...) { return false; }
 }
 

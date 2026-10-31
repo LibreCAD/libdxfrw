@@ -24,6 +24,8 @@ struct Options {
     // A value below 16 stops the first map matrix early while retaining a
     // correctly bounded object frame. The incomplete body must remain opaque.
     unsigned diffuseTransformCount{16u};
+    // false models a DWG common header with no extension-dictionary handle.
+    bool hasExtensionDictionary{true};
 };
 
 class CodecProbe final : public DRW_Material {
@@ -113,7 +115,7 @@ finish_body:
     object.putHandle(own);
     object.putBitShort(0u); // no EED
     object.putBitLong(1); // one reactor
-    object.putBit(0u); // extension dictionary follows
+    object.putBit(options.hasExtensionDictionary ? 0u : 1u);
     appendBits(object, body);
     object.alignToByte();
     if (!strings.data().empty())
@@ -136,7 +138,8 @@ finish_body:
     };
     putHandle(DRW::DwgSoftPointer, 0x72u); // owner dictionary
     putHandle(DRW::DwgSoftPointer, 0x72u); // selected reactor
-    putHandle(DRW::DwgHardOwnership, 0x110u); // extension dictionary
+    if (options.hasExtensionDictionary)
+        putHandle(DRW::DwgHardOwnership, 0x110u); // extension dictionary
     handles.alignToByte();
     if (!object.isGood() || !handles.isGood()
         || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())

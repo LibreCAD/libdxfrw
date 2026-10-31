@@ -8528,10 +8528,12 @@ bool materialAc1024TypedGraphOutput() {
     Cleanup cleanup{output, directory};
 
     const auto makeData = [](dx_data& data, int proceduralMap = -1,
-                             unsigned diffuseTransforms = 16u) {
+                             unsigned diffuseTransforms = 16u,
+                             bool hasExtensionDictionary = true) {
         Frame frame;
         if (!material_dwg_test::makeFrame(
-                Options{proceduralMap, diffuseTransforms}, frame))
+                Options{proceduralMap, diffuseTransforms,
+                        hasExtensionDictionary}, frame))
             return false;
         CodecProbe parsed;
         if (!material_dwg_test::parse(frame, parsed))
@@ -8559,12 +8561,14 @@ bool materialAc1024TypedGraphOutput() {
         materialDictionary.m_entries = {{"ByBlock", 0x97u}};
         data.dictionaries.push_back(materialDictionary);
 
-        DRW_Dictionary extensionDictionary;
-        extensionDictionary.handle = 0x110u;
-        extensionDictionary.parentHandle = 0x97u;
-        extensionDictionary.cloning = 2;
-        extensionDictionary.hardOwner = 1;
-        data.dictionaries.push_back(extensionDictionary);
+        if (hasExtensionDictionary) {
+            DRW_Dictionary extensionDictionary;
+            extensionDictionary.handle = 0x110u;
+            extensionDictionary.parentHandle = 0x97u;
+            extensionDictionary.cloning = 2;
+            extensionDictionary.hardOwner = 1;
+            data.dictionaries.push_back(extensionDictionary);
+        }
         data.materials.push_back(static_cast<const DRW_Material&>(parsed));
         return true;
     };
@@ -8641,15 +8645,16 @@ bool materialAc1024TypedGraphOutput() {
     }
 
     MutationExporter exporter;
-    const auto exportFile = [&](bool binary) {
+    const auto exportFile = [&](bool binary, dx_data& source) {
         return exporter.fileExport(
-            output.string(), DRW::AC1024, binary, &data, false, true,
+            output.string(), DRW::AC1024, binary, &source, false, true,
             dx_dxfSourceTextPolicy::Compatible,
             DRW::DxfTextWritePolicy::Compatible,
             dx_dxfProxyGraphicsPolicy::Compatible,
             dx_dwgReadCompletenessPolicy::AllowPartial);
     };
-    const auto verifyReadback = [&](bool binary) {
+    const auto verifyReadback = [&](bool binary,
+                                    bool hasExtensionDictionary = true) {
         dx_data actual;
         dx_iface reader;
         if (!reader.fileImport(output.string(), &actual, false)
@@ -8678,7 +8683,8 @@ bool materialAc1024TypedGraphOutput() {
             || material.parentHandle != dictionary->handle
             || material.reactorHandles.size() != 1u
             || material.reactorHandles.front() != dictionary->handle
-            || material.xDictHandle == 0u
+            || (hasExtensionDictionary && material.xDictHandle == 0u)
+            || (!hasExtensionDictionary && material.xDictHandle != 0u)
             || material.m_name != "ByBlock"
             || material.m_description != "generated AC1024 MATERIAL"
             || material.m_ambientColorValue != 0x81234567u
@@ -8700,6 +8706,13 @@ bool materialAc1024TypedGraphOutput() {
             || material.m_illuminationModel != 3
             || material.m_channelFlags != 5)
             return false;
+        if (!hasExtensionDictionary)
+            return std::none_of(actual.dictionaries.begin(),
+                                actual.dictionaries.end(),
+                [&material](const DRW_Dictionary& value) {
+                    return value.parentHandle == material.handle;
+                })
+                && binary == (std::ifstream(output, std::ios::binary).peek() == 'A');
         const auto extension = std::find_if(
             actual.dictionaries.begin(), actual.dictionaries.end(),
             [&material](const DRW_Dictionary& value) {
@@ -8713,7 +8726,7 @@ bool materialAc1024TypedGraphOutput() {
     };
 
     for (const bool binary : {false, true}) {
-        if (!exportFile(binary) || !verifyReadback(binary))
+        if (!exportFile(binary, data) || !verifyReadback(binary))
             return fail(std::string("typed AC1024 MATERIAL graph output/readback failed: ")
                 + (binary ? "Binary" : "ASCII"));
 
@@ -8725,7 +8738,7 @@ bool materialAc1024TypedGraphOutput() {
         exporter.afterObjects = [&data]() {
             data.materials.front().m_diffuseColorFactor += 0.125;
         };
-        const bool lateMutationRejected = !exportFile(binary);
+        const bool lateMutationRejected = !exportFile(binary, data);
         exporter.afterObjects = {};
         data.materials.front().m_diffuseColorFactor = sourceFactor;
         std::ifstream previous(output, std::ios::binary);
@@ -8735,8 +8748,26 @@ bool materialAc1024TypedGraphOutput() {
         previous.close();
         if (!lateMutationRejected || retained != sentinel)
             return fail("late MATERIAL mutation did not roll back the destination");
-        if (!exportFile(binary) || !verifyReadback(binary))
+        if (!exportFile(binary, data) || !verifyReadback(binary))
             return fail("corrected MATERIAL output did not retry after rollback");
+    }
+
+    dx_data withoutExtensionDictionary;
+    MutationExporter noExtensionDictionaryExporter;
+    if (!makeData(withoutExtensionDictionary, -1, 16u, false))
+        return fail("generated MATERIAL without an extension dictionary did not initialize");
+    const auto exportWithoutExtensionDictionary = [&](bool binary) {
+        return noExtensionDictionaryExporter.fileExport(
+            output.string(), DRW::AC1024, binary, &withoutExtensionDictionary,
+            false, true, dx_dxfSourceTextPolicy::Compatible,
+            DRW::DxfTextWritePolicy::Compatible,
+            dx_dxfProxyGraphicsPolicy::Compatible,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+    };
+    for (const bool binary : {false, true}) {
+        if (!exportWithoutExtensionDictionary(binary)
+            || !verifyReadback(binary, false))
+            return fail("DWG xdictionary omission flag was not normalized through DXF link semantics");
     }
     std::cout << "AC1024 MATERIAL graph: parser refusal, exact ASCII/Binary output/readback, rollback/retry PASS\n";
     return true;
