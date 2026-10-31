@@ -1,6 +1,6 @@
 # DWG/DXF parity — remaining implementation plan
 
-Updated 2026-10-30. This file contains open work only. Implementation history and
+Updated 2026-10-31. This file contains open work only. Implementation history and
 completed-item evidence belong in Git and `docs/research/`, not in this queue.
 
 The objective remains full, evidence-backed DWG/DXF parity with the intended
@@ -57,22 +57,25 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next P4 implementation packet:** resolve the first remaining physical graph
-closure failure in the existing mechanical witness
+**Next P4 implementation packet:** close the first remaining physical graph
+edge in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Trace
-the dictionary record at owner handle `0x72` and its entry targeting `0x97`;
-establish the exact source class, entry name, ownership route, callback
-identity, and why the selected typed/raw provider is missing or ambiguous.
-Implement only that source-required edge/provider, reusing the current graph
-planner and preserving handle uniqueness, destination rollback and corrected
-retry. Verify ASCII/Binary generated readback at the changed boundary and
-rerun the explicit-partial diagnostic. Do not infer the target from adjacent
-handles or relax graph completeness. Keep strict complete-export admission
-closed while required profiles or the 228 opaque callback identities remain
-uncovered.
-Evidence for the current stopping point and the associative route is recorded
-in `docs/research/p4-ac1024-associative-graph-route-2026-10-31.json`.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Its
+dictionary owner is `0x72`; the `ByBlock` entry targets MATERIAL `0x97`, whose
+owner is `0x72`. LibreDWG identifies the object as type 505 / `AcDbMaterial`,
+and the local reader calls `addMaterial` and retains its unsupported raw frame.
+The remaining gap is output admission: the extension graph indexes typed
+MATERIAL candidates only for DXF-origin input and has no DWG raw-MATERIAL
+candidate in this lookup. Determine which existing typed or validated raw route
+can represent this DWG object completely, then add only that provider/edge to
+the graph planner. Preserve handle uniqueness, destination rollback and
+corrected retry; verify generated ASCII/Binary readback and rerun the
+explicit-partial diagnostic. Do not infer targets from adjacent handles or
+relax graph completeness. Keep strict complete-export admission closed while
+required profiles or the 228 opaque callback identities remain uncovered.
+The source and parser observations are recorded in
+`docs/research/p4-ac1024-associative-graph-route-2026-10-31.json` and the
+existing LibreDWG projection identified there.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -104,9 +107,9 @@ engines.
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
    the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The explicit partial diagnostic now passes the
-   selected associative graph profiles and stops at dictionary owner `0x72`,
-   entry target `0x97`. The callback census is recorded in
+   not retained for output. The explicit-partial diagnostic's first remaining
+   edge is dictionary owner `0x72`, key `ByBlock`, target `0x97` (MATERIAL).
+   The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
    source identities and the existing family receipts to map each profile to
    complete typed output or a proven end-to-end replay path; a typed callback
