@@ -41705,7 +41705,6 @@ bool dx_iface::addDxfLayerTableControl(std::uint32_t handle,
                                        std::uint32_t xDictHandle) {
     if (cData == nullptr || cData->sourceFormat != dx_source_format::DXF
         || cData->importGeneration == 0u || handle == DRW::NoHandle
-        || xDictHandle == DRW::NoHandle
         || (handle == 0u && xDictHandle != 0u)
         || cData->m_dxfLayerControlSourceSeen
         || cData->m_dxfLayerControlCaptureFailed) {
@@ -48185,8 +48184,7 @@ bool dx_data::getLayerTableControlExtensionDictionary(
             return false;
         controlHandle = m_dxfLayerControlHandle;
         dictionaryHandle = m_dxfLayerControlXDictHandle;
-        if (dictionaryHandle == DRW::NoHandle
-            || (dictionaryHandle != 0u && controlHandle == 0u)
+        if ((dictionaryHandle != 0u && controlHandle == 0u)
             || controlHandle == DRW::NoHandle)
             return false;
         if (dictionaryHandle == 0u)

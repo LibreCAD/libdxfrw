@@ -48,6 +48,12 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     text(0, "APPID"); text(5, "D0"); text(330, "9");
     text(100, "AcDbSymbolTableRecord"); text(100, "AcDbRegAppTableRecord");
     text(2, "VERTEX_APP"); writer->writeInt16(70, 0); text(0, "ENDTAB");
+    text(0, "TABLE"); text(2, "LAYER"); text(5, "F0"); text(330, "0");
+    text(100, "AcDbSymbolTable"); writer->writeInt16(70, 1);
+    text(0, "LAYER"); text(5, "F1"); text(330, "F0");
+    text(100, "AcDbSymbolTableRecord"); text(100, "AcDbLayerTableRecord");
+    text(2, "0"); writer->writeInt16(70, 0); writer->writeInt16(62, 7);
+    text(6, "CONTINUOUS"); text(0, "ENDTAB");
     text(0, "TABLE"); text(2, "BLOCK_RECORD"); text(5, "1");
     text(330, "0"); text(100, "AcDbSymbolTable");
     std::vector<std::pair<const char*, const char*>> records = {

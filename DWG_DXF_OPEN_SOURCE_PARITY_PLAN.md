@@ -77,10 +77,16 @@ focused ASCII/Binary selector proves exact group-2 binding, destination
 rollback and same-writer retry. The physical source currently stops before
 OBJECTS staging at XRECORD `0x121F`: its payload contains group `1071`, outside
 the [documented normal XRECORD group-code domain](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm).
-Keep this refusal until an independent semantics-backed representation
-exists; do not reinterpret it as XDATA or rely on a peer converter's emission
-as acceptance evidence. The physical BLOCKREPRESENTATIONDATA staged-byte and
-fresh readback proof remains pending.
+Autodesk's [XRECORD group table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm)
+documents group 90 as a legal 32-bit integer, and its
+[`AcDbXrecord::setFromRbChain` contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html)
+permits any valid group code appropriate to the value type. Type-width
+compatibility alone does not establish that changing this application-defined
+field from 1071 to 90 preserves its meaning. Keep the
+refusal until an independent semantics-backed representation exists; do not
+reinterpret it as XDATA or rely on a peer converter's emission as acceptance
+evidence. The physical BLOCKREPRESENTATIONDATA staged-byte and fresh readback
+proof remains pending.
 
 Then close the Title_Block-ARCH BLOCK_RECORD `0x127` three-entry DICTIONARY
 `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` →
