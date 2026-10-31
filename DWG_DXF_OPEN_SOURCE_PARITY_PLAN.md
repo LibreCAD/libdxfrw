@@ -75,13 +75,18 @@ XDATA occurs in this input. This is source evidence only: staged output,
 readback, native dynamic semantics, and support claims remain unqualified.
 
 Implementation order, using the current object/graph models and retained source
-frames rather than adding another graph engine: (1) add adapter output-group
-projections for the two remaining witnessed bodies—ACDB_DYNAMICBLOCKPROXYNODE
-and BLOCKPARAMDEPENDENCYBODY—reusing the already-bounded typed writer fields;
-(2) generalize source preparation from the Title_Block-ARCH single-root profile
-to both roots, all 65 dynamic records, their source frames, two owner
+frames rather than adding another graph engine: (1) **adapter field projections
+implemented** for the two remaining witnessed bodies—ACDB_DYNAMICBLOCKPROXYNODE
+and BLOCKPARAMDEPENDENCYBODY—by reusing their bounded typed-writer fields. The
+adapter target builds with `-Werror`; focused proxy-span and dependency-body
+ASCII/Binary rollback, retry and readback controls pass. These controls establish
+the object writers, not source-bound whole-graph output qualification. (2)
+generalize source preparation from the Title_Block-ARCH single-root profile to
+both roots, all 65 dynamic records, their source frames, two owner
 BLOCK_RECORD/DICTIONARY routes, SORTENTSTABLE records, purge preventers and the
-Window - Imperial nested associative-network dictionary; (3) bind every graph
+Window - Imperial nested associative-network dictionary. Both source graph
+frames were captured as AC1024 `AcDbEvalGraph`, observed oType 517; keep the
+separate Title_Block-ARCH oType 511 observation profile-specific; (3) bind every graph
 expression, action index (match object nodeId), action/constraint dependency,
 reactor, XDATA APPID, visibility-state and geometry-entity reference to its
 unique planned identity and role, including the six dependency-body owner and

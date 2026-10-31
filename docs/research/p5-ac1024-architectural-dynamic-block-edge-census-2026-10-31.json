@@ -10,7 +10,7 @@
   },
   "method": {
     "tool": "libdxfrw_dwg2dxf_adapter_tests --dynamic-block-source-graph-census",
-    "operation": "Current AC1024 typed import; census of graph nodes/edges, typed references, ownership, XDATA symbols and retained source frames.",
+    "operation": "Current AC1024 typed import; census of graph nodes/edges, typed references, ownership, XDATA symbols, retained source frames, EvalExpr/element versions, and parameter-dependency body fields.",
     "fixturePolicy": "The local DWG is not committed by this work; no DWG/DXF fixture was added.",
     "sha256Verified": true
   },
@@ -845,7 +845,13 @@
           -1,
           -1
         ]
-      ]
+      ],
+      "sourceFrame": {
+        "type": 517,
+        "record": "ACAD_EVALUATION_GRAPH",
+        "class": "AcDbEvalGraph",
+        "parent": "0x1146"
+      }
     },
     {
       "handle": "0x110F",
@@ -1946,7 +1952,13 @@
           -1,
           -1
         ]
-      ]
+      ],
+      "sourceFrame": {
+        "type": 517,
+        "record": "ACAD_EVALUATION_GRAPH",
+        "class": "AcDbEvalGraph",
+        "parent": "0x110E"
+      }
     }
   ],
   "dynamicObjects": [
@@ -2020,7 +2032,11 @@
         "record": "BLOCKALIGNMENTGRIP",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1127",
@@ -2092,7 +2108,11 @@
         "record": "BLOCKALIGNMENTGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x115C",
@@ -2164,7 +2184,11 @@
         "record": "BLOCKALIGNMENTPARAMETER",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1126",
@@ -2236,7 +2260,11 @@
         "record": "BLOCKALIGNMENTPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1135",
@@ -2308,7 +2336,11 @@
         "record": "BLOCKBASEPOINTPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x115B",
@@ -2389,7 +2421,11 @@
         "record": "BLOCKFLIPACTION",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1134",
@@ -2748,7 +2784,11 @@
         "record": "BLOCKFLIPACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1133",
@@ -3107,7 +3147,11 @@
         "record": "BLOCKFLIPACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1157",
@@ -3179,7 +3223,11 @@
         "record": "BLOCKFLIPGRIP",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1122",
@@ -3251,7 +3299,11 @@
         "record": "BLOCKFLIPGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1119",
@@ -3323,7 +3375,11 @@
         "record": "BLOCKFLIPGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1156",
@@ -3417,7 +3473,11 @@
             0
           ]
         }
-      ]
+      ],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x111D",
@@ -3489,7 +3549,11 @@
         "record": "BLOCKFLIPPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1118",
@@ -3561,7 +3625,11 @@
         "record": "BLOCKFLIPPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1168",
@@ -3633,7 +3701,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1167",
@@ -3705,7 +3777,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1163",
@@ -3777,7 +3853,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1162",
@@ -3849,7 +3929,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x115F",
@@ -3921,7 +4005,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x115E",
@@ -3993,7 +4081,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x115A",
@@ -4065,7 +4157,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1159",
@@ -4137,7 +4233,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1158",
@@ -4209,7 +4309,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1129",
@@ -4281,7 +4385,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1128",
@@ -4353,7 +4461,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1125",
@@ -4425,7 +4537,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1124",
@@ -4497,7 +4613,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1123",
@@ -4569,7 +4689,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1121",
@@ -4641,7 +4765,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1120",
@@ -4713,7 +4841,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x111C",
@@ -4785,7 +4917,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x111B",
@@ -4857,7 +4993,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x111A",
@@ -4929,7 +5069,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1117",
@@ -5001,7 +5145,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1116",
@@ -5073,7 +5221,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1113",
@@ -5145,7 +5297,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1112",
@@ -5217,7 +5373,11 @@
         "record": "BLOCKGRIPLOCATIONCOMPONENT",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1165",
@@ -5305,7 +5465,11 @@
         "record": "BLOCKHORIZONTALCONSTRAINTPARAMETER",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1166",
@@ -5377,7 +5541,11 @@
         "record": "BLOCKLINEARGRIP",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1161",
@@ -5449,7 +5617,11 @@
         "record": "BLOCKLINEARGRIP",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1115",
@@ -5521,7 +5693,11 @@
         "record": "BLOCKLINEARGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1111",
@@ -5593,7 +5769,11 @@
         "record": "BLOCKLINEARGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1114",
@@ -5665,7 +5845,11 @@
         "record": "BLOCKLINEARPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1110",
@@ -5737,7 +5921,11 @@
         "record": "BLOCKLINEARPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1132",
@@ -5836,7 +6024,11 @@
         "record": "BLOCKMOVEACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1131",
@@ -5935,7 +6127,11 @@
         "record": "BLOCKMOVEACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x2088",
@@ -6007,7 +6203,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x2087"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=3'-6\"",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x2082",
@@ -6079,7 +6285,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x2081"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=6\"",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x202F",
@@ -6151,7 +6367,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x202E"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=5'-0\"",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x2029",
@@ -6223,7 +6449,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x2028"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=6\"",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x1152",
@@ -6295,7 +6531,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x1151"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=36.0000",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x114C",
@@ -6367,7 +6613,17 @@
         "record": "BLOCKPARAMDEPENDENCYBODY",
         "parent": "0x114B"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=4.0000",
+        "classVersion": 0
+      }
     },
     {
       "handle": "0x112F",
@@ -6456,7 +6712,11 @@
         "record": "BLOCKSCALEACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1130",
@@ -6557,7 +6817,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x112E",
@@ -6650,7 +6914,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x112D",
@@ -6743,7 +7011,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x112C",
@@ -6836,7 +7108,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x112B",
@@ -6929,7 +7205,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x112A",
@@ -7076,7 +7356,11 @@
         "record": "BLOCKSTRETCHACTION",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1160",
@@ -7164,7 +7448,11 @@
         "record": "BLOCKVERTICALCONSTRAINTPARAMETER",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x111F",
@@ -7236,7 +7524,11 @@
         "record": "BLOCKVISIBILITYGRIP",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x111E",
@@ -7885,7 +8177,11 @@
         "record": "BLOCKVISIBILITYPARAMETER",
         "parent": "0x110F"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
     },
     {
       "handle": "0x1164",
@@ -7957,7 +8253,11 @@
         "record": "ACDB_DYNAMICBLOCKPROXYNODE",
         "parent": "0x1155"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x116A",
@@ -8034,7 +8334,11 @@
         "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
         "parent": "0x1146"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0
     },
     {
       "handle": "0x1137",
@@ -8111,7 +8415,11 @@
         "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
         "parent": "0x110E"
       },
-      "xdata": []
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0
     }
   ],
   "outputQualification": {
@@ -8127,5 +8435,5 @@
     "The XDATA APPID name resolves to APPID handle 0x10D4; no code-1003 layer XDATA was observed on these 65 dynamic objects.",
     "No output, fresh DXF readback, native consumer, or support claim is qualified by this receipt."
   ],
-  "planAction": "Remove the source census from the open packet. Bind both graph roots and all 65 dynamic records, the nested associative network and six dependency bodies to planned/emitted identities; add the two missing adapter group projections (ACDB_DYNAMICBLOCKPROXYNODE and BLOCKPARAMDEPENDENCYBODY), then generalize staged closure and strict output inspection across both roots."
+  "planAction": "Source census complete. Both graphs have retained AC1024 AcDbEvalGraph frames (observed oType 517); the proxy-node and BLOCKPARAMDEPENDENCYBODY adapter projections are implemented and compile, with downstream exact writer controls passing. Next bind both owner routes and all 65 dynamic objects, then inspect staged identities, references and complete output. Keep the 511 Title_Block observation profile-specific; do not generalize it to this source."
 }

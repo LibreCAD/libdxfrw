@@ -35541,6 +35541,53 @@ bool makeDwgDynamicOutputGroups(
         || !appendDwgDynamicObjectHeader(
             groups, source, source.parentHandle, writer))
         return false;
+    if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::EvalExprOnly) {
+        const bool evalExprVersion =
+            (source.m_major == 29u && source.m_minor == 2u)
+            || (source.m_major == 33u && source.m_minor == 29u);
+        if (source.m_recordName != "ACDB_DYNAMICBLOCKPROXYNODE"
+            || !source.m_bodyFullyDecoded || !source.m_evalExprParsed
+            || !evalExprVersion
+            || source.m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || source.m_parentId != std::numeric_limits<std::uint32_t>::max()
+            || source.m_valueCode != -9999 || source.m_hasValueDouble
+            || source.m_valueHandle != 0u || source.m_elementParsed
+            || !source.m_elementName.empty() || source.m_elementMajor != 0u
+            || source.m_elementMinor != 0u || source.m_eed1071 != 0
+            || !source.reactorHandles.empty())
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        return true;
+    }
+    if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::ParameterDependencyBody) {
+        if (source.m_recordName != "BLOCKPARAMDEPENDENCYBODY"
+            || !source.m_bodyFullyDecoded || source.m_evalExprParsed
+            || source.m_elementParsed || source.m_adbVersion != 1
+            || source.m_dimensionBaseVersion != 1
+            || source.m_classVersion != 0
+            || source.m_dependencyName.empty()
+            || source.m_dependencyName.size()
+                > DRW::kMaxDxfBinaryPayloadBytes
+            || groups.size() > DRW::kMaxDxfRawRecordGroups - 7u)
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbAssocDependencyBody");
+        appendDwgDynamicInt(groups, 90, source.m_adbVersion);
+        appendDwgDynamicString(
+            groups, 100, "AcDbImpAssocDimDependencyBodyBase");
+        appendDwgDynamicInt(groups, 90, source.m_dimensionBaseVersion);
+        appendDwgDynamicString(groups, 1, source.m_dependencyName);
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockParameterDependencyBody");
+        appendDwgDynamicInt(groups, 90, source.m_classVersion);
+        return true;
+    }
     if (source.m_kind == DRW_DynamicBlockObject::Kind::PurgePreventer) {
         appendDwgDynamicString(
             groups, 100, "AcDbDynamicBlockPurgePreventer");

@@ -12690,6 +12690,36 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
                   << "\",\"ownerDictionary\":\""
                   << hex(graph.parentHandle) << "\",\"reactors\":";
         emitHandles(graph.reactorHandles);
+        std::cout << ",\"sourceFrame\":";
+        const DRW_UnsupportedObject* graphFrame = nullptr;
+        std::size_t graphFrameMatches = 0u;
+        for (const DRW_UnsupportedObject& frame : data.acdsHistoryDwgFrames) {
+            if (frame.m_handle != graph.handle)
+                continue;
+            graphFrame = &frame;
+            ++graphFrameMatches;
+        }
+        if (graphFrameMatches != 1u || graphFrame == nullptr) {
+            std::cout << "null";
+        } else {
+            if (graphFrame->m_objectType == 0
+                || graphFrame->m_recordName != "ACAD_EVALUATION_GRAPH"
+                || graphFrame->m_className != "AcDbEvalGraph"
+                || graphFrame->m_version != DRW::AC1024
+                || graphFrame->m_handle != graph.handle
+                || graphFrame->m_parentHandle != graph.parentHandle
+                || !graphFrame->m_isCustomClass || graphFrame->m_isEntity
+                || graphFrame->m_rawBytes.size() != graphFrame->m_objectSize
+                || graphFrame->m_bodyBitSize
+                    > static_cast<std::uint64_t>(graphFrame->m_objectSize)
+                        * 8u)
+                return fail("evaluation-graph source frame identity is incomplete");
+            std::cout << "{\"type\":" << graphFrame->m_objectType
+                      << ",\"record\":" << quote(graphFrame->m_recordName)
+                      << ",\"class\":" << quote(graphFrame->m_className)
+                      << ",\"parent\":\""
+                      << hex(graphFrame->m_parentHandle) << "\"}";
+        }
         std::cout << ",\"values\":[" << graph.m_value96 << ','
                   << graph.m_value97 << "],\"nodes\":[";
         for (std::size_t index = 0u; index < graph.m_nodes.size(); ++index) {
@@ -12915,9 +12945,13 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
                   << (object.m_evalExprParsed ? "true" : "false")
                   << ",\"bodyDecoded\":"
                   << (object.m_bodyFullyDecoded ? "true" : "false")
+                  << ",\"major\":" << object.m_major
+                  << ",\"minor\":" << object.m_minor
                   << ",\"nodeId\":" << object.m_nodeId
                   << ",\"parentId\":" << object.m_parentId
                   << ",\"element\":" << quote(object.m_elementName)
+                  << ",\"elementMajor\":" << object.m_elementMajor
+                  << ",\"elementMinor\":" << object.m_elementMinor
                   << ",\"eed1071\":" << object.m_eed1071
                   << ",\"actionIndexes\":";
         emitInts(object.m_actionIndexes);
@@ -13026,6 +13060,18 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
                       << quote(frame->m_recordName)
                       << ",\"parent\":\""
                       << hex(frame->m_parentHandle) << "\"}";
+        }
+        std::cout << ",\"parameterDependencyBody\":";
+        if (object.m_kind
+                == DRW_DynamicBlockObject::Kind::ParameterDependencyBody) {
+            std::cout << "{\"adbVersion\":" << object.m_adbVersion
+                      << ",\"dimensionBaseVersion\":"
+                      << object.m_dimensionBaseVersion
+                      << ",\"name\":" << quote(object.m_dependencyName)
+                      << ",\"classVersion\":" << object.m_classVersion
+                      << '}';
+        } else {
+            std::cout << "null";
         }
         std::cout << ",\"xdata\":[";
         bool firstXdata = true;
