@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assocvariable-physical-output-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical ACDBASSOCVARIABLE output and readback proof",
+  "status": "PHYSICAL_17_VARIABLE_IDENTITIES_FIELDS_GRAPH_AND_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "f843e8a12e0ce44de955766d6ca52fff3b11ec1a",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "ACDBASSOCVARIABLE",
+    "recordCount": 17,
+    "suffixForms": {
+      "empty": 4,
+      "oneOwnedValueDependency": 13
+    }
+  },
+  "implementation": {
+    "summary": "Added bounded source snapshots and source-to-emitted inspection for all physical AC1024 variables, ancestor networks and dictionaries. Staged bytes are checked for exact known fields, mapped handles, owner/reactor roles, network action membership, dictionary keys, and owned value-dependency children. Finalization rechecks every ancestor identity, owner and reachable handle after inspection. The DXF decoder now exposes network and variable fields to the independent staged scanner.",
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_standard_output.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "failureBehavior": "A late variable-field mutation after OBJECTS writing refuses publication and preserves a preexisting destination sentinel. Restoring the source field permits corrected retry on the same adapter; the final output is reparsed and checked. The selector runs these controls for ASCII and binary DXF.",
+    "fixturePolicy": "Reused the existing local mechanical DWG witness. The focused selector authors no DWG/DXF fixture files; generated outputs are temporary and removed after readback."
+  },
+  "outputProof": {
+    "cliOperation": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/p4-assocvariable-final-cli.dxf",
+      "exitCode": 0,
+      "output": {
+        "path": "/private/tmp/p4-assocvariable-final-cli.dxf",
+        "sha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f",
+        "bytes": 449807
+      },
+      "stagedInspector": "PASS: 17 source variables matched 17 staged/readback variable records, 2 network records and 2 owning dictionaries in ASCII AC1024 output."
+    },
+    "freshReadback": {
+      "selector": "--assocvariable-physical-output-readback",
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocvariable-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and binary output. Each mode freshly imports 17 variables, both networks and their two keyed owner dictionaries; compares all variable identity, action, string, EvalVariant, flag and reactor-count fields; verifies 13 suffix-owned value-dependency records under their output variable owners and compares their typed payloads/targets; and closes network action and dictionary-entry roles."
+    }
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "ade29d88800baf7e544fdbc3e8dbbf8f7581cac3686231d9dbb37b6b3147073a",
+      "adapterTestSha256": "3bb47902c7640d5e41b9e96ae8f922772900c60d750dc81cdb8609c0592a06d9"
+    },
+    "focusedNormalCtests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_(source_handle_inventory|source_handle_reservation|dwg_root_network_value_dependency_export|geometry_dependency_graph_export|dwg_nested_network_sortents_output)$' --output-on-failure",
+      "result": "PASS 5/5."
+    },
+    "focusedAsan": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selector": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --assocvariable-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and binary output, late-mutation refusal, sentinel preservation and same-adapter retry.",
+      "adapterTestSha256": "fe466a29b919ec681d8659beaf8314135480576419592de5b12dbb1e813aee93"
+    },
+    "cliReadDisposition": "Explicit partial mode was used. It reports 228 opaque callback views and zero retained correlation frames; the strict-complete gate is unchanged.",
+    "fullSuites": "NOT RUN; focused validation only."
+  },
+  "limitations": [
+    "The witnessed AC1024 profile does not assign semantic meaning to the retained zero suffix marker.",
+    "DXF does not encode the variable body's DWG suffix reference directly; readback proves the corresponding emitted value-dependency child and its owner. The staged source-to-output binding proves the source suffix target identity.",
+    "This physical partial-output proof does not close the other callback profiles, strict complete conversion, consumer semantics, platform qualification or any support claim."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind the 17 physical AC1024 ACDBASSOCVARIABLE identities and typed fields to owning actions, optional owned children, network/dictionary roles, reactors and emitted output; inspect staged output, fresh-read it, and verify atomic refusal and corrected retry.",
+    "remainingP4Scope": "Continue source-to-output/readback closure for required callback profiles and descendants. The strict-complete gate remains blocked by 228 opaque callbacks with zero retained correlation frames.",
+    "nextAction": "Bind the 17 physical ACDBASSOCDEPENDENCY records and their ASSOCDIMDEPENDENCYBODY children to exact source/output identities, fields, owner/body roles and fresh readback; verify failure/retry without adding a fixture.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "8f048d0db7130608b43f71935a464638562e286648a68fa413fbc6624235e358",
+    "dwg2dxf/dx_iface.h": "54f411a642734fc7d670f219d207761dca3de8b6bae12a7ea1a13f00adffd98d",
+    "dwg2dxf/dx_standard_output.h": "553fba60c08d9335fcfb615c549e2943b909a78ff6475afaf50e143c9ea8f1f4",
+    "tests/dwg2dxf_adapter_tests.cpp": "6a2a038e7e597c2271d5e9d4d1f0418ae84ce903bcc8e118adaf068827fa081a"
+  }
+}

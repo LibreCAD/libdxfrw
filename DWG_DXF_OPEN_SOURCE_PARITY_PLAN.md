@@ -56,18 +56,13 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — AC1024 physical ACDBASSOCVARIABLE source/output proof (17
-records).** Its bounded empty and one-child suffix forms are decoded, and a
-direct DXF encoder exists; current receipts still leave document graph routing
-and output closure open. From the existing physical mechanical source, bind all
-17 variable identities and typed fields to their owning action, optional owned
-ASSOCVALUEDEPENDENCY child, network/dictionary roles, reactor and output handle.
-Route only complete source profiles through the existing encoder, inspect the
-staged output, then reimport and compare the actual DXF. Add a focused late
-mutation refusal, destination-preservation and corrected same-adapter retry
-control. Reuse the existing source and receipts; add no investigation fixture.
-The SCALE source/output/readback/rollback slice is closed in
-`docs/research/p4-ac1024-scale-physical-output-binding-2026-10-31.json`; strict
+**P4 next action — physical AC1024 ACDBASSOCDEPENDENCY and
+ASSOCDIMDEPENDENCYBODY output proof (17 linked pairs).** From the existing
+physical mechanical source, bind each dependency to its exact dimension-body
+identity, owner/body role, action/dependency references and typed fields. Compare
+staged output with a fresh DXF readback, then verify late-mutation refusal,
+destination preservation and corrected same-adapter retry in ASCII and binary.
+Reuse the existing source and receipts; add no investigation fixture. Strict
 complete-export remains refused while the census reports 228 opaque callbacks
 and zero retained correlation frames.
 
