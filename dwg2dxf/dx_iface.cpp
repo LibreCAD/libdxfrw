@@ -49494,6 +49494,14 @@ bool dx_iface::finalizeDxfWrite() {
                     return false;
             }
         }
+        // The shared MATERIAL inspector validated these frozen DWG graph
+        // sources and their emitted records earlier in this transaction.
+        if (m_dxfMaterialWriteInspected) {
+            for (const DRW_Material& proof : m_extensionMaterialSources) {
+                if (!qualifyCapturedIdentity(proof.handle))
+                    return false;
+            }
+        }
     }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG
