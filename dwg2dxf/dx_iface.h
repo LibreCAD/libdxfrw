@@ -1218,6 +1218,7 @@ public:
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDwgDictionaryVars()
             || !hasUnchangedDwgScales()
+            || !hasUnchangedDwgLayoutOutputSources()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
@@ -1422,8 +1423,18 @@ public:
                 return;
             }
             for (DRW_Layout& layout : cData->layouts) {
-                if (!dxfW->writeLayout(&layout))
-                    return;
+                const auto frozen = m_dwgLayoutOutputSources.find(
+                    layout.handle);
+                if (frozen == m_dwgLayoutOutputSources.end()) {
+                    if (!dxfW->writeLayout(&layout))
+                        return;
+                } else {
+                    if (!hasUnchangedDwgLayoutOutputSources())
+                        return;
+                    DRW_Layout output = frozen->second.model;
+                    if (!dxfW->writeLayout(&output))
+                        return;
+                }
             }
         }
         objectWritePhase = "XRECORDs";
@@ -2587,6 +2598,28 @@ private:
     bool hasUnchangedDwgMLineStyleOutputSources() const noexcept;
     bool inspectDwgMLineStyles(const dxfRW::DxfObjectsWriteView&,
                                bool debug) noexcept;
+    struct DwgLayoutOutputSource {
+        DRW_Layout model;
+        DRW_Block_Record blockRecord;
+        DRW_Dictionary extensionDictionary;
+        std::uint32_t thumbnailHandle{0u};
+    };
+    std::map<std::uint32_t,DwgLayoutOutputSource>
+        m_dwgLayoutOutputSources;
+    DRW_Dictionary m_dwgLayoutOutputDictionary;
+    std::uint32_t m_dwgLayoutOutputNodHandle{0u};
+    int m_dwgLayoutOutputNodHardOwner{0};
+    DRW_Dictionary::Entry m_dwgLayoutOutputNodEntry;
+    const dx_data* m_dwgLayoutOutputOwner{nullptr};
+    std::uint64_t m_dwgLayoutOutputGeneration{0u};
+    bool m_dwgLayoutsObjectsInspected{false};
+    bool m_dwgLayoutBlocksInspected{false};
+    bool prepareDwgLayouts(DRW::Version version, bool debug) noexcept;
+    bool hasUnchangedDwgLayoutOutputSources(bool debug=false) const noexcept;
+    bool inspectDwgLayouts(const dxfRW::DxfObjectsWriteView&,
+                           bool debug) noexcept;
+    bool inspectDwgLayoutBlockRecords(const dxfRW::DxfTablesWriteView&,
+                                     bool debug) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;

@@ -58,6 +58,7 @@
 #include "intern/dxftablecontent.h"
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
+#include "intern/dxflayout.h"
 #include "intern/dxfviewucs.h"
 #include "intern/dxfrenderingsource.h"
 #include "intern/dxfrendersettings.h"
@@ -25161,6 +25162,1020 @@ bool dx_iface::inspectDwgMLineStyles(
     } catch (...) {
         m_dwgMLineStylesInspected = false;
         return reject("exception during staged output inspection");
+    }
+}
+
+bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
+    m_dwgLayoutOutputSources.clear();
+    m_dwgLayoutOutputDictionary = DRW_Dictionary{};
+    m_dwgLayoutOutputNodHandle = 0u;
+    m_dwgLayoutOutputNodHardOwner = 0;
+    m_dwgLayoutOutputNodEntry = {};
+    m_dwgLayoutOutputOwner = nullptr;
+    m_dwgLayoutOutputGeneration = 0u;
+    m_dwgLayoutsObjectsInspected = false;
+    m_dwgLayoutBlocksInspected = false;
+    const auto skip = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "LAYOUT DWG source profile skipped: " << stage
+                      << '\n';
+        return true;
+    };
+    if (cData == nullptr)
+        return false;
+    if (cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024)
+        return true;
+    if (version != DRW::AC1024)
+        return skip("source/target is outside AC1024 DWG");
+
+    // The tracked AC1024 witness has exactly two physical type-82 callbacks:
+    // Model and Layout1. Admit those records only with the complete rooted
+    // ACAD_LAYOUT dictionary, reciprocal BLOCK_RECORD edges, and the bounded
+    // extension DICTIONARY/XRECORD children already used by the writer.
+    if (cData->layouts.size() != 2u || !cData->hasNamedObjectDictionary
+        || cData->namedObjectDictionary.handle == 0u
+        || cData->namedObjectDictionary.handle == DRW::NoHandle
+        || cData->namedObjectDictionary.countCap
+        || !cData->namedObjectDictionary.hasCompleteDwgEntries())
+        return skip("two-layout NOD profile preconditions");
+    const auto findDictionary = [this](std::uint32_t handle)
+            -> const DRW_Dictionary* {
+        const DRW_Dictionary* result = nullptr;
+        for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return nullptr;
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto findBlockRecord = [this](std::uint32_t handle)
+            -> const DRW_Block_Record* {
+        const DRW_Block_Record* result = nullptr;
+        for (const DRW_Block_Record& record : cData->blockRecords) {
+            if (record.handle != handle)
+                continue;
+            if (result != nullptr)
+                return nullptr;
+            result = &record;
+        }
+        return result;
+    };
+    const auto findXRecord = [this](std::uint32_t handle)
+            -> const DRW_XRecord* {
+        const DRW_XRecord* result = nullptr;
+        for (const DRW_XRecord& record : cData->xRecords) {
+            if (record.handle != handle)
+                continue;
+            if (result != nullptr)
+                return nullptr;
+            result = &record;
+        }
+        return result;
+    };
+    const DRW_Dictionary& nod = cData->namedObjectDictionary;
+    const auto rootEntry = std::find_if(nod.m_entries.begin(), nod.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_LAYOUT";
+        });
+    if (rootEntry == nod.m_entries.end()
+        || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYOUT";
+            }) != 1u)
+        return skip("unique ACAD_LAYOUT NOD entry");
+    const DRW_Dictionary* layoutDictionary =
+        findDictionary(rootEntry->m_handle);
+    if (layoutDictionary == nullptr || layoutDictionary->handle == 0u
+        || layoutDictionary->handle == DRW::NoHandle
+        || layoutDictionary->parentHandle != nod.handle
+        || layoutDictionary->hardOwner != 0 || layoutDictionary->cloning != 1
+        || layoutDictionary->countCap
+        || !layoutDictionary->hasCompleteDwgEntries()
+        || layoutDictionary->m_entries.size() != 2u
+        || !layoutDictionary->appData.empty()
+        || !layoutDictionary->extData.empty()
+        || layoutDictionary->hasDataStorageBinaryData()
+        || layoutDictionary->hasDwgCommonLinkTail()
+        || !layoutDictionary->pendingAppIdResolutions.empty()
+        || !layoutDictionary->pendingLayerRefResolutions.empty()
+        || layoutDictionary->reactorHandles
+            != std::vector<std::uint32_t>{nod.handle})
+        return skip("ACAD_LAYOUT dictionary source role/shape");
+
+    const std::array<std::pair<std::uint32_t, const char*>, 2> expected{{
+        {0x22u, "Model"}, {0x59u, "Layout1"}}};
+    std::map<std::uint32_t, DwgLayoutOutputSource> selected;
+    try {
+        for (const DRW_Layout& layout : cData->layouts) {
+            const auto expectedLayout = std::find_if(expected.begin(), expected.end(),
+                [&layout](const auto& item) {
+                    return item.first == layout.handle
+                        && item.second == layout.name;
+                });
+            if (expectedLayout == expected.end()
+                || selected.count(layout.handle) != 0u
+                || layout.parentHandle != layoutDictionary->handle
+                || layout.xDictHandle == 0u
+                || layout.xDictHandle == DRW::NoHandle
+                || layout.plotViewHandle.ref != 0u
+                || layout.shadePlotHandle.ref != 0u
+                || layout.baseUcsHandle.ref != 0u
+                || layout.namedUcsHandle.ref != 0u
+                || layout.hasDataStorageBinaryData()
+                || layout.hasDwgCommonLinkTail()
+                || !layout.appData.empty()
+                || layout.extData.size() != 6u
+                || layout.viewportCount < 0
+                || layout.viewportCount > DRW_Layout::kMaxViewportCount
+                || layout.viewportCount
+                    != static_cast<std::int32_t>(layout.viewportHandles.size()))
+                return skip("layout identity, fields, or viewport shape");
+            const auto frame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, layout.handle});
+            if (frame == cData->m_opaqueDwgSourceFrames.end()
+                || frame->second.m_objectType != 82
+                || frame->second.m_handle != layout.handle
+                || frame->second.m_isEntity
+                || frame->second.m_version != DRW::AC1024
+                || frame->second.m_parentHandle != layout.parentHandle
+                || frame->second.m_hasDataStorage
+                || !drwDwgCommonLinkEvidenceValidated(
+                    frame->second.m_commonLinkEvidence))
+                return skip("physical type-82 source callback frame");
+            const auto dictionaryEntry = std::find_if(
+                layoutDictionary->m_entries.begin(),
+                layoutDictionary->m_entries.end(),
+                [&layout](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == layout.name
+                        && entry.m_handle == layout.handle;
+                });
+            if (dictionaryEntry == layoutDictionary->m_entries.end()
+                || std::count_if(layoutDictionary->m_entries.begin(),
+                    layoutDictionary->m_entries.end(),
+                    [&layout](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == layout.name
+                            && entry.m_handle == layout.handle;
+                    }) != 1u)
+                return skip("unique layout dictionary membership");
+            const DRW_Block_Record* blockRecord = findBlockRecord(
+                layout.paperSpaceBlockRecordHandle.ref);
+            const DRW_Dictionary* extension =
+                findDictionary(layout.xDictHandle);
+            if (blockRecord == nullptr
+                || blockRecord->layoutHandle != layout.handle
+                || extension == nullptr
+                || extension->parentHandle != layout.handle
+                || extension->hardOwner != 1 || extension->cloning != 1
+                || extension->countCap
+                || !extension->hasCompleteDwgEntries()
+                || extension->m_entries.size() != 1u
+                || !extension->appData.empty()
+                || !extension->extData.empty()
+                || extension->hasDataStorageBinaryData()
+                || extension->hasDwgCommonLinkTail()
+                || !extension->pendingAppIdResolutions.empty()
+                || !extension->pendingLayerRefResolutions.empty())
+                return skip("BLOCK_RECORD backlink or extension dictionary shape");
+            const DRW_Dictionary::Entry& childEntry =
+                extension->m_entries.front();
+            const DRW_XRecord* thumbnail = findXRecord(childEntry.m_handle);
+            if (childEntry.m_name != "ADSK_XREC_LAYOUTTHUMBNAIL"
+                || thumbnail == nullptr
+                || thumbnail->parentHandle != extension->handle
+                || std::find(m_extensionDictionaryHandles.begin(),
+                    m_extensionDictionaryHandles.end(), extension->handle)
+                    == m_extensionDictionaryHandles.end()
+                || std::find(m_extensionXRecordHandles.begin(),
+                    m_extensionXRecordHandles.end(), thumbnail->handle)
+                    == m_extensionXRecordHandles.end())
+                return skip("layout thumbnail XRECORD dependency");
+            for (const std::uint32_t viewport : layout.viewportHandles) {
+                if (viewport == 0u || viewport == DRW::NoHandle)
+                    return skip("invalid layout viewport-list handle");
+            }
+            DwgLayoutOutputSource snapshot;
+            snapshot.model = layout;
+            snapshot.blockRecord = *blockRecord;
+            snapshot.extensionDictionary = *extension;
+            snapshot.thumbnailHandle = thumbnail->handle;
+            if (!selected.emplace(layout.handle, std::move(snapshot)).second)
+                return skip("two unique physical layout identities");
+        }
+        if (selected.size() != expected.size())
+            return skip("not every witnessed layout identity was selected");
+        m_dwgLayoutOutputSources = std::move(selected);
+        m_dwgLayoutOutputDictionary = *layoutDictionary;
+        m_dwgLayoutOutputNodHandle = nod.handle;
+        m_dwgLayoutOutputNodHardOwner = nod.hardOwner;
+        m_dwgLayoutOutputNodEntry = *rootEntry;
+        m_dwgLayoutOutputOwner = cData;
+        m_dwgLayoutOutputGeneration = cData->importGeneration;
+        if (hasUnchangedDwgLayoutOutputSources(debug)) {
+            return true;
+        }
+        if (debug)
+            std::cerr << "LAYOUT DWG source profile skipped: snapshot changed during capture\n";
+    } catch (...) {
+        // The candidate remains unqualified if a bounded source copy cannot
+        // be completed; callers continue through their existing route.
+    }
+    m_dwgLayoutOutputSources.clear();
+    m_dwgLayoutOutputDictionary = DRW_Dictionary{};
+    m_dwgLayoutOutputNodHandle = 0u;
+    m_dwgLayoutOutputNodHardOwner = 0;
+    m_dwgLayoutOutputNodEntry = {};
+    m_dwgLayoutOutputOwner = nullptr;
+    m_dwgLayoutOutputGeneration = 0u;
+    return true;
+}
+
+bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
+    const auto fail = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "LAYOUT DWG source snapshot mismatch: " << stage
+                      << '\n';
+        return false;
+    };
+    if (m_dwgLayoutOutputSources.empty())
+        return m_dwgLayoutOutputOwner == nullptr
+            && m_dwgLayoutOutputGeneration == 0u
+            && m_dwgLayoutOutputNodHandle == 0u;
+    if (cData == nullptr || m_dwgLayoutOutputOwner != cData
+        || m_dwgLayoutOutputGeneration != cData->importGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || cData->layouts.size() != m_dwgLayoutOutputSources.size()
+        || cData->namedObjectDictionary.handle != m_dwgLayoutOutputNodHandle
+        || cData->namedObjectDictionary.hardOwner
+            != m_dwgLayoutOutputNodHardOwner)
+        return fail("owner, generation, layout count, or NOD identity");
+    const auto sameDictionary = [](const DRW_Dictionary& expected,
+                                   const DRW_Dictionary& actual) {
+        if (!standardDwgCommonEqual(expected, actual, DRW::AC1024)
+            || expected.hardOwner != actual.hardOwner
+            || expected.cloning != actual.cloning || expected.countCap
+            || actual.countCap
+            || !expected.hasCompleteDwgEntries()
+            || !actual.hasCompleteDwgEntries()
+            || expected.m_entries.size() != actual.m_entries.size())
+            return false;
+        for (std::size_t index = 0u; index < expected.m_entries.size(); ++index) {
+            const auto& a = expected.m_entries[index];
+            const auto& b = actual.m_entries[index];
+            if (a.m_name != b.m_name || a.m_handle != b.m_handle
+                || a.m_dxfHandleCode != b.m_dxfHandleCode)
+                return false;
+        }
+        return true;
+    };
+    const auto sameBlockRecord = [](const DRW_Block_Record& expected,
+                                    const DRW_Block_Record& actual) {
+        // BLOCK/ENDBLK pointers and the entity index are parser-only links;
+        // the output uses the table record's semantic fields below.
+        return standardDwgCommonEqual(expected, actual, DRW::AC1024)
+            && expected.xrefUnloaded == actual.xrefUnloaded
+            && expected.insUnits == actual.insUnits
+            && retainedDoubleEqual(expected.basePoint.x, actual.basePoint.x)
+            && retainedDoubleEqual(expected.basePoint.y, actual.basePoint.y)
+            && retainedDoubleEqual(expected.basePoint.z, actual.basePoint.z)
+            && expected.xrefIndex == actual.xrefIndex
+            && expected.xrefPath == actual.xrefPath
+            && expected.description == actual.description
+            && expected.previewData == actual.previewData
+            && expected.canExplode == actual.canExplode
+            && expected.blockScaling == actual.blockScaling
+            && expected.layoutHandle == actual.layoutHandle
+            && expected.insertCount == actual.insertCount
+            && expected.insertHandles == actual.insertHandles
+            && expected.xrefBlockHandle.code == actual.xrefBlockHandle.code
+            && expected.xrefBlockHandle.size == actual.xrefBlockHandle.size
+            && expected.xrefBlockHandle.ref == actual.xrefBlockHandle.ref
+            && expected.xrefBlockHandle.ref64 == actual.xrefBlockHandle.ref64;
+    };
+    const auto sameRootEntry = [this](const DRW_Dictionary::Entry& entry) {
+        return entry.m_name == m_dwgLayoutOutputNodEntry.m_name
+            && entry.m_handle == m_dwgLayoutOutputNodEntry.m_handle
+            && entry.m_dxfHandleCode
+                == m_dwgLayoutOutputNodEntry.m_dxfHandleCode;
+    };
+    try {
+        const DRW_Dictionary& nod = cData->namedObjectDictionary;
+        const auto rootEntry = std::find_if(nod.m_entries.begin(), nod.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYOUT";
+            });
+        if (rootEntry == nod.m_entries.end()
+            || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_LAYOUT";
+                }) != 1u
+            || !sameRootEntry(*rootEntry))
+            return fail("ACAD_LAYOUT NOD entry");
+        const DRW_Dictionary* liveLayoutDictionary = nullptr;
+        const DRW_Dictionary* liveExtensions[2] = {nullptr, nullptr};
+        const DRW_Block_Record* liveBlockRecords[2] = {nullptr, nullptr};
+        std::size_t index = 0u;
+        for (const auto& row : m_dwgLayoutOutputSources) {
+            if (row.first != row.second.model.handle || index >= 2u)
+                return fail("snapshot layout index");
+            const DRW_Layout* liveLayout = nullptr;
+            for (const DRW_Layout& candidate : cData->layouts) {
+                if (candidate.handle != row.first)
+                    continue;
+                if (liveLayout != nullptr)
+                    return fail("duplicate live LAYOUT identity");
+                liveLayout = &candidate;
+            }
+            const DRW_Block_Record* liveBlockRecord = nullptr;
+            for (const DRW_Block_Record& candidate : cData->blockRecords) {
+                if (candidate.handle != row.second.blockRecord.handle)
+                    continue;
+                if (liveBlockRecord != nullptr)
+                    return fail("duplicate live BLOCK_RECORD identity");
+                liveBlockRecord = &candidate;
+            }
+            const bool layoutSame = liveLayout != nullptr
+                && dxfLayout::Decoder::sameModel(
+                    row.second.model, *liveLayout,
+                    [](const DRW_TableEntry& expected,
+                       const DRW_TableEntry& actual) {
+                        return standardDwgCommonEqual(
+                            expected, actual, DRW::AC1024);
+                    });
+            const bool blockRecordSame = liveBlockRecord != nullptr
+                && sameBlockRecord(row.second.blockRecord,
+                                   *liveBlockRecord);
+            if (!layoutSame || !blockRecordSame) {
+                if (debug)
+                    std::cerr << "LAYOUT DWG source snapshot mismatch details: layout="
+                              << layoutSame << " block-record="
+                              << blockRecordSame << " handle=" << row.first
+                              << '\n';
+                return fail("LAYOUT or reciprocal BLOCK_RECORD changed");
+            }
+            liveLayoutDictionary = nullptr;
+            liveExtensions[index] = nullptr;
+            liveBlockRecords[index] = nullptr;
+            for (const DRW_Dictionary& candidate : cData->dictionaries) {
+                if (candidate.handle == m_dwgLayoutOutputDictionary.handle) {
+                    if (liveLayoutDictionary != nullptr)
+                        return fail("duplicate layout dictionary identity");
+                    liveLayoutDictionary = &candidate;
+                }
+                if (candidate.handle
+                    == row.second.extensionDictionary.handle) {
+                    if (liveExtensions[index] != nullptr)
+                        return fail("duplicate extension dictionary identity");
+                    liveExtensions[index] = &candidate;
+                }
+            }
+            for (const DRW_Block_Record& candidate : cData->blockRecords)
+                if (candidate.handle == row.second.blockRecord.handle)
+                    liveBlockRecords[index] = &candidate;
+            const DRW_XRecord* liveThumbnail = nullptr;
+            for (const DRW_XRecord& candidate : cData->xRecords) {
+                if (candidate.handle != row.second.thumbnailHandle)
+                    continue;
+                if (liveThumbnail != nullptr)
+                    return fail("duplicate layout thumbnail XRECORD identity");
+                liveThumbnail = &candidate;
+            }
+            if (liveExtensions[index] == nullptr
+                || liveBlockRecords[index] == nullptr
+                || liveThumbnail == nullptr
+                || !sameDictionary(row.second.extensionDictionary,
+                                   *liveExtensions[index])
+                || !sameBlockRecord(row.second.blockRecord,
+                                    *liveBlockRecords[index])
+                || liveThumbnail->parentHandle
+                    != row.second.extensionDictionary.handle)
+                return fail("layout extension DICTIONARY or thumbnail XRECORD edge changed");
+            ++index;
+        }
+        if (index != m_dwgLayoutOutputSources.size()
+            || liveLayoutDictionary == nullptr
+            || !sameDictionary(m_dwgLayoutOutputDictionary,
+                               *liveLayoutDictionary))
+            return fail("ACAD_LAYOUT dictionary snapshot changed");
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgLayoutBlockRecords(
+        const dxfRW::DxfTablesWriteView& view, bool debug) noexcept {
+    m_dwgLayoutBlocksInspected = false;
+    if (m_dwgLayoutOutputSources.empty())
+        return true;
+    const auto reject = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "LAYOUT DWG BLOCK_RECORD output proof failed: "
+                      << stage << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr || view.version != DRW::AC1024
+        || !hasUnchangedDwgLayoutOutputSources())
+        return reject("source snapshot or output version");
+    try {
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u)
+                return true;
+            const DRW_WritingContext* context = dxfW->getWritingContext();
+            if (source == DRW::NoHandle || context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            emitted = dxfW->remapHandle(source);
+            bool bound = emitted != source;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto found = aliases->find(source);
+                if (found == aliases->end())
+                    continue;
+                if (bound && emitted != found->second)
+                    return false;
+                emitted = found->second;
+                bound = true;
+            }
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        const auto blockRecordHandle = [this](const DRW_Block_Record& source) {
+            if (asciiIdentifierEquals(source.name, "*MODEL_SPACE"))
+                return DRW::DxfModelSpaceBlockRecordHandle;
+            if (asciiIdentifierEquals(source.name, "*PAPER_SPACE"))
+                return DRW::DxfPaperSpaceBlockRecordHandle;
+            return dxfW->getBlockRecordHandleToWrite(source.name);
+        };
+        std::map<std::uint32_t, const DwgLayoutOutputSource*> expected;
+        for (const auto& row : m_dwgLayoutOutputSources) {
+            std::uint32_t emittedBlock =
+                blockRecordHandle(row.second.blockRecord);
+            std::uint32_t emittedLayout = 0u;
+            const bool blockMapped = emittedBlock != 0u
+                && emittedBlock != DRW::NoHandle;
+            const bool layoutMapped = mapHandle(row.first, emittedLayout);
+            const bool uniqueBlock = blockMapped
+                && expected.emplace(emittedBlock, &row.second).second;
+            // TABLES serializers do not publish BLOCK_RECORD rows into the
+            // object-record identity ledger. The staged TABLES decoder below
+            // supplies the identity proof for this family.
+            const bool hasIdentity = uniqueBlock;
+            if (row.first != row.second.model.handle
+                || row.second.blockRecord.layoutHandle != row.first
+                || !blockMapped || !layoutMapped || !uniqueBlock
+                || !hasIdentity) {
+                if (debug)
+                    std::cerr << "LAYOUT BLOCK_RECORD proof detail: source="
+                              << row.second.blockRecord.handle << " emitted="
+                              << emittedBlock << " layout=" << row.first
+                              << " emitted-layout=" << emittedLayout
+                              << " map/block/lay/unique="
+                              << blockMapped << '/' << layoutMapped << '/'
+                              << uniqueBlock << '\n';
+                return reject("BLOCK_RECORD identity/backlink preflight");
+            }
+            (void)emittedLayout;
+        }
+        std::set<std::uint32_t> seen;
+        std::string_view selectedName;
+        const char* stagedFailure = "selected TABLES records";
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&expected, &selectedName](std::string_view name,
+                                      std::uint32_t handle) {
+                selectedName = name;
+                return expected.count(handle) != 0u;
+            },
+            [&](const auto& shape, std::string_view body) {
+                const auto source = expected.find(shape.handle);
+                if (source == expected.end() || selectedName != "BLOCK_RECORD"
+                    || !seen.insert(shape.handle).second) {
+                    stagedFailure = "duplicate, unexpected, or misnamed BLOCK_RECORD";
+                    return false;
+                }
+                std::uint32_t expectedLayout = 0u;
+                if (!mapHandle(source->second->model.handle, expectedLayout))
+                    return false;
+                bool decodedRecord = false;
+                bool matched = false;
+                std::uint32_t actualLayout = 0u;
+                dx_standard_output::Decoder decoder(view);
+                const bool decoded = decoder.decodeBlockRecord(
+                    body, [&](const DRW_Block_Record& actual) {
+                        decodedRecord = true;
+                        actualLayout = actual.layoutHandle;
+                        matched = actual.handle == shape.handle
+                            && actual.name == source->second->blockRecord.name
+                            && actual.layoutHandle == expectedLayout;
+                        return matched;
+                    });
+                if (!decoded) {
+                    if (debug)
+                        std::cerr << "LAYOUT BLOCK_RECORD row detail: shape="
+                                  << shape.handle << " decoded="
+                                  << decodedRecord << " matched=" << matched
+                                  << " source-name="
+                                  << source->second->blockRecord.name
+                                  << " expected-layout=" << expectedLayout
+                                  << " actual-layout=" << actualLayout
+                                  << '\n';
+                    stagedFailure = "BLOCK_RECORD typed row or reciprocal LAYOUT backlink";
+                }
+                return decoded;
+            });
+        if (!inspected || seen.size() != expected.size())
+            return reject(stagedFailure);
+        m_dwgLayoutBlocksInspected = true;
+        return true;
+    } catch (...) {
+        return reject("exception during staged TABLES inspection");
+    }
+}
+
+bool dx_iface::inspectDwgLayouts(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dwgLayoutsObjectsInspected = false;
+    if (m_dwgLayoutOutputSources.empty())
+        return true;
+    const auto reject = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "LAYOUT DWG OBJECTS output proof failed: " << stage
+                      << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr || view.version != DRW::AC1024
+        || !hasUnchangedDwgLayoutOutputSources()
+        || !m_dwgLayoutBlocksInspected)
+        return reject("source snapshot, TABLES proof, or output version");
+    try {
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u)
+                return true;
+            const DRW_WritingContext* context = dxfW->getWritingContext();
+            if (source == DRW::NoHandle || context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            emitted = dxfW->remapHandle(source);
+            bool bound = emitted != source;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto found = aliases->find(source);
+                if (found == aliases->end())
+                    continue;
+                if (bound && emitted != found->second)
+                    return false;
+                emitted = found->second;
+                bound = true;
+            }
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        const auto mapLayoutHandle = [&mapHandle](
+                const dwgHandle& source, const dwgHandle& actual,
+                dwgHandle& expected) {
+            std::uint32_t mapped = 0u;
+            if (!mapHandle(source.ref, mapped) || actual.ref != mapped)
+                return false;
+            expected = actual;
+            return true;
+        };
+        const auto blockRecordHandle = [this](const DRW_Block_Record& source) {
+            if (asciiIdentifierEquals(source.name, "*MODEL_SPACE"))
+                return DRW::DxfModelSpaceBlockRecordHandle;
+            if (asciiIdentifierEquals(source.name, "*PAPER_SPACE"))
+                return DRW::DxfPaperSpaceBlockRecordHandle;
+            return dxfW->getBlockRecordHandleToWrite(source.name);
+        };
+        std::uint32_t emittedNod = 0u, emittedLayoutDictionary = 0u;
+        if (!mapHandle(m_dwgLayoutOutputNodHandle, emittedNod)
+            || !mapHandle(m_dwgLayoutOutputDictionary.handle,
+                          emittedLayoutDictionary)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedNod, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedLayoutDictionary, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedLayoutDictionary, emittedNod)
+            || !hasUnchangedDwgLayoutOutputSources())
+            return reject("NOD/ACAD_LAYOUT dictionary emitted identity and owner");
+
+        const auto nodEntry = std::find_if(
+            cData->namedObjectDictionary.m_entries.begin(),
+            cData->namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYOUT";
+            });
+        if (nodEntry == cData->namedObjectDictionary.m_entries.end()
+            || nodEntry->m_name != m_dwgLayoutOutputNodEntry.m_name
+            || nodEntry->m_handle
+                != m_dwgLayoutOutputNodEntry.m_handle
+            || nodEntry->m_dxfHandleCode
+                != m_dwgLayoutOutputNodEntry.m_dxfHandleCode)
+            return reject("NOD ACAD_LAYOUT source root entry");
+
+        std::set<std::uint32_t> seenNod, seenRoot, seenLayouts;
+        std::set<std::uint32_t> seenExtensions;
+        std::set<std::uint32_t> seenThumbnails;
+        std::string_view selectedName;
+        const char* stagedFailure = "selected OBJECTS records";
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&](std::string_view name, std::uint32_t handle) {
+                selectedName = name;
+                if (handle == emittedNod || handle == emittedLayoutDictionary)
+                    return true;
+                for (const auto& row : m_dwgLayoutOutputSources) {
+                    std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
+                    std::uint32_t emittedThumbnail = 0u;
+                    if (!mapHandle(row.first, emittedLayout)
+                        || !mapHandle(row.second.extensionDictionary.handle,
+                                      emittedExtension)
+                        || !mapHandle(row.second.thumbnailHandle,
+                                      emittedThumbnail))
+                        return false;
+                    if (handle == emittedLayout || handle == emittedExtension
+                        || handle == emittedThumbnail)
+                        return true;
+                }
+                return false;
+            },
+            [&](const auto& shape, std::string_view body) {
+                if (shape.handle == emittedNod) {
+                    if (selectedName != "DICTIONARY"
+                        || !seenNod.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed NOD output";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            const auto entry = std::find_if(
+                                actual.m_entries.begin(), actual.m_entries.end(),
+                                [](const DRW_Dictionary::Entry& item) {
+                                    return item.m_name == "ACAD_LAYOUT";
+                                });
+                            const auto role =
+                                m_dwgLayoutOutputNodEntry.m_dxfHandleCode
+                                    == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                                ? (m_dwgLayoutOutputNodHardOwner
+                                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                                : m_dwgLayoutOutputNodEntry.m_dxfHandleCode;
+                            return actual.handle == emittedNod
+                                && entry != actual.m_entries.end()
+                                && entry->m_handle == emittedLayoutDictionary
+                                && entry->m_dxfHandleCode == role
+                                && std::count_if(actual.m_entries.begin(),
+                                    actual.m_entries.end(),
+                                    [](const DRW_Dictionary::Entry& item) {
+                                        return item.m_name == "ACAD_LAYOUT";
+                                    }) == 1;
+                        });
+                    if (!decoded)
+                        stagedFailure = "NOD ACAD_LAYOUT key and reference role";
+                    return decoded;
+                }
+                if (shape.handle == emittedLayoutDictionary) {
+                    if (selectedName != "DICTIONARY"
+                        || !seenRoot.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed ACAD_LAYOUT dictionary";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            std::vector<std::uint32_t> references;
+                            return dx_standard_output::equal(
+                                m_dwgLayoutOutputDictionary, actual,
+                                mapHandle, references);
+                        });
+                    if (!decoded)
+                        stagedFailure = "ACAD_LAYOUT dictionary fields, entries, or mapped roles";
+                    return decoded;
+                }
+                const DwgLayoutOutputSource* selected = nullptr;
+                bool extensionRecord = false;
+                bool thumbnailRecord = false;
+                for (const auto& row : m_dwgLayoutOutputSources) {
+                    std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
+                    std::uint32_t emittedThumbnail = 0u;
+                    if (!mapHandle(row.first, emittedLayout)
+                        || !mapHandle(row.second.extensionDictionary.handle,
+                                      emittedExtension)
+                        || !mapHandle(row.second.thumbnailHandle,
+                                      emittedThumbnail))
+                        return false;
+                    if (shape.handle == emittedLayout) {
+                        selected = &row.second;
+                        break;
+                    }
+                    if (shape.handle == emittedExtension) {
+                        selected = &row.second;
+                        extensionRecord = true;
+                        break;
+                    }
+                    if (shape.handle == emittedThumbnail) {
+                        selected = &row.second;
+                        thumbnailRecord = true;
+                        break;
+                    }
+                }
+                if (selected == nullptr) {
+                    stagedFailure = "unselected LAYOUT or extension record";
+                    return false;
+                }
+                if (extensionRecord) {
+                    if (selectedName != "DICTIONARY"
+                        || !seenExtensions.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed LAYOUT extension dictionary";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            std::vector<std::uint32_t> references;
+                            return dx_standard_output::equal(
+                                selected->extensionDictionary, actual,
+                                mapHandle, references);
+                        });
+                    if (!decoded)
+                        stagedFailure = "LAYOUT extension dictionary and thumbnail entry";
+                    return decoded;
+                }
+                if (thumbnailRecord) {
+                    if (selectedName != "XRECORD"
+                        || !seenThumbnails.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed LAYOUT thumbnail XRECORD";
+                        return false;
+                    }
+                    if (m_xrecordWriteSourceOwner != cData
+                        || !hasUnchangedXrecordWriteSources()) {
+                        stagedFailure = "thumbnail XRECORD immutable source snapshot";
+                        return false;
+                    }
+                    const DRW_XRecord* frozenThumbnail = nullptr;
+                    for (const DRW_XRecord& source : m_xrecordWriteSources) {
+                        if (source.handle != selected->thumbnailHandle)
+                            continue;
+                        if (frozenThumbnail != nullptr) {
+                            stagedFailure = "duplicate thumbnail XRECORD source snapshot";
+                            return false;
+                        }
+                        frozenThumbnail = &source;
+                    }
+                    if (frozenThumbnail == nullptr) {
+                        stagedFailure = "missing thumbnail XRECORD source snapshot";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_XRecord>(
+                        body, [&](const DRW_XRecord& actual) {
+                            std::vector<std::uint32_t> references;
+                            return dx_standard_output::equal(
+                                *frozenThumbnail, actual, mapHandle,
+                                references);
+                        });
+                    if (!decoded)
+                        stagedFailure = "LAYOUT thumbnail XRECORD body";
+                    return decoded;
+                }
+                if (selectedName != "LAYOUT"
+                    || !seenLayouts.insert(shape.handle).second) {
+                    stagedFailure = "duplicate or misnamed LAYOUT record";
+                    return false;
+                }
+                std::uint32_t emittedLayout = 0u, emittedParent = 0u;
+                std::uint32_t emittedBlockRecord = 0u, emittedExtension = 0u;
+                if (!mapHandle(selected->model.handle, emittedLayout)
+                    || !mapHandle(static_cast<std::uint32_t>(
+                        selected->model.parentHandle), emittedParent)
+                    || !mapHandle(selected->extensionDictionary.handle,
+                                  emittedExtension)
+                    || (emittedBlockRecord =
+                        blockRecordHandle(selected->blockRecord)) == 0u
+                    || emittedBlockRecord == DRW::NoHandle
+                    || emittedLayout != shape.handle
+                    || !dxfW->dxfWriteRecordHasIdentity(
+                        emittedExtension, "DICTIONARY", "OBJECTS")
+                    || !dxfW->dxfWriteRecordHasOwner(
+                        emittedExtension, emittedLayout)) {
+                    stagedFailure = "LAYOUT identity, BLOCK_RECORD backlink, or extension owner role";
+                    return false;
+                }
+                for (const std::uint32_t handle : selected->model.viewportHandles) {
+                    std::uint32_t emittedViewport = 0u;
+                    if (!mapHandle(handle, emittedViewport)
+                        || (!dxfW->dxfWriteRecordHasIdentity(
+                                emittedViewport, "VIEWPORT", "BLOCKS")
+                            && !dxfW->dxfWriteRecordHasIdentity(
+                                emittedViewport, "VIEWPORT", "ENTITIES"))
+                        || !dxfW->dxfWriteRecordHasOwner(
+                            emittedViewport, emittedBlockRecord)) {
+                        stagedFailure = "LAYOUT viewport-list member role";
+                        return false;
+                    }
+                }
+                std::uint32_t emittedLastActive = 0u;
+                if (!mapHandle(
+                        selected->model.lastActiveViewportHandle.ref,
+                        emittedLastActive))
+                    return false;
+                if (emittedLastActive != 0u) {
+                    const bool modelLastActive =
+                        selected->model.name == "Model";
+                    const bool lastActivePresent = modelLastActive
+                        ? dxfW->dxfWriteRecordHasIdentity(
+                            emittedLastActive, "VPORT", "TABLES")
+                        : dxfW->dxfWriteRecordHasIdentity(
+                            emittedLastActive, "VIEWPORT", "BLOCKS")
+                          || dxfW->dxfWriteRecordHasIdentity(
+                            emittedLastActive, "VIEWPORT", "ENTITIES");
+                    if (!lastActivePresent) {
+                        stagedFailure = "LAYOUT last-active VPORT/VIEWPORT role";
+                        return false;
+                    }
+                }
+                dx_standard_output::Decoder decoder(view);
+                const bool decoded = decoder.decodeRecord<DRW_Layout>(
+                    body, [&](const DRW_Layout& actual) {
+                        DRW_Layout expected = selected->model;
+                        expected.handle = actual.handle;
+                        expected.parentHandle = emittedParent;
+                        std::uint32_t emittedXDictionary = 0u;
+                        if (!mapHandle(selected->model.xDictHandle,
+                                       emittedXDictionary))
+                            return false;
+                        expected.xDictHandle = emittedXDictionary;
+                        std::vector<std::uint32_t> reactors;
+                        for (const std::uint32_t reactor :
+                             selected->model.reactorHandles) {
+                            std::uint32_t emitted = 0u;
+                            if (!mapHandle(reactor, emitted))
+                                return false;
+                            reactors.push_back(emitted);
+                        }
+                        expected.reactorHandles = std::move(reactors);
+                        expected.paperSpaceBlockRecordHandle =
+                            actual.paperSpaceBlockRecordHandle;
+                        if (actual.handle != emittedLayout
+                            || actual.parentHandle != emittedParent
+                            || actual.xDictHandle != emittedExtension
+                            || actual.paperSpaceBlockRecordHandle.ref
+                                != emittedBlockRecord)
+                            return false;
+                        if (!mapLayoutHandle(
+                                selected->model.lastActiveViewportHandle,
+                                actual.lastActiveViewportHandle,
+                                expected.lastActiveViewportHandle)
+                            || !mapLayoutHandle(
+                                selected->model.plotViewHandle,
+                                actual.plotViewHandle,
+                                expected.plotViewHandle)
+                            || !mapLayoutHandle(
+                                selected->model.shadePlotHandle,
+                                actual.shadePlotHandle,
+                                expected.shadePlotHandle)
+                            || !mapLayoutHandle(
+                                selected->model.baseUcsHandle,
+                                actual.baseUcsHandle,
+                                expected.baseUcsHandle)
+                            || !mapLayoutHandle(
+                                selected->model.namedUcsHandle,
+                                actual.namedUcsHandle,
+                                expected.namedUcsHandle))
+                            return false;
+                        // DXF LAYOUT has no physical viewport-count/list
+                        // fields. The same source list is proven above by
+                        // unique emitted VIEWPORT identities and owners.
+                        expected.viewportCount = actual.viewportCount;
+                        expected.viewportHandles = actual.viewportHandles;
+                        unsigned reactorGroups = 0u;
+                        unsigned dictionaryGroups = 0u;
+                        bool reservedGroupsMatch = true;
+                        for (const auto& group : actual.appData) {
+                            const std::string_view name =
+                                dx_standard_output::appName(group);
+                            if (name == "ACAD_REACTORS") {
+                                ++reactorGroups;
+                                reservedGroupsMatch = reservedGroupsMatch
+                                    && dx_standard_output::reservedGroupExact(
+                                        group, actual, true);
+                            } else if (name == "ACAD_XDICTIONARY") {
+                                ++dictionaryGroups;
+                                reservedGroupsMatch = reservedGroupsMatch
+                                    && dx_standard_output::reservedGroupExact(
+                                        group, actual, false);
+                            } else {
+                                reservedGroupsMatch = false;
+                            }
+                        }
+                        bool extendedDataMatches =
+                            expected.extData.size() == actual.extData.size();
+                        for (std::size_t index = 0u;
+                             extendedDataMatches
+                                 && index < expected.extData.size(); ++index) {
+                            const auto* source = expected.extData[index];
+                            const auto* output = actual.extData[index];
+                            extendedDataMatches = (source == nullptr)
+                                    == (output == nullptr)
+                                && (source == nullptr
+                                    || standardDwgVariantEqual(
+                                        *source, *output, DRW::AC1024));
+                        }
+                        const bool common = actual.tType == expected.tType
+                            && actual.handle == expected.handle
+                            && actual.parentHandle == expected.parentHandle
+                            && actual.name == expected.name
+                            && actual.flags == expected.flags
+                            && actual.xDictHandle == expected.xDictHandle
+                            && actual.reactorHandles == expected.reactorHandles
+                            && actual.extensionDictionaryFlag()
+                                == expected.extensionDictionaryFlag()
+                            && !actual.hasDataStorageBinaryData()
+                            && !actual.hasDwgCommonLinkTail()
+                            && actual.pendingAppIdResolutions.empty()
+                            && actual.pendingLayerRefResolutions.empty()
+                            && reactorGroups
+                                == (expected.reactorHandles.empty() ? 0u : 1u)
+                            && dictionaryGroups
+                                == (expected.xDictHandle == 0u ? 0u : 1u)
+                            && reservedGroupsMatch && extendedDataMatches;
+                        const bool fields = dxfLayout::Decoder::sameModel(
+                            expected, actual,
+                            [](const DRW_TableEntry&,
+                               const DRW_TableEntry&) { return true; });
+                        if (debug && (!common || !fields)) {
+                            std::cerr << "LAYOUT body detail: common="
+                                      << common << " fields=" << fields
+                                      << " source="
+                                      << selected->model.handle
+                                      << " output=" << actual.handle
+                                      << " app/eed=" << actual.appData.size()
+                                      << '/' << actual.extData.size()
+                                      << " refs="
+                                      << actual.paperSpaceBlockRecordHandle.ref
+                                      << '/' << emittedBlockRecord
+                                      << " core(type/handle/parent/name/flags/xdict/reactors/count/xflag/data/tail/pending/app/eed)="
+                                      << (actual.tType == expected.tType) << '/'
+                                      << (actual.handle == expected.handle) << '/'
+                                      << (actual.parentHandle == expected.parentHandle) << '/'
+                                      << (actual.name == expected.name) << '/'
+                                      << (actual.flags == expected.flags) << '/'
+                                      << (actual.xDictHandle == expected.xDictHandle) << '/'
+                                      << (actual.reactorHandles == expected.reactorHandles) << '/'
+                                      << (actual.reactorCount()
+                                          == expected.reactorCount()) << '/'
+                                      << (actual.extensionDictionaryFlag() == expected.extensionDictionaryFlag()) << '/'
+                                      << !actual.hasDataStorageBinaryData() << '/'
+                                      << !actual.hasDwgCommonLinkTail() << '/'
+                                      << (actual.pendingAppIdResolutions.empty() && actual.pendingLayerRefResolutions.empty()) << '/'
+                                      << reactorGroups << ':' << dictionaryGroups << ':' << reservedGroupsMatch << '/'
+                                      << extendedDataMatches << '\n';
+                        }
+                        return common && fields;
+                    });
+                if (!decoded)
+                    stagedFailure = "LAYOUT complete PlotSettings/Layout fields or mapped references";
+                return decoded;
+            });
+        if (!inspected || seenNod.size() != 1u || seenRoot.size() != 1u
+            || seenLayouts.size() != m_dwgLayoutOutputSources.size()
+            || seenExtensions.size() != m_dwgLayoutOutputSources.size()
+            || seenThumbnails.size() != m_dwgLayoutOutputSources.size())
+            return reject(stagedFailure);
+        for (const auto& row : m_dwgLayoutOutputSources) {
+            std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
+            std::uint32_t emittedThumbnail = 0u;
+            if (!mapHandle(row.first, emittedLayout)
+                || !mapHandle(row.second.extensionDictionary.handle,
+                              emittedExtension)
+                || !mapHandle(row.second.thumbnailHandle,
+                              emittedThumbnail)
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedThumbnail, "XRECORD", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emittedThumbnail, emittedExtension)
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emittedExtension, emittedLayout))
+                return reject("LAYOUT thumbnail XRECORD output identity/owner closure");
+        }
+        if (!hasUnchangedDwgLayoutOutputSources())
+            return reject("source changed during staged OBJECTS inspection");
+        m_dwgLayoutsObjectsInspected = true;
+        return true;
+    } catch (...) {
+        m_dwgLayoutsObjectsInspected = false;
+        return reject("exception during staged OBJECTS inspection");
     }
 }
 
@@ -50871,8 +51886,12 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDwgMLeaderStyleOutputSources()
         || !hasUnchangedDwgMLineStyleOutputSources()
+        || !hasUnchangedDwgLayoutOutputSources()
         || (!m_dwgMLineStyleOutputSources.empty()
             && !m_dwgMLineStylesInspected)
+        || (!m_dwgLayoutOutputSources.empty()
+            && (!m_dwgLayoutsObjectsInspected
+                || !m_dwgLayoutBlocksInspected))
         || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
@@ -51283,6 +52302,13 @@ bool dx_iface::finalizeDxfWrite() {
         }
         if (m_dwgMLineStylesInspected) {
             for (const auto& proof : m_dwgMLineStyleOutputSources) {
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
+        }
+        if (m_dwgLayoutsObjectsInspected
+            && m_dwgLayoutBlocksInspected) {
+            for (const auto& proof : m_dwgLayoutOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
             }
@@ -52433,6 +53459,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgMLineStyleOutputOwner=nullptr;
     m_dwgMLineStyleOutputGeneration=0u;
     m_dwgMLineStylesInspected=false;
+    m_dwgLayoutOutputSources.clear();
+    m_dwgLayoutOutputDictionary = DRW_Dictionary{};
+    m_dwgLayoutOutputNodHandle = 0u;
+    m_dwgLayoutOutputNodHardOwner = 0;
+    m_dwgLayoutOutputNodEntry = {};
+    m_dwgLayoutOutputOwner = nullptr;
+    m_dwgLayoutOutputGeneration = 0u;
+    m_dwgLayoutsObjectsInspected = false;
+    m_dwgLayoutBlocksInspected = false;
     m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
@@ -53682,6 +54717,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDwgMLineStyles(v)) {
         reportPreflightFailure("MLINESTYLE DWG source/output snapshot");
+        return false;
+    }
+    if (!prepareDwgLayouts(v, debug || requireResolvedOwners)) {
+        reportPreflightFailure("LAYOUT DWG source/output snapshot");
         return false;
     }
     if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
@@ -55836,6 +56875,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     dxfW->setDxfWriteRecordInventoryEnabled(
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
+        || !m_dwgLayoutOutputSources.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
         || !m_dxfMLineLinetypes.empty()
@@ -55857,12 +56897,19 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
         });
-    if ((needsStandardNames || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames](const auto& view) {
+    const bool needsDwgLayoutsOutput =
+        !m_dwgLayoutOutputSources.empty();
+    if ((needsStandardNames || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
+            || needsDwgLayoutsOutput) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsDwgLayoutsOutput, debug, requireResolvedOwners](const auto& view) {
             if (!inspectDxfLayerMaterials(view)) {
                 return false;
             }
             if (!inspectDxfMLineLinetypes(view)) return false;
-            return !needsStandardNames || inspectStandardDwgTablesOutput(view);
+            if (needsStandardNames && !inspectStandardDwgTablesOutput(view))
+                return false;
+            return !needsDwgLayoutsOutput
+                || inspectDwgLayoutBlockRecords(
+                    view, debug || requireResolvedOwners);
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }
@@ -55888,6 +56935,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || needsDwgMLeaderStyleOutput
             || needsDwgMLineStyleOutput
+            || needsDwgLayoutsOutput
             || needsVisualStyleOutput
             || needsDwgAssociativeVariableOutput
             || needsDwgAssociativeDimensionDependencyOutput
@@ -55898,7 +56946,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dwgSortEntsOutputSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, debug, requireResolvedOwners](const auto& view) {
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -55955,6 +57003,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && !inspectDwgMLineStyles(
                     view, debug || requireResolvedOwners))
                 return reject("MLINESTYLE DWG physical source/output binding");
+            if (needsDwgLayoutsOutput
+                && !inspectDwgLayouts(
+                    view, debug || requireResolvedOwners))
+                return reject("LAYOUT DWG physical source/output binding");
             if (needsVisualStyleOutput
                 && !inspectDxfVisualStyles(view, debug))
                 return reject("VISUALSTYLE physical source identity/field binding");

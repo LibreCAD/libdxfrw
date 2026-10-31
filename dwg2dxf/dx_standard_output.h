@@ -19,6 +19,7 @@
 #include <vector>
 #include "libdxfrw.h"
 #include "intern/dxfreader.h"
+#include "intern/dxfblockrecord.h"
 
 namespace dx_standard_output {
 
@@ -401,7 +402,7 @@ public:
                      DRW::DxfTextEncoding encoding=DRW::DxfTextEncoding::Declared,
                      DRW::DxfCodePagePolicy policy=DRW::DxfCodePagePolicy::Compatible,
                      bool visualStyleColors=false)
-        : input(&buffer), budget(std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes)),
+        : version(profile.version), input(&buffer), budget(std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes)),
           reader(readerFor(input, profile, budget)) {
         if(reader) {
             reader->setMaterialUnsignedColorValues(materialColors);
@@ -423,6 +424,24 @@ public:
         }
         if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded() || !record.complete()) return false;
         return visit(static_cast<const Record&>(record));
+    }
+    template <class Visitor> bool decodeBlockRecord(
+            std::string_view bytes, Visitor&& visit) {
+        if (!reader) return false;
+        buffer.reset(bytes);
+        input.clear();
+        DRW_Block_Record record;
+        dxfBlockRecord::Decoder decoder(record, reader);
+        int code = 0;
+        while (buffer.position() < bytes.size()) {
+            if (!reader->readRec(&code) || code == 0
+                || !decoder.parseCode(code, reader))
+                return false;
+        }
+        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()
+            || !decoder.finish(version))
+            return false;
+        return visit(static_cast<const DRW_Block_Record&>(record));
     }
     template <class Visitor> bool decodeAssociativeRecord(
             std::string_view recordName, std::string_view bytes,
@@ -474,6 +493,7 @@ public:
         return visit(static_cast<const DRW_AssociativeObject&>(record));
     }
 private:
+    DRW::Version version;
     InputBuffer buffer;
     std::istream input;
     std::shared_ptr<DxfReadRetainedBudget> budget;

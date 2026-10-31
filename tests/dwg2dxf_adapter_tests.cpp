@@ -30620,16 +30620,32 @@ bool physicalLayoutOutputReadback(
             return fail("physical Layout1 could not be selected for atomic refusal");
         const dwgHandle originalBlockRecord =
             mutableLayout->paperSpaceBlockRecordHandle;
+        std::array<bool, 2> qualifiedBeforeFailure{};
+        for (std::size_t index = 0; index < expected.size(); ++index)
+            qualifiedBeforeFailure[index] =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expected[index].first);
         mutableLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
         const bool invalidOwnerRejected = !exportPartial();
         std::ifstream refusedOutput(outputPath, std::ios::binary);
         const std::string refusedContents{
             std::istreambuf_iterator<char>{refusedOutput}, {}};
         mutableLayout->paperSpaceBlockRecordHandle = originalBlockRecord;
-        if (!invalidOwnerRejected || refusedContents != sentinel)
+        bool qualificationsUnchanged = true;
+        for (std::size_t index = 0; index < expected.size(); ++index)
+            qualificationsUnchanged = qualificationsUnchanged
+                && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expected[index].first)
+                    == qualifiedBeforeFailure[index];
+        if (!invalidOwnerRejected || refusedContents != sentinel
+            || !qualificationsUnchanged)
             return fail("invalid physical LAYOUT block-record target was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical LAYOUT graph could not retry on the same adapter");
+        for (const auto& identity : expected)
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, identity.first))
+                return fail("physical LAYOUT source identity was not committed with the successful export");
 
         dx_iface outputReader;
         dx_data output;
