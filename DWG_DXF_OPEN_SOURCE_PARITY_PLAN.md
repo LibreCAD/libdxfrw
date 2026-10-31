@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure | Qualify the remaining 21/228 identities in the AC1024 witness: 6 generic callbacks (1 named record, 2 unnamed entity callbacks and 3 unnamed object callbacks) plus 15 standard-object callbacks. Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export closure | Qualify the remaining 20/228 identities in the AC1024 witness: 5 generic callbacks (2 unnamed entity callbacks and 3 unnamed object callbacks) plus 15 standard-object callbacks. Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,23 +56,18 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — connect the existing output proof routes to strict identity qualification.**
-On the current AC1024 witness, 207/228 opaque callback identities now have
-transactional output qualification; strict export still refuses before
-publication, with 21 unresolved. The completed 54 `ACDBASSOCGEOMDEPENDENCY`,
-30 `ACDBASSOCVALUEDEPENDENCY`, 19 `VISUALSTYLE`, 17 `SCALE` and 8
-`DICTIONARYVAR`, 2 `MLEADERSTYLE`, 3 `MATERIAL`, 1 `TABLESTYLE` and the
-`ACDBDICTIONARYWDFLT`/type-80 `ACDBPLACEHOLDER` pair were removed from this
-queue after their typed output/readback proofs were connected to source
-identities. Next, connect the remaining named profile: 1 `SORTENTSTABLE`.
-Close only identities whose complete source/role/output proof passes inside the
-same transaction. The remaining five callback rows without a named profile are
-2 entity callbacks of type 34 and 3 object callbacks of type 73 (1) and type 82
-(2);
-also resolve 15 standard-object callbacks (13 type 42 and 2 type 79). Keep
-unresolved identities refused and add no investigation DWG/DXF fixture. See
-[`p4-ac1024-dictionary-default-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-default-output-qualification-2026-10-31.json)
-for the current count and its exact source binding.
+**P4 next action — close the remaining callback identities.** On the current
+AC1024 witness, 208/228 opaque callback identities have transactional output
+qualification; strict export still refuses before publication, with 20
+unresolved. No named-profile callback remains in this witness. The remaining
+five generic callbacks are 2 unnamed entity callbacks of type 34 and 3 unnamed
+object callbacks (type 73 once and type 82 twice); the remaining standard
+callbacks are 13 type 42 and 2 type 79. Trace their source roles, complete
+output records and dependencies, and qualify only identities whose full proof
+passes in the same transaction. Keep the unresolved set refused and add no
+investigation DWG/DXF fixtures. See
+[`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json)
+for the current count and source/output binding evidence.
 
 ## P4 — original bodies and complete document closure
 

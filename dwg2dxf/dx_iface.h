@@ -2999,6 +2999,24 @@ private:
     std::vector<std::uint32_t> m_sortDictionaryHandles;
     std::vector<std::uint32_t> m_sortOwnerHandles;
     std::vector<DRW_SortEntsTable> m_sortEmissionTables;
+    struct DwgSortEntsOutputSource {
+        DRW_SortEntsTable table;
+        DRW_SortEntsTable emission;
+        DRW_DwgSortEntsMembership membership;
+        DRW_Dictionary ownerDictionary;
+        DRW_Block_Record ownerBlock;
+        int objectType{0};
+        std::string recordName;
+        std::string className;
+    };
+    std::map<std::uint32_t, DwgSortEntsOutputSource>
+        m_dwgSortEntsOutputSources;
+    const dx_data* m_dwgSortEntsOutputSourceOwner{nullptr};
+    std::uint64_t m_dwgSortEntsOutputGeneration{0u};
+    bool m_dwgSortEntsOutputInspected{false};
+    bool hasUnchangedDwgSortEntsOutputSources() const noexcept;
+    bool inspectDwgSortEntsOutput(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     std::unordered_map<std::uint32_t, DRW_Table*> m_tableFallbacks;
     std::unordered_set<std::uint32_t> m_emittedTableHandles;
     std::vector<std::uint32_t> m_tableStylesToEmit;

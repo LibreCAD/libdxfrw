@@ -327,6 +327,13 @@ public:
     bool complete() const noexcept { return true; }
 };
 
+template <> class Probe<DRW_SortEntsTable> final
+    : public DRW_SortEntsTable {
+public:
+    using DRW_SortEntsTable::parseCode;
+    bool complete() { return finalizeDxf(); }
+};
+
 template <> class Probe<DRW_MLineStyle> final : public DRW_MLineStyle {
 public:
     Probe() { resetDxf(); }
