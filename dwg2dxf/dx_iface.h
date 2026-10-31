@@ -1212,6 +1212,7 @@ public:
             || !hasUnchangedExtensionDictionaryOwnerSources()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
+            || !hasUnchangedDwgDictionaryVars()
             || !hasUnchangedDwgScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
@@ -1487,9 +1488,13 @@ public:
                 return;
             }
             if (cData->sourceFormat == dx_source_format::DWG) {
+                const auto frozen =
+                    m_dwgDictionaryVarOutputSources.find(handle);
                 if (rawMatches != 0u || typedMatches != 1u
                     || typedVar == nullptr
-                    || !dxfW->writeDictionaryVar(typedVar))
+                    || frozen == m_dwgDictionaryVarOutputSources.end()
+                    || !hasUnchangedDwgDictionaryVars()
+                    || !dxfW->writeDictionaryVar(&frozen->second.model))
                     return;
             } else if (m_dxfDictionaryVars.count(handle) != 0u) {
                 if (!hasUnchangedDxfDictionaryVars()) return;
@@ -2473,6 +2478,24 @@ private:
     struct DwgScaleOutputSource {
         DRW_Scale model;
     };
+    struct DwgDictionaryVarOutputSource {
+        DRW_DictionaryVar model;
+    };
+    std::map<std::uint32_t,DwgDictionaryVarOutputSource>
+        m_dwgDictionaryVarOutputSources;
+    std::map<std::uint32_t,DRW_Dictionary> m_dwgDictionaryVarOutputDictionaries;
+    const dx_data* m_dwgDictionaryVarOutputOwner{nullptr};
+    std::uint64_t m_dwgDictionaryVarOutputGeneration{0u};
+    DRW::Version m_dwgDictionaryVarOutputVersion{DRW::UNKNOWNV};
+    DRW::Version m_dwgDictionaryVarTargetVersion{DRW::UNKNOWNV};
+    bool m_dwgDictionaryVarOutputBinary{false};
+    bool m_dwgDictionaryVarsInspected{false};
+    std::size_t m_dwgDictionaryVarOutputBytes{0u};
+    bool prepareDwgDictionaryVars(DRW::Version version, bool binary,
+                                  bool debug) noexcept;
+    bool hasUnchangedDwgDictionaryVars() const noexcept;
+    bool inspectDwgDictionaryVars(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     std::unordered_map<std::uint32_t,DxfScaleSource> m_dxfScales;
     std::map<std::uint32_t,DwgScaleOutputSource> m_dwgScaleOutputSources;
     std::map<std::uint32_t,DRW_Dictionary> m_dwgScaleOutputDictionaries;

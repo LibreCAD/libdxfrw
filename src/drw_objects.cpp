@@ -9861,6 +9861,9 @@ bool DRW_DictionaryVar::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
     }
     m_schema = parsedSchema;
     m_value = std::move(parsedValue);
+    // R2007+ keeps the common owner/reactor/extension-dictionary tail
+    // independently bounded. Legacy inline tails remain unqualified.
+    setDwgCommonLinkTailValidated(version > DRW::AC1018);
     DRW_DBG("dictionary var schema: "); DRW_DBG(m_schema);
     DRW_DBG(" value: "); DRW_DBG(m_value); DRW_DBG("\n");
     return true;

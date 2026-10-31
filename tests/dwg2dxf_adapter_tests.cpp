@@ -28887,6 +28887,435 @@ bool physicalXRecordOutputReadback(
     return outputEncoding(false) && outputEncoding(true);
 }
 
+bool physicalDictionaryVarOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.dictionaryVars.size() != 8u)
+        return fail("physical DICTIONARYVAR source is not the eight-record AC1024 profile");
+
+    using VarsByHandle = std::map<std::uint32_t, const DRW_DictionaryVar*>;
+    using DictionariesByHandle =
+        std::map<std::uint32_t, const DRW_Dictionary*>;
+    const auto indexVars = [](const dx_data& data, VarsByHandle& indexed) {
+        for (const DRW_DictionaryVar& value : data.dictionaryVars)
+            if (value.handle == 0u || value.handle == DRW::NoHandle
+                || !indexed.emplace(value.handle, &value).second)
+                return false;
+        return true;
+    };
+    const auto indexDictionaries = [](const dx_data& data,
+                                      DictionariesByHandle& indexed) {
+        if (data.hasNamedObjectDictionary
+            && (data.namedObjectDictionary.handle == 0u
+                || data.namedObjectDictionary.handle == DRW::NoHandle
+                || !indexed.emplace(data.namedObjectDictionary.handle,
+                    &data.namedObjectDictionary).second))
+            return false;
+        for (const DRW_Dictionary& dictionary : data.dictionaries)
+            if (dictionary.handle == 0u || dictionary.handle == DRW::NoHandle
+                || !indexed.emplace(dictionary.handle, &dictionary).second)
+                return false;
+        return true;
+    };
+    VarsByHandle sourceByHandle;
+    DictionariesByHandle sourceDictionaries;
+    if (!indexVars(source, sourceByHandle)
+        || !indexDictionaries(source, sourceDictionaries))
+        return fail("physical DICTIONARYVAR or dictionary handles are ambiguous");
+
+    const auto rootCount = static_cast<std::size_t>(std::count_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "AcDbVariableDictionary";
+        }));
+    const auto rootEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "AcDbVariableDictionary";
+        });
+    if (rootCount != 1u
+        || rootEntry == source.namedObjectDictionary.m_entries.end())
+        return fail("physical DICTIONARYVAR NOD owner route is missing or ambiguous");
+    const auto sourceOwnerFound = sourceDictionaries.find(rootEntry->m_handle);
+    if (sourceOwnerFound == sourceDictionaries.end()
+        || sourceOwnerFound->second == &source.namedObjectDictionary
+        || !sourceOwnerFound->second->hasCompleteDwgEntries()
+        || sourceOwnerFound->second->parentHandle
+            != source.namedObjectDictionary.handle
+        || sourceOwnerFound->second->m_entries.size() != sourceByHandle.size())
+        return fail("physical AcDbVariableDictionary owner body is incomplete");
+    const DRW_Dictionary& sourceOwner = *sourceOwnerFound->second;
+
+    struct VariableOwner {
+        const DRW_DictionaryVar* value{nullptr};
+        std::string key;
+    };
+    std::map<std::uint32_t, VariableOwner> sourceOwners;
+    std::set<std::string> sourceKeys;
+    for (const DRW_DictionaryVar& value : source.dictionaryVars) {
+        if (value.parentHandle != sourceOwner.handle
+            || !value.hasDwgCommonLinkTail()
+            || value.reactorCount()
+                != static_cast<std::int32_t>(value.reactorHandles.size())
+            || !value.extData.empty() || !value.appData.empty())
+            return fail("physical DICTIONARYVAR has an incomplete owner/common profile or unexpected EED: handle="
+                + std::to_string(value.handle) + " parent="
+                + std::to_string(value.parentHandle) + "/"
+                + std::to_string(sourceOwner.handle) + " common="
+                + std::to_string(value.hasDwgCommonLinkTail()) + " reactors="
+                + std::to_string(value.reactorCount()) + "/"
+                + std::to_string(value.reactorHandles.size()) + " ext="
+                + std::to_string(value.extData.size()) + " app="
+                + std::to_string(value.appData.size()));
+        const auto entry = std::find_if(
+            sourceOwner.m_entries.begin(), sourceOwner.m_entries.end(),
+            [&value](const DRW_Dictionary::Entry& candidate) {
+                return candidate.m_handle == value.handle;
+            });
+        const auto targetCount = static_cast<std::size_t>(std::count_if(
+            sourceOwner.m_entries.begin(), sourceOwner.m_entries.end(),
+            [&value](const DRW_Dictionary::Entry& candidate) {
+                return candidate.m_handle == value.handle;
+            }));
+        if (entry == sourceOwner.m_entries.end() || targetCount != 1u
+            || entry->m_name.empty() || !sourceKeys.insert(entry->m_name).second
+            || !sourceOwners.emplace(value.handle,
+                VariableOwner{&value, entry->m_name}).second)
+            return fail("physical DICTIONARYVAR lacks one unique owner key");
+        for (const auto& dictionary : sourceDictionaries)
+            if (dictionary.first != sourceOwner.handle
+                && std::any_of(dictionary.second->m_entries.begin(),
+                    dictionary.second->m_entries.end(), [&value](
+                        const DRW_Dictionary::Entry& candidate) {
+                        return candidate.m_handle == value.handle;
+                    }))
+                return fail("physical DICTIONARYVAR is aliased from another dictionary");
+    }
+    if (sourceOwners.size() != 8u || sourceKeys.size() != 8u)
+        return fail("physical DICTIONARYVAR owner/key census differs from eight records");
+
+    const auto outputEncoding = [&](bool binary) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-physical-dictionaryvars-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "physical DICTIONARYVAR destination sentinel\n";
+        const auto destinationEquals = [&outputPath](
+                const std::string& expected) {
+            std::ifstream input(outputPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == expected;
+        };
+        const auto seedDestination = [&]() {
+            std::ofstream existing(outputPath,
+                std::ios::binary | std::ios::trunc);
+            return existing && static_cast<bool>(existing << sentinel);
+        };
+        if (!seedDestination())
+            return fail("could not seed physical DICTIONARYVAR destination sentinel");
+
+        class LateDictionaryVarMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            std::uint32_t targetHandle{0u};
+            std::map<std::uint32_t, std::uint32_t> objectBindings;
+            std::map<std::uint32_t, std::uint32_t> tableBindings;
+            std::map<std::uint32_t, std::uint32_t> entityBindings;
+            std::map<std::uint32_t, std::uint32_t> remappedHandles;
+            std::set<std::uint32_t> ambiguousHandles;
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (dxfW != nullptr) {
+                    const DRW_WritingContext* context =
+                        dxfW->getWritingContext();
+                    if (context != nullptr) {
+                        objectBindings =
+                            context->sourceHandleToWrittenObjectMap;
+                        tableBindings =
+                            context->sourceHandleToWrittenTableMap;
+                        entityBindings =
+                            context->sourceHandleToMintedMap;
+                        ambiguousHandles = context->ambiguousSourceHandles;
+                    }
+                    if (cData != nullptr) {
+                        const auto capture = [this](std::uint32_t handle) {
+                            const std::uint32_t mapped =
+                                dxfW->remapHandle(handle);
+                            if (handle != 0u && mapped != 0u
+                                && mapped != DRW::NoHandle)
+                                remappedHandles[handle] = mapped;
+                        };
+                        capture(cData->namedObjectDictionary.handle);
+                        for (const DRW_Dictionary& dictionary :
+                             cData->dictionaries)
+                            capture(dictionary.handle);
+                        for (const DRW_DictionaryVar& value :
+                             cData->dictionaryVars)
+                            capture(value.handle);
+                    }
+                }
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_DictionaryVar& value : cData->dictionaryVars) {
+                    if (value.handle != targetHandle)
+                        continue;
+                    value.m_value += " late mutation";
+                    return;
+                }
+            }
+        } writer;
+        const DRW_DictionaryVar& first = *sourceOwners.begin()->second.value;
+        const UTF8STRING originalValue = first.m_value;
+        writer.targetHandle = first.handle;
+        writer.mutateAfterObjects = true;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late physical DICTIONARYVAR mutation did not refuse atomically");
+        const auto mutableFirst = std::find_if(
+            source.dictionaryVars.begin(), source.dictionaryVars.end(),
+            [&first](const DRW_DictionaryVar& value) {
+                return value.handle == first.handle;
+            });
+        if (mutableFirst == source.dictionaryVars.end())
+            return fail("physical DICTIONARYVAR mutation target disappeared");
+        mutableFirst->m_value = originalValue;
+        writer.mutateAfterObjects = false;
+
+        const auto mutableOwner = std::find_if(
+            source.dictionaries.begin(), source.dictionaries.end(),
+            [&sourceOwner](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == sourceOwner.handle;
+            });
+        if (mutableOwner == source.dictionaries.end())
+            return fail("physical DICTIONARYVAR owner dictionary disappeared");
+        const auto rejectedGraph = [&](const char* reason) {
+            if (!seedDestination())
+                return fail("could not reseed physical DICTIONARYVAR sentinel");
+            if (writer.fileExport(
+                    outputPath.string(), DRW::AC1024, binary, &source,
+                    false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                    DRW::DxfTextWritePolicy::RequireLossless,
+                    dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                    dx_dwgReadCompletenessPolicy::AllowPartial)
+                || !destinationEquals(sentinel))
+                return fail(std::string("physical DICTIONARYVAR ") + reason
+                    + " was accepted or replaced the destination");
+            return true;
+        };
+
+        const auto firstEntry = std::find_if(
+            mutableOwner->m_entries.begin(), mutableOwner->m_entries.end(),
+            [&first](const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == first.handle;
+            });
+        if (firstEntry == mutableOwner->m_entries.end())
+            return fail("physical DICTIONARYVAR owner key disappeared");
+        const std::size_t firstEntryIndex = static_cast<std::size_t>(
+            firstEntry - mutableOwner->m_entries.begin());
+        const DRW_Dictionary::Entry originalEntry = *firstEntry;
+        auto secondOwnerEntry = std::find_if(
+            mutableOwner->m_entries.begin(), mutableOwner->m_entries.end(),
+            [&first](const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle != first.handle;
+            });
+        if (secondOwnerEntry == mutableOwner->m_entries.end())
+            return fail("physical DICTIONARYVAR alias target is missing");
+        const std::uint32_t secondHandle = secondOwnerEntry->m_handle;
+        firstEntry->m_handle = secondHandle;
+        if (!rejectedGraph("owner-key alias"))
+            return false;
+        firstEntry->m_handle = originalEntry.m_handle;
+
+        mutableOwner->m_entries.erase(mutableOwner->m_entries.begin()
+                                      + static_cast<std::ptrdiff_t>(firstEntryIndex));
+        if (!rejectedGraph("missing owner key"))
+            return false;
+        mutableOwner->m_entries.insert(mutableOwner->m_entries.begin()
+                + static_cast<std::ptrdiff_t>(firstEntryIndex), originalEntry);
+
+        if (!exportPartial())
+            return fail("corrected physical DICTIONARYVAR set could not retry on the same adapter");
+
+        const auto mapHandle = [&writer](std::uint32_t sourceHandle,
+                                         std::uint32_t& outputHandle) {
+            outputHandle = 0u;
+            if (sourceHandle == 0u) {
+                outputHandle = 0u;
+                return true;
+            }
+            if (sourceHandle == DRW::NoHandle
+                || writer.ambiguousHandles.count(sourceHandle) != 0u)
+                return false;
+            const auto found = writer.remappedHandles.find(sourceHandle);
+            if (found == writer.remappedHandles.end()
+                || found->second == 0u || found->second == DRW::NoHandle)
+                return false;
+            outputHandle = found->second;
+            return true;
+        };
+
+        std::uint32_t outputRootHandle = 0u;
+        std::uint32_t outputOwnerHandle = 0u;
+        if (!mapHandle(source.namedObjectDictionary.handle, outputRootHandle)
+            || !mapHandle(sourceOwner.handle, outputOwnerHandle))
+            return fail("physical DICTIONARYVAR NOD/owner identities lack staged output bindings");
+        for (const auto& sourceEntry : sourceOwners) {
+            std::uint32_t outputHandle = 0u;
+            if (!mapHandle(sourceEntry.first, outputHandle))
+                return fail("physical DICTIONARYVAR source lacks a staged object identity");
+        }
+
+        dx_iface outputReader;
+        dx_data output;
+        VarsByHandle outputByHandle;
+        DictionariesByHandle outputDictionaries;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.dictionaryVars.size() != sourceOwners.size()
+            || !indexVars(output, outputByHandle)
+            || !indexDictionaries(output, outputDictionaries)
+            || !output.hasNamedObjectDictionary
+            || output.namedObjectDictionary.handle != outputRootHandle)
+            return fail("physical DICTIONARYVAR output did not reopen with the expected rooted graph");
+
+        const auto outputOwnerFound = outputDictionaries.find(outputOwnerHandle);
+        if (outputOwnerFound == outputDictionaries.end()
+            || outputOwnerFound->second == &output.namedObjectDictionary
+            || outputOwnerFound->second->parentHandle != outputRootHandle
+            || outputOwnerFound->second->m_entries.size()
+                != sourceOwner.m_entries.size())
+            return fail("physical output AcDbVariableDictionary owner is incomplete");
+        const DRW_Dictionary& outputOwner = *outputOwnerFound->second;
+        const auto outputRootEntry = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "AcDbVariableDictionary"
+                    && entry.m_handle == outputOwnerHandle;
+            });
+        if (outputRootEntry == output.namedObjectDictionary.m_entries.end()
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "AcDbVariableDictionary"
+                        && entry.m_handle == outputOwnerHandle;
+                }) != 1)
+            return fail("physical output NOD key does not uniquely bind AcDbVariableDictionary");
+
+        std::set<std::uint32_t> outputIdentities;
+        for (const auto& sourceEntry : sourceOwners) {
+            const std::uint32_t sourceHandle = sourceEntry.first;
+            const VariableOwner& expected = sourceEntry.second;
+            std::uint32_t mappedHandle = 0u;
+            if (!mapHandle(sourceHandle, mappedHandle)
+                || !outputIdentities.insert(mappedHandle).second)
+                return fail("physical DICTIONARYVAR source identity mapping is ambiguous");
+            const auto actualFound = outputByHandle.find(mappedHandle);
+            if (actualFound == outputByHandle.end())
+                return fail("physical DICTIONARYVAR staged identity is absent from readback");
+            const DRW_DictionaryVar& actual = *actualFound->second;
+            std::uint32_t mappedParent = 0u;
+            std::uint32_t mappedXdict = 0u;
+            if (!mapHandle(expected.value->parentHandle, mappedParent)
+                || !mapHandle(expected.value->xDictHandle, mappedXdict)
+                || actual.parentHandle != mappedParent
+                || actual.parentHandle != outputOwnerHandle
+                || actual.m_schema != expected.value->m_schema
+                || actual.m_value != expected.value->m_value
+                || actual.name != expected.value->name
+                || actual.flags != expected.value->flags
+                || actual.xDictHandle != mappedXdict
+                || actual.reactorHandles.size()
+                    != expected.value->reactorHandles.size()
+                || actual.extData.size() != expected.value->extData.size())
+                return fail("physical DICTIONARYVAR common or typed fields changed on readback");
+            for (std::size_t index = 0;
+                 index < expected.value->reactorHandles.size(); ++index) {
+                std::uint32_t mappedReactor = 0u;
+                if (!mapHandle(expected.value->reactorHandles[index],
+                               mappedReactor)
+                    || actual.reactorHandles[index] != mappedReactor)
+                    return fail("physical DICTIONARYVAR reactor role changed on readback");
+            }
+            const auto sourceKey = std::find_if(
+                sourceOwner.m_entries.begin(), sourceOwner.m_entries.end(),
+                [&expected](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expected.key;
+                });
+            const auto outputKey = std::find_if(
+                outputOwner.m_entries.begin(), outputOwner.m_entries.end(),
+                [&expected](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expected.key;
+                });
+            if (sourceKey == sourceOwner.m_entries.end()
+                || sourceKey->m_handle != sourceHandle
+                || outputKey == outputOwner.m_entries.end()
+                || std::count_if(outputOwner.m_entries.begin(),
+                    outputOwner.m_entries.end(), [&expected](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == expected.key;
+                    }) != 1
+                || outputKey->m_handle != mappedHandle)
+                return fail("physical DICTIONARYVAR owner key does not bind its staged identity");
+        }
+        const auto dictionaryVarClass = std::find_if(
+            output.dxfClasses.begin(), output.dxfClasses.end(),
+            [](const DRW_Class& value) {
+                return value.recName == "DICTIONARYVAR"
+                    && value.className == "AcDbDictionaryVar";
+            });
+        const std::size_t dictionaryVarClassCount =
+            static_cast<std::size_t>(std::count_if(
+                output.dxfClasses.begin(), output.dxfClasses.end(),
+                [](const DRW_Class& value) {
+                    return value.recName == "DICTIONARYVAR"
+                        && value.className == "AcDbDictionaryVar";
+                }));
+        if (outputIdentities.size() != 8u
+            || outputIdentities.size() != outputByHandle.size()
+            || dictionaryVarClassCount != 1u
+            || dictionaryVarClass == output.dxfClasses.end()
+            || dictionaryVarClass->instanceCount != 8)
+            return fail("physical DICTIONARYVAR output identity or class-instance census changed");
+
+        std::cerr << "Physical DICTIONARYVAR "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: 8 source identities, NOD/dictionary "
+                     "owner keys, schema/value fields, reactors, atomic refusal, "
+                     "and same-adapter retry.\n";
+        return true;
+    };
+    return outputEncoding(false) && outputEncoding(true);
+}
+
 bool physicalAssociativeVariableOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -44388,6 +44817,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--xrecord-physical-output-readback")
         return physicalXRecordOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
+        return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--assocvariable-physical-output-readback")
         return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;
