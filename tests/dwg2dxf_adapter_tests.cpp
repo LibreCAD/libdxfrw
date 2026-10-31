@@ -9636,6 +9636,740 @@ bool dynamicBlockCaptureLimitsFailClosed() {
     return true;
 }
 
+bool dynamicBlockVisibilityComposedGraphOutputProfile() {
+    constexpr std::uint32_t blockHandle = 0x127u;
+    constexpr std::uint32_t dictionaryHandle = 0x1116u;
+    constexpr std::uint32_t graphHandle = 0x1117u;
+    constexpr std::uint32_t sortTableHandle = 0x111Cu;
+    constexpr std::uint32_t purgeHandle = 0x1122u;
+    constexpr std::array<std::uint32_t, 4> expressionHandles{{
+        0x1118u, 0x1119u, 0x111Au, 0x111Bu}};
+    constexpr std::array<std::string_view, 4> stateNames{{
+        "ARCH D", "ARCH C", "ARCH B", "ARCH A"}};
+    constexpr std::array<std::array<std::int32_t, 4>, 4> nodeData{{
+        {{0, 0, 1, 2}}, {{-1, -1, 0, 0}},
+        {{1, 1, -1, -1}}, {{2, 2, -1, -1}}}};
+    constexpr std::array<std::array<std::int32_t, 10>, 3> edgeData{{
+        {{0, 0, 1, 1, 0, -1, -1, -1, -1, -1}},
+        {{1, 0, 1, 0, 2, -1, -1, -1, 2, -1}},
+        {{2, 0, 1, 0, 3, -1, -1, 1, -1, -1}}}};
+    const auto makeSourceStateHandles = [] {
+        const auto appendRange = [](std::vector<std::uint32_t>& values,
+                                    std::uint32_t first,
+                                    std::uint32_t last) {
+            for (std::uint32_t value = first; value <= last; ++value)
+                values.push_back(value);
+        };
+        std::vector<std::vector<std::uint32_t>> states(4u);
+        appendRange(states[0], 0x10A1u, 0x10BDu);
+        states[1] = {0x10BEu, 0x10C1u};
+        appendRange(states[1], 0x10C4u, 0x10DCu);
+        states[1].insert(states[1].end(), {0x110Fu, 0x1110u});
+        states[2] = {0x10BFu, 0x10C2u};
+        appendRange(states[2], 0x10DDu, 0x10F5u);
+        states[2].insert(states[2].end(), {0x1112u, 0x1115u});
+        states[3] = {0x10C0u, 0x10C3u};
+        appendRange(states[3], 0x10F6u, 0x110Eu);
+        states[3].insert(states[3].end(), {0x1113u, 0x1114u});
+        return states;
+    };
+    const auto sourceStateHandles = makeSourceStateHandles();
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+
+    const auto populate = [=](dx_data& data, dx_iface& iface,
+                             std::vector<std::uint32_t>& entityHandles) {
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        iface.cData = &data;
+
+        DRW_Block_Record block;
+        block.handle = blockHandle;
+        block.name = "Title_Block-ARCH";
+        block.xDictHandle = dictionaryHandle;
+        data.blockRecords.push_back(block);
+
+        auto* definition = new dx_ifaceBlock();
+        definition->name = block.name;
+        definition->parentHandle = block.handle;
+        data.blocks.push_back(definition);
+        entityHandles.reserve(117u);
+        for (std::uint32_t index = 0u; index < 117u; ++index) {
+            const std::uint32_t handle = 0x10A1u + index;
+            auto* line = new DRW_Line();
+            line->handle = handle;
+            line->parentHandle = block.handle;
+            line->layer = "0";
+            line->basePoint = DRW_Coord(static_cast<double>(index), 0.0, 0.0);
+            line->secPoint = DRW_Coord(static_cast<double>(index), 1.0, 0.0);
+            definition->ent.push_back(line);
+            entityHandles.push_back(handle);
+        }
+
+        DRW_Dictionary owner;
+        owner.handle = dictionaryHandle;
+        owner.parentHandle = block.handle;
+        owner.hardOwner = 1;
+        owner.cloning = 1;
+        owner.m_entries = {
+            {"ACAD_ENHANCEDBLOCK", graphHandle},
+            {"ACAD_SORTENTS", sortTableHandle},
+            {"AcDbDynamicBlockRoundTripPurgePreventer", purgeHandle}};
+        data.dictionaries.push_back(owner);
+
+        DRW_EvaluationGraph graph;
+        graph.handle = graphHandle;
+        graph.parentHandle = dictionaryHandle;
+        graph.reactorHandles = {dictionaryHandle};
+        graph.m_value96 = 19;
+        graph.m_value97 = 19;
+        for (std::size_t index = 0u; index < expressionHandles.size();
+             ++index) {
+            DRW_EvaluationGraphNode node;
+            node.m_index = static_cast<std::int32_t>(index);
+            node.m_flags = 32;
+            node.m_nextNodeIndex = 16 + static_cast<std::int32_t>(index);
+            node.m_expressionHandle = expressionHandles[index];
+            node.m_data1 = nodeData[index][0];
+            node.m_data2 = nodeData[index][1];
+            node.m_data3 = nodeData[index][2];
+            node.m_data4 = nodeData[index][3];
+            graph.m_nodes.push_back(node);
+        }
+        for (const auto& values : edgeData) {
+            DRW_EvaluationGraphEdge edge;
+            edge.m_value92 = values[0];
+            edge.m_value93 = values[1];
+            edge.m_value94 = values[2];
+            edge.m_value91a = values[3];
+            edge.m_value91b = values[4];
+            edge.m_value92a = values[5];
+            edge.m_value92b = values[6];
+            edge.m_value92c = values[7];
+            edge.m_value92d = values[8];
+            edge.m_value92e = values[9];
+            graph.m_edges.push_back(edge);
+        }
+        iface.addEvaluationGraph(graph);
+
+        DRW_DynamicBlockObject visibility("BLOCKVISIBILITYPARAMETER");
+        visibility.handle = expressionHandles[0];
+        visibility.parentHandle = graphHandle;
+        visibility.m_evalExprParsed = true;
+        visibility.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        visibility.m_major = 29u;
+        visibility.m_minor = 2u;
+        visibility.m_nodeId = 16u;
+        visibility.m_valueCode = -9999;
+        visibility.m_elementParsed = true;
+        visibility.m_elementName = "Visibility State";
+        visibility.m_elementMajor = 29u;
+        visibility.m_elementMinor = 2u;
+        visibility.m_eed1071 = 0;
+        visibility.m_showProperties = true;
+        visibility.m_propertyInfoCount = 17;
+        visibility.m_isInitialized = true;
+        visibility.m_visibilityName = "ARCH Title Block";
+        visibility.m_blockCount = 117;
+        visibility.m_stateCount = 4;
+        visibility.m_blockHandles = entityHandles;
+        for (std::size_t state = 0u; state < stateNames.size(); ++state) {
+            visibility.m_stateNames.emplace_back(stateNames[state]);
+            visibility.m_stateBlockHandles.push_back(
+                sourceStateHandles[state]);
+            visibility.m_stateParameterHandles.emplace_back();
+        }
+        visibility.m_bodyFullyDecoded = true;
+        iface.addDynamicBlockObject(visibility);
+
+        DRW_DynamicBlockObject grip("BLOCKVISIBILITYGRIP");
+        grip.handle = expressionHandles[1];
+        grip.parentHandle = graphHandle;
+        grip.m_evalExprParsed = true;
+        grip.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        grip.m_major = 29u;
+        grip.m_minor = 2u;
+        grip.m_nodeId = 17u;
+        grip.m_valueCode = -9999;
+        grip.m_elementParsed = true;
+        grip.m_elementName = "Grip";
+        grip.m_elementMajor = 29u;
+        grip.m_elementMinor = 2u;
+        grip.m_gripValue91 = 18;
+        grip.m_gripValue92 = 19;
+        grip.m_gripValue93 = -1;
+        grip.m_bodyFullyDecoded = true;
+        iface.addDynamicBlockObject(grip);
+
+        for (std::size_t index = 2u; index < expressionHandles.size();
+             ++index) {
+            DRW_DynamicBlockObject location(
+                "BLOCKGRIPLOCATIONCOMPONENT");
+            location.handle = expressionHandles[index];
+            location.parentHandle = graphHandle;
+            location.m_evalExprParsed = true;
+            location.m_parentId = std::numeric_limits<std::uint32_t>::max();
+            location.m_major = 29u;
+            location.m_minor = 2u;
+            location.m_nodeId = 16u + static_cast<std::uint32_t>(index);
+            location.m_valueCode = 40;
+            location.m_hasValueDouble = true;
+            location.m_valueDouble = 0.0;
+            location.m_gripType = 16;
+            location.m_gripExpr = index == 2u ? "UpdatedX" : "UpdatedY";
+            location.m_bodyFullyDecoded = true;
+            iface.addDynamicBlockObject(location);
+        }
+
+        DRW_DynamicBlockObject purge(
+            "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION");
+        purge.handle = purgeHandle;
+        purge.parentHandle = dictionaryHandle;
+        purge.reactorHandles = {dictionaryHandle};
+        purge.m_purgeFlag = 1u;
+        purge.m_purgeBlockHandle = block.handle;
+        purge.m_bodyFullyDecoded = true;
+        iface.addDynamicBlockObject(purge);
+
+        DRW_SortEntsTable table;
+        table.handle = sortTableHandle;
+        table.parentHandle = dictionaryHandle;
+        table.m_blockOwnerHandle = block.handle;
+        table.reactorHandles = {dictionaryHandle};
+        table.m_entityHandles = entityHandles;
+        table.m_sortHandles.assign(entityHandles.size(), DRW::NoHandle);
+        iface.addSortEntsTable(table);
+
+        // The composed-profile test authors the callback model in memory; the
+        // receipt values satisfy the DWG-origin SORTENTSTABLE pairing contract
+        // but are not evidence from a physical source file.
+        DRW_DwgSortEntsMembership membership;
+        membership.m_version = DRW::AC1024;
+        membership.m_tableHandle = sortTableHandle;
+        membership.m_sourceOffset = 0x4000u;
+        membership.m_sourceMapOrdinal = 1u;
+        membership.m_sourceOffsetSpace =
+            DRW_DwgFrameOffsetSpace::DecodedBuffer;
+        membership.m_hasSourceLocation = true;
+        membership.m_complete = true;
+        membership.m_encodedType = 517;
+        membership.m_resolvedType = 517;
+        membership.m_recordName = "SORTENTSTABLE";
+        membership.m_className = "AcDbSortentsTable";
+        membership.m_classStreamOrdinal = 0u;
+        membership.m_blockOwnerHandle = block.handle;
+        membership.m_entries.reserve(entityHandles.size());
+        for (std::size_t index = 0u; index < entityHandles.size(); ++index)
+            membership.m_entries.push_back({
+                entityHandles[index], DRW::NoHandle,
+                static_cast<std::uint32_t>(index), true});
+        iface.addDwgSortEntsMembership(membership);
+
+        return !data.evaluationGraphCaptureFailed
+            && !data.dynamicBlockCaptureFailed
+            && !data.sortEntsCaptureFailed
+            && data.evaluationGraphs.size() == 1u
+            && data.dynamicBlockObjects.size() == 5u
+            && data.sortEntsTables.size() == 1u
+            && data.dwgSortEntsMemberships.size() == 1u;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-visibility-composed-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        const std::string sentinel =
+            "incomplete composed dynamic-block graph must preserve this\n";
+        dx_data data;
+        dx_iface iface;
+        std::vector<std::uint32_t> sourceEntityHandles;
+        if (!populate(data, iface, sourceEntityHandles))
+            return fail("could not build the composed visibility graph model");
+        const std::vector<DRW_DynamicBlockObject> completeObjects =
+            data.dynamicBlockObjects;
+        data.dynamicBlockObjects.pop_back();
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create composed graph sentinel");
+        }
+        if (iface.fileExport(output.string(), DRW::AC1024, binary,
+                             &data, false))
+            return fail("incomplete composed dynamic-block graph was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("incomplete graph replaced the destination");
+        }
+
+        data.dynamicBlockObjects = completeObjects;
+        std::ostringstream retryDiagnostics;
+        std::streambuf* previousError =
+            std::cerr.rdbuf(retryDiagnostics.rdbuf());
+        const bool retried = iface.fileExport(
+            output.string(), DRW::AC1024, binary, &data, false);
+        std::cerr.rdbuf(previousError);
+        if (!retried) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("complete composed dynamic-block graph did not retry: "
+                        + iface.extensionGraphFailureDetail() + " "
+                        + retryDiagnostics.str());
+        }
+
+        dx_data readback;
+        dx_iface rereader;
+        if (!rereader.fileImport(output.string(), &readback, false)) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("composed dynamic-block output failed fresh readback: "
+                        + encoding);
+        }
+        const auto block = std::find_if(
+            readback.blockRecords.begin(), readback.blockRecords.end(),
+            [](const DRW_Block_Record& record) {
+                return record.name == "Title_Block-ARCH";
+            });
+        const auto owner = block == readback.blockRecords.end()
+            ? readback.dictionaries.end()
+            : std::find_if(readback.dictionaries.begin(),
+                readback.dictionaries.end(), [&block](
+                    const DRW_Dictionary& candidate) {
+                    return candidate.handle == block->xDictHandle;
+                });
+        const auto definition = std::find_if(
+            readback.blocks.begin(), readback.blocks.end(),
+            [](const dx_ifaceBlock* candidate) {
+                return candidate != nullptr
+                    && candidate->name == "Title_Block-ARCH";
+            });
+        auto graph = readback.evaluationGraphs.end();
+        auto table = readback.sortEntsTables.end();
+        if (owner != readback.dictionaries.end()
+            && owner->m_entries.size() == 3u) {
+            graph = std::find_if(
+                readback.evaluationGraphs.begin(),
+                readback.evaluationGraphs.end(), [&owner](
+                    const DRW_EvaluationGraph& candidate) {
+                    return candidate.handle == owner->m_entries[0].m_handle;
+                });
+            table = std::find_if(
+                readback.sortEntsTables.begin(),
+                readback.sortEntsTables.end(), [&owner](
+                    const DRW_SortEntsTable& candidate) {
+                    return candidate.handle == owner->m_entries[1].m_handle;
+                });
+        }
+        bool completeReadback = block != readback.blockRecords.end()
+            && owner != readback.dictionaries.end()
+            && owner->m_entries.size() == 3u
+            && owner->parentHandle == block->handle
+            && owner->m_entries[0].m_name == "ACAD_ENHANCEDBLOCK"
+            && owner->m_entries[1].m_name == "ACAD_SORTENTS"
+            && owner->m_entries[2].m_name
+                == "AcDbDynamicBlockRoundTripPurgePreventer"
+            && graph != readback.evaluationGraphs.end()
+            && owner->m_entries[0].m_handle == graph->handle
+            && table != readback.sortEntsTables.end()
+            && owner->m_entries[1].m_handle == table->handle
+            && definition != readback.blocks.end()
+            && (*definition)->parentHandle == block->handle
+            && graph->parentHandle == owner->handle
+            && graph->reactorHandles
+                == std::vector<std::uint32_t>{owner->handle}
+            && graph->m_value96 == 19 && graph->m_value97 == 19
+            && graph->m_nodes.size() == 4u && graph->m_edges.size() == 3u
+            && table->parentHandle == owner->handle
+            && table->m_blockOwnerHandle == block->handle
+            && table->reactorHandles
+                == std::vector<std::uint32_t>{owner->handle}
+            && table->m_entityHandles.size() == 117u
+            && table->m_sortHandles.size() == 117u
+            && readback.dynamicBlockObjects.size() == 5u
+            && (*definition)->ent.size() == 117u;
+        std::string failedAt = "root owners and graph/table cardinalities";
+        if (completeReadback) {
+            std::unordered_map<std::uint32_t,
+                const DRW_DynamicBlockObject*> objects;
+            for (const DRW_DynamicBlockObject& object :
+                 readback.dynamicBlockObjects)
+                completeReadback = completeReadback
+                    && objects.emplace(object.handle, &object).second;
+            failedAt = "unique object identities and EvaluationGraph nodes";
+            for (std::size_t index = 0u; index < graph->m_nodes.size();
+                 ++index) {
+                const DRW_EvaluationGraphNode& node = graph->m_nodes[index];
+                const auto object = objects.find(node.m_expressionHandle);
+                completeReadback = completeReadback
+                    && node.m_index == static_cast<std::int32_t>(index)
+                    && node.m_flags == 32
+                    && node.m_nextNodeIndex
+                        == 16 + static_cast<std::int32_t>(index)
+                    && node.m_data1 == nodeData[index][0]
+                    && node.m_data2 == nodeData[index][1]
+                    && node.m_data3 == nodeData[index][2]
+                    && node.m_data4 == nodeData[index][3]
+                    && object != objects.end()
+                    && object->second->parentHandle == graph->handle
+                    && object->second->m_nodeId
+                        == static_cast<std::uint32_t>(node.m_nextNodeIndex)
+                    && object->second->m_bodyFullyDecoded
+                    && object->second->m_evalExprParsed;
+            }
+            if (completeReadback)
+                failedAt = "EvaluationGraph edge field sequence";
+            for (std::size_t index = 0u; index < graph->m_edges.size();
+                 ++index) {
+                const DRW_EvaluationGraphEdge& edge = graph->m_edges[index];
+                const auto& expected = edgeData[index];
+                completeReadback = completeReadback
+                    && edge.m_value92 == expected[0]
+                    && edge.m_value93 == expected[1]
+                    && edge.m_value94 == expected[2]
+                    && edge.m_value91a == expected[3]
+                    && edge.m_value91b == expected[4]
+                    && edge.m_value92a == expected[5]
+                    && edge.m_value92b == expected[6]
+                    && edge.m_value92c == expected[7]
+                    && edge.m_value92d == expected[8]
+                    && edge.m_value92e == expected[9];
+            }
+            std::vector<std::pair<int, std::string>> expectedGraphWire{
+                {96, std::to_string(graph->m_value96)},
+                {97, std::to_string(graph->m_value97)}};
+            for (const DRW_EvaluationGraphNode& node : graph->m_nodes) {
+                expectedGraphWire.emplace_back(
+                    91, std::to_string(node.m_index));
+                expectedGraphWire.emplace_back(
+                    93, std::to_string(node.m_flags));
+                expectedGraphWire.emplace_back(
+                    95, std::to_string(node.m_nextNodeIndex));
+                expectedGraphWire.emplace_back(
+                    360, std::to_string(node.m_expressionHandle));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(node.m_data1));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(node.m_data2));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(node.m_data3));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(node.m_data4));
+            }
+            for (const DRW_EvaluationGraphEdge& edge : graph->m_edges) {
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92));
+                expectedGraphWire.emplace_back(
+                    93, std::to_string(edge.m_value93));
+                expectedGraphWire.emplace_back(
+                    94, std::to_string(edge.m_value94));
+                expectedGraphWire.emplace_back(
+                    91, std::to_string(edge.m_value91a));
+                expectedGraphWire.emplace_back(
+                    91, std::to_string(edge.m_value91b));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92a));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92b));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92c));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92d));
+                expectedGraphWire.emplace_back(
+                    92, std::to_string(edge.m_value92e));
+            }
+            std::vector<std::pair<int, std::string>> graphWire;
+            if (!readDxfEvaluationGraphWireGroups(
+                    output, binary, graphWire)
+                || graphWire != expectedGraphWire) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("composed EvaluationGraph wire groups differ from "
+                            "the exact staged graph: " + encoding);
+            }
+            if (completeReadback)
+                failedAt = "visibility parameter cardinalities and state order";
+            std::unordered_map<std::uint32_t, std::uint32_t>
+                emittedEntityBySourceHandle;
+            std::array<std::uint32_t, 117> emittedEntityByGeometryIndex{};
+            std::array<bool, 117> geometryIndexSeen{};
+            for (const DRW_Entity* entity : (*definition)->ent) {
+                const auto* line = dynamic_cast<const DRW_Line*>(entity);
+                if (line == nullptr || !std::isfinite(line->basePoint.x)
+                    || line->basePoint.x < 0.0
+                    || line->basePoint.x >= 117.0
+                    || std::floor(line->basePoint.x) != line->basePoint.x) {
+                    completeReadback = false;
+                    continue;
+                }
+                const auto index = static_cast<std::size_t>(line->basePoint.x);
+                if (geometryIndexSeen[index]) {
+                    completeReadback = false;
+                    continue;
+                }
+                geometryIndexSeen[index] = true;
+                emittedEntityByGeometryIndex[index] = entity->handle;
+            }
+            std::vector<std::uint32_t> expectedFlatHandles;
+            expectedFlatHandles.reserve(sourceEntityHandles.size());
+            for (std::size_t index = 0u;
+                 index < sourceEntityHandles.size(); ++index) {
+                completeReadback = completeReadback && geometryIndexSeen[index]
+                    && emittedEntityBySourceHandle.emplace(
+                        sourceEntityHandles[index],
+                        emittedEntityByGeometryIndex[index]).second;
+                expectedFlatHandles.push_back(
+                    emittedEntityByGeometryIndex[index]);
+            }
+            const auto visibility = std::find_if(
+                readback.dynamicBlockObjects.begin(),
+                readback.dynamicBlockObjects.end(),
+                [](const DRW_DynamicBlockObject& object) {
+                    return object.m_kind
+                        == DRW_DynamicBlockObject::Kind::VisibilityParameter;
+                });
+            std::unordered_set<std::uint32_t> flatHandles;
+            if (visibility == readback.dynamicBlockObjects.end()) {
+                completeReadback = false;
+            } else if (visibility->m_blockHandles.size() != 117u
+                       || visibility->m_stateNames.size() != 4u
+                       || visibility->m_stateBlockHandles.size() != 4u) {
+                completeReadback = false;
+            } else {
+                for (std::uint32_t handle : visibility->m_blockHandles)
+                    completeReadback = completeReadback
+                        && flatHandles.insert(handle).second;
+                std::size_t stateReferences = 0u;
+                for (const auto& state : visibility->m_stateBlockHandles) {
+                    stateReferences += state.size();
+                    for (const std::uint32_t handle : state)
+                        completeReadback = completeReadback
+                            && flatHandles.count(handle) == 1u;
+                }
+                for (std::size_t state = 0u;
+                     state < visibility->m_stateBlockHandles.size(); ++state) {
+                    std::vector<std::uint32_t> expected;
+                    expected.reserve(sourceStateHandles[state].size());
+                    for (const std::uint32_t sourceHandle :
+                         sourceStateHandles[state]) {
+                        const auto emitted = emittedEntityBySourceHandle.find(
+                            sourceHandle);
+                        if (emitted == emittedEntityBySourceHandle.end()) {
+                            completeReadback = false;
+                            break;
+                        }
+                        expected.push_back(emitted->second);
+                    }
+                    completeReadback = completeReadback
+                        && visibility->m_stateBlockHandles[state].size() == 29u
+                        && visibility->m_stateBlockHandles[state] == expected;
+                }
+                completeReadback = completeReadback
+                    && visibility->m_blockCount == 117
+                    && visibility->m_blockHandles.size() == 117u
+                    && visibility->m_stateNames.size() == 4u
+                    && visibility->m_stateBlockHandles.size() == 4u
+                    && stateReferences == 116u
+                    && visibility->m_stateNames[0] == stateNames[0]
+                    && visibility->m_stateNames[1] == stateNames[1]
+                    && visibility->m_stateNames[2] == stateNames[2]
+                    && visibility->m_stateNames[3] == stateNames[3]
+                    && visibility->m_stateParameterHandles.size() == 4u
+                    && std::all_of(
+                        visibility->m_stateParameterHandles.begin(),
+                        visibility->m_stateParameterHandles.end(),
+                        [](const std::vector<std::uint32_t>& refs) {
+                            return refs.empty();
+                        });
+            }
+            if (completeReadback)
+                failedAt = "visibility handle membership and SORTENTSTABLE projection";
+            std::unordered_set<std::uint32_t> blockHandles;
+            for (const DRW_Entity* entity : (*definition)->ent)
+                completeReadback = completeReadback && entity != nullptr
+                    && blockHandles.insert(entity->handle).second;
+            if (visibility != readback.dynamicBlockObjects.end()) {
+                completeReadback = completeReadback
+                    && blockHandles.size() == 117u
+                    && flatHandles == blockHandles
+                    && table->m_entityHandles ==
+                        expectedFlatHandles
+                    && visibility->m_blockHandles == expectedFlatHandles;
+            }
+            for (std::size_t index = 0u;
+                 completeReadback && index < table->m_entityHandles.size();
+                 ++index)
+                completeReadback = table->m_sortHandles[index]
+                    == sourceEntityHandles[index];
+            if (completeReadback)
+                failedAt = "purge preventer owner/wire closure";
+            const auto purge = std::find_if(
+                readback.dynamicBlockObjects.begin(),
+                readback.dynamicBlockObjects.end(),
+                [](const DRW_DynamicBlockObject& object) {
+                    return object.m_kind
+                        == DRW_DynamicBlockObject::Kind::PurgePreventer;
+                });
+            std::vector<std::pair<int, std::string>> purgeWire;
+            const std::vector<std::pair<int, std::string>> expectedPurgeWire{
+                {5, std::to_string(purge == readback.dynamicBlockObjects.end()
+                    ? 0u : purge->handle)},
+                {102, "{ACAD_REACTORS"},
+                {330, std::to_string(owner->handle)},
+                {102, "}"},
+                {330, std::to_string(owner->handle)},
+                {100, "AcDbDynamicBlockPurgePreventer"},
+                {70, "1"}};
+            const bool purgeWireComplete =
+                readDxfDynamicBlockPurgeWireGroups(output, binary, purgeWire)
+                && purgeWire == expectedPurgeWire;
+            completeReadback = completeReadback
+                && purge != readback.dynamicBlockObjects.end()
+                && owner->m_entries[2].m_handle == purge->handle
+                && purge->parentHandle == owner->handle
+                && purge->m_purgeFlag == 1u
+                && purgeWireComplete;
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!completeReadback) {
+            std::ostringstream observed;
+            observed << " block="
+                << (block == readback.blockRecords.end()
+                    ? 0u : block->handle)
+                << " owner="
+                << (owner == readback.dictionaries.end()
+                    ? 0u : owner->handle)
+                << " ownerEntries="
+                << (owner == readback.dictionaries.end()
+                    ? 0u : owner->m_entries.size())
+                << " graphCount=" << readback.evaluationGraphs.size()
+                << " graph="
+                << (graph == readback.evaluationGraphs.end()
+                    ? 0u : graph->handle)
+                << " nodes="
+                << (graph == readback.evaluationGraphs.end()
+                    ? 0u : graph->m_nodes.size())
+                << " edges="
+                << (graph == readback.evaluationGraphs.end()
+                    ? 0u : graph->m_edges.size())
+                << " tableCount=" << readback.sortEntsTables.size()
+                << " table="
+                << (table == readback.sortEntsTables.end()
+                    ? 0u : table->handle)
+                << " tableEntities="
+                << (table == readback.sortEntsTables.end()
+                    ? 0u : table->m_entityHandles.size())
+                << " tableSorts="
+                << (table == readback.sortEntsTables.end()
+                    ? 0u : table->m_sortHandles.size())
+                << " dynamic=" << readback.dynamicBlockObjects.size()
+                << " blockDefinition="
+                << (definition == readback.blocks.end()
+                    ? 0u : (*definition)->ent.size());
+            if (graph != readback.evaluationGraphs.end())
+                observed << " graph96=" << graph->m_value96
+                    << " graph97=" << graph->m_value97
+                    << " graphParent=" << graph->parentHandle
+                    << " graphReactors=" << graph->reactorHandles.size();
+            if (table != readback.sortEntsTables.end())
+                observed << " tableOwner=" << table->m_blockOwnerHandle
+                    << " tableParent=" << table->parentHandle
+                    << " tableReactors=" << table->reactorHandles.size();
+            for (const DRW_DynamicBlockObject& object :
+                 readback.dynamicBlockObjects) {
+                observed << " [" << object.m_recordName << ':' << object.handle
+                    << ",parent=" << object.parentHandle
+                    << ",reactors=" << object.reactorHandles.size()
+                    << ",decoded=" << object.m_bodyFullyDecoded
+                    << ",node=" << object.m_nodeId << ']';
+            }
+            const auto visibility = std::find_if(
+                readback.dynamicBlockObjects.begin(),
+                readback.dynamicBlockObjects.end(),
+                [](const DRW_DynamicBlockObject& object) {
+                    return object.m_kind
+                        == DRW_DynamicBlockObject::Kind::VisibilityParameter;
+                });
+            if (visibility != readback.dynamicBlockObjects.end()) {
+                std::size_t stateReferences = 0u;
+                for (const auto& state : visibility->m_stateBlockHandles)
+                    stateReferences += state.size();
+                bool orderedStates =
+                    visibility->m_stateBlockHandles.size() == 4u
+                    && visibility->m_blockHandles.size() == 117u;
+                if (orderedStates) {
+                    for (std::size_t state = 0u; state < 4u; ++state) {
+                        const auto first = visibility->m_blockHandles.begin()
+                            + static_cast<std::ptrdiff_t>(state * 29u);
+                        orderedStates = orderedStates
+                            && visibility->m_stateBlockHandles[state]
+                                == std::vector<std::uint32_t>(first, first + 29);
+                    }
+                }
+                observed << " visibilityHandles="
+                    << visibility->m_blockHandles.size()
+                    << " blockCount=" << visibility->m_blockCount
+                    << " stateCount=" << visibility->m_stateCount
+                    << " stateNames=" << visibility->m_stateNames.size()
+                    << " stateLists=" << visibility->m_stateBlockHandles.size()
+                    << " stateRefs=" << stateReferences
+                    << " orderedStates=" << orderedStates
+                    << " show=" << visibility->m_showProperties
+                    << " chain=" << visibility->m_chainActions
+                    << " propCount=" << visibility->m_propertyInfoCount
+                    << " initialized=" << visibility->m_isInitialized
+                    << " name=" << visibility->m_visibilityName
+                    << " eval=" << visibility->m_evalExprParsed
+                    << " evalParent=" << visibility->m_parentId
+                    << " evalVersion=" << visibility->m_major << '/'
+                        << visibility->m_minor
+                    << " valueCode=" << visibility->m_valueCode
+                    << " flatBlockMatch="
+                    << (definition != readback.blocks.end()
+                        && std::all_of((*definition)->ent.begin(),
+                            (*definition)->ent.end(),
+                            [&visibility](const DRW_Entity* entity) {
+                                return entity != nullptr
+                                    && std::find(
+                                        visibility->m_blockHandles.begin(),
+                                        visibility->m_blockHandles.end(),
+                                        entity->handle)
+                                        != visibility->m_blockHandles.end();
+                            }))
+                    << " tableFlatMatch="
+                    << (table != readback.sortEntsTables.end()
+                        && table->m_entityHandles
+                            == visibility->m_blockHandles);
+                for (const auto& name : visibility->m_stateNames)
+                    observed << " stateName=" << name;
+                for (const auto& state : visibility->m_stateBlockHandles)
+                    observed << " stateSize=" << state.size();
+            }
+            if (graph != readback.evaluationGraphs.end()) {
+                for (const auto& edge : graph->m_edges)
+                    observed << " edge=" << edge.m_value92 << ','
+                        << edge.m_value93 << ',' << edge.m_value94 << ','
+                        << edge.m_value91a << ',' << edge.m_value91b << ','
+                        << edge.m_value92a << ',' << edge.m_value92b << ','
+                        << edge.m_value92c << ',' << edge.m_value92d << ','
+                        << edge.m_value92e;
+            }
+            observed << " failedAt=" << failedAt;
+            return fail("composed graph readback lost a node, owner, edge, "
+                        "state reference, SORTENTSTABLE member or remapped role at "
+                        + failedAt + ": " + encoding + observed.str());
+        }
+    }
+    return true;
+}
+
 bool proxyObjectCaptureLimitsFailClosed() {
     dx_data data;
     dx_iface iface;
@@ -50197,6 +50931,10 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-capture-limits")
         return dynamicBlockCaptureLimitsFailClosed() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dynamic-block-visibility-composed-graph")
+        return dynamicBlockVisibilityComposedGraphOutputProfile() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--proxy-object-capture-limits")
         return proxyObjectCaptureLimitsFailClosed() ? 0 : 1;
     if (argc == 2

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-dynamic-block-visibility-composed-generated-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Verify generated AC1024 dynamic-block composed output and retry",
+  "status": "GENERATED_CALLBACK_PROFILE_VERIFIED",
+  "supportClaimEffect": "none",
+  "profile": {
+    "targetVersion": "AC1024",
+    "rootBlockRecord": "0x127",
+    "rootName": "Title_Block-ARCH",
+    "ownerDictionary": "0x1116",
+    "evaluationGraph": "0x1117",
+    "sortentsTable": "0x111C",
+    "purgePreventer": "0x1122",
+    "visibilityParameter": "0x1118",
+    "visibilityGrip": "0x1119",
+    "gripLocations": ["0x111A", "0x111B"],
+    "construction": "In-memory callback model only. It uses inventoried/source-backed identities and previously qualified visibility/purge body fields, but graph node payload arrays, edge payload arrays, 117 LINE geometries, and SORTENTSTABLE source-location/membership receipts are synthetic test values. No generated graph value is evidence of the physical source graph."
+  },
+  "sourceContext": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "use": "Handle/name inventory and separately qualified source record fragments only.",
+    "physicalSourceQualification": "NOT_QUALIFIED",
+    "strictOutputBlocker": "Physical source output still stops before OBJECTS staging at XRECORD 0x121F group 1071; see p4-ac1024-block-representation-data-output-2026-10-31.json."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Accept the DWG unsigned -1 no-parent sentinel alongside the legacy direct-model zero sentinel for the profiled visibility parameter/grip records. Add a composed generated callback-profile test for dictionary, EvaluationGraph, visibility records, SORTENTSTABLE, purge sibling, handle remapping and exact EvaluationGraph/purge wire fields."
+  },
+  "qualification": {
+    "ascii": "PASS: generated model writes; fresh typed import checks owner dictionary entries, graph nodes and edges, linked object roles, 117 flat references, four ordered 29-member states, SORTENTSTABLE pairing and purge body. Exact staged EvaluationGraph and purge groups are inspected.",
+    "binary": "PASS: same checks as ASCII against Binary DXF output.",
+    "rollback": "PASS: removing the required purge sibling refuses before publication and preserves an existing destination byte-for-byte.",
+    "retry": "PASS: restore the sibling and retry on the same adapter; ASCII and Binary output then succeeds and reads back.",
+    "testDataPolicy": "All callback objects and geometry are authored in C++; emitted DXFs are temporary and removed. No testing DWG/DXF fixture was committed.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 4",
+      "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_sortents_adapter|dwg2dxf_dynamic_block_purge_preventer|dwg2dxf_dynamic_block_grip_location|dwg2dxf_dynamic_block_visibility_grip|dwg2dxf_dynamic_block_visibility_parameter|dwg2dxf_dynamic_block_visibility_composed_graph|dwg2dxf_evaluation_graph_capture_limits)$' --output-on-failure",
+      "result": "Build passed; 7/7 focused tests passed in 0.88 seconds."
+    }
+  },
+  "limitations": [
+    "Does not establish exact graph nodes/edges or SORTENTSTABLE source memberships in title_block-arch.dwg.",
+    "Does not qualify physical-source conversion, native dynamic-block semantics, other source profiles, or DXF-origin typed/raw replay.",
+    "Does not promote a DWG/DXF support claim."
+  ],
+  "nextPacket": "Resolve the independent XRECORD 0x121F group 1071 strict-output blocker with authoritative schema and source/consumer evidence; then resume exact physical Title_Block-ARCH graph binding and staged output qualification without weakening refusal."
+}

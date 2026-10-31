@@ -1991,8 +1991,13 @@ public:
         }
         objectWritePhase = "dynamic-block object records";
         for (DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
-            if (!dxfW->writeDynamicBlockObject(&object))
+            if (!dxfW->writeDynamicBlockObject(&object)) {
+                DRW_DBG("dynamic-block writer rejected record="
+                        + object.m_recordName + " handle="
+                        + std::to_string(object.handle) + " kind="
+                        + std::to_string(static_cast<int>(object.m_kind)));
                 return;
+            }
         }
         objectWritePhase = "block representation data records";
         for (const std::uint32_t handle :

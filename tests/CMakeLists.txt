@@ -2362,6 +2362,16 @@ set_tests_properties(dwg2dxf_dynamic_block_capture_limits PROPERTIES
 )
 
 add_test(
+    NAME dwg2dxf_dynamic_block_visibility_composed_graph
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-visibility-composed-graph
+)
+set_tests_properties(dwg2dxf_dynamic_block_visibility_composed_graph PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+add_test(
     NAME dwg2dxf_proxy_object_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits
 )

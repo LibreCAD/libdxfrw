@@ -31257,7 +31257,11 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_recordName == visibilityGripRecordName
         && version == DRW::AC1024 && ent->m_bodyFullyDecoded
         && ent->m_evalExprParsed && ent->m_nodeId == 17u
-        && ent->m_parentId == DRW::NoHandle
+        // 0 is the legacy direct-model sentinel; DWG stores the absent
+        // EvalExpr parent as unsigned -1.
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
         && ent->m_major == 29u && ent->m_minor == 2u
         && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
         && ent->m_valueHandle == 0
@@ -31280,7 +31284,10 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_recordName == "BLOCKVISIBILITYPARAMETER"
         && version == DRW::AC1024 && ent->m_bodyFullyDecoded
         && ent->m_evalExprParsed && ent->m_nodeId == 16u
-        && ent->m_parentId == DRW::NoHandle
+        // Accept both the legacy direct-model sentinel and DWG's unsigned -1.
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
         && ent->m_major == 29u && ent->m_minor == 2u
         && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
         && ent->m_valueHandle == 0

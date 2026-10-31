@@ -120,33 +120,31 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block output profiles:** close the composed AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`: bind all four
-EvaluationGraph nodes (IDs 16–19), the three source edges and node 17's links
-to nodes 18 and 19; preserve the visibility parameter's 117 flat handles and
-116 ordered state references; and close the SORTENTSTABLE reciprocity. Emit all
-required graph targets with DICTIONARY edges, owners, reactors and remapped
-handles intact; prove staged bytes and fresh ASCII/Binary readback for the full
-closure. Keep the mixed-key graph refused until every required target is
-selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
-missing children. DXF-origin typed/raw replay remains unqualified until exact
-source pairing and one-emission proof pass. Qualify other subclasses only when
-an existing source identifies a required profile.
+**Dynamic-block output profiles:** qualify the physical AC1024
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. The generated callback
+composition, ASCII/Binary wire/readback, incomplete-graph refusal, destination
+preservation and corrected retry are complete, but its synthetic graph-edge
+and SORTENTSTABLE-membership values do not qualify the physical drawing. That
+source remains blocked before OBJECTS staging by XRECORD `0x121F` group 1071;
+keep strict refusal until that independent P4 blocker has an evidence-backed
+route. Then bind the source's four EvaluationGraph nodes, three edges, linked
+Grip/GripLocation records, visibility flat/state handle sets, exact
+SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged output and
+fresh ASCII/Binary readback. Preserve fail-closed behavior and prove atomic
+refusal/retry for a missing required source target. Native dynamic-block
+semantics remain a separate qualification. DXF-origin typed/raw replay remains
+unqualified until exact source pairing and one-emission proof pass. Qualify
+other subclasses only when an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and
-native meaning for the generated, same-version AC1021+ DWG-origin typed-only SUN
-ACI transport now covered through VPORT and VIEWPORT owner links. The local
-ASCII/Binary output, remapped 330/361 fields, fresh readback, destination
-preservation and corrected retry are recorded in
-[`p5-dwg-typed-sun-group63-owner-closure-2026-10-31.json`](docs/research/p5-dwg-typed-sun-group63-owner-closure-2026-10-31.json).
-Physical-source admission and native rendering remain open. Preserve DXF-origin
-raw SUN replay and refuse RGB/name/book CMC states unless a lossless documented
-route is established. Also close native dictionary collation and layer style
-overrides, plus VIEWPORT shade modes 4/5 and references 335/343/344/91. Verify
-coupled dictionary keys, names, body fields and consumers. Investigate
-PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct reproduced
-missing provider, remap, collision or composed output failure.
+physical-source admission plus native rendering semantics for SUN profiles.
+Preserve DXF-origin raw SUN replay and refuse RGB/name/book CMC states unless a
+lossless documented route is established. Also close native dictionary collation
+and layer style overrides, plus VIEWPORT shade modes 4/5 and references
+335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers.
+Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct
+reproduced missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
