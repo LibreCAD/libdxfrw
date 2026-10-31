@@ -2380,6 +2380,8 @@ private:
         const DRW_Block& block, bool includeContainerStorage,
         std::size_t& estimatedBytes) const noexcept;
     bool prepareDwgViewportProjection(std::string& failure);
+    bool inspectDwgViewportXrecords(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDwgViewportOutputQualifications() noexcept;
     bool planLeaderAnnotationHandles();
     bool preallocateBlockRecordXdataEntityHandles();
@@ -3115,6 +3117,15 @@ private:
     // Keys are borrowed source records and are cleared at fileExport exit.
     std::unordered_map<const DRW_Viewport*, std::pair<int, int>>
         m_dwgViewportProjections;
+    struct DwgViewportXrecordOutputProof {
+        std::uint32_t emitted{0u};
+        std::uint32_t sourceViewport{0u};
+        std::uint32_t sourceExtensionDictionary{0u};
+        std::uint32_t emittedExtensionDictionary{0u};
+    };
+    std::map<std::uint32_t, DwgViewportXrecordOutputProof>
+        m_dwgViewportXrecordOutputProofs;
+    bool m_dwgViewportXrecordsInspected{false};
     ExtensionGraphLimits m_extensionGraphLimits;
     ExtensionGraphStats m_extensionGraphStats;
     ExtensionGraphFailure m_extensionGraphFailure{ExtensionGraphFailure::None};

@@ -51626,6 +51626,216 @@ bool dx_iface::prepareDwgViewportProjection(std::string& failure) {
     return true;
 }
 
+bool dx_iface::inspectDwgViewportXrecords(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    m_dwgViewportXrecordOutputProofs.clear();
+    m_dwgViewportXrecordsInspected = false;
+    if (cData == nullptr || dxfW == nullptr
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || view.version != DRW::AC1024)
+        return true;
+
+    constexpr std::array<std::uint32_t, 2> viewportHandles{{0x28Bu, 0x290u}};
+    constexpr std::array<std::uint32_t, 2> expectedXrecordHandles{{0x28Du, 0x292u}};
+    for (std::size_t index = 0u; index < viewportHandles.size(); ++index) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, viewportHandles[index]};
+        const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
+        if (frame == cData->m_opaqueDwgSourceFrames.end()
+            || frame->second.m_objectType != 34
+            || !frame->second.m_isEntity)
+            return true; // This is not the witnessed AC1024 viewport profile.
+    }
+
+    const auto mapHandle = [this](std::uint32_t source,
+                                  std::uint32_t& emitted) {
+        emitted = 0u;
+        if (source == 0u)
+            return true;
+        const DRW_WritingContext* context = dxfW->getWritingContext();
+        if (source == DRW::NoHandle || context == nullptr
+            || context->ambiguousSourceHandles.count(source) != 0u)
+            return false;
+        emitted = dxfW->remapHandle(source);
+        bool bound = emitted != source;
+        for (const auto* aliases : {
+                &context->sourceHandleToWrittenTableMap,
+                &context->sourceHandleToWrittenObjectMap,
+                &context->sourceHandleToMintedMap}) {
+            const auto found = aliases->find(source);
+            if (found == aliases->end())
+                continue;
+            if (bound && emitted != found->second)
+                return false;
+            emitted = found->second;
+            bound = true;
+        }
+        return emitted != 0u && emitted != DRW::NoHandle;
+    };
+    try {
+        if (m_xrecordWriteSourceOwner != cData
+            || !hasUnchangedXrecordWriteSources())
+            return false;
+        struct ExpectedXrecord {
+            std::uint32_t sourceHandle{0u};
+            std::uint32_t emittedHandle{0u};
+            std::uint32_t sourceViewport{0u};
+            std::uint32_t sourceExtension{0u};
+            std::uint32_t emittedExtension{0u};
+            const DRW_XRecord* frozenSource{nullptr};
+        };
+        std::map<std::uint32_t, ExpectedXrecord> expected;
+        for (std::size_t index = 0u; index < viewportHandles.size(); ++index) {
+            const DRW_Viewport* viewport = nullptr;
+            std::size_t viewportCount = 0u;
+            const auto findViewport = [&](const dx_ifaceBlock* block) {
+                if (block == nullptr)
+                    return true;
+                for (const DRW_Entity* entity : block->ent) {
+                    if (entity == nullptr
+                        || entity->handle != viewportHandles[index])
+                        continue;
+                    const auto* candidate =
+                        dynamic_cast<const DRW_Viewport*>(entity);
+                    if (candidate == nullptr)
+                        return false;
+                    viewport = candidate;
+                    ++viewportCount;
+                }
+                return true;
+            };
+            if (!findViewport(cData->mBlock))
+                return true;
+            for (const dx_ifaceBlock* block : cData->blocks)
+                if (!findViewport(block))
+                    return true;
+            if (viewportCount != 1u || viewport == nullptr
+                || viewport->xDictHandle == 0u
+                || viewport->xDictHandle == DRW::NoHandle)
+                return true;
+
+            const DRW_Dictionary* extension = nullptr;
+            std::size_t extensionCount = 0u;
+            for (const DRW_Dictionary& candidate : cData->dictionaries) {
+                if (candidate.handle != viewport->xDictHandle)
+                    continue;
+                extension = &candidate;
+                ++extensionCount;
+            }
+            if (extensionCount != 1u || extension == nullptr
+                || extension->parentHandle != viewport->handle
+                || extension->hardOwner != 1 || extension->cloning != 1
+                || extension->countCap
+                || !extension->hasCompleteDwgEntries()
+                || extension->m_entries.size() != 1u
+                || extension->m_entries.front().m_name
+                    != "ASDK_XREC_ANNOTATION_SCALE_INFO"
+                || extension->m_entries.front().m_handle
+                    != expectedXrecordHandles[index])
+                return true;
+
+            const std::uint32_t sourceXrecord =
+                extension->m_entries.front().m_handle;
+            const DRW_XRecord* sourceRecord = nullptr;
+            std::size_t sourceRecordCount = 0u;
+            for (const DRW_XRecord& candidate : cData->xRecords) {
+                if (candidate.handle != sourceXrecord)
+                    continue;
+                sourceRecord = &candidate;
+                ++sourceRecordCount;
+            }
+            const dx_data::StandardDwgFrameKey sourceKey{
+                cData->importGeneration, sourceXrecord};
+            const auto sourceFrame =
+                cData->m_standardDwgObjectFrames.find(sourceKey);
+            const auto frozen = std::find_if(
+                m_xrecordWriteSources.begin(), m_xrecordWriteSources.end(),
+                [sourceXrecord](const DRW_XRecord& candidate) {
+                    return candidate.handle == sourceXrecord;
+                });
+            if (sourceRecordCount != 1u || sourceRecord == nullptr
+                || sourceRecord->parentHandle != extension->handle
+                || sourceFrame == cData->m_standardDwgObjectFrames.end()
+                || sourceFrame->second.raw.m_objectType != 79
+                || sourceFrame->second.raw.m_handle != sourceXrecord
+                || !sourceFrame->second.payloadMatched
+                || !sourceFrame->second.typedBaseline
+                || frozen == m_xrecordWriteSources.end())
+                return true;
+
+            std::uint32_t emittedXrecord = 0u;
+            std::uint32_t emittedExtension = 0u;
+            if (!mapHandle(sourceXrecord, emittedXrecord)
+                || !mapHandle(extension->handle, emittedExtension))
+                return false;
+            const auto inserted = expected.emplace(emittedXrecord,
+                ExpectedXrecord{sourceXrecord, emittedXrecord,
+                    viewport->handle, extension->handle, emittedExtension,
+                    &*frozen});
+            if (!inserted.second)
+                return false;
+        }
+        if (expected.size() != expectedXrecordHandles.size())
+            return false;
+
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good())
+            return false;
+        std::set<std::uint32_t> seen;
+        std::string_view selectedName;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&expected, &selectedName](std::string_view name,
+                                      std::uint32_t handle) {
+                selectedName = name;
+                return expected.count(handle) != 0u;
+            },
+            [&](const dx_standard_output::Shape& shape,
+                std::string_view body) {
+                const auto source = expected.find(shape.handle);
+                if (source == expected.end()
+                    || selectedName != "XRECORD"
+                    || !seen.insert(shape.handle).second)
+                    return false;
+                std::vector<std::uint32_t> references;
+                const bool decoded = decoder.decodeRecord<DRW_XRecord>(
+                    body, [&](const DRW_XRecord& actual) {
+                        return actual.handle == shape.handle
+                            && actual.parentHandle
+                                == source->second.emittedExtension
+                            && dx_standard_output::equal(
+                                *source->second.frozenSource, actual,
+                                mapHandle, references);
+                    });
+                if (!decoded)
+                    return false;
+                for (const std::uint32_t reference : references)
+                    if (reference == 0u || reference == DRW::NoHandle
+                        || dxfW->dxfWriteRecordHandleCount(reference) != 1u)
+                        return false;
+                DwgViewportXrecordOutputProof proof;
+                proof.emitted = shape.handle;
+                proof.sourceViewport = source->second.sourceViewport;
+                proof.sourceExtensionDictionary =
+                    source->second.sourceExtension;
+                proof.emittedExtensionDictionary =
+                    source->second.emittedExtension;
+                return m_dwgViewportXrecordOutputProofs.emplace(
+                    source->second.sourceHandle, std::move(proof)).second;
+            });
+        if (!inspected || seen.size() != expected.size()
+            || m_dwgViewportXrecordOutputProofs.size() != expected.size())
+            return false;
+        m_dwgViewportXrecordsInspected = true;
+        return true;
+    } catch (...) {
+        m_dwgViewportXrecordOutputProofs.clear();
+        m_dwgViewportXrecordsInspected = false;
+        return false;
+    }
+}
+
 bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
     if (cData == nullptr || dxfW == nullptr
         || cData->sourceFormat != dx_source_format::DWG
@@ -51660,6 +51870,8 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
     // those identities unresolved until their own source/readback evidence is
     // connected; this narrow witness route must not generalize by type alone.
     if (!expectedProfile)
+        return true;
+    if (!m_dwgViewportXrecordsInspected)
         return true;
 
     for (const ExpectedViewport& item : expected) {
@@ -51769,6 +51981,48 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
             || !dxfW->dxfWriteRecordHasIdentity(
                 emittedOwner, "BLOCK_RECORD", "TABLES")
             || !recordOpaqueDwgOutputQualification(item.handle))
+            return false;
+    }
+    if (m_dwgViewportXrecordOutputProofs.size() != 2u)
+        return false;
+    for (const auto& row : m_dwgViewportXrecordOutputProofs) {
+        const std::uint32_t sourceHandle = row.first;
+        const DwgViewportXrecordOutputProof& proof = row.second;
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, sourceHandle};
+        const auto source = cData->m_standardDwgObjectFrames.find(key);
+        const auto* sourceRecord =
+            source == cData->m_standardDwgObjectFrames.end()
+                ? nullptr
+                : dynamic_cast<const DRW_XRecord*>(
+                    source->second.typedBaseline.get());
+        if (source == cData->m_standardDwgObjectFrames.end()
+            || source->second.raw.m_objectType != 79
+            || source->second.raw.m_handle != sourceHandle
+            || sourceRecord == nullptr
+            || sourceRecord->parentHandle
+                != proof.sourceExtensionDictionary
+            || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || dxfW->remapHandle(sourceHandle) != proof.emitted
+            || dxfW->dxfWriteRecordHandleCount(proof.emitted) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                proof.emitted, "XRECORD", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(
+                proof.emitted, proof.emittedExtensionDictionary)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                proof.emittedExtensionDictionary, "DICTIONARY", "OBJECTS")
+            || dxfW->remapHandle(proof.sourceExtensionDictionary)
+                != proof.emittedExtensionDictionary
+            || !dxfW->dxfWriteRecordHasOwner(
+                proof.emittedExtensionDictionary,
+                dxfW->remapEntityHandle(proof.sourceViewport)))
+            return false;
+        const OpaqueDwgOutputKey ownerKey{
+            cData->importGeneration, proof.sourceExtensionDictionary};
+        if (m_pendingOpaqueDwgOutputQualificationFrameIdentities.count(
+                ownerKey) != 1u)
+            return false;
+        if (!recordOpaqueDwgOutputQualification(sourceHandle))
             return false;
     }
     return true;
@@ -53513,10 +53767,19 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     } outputProofScope{*this};
     m_standardDwgBorrowedGroups = nullptr;
     m_dwgViewportProjections.clear();
+    m_dwgViewportXrecordOutputProofs.clear();
+    m_dwgViewportXrecordsInspected = false;
     struct ViewportProjectionScope {
         decltype(m_dwgViewportProjections)& projections;
-        ~ViewportProjectionScope() { projections.clear(); }
-    } viewportProjectionScope{m_dwgViewportProjections};
+        decltype(m_dwgViewportXrecordOutputProofs)& xrecordProofs;
+        bool& xrecordsInspected;
+        ~ViewportProjectionScope() {
+            projections.clear();
+            xrecordProofs.clear();
+            xrecordsInspected = false;
+        }
+    } viewportProjectionScope{m_dwgViewportProjections,
+        m_dwgViewportXrecordOutputProofs, m_dwgViewportXrecordsInspected};
     m_mlineStyleNamesToWrite.clear();
     struct MLineStyleNameScope {
         decltype(m_mlineStyleNamesToWrite)& names;
@@ -57165,6 +57428,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (!cData->m_standardDwgObjectFrames.empty()
                 && !inspectStandardDwgOutput(view))
                 return reject("standard DWG object frame");
+            if (!inspectDwgViewportXrecords(view))
+                return reject("VIEWPORT extension XRECORD physical source/output binding");
             if (needsRasterOutput && !inspectRasterOutput(view))
                 return reject("raster objects");
             if (needsGeneratedRoots
