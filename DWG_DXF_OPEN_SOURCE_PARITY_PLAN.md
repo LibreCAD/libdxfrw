@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Close source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles. Use the callback census and current profile receipts to select the highest-incidence required family that still lacks exact source fields, emitted identity/role, and fresh readback proof; then close required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Reconcile the physical mechanical source's 228 callback identities across 21 record/type profiles against current source-matched receipts. Close the highest-incidence required profile still lacking exact source fields, emitted identity/role, and fresh readback proof; then close required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,23 +56,20 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — AC1024 VISUALSTYLE physical identity/output proof:** the
-19-record VISUALSTYLE family is the largest current census profile without an
-exact physical source-to-output receipt. Its existing receipt
-(`docs/research/p5-ac1024-visualstyle-typed-dxf-output-2026-10-30.json`)
-qualifies only a locally authored ASCII/Binary serializer profile; it does not
-bind the physical source's 19 handles and fields to emitted records. Before
-editing, freeze those handles, the ACAD_VISUALSTYLE dictionary owner/reactor
-roles, all 28 group-176 companions, the five CMC roles, and the source body
-fields. Extend the physical output inspector invoked by `fileExport()` around
-`writeVisualStyleRaw()` so it checks every source identity and field against
-staged bytes and fresh readback. Extend the existing
-`--visual-style-ac1024-typed-writer` selector with locally authored refusal,
-destination-preservation, and corrected-retry controls for invalid source
-mutation. Run that focused serializer selector and the existing explicit-partial
-physical diagnostic; do not add investigation DWGs or infer coverage from the
-19-record count. Strict complete-export remains blocked until all required
-callback identities and descendants close.
+**P4 next action — AC1024 physical ACDBASSOCVARIABLE source/output proof (17
+records).** Its bounded empty and one-child suffix forms are decoded, and a
+direct DXF encoder exists; current receipts still leave document graph routing
+and output closure open. From the existing physical mechanical source, bind all
+17 variable identities and typed fields to their owning action, optional owned
+ASSOCVALUEDEPENDENCY child, network/dictionary roles, reactor and output handle.
+Route only complete source profiles through the existing encoder, inspect the
+staged output, then reimport and compare the actual DXF. Add a focused late
+mutation refusal, destination-preservation and corrected same-adapter retry
+control. Reuse the existing source and receipts; add no investigation fixture.
+The SCALE source/output/readback/rollback slice is closed in
+`docs/research/p4-ac1024-scale-physical-output-binding-2026-10-31.json`; strict
+complete-export remains refused while the census reports 228 opaque callbacks
+and zero retained correlation frames.
 
 ## P4 — original bodies and complete document closure
 
