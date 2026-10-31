@@ -3095,6 +3095,8 @@ private:
     std::vector<std::uint32_t> m_extensionBlockRepresentationDataHandles;
     std::vector<DRW_BlockRepresentationData>
         m_extensionBlockRepresentationDataSources;
+    bool m_extensionBlockRepresentationDataOutputInspected{false};
+    bool m_extensionBlockRepresentationDataOutputDebug{false};
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;
     std::vector<std::uint32_t> m_extensionPlaceholderHandles;
     std::vector<std::uint32_t> m_extensionXRecordHandles;
@@ -3147,7 +3149,8 @@ private:
     bool inspectDwgSortEntsOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool inspectDwgBlockRepresentationDataOutput(
-        const dxfRW::DxfObjectsWriteView& view) noexcept;
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool finalizeDwgBlockRepresentationDataOutput() const noexcept;
     std::unordered_map<std::uint32_t, DRW_Table*> m_tableFallbacks;
     std::unordered_set<std::uint32_t> m_emittedTableHandles;
     std::vector<std::uint32_t> m_tableStylesToEmit;

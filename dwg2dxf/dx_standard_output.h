@@ -334,6 +334,13 @@ public:
     bool complete() const noexcept { return true; }
 };
 
+template <> class Probe<DRW_BlockRepresentationData> final
+    : public DRW_BlockRepresentationData {
+public:
+    using DRW_BlockRepresentationData::parseCode;
+    bool complete() noexcept { return finalizeDxf(); }
+};
+
 template <> class Probe<DRW_SortEntsTable> final
     : public DRW_SortEntsTable {
 public:

@@ -7476,6 +7476,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionAssociativeHandles.clear();
     m_extensionBlockRepresentationDataHandles.clear();
     m_extensionBlockRepresentationDataSources.clear();
+    m_extensionBlockRepresentationDataOutputInspected = false;
+    m_extensionBlockRepresentationDataOutputDebug = false;
     m_dxfAssociativeGeometrySources.clear();
     m_dxfAssociativeGeometryOutputProofs.clear();
     m_dxfAssociativeGeometrySourceOwner = nullptr;
@@ -7557,6 +7559,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_extensionAssociativeHandles.clear();
         m_extensionBlockRepresentationDataHandles.clear();
         m_extensionBlockRepresentationDataSources.clear();
+        m_extensionBlockRepresentationDataOutputInspected = false;
+        m_extensionBlockRepresentationDataOutputDebug = false;
         m_dxfAssociativeGeometrySources.clear();
         m_dxfAssociativeGeometryOutputProofs.clear();
         m_dxfAssociativeGeometrySourceOwner = nullptr;
@@ -35046,17 +35050,53 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
 }
 
 bool dx_iface::inspectDwgBlockRepresentationDataOutput(
-        const dxfRW::DxfObjectsWriteView& view) noexcept {
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_extensionBlockRepresentationDataOutputInspected = false;
+    m_extensionBlockRepresentationDataOutputDebug = debug;
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "BLOCKREPRESENTATIONDATA output proof rejected: "
+                      << reason << '\n';
+        return false;
+    };
     if (m_extensionBlockRepresentationDataHandles.empty())
-        return m_extensionBlockRepresentationDataSources.empty();
+        return m_extensionBlockRepresentationDataSources.empty()
+            || reject("empty selected handles with nonempty snapshots");
     if (dxfW == nullptr || cData == nullptr
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != DRW::AC1024
         || view.version != DRW::AC1024
         || m_extensionBlockRepresentationDataHandles.size()
             != m_extensionBlockRepresentationDataSources.size())
-        return false;
+        return reject("invalid source, target version or selected-source cardinality");
     try {
+        const DRW_WritingContext* context = dxfW->getWritingContext();
+        if (context == nullptr)
+            return reject("source-object output registry is unavailable");
+        const auto stagedObjectHandle = [context](std::uint32_t source,
+                                                   std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u || source == DRW::NoHandle
+                || context->ambiguousSourceHandles.count(source) != 0u
+                || context->writtenSourceEntityHandles.count(source) != 0u
+                || context->sourceHandleToWrittenTableMap.count(source) != 0u
+                || context->sourceHandleToMintedMap.count(source) != 0u)
+                return false;
+            const auto found = context->sourceHandleToWrittenObjectMap.find(
+                source);
+            if (found == context->sourceHandleToWrittenObjectMap.end()
+                || found->second == 0u || found->second == DRW::NoHandle)
+                return false;
+            emitted = found->second;
+            return true;
+        };
+        std::unordered_set<std::uint32_t> observedSources;
+        observedSources.reserve(
+            m_extensionBlockRepresentationDataSources.size());
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good())
+            return reject("could not initialize the staged OBJECTS decoder");
+
         for (std::size_t index = 0u;
              index < m_extensionBlockRepresentationDataSources.size();
              ++index) {
@@ -35064,7 +35104,7 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
                 m_extensionBlockRepresentationDataSources[index];
             if (source.handle
                     != m_extensionBlockRepresentationDataHandles[index])
-                return false;
+                return reject("selected source handle changed");
             const DRW_BlockRepresentationData* current = nullptr;
             std::size_t currentMatches = 0u;
             for (const DRW_BlockRepresentationData& candidate :
@@ -35090,7 +35130,7 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
                 || current->reactorHandles
                     != std::vector<std::uint32_t>{
                         static_cast<std::uint32_t>(current->parentHandle)})
-                return false;
+                return reject("typed callback changed or has invalid common/body fields");
 
             const dx_data::StandardDwgFrameKey sourceKey{
                 cData->importGeneration, source.handle};
@@ -35105,30 +35145,307 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
                 || raw->second.m_className
                     != "AcDbBlockRepresentationData"
                 || raw->second.m_parentHandle != current->parentHandle)
-                return false;
-
-            const std::uint32_t emitted = dxfW->remapHandle(source.handle);
-            const std::uint32_t owner = dxfW->remapHandle(
-                static_cast<std::uint32_t>(current->parentHandle));
-            const std::uint32_t block =
-                dxfW->remapHandle(current->m_blockHandle);
-            if (emitted == 0u || emitted == DRW::NoHandle
-                || owner == 0u || owner == DRW::NoHandle
-                || block == 0u || block == DRW::NoHandle
-                || dxfW->dxfWriteRecordHandleCount(emitted) != 1u
-                || !dxfW->dxfWriteRecordHasIdentity(
-                    emitted, "ACDB_BLOCKREPRESENTATION_DATA", "OBJECTS")
-                || !dxfW->dxfWriteRecordHasOwner(emitted, owner)
-                || dxfW->dxfWriteRecordHandleCount(block) != 1u
-                || !dxfW->dxfWriteRecordHasIdentity(
-                    block, "BLOCK_RECORD", "TABLES")
-                || !recordOpaqueDwgOutputQualification(source.handle))
-                return false;
+                return reject("captured source class/frame identity changed");
         }
+
+        std::size_t outputRecords = 0u;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [](std::string_view name, std::uint32_t) {
+                return name == "ACDB_BLOCKREPRESENTATION_DATA";
+            },
+            [&](const auto& shape, std::string_view body) {
+                bool decoded = false;
+                const auto failBody = [debug, &shape](const char* reason) {
+                    if (debug)
+                        std::cerr << "BLOCKREPRESENTATIONDATA body mismatch: handle="
+                                  << shape.handle << " reason=" << reason
+                                  << '\n';
+                    return false;
+                };
+                const bool valid = decoder.decodeRecord<
+                    DRW_BlockRepresentationData>(body,
+                    [&](const DRW_BlockRepresentationData& actual) {
+                        decoded = true;
+                        if (shape.handle != actual.handle)
+                            return failBody("record framing handle differs from typed handle");
+
+                        const DRW_BlockRepresentationData* source = nullptr;
+                        const DRW_BlockRepresentationData* current = nullptr;
+                        std::uint32_t expectedHandle = 0u;
+                        for (std::size_t index = 0u;
+                             index < m_extensionBlockRepresentationDataSources.size();
+                             ++index) {
+                            const DRW_BlockRepresentationData& candidate =
+                                m_extensionBlockRepresentationDataSources[index];
+                            std::uint32_t mapped = 0u;
+                            if (!stagedObjectHandle(candidate.handle, mapped)
+                                || mapped != actual.handle)
+                                continue;
+                            if (source != nullptr)
+                                return failBody("multiple source identities bind to staged record");
+                            source = &candidate;
+                            expectedHandle = mapped;
+                            for (const DRW_BlockRepresentationData& live :
+                                 cData->blockRepresentationData) {
+                                if (live.handle == candidate.handle) {
+                                    if (current != nullptr)
+                                        return failBody("duplicate live typed source identity");
+                                    current = &live;
+                                }
+                            }
+                        }
+                        if (source == nullptr || current == nullptr)
+                            return failBody("staged identity has no unique source-object binding");
+                        if (!observedSources.insert(source->handle).second)
+                            return failBody("source identity emitted more than once");
+                        if (actual.m_flag != source->m_flag
+                            || actual.m_flag != current->m_flag
+                            || !actual.bodyFullyDecoded())
+                            return failBody("flag or typed body differs from source snapshot");
+                        const bool commonFieldsValid =
+                            actual.parentHandle != 0u
+                            && actual.parentHandle != DRW::NoHandle
+                            && static_cast<std::uint64_t>(actual.parentHandle)
+                                <= std::numeric_limits<std::uint32_t>::max()
+                            && actual.xDictHandle == 0u
+                            && actual.appData.size() == 1u
+                            && actual.extData.empty()
+                            && !actual.hasDataStorageBinaryData()
+                            && actual.reactorHandles
+                                == std::vector<std::uint32_t>{
+                                    static_cast<std::uint32_t>(
+                                        actual.parentHandle)};
+                        bool canonicalReactorGroup = false;
+                        if (commonFieldsValid) {
+                            const auto& group = actual.appData.front();
+                            if (group.size() == 3u) {
+                                auto item = group.cbegin();
+                                const DRW_Variant& opener = *item++;
+                                const DRW_Variant& reactor = *item++;
+                                const DRW_Variant& closer = *item;
+                                canonicalReactorGroup =
+                                    opener.code() == 102
+                                    && opener.type() == DRW_Variant::STRING
+                                    && opener.content.s != nullptr
+                                    && *opener.content.s == "ACAD_REACTORS"
+                                    && reactor.code() == 330
+                                    && reactor.type() == DRW_Variant::STRING
+                                    && reactor.content.s != nullptr
+                                    && closer.code() == 102
+                                    && closer.type() == DRW_Variant::STRING
+                                    && closer.content.s != nullptr
+                                    && *closer.content.s == "}";
+                            }
+                        }
+                        if (!commonFieldsValid || !canonicalReactorGroup) {
+                            if (debug)
+                                std::cerr << "BLOCKREPRESENTATIONDATA common fields: source-owner="
+                                          << current->parentHandle << " output-owner="
+                                          << actual.parentHandle << " reactors="
+                                          << actual.reactorHandles.size() << " xdict="
+                                          << actual.xDictHandle << " appdata-groups="
+                                          << actual.appData.size() << " xdata="
+                                          << actual.extData.size() << " storage="
+                                          << actual.hasDataStorageBinaryData()
+                                          << " canonical-reactors="
+                                          << canonicalReactorGroup << '\n';
+                            return failBody("common owner/reactor or excluded payload fields differ");
+                        }
+                        std::uint32_t expectedOwner = 0u;
+                        if (!stagedObjectHandle(
+                                static_cast<std::uint32_t>(
+                                    current->parentHandle),
+                                expectedOwner)
+                            || actual.parentHandle != expectedOwner
+                            || dxfW->dxfWriteRecordHandleCount(expectedHandle)
+                                != 1u
+                            || !dxfW->dxfWriteRecordHasIdentity(
+                                expectedHandle,
+                                "ACDB_BLOCKREPRESENTATION_DATA", "OBJECTS")
+                            || !dxfW->dxfWriteRecordHasOwner(
+                                expectedHandle, expectedOwner)
+                            || dxfW->dxfWriteRecordHandleCount(expectedOwner)
+                                != 1u
+                            || !dxfW->dxfWriteRecordHasIdentity(
+                                expectedOwner, "DICTIONARY", "OBJECTS"))
+                            return failBody("source object or owner DICTIONARY output identity/edge is absent");
+
+                        const DRW_Block_Record* blockSource = nullptr;
+                        for (const DRW_Block_Record& candidate :
+                             cData->blockRecords) {
+                            if (candidate.handle != current->m_blockHandle)
+                                continue;
+                            if (blockSource != nullptr)
+                                return failBody("source block target is ambiguous");
+                            blockSource = &candidate;
+                        }
+                        if (blockSource == nullptr || blockSource->name.empty())
+                            return failBody("source block target record is missing");
+                        const std::uint32_t emittedBlock =
+                            dxfW->getBlockRecordHandleToWrite(
+                                blockSource->name);
+                        if (emittedBlock == 0u
+                            || emittedBlock == DRW::NoHandle
+                            || actual.m_blockHandle != emittedBlock
+                            || dxfW->dxfWriteRecordHandleCount(emittedBlock)
+                                != 1u
+                            || !dxfW->dxfWriteRecordHasIdentity(
+                                emittedBlock, "BLOCK_RECORD", "TABLES")
+                            || !dxfW->dxfWriteRecordHasOwner(
+                                emittedBlock, 1u))
+                        {
+                            if (debug)
+                                std::cerr << "BLOCKREPRESENTATIONDATA block target mismatch: source="
+                                          << current->m_blockHandle << " name="
+                                          << blockSource->name << " emitted="
+                                          << emittedBlock << " actual="
+                                          << actual.m_blockHandle << " count="
+                                          << dxfW->dxfWriteRecordHandleCount(
+                                                 emittedBlock)
+                                          << " identity="
+                                          << dxfW->dxfWriteRecordHasIdentity(
+                                                 emittedBlock,
+                                                 "BLOCK_RECORD", "TABLES")
+                                          << " owner="
+                                          << dxfW->dxfWriteRecordHasOwner(
+                                                 emittedBlock, 1u) << '\n';
+                            return false;
+                        }
+                        ++outputRecords;
+                        return true;
+                    });
+                if (!valid && debug)
+                    std::cerr << "BLOCKREPRESENTATIONDATA staged body failed: handle="
+                              << shape.handle << " decoded=" << decoded << '\n';
+                return valid;
+            });
+        if (!inspected
+            || outputRecords
+                != m_extensionBlockRepresentationDataSources.size()
+            || observedSources.size()
+                != m_extensionBlockRepresentationDataSources.size())
+            return reject("staged record fields, source identity, owner, or BLOCK_RECORD target did not match");
+
+        for (const DRW_BlockRepresentationData& source :
+             m_extensionBlockRepresentationDataSources) {
+            if (!recordOpaqueDwgOutputQualification(source.handle))
+                return reject("opaque source-frame output qualification could not be recorded");
+        }
+        m_extensionBlockRepresentationDataOutputInspected = true;
         return true;
     } catch (...) {
-        return false;
+        return reject("unexpected exception while checking staged records");
     }
+}
+
+bool dx_iface::finalizeDwgBlockRepresentationDataOutput() const noexcept {
+    const auto reject = [this](const char* reason) {
+        if (m_extensionBlockRepresentationDataOutputDebug)
+            std::cerr << "BLOCKREPRESENTATIONDATA final binding rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (m_extensionBlockRepresentationDataHandles.empty())
+        return m_extensionBlockRepresentationDataSources.empty();
+    if (!m_extensionBlockRepresentationDataOutputInspected || dxfW == nullptr
+        || cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || m_extensionBlockRepresentationDataHandles.size()
+            != m_extensionBlockRepresentationDataSources.size())
+        return reject("missing staged proof or invalid input state");
+    const DRW_WritingContext* context = dxfW->getWritingContext();
+    if (context == nullptr)
+        return reject("source-object output registry is unavailable");
+    const auto outputHandle = [context](std::uint32_t source,
+                                        std::uint32_t& emitted) {
+        emitted = 0u;
+        if (source == 0u || source == DRW::NoHandle
+            || context->ambiguousSourceHandles.count(source) != 0u
+            || context->writtenSourceEntityHandles.count(source) != 0u
+            || context->sourceHandleToWrittenTableMap.count(source) != 0u
+            || context->sourceHandleToMintedMap.count(source) != 0u)
+            return false;
+        const auto found = context->sourceHandleToWrittenObjectMap.find(source);
+        if (found == context->sourceHandleToWrittenObjectMap.end()
+            || found->second == 0u || found->second == DRW::NoHandle)
+            return false;
+        emitted = found->second;
+        return true;
+    };
+    for (std::size_t index = 0u;
+         index < m_extensionBlockRepresentationDataSources.size(); ++index) {
+        const DRW_BlockRepresentationData& source =
+            m_extensionBlockRepresentationDataSources[index];
+        if (source.handle != m_extensionBlockRepresentationDataHandles[index])
+            return reject("source handle differs from selected handle");
+        const DRW_BlockRepresentationData* current = nullptr;
+        for (const DRW_BlockRepresentationData& candidate :
+             cData->blockRepresentationData) {
+            if (candidate.handle != source.handle)
+                continue;
+            if (current != nullptr)
+                return reject("duplicate typed source handle");
+            current = &candidate;
+        }
+        if (current == nullptr
+            || !standardDwgCommonEqual(source, *current, DRW::AC1024)
+            || source.m_flag != current->m_flag
+            || source.m_blockHandle != current->m_blockHandle
+            || !current->bodyFullyDecoded()
+            || current->parentHandle <= 0
+            || static_cast<std::uint64_t>(current->parentHandle)
+                > std::numeric_limits<std::uint32_t>::max())
+            return reject("typed source changed after staged inspection");
+
+        std::uint32_t emitted = 0u;
+        std::uint32_t emittedOwner = 0u;
+        if (!outputHandle(source.handle, emitted)
+            || !outputHandle(static_cast<std::uint32_t>(current->parentHandle),
+                             emittedOwner))
+            return reject("source object or owner mapping is absent or ambiguous");
+        const bool objectIdentity = dxfW->dxfWriteSourceObjectHasIdentity(
+            source.handle, emitted, "ACDB_BLOCKREPRESENTATION_DATA",
+            "OBJECTS", emittedOwner);
+        const bool ownerIdentity = dxfW->dxfWriteSourceObjectHasIdentity(
+            static_cast<std::uint32_t>(current->parentHandle), emittedOwner,
+            "DICTIONARY", "OBJECTS");
+        if (!objectIdentity || !ownerIdentity) {
+            if (m_extensionBlockRepresentationDataOutputDebug)
+                std::cerr << "BLOCKREPRESENTATIONDATA final identity detail: source="
+                          << source.handle << " emitted=" << emitted
+                          << " owner-source=" << current->parentHandle
+                          << " owner=" << emittedOwner
+                          << " object=" << objectIdentity
+                          << " owner-object=" << ownerIdentity
+                          << " record-count="
+                          << dxfW->dxfWriteRecordHandleCount(emitted)
+                          << " owner-match="
+                          << dxfW->dxfWriteRecordHasOwner(emitted, emittedOwner)
+                          << '\n';
+            return reject("source-object identity or owner role is not finalizable");
+        }
+
+        const DRW_Block_Record* blockSource = nullptr;
+        for (const DRW_Block_Record& candidate : cData->blockRecords) {
+            if (candidate.handle != current->m_blockHandle)
+                continue;
+            if (blockSource != nullptr)
+                return reject("source block target is ambiguous");
+            blockSource = &candidate;
+        }
+        if (blockSource == nullptr || blockSource->name.empty())
+            return reject("source block target is missing");
+        const std::uint32_t emittedBlock =
+            dxfW->getBlockRecordHandleToWrite(blockSource->name);
+        if (emittedBlock == 0u || emittedBlock == DRW::NoHandle
+            || dxfW->dxfWriteRecordHandleCount(emittedBlock) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedBlock, "BLOCK_RECORD", "TABLES")
+            || !dxfW->dxfWriteRecordHasOwner(emittedBlock, 1u))
+            return reject("emitted BLOCK_RECORD identity is missing");
+    }
+    return true;
 }
 
 bool dx_iface::inspectDwgDictionaryDefaultOutput(
@@ -53219,6 +53536,7 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDwgMLeaderStyleOutputSources()
         || !hasUnchangedDwgMLineStyleOutputSources()
         || !hasUnchangedDwgLayoutOutputSources()
+        || !finalizeDwgBlockRepresentationDataOutput()
         || (!m_dwgMLineStyleOutputSources.empty()
             && !m_dwgMLineStylesInspected)
         || (!m_dwgLayoutOutputSources.empty()
@@ -53690,6 +54008,46 @@ bool dx_iface::finalizeDxfWrite() {
                 << "/" << cData->dwgReadOutcome.opaqueViewCallbacks << ")\n";
         } catch (...) {
             // Diagnostics cannot authorize publication of incomplete output.
+        }
+        if (m_extensionBlockRepresentationDataOutputDebug) {
+            const dx_data::StandardDwgFrameKey first{
+                cData->importGeneration, 0u};
+            const auto begin =
+                cData->m_opaqueDwgSourceFrameIdentities.lower_bound(first);
+            for (auto current = begin;
+                 current != cData->m_opaqueDwgSourceFrameIdentities.end()
+                     && current->first == cData->importGeneration;
+                 ++current) {
+                if (m_pendingOpaqueDwgOutputQualificationFrameIdentities
+                        .count(*current) != 0u)
+                    continue;
+                const auto raw = cData->m_opaqueDwgSourceFrames.find(
+                    *current);
+                if (raw == cData->m_opaqueDwgSourceFrames.end()) {
+                    const auto standard =
+                        cData->m_standardDwgObjectFrames.find(*current);
+                    if (standard != cData->m_standardDwgObjectFrames.end()) {
+                        std::cerr << "Unqualified opaque DWG callback: handle="
+                                  << standard->second.raw.m_handle << " type="
+                                  << standard->second.raw.m_objectType << " record="
+                                  << standard->second.raw.m_recordName << " class="
+                                  << standard->second.raw.m_className
+                                  << " standard-payload="
+                                  << standard->second.payloadMatched << '/'
+                                  << standard->second.opaquePayload << '\n';
+                    } else {
+                        std::cerr << "Unqualified opaque DWG callback: handle="
+                                  << current->second
+                                  << " source-frame=missing standard-frame=missing\n";
+                    }
+                    continue;
+                }
+                std::cerr << "Unqualified opaque DWG callback: handle="
+                          << raw->second.m_handle << " type="
+                          << raw->second.m_objectType << " record="
+                          << raw->second.m_recordName << " class="
+                          << raw->second.m_className << '\n';
+            }
         }
         return false;
     }
@@ -58545,7 +58903,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     view, debug || requireResolvedOwners))
                 return reject("SORTENTSTABLE DWG physical source/output binding");
             if (needsDwgBlockRepresentationDataOutput
-                && !inspectDwgBlockRepresentationDataOutput(view))
+                && !inspectDwgBlockRepresentationDataOutput(
+                    view, debug || requireResolvedOwners))
                 return reject(
                     "BLOCKREPRESENTATIONDATA source/reference/output binding");
             if (!inspectDxfAssociativeGeometryOutput(view))

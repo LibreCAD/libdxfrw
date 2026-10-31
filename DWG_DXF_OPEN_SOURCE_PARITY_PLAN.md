@@ -61,16 +61,19 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — bind physical BLOCKREPRESENTATIONDATA output.** Strict
-conversion of `title_block-arch.dwg` now passes its earlier XRECORD and AC1024
-R24 TABLESTYLE blockers; staged OBJECTS inspection stops at
-`BLOCKREPRESENTATIONDATA source/reference/output binding`. Prove the physical
-record's staged fields, remapped owner and block-reference roles, and fresh
-readback, then retry strict conversion. Existing narrow parser/serializer and
-source-handle evidence is recorded in:
-[`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
-[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
-and [`p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json`](docs/research/p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json).
+Strict conversion of `title_block-arch.dwg` now passes the physical
+BLOCKREPRESENTATIONDATA staged-field and source-role proof, then refuses at the
+global completeness gate after 90/109 pending opaque-callback output proofs
+pass; the transaction publishes no file. The 19 missing identities and exact
+per-record output proof are in the
+[`BLOCKREPRESENTATIONDATA output receipt`](docs/research/p4-ac1024-block-representation-data-staged-output-proof-2026-10-31.json).
+
+**P4 next packet — close the 19-identity source/output gap.** Reconcile each
+listed callback with the retained standard/opaque source records, source owner
+and dependency proofs, and existing serializer route. Select the smallest
+source-backed family whose emitted fields and roles can be inspected; do not
+qualify a callback from its type/count or from opaque-byte retention alone.
+Keep strict refusal until the complete source identity set is covered.
 
 ## P4 — original bodies and complete document closure
 
@@ -116,10 +119,11 @@ output gates are met.
 ## P5 — rendering and TABLE
 
 **Dynamic-block output profiles:** qualify the physical AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Strict conversion now
-reaches staged OBJECTS inspection but stops at the preceding
-BLOCKREPRESENTATIONDATA source/reference/output binding. After that P4 packet
-closes, bind the source's four EvaluationGraph nodes, three edges, linked
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Its
+BLOCKREPRESENTATIONDATA record now passes staged field/role and final identity
+checks, while strict complete-document output still has 19 unqualified source
+identities. After the P4 source/output gap closes, bind the source's four
+EvaluationGraph nodes, three edges, linked
 Grip/GripLocation records, visibility flat/state handle sets, exact
 SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged output and
 fresh ASCII/Binary readback. Prove atomic refusal/retry for a missing required
