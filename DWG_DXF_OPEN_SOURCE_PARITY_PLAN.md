@@ -142,16 +142,14 @@ missing provider, remap, collision or composed output failure.
 **TABLE:**
 
 1. **Nested FIELD graphs:** close FIELDLIST/child graphs and additional
-   source/version FIELD body profiles. Complete standalone 1x1 multi-reference
-   compositions and other linked-cell payloads only where an independent source
-   or consumer witness identifies the missing behavior. Reuse existing rooted
-   reference planning and handle remapping. Preserve unsupported compositions
-   with explicit refusal. Native expression evaluation and TABLE rendering
-   remain separate semantic qualifications.
-2. **Block-cell payloads and geometry:** close remaining compositions with
-   multiple block CONTENT records in one cell and independently evidenced
-   block-geometry payloads. Bind the exact field layout and semantics to a
-   source or consumer witness; keep unsupported payloads refused while
+   source/version FIELD body profiles. Complete other linked-cell payloads only
+   where an independent source or consumer witness identifies missing behavior.
+   Reuse existing rooted reference planning and handle remapping. Preserve
+   unsupported compositions with explicit refusal. Native expression evaluation
+   and TABLE rendering remain separate semantic qualifications.
+2. **Block-cell geometry:** implement payloads only when a source or consumer
+   witness identifies missing fields or semantics. Bind the exact field layout
+   and semantics to that witness; keep unsupported payloads refused while
    preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
    data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
