@@ -56,17 +56,23 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — physical profile output closure:** start with
-`docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json` and current
-per-profile receipts in `docs/research/`. Select the highest-incidence required
-record family without exact source fields, output identity/role, and fresh
-readback evidence; prepare one execution brief naming its source handles,
-dependencies, writer hook, owning selector, and conditional escalation before
-editing. Reuse unchanged profile evidence and skip identities already proven by
-their current receipt. The strict complete-export gate remains blocked until
-all required callback identities and descendants close; preserve explicit
-refusal, do not infer edges from adjacent handles, and do not commit
-investigation DWGs.
+**P4 next action — AC1024 VISUALSTYLE physical identity/output proof:** the
+19-record VISUALSTYLE family is the largest current census profile without an
+exact physical source-to-output receipt. Its existing receipt
+(`docs/research/p5-ac1024-visualstyle-typed-dxf-output-2026-10-30.json`)
+qualifies only a locally authored ASCII/Binary serializer profile; it does not
+bind the physical source's 19 handles and fields to emitted records. Before
+editing, freeze those handles, the ACAD_VISUALSTYLE dictionary owner/reactor
+roles, all 28 group-176 companions, the five CMC roles, and the source body
+fields. Extend the physical output inspector invoked by `fileExport()` around
+`writeVisualStyleRaw()` so it checks every source identity and field against
+staged bytes and fresh readback. Extend the existing
+`--visual-style-ac1024-typed-writer` selector with locally authored refusal,
+destination-preservation, and corrected-retry controls for invalid source
+mutation. Run that focused serializer selector and the existing explicit-partial
+physical diagnostic; do not add investigation DWGs or infer coverage from the
+19-record count. Strict complete-export remains blocked until all required
+callback identities and descendants close.
 
 ## P4 — original bodies and complete document closure
 
