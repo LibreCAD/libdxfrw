@@ -47,8 +47,8 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. Its serializer checkpoint remains unreachable because no opaque callback frames are retained for replay. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata, nested FIELD dependency/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. The current physical partial trace passes nested SORTENTSTABLE and AC1024 VISUALSTYLE carrier coverage, then stops at `ACDBASSOC2DCONSTRAINTGROUP` admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, nested FIELD dependency/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, and AC1018 TABLE. The locally generated AC1024 typed VISUALSTYLE serializer slice is complete; semantic/output qualification remains open. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -57,20 +57,25 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next P5 implementation packet:** resolve the physical AC1024
-`VISUALSTYLE carrier coverage` preflight refusal before associative graph
-traversal. On the current mechanical witness
+**Next P4 implementation packet:** route the already implemented direct
+AC1024 version-0 constraint-group writer through the source-bound associative
+graph for the physical mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`), the
-diagnostic trace records 19 VISUALSTYLE parse callbacks and stops because typed
-and raw carrier coverage does not reconcile. Trace each source record's fields,
-owner, and style references against the typed writer; admit only a fully
-source-bound output route, otherwise preserve refusal. Add a locally generated
-ASCII/Binary selector for exact field/reference readback, bad-target refusal,
-destination preservation, and corrected retry. Re-run the partial physical
-diagnostic after the slice; keep strict admission closed while any required
-profile or the 228 opaque callback identities remain uncovered. Receipt:
-`docs/research/p4-ac1024-nested-network-sortents-output-2026-10-30.json`.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
+current partial trace advances past the completed VISUALSTYLE coverage gate
+and stops at `ACDBASSOC2DCONSTRAINTGROUP` admission. Start with source handle
+`0x42B` and the existing receipt's 399-node/88-action AC1024 version-0 profile;
+route only node DataKinds and handle roles already covered by
+`docs/research/p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json`.
+Bind the group's action list, owner network, node dependencies and descendant
+records to planned and emitted handles; add ASCII/Binary generated graph
+readback plus invalid-target rollback/retry. If any source node or dependency
+falls outside that receipt, keep the unsupported part refused and create a
+smaller witnessed sub-packet. Re-run the physical partial diagnostic and keep
+strict complete-export admission closed while required profiles or the 228
+opaque callback identities remain uncovered. Completed AC1024 VISUALSTYLE
+slice receipt:
+`docs/research/p5-ac1024-visualstyle-typed-dxf-output-2026-10-30.json`.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -100,9 +105,11 @@ engines.
 2. **Graph and output admission:** close any source-required body, owner edge,
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
-   The physical mechanical source cannot reach this serializer checkpoint: its
-   global strict-read predicate rejects opaque callback views that are not
-   retained for output. The callback census is recorded in
+   Strict complete-export of the physical mechanical source remains blocked:
+   the global strict-read predicate rejects opaque callback views that are
+   not retained for output. The explicit partial diagnostic can reach graph
+   preflight and currently stops at the AC1024 constraint-group profile. The
+   callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
    source identities and the existing family receipts to map each profile to
    complete typed output or a proven end-to-end replay path; a typed callback
