@@ -1,0 +1,86 @@
+{
+  "title": "AC1024 physical MLINESTYLE sentinel output and associative class admission",
+  "completedAt": "2026-10-31",
+  "scope": "One source-backed MLINESTYLE output profile plus the associative class-routing fixes needed to advance the existing physical witness. This does not close P4 or promote whole-file support.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "qualificationMode": "explicit partial read only; strict complete export remains blocked by the incomplete DWG read disposition"
+  },
+  "observations": {
+    "formatEvidence": {
+      "odaSpec": {
+        "file": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+        "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+        "section": "20.4.73 MLINESTYLE",
+        "finding": "Before R2018, each MLINESTYLE line stores its linetype index as BS; R2018 and later store a hard-pointer linetype handle."
+      },
+      "independentOpenSourceCrosscheck": {
+        "repository": "/Users/dli/dev/libredwg",
+        "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "files": ["src/dwg.c", "src/dwg.spec"],
+        "finding": "The R2018 upgrade maps index 0 to CONTINUOUS, 32767 to BYLAYER and 32766 to BYBLOCK; the DXF schema maps the same pre-R2018 indices to group 6 names."
+      }
+    },
+    "associativeClasses": [
+      {
+        "recordName": "ACDBASSOCDEPENDENCY",
+        "handle": "1502",
+        "finding": "The selected source record had a canonical class profile and typed writer but was missing from class admission and OBJECTS writer dispatch. It is now admitted and sent to writeAssociativeDependency."
+      },
+      {
+        "recordName": "ASSOCDIMDEPENDENCYBODY",
+        "classNumber": 522,
+        "appName": "AcDbAssocDependencyBody",
+        "className": "AcDbAssocDimDependencyBody",
+        "instanceCount": 29,
+        "finding": "This source alias is admitted only from one complete, finalized, published source CLASS row with validated class number and flags; its exact source row is emitted instead of substituting generic canonical metadata."
+      }
+    ],
+    "mlineStyle": {
+      "handle": "0x18",
+      "name": "STANDARD",
+      "elementCount": 2,
+      "sourceLinetypeIndices": [32767, 32767],
+      "finding": "The AC1024 signed-BS values are the built-in BYLAYER sentinel. The writer previously rejected every set index as unresolved, even when it had a defined sentinel meaning."
+    },
+    "nextPhysicalFailure": {
+      "recordName": "TABLESTYLE",
+      "classNumber": 504,
+      "className": "AcDbTableStyle",
+      "instanceCount": 1,
+      "handle": "0x87",
+      "name": "Standard",
+      "diagnostic": "tablestyle-unsupported-profile: TABLESTYLE is outside the bounded typed profile"
+    }
+  },
+  "implementation": {
+    "changes": [
+      "Admit ACDBASSOCDEPENDENCY and route it through the existing typed associative dependency writer.",
+      "Admit the source alias ASSOCDIMDEPENDENCYBODY using its exact validated published CLASS row.",
+      "Emit pre-R2018 MLINESTYLE linetype indices 0, 32767 and 32766 as CONTINUOUS, BYLAYER and BYBLOCK; continue refusing ordinary indices without a uniquely source-bound linetype name and refuse unresolved handles.",
+      "Add focused ASCII and Binary DXF controls for all three known values and for refusal of an unknown index before record publication.",
+      "Add phase-level OBJECTS and TABLESTYLE rejection diagnostics to locate the next physical witness failure."
+    ],
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/wave1_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_wave1_tests -j4",
+    "focusedMlineStyle": "PASS: build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+    "focusedAssociativeDependency": "PASS: build-gcc/libdxfrw_wave1_tests --associative-dependency-writer",
+    "physicalWitness": "EXPECTED FAILURE AFTER PROGRESS: explicit-partial AC1024 conversion passes the associative and MLINESTYLE phases, then refuses TABLESTYLE handle 0x87; process exits 1 and no DXF output is published."
+  },
+  "evidenceLimits": [
+    "The physical DWG remains outside the repository; no DWG/DXF fixture was added.",
+    "Only the three source-established built-in linetype index values are promoted by this slice. Other table indices require source-bound LTYPE identity and remain refused.",
+    "The run used --allow-partial-dwg-read and is diagnostic evidence only; strict-complete export and full source graph closure remain unqualified.",
+    "No native CAD rendering or independent consumer semantic evidence is established by serializer tests."
+  ],
+  "next": "Split the TABLESTYLE bounded-profile rejection by predicate for the physical Standard record at handle 0x87; then implement only the first source-backed lossless output/readback profile. Continue physical callback closure while keeping strict-complete admission closed."
+}

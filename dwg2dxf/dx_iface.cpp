@@ -46522,8 +46522,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             && registerClass("DICTIONARYVAR", "AcDbDictionaryVar",
                              m_extensionDictionaryVarHandles.size());
     };
-    const auto registerAssociativeClasses = [this](
+    std::string associativeClassFailureDetail;
+    const auto registerAssociativeClasses = [this,
+            &associativeClassFailureDetail](
             std::vector<DRW_Class>& classes) {
+        associativeClassFailureDetail.clear();
         std::map<std::string, std::size_t> counts;
         for (const std::uint32_t handle : m_extensionAssociativeHandles) {
             const DRW_AssociativeObject* selected = nullptr;
@@ -46535,29 +46538,88 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 ++matches;
                 selected = &object;
             }
-            if (matches != 1u || selected == nullptr
-                || (selected->m_recordName != "ACDBASSOCNETWORK"
+            if (matches != 1u || selected == nullptr) {
+                associativeClassFailureDetail =
+                    "selected handle " + std::to_string(handle)
+                    + " is missing or ambiguous in source associative records";
+                return false;
+            }
+            if (selected->m_recordName != "ACDBASSOCNETWORK"
                     && selected->m_recordName != "ACDBASSOCVARIABLE"
+                    && selected->m_recordName != "ACDBASSOCDEPENDENCY"
                     && selected->m_recordName
                         != "ACDBASSOC2DCONSTRAINTGROUP"
                     && selected->m_recordName
                         != "ACDBASSOCGEOMDEPENDENCY"
                     && selected->m_recordName
+                        != "ASSOCDIMDEPENDENCYBODY"
+                    && selected->m_recordName
                         != "ACDBASSOCDIMDEPENDENCYBODY"
                     && selected->m_recordName
-                        != "ACDBASSOCVALUEDEPENDENCY"))
+                        != "ACDBASSOCVALUEDEPENDENCY") {
+                associativeClassFailureDetail =
+                    "selected source record " + selected->m_recordName
+                    + " at handle " + std::to_string(handle)
+                    + " has no admitted CLASS profile";
                 return false;
+            }
             auto& count = counts[selected->m_recordName];
             if (count == static_cast<std::size_t>(
-                    std::numeric_limits<int>::max()))
+                    std::numeric_limits<int>::max())) {
+                associativeClassFailureDetail =
+                    "selected source instance count exceeds DXF CLASS range for "
+                    + selected->m_recordName;
                 return false;
+            }
             ++count;
         }
 
         for (const auto& count : counts) {
             DRW_Class canonical;
-            if (!dxfRW::dxfClassForRecordName(count.first, canonical))
+            if (count.first == "ASSOCDIMDEPENDENCYBODY") {
+                const DRW_DwgClassCoverageEntry* sourceClass = nullptr;
+                std::size_t sourceClassMatches = 0u;
+                for (const DRW_DwgClassCoverageEntry& entry :
+                     cData->dwgClassCoverage.m_entries) {
+                    if (entry.m_recordName != count.first)
+                        continue;
+                    sourceClass = &entry;
+                    ++sourceClassMatches;
+                }
+                if (!cData->dwgClassCoverage.m_complete
+                    || cData->dwgClassCoverage.m_status
+                        != DRW_DwgClassCoverageStatus::FinalizedComplete
+                    || sourceClassMatches != 1u || sourceClass == nullptr
+                    || sourceClass->m_state
+                        != DRW_DwgClassCoverageState::Published
+                    || sourceClass->m_classNumber < 500u
+                    || sourceClass->m_className
+                        != "AcDbAssocDimDependencyBody"
+                    || sourceClass->m_proxyFlag < 0
+                    || sourceClass->m_proxyFlag
+                        > std::numeric_limits<std::uint16_t>::max()
+                    || sourceClass->m_wasAProxyFlag < 0
+                    || sourceClass->m_wasAProxyFlag > 1
+                    || sourceClass->m_entityFlag < 0
+                    || sourceClass->m_entityFlag > 1) {
+                    associativeClassFailureDetail =
+                        "ASSOCDIMDEPENDENCYBODY lacks one complete published source CLASS row";
+                    return false;
+                }
+                canonical.recName = sourceClass->m_recordName;
+                canonical.className = sourceClass->m_className;
+                canonical.appName = sourceClass->m_appName;
+                canonical.proxyFlag = sourceClass->m_proxyFlag;
+                canonical.wasaProxyFlag = sourceClass->m_wasAProxyFlag;
+                canonical.entityFlag = sourceClass->m_entityFlag;
+                canonical.entityFlagRaw = sourceClass->m_entityFlagRaw;
+            } else if (!dxfRW::dxfClassForRecordName(
+                           count.first, canonical)) {
+                associativeClassFailureDetail =
+                    "selected source record " + count.first
+                    + " has no canonical DXF CLASS definition";
                 return false;
+            }
             std::vector<DRW_Class> normalized;
             normalized.reserve(classes.size() + 1u);
             bool found = false;
@@ -46575,8 +46637,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                         != layoutSymbolKey(canonical.appName)
                     || candidate.proxyFlag != canonical.proxyFlag
                     || candidate.entityFlag != canonical.entityFlag
-                    || candidate.wasaProxyFlag != 0)
+                    || candidate.wasaProxyFlag != 0) {
+                    associativeClassFailureDetail =
+                        "source CLASS row " + candidate.recName + "/"
+                        + candidate.className
+                        + " conflicts with canonical metadata or is duplicated for "
+                        + canonical.recName;
                     return false;
+                }
                 found = true;
             }
             canonical.instanceCount = static_cast<int>(count.second);
@@ -47004,15 +47072,29 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 cData->evaluationGraphs.size());
             classes.push_back(std::move(evaluationGraphClass));
         }
-        if (!registerMeshClass(classes)
-            || !registerMLeaderStyleClass(classes)
-            || !registerNamedResourceClasses(classes)
-            || !registerDictionaryDefaultClasses(classes)
-            || !registerAssociativeClasses(classes)) {
-            reportPreflightFailure("AcDbSubDMesh CLASS metadata");
+        const auto rejectClassRegistration = [this, &reportPreflightFailure](
+                const std::string& reason) {
+            reportPreflightFailure(reason);
             delete dxfW;
             dxfW = nullptr;
             return false;
+        };
+        if (!registerMeshClass(classes))
+            return rejectClassRegistration("AcDbSubDMesh CLASS metadata");
+        if (!registerMLeaderStyleClass(classes))
+            return rejectClassRegistration("AcDbMLeaderStyle CLASS metadata");
+        if (!registerNamedResourceClasses(classes))
+            return rejectClassRegistration("named-resource CLASS metadata");
+        if (!registerDictionaryDefaultClasses(classes))
+            return rejectClassRegistration(
+                "dictionary-default CLASS metadata");
+        if (!registerAssociativeClasses(classes)) {
+            std::string reason = "associative CLASS metadata";
+            if (!associativeClassFailureDetail.empty()) {
+                reason += ": ";
+                reason += associativeClassFailureDetail;
+            }
+            return rejectClassRegistration(reason);
         }
         dxfW->setDxfClasses(std::move(classes));
     }
@@ -47629,19 +47711,42 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || !m_extensionMaterialHandles.empty()
             || !m_dxfMaterialWriteSources.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput](const auto& view) {
-            return hasUnchangedXrecordWriteSources()
-                && (!needsShadeOutput || inspectDxfShadeConsumers(view, "OBJECTS"))
-                && inspectDxfRenderSettingsOutput(view)
-                && inspectDxfMaterialOutput(view)
-                && inspectDxfDictionaryVars(view)
-                && inspectDxfScales(view)
-                && inspectDxfMLineStyles(view)
-                && inspectDxfMLeaderStyles(view)
-                && inspectAcdsDxfHistory(view)
-                && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
-                && (!needsRasterOutput || inspectRasterOutput(view))
-                && (!needsGeneratedRoots || inspectGeneratedRootOutput(view));
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, debug, requireResolvedOwners](const auto& view) {
+            const auto reject = [debug, requireResolvedOwners](
+                    const char* stage) {
+                if (debug || requireResolvedOwners)
+                    std::cerr << "DXF OBJECTS output inspection failed: "
+                              << stage << '\n';
+                return false;
+            };
+            if (!hasUnchangedXrecordWriteSources())
+                return reject("XRECORD source snapshot");
+            if (needsShadeOutput
+                && !inspectDxfShadeConsumers(view, "OBJECTS"))
+                return reject("shade consumer references");
+            if (!inspectDxfRenderSettingsOutput(view))
+                return reject("render settings");
+            if (!inspectDxfMaterialOutput(view))
+                return reject("MATERIAL");
+            if (!inspectDxfDictionaryVars(view))
+                return reject("DICTIONARYVAR");
+            if (!inspectDxfScales(view))
+                return reject("SCALE");
+            if (!inspectDxfMLineStyles(view))
+                return reject("MLINESTYLE");
+            if (!inspectDxfMLeaderStyles(view))
+                return reject("MLEADERSTYLE");
+            if (!inspectAcdsDxfHistory(view))
+                return reject("ACDS history");
+            if (!cData->m_standardDwgObjectFrames.empty()
+                && !inspectStandardDwgOutput(view))
+                return reject("standard DWG object frame");
+            if (needsRasterOutput && !inspectRasterOutput(view))
+                return reject("raster objects");
+            if (needsGeneratedRoots
+                && !inspectGeneratedRootOutput(view))
+                return reject("generated NOD roots");
+            return true;
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }

@@ -2781,11 +2781,12 @@ void testAssociativeNetworkWriter(TestContext& t) {
         value << std::uppercase << std::hex << handle;
         return value.str();
     };
-    const std::array<std::pair<const char*, const char*>, 4>
+    const std::array<std::pair<const char*, const char*>, 5>
         witnessedAssociativeClasses{{
             {"ACDBASSOCNETWORK", "AcDbAssocNetwork"},
             {"ACDBASSOC2DCONSTRAINTGROUP", "AcDbAssoc2dConstraintGroup"},
             {"ACDBASSOCGEOMDEPENDENCY", "AcDbAssocGeomDependency"},
+            {"ACDBASSOCDEPENDENCY", "AcDbAssocDependency"},
             {"ACDBASSOCVARIABLE", "AcDbAssocVariable"}}};
     bool classRowsMatch = true;
     for (const auto& expectedClass : witnessedAssociativeClasses) {
@@ -4262,6 +4263,65 @@ void testMLineStyleReferenceHandleRemapping(TestContext& t) {
         t.expect(!rejectingWriter.writeMLine(&invalid)
                      && rejectedOutput.str().empty(),
                  "MLINE sentinel style handle refuses before record publication");
+    }
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW writer("");
+        writer.version = DRW::AC1024;
+        writer.binFile = binary;
+        writer.writer = binary
+            ? std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterBinary>(&output))
+            : std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterAscii>(&output));
+        writer.getWritingContext()->lineTypesMap.emplace_back(
+            "CONTINUOUS", 0x800u);
+        DRW_MLineStyle style;
+        style.handle = 0xA500u;
+        style.parentHandle = 0xA600u;
+        style.name = "DWG_LINETYPE_SENTINELS";
+        DRW_MLineElement byLayer;
+        byLayer.linetypeIndex = 32767;
+        style.elements.push_back(byLayer);
+        DRW_MLineElement byBlock;
+        byBlock.linetypeIndex = 32766;
+        style.elements.push_back(byBlock);
+        DRW_MLineElement continuous;
+        continuous.linetypeIndex = 0;
+        style.elements.push_back(continuous);
+        const bool written = writer.writeMLineStyle(&style)
+            && writer.writer->writeString(0, "WIRE_END");
+        bool ended = false;
+        const auto tags = numericWireProjection(output.str(), binary, ended);
+        std::vector<std::string> emittedLineTypes;
+        std::copy_if(tags.begin(), tags.end(),
+                     std::back_inserter(emittedLineTypes),
+                     [](const auto& tag) { return tag.rfind("6:", 0) == 0; });
+        t.expect(written && ended
+                     && emittedLineTypes
+                         == std::vector<std::string>{"6:BYLAYER", "6:BYBLOCK",
+                                                     "6:CONTINUOUS"},
+                 binary
+                     ? "AC1024 MLINESTYLE DWG built-in linetype indices retain BYLAYER/BYBLOCK/CONTINUOUS in binary DXF"
+                     : "AC1024 MLINESTYLE DWG built-in linetype indices retain BYLAYER/BYBLOCK/CONTINUOUS in ASCII DXF");
+
+        std::ostringstream rejectedOutput;
+        dxfRW rejectingWriter("");
+        rejectingWriter.version = DRW::AC1024;
+        rejectingWriter.binFile = binary;
+        rejectingWriter.writer = binary
+            ? std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterBinary>(&rejectedOutput))
+            : std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterAscii>(&rejectedOutput));
+        DRW_MLineStyle unresolved = style;
+        unresolved.elements[0].linetypeIndex = 7;
+        t.expect(!rejectingWriter.writeMLineStyle(&unresolved)
+                     && rejectedOutput.str().empty(),
+                 binary
+                     ? "AC1024 MLINESTYLE unknown DWG linetype index refuses before binary record publication"
+                     : "AC1024 MLINESTYLE unknown DWG linetype index refuses before ASCII record publication");
     }
 }
 

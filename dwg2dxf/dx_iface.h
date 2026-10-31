@@ -17,12 +17,14 @@
 #include "libdxfrw.h"
 #include "dx_data.h"
 #include "dx_mline_source_dependency.h"
+#include "intern/drw_dbg.h"
 #include "intern/dxfwholesource.h"
 namespace blockref_source_relation { struct Result; }
 
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <iostream>
 #include <iosfwd>
 #include <limits>
 #include <type_traits>
@@ -1183,6 +1185,20 @@ public:
         if (dxfW == nullptr)
             return;
 
+        const char* objectWritePhase = "source snapshot validation";
+        bool objectWriteCompleted = false;
+        struct ObjectWriteDiagnostic {
+            const char*& phase;
+            bool& completed;
+            ~ObjectWriteDiagnostic() {
+                if (!completed) {
+                    DRW_DBG("DXF OBJECTS callback aborted in ");
+                    DRW_DBG(phase);
+                    DRW_DBG("\n");
+                }
+            }
+        } objectWriteDiagnostic{objectWritePhase, objectWriteCompleted};
+
         if (!hasUnchangedAcdsDxfHistorySources()
             || !hasUnchangedDxfMaterialSources()
             || !hasUnchangedExtensionMaterialSources()
@@ -1191,6 +1207,7 @@ public:
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
+        objectWritePhase = "ACDS history records";
         for (auto& record : m_acdsDxfHistoryObjects) {
             if (!dxfW->writeRawDxfObject(&record)) return;
         }
@@ -1211,6 +1228,7 @@ public:
             }
         }
         std::unordered_set<std::uint32_t> emittedDictionaryHandles;
+        objectWritePhase = "extension dictionaries";
         for (std::uint32_t handle : m_extensionDictionaryHandles) {
             if (handle == layoutDictionaryHandle
                 || !emittedDictionaryHandles.insert(handle).second)
@@ -1229,6 +1247,7 @@ public:
         }
         std::unordered_set<std::uint32_t> dictionaryWithDefaultHandles;
         std::unordered_set<std::uint32_t> placeholderHandles;
+        objectWritePhase = "dictionary-with-default records";
         for (const std::uint32_t handle :
              m_extensionDictionaryWithDefaultHandles) {
             std::size_t rawMatches = 0;
@@ -1297,6 +1316,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "plot settings";
         for (std::uint32_t handle : m_extensionPlotSettingsHandles) {
             for (DRW_PlotSettings& settings : cData->plotSettings) {
                 if (settings.handle != handle)
@@ -1306,6 +1326,7 @@ public:
                 break;
             }
         }
+        objectWritePhase = "render settings";
         if (!hasUnchangedDxfRenderPresetSources()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
@@ -1326,6 +1347,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "background objects";
         std::unordered_set<std::uint32_t> backgroundHandles;
         for (std::uint32_t handle : dxfW->resolvedBackgroundHandles()) {
             std::size_t matches = 0;
@@ -1341,6 +1363,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "sun objects";
         std::unordered_set<std::uint32_t> sunHandles;
         for (std::uint32_t handle : dxfW->resolvedSunHandles()) {
             std::size_t matches = 0;
@@ -1356,6 +1379,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "sort dictionaries and layouts";
         std::unordered_set<std::uint32_t> sortDictionaries(
             m_sortDictionaryHandles.begin(), m_sortDictionaryHandles.end());
         for (DRW_Dictionary& dictionary : cData->dictionaries) {
@@ -1387,6 +1411,7 @@ public:
                     return;
             }
         }
+        objectWritePhase = "XRECORDs";
         for (std::uint32_t handle : m_extensionXRecordHandles) {
             for (DRW_XRecord& record : cData->xRecords) {
                 if (record.handle == handle) {
@@ -1396,6 +1421,7 @@ public:
                 }
             }
         }
+        objectWritePhase = "spatial filters";
         std::unordered_set<std::uint32_t> spatialFilterHandles;
         for (const std::uint32_t handle : m_spatialFilterHandlesToWrite) {
             std::size_t matches = 0;
@@ -1427,6 +1453,7 @@ public:
             }
             return name == "SCALE";
         };
+        objectWritePhase = "DICTIONARYVAR records";
         for (std::uint32_t handle : m_extensionDictionaryVarHandles) {
             std::size_t rawMatches = 0;
             std::size_t typedMatches = 0;
@@ -1467,6 +1494,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "SCALE records";
         std::unordered_set<std::uint32_t> scaleHandles;
         for (std::uint32_t handle : m_extensionScaleHandles) {
             if (cData->sourceFormat == dx_source_format::DXF) {
@@ -1521,6 +1549,7 @@ public:
             }
             return name == "MLINESTYLE";
         };
+        objectWritePhase = "MLINESTYLE records";
         for (std::uint32_t handle : m_extensionMLineStyleHandles) {
             if (cData->sourceFormat == dx_source_format::DXF) {
                 const auto source=m_dxfMLineStyles.find(handle);
@@ -1548,15 +1577,31 @@ public:
                 typedStyle = &style;
             }
             if (!mlineStyleHandles.insert(handle).second) {
+                DRW_DBG("DXF MLINESTYLE output has duplicate selected handle ");
+                DRW_DBG(handle);
+                DRW_DBG("\n");
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }
             if (cData->sourceFormat == dx_source_format::DWG) {
                 if (rawMatches != 0u || typedMatches != 1u
-                    || typedStyle == nullptr
-                    || !cData->hasSingleSuccessfulNamedResourceImport()
-                    || !dxfW->writeMLineStyle(typedStyle))
+                    || typedStyle == nullptr) {
+                    DRW_DBG("DXF MLINESTYLE source binding mismatch handle/raw/typed=");
+                    DRW_DBG(handle); DRW_DBG("/"); DRW_DBG(rawMatches);
+                    DRW_DBG("/"); DRW_DBG(typedMatches); DRW_DBG("\n");
                     return;
+                }
+                if (!cData->hasSingleSuccessfulNamedResourceImport()) {
+                    DRW_DBG("DXF MLINESTYLE has no unique successful named-resource import handle=");
+                    DRW_DBG(handle); DRW_DBG("\n");
+                    return;
+                }
+                if (!dxfW->writeMLineStyle(typedStyle)) {
+                    DRW_DBG("DXF MLINESTYLE writer rejected handle=");
+                    DRW_DBG(handle); DRW_DBG(" name=");
+                    DRW_DBG(typedStyle->name.c_str()); DRW_DBG("\n");
+                    return;
+                }
             } else if (rawMatches != 1u || typedMatches != 1u
                        || rawStyle == nullptr
                        || !cData->hasSingleSuccessfulNamedResourceImport()
@@ -1573,6 +1618,7 @@ public:
             }
             return name == "MLEADERSTYLE";
         };
+        objectWritePhase = "MLEADERSTYLE records";
         for (std::uint32_t handle : m_extensionMLeaderStyleHandles) {
             std::size_t rawMatches = 0;
             std::size_t typedMatches = 0;
@@ -1614,6 +1660,7 @@ public:
                 }
             }
         }
+        objectWritePhase = "VISUALSTYLE records";
         std::unordered_set<std::uint32_t> visualStyleHandles;
         for (std::uint32_t handle : m_extensionVisualStyleHandles) {
             if (cData->sourceFormat == dx_source_format::DWG) {
@@ -1656,6 +1703,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "TABLESTYLE records";
         std::unordered_set<std::uint32_t> tableStyleHandles;
         for (std::uint32_t handle : m_extensionTableStyleHandles) {
             std::size_t rawMatches = 0;
@@ -1690,6 +1738,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "CELLSTYLEMAP records";
         std::unordered_set<std::uint32_t> cellStyleMapHandles;
         for (std::uint32_t handle : m_extensionCellStyleMapHandles) {
             if (!cellStyleMapHandles.insert(handle).second) {
@@ -1717,6 +1766,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "detail-view style records";
         std::unordered_set<std::uint32_t> detailViewStyleHandles;
         for (std::uint32_t handle : m_extensionDetailViewStyleHandles) {
             std::size_t rawMatches = 0;
@@ -1751,6 +1801,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "section-view style records";
         std::unordered_set<std::uint32_t> sectionViewStyleHandles;
         for (std::uint32_t handle : m_extensionSectionViewStyleHandles) {
             std::size_t rawMatches = 0;
@@ -1785,6 +1836,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "proxy records";
         std::unordered_set<std::uint32_t> rawProxyHandles;
         for (DRW_RawDxfObject& object : cData->rawProxyObjects) {
             if (object.handle == 0
@@ -1793,6 +1845,7 @@ public:
                 return;
             }
         }
+        objectWritePhase = "ACDS records";
         if (!cData->dataStorageSections.empty()) {
             if (!m_acdsTypedHistoryObjects.empty()) {
                 for (DRW_RawDxfObject& object : m_acdsTypedHistoryObjects) {
@@ -1835,6 +1888,7 @@ public:
                 }
             }
         }
+        objectWritePhase = "MATERIAL records";
         for (const std::uint32_t handle : m_extensionMaterialHandles) {
             std::size_t matches = 0u;
             for (DRW_Material& material : cData->materials) {
@@ -1849,11 +1903,13 @@ public:
                 return;
             }
         }
+        objectWritePhase = "DXF-origin MATERIAL records";
         for (const std::uint32_t handle : m_dxfMaterialHandles) {
             if(!writeDxfMaterialSource(handle)) {
                 dxfW->writeRawDxfObject(nullptr);return;
             }
         }
+        objectWritePhase = "evaluation graph records";
         // The bounded typed EvaluationGraph writer is independently usable
         // for ordinary DXF input. AC1027 DataStorage closures stay on their
         // stricter proxy-graph gate until ACSH field serialization is complete.
@@ -1865,6 +1921,7 @@ public:
                 }
             }
         }
+        objectWritePhase = "sort-entity tables and data links";
         for (DRW_SortEntsTable& table : m_sortEmissionTables) {
             if (!dxfW->writeSortEntsTable(&table))
                 return;
@@ -1873,6 +1930,7 @@ public:
             if (!dxfW->writeDataLink(&dataLink))
                 return;
         }
+        objectWritePhase = "FIELD and FIELDLIST records";
         std::unordered_set<std::uint32_t> tableFieldHandles;
         if (!cData->fields.empty()) {
             if (!hasSimpleTableContentFieldProfile(*cData)) {
@@ -1900,6 +1958,7 @@ public:
                     return;
             }
         }
+        objectWritePhase = "TABLECONTENT records";
         for (DRW_TableContentObject& content : cData->tableContents) {
             if (!tableContentDirectReferencesClosed(
                     content, tableFieldHandles)) {
@@ -1909,6 +1968,7 @@ public:
             if (!dxfW->writeTableContent(&content))
                 return;
         }
+        objectWritePhase = "associative records";
         std::unordered_set<std::uint32_t> associativeHandles;
         for (const std::uint32_t handle : m_extensionAssociativeHandles) {
             if (!associativeHandles.insert(handle).second) {
@@ -1942,13 +2002,21 @@ public:
                      || object->m_recordName
                          == "ASSOCDIMDEPENDENCYBODY")
                 written = dxfW->writeAssociativeDependencyBody(object);
-            else if (object->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
+            else if (object->m_recordName == "ACDBASSOCDEPENDENCY"
+                     || object->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
                      || object->m_recordName
                          == "ACDBASSOCVALUEDEPENDENCY")
                 written = dxfW->writeAssociativeDependency(object);
-            if (!written)
+            if (!written) {
+                DRW_DBG("DXF OBJECTS associative writer failed: record=");
+                DRW_DBG(object->m_recordName.c_str());
+                DRW_DBG(" handle=");
+                DRW_DBG(object->handle);
+                DRW_DBG("\n");
                 return;
+            }
         }
+        objectWriteCompleted = true;
     }
     virtual void writeAppId() override{
         for (std::list<DRW_AppId>::iterator it=cData->appIds.begin(); it != cData->appIds.end(); ++it)

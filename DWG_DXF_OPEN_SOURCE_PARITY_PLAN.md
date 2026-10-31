@@ -47,8 +47,8 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Diagnose the current `registerMeshClass` rejection (`AcDbSubDMesh CLASS metadata`), then close source-required descendants and output proofs and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Associative class admission and the selected MLINESTYLE output now pass; the explicit-partial witness next stops at TABLESTYLE handle `0x87` (`Standard`) with `tablestyle-unsupported-profile`. Close source-required descendants and output proofs, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. First investigate the physical witness's TABLESTYLE `Standard` rejection at handle `0x87`; the current writer reports only that it is outside its bounded profile. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -57,24 +57,23 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next P4 packet:** diagnose the `registerMeshClass` rejection reported as
-`AcDbSubDMesh CLASS metadata` on the existing mechanical witness
+**Next physical-witness packet:** identify the exact TABLESTYLE predicate that
+rejects `Standard` at handle `0x87` in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Compare
-the source's captured `AcDbSubDMesh` CLASS row and instance count with the
-version-specific row selected by `dxfRW::dxfClassForRecordName`; determine
-which validated source fields must be retained and emitted before changing the
-admission rule. Preserve unknown rows and fail closed on duplicate or
-contradictory metadata. Then rerun the explicit-partial witness, continue from
-its next concrete failure, and map the 228 callback identities to complete
-typed output or a proven end-to-end replay path. Do not infer identities from
-adjacent handles or relax graph completeness. Keep strict complete-export
-admission closed while required profiles or callback identities remain
-uncovered. The completed generated AC1024 MATERIAL parser, output/readback,
-rollback and retry packet is recorded in
-`docs/research/p4-ac1024-material-output-2026-10-31.json`; the earlier
-associative route and parser observations remain in
-`docs/research/p4-ac1024-associative-graph-route-2026-10-31.json`.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
+source CLASSES row is #504 `AcDbTableStyle`, with one instance. Split the broad
+`outside the bounded typed profile` diagnostic by predicate before changing
+admission; compare captured row, cell-style, text-style, and border fields with
+the source's exact output requirements. Implement only the first source-backed
+lossless profile, prove emitted bytes and fresh readback, and rerun the
+explicit-partial witness. This run is diagnostic only: `--allow-partial-dwg-read`
+does not satisfy the strict-complete gate, and no DXF was published. Continue
+mapping the 228 callback identities to complete typed output or a proven
+end-to-end replay path; do not infer identities from adjacent handles or relax
+graph completeness. The MATERIAL output/readback/rollback/retry packet is in
+`docs/research/p4-ac1024-material-output-2026-10-31.json`; this run's
+associative-class and MLINESTYLE progress is in
+`docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -86,7 +85,13 @@ bytes, operation, exact fields/roles, expected result, and owning selector befor
 code work begins. Reuse the existing source binding, edit planner, serializer,
 and focused selectors; do not add count-only or equivalent-field profiles.
 Native MLINE caps/joins/offsets and MLEADER annotation behavior remain separate
-consumer-semantic gates.
+consumer-semantic gates. The mechanical AC1024 witness reopened and resolved one
+narrow MLINESTYLE output gap: pre-R2018 BS linetype indices 0, 32767 and 32766
+retain their CONTINUOUS, BYLAYER and BYBLOCK meanings. Ordinary indices remain
+refused without a source-bound LTYPE name. See
+`docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`;
+other P2 profiles remain parked until a current witness identifies their exact
+missing behavior.
 
 ## P4 — original bodies and complete document closure
 

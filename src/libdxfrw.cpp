@@ -10193,6 +10193,9 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
 bool dxfRW::writeTableStyle(
     DRW_TableStyle *ent, const std::list<DRW_Textstyle>& textStyles) {
     const auto reject = [this](const char *message) {
+        DRW_DBG("DXF TABLESTYLE rejected: ");
+        DRW_DBG(message);
+        DRW_DBG("\n");
         recordOperationDiagnostic(
             DRW::OperationPhase::Validation,
             DRW::OperationCause::ValidationFailure,
@@ -28219,12 +28222,28 @@ bool dxfRW::writeMLineStyle(DRW_MLineStyle *ent) {
                     return failDxfWrite();
             }
             if (lineType.empty()) {
-                // A DWG index or handle without a resolved LTYPE name cannot
-                // be replaced with a guessed BYLAYER reference.
-                if (element.linetypeIndex != -1
-                    || element.linetypeHandle != 0)
+                // The pre-R2018 MLINESTYLE index has defined values for the
+                // built-in linetypes. Preserve those known meanings; ordinary
+                // table indices still need a source-bound name, and a handle
+                // cannot be inferred from this field.
+                if (element.linetypeHandle != 0)
                     return failDxfWrite();
-                lineType = "BYLAYER";
+                switch (element.linetypeIndex) {
+                case -1: // API-created value with no source index.
+                case 32767:
+                    lineType = "BYLAYER";
+                    break;
+                case 32766:
+                    lineType = "BYBLOCK";
+                    break;
+                case 0:
+                    lineType = "CONTINUOUS";
+                    break;
+                default:
+                    DRW_DBG("DXF MLINESTYLE unresolved DWG linetype index=");
+                    DRW_DBG(element.linetypeIndex); DRW_DBG("\n");
+                    return failDxfWrite();
+                }
             } else if (matchingLineTypes != 1
                        || (requestedHandle != 0
                            && matchedHandle != requestedHandle)) {
