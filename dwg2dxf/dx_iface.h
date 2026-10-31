@@ -1203,6 +1203,7 @@ public:
             || !hasUnchangedDxfMaterialSources()
             || !hasUnchangedDxfAssociativeGeometrySources()
             || !hasUnchangedDxfAssociativeValueSources()
+            || !hasUnchangedExtensionDictionaryOwnerSources()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
@@ -2770,6 +2771,19 @@ private:
     bool inspectDxfAssociativeValueOutput(
         const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDxfAssociativeValueOutput() const noexcept;
+
+    struct ExtensionDictionaryOwnerSource {
+        enum class Kind : std::uint8_t { Entity, Layer, Layout };
+        Kind kind{Kind::Entity};
+        std::uint32_t handle{0u};
+        std::uint32_t parentHandle{0u};
+        std::uint32_t dictionaryHandle{0u};
+    };
+    std::vector<ExtensionDictionaryOwnerSource>
+        m_extensionDictionaryOwnerSources;
+    const dx_data* m_extensionDictionaryOwnerSourceOwner{nullptr};
+    std::uint64_t m_extensionDictionaryOwnerSourceGeneration{0u};
+    bool hasUnchangedExtensionDictionaryOwnerSources() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionAssociativeHandles;

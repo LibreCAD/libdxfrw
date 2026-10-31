@@ -1073,6 +1073,10 @@ add_test(NAME libdxfrw_fieldlist_membership_output
     COMMAND libdxfrw_dwg2dxf_adapter_tests --fieldlist-membership-output)
 set_tests_properties(libdxfrw_fieldlist_membership_output PROPERTIES
     LABELS "fast;dxf;graph;adapter;field;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_extension_dictionary_owner_graphs
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --extension-dictionary-owner-graphs)
+set_tests_properties(libdxfrw_extension_dictionary_owner_graphs PROPERTIES
+    LABELS "fast;dxf;graph;adapter;objects;transaction" TIMEOUT 30)
 if(TARGET dwg2dxf)
     add_test(NAME libdxfrw_extension_graph_limits
         COMMAND ${CMAKE_COMMAND}

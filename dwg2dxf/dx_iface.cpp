@@ -6800,9 +6800,79 @@ bool dx_iface::inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noe
     } catch (...) { return false; }
 }
 
+bool dx_iface::hasUnchangedExtensionDictionaryOwnerSources() const noexcept {
+    if (m_extensionDictionaryOwnerSourceOwner == nullptr)
+        return m_extensionDictionaryOwnerSources.empty();
+    const dx_data* data = m_extensionDictionaryOwnerSourceOwner;
+    if ((cData != nullptr && cData != data)
+        || data->importGeneration
+            != m_extensionDictionaryOwnerSourceGeneration)
+        return false;
+    try {
+        std::vector<ExtensionDictionaryOwnerSource> current;
+        current.reserve(m_extensionDictionaryOwnerSources.size());
+        const auto append = [&current, this](
+                ExtensionDictionaryOwnerSource::Kind kind,
+                const auto& owner) {
+            if (owner.xDictHandle == 0u)
+                return true;
+            if (owner.handle == 0u || owner.handle == DRW::NoHandle
+                || owner.xDictHandle == DRW::NoHandle
+                || current.size() >= m_extensionDictionaryOwnerSources.size())
+                return false;
+            current.push_back({kind, owner.handle,
+                static_cast<std::uint32_t>(owner.parentHandle),
+                owner.xDictHandle});
+            return true;
+        };
+        for (const DRW_Layer& layer : data->layers) {
+            if (!append(ExtensionDictionaryOwnerSource::Kind::Layer, layer))
+                return false;
+        }
+        for (const DRW_Layout& layout : data->layouts) {
+            if (!append(ExtensionDictionaryOwnerSource::Kind::Layout, layout))
+                return false;
+        }
+        const auto appendEntities = [&append](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity != nullptr
+                    && !append(ExtensionDictionaryOwnerSource::Kind::Entity,
+                               *entity))
+                    return false;
+            }
+            return true;
+        };
+        if (!appendEntities(data->mBlock))
+            return false;
+        for (const dx_ifaceBlock* block : data->blocks) {
+            if (block != data->mBlock && !appendEntities(block))
+                return false;
+        }
+        if (current.size() != m_extensionDictionaryOwnerSources.size())
+            return false;
+        for (std::size_t index = 0; index < current.size(); ++index) {
+            const auto& expected = m_extensionDictionaryOwnerSources[index];
+            const auto& actual = current[index];
+            if (actual.kind != expected.kind
+                || actual.handle != expected.handle
+                || actual.parentHandle != expected.parentHandle
+                || actual.dictionaryHandle != expected.dictionaryHandle)
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                            bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
+    m_extensionDictionaryOwnerSources.clear();
+    m_extensionDictionaryOwnerSourceOwner = nullptr;
+    m_extensionDictionaryOwnerSourceGeneration = 0u;
     m_extensionAssociativeHandles.clear();
     m_dxfAssociativeGeometrySources.clear();
     m_dxfAssociativeGeometryOutputProofs.clear();
@@ -6849,6 +6919,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const std::string& detail = std::string()) {
         // No partial traversal result may leak into a later export attempt.
         m_extensionDictionaryHandles.clear();
+        m_extensionDictionaryOwnerSources.clear();
+        m_extensionDictionaryOwnerSourceOwner = nullptr;
+        m_extensionDictionaryOwnerSourceGeneration = 0u;
         m_extensionAssociativeHandles.clear();
         m_dxfAssociativeGeometrySources.clear();
         m_dxfAssociativeGeometryOutputProofs.clear();
@@ -7012,6 +7085,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> backgroundHandles;
         std::unordered_set<std::uint32_t> blockDelimiterHandles;
         std::unordered_set<std::uint32_t> blockRecordHandles;
+        std::unordered_map<std::uint32_t, std::uint32_t>
+            extensionDictionaryOwners;
+        std::unordered_map<std::uint32_t,
+            ExtensionDictionaryOwnerSource::Kind> extensionOwnerKinds;
         if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
             inventoryFamily = "named-object dictionary root";
             const std::uint32_t rootHandle =
@@ -10185,6 +10262,78 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return false;
         }
 
+        inventoryFamily = "LAYER, LAYOUT, and entity extension roots";
+        const auto visitOwnerExtension = [&](
+                ExtensionDictionaryOwnerSource::Kind kind,
+                const auto& owner) {
+            if (owner.xDictHandle == 0u)
+                return true;
+            if (!examineSourceRecord() || !examineEdge())
+                return false;
+            if (owner.handle == 0u || owner.handle == DRW::NoHandle
+                || owner.xDictHandle == DRW::NoHandle
+                || !extensionOwnerKinds.emplace(owner.handle, kind).second)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "extension-dictionary owner identity is invalid or duplicated: handle="
+                        + std::to_string(owner.handle));
+            const bool preindexedEntity = kind
+                    == ExtensionDictionaryOwnerSource::Kind::Entity
+                && sourceEntityHandles.count(owner.handle) != 0u;
+            if (sourceHandles.count(owner.handle) != 0u
+                && !preindexedEntity)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "extension-dictionary owner handle collides with another source record: handle="
+                        + std::to_string(owner.handle));
+            if (kind == ExtensionDictionaryOwnerSource::Kind::Entity) {
+                sourceEntityHandles.insert(owner.handle);
+                sourceHandles.insert(owner.handle);
+            } else if (!sourceHandles.insert(owner.handle).second) {
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "extension-dictionary table owner collides with another source record: handle="
+                        + std::to_string(owner.handle));
+            }
+            const auto dictionary = dictionaries.find(owner.xDictHandle);
+            if (dictionary == dictionaries.end()
+                || dictionary->second->parentHandle != owner.handle
+                || !extensionDictionaryOwners.emplace(
+                    owner.xDictHandle, owner.handle).second)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "extension DICTIONARY is missing, ambiguous, or not reciprocally owned by its source record: handle="
+                        + std::to_string(owner.xDictHandle));
+            m_extensionDictionaryOwnerSources.push_back({kind, owner.handle,
+                owner.parentHandle, owner.xDictHandle});
+            return visit(owner.xDictHandle, true);
+        };
+        for (const DRW_Layer& layer : data->layers) {
+            if (!visitOwnerExtension(
+                    ExtensionDictionaryOwnerSource::Kind::Layer, layer))
+                return false;
+        }
+        for (const DRW_Layout& layout : data->layouts) {
+            if (!visitOwnerExtension(
+                    ExtensionDictionaryOwnerSource::Kind::Layout, layout))
+                return false;
+        }
+        const auto visitEntityExtensions = [&](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr)
+                    continue;
+                if (!visitOwnerExtension(
+                        ExtensionDictionaryOwnerSource::Kind::Entity,
+                        *entity))
+                    return false;
+            }
+            return true;
+        };
+        if (!visitEntityExtensions(data->mBlock))
+            return false;
+        for (const dx_ifaceBlock* block : data->blocks) {
+            if (block != data->mBlock && !visitEntityExtensions(block))
+                return false;
+        }
+
         const auto hasParent = [this, &dictionaries, &visitedDictionaries,
                                 &dictionariesWithDefault,
                                 &visitedDictionariesWithDefault,
@@ -10421,6 +10570,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const DRW_Dictionary* dictionary = dictionaries.at(handle);
             if (!examineEdge())
                 return false;
+            const auto sourceExtensionOwner =
+                extensionDictionaryOwners.find(handle);
+            const bool selectedSourceOwner =
+                sourceExtensionOwner != extensionDictionaryOwners.end()
+                && sourceExtensionOwner->second == dictionary->parentHandle;
             const auto group = groups.find(dictionary->parentHandle);
             const bool groupExtension = group != groups.end()
                 && group->second->xDictHandle == handle;
@@ -10429,7 +10583,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 && image->second->xDictHandle == handle;
             const auto generated = generatedDictionaryOwners.find(dictionary->parentHandle);
             const bool generatedExtension = generated != generatedDictionaryOwners.end() && generated->second->xDictHandle == handle;
-            if (!groupExtension && !imageExtension && !generatedExtension && !hasParent(dictionary->parentHandle))
+            if (!groupExtension && !imageExtension && !generatedExtension
+                && !selectedSourceOwner
+                && !hasParent(dictionary->parentHandle))
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "extension DICTIONARY has an unresolved owner: handle="
                         + std::to_string(handle) + " parent="
@@ -10874,6 +11030,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             m_extensionMaterialSourceVersion = data->sourceVersion;
             m_extensionMaterialSourceGeneration = data->importGeneration;
         }
+        m_extensionDictionaryOwnerSourceOwner = data;
+        m_extensionDictionaryOwnerSourceGeneration = data->importGeneration;
+        if (!hasUnchangedExtensionDictionaryOwnerSources())
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "extension-dictionary owner inventory changed during graph preparation");
         return true;
     } catch (const std::exception& error) {
         return reject(ExtensionGraphFailure::InvalidGraph,
@@ -19239,7 +19400,8 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
             [](const auto& row) { return row.second && row.second->preset.complete() && row.second->namedTarget; });
         // Preset dictionaries also need a pre-callback snapshot when no XRECORD
         // happens to be present. Reuse the existing bounded dictionary capture.
-        if (count == 0u && !presetDictionaries && m_dxfDictionaryVars.empty()) return true;
+        if (count == 0u && !presetDictionaries && m_dxfDictionaryVars.empty()
+            && m_extensionDictionaryHandles.empty()) return true;
         const auto dictionaries = m_extensionDictionaryHandles.size();
         if (dictionaries > kMaxAdapterDictionaryTypedRecords) return false;
         if (count > m_xrecordWriteSourceByteLimit / (sizeof(DRW_XRecord) + sizeof(std::uint32_t))) return false;
@@ -22715,7 +22877,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
     if (!cData) return false;
     (void)binary; // The owning style/output state binds the target format.
     if (cData->sourceFormat!=dx_source_format::DXF || version<DRW::AC1021) return true;
-    if (version>DRW::AC1032 || version!=cData->sourceVersion) return false;
+    if (version>DRW::AC1032) return false;
     try {
         using Capture=dx_data::TableDxfSourceCapture;
         using Certificate=Capture::EntitiesDelivery::Certificate;
@@ -22742,6 +22904,7 @@ bool dx_iface::prepareDxfMLineConsumers(DRW::Version version,bool binary) noexce
         for (const auto* block:cData->blocks) if (!addLive(block)) return false;
         // Keep the common 2D route free of additional physical-source scans.
         if (live.empty()) return true;
+        if (version!=cData->sourceVersion) return false;
         bool needsEntities=false;std::unordered_set<std::uint32_t> selectedBlocks;
         for (const auto& row:live) {
             if (row.second.block==cData->mBlock) needsEntities=true;
@@ -44499,6 +44662,7 @@ bool dx_iface::finalizeDxfWrite() {
     }
     if (m_hatchPlanningFailed
         || !hasUnchangedXrecordWriteSources()
+        || !hasUnchangedExtensionDictionaryOwnerSources()
         || (cData != nullptr && !hasUnchangedStandardDwgObjectSources())
         || (cData != nullptr && !hasUnchangedRasterDwgSources())
         || !finalizeStandardDwgOutputProofs()
@@ -48940,7 +49104,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     const bool needsRenderingOutput = !cData->renderSettings.empty();
-    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_acdsDxfHistoryObjects.empty()
+    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_extensionDictionaryHandles.empty() || !m_acdsDxfHistoryObjects.empty()
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || !m_extensionMaterialHandles.empty()
@@ -48955,6 +49119,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                               << stage << '\n';
                 return false;
             };
+            if (!hasUnchangedExtensionDictionaryOwnerSources())
+                return reject("extension DICTIONARY owner source snapshot");
             if (!hasUnchangedXrecordWriteSources())
                 return reject("XRECORD source snapshot");
             if (needsShadeOutput

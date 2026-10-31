@@ -4693,7 +4693,12 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
                 if (accepted || bytes != sentinel) return fail("XRECORD extension source bypassed strict admission");
                 ++strict;
             }
-            if (!write(outputVersion,binary) || !captured || !retained || !readback()) return fail("XRECORD extension facade projection/readback failed");
+            if (!write(outputVersion,binary) || !captured || !retained || !readback())
+                return fail("XRECORD extension facade projection/readback failed: source="
+                    + std::to_string(static_cast<int>(version)) + " output="
+                    + std::to_string(static_cast<int>(outputVersion)) + " format="
+                    + std::to_string(format) + " binary="
+                    + std::to_string(binary));
             if (native) for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})
                 if (Access::standardSourceEligible(data,h) != (version > DRW::AC1018)
                     || Access::standardOutputHas(exporter,h) != (version > DRW::AC1018 && h != 0xE060u)) return fail("XRECORD extension source/output proof gate changed");
@@ -40895,6 +40900,318 @@ bool extensionGraphLimits() {
     return passed;
 }
 
+bool extensionDictionaryOwnerGraphs() {
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-extension-owner-graphs-" + std::to_string(nonce));
+    if (!std::filesystem::create_directory(directory))
+        return fail("could not create isolated extension-owner directory");
+    struct Cleanup {
+        std::filesystem::path directory;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(directory, error);
+        }
+    } cleanup{directory};
+
+    const auto populate = [](dx_data& data, dx_iface& writer) {
+        data.hasNamedObjectDictionary = true;
+        data.namedObjectDictionary.handle = 0xCu;
+        data.namedObjectDictionary.m_entries.push_back({"ACAD_LAYOUT", 0x300u});
+
+        DRW_Dictionary layoutDictionary;
+        layoutDictionary.handle = 0x300u;
+        layoutDictionary.parentHandle = 0xCu;
+        layoutDictionary.m_entries = {{"Model", 0x22u}, {"Layout1", 0x59u}};
+        data.dictionaries.push_back(layoutDictionary);
+
+        DRW_Layer layer;
+        layer.handle = 0x10u;
+        layer.name = "0";
+        layer.xDictHandle = 0xE6u;
+        data.layers.push_back(layer);
+
+        const auto addOwnedDictionary = [&data](std::uint32_t dictionaryHandle,
+                std::uint32_t ownerHandle, std::string entryName,
+                std::uint32_t childHandle) {
+            DRW_Dictionary dictionary;
+            dictionary.handle = dictionaryHandle;
+            dictionary.parentHandle = ownerHandle;
+            dictionary.cloning = 1;
+            dictionary.hardOwner = 1;
+            if (childHandle != 0u)
+                dictionary.m_entries.push_back({std::move(entryName), childHandle});
+            data.dictionaries.push_back(std::move(dictionary));
+        };
+        addOwnedDictionary(0xE6u, layer.handle, {}, 0u);
+
+        const auto addCircle = [&data, &addOwnedDictionary](std::uint32_t handle,
+                std::uint32_t dictionaryHandle, std::uint32_t recordHandle,
+                std::uint64_t centerX) {
+            auto* circle = new DRW_Circle();
+            circle->handle = handle;
+            circle->parentHandle = 0x500u;
+            circle->layer = "0";
+            circle->basePoint = DRW_Coord(static_cast<double>(centerX), 2.0, 0.0);
+            circle->radious = 3.0;
+            circle->xDictHandle = dictionaryHandle;
+            data.mBlock->ent.push_back(circle);
+            addOwnedDictionary(dictionaryHandle, handle,
+                "ASDK_XREC_ANNOTATION_SCALE_INFO", recordHandle);
+            DRW_XRecord record;
+            record.handle = recordHandle;
+            record.parentHandle = dictionaryHandle;
+            record.m_dataEntries = {
+                DRW_Variant(90, std::int32_t{1}),
+                DRW_Variant(340, std::string("0"))};
+            data.xRecords.push_back(std::move(record));
+        };
+        addCircle(0x28Bu, 0x28Cu, 0x28Du, 1u);
+        addCircle(0x290u, 0x291u, 0x292u, 4u);
+
+        const auto addLayout = [&data, &addOwnedDictionary](
+                std::uint32_t layoutHandle, std::uint32_t dictionaryHandle,
+                std::uint32_t blockRecordHandle, const char* name,
+                std::uint32_t extensionHandle, std::uint32_t xrecordHandle,
+                std::uint8_t binarySeed) {
+            DRW_Layout layout;
+            layout.handle = layoutHandle;
+            layout.parentHandle = 0x300u;
+            layout.name = name;
+            layout.paperSpaceBlockRecordHandle.ref = blockRecordHandle;
+            layout.xDictHandle = extensionHandle;
+            data.layouts.push_back(layout);
+            DRW_Block_Record blockRecord;
+            blockRecord.handle = blockRecordHandle;
+            blockRecord.name = std::string(name) == "Model"
+                ? "*Model_Space" : "*Paper_Space";
+            blockRecord.layoutHandle = layoutHandle;
+            data.blockRecords.push_back(blockRecord);
+            addOwnedDictionary(extensionHandle, layoutHandle,
+                "ADSK_XREC_LAYOUTTHUMBNAIL", xrecordHandle);
+            DRW_XRecord thumbnail;
+            thumbnail.handle = xrecordHandle;
+            thumbnail.parentHandle = extensionHandle;
+            for (std::uint8_t index = 0; index < 5u; ++index) {
+                std::vector<std::uint8_t> chunk(127u,
+                    static_cast<std::uint8_t>(binarySeed + index));
+                thumbnail.m_dataEntries.emplace_back(310, std::move(chunk));
+            }
+            data.xRecords.push_back(std::move(thumbnail));
+            (void)dictionaryHandle;
+        };
+        addLayout(0x22u, 0x300u, 0x500u, "Model", 0x351u, 0x352u, 0x21u);
+        addLayout(0x59u, 0x300u, 0x501u, "Layout1", 0x2A7u, 0x2A8u, 0x31u);
+        writer.cData = &data;
+        writer.currentBlock = data.mBlock;
+    };
+    const auto fileContents = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const auto exactRecord = [](const DRW_XRecord& expected,
+                                const DRW_XRecord& actual) {
+        if (expected.m_dataEntries.size() != actual.m_dataEntries.size())
+            return false;
+        for (std::size_t index = 0; index < expected.m_dataEntries.size(); ++index) {
+            const DRW_Variant& lhs = expected.m_dataEntries[index];
+            const DRW_Variant& rhs = actual.m_dataEntries[index];
+            if (lhs.code() != rhs.code())
+                return false;
+            if (lhs.code() == 340 && lhs.type() == DRW_Variant::STRING
+                && rhs.type() == DRW_Variant::INTEGER64) {
+                if (lhs.content.s == nullptr)
+                    return false;
+                std::uint64_t expectedHandle = 0u;
+                const std::string& text = *lhs.content.s;
+                const auto parsed = std::from_chars(text.data(),
+                    text.data() + text.size(), expectedHandle, 16);
+                if (parsed.ec != std::errc()
+                    || parsed.ptr != text.data() + text.size()
+                    || expectedHandle != static_cast<std::uint64_t>(rhs.i64_val()))
+                    return false;
+                continue;
+            }
+            if (lhs.type() != rhs.type())
+                return false;
+            if (lhs.type() == DRW_Variant::INTEGER
+                && lhs.i_val() != rhs.i_val())
+                return false;
+            if (lhs.type() == DRW_Variant::INTEGER64
+                && lhs.i64_val() != rhs.i64_val())
+                return false;
+            if (lhs.type() == DRW_Variant::STRING
+                && (!lhs.content.s || !rhs.content.s
+                    || *lhs.content.s != *rhs.content.s))
+                return false;
+            if (lhs.type() == DRW_Variant::BINARY
+                && (!lhs.binary() || !rhs.binary()
+                    || *lhs.binary() != *rhs.binary()))
+                return false;
+        }
+        return true;
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "owners-binary.dxf" : "owners-ascii.dxf");
+        dx_data source;
+        dx_iface writer;
+        populate(source, writer);
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &source, false))
+            return fail("entity, LAYER and LAYOUT extension dictionary closure failed");
+
+        dx_iface reader;
+        dx_data readback;
+        if (!reader.fileImport(output.string(), &readback, false))
+            return fail("extension dictionary owner output did not re-import");
+        const auto dictionary = [&readback](std::uint32_t handle)
+                -> const DRW_Dictionary* {
+            const auto found = std::find_if(readback.dictionaries.begin(),
+                readback.dictionaries.end(), [handle](const DRW_Dictionary& item) {
+                    return item.handle == handle;
+                });
+            return found == readback.dictionaries.end() ? nullptr : &*found;
+        };
+        const auto record = [&readback](std::uint32_t handle)
+                -> const DRW_XRecord* {
+            const auto found = std::find_if(readback.xRecords.begin(),
+                readback.xRecords.end(), [handle](const DRW_XRecord& item) {
+                    return item.handle == handle;
+                });
+            return found == readback.xRecords.end() ? nullptr : &*found;
+        };
+        const auto layer = std::find_if(readback.layers.begin(),
+            readback.layers.end(), [](const DRW_Layer& item) {
+                return item.name == "0";
+            });
+        const auto ownerCircle = [&readback](double centerX)
+                -> const DRW_Entity* {
+            if (readback.mBlock == nullptr)
+                return nullptr;
+            const auto found = std::find_if(readback.mBlock->ent.begin(),
+                readback.mBlock->ent.end(), [centerX](const DRW_Entity* entity) {
+                    const auto* circle = dynamic_cast<const DRW_Circle*>(entity);
+                    return circle != nullptr && circle->basePoint.x == centerX;
+                });
+            return found == readback.mBlock->ent.end() ? nullptr : *found;
+        };
+        const DRW_Dictionary* layerDictionary = layer == readback.layers.end()
+            ? nullptr : dictionary(layer->xDictHandle);
+        if (layer == readback.layers.end() || layer->xDictHandle == 0u
+            || layerDictionary == nullptr
+            || layerDictionary->parentHandle != layer->handle
+            || !layerDictionary->m_entries.empty())
+            return fail("LAYER extension dictionary identity or owner changed on readback");
+        const DRW_Entity* firstCircle = ownerCircle(1.0);
+        const DRW_Entity* secondCircle = ownerCircle(4.0);
+        const DRW_Dictionary* firstEntityDictionary = firstCircle == nullptr
+            ? nullptr : dictionary(firstCircle->xDictHandle);
+        const DRW_Dictionary* secondEntityDictionary = secondCircle == nullptr
+            ? nullptr : dictionary(secondCircle->xDictHandle);
+        if (firstCircle == nullptr || secondCircle == nullptr
+            || firstEntityDictionary == nullptr
+            || secondEntityDictionary == nullptr
+            || firstEntityDictionary->parentHandle != firstCircle->handle
+            || secondEntityDictionary->parentHandle != secondCircle->handle
+            || firstEntityDictionary->m_entries.size() != 1u
+            || firstEntityDictionary->m_entries.front().m_name
+                != "ASDK_XREC_ANNOTATION_SCALE_INFO"
+            || secondEntityDictionary->m_entries.size() != 1u
+            || secondEntityDictionary->m_entries.front().m_name
+                != "ASDK_XREC_ANNOTATION_SCALE_INFO")
+            return fail("entity extension dictionary entries or owner edges changed");
+        const auto checkRecord = [&](std::uint32_t sourceHandle,
+                const DRW_Dictionary* ownerDictionary,
+                const std::string& entryName) {
+            if (ownerDictionary == nullptr || ownerDictionary->m_entries.size() != 1u
+                || ownerDictionary->m_entries.front().m_name != entryName)
+                return false;
+            const auto expected = std::find_if(source.xRecords.begin(),
+                source.xRecords.end(), [sourceHandle](const DRW_XRecord& item) {
+                    return item.handle == sourceHandle;
+                });
+            const DRW_XRecord* actual = record(
+                ownerDictionary->m_entries.front().m_handle);
+            return expected != source.xRecords.end() && actual != nullptr
+                && actual->parentHandle == ownerDictionary->handle
+                && exactRecord(*expected, *actual);
+        };
+        if (!checkRecord(0x28Du, firstEntityDictionary,
+                         "ASDK_XREC_ANNOTATION_SCALE_INFO")
+            || !checkRecord(0x292u, secondEntityDictionary,
+                           "ASDK_XREC_ANNOTATION_SCALE_INFO"))
+            return fail("typed entity extension XRECORD payload did not survive output and readback");
+        for (const std::string& name : {std::string("Model"), std::string("Layout1")}) {
+            const std::uint32_t sourceRecordHandle = name == "Model" ? 0x352u : 0x2A8u;
+            const auto actual = std::find_if(readback.layouts.begin(),
+                readback.layouts.end(), [&name](const DRW_Layout& candidate) {
+                    return candidate.name == name;
+                });
+            if (actual == readback.layouts.end() || actual->xDictHandle == 0u
+                || dictionary(actual->xDictHandle) == nullptr
+                || dictionary(actual->xDictHandle)->parentHandle
+                    != actual->handle)
+                return fail("LAYOUT extension dictionary reference changed on readback");
+            if (!checkRecord(sourceRecordHandle, dictionary(actual->xDictHandle),
+                             "ADSK_XREC_LAYOUTTHUMBNAIL"))
+                return fail("typed LAYOUT thumbnail XRECORD changed on output/readback");
+        }
+
+        // Invalid ownership must preserve an existing destination and permit
+        // a corrected retry on the same adapter.
+        const std::string sentinel = "extension owner destination sentinel\n";
+        { std::ofstream file(output, std::ios::binary | std::ios::trunc);
+          file << sentinel; }
+        const auto badDictionary = std::find_if(source.dictionaries.begin(),
+            source.dictionaries.end(), [](const DRW_Dictionary& item) {
+                return item.handle == 0x28Cu;
+            });
+        if (badDictionary == source.dictionaries.end())
+            return fail("entity extension dictionary fixture disappeared");
+        badDictionary->parentHandle = 0xDEADu;
+        if (writer.fileExport(output.string(), DRW::AC1027, binary,
+                              &source, false)
+            || fileContents(output) != sentinel)
+            return fail("wrong extension-dictionary owner was accepted or replaced the destination");
+        badDictionary->parentHandle = 0x28Bu;
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &source, false))
+            return fail("corrected extension-dictionary owner could not retry");
+
+        class LateOwnerMutation final : public dx_iface {
+        public:
+            bool mutateEntityOwner{false};
+            void writeObjects() override {
+                if (mutateEntityOwner && cData != nullptr
+                    && cData->mBlock != nullptr
+                    && !cData->mBlock->ent.empty())
+                    cData->mBlock->ent.front()->xDictHandle = 0u;
+                dx_iface::writeObjects();
+            }
+        } lateWriter;
+        dx_data lateSource;
+        populate(lateSource, lateWriter);
+        const auto lateOutput = directory
+            / (binary ? "late-owner-binary.dxf" : "late-owner-ascii.dxf");
+        { std::ofstream file(lateOutput, std::ios::binary | std::ios::trunc);
+          file << sentinel; }
+        lateWriter.mutateEntityOwner = true;
+        if (lateWriter.fileExport(lateOutput.string(), DRW::AC1027, binary,
+                                  &lateSource, false)
+            || fileContents(lateOutput) != sentinel)
+            return fail("late entity extension-owner mutation did not roll back publication");
+        lateSource.mBlock->ent.front()->xDictHandle = 0x28Cu;
+        lateWriter.mutateEntityOwner = false;
+        if (!lateWriter.fileExport(lateOutput.string(), DRW::AC1027, binary,
+                                   &lateSource, false))
+            return fail("restored entity extension owner could not retry");
+    }
+    return true;
+}
+
 bool generateExtensionCycle(const std::string& path, bool binary) {
     // From-scratch invalid ownership control for the real CLI's publication
     // boundary. No large/deep graph or stack-exhaustion experiment is needed.
@@ -41796,6 +42113,9 @@ int main(int argc, char** argv) {
         return dxfModelerGeometryMoveDispatch() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--extension-graph-limits")
         return extensionGraphLimits() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--extension-dictionary-owner-graphs")
+        return extensionDictionaryOwnerGraphs() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--reject-dynamic-block")
         return rejectDynamicBlockWithoutSerializer() ? 0 : 1;
     if (argc == 2
