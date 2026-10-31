@@ -20669,10 +20669,9 @@ bool dxfRW::processAssociativeObject() {
 }
 
 // Dynamic-block DXF records keep their complete group stream in the raw net.
-// Decode only the explicitly profiled PurgePreventer, AC1024
-// GripLocationComponent and BLOCKVISIBILITYGRIP bodies; other
-// AcDbEvalExpr/AcDbBlockElement variants remain opaque until their field
-// layout is independently established.
+// Decode only the explicitly profiled PurgePreventer and AC1024 dynamic-block
+// record bodies; other AcDbEvalExpr/AcDbBlockElement variants remain opaque
+// until their field layout is independently established.
 bool dxfRW::processDynamicBlockObject() {
     DRW_DBG("dxfRW::processDynamicBlockObject");
     int code;
@@ -20990,6 +20989,289 @@ bool dxfRW::processDynamicBlockObject() {
                     }
                 }
                 data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::VisibilityParameter
+                       && data.m_recordName == "BLOCKVISIBILITYPARAMETER"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // This projection is restricted to the observed AC1024
+                // visibility-state body: one flat 117-handle list, four
+                // ordered 29-handle states, and no state parameters. The raw
+                // record remains authoritative outside this exact profile.
+                static constexpr std::array<std::string_view, 4> stateNames{
+                    "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
+                std::size_t bodyStart = raw.groups.size();
+                for (std::size_t index = 0u; index < raw.groups.size();
+                     ++index) {
+                    const DRW_Variant& group = raw.groups[index];
+                    if (group.code() == 100
+                        && group.type() == DRW_Variant::STRING) {
+                        const char* marker = group.c_str();
+                        if (marker != nullptr
+                            && std::string_view(marker) == "AcDbEvalExpr") {
+                            bodyStart = index;
+                            break;
+                        }
+                    }
+                }
+                std::size_t cursor = bodyStart;
+                const auto takeGroup = [&]() -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    return &raw.groups[cursor++];
+                };
+                const auto readMarker = [&](std::string_view value) {
+                    const DRW_Variant* group = takeGroup();
+                    if (group == nullptr || group->code() != 100
+                        || group->type() != DRW_Variant::STRING)
+                        return false;
+                    const char* marker = group->c_str();
+                    return marker != nullptr
+                        && std::string_view(marker) == value;
+                };
+                const auto readText = [&](int code,
+                                          std::string_view expected) {
+                    const DRW_Variant* group = takeGroup();
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::STRING)
+                        return false;
+                    const char* value = group->c_str();
+                    return value != nullptr
+                        && std::string_view(value) == expected;
+                };
+                const auto readInteger = [&](int code,
+                                             std::int32_t& value) {
+                    const DRW_Variant* group = takeGroup();
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto readZeroDouble = [&](int code) {
+                    const DRW_Variant* group = takeGroup();
+                    return group != nullptr && group->code() == code
+                        && group->type() == DRW_Variant::DOUBLE
+                        && std::isfinite(group->d_val())
+                        && group->d_val() == 0.0;
+                };
+                const auto readHandle = [&](int code,
+                                            std::uint32_t& handle) {
+                    const DRW_Variant* group = takeGroup();
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::STRING
+                        || group->c_str() == nullptr)
+                        return false;
+                    std::uint64_t parsed = 0u;
+                    if (!parseRawDxfHandleLexeme(group->c_str(), parsed)
+                        || parsed == 0u
+                        || parsed > std::numeric_limits<std::uint32_t>::max()
+                        || parsed == DRW::NoHandle)
+                        return false;
+                    handle = static_cast<std::uint32_t>(parsed);
+                    return true;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t showProperties = 0;
+                std::int32_t chainActions = 0;
+                std::int32_t propertyInfoCount = 0;
+                std::int32_t propertyInfo1Count = 0;
+                std::int32_t propertyInfo2Count = 0;
+                std::int32_t initialized = 0;
+                std::int32_t unknownBool = 0;
+                std::int32_t flatBlockCount = 0;
+                std::int32_t stateCount = 0;
+                bool completeBody = bodyStart < raw.groups.size()
+                    && readMarker("AcDbEvalExpr")
+                    && readInteger(90, nodeId)
+                    && readInteger(98, evalMajor)
+                    && readInteger(99, evalMinor)
+                    && readMarker("AcDbBlockElement")
+                    && readText(300, "Visibility State")
+                    && readInteger(98, elementMajor)
+                    && readInteger(99, elementMinor)
+                    && readInteger(1071, eed1071)
+                    && readMarker("AcDbBlockParameter")
+                    && readInteger(280, showProperties)
+                    && readInteger(281, chainActions)
+                    && readMarker("AcDbBlock1PtParameter")
+                    && readZeroDouble(1010)
+                    && readZeroDouble(1020)
+                    && readZeroDouble(1030)
+                    && readInteger(93, propertyInfoCount)
+                    && readInteger(170, propertyInfo1Count)
+                    && readInteger(171, propertyInfo2Count)
+                    && readMarker("AcDbBlockVisibilityParameter")
+                    && readInteger(281, initialized)
+                    && readText(301, "ARCH Title Block")
+                    && readText(302, "")
+                    && readInteger(91, unknownBool)
+                    && readInteger(93, flatBlockCount)
+                    && nodeId == 16 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29
+                    && eed1071 == 0 && showProperties == 1
+                    && chainActions == 0 && propertyInfoCount == 17
+                    && propertyInfo1Count == 0 && propertyInfo2Count == 0
+                    && initialized == 1 && unknownBool == 0
+                    && flatBlockCount == 117;
+                std::vector<std::uint32_t> flatHandles;
+                std::vector<std::vector<std::uint32_t>> stateBlocks;
+                std::vector<std::vector<std::uint32_t>> stateParameters;
+                if (completeBody) {
+                    try {
+                        if (!DRW::reserve(flatHandles, 117)
+                            || !DRW::reserve(stateBlocks, 4)
+                            || !DRW::reserve(stateParameters, 4))
+                            completeBody = false;
+                    } catch (...) {
+                        completeBody = false;
+                    }
+                }
+                if (completeBody) {
+                    for (std::int32_t index = 0; index < 117; ++index) {
+                        std::uint32_t handle = 0u;
+                        if (!readHandle(331, handle)
+                            || std::find(flatHandles.begin(),
+                                         flatHandles.end(), handle)
+                                != flatHandles.end()) {
+                            completeBody = false;
+                            break;
+                        }
+                        flatHandles.push_back(handle);
+                    }
+                }
+                if (completeBody)
+                    completeBody = readInteger(92, stateCount)
+                        && stateCount == 4;
+                std::vector<std::uint32_t> allStateHandles;
+                if (completeBody) {
+                    try {
+                        if (!DRW::reserve(allStateHandles, 116))
+                            completeBody = false;
+                    } catch (...) {
+                        completeBody = false;
+                    }
+                }
+                if (completeBody) {
+                    for (std::size_t state = 0u; state < stateNames.size();
+                         ++state) {
+                        std::int32_t stateBlockCount = 0;
+                        std::int32_t stateParameterCount = 0;
+                        std::vector<std::uint32_t> handles;
+                        try {
+                            if (!DRW::reserve(handles, 29)) {
+                                completeBody = false;
+                                break;
+                            }
+                        } catch (...) {
+                            completeBody = false;
+                            break;
+                        }
+                        if (!readText(303, stateNames[state])
+                            || !readInteger(94, stateBlockCount)
+                            || stateBlockCount != 29) {
+                            completeBody = false;
+                            break;
+                        }
+                        for (std::int32_t item = 0; item < 29; ++item) {
+                            std::uint32_t handle = 0u;
+                            if (!readHandle(332, handle)
+                                || std::find(flatHandles.begin(),
+                                             flatHandles.end(), handle)
+                                    == flatHandles.end()
+                                || std::find(allStateHandles.begin(),
+                                             allStateHandles.end(), handle)
+                                    != allStateHandles.end()) {
+                                completeBody = false;
+                                break;
+                            }
+                            handles.push_back(handle);
+                            allStateHandles.push_back(handle);
+                        }
+                        if (!completeBody
+                            || !readInteger(95, stateParameterCount)
+                            || stateParameterCount != 0) {
+                            completeBody = false;
+                            break;
+                        }
+                        stateBlocks.push_back(std::move(handles));
+                        stateParameters.emplace_back();
+                    }
+                }
+                if (completeBody) {
+                    std::size_t unusedFlatHandles = 0u;
+                    for (const std::uint32_t handle : flatHandles) {
+                        if (std::find(allStateHandles.begin(),
+                                      allStateHandles.end(), handle)
+                            == allStateHandles.end())
+                            ++unusedFlatHandles;
+                    }
+                    completeBody = cursor == raw.groups.size()
+                        && unusedFlatHandles == 1u
+                        && data.appData.empty() && data.extData.empty()
+                        && data.reactorHandles.empty()
+                        && data.xDictHandle == 0;
+                }
+                if (completeBody) {
+                    constexpr std::size_t typedStringBytes =
+                        sizeof("Visibility State") - 1u
+                        + sizeof("ARCH Title Block") - 1u
+                        + (sizeof("ARCH D") - 1u)
+                        + (sizeof("ARCH C") - 1u)
+                        + (sizeof("ARCH B") - 1u)
+                        + (sizeof("ARCH A") - 1u);
+                    DxfReadRetainedLeaseCheckpoint typedCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), typedStringBytes))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementName = "Visibility State";
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_elementParsed = true;
+                        data.m_showProperties = showProperties != 0;
+                        data.m_chainActions = chainActions != 0;
+                        data.m_defPoint = DRW_Coord(0.0, 0.0, 0.0);
+                        data.m_propertyInfoCount = propertyInfoCount;
+                        data.m_propertyInfo1Count = propertyInfo1Count;
+                        data.m_propertyInfo2Count = propertyInfo2Count;
+                        data.m_isInitialized = initialized != 0;
+                        data.m_visibilityName = "ARCH Title Block";
+                        data.m_visibilityDescription.clear();
+                        data.m_unknownBool = unknownBool != 0;
+                        data.m_blockCount = flatBlockCount;
+                        data.m_stateCount = stateCount;
+                        data.m_stateNames.assign(stateNames.begin(),
+                                                 stateNames.end());
+                        data.m_blockHandles = std::move(flatHandles);
+                        data.m_stateBlockHandles = std::move(stateBlocks);
+                        data.m_stateParameterHandles =
+                            std::move(stateParameters);
+                        data.m_bodyFullyDecoded = true;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    typedCheckpoint.commit();
+                }
+                if (!completeBody)
+                    data.m_bodyFullyDecoded = false;
             }
             iface->addDynamicBlockObject(data);
             iface->addRawDxfObject(raw);
@@ -30887,7 +31169,126 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_gripLocation.z == 0.0
         && !ent->m_gripValue280 && ent->m_gripValue93 == -1
         && ent->reactorHandles.empty();
-    if (!purgePreventer && !gripLocation && !visibilityGrip)
+    static constexpr std::array<std::string_view, 4> visibilityStateNames{
+        "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
+    bool visibilityParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::VisibilityParameter
+        && ent->m_recordName == "BLOCKVISIBILITYPARAMETER"
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_nodeId == 16u
+        && ent->m_parentId == DRW::NoHandle
+        && ent->m_major == 29u && ent->m_minor == 2u
+        && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
+        && ent->m_valueHandle == 0
+        && ent->m_elementParsed
+        && ent->m_elementName == "Visibility State"
+        && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u
+        && ent->m_eed1071 == 0 && ent->m_showProperties
+        && !ent->m_chainActions
+        && std::isfinite(ent->m_defPoint.x)
+        && std::isfinite(ent->m_defPoint.y)
+        && std::isfinite(ent->m_defPoint.z)
+        && ent->m_defPoint.x == 0.0 && ent->m_defPoint.y == 0.0
+        && ent->m_defPoint.z == 0.0
+        && ent->m_propertyInfo1Count == 0
+        && ent->m_propertyInfo1Codes.empty()
+        && ent->m_propertyInfo1Names.empty()
+        && ent->m_propertyInfo2Count == 0
+        && ent->m_propertyInfo2Codes.empty()
+        && ent->m_propertyInfo2Names.empty()
+        && ent->m_propertyInfoCount == 17 && ent->m_isInitialized
+        && ent->m_visibilityName == "ARCH Title Block"
+        && ent->m_visibilityDescription.empty() && !ent->m_unknownBool
+        && ent->m_blockCount == 117 && ent->m_blockHandles.size() == 117u
+        && ent->m_stateCount == 4 && ent->m_stateNames.size() == 4u
+        && ent->m_stateBlockHandles.size() == 4u
+        && ent->m_stateParameterHandles.size() == 4u
+        && ent->reactorHandles.empty();
+    if (visibilityParameter) {
+        for (std::size_t index = 0u;
+             index < ent->m_blockHandles.size() && visibilityParameter;
+             ++index) {
+            const std::uint32_t source = ent->m_blockHandles[index];
+            const std::uint32_t target = remapObjectHandle(source);
+            if (source == 0u || source == DRW::NoHandle || target == 0u
+                || target == DRW::NoHandle) {
+                visibilityParameter = false;
+                break;
+            }
+            for (std::size_t previous = 0u; previous < index; ++previous) {
+                if (ent->m_blockHandles[previous] == source
+                    || remapObjectHandle(ent->m_blockHandles[previous])
+                        == target) {
+                    visibilityParameter = false;
+                    break;
+                }
+            }
+        }
+        std::size_t stateReferenceCount = 0u;
+        for (std::size_t stateIndex = 0u;
+             stateIndex < visibilityStateNames.size()
+                 && visibilityParameter;
+             ++stateIndex) {
+            const auto& handles = ent->m_stateBlockHandles[stateIndex];
+            if (ent->m_stateNames[stateIndex]
+                    != visibilityStateNames[stateIndex]
+                || handles.size() != 29u
+                || !ent->m_stateParameterHandles[stateIndex].empty()) {
+                visibilityParameter = false;
+                break;
+            }
+            for (std::size_t item = 0u; item < handles.size(); ++item) {
+                const std::uint32_t source = handles[item];
+                const std::uint32_t target = remapObjectHandle(source);
+                if (source == 0u || source == DRW::NoHandle || target == 0u
+                    || target == DRW::NoHandle
+                    || std::find(ent->m_blockHandles.begin(),
+                                 ent->m_blockHandles.end(), source)
+                        == ent->m_blockHandles.end()) {
+                    visibilityParameter = false;
+                    break;
+                }
+                for (std::size_t previousState = 0u;
+                     previousState <= stateIndex && visibilityParameter;
+                     ++previousState) {
+                    const auto& previousHandles =
+                        ent->m_stateBlockHandles[previousState];
+                    const std::size_t previousLimit = previousState
+                            == stateIndex ? item : previousHandles.size();
+                    for (std::size_t previousItem = 0u;
+                         previousItem < previousLimit; ++previousItem) {
+                        if (previousHandles[previousItem] == source) {
+                            visibilityParameter = false;
+                            break;
+                        }
+                    }
+                }
+                if (visibilityParameter)
+                    ++stateReferenceCount;
+            }
+        }
+        visibilityParameter = visibilityParameter
+            && stateReferenceCount == 116u;
+        std::size_t unusedFlatHandles = 0u;
+        if (visibilityParameter) {
+            for (const std::uint32_t handle : ent->m_blockHandles) {
+                bool used = false;
+                for (const auto& stateHandles : ent->m_stateBlockHandles) {
+                    if (std::find(stateHandles.begin(), stateHandles.end(),
+                                  handle) != stateHandles.end()) {
+                        used = true;
+                        break;
+                    }
+                }
+                if (!used)
+                    ++unusedFlatHandles;
+            }
+        }
+        visibilityParameter = visibilityParameter
+            && unusedFlatHandles == 1u;
+    }
+    if (!purgePreventer && !gripLocation && !visibilityGrip
+        && !visibilityParameter)
         return failDxfWrite();
 
     RecordStateScope state(*this, ent);
@@ -30923,7 +31324,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && writer->writeString(100, gripSubclassName)
             && writer->writeInt32(91, ent->m_gripType)
             && writer->writeUtf8String(300, ent->m_gripExpr);
-    } else if (written) {
+    } else if (written && visibilityGrip) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,
                 static_cast<std::int32_t>(ent->m_nodeId))
@@ -30946,6 +31347,60 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
                 static_cast<std::int16_t>(ent->m_gripValue280 ? 1 : 0))
             && writer->writeInt32(93, ent->m_gripValue93)
             && writer->writeString(100, "AcDbBlockVisibilityGrip");
+    } else if (written && visibilityParameter) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockParameter")
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_showProperties ? 1 : 0))
+            && writer->writeInt16(281,
+                static_cast<std::int16_t>(ent->m_chainActions ? 1 : 0))
+            && writer->writeString(100, "AcDbBlock1PtParameter")
+            && writer->writeDouble(1010, ent->m_defPoint.x)
+            && writer->writeDouble(1020, ent->m_defPoint.y)
+            && writer->writeDouble(1030, ent->m_defPoint.z)
+            && writer->writeInt32(93, ent->m_propertyInfoCount)
+            && writer->writeInt16(170,
+                static_cast<std::int16_t>(ent->m_propertyInfo1Count))
+            && writer->writeInt16(171,
+                static_cast<std::int16_t>(ent->m_propertyInfo2Count))
+            && writer->writeString(100,
+                "AcDbBlockVisibilityParameter")
+            && writer->writeInt16(281,
+                static_cast<std::int16_t>(ent->m_isInitialized ? 1 : 0))
+            && writer->writeUtf8String(301, ent->m_visibilityName)
+            && writer->writeUtf8String(302,
+                ent->m_visibilityDescription)
+            && writer->writeInt32(91,
+                static_cast<std::int32_t>(ent->m_unknownBool ? 1 : 0))
+            && writer->writeInt32(93, ent->m_blockCount);
+        for (const std::uint32_t handle : ent->m_blockHandles) {
+            written = written && writer->writeString(331, toHexStr(
+                remapObjectHandle(handle)));
+        }
+        written = written && writer->writeInt32(92, ent->m_stateCount);
+        for (std::size_t state = 0u;
+             state < ent->m_stateNames.size() && written; ++state) {
+            const auto& handles = ent->m_stateBlockHandles[state];
+            written = writer->writeUtf8String(303, ent->m_stateNames[state])
+                && writer->writeInt32(94,
+                    static_cast<std::int32_t>(handles.size()));
+            for (const std::uint32_t handle : handles) {
+                written = written && writer->writeString(332, toHexStr(
+                    remapObjectHandle(handle)));
+            }
+            written = written && writer->writeInt32(95,
+                static_cast<std::int32_t>(
+                    ent->m_stateParameterHandles[state].size()));
+        }
     }
     if (written && !ent->extData.empty())
         written = writeExtData(ent->extData);

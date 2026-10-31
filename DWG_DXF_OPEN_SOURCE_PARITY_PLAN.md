@@ -63,13 +63,11 @@ has a three-entry DICTIONARY `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph
 `0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE `0x111C`, and
 `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. Close all three source
 edges together. The EvaluationGraph `0x1117` has four nodes (IDs 16–19,
-targets `0x1118`–`0x111B`) and three source edges. Complete the
-`BLOCKVISIBILITYPARAMETER` `0x1118` body (states ARCH D/C/B/A, 29 state block
-references each, 117 source block handles total); compose that remaining body
-with the already-qualified isolated `BLOCKVISIBILITYGRIP` `0x1119` and
-GripLocation bodies `0x111A` and `0x111B`, then bind all four source identities,
-graph nodes/edges, owners and remapped references in the output. Prove the
-SORTENTSTABLE's ordered membership plus reciprocal owner. Separately resolve
+targets `0x1118`–`0x111B`) and three source edges. Compose the four qualified
+isolated record bodies, bind all source identities, graph nodes/edges, owners
+and remapped references in the output, and retain the visibility parameter's
+117 flat handles and 116 ordered state references. Prove the SORTENTSTABLE's
+ordered membership plus reciprocal owner. Separately resolve
 `ACDB_BLOCKREPRESENTATION_DATA`
 `0xDD6` and owner `0xDD5`; do not infer that it belongs to `0x1116`. Bind every
 source identity, target role, field and remapped output reference before
@@ -80,6 +78,7 @@ Current source and isolated-record evidence is in
 [`p5-dynamic-block-purge-preventer-record-output-2026-10-31.json`](docs/research/p5-dynamic-block-purge-preventer-record-output-2026-10-31.json),
 [`p5-dynamic-block-visibility-grip-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-visibility-grip-output-qualification-2026-10-31.json),
 [`p5-dynamic-block-grip-location-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-grip-location-output-qualification-2026-10-31.json),
+[`p5-dynamic-block-visibility-parameter-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-visibility-parameter-output-qualification-2026-10-31.json),
 and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -126,19 +125,19 @@ output gates are met.
 ## P5 — rendering and TABLE
 
 **Dynamic-block output profiles:** compose the actual AC1024
-`Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127`.
-Complete the remaining source-backed `BLOCKVISIBILITYPARAMETER` `0x1118` body.
-Compose it with the already-qualified isolated `BLOCKVISIBILITYGRIP` `0x1119`
-and GripLocation bodies for nodes 18 and 19; bind all four EvaluationGraph
-nodes (IDs 16–19), the three source edges and node 17's links to nodes 18 and 19.
-Preserve all 117 visibility-parameter block handles, then close the SORTENTSTABLE
-reciprocity. Emit all required graph targets with DICTIONARY edges, owners,
-reactors and remapped handles intact; prove staged bytes and fresh ASCII/Binary
-readback for the full closure. Keep the mixed-key graph refused until every
-required target is selected and emitted; do not relax SORTENTSTABLE owner
-validation to bypass missing children. DXF-origin typed/raw replay remains
-unqualified until exact source pairing and one-emission proof pass. Qualify
-other subclasses only when an existing source identifies a required profile.
+`Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127` from
+the four qualified isolated record bodies (PurgePreventer, GripLocation,
+BLOCKVISIBILITYGRIP and BLOCKVISIBILITYPARAMETER; see the receipts above).
+Bind all four EvaluationGraph nodes (IDs 16–19), the three source edges and node
+17's links to nodes 18 and 19; preserve the visibility parameter's 117 flat
+handles and 116 ordered state references. Close the SORTENTSTABLE reciprocity.
+Emit all required graph targets with DICTIONARY edges, owners, reactors and
+remapped handles intact; prove staged bytes and fresh ASCII/Binary readback for
+the full closure. Keep the mixed-key graph refused until every required target
+is selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
+missing children. DXF-origin typed/raw replay remains unqualified until exact
+source pairing and one-emission proof pass. Qualify other subclasses only when
+an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment, background/live-section/sun relations; native

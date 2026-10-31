@@ -8744,6 +8744,412 @@ bool dynamicBlockVisibilityGripRecordOutputProfile() {
     return true;
 }
 
+bool readDxfDynamicBlockVisibilityParameterWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    const auto hexHandle = [](std::uint32_t handle) {
+        std::ostringstream text;
+        text << std::uppercase << std::hex << handle;
+        return text.str();
+    };
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString() == "BLOCKVISIBILITYPARAMETER";
+            continue;
+        }
+        if (!inObject || code == 5 || code == 330)
+            continue;
+        switch (code) {
+        case 100:
+        case 300:
+        case 301:
+        case 302:
+        case 303:
+            groups.emplace_back(code, reader->getString());
+            break;
+        case 331:
+        case 332:
+            groups.emplace_back(code,
+                hexHandle(reader->getHandleString()));
+            break;
+        case 90:
+        case 98:
+        case 99:
+        case 1071:
+        case 280:
+        case 281:
+        case 93:
+        case 170:
+        case 171:
+        case 91:
+        case 92:
+        case 94:
+        case 95:
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+            break;
+        case 1010:
+        case 1020:
+        case 1030:
+            groups.emplace_back(code, std::to_string(reader->getDouble()));
+            break;
+        default:
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
+}
+
+bool dynamicBlockVisibilityParameterRecordOutputProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        RecordAuthor() : object("BLOCKVISIBILITYPARAMETER") {}
+
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeObjects() override {
+            wrote = dxfW != nullptr
+                && dxfW->writeDynamicBlockObject(&object);
+        }
+
+        DRW_DynamicBlockObject object;
+        bool wrote{false};
+    };
+    const auto appendRange = [](std::vector<std::uint32_t>& values,
+                                std::uint32_t first,
+                                std::uint32_t last) {
+        for (std::uint32_t value = first; value <= last; ++value)
+            values.push_back(value);
+    };
+    const auto makeStates = [&]() {
+        std::vector<std::vector<std::uint32_t>> states(4u);
+        appendRange(states[0], 0x10A1u, 0x10BDu);
+        states[1].push_back(0x10BEu);
+        states[1].push_back(0x10C1u);
+        appendRange(states[1], 0x10C4u, 0x10DCu);
+        states[1].push_back(0x110Fu);
+        states[1].push_back(0x1110u);
+        states[2].push_back(0x10BFu);
+        states[2].push_back(0x10C2u);
+        appendRange(states[2], 0x10DDu, 0x10F5u);
+        states[2].push_back(0x1112u);
+        states[2].push_back(0x1115u);
+        states[3].push_back(0x10C0u);
+        states[3].push_back(0x10C3u);
+        appendRange(states[3], 0x10F6u, 0x110Eu);
+        states[3].push_back(0x1113u);
+        states[3].push_back(0x1114u);
+        return states;
+    };
+    const std::array<std::string_view, 4> stateNames{
+        "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
+    const auto populate = [&](RecordAuthor& author, dx_data& data) {
+        author.cData = &data;
+        author.object.handle = 0xE818u;
+        author.object.parentHandle = 0xE817u;
+        author.object.m_kind =
+            DRW_DynamicBlockObject::Kind::VisibilityParameter;
+        author.object.m_bodyFullyDecoded = true;
+        author.object.m_evalExprParsed = true;
+        author.object.m_parentId = DRW::NoHandle;
+        author.object.m_major = 29u;
+        author.object.m_minor = 2u;
+        author.object.m_valueCode = -9999;
+        author.object.m_nodeId = 16u;
+        author.object.m_elementParsed = true;
+        author.object.m_elementName = "Visibility State";
+        author.object.m_elementMajor = 29u;
+        author.object.m_elementMinor = 2u;
+        author.object.m_eed1071 = 0;
+        author.object.m_showProperties = true;
+        author.object.m_chainActions = false;
+        author.object.m_defPoint = DRW_Coord(0.0, 0.0, 0.0);
+        author.object.m_propertyInfo1Count = 0;
+        author.object.m_propertyInfo2Count = 0;
+        author.object.m_propertyInfoCount = 17;
+        author.object.m_isInitialized = true;
+        author.object.m_visibilityName = "ARCH Title Block";
+        author.object.m_visibilityDescription.clear();
+        author.object.m_unknownBool = false;
+        author.object.m_blockCount = 117;
+        appendRange(author.object.m_blockHandles, 0x10A1u, 0x1115u);
+        author.object.m_stateCount = 4;
+        for (const std::string_view name : stateNames)
+            author.object.m_stateNames.emplace_back(name);
+        author.object.m_stateBlockHandles = makeStates();
+        author.object.m_stateParameterHandles.resize(4u);
+        return author.object.m_blockHandles.size() == 117u
+            && std::all_of(author.object.m_stateBlockHandles.begin(),
+                author.object.m_stateBlockHandles.end(),
+                [](const auto& state) { return state.size() == 29u; });
+    };
+    const auto makeHandleRemap = [](const DRW_DynamicBlockObject& object) {
+        std::map<std::uint32_t, std::uint32_t> remap;
+        for (const std::uint32_t handle : object.m_blockHandles)
+            remap.emplace(handle, handle + 0x5000u);
+        return remap;
+    };
+    const auto makeExpectedWire = [&] (
+            const DRW_DynamicBlockObject& object,
+            const std::map<std::uint32_t, std::uint32_t>& remap) {
+        std::vector<std::pair<int, std::string>> expected;
+        expected.reserve(271u);
+        const auto add = [&expected](int code, std::string value) {
+            expected.emplace_back(code, std::move(value));
+        };
+        const auto integer = [&add](int code, std::int32_t value) {
+            add(code, std::to_string(value));
+        };
+        const auto handle = [&add, &remap](int code, std::uint32_t source) {
+            const auto found = remap.find(source);
+            if (found == remap.end())
+                return false;
+            std::ostringstream text;
+            text << std::uppercase << std::hex << found->second;
+            add(code, text.str());
+            return true;
+        };
+        add(100, "AcDbEvalExpr");
+        integer(90, 16); integer(98, 33); integer(99, 29);
+        add(100, "AcDbBlockElement");
+        add(300, "Visibility State");
+        integer(98, 33); integer(99, 29); integer(1071, 0);
+        add(100, "AcDbBlockParameter");
+        integer(280, 1); integer(281, 0);
+        add(100, "AcDbBlock1PtParameter");
+        add(1010, "0.000000"); add(1020, "0.000000");
+        add(1030, "0.000000");
+        integer(93, 17); integer(170, 0); integer(171, 0);
+        add(100, "AcDbBlockVisibilityParameter");
+        integer(281, 1); add(301, "ARCH Title Block"); add(302, "");
+        integer(91, 0); integer(93, 117);
+        for (const std::uint32_t source : object.m_blockHandles) {
+            if (!handle(331, source))
+                return std::vector<std::pair<int, std::string>>{};
+        }
+        integer(92, 4);
+        for (std::size_t state = 0u; state < stateNames.size(); ++state) {
+            add(303, std::string(stateNames[state]));
+            integer(94, 29);
+            for (const std::uint32_t source :
+                 object.m_stateBlockHandles[state]) {
+                if (!handle(332, source))
+                    return std::vector<std::pair<int, std::string>>{};
+            }
+            integer(95, 0);
+        }
+        return expected;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-visibility-parameter-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        RecordAuthor author;
+        if (!populate(author, data))
+            return fail("could not prepare source-backed visibility states");
+        const std::map<std::uint32_t, std::uint32_t> remap =
+            makeHandleRemap(author.object);
+        dxfRW writer(output.string().c_str());
+        writer.setHandleRemap(remap);
+        author.dxfW = &writer;
+        if (!writer.write(&author, DRW::AC1024, binary) || !author.wrote) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("isolated BLOCKVISIBILITYPARAMETER record did not write: "
+                        + encoding);
+        }
+        const auto expected = makeExpectedWire(author.object, remap);
+        std::vector<std::pair<int, std::string>> wireGroups;
+        dx_data readback;
+        dx_iface rereader;
+        const bool exactWire =
+            readDxfDynamicBlockVisibilityParameterWireGroups(
+                output, binary, wireGroups)
+            && wireGroups == expected && expected.size() == 271u;
+        const bool imported = rereader.fileImport(
+            output.string(), &readback, false);
+        bool malformedBodyRefused = true;
+        if (!binary) {
+            const std::filesystem::path alteredPath =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-dynamic-visibility-parameter-altered-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inObject = false;
+            bool changedReference = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inObject = lines[index + 1u]
+                        == "BLOCKVISIBILITYPARAMETER";
+                } else if (inObject && code == 332) {
+                    lines[index + 1u] = "DEAD";
+                    changedReference = true;
+                    break;
+                }
+            }
+            bool wroteAltered = false;
+            if (changedReference) {
+                std::ofstream altered(alteredPath, std::ios::binary);
+                if (altered) {
+                    for (const std::string& value : lines)
+                        altered << value << '\n';
+                    wroteAltered = static_cast<bool>(altered);
+                }
+            }
+            dx_data alteredReadback;
+            dx_iface alteredReader;
+            malformedBodyRefused = wroteAltered
+                && alteredReader.fileImport(alteredPath.string(),
+                                             &alteredReadback, false)
+                && alteredReadback.dynamicBlockObjects.size() == 1u
+                && !alteredReadback.dynamicBlockObjects.front()
+                        .m_bodyFullyDecoded;
+            std::error_code alteredIgnored;
+            std::filesystem::remove(alteredPath, alteredIgnored);
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!exactWire || !imported || !malformedBodyRefused
+            || readback.dynamicBlockObjects.size() != 1u)
+            return fail("BLOCKVISIBILITYPARAMETER exact " + encoding
+                        + " output/readback body changed");
+        const DRW_DynamicBlockObject& result =
+            readback.dynamicBlockObjects.front();
+        std::vector<std::uint32_t> emittedFlat;
+        for (const std::uint32_t source : author.object.m_blockHandles)
+            emittedFlat.push_back(remap.at(source));
+        std::vector<std::vector<std::uint32_t>> emittedStates =
+            author.object.m_stateBlockHandles;
+        for (auto& state : emittedStates)
+            for (std::uint32_t& handle : state)
+                handle = remap.at(handle);
+        if (result.m_kind
+                != DRW_DynamicBlockObject::Kind::VisibilityParameter
+            || result.handle != 0xE818u || result.parentHandle != 0xE817u
+            || !result.m_bodyFullyDecoded || !result.m_evalExprParsed
+            || result.m_nodeId != 16u || result.m_major != 33u
+            || result.m_minor != 29u || result.m_valueCode != -9999
+            || !result.m_elementParsed
+            || result.m_elementName != "Visibility State"
+            || result.m_elementMajor != 33u || result.m_elementMinor != 29u
+            || result.m_eed1071 != 0 || !result.m_showProperties
+            || result.m_chainActions || result.m_defPoint.x != 0.0
+            || result.m_defPoint.y != 0.0 || result.m_defPoint.z != 0.0
+            || result.m_propertyInfo1Count != 0
+            || result.m_propertyInfo2Count != 0
+            || result.m_propertyInfoCount != 17 || !result.m_isInitialized
+            || result.m_visibilityName != "ARCH Title Block"
+            || !result.m_visibilityDescription.empty()
+            || result.m_unknownBool || result.m_blockCount != 117
+            || result.m_blockHandles != emittedFlat
+            || result.m_stateNames.size() != 4u
+            || result.m_stateBlockHandles != emittedStates
+            || result.m_stateParameterHandles.size() != 4u
+            || std::any_of(result.m_stateParameterHandles.begin(),
+                result.m_stateParameterHandles.end(),
+                [](const auto& state) { return !state.empty(); }))
+        {
+            return fail("BLOCKVISIBILITYPARAMETER typed " + encoding
+                        + " readback changed fields or remapped references");
+        }
+    }
+
+    const std::filesystem::path sentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-parameter-retry-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    { std::ofstream existing(sentinelPath, std::ios::binary); existing << sentinel; }
+    dx_data data;
+    RecordAuthor author;
+    if (!populate(author, data))
+        return fail("could not construct visibility parameter retry input");
+    const auto remap = makeHandleRemap(author.object);
+    dxfRW writer(sentinelPath.string().c_str());
+    writer.setHandleRemap(remap);
+    author.dxfW = &writer;
+    const std::uint32_t lastStateReference =
+        author.object.m_stateBlockHandles.front().back();
+    author.object.m_stateBlockHandles.front().pop_back();
+    if (writer.write(&author, DRW::AC1024, false) || author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("incomplete visibility state list was emitted");
+    }
+    {
+        std::ifstream existing(sentinelPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(existing),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::error_code ignored;
+            std::filesystem::remove(sentinelPath, ignored);
+            return fail("invalid visibility parameter replaced destination");
+        }
+    }
+    author.object.m_stateBlockHandles.front().push_back(lastStateReference);
+    if (!writer.write(&author, DRW::AC1024, false) || !author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("corrected visibility parameter failed same-writer retry");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(sentinelPath, ignored);
+
+    dx_data incompleteGraph;
+    incompleteGraph.sourceFormat = dx_source_format::DWG;
+    incompleteGraph.sourceVersion = DRW::AC1024;
+    dx_iface graphWriter;
+    graphWriter.cData = &incompleteGraph;
+    graphWriter.currentBlock = incompleteGraph.mBlock;
+    graphWriter.addDynamicBlockObject(author.object);
+    const std::filesystem::path incompleteGraphPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-parameter-incomplete-graph-"
+           + std::to_string(nonce) + ".dxf");
+    const bool incompleteGraphRefused = !graphWriter.fileExport(
+        incompleteGraphPath.string(), DRW::AC1024, false,
+        &incompleteGraph, false)
+        && !std::filesystem::exists(incompleteGraphPath);
+    std::filesystem::remove(incompleteGraphPath, ignored);
+    if (!incompleteGraphRefused)
+        return fail("visibility parameter bypassed owner-graph refusal");
+    return true;
+}
+
 bool objectContextDataLossRefusesExport() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
@@ -49056,6 +49462,10 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-visibility-grip")
         return dynamicBlockVisibilityGripRecordOutputProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dynamic-block-visibility-parameter")
+        return dynamicBlockVisibilityParameterRecordOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;

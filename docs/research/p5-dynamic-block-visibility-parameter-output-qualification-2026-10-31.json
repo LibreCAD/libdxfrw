@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-dynamic-block-visibility-parameter-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify the isolated AC1024 BLOCKVISIBILITYPARAMETER body",
+  "status": "ISOLATED_RECORD_BODY_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "record": "BLOCKVISIBILITYPARAMETER",
+    "handle": "0x1118",
+    "evaluationGraph": "0x1117",
+    "fields": {
+      "evalExprVersion": [29, 2],
+      "evalExprValueCode": -9999,
+      "nodeId": 16,
+      "elementName": "Visibility State",
+      "elementVersion": [29, 2],
+      "eed1071": 0,
+      "showProperties": true,
+      "chainActions": false,
+      "defaultPoint": [0.0, 0.0, 0.0],
+      "propertyInfo1Count": 0,
+      "propertyInfo2Count": 0,
+      "propertyInfoMetadataCount": 17,
+      "initialized": true,
+      "visibilityName": "ARCH Title Block",
+      "visibilityDescription": "",
+      "unknownBool": false,
+      "flatBlockHandleCount": 117,
+      "flatBlockHandleRange": ["0x10A1", "0x1115"],
+      "flatHandleNotInAnyState": "0x1111",
+      "states": [
+        {"name": "ARCH D", "blockCount": 29, "parameterCount": 0},
+        {"name": "ARCH C", "blockCount": 29, "parameterCount": 0},
+        {"name": "ARCH B", "blockCount": 29, "parameterCount": 0},
+        {"name": "ARCH A", "blockCount": 29, "parameterCount": 0}
+      ],
+      "totalStateBlockReferences": 116
+    },
+    "readers": [
+      {
+        "implementation": "LibreDWG",
+        "version": "0.14",
+        "command": "dwgread -O JSON title_block-arch.dwg",
+        "observed": "Source object 0x1118 has 117 flat blocks and four ordered visibility states with 29 blocks and zero parameters each; the flat set contains 0x1111, which is not present in a state list."
+      },
+      {
+        "implementation": "libdxfrw",
+        "revision": "local working tree before this slice",
+        "command": "/private/tmp/read_visibility_parameter",
+        "observed": "The existing AC1024 DWG parser reports a complete VisibilityParameter body with source version 29/2, node 16, 117 flat handles, four 29-handle state lists, zero state-parameter lists, source property-info counts 0/0 and metadata count 17, and no reactors/XDATA."
+      }
+    ],
+    "independentOutput": {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "command": "dwg2dxf -y --as r2010 -o title_block_arch_libredwg.dxf title_block-arch.dwg",
+      "outputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+      "observed": "The DXF body writes EvalExpr 90/98/99 = 16/33/29 with no value union; AcDbBlockElement name and version; AcDbBlockParameter flags; the 1-point parameter fields and property-info counts; then the visibility name/flags, 117 group-331 handles, four ordered states with 29 group-332 handles and zero group-333 parameters each."
+    },
+    "schemaSource": {
+      "repository": "LibreDWG/libredwg",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "observed": "AcDbBlock1PtParameter defines the 3BD point, metadata count, prop1/prop2 connection counts, and final metadata field. BLOCKVISIBILITYPARAMETER defines fields 281/301/302/91/93, group-331 flat block handles, group-92 state count, and per-state 303/94/332/95 plus optional group-333 parameter handles."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Add strict AC1024 DXF projection and exact body serialization for the source-backed visibility-state profile; mark the element projection complete and remap all group-331/group-332 block references.",
+    "scope": "One isolated record body. EvaluationGraph node/edge composition, linked Grip/GripLocation records, reference target roles, owner DICTIONARY and Sortents closure remain outside this slice and remain refused by high-level adapter output."
+  },
+  "qualification": {
+    "targetVersion": "AC1024",
+    "ascii": "PASS: exact observed group sequence and fresh typed readback preserve all profiled fields and remapped references.",
+    "binary": "PASS: exact observed group sequence and fresh typed readback preserve all profiled fields and remapped references.",
+    "parserRefusal": "PASS: an unknown group-332 state-block reference keeps the raw record readable but does not mark the body fully decoded.",
+    "failureAndRetry": "PASS: an incomplete 29-reference state preserves the existing destination byte-for-byte; restoring the source reference and reusing the same writer succeeds.",
+    "ownerGraphBoundary": "PASS: the high-level adapter still refuses this isolated record when its owner graph is absent.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "selector": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(purge_preventer|grip_location|visibility_grip|visibility_parameter)$' --output-on-failure",
+      "result": "4/4 passed in 0.21 seconds"
+    },
+    "fixturePolicy": "Test arrays are authored in C++; ASCII/Binary outputs are temporary and removed. No investigation DWG/DXF fixture was added."
+  }
+}
