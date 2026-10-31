@@ -26485,6 +26485,43 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::uint32_t nodeHandle = 0;
         std::uint32_t dependencyBodyHandle = 0;
         std::int32_t dependencyBodyId = 0;
+        // Three physical AC1024 inputs decode in LibreDWG's named fields as
+        // code values 4/4/4/3. This conflicts with its schema constants, so
+        // keep a mismatch readable but ineligible for complete output.
+        const bool validateAc1024ValueDependencyHandleCodes =
+            version == DRW::AC1024
+            && m_recordName == "ACDBASSOCVALUEDEPENDENCY";
+        bool dependencyHandleCodesMatch = true;
+        std::size_t dependencyHandleFieldIndex = 0u;
+        const auto readDependencyHandleWithRole =
+            [&](std::uint32_t& value, std::uint8_t expectedCode) {
+            if (!validateAc1024ValueDependencyHandleCodes)
+                return readHandleTransactional(&handleProbe, value);
+            static const char* const fieldNames[] = {
+                "dep_on", "readdep", "node", "dep_body"};
+            const std::size_t fieldIndex = dependencyHandleFieldIndex++;
+            if (!handleProbe.isGood())
+                return false;
+            dwgBuffer probe = handleProbe.forkIndependent();
+            dwgHandle parsed;
+            if (!readBoundedObjectHandle(probe, 0u, false, parsed,
+                                         handleEndBit))
+                return false;
+            if (parsed.code != expectedCode) {
+                dependencyHandleCodesMatch = false;
+                const char* const fieldName = fieldIndex
+                        < sizeof(fieldNames) / sizeof(fieldNames[0])
+                    ? fieldNames[fieldIndex] : "unknown";
+                DRW_DBG("AC1024 value-dependency handle code mismatch field/actual/expected/ref=");
+                DRW_DBG(fieldName); DRW_DBG("/");
+                DRW_DBG(static_cast<unsigned>(parsed.code)); DRW_DBG("/");
+                DRW_DBG(static_cast<unsigned>(expectedCode)); DRW_DBG("/");
+                DRW_DBG(parsed.ref); DRW_DBG("\n");
+            }
+            value = parsed.ref;
+            handleProbe = probe;
+            return true;
+        };
         const bool complete =
             objectDataEndKnown
             && readBitShortWithinBody(&bodyProbe, version, objectDataEnd,
@@ -26500,14 +26537,14 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             && readBitWithinBody(&bodyProbe, version, objectDataEnd,
                                  isDelegatingToOwningAction)
             && readBitLongWithinBody(&bodyProbe, version, objectDataEnd, order)
-            && readHandleTransactional(&handleProbe, dependencyHandle)
+            && readDependencyHandleWithRole(dependencyHandle, 4u)
             && readBitWithinBody(&bodyProbe, version, objectDataEnd, hasName)
             && (!hasName || readVariableTextWithinBounds(
                 &bodyProbe, textProbe, version, boundedBodyEnd,
                 stringDataEnd, dependencyName))
-            && readHandleTransactional(&handleProbe, readDependencyHandle)
-            && readHandleTransactional(&handleProbe, nodeHandle)
-            && readHandleTransactional(&handleProbe, dependencyBodyHandle)
+            && readDependencyHandleWithRole(readDependencyHandle, 4u)
+            && readDependencyHandleWithRole(nodeHandle, 4u)
+            && readDependencyHandleWithRole(dependencyBodyHandle, 3u)
             && readBitLongWithinBody(&bodyProbe, version, objectDataEnd,
                                      dependencyBodyId)
             && bodyProbe.isGood() && textProbe->isGood()
@@ -26537,6 +26574,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             m_dependencyNodeHandle = nodeHandle;
             m_dependencyBodyHandle = dependencyBodyHandle;
             m_dependencyBodyId = dependencyBodyId;
+            m_dependencyWireComplete = dependencyHandleCodesMatch;
             // Preserve the historical public alias while retaining the exact
             // node and dependency-body references in their dedicated fields.
             m_writeDependencyHandle = nodeHandle;
@@ -28423,10 +28461,14 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
 
     if (version == DRW::AC1024 && m_dependencyFieldsParsed
         && objectDataEndKnown) {
-        m_dependencyWireComplete =
-            consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u)
-            && consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u)
-            && consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
+        const bool bodyWireComplete =
+            consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u);
+        const bool stringWireComplete =
+            consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u);
+        const bool handleWireComplete =
+            consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
+        m_dependencyWireComplete = m_dependencyWireComplete
+            && bodyWireComplete && stringWireComplete && handleWireComplete;
     }
     if (commonHandlesOk) {
         parentHandle = parsedParentHandle;

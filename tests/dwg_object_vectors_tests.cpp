@@ -911,7 +911,11 @@ bool makeAssociativeDependencyFrame(
         bool isReadDependency, bool isWriteDependency,
         bool isAttachedToObject, bool isDelegatingToOwningAction,
         bool namePresent, const UTF8STRING& name, std::int32_t bodyId,
-        AssociativeDependencyFrame& frame, bool malformedName = false) {
+        AssociativeDependencyFrame& frame, bool malformedName = false,
+        bool includeSentinels = true,
+        std::array<std::uint8_t, 4> dependencyHandleCodes = {{
+            DRW::DwgSoftPointer, DRW::DwgSoftPointer,
+            DRW::DwgSoftPointer, DRW::DwgHardOwnership}}) {
     const DRW::Version version = DRW::AC1024;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
@@ -932,7 +936,8 @@ bool makeAssociativeDependencyFrame(
             strings.putVariableText(version, name);
     }
     body.putBitLong(bodyId);
-    body.put3Bits(0b101u);
+    if (includeSentinels)
+        body.put3Bits(0b101u);
 
     object.putObjType(version, 518u);
     dwgHandle objectHandle;
@@ -965,11 +970,12 @@ bool makeAssociativeDependencyFrame(
         handles.putHandle(handle);
     };
     putHandle(DRW::DwgHardOwnership, 0xA200u); // common owner
-    putHandle(DRW::DwgSoftPointer, 0xA210u); // dependent_on
-    putHandle(DRW::DwgSoftPointer, 0xA211u); // read_dependency
-    putHandle(DRW::DwgSoftPointer, 0xA212u); // node
-    putHandle(DRW::DwgHardOwnership, 0xA213u); // dependency_body
-    putHandle(DRW::DwgSoftPointer, 0xA214u); // following-handle sentinel
+    putHandle(dependencyHandleCodes[0], 0xA210u); // dependent_on
+    putHandle(dependencyHandleCodes[1], 0xA211u); // read_dependency
+    putHandle(dependencyHandleCodes[2], 0xA212u); // node
+    putHandle(dependencyHandleCodes[3], 0xA213u); // dependency_body
+    if (includeSentinels)
+        putHandle(DRW::DwgSoftPointer, 0xA214u); // following-handle sentinel
     handles.alignToByte();
     if (!object.isGood() || !handles.isGood()
         || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())
@@ -1895,6 +1901,48 @@ void testAssociativeDependencyFields(TestContext& t) {
             };
             t.expect(copyMatches(copied) && copyMatches(assigned),
                      label + " fields survive copy and assignment");
+        }
+    }
+
+    const std::array<std::uint8_t, 4> observedAc1024ValueDependencyCodes {{
+        DRW::DwgSoftPointer, DRW::DwgSoftPointer,
+        DRW::DwgSoftPointer, DRW::DwgHardOwnership}};
+    AssociativeDependencyFrame valueDependencyFrame;
+    const bool valueDependencyFrameBuilt = makeAssociativeDependencyFrame(
+        true, false, true, true, false, "", 42, valueDependencyFrame,
+        false, false, observedAc1024ValueDependencyCodes);
+    t.expect(valueDependencyFrameBuilt,
+             "AC1024 observed-code value-dependency frame builds without sentinels");
+    if (valueDependencyFrameBuilt) {
+        AssociativeCodecProbe valueDependency("ACDBASSOCVALUEDEPENDENCY");
+        const ParseResult valueResult = parse(valueDependencyFrame,
+                                              valueDependency);
+        t.expect(valueResult.read && valueResult.good
+                     && valueDependency.m_dependencyFieldsParsed
+                     && valueDependency.m_dependencyWireComplete
+                     && valueDependency.m_dependencyHandle == 0xA210u
+                     && valueDependency.m_readDependencyHandle == 0xA211u
+                     && valueDependency.m_dependencyNodeHandle == 0xA212u
+                     && valueDependency.m_dependencyBodyHandle == 0xA213u,
+                 "AC1024 value dependency accepts the peer-decoded 4/4/4/3 handle-code tuple without a trailing sentinel");
+
+        auto mismatchedCodes = observedAc1024ValueDependencyCodes;
+        mismatchedCodes[0] = DRW::DwgHardOwnership;
+        AssociativeDependencyFrame mismatchedFrame;
+        const bool mismatchedBuilt = makeAssociativeDependencyFrame(
+            true, false, true, true, false, "", 42, mismatchedFrame,
+            false, false, mismatchedCodes);
+        t.expect(mismatchedBuilt,
+                 "AC1024 mismatched value-dependency handle-code frame builds");
+        if (mismatchedBuilt) {
+            AssociativeCodecProbe mismatched("ACDBASSOCVALUEDEPENDENCY");
+            const ParseResult mismatchedResult = parse(mismatchedFrame,
+                                                       mismatched);
+            t.expect(mismatchedResult.read && mismatchedResult.good
+                         && mismatched.m_dependencyFieldsParsed
+                         && !mismatched.m_dependencyWireComplete
+                         && mismatched.m_dependencyHandle == 0xA210u,
+                     "AC1024 handle-code mismatch retains parsed fields but withholds wire completeness");
         }
     }
 
