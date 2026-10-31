@@ -26394,11 +26394,11 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
 //already preserves them via the raw net; the filter dedups by handle to avoid a
 //double-emit). The group-code shape is the inverse of each type's parseCode
 //(DRW_Sun/Scale/DictionaryVar/RasterVariables::parseCode in drw_objects.cpp),
-//cross-checked field-for-field against ezdxf 1.4.4. Each emits the verbatim
-//code-5 handle (reserved by the filter's pre-write pass) and a 330 owner (the
-//record's parentHandle when known, else root dict "C" to avoid an ownerless
-//prune). The matching CLASS record is registered by the filter via
-//dxfClassForRecordName.
+//cross-checked field-for-field against ezdxf 1.4.4. Explicit code-5 identities
+//are remapped and reserved; SUN allocates one when a direct caller supplies no
+//source handle. Group 330 maps the record's parentHandle when known, else uses
+//root dict "C" to avoid an ownerless prune. The matching CLASS record is
+//registered by the filter via dxfClassForRecordName.
 
 //helper: emit 330 owner as a hex handle (record parentHandle when nonzero, else
 //root dict "C" so the object is reachable and not pruned as an orphan).
@@ -26868,38 +26868,59 @@ bool dxfRW::writeSun(DRW_Sun *ent) {
             return false;
         }
     };
-    if (ent == nullptr || !sunColorIsDxfFaithful(*ent))
+    if (ent == nullptr || !preflightTableEntry(ent)
+        || !sunColorIsDxfFaithful(*ent))
         return rejectUnsupportedDxfWrite("SUN CMC color projection");
-    if (!preflightTableEntry(ent))
+
+    const std::uint32_t sourceHandle = ent->handle;
+    std::uint32_t handle = sourceHandle == 0u
+        ? 0u : remapObjectHandle(sourceHandle);
+    if (sourceHandle != 0u
+        && (handle == 0u || handle == DRW::NoHandle
+            || isDxfFixedOutputHandle(handle))) {
+        m_writeError = true;
         return false;
+    }
+
+    RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
-    writer->writeString(0, "SUN");
-    writer->writeString(5, toHexStr(ent->handle));
-    if (!writeTableEntryAppData(*ent))
+    if (sourceHandle == 0u) {
+        if (!allocateDxfHandle(handle))
+            return false;
+    } else if (!reserveHandle(handle)) {
+        m_writeError = true;
+        return false;
+    }
+
+    if (!writer->writeString(0, "SUN")
+        || !writer->writeString(5, toHexStr(handle))
+        || !writeTableEntryAppData(*ent))
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    writer->writeString(100, "AcDbSun");
-    writer->writeInt32(90, static_cast<int>(ent->m_classVersion));
-    writer->writeBool(290, ent->m_isOn);
-    writer->writeInt16(63, static_cast<int>(ent->m_color));
-    writer->writeDouble(40, ent->m_intensity);
-    writer->writeBool(291, ent->m_hasShadow);
-    writer->writeInt32(91, ent->m_julianDay);
-    writer->writeInt32(92, ent->m_milliseconds);
-    writer->writeBool(292, ent->m_isDaylightSavings);
-    writer->writeInt16(70, static_cast<int>(ent->m_shadowType));
-    writer->writeInt16(71, static_cast<int>(ent->m_shadowMapSize));
-    writer->writeInt16(280, static_cast<int>(ent->m_shadowSoftness));
+    if (writer->hasWriteError()
+        || !writer->writeString(100, "AcDbSun")
+        || !writer->writeInt32(90, static_cast<int>(ent->m_classVersion))
+        || !writer->writeBool(290, ent->m_isOn)
+        || !writer->writeInt16(63, static_cast<int>(ent->m_color))
+        || !writer->writeDouble(40, ent->m_intensity)
+        || !writer->writeBool(291, ent->m_hasShadow)
+        || !writer->writeInt32(91, ent->m_julianDay)
+        || !writer->writeInt32(92, ent->m_milliseconds)
+        || !writer->writeBool(292, ent->m_isDaylightSavings)
+        || !writer->writeInt16(70, static_cast<int>(ent->m_shadowType))
+        || !writer->writeInt16(71, static_cast<int>(ent->m_shadowMapSize))
+        || !writer->writeInt16(280, static_cast<int>(ent->m_shadowSoftness)))
+        return false;
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
-    if (writer->hasWriteError()) {
+    if (writer->hasWriteError() || !preflightDxfWrite()
+        || (sourceHandle != 0u
+            && !bindDxfWriteSourceObjectHandle(sourceHandle, handle))
+        || !record.commit()) {
         m_writeError = true;
         return false;
     }
-    if (!preflightDxfWrite() || !record.commit()) {
-        m_writeError = true;
-        return false;
-    }
+    state.commit();
     return true;
 }
 

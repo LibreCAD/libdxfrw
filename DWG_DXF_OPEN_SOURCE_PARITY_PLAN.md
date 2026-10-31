@@ -134,11 +134,15 @@ source pairing and one-emission proof pass. Qualify other subclasses only when
 an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
-profiles; active/global/environment, background/live-section/sun relations; native
-dictionary collation and layer style overrides; and VIEWPORT shade modes 4/5 plus
-references 335/343/344/91. Verify coupled dictionary keys, names, body fields and
-consumers. Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a
-distinct reproduced missing provider, remap, collision or composed output failure.
+profiles; active/global/environment and background/live-section relations; a
+DWG-origin typed-only SUN output route for group-63-faithful color profiles,
+including owner/VPORT/VIEWPORT reference closure and consumer meaning; preserve
+DXF-origin raw SUN replay and refuse RGB/name/book CMC states unless a lossless
+documented route is established. Also close native dictionary collation and
+layer style overrides, plus VIEWPORT shade modes 4/5 and references
+335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers.
+Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct
+reproduced missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 

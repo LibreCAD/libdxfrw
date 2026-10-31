@@ -5034,14 +5034,50 @@ void testSunDxfCmcProjectionGuard(TestContext& t) {
             t.expect(wrote && ended
                          && std::find(tags.begin(), tags.end(), expected)
                              != tags.end()
+                         && std::any_of(tags.begin(), tags.end(),
+                             [](const std::string& tag) {
+                                 return tag.compare(0, 2, "5:") == 0
+                                     && tag != "5:0";
+                             })
+                         && std::find(tags.begin(), tags.end(), "330:C")
+                             != tags.end()
                          && std::none_of(tags.begin(), tags.end(),
                              [](const std::string& tag) {
                                  return tag.rfind("421:", 0) == 0
                                      || tag.rfind("420:", 0) == 0
                                      || tag.rfind("430:", 0) == 0;
                              }),
-                     "SUN emits faithful documented group 63 only");
+                     "SUN allocates identity/owner and emits faithful group 63 only");
         }
+
+        std::ostringstream remappedOutput;
+        dxfRW remappedWriter("");
+        configureWriter(remappedWriter, binary, remappedOutput);
+        remappedWriter.setHandleRemap(
+            {{0xA500u, 0xB500u}, {0xA501u, 0xB501u}});
+        DRW_Sun remappedSun;
+        remappedSun.handle = 0xA500u;
+        remappedSun.parentHandle = 0xA501u;
+        remappedSun.m_color = 42u;
+        bool remappedEnded = false;
+        const bool remappedWrote = remappedWriter.writeSun(&remappedSun)
+            && remappedWriter.writer->writeString(0, "WIRE_END");
+        const auto remappedTags = numericWireProjection(
+            remappedOutput.str(), binary, remappedEnded);
+        t.expect(remappedWrote && remappedEnded
+                     && std::find(remappedTags.begin(), remappedTags.end(),
+                                  "0:SUN") != remappedTags.end()
+                     && std::find(remappedTags.begin(), remappedTags.end(),
+                                  "5:B500") != remappedTags.end()
+                     && std::find(remappedTags.begin(), remappedTags.end(),
+                                  "330:B501") != remappedTags.end()
+                     && std::find(remappedTags.begin(), remappedTags.end(),
+                                  "100:AcDbSun") != remappedTags.end()
+                     && std::find(remappedTags.begin(), remappedTags.end(),
+                                  "63:42") != remappedTags.end(),
+                 binary
+                     ? "SUN binary output binds remapped identity and owner"
+                     : "SUN ASCII output binds remapped identity and owner");
 
         const auto refuses = [&](const char* label, DRW_Sun sun) {
             std::ostringstream output;
@@ -5104,6 +5140,42 @@ void testSunDxfCmcProjectionGuard(TestContext& t) {
         unownedName.m_color = 7u;
         unownedName.m_colorName = "unmapped-name";
         refuses("unmapped name projection", unownedName);
+
+        std::ostringstream rollbackOutput;
+        rollbackOutput << "existing-output";
+        dxfRW rollbackWriter("");
+        configureWriter(rollbackWriter, binary, rollbackOutput);
+        DRW_Sun invalidXdata;
+        invalidXdata.handle = 0xA510u;
+        invalidXdata.parentHandle = 0xA511u;
+        invalidXdata.m_color = 7u;
+        const bool addedInvalidXdata = invalidXdata.addExtData(
+            std::make_unique<DRW_Variant>(999, std::int32_t{1}));
+        const std::string beforeFailure = rollbackOutput.str();
+        const bool refusedAndRolledBack = addedInvalidXdata
+            && !rollbackWriter.writeSun(&invalidXdata)
+            && rollbackOutput.str() == beforeFailure;
+
+        std::ostringstream retryOutput;
+        dxfRW retryWriter("");
+        configureWriter(retryWriter, binary, retryOutput);
+        DRW_Sun corrected;
+        corrected.handle = 0xA510u;
+        corrected.parentHandle = 0xA511u;
+        corrected.m_color = 7u;
+        bool retryEnded = false;
+        const bool correctedRetry = retryWriter.writeSun(&corrected)
+            && retryWriter.writer->writeString(0, "WIRE_END");
+        const auto retryTags = numericWireProjection(
+            retryOutput.str(), binary, retryEnded);
+        t.expect(refusedAndRolledBack && correctedRetry && retryEnded
+                     && std::find(retryTags.begin(), retryTags.end(),
+                                  "5:A510") != retryTags.end()
+                     && std::find(retryTags.begin(), retryTags.end(),
+                                  "330:A511") != retryTags.end(),
+                 binary
+                     ? "SUN binary failure rolls back bytes and corrected output succeeds"
+                     : "SUN ASCII failure rolls back bytes and corrected output succeeds");
     }
 }
 
