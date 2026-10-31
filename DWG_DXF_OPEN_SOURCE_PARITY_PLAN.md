@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export coverage closure | Reconcile the existing 228-identity census against all committed source-to-output/readback receipts; remove identities already closed, then bind the highest-incidence still-uncovered required profile and its descendants to emitted output. Recheck strict complete-export admission on the current source and code after coverage is reconciled. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P4 | OPEN — strict complete-export closure (222/228 selected profile rows joined) | Bind the one remaining P4 physical census profile, AC1024 MLINESTYLE type 73 at handle 0x18, to selected ASCII/Binary output and fresh readback. The other five profile rows without field/output proof belong to P5. After those source-backed profiles close, reevaluate strict admission without weakening the 228-opaque/0-correlation gate. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — five physical census rows plus broader rendering/TABLE work | Close source-to-output/readback for the census's two VIEWPORTs, two LAYOUTs and one rich R24 TABLESTYLE; also close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -56,18 +56,21 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — publish the residual census-to-receipt delta.** Use the
-228-identity census and the committed P4 receipts as inputs; do not recollect
-the census or reopen any profile whose source identities, admitted fields,
-reference roles, emitted records and required readback are already proved.
-Produce a compact per-identity delta that marks each census entry as covered by
-typed output, covered by a proven replay path, or still uncovered. Then take the
-highest-incidence uncovered required profile and close only its missing source,
-graph, output or readback edge. Keep strict admission closed until this join
-proves complete required coverage. Add no investigation DWG/DXF fixture;
-preserve refusal, atomic publication and corrected retry for the selected
-slice. Assign residual rows already owned by P5 to P5 instead of duplicating
-them in P4. The original identity inventory is
+**P4 next action — bind the physical MLINESTYLE sentinel profile.** The census
+delta is complete: 222 of 228 identities have selected-profile physical
+output/readback receipts; one P4 row and five P5 rows remain open. The P4 row
+is MLINESTYLE handle `0x18`, name `STANDARD`, with two elements whose source
+linetype indices are `32767` (the admitted `BYLAYER` sentinel). Add a focused
+selector using the existing mechanical AC1024 source, export ASCII and Binary
+DXF in explicit partial-read mode, and freshly import each result. Compare the
+source-bound common and element fields, preserve the table identity and
+linetype mapping, refuse an unrecognized index with destination preservation,
+then restore it and retry on the same adapter. Reuse the existing generated
+sentinel controls; add no DWG/DXF fixture. Keep strict admission closed. After
+this row closes, proceed to the five source-backed P5 rows. The full identity
+join is recorded in
+[`p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31.json`](docs/research/p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31.json),
+and the original inventory is
 [`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json).
 
 The last physical partial-output observation is recorded in
