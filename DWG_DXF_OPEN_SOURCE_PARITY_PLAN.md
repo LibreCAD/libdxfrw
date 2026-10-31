@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure (223/228 selected profile rows joined) | After P5 closes its five remaining physical census profiles, rerun the composed strict CLI on the current source/code. If refusal remains, bind the exact residual opaque/correlation or unknown-tail gap before changing admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — five physical census rows plus broader rendering/TABLE work | Close source-to-output/readback for the census's two VIEWPORTs, two LAYOUTs and one rich R24 TABLESTYLE; also close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P4 | OPEN — strict complete-export closure (225/228 selected profile rows joined) | After P5 closes its three remaining physical census profiles, rerun the composed strict CLI on the current source/code. If refusal remains, bind the exact residual opaque/correlation or unknown-tail gap before changing admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — three physical census rows plus broader rendering/TABLE work | Close source-to-output/readback for the census's two LAYOUTs and one rich R24 TABLESTYLE; also close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -56,10 +56,10 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — re-evaluate strict complete-export after P5 closes its five
-physical census profiles.** The census delta is complete: 223 of 228 identities
-have selected-profile physical output/readback receipts; the remaining rows are
-P5-owned: two VIEWPORTs, two LAYOUTs and one rich R24 TABLESTYLE. Keep strict
+**P4 next action — re-evaluate strict complete-export after P5 closes its three
+remaining physical census profiles.** The census delta is complete: 225 of 228
+identities have selected-profile physical output/readback receipts; the remaining
+rows are P5-owned: two LAYOUTs and one rich R24 TABLESTYLE. Keep strict
 admission closed while those fields and output paths are being completed. Once
 they close, run the composed strict CLI against the current source and code. If
 it still refuses, identify the exact source-correlation or unknown-tail gap and

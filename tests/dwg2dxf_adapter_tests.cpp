@@ -29773,6 +29773,315 @@ bool physicalMLineStyleOutputReadback(
     return true;
 }
 
+bool physicalViewportOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("physical viewport source is not the admitted AC1024 drawing");
+
+    struct LocatedViewport {
+        const DRW_Viewport* viewport{nullptr};
+        std::string blockName;
+        bool mainContainer{false};
+    };
+    const std::array<std::uint32_t, 2> expectedHandles{{0x28Bu, 0x290u}};
+    std::array<LocatedViewport, 2> sourceViewports{};
+    const auto findViewports = [&expectedHandles](
+            const dx_data& data, std::array<LocatedViewport, 2>& found) {
+        const auto visit = [&expectedHandles, &found](
+                const dx_ifaceBlock* block, bool mainContainer) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                const auto* viewport =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport == nullptr
+                    || std::find(expectedHandles.begin(), expectedHandles.end(),
+                                 viewport->handle) == expectedHandles.end())
+                    continue;
+                const std::size_t index = static_cast<std::size_t>(
+                    std::find(expectedHandles.begin(), expectedHandles.end(),
+                              viewport->handle) - expectedHandles.begin());
+                if (found[index].viewport != nullptr)
+                    return false;
+                found[index] = {viewport, block->name, mainContainer};
+            }
+            return true;
+        };
+        if (!visit(data.mBlock, true))
+            return false;
+        for (const dx_ifaceBlock* block : data.blocks)
+            if (!visit(block, false))
+                return false;
+        return std::all_of(found.begin(), found.end(),
+            [](const LocatedViewport& item) { return item.viewport != nullptr; });
+    };
+    if (!findViewports(source, sourceViewports))
+        return fail("the two opaque-census VIEWPORT handles are not unique typed block members");
+
+    const auto sameDouble = [](double lhs, double rhs) {
+        return lhs == rhs;
+    };
+    const auto sameCoord = [&sameDouble](const DRW_Coord& lhs,
+                                         const DRW_Coord& rhs) {
+        return sameDouble(lhs.x, rhs.x) && sameDouble(lhs.y, rhs.y)
+            && sameDouble(lhs.z, rhs.z);
+    };
+    const auto sameProfile = [&sameDouble, &sameCoord](
+            const DRW_Viewport& expected, const DRW_Viewport& actual) {
+        return actual.eType == DRW::VIEWPORT
+            && actual.space == expected.space
+            && actual.layer == expected.layer
+            && actual.lineType == expected.lineType
+            && actual.color == expected.color
+            && actual.color24 == expected.color24
+            && actual.colorName == expected.colorName
+            && actual.transparency == expected.transparency
+            && actual.lWeight == expected.lWeight
+            && sameDouble(actual.ltypeScale, expected.ltypeScale)
+            && actual.material == expected.material
+            && actual.plotStyle == expected.plotStyle
+            && actual.shadow == expected.shadow
+            && actual.shadowHandle == expected.shadowHandle
+            && actual.fullVisualStyleHandle == expected.fullVisualStyleHandle
+            && actual.faceVisualStyleHandle == expected.faceVisualStyleHandle
+            && actual.edgeVisualStyleHandle == expected.edgeVisualStyleHandle
+            && actual.reactorHandles == expected.reactorHandles
+            && actual.visible == expected.visible
+            && sameCoord(actual.basePoint, expected.basePoint)
+            && sameDouble(actual.pswidth, expected.pswidth)
+            && sameDouble(actual.psheight, expected.psheight)
+            // ODA §20.4.38 does not store DXF groups 68/69 in the DWG
+            // VIEWPORT entity body. The adapter derives those DXF values from
+            // paper-space ownership/order, so validate them separately below.
+            && sameDouble(actual.centerPX, expected.centerPX)
+            && sameDouble(actual.centerPY, expected.centerPY)
+            && sameDouble(actual.snapPX, expected.snapPX)
+            && sameDouble(actual.snapPY, expected.snapPY)
+            && sameDouble(actual.snapSpPX, expected.snapSpPX)
+            && sameDouble(actual.snapSpPY, expected.snapSpPY)
+            && sameDouble(actual.gridSpX, expected.gridSpX)
+            && sameDouble(actual.gridSpY, expected.gridSpY)
+            && sameCoord(actual.viewDir, expected.viewDir)
+            && sameCoord(actual.viewTarget, expected.viewTarget)
+            && sameDouble(actual.viewLength, expected.viewLength)
+            && sameDouble(actual.frontClip, expected.frontClip)
+            && sameDouble(actual.backClip, expected.backClip)
+            && sameDouble(actual.viewHeight, expected.viewHeight)
+            && sameDouble(actual.snapAngle, expected.snapAngle)
+            && sameDouble(actual.twistAngle, expected.twistAngle)
+            && sameDouble(actual.circleZoom, expected.circleZoom)
+            && actual.majorGridLines == expected.majorGridLines
+            && actual.statusFlags == expected.statusFlags
+            && actual.styleSheet == expected.styleSheet
+            && actual.renderMode == expected.renderMode
+            && actual.ucsAtOrigin == expected.ucsAtOrigin
+            && actual.ucsPerViewport == expected.ucsPerViewport
+            && sameCoord(actual.ucsOrigin, expected.ucsOrigin)
+            && sameCoord(actual.ucsXAxis, expected.ucsXAxis)
+            && sameCoord(actual.ucsYAxis, expected.ucsYAxis)
+            && sameDouble(actual.ucsElevation, expected.ucsElevation)
+            && actual.ucsOrthographicType == expected.ucsOrthographicType
+            && actual.shadePlotMode == expected.shadePlotMode
+            && actual.useDefaultLighting == expected.useDefaultLighting
+            && actual.defaultLightingType == expected.defaultLightingType
+            && sameDouble(actual.brightness, expected.brightness)
+            && sameDouble(actual.contrast, expected.contrast)
+            && actual.ambientColor == expected.ambientColor
+            && actual.ambientColorRgb == expected.ambientColorRgb
+            && actual.ambientColorName == expected.ambientColorName
+            && actual.clipBoundaryHandle == expected.clipBoundaryHandle
+            && actual.namedUcsHandle == expected.namedUcsHandle
+            && actual.baseUcsHandle == expected.baseUcsHandle
+            && actual.backgroundHandle == expected.backgroundHandle
+            && actual.visualStyleHandle == expected.visualStyleHandle
+            && actual.shadePlotHandle == expected.shadePlotHandle
+            && actual.m_sunHandle == expected.m_sunHandle
+            && actual.frozenLayerHandles == expected.frozenLayerHandles;
+    };
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* found = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (found != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            found = &dictionary;
+        }
+        return found;
+    };
+    const auto uniqueXRecord = [](const dx_data& data, std::uint32_t handle) {
+        const DRW_XRecord* found = nullptr;
+        for (const DRW_XRecord& record : data.xRecords) {
+            if (record.handle != handle)
+                continue;
+            if (found != nullptr)
+                return static_cast<const DRW_XRecord*>(nullptr);
+            found = &record;
+        }
+        return found;
+    };
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-viewport-physical-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "preserve physical VIEWPORT destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical VIEWPORT destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_Viewport* mutableViewport = nullptr;
+        if (source.mBlock != nullptr)
+            for (DRW_Entity* entity : source.mBlock->ent) {
+                auto* viewport = dynamic_cast<DRW_Viewport*>(entity);
+                if (viewport != nullptr
+                    && viewport->handle == expectedHandles.front()) {
+                    mutableViewport = viewport;
+                    break;
+                }
+            }
+        if (mutableViewport == nullptr)
+            return fail("the first census VIEWPORT could not be selected for the refusal control");
+        const double originalHeight = mutableViewport->viewHeight;
+        mutableViewport->viewHeight = std::numeric_limits<double>::infinity();
+        const bool invalidPayloadRejected = !exportPartial();
+        std::ifstream refusedOutput(outputPath, std::ios::binary);
+        const std::string refusedContents{
+            std::istreambuf_iterator<char>{refusedOutput}, {}};
+        mutableViewport->viewHeight = originalHeight;
+        if (!invalidPayloadRejected || refusedContents != sentinel)
+            return fail("invalid physical VIEWPORT payload was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical VIEWPORT source could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024)
+            return fail("physical VIEWPORT output did not freshly reimport as AC1024 DXF");
+        std::vector<LocatedViewport> outputViewports;
+        const auto appendOutputViewports = [&outputViewports](
+                const dx_ifaceBlock* block, bool mainContainer) {
+            if (block == nullptr)
+                return;
+            for (const DRW_Entity* entity : block->ent) {
+                const auto* viewport =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport != nullptr)
+                    outputViewports.push_back(
+                        {viewport, block->name, mainContainer});
+            }
+        };
+        appendOutputViewports(output.mBlock, true);
+        for (const dx_ifaceBlock* block : output.blocks)
+            appendOutputViewports(block, false);
+        if (outputViewports.size() != expectedHandles.size())
+            return fail("one or both physical census VIEWPORTs disappeared on readback");
+        std::array<bool, 2> matchedOutput{{false, false}};
+        std::set<std::pair<int, int>> outputViewportStatusAndIds;
+        std::set<std::uint32_t> outputViewportHandles;
+        for (std::size_t index = 0; index < sourceViewports.size(); ++index) {
+            std::size_t match = outputViewports.size();
+            for (std::size_t candidate = 0; candidate < outputViewports.size();
+                 ++candidate) {
+                if (sameProfile(*sourceViewports[index].viewport,
+                                *outputViewports[candidate].viewport)) {
+                    if (match != outputViewports.size())
+                        return fail("physical VIEWPORT source projection is ambiguous on readback");
+                    match = candidate;
+                }
+            }
+            if (match == outputViewports.size() || matchedOutput[match]
+                || sourceViewports[index].mainContainer
+                    != outputViewports[match].mainContainer
+                || sourceViewports[index].blockName
+                    != outputViewports[match].blockName)
+                return fail("physical VIEWPORT source fields, identity, or entity-container membership changed on readback");
+            const DRW_Viewport& sourceViewport =
+                *sourceViewports[index].viewport;
+            const DRW_Viewport& outputViewport =
+                *outputViewports[match].viewport;
+            if (outputViewport.handle == 0u
+                || outputViewport.handle == DRW::NoHandle
+                || !outputViewportHandles.insert(outputViewport.handle).second)
+                return fail("physical VIEWPORT output handles are missing or aliased");
+            const DRW_Dictionary* sourceExtension =
+                uniqueDictionary(source, sourceViewport.xDictHandle);
+            const DRW_Dictionary* outputExtension =
+                uniqueDictionary(output, outputViewport.xDictHandle);
+            if (sourceViewport.xDictHandle == 0u
+                || sourceExtension == nullptr
+                || outputViewport.xDictHandle == 0u
+                || outputExtension == nullptr
+                || sourceExtension->parentHandle != sourceViewport.handle
+                || outputExtension->parentHandle != outputViewport.handle
+                || sourceExtension->cloning != outputExtension->cloning
+                || sourceExtension->hardOwner != outputExtension->hardOwner
+                || !sourceExtension->hasCompleteDwgEntries()
+                || !outputExtension->hasCompleteDxfEntries()
+                || sourceExtension->m_entries.size()
+                    != outputExtension->m_entries.size())
+                return fail("physical VIEWPORT extension dictionary owner or body changed on output/readback");
+            for (std::size_t entry = 0;
+                 entry < sourceExtension->m_entries.size(); ++entry) {
+                const DRW_Dictionary::Entry& sourceEntry =
+                    sourceExtension->m_entries[entry];
+                const DRW_Dictionary::Entry& outputEntry =
+                    outputExtension->m_entries[entry];
+                const DRW_XRecord* sourceChild =
+                    uniqueXRecord(source, sourceEntry.m_handle);
+                const DRW_XRecord* outputChild =
+                    uniqueXRecord(output, outputEntry.m_handle);
+                if (sourceEntry.m_name != outputEntry.m_name
+                    || sourceChild == nullptr || outputChild == nullptr
+                    || sourceChild->parentHandle != sourceExtension->handle
+                    || outputChild->parentHandle != outputExtension->handle
+                    || sourceChild->m_dataEntries.size()
+                        != outputChild->m_dataEntries.size())
+                    return fail("physical VIEWPORT extension dictionary key or XRECORD owner edge changed on output/readback");
+            }
+            matchedOutput[match] = true;
+            outputViewportStatusAndIds.emplace(
+                outputViewports[match].viewport->vpstatus,
+                outputViewports[match].viewport->vpID);
+        }
+        if (outputViewportStatusAndIds
+            != std::set<std::pair<int, int>>{{1, 1}, {2, 2}})
+            return fail("physical VIEWPORT group 68/69 output projection did not produce the two ordered paper-space identities");
+        std::cerr << "Physical VIEWPORT " << (binary ? "binary" : "ASCII")
+                  << " readback passed: both census source projections, full typed "
+                     "view fields, entity-container membership, extension "
+                     "dictionary/XRECORD owner edges, derived group 68/69, atomic "
+                     "refusal and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -47005,6 +47314,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-physical-output-readback")
         return physicalMLineStyleOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--viewport-physical-output-readback")
+        return physicalViewportOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--material-physical-output-readback")
         return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;

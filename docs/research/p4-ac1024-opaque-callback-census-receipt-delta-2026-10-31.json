@@ -3,7 +3,7 @@
   "id": "p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31",
   "date": "2026-10-31",
   "title": "AC1024 opaque callback identities joined to physical profile receipts",
-  "status": "228_IDENTITIES_JOINED_223_PROFILE_RECEIPTS_AND_5_P5_ROWS_OPEN",
+  "status": "228_IDENTITIES_JOINED_225_PROFILE_RECEIPTS_AND_3_P5_ROWS_OPEN",
   "supportClaimEffect": "none",
   "source": {
     "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
@@ -16,11 +16,10 @@
   },
   "summary": {
     "identityCount": 228,
-    "physicalProfileOutputReadbackProved": 223,
+    "physicalProfileOutputReadbackProved": 225,
     "p4PhysicalPublicationOrReadbackOpen": 0,
-    "p5OwnedPhysicalProfilesOpen": 5,
+    "p5OwnedPhysicalProfilesOpen": 3,
     "p5OwnedRows": {
-      "VIEWPORT": 2,
       "LAYOUT": 2,
       "TABLESTYLE": 1
     },
@@ -37,9 +36,9 @@
       "record": "VIEWPORT",
       "class": null,
       "count": 2,
-      "status": "OPEN_P5_SOURCE_FIELD_AND_OUTPUT_PROOF",
+      "status": "PROFILE_OUTPUT_READBACK_PROVED",
       "ownerPhase": "P5",
-      "evidenceReceipt": null,
+      "evidenceReceipt": "docs/research/p5-ac1024-viewport-physical-output-readback-2026-10-31.json",
       "handlesHex": [
         "28B",
         "290"
@@ -504,9 +503,9 @@
       "standardObject": false,
       "record": "VIEWPORT",
       "class": null,
-      "status": "OPEN_P5_SOURCE_FIELD_AND_OUTPUT_PROOF",
+      "status": "PROFILE_OUTPUT_READBACK_PROVED",
       "ownerPhase": "P5",
-      "evidenceReceipt": null
+      "evidenceReceipt": "docs/research/p5-ac1024-viewport-physical-output-readback-2026-10-31.json"
     },
     {
       "sourceOffset": 16577,
@@ -519,9 +518,9 @@
       "standardObject": false,
       "record": "VIEWPORT",
       "class": null,
-      "status": "OPEN_P5_SOURCE_FIELD_AND_OUTPUT_PROOF",
+      "status": "PROFILE_OUTPUT_READBACK_PROVED",
       "ownerPhase": "P5",
-      "evidenceReceipt": null
+      "evidenceReceipt": "docs/research/p5-ac1024-viewport-physical-output-readback-2026-10-31.json"
     },
     {
       "sourceOffset": 883,
@@ -3915,10 +3914,10 @@
     }
   ],
   "interpretation": [
-    "The 223 closed rows have physical selected-profile output and fresh local readback receipts; they do not prove unknown tails, whole-file completeness, independent CAD semantics or support claims.",
-    "The five remaining census rows are P5-owned: two VIEWPORTs, two LAYOUTs and one rich R24 TABLESTYLE. Their existing local source/schema receipts do not yet close physical field/output/readback proof.",
+    "The 225 closed rows have selected-profile physical output and fresh local readback receipts; they do not prove unknown tails, whole-file completeness, independent CAD semantics or support claims.",
+    "The three remaining census rows are P5-owned: two LAYOUTs and one rich R24 TABLESTYLE. Their existing local source/schema receipts do not yet close physical field/output/readback proof.",
     "The global strict-complete gate is unchanged: 228 opaque callback views are reported and zero correlation frames are retained. Do not relax this gate based on profile receipts."
   ],
-  "nextAction": "Close the five source-backed P5 census profiles, then rerun the composed strict CLI against the current source and code. If it still refuses, implement only the exact remaining source-correlation or unknown-tail provider identified by that run.",
+  "nextAction": "Close the two source-backed P5 LAYOUT profiles and rich R24 TABLESTYLE, then rerun the composed strict CLI against the current source and code. If it still refuses, implement only the exact remaining source-correlation or unknown-tail provider identified by that run.",
   "externalItemsPromoted": 0
 }
