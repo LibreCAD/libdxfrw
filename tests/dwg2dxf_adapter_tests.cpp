@@ -9907,6 +9907,123 @@ bool dynamicBlockProxyNodeDxfReadback() {
     return true;
 }
 
+class DynamicBlockProxyNodeWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockProxyNodeDxfWriter() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const std::array<std::pair<bool, bool>, 4> sourceAndEncoding{{
+        {false, false}, {false, true}, {true, false}, {true, true}}};
+    for (const auto& profile : sourceAndEncoding) {
+        const bool dxfSource = profile.first;
+        const bool binary = profile.second;
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-proxy-node-writer-"
+               + std::to_string(nonce)
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const std::string sentinel =
+            "incomplete dynamic proxy node must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create proxy-node writer sentinel");
+        }
+
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        DynamicBlockProxyNodeWriterProbe iface;
+        iface.cData = &writeData;
+        iface.object = DRW_DynamicBlockObject(
+            "ACDB_DYNAMICBLOCKPROXYNODE");
+        iface.object.handle = 0x1164u;
+        iface.object.parentHandle = 0x1155u;
+        iface.object.m_evalExprParsed = true;
+        iface.object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        iface.object.m_major = dxfSource ? 33u : 29u;
+        iface.object.m_minor = dxfSource ? 29u : 2u;
+        iface.object.m_valueCode = -9999;
+        iface.object.m_nodeId = 226u;
+        iface.object.m_bodyFullyDecoded = false;
+
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+        if (writer.write(&iface, DRW::AC1024, binary)) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("incomplete proxy-node typed body was emitted");
+        }
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("failed proxy-node write replaced the destination");
+            }
+        }
+
+        iface.object.m_bodyFullyDecoded = true;
+        const bool retryWrite = writer.write(&iface, DRW::AC1024, binary);
+        if (!retryWrite || !iface.objectWritten) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("corrected proxy-node body did not retry successfully");
+        }
+
+        dx_data readData;
+        readData.sourceFormat = dx_source_format::DXF;
+        readData.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readData;
+        dxfRW reader(output.string().c_str());
+        const bool read = reader.read(&readIface, false);
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!read || readData.dynamicBlockObjects.size() != 1u
+            || readData.rawDynamicBlockObjects.size() != 1u)
+            return fail("proxy-node output failed fresh DXF readback");
+        const DRW_DynamicBlockObject& typed =
+            readData.dynamicBlockObjects.front();
+        const DRW_RawDxfObject& raw =
+            readData.rawDynamicBlockObjects.front();
+        if (typed.m_recordName != "ACDB_DYNAMICBLOCKPROXYNODE"
+            || typed.handle != 0x1164u || typed.parentHandle != 0x1155u
+            || !typed.m_bodyFullyDecoded || !typed.m_evalExprParsed
+            || typed.m_nodeId != 226u || typed.m_major != 33u
+            || typed.m_minor != 29u || typed.m_valueCode != -9999
+            || raw.groups.size() != 6u || raw.groups[0].code() != 5
+            || raw.groups[1].code() != 330 || raw.groups[2].code() != 100
+            || raw.groups[3].code() != 90 || raw.groups[3].i_val() != 226
+            || raw.groups[4].code() != 98 || raw.groups[4].i_val() != 33
+            || raw.groups[5].code() != 99 || raw.groups[5].i_val() != 29)
+            return fail("proxy-node emitted bytes changed its exact fields");
+    }
+    std::cerr << "AC1024 dynamic proxy-node writer passed for DWG/DXF "
+              << "source fields in ASCII/Binary: "
+              << "incomplete write rollback, corrected retry, and typed/raw "
+              << "readback.\n";
+    return true;
+}
+
 bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     constexpr std::uint32_t blockHandle = 0x127u;
     constexpr std::uint32_t dictionaryHandle = 0x1116u;
@@ -52120,6 +52237,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-proxy-node-dxf-readback")
         return dynamicBlockProxyNodeDxfReadback() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--dynamic-block-proxy-node-dxf-writer")
+        return dynamicBlockProxyNodeDxfWriter() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--proxy-object-capture-limits")
         return proxyObjectCaptureLimitsFailClosed() ? 0 : 1;
     if (argc == 2

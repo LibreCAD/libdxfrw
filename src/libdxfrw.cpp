@@ -31365,6 +31365,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
     static constexpr char purgeSubclassName[] =
         "AcDbDynamicBlockPurgePreventer";
+    static constexpr char proxyNodeRecordName[] =
+        "ACDB_DYNAMICBLOCKPROXYNODE";
     static constexpr char gripRecordName[] =
         "BLOCKGRIPLOCATIONCOMPONENT";
     static constexpr char gripSubclassName[] = "AcDbBlockGripExpr";
@@ -31387,6 +31389,23 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_purgeBlockHandle != DRW::NoHandle
         && ent->reactorHandles.size() == 1u
         && ent->reactorHandles.front() == ent->parentHandle;
+    const bool proxyEvalExprVersion =
+        (ent->m_major == 29u && ent->m_minor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u);
+    const bool proxyNode = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::EvalExprOnly
+        && ent->m_recordName == proxyNodeRecordName
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed
+        && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && ent->m_parentId == std::numeric_limits<std::uint32_t>::max()
+        && proxyEvalExprVersion
+        && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
+        && ent->m_valueHandle == 0u && !ent->m_elementParsed
+        && ent->m_elementName.empty() && ent->m_elementMajor == 0u
+        && ent->m_elementMinor == 0u && ent->m_eed1071 == 0
+        && ent->reactorHandles.empty();
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -31544,7 +31563,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         visibilityParameter = visibilityParameter
             && unusedFlatHandles == 1u;
     }
-    if (!purgePreventer && !gripLocation && !visibilityGrip
+    if (!purgePreventer && !proxyNode && !gripLocation && !visibilityGrip
         && !visibilityParameter)
         return failDxfWrite();
 
@@ -31567,6 +31586,12 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         written = writer->writeString(100, purgeSubclassName)
             && writer->writeInt16(70,
                 static_cast<std::int16_t>(ent->m_purgeFlag));
+    } else if (written && proxyNode) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29);
     } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

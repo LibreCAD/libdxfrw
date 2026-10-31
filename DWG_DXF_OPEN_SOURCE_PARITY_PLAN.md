@@ -64,11 +64,12 @@ to bind work to the exact input hash, both EvaluationGraph roots, object classes
 owner roles and observed dependencies. Output qualification remains open: the
 required class-specific DXF projections and reference closure are incomplete.
 
-Implementation order: (1) complete the missing bounded per-class DXF
-projections and admitted output/replay routes; raw callback retention alone is
-not replay qualification; (2) bind graph/object identities, action and reactor
-roles, EED APPID references, and constraint dependencies to emitted identities;
-(3) close both graph owners, the nested associative network, six
+Implementation order: (1) complete bounded per-class DXF projections and
+admitted output/replay routes for the remaining source-required subclasses; raw
+callback retention alone is not replay qualification; (2) bind graph/object
+identities, action and reactor roles, EED APPID references, and constraint
+dependencies to emitted identities; (3) close both graph owners, the nested
+associative network, six
 parameter-dependency bodies, and both purge-preventer profiles; (4) verify
 staged bytes and fresh ASCII/Binary readback, missing-edge refusal, destination
 atomicity and corrected retry; (5) run one strict-complete conversion for this
