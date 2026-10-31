@@ -57,22 +57,13 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next action — qualify emitted output for the retained opaque callbacks.**
-The AC1024 mechanical witness now retains source bodies for all 228/228 opaque
-callback views; the read-completeness gate passes with no source-capture
-failure. Strict CLI export then refuses before publication because
-`opaqueFramesOutputQualified=0`, using the separate diagnostic
-`strict-complete conversion requires output qualification for every opaque DWG
-callback`. The generic source store is generation/handle keyed and capped at
-100,000 records/64 MiB; standard, raster and ACDS callbacks use their existing
-bounded source stores. Retention and selected-profile receipts do not establish
-that every body, owner/dependency and tail is represented in output; the output
-gate checks per-generation handle identities, not just an aggregate count. Use the
-existing census to choose the highest-incidence callback family still lacking
-an end-to-end output proof; bind source identity/fields/roles to planned output,
-emitted bytes and fresh readback. Keep unresolved records refused, rerun the
+Use the existing callback census and source-retention receipt to choose the
+highest-incidence family still lacking an end-to-end output proof. Bind each
+required source identity, body, owner/dependency and tail to planned output,
+emitted bytes and fresh readback. Keep unresolved identities refused, rerun the
 strict checkpoint after each family, and do not weaken either gate. Add no
-investigation DWG/DXF fixture. This slice's counts, focused checks and
-no-output strict result are recorded in
+investigation DWG/DXF fixture. The latest strict checkpoint still refuses at
+output qualification before publication; its exact result is recorded in
 [`p4-ac1024-opaque-callback-source-retention-2026-10-31.json`](docs/research/p4-ac1024-opaque-callback-source-retention-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -91,16 +82,13 @@ engines.
 2. **Graph and output admission:** close any source-required body, owner edge,
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
-   The physical mechanical source now passes the strict read-retention gate
-   with all 228 callback bodies captured, but strict export remains blocked at
-   output admission (`opaqueFramesOutputQualified=0`). Use the existing census
-   and profile receipts as inputs; trace the remaining callback through owner /
-   dependency planning and writer admission. Keep reader completeness distinct
-   from output qualification: neither a typed callback nor retained raw bytes
-   alone proves output preservation. Admit only complete typed output or a
-   proven end-to-end replay path. Keep unresolved records refused. Never weaken
-   the completeness predicate, emit a partial graph, or infer edges from
-   adjacent handle values.
+   Use the existing census and profile receipts to trace each remaining callback
+   through owner/dependency planning and writer admission. Keep reader
+   completeness distinct from output qualification: neither a typed callback nor
+   retained raw bytes alone proves output preservation. Admit only complete
+   typed output or a proven end-to-end replay path. Keep unresolved records
+   refused. Never weaken the completeness predicate, emit a partial graph, or
+   infer edges from adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and
