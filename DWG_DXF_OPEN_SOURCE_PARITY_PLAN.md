@@ -134,15 +134,19 @@ source pairing and one-emission proof pass. Qualify other subclasses only when
 an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
-profiles; active/global/environment and background/live-section relations; a
-DWG-origin typed-only SUN output route for group-63-faithful color profiles,
-including owner/VPORT/VIEWPORT reference closure and consumer meaning; preserve
-DXF-origin raw SUN replay and refuse RGB/name/book CMC states unless a lossless
-documented route is established. Also close native dictionary collation and
-layer style overrides, plus VIEWPORT shade modes 4/5 and references
-335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers.
-Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct
-reproduced missing provider, remap, collision or composed output failure.
+profiles; active/global/environment and background/live-section relations; and
+native meaning for the generated, same-version AC1021+ DWG-origin typed-only SUN
+ACI transport now covered through VPORT and VIEWPORT owner links. The local
+ASCII/Binary output, remapped 330/361 fields, fresh readback, destination
+preservation and corrected retry are recorded in
+[`p5-dwg-typed-sun-group63-owner-closure-2026-10-31.json`](docs/research/p5-dwg-typed-sun-group63-owner-closure-2026-10-31.json).
+Physical-source admission and native rendering remain open. Preserve DXF-origin
+raw SUN replay and refuse RGB/name/book CMC states unless a lossless documented
+route is established. Also close native dictionary collation and layer style
+overrides, plus VIEWPORT shade modes 4/5 and references 335/343/344/91. Verify
+coupled dictionary keys, names, body fields and consumers. Investigate
+PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct reproduced
+missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 

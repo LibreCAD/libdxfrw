@@ -24924,6 +24924,256 @@ bool backgroundSunTypedCaptureLimitsFailClosed() {
     return true;
 }
 
+bool dwgTypedSunOutputProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto hasTag = [](const DRW_RawDxfObject& raw, int code,
+                           const std::string& value) {
+        return std::any_of(raw.groups.begin(), raw.groups.end(),
+            [code, &value](const DRW_Variant& group) {
+                return group.code() == code && group.c_str() != nullptr
+                    && value == group.c_str();
+            });
+    };
+    const auto hasInteger = [](const DRW_RawDxfObject& raw, int code,
+                               std::int32_t value) {
+        return std::any_of(raw.groups.begin(), raw.groups.end(),
+            [code, value](const DRW_Variant& group) {
+                return group.code() == code
+                    && group.type() == DRW_Variant::INTEGER
+                    && group.i_val() == value;
+            });
+    };
+    const auto hasWireGroup = [](const std::string& bytes, bool binary,
+                                 std::uint16_t code,
+                                 const std::string& value) {
+        if (binary) {
+            std::string pattern;
+            pattern.push_back(static_cast<char>(code & 0xFFu));
+            pattern.push_back(static_cast<char>((code >> 8u) & 0xFFu));
+            pattern.append(value);
+            pattern.push_back('\0');
+            return bytes.find(pattern) != std::string::npos;
+        }
+        std::istringstream input(bytes);
+        std::string codeLine;
+        std::string valueLine;
+        while (std::getline(input, codeLine)
+               && std::getline(input, valueLine)) {
+            if (!codeLine.empty() && codeLine.back() == '\r')
+                codeLine.pop_back();
+            if (!valueLine.empty() && valueLine.back() == '\r')
+                valueLine.pop_back();
+            if (codeLine == std::to_string(code) && valueLine == value)
+                return true;
+        }
+        return false;
+    };
+    const auto hexHandle = [](std::uint32_t handle) {
+        std::ostringstream text;
+        text << std::uppercase << std::hex << handle;
+        return text.str();
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dwg-typed-sun-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        struct OutputCleanup {
+            std::filesystem::path path;
+            ~OutputCleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{output};
+
+        dx_data data;
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        dx_iface iface;
+        iface.cData = &data;
+        iface.currentBlock = data.mBlock;
+
+        DRW_Sun sourceSun;
+        sourceSun.handle = 0xA776u;
+        sourceSun.parentHandle = 0xA775u;
+        sourceSun.m_color = 256u;
+        sourceSun.m_colorCmc.present = true;
+        sourceSun.m_colorCmc.method = dwgColor::RGB;
+        sourceSun.m_color24 = 0x123456;
+        iface.addSun(sourceSun);
+
+        DRW_Sun viewportSun;
+        viewportSun.handle = 0xA779u;
+        viewportSun.parentHandle = 0xA778u;
+        viewportSun.m_color = 7u;
+        viewportSun.m_colorCmc.present = true;
+        viewportSun.m_colorCmc.method = dwgColor::ACI;
+        iface.addSun(viewportSun);
+
+        DRW_Vport owner;
+        owner.handle = 0xA775u;
+        owner.name = "SUN_OWNER";
+        owner.m_sunHandle = sourceSun.handle;
+        iface.addVport(owner);
+
+        DRW_Viewport viewportOwner;
+        viewportOwner.handle = 0xA778u;
+        viewportOwner.m_sunHandle = viewportSun.handle;
+        iface.addViewport(viewportOwner);
+
+        const std::string sentinel = "existing SUN destination survives\n";
+        {
+            std::ofstream existing(output,
+                                   std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not seed typed SUN output destination");
+        }
+        if (iface.fileExport(output.string(), DRW::AC1024, binary, &data,
+                             false, true))
+            return fail("typed DWG SUN with unrepresentable RGB CMC was emitted");
+        {
+            std::ifstream input(output, std::ios::binary);
+            const std::string preserved(
+                (std::istreambuf_iterator<char>(input)),
+                std::istreambuf_iterator<char>());
+            if (preserved != sentinel)
+                return fail("refused typed DWG SUN replaced the destination");
+        }
+
+        data.suns.front().m_color = 42u;
+        data.suns.front().m_color24 = -1;
+        data.suns.front().m_colorCmc.method = dwgColor::ACI;
+        if (!iface.fileExport(output.string(), DRW::AC1024, binary, &data,
+                              false, true))
+            return fail("group-63-faithful typed DWG SUN failed export: "
+                        + iface.extensionGraphFailureDetail());
+
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &readback, false)
+            || readback.suns.size() != 2u
+            || readback.rawSunObjects.size() != 2u
+            || readback.VPorts.size() != 1u)
+            return fail("typed DWG SUN failed fresh DXF readback on "
+                        + encoding);
+        const auto firstSun = std::find_if(readback.suns.begin(),
+            readback.suns.end(), [](const DRW_Sun& sun) {
+                return sun.m_color == 42u;
+            });
+        const auto secondSun = std::find_if(readback.suns.begin(),
+            readback.suns.end(), [](const DRW_Sun& sun) {
+                return sun.m_color == 7u;
+            });
+        if (firstSun == readback.suns.end()
+            || secondSun == readback.suns.end())
+            return fail("typed DWG SUN colors were not both read back on "
+                        + encoding);
+        const DRW_Sun& emittedSun = *firstSun;
+        const DRW_Sun& emittedViewportSun = *secondSun;
+        const auto firstRawSun = std::find_if(
+            readback.rawSunObjects.begin(), readback.rawSunObjects.end(),
+            [&emittedSun](const DRW_RawDxfObject& raw) {
+                return raw.handle == emittedSun.handle;
+            });
+        const auto secondRawSun = std::find_if(
+            readback.rawSunObjects.begin(), readback.rawSunObjects.end(),
+            [&emittedViewportSun](const DRW_RawDxfObject& raw) {
+                return raw.handle == emittedViewportSun.handle;
+            });
+        if (firstRawSun == readback.rawSunObjects.end()
+            || secondRawSun == readback.rawSunObjects.end())
+            return fail("typed DWG SUN raw carriers did not match typed handles");
+        const DRW_RawDxfObject& rawSun = *firstRawSun;
+        const DRW_RawDxfObject& rawViewportSun = *secondRawSun;
+        const DRW_Vport& emittedOwner = readback.VPorts.front();
+        const DRW_Viewport* emittedViewportOwner = nullptr;
+        const auto findViewportOwner = [&emittedViewportOwner](
+                const std::list<DRW_Entity*>& entities) {
+            for (const DRW_Entity* entity : entities) {
+                const auto* viewport = dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport != nullptr
+                    && viewport->m_sunHandle != 0u) {
+                    if (emittedViewportOwner != nullptr)
+                        return false;
+                    emittedViewportOwner = viewport;
+                }
+            }
+            return true;
+        };
+        if (readback.mBlock == nullptr
+            || !findViewportOwner(readback.mBlock->ent))
+            return fail("typed DWG VIEWPORT SUN owner is missing or ambiguous");
+        for (const dx_ifaceBlock* block : readback.blocks) {
+            if (block != nullptr && !findViewportOwner(block->ent))
+                return fail("typed DWG VIEWPORT SUN owner is ambiguous");
+        }
+        if (emittedViewportOwner == nullptr)
+            return fail("typed DWG VIEWPORT SUN owner was not read back");
+        std::ifstream outputInput(output, std::ios::binary);
+        const std::string outputBytes(
+            (std::istreambuf_iterator<char>(outputInput)),
+            std::istreambuf_iterator<char>());
+        const std::size_t sunClassMatches = static_cast<std::size_t>(
+            std::count_if(readback.dxfClasses.begin(),
+                          readback.dxfClasses.end(),
+                [](const DRW_Class& cls) {
+                    return cls.recName == "SUN"
+                        && cls.className == "AcDbSun"
+                        && cls.instanceCount == 2;
+                }));
+        if (emittedSun.handle == 0u
+            || emittedSun.parentHandle != emittedOwner.handle
+            || emittedSun.m_color != 42u
+            || emittedOwner.m_sunHandle != emittedSun.handle
+            || rawSun.handle != emittedSun.handle
+            || rawSun.parentHandle != emittedOwner.handle
+            || !hasTag(rawSun, 5, hexHandle(emittedSun.handle))
+            || !hasWireGroup(outputBytes, binary, 330,
+                             hexHandle(emittedOwner.handle))
+            || !hasWireGroup(outputBytes, binary, 361,
+                             hexHandle(emittedSun.handle))
+            || !hasInteger(rawSun, 63, 42)
+            || emittedViewportSun.handle == 0u
+            || emittedViewportSun.parentHandle != emittedViewportOwner->handle
+            || emittedViewportOwner->m_sunHandle != emittedViewportSun.handle
+            || rawViewportSun.parentHandle != emittedViewportOwner->handle
+            || !hasTag(rawViewportSun, 5,
+                       hexHandle(emittedViewportSun.handle))
+            || !hasWireGroup(outputBytes, binary, 330,
+                             hexHandle(emittedViewportOwner->handle))
+            || !hasWireGroup(outputBytes, binary, 361,
+                             hexHandle(emittedViewportSun.handle))
+            || !hasInteger(rawViewportSun, 63, 7)
+            || sunClassMatches != 1u) {
+            return fail("typed DWG SUN output mismatch on " + encoding
+                        + ": sun=" + std::to_string(emittedSun.handle)
+                        + "/" + std::to_string(emittedSun.parentHandle)
+                        + "/" + std::to_string(emittedSun.m_color)
+                        + " owner=" + std::to_string(emittedOwner.handle)
+                        + "/" + std::to_string(emittedOwner.m_sunHandle)
+                        + " raw=" + std::to_string(rawSun.handle)
+                        + "/" + std::to_string(rawSun.parentHandle)
+                        + " group5=" + (hasTag(rawSun, 5, "A776")
+                            ? "yes" : "no")
+                        + " wire330=" + (hasWireGroup(outputBytes, binary,
+                              330, hexHandle(emittedOwner.handle))
+                            ? "yes" : "no")
+                        + " wire361=" + (hasWireGroup(outputBytes, binary,
+                              361, hexHandle(emittedSun.handle))
+                            ? "yes" : "no")
+                        + " group63=" + (hasInteger(rawSun, 63, 42)
+                            ? "yes" : "no")
+                        + " SUNclasses=" + std::to_string(sunClassMatches));
+        }
+    }
+    return true;
+}
+
 bool visualStyleTypedCaptureLimitsFailClosed() {
     constexpr std::size_t kMaxRecords = 100000u;
     constexpr std::size_t kMaxBytes = DRW::kMaxDxfBinaryPayloadBytes;
@@ -50051,6 +50301,8 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--background-sun-typed-capture-limits")
         return backgroundSunTypedCaptureLimitsFailClosed() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--dwg-typed-sun-output")
+        return dwgTypedSunOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--visual-style-typed-capture-limits")
         return visualStyleTypedCaptureLimitsFailClosed() ? 0 : 1;

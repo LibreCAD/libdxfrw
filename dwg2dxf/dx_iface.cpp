@@ -4528,17 +4528,6 @@ bool collectSunOwnerGraph(const dx_data& data, DRW::Version targetVersion,
             if (!rawByHandle.emplace(raw.handle, &raw).second)
                 return reject("SUN raw carrier handle is duplicated");
         }
-        if (sunsByHandle.size() != rawByHandle.size())
-            return reject("SUN typed/raw carrier coverage is incomplete");
-        for (const auto& entry : sunsByHandle) {
-            const auto raw = rawByHandle.find(entry.first);
-            if (raw == rawByHandle.end()
-                || raw->second->m_version != data.sourceVersion
-                || !sunRawPayloadHasOnlyClosedIdentityEdges(
-                    *raw->second, *entry.second))
-                return reject("SUN raw payload has an unclosed identity or reference edge");
-        }
-
         const bool hasSunOwners = std::any_of(
             data.VPorts.begin(), data.VPorts.end(),
             [](const DRW_Vport& vport) { return vport.m_sunHandle != 0; });
@@ -4558,13 +4547,29 @@ bool collectSunOwnerGraph(const dx_data& data, DRW::Version targetVersion,
         }
         if (sunsByHandle.empty() && rawByHandle.empty() && !hasOwnerReference)
             return true;
-        if (data.sourceFormat != dx_source_format::DXF
-            || data.sourceVersion == DRW::UNKNOWNV
+        if (data.sourceVersion == DRW::UNKNOWNV
             || data.sourceVersion != targetVersion
             || targetVersion < DRW::AC1021 || targetVersion > DRW::AC1032)
-            return reject("SUN graph requires a same-version AC1021+ DXF source and target");
-        if (sunsByHandle.empty() || rawByHandle.empty())
-            return reject("SUN owner edge has no matching typed/raw object pair");
+            return reject("SUN graph requires a same-version AC1021+ source and target");
+        if (data.sourceFormat == dx_source_format::DWG) {
+            if (!rawByHandle.empty())
+                return reject("DWG-origin SUN graph unexpectedly contains DXF raw carriers");
+        } else if (data.sourceFormat == dx_source_format::DXF) {
+            if (sunsByHandle.size() != rawByHandle.size())
+                return reject("SUN typed/raw carrier coverage is incomplete");
+            for (const auto& entry : sunsByHandle) {
+                const auto raw = rawByHandle.find(entry.first);
+                if (raw == rawByHandle.end()
+                    || raw->second->m_version != data.sourceVersion
+                    || !sunRawPayloadHasOnlyClosedIdentityEdges(
+                        *raw->second, *entry.second))
+                    return reject("SUN raw payload has an unclosed identity or reference edge");
+            }
+        } else {
+            return reject("SUN graph requires a qualified DWG or DXF source");
+        }
+        if (sunsByHandle.empty())
+            return reject("SUN owner edge has no typed SUN target");
 
         std::unordered_map<std::uint32_t, std::size_t> ownerCounts;
         std::unordered_set<std::uint32_t> ownerHandles;
@@ -57117,6 +57122,42 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             && registerClass("DICTIONARYVAR", "AcDbDictionaryVar",
                              m_extensionDictionaryVarHandles.size());
     };
+    const auto registerSunClass = [this](std::vector<DRW_Class>& classes) {
+        if (cData->sourceFormat != dx_source_format::DWG
+            || cData->suns.empty())
+            return true;
+        if (cData->suns.size() > static_cast<std::size_t>(
+                std::numeric_limits<int>::max()))
+            return false;
+        DRW_Class canonical;
+        if (!dxfRW::dxfClassForRecordName("SUN", canonical))
+            return false;
+        std::vector<DRW_Class> normalized;
+        normalized.reserve(classes.size() + 1u);
+        bool found = false;
+        for (const DRW_Class& candidate : classes) {
+            const bool sameRecord = sameAsciiName(candidate.recName, "SUN")
+                || sameAsciiName(candidate.recName, "ACDBSUN");
+            const bool sameClass = sameAsciiName(candidate.className,
+                                                  "AcDbSun");
+            if (!sameRecord && !sameClass) {
+                normalized.push_back(candidate);
+                continue;
+            }
+            if (!sameRecord || !sameClass || found
+                || !sameAsciiName(candidate.appName, canonical.appName)
+                || candidate.proxyFlag != canonical.proxyFlag
+                || candidate.entityFlag != canonical.entityFlag
+                || candidate.wasaProxyFlag != 0)
+                return false;
+            found = true;
+        }
+        canonical.instanceCount = static_cast<int>(cData->suns.size());
+        canonical.wasaProxyFlag = 0;
+        normalized.push_back(std::move(canonical));
+        classes.swap(normalized);
+        return true;
+    };
     std::string associativeClassFailureDetail;
     const auto registerAssociativeClasses = [this,
             &associativeClassFailureDetail](
@@ -57505,6 +57546,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 || !registerMLeaderStyleClass(classes)
                 || !registerNamedResourceClasses(classes)
                 || !registerDictionaryDefaultClasses(classes)
+                || !registerSunClass(classes)
                 || !registerAssociativeClasses(classes))
                 return failAcdsExport();
             dxfW->setDxfClasses(std::move(classes));
@@ -57786,6 +57828,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (!registerDictionaryDefaultClasses(classes))
             return rejectClassRegistration(
                 "dictionary-default CLASS metadata");
+        if (!registerSunClass(classes))
+            return rejectClassRegistration("SUN CLASS metadata");
         if (!registerAssociativeClasses(classes)) {
             std::string reason = "associative CLASS metadata";
             if (!associativeClassFailureDetail.empty()) {

@@ -1223,6 +1223,10 @@ add_test(NAME dwg2dxf_background_sun_typed_capture_limits
         --background-sun-typed-capture-limits)
 set_tests_properties(dwg2dxf_background_sun_typed_capture_limits PROPERTIES
     LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_dwg_typed_sun_output
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dwg-typed-sun-output)
+set_tests_properties(dwg2dxf_dwg_typed_sun_output PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 30)
 add_test(NAME dwg2dxf_visual_style_typed_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --visual-style-typed-capture-limits)

@@ -1384,18 +1384,35 @@ public:
         }
         objectWritePhase = "sun objects";
         std::unordered_set<std::uint32_t> sunHandles;
-        for (std::uint32_t handle : dxfW->resolvedSunHandles()) {
-            std::size_t matches = 0;
-            for (DRW_RawDxfObject& object : cData->rawSunObjects) {
-                if (object.handle != handle)
-                    continue;
-                ++matches;
-                if (!dxfW->writeRawDxfObject(&object, object.parentHandle))
+        if (cData->sourceFormat == dx_source_format::DWG) {
+            for (std::uint32_t handle : dxfW->resolvedSunHandles()) {
+                std::size_t matches = 0;
+                for (DRW_Sun& sun : cData->suns) {
+                    if (sun.handle != handle)
+                        continue;
+                    ++matches;
+                    if (!dxfW->writeSun(&sun))
+                        return;
+                }
+                if (matches != 1u || !sunHandles.insert(handle).second) {
+                    dxfW->writeRawDxfObject(nullptr);
                     return;
+                }
             }
-            if (matches != 1u || !sunHandles.insert(handle).second) {
-                dxfW->writeRawDxfObject(nullptr);
-                return;
+        } else {
+            for (std::uint32_t handle : dxfW->resolvedSunHandles()) {
+                std::size_t matches = 0;
+                for (DRW_RawDxfObject& object : cData->rawSunObjects) {
+                    if (object.handle != handle)
+                        continue;
+                    ++matches;
+                    if (!dxfW->writeRawDxfObject(&object, object.parentHandle))
+                        return;
+                }
+                if (matches != 1u || !sunHandles.insert(handle).second) {
+                    dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
             }
         }
         objectWritePhase = "sort dictionaries and layouts";
