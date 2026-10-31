@@ -1850,6 +1850,10 @@ public:
                 if (!dxfW->writeField(&field))
                     return;
             }
+            for (DRW_FieldList& fieldList : cData->fieldLists) {
+                if (!dxfW->writeFieldList(&fieldList))
+                    return;
+            }
         }
         for (DRW_TableContentObject& content : cData->tableContents) {
             if (!tableContentDirectReferencesClosed(

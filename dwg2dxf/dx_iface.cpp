@@ -28091,10 +28091,12 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             && data.rawFields.empty() && data.rawFieldLists.empty();
         const bool importedDxf = data.sourceFormat == dx_source_format::DXF
             && data.hasSingleSuccessfulFieldCarrierImport()
-            && data.rawFields.size() == data.fields.size();
+            && data.rawFields.size() == data.fields.size()
+            && data.rawFieldLists.empty();
         if ((!adapterAuthored && !importedDxf) || data.fields.empty()
             || data.fields.size() > kMaxSimpleFields
-            || !data.fieldLists.empty() || !data.rawFieldLists.empty()
+            || (adapterAuthored && data.fieldLists.size() > 1u)
+            || (importedDxf && !data.fieldLists.empty())
             || std::any_of(data.tables.begin(), data.tables.end(),
                 [](const DRW_Table& table) {
                     return !table.m_content.m_fieldHandles.empty();
@@ -28184,6 +28186,37 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                     || raw->second->parentHandle != field.parentHandle)
                     return false;
             }
+        }
+
+        // A locally authored flat FIELD set can carry the standard NOD
+        // FIELDLIST membership object. Keep this profile narrow: imported
+        // FIELDLISTs still require raw-to-typed body equivalence, and complex
+        // FIELD children/object references use the separate graph gate.
+        if (!data.fieldLists.empty()) {
+            if (!adapterAuthored || data.fieldLists.size() != 1u
+                || data.hasNamedObjectDictionary)
+                return false;
+            const DRW_FieldList& fieldList = data.fieldLists.front();
+            if (fieldList.handle == 0u
+                || fieldList.handle == DRW::NoHandle
+                || fieldList.parentHandle != 0u
+                || fieldList.m_unknown < 0 || fieldList.m_unknown > 1
+                || !fieldList.reactorHandles.empty()
+                || fieldList.xDictHandle != 0u
+                || !fieldList.appData.empty()
+                || !fieldList.extData.empty()
+                || fieldList.m_fieldHandles.size() != data.fields.size()
+                || referenceCounts.count(fieldList.handle) != 0u)
+                return false;
+            std::unordered_set<std::uint32_t> members;
+            members.reserve(fieldList.m_fieldHandles.size());
+            for (const std::uint32_t member : fieldList.m_fieldHandles) {
+                if (referenceCounts.find(member) == referenceCounts.end()
+                    || !members.insert(member).second)
+                    return false;
+            }
+            if (members.size() != referenceCounts.size())
+                return false;
         }
 
         std::size_t referenceCount = 0u;
@@ -46497,6 +46530,24 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             rootEntries.emplace_back(
                 sourceEntry.m_name, dxfW->toHexStrHandle(emittedHandle));
         }
+    }
+    if (cData->sourceFormat == dx_source_format::Unknown
+        && !cData->fieldLists.empty()) {
+        if (!hasSimpleTableContentFieldProfile(*cData)
+            || !rootEntryNames.insert(layoutSymbolKey("ACAD_FIELDLIST")).second) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+        std::uint32_t emittedHandle =
+            dxfW->remapHandle(cData->fieldLists.front().handle);
+        if (emittedHandle == 0u || emittedHandle == DRW::NoHandle) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+        rootEntries.emplace_back("ACAD_FIELDLIST",
+                                 dxfW->toHexStrHandle(emittedHandle));
     }
     std::unordered_set<std::string>().swap(rootEntryNames);
     if (cData->hasNamedObjectDictionary && !cData->layouts.empty()) {

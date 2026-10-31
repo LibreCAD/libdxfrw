@@ -21295,6 +21295,167 @@ bool rejectUnserializableFieldCarriers() {
     return true;
 }
 
+bool fieldListMembershipOutput() {
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    for (const bool binary : {false, true}) {
+        dx_data data;
+        dx_iface writer;
+        writer.cData = &data;
+        writer.currentBlock = data.mBlock;
+
+        DRW_Field first;
+        first.handle = 0x501u;
+        first.m_evaluatorId = "Text";
+        first.m_fieldCode = "FIELD_LIST_FIRST";
+        first.m_value.m_dataType = 4;
+        first.m_value.m_value = DRW_Variant(1, UTF8STRING("first-value"));
+        writer.addField(first);
+        DRW_Field second;
+        second.handle = 0x502u;
+        second.m_evaluatorId = "Text";
+        second.m_fieldCode = "FIELD_LIST_SECOND";
+        second.m_value.m_dataType = 4;
+        second.m_value.m_value = DRW_Variant(1, UTF8STRING("second-value"));
+        writer.addField(second);
+
+        DRW_FieldList fieldList;
+        fieldList.handle = 0x503u;
+        fieldList.m_unknown = binary ? 1 : 0;
+        fieldList.m_fieldHandles = {first.handle, second.handle};
+        writer.addFieldList(fieldList);
+
+        DRW_TableContentObject content;
+        content.handle = 0x601u;
+        content.m_parseComplete = true;
+        content.m_semanticContentComplete = true;
+        content.m_content.m_columns.push_back({"", 1.0});
+        content.m_content.m_rows.resize(1u);
+        DRW_TableCell cell;
+        for (const std::uint32_t fieldHandle : fieldList.m_fieldHandles) {
+            DRW_TableCellContent reference;
+            reference.m_type = 2;
+            reference.m_handle = fieldHandle;
+            cell.m_contents.push_back(reference);
+        }
+        content.m_content.m_rows.front().m_cells.push_back(cell);
+        writer.addTableContent(content);
+
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-fieldlist-membership-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        Cleanup cleanup{output};
+        const std::string sentinel = "FIELDLIST destination sentinel\n";
+        {
+            std::ofstream existing(output,
+                std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not create FIELDLIST destination sentinel");
+        }
+
+        if (data.fieldLists.size() != 1u)
+            return fail("authored FIELDLIST callback was not retained");
+        data.fieldLists.front().m_fieldHandles = {first.handle, 0xDEADu};
+        if (writer.fileExport(output.string(), DRW::AC1027, binary,
+                              &data, false))
+            return fail("incomplete FIELDLIST membership was exported");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("incomplete FIELDLIST replaced the destination");
+        }
+
+        data.fieldLists.front().m_fieldHandles = {first.handle, second.handle};
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &data, false))
+            return fail("corrected FIELDLIST did not retry on the same adapter");
+
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &readback, false)
+            || readback.fields.size() != 2u
+            || readback.fieldLists.size() != 1u
+            || readback.tableContents.size() != 1u
+            || !readback.hasNamedObjectDictionary)
+            return fail("FIELDLIST output did not import with its carriers");
+        const DRW_FieldList& parsedList = readback.fieldLists.front();
+        const DRW_TableContentObject& parsedContent =
+            readback.tableContents.front();
+        if (parsedList.parentHandle != readback.namedObjectDictionary.handle
+            || parsedList.m_unknown != (binary ? 1 : 0)
+            || parsedList.m_fieldHandles.size() != 2u
+            || parsedContent.m_content.m_rows.size() != 1u
+            || parsedContent.m_content.m_rows.front().m_cells.size() != 1u
+            || parsedContent.m_content.m_rows.front().m_cells.front()
+                   .m_contents.size() != 2u)
+            return fail("FIELDLIST owner, membership, or TABLECONTENT shape changed");
+        const auto rootEntry = std::find_if(
+            readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(),
+            [&parsedList](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_FIELDLIST"
+                    && entry.m_handle == parsedList.handle;
+            });
+        if (rootEntry == readback.namedObjectDictionary.m_entries.end())
+            return fail("FIELDLIST was not reachable from the output NOD");
+        for (const DRW_Field& parsedField : readback.fields) {
+            if (std::find(parsedList.m_fieldHandles.begin(),
+                          parsedList.m_fieldHandles.end(),
+                          parsedField.handle)
+                    == parsedList.m_fieldHandles.end()
+                || parsedField.parentHandle
+                    != readback.namedObjectDictionary.handle
+                || parsedField.m_evaluatorId != "Text")
+                return fail("FIELDLIST membership or FIELD owner changed");
+        }
+        const auto parsedFirst = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_FIRST";
+            });
+        const auto parsedSecond = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_SECOND";
+            });
+        if (parsedFirst == readback.fields.end()
+            || parsedSecond == readback.fields.end()
+            || parsedFirst->m_value.m_dataType != 4
+            || parsedFirst->m_value.m_value.type() != DRW_Variant::STRING
+            || parsedFirst->m_value.m_value.c_str() == nullptr
+            || std::string(parsedFirst->m_value.m_value.c_str())
+                != "first-value"
+            || parsedSecond->m_value.m_dataType != 4
+            || parsedSecond->m_value.m_value.type() != DRW_Variant::STRING
+            || parsedSecond->m_value.m_value.c_str() == nullptr
+            || std::string(parsedSecond->m_value.m_value.c_str())
+                != "second-value")
+            return fail("FIELD scalar values changed on DXF readback");
+        for (const DRW_TableCellContent& reference :
+                parsedContent.m_content.m_rows.front().m_cells.front().m_contents) {
+            if (reference.m_type != 2
+                || std::none_of(readback.fields.begin(), readback.fields.end(),
+                    [&reference](const DRW_Field& parsedField) {
+                        return parsedField.handle == reference.m_handle;
+                    }))
+                return fail("TABLECONTENT FIELD target did not resolve on readback");
+        }
+    }
+    return true;
+}
+
 void populateAutoCadFieldGraph(dx_data& data) {
     data.importGeneration = 1;
     data.sourceFormat = dx_source_format::DXF;
@@ -40658,6 +40819,9 @@ int main(int argc, char** argv) {
                 && rejectIncompleteAutoCadFieldGraph()
             ? 0 : 1;
     }
+    if (argc == 2
+        && std::string(argv[1]) == "--fieldlist-membership-output")
+        return fieldListMembershipOutput() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
             == "--dimension-picture-block-full-conversion") {
