@@ -3,7 +3,7 @@
   "id": "p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31",
   "date": "2026-10-31",
   "title": "AC1024 opaque callback identities joined to physical profile receipts",
-  "status": "228_IDENTITIES_JOINED_227_PROFILE_RECEIPTS_AND_1_P5_ROW_OPEN",
+  "status": "228_IDENTITIES_JOINED_228_PROFILE_RECEIPTS_STRICT_GATE_CLOSED",
   "supportClaimEffect": "none",
   "source": {
     "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
@@ -16,12 +16,10 @@
   },
   "summary": {
     "identityCount": 228,
-    "physicalProfileOutputReadbackProved": 227,
+    "physicalProfileOutputReadbackProved": 228,
     "p4PhysicalPublicationOrReadbackOpen": 0,
-    "p5OwnedPhysicalProfilesOpen": 1,
-    "p5OwnedRows": {
-      "TABLESTYLE": 1
-    },
+    "p5OwnedPhysicalProfilesOpen": 0,
+    "p5OwnedRows": {},
     "p4OpenRows": {},
     "strictGate": {
       "opaqueCallbackViews": 228,
@@ -170,9 +168,9 @@
       "record": "TABLESTYLE",
       "class": "AcDbTableStyle",
       "count": 1,
-      "status": "OPEN_P5_R24_TYPED_READBACK",
+      "status": "PROFILE_OUTPUT_READBACK_PROVED",
       "ownerPhase": "P5",
-      "evidenceReceipt": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json",
+      "evidenceReceipt": "docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json",
       "handlesHex": [
         "87"
       ]
@@ -3622,9 +3620,9 @@
       "standardObject": false,
       "record": "TABLESTYLE",
       "class": "AcDbTableStyle",
-      "status": "OPEN_P5_R24_TYPED_READBACK",
+      "status": "PROFILE_OUTPUT_READBACK_PROVED",
       "ownerPhase": "P5",
-      "evidenceReceipt": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json"
+      "evidenceReceipt": "docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json"
     },
     {
       "sourceOffset": 3406,
@@ -3913,10 +3911,10 @@
     }
   ],
   "interpretation": [
-    "The 227 closed rows have selected-profile physical output and fresh local readback receipts; they do not prove unknown tails, whole-file completeness, independent CAD semantics or support claims.",
-    "The one remaining census row is P5-owned: the rich R24 TABLESTYLE. Existing physical VIEWPORT and LAYOUT profiles are closed by their receipts.",
-    "The global strict-complete gate is unchanged: 228 opaque callback views are reported and zero correlation frames are retained. Do not relax this gate based on profile receipts."
+    "All 228 census identities have selected-profile physical output/readback receipts. These do not prove unknown tails, full source-body replay, whole-file completeness, independent CAD semantics or support claims.",
+    "The current strict CLI checkpoint still refuses before publishing output because the DWG read disposition is incomplete.",
+    "The global strict-complete gate is unchanged: 228 opaque callback views are reported and zero correlation frames are retained. Do not relax this gate based on selected-profile receipts."
   ],
-  "nextAction": "Close the one source-backed rich R24 TABLESTYLE profile, then rerun the composed strict CLI against the current source and code. If it still refuses, implement only the exact remaining source-correlation or unknown-tail provider identified by that run.",
+  "nextAction": "Bind required opaque callback views to complete typed output or an exact retained source replay path, starting with the highest-incidence required profile still lacking that proof; rerun strict complete-export after the slice.",
   "externalItemsPromoted": 0
 }

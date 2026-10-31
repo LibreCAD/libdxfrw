@@ -30557,6 +30557,403 @@ bool physicalLayoutOutputReadback(
     return true;
 }
 
+bool physicalTableStyleOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.tableStyles.size() != 1u
+        || !source.hasNamedObjectDictionary)
+        return fail("physical TABLESTYLE source is not the one-record AC1024 R24 profile");
+
+    const auto sameAsciiSymbol = [](const std::string& lhs,
+                                    const std::string& rhs) {
+        return lhs.size() == rhs.size()
+            && std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+                [](unsigned char left, unsigned char right) {
+                    return std::toupper(left) == std::toupper(right);
+                });
+    };
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* result = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto uniqueTextStyle = [](const dx_data& data,
+                                    std::uint32_t handle) {
+        const DRW_Textstyle* result = nullptr;
+        for (const DRW_Textstyle& style : data.textStyles) {
+            if (style.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Textstyle*>(nullptr);
+            result = &style;
+        }
+        return result;
+    };
+    const auto tableStyleDictionary = [&uniqueDictionary, &sameAsciiSymbol](
+            const dx_data& data) {
+        if (!data.hasNamedObjectDictionary)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        std::uint32_t handle = 0u;
+        std::size_t matches = 0u;
+        for (const DRW_Dictionary::Entry& entry :
+             data.namedObjectDictionary.m_entries) {
+            if (!sameAsciiSymbol(entry.m_name, "ACAD_TABLESTYLE"))
+                continue;
+            handle = entry.m_handle;
+            ++matches;
+        }
+        if (matches != 1u)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        return uniqueDictionary(data, handle);
+    };
+    const auto tableStyleEntryCount = [&sameAsciiSymbol](
+            const DRW_Dictionary& dictionary, const std::string& name,
+            std::uint32_t handle) {
+        const std::size_t keyMatches = static_cast<std::size_t>(std::count_if(
+            dictionary.m_entries.begin(), dictionary.m_entries.end(),
+            [&sameAsciiSymbol, &name](const DRW_Dictionary::Entry& entry) {
+                return sameAsciiSymbol(entry.m_name, name);
+            }));
+        const std::size_t targetMatches = static_cast<std::size_t>(std::count_if(
+            dictionary.m_entries.begin(), dictionary.m_entries.end(),
+            [handle](const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == handle;
+            }));
+        if (keyMatches != 1u || targetMatches != 1u)
+            return std::size_t{0};
+        return static_cast<std::size_t>(std::count_if(
+            dictionary.m_entries.begin(), dictionary.m_entries.end(),
+            [&sameAsciiSymbol, &name, handle](
+                    const DRW_Dictionary::Entry& entry) {
+                return sameAsciiSymbol(entry.m_name, name)
+                    && entry.m_handle == handle;
+            }));
+    };
+
+    DRW_TableStyle& sourceStyle = source.tableStyles.front();
+    const DRW_Dictionary* sourceDictionary = tableStyleDictionary(source);
+    if (sourceStyle.handle != 0x87u || sourceStyle.m_name != "Standard"
+        || sourceDictionary == nullptr
+        || sourceDictionary->parentHandle != source.namedObjectDictionary.handle
+        || sourceStyle.parentHandle != sourceDictionary->handle
+        || tableStyleEntryCount(*sourceDictionary, sourceStyle.m_name,
+                                sourceStyle.handle) != 1u)
+        return fail("physical TABLESTYLE ACAD_TABLESTYLE root/key/owner is not uniquely closed");
+
+    const auto validCmc = [](const DRW_TableStyleCmcColor& cmc,
+                             std::uint8_t method) {
+        return cmc.m_rgb == -1 && cmc.m_name.empty()
+            && cmc.m_bookName.empty() && cmc.m_method == method
+            && cmc.m_flags == 0u && cmc.m_reservedIndex == 0u;
+    };
+    const auto validStyle = [&validCmc](
+            const DRW_TableStyleCellStyle& style, int id, int styleClass,
+            const char* name, int alignment, double textHeight,
+            int mergeFlags, std::uint32_t textStyleHandle,
+            std::size_t borderCount) {
+        const DRW_TableStyleContentFormat& format = style.m_contentFormat;
+        if (style.m_type != 5 || !style.m_hasData
+            || style.m_propertyOverrideFlags != 0u
+            || style.m_mergeFlags != static_cast<std::uint32_t>(mergeFlags)
+            || style.m_backgroundColor != 256
+            || !validCmc(style.m_backgroundColorCmc, 0xC8u)
+            || style.m_contentLayout != 1u
+            || format.m_propertyOverrideFlags != 0u
+            || format.m_propertyFlags != 0u
+            || format.m_valueDataType != 512
+            || format.m_valueUnitType != 0
+            || !format.m_valueFormatString.empty()
+            || format.m_rotation != 0.0 || format.m_blockScale != 1.0
+            || format.m_cellAlignment != alignment
+            || format.m_contentColor != 0
+            || !validCmc(format.m_contentColorCmc, 0xC1u)
+            || format.m_textStyleHandle != textStyleHandle
+            || format.m_textHeight != textHeight
+            || style.m_marginOverrideFlags != 1
+            || style.m_verticalMargin != 0.06
+            || style.m_horizontalMargin != 0.06
+            || style.m_bottomMargin != 0.06
+            || style.m_rightMargin != 0.06
+            || style.m_marginHorizontalSpacing != 0.18
+            || style.m_marginVerticalSpacing != 0.18
+            || style.m_id != id || style.m_styleClass != styleClass
+            || style.m_name != name || style.m_borders.size() != borderCount)
+            return false;
+        for (std::size_t index = 0; index < style.m_borders.size(); ++index) {
+            const DRW_TableStyleBorder& border = style.m_borders[index];
+            if (border.m_edgeFlags != static_cast<int>(1u << index)
+                || border.m_propertyOverrideFlags != 0
+                || border.m_borderType != 1 || border.m_color != 0
+                || !validCmc(border.m_colorCmc, 0xC1u)
+                || border.m_lineWeight != -2
+                || border.m_lineTypeHandle != 0u || border.m_visible != 0
+                || border.m_doubleLineSpacing != 0.045)
+                return false;
+        }
+        return true;
+    };
+    const std::uint32_t physicalTextStyleHandle =
+        sourceStyle.m_cellStyles.empty() ? 0u
+        : sourceStyle.m_cellStyles.front().m_contentFormat.m_textStyleHandle;
+    if (!sourceStyle.m_r24PrefixPresent
+        || sourceStyle.m_r24ClassVersion != 0u
+        || sourceStyle.m_r24UnknownValue1 != 8
+        || sourceStyle.m_r24UnknownValue2 != 101
+        || sourceStyle.m_unknownHandle != 0u
+        || sourceStyle.m_flowDirection != 0 || sourceStyle.m_flags != 0
+        || sourceStyle.m_horizontalCellMargin != 0.0
+        || sourceStyle.m_verticalCellMargin != 0.0
+        || sourceStyle.m_titleSuppressed || sourceStyle.m_headerSuppressed
+        || !sourceStyle.m_rowStyles.empty()
+        || sourceStyle.m_cellStyles.size() != 3u
+        || !validStyle(sourceStyle.m_tableCellStyle, 4, 2, "Table", 1,
+                       0.18, 0, 0u, 0u)
+        || !validStyle(sourceStyle.m_cellStyles[0], 1, 1, "_TITLE", 5,
+                       0.25, 0x8000, physicalTextStyleHandle, 6u)
+        || !validStyle(sourceStyle.m_cellStyles[1], 2, 1, "_HEADER", 5,
+                       0.18, 0, physicalTextStyleHandle, 6u)
+        || !validStyle(sourceStyle.m_cellStyles[2], 3, 2, "_DATA", 2,
+                       0.18, 0, physicalTextStyleHandle, 6u))
+        return fail("physical TABLESTYLE source fields are outside the admitted R24 profile");
+    const DRW_Textstyle* sourceTextStyle =
+        uniqueTextStyle(source, physicalTextStyleHandle);
+    if (physicalTextStyleHandle == 0u || sourceTextStyle == nullptr
+        || sourceTextStyle->name.empty())
+        return fail("physical TABLESTYLE source text-style reference does not resolve uniquely");
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-tablestyle-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "preserve physical R24 TABLESTYLE destination\n";
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical TABLESTYLE destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        const auto destinationIsSentinel = [&]() {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string contents{
+                std::istreambuf_iterator<char>{input}, {}};
+            return input.good() || input.eof() ? contents == sentinel : false;
+        };
+        sourceStyle.m_r24UnknownValue1 = 9;
+        const bool prefixRejected = !exportPartial();
+        sourceStyle.m_r24UnknownValue1 = 8;
+        if (!prefixRejected || !destinationIsSentinel())
+            return fail("unwitnessed physical R24 TABLESTYLE prefix was not refused atomically");
+        sourceStyle.m_cellStyles.front().m_contentFormat.m_textStyleHandle =
+            0x999u;
+        const bool referenceRejected = !exportPartial();
+        sourceStyle.m_cellStyles.front().m_contentFormat.m_textStyleHandle =
+            physicalTextStyleHandle;
+        if (!referenceRejected || !destinationIsSentinel())
+            return fail("unresolved physical R24 TABLESTYLE text-style reference was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical R24 TABLESTYLE could not retry on the same adapter: "
+                + writer.extensionGraphFailureDetail());
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.rawTableStyles.size() != 1u
+            || output.tableStyles.size() > 1u)
+            return fail("physical R24 TABLESTYLE output did not freshly import as one raw style record");
+        const DRW_Dictionary* outputDictionary =
+            tableStyleDictionary(output);
+        const DRW_RawDxfObject& raw = output.rawTableStyles.front();
+        if (outputDictionary == nullptr
+            || outputDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || raw.name != "TABLESTYLE"
+            || raw.handle == 0u || raw.handle == DRW::NoHandle
+            || raw.parentHandle != outputDictionary->handle
+            || tableStyleEntryCount(*outputDictionary, sourceStyle.m_name,
+                                    raw.handle) != 1u)
+            return fail("physical ACAD_TABLESTYLE output key/owner/readback is not uniquely closed");
+
+        const auto integerValues = [&raw](int code) {
+            std::vector<int> values;
+            for (const DRW_Variant& group : raw.groups)
+                if (group.code() == code
+                    && group.type() == DRW_Variant::INTEGER)
+                    values.push_back(group.i_val());
+            return values;
+        };
+        const auto doubleValues = [&raw](int code) {
+            std::vector<double> values;
+            for (const DRW_Variant& group : raw.groups)
+                if (group.code() == code
+                    && group.type() == DRW_Variant::DOUBLE)
+                    values.push_back(group.d_val());
+            return values;
+        };
+        const auto stringValues = [&raw](int code) {
+            std::vector<std::string> values;
+            for (const DRW_Variant& group : raw.groups)
+                if (group.code() == code
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr)
+                    values.emplace_back(group.c_str());
+            return values;
+        };
+        const auto countString = [&raw](int code, const char* value) {
+            return static_cast<std::size_t>(std::count_if(
+                raw.groups.begin(), raw.groups.end(), [code, value](
+                        const DRW_Variant& group) {
+                    return group.code() == code
+                        && group.type() == DRW_Variant::STRING
+                        && group.c_str() != nullptr
+                        && std::string(group.c_str()) == value;
+                }));
+        };
+        std::vector<std::tuple<int, int, std::string>> identities;
+        for (std::size_t index = 0; index + 4u < raw.groups.size(); ++index) {
+            const DRW_Variant& marker = raw.groups[index];
+            if (marker.code() != 1 || marker.type() != DRW_Variant::STRING
+                || marker.c_str() == nullptr
+                || std::string(marker.c_str()) != "CELLSTYLE_BEGIN")
+                continue;
+            const DRW_Variant& id = raw.groups[index + 1u];
+            const DRW_Variant& styleClass = raw.groups[index + 2u];
+            const DRW_Variant& name = raw.groups[index + 3u];
+            const DRW_Variant& end = raw.groups[index + 4u];
+            if (id.code() != 90 || id.type() != DRW_Variant::INTEGER
+                || styleClass.code() != 91
+                || styleClass.type() != DRW_Variant::INTEGER
+                || name.code() != 300 || name.type() != DRW_Variant::STRING
+                || name.c_str() == nullptr || end.code() != 309
+                || end.type() != DRW_Variant::STRING || end.c_str() == nullptr
+                || std::string(end.c_str()) != "CELLSTYLE_END")
+                return fail("physical R24 TABLESTYLE cell-style identity span is malformed");
+            identities.emplace_back(id.i_val(), styleClass.i_val(), name.c_str());
+        }
+        const std::vector<std::tuple<int, int, std::string>> expectedIdentities{
+            {4, 2, "Table"}, {1, 1, "_TITLE"},
+            {2, 1, "_HEADER"}, {3, 2, "_DATA"}};
+        std::vector<int> expectedBorders;
+        std::vector<double> expectedMargins;
+        std::vector<double> expectedTextHeights;
+        std::vector<int> expectedColors;
+        const auto appendExpectedStyle = [&expectedBorders, &expectedMargins,
+                                           &expectedTextHeights,
+                                           &expectedColors](
+                const DRW_TableStyleCellStyle& style) {
+            const auto color = [](int scalar,
+                                  const DRW_TableStyleCmcColor& cmc) {
+                return cmc.m_method == 0xC8u ? 257 : scalar;
+            };
+            expectedColors.push_back(
+                color(style.m_backgroundColor, style.m_backgroundColorCmc));
+            expectedColors.push_back(color(
+                style.m_contentFormat.m_contentColor,
+                style.m_contentFormat.m_contentColorCmc));
+            expectedMargins.push_back(style.m_contentFormat.m_rotation);
+            expectedMargins.insert(expectedMargins.end(), {
+                style.m_verticalMargin, style.m_horizontalMargin,
+                style.m_bottomMargin, style.m_rightMargin,
+                style.m_marginHorizontalSpacing,
+                style.m_marginVerticalSpacing});
+            expectedTextHeights.push_back(
+                style.m_contentFormat.m_textHeight);
+            for (const DRW_TableStyleBorder& border : style.m_borders) {
+                expectedBorders.push_back(border.m_edgeFlags);
+                expectedColors.push_back(color(border.m_color,
+                                               border.m_colorCmc));
+                expectedMargins.push_back(border.m_doubleLineSpacing);
+            }
+        };
+        appendExpectedStyle(sourceStyle.m_tableCellStyle);
+        for (const DRW_TableStyleCellStyle& style : sourceStyle.m_cellStyles)
+            appendExpectedStyle(style);
+        std::vector<std::uint32_t> emittedContentTextStyles;
+        for (const DRW_Variant& group : raw.groups) {
+            if (group.code() != 340 || group.type() != DRW_Variant::STRING
+                || group.c_str() == nullptr)
+                continue;
+            std::size_t parsed = 0u;
+            const unsigned long value = std::stoul(group.c_str(), &parsed, 16);
+            if (parsed != std::string(group.c_str()).size()
+                || value > std::numeric_limits<std::uint32_t>::max())
+                return fail("physical R24 TABLESTYLE emitted malformed group-340 handle");
+            if (value != 0u)
+                emittedContentTextStyles.push_back(
+                    static_cast<std::uint32_t>(value));
+        }
+        const DRW_Textstyle* outputTextStyle = nullptr;
+        std::size_t outputTextStyleMatches = 0u;
+        for (const DRW_Textstyle& textStyle : output.textStyles) {
+            if (!sameAsciiSymbol(textStyle.name, sourceTextStyle->name))
+                continue;
+            outputTextStyle = &textStyle;
+            ++outputTextStyleMatches;
+        }
+        if (identities != expectedIdentities
+            || countString(1, "TABLEFORMAT_BEGIN") != 4u
+            || countString(1, "CONTENTFORMAT_BEGIN") != 4u
+            || countString(1, "CELLMARGIN_BEGIN") != 4u
+            || countString(1, "GRIDFORMAT_BEGIN") != 18u
+            || countString(1, "CELLSTYLE_BEGIN") != 4u
+            || countString(309, "TABLEFORMAT_END") != 4u
+            || integerValues(95) != expectedBorders
+            || integerValues(171) != std::vector<int>({1, 1, 1, 1})
+            || doubleValues(40) != expectedMargins
+            || doubleValues(144) != expectedTextHeights
+            || integerValues(62) != expectedColors
+            || stringValues(3) != std::vector<std::string>{sourceStyle.m_name}
+            || emittedContentTextStyles.size() != 3u
+            || outputTextStyleMatches != 1u || outputTextStyle == nullptr
+            || outputTextStyle->handle == 0u
+            || !std::all_of(emittedContentTextStyles.begin(),
+                            emittedContentTextStyles.end(),
+                [outputTextStyle](std::uint32_t handle) {
+                    return handle == outputTextStyle->handle;
+                }))
+            return fail("physical R24 TABLESTYLE source fields or text-style references changed on output/readback");
+        std::cerr << "Physical R24 TABLESTYLE "
+                  << (binary ? "Binary" : "ASCII")
+                  << " readback passed: physical source fields, root/key/owner, "
+                     "rich cell-style markers, borders/colors/margins, remapped "
+                     "text-style references, atomic refusal and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -47795,6 +48192,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-output-readback")
         return physicalLayoutOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--tablestyle-physical-output-readback")
+        return physicalTableStyleOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--material-physical-output-readback")
         return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;
