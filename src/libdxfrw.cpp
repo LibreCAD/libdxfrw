@@ -21000,6 +21000,170 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::BasePointParameter
+                       && data.m_recordName == "BLOCKBASEPOINTPARAMETER"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // AC1024's exact base-point subclass chain is retained raw and
+                // projected only when every field and scalar domain matches.
+                static constexpr std::array<int, 26> expectedCodes{{
+                    100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 280, 281,
+                    100, 1010, 1020, 1030, 93, 170, 171, 100, 1011, 1021,
+                    1031, 1012, 1022, 1032}};
+                static constexpr std::array<std::string_view, 4>
+                    expectedSubclasses{{
+                        "AcDbEvalExpr", "AcDbBlockElement",
+                        "AcDbBlockParameter", "AcDbBlock1PtParameter"}};
+                std::array<const DRW_Variant*, expectedCodes.size()> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = raw.groups.size()
+                        == expectedCodes.size() + 2u
+                    && raw.groups.size() >= 2u
+                    && raw.groups[0].code() == 5
+                    && raw.groups[1].code() == 330;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!inBody) {
+                        if (group.code() != 100
+                            || group.type() != DRW_Variant::STRING
+                            || group.c_str() == nullptr
+                            || std::string_view(group.c_str())
+                                != expectedSubclasses[0])
+                            continue;
+                        inBody = true;
+                    }
+                    if (bodyCount >= body.size()) {
+                        completeBody = false;
+                        continue;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                const auto subclassGroup = [&body](std::size_t index,
+                                                   std::string_view value) {
+                    const DRW_Variant* group = body[index];
+                    return group != nullptr && group->code() == 100
+                        && group->type() == DRW_Variant::STRING
+                        && group->c_str() != nullptr
+                        && std::string_view(group->c_str()) == value;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t showProperties = 0;
+                std::int32_t chainActions = 0;
+                std::int32_t value93 = 0;
+                std::int32_t value170 = 0;
+                std::int32_t value171 = 0;
+                std::array<double, 9> coordinates{};
+                const DRW_Variant* elementName = body[5];
+                completeBody = completeBody && inBody
+                    && bodyCount == body.size()
+                    && subclassGroup(0u, expectedSubclasses[0])
+                    && integerGroup(body[1], 90, nodeId)
+                    && integerGroup(body[2], 98, evalMajor)
+                    && integerGroup(body[3], 99, evalMinor)
+                    && subclassGroup(4u, expectedSubclasses[1])
+                    && elementName != nullptr && elementName->code() == 300
+                    && elementName->type() == DRW_Variant::STRING
+                    && elementName->c_str() != nullptr
+                    && std::string_view(elementName->c_str()) == "Base Point"
+                    && integerGroup(body[6], 98, elementMajor)
+                    && integerGroup(body[7], 99, elementMinor)
+                    && integerGroup(body[8], 1071, eed1071)
+                    && subclassGroup(9u, expectedSubclasses[2])
+                    && integerGroup(body[10], 280, showProperties)
+                    && integerGroup(body[11], 281, chainActions)
+                    && subclassGroup(12u, expectedSubclasses[3])
+                    && integerGroup(body[16], 93, value93)
+                    && integerGroup(body[17], 170, value170)
+                    && integerGroup(body[18], 171, value171)
+                    && subclassGroup(19u,
+                        "AcDbBlockBasepointParameter")
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29
+                    && showProperties >= 0 && showProperties <= 1
+                    && chainActions >= 0 && chainActions <= 1
+                    && value170 >= std::numeric_limits<std::int16_t>::min()
+                    && value170 <= std::numeric_limits<std::int16_t>::max()
+                    && value171 >= std::numeric_limits<std::int16_t>::min()
+                    && value171 <= std::numeric_limits<std::int16_t>::max();
+                static constexpr std::array<int, 9> coordinateCodes{{
+                    1010, 1020, 1030, 1011, 1021, 1031, 1012, 1022, 1032}};
+                static constexpr std::array<std::size_t, 9>
+                    coordinateIndexes{{13u, 14u, 15u, 20u, 21u, 22u,
+                                       23u, 24u, 25u}};
+                for (std::size_t index = 0u;
+                     index < coordinateCodes.size() && completeBody; ++index) {
+                    completeBody = doubleGroup(
+                        body[coordinateIndexes[index]], coordinateCodes[index],
+                        coordinates[index]);
+                }
+                if (completeBody) {
+                    const char* name = elementName->c_str();
+                    DxfReadRetainedLeaseCheckpoint nameCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), std::strlen(name)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName = name;
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_showProperties = showProperties != 0;
+                        data.m_chainActions = chainActions != 0;
+                        data.m_defPoint = DRW_Coord(
+                            coordinates[0], coordinates[1], coordinates[2]);
+                        data.m_parameterValue93 = value93;
+                        data.m_parameterValue170 =
+                            static_cast<std::int16_t>(value170);
+                        data.m_parameterValue171 =
+                            static_cast<std::int16_t>(value171);
+                        data.m_point = DRW_Coord(
+                            coordinates[3], coordinates[4], coordinates[5]);
+                        data.m_basePoint = DRW_Coord(
+                            coordinates[6], coordinates[7], coordinates[8]);
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    nameCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
@@ -31503,6 +31667,39 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_elementName.empty() && ent->m_elementMajor == 0u
         && ent->m_elementMinor == 0u && ent->m_eed1071 == 0
         && ent->reactorHandles.empty();
+    const bool basePointParameterVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    const bool basePointParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::BasePointParameter
+        && ent->m_recordName == "BLOCKBASEPOINTPARAMETER"
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_elementParsed
+        && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && ent->m_parentId == std::numeric_limits<std::uint32_t>::max()
+        && basePointParameterVersions && ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueHandle == 0u
+        && ent->m_elementName == "Base Point" && ent->m_eed1071 == 0
+        && ent->m_propertyInfo1Count == 0
+        && ent->m_propertyInfo1Codes.empty()
+        && ent->m_propertyInfo1Names.empty()
+        && ent->m_propertyInfo2Count == 0
+        && ent->m_propertyInfo2Codes.empty()
+        && ent->m_propertyInfo2Names.empty()
+        && ent->m_propertyInfoCount == 0
+        && std::isfinite(ent->m_defPoint.x)
+        && std::isfinite(ent->m_defPoint.y)
+        && std::isfinite(ent->m_defPoint.z)
+        && std::isfinite(ent->m_point.x)
+        && std::isfinite(ent->m_point.y)
+        && std::isfinite(ent->m_point.z)
+        && std::isfinite(ent->m_basePoint.x)
+        && std::isfinite(ent->m_basePoint.y)
+        && std::isfinite(ent->m_basePoint.z)
+        && ent->reactorHandles.empty();
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -31661,7 +31858,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && unusedFlatHandles == 1u;
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
-        && !gripLocation && !visibilityGrip && !visibilityParameter)
+        && !basePointParameter && !gripLocation && !visibilityGrip
+        && !visibilityParameter)
         return failDxfWrite();
 
     RecordStateScope state(*this, ent);
@@ -31699,6 +31897,37 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
                 static_cast<std::int32_t>(ent->m_nodeId))
             && writer->writeInt32(98, 33)
             && writer->writeInt32(99, 29);
+    } else if (written && basePointParameter) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockParameter")
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_showProperties ? 1 : 0))
+            && writer->writeInt16(281,
+                static_cast<std::int16_t>(ent->m_chainActions ? 1 : 0))
+            && writer->writeString(100, "AcDbBlock1PtParameter")
+            && writer->writeDouble(1010, ent->m_defPoint.x)
+            && writer->writeDouble(1020, ent->m_defPoint.y)
+            && writer->writeDouble(1030, ent->m_defPoint.z)
+            && writer->writeInt32(93, ent->m_parameterValue93)
+            && writer->writeInt16(170, ent->m_parameterValue170)
+            && writer->writeInt16(171, ent->m_parameterValue171)
+            && writer->writeString(100,
+                "AcDbBlockBasepointParameter")
+            && writer->writeDouble(1011, ent->m_point.x)
+            && writer->writeDouble(1021, ent->m_point.y)
+            && writer->writeDouble(1031, ent->m_point.z)
+            && writer->writeDouble(1012, ent->m_basePoint.x)
+            && writer->writeDouble(1022, ent->m_basePoint.y)
+            && writer->writeDouble(1032, ent->m_basePoint.z);
     } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

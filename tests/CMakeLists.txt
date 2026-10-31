@@ -2388,6 +2388,19 @@ set_tests_properties(dwg2dxf_dynamic_block_parameter_dependency_body_writer
     TIMEOUT 30
 )
 
+# Exercise the exact AC1024 base-point parameter fields in both output
+# encodings, including invalid-coordinate rollback and a same-writer retry.
+add_test(
+    NAME dwg2dxf_dynamic_block_basepoint_parameter_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-basepoint-parameter-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_basepoint_parameter_writer
+    PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 add_test(
     NAME dwg2dxf_proxy_object_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits

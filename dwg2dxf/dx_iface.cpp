@@ -35260,6 +35260,38 @@ bool makeDwgDynamicOutputGroups(
         return true;
     }
     if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::BasePointParameter) {
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockParameter");
+        appendDwgDynamicInt(groups, 280, source.m_showProperties ? 1 : 0);
+        appendDwgDynamicInt(groups, 281, source.m_chainActions ? 1 : 0);
+        appendDwgDynamicString(groups, 100, "AcDbBlock1PtParameter");
+        groups.emplace_back(1010, source.m_defPoint.x);
+        groups.emplace_back(1020, source.m_defPoint.y);
+        groups.emplace_back(1030, source.m_defPoint.z);
+        appendDwgDynamicInt(groups, 93, source.m_parameterValue93);
+        appendDwgDynamicInt(groups, 170, source.m_parameterValue170);
+        appendDwgDynamicInt(groups, 171, source.m_parameterValue171);
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockBasepointParameter");
+        groups.emplace_back(1011, source.m_point.x);
+        groups.emplace_back(1021, source.m_point.y);
+        groups.emplace_back(1031, source.m_point.z);
+        groups.emplace_back(1012, source.m_basePoint.x);
+        groups.emplace_back(1022, source.m_basePoint.y);
+        groups.emplace_back(1032, source.m_basePoint.z);
+        return true;
+    }
+    if (source.m_kind
             != DRW_DynamicBlockObject::Kind::VisibilityParameter)
         return false;
     appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
@@ -59748,7 +59780,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || sameAsciiName(
                         cls.recName, "BLOCKVISIBILITYPARAMETER")
                     || sameAsciiName(
-                        cls.className, "AcDbBlockVisibilityParameter");
+                        cls.className, "AcDbBlockVisibilityParameter")
+                    || sameAsciiName(
+                        cls.recName, "BLOCKBASEPOINTPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockBasepointParameter");
             };
             std::map<std::string, std::size_t> instanceCounts;
             for (const DRW_DynamicBlockObject& object :
@@ -59773,6 +59809,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                            && sameAsciiName(object.m_recordName,
                                "BLOCKVISIBILITYPARAMETER")) {
                     ++instanceCounts["BLOCKVISIBILITYPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::BasePointParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKBASEPOINTPARAMETER")) {
+                    ++instanceCounts["BLOCKBASEPOINTPARAMETER"];
                 } else {
                     delete dxfW;
                     dxfW = nullptr;

@@ -10024,6 +10024,314 @@ bool dynamicBlockProxyNodeDxfWriter() {
     return true;
 }
 
+class DynamicBlockBasePointParameterWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockBasePointParameterDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const std::array<std::pair<bool, bool>, 4> sourceAndEncoding{{
+        {false, false}, {false, true}, {true, false}, {true, true}}};
+    static constexpr std::array<int, 28> expectedCodes{{
+        5, 330, 100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 280, 281,
+        100, 1010, 1020, 1030, 93, 170, 171, 100, 1011, 1021, 1031, 1012,
+        1022, 1032}};
+    for (const auto& profile : sourceAndEncoding) {
+        const bool dxfSource = profile.first;
+        const bool binary = profile.second;
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-basepoint-parameter-"
+               + std::to_string(nonce)
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        const std::string sentinel =
+            "incomplete base-point parameter must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create base-point writer sentinel");
+        }
+
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        DynamicBlockBasePointParameterWriterProbe iface;
+        iface.cData = &writeData;
+        iface.object = DRW_DynamicBlockObject("BLOCKBASEPOINTPARAMETER");
+        iface.object.handle = 0x1135u;
+        iface.object.parentHandle = 0x110Fu;
+        iface.object.m_evalExprParsed = true;
+        iface.object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        iface.object.m_major = dxfSource ? 33u : 29u;
+        iface.object.m_minor = dxfSource ? 29u : 2u;
+        iface.object.m_valueCode = -9999;
+        iface.object.m_nodeId = 79u;
+        iface.object.m_elementParsed = true;
+        iface.object.m_elementName = "Base Point";
+        iface.object.m_elementMajor = dxfSource ? 33u : 29u;
+        iface.object.m_elementMinor = dxfSource ? 29u : 2u;
+        iface.object.m_eed1071 = 0;
+        iface.object.m_showProperties = true;
+        iface.object.m_chainActions = false;
+        iface.object.m_defPoint = DRW_Coord(11.25, -12.5, 13.75);
+        iface.object.m_parameterValue93 = -4;
+        iface.object.m_parameterValue170 = 2;
+        iface.object.m_parameterValue171 = 3;
+        iface.object.m_point = DRW_Coord(21.25, -22.5, 23.75);
+        iface.object.m_basePoint = DRW_Coord(-31.25, 32.5, -33.75);
+        iface.object.m_bodyFullyDecoded = true;
+
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+        iface.object.m_basePoint.z = std::numeric_limits<double>::infinity();
+        if (writer.write(&iface, DRW::AC1024, binary)
+            || iface.objectWritten) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("non-finite base-point parameter was emitted");
+        }
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("failed base-point write replaced destination");
+            }
+        }
+
+        iface.object.m_basePoint.z = -33.75;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.objectWritten) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("corrected base-point body failed same-writer retry");
+        }
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        const bool read = reader.read(&readIface, false);
+        if (!read || readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u)
+            return fail("base-point output failed fresh DXF readback");
+        const DRW_DynamicBlockObject& typed =
+            readback.dynamicBlockObjects.front();
+        const DRW_RawDxfObject& raw =
+            readback.rawDynamicBlockObjects.front();
+        const bool typedMatches = typed.m_recordName
+                == "BLOCKBASEPOINTPARAMETER"
+            && typed.m_kind
+                == DRW_DynamicBlockObject::Kind::BasePointParameter;
+        if (!typedMatches || typed.handle != 0x1135u
+            || typed.parentHandle != 0x110Fu || !typed.m_bodyFullyDecoded
+            || !typed.m_evalExprParsed || typed.m_nodeId != 79u
+            || typed.m_major != 33u || typed.m_minor != 29u
+            || typed.m_valueCode != -9999 || !typed.m_elementParsed
+            || typed.m_elementName != "Base Point"
+            || !typed.m_showProperties || typed.m_chainActions
+            || typed.m_defPoint.x != 11.25 || typed.m_defPoint.y != -12.5
+            || typed.m_defPoint.z != 13.75 || typed.m_parameterValue93 != -4
+            || typed.m_parameterValue170 != 2
+            || typed.m_parameterValue171 != 3
+            || typed.m_point.x != 21.25 || typed.m_point.y != -22.5
+            || typed.m_point.z != 23.75 || typed.m_basePoint.x != -31.25
+            || typed.m_basePoint.y != 32.5 || typed.m_basePoint.z != -33.75
+            || raw.groups.size() != expectedCodes.size())
+            return fail("base-point typed fields changed on fresh readback");
+        for (std::size_t index = 0u; index < expectedCodes.size(); ++index) {
+            if (raw.groups[index].code() != expectedCodes[index])
+                return fail("base-point emitted DXF group order changed");
+        }
+        if (raw.groups[7].c_str() == nullptr
+            || std::string(raw.groups[7].c_str()) != "Base Point"
+            || raw.groups[15].d_val() != 11.25
+            || raw.groups[18].i_val() != -4
+            || raw.groups[22].d_val() != 21.25
+            || raw.groups[25].d_val() != -31.25
+            || raw.groups[27].d_val() != -33.75)
+            return fail("base-point raw wire values changed on readback");
+        if (!binary) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inBasePoint = false;
+            bool inserted = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inBasePoint = lines[index + 1u]
+                        == "BLOCKBASEPOINTPARAMETER";
+                    continue;
+                }
+                if (inBasePoint && code == 1032) {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 2u),
+                        {"70", "1"});
+                    inserted = true;
+                    break;
+                }
+            }
+            if (input.bad() || !inserted)
+                return fail("could not inject a base-point parser tail control");
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedOutputCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write base-point parser tail control");
+            }
+            dx_data tailedReadback;
+            tailedReadback.sourceFormat = dx_source_format::DXF;
+            tailedReadback.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedReadback;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            const bool tailedRead = tailedReader.read(&tailedIface, false);
+            if (!tailedRead || tailedReadback.dynamicBlockObjects.size() != 1u
+                || tailedReadback.rawDynamicBlockObjects.size() != 1u
+                || tailedReadback.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedReadback.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedReadback.rawDynamicBlockObjects.front().groups.size()
+                    != expectedCodes.size() + 1u)
+                return fail("unknown base-point tail did not remain raw-only");
+        }
+    }
+    if (!physicalSource.empty()) {
+        dx_data source;
+        dx_iface sourceReader;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("base-point physical witness is not AC1024 DWG");
+        const DRW_DynamicBlockObject* physicalObject = nullptr;
+        std::size_t physicalCount = 0u;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::BasePointParameter)
+                continue;
+            physicalObject = &object;
+            ++physicalCount;
+        }
+        if (physicalCount != 1u || physicalObject == nullptr
+            || physicalObject->m_recordName != "BLOCKBASEPOINTPARAMETER"
+            || !physicalObject->m_bodyFullyDecoded
+            || !physicalObject->m_evalExprParsed
+            || !physicalObject->m_elementParsed
+            || physicalObject->m_elementName != "Base Point"
+            || physicalObject->m_major != 29u
+            || physicalObject->m_minor != 2u
+            || physicalObject->m_elementMajor != 29u
+            || physicalObject->m_elementMinor != 2u)
+            return fail("physical base-point fields differ from the admitted profile");
+
+        const auto sameCoord = [](const DRW_Coord& lhs,
+                                  const DRW_Coord& rhs) {
+            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+        };
+        for (const bool binary : {false, true}) {
+            const std::filesystem::path output =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-dynamic-basepoint-physical-"
+                   + std::to_string(nonce)
+                   + (binary ? "-bin.dxf" : "-asc.dxf"));
+            const RemoveTemporaryFile outputCleanup{output};
+            dx_data writeData;
+            writeData.sourceFormat = dx_source_format::DWG;
+            writeData.sourceVersion = DRW::AC1024;
+            DynamicBlockBasePointParameterWriterProbe iface;
+            iface.cData = &writeData;
+            iface.object = *physicalObject;
+            dxfRW writer(output.string().c_str());
+            iface.dxfW = &writer;
+            if (!writer.write(&iface, DRW::AC1024, binary)
+                || !iface.objectWritten)
+                return fail("physical base-point record failed DXF serialization");
+
+            dx_data readback;
+            readback.sourceFormat = dx_source_format::DXF;
+            readback.sourceVersion = DRW::AC1024;
+            dx_iface readIface;
+            readIface.cData = &readback;
+            dxfRW reader(output.string().c_str());
+            if (!reader.read(&readIface, false)
+                || readback.dynamicBlockObjects.size() != 1u
+                || readback.rawDynamicBlockObjects.size() != 1u)
+                return fail("physical base-point output failed fresh readback");
+            const DRW_DynamicBlockObject& result =
+                readback.dynamicBlockObjects.front();
+            if (result.handle != physicalObject->handle
+                || result.parentHandle != physicalObject->parentHandle
+                || result.m_nodeId != physicalObject->m_nodeId
+                || result.m_major != 33u || result.m_minor != 29u
+                || result.m_valueCode != physicalObject->m_valueCode
+                || result.m_elementName != physicalObject->m_elementName
+                || result.m_eed1071 != physicalObject->m_eed1071
+                || result.m_showProperties != physicalObject->m_showProperties
+                || result.m_chainActions != physicalObject->m_chainActions
+                || result.m_parameterValue93
+                    != physicalObject->m_parameterValue93
+                || result.m_parameterValue170
+                    != physicalObject->m_parameterValue170
+                || result.m_parameterValue171
+                    != physicalObject->m_parameterValue171
+                || !sameCoord(result.m_defPoint, physicalObject->m_defPoint)
+                || !sameCoord(result.m_point, physicalObject->m_point)
+                || !sameCoord(result.m_basePoint, physicalObject->m_basePoint)
+                || !result.m_bodyFullyDecoded)
+                return fail("physical base-point fields changed on DXF readback");
+        }
+    }
+    std::cerr << "AC1024 base-point parameter writer passed for DWG/DXF "
+              << "source versions in ASCII/Binary: exact field order, "
+              << "destination rollback, same-writer retry, and fresh "
+              << "typed/raw readback.\n";
+    if (!physicalSource.empty())
+        std::cerr << "Physical AC1024 base-point source record also passed "
+                  << "ASCII/Binary serialization and typed readback.\n";
+    return true;
+}
+
 class DynamicBlockParameterDependencyBodyWriterProbe final : public dx_iface {
 public:
     std::vector<DRW_DynamicBlockObject> objects;
@@ -52568,6 +52876,12 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-proxy-node-dxf-writer")
         return dynamicBlockProxyNodeDxfWriter() ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-basepoint-parameter-dxf-writer")
+        return dynamicBlockBasePointParameterDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
             == "--dynamic-block-parameter-dependency-body-dxf-writer")
