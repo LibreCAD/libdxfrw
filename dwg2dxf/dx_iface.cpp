@@ -49113,6 +49113,10 @@ bool dx_iface::finalizeDxfWrite() {
             if (!qualifyCapturedIdentity(proof.first))
                 return false;
         }
+        for (const auto& proof : m_dwgDictionaryVarOutputSources) {
+            if (!qualifyCapturedIdentity(proof.first))
+                return false;
+        }
     }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG
