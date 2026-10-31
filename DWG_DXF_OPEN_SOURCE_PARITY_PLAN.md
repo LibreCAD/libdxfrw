@@ -43,11 +43,9 @@ P4–P9 are umbrella exit gates, not individual implementation tasks. A landed
 slice is removed from this queue and recorded by its commit and research
 receipt; the parent phase stays OPEN until its full gate passes. P9 is
 external-only and cannot close through ordinary local implementation work.
-Phase status is therefore not a count of completed slices. P2 and P3 have no
-active local rows in this residual queue; P4–P8 may each have completed slices
-while their aggregate exit gates remain OPEN. Use the linked receipts and Git
-commits for per-slice progress, and read the “next packet” below as the current
-action rather than evidence that earlier packets made no progress.
+Phase rows express aggregate exit gates, not item-level completion counts. P2
+and P3 have no residual local rows; use the open actions below for the remaining
+work. Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
@@ -68,9 +66,7 @@ type 34, VIEWPORT). Use the existing source and selector to prove its full
 source fields, owner/container role, remap, emitted record and fresh readback;
 qualify it only if the complete projection is closed. Then run the bounded fast
 strict-export/census sweep over the other existing repository and local DWG
-inputs and take only the first newly reproduced source-backed gap. The
-mechanical AC1024 witness already has all 228 opaque callbacks qualified; do
-not reopen that exact identity packet without a source mismatch. Keep strict
+inputs and take only the first newly reproduced source-backed gap. Keep strict
 refusal until each document's required graph is covered.
 
 ## P4 — original bodies and complete document closure
