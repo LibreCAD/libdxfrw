@@ -41,5 +41,5 @@
     "This refresh does not prove exact physical MATERIAL fields, source-to-output identity for every record, consumer semantics, native platform behavior, or any support claim.",
     "No DWG/DXF fixture was added to the repository."
   ],
-  "nextAction": "Close the 54-record ACDBASSOCGEOMDEPENDENCY source-to-planned/staged-output identity and reference-role mapping identified by p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json, then select the next highest-incidence unmatched source profile."
+  "nextAction": "The 54 geometry-dependency identities/roles are closed by p4-ac1024-geom-dependency-physical-identity-binding-2026-10-31.json. Continue with the eight physical DICTIONARYVAR source identities, owner/key roles, typed fields, ASCII/Binary readback, refusal and retry; do not repeat completed source profiles."
 }

@@ -56,17 +56,19 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — bind the 54 physical AC1024 geometry dependencies.** Their
-typed output and fresh readback already pass; bind every source identity to one
-unique planned/staged output identity and prove the dependency, constraint-group,
-dependent-entity, and reactor-backlink roles. The current gap and source profile
-are recorded in
-[`p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-geom-dependency-physical-output-readback-2026-10-31.json).
-Add only the missing identity/role proof and its narrow alias/missing/wrong-role
-controls; reuse the existing typed output and readback evidence. Then select the
-next highest-incidence unmatched profile from the census.
+**P4 next action — qualify the eight physical AC1024 DICTIONARYVAR records.**
+The callback census reports eight instances. Bind each source identity and
+owner/key role to its staged OBJECTS identity, compare the exact admitted typed
+fields, and verify ASCII/Binary output by fresh typed readback. Include
+missing/wrong-owner or key-target, alias, late-mutation refusal,
+destination-sentinel preservation, and corrected retry controls. Reuse the
+existing physical source and focused adapter selector patterns; do not add an
+investigation DWG/DXF fixture. Record the source field and output oracle
+dependencies before editing. See
+[`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json)
+for the current count and source profile.
 
-The current physical partial-output baseline is recorded in
+The latest physical partial-output baseline is recorded in
 [`p4-ac1024-current-partial-output-refresh-2026-10-31.json`](docs/research/p4-ac1024-current-partial-output-refresh-2026-10-31.json).
 The earlier SubDMesh registration and MATERIAL-inspection stops do not reproduce
 on this input/build, and this source has no `AcDbSubDMesh` CLASS row or MESH
